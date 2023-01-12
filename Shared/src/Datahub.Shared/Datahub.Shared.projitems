@@ -9,8 +9,13 @@
     <Import_RootNamespace>Datahub.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)TerraformOutputVariable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformOrganization.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformOutputVariable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformUser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformWorkspace.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformTemplate.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\TerraformRole.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Exceptions\ProjectNoFoundException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TerraformVariables.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\TerraformVariableExtraction.cs" />
   </ItemGroup>
 </Project>

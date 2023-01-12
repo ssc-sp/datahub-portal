@@ -1,5 +1,4 @@
-﻿using Datahub.Core.Services.Wiki;
-using Markdig;
+﻿using Markdig;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using Microsoft.Extensions.Configuration;

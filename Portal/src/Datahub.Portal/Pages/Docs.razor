@@ -93,6 +93,7 @@ else
                             {
                                 <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
                                     <MudButton Href=@_docService.GetEditUrl(_currentDoc)
+                                               OnClick=@HandleRemoveFromCache
                                                Color=@Color.Primary
                                                Variant=@Variant.Filled
                                                StartIcon=@Icons.Filled.Launch
@@ -194,7 +195,7 @@ display: -webkit-box";
     private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
 
-    private string BuildResourceLink(DocItem res) => $"/resources/{res.GetID()}";
+    private string BuildResourceLink(DocItem res) => $"/resources/{res.Id}";
 
     private string RewriteLink(string link)
     {
@@ -235,18 +236,18 @@ display: -webkit-box";
     protected override async Task OnParametersSetAsync()
     {
         docIsLoading = true;
+        _currentDoc = string.IsNullOrEmpty(PageName) ? _resourceRoot : _docService.LoadPage(PageName, _cultureService.IsFrench);
 
-        _currentDoc = string.IsNullOrEmpty(PageName) ?
-            _resourceRoot :
-            _docService.LoadPage(PageName);
+        if (_currentDoc is not null)
+        {
+            await _docService.BuildDocAndPreviews(_currentDoc);
+        }
 
-        await _docService.BuildDocAndPreviews(_currentDoc);
         docIsLoading = false;
         _markdownContent = string.Empty;
         _currentMarkdownCategory = null;
 
-
-        if (_currentDoc == null)
+        if (_currentDoc is null)
         {
             _markdownContent = "Error";
             await _docService.LogNotFoundError(PageName, _resourceRoot.Title);
@@ -287,7 +288,6 @@ display: -webkit-box";
         await RefreshErrorList();
 
         _docService.NotifyRefreshErrors += OnNotifyRefreshErrors;
-
     }
 
     private async Task OnNotifyRefreshErrors()
@@ -295,9 +295,13 @@ display: -webkit-box";
         await RefreshErrorList();
     }
 
+    private void HandleRemoveFromCache()
+    {
+        _docService.RemoveFromCache(_currentDoc);
+    }
+
     public void Dispose()
     {
         _docService.NotifyRefreshErrors -= OnNotifyRefreshErrors;
     }
-
 }

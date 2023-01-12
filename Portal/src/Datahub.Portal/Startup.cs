@@ -19,7 +19,6 @@ using Datahub.Core.Services.Metadata;
 using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Offline;
 using Datahub.Core.Services.Projects;
-using Datahub.Core.Services.ProjectTools;
 using Datahub.Core.Services.Search;
 using Datahub.Core.Services.Security;
 using Datahub.Core.Services.Storage;
@@ -52,14 +51,13 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Datahub.Application;
 using Datahub.Portal.Services.Auth;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.Extensions.Azure;
 using Microsoft.Identity.Web.UI;
 using Tewr.Blazor.FileReader;
 using Datahub.Core.Services.ResourceManager;
 using Datahub.Core.Services.Docs;
+using Datahub.Infrastructure;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -77,14 +75,14 @@ public class Startup
     private readonly IWebHostEnvironment _currentEnvironment;
     private ModuleManager moduleManager = new ModuleManager();
 
-    private bool ResetDB => (Configuration.GetSection("InitialSetup")?.GetValue<bool>("ResetDB", false) ?? false);
+    private bool ResetDB => ((bool)Configuration.GetSection("InitialSetup")?.GetValue("ResetDB", false));
 
     private bool EnsureDeleteinOffline =>
-        (Configuration.GetSection("InitialSetup")?.GetValue<bool>("EnsureDeleteinOffline", false) ?? false);
+        ((bool)Configuration.GetSection("InitialSetup")?.GetValue("EnsureDeleteinOffline", false));
 
-    private bool Offline => Configuration.GetValue<bool>("Offline", false);
+    private bool Offline => Configuration.GetValue("Offline", false);
 
-    private bool Debug => Configuration.GetValue<bool>("DebugMode", false);
+    private bool Debug => Configuration.GetValue("DebugMode", false);
 
     // This method gets called by the runtime. Use this method to add services to the container.
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
@@ -355,10 +353,11 @@ public class Startup
             services.AddScoped<PowerBiServiceApi>();
             services.AddScoped<IPowerBiDataService, PowerBiDataService>();
 
-            services.AddScoped<RegistrationService>();
-
             services.AddScoped<UpdateProjectMonthlyCostService>();
             services.AddScoped<IProjectCreationService, ProjectCreationService>();
+
+            services.AddDatahubApplicationServices();
+            services.AddDatahubInfrastructureServices(Configuration);
 
         }
         else

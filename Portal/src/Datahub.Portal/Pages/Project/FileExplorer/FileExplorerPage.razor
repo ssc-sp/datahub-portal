@@ -4,14 +4,19 @@
 
 @page "/projects/{ProjectAcronymParam}/filelist"
 @using Datahub.Core.Components.PageBanner
-@using Datahub.Core.Model.Datahub
 @using Datahub.Core.Services.Storage
 @using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
 @using Microsoft.Graph
 
 
 <DHPageTitle PageTitleKey="@_projectName"/>
-<DHPageAlert Title="How to use Project Storage" Key="@PageAlert.Storage" WikiLinkEN="Onboarding---Project-Storage" WikiLinkFR="Onboarding---Project-Storage"/>
+
+<DHPageAlert 
+    Title=@Localizer["How to use Project Storage"] 
+    Key="@PageAlert.Storage" 
+    WikiLinkEN="Onboarding---Project-Storage"
+    WikiLinkFR="fr/Stockage-du-projet-d'embarquement" 
+/>
 
 <MudStack>
     <MudText Typo="Typo.h4">@Localizer["Storage Explorer"]</MudText>
