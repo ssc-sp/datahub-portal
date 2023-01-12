@@ -17,6 +17,7 @@ public enum ProjectStatus
 {
     OnHold, InProgress, Support, Closed
 }
+
 public class Datahub_Project : IComparable<Datahub_Project>
 {
     public const string ONGOING = "Ongoing";
@@ -165,6 +166,8 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public List<Datahub_ProjectServiceRequests> ServiceRequests { get; set; }
 
     public List<Client_Engagement> Client_Engagements { get; set; }
+
+    public List<Project_Storage_Capacity> Storage_Capacities { get; set; }
 
     [StringLength(400)]
     [AeFormCategory("Initiative Connections")]
