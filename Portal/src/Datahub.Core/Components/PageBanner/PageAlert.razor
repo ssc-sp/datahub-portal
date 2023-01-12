@@ -1,24 +1,28 @@
+@*PageAlert.razor*@
 @inject Blazored.LocalStorage.ILocalStorageService _localStorage
 
 @if (!_hidePageAlert)
 {
-    <div class="page-alert">
-        <span class="alert-heading">
-            <i class="fas fa-info-circle alert-level-icon"></i>
-            <AeTypography Variant="h1" class="alert-title">@Title</AeTypography>
-            <span class="close-button-wrapper">
-                <AeButton class="button-tool" @onclick="HandlePageAlertClose">
-                    <i class="fas fa-times"></i>
-                </AeButton>
-            </span>
-        </span>
-        <div class="alert-body">
+    <MudCard Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderAvatar>
+                <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Primary" />
+            </CardHeaderAvatar>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h4">@Title</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Default" OnClick="HandlePageAlertClose" />
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
             @ChildContent
-        </div>
-    </div>
+        </MudCardContent>
+    </MudCard>
 }
 
 @code {
+
     [Parameter]
     public string Title { get; set; }
     
@@ -33,7 +37,6 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
-
         if (firstRender)
         {
             _hidePageAlert = await _localStorage.GetItemAsync<bool>(Key);

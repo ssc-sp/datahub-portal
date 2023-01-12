@@ -1,9 +1,9 @@
+using Datahub.Shared.Entities;
 using FluentValidation;
-using ResourceProvisioner.Domain.Entities;
 
 namespace ResourceProvisioner.Application.Common;
 
-public class OrganizationValidator : AbstractValidator<Organization>
+public class OrganizationValidator : AbstractValidator<TerraformOrganization>
 {
     public OrganizationValidator()
     {

@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading;
-using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Services.Notification;
+using Datahub.Shared.Entities;
 using Elemental.Components;
 using MudBlazor.Forms;
 using AeFormCategoryAttribute = MudBlazor.Forms.AeFormCategoryAttribute;
@@ -285,13 +285,13 @@ public class Datahub_Project : IComparable<Datahub_Project>
     }
 
     [AeFormIgnore]
-    public ResourceWorkspace ToResourceWorkspace(List<WorkspaceUser> users)
+    public TerraformWorkspace ToResourceWorkspace(List<TerraformUser> users)
     {
-        return new ResourceWorkspace()
+        return new TerraformWorkspace()
         {
             Name = Project_Name,
             Acronym = Project_Acronym_CD,
-            Organization = new WorkspaceOrganization()
+            TerraformOrganization = new TerraformOrganization()
             {
                 Name = Branch_Name ?? "TODO",
                 Code = "TODO"

@@ -1,10 +1,6 @@
 ﻿using Datahub.Core.Configuration;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
-using Datahub.Core.Services.Search;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 

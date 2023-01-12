@@ -41,9 +41,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<MiscStoredObject> MiscStoredObjects { get; set; }
 
     public DbSet<Datahub_ProjectApiUser> Project_ApiUsers { get; set; }
-        
-    public DbSet<Datahub_Registration_Request> Registration_Requests { get; set; }
-
     public DbSet<PowerBi_Workspace> PowerBi_Workspaces { get; set; }
     public DbSet<PowerBi_Report> PowerBi_Reports { get; set; }
     public DbSet<PowerBi_DataSet> PowerBi_DataSets { get; set; }

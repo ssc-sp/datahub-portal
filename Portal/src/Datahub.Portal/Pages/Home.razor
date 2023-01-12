@@ -10,7 +10,11 @@
 
 @page "/home/{TabIndex?}"
 
-<DHPageAlert Title="Welcome To DataHub" Key="@PageAlert.Home" WikiLinkEN="Onboarding---Landing" WikiLinkFR="Onboarding---Landing"/>
+<DHPageAlert 
+    Title=@Localizer["Welcome To DataHub"] 
+    Key="@PageAlert.Home" 
+    WikiLinkEN="Onboarding---Landing" 
+    WikiLinkFR="fr/Atterrissage-de-l'embarquement" />
 
 <WelcomeBanner/>
 <CascadingValue Name="GraphUser" Value="_user">
@@ -66,7 +70,7 @@
 
     private async Task SetupRootFolder()
     {
-    // We need to load user and check they have root folder
+        // We need to load user and check they have root folder
         var rootFolder = await _userInformationService.GetUserRootFolder();
 
         await _dataCreatorService.CreateRootFolderIfNotExist(_user.Id, rootFolder);

@@ -1,22 +1,13 @@
 ﻿using Datahub.Core.Services.Docs;
-using Datahub.Tests.Portal;
-using Lucene.Net.Store;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Identity.Web.UI.Areas.MicrosoftIdentity.Controllers;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Datahub.Tests.Docs
 {
@@ -70,8 +61,8 @@ namespace Datahub.Tests.Docs
             var root = await _service.GetLanguageRoot("en");
             Assert.NotNull(root);
             Assert.True(root.Childs.Count > 10);
-            var pageId = root.Childs[9].GetID();
-            var loadedPage = _service.LoadPage(pageId);
+            var pageId = root.Childs[9].Id!;
+            var loadedPage = _service.LoadPage(pageId, false);
             Assert.NotNull(loadedPage);
             var parent = _service.GetParent(loadedPage);
             Assert.NotNull(parent);
