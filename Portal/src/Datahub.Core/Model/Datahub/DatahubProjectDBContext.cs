@@ -146,12 +146,20 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasForeignKey(f => f.BranchId)
             .OnDelete(DeleteBehavior.NoAction);
 
-
         modelBuilder.Entity<Datahub_Project>()
             .HasOne(w => w.Division)
             .WithMany(p => p.Divisions)
             .HasForeignKey(f => f.DivisionId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Project_Storage_Capacity>(entity =>
+        {
+            entity.HasKey(e => new { e.ProjectId, e.Type });
+            entity.HasOne(e => e.Project)
+                  .WithMany(e => e.Storage_Capacities)
+                  .HasForeignKey(e => e.ProjectId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
 
         modelBuilder.Entity<PBI_User_License_Request>()
             .HasOne(p => p.LicenseRequest)
