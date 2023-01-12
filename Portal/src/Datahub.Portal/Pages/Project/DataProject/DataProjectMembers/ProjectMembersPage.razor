@@ -1,0 +1,102 @@
+@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
+@using Datahub.Core.Components.PageBanner
+@using Datahub.Achievements.Models
+@using Datahub.Core.Model.Datahub
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject IUserInformationService _userInformationService
+@inject ServiceAuthManager _serviceAuthManager
+@inject AchievementService _achievementService
+@inject IDatahubAuditingService _auditingService
+@inject ILogger<DataProjectPage> logger
+
+@page "/projects/{ProjectAcronymParam}/members"
+
+@if (_project is not null && _isProjectAdmin)
+{
+    <CascadingValue Value=@_project Name="Project">
+        <CascadingValue Value=@ProjectAcronymParam Name="ProjectAcronym">
+            <CascadingValue Value=@_userId Name="UserId">
+                <CascadingValue Value=@_isDatahubAdmin Name="IsDatahubAdmin">
+                    <CascadingValue Value="@_isProjectAdmin" Name="IsProjectAdmin">
+                        <CascadingValue Value=@_user Name="GraphUser">
+                            <CascadingValue Value=@_projectId Name="ProjectId">
+                                    <ProjectInfo/>
+                                    <ProjectMembersTable/>
+                            </CascadingValue>
+                        </CascadingValue>
+                    </CascadingValue>
+                </CascadingValue>
+            </CascadingValue>
+        </CascadingValue>
+    </CascadingValue>
+}
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronymParam { get; set; }
+
+    private Datahub_Project _project;
+    private Microsoft.Graph.User _user;
+    private string _userId;
+    private string _projectName;
+    private int _projectId;
+    private bool _isDatahubAdmin;
+    private bool _isProjectAdmin;
+    private bool _isFrench;
+    private bool _showCosts;
+    private List<Client_Engagement> _clientEngagements = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        _project = await projectContext.Projects
+            .Include(p => p.ServiceRequests)
+            .Include(p => p.Pipelines)
+            .AsSingleQuery()
+            .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
+            .FirstOrDefaultAsync();
+
+        _isFrench = Thread.CurrentThread.CurrentCulture.Name.Equals("fr-ca", StringComparison.OrdinalIgnoreCase);
+        _projectName = _project?.ProjectName;
+        _projectId = _project?.Project_ID ?? 0;
+
+        _userId = await _userInformationService.GetUserIdString();
+        if (_userId is null) logger.LogError("UserId is null");
+
+        _user = await _userInformationService.GetCurrentGraphUserAsync();
+        var authUser = (await _userInformationService.GetAuthenticatedUser());
+        _isDatahubAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+        _isProjectAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole($"{_project?.Project_Acronym_CD}-admin");
+
+        var isMemberOfProject = projectContext.Project_Users
+            .Any(p => p.User_ID == _userId && p.Project.Project_Acronym_CD == ProjectAcronymParam);
+
+        if (!isMemberOfProject)
+        {
+            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserViewProjectNotMemberOf);
+        }
+        _clientEngagements = await projectContext.Client_Engagements.Where(ce => ce.Project == _project && ce.Is_Engagement_Active).ToListAsync();
+        await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+    // refresh auth due to server pre-rendering
+            StateHasChanged();
+        }
+    }
+
+
+    private void HandleToggleCosts()
+    {
+        _showCosts = !_showCosts;
+    }
+
+}

@@ -1,0 +1,65 @@
+@using Datahub.Core.Data.Project
+@inject ServiceAuthManager ServiceAuthManager
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
+@inject IUserInformationService UserInformationService
+
+<MudTable Items="@_projectUsers" Striped Filter="new Func<ProjectMember,bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">To Be Replaced By Tabs</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.Name)">
+            @Localizer["Account"]
+        </MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.Email)">
+            @Localizer["Email"]
+        </MudTableSortLabel></MudTh>
+        <MudTh>@Localizer["Role"]</MudTh>
+        <MudTh>@Localizer["Last Logged In"]</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.Name</MudTd>
+        <MudTd>@context.Email</MudTd>
+        <MudTd>@(context.IsDataApprover ? "Publisher" : context.IsAdmin? "Admin" : "Contributor")</MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    private string _searchString = "";
+    private bool _isLoading = true;
+
+    private List<string> _authorizedRoles = new();
+
+    private List<ProjectMember> _projectUsers;
+    private Microsoft.Graph.User _user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var projectContext = await DbFactoryProject.CreateDbContextAsync();
+
+        _user = await UserInformationService.GetCurrentGraphUserAsync();
+
+        _projectUsers = await ServiceAuthManager.GetProjectMembers(ProjectAcronym);
+
+
+        _isLoading = false;
+    }
+    
+    private bool FilterFunc1(ProjectMember item)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+        if (item.Name?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+        return item.Email?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true;
+    }
+}
