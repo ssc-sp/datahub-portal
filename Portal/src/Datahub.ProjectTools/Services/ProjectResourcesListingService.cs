@@ -46,7 +46,8 @@ public class ProjectResourcesListingService
     private static Type[] ResourceProviders = new[] { 
         typeof(DHPublicSharing),
         typeof(DHPowerBIResource),
-        typeof(DHDataEntry)
+        typeof(DHDataEntry),
+        typeof(DHDatabricksResource)
             
     }; 
 
