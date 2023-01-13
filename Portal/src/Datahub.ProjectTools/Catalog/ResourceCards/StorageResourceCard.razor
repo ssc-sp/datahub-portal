@@ -1,6 +1,8 @@
 @using Datahub.Core.Model.Datahub
 
-<ToolCard Title="@Descriptor?.Title" Description="@Descriptor?.ResourceDescription">
+<ToolCard Title="@Descriptor?.Title" 
+          Description="@Descriptor?.ResourceDescription"
+          Tags="@Descriptor?.Tags?.ToList()">
     <Logo>
         @if (IsIconSvg)
         {
