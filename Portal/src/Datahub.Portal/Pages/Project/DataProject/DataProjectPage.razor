@@ -29,7 +29,7 @@
                         <CascadingValue Value="@_isProjectAdmin" Name="IsProjectAdmin">
                             <CascadingValue Value=@_user Name="GraphUser">
                                 <CascadingValue Value=@_projectId Name="ProjectId">
-                                    <MudItem xs="9">
+                                    <MudItem xs="9" lg="8">
                                         <ProjectInfo/>
                                         @if (_clientEngagements.Any())
                                         {
@@ -38,7 +38,7 @@
                                         <ProjectCatalog IsFrench="@_isFrench"/>
                                         <ProjectToolListing/>
                                     </MudItem>
-                                    <MudItem xs="3">
+                                    <MudItem xs="3" lg="4">
                                         <ProjectMembers/>
                                     </MudItem>
                                 </CascadingValue>

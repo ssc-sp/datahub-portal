@@ -1,10 +1,12 @@
 @using Datahub.Core.Model.Datahub
 
-<ToolCard Title="@Descriptor.Title" Description="@Descriptor.Description">
+<ToolCard Title="@Descriptor?.Title" 
+          Description="@Descriptor?.ResourceDescription"
+          Tags="@Descriptor?.Tags?.ToList()">
     <Logo>
         @if (IsIconSvg)
         {
-            <img src="@Icon" alt="@Descriptor.Title">
+            <img src="@Icon" alt="@Descriptor?.Title">
         }
         else
         {
@@ -19,22 +21,17 @@
 </ToolCard>
 
 @code {
-
     [Parameter]
     public GitHubModuleDescriptor? Descriptor { get; set; }
-
     [Parameter]
-    public string? Icon { get; set; }
-
+    public GitHubModule? GitHubModule { get; set; }
     [Parameter]
     public bool IsIconSvg { get; set; }
-
-    [Parameter]
-    public string? TemplateName { get; set; }
-
     [Parameter]
     public bool ResourceRequested { get; set; }
-
     [Parameter]
     public Datahub_Project? Project { get; set; }
+    
+    private string Icon => GitHubModule?.Icon ?? "fa-solid fa-cloud-question";
+    private string? TemplateName => GitHubModule?.Name;
 }
