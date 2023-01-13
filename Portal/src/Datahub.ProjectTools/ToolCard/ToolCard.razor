@@ -1,47 +1,51 @@
 @using MudBlazor.Utilities
+@using Foundatio
 
-@if (Loading)
-{
-    <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
-    return;
-}
 
-<MudCard Class="px-4 py-2">
-    <MudCardHeader>
-        <CardHeaderAvatar>
-            @if(Logo != null)
-            {
-                @Logo
-            }
-            else
-            {
-                <MudIcon Icon="fa-solid fa-tools" Size="Size.Large" />
-            }
-        </CardHeaderAvatar>
-        <CardHeaderContent>
-            <MudText Typo="Typo.h5">@Title</MudText>
-        </CardHeaderContent>
-        <CardHeaderActions>
-            <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" />
-        </CardHeaderActions>
-    </MudCardHeader>
-    <MudCardContent Style="@_descriptionStyle">
+<MudPaper Class="@_cardCss" Style="@_cardStyle">
+    <MudStack Justify="Justify.SpaceBetween">
         <MudStack>
-            @if (!string.IsNullOrWhiteSpace(Subtitle))
-            {
-                <MudText Typo="Typo.h6">@Subtitle</MudText>
-            }
-            <MudText Typo="Typo.body2">@Description</MudText>
+            <MudStack Row AlignItems="AlignItems.Center">
+                @if (Logo != null)
+                {
+                    @Logo
+                }
+                else
+                {
+                    <MudIcon Icon="fa-solid fa-tools" Size="Size.Large"/>
+                }
+                <MudText Typo="Typo.h5">@Title</MudText>
+            </MudStack>
+            <MudElement Class="mb-2">
+                @if (!string.IsNullOrWhiteSpace(Subtitle))
+                {
+                    <MudText Typo="Typo.h6">@Subtitle</MudText>
+                }
+                <MudText Typo="Typo.body2">@Description</MudText>
+            </MudElement>
         </MudStack>
-    </MudCardContent>
-    @if (ToolActionsList != null)
-    {
-        <MudCardActions Style="@_cardActionsStyle">
-            <div style="flex-grow: 1"></div>
-            @ToolActionsList
-        </MudCardActions>
-    }
-</MudCard>
+        <MudStack>
+            <MudElement>
+                @if (ToolActionsList != null)
+                {
+                    <MudStack AlignItems="AlignItems.Start" Justify="Justify.FlexEnd" Class="flex-1 my-2">
+                        @ToolActionsList
+                    </MudStack>
+                }
+                @if (Tags?.Count > 0)
+                {
+                    <MudElement Class="d-inline-flex flex-wrap mt-2">
+                        @foreach (var tag in Tags)
+                        {
+                            <MudChip Text="@tag" Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small"/>
+                        }
+                    </MudElement>
+                }
+            </MudElement>
+        </MudStack>
+    </MudStack>
+</MudPaper>
+
 
 @code {
 
@@ -53,30 +57,49 @@
 
     [Parameter]
     public RenderFragment? ToolActionsList { get; set; }
-    
+
     [Parameter]
     public string? Title { get; set; }
+
     [Parameter]
     public string? Subtitle { get; set; }
+
     [Parameter]
     public string? Description { get; set; }
-    
-    
+
+
     private string? _descriptionStyle;
-    private string? _cardActionsStyle;
+    private string? _cardContentStyle;
+    private string? _cardCss;
+    private string? _cardStyle;
+
+    [Parameter]
+    public List<string>? Tags { get; set; }
 
 
     protected override void OnInitialized()
     {
-        _descriptionStyle = new StyleBuilder()
-            .AddStyle("min-height", "200px")
+        _cardCss = new CssBuilder()
+            .AddClass("pa-6")
+            .AddClass("d-flex")
             .Build();
-        
-        _cardActionsStyle = new StyleBuilder()
-            .AddStyle("flex-direction", "column")
-            .AddStyle("align-items", "flex-start")
+
+        _cardStyle = new StyleBuilder()
+            .AddStyle("flex-basis", "400px")
+            .AddStyle("flex-grow", "1")
+            .AddStyle("max-width", "calc(50% - 8px)")
+            .Build();
+
+        _descriptionStyle = new StyleBuilder()
+    // .AddStyle("min-height", "200px")
+            .Build();
+
+        _cardContentStyle = new StyleBuilder()
+    // .AddStyle("flex-direction", "column")
+    // .AddStyle("align-items", "flex-start")
             .AddStyle("min-height", "140px")
-            .AddStyle("gap", "8px")
+    // .AddStyle("gap", "8px")
             .Build();
     }
+
 }
