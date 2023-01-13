@@ -1,6 +1,6 @@
 ﻿namespace SyncDocs;
 
-internal class ReplicationService
+internal class MarkdownDocumentationService
 {
 	private readonly ConfigParams _config;
 	private readonly string _sourcePath;
@@ -8,7 +8,7 @@ internal class ReplicationService
     private readonly FileNameCache _fileNameCache;
     private readonly FileMappingService _mappingService;
 
-    public ReplicationService(ConfigParams config, string sourcePath, TranslationService translationService, 
+    public MarkdownDocumentationService(ConfigParams config, string sourcePath, TranslationService translationService, 
         FileNameCache fileNameCache, FileMappingService mappingService)
 	{
 		_config = config;
@@ -18,13 +18,14 @@ internal class ReplicationService
         _mappingService = mappingService;
     }
 
-	public void AddFolder(string path) 
+	public Task AddFolder(string path) 
 	{
         var outputFolder = GetTargetPath(path);
         if (!Directory.Exists(outputFolder))
 		{
             Directory.CreateDirectory(outputFolder);
         }
+        return Task.CompletedTask;
     }
 
     public async Task AddFile(string path)

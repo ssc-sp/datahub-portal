@@ -1,7 +1,8 @@
 {
   "profiles": {
     "SyncDocs": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "gensidebars -p ../../../../../../../datahub-docs"
     }
   }
 }
