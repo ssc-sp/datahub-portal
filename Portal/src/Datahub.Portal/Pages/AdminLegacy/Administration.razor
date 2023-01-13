@@ -1,5 +1,4 @@
 ﻿@using Datahub.Portal.Pages.Admin.Requests
-@using Datahub.Portal.Pages.Admin.Requests.Registration
 @using Datahub.PowerBI.Pages.Admin
 
 @inject IUserInformationService _userInformationService
@@ -85,7 +84,6 @@
         {
             (Localizer["Project Requests"], @<ProjectAccessRequestTable/>),
             (Localizer["Service Requests"], @<ServiceCreationRequestTable/>),
-            (Localizer["Registration Requests"], @<ViewRegistrationRequests/>),
         };
 
         if (_user != null)
