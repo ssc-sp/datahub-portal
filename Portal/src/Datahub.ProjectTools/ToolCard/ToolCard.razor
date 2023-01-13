@@ -14,12 +14,12 @@
                 {
                     <MudIcon Icon="fa-solid fa-tools" Size="Size.Large"/>
                 }
-                <MudText Typo="Typo.h5">@Title</MudText>
+                <MudText Class="mb-3" Typo="Typo.h5">@Title</MudText>
             </MudStack>
             <MudElement Class="mb-2">
                 @if (!string.IsNullOrWhiteSpace(Subtitle))
                 {
-                    <MudText Typo="Typo.h6">@Subtitle</MudText>
+                    <MudText Class="mb-2" Typo="Typo.h6">@Subtitle</MudText>
                 }
                 <MudText Typo="Typo.body2">@Description</MudText>
             </MudElement>
