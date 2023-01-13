@@ -1,7 +1,5 @@
-<MudButton Variant="@Variant" EndIcon="@Icon" Color="Color.Primary" Size="Size.Small">
-    <DHLink Underline="Underline.None" Typo="Typo.button" LinkType="DatahubLinkType.ExternalUrl" ExternalUrl="@ExternalUrl" Variant="">
-        @Text
-    </DHLink>
+<MudButton Target="_blank" Href="@ExternalUrl" Variant="@Variant" EndIcon="@Icon" Color="Color.Primary" Size="Size.Small">
+    @Text
 </MudButton>
 
 @code {
