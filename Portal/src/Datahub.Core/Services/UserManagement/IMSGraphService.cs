@@ -9,7 +9,7 @@ public interface IMSGraphService
 {
     Dictionary<string, GraphUser> UsersDict { get; set; }
 
-    Task<GraphUser> GetUserAsync(string userId, CancellationToken token);
+    Task<GraphUser> GetUserAsync(string userId, CancellationToken token = default);
     Task<GraphUser> GetUserFromEmailAsync(string email, CancellationToken token);
     Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken token);
     Task<string> GetUserName(string userId, CancellationToken token = default);

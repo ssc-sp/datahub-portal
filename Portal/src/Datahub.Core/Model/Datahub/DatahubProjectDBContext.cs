@@ -41,9 +41,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<MiscStoredObject> MiscStoredObjects { get; set; }
 
     public DbSet<Datahub_ProjectApiUser> Project_ApiUsers { get; set; }
-        
-    public DbSet<Datahub_Registration_Request> Registration_Requests { get; set; }
-
     public DbSet<PowerBi_Workspace> PowerBi_Workspaces { get; set; }
     public DbSet<PowerBi_Report> PowerBi_Reports { get; set; }
     public DbSet<PowerBi_DataSet> PowerBi_DataSets { get; set; }
@@ -52,6 +49,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<ExternalPowerBiReport> ExternalPowerBiReports { get; set; }
 
     public DbSet<Client_Engagement> Client_Engagements { get; set; }
+
+    public DbSet<Project_Storage_Capacity> Storage_Capacities { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
@@ -149,12 +148,21 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasForeignKey(f => f.BranchId)
             .OnDelete(DeleteBehavior.NoAction);
 
-
         modelBuilder.Entity<Datahub_Project>()
             .HasOne(w => w.Division)
             .WithMany(p => p.Divisions)
             .HasForeignKey(f => f.DivisionId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Project_Storage_Capacity>(entity =>
+        {
+            entity.ToTable("Project_Storage_Capacities");
+            entity.HasKey(e => new { e.ProjectId, e.Type });
+            entity.HasOne(e => e.Project)
+                  .WithMany(e => e.Storage_Capacities)
+                  .HasForeignKey(e => e.ProjectId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
 
         modelBuilder.Entity<PBI_User_License_Request>()
             .HasOne(p => p.LicenseRequest)
