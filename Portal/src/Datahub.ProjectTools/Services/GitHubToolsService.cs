@@ -12,10 +12,12 @@ namespace Datahub.ProjectTools.Services;
 public record GitHubModule(string Name, string Path,
     string? CardName,
     string? CalculatorPath,
+    string? DocumentationUrl,
+    string? ActionUrl,
     string? Icon,
     List<GitHubModuleDescriptor> Descriptors);
 
-public record GitHubModuleDescriptor(string Language, string Title, string? Description, string[]? Tags);
+public record GitHubModuleDescriptor(string Language, string Title, string? CatalogSubtitle, string? CatalogDescription, string? ResourceDescription, string[]? Tags);
 
 public record RepositoryDescriptorErrors(string Path, string Error);
 
@@ -119,19 +121,25 @@ public class GitHubToolsService
         var en = new GitHubModuleDescriptor(
             "en",
             ValidateKey("Title", dir, descriptors) ?? "Missing Title",
-            ValidateKey("Why", dir, descriptors),
+            ValidateKey("Catalog Subtitle", dir, descriptors),
+            ValidateKey("Catalog Description", dir, descriptors),
+            ValidateKey("Resource Description", dir, descriptors),
             ValidateKey("Tags", dir, descriptors)?.Split(",").Select(t => t.Trim()).ToArray()
         );
         var fr = new GitHubModuleDescriptor(
             "fr",
             ValidateKey("Titre", dir, descriptors_fr) ?? "Titre absent",
-            ValidateKey("Pourquoi", dir, descriptors_fr),
+            ValidateKey("Sous-Titre du Catalogue", dir, descriptors_fr),
+            ValidateKey("Description du Catalogue", dir, descriptors_fr),
+            ValidateKey("Description de la Ressource", dir, descriptors_fr),
             ValidateKey("Mots Clefs", dir, descriptors_fr)?.Split(",").Select(t => t.Trim()).ToArray()
         );
         return new GitHubModule(dir.Name,
             dir.Path,
             GetFrontMatterValue(readmeDoc, "dhcard", dir),
             GetFrontMatterValue(readmeDoc, "calculator", dir),
+            GetFrontMatterValue(readmeDoc, "documentationUrl", dir),
+            GetFrontMatterValue(readmeDoc, "actionUrl", dir),
             GetFrontMatterValue(readmeDoc, "icon", dir),
             new List<GitHubModuleDescriptor> { en, fr }
         );
