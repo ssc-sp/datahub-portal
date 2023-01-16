@@ -50,6 +50,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     public DbSet<Client_Engagement> Client_Engagements { get; set; }
 
+    public DbSet<Project_Storage_Capacity> Storage_Capacities { get; set; }
+
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
         var p1 = context.Projects.Add(new Datahub_Project()
@@ -146,12 +148,21 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasForeignKey(f => f.BranchId)
             .OnDelete(DeleteBehavior.NoAction);
 
-
         modelBuilder.Entity<Datahub_Project>()
             .HasOne(w => w.Division)
             .WithMany(p => p.Divisions)
             .HasForeignKey(f => f.DivisionId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Project_Storage_Capacity>(entity =>
+        {
+            entity.ToTable("Project_Storage_Capacities");
+            entity.HasKey(e => new { e.ProjectId, e.Type });
+            entity.HasOne(e => e.Project)
+                  .WithMany(e => e.Storage_Capacities)
+                  .HasForeignKey(e => e.ProjectId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
 
         modelBuilder.Entity<PBI_User_License_Request>()
             .HasOne(p => p.LicenseRequest)

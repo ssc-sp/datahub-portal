@@ -4,6 +4,7 @@
 @using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Services.Notification
+@using MudBlazor.Utilities
 
 @inject ServiceAuthManager _serviceAuthManager
 @inject IUserInformationService _userInformationService
@@ -34,44 +35,40 @@
         <Authorized>
             @if (_activeResources?.Count > 0)
             {
-                <MudStack>
-                    <MudText Typo="Typo.h4">@Localizer["Active Project Tools"]</MudText>
+                <MudStack Class="my-12">
+                    <MudText Class="mb-4" Typo="Typo.h4">@Localizer["Active Project Tools"]</MudText>
                     @if (_isLoading)
                     {
                         <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
                     }
                     else
                     {
-                        <MudGrid>
+                        <MudElement HtmlTag="div" class="@_toolContainerClass">
                             @foreach (var active in _activeResources)
                             {
-                                <MudItem xs="4">
-                                    <DynamicComponent Parameters="active.parameters" Type="active.type"/>
-                                </MudItem>
+                                <DynamicComponent Parameters="active.parameters" Type="active.type"/>
                             }
-                        </MudGrid>
+                        </MudElement>
                     }
                 </MudStack>
             }
 
             @if (_inactiveResources?.Count > 0)
             {
-                <MudStack>
-                    <MudText Typo="Typo.h4">@Localizer["Available Project Tools"]</MudText>
+                <MudStack Class="my-12">
+                    <MudText Class="mb-4" Typo="Typo.h4">@Localizer["Service Catalog"]</MudText>
                     @if (_isLoading)
                     {
                         <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
                     }
                     else
                     {
-                        <MudGrid>
+                        <MudElement HtmlTag="div" class="@_toolContainerClass">
                             @foreach (var resource in _inactiveResources)
                             {
-                                <MudItem xs="4">
-                                    <DynamicComponent Parameters="resource.parameters" Type="resource.type"/>
-                                </MudItem>
+                                <DynamicComponent Parameters="resource.parameters" Type="resource.type"/>
                             }
-                        </MudGrid>
+                        </MudElement>
                     }
                 </MudStack>
             }
@@ -99,6 +96,18 @@
 
     private List<(Type type, IDictionary<string, object> parameters)> _activeResources;
     private List<(Type type, IDictionary<string, object> parameters)> _inactiveResources;
+    private string _toolContainerClass;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _toolContainerClass = new CssBuilder()
+            .AddClass("d-flex")
+            .AddClass("flex-wrap")
+            .AddClass("gap-4")
+            .Build();
+    }
 
     protected override async Task OnInitializedAsync()
     {
