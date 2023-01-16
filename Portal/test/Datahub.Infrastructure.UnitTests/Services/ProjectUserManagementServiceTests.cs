@@ -95,7 +95,7 @@ public class ProjectUserManagementServiceTests
             TestUserId
         });
 
-        Assert.ThrowsAsync<ProjectNoFoundException>(async () =>
+        Assert.ThrowsAsync<ProjectNotFoundException>(async () =>
         {
             await projectUserManagementService.AddUserToProject(nonExistentProjectAcronym, TestUserId);
         });
@@ -145,7 +145,7 @@ public class ProjectUserManagementServiceTests
             TestUserId
         });
 
-        Assert.ThrowsAsync<ProjectNoFoundException>(async () =>
+        Assert.ThrowsAsync<ProjectNotFoundException>(async () =>
         {
             await projectUserManagementService.RemoveUserFromProject(nonExistentProjectAcronym, TestUserId);
         });
