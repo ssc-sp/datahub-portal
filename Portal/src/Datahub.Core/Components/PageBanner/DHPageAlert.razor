@@ -72,7 +72,7 @@
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Cannot load page url", fullUrl);
+            _logger.LogError(ex, $"Cannot load page '{name}' from Wiki", fullUrl);
             return null;
         }
     }
