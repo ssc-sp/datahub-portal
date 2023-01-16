@@ -1,0 +1,53 @@
+@inject IMSGraphService MsGraphService 
+<MudDialog>
+    <DialogContent>
+        <MudText Class="py-2">@Localizer["Search for new users below using their email address. New users will be added as contributors."]</MudText>
+        <MudAutocomplete T="string" Label="@Localizer["User Email"]" Value="@null" ValueChanged="AddUser" SearchFunc="@SearchUsers"
+                         ResetValueOnEmptyText AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary"/>
+        <MudList Clickable>
+            @foreach (var user in _users)
+            {
+                <MudListItem Text="@user" Icon="fa-duotone fa-trash-can-slash" IconColor="Color.Primary" 
+                             OnClick="() => RemoveUser(user)"/>
+            }
+        </MudList>
+    </DialogContent>
+    
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(_users.Count == 0)">
+            @Localizer["Add New Users"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    private List<string> _users = new List<string>();
+    private bool _exactMatch;
+
+
+    private Task<IEnumerable<string>> SearchUsers(string search)
+    {
+        IEnumerable<string> userList = new string[]
+        {
+            "nsalt@uottawa.ca",
+            "nick.salt@ssc-spv.gc.ca",
+            "nsalt@apption.com"
+        };
+        return Task.FromResult(userList);
+    }
+
+
+    private void AddUser(string user)
+    {
+        _users.Add(user);
+    }
+    
+    private void RemoveUser(string user)
+    {
+        _users.Remove(user);
+    }
+    
+    void Submit() => MudDialog.Close(DialogResult.Ok(_users.Count));
+    void Cancel() => MudDialog.Cancel();
+}
