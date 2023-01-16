@@ -48,7 +48,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         {
             _logger.LogError("Project {ProjectAcronym} not found when trying to add user {UserGraphId}", projectAcronym,
                 userGraphId);
-            throw new ProjectNoFoundException($"Project {projectAcronym} not found");
+            throw new ProjectNotFoundException($"Project {projectAcronym} not found");
         }
 
         var exists = context.Project_Users
@@ -115,7 +115,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             _logger.LogError("Project {ProjectAcronym} not found when trying to remove user {UserGraphId}",
                 projectAcronym,
                 userGraphId);
-            throw new ProjectNoFoundException($"Project {projectAcronym} not found");
+            throw new ProjectNotFoundException($"Project {projectAcronym} not found");
         }
 
         var exists = await context.Project_Users
