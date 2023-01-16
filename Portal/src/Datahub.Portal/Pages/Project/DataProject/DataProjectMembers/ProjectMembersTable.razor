@@ -169,7 +169,8 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
     private async Task OpenDialog()
     {
         var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.ExtraLarge };
-        var dialog = await DialogService.ShowAsync<AddNewUsersToProjectDialog>(Localizer[INVITE_USERS_DIALOG_TITLE], dialogOptions);
+        var dialogParameters = new DialogParameters { { "CurrentProjectMembers", _projectUsers} };
+        var dialog = await DialogService.ShowAsync<AddNewUsersToProjectDialog>(Localizer[INVITE_USERS_DIALOG_TITLE], dialogParameters, dialogOptions);
         var result = await dialog.Result;
         if (!result.Cancelled)
         {
@@ -180,13 +181,13 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
             switch (resultInt)
             {
                 case 0:
-                    Snackbar.Add(Localizer["No new users were added to the project"], Severity.Info);
+                    Snackbar.Add(Localizer["No new users added to the project"], Severity.Info);
                     return;
                 case 1:
-                    Snackbar.Add($"1 {Localizer["new user was added to the project"]}", Severity.Success);
+                    Snackbar.Add($"1 {Localizer["new user added to the project"]}", Severity.Success);
                     return;
                 default:
-                    Snackbar.Add($"{resultInt} {Localizer["new users were added to the project"]}", Severity.Success);
+                    Snackbar.Add($"{resultInt} {Localizer["new users added to the project"]}", Severity.Success);
                     return;
             }
         }
