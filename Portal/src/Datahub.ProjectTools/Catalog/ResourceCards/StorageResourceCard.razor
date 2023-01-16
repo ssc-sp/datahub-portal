@@ -2,6 +2,7 @@
 
 <ToolCard Title="@Descriptor?.Title" 
           Description="@Descriptor?.ResourceDescription"
+          ReadMorePath="@GitHubModule?.ReadMorePath"
           Tags="@Descriptor?.Tags?.ToList()">
     <Logo>
         @if (IsIconSvg)
