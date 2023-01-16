@@ -6,7 +6,9 @@ This repository contains the source code the federal DataHub.
 
 ## Learn more about DataHub
 
-[Our documentation](https://ssc-sp.github.io/datahub-docs/#/)
+[See our documentation](https://ssc-sp.github.io/datahub-docs/#/)
+
+[Our documentation repository](https://github.com/ssc-sp/datahub-docs)
 
 # Github Structure
 
@@ -48,6 +50,8 @@ Ce dépôt contient le code source du DataHub fédéral.
 ## En savoir plus sur le DataHub
 
 [Notre documentation](https://ssc-sp.github.io/datahub-docs/#/)
+
+[Notre dépôt pour la documentation](https://github.com/ssc-sp/datahub-docs)
 
 ## Structure de Github
 
