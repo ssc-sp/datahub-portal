@@ -119,6 +119,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
         {
             await RefreshProjectUsers();
             _isLoading = false;
+            StateHasChanged();
         }
     }
 
@@ -189,6 +190,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
                     Snackbar.Add($"{resultInt} {Localizer["new users added to the project"]}", Severity.Success);
                     break;
             }
+            await RefreshProjectUsers();
             StateHasChanged();
         }
     }
