@@ -122,13 +122,13 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Datahub.Shared", "Shared\sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDocs", "Portal\utils\SyncDocs\SyncDocs.csproj", "{57703CEC-08B9-40B8-B5E2-064A196B1587}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.ProjectTools.Tests", "Portal\test\Datahub.ProjectTools.Tests\Datahub.ProjectTools.Tests.csproj", "{D623C5A9-7609-4579-896D-76FCE5C3AD9C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.ProjectTools.Tests", "Portal\test\Datahub.ProjectTools.Tests\Datahub.ProjectTools.Tests.csproj", "{D623C5A9-7609-4579-896D-76FCE5C3AD9C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Application", "Portal\src\Datahub.Application\Datahub.Application.csproj", "{29F1349F-4415-4725-A562-2DD59F5C14A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Application", "Portal\src\Datahub.Application\Datahub.Application.csproj", "{29F1349F-4415-4725-A562-2DD59F5C14A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Infrastructure", "Portal\src\Datahub.Infrastructure\Datahub.Infrastructure.csproj", "{BEA40233-6741-43AE-BA63-8D1ADA261420}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure", "Portal\src\Datahub.Infrastructure\Datahub.Infrastructure.csproj", "{BEA40233-6741-43AE-BA63-8D1ADA261420}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Infrastructure.UnitTests", "Portal\test\Datahub.Infrastructure.UnitTests\Datahub.Infrastructure.UnitTests.csproj", "{8DAF4132-5D66-4B90-953A-5B00F2F75BA4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure.UnitTests", "Portal\test\Datahub.Infrastructure.UnitTests\Datahub.Infrastructure.UnitTests.csproj", "{8DAF4132-5D66-4B90-953A-5B00F2F75BA4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -341,12 +341,13 @@ Global
 		{8DAF4132-5D66-4B90-953A-5B00F2F75BA4} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{79da8e04-5655-493a-80e4-37a07fbec90e}*SharedItemsImports = 13
-		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{a6a2ece8-6ec5-4dec-b14e-22d9f0e95ae4}*SharedItemsImports = 5
+		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{cf8de3c8-8b81-4569-8075-aad80b478b5f}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
