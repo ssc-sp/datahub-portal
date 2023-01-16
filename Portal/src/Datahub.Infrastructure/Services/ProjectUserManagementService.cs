@@ -35,70 +35,86 @@ public class ProjectUserManagementService : IProjectUserManagementService
         _contextFactory = contextFactory;
     }
 
-    public async Task AddUserToProject(string projectAcronym, string userGraphId)
+    public async Task AddUsersToProject(string projectAcronym, IEnumerable<string> userGraphIds)
     {
-        _logger.LogInformation("Preparing to add user {UserGraphId} to project {ProjectAcronym}", userGraphId,
-            projectAcronym);
-
+        using var scope = new TransactionScope(
+            TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
         await using var context = await _contextFactory.CreateDbContextAsync();
         var project = await context.Projects
             .Include(p => p.Users)
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-
         if (project == null)
         {
-            _logger.LogError("Project {ProjectAcronym} not found when trying to add user {UserGraphId}", projectAcronym,
-                userGraphId);
+            _logger.LogError("Project {ProjectAcronym} not found when trying to add users {Join}", projectAcronym, string.Join(", ", userGraphIds));
             throw new ProjectNotFoundException($"Project {projectAcronym} not found");
         }
-
-        var exists = context.Project_Users
-            .Any(u => u.User_ID == userGraphId && u.Project.Project_ID == project.Project_ID);
-
-        if (exists)
+        foreach (var userGraphId in userGraphIds)
         {
-            _logger.LogInformation("User {UserGraphId} already exists in project {ProjectAcronym}", userGraphId,
+            _logger.LogInformation("Preparing to add user {UserGraphId} to project {ProjectAcronym}", userGraphId,
                 projectAcronym);
-            return;
+
+            var exists = context.Project_Users
+                .Any(u => u.User_ID == userGraphId && u.Project.Project_ID == project.Project_ID);
+
+            if (exists)
+            {
+                _logger.LogInformation("User {UserGraphId} already exists in project {ProjectAcronym}", userGraphId,
+                    projectAcronym);
+            }
+            else
+            {
+                try
+                {
+                    
+                    var approvingUser = await _userInformationService.GetUserIdString();
+                    _logger.LogInformation(
+                        "Adding user {UserGraphId} to project {ProjectAcronym} by user {ApprovingUser}",
+                        userGraphId, projectAcronym, approvingUser);
+                    var user = await _msGraphService.GetUserAsync(userGraphId);
+
+                    var newProjectUser = new Datahub_Project_User
+                    {
+                        Project = project,
+                        User_ID = userGraphId,
+                        User_Name = user.Mail,
+
+                        IsAdmin = false,
+                        IsDataApprover = false,
+
+                        Approved_DT = DateTime.Now,
+                        ApprovedUser = approvingUser
+                    };
+
+                    context.Project_Users.Add(newProjectUser);
+                    _logger.LogInformation("User {UserGraphId} added to project {ProjectAcronym}", userGraphId,
+                        projectAcronym);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error adding user {UserGraphId} to project {ProjectAcronym}", userGraphId,
+                        projectAcronym);
+                    throw;
+                }
+            }
         }
-
-        using var scope = new TransactionScope(
-            TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
-
         try
         {
-            var approvingUser = await _userInformationService.GetUserIdString();
-            _logger.LogInformation("Adding user {UserGraphId} to project {ProjectAcronym} by user {ApprovingUser}",
-                userGraphId, projectAcronym, approvingUser);
-            var user = await _msGraphService.GetUserAsync(userGraphId);
-
-            var newProjectUser = new Datahub_Project_User
-            {
-                Project = project,
-                User_ID = userGraphId,
-                User_Name = user.Mail,
-
-                IsAdmin = false,
-                IsDataApprover = false,
-
-                Approved_DT = DateTime.Now,
-                ApprovedUser = approvingUser
-            };
-
-            context.Project_Users.Add(newProjectUser);
+            
             await context.SaveChangesAsync();
-            _logger.LogInformation("User {UserGraphId} added to project {ProjectAcronym}", userGraphId, projectAcronym);
-
             await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.VariableUpdate);
             _logger.LogInformation("Terraform variable update request created for project {ProjectAcronym}", projectAcronym);
             scope.Complete();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error adding user {UserGraphId} to project {ProjectAcronym}", userGraphId,
-                projectAcronym);
+            _logger.LogError(ex, "Error handling Terraform request for project {ProjectAcronym}", projectAcronym);
             throw;
         }
+    }
+    
+    public async Task AddUserToProject(string projectAcronym, string userGraphId)
+    {
+        await AddUsersToProject(projectAcronym, new List<string> {userGraphId});
     }
 
     public async Task RemoveUserFromProject(string projectAcronym, string userGraphId)

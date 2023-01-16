@@ -5,7 +5,8 @@ namespace Datahub.Application.Services;
 
 public interface IProjectUserManagementService
 {
-    Task AddUserToProject(string projectAcronym, string userGraphId);
+    Task AddUserToProject(string projectAcronym, string userGraphIds);
+    Task AddUsersToProject(string projectAcronym, IEnumerable<string> userGraphId);
     Task RemoveUserFromProject(string projectAcronym, string userGraphId);
     Task UpdateUserInProject(string projectAcronym, ProjectMember projectMember);
 

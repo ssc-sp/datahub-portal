@@ -106,23 +106,22 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
 
     protected override async Task OnInitializedAsync()
     {
-        
         var userId = await UserInformationService.GetUserIdString();
         if (userId is null) Logger.LogError("UserId is null");
         var authUser = (await UserInformationService.GetAuthenticatedUser());
         _isDatahubAdmin = !ServiceAuthManager.GetViewingAsGuest(userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
         _isProjectAdmin = !ServiceAuthManager.GetViewingAsGuest(userId) && authUser.IsInRole($"{ProjectAcronym}-admin");
-        if (_isDatahubAdmin || _isProjectAdmin)
-        {
-            await using var projectContext = await DbFactoryProject.CreateDbContextAsync();
-            _projectUsers = await ServiceAuthManager.GetProjectMembers(ProjectAcronym);
-            _filteredProjectMembers = _projectUsers;
-            UpdateProjectRoleCounts();
-        }
-        
-        _isLoading = false;
     }
-    
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await RefreshProjectUsers();
+            _isLoading = false;
+        }
+    }
+
     private bool SearchFilter(ProjectMember item)
     {
         if (string.IsNullOrWhiteSpace(_searchString))
@@ -169,7 +168,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
     private async Task OpenDialog()
     {
         var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.ExtraLarge };
-        var dialogParameters = new DialogParameters { { "CurrentProjectMembers", _projectUsers} };
+        var dialogParameters = new DialogParameters { { "CurrentProjectMembers", _projectUsers}, {"ProjectAcronym", ProjectAcronym} };
         var dialog = await DialogService.ShowAsync<AddNewUsersToProjectDialog>(Localizer[INVITE_USERS_DIALOG_TITLE], dialogParameters, dialogOptions);
         var result = await dialog.Result;
         if (!result.Cancelled)
@@ -182,14 +181,26 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
             {
                 case 0:
                     Snackbar.Add(Localizer["No new users added to the project"], Severity.Info);
-                    return;
+                    break;
                 case 1:
                     Snackbar.Add($"1 {Localizer["new user added to the project"]}", Severity.Success);
-                    return;
+                    break;
                 default:
                     Snackbar.Add($"{resultInt} {Localizer["new users added to the project"]}", Severity.Success);
-                    return;
+                    break;
             }
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshProjectUsers()
+    {
+        if (_isDatahubAdmin || _isProjectAdmin)
+        {
+            await using var projectContext = await DbFactoryProject.CreateDbContextAsync();
+            _projectUsers = await ServiceAuthManager.GetProjectMembers(ProjectAcronym);
+            ProjectMemberRoleFilter(_currentRoleFilter);
+            UpdateProjectRoleCounts();
         }
     }
 }
