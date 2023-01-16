@@ -5,6 +5,10 @@
 @inject IUserInformationService UserInformationService
 @inject IProjectUserManagementService ProjectUserManagementService
 @inject ILogger<DataProjectPage> Logger
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+
 @if (_isLoading)
 {
 
@@ -15,7 +19,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
 
         <ToolBarContent>
             <MudStack AlignItems="AlignItems.End" Style="width: 100%;" Class="pa-6">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@ADD_USER_ICON">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@ADD_USER_ICON" OnClick="OpenDialog">
                     @Localizer["Invite New User"]
                 </MudButton>
                 <MudStack Row Justify="Justify.SpaceBetween" Style="width: 100%;">
@@ -87,6 +91,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
     private string _searchString = "";
     private const string PROFILE_LINK_ICON = "fa-duotone fa-chevrons-right";
     private const string ADD_USER_ICON = "fa-duotone fa-user-plus";
+    private const string INVITE_USERS_DIALOG_TITLE = "Invite New Users";
     private bool _isLoading = true;
 
     private int _publisherCount;
@@ -159,5 +164,31 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
         _publisherCount = _projectUsers.Count(x => x.Role == ProjectMemberRole.Publisher);
         _adminCount = _projectUsers.Count(x => x.Role == ProjectMemberRole.Admin);
         _contributorCount = _projectUsers.Count(x => x.Role == ProjectMemberRole.Contributor);
+    }
+
+    private async Task OpenDialog()
+    {
+        var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.ExtraLarge };
+        var dialog = await DialogService.ShowAsync<AddNewUsersToProjectDialog>(Localizer[INVITE_USERS_DIALOG_TITLE], dialogOptions);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            var resultInt = (int)result.Data;
+            // if result int is 1, return a string in singular form saying 1 user was added, if multiple, return a string in plural form saying x users were added
+            // if result int is 0, return a string saying no users were added
+
+            switch (resultInt)
+            {
+                case 0:
+                    Snackbar.Add(Localizer["No new users were added to the project"], Severity.Info);
+                    return;
+                case 1:
+                    Snackbar.Add($"1 {Localizer["new user was added to the project"]}", Severity.Success);
+                    return;
+                default:
+                    Snackbar.Add($"{resultInt} {Localizer["new users were added to the project"]}", Severity.Success);
+                    return;
+            }
+        }
     }
 }
