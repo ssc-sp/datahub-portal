@@ -9,7 +9,10 @@
 @if (_isLoading)
 {
     <span class="project-members-skeleton-positioning">
-        <Skeleton Width="100px" Height="1.5rem"/>
+        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-4">
+            <Skeleton Width="150px" Height="2rem"/>
+            <Skeleton Width="100px" Height="1.5rem"/>
+        </MudStack>
         @for (var i = 0; i < 4; i++)
         {
             <span style="display: flex; margin: 1rem 0">
