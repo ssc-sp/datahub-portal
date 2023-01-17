@@ -16,6 +16,7 @@ public interface IRequestManagementService
     public const string STORAGE = ProjectResourceConstants.SERVICE_TYPE_STORAGE;
     public const string SQLSERVER = ProjectResourceConstants.SERVICE_TYPE_SQL_SERVER;
     public const string POSTGRESQL = ProjectResourceConstants.SERVICE_TYPE_POSTGRES;
+    public const string VIRTUAL_MACHINE  = ProjectResourceConstants.SERVICE_TYPE_VIRTUAL_MACHINE;
 
     Task<ProjectResourceFormParams> CreateResourceInputFormParams(string resourceType);
     Task<Dictionary<string, string>> GetDefaultValues(string resourceType);
