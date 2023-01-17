@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using Datahub.Core.Model.Datahub;
-using Lucene.Net.Analysis.Hunspell;
 
 namespace Datahub.Core.Data.Project;
 
 public class ProjectMember
 {
-    public string UserId { get; init; }
+    public string UserId { get; }
     public string Email { get; }
     public string Name { get; init; }
     public DateTime? UserAddedToProject { get; }
