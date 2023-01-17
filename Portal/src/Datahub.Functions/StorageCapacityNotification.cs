@@ -12,21 +12,28 @@ namespace Datahub.Functions;
 
 public class StorageCapacityNotification
 {
-    private readonly DatahubProjectDBContext _dbContext;
     private readonly ILogger<StorageCapacityNotification> _logger;
     private readonly AzureConfig _config;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly DatahubProjectDBContext _dbContext;
 
     public StorageCapacityNotification(ILoggerFactory loggerFactory, IConfiguration configuration, IHttpClientFactory httpClientFactory, DatahubProjectDBContext dbContext)
     {
-        _dbContext = dbContext;
         _logger = loggerFactory.CreateLogger<StorageCapacityNotification>();
         _config = new(configuration);
         _httpClientFactory = httpClientFactory;
+        _dbContext = dbContext;
+    }
+
+    [Function("ScheduleStorageCapacityValidation")]
+    public async Task RunScheduleStorageCapacityValidation([TimerTrigger("0 0 * * * *")] TimerInfo timerInfo)
+    {
+        // >> triggered hourly, should iterate over the table Project_Resources2
+        await Task.CompletedTask;
     }
 
     [Function("StorageCapacityNotification")]
-    public async Task Run([QueueTrigger("storage-capacity", Connection = "datahub-storage-queue")] string queueItem)
+    public async Task RunStorageCapacityNotification([QueueTrigger("storage-capacity", Connection = "datahub-storage-queue")] string queueItem)
     {
         // deserialize message
         var msg = DeserializeQueueMessage(queueItem);
@@ -54,7 +61,7 @@ public class StorageCapacityNotification
             return;
         }
 
-        // validate email configuration...
+        // validate email smtp configuration...
 
         // obtain an access token
         var token = await TryGetToken();
@@ -184,7 +191,8 @@ public class StorageCapacityNotification
         string? token = default;
         try
         {
-            token = await (new AuthenticationUtils(_config, _httpClientFactory)).GetAccessTokenAsync("https://management.core.windows.net/");
+            var authUtil = new AuthenticationUtils(_config, _httpClientFactory);
+            token = await authUtil.GetAccessTokenAsync("https://management.core.windows.net/");
         }
         catch (Exception ex)
         {
