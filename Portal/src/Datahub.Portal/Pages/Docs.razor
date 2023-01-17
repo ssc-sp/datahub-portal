@@ -26,16 +26,25 @@ else
                 @foreach (var cat in _resourceRoot.Childs)
                 {
                     var isCurrentCat = (_currentMarkdownCategory == cat);
-                    var catIcon = isCurrentCat ? Icons.Filled.FolderOpen : Icons.Filled.Folder;
-
-                    <MudNavGroup Icon=@catIcon Expanded=@isCurrentCat Title=@cat.Title ExpandedChanged=@((v) => UpdateCategory(cat, v))>
-                        @foreach (var article in cat.Childs)
-                        {
-                            <MudNavLink Href=@BuildResourceLink(article)>
-                                <MudText Typo=@Typo.body2>@article.Title</MudText>
-                            </MudNavLink>
-                        }
-                    </MudNavGroup>
+                    var isDoc = cat.Childs.Count == 0;                    
+                    var catIcon = isDoc? Icons.Filled.MenuBook: isCurrentCat ? Icons.Filled.FolderOpen : Icons.Filled.Folder;
+                    if (isDoc)
+                    {
+                        <MudNavLink Icon=@Icons.Filled.MenuBook Href=@BuildResourceLink(cat)>
+                            <MudText Typo=@Typo.body2>@cat.Title</MudText>
+                        </MudNavLink>
+                    }
+                    else 
+                    {
+                        <MudNavGroup Icon=@catIcon Expanded=@isCurrentCat Title=@cat.Title ExpandedChanged=@((v) => UpdateCategory(cat, v))>
+                            @foreach (var article in cat.Childs)
+                            {
+                                <MudNavLink Icon=@Icons.Filled.MenuBook Href=@BuildResourceLink(article)>
+                                    <MudText Typo=@Typo.body2>@article.Title</MudText>
+                                </MudNavLink>
+                            }
+                        </MudNavGroup>
+                    }
                 }
             </MudNavMenu>
         </MudItem>
@@ -283,7 +292,7 @@ display: -webkit-box";
     {
         var isFrench = _cultureService.IsFrench;
 
-        _resourceRoot = await _docService.GetLanguageRoot(_cultureService.Culture, useCache);
+        _resourceRoot = await _docService.GetLanguageRoot(DocumentationGuide.UserGuide, _cultureService.Culture, useCache);
 
         await RefreshErrorList();
 

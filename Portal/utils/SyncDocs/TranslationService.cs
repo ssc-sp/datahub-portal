@@ -6,10 +6,10 @@ internal class TranslationService
     private readonly Translator? _client;
     private readonly string _sourcePath;
 
-    public TranslationService(string sourcePath, string deeplKey) 
+    public TranslationService(string sourcePath, string deeplKey, bool useFreeAPI) 
     {
         _sourcePath = sourcePath;
-        _client = !string.IsNullOrEmpty(deeplKey) ? new Translator(deeplKey) : null;
+        _client = !string.IsNullOrEmpty(deeplKey) ? new Translator(deeplKey, new TranslatorOptions() {  ServerUrl = useFreeAPI? "https://api-free.deepl.com":null }) : null;
     }
 
     public async Task<string> TranslateFileName(string fileName) 
@@ -30,13 +30,17 @@ internal class TranslationService
             return;
 
         var sourceFileUrl = GetSourceFilePathUrl(sourcePath);
-        var remarks = $"[_metadata_: remarks]:- \"Automatically translated with DeepL. From: {sourceFileUrl}\"";
-        var note = $"[_(draft documentation, please review)_]({sourceFileUrl})";
+        var metadata = $"---\nremarks: Automatically translated with DeepL\nsource: {sourceFileUrl}\n---";
+        //var remarks = $"[_metadata_: remarks]:- \"Automatically translated with DeepL. From: {sourceFileUrl}\"";
+        //var note = $"[_(draft documentation, please review)_]({sourceFileUrl})";
+        var note = $"_(draft documentation, please review)_";
 
         using var writer = new StreamWriter(outputPath);
-
-        writer.WriteLine(remarks);
-        writer.WriteLine();
+        if (!isSidebar)
+        {
+            writer.WriteLine(metadata);
+            writer.WriteLine();
+        }
 
         writer.WriteLine(note);
         writer.WriteLine();
@@ -55,7 +59,7 @@ internal class TranslationService
 
     private async Task<string> TranslateSidebar(string text, string relPath)
     {
-        var link = TryMatchLink(text);
+        var link = TryParseLink(text);
         if (link == null)
         {
             return await Translate(text);
@@ -63,8 +67,8 @@ internal class TranslationService
         else
         {
             var heading = await Translate(link.Heading);
-            var path = await TranslateFilePath(link.Path);
-            return string.Format(link.Template, heading, $"{relPath}{path}");
+            var path = await TranslateFilePath(link.Path);            
+            return string.Format(link.Template, heading, $"{relPath}{(path.StartsWith("/")?"":"/")}{path}");
         }
     }
 
@@ -84,6 +88,7 @@ internal class TranslationService
 
     private async Task<string> Translate(string text) 
     {
+        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
         var translateResult = await _client!.TranslateTextAsync(text, LanguageCode.English, LanguageCode.French);
         return translateResult?.Text ?? text;
     }
@@ -110,7 +115,7 @@ internal class TranslationService
         }
     }
 
-    static LinkData? TryMatchLink(string text)
+    static LinkData? TryParseLink(string text)
     {
         // match [head]
         var (index1, index2) = GetDelimitedRange(text, '[', ']', 0);
