@@ -14,7 +14,7 @@ public class UpdateProjectMonthlyCost
 {
     private readonly DatahubProjectDBContext _dbContext;
     private readonly IConfiguration _configuration;
-    private readonly ILogger<UpdateProjectMonthlyCost> _logger;
+    private readonly ILogger<AzureCostManagementService> _logger;
     private const string TENANT_ID = "TENANT_ID";
     private const string CLIENT_ID = "FUNC_SP_CLIENT_ID";
     private const string CLIENT_SECRET = "FUNC_SP_CLIENT_SECRET";
@@ -23,7 +23,7 @@ public class UpdateProjectMonthlyCost
     {
         _dbContext = dbContext;
         _configuration = configuration;
-        _logger = loggerFactory.CreateLogger<UpdateProjectMonthlyCost>();
+        _logger = loggerFactory.CreateLogger<AzureCostManagementService>();
     }
     
     // This Azure Function will be triggered everyday at 2:00 AM UTC and will capture the current cost for the month using the Azure forecast API
