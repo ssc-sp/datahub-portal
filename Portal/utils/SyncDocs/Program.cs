@@ -32,7 +32,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
     var fileMappingService = new FileMappingService();
 
     // translation service
-    var translationService = new TranslationService(options.Path, deeplKey);
+    var translationService = new TranslationService(options.Path, deeplKey, options.UseFreeAPI);
 
     // replication service
     var markdownService = new MarkdownDocumentationService(configParams, options.Path, translationService, fileNameCache, fileMappingService);
@@ -133,12 +133,17 @@ static int FolderDepth(string path)
 [Verb("translate", HelpText = "Translate the documentation")]
 public class TranslateOptions
 {
-    [Option('p', "path", Required = false)]
+    [Option('P', "path", Required = false)]
     public string Path { get; set; } = ".";
 
     [Option("deepl", Required = false)]
     public string? DeeplKey { get; set; } = null;
 
+    [Option('f',"FreeAPI", Required = false)]
+    public bool UseFreeAPI { get; set; } = false;
+
+    [Option('p', "profile", Required = true)]
+    public string Profile { get; set; } = "ssc";
 }
 
 [Verb("gensidebars", HelpText = "Generate sidebar files")]

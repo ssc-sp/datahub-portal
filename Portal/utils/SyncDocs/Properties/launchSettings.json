@@ -6,7 +6,7 @@
     },
     "SyncDocs (translate)": {
       "commandName": "Project",
-      "commandLineArgs": "translate -P ../../../../../../../datahub-docs -p ssc"
+      "commandLineArgs": "translate -P ../../../../../../../datahub-docs -p ssc -f"
     }
   }
 }
