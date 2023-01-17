@@ -10,7 +10,6 @@ using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
 using Moq;
 
 namespace Datahub.Infrastructure.UnitTests.Services;
@@ -21,6 +20,7 @@ public class ProjectUserManagementServiceTests
 {
     private Mock<IDbContextFactory<DatahubProjectDBContext>> _mockFactory = null!;
     private Mock<IUserInformationService> _mockUserInformationService = null!;
+    // ReSharper disable once InconsistentNaming
     private Mock<IMSGraphService> _mockIMSGraphService = null!;
     private Mock<IRequestManagementService> _mockRequestManagementService = null!;
 
@@ -50,7 +50,7 @@ public class ProjectUserManagementServiceTests
         _mockIMSGraphService = new Mock<IMSGraphService>();
         _mockIMSGraphService
             .Setup(f => f.GetUserAsync(It.Is<string>(s => TEST_USER_IDS.Contains(s) || s == TestUserId), CancellationToken.None))
-            .Returns((string id, CancellationToken token) => Task.FromResult(new GraphUser
+            .Returns((string id, CancellationToken _) => Task.FromResult(new GraphUser
                 {
                     mailAddress = new MailAddress(TestUserEmail),
                     Id = id,
@@ -209,11 +209,7 @@ public class ProjectUserManagementServiceTests
         {
             TestUserId,
         }, TestProjectAcronym, currentRole);
-        var projectMember = new ProjectMember()
-        {
-            UserId = TestUserId, Role = newRole
-            
-        };
+        var projectMember = new ProjectMember(TestUserId, newRole);
         await projectUserManagementService.UpdateUserInProject(TestProjectAcronym, projectMember);
 
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
@@ -237,7 +233,8 @@ public class ProjectUserManagementServiceTests
 
         Assert.ThrowsAsync<ProjectNotFoundException>(async () =>
         {
-            await projectUserManagementService.UpdateUserInProject(nonExistentProjectAcronym, new ProjectMember());
+            await projectUserManagementService.UpdateUserInProject(nonExistentProjectAcronym, 
+                new ProjectMember(TestUserId, ProjectMemberRole.Contributor));
         });
     }
     
@@ -249,12 +246,8 @@ public class ProjectUserManagementServiceTests
         await SeedDatabase(new List<string>
         {
             TestUserId,
-        }, TestProjectAcronym, ProjectMemberRole.Contributor);
-        var projectMember = new ProjectMember()
-        {
-            UserId = nonExistentUserId, Role = ProjectMemberRole.Admin
-            
-        };
+        });
+        var projectMember = new ProjectMember(nonExistentUserId, ProjectMemberRole.Admin);
         Assert.ThrowsAsync<UserNotFoundException>(async () =>
         {
             await projectUserManagementService.UpdateUserInProject(TestProjectAcronym, projectMember);
@@ -272,11 +265,7 @@ public class ProjectUserManagementServiceTests
         {
             TestUserId,
         }, TestProjectAcronym, currenRole);
-        var projectMember = new ProjectMember()
-        {
-            UserId = TestUserId, Role = newRole
-            
-        };
+        var projectMember = new ProjectMember(TestUserId, newRole);
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
         var projectUser = await context.Project_Users.FirstAsync();
         Assert.Multiple(() =>
@@ -360,8 +349,8 @@ public class ProjectUserManagementServiceTests
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.IsAny<string>()), Times.Never);
     
-        await SeedDatabase(new List<string>{TestUserId},TestProjectAcronym, ProjectMemberRole.Contributor);
-        var projectMember = new ProjectMember(){UserId = TestUserId, Role = ProjectMemberRole.Publisher};
+        await SeedDatabase(new List<string>{TestUserId});
+        var projectMember = new ProjectMember(TestUserId, ProjectMemberRole.Publisher);
         await projectUserManagementService.UpdateUserInProject(TestProjectAcronym, projectMember);
 
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),

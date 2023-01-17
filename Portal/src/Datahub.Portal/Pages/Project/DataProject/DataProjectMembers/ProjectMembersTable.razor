@@ -50,7 +50,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
             </MudTh>
             <MudTh>@Localizer["Role"]</MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.UserAddedProject)">
+                <MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.UserAddedToProject)">
                     @Localizer["Added to Project"]
                 </MudTableSortLabel>
             </MudTh>
@@ -64,7 +64,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
                 <ProjectMembersRoleSelect ProjectMember="@context" OnRoleChanged="UpdateProjectMemberRole"/>
             </MudTd>
             <MudTd>
-                @context.UserAddedProject?.ToString("MMMM dd, yyyy")
+                @context.UserAddedToProject?.ToString("MMMM dd, yyyy")
             </MudTd>
             <MudTd>
                 <MudButton Variant="Variant.Text" EndIcon="@PROFILE_LINK_ICON" Color="Color.Primary"
