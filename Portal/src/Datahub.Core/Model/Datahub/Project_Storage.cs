@@ -26,5 +26,16 @@ public class Project_Storage_Capacity
     public Storage_Type Type { get; set; }
     public Datahub_Project Project { get; set; }
     public double UsedCapacity { get; set; }
+    /// <summary>
+    /// Last date the capacity was updated
+    /// </summary>
     public DateTime? LastUpdated { get; set; }
+    /// <summary>
+    /// Date it was notified when capacity reached 50% of limit
+    /// </summary>
+    public DateTime? NotifiedAt50 { get; set; }
+    /// <summary>
+    /// Date it was notified when capacity reached 75% of limit
+    /// </summary>
+    public DateTime? NotifiedAt75 { get; set; }
 }
