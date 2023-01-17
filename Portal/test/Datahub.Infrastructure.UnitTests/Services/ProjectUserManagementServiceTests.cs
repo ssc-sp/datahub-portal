@@ -49,12 +49,13 @@ public class ProjectUserManagementServiceTests
 
         _mockIMSGraphService = new Mock<IMSGraphService>();
         _mockIMSGraphService
-            .Setup(f => f.GetUserAsync(It.Is<string>(s => s == TestUserId), CancellationToken.None))
-            .ReturnsAsync(new GraphUser
-            {
-                mailAddress = new MailAddress(TestUserEmail),
-                Id = TestUserId,
-            });
+            .Setup(f => f.GetUserAsync(It.Is<string>(s => TEST_USER_IDS.Contains(s) || s == TestUserId), CancellationToken.None))
+            .Returns((string id, CancellationToken token) => Task.FromResult(new GraphUser
+                {
+                    mailAddress = new MailAddress(TestUserEmail),
+                    Id = id,
+                })
+            );
 
         _mockRequestManagementService = new Mock<IRequestManagementService>();
         _mockRequestManagementService
@@ -84,6 +85,32 @@ public class ProjectUserManagementServiceTests
         {
             Assert.That(projectUsers[0].Project.Project_ID, Is.EqualTo(projectId));
             Assert.That(projectUsers[0].User_ID, Is.EqualTo(TestUserId));
+        });
+    }
+    
+    [Test]
+    public async Task ShouldAddMultipleUsersToProject()
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase();
+        await projectUserManagementService.AddUsersToProject(TestProjectAcronym, TEST_USER_IDS);
+
+        await using var context = await _mockFactory.Object.CreateDbContextAsync();
+        var projectUsers = await context.Project_Users
+            .Include(p => p.Project)
+            .ToListAsync();
+        var projectId = await context.Projects
+            .Where(p => p.Project_Acronym_CD == TestProjectAcronym)
+            .Select(p => p.Project_ID)
+            .SingleAsync();
+
+       
+        Assert.Multiple(() =>
+        { 
+            Assert.That(projectUsers, Has.Count.EqualTo(TEST_USER_IDS.Length));
+            Assert.That(projectUsers[0].Project.Project_ID, Is.EqualTo(projectId));
+            Assert.That(projectUsers.Select(p => p.User_ID), Is.EquivalentTo(TEST_USER_IDS));
+            
         });
     }
 
