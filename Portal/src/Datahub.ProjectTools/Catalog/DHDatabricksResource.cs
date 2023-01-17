@@ -11,23 +11,21 @@ namespace Datahub.ProjectTools.Catalog;
 public class DHDatabricksResource : DHURLResource
 { 
 
-    private readonly IDbContextFactory<DatahubProjectDBContext> dbFactoryProject;
-    private readonly bool _isServiceConfigured;
-    private readonly bool isServiceConfigured;
+    private readonly IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject;
 
+    private bool _databricksServiceRequested;
+    private bool _databricksServiceCreated;
+    
     public DHDatabricksResource(IDbContextFactory<DatahubProjectDBContext> dbFactoryProject,            
         IOptions<DataProjectsConfiguration> configuration)
     {
-        this.dbFactoryProject = dbFactoryProject;
-        _isServiceConfigured = configuration.Value.Databricks;
+        _dbFactoryProject = dbFactoryProject;
+        IsServiceConfigured = configuration.Value.Databricks;
     }
-
-    private bool _databricksServiceRequested = false;
-    private bool _databricksServiceCreated = false;
 
     protected override async Task InitializeAsync(string userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
     {
-        await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
         var serviceRequests = Project.ServiceRequests;
         var serviceTerraformTemplateName =
             RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
@@ -46,7 +44,7 @@ public class DHDatabricksResource : DHURLResource
 
     protected override bool IsServiceRequested => _databricksServiceRequested && !_databricksServiceCreated;
 
-    protected override bool IsServiceConfigured => _isServiceConfigured;
+    protected override bool IsServiceConfigured { get; }
 
     protected override bool IsServiceAvailable => _databricksServiceCreated;
 
