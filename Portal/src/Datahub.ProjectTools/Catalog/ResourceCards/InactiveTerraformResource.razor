@@ -4,12 +4,11 @@
 @inject IRequestManagementService RequestManagementService
 
 
-<ToolCard Title="@Descriptor?.Title" 
+<ToolCard Title="@Descriptor?.Title"
           Subtitle="@Descriptor?.CatalogSubtitle"
           Description="@Descriptor?.CatalogDescription"
           ReadMorePath="@GitHubModule?.ReadMorePath"
-          Tags="@Descriptor?.Tags?.ToList()"
-          >
+          Tags="@Descriptor?.Tags?.ToList()">
     <Logo>
         @if (IsIconSvg)
         {
@@ -24,7 +23,12 @@
         @if (TemplateName == TerraformTemplate.ContactUs)
         {
             <ViewExternalLinkButton ExternalUrl="@GitHubModule?.DocumentationUrl" Text="@Localizer["View Discussions"]"/>
-            <ViewExternalLinkButton Variant="Variant.Filled" ExternalUrl="@GitHubModule?.ActionUrl" Text="@Localizer["Create New"]" Icon="@Icons.Filled.KeyboardDoubleArrowRight"/>
+            <ViewExternalLinkButton 
+                Variant="Variant.Filled" 
+                ExternalUrl="@GitHubModule?.ActionUrl" 
+                Text="@Localizer["Create New"]" 
+                Icon= "fa-solid fa-comments-question-check"
+                />
         }
         else
         {
