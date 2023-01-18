@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 using MimeKit;
 using MailKit.Net.Smtp;
+using Azure.Storage.Queues;
 
 namespace Datahub.Functions;
 
@@ -26,10 +27,28 @@ public class StorageCapacityNotification
     }
 
     [Function("ScheduleStorageCapacityValidation")]
-    public async Task RunScheduleStorageCapacityValidation([TimerTrigger("0 0 * * * *")] TimerInfo timerInfo)
+    public async Task RunScheduleStorageCapacityValidation([TimerTrigger("0 */2 * * * *")] TimerInfo timerInfo)
     {
-        // >> triggered hourly, should iterate over the table Project_Resources2
-        await Task.CompletedTask;
+        var queueClient = new QueueClient(_config.StorageQueueConnection, "storage-capacity");
+        var rows = await _dbContext.Project_Resources2.Where(e => e.ResourceType == "storage").ToListAsync();
+        foreach (var row in rows)
+        {
+            if (!string.IsNullOrEmpty(row.JsonContent))
+            {
+                var message = GetStorageAccountMessage(row);
+                if (message is not null)
+                {
+                    queueClient.SendMessage(message);
+                }
+            }
+        }
+    }
+
+    [Function("StorageCapacityNotificationPoison")]
+    public Task RunStorageCapacityNotificationPoison([QueueTrigger("storage-capacity-poison", Connection = "datahub-storage-queue")] string queueItem)
+    {
+        _logger.LogError($"Processing poison message: {queueItem}");
+        return Task.CompletedTask;
     }
 
     [Function("StorageCapacityNotification")]
@@ -92,6 +111,17 @@ public class StorageCapacityNotification
         await UpdateDbStorageCapacity(lastCapacity, isNew);
     }
 
+    private string? GetStorageAccountMessage(Project_Resources2 row)
+    {
+        var content = JsonSerializer.Deserialize<Dictionary<string, string>>(row.JsonContent);
+
+        if (content is null || !content.ContainsKey("resource_group") || !content.ContainsKey("storage_account"))
+            return default;
+
+        return JsonSerializer.Serialize(new StorageAccountMessage(
+            row.ProjectId, content["resource_group"], content["storage_account"]), GetJsonSerializerOptions());
+    }
+
     private async Task NotifyProjectCapacityUsage(List<string> contacts, Project_Storage_Capacity lastCapacity, double usedCapacity, double configMaxCapacity)
     {
         var nowUtc = DateTime.UtcNow;
@@ -139,8 +169,12 @@ public class StorageCapacityNotification
 
     static StorageAccountMessage? DeserializeQueueMessage(string message)
     {
-        var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-        return JsonSerializer.Deserialize<StorageAccountMessage>(message, options);
+        return JsonSerializer.Deserialize<StorageAccountMessage>(message, GetJsonSerializerOptions());
+    }
+
+    static JsonSerializerOptions GetJsonSerializerOptions()
+    {
+        return new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     }
 
     private async Task<Datahub_Project?> GetDatahubProject(int projectId)

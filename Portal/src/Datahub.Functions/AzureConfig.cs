@@ -30,6 +30,8 @@ internal class AzureConfig
     #endregion
 
     #region Storage Notifications
+
+    public string StorageQueueConnection => _config["datahub-storage-queue"] ?? "";
     public string MaxStorageCapacity => _config["MAX_STORAGE_CAPACITY"] ?? "180000000000"; //"2000000000000";
     #endregion
 }
