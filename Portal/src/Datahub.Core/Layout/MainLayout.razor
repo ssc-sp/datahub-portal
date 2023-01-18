@@ -18,6 +18,10 @@
 
 <PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
 
+@if (isLoaded)
+{
+    
+
 <CascadingValue Value="@DatahubTheme.DEFAULT_THEME">
     <AuthorizeView>
         <Authorized>
@@ -75,7 +79,14 @@
         </NotAuthorized>
     </AuthorizeView>
 </CascadingValue>
-
+}
+else
+{
+    <MudStack Justify="Justify.Center">
+        <MudText Typo="Typo.h2">@Localizer["Initializing Application..."]</MudText>
+        <MudProgressLinear Color="Color.Primary" Indeterminate />
+    </MudStack>
+}
 @code
 {
     private string _userName;
@@ -85,6 +96,8 @@
     private bool? _isSessionEnabled;
 
     private string _style;
+    
+    private bool isLoaded;
 
     protected override void OnParametersSet()
     {
@@ -120,6 +133,8 @@
         {
             _consentHandler.HandleException(ex);
         }
+        
+        isLoaded = true;
     }
 
     private bool IsValidException(Exception ex)
