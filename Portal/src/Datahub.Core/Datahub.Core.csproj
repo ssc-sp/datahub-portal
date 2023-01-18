@@ -97,9 +97,6 @@
 	  <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
 	  <ProjectReference Include="..\Datahub.Achievements\Datahub.Achievements.csproj" />
 	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Data\CostManagement\" />
-	</ItemGroup>
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
 		<Copy SourceFiles="@(GitHookFiles)" DestinationFolder="../.git/hooks/" SkipUnchangedFiles="true" />
