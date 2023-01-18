@@ -2,12 +2,13 @@
 @using Datahub.Core.Services.Api
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Services.Notification
+@using Datahub.Portal.Services.Notification;
 @inject CustomNavigation NavManager
 @inject IPublicDataFileService PublicFileService
 @inject UIControlsService UI
 @inject IMSGraphService GraphService
 @inject IUserInformationService UserInformationService
-@inject IEmailNotificationService EmailNotificationService
+@inject PortalEmailService EmailNotificationService
 @inject ISystemNotificationService SystemNotificationService
 
 <MudText Typo="Typo.h4">

@@ -60,6 +60,9 @@ using Microsoft.Identity.Web.UI;
 using Tewr.Blazor.FileReader;
 using Datahub.Core.Services.ResourceManager;
 using Datahub.Core.Services.Resources;
+using Datahub.Portal.Services.Notification;
+using Datahub.LanguageTraining.Services;
+using Datahub.M365Forms.Services;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -404,6 +407,11 @@ public class Startup
         services.AddScoped<AzureCostManagementService>();
 
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
+        services.AddScoped<PortalEmailService>();
+        services.AddScoped<ProjectToolsEmailService>();
+        services.AddScoped<LanguageEmailService>();
+        services.AddScoped<PowerBiEmailService>();
+        services.AddScoped<M365EmailService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
         services.AddSingleton<IPropagationService, PropagationService>();
 
