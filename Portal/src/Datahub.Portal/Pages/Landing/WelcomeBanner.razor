@@ -1,7 +1,7 @@
 ﻿@inject TimeZoneService TimeZoneService
 @inject IConfiguration configuration
 
-<AeFlex class="welcome-banner" style=@($"background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{GetBackground()}') no-repeat center center fixed;background-size: cover;")>
+<AeFlex class="welcome-banner" style=@($"background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{GetBackground()}') no-repeat;background-size: cover;")>
     <AeTypography Variant="h2" class="greeting">@GetGreeting()</AeTypography>
 </AeFlex>
 
@@ -34,7 +34,7 @@
         var folder = configuration["LandingBgFolder"] ?? "nrcan";
         var imgCount = (configuration.GetSection("LandingBgImgCount").Get<int?>() ?? 12)-1;
         var randomId = (int)Math.Round(new Random().NextDouble() * imgCount);
-        return $"/img/{folder}/landing{randomId:00}.jpg";
+        return $"/img/{folder}/landing{randomId:00}_1800x400.jpg";
     }
 }
 
