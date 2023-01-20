@@ -52,7 +52,7 @@ namespace Datahub.Tests.Docs
         {
             var root = await _service.GetLanguageRoot(DocumentationGuide.UserGuide,"en");
             Assert.NotNull(root);
-            Assert.True(root.Childs.Count > 10);
+            Assert.True(root.Children.Count > 10);
         }
 
         [Fact]
@@ -60,8 +60,8 @@ namespace Datahub.Tests.Docs
         {
             var root = await _service.GetLanguageRoot(DocumentationGuide.UserGuide, "en");
             Assert.NotNull(root);
-            Assert.True(root.Childs.Count > 10);
-            var pageId = root.Childs[9].Id!;
+            Assert.True(root.Children.Count > 10);
+            var pageId = root.Children[9].Id!;
             var loadedPage = _service.LoadPage(pageId, false);
             Assert.NotNull(loadedPage);
             var parent = _service.GetParent(loadedPage);
