@@ -357,7 +357,6 @@ public class Startup
 
             services.AddScoped<UpdateProjectMonthlyCostService>();
             services.AddScoped<IProjectCreationService, ProjectCreationService>();
-            services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
             services.AddDatahubApplicationServices();
             services.AddDatahubInfrastructureServices(Configuration);
 
