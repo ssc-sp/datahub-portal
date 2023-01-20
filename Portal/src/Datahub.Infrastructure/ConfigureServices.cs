@@ -11,6 +11,7 @@ public static class ConfigureServices
     {
 
         services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
+        services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
         
         return services;
     }
