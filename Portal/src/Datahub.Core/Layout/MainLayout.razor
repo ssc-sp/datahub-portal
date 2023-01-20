@@ -79,10 +79,9 @@
 else
 {
     <MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
-        <i class="fa-solid fa-house" style="opacity: 0"></i>
-        <i class="fa-duotone fa-house" style="opacity: 0"></i>
-        <MudText GutterBottom Align="Align.Center">@Localizer["Initializing Federal Science Data Hub..."]</MudText>
-        <MudProgressLinear Color="Color.Primary" Indeterminate/>
+        <i class="fa-solid fa-house" style="opacity:0; position: absolute; top: 0; left: 0;"></i>
+        <i class="fa-duotone fa-house" style="opacity:0; position: absolute; top: 0; left: 0;"></i>
+        <DHLoadingInitializer Message="@Localizer["Initializing Federal Science Data Hub..."]"/>
     </MudContainer>
 }
 
