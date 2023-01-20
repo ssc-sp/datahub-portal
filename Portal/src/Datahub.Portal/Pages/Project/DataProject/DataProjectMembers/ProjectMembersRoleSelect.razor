@@ -1,0 +1,73 @@
+@using Datahub.Core.Data.Project
+@*need value of select to be a string, so it renders the string as the presented value*@
+@*otherwise the entire render fragment is shown as selected value*@
+@*only other workaround is to enable multi-select and use the parameter MultiSelectionTextFunc*@
+@*I've created an issue for this here https://github.com/MudBlazor/MudBlazor/issues/6134*@
+<MudSelect T="object" Value="@_valueOfSelect" ValueChanged="RoleChanged" Variant="Variant.Outlined">
+    @foreach (var role in _roleTitles)
+    {
+        <MudSelectItem Value="@((object)role.Key)" Class="@GetItemClass(role.Key)">
+            <MudText Typo="Typo.h6">@Localizer[_roleTitles[role.Key]]</MudText>
+            <MudText>@Localizer[_roleDescriptions[role.Key]]</MudText>
+        </MudSelectItem>
+    }
+    <MudSelectItem Value="@((object)ProjectMemberRole.Remove)" Style="border-top:1px solid var(--mud-palette-lines-inputs)">
+        <MudText Typo="Typo.h6" Color="Color.Error">@Localizer["Remove User"]</MudText>
+        <MudText Color="Color.Error">@Localizer["Revoke the user's access to the project's private resources"]</MudText>
+    </MudSelectItem>
+</MudSelect>
+
+@code {
+    [Parameter]
+    public ProjectMember ProjectMember { get; set; }
+    [Parameter] 
+    public EventCallback<ProjectMember> OnRoleChanged { get; set; }
+
+    private string _valueOfSelect;
+
+
+    private readonly Dictionary<ProjectMemberRole, string> _roleTitles = new()
+    {
+        {ProjectMemberRole.Publisher, "Publisher"},
+        {ProjectMemberRole.Admin, "Admin"},
+        {ProjectMemberRole.Contributor, "Contributor"},
+    };
+
+    private readonly Dictionary<ProjectMemberRole, string> _roleDescriptions = new()
+    {
+        {
+            ProjectMemberRole.Publisher,
+            "Head of the business unit and bears business responsibility for successful implementation and availability"
+        },
+        {
+            ProjectMemberRole.Admin,
+            "Management authority within the project with direct supervision over the project resources and deliverables"
+        },
+        {
+            ProjectMemberRole.Contributor,
+            "Responsible for contributing to the overall project objectives and deliverables to ensure success"
+        },
+
+    };
+
+    protected override void OnInitialized()
+    {
+        _valueOfSelect = Localizer[_roleTitles[ProjectMember.Role]];
+    }
+
+    private async Task RoleChanged(object role)
+    {
+        var newRole = (ProjectMemberRole)role;
+        if (newRole == ProjectMember.Role) return;
+        ProjectMember.Role = newRole;
+        if (newRole != ProjectMemberRole.Remove)
+            _valueOfSelect = Localizer[_roleTitles[ProjectMember.Role]];
+        if (OnRoleChanged.HasDelegate)
+            await OnRoleChanged.InvokeAsync(ProjectMember);
+    }
+
+    private string GetItemClass(ProjectMemberRole role)
+    {
+        return role == ProjectMember.Role ? "mud-selected-item mud-primary-text mud-primary-hover" : "";
+    }
+}
