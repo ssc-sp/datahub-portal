@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Datahub.Core.Data;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Storage;
+using Newtonsoft.Json;
 
 namespace Datahub.Portal.Controllers;
 
@@ -29,7 +30,20 @@ public class PublicController: Controller
     public IActionResult HelloWorld()
     {
         _logger.LogDebug("Unauthenticated hello world");
-        return Ok("hello world");
+
+        var identity = Request.HttpContext.User.Identities.FirstOrDefault();
+
+        var options = new System.Text.Json.JsonSerializerOptions()
+        {
+            ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve,
+            WriteIndented = true
+        };
+
+        var response = System.Text.Json.JsonSerializer.Serialize(identity.Claims.Select(c => new { c.Type, c.Value }), options);
+
+        //return Json(identity);
+        //return Ok("hello world");
+        return Ok(response);
     }
 
     public async Task<IActionResult> BlobTest()

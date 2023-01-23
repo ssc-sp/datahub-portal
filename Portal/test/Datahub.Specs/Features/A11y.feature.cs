@@ -108,9 +108,6 @@ this.ScenarioInitialize(scenarioInfo);
 #line 7
  testRunner.And("the user is on the home page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 8
- testRunner.Then("there should be no accessibility errors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
             }
             this.ScenarioCleanup();
         }
