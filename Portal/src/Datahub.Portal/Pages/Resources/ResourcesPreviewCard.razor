@@ -1,0 +1,58 @@
+@using Datahub.Core.Services.Docs
+@using MudBlazor.Utilities
+
+<MudItem xs="6">
+    <MudCard Class="pa-4">
+        <MudCardHeader>
+            <CardHeaderAvatar>
+                <MudIcon Icon="@Icons.Filled.MenuBook"/>
+            </CardHeaderAvatar>
+            <CardHeaderContent>
+                <MudText Style="@_titleTextStyle"><b>@DocumentItem?.Title</b></MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="@Typo.body2" Style="@_previewTextStyle">@DocumentItem?.Preview</MudText>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton 
+                Href="@ResourcesPage.BuildResourceLink(DocumentItem)" 
+                Color="@Color.Primary" 
+                Variant="@Variant.Text" 
+                EndIcon="@Icons.Filled.KeyboardDoubleArrowRight">
+                @Localizer["Read more"]
+            </MudButton>
+        </MudCardActions>
+    </MudCard>
+</MudItem>
+
+@code {
+
+    [Parameter]
+    public DocItem DocumentItem { get; set; }
+
+    private string _previewTextStyle;
+    private string _titleTextStyle;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+    // this is the recommended way to get an ellipsis on multi-line text:
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-line-clamp
+        _previewTextStyle = new StyleBuilder()
+            .AddStyle("overflow", "hidden")
+            .AddStyle("-webkit-line-clamp", "2")
+            .AddStyle("-webkit-box-orient", "vertical")
+            .AddStyle("display", "-webkit-box")
+            .Build();
+        
+        _titleTextStyle = new StyleBuilder()
+            .AddStyle("overflow", "hidden")
+            .AddStyle("-webkit-line-clamp", "1")
+            .AddStyle("-webkit-box-orient", "vertical")
+            .AddStyle("display", "-webkit-box")
+            .Build();
+    }
+
+}

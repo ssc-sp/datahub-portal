@@ -1,0 +1,148 @@
+﻿@using Datahub.Core.Services.Docs
+@inject DocumentationService _docService
+@inject CultureService _cultureService
+@inject NavigationManager _navManager
+
+@page "/resources/"
+@page "/resources/{PageName}"
+
+@if (PageIsLoading)
+{
+    <MudContainer MaxWidth="MaxWidth.Small">
+        <DHLoadingInitializer Message="@Localizer["Initializing Resources..."]"/>
+    </MudContainer>
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="3">
+            <MudNavMenu Rounded Color=@Color.Primary Dense>
+                <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All" Icon="@Icons.Filled.Home">
+                    <MudText Inline Typo=@Typo.body1>@Localizer["Overview"]</MudText>
+                </MudNavLink>
+                @foreach (var cat in _resourceRoot.Children)
+                {
+                    var isCurrentCat = (_currentMarkdownCategory == cat);
+                    var isDoc = cat.Children.Count == 0;
+
+                    if (isDoc)
+                    {
+                        <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat)>
+                            <MudText Typo=@Typo.body2>@cat.Title</MudText>
+                        </MudNavLink>
+                    }
+                    else
+                    {
+                        <MudNavGroup Expanded="@isCurrentCat" Title="@cat.Title" ExpandedChanged=@((v) => UpdateCategory(cat, v))>
+                            @foreach (var article in cat.Children)
+                            {
+                                <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article)>
+                                    <MudText Typo=@Typo.body2>@article.Title</MudText>
+                                </MudNavLink>
+                            }
+                        </MudNavGroup>
+                    }
+                }
+            </MudNavMenu>
+        </MudItem>
+        <MudItem xs="9">
+            @if (ShowPreviewCards)
+            {
+                @if (_docIsLoading || _currentDoc is null)
+                {
+                    <MudContainer MaxWidth="MaxWidth.Small">
+                        <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]"/>
+                    </MudContainer>
+                }
+                else
+                {
+                    <ResourcesListView DocumentItems="@_currentDoc.Children"/>
+                }
+            }
+            else
+            {
+                <ResourcesMarkdown DocumentItem="@_currentDoc"/>
+            }
+        </MudItem>
+    </MudGrid>
+    
+    <ResourcesAdminView />
+}
+
+@code {
+
+    [Parameter]
+    public string PageName { get; set; }
+
+    [Parameter]
+    public List<(string, string)> Substitutions { get; set; }
+
+
+    private DocItem _resourceRoot;
+    private DocItem _currentMarkdownCategory;
+    private DocItem _currentDoc;
+
+
+    private bool PageIsLoading => _resourceRoot is null;
+    private bool ShowPreviewCards => _currentDoc?.MarkdownPage is null;
+    private bool _docIsLoading;
+
+    private const string BaseUrl = "/resources";
+
+    public static string BuildResourceLink(DocItem res) => $"{BaseUrl}/{res.Id}";
+
+    public static string RewriteLink(string link)
+    {
+        if (link.StartsWith("http"))
+            return link;
+        return BaseUrl + "/" + System.Web.HttpUtility.UrlEncode(link);
+    }
+
+    private bool UpdateCategory(DocItem cat, bool value)
+    {
+        if (value && cat != _currentMarkdownCategory)
+        {
+            _currentMarkdownCategory = cat;
+            _navManager.NavigateTo(BuildResourceLink(cat));
+        }
+        else if (!value && cat == _currentMarkdownCategory)
+        {
+            _navManager.NavigateTo(BuildResourceLink(cat));
+        }
+
+        return value;
+    }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _docIsLoading = true;
+        _currentDoc = string.IsNullOrEmpty(PageName) ? _resourceRoot : _docService.LoadPage(PageName, _cultureService.IsFrench);
+
+        if (_currentDoc is not null)
+        {
+            await _docService.BuildDocAndPreviews(_currentDoc);
+        }
+
+        _docIsLoading = false;
+        _currentMarkdownCategory = null;
+
+        if (_currentDoc is null)
+        {
+            await _docService.LogNotFoundError(PageName, _resourceRoot.Title);
+        }
+        else if (_currentDoc.MarkdownPage is null)
+        {
+            _currentMarkdownCategory = _currentDoc;
+        }
+        else if (!string.IsNullOrEmpty(_currentDoc.MarkdownPage))
+        {
+            _currentMarkdownCategory = _docService.GetParent(_currentDoc);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _resourceRoot = await _docService.GetLanguageRoot(DocumentationGuide.UserGuide, _cultureService.Culture);
+    }
+}
