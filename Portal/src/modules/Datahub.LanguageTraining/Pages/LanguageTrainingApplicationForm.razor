@@ -1,6 +1,5 @@
 ﻿@*LanguageTrainingApplicationForm.razor*@
 @inject IStringLocalizer DataLocalizer
-@inject IEmailNotificationService EmailService
 @implements IDisposable
 @inject IDbContextFactory<LanguageTrainingDBContext> DbFactory
 @inject ServiceAuthManager ServiceAuthManager
@@ -9,11 +8,12 @@
 @inject IJSRuntime JsInterop
 @inject IConfiguration Configuration
 @inject IDatahubAuditingService AuditingService
+@inject LanguageEmailService EmailService
 @page "/languagetraining/applications"
 @page "/languagetraining/applications/{AppId}"
 @using Datahub.LanguageTraining.Data
+@using Datahub.LanguageTraining.Services;
 @using Datahub.LanguageTraining.Utils
-@using Datahub.Core.Services.Notification
 
 <Datahub.Core.Components.FormTemplate 
         T="LanguageTrainingApplication"

@@ -10,12 +10,13 @@
 @inject TranslationService TranslationService
 @inject IDatahubAuditingService AuditingService
 @inject IOrganizationLevelsService OrganizationLevelsService
-@inject IEmailNotificationService EmailService
+@inject PortalEmailService EmailService
 @inject IDialogService DialogService
 @using System.Security.Claims
 @using Datahub.Core.Model.Onboarding
 @using Datahub.Core.Services.Notification;
 @using Datahub.Portal.Components.Dialogs
+@using Datahub.Portal.Services.Notification;
 @using MudBlazor.Forms;
 @page "/datahub/initiatives"
 
