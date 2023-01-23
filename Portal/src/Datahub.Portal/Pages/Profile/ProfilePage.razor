@@ -14,7 +14,10 @@
 
 @if (_user is null)
 {
-    <Skeleton/>
+    <MudContainer MaxWidth="MaxWidth.Small">
+        <DHLoadingInitializer Message="@Localizer["Initializing Profile..."]"/>
+    </MudContainer>
+
     return;
 }
 
@@ -43,7 +46,7 @@
 
     [Parameter]
     public string UserIdBase64 { get; set; }
-    
+
     // yan's id: e828f0bf-a85e-42c3-b13e-08e267b05e0c
     // base64 encoded: ZTgyOGYwYmYtYTg1ZS00MmMzLWIxM2UtMDhlMjY3YjA1ZTBj
 
