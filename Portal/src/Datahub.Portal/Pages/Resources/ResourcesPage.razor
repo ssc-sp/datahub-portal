@@ -2,9 +2,6 @@
 @inject DocumentationService _docService
 @inject CultureService _cultureService
 @inject NavigationManager _navManager
-@inject TimeZoneService _timezoneService;
-
-@implements IDisposable
 
 @page "/resources/"
 @page "/resources/{PageName}"
@@ -19,8 +16,8 @@ else
 {
     <MudGrid>
         <MudItem xs="3">
-            <MudNavMenu Rounded Color=@Color.Primary>
-                <MudNavLink Href="@BaseUrl" Match=NavLinkMatch.All Icon=@Icons.Filled.Home>
+            <MudNavMenu Rounded Color=@Color.Primary Dense>
+                <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All" Icon="@Icons.Filled.Home">
                     <MudText Inline Typo=@Typo.body1>@Localizer["Overview"]</MudText>
                 </MudNavLink>
                 @foreach (var cat in _resourceRoot.Children)
@@ -30,16 +27,16 @@ else
 
                     if (isDoc)
                     {
-                        <MudNavLink Href=@BuildResourceLink(cat)>
+                        <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat)>
                             <MudText Typo=@Typo.body2>@cat.Title</MudText>
                         </MudNavLink>
                     }
                     else
                     {
-                        <MudNavGroup Expanded=@isCurrentCat Title=@cat.Title ExpandedChanged=@((v) => UpdateCategory(cat, v))>
+                        <MudNavGroup Expanded="@isCurrentCat" Title="@cat.Title" ExpandedChanged=@((v) => UpdateCategory(cat, v))>
                             @foreach (var article in cat.Children)
                             {
-                                <MudNavLink Href=@BuildResourceLink(article)>
+                                <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article)>
                                     <MudText Typo=@Typo.body2>@article.Title</MudText>
                                 </MudNavLink>
                             }
@@ -59,99 +56,17 @@ else
                 }
                 else
                 {
-                    <ResourcesListView DocumentItems="@_currentDoc.Children" />
+                    <ResourcesListView DocumentItems="@_currentDoc.Children"/>
                 }
             }
             else
             {
-                <MudCard>
-                    <MudCardContent>
-                        @if (_docIsLoading)
-                        {
-                            <MudText Typo=@Typo.h3>@_currentDoc?.Title</MudText>
-                            <MudProgressCircular Indeterminate/>
-                        }
-                        else
-                        {
-                            <DHMarkdown Substitutions=@Substitutions
-                                        Content=@_markdownContent
-                                        LinkRewriter="@RewriteLink"/>
-
-                            @if (_currentDoc is not null)
-                            {
-                                <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
-                                    <MudButton Href=@_docService.GetEditUrl(_currentDoc)
-                                               OnClick=@HandleRemoveFromCache
-                                               Color=@Color.Primary
-                                               Variant=@Variant.Filled
-                                               StartIcon=@Icons.Filled.Launch
-                                               Target="_blank">
-                                        @Localizer["BUTTONS.Edit"]
-                                    </MudButton>
-                                </AuthorizeView>
-                            }
-                        }
-                    </MudCardContent>
-                </MudCard>
+                <ResourcesMarkdown DocumentItem="@_currentDoc"/>
             }
         </MudItem>
     </MudGrid>
-
-    <MudContainer Class="ma-8">
-        <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
-            <MudCard>
-                <MudCardHeader>
-                    <CardHeaderAvatar>
-                        <MudIcon Icon="@Icons.Filled.AdminPanelSettings" />
-                    </CardHeaderAvatar>
-                    <CardHeaderContent>
-                        @Localizer["Administration"]
-                    </CardHeaderContent>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudStack>
-                        <MudStack Row AlignItems=@AlignItems.Center>
-                            @if (_cacheIsRefreshing)
-                            {
-                                <MudProgressCircular Indeterminate Color="@Color.Secondary" />
-                            }
-                            else
-                            {
-                                <MudButton OnClick=@RefreshCache
-                                           StartIcon=@Icons.Filled.Refresh
-                                           Variant=@Variant.Filled
-                                           Color=@Color.Secondary>
-                                    Refresh
-                                </MudButton>
-                            }
-
-                            <MudText>
-                                Refresh the cache. Please note, it can take Github a few minutes to update its resources, so this may not work right away after editing the wiki.
-                            </MudText>
-                        </MudStack>
-
-                        <MudContainer>
-                            <MudText Typo=@Typo.h5>Error(s)</MudText>
-                            @if (_formattedErrorList?.Count > 0)
-                            {
-                                <MudList>
-                                    @foreach (var e in _formattedErrorList)
-                                    {
-                                        <MudListItem>@e</MudListItem>
-                                    }
-                                </MudList>
-                            }
-                            else
-                            {
-                                <MudText>None</MudText>
-                            }
-                        </MudContainer>
-
-                    </MudStack>
-                </MudCardContent>
-            </MudCard>
-        </AuthorizeView>
-    </MudContainer>
+    
+    <ResourcesAdminView />
 }
 
 @code {
@@ -163,25 +78,20 @@ else
     public List<(string, string)> Substitutions { get; set; }
 
 
-
     private DocItem _resourceRoot;
     private DocItem _currentMarkdownCategory;
     private DocItem _currentDoc;
 
-    private IReadOnlyList<string> _formattedErrorList;
 
     private bool PageIsLoading => _resourceRoot is null;
     private bool ShowPreviewCards => _currentDoc?.MarkdownPage is null;
     private bool _docIsLoading;
 
-    private bool _cacheIsRefreshing;
-
-    private string _markdownContent = string.Empty;
-        private const string BaseUrl = "/resources";
+    private const string BaseUrl = "/resources";
 
     public static string BuildResourceLink(DocItem res) => $"{BaseUrl}/{res.Id}";
 
-    private string RewriteLink(string link)
+    public static string RewriteLink(string link)
     {
         if (link.StartsWith("http"))
             return link;
@@ -203,19 +113,6 @@ else
         return value;
     }
 
-    private bool useCache = true;
-
-    private async Task RefreshCache()
-    {
-        _cacheIsRefreshing = true;
-        await InvokeAsync(StateHasChanged);
-
-        useCache = false;
-        await OnInitializedAsync();
-
-        _cacheIsRefreshing = false;
-        await InvokeAsync(StateHasChanged);
-    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -228,12 +125,10 @@ else
         }
 
         _docIsLoading = false;
-        _markdownContent = string.Empty;
         _currentMarkdownCategory = null;
 
         if (_currentDoc is null)
         {
-            _markdownContent = "Error";
             await _docService.LogNotFoundError(PageName, _resourceRoot.Title);
         }
         else if (_currentDoc.MarkdownPage is null)
@@ -243,48 +138,11 @@ else
         else if (!string.IsNullOrEmpty(_currentDoc.MarkdownPage))
         {
             _currentMarkdownCategory = _docService.GetParent(_currentDoc);
-            _markdownContent = await _docService.LoadResourcePage(_currentDoc);
         }
-    }
-
-    private async Task<string> FormatErrorMessage(Core.Services.Wiki.TimeStampedStatus error)
-    {
-        var timestampUtc = DateTime.SpecifyKind(error.Timestamp, DateTimeKind.Utc);
-        var localDatetime = await _timezoneService.GetLocalDateTime(timestampUtc);
-        return $"{localDatetime.ToString("yyyy-MM-dd HH:mm:ss")} - {error.Message}";
-    }
-
-    private async Task RefreshErrorList()
-    {
-        var errors = _docService.GetErrorList();
-
-        _formattedErrorList = await Task.WhenAll(errors.Select(async e => await FormatErrorMessage(e)));
-
-        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnInitializedAsync()
     {
-        _resourceRoot = await _docService.GetLanguageRoot(DocumentationGuide.UserGuide, _cultureService.Culture, useCache);
-
-        await RefreshErrorList();
-
-        _docService.NotifyRefreshErrors += OnNotifyRefreshErrors;
+        _resourceRoot = await _docService.GetLanguageRoot(DocumentationGuide.UserGuide, _cultureService.Culture);
     }
-
-    private async Task OnNotifyRefreshErrors()
-    {
-        await RefreshErrorList();
-    }
-
-    private void HandleRemoveFromCache()
-    {
-        _docService.RemoveFromCache(_currentDoc);
-    }
-
-    public void Dispose()
-    {
-        _docService.NotifyRefreshErrors -= OnNotifyRefreshErrors;
-    }
-
 }
