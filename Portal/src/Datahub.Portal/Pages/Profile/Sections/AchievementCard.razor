@@ -22,7 +22,7 @@
             else
             {
                 var progress = Completion is null ? 1d : (Completion.Value.Item1 / (double) Completion.Value.Item2) * 100;
-                <MudProgressLinear Value="progress">
+                <MudProgressLinear Value="progress" aria-label="Achievement completion progress">
                     <MudText Class="mb-6" Typo="Typo.caption" Color="Color.Dark">
                         @if (Completion is null)
                         {
@@ -59,8 +59,8 @@
             .Build();
 
         _textOpacityStyle = new StyleBuilder()
-            .AddStyle("opacity", "0.3", when: !UserAchievement.Earned)
-            .AddStyle("opacity", "0.6", when: UserAchievement.Earned && Completion == null)
+            // .AddStyle("opacity", "0.6", when: !UserAchievement.Earned)
+            // .AddStyle("opacity", "0.8", when: UserAchievement.Earned && Completion == null)
             .Build();
     }
 
