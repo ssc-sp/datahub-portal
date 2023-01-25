@@ -201,7 +201,7 @@
 
             @*return to initiative link*@
             <MudItem>
-                <MudLink Href=@($"/projects/{_projectCode}") Underline="Underline.None">
+                <MudLink Href=@($"/w/{_projectCode}") Underline="Underline.None">
                     @Localizer[$"{LOCALIZATION_PREFIX}.ReturnToProject"]
                 </MudLink>
             </MudItem>
@@ -332,7 +332,7 @@
             {
                 EmailNotificationService.SendFileSharingApprovalRequest(_requestingUser.Mail, _requestFilename, _projectInfo, approvers),
                 SystemNotificationService.CreateSystemNotificationsWithLink(approvers,
-                    $"/{UrlPathSegment.PROJECTS}/{_projectInfo.ProjectCode}/datasharing", "SYSTEM-NOTIFICATION.GoToSharingDashboard",
+                    $"/w/{_projectInfo.ProjectCode}/datasharing", "SYSTEM-NOTIFICATION.GoToSharingDashboard",
                     "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.PublicUrlShareRequested", _requestingUser.Mail, _requestFilename,
                     new BilingualStringArgument(_projectInfo.ProjectNameEn, _projectInfo.ProjectNameFr))
             };
