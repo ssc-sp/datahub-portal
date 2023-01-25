@@ -1,9 +1,9 @@
 ﻿@inject TimeZoneService TimeZoneService
 @inject IConfiguration configuration
 
-<AeFlex class="welcome-banner" style=@($"background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{GetBackground()}') no-repeat;background-size: cover;")>
-    <AeTypography Variant="h2" class="greeting">@GetGreeting()</AeTypography>
-</AeFlex>
+<MudPaper class="welcome-banner" style=@($"background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{GetBackground()}') no-repeat;background-size: cover;")>
+    <MudText Typo="Typo.h1" class="greeting">@GetGreeting()</MudText>
+</MudPaper>
 
 
 @code {
