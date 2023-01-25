@@ -74,7 +74,6 @@
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.18.0" />
     <PackageReference Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
-    <PackageReference Include="Microsoft.ApplicationInsights.PerfCounterCollector" Version="2.21.0" />
     <PackageReference Include="Microsoft.AspNetCore.ApplicationInsights.HostingStartup" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="6.0.*" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.Abstractions" Version="7.0.*" />
