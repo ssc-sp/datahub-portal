@@ -23,8 +23,8 @@ public class AchievementValidationTests
         });
 
 
-    private const string STORAGE_EXPLORER_URL = "/projects/ABC/filelist";
-    private const string PROJECT_URL = "/projects/ABC";
+    private const string STORAGE_EXPLORER_URL = "/w/ABC/filelist";
+    private const string PROJECT_URL = "/w/ABC";
     private const string PROFILE_URL = "/profile";
     private const string RESOURCES_URL = "/resources";
 

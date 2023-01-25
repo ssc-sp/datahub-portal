@@ -1,7 +1,7 @@
 ﻿@page "/m365form/applications"
 @page "/m365form/applications/{AppId}"
 @inject IStringLocalizer Localizer
-@inject IEmailNotificationService EmailService
+@inject M365EmailService EmailService
 @implements IDisposable
 @inject ServiceAuthManager ServiceAuthManager
 @inject IDbContextFactory<M365FormsDBContext> DbFactory
@@ -17,6 +17,7 @@
 @using Datahub.Core.Data
 @using Datahub.Core.Services
 @using Datahub.Core.Services.Security;
+@using Datahub.M365Forms.Services;
 @using Elemental.Components
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Localization

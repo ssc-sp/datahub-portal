@@ -11,11 +11,6 @@ using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Services.Security;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Templates;
-using Datahub.Core.Templates.FileSharing;
-using Datahub.Core.Templates.LanguageTraining;
-using Datahub.Core.Templates.M365Forms;
-using Datahub.Core.Templates.Onboarding;
-using Datahub.Core.Templates.PowerBi;
 using Datahub.Core.Utils;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
@@ -81,15 +76,9 @@ public class EmailNotificationService : IEmailNotificationService
         _serviceAuthManager = serviceAuthManager;
     }
 
-    public async Task<string> RenderTestTemplate()
-    {
-        string html = new ComponentRenderer<TestEmailTemplate>()
-            .AddService<IStringLocalizer>(_localizer)
-            .Render();
-        return await Task.FromResult(html);
-    }
+    
 
-    private async Task<MailboxAddress> BuildRecipient(string userIdOrAddress, string recipientName = null)
+    public async Task<MailboxAddress> BuildRecipient(string userIdOrAddress, string recipientName = null)
     {
         if (Guid.TryParse(userIdOrAddress, out var parsedGuid))
         {
@@ -124,7 +113,7 @@ public class EmailNotificationService : IEmailNotificationService
 
     static MailboxAddress CreateMailboxAddress(string name, string address) => new(name, address?.ToLower());
 
-    private async Task<IList<MailboxAddress>> BuildRecipientList(IList<string> userIdsOrAddresses)
+    public async Task<IList<MailboxAddress>> BuildRecipientList(IList<string> userIdsOrAddresses)
     {
 
         List<MailboxAddress> mailList = new();
@@ -178,6 +167,21 @@ public class EmailNotificationService : IEmailNotificationService
     {
         var mailboxRecipients = recipients.Select(r => CreateMailboxAddress(r.Name, r.Address)).ToList();
         await SendEmailMessage(subject, body, mailboxRecipients, isHtml);
+    }
+
+    public async Task EmailErrorToDatahub(string subject, string fromUser, string message, string appInsightsMessage, string stackTrace)
+    {
+        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(DATAHUB_ADMIN_PROJECT_CODE);
+        var parameters = new Dictionary<string, object>()
+        {
+            { "Date", $"{DateTime.UtcNow} UTC" },
+            { "User", fromUser },
+            { "Message", message },
+            { "AppInsightsMessage", appInsightsMessage },
+            { "StackTrace", stackTrace }
+        };
+        var bodyHtml = await RenderTemplate<GlobalErrorNotification>(parameters);
+        await SendEmailMessage(subject, bodyHtml, adminEmails);
     }
 
     private static string BuildTestEmailOriginalRecipientsList(IEnumerable<MailboxAddress> recipients, bool isHtml)
@@ -273,372 +277,6 @@ public class EmailNotificationService : IEmailNotificationService
     {
         return _config.DevTestMode;
     }
-
-    private Dictionary<string, object> BuildNotificationParameters(DatahubProjectInfo projectInfo, string serviceName, string username = null)
-    {
-        var parameters = new Dictionary<string, object>()
-        {
-            { SERVICE_TEMPLATE_KEY, serviceName },
-            { DATA_PROJECT_TEMPLATE_KEY, projectInfo }
-        };
-
-        if (username != null)
-        {
-            parameters.Add(USERNAME_TEMPLATE_KEY, username);
-        }
-
-        return parameters;
-    }
-
-    public async Task SendServiceCreationRequestNotification(string username, string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients)
-    {
-        if (_config is null)
-        {
-            _logger.LogCritical("Cannot send email - no configuration available");
-            return;
-        }
-
-        var parameters = BuildNotificationParameters(projectInfo, serviceName, username);
-
-        var subject = $"[DataHub] New {serviceName} service request";
-
-        var adminLink = BuildAppLink(ServiceCreationRequest.ADMIN_URL);
-        parameters.Add(nameof(ServiceCreationRequest.AdminPageUrl), adminLink);
-
-        var html = await RenderTemplate<ServiceCreationRequest>(parameters);
-
-        await SendEmailMessage(subject, html, recipients);
-    }
-
-    public async Task SendServiceAccessRequestNotification(string username, string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients)
-    {
-        if (_config is null)
-        {
-            _logger.LogCritical("Cannot send email - no configuration available");
-            return;
-        }
-
-        var parameters = BuildNotificationParameters(projectInfo, serviceName, username);
-
-        var subject = $"[DataHub] {serviceName} access request for project {projectInfo.ProjectNameEn} / demande d’accès pour le projet {projectInfo.ProjectNameFr}";
-
-        var adminLink = BuildAppLink(ServiceAccessRequest.ADMIN_URL);
-        parameters.Add(nameof(ServiceAccessRequest.AdminPageLink), adminLink);
-
-        var html = await RenderTemplate<ServiceAccessRequest>(parameters);
-
-        await SendEmailMessage(subject, html, recipients);
-    }
-
-    public async Task SendServiceAccessGrantedNotification(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null)
-    {
-        if (_config is null)
-        {
-            _logger.LogCritical("Cannot send email - no configuration available");
-            return;
-        }
-
-        var parameters = BuildNotificationParameters(projectInfo, serviceName);
-
-        var subject = $"[DataHub] {serviceName} service access request approved / demande d’accès au service approuvée";
-
-        var projectPagePath = $"{UrlPathSegment.PROJECTS}/{projectInfo.ProjectCode}";
-        var projectPageLink = BuildAppLink(projectPagePath);
-        parameters.Add(nameof(ServiceAccessRequestApproved.ProjectPageUrl), projectPageLink);
-
-        var html = await RenderTemplate<ServiceAccessRequestApproved>(parameters);
-
-        await SendEmailMessage(subject, html, recipientAddress, recipientName);
-    }
-
-    public async Task SendServiceCreationRequestApprovedIndividual(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null)
-    {
-        if (_config is null)
-        {
-            _logger.LogCritical("Cannot send email - no configuration available");
-            return;
-        }
-
-        var parameters = BuildNotificationParameters(projectInfo, serviceName);
-
-        var subject = $"[DataHub] {serviceName} service request approved / demande de service approuvée";
-
-        var projectPagePath = $"{UrlPathSegment.PROJECTS}/{projectInfo.ProjectCode}";
-        var projectPageLink = BuildAppLink(projectPagePath);
-        parameters.Add(nameof(ServiceRequestApproved.ProjectPageUrl), projectPageLink);
-
-        var html = await RenderTemplate<ServiceRequestApproved>(parameters);
-
-        await SendEmailMessage(subject, html, recipientAddress, recipientName);
-    }
-
-    public async Task SendServiceCreationGroupNotification(string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients)
-    {
-        if (_config is null)
-        {
-            _logger.LogCritical("Cannot send email - no configuration available");
-            return;
-        }
-
-        var parameters = BuildNotificationParameters(projectInfo, serviceName);
-
-        var subject = $"[DataHub] {serviceName} service created / {serviceName} service créé ";
-
-        var projectPagePath = $"{UrlPathSegment.PROJECTS}/{projectInfo.ProjectCode}";
-        var projectPageLink = BuildAppLink(projectPagePath);
-        parameters.Add(nameof(ServiceCreatedGroupNotification.ProjectPageUrl), projectPageLink);
-
-        var html = await RenderTemplate<ServiceCreatedGroupNotification>(parameters);
-
-        await SendEmailMessage(subject, html, recipients);
-    }
-
-    public async Task SendAccessRevokedNotification(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null)
-    {
-        var parameters = BuildNotificationParameters(projectInfo, serviceName);
-
-        var subject = $"[DataHub] {serviceName} service access revoked / accès au service révoqué";
-
-        var html = await RenderTemplate<ServiceAccessRevoked>(parameters);
-
-        await SendEmailMessage(subject, html, recipientAddress, recipientName);
-    }
-
-
-    public async Task SendApplicationCompleteNotification(LanguageTrainingParameters parameters)
-    {
-        var parametersDict = BuildLanguageNotificationParameters(parameters);
-
-        var subject = $"Language Training Request / Demande de formation linguistique - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
-
-        var html = await RenderTemplate<ConfirmEmployeeRequest>(parametersDict);
-
-        await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
-
-        html = await RenderTemplate<RequestManagerApproval>(parametersDict);
-
-        await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
-    }
-
-    public async Task SendManagerDecisionEmail(LanguageTrainingParameters parameters)
-    {
-        var parametersDict = BuildLanguageNotificationParameters(parameters);
-
-        if (parameters.ManagerDecision == "Approved")
-        {
-            var subject = $"Language Training Request – MANAGER APPROVED / Demande de formation linguistique – APPROUVÉE PAR LA GESTION - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
-            var html = await RenderTemplate<ManagerRequestApproved>(parametersDict);
-
-            await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
-            {
-                new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
-                new(parameters.ManagerName, parameters.ManagerEmailAddress)
-            });
-
-            html = await RenderTemplate<LSUNotification>(parametersDict);
-            await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
-
-        }
-        else
-        {
-            var subject = $"Language Training Request / Demande de formation linguistique  - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
-            var html = await RenderTemplate<ManagerRequestDenied>(parametersDict);
-            await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
-        }
-
-    }
-
-    public async Task SendLanguageSchoolDecision(LanguageTrainingParameters parameters)
-    {
-        var parametersDict = BuildLanguageNotificationParameters(parameters);
-
-        if (parameters.LanguageSchoolDecision == "Training accepted")
-        {
-            var subject = $"Language Training Request – PLACEMENT ACCEPTED / Demande de formation linguistique - PLACE APPROUVÉE - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
-            var html = await RenderTemplate<LSUApproved>(parametersDict);
-            await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
-            {
-                new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
-                new(parameters.ManagerName, parameters.ManagerEmailAddress)
-            });
-        }
-        else if (parameters.LanguageSchoolDecision == "Requires LETP assessment")
-        {
-            var subject = $"Language Training Request – NEW LETP REQUIRED / Demande de formation linguistique - NOUVEAU ELPF REQUIS - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
-            var html = await RenderTemplate<LSUNewLTPReq>(parametersDict);
-            await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
-            {
-                new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
-                new(parameters.ManagerName, parameters.ManagerEmailAddress)
-            });
-        }
-        else if (parameters.LanguageSchoolDecision == "Insufficient interest at level")
-        {
-            var subject = $"Language Training Request – INSUFFICIENT REGISTRATIONS / Demande de formation linguistique - INSCRIPTIONS INSUFFISANTES - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
-            var html = await RenderTemplate<LSUInsufficientInterest>(parametersDict);
-            await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
-            {
-                new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
-                new(parameters.ManagerName, parameters.ManagerEmailAddress)
-            });
-        }
-        else if (parameters.LanguageSchoolDecision == "Demand exceeds capacity")
-        {
-            var subject = $"Language Training Request – EXCESS IN DEMAND / Demande de formation linguistique - SURPLUS DE DEMANDE - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
-            var html = await RenderTemplate<LSUExcessInDemand>(parametersDict);
-            await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
-            {
-                new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
-                new(parameters.ManagerName, parameters.ManagerEmailAddress)
-            });
-        }
-        else if (parameters.LanguageSchoolDecision == "Late application")
-        {
-            var subject = $"Language Training Request – APPLICATION PERIOD CLOSED / Demande de formation linguistique - PÉRIODE D’INSCRIPTION FERMÉE -  {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
-            var html = await RenderTemplate<LSUApplicationPeriodClosed>(parametersDict);
-            await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
-            {
-                new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
-                new(parameters.ManagerName, parameters.ManagerEmailAddress)
-            });
-        }
-    }
-
-    public async Task SendM365FormsConfirmations(M365FormsParameters parameters)
-    {
-        var parametersDict = BuildM365FormsParameters(parameters);
-
-        var subject = $"M365 Team Request – {parameters.TeamName}";
-        var html = await RenderTemplate<M365Notification>(parametersDict);
-        await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
-    }
-
-    private Dictionary<string, object> BuildM365FormsParameters(M365FormsParameters parameters)
-    {
-        parameters.AppUrl = BuildAppLink(parameters.AppUrl);
-        var parametersDict = new Dictionary<string, object>()
-        {
-            { "ApplicationParameters", parameters }
-
-        };
-
-        return parametersDict;
-    }
-
-    public async Task SendOnboardingConfirmations(OnboardingParameters parameters, bool isClientNotificationSent)
-    {
-        var parametersDict = BuildOnboardingParameters(parameters);
-
-        var subject = $"Onboarding Request – {parameters.App.Product_Name}";
-        var html = isClientNotificationSent ? await RenderTemplate<OnboardingAdminUpdated>(parametersDict) : await RenderTemplate<OnboardingAdmin>(parametersDict);
-        await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
-        if (!isClientNotificationSent)
-        {
-            html = await RenderTemplate<OnboardingClient>(parametersDict);
-            await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
-            if (!string.IsNullOrEmpty(parameters.App.Additional_Contact_Email_EMAIL))
-                await SendEmailMessage(subject, html, parameters.App.Additional_Contact_Email_EMAIL, parameters.App.Additional_Contact_Email_EMAIL);
-        }
-
-    }
-
-    public async Task SendOnboardingMetadataEditRequest(OnboardingParameters parameters)
-    {
-        var parametersDict = BuildOnboardingParameters(parameters);
-        var subject = $"Please complete the details for your DataHub Initiative";
-        var html = await RenderTemplate<OnBoardingMetadataRequest>(parametersDict);
-        await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
-    }
-
-    public async Task SendExternalPowerBiCreationRequested(PowerBiExternalReportParameters parameters)
-    {
-        var parametersDict = BuildPowerBiExternalReportParameters(parameters);
-
-        var subject = $"External Power Bi Report Requested";
-
-        var html = await RenderTemplate<ExternalPowerBiCreation>(parametersDict);
-
-        await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
-    }
-
-    private Dictionary<string, object> BuildLanguageNotificationParameters(LanguageTrainingParameters parameters)
-    {
-        parameters.AppUrl = BuildAppLink(parameters.AppUrl);
-        var parametersDict = new Dictionary<string, object>()
-        {
-            { "ApplicationParameters", parameters }
-
-        };
-
-        return parametersDict;
-    }
-
-    private Dictionary<string, object> BuildOnboardingParameters(OnboardingParameters parameters)
-    {
-
-        parameters.AppUrl = BuildAppLink(parameters.AppUrl);
-        var parametersDict = new Dictionary<string, object>()
-        {
-            { "ApplicationParameters", parameters }
-
-        };
-
-        return parametersDict;
-    }
-
-    private Dictionary<string, object> BuildPowerBiExternalReportParameters(PowerBiExternalReportParameters parameters)
-    {
-
-        parameters.AppUrl = BuildAppLink(parameters.AppUrl);
-        var parametersDict = new Dictionary<string, object>()
-        {
-            { "ApplicationParameters", parameters }
-
-        };
-
-        return parametersDict;
-    }
-
-    public async Task SendPowerBiExternalUrlEmail(PowerBiExternalReportParameters parameters)
-    {
-        var parametersDict = BuildPowerBiExternalReportParameters(parameters);
-
-        var subject = $"External Power Bi Report Request";
-
-        var html = await RenderTemplate<ExternalPowerBiCreated>(parametersDict);
-
-        await SendEmailMessage(subject, html, parameters.App.RequestingUser, parameters.App.RequestingUser);
-
-    }
-
-    public async Task<IList<MailboxAddress>> TestUsernameEmailConversion(IList<(string address, string name)> recipients)
-    {
-        if (recipients == null)
-        {
-            _logger.LogError("List is null");
-            return null;
-        }
-        else if (recipients.Count < 1)
-        {
-            _logger.LogWarning("List is empty");
-            return new List<MailboxAddress>();
-        }
-        else if (recipients.Count == 1)
-        {
-            _logger.LogInformation("List has 1 item: single recipient method");
-            var item = recipients.First();
-            var recipient = await BuildRecipient(item.address, item.name);
-            return new List<MailboxAddress>() { recipient };
-        }
-        else
-        {
-            _logger.LogInformation("List has more than one item: bulk conversion");
-            var identifiers = recipients.Select(t => t.address).ToList();
-            var result = await BuildRecipientList(identifiers);
-            return result;
-        }
-    }
-
     public string BuildAppLink(string contextUrl)
     {
         var ub = new UriBuilder(_config.AppDomain);
@@ -646,146 +284,5 @@ public class EmailNotificationService : IEmailNotificationService
         return ub.ToString();
     }
 
-    public async Task SendFileSharingApprovalRequest(string username, string filename, DatahubProjectInfo projectInfo, IList<string> recipients)
-    {
-        var subject = "[DataHub] Public file sharing request";
-
-        var sharingDashboardLink = $"/{UrlPathSegment.PROJECTS}/{projectInfo.ProjectCode}/datasharing";
-
-        var parameters = new Dictionary<string, object>
-        {
-            { nameof(PublicUrlApprovalRequest.DataProject), projectInfo },
-            { nameof(PublicUrlApprovalRequest.Username), username },
-            { nameof(PublicUrlApprovalRequest.Filename), filename },
-            { nameof(PublicUrlApprovalRequest.SharingDashboardLink), BuildAppLink(sharingDashboardLink) }
-        };
-
-        var html = await RenderTemplate<PublicUrlApprovalRequest>(parameters);
-
-        await SendEmailMessage(subject, html, recipients);
-    }
-
-    public async Task SendFileSharingApproved(SharedDataFile sharedFileInfo, DatahubProjectInfo projectInfo, string publicUrlLink, string recipient)
-    {
-        var subject = "[DataHub] Public file sharing request approved";
-
-        var sharingStatusLink = $"/share/public/{sharedFileInfo.File_ID}";
-
-        var parameters = new Dictionary<string, object>()
-        {
-            { nameof(PublicUrlShareApproved.Filename), sharedFileInfo.Filename_TXT },
-            { nameof(PublicUrlShareApproved.DataProject), projectInfo },
-            { nameof(PublicUrlShareApproved.FileSharingStatusLink), BuildAppLink(sharingStatusLink) },
-            { nameof(PublicUrlShareApproved.PublicUrlLink), publicUrlLink }
-        };
-
-        var now = DateTime.UtcNow;
-        if (sharedFileInfo.PublicationDate_DT > now)
-        {
-            parameters.Add(nameof(PublicUrlShareApproved.PublicationDate), sharedFileInfo.PublicationDate_DT);
-        }
-
-        var html = await RenderTemplate<PublicUrlShareApproved>(parameters);
-
-        await SendEmailMessage(subject, html, recipient);
-    }
-
-    public async Task SendStorageCostEstimate(User estimatingUser, Dictionary<string, object> parameters)
-    {
-        var subject = "[DataHub] Your Storage Cost Estimate";
-        var adminSubject = "[DataHub] New Storage Cost Estimate";
-
-        var html = await RenderTemplate<StorageCostEstimate>(parameters);
-        parameters.Add(nameof(StorageCostEstimateAdmin.UserEmail), estimatingUser.Mail);
-        var adminHtml = await RenderTemplate<StorageCostEstimateAdmin>(parameters);
-
-        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(DATAHUB_ADMIN_PROJECT_CODE);
-
-        var tasks = new List<Task>()
-        {
-            SendEmailMessage(subject, html, estimatingUser.Mail),
-            SendEmailMessage(adminSubject, adminHtml, adminEmails)
-        };
-
-        await Task.WhenAll(tasks);
-    }
-
-    public async Task SendComputeCostEstimate(User estimatingUser, Dictionary<string, object> parameters)
-    {
-        var subject = "[DataHub] Your Databricks Compute Cost Estimate";
-        var adminSubject = "[DataHub] New Databricks Compute Cost Estimate";
-
-        var html = await RenderTemplate<ComputeCostEstimate>(parameters);
-
-        parameters.Add(nameof(ComputeCostEstimate.UserEmail), estimatingUser.Mail);
-        parameters.Add(nameof(ComputeCostEstimate.AdminVersion), true);
-
-        var adminHtml = await RenderTemplate<ComputeCostEstimate>(parameters);
-
-        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(DATAHUB_ADMIN_PROJECT_CODE);
-
-        var tasks = new List<Task>()
-        {
-            SendEmailMessage(subject, html, estimatingUser.Mail),
-            SendEmailMessage(adminSubject, adminHtml, adminEmails) 
-        };
-
-        await Task.WhenAll(tasks);
-    }
-
-    public async Task EmailErrorToDatahub(string subject, string fromUser, string message, string appInsightsMessage, string stackTrace)
-    {
-        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(DATAHUB_ADMIN_PROJECT_CODE);
-        var parameters = new Dictionary<string, object>()
-        {
-            { "Date", $"{DateTime.UtcNow} UTC" },
-            { "User", fromUser },
-            { "Message", message },
-            { "AppInsightsMessage", appInsightsMessage },
-            { "StackTrace", stackTrace }
-        };
-        var bodyHtml = await RenderTemplate<GlobalErrorNotification>(parameters);
-        await SendEmailMessage(subject, bodyHtml, adminEmails);
-    }
 }
 
-public class LanguageTrainingParameters
-{
-    public string ApplicationId;
-    public string AppUrl;
-    public string EmployeeName;
-    public string EmployeeEmailAddress;
-    public string TrainingType;
-    public string Session;
-    public string Class;
-    public string ManagerEmailAddress;
-    public string ManagerName;
-    public string LanguageSchoolEmailAddress;
-    public string ManagerDecision;
-    public string LanguageSchoolDecision;
-    public string FormUrl;
-    public List<string> AdminEmailAddresses;
-}
-
-public class OnboardingParameters
-{
-    public OnboardingApp App;
-    public string AppUrl;
-    public List<string> AdminEmailAddresses;
-}
-public class PowerBiExternalReportParameters
-{
-    public ExternalPowerBiReport App;
-    public string AppUrl;
-    public List<string> AdminEmailAddresses;
-}
-
-public class M365FormsParameters
-{
-    public string TeamName;
-    public string BusinessOwner;
-    public string SubmitterEmaill;
-    public int AppId;
-    public string AppUrl;
-    public List<string> AdminEmailAddresses;
-}

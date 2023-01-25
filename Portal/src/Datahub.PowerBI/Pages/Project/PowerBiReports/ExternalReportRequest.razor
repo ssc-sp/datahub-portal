@@ -7,7 +7,7 @@
 @inject IPowerBiDataService PowerBiDataService
 @inject IUserInformationService UserInformationService
 @inject ServiceAuthManager ServiceAuthManager
-@inject IEmailNotificationService EmailService
+@inject PowerBiEmailService EmailService
 
 <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
     @if (!currentUserIsAdmin)
