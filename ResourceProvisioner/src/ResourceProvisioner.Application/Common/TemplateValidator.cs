@@ -1,11 +1,11 @@
+using Datahub.Shared.Entities;
 using FluentValidation;
-using ResourceProvisioner.Domain.Entities;
 
 namespace ResourceProvisioner.Application.Common;
 
-public class DataHubTemplateValidator : AbstractValidator<DataHubTemplate>
+public class TerraformTemplateValidator : AbstractValidator<TerraformTemplate>
 {
-    public DataHubTemplateValidator()
+    public TerraformTemplateValidator()
     {
         RuleFor(x => x.Name)
             .NotEmpty()

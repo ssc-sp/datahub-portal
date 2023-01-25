@@ -1,5 +1,5 @@
+using Datahub.Shared.Entities;
 using ResourceProvisioner.Application.Services;
-using ResourceProvisioner.Domain.Entities;
 using ResourceProvisioner.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -16,9 +16,13 @@ public partial class Testing
     
     
     internal const string ProjectAcronym = "TEST";
+    internal static TerraformWorkspace TestingWorkspace => new()
+    {
+        Acronym = ProjectAcronym,
+    };
     internal const string RequestingUser = "Unit Test User";
     internal const string RequestingAdminUser = "Unit Test Admin User";
-    internal static readonly DataHubTemplate TestTemplate = new()
+    internal static readonly TerraformTemplate TestTemplate = new()
     {
         Name = "TestModule",
         Version = "1.0.0",

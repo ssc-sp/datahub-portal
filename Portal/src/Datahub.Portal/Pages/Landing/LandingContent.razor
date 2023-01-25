@@ -2,13 +2,14 @@
 @using Microsoft.Graph
 
 @using Datahub.Portal.Pages.Landing.Tabs
+@using Datahub.Portal.Components.Projects
 
 @inject IUserInformationService UserInformationService
 @inject UserLocationManagerService UserLocationManagerService
 @inject NavigationManager NavigationManager
 @inject IOptions<DataProjectsConfiguration> DataProjectsConfiguration
 
-<MudText Typo="Typo.h6" Class="mt-12">@Localizer["My Places"]</MudText>
+<MudText Typo="Typo.h3" Class="mt-12 mb-6">@Localizer["My Places"]</MudText>
 <AeFlex class="landing-content-wrapper">
     <AeFlex class="landing-content">
         <MudTabs Elevation="0">
@@ -28,13 +29,13 @@
     public int TabIndex { get; set; }
 
     [CascadingParameter(Name = "GraphUser")]
-    public Microsoft.Graph.User User { get; set; }
+    public User User { get; set; }
 
     private List<(string Control, RenderFragment Content)> GetTabs()
     {
         var res = new List<(string, RenderFragment)>
         {
-            (Localizer["Initiatives"], @<ProjectsTab/>)
+            (Localizer["Initiatives"], @<UserProjects ShowTitle="false"/>)
         };
 
         if (DataProjectsConfiguration.Value.Databricks)

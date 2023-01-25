@@ -1,4 +1,4 @@
-using ResourceProvisioner.Domain.Entities;
+using Datahub.Shared.Entities;
 using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
@@ -22,7 +22,7 @@ public class TerraformServiceTests
     public void ShouldThrowExceptionWhenProjectNotInitialized()
     {
         var moduleDestinationPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _configuration["InfrastructureRepository:LocalPath"]);
-        var module = new DataHubTemplate()
+        var module = new TerraformTemplate()
         {
             Name = "azure-storage-blob",
             Version = "latest"
@@ -31,7 +31,7 @@ public class TerraformServiceTests
         Assert.That(Directory.Exists(moduleDestinationPath), Is.False);
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
-            await _terraformService.CopyTemplateAsync(module, ProjectAcronym);
+            await _terraformService.CopyTemplateAsync(module, TestingWorkspace);
         });
     }
     

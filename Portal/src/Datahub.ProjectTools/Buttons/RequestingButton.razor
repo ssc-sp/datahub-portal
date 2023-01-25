@@ -1,0 +1,42 @@
+@using Datahub.Core.Enums
+@using Datahub.Core.Model.Datahub
+
+@if (IsRunning)
+{
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Disabled EndIcon="fa-solid fa-spinner-third fa-spin">
+        @Localizer["Requesting Service Creation"]
+    </MudButton>
+}
+else if (ResourceRequested)
+{
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Disabled EndIcon="fa-solid fa-atom-simple fa-spin">
+        @Localizer["Request is being reviewed"]
+    </MudButton>
+}
+else if (Project?.Project_Phase == TerraformOutputStatus.PendingApproval)
+{
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Disabled EndIcon="fas fa-layer-plus">
+        @Localizer["Pending Approval"]
+    </MudButton>
+}
+else
+{
+    <MudButton Size="Size.Small" OnClick="@OnRequestService" Variant="Variant.Filled" EndIcon="fas fa-layer-plus" Color="Color.Primary">
+        @Localizer["Create New"]
+    </MudButton>
+}
+
+@code {
+
+    [Parameter]
+    public Datahub_Project? Project { get; set; }
+
+    [Parameter]
+    public EventCallback OnRequestService { get; set; }
+
+    [Parameter]
+    public bool ResourceRequested { get; set; }
+
+    [Parameter]
+    public bool IsRunning { get; set; }
+}

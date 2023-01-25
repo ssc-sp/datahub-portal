@@ -1,11 +1,15 @@
 {
-  "WikiURL": "https://raw.githubusercontent.com/wiki/ssc-sp/datahub-portal/",
+  "WikiURL": "https://raw.githubusercontent.com/ssc-sp/datahub-docs/main/",
   "GlobalSearch": "disabled",
   "DataCatalog": "disabled",
   "PortalRunAsManagedIdentity": "disabled",
-  "ProjectTools": {
+  "DataProjectsConfiguration": {
     "IoT": false,
-    "DataManagement": true
+    "WebForms": false,
+    "EnableGitModuleRepository": true,
+    "PowerBI": false,
+    "PublicSharing": false,
+    "DataEntry": false
   },
   "WikiPageTitles": {
     "AzCopyStorageAccess": {

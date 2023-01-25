@@ -109,6 +109,7 @@
             //update Button
             StateHasChanged();
             await Task.Delay(1);
+            // TODO: Get Organization name?
             var isAdded = await ProjectCreationService.CreateProjectAsync(_projectTitle, _projectAcronym);
             _isCreating = false;
             if (isAdded)

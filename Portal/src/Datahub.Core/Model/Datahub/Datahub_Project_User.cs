@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Elemental.Components;
 
 namespace Datahub.Core.Model.Datahub;
@@ -20,6 +21,7 @@ public class Datahub_Project_User {
     public bool IsAdmin { get; set; }
 
     public bool IsDataApprover { get; set; }
+    
     public Datahub_Project Project { get; set; }
 
     [StringLength(200)]

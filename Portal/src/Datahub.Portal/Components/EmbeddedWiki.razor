@@ -1,6 +1,5 @@
-﻿@using Datahub.Core.Services.Resources
-@using Datahub.Core.Services.Wiki;
-@inject IResourcesService _resourcesService
+﻿@using Datahub.Core.Services.Wiki;
+@inject IWikiService _resourcesService
 @inject CultureService _cultureService
 @inject NavigationManager _navManager
 
@@ -34,7 +33,7 @@
     private string _baseUrl = "/resources";
 
     private bool _isFrench;
-    private ResourceLanguageRoot _languageRoot;
+    private MarkdownLanguageRoot _languageRoot;
 
     private string _markdownContent = string.Empty;
 
@@ -59,7 +58,7 @@
             return;
         }
 
-        var card = _languageRoot[pageName] as ResourceCard;
+        var card = _languageRoot[pageName] as MarkdownCard;
 
         if (card == null)
         {

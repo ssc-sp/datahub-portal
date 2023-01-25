@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "SyncDocs (sidebars)": {
+      "commandName": "Project",
+      "commandLineArgs": "gensidebars -P ../../../../../../../datahub-docs -p ssc"
+    },
+    "SyncDocs (translate)": {
+      "commandName": "Project",
+      "commandLineArgs": "translate -P ../../../../../../../datahub-docs -p ssc -f"
+    }
+  }
+}

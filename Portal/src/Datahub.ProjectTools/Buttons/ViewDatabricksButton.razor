@@ -1,0 +1,11 @@
+<MudButton Variant="Variant.Text" EndIcon="@Icons.Filled.OpenInNew" Color="Color.Primary" Size="Size.Small">
+    <DHLink Underline="Underline.None" Typo="Typo.button" DatabricksURL="@DatabricksUrl" LinkType="DatahubLinkType.Databricks">
+        @Localizer["Open Databricks"]
+    </DHLink>
+</MudButton>
+
+@code {
+
+    [Parameter]
+    public string? DatabricksUrl { get; set; }
+}

@@ -1,6 +1,7 @@
 ﻿using Datahub.Core.Configuration;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Projects;
+using Datahub.ProjectTools.Catalog.ResourceCards;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -29,7 +30,7 @@ public class DHStorageResource: DHURLResource
         _azStorageServiceRequested = serviceRequests.Any(r=> r.Is_Completed == null);
         _azStorageServiceCreated = serviceRequests.Any(pr => pr.Is_Completed != null); 
 
-        parameters.Add(nameof(Storage.Project), Project);
+        parameters.Add(nameof(StorageResourceCard.Project), Project);
     }
 
     protected override string Title => "Project Storage";
@@ -37,7 +38,7 @@ public class DHStorageResource: DHURLResource
     protected override string Icon => "fas fa-hdd fa-2x";
     protected override bool IsIconSVG => false;
 
-    protected override Type ComponentType => typeof(Storage);
+    protected override Type ComponentType => typeof(StorageResourceCard);
 
     protected override bool IsServiceRequested => _azStorageServiceRequested && !_azStorageServiceCreated;
 

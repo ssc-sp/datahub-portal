@@ -5,6 +5,7 @@
 @using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Services.Notification
+@using MudBlazor.Utilities
 
 @inject ServiceAuthManager _serviceAuthManager
 @inject IUserInformationService _userInformationService
@@ -15,7 +16,6 @@
 @inject ProjectResourcesListingService ProjectResourcesListingService
 
 <div>
-
     <ProjectMemberBlock AdminOnly=false ProjectAcronym="@ProjectAcronym">
         <NotAuthorized>
             <div class="access-denied">
@@ -34,107 +34,44 @@
             </div>
         </NotAuthorized>
         <Authorized>
-            @if (_activeResources?.Count > 0 || _isProjectAdmin)
+            @if (_activeResources?.Count > 0)
             {
-                <div class="project-tools" style="margin-bottom: 2rem;">
-                <MudText Typo="Typo.h4">@Localizer["Active Project Tools"]</MudText>
-
-
-                <div class="controls">
-                    <span class="icon-wrapper @(_isDense ? "active" : "")" @onclick="@(() => ToggleDense(true))">
-                        <i class="fas fa-list-ul"></i>
-                    </span>
-                    <span class="icon-wrapper @(!_isDense ? "active" : "")" @onclick="@(() => ToggleDense(false))">
-                        <i class="fas fa-th-large"></i>
-                    </span>
-                </div>
-                @if (_isLoading)
-                {
-                    @*<Spinner/>*@
-                }
-                else
-                {
-                    <div class="tools-container @(_isDense ? "dense" : "")">
-                        @foreach (var active in _activeResources)
-                        {
-                            <DynamicComponent Parameters="active.parameters" Type="active.type" />
-                        }
-@*                        @if (_configuration.Value.WebForms)
-                        {
-                            <FormBuilder/>
-                        }
-                        @if (_configuration.Value.Costing)
-                        {
-                            <Costing/>
-                        }
-                        @if (_configuration.Value.DataManagement)
-                        {
-                            <IoT/>
-                        }
-
-                        @if (_configuration.Value.IoT)
-                        {
-                            <DataManagement/>
-                        }
-
-                        @if (_configuration.Value.PostgreSQL)
-                        {
-                            @if (_projectDatabaseResources.Count < 1)
+                <MudStack Class="my-12">
+                    <MudText Class="mb-4" Typo="Typo.h4">@Localizer["Active Project Tools"]</MudText>
+                    @if (_isLoading)
+                    {
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+                    }
+                    else
+                    {
+                        <MudElement HtmlTag="div" class="@_toolContainerClass">
+                            @foreach (var active in _activeResources)
                             {
-                                <ProjectDatabase />
+                                <DynamicComponent Parameters="active.parameters" Type="active.type"/>
                             }
-                            else
-                            {
-                                foreach(var db in _projectDatabaseResources)
-                                {
-                                    <ProjectDatabase ResourceID=@db.ResourceId />
-                                }
-                            }
-                        }*@
-                        <Admin/>
-
-                        @if (_configuration.Value.StorageCost)
-                        {
-                            <StorageCost />
-                        }
-
-                        @if (_configuration.Value.ComputeCost)
-                        {
-                            <ComputeCost />
-                        }
-                </div>
-            }
-            </div>
+                        </MudElement>
+                    }
+                </MudStack>
             }
 
             @if (_inactiveResources?.Count > 0)
             {
-            <div class="project-tools">
-                <MudText Typo="Typo.h4">@Localizer["Available Project Tools"]</MudText>
-
-
-                <div class="controls">
-                    <span class="icon-wrapper @(_isDense ? "active" : "")" @onclick="@(() => ToggleDense(true))">
-                        <i class="fas fa-list-ul"></i>
-                    </span>
-                    <span class="icon-wrapper @(!_isDense ? "active" : "")" @onclick="@(() => ToggleDense(false))">
-                        <i class="fas fa-th-large"></i>
-                    </span>
-                </div>
-                @if (_isLoading)
-                {
-                    @*<Spinner/>*@
-                }
-                else
-                {
-                    <div class="tools-container @(_isDense ? "dense" : "")">
-                        @foreach (var resource in _inactiveResources)
-                        {
-                                <DynamicComponent Parameters="resource.parameters" Type="resource.type" />
-                        }
-                    </div>
-                }
-            </div>
+                <MudStack Class="my-12">
+                    <MudText Class="mb-4" Typo="Typo.h4">@Localizer["Service Catalog"]</MudText>
+                    @if (_isLoading)
+                    {
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+                    }
+                    else
+                    {
+                        <MudElement HtmlTag="div" class="@_toolContainerClass">
+                            @foreach (var resource in _inactiveResources)
+                            {
+                                <DynamicComponent Parameters="resource.parameters" Type="resource.type"/>
+                            }
+                        </MudElement>
+                    }
+                </MudStack>
             }
         </Authorized>
     </ProjectMemberBlock>
@@ -160,6 +97,18 @@
 
     private List<(Type type, IDictionary<string, object> parameters)> _activeResources;
     private List<(Type type, IDictionary<string, object> parameters)> _inactiveResources;
+    private string _toolContainerClass;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _toolContainerClass = new CssBuilder()
+            .AddClass("d-flex")
+            .AddClass("flex-wrap")
+            .AddClass("gap-4")
+            .Build();
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -180,10 +129,10 @@
 
         var _serviceRequests = await projectDbContext.Project_Requests.Where(p => p.Project == Project).ToListAsync();
 
-        var isPowerBiActiveForNonAdmin = !string.IsNullOrEmpty(Project.PowerBI_URL) || 
-            _serviceRequests.Any(r => r.ServiceType == IRequestManagementService.POWERBI && r.Is_Completed.HasValue);
+        var isPowerBiActiveForNonAdmin = !string.IsNullOrEmpty(Project.PowerBI_URL) ||
+                                         _serviceRequests.Any(r => r.ServiceType == IRequestManagementService.POWERBI && r.Is_Completed.HasValue);
 
-        //_canViewPowerBi = isUserAdmin || isPowerBiActiveForNonAdmin || IsDatahubAdmin;
+    //_canViewPowerBi = isUserAdmin || isPowerBiActiveForNonAdmin || IsDatahubAdmin;
 
         var allProjectResources = await projectDbContext.Project_Resources2.Where(r => r.Project == Project).ToListAsync();
 
@@ -243,4 +192,5 @@
     {
         _isDense = isDense;
     }
+
 }

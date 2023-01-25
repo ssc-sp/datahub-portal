@@ -16,6 +16,7 @@
     {
         <MudBadge Dot Color="Color.Primary" Overlap>
             <MudToggleIconButton
+                aria-label="Notifications toggle"
                 ToggledIcon="@Icons.Filled.Notifications"
                 ToggledChanged="@ToggleNotifications"
                 Toggled="_showNotifications"
@@ -25,6 +26,7 @@
     else
     {
         <MudToggleIconButton
+            aria-label="Notifications toggle"
             ToggledIcon="@Icons.Filled.Notifications"
             ToggledChanged="@ToggleNotifications"
             Toggled="_showNotifications"

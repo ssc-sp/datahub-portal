@@ -1,25 +1,25 @@
-﻿using Markdig.Syntax;
-using Markdig;
-using Octokit;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Runtime.Caching;
 using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.Caching;
+using Datahub.ProjectTools.Utils;
+using Markdig;
 using Markdig.Extensions.Yaml;
+using Markdig.Syntax;
+using Octokit;
 using YamlDotNet.Serialization;
 
-namespace Datahub.Core.Services.ProjectTools;
+namespace Datahub.ProjectTools.Services;
 #nullable enable
 
 public record GitHubModule(string Name, string Path,
     string? CardName,
-    string? CalculatorPath,   
+    string? CalculatorPath,
+    string? DocumentationUrl,
+    string? ActionUrl,
+    string? ReadMorePath,
     string? Icon,
-    List<GitHubModuleDescriptor> Descriptors);    
+    List<GitHubModuleDescriptor> Descriptors);
 
-public record GitHubModuleDescriptor(string Language, string Title, string? Description, string[]? Tags);
+public record GitHubModuleDescriptor(string Language, string Title, string? CatalogSubtitle, string? CatalogDescription, string? ResourceDescription, string[]? Tags);
 
 public record RepositoryDescriptorErrors(string Path, string Error);
 
@@ -27,11 +27,13 @@ public class AsyncLazy<T> : Lazy<Task<T>>
 {
     public AsyncLazy(Func<T> valueFactory) :
         base(() => Task.Factory.StartNew(valueFactory))
-    { }
+    {
+    }
 
     public AsyncLazy(Func<Task<T>> taskFactory) :
         base(() => Task.Factory.StartNew(() => taskFactory()).Unwrap())
-    { }
+    {
+    }
 }
 
 public class GitHubToolsService
@@ -49,17 +51,18 @@ public class GitHubToolsService
     private readonly MemoryCache githubCache;
 
     public GitHubToolsService()
-    {            
+    {
         var c = new Connection(new ProductHeaderValue("datahub"));
         var connection = new ApiConnection(c);
         contentClient = new RepositoryContentsClient(connection);
         errors = new List<RepositoryDescriptorErrors>();
-        this.githubCache = new MemoryCache("github");
+        githubCache = new MemoryCache("github");
     }
 
     private const string CACHE_KEY = "GitModules";
 
-    private async Task<T> AddOrGetExistingAsync<T>(string key, Func<Task<T>> valueFactory, CacheItemPolicy? policy = null)
+    private async Task<T> AddOrGetExistingAsync<T>(string key, Func<Task<T>> valueFactory,
+        CacheItemPolicy? policy = null)
     {
         var newValue = new AsyncLazy<T>(valueFactory);
         var oldValue = githubCache.AddOrGetExisting(key, newValue, policy ?? new CacheItemPolicy()) as AsyncLazy<T>;
@@ -79,19 +82,22 @@ public class GitHubToolsService
     {
         return await AddOrGetExistingAsync(CACHE_KEY, async () =>
         {
-            var data = await contentClient.GetAllContentsByRef(GitHubToolsService.GitHubOwner, GitHubToolsService.GitHubRepo, GitHubToolsService.GitHubTemplateFolder, GitHubToolsService.GitHubBranchName);//, 
+            var data = await contentClient.GetAllContentsByRef(GitHubOwner,
+                GitHubRepo, GitHubTemplateFolder,
+                GitHubBranchName); //, 
             var folders = data.Where(d => d.Type == ContentType.Dir).ToList();
             var modules = await folders.ToAsyncEnumerable()
                 .SelectAwait(async dir => await GetGitHubModule(dir))
                 .Where(d => d != null).Select(d => d!).ToListAsync();
             return modules;
-        }, new CacheItemPolicy() {  AbsoluteExpiration = DateTime.Now.AddHours(4)});
+        }, new CacheItemPolicy { AbsoluteExpiration = DateTime.Now.AddHours(4) });
     }
 
     internal async Task<GitHubModule?> GetGitHubModule(RepositoryContent dir)
-    {            
-        var content = await contentClient.GetAllContentsByRef(GitHubOwner, GitHubToolsService.GitHubRepo, dir.Path, GitHubToolsService.GitHubBranchName);//, 
-        var readme = content.Where(c => c.Name.ToLower() == GitHubToolsService.GitHubTemplateReadme).FirstOrDefault();
+    {
+        var content = await contentClient.GetAllContentsByRef(GitHubOwner, GitHubRepo, dir.Path,
+            GitHubBranchName); //, 
+        var readme = content.Where(c => c.Name.ToLower() == GitHubTemplateReadme).FirstOrDefault();
         if (readme is null)
         {
             errors.Add(new RepositoryDescriptorErrors(
@@ -100,52 +106,63 @@ public class GitHubToolsService
             ));
             return null;
         }
-        var readmeContent = await contentClient.GetRawContentByRef(GitHubOwner, GitHubRepo, readme.Path, GitHubBranchName);
+
+        var readmeContent =
+            await contentClient.GetRawContentByRef(GitHubOwner, GitHubRepo, readme.Path, GitHubBranchName);
         var builder = new MarkdownPipelineBuilder();
-        builder.UseYamlFrontMatter();            
+        builder.UseYamlFrontMatter();
         var readmeDoc = Markdown.Parse(Encoding.UTF8.GetString(readmeContent!), builder.Build());
         var readmeDocFlattened = readmeDoc.Descendants().ToList();
         var english = GetSubSections(readmeDocFlattened, "English", 1);
         var descriptors = ExtractSubSections(english, 2);
         var french = GetSubSections(readmeDocFlattened, "Français", 1);
         var descriptors_fr = ExtractSubSections(french, 2);
-            
+
         //Language            
 
         var en = new GitHubModuleDescriptor(
             "en",
             ValidateKey("Title", dir, descriptors) ?? "Missing Title",
-            ValidateKey("Why", dir, descriptors),
+            ValidateKey("Catalog Subtitle", dir, descriptors),
+            ValidateKey("Catalog Description", dir, descriptors),
+            ValidateKey("Resource Description", dir, descriptors),
             ValidateKey("Tags", dir, descriptors)?.Split(",").Select(t => t.Trim()).ToArray()
         );
         var fr = new GitHubModuleDescriptor(
             "fr",
             ValidateKey("Titre", dir, descriptors_fr) ?? "Titre absent",
-            ValidateKey("Pourquoi", dir, descriptors_fr),
-            ValidateKey("Mots Clefs", dir, descriptors_fr)?.Split(",").Select(t => t.Trim()).ToArray()                
+            ValidateKey("Sous-Titre du Catalogue", dir, descriptors_fr),
+            ValidateKey("Description du Catalogue", dir, descriptors_fr),
+            ValidateKey("Description de la Ressource", dir, descriptors_fr),
+            ValidateKey("Mots Clefs", dir, descriptors_fr)?.Split(",").Select(t => t.Trim()).ToArray()
         );
+
+        var yaml = GetFrontMatter(readmeDoc, dir);
         return new GitHubModule(dir.Name,
             dir.Path,
-            GetFrontMatterValue(readmeDoc, "dhcard", dir),
-            GetFrontMatterValue(readmeDoc, "calculator", dir),
-            GetFrontMatterValue(readmeDoc, "icon", dir),
-            new List<GitHubModuleDescriptor>() { en, fr }
+            yaml.GetValueOrDefault("dhcard"),
+            yaml.GetValueOrDefault("calculator"),
+            yaml.GetValueOrDefault("documentationUrl"),
+            yaml.GetValueOrDefault("actionUrl"),
+            yaml.GetValueOrDefault("readMore"),
+            yaml.GetValueOrDefault("icon"),
+            new List<GitHubModuleDescriptor> { en, fr }
         );
     }
+
     private string? ValidateKey(string key, RepositoryContent module, Dictionary<string, string> dic)
     {
         if (dic.TryGetValue(key, out var value))
         {
             return value;
         }
-        else
-        {
-            errors.Add(new RepositoryDescriptorErrors(module.Path,
-                $"Module {module.Name} is missing the '{key}' section"
-            ));
-            return null;
-        }
+
+        errors.Add(new RepositoryDescriptorErrors(module.Path,
+            $"Module {module.Name} is missing the '{key}' section"
+        ));
+        return null;
     }
+
     private List<MarkdownObject> GetSubSections(List<MarkdownObject> readmeDocFlattened, string value, int level)
     {
         var result = new List<MarkdownObject>();
@@ -159,83 +176,84 @@ public class GitHubToolsService
                     blockLocated = true;
                     continue;
                 }
-                else if (blockLocated)
+
+                if (blockLocated)
                 {
                     break;
                 }
             }
+
             if (blockLocated)
             {
                 result.Add(item);
             }
         }
-        return result.Skip(1).ToList();//skip the inline block
+
+        return result.Skip(1).ToList(); //skip the inline block
     }
+
     private Dictionary<string, string> ExtractSubSections(List<MarkdownObject> readmeDocFlattened, int level)
     {
         var result = new Dictionary<string, string>();
-        var iterator = readmeDocFlattened.GetEnumerator();
+        using var iterator = readmeDocFlattened.GetEnumerator();
         string? currentHeader = null;
         while (iterator.MoveNext())
         {
             var item = iterator.Current;
-            if (item is HeadingBlock heading)
+            switch (item)
             {
-                currentHeader = null;
-                if (heading.Inline?.FirstChild != null && heading.Level == level)
+                case HeadingBlock heading:
                 {
-                    currentHeader = heading.Inline?.FirstChild?.ToString();
+                    currentHeader = null;
+                    if (heading.Inline?.FirstChild != null && heading.Level == level)
+                    {
+                        currentHeader = heading.Inline?.FirstChild?.ToString();
+                    }
+
+                    break;
                 }
-            }
-            if (item is ParagraphBlock paragraph && currentHeader != null)
-            {
-                var value = paragraph!.Inline?.FirstChild?.ToString();
-                if (value != null)
+                case ParagraphBlock paragraph when currentHeader != null:
                 {
-                    result[currentHeader] = value;
+                    var value = paragraph!.Inline?.FirstChild?.ToString();
+                    if (value != null)
+                    {
+                        result[currentHeader] = value;
+                    }
+
+                    currentHeader = null;
+                    break;
                 }
-                currentHeader = null;
             }
         }
+
         return result;
     }
 
-    private string? GetFrontMatterValue(MarkdownDocument document, string key, RepositoryContent module)
+    private Dictionary<string, string> GetFrontMatter(MarkdownDocument document, RepositoryContent module)
     {
-        var yamlBlocks = document.Descendants<Markdig.Extensions.Yaml.YamlFrontMatterBlock>()
-            .ToList();
-
-        if (yamlBlocks.Count != 1)
+        var yamlBlock = document
+            .Descendants<YamlFrontMatterBlock>()
+            .FirstOrDefault();
+        
+        if(yamlBlock is null)
         {
             errors.Add(new RepositoryDescriptorErrors(
                 module.Path,
                 $"Cannot find yaml front matter in '{GitHubTemplateReadme}' file"
             ));
-            return null;
+            return new Dictionary<string, string>();
         }
-        var yamlBlock = yamlBlocks[0];
-        var yamlBlockIterator = yamlBlock.Lines.ToCharIterator();
-        var yamlString = new StringBuilder();
-        while (yamlBlockIterator.CurrentChar != '\0')
-        {
-            yamlString.Append(yamlBlockIterator.CurrentChar);
-            yamlBlockIterator.NextChar();
-        }
+        
+        var yaml = yamlBlock
+            .Lines
+            .Lines
+            .Select(x => $"{x}")
+            .ToList()
+            .Select(x => x.Replace("---", string.Empty))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x.Split(":", 2))
+            .ToDictionary(x => x[0].Trim(), x => x[1].Trim());
 
-        var yamlDeserializer = new DeserializerBuilder().Build();
-        try
-        {
-            var yamlObject = yamlDeserializer.Deserialize<Dictionary<string, string>>(new StringReader(yamlString.ToString()));
-            return yamlObject[key];
-        } catch (Exception ex)
-        {
-            errors.Add(new RepositoryDescriptorErrors(
-                module.Path,
-                $"Key {key} is missing in '{GitHubTemplateReadme}' file"
-            ));
-            return null;
-        }
-
+        return yaml;
     }
-
 }
