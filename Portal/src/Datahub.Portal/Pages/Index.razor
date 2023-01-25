@@ -6,6 +6,13 @@
 
     protected override void OnInitialized()
     {
-        _navigationManager.NavigateTo("/home");
+        try
+        {
+            _navigationManager.NavigateTo("/home");
+        }
+        catch (NavigationException e)
+        {
+            // Should be ignored, see https://github.com/dotnet/aspnetcore/issues/13582
+        }
     }
 }
