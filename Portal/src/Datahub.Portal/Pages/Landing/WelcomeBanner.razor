@@ -8,15 +8,18 @@
 
 @code {
 
-    private DateTimeOffset now;
+    private DateTimeOffset _now = DateTimeOffset.Now;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        now = await TimeZoneService.GetLocalDateTime(DateTimeOffset.UtcNow);
+        if (firstRender)
+        {
+            _now = await TimeZoneService.GetLocalDateTime(DateTimeOffset.UtcNow);
+        }
     }
 
     private string GetGreeting(){
-        var hour = now.Hour;
+        var hour = _now.Hour;
 
         if(hour < 12){
             return @Localizer["Good Morning"];
