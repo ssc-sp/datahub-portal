@@ -73,7 +73,7 @@
         return new()
         {
             ("/home", Icon.HOME, "SIDEBAR.Home", true),
-            ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects", true),
+            ("/w", Icon.PROJECT, "SIDEBAR.DataProjects", true),
             ("/resources", Icon.RESOURCES, "SIDEBAR.Resources", _userHasInitiatives),
             ("/tools", Icon.TOOLS, "SIDEBAR.Tools", true),
             ("/discovery", Icon.CATALOG, "SIDEBAR.Catalog", (IsFeatureEnabled("DataCatalog") && _userHasInitiatives)),

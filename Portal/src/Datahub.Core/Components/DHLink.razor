@@ -114,7 +114,7 @@
                 NavigationManager.NavigateTo($"/powerbi-report/{link.PBIWorkspaceId}/{link.PBIReportId}");
                 break;
             case DatahubLinkType.DataProject:
-                NavigationManager.NavigateTo($"/{UrlPathSegment.PROJECTS}/{link.DataProject}");
+                NavigationManager.NavigateTo($"/w/{link.DataProject}");
                 break;
             case DatahubLinkType.Databricks:
                 await _jsRuntime.InvokeVoidAsync("open", link?.DatabricksURL, "_blank");
@@ -126,13 +126,13 @@
                 NavigationManager.NavigateTo(link.WebFormsURL);
                 break;
             case DatahubLinkType.FormBuilder:
-                NavigationManager.NavigateTo($"/{UrlPathSegment.PROJECTS}/{link.DataProject}/forms");
+                NavigationManager.NavigateTo($"/w/{link.DataProject}/forms");
                 break;
             case DatahubLinkType.Storage:
-                NavigationManager.NavigateTo($"/{UrlPathSegment.PROJECTS}/{link.DataProject}/filelist");
+                NavigationManager.NavigateTo($"/w/{link.DataProject}/filelist");
                 break;
             case DatahubLinkType.DataSharingDashboard:
-                NavigationManager.NavigateTo($"/{UrlPathSegment.PROJECTS}/{link.DataProject}/datasharing");
+                NavigationManager.NavigateTo($"/w/{link.DataProject}/datasharing");
                 break;
             case DatahubLinkType.PowerBIReport:
                 NavigationManager.NavigateTo($"/powerbi/{link.DataProject}");

@@ -141,7 +141,7 @@ public class PortalEmailService
     {
         var subject = "[DataHub] Public file sharing request";
 
-        var sharingDashboardLink = $"/{UrlPathSegment.PROJECTS}/{projectInfo.ProjectCode}/datasharing";
+        var sharingDashboardLink = $"/w/{projectInfo.ProjectCode}/datasharing";
 
         var parameters = new Dictionary<string, object>
         {

@@ -1,4 +1,4 @@
-﻿@page "/projects/{ProjectAcronym}/forms/fields/{id}"
+﻿@page "/w/{ProjectAcronym}/forms/fields/{id}"
 @inject NavigationManager NavManager
 @implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
@@ -87,11 +87,11 @@ else
 
 @if (_formField == null)
 {
-    <AeButton To=@($"/{UrlPathSegment.PROJECTS}/{ProjectAcronym}/forms")>Back</AeButton>
+    <AeButton To=@($"/w/{ProjectAcronym}/forms")>Back</AeButton>
 }
 else
 {
-    <AeButton To=@($"/{UrlPathSegment.PROJECTS}/{ProjectAcronym}/forms/{_formField.WebForm_ID}")>Back</AeButton>
+    <AeButton To=@($"/w/{ProjectAcronym}/forms/{_formField.WebForm_ID}")>Back</AeButton>
 }
 
 

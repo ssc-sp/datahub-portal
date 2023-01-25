@@ -126,7 +126,7 @@ namespace Datahub.ProjectTools.Services
 
             var subject = $"[DataHub] {serviceName} service access request approved / demande d’accès au service approuvée";
 
-            var projectPagePath = $"{UrlPathSegment.PROJECTS}/{projectInfo.ProjectCode}";
+            var projectPagePath = $"w/{projectInfo.ProjectCode}";
             var projectPageLink = _emailNotificationService.BuildAppLink(projectPagePath);
             parameters.Add(nameof(ServiceAccessRequestApproved.ProjectPageUrl), projectPageLink);
 
@@ -147,7 +147,7 @@ namespace Datahub.ProjectTools.Services
 
             var subject = $"[DataHub] {serviceName} service request approved / demande de service approuvée";
 
-            var projectPagePath = $"{UrlPathSegment.PROJECTS}/{projectInfo.ProjectCode}";
+            var projectPagePath = $"w/{projectInfo.ProjectCode}";
             var projectPageLink = _emailNotificationService.BuildAppLink(projectPagePath);
             parameters.Add(nameof(ServiceRequestApproved.ProjectPageUrl), projectPageLink);
 
@@ -168,7 +168,7 @@ namespace Datahub.ProjectTools.Services
 
             var subject = $"[DataHub] {serviceName} service created / {serviceName} service créé ";
 
-            var projectPagePath = $"{UrlPathSegment.PROJECTS}/{projectInfo.ProjectCode}";
+            var projectPagePath = $"w/{projectInfo.ProjectCode}";
             var projectPageLink = _emailNotificationService.BuildAppLink(projectPagePath);
             parameters.Add(nameof(ServiceCreatedGroupNotification.ProjectPageUrl), projectPageLink);
 
