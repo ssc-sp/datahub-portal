@@ -6,7 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Entities = Datahub.Metadata.Model;
 
@@ -26,6 +28,12 @@ public class MetadataBrokerService : IMetadataBrokerService
         _logger = logger;
         _auditingService = auditingService;
         _catalogSearchEngine = catalogSearchEngine;
+    }
+
+    public async Task<List<Entities.MetadataProfile>> GetProfiles()
+    {
+        using var ctx = _contextFactory.CreateDbContext();
+        return await GetProfiles(ctx);
     }
 
     public async Task<MetadataProfile> GetProfile(string name)
@@ -763,6 +771,71 @@ public class MetadataBrokerService : IMetadataBrokerService
         return null;
     }
 
+    public async Task UpdateMetadata(Stream content)
+    {
+        try
+        {
+            var reader = new StreamReader(content);
+            var json = await reader.ReadToEndAsync();
+            var metadata = JsonSerializer.Deserialize<MetadataDTO>(json);
+
+            await SyncDefinitions(metadata);
+            await SyncProfiles(metadata);
+
+            _logger.LogInformation($"Test {metadata.Profiles.Count}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to sync the Metadata");
+        }
+    }
+
+    private async Task SyncDefinitions(MetadataDTO metadataDto)
+    {
+        using var ctx = await _contextFactory.CreateDbContextAsync();
+
+        var definitions = await GetLatestMetadataDefinition(ctx);
+        foreach (var defDto in metadataDto.Definitions)
+        {
+            var definition = definitions.Get(defDto.Field_Name_TXT);
+            if (definition is null)
+            {
+                ctx.FieldDefinitions.Add(defDto.ToEntity());
+            }
+            else
+            {
+                var choiceSet = definition.Choices.Select(c => c.Value_TXT).ToHashSet();
+                foreach (var choiceDto in defDto.Choices.Where(c => !choiceSet.Contains(c.Value_TXT)))
+                {
+                    ctx.FieldChoices.Add(choiceDto.ToEntity(definition.FieldDefinitionId));
+                }
+            }
+        }
+
+        await ctx.TrackSaveChangesAsync(_auditingService);
+    }
+
+    private async Task SyncProfiles(MetadataDTO metadataDto)
+    {
+        using var ctx = await _contextFactory.CreateDbContextAsync();
+
+        var definitions = await GetLatestMetadataDefinition(ctx);
+        var profiles = await GetProfiles(ctx);
+
+        var profileSet = profiles.Select(p => p.Name).ToHashSet();
+        var dtoDefs = metadataDto.Definitions.ToDictionary(d => d.FieldDefinitionId);
+
+        Func<int, int> idMapper = (int id) => definitions.Get(dtoDefs[id].Field_Name_TXT).FieldDefinitionId;
+
+        foreach (var profDto in metadataDto.Profiles.Where(p => !profileSet.Contains(p.Name)))
+        {
+            var profile = profDto.ToEntity(idMapper);
+            ctx.Profiles.Add(profile);
+        }
+
+        await ctx.TrackSaveChangesAsync(_auditingService);
+    }
+
     private int? _securityClassificationId = null;
     private async Task<int> GetSecurityClassificationId(MetadataDbContext ctx)
     {
@@ -807,5 +880,14 @@ public class MetadataBrokerService : IMetadataBrokerService
     private async Task<bool> CatalogExists(MetadataDbContext ctx, string objectId)
     {
         return await ctx.CatalogObjects.AnyAsync(c => c.ObjectMetadata.ObjectId_TXT == objectId);
+    }
+
+    private async Task<List<MetadataProfile>> GetProfiles(MetadataDbContext ctx)
+    {
+        return await ctx.Profiles
+                        .Include(p => p.Sections)
+                        .ThenInclude(s => s.Fields)
+                        .AsSingleQuery()
+                        .ToListAsync();
     }
 }
