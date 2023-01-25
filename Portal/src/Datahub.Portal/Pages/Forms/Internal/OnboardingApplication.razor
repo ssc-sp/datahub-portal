@@ -1,6 +1,6 @@
 ﻿@page "/onboarding/applications"
 @page "/onboarding/applications/{AppId}"
-@inject IEmailNotificationService EmailService
+@inject PortalEmailService EmailService
 @implements IDisposable
 @inject ServiceAuthManager ServiceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
@@ -13,22 +13,23 @@
 
 @using Datahub.Core.Model.Onboarding
 @using System.Text
-@using Datahub.Core.Services.Notification
+@using Datahub.Core.Services.Notification;
+@using Datahub.Portal.Services.Notification;
 
 @if (_isLoaded)
 {
     <Datahub.Core.Components.FormTemplate T="OnboardingApp"
-                                          U="DatahubProjectDBContext"
-                                          Context="Context"
-                                          Metadata="@_formMetadata"
-                                          HandleSubmit="HandleValidSubmit"
-                                          OnChangeForms="OnChange"
-                                          OnConfigureForms="OnConfigure"
-                                          CreateNewRecord="CreateNewApplication"
-                                          SelectedRecord="@_onboardingApplication"
-                                          SetFormEditRecord="SetFormEdit"
-                                          FormFilterBarOptions="@_filterBarOptions"
-                                          FilterBarCheckChange="HandleFilterBarCheckChange" />
+                                      U="DatahubProjectDBContext"
+                                      Context="Context"
+                                      Metadata="@_formMetadata"
+                                      HandleSubmit="HandleValidSubmit"
+                                      OnChangeForms="OnChange"
+                                      OnConfigureForms="OnConfigure"
+                                      CreateNewRecord="CreateNewApplication"
+                                      SelectedRecord="@_onboardingApplication"
+                                      SetFormEditRecord="SetFormEdit"
+                                      FormFilterBarOptions="@_filterBarOptions"
+                                      FilterBarCheckChange="HandleFilterBarCheckChange" />
 
     @if (_isUserAdmin && _onboardingApplication != null)
     {
@@ -166,14 +167,14 @@
                 .Select(a => a.Org_Acronym_E)
                 .FirstOrDefault();
 
-            var sector = Context.Organization_Levels.Where(s => s.Org_Name_E == _onboardingApplication.Client_Sector).SingleOrDefault();
-            var branch = Context.Organization_Levels.Where(s => s.Org_Name_E == _onboardingApplication.Client_Branch && s.Superior_OrgId == sector.Organization_ID).SingleOrDefault();
-            var division = Context.Organization_Levels.Where(s => s.Org_Name_E == _onboardingApplication.Client_Division && s.Superior_OrgId == branch.Organization_ID).SingleOrDefault();
+            var sector = Context.Organization_Levels.Where(s => s.Org_Name_E == _onboardingApplication.Client_Sector || s.Org_Name_F == _onboardingApplication.Client_Sector).SingleOrDefault();
+            var branch = Context.Organization_Levels.Where(s => (s.Org_Name_E == _onboardingApplication.Client_Branch || s.Org_Name_F == _onboardingApplication.Client_Branch) && s.Superior_OrgId == sector.Organization_ID).SingleOrDefault();
             var project = new Datahub_Project();
             project.Project_Acronym_CD = _newProjectAcronym;
             project.Sector = sector;
             project.Branch = branch;
-            project.Division = division;
+            if (branch != null)
+                project.Division = Context.Organization_Levels.Where(s => (s.Org_Name_E == _onboardingApplication.Client_Division || s.Org_Name_F == _onboardingApplication.Client_Division) && s.Superior_OrgId == branch.Organization_ID).SingleOrDefault();
             project.Sector_Name = orgAcronym ?? _onboardingApplication.Client_Sector;
             project.Branch_Name = _onboardingApplication.Client_Branch;
             project.Division_Name = _onboardingApplication.Client_Division;
@@ -186,7 +187,8 @@
             project.Project_Category = _onboardingApplication.Project_Engagement_Category;
             project.OnboardingApplicationId = _onboardingApplication.Application_ID;
             project.Data_Sensitivity = _onboardingApplication.Data_Security_Level ?? "Unclassified";
-            project.Project_Status_Desc = "Ongoing";
+            project.Project_Status_Desc = string.Empty;
+            project.Project_Status = 1;
             project.Initial_Meeting_DT = DateTime.Now;
             project.Last_Contact_DT = DateTime.Now;
 
