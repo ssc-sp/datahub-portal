@@ -86,7 +86,7 @@ public class ProjectCreationTests
         //test queue success
         var project = await queue.DequeueAsync();
         Assert.Equal(projectName, project.Value.Workspace.Name);
-        Assert.Equal(organization, project.Value.Workspace.Organization.Name);
+        Assert.Equal(organization, project.Value.Workspace.TerraformOrganization.Name);
     }
 
     private IConfiguration Configuration

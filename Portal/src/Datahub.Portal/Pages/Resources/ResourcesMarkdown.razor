@@ -1,0 +1,43 @@
+@using Datahub.Core.Services.Docs
+
+@inject DocumentationService _docService
+
+
+<MudPaper Class="px-8 py-6">
+    <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+        <MudButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
+                   OnClick="@HandleRemoveFromCache"
+                   Color="@Color.Primary"
+                   Variant="@Variant.Filled"
+                   StartIcon="@Icons.Filled.Launch"
+                   Target="_blank">
+            @Localizer["BUTTONS.Edit"]
+        </MudButton>
+    </AuthorizeView>
+    
+    <DHMarkdown Content="@_markdownContent"
+                LinkRewriter="@ResourcesPage.RewriteLink"/>
+
+</MudPaper>
+
+@code {
+
+    [Parameter]
+    public DocItem DocumentItem { get; set; }
+
+    private string _markdownContent;
+    private string _editButtonStyle = "float: right;";
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        _markdownContent = await _docService.LoadResourcePage(DocumentItem);
+    }
+
+
+    private void HandleRemoveFromCache()
+    {
+        _docService.RemoveFromCache(DocumentItem);
+    }
+
+}

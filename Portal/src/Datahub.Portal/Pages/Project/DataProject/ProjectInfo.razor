@@ -1,6 +1,7 @@
 @*ProjectInfo.razor*@
 
 @using Datahub.Core.Components.Skeleton
+@using Datahub.Core.Enums
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Services.Metadata;
 @using Datahub.Metadata.DTO
@@ -9,57 +10,63 @@
 @inject NavigationManager NavigationManager
 @inject IMetadataBrokerService MetadataBrokerService
 
-<div class="project-info">
-    @if (_loading)
-    {
-        <Skeleton Height="2.5rem" Width="150px"/>
-        <Skeleton Height="2.5rem" Width="150px"/>
-        <Skeleton Height="5rem" Width="650px"/>
-        <Skeleton Height="2rem" Width="900px"/>
-        <Skeleton Height="2rem" Width="900px"/>
-        <Skeleton Height="2rem" Width="300px"/>
-    }
-    else
-    {
-        <MudChip Color="Color.Dark" class="project-data-sensitivity">@Localizer[Project.Data_Sensitivity]</MudChip>
+@if (_loading)
+{
+    <Skeleton Height="2.5rem" Width="150px"/>
+    <Skeleton Height="2.5rem" Width="150px"/>
+    <Skeleton Height="5rem" Width="650px"/>
+    <Skeleton Height="2rem" Width="900px"/>
+    <Skeleton Height="2rem" Width="900px"/>
+    <Skeleton Height="2rem" Width="300px"/>
+    return;
+}
 
-        @if (_currentProjectMonthlyCost is not null && _projectBudget > 0)
-        {
-            <MudBadge Icon="@Icons.Filled.QuestionMark" Color="GetCostChipColor()" Overlap="true" Bordered="true">  
-                <MudChip Icon="@Icons.Filled.AttachMoney" IconColor="GetCostChipColor()" Variant="Variant.Text"
-                            Color="GetCostChipColor()" class="project-data-sensitivity" OnClick=@HandleToggleCosts>
-                    @($"{_currentProjectMonthlyCost:C} {Localizer["Azure cost for current month"]}")
-                </MudChip>
-            </MudBadge>
-        }
+<MudStack Row>
+    <MudChip Color="@Color.Dark" class="project-data-sensitivity">@Localizer[Project.Data_Sensitivity]</MudChip>
 
-        @if ((IsProjectAdmin || IsDatahubAdmin) && Project.MetadataAdded != true)
-        {
-            <MudChip Icon="@Icons.Filled.Info"
-                     IconColor="Color.Warning" 
-                     Variant="Variant.Text"
-                     Color="Color.Warning"
-                     class="project-data-sensitivity"
-                     OnClick=@HandleEditMetadata>
-                     @Localizer["Edit Metadata"]
+    @if (_currentProjectMonthlyCost is not null && _projectBudget > 0)
+    {
+        <MudBadge Icon="@Icons.Filled.QuestionMark" Color="@GetCostChipColor()" Overlap="@true" Bordered="@true">
+            <MudChip Icon="@Icons.Filled.AttachMoney" IconColor="@GetCostChipColor()" Variant="@Variant.Text"
+                     Color="@GetCostChipColor()" class="project-data-sensitivity" OnClick=@HandleToggleCosts>
+                @($"{_currentProjectMonthlyCost:C} {Localizer["Azure cost for current month"]}")
             </MudChip>
-        }
-
-        <AeTypography class="project-title" Variant="h1">
-            <span class="project-icon">
-                <i class="@($"{_projectIcon}")"></i>
-            </span>
-            @Project.ProjectName
-        </AeTypography>
-
-        <DHMarkdown class="description" Content=@GetProjectDescription() />
-
-        @if (_showCosts && _currentProjectMonthlyCost.HasValue && _currentProjectMonthlyCost.Value < _projectBudget)
-        {
-            <ProjectCosting ProjectBudget=@_projectBudget ConsumedBudget=@_currentProjectMonthlyCost.Value />
-        }
+        </MudBadge>
     }
-</div>
+
+    @if ((IsProjectAdmin || IsDatahubAdmin) && Project.MetadataAdded != true)
+    {
+        <MudChip Icon="@Icons.Filled.Info"
+                 IconColor="@Color.Warning"
+                 Variant="@Variant.Text"
+                 Color="@Color.Warning"
+                 class="project-data-sensitivity"
+                 OnClick=@HandleEditMetadata>
+            @Localizer["Edit Metadata"]
+        </MudChip>
+    }
+</MudStack>
+
+<MudStack>
+    <MudText Typo="Typo.h3">
+        <MudIcon Icon="@_projectIcon" Title="@Localizer["Project Icon"]" />
+        @Project.ProjectName
+    </MudText>
+
+    @if (Project.Project_Phase == TerraformOutputStatus.PendingApproval)
+    {
+        <MudAlert Severity="Severity.Warning">@Localizer["The project is currently pending approval. No resources can be provisioned until the project is approved by a Datahub Administrator"]</MudAlert>
+    }
+
+
+    <DHMarkdown class="description" Content=@GetProjectDescription()/>
+
+    @if (_showCosts && _currentProjectMonthlyCost.HasValue && _currentProjectMonthlyCost.Value < _projectBudget)
+    {
+        <ProjectCosting ProjectBudget=@_projectBudget ConsumedBudget=@_currentProjectMonthlyCost.Value/>
+    }
+</MudStack>
+
 
 @code {
 
@@ -114,7 +121,7 @@
     {
         var projectName = $"{Project.ProjectName} ";
         if (_currentProjectMonthlyCost >= _projectBudget)
-            return projectName +  Localizer["is over budget"];
+            return projectName + Localizer["is over budget"];
         if (_currentProjectMonthlyCost >= 0.75m * _projectBudget)
             return projectName + Localizer["is nearing budget"];
         return projectName + Localizer["is under budget"];
@@ -123,11 +130,11 @@
     private Color GetProtectionColor() => (Project?.Data_Sensitivity ?? "").ToUpper() switch
     {
         "CLASSIFIED"  or
-        "PROTECTED B" or
-        "PROTECTED C" => Color.Secondary,
+            "PROTECTED B" or
+            "PROTECTED C" => Color.Secondary,
         "PROTECTED A" => Color.Error,
         _ => Color.Dark
-    };
+        };
 
     private string GetProjectDataSensitivity()
     {
@@ -147,6 +154,7 @@
     private string GetProjectDescription()
     {
         var description = _projectMetadata.GetValue($"notes_translated_{CultureService.Culture}", null);
-        return description ?? Project.ProjectDescription; 
+        return description ?? Project.ProjectDescription;
     }
+
 }

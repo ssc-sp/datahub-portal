@@ -1,10 +1,10 @@
-using ResourceProvisioner.Domain.Entities;
+using Datahub.Shared.Entities;
 
 namespace ResourceProvisioner.Application.Services;
 
 public interface ITerraformService
 {
-    Task CopyTemplateAsync(DataHubTemplate template, string workspaceAcronym);
-    Task ExtractVariables(DataHubTemplate template, string workspaceAcronym);
+    Task CopyTemplateAsync(TerraformTemplate template, TerraformWorkspace terraformWorkspace);
+    Task ExtractVariables(TerraformTemplate template, TerraformWorkspace terraformWorkspace);
     Task ExtractBackendConfig(string workspaceAcronym);
 }

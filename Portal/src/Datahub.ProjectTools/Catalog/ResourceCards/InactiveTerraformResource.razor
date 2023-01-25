@@ -1,0 +1,70 @@
+@using Datahub.Core.Model.Datahub
+@using Datahub.Shared.Entities
+
+@inject IRequestManagementService RequestManagementService
+
+
+<ToolCard Title="@Descriptor?.Title"
+          Subtitle="@Descriptor?.CatalogSubtitle"
+          Description="@Descriptor?.CatalogDescription"
+          ReadMorePath="@GitHubModule?.ReadMorePath"
+          Tags="@Descriptor?.Tags?.ToList()">
+    <Logo>
+        @if (IsIconSvg)
+        {
+            <img src="@Icon" alt="@Descriptor?.Title">
+        }
+        else
+        {
+            <MudIcon Icon="@Icon" Color="Color.Secondary"/>
+        }
+    </Logo>
+    <ToolActionsList>
+        @if (TemplateName == TerraformTemplate.ContactUs)
+        {
+            <ViewExternalLinkButton ExternalUrl="@GitHubModule?.DocumentationUrl" Text="@Localizer["View Discussions"]"/>
+            <ViewExternalLinkButton 
+                Variant="Variant.Filled" 
+                ExternalUrl="@GitHubModule?.ActionUrl" 
+                Text="@Localizer["Create New"]" 
+                Icon= "fa-solid fa-comments-question-check"
+                />
+        }
+        else
+        {
+            <CostEstimatorButton TemplateName="@TemplateName"/>
+            <RequestingButton IsRunning="_isRunning" ResourceRequested="ResourceRequested" Project="Project" OnRequestService="@HandleRequestService"/>
+        }
+    </ToolActionsList>
+</ToolCard>
+
+
+@code {
+
+    [Parameter]
+    public GitHubModuleDescriptor? Descriptor { get; set; }
+
+    [Parameter]
+    public GitHubModule? GitHubModule { get; set; }
+
+    [Parameter]
+    public bool IsIconSvg { get; set; }
+
+    [Parameter]
+    public bool ResourceRequested { get; set; }
+
+    [Parameter]
+    public Datahub_Project? Project { get; set; }
+
+    private bool _isRunning;
+    private string Icon => GitHubModule?.Icon ?? "fa-solid fa-cloud-question";
+    private string? TemplateName => GitHubModule?.Name;
+
+    private async Task HandleRequestService()
+    {
+        _isRunning = true;
+        await RequestManagementService.HandleTerraformRequestServiceAsync(Project, TemplateName);
+        _isRunning = false;
+    }
+
+}

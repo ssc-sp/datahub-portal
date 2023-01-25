@@ -173,15 +173,19 @@ namespace Datahub.Core.Model.Datahub
 
         public List<Client_Engagement> Client_Engagements { get; set; }
 
-        [StringLength(400)]
-        [AeFormCategory("Initiative Connections")]
-        public string Databricks_URL { get; set; }
-        [AeFormCategory("Initiative Connections")]
-        [StringLength(400)]
-        public string PowerBI_URL { get; set; }
-        [AeFormCategory("Initiative Connections")]
-        [StringLength(400)]
-        public string WebForms_URL { get; set; }
+    public List<Project_Storage_Capacity> Storage_Capacities { get; set; }
+
+    [StringLength(400)]
+    [AeFormCategory("Initiative Connections")]
+    [Obsolete("Use the new Project Resources relationship instead.", true)]
+    public string Databricks_URL { get; set; }
+    
+    [AeFormCategory("Initiative Connections")]
+    [StringLength(400)]
+    public string PowerBI_URL { get; set; }
+    [AeFormCategory("Initiative Connections")]
+    [StringLength(400)]
+    public string WebForms_URL { get; set; }
 
         public List<WebForm> WebForms { get; set; }
 
@@ -286,7 +290,22 @@ namespace Datahub.Core.Model.Datahub
                 return "Support";
             }
 
-            return "On Hold";
-        }
+        return "On Hold";
+    }
+
+    [AeFormIgnore]
+    public TerraformWorkspace ToResourceWorkspace(List<TerraformUser> users)
+    {
+        return new TerraformWorkspace()
+        {
+            Name = Project_Name,
+            Acronym = Project_Acronym_CD,
+            TerraformOrganization = new TerraformOrganization()
+            {
+                Name = Branch_Name ?? "TODO",
+                Code = "TODO"
+            },
+            Users = users
+        };
     }
 }

@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using ResourceProvisioner.Domain.Entities;
+using Datahub.Shared.Entities;
 using ResourceProvisioner.Domain.Enums;
 using ResourceProvisioner.Domain.Events;
 using ResourceProvisioner.Domain.Exceptions;
@@ -45,7 +45,7 @@ public class RepositoryService : IRepositoryService
 
         _logger.LogInformation("Executing resource runs for user {User}", user);
         var repositoryUpdateEvents =
-            await ExecuteResourceRuns(command.Templates, command.Workspace.Acronym, user);
+            await ExecuteResourceRuns(command.Templates, command.Workspace, user);
 
         _logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
             command.Workspace.Acronym);
@@ -58,7 +58,7 @@ public class RepositoryService : IRepositoryService
         var pullRequestMessage = new PullRequestUpdateMessage
         {
             PullRequestValueObject = pullRequestValueObject,
-            Workspace = command.Workspace,
+            TerraformWorkspace = command.Workspace,
             Events = repositoryUpdateEvents
         };
 
@@ -144,7 +144,7 @@ public class RepositoryService : IRepositoryService
             repo.Branches.Update(branch, b => b.Remote = remote.Name, b => b.UpstreamBranch = branch.CanonicalName);
             Commands.Pull(repo, signature, pullOptions);
         }
-        catch (MergeFetchHeadNotFoundException e)
+        catch (MergeFetchHeadNotFoundException)
         {
             _logger.LogInformation("No upstream updates found");
         }
@@ -152,7 +152,7 @@ public class RepositoryService : IRepositoryService
         return Task.CompletedTask;
     }
 
-    public Task CommitDataHubTemplate(DataHubTemplate template, string username)
+    public Task CommitTerraformTemplate(TerraformTemplate template, string username)
     {
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_configuration);
 
@@ -271,45 +271,44 @@ public class RepositoryService : IRepositoryService
         await CheckoutInfrastructureBranch(workspaceAcronym);
     }
 
-    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<DataHubTemplate> modules,
-        string workspaceAcronym, string requestingUsername)
+    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<TerraformTemplate> modules, TerraformWorkspace terraformWorkspace, string requestingUsername)
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
         foreach (var module in modules)
         {
-            var result = await ExecuteResourceRun(module, workspaceAcronym, requestingUsername);
+            var result = await ExecuteResourceRun(module, terraformWorkspace, requestingUsername);
             repositoryUpdateEvents.Add(result);
         }
 
         return repositoryUpdateEvents;
     }
 
-    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(DataHubTemplate template, string workspaceAcronym,
+    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate template, TerraformWorkspace terraformWorkspace,
         string requestingUsername)
     {
         try
         {
-            await _terraformService.CopyTemplateAsync(template, workspaceAcronym);
-            await _terraformService.ExtractVariables(template, workspaceAcronym);
-            if (template.Name == TerraformService.NewProjectTemplate)
+            await _terraformService.CopyTemplateAsync(template, terraformWorkspace);
+            await _terraformService.ExtractVariables(template, terraformWorkspace);
+            if (template.Name == TerraformTemplate.NewProjectTemplate)
             {
-                await _terraformService.ExtractBackendConfig(workspaceAcronym);
+                await _terraformService.ExtractBackendConfig(terraformWorkspace.Acronym);
             }
-            await CommitDataHubTemplate(template, requestingUsername);
+            await CommitTerraformTemplate(template, requestingUsername);
 
             return new RepositoryUpdateEvent()
             {
                 Message =
-                    $"Successfully created resource run for [{template.Version}]{template.Name} in {workspaceAcronym}",
+                    $"Successfully created resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.Success
             };
         }
-        catch (NoChangesDetectedException e)
+        catch (NoChangesDetectedException)
         {
             return new RepositoryUpdateEvent()
             {
-                Message = $"No changes detected after resource run for [{template.Version}]{template.Name} in {workspaceAcronym}",
+                Message = $"No changes detected after resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.NoChangesDetected
             };
         }
@@ -317,11 +316,11 @@ public class RepositoryService : IRepositoryService
         {
             _logger.LogError(e,
                 "Error while creating resource run for [{ModuleVersion}]{ModuleName} in {WorkspaceAcronym}",
-                template.Version, template.Name, workspaceAcronym);
+                template.Version, template.Name, terraformWorkspace.Acronym);
 
             return new RepositoryUpdateEvent()
             {
-                Message = $"Error creating resource run for [{template.Version}]{template.Name} in {workspaceAcronym}",
+                Message = $"Error creating resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.Error
             };
         }

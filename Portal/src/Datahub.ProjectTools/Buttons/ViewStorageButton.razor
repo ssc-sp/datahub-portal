@@ -1,0 +1,12 @@
+<MudButton Variant="Variant.Text" EndIcon="@Icons.Filled.KeyboardDoubleArrowRight" Color="Color.Primary" Size="Size.Small">
+    <DHLink Underline="Underline.None" Typo="Typo.button" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.Storage">
+        @Localizer["View Storage"]
+    </DHLink>
+</MudButton>
+
+@code {
+
+    [Parameter]
+    public string? ProjectAcronym { get; set; }
+
+}

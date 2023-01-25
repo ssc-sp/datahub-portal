@@ -1,5 +1,5 @@
+using Datahub.Shared.Entities;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
-using ResourceProvisioner.Domain.Entities;
 using FluentAssertions;
 
 namespace ResourceProvisioner.Application.UnitTests;
@@ -22,17 +22,17 @@ public class CreateResourceRunValidationTests
         const string anyString = "abc";
         var command = new CreateResourceRunCommand
         {
-            Workspace = new Workspace()
+            Workspace = new TerraformWorkspace()
             {
                 Acronym = anyString,
                 Name = anyString,
-                Organization = new Organization()
+                TerraformOrganization = new TerraformOrganization()
                 {
                     Name = anyString,
                     Code = anyString
                 },
             },
-            Templates = new List<DataHubTemplate>()
+            Templates = new List<TerraformTemplate>()
             {
                 new()
                 {

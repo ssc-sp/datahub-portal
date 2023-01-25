@@ -13,7 +13,9 @@
 
 @inherits HtmlElement
 
-<a class="@_classname" @onclick="Navigate" @attributes="@InputAttributesWithoutClass" >@ChildContent</a>
+<MudLink Underline="@Underline" Typo="@Typo" Class="@_classname" @onclick="Navigate" @attributes="@InputAttributesWithoutClass">
+    @ChildContent
+</MudLink>
 
 @code {
 
@@ -29,6 +31,11 @@
     public string Variant { get; set; }
 
     [Parameter]
+    public Typo Typo { get; set; } = Typo.body1;
+    [Parameter]
+    public Underline Underline { get; set; } = Underline.Hover;
+
+    [Parameter]
     public string DatabricksURL { get; set; }
 
     [Parameter]
@@ -39,6 +46,9 @@
 
     [Parameter]
     public string Name { get; set; }
+    
+    [Parameter]
+    public string ExternalUrl { get; set; }
 
     [Parameter]
     public string PBIReportId { get; set; } = null;
@@ -75,6 +85,8 @@
                     LinkType = DatahubLinkType.WebForm;
                 else if (DataProject != null)
                     LinkType = DatahubLinkType.DataProject;
+                else if(ExternalUrl != null)
+                    LinkType = DatahubLinkType.ExternalUrl;
             }
             link.LinkType = LinkType;
             link.PowerBIURL = PowerBIURL;
@@ -82,6 +94,7 @@
             link.PBIWorkspaceId = PBIWorkspaceId;
             link.Variant = Variant;
             link.DatabricksURL = DatabricksURL;
+            link.ExternalUrl = ExternalUrl;
             link.WebFormsURL = WebFormsURL;
             link.DataProject = DataProject;
             link.Name = Name;
@@ -105,7 +118,9 @@
                 break;
             case DatahubLinkType.Databricks:
                 await _jsRuntime.InvokeVoidAsync("open", link?.DatabricksURL, "_blank");
-                // NavigationManager.NavigateTo(link.DatabricksURL);
+                break;
+            case DatahubLinkType.ExternalUrl:
+                await _jsRuntime.InvokeVoidAsync("open", link?.ExternalUrl, "_blank");
                 break;
             case DatahubLinkType.WebForm:
                 NavigationManager.NavigateTo(link.WebFormsURL);

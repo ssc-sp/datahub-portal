@@ -95,12 +95,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.PIP", "Portal\src\m
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infra", "infra", "{F3058DB1-40C9-40AA-805D-06B3D88B4AC7}"
 	ProjectSection(SolutionItems) = preProject
-		infra\azure-pipelines.yml = infra\azure-pipelines.yml
 		infra\azure-pipelines-forms.yml = infra\azure-pipelines-forms.yml
 		infra\azure-pipelines-prd.yml = infra\azure-pipelines-prd.yml
-		infra\azure-pipelines-spdatahub.yml = infra\azure-pipelines-spdatahub.yml
 		infra\azure-pipelines-spdatahub-slot.yml = infra\azure-pipelines-spdatahub-slot.yml
+		infra\azure-pipelines-spdatahub.yml = infra\azure-pipelines-spdatahub.yml
 		infra\azure-pipelines-tst.yml = infra\azure-pipelines-tst.yml
+		infra\azure-pipelines.yml = infra\azure-pipelines.yml
 		infra\build-pipelines.yml = infra\build-pipelines.yml
 	EndProjectSection
 EndProject
@@ -112,7 +112,23 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A8C7
 		scripts\merge_fork.ps1 = scripts\merge_fork.ps1
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Specs", "Portal\test\Datahub.Specs\Datahub.Specs.csproj", "{D07C3009-6F0F-486D-91E1-0084B4B4FF46}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Specs", "Portal\test\Datahub.Specs\Datahub.Specs.csproj", "{D07C3009-6F0F-486D-91E1-0084B4B4FF46}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{2E97B44B-1A99-41C1-8F25-EED4740A3ED9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{839AFC95-740D-4C44-8F05-254250306841}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Datahub.Shared", "Shared\src\Datahub.Shared\Datahub.Shared.shproj", "{79DA8E04-5655-493A-80E4-37A07FBEC90E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDocs", "Portal\utils\SyncDocs\SyncDocs.csproj", "{57703CEC-08B9-40B8-B5E2-064A196B1587}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.ProjectTools.Tests", "Portal\test\Datahub.ProjectTools.Tests\Datahub.ProjectTools.Tests.csproj", "{D623C5A9-7609-4579-896D-76FCE5C3AD9C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Application", "Portal\src\Datahub.Application\Datahub.Application.csproj", "{29F1349F-4415-4725-A562-2DD59F5C14A9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure", "Portal\src\Datahub.Infrastructure\Datahub.Infrastructure.csproj", "{BEA40233-6741-43AE-BA63-8D1ADA261420}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure.UnitTests", "Portal\test\Datahub.Infrastructure.UnitTests\Datahub.Infrastructure.UnitTests.csproj", "{8DAF4132-5D66-4B90-953A-5B00F2F75BA4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -252,6 +268,26 @@ Global
 		{D07C3009-6F0F-486D-91E1-0084B4B4FF46}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D07C3009-6F0F-486D-91E1-0084B4B4FF46}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D07C3009-6F0F-486D-91E1-0084B4B4FF46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57703CEC-08B9-40B8-B5E2-064A196B1587}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57703CEC-08B9-40B8-B5E2-064A196B1587}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57703CEC-08B9-40B8-B5E2-064A196B1587}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57703CEC-08B9-40B8-B5E2-064A196B1587}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D623C5A9-7609-4579-896D-76FCE5C3AD9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D623C5A9-7609-4579-896D-76FCE5C3AD9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D623C5A9-7609-4579-896D-76FCE5C3AD9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D623C5A9-7609-4579-896D-76FCE5C3AD9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29F1349F-4415-4725-A562-2DD59F5C14A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29F1349F-4415-4725-A562-2DD59F5C14A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29F1349F-4415-4725-A562-2DD59F5C14A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29F1349F-4415-4725-A562-2DD59F5C14A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEA40233-6741-43AE-BA63-8D1ADA261420}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEA40233-6741-43AE-BA63-8D1ADA261420}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEA40233-6741-43AE-BA63-8D1ADA261420}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEA40233-6741-43AE-BA63-8D1ADA261420}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DAF4132-5D66-4B90-953A-5B00F2F75BA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DAF4132-5D66-4B90-953A-5B00F2F75BA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DAF4132-5D66-4B90-953A-5B00F2F75BA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DAF4132-5D66-4B90-953A-5B00F2F75BA4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -296,10 +332,22 @@ Global
 		{7B900792-8383-462E-B582-94DA4817B6C4} = {175BE71E-CED9-48C7-935C-B9F7FB1FE842}
 		{3065E419-AF1E-43CF-AF17-4EB260F6E02B} = {175BE71E-CED9-48C7-935C-B9F7FB1FE842}
 		{D07C3009-6F0F-486D-91E1-0084B4B4FF46} = {47D68FB0-47FE-485D-AE94-00C48643721E}
+		{839AFC95-740D-4C44-8F05-254250306841} = {2E97B44B-1A99-41C1-8F25-EED4740A3ED9}
+		{79DA8E04-5655-493A-80E4-37A07FBEC90E} = {839AFC95-740D-4C44-8F05-254250306841}
+		{57703CEC-08B9-40B8-B5E2-064A196B1587} = {73AC16BF-F514-4081-8C74-63C6399260E0}
+		{D623C5A9-7609-4579-896D-76FCE5C3AD9C} = {47D68FB0-47FE-485D-AE94-00C48643721E}
+		{29F1349F-4415-4725-A562-2DD59F5C14A9} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
+		{BEA40233-6741-43AE-BA63-8D1ADA261420} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
+		{8DAF4132-5D66-4B90-953A-5B00F2F75BA4} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_ConfirmAddLanguageFile = True
 		RESX_AutoCreateNewLanguageFiles = True
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
+		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{79da8e04-5655-493a-80e4-37a07fbec90e}*SharedItemsImports = 13
+		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{cf8de3c8-8b81-4569-8075-aad80b478b5f}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

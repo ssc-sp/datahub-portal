@@ -1,7 +1,12 @@
 ﻿@*ProjectMetadata.razor*@
 @page "/admin/databricks/metadata/{ProjectAcronym}"
 @using Datahub.Metadata.Model
-@using Datahub.Core.Model.Datahub
+@using Datahub.Shared
+@using Datahub.Core.Services.Projects
+@using System.Text.Json
+@using Datahub.Shared.Entities
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
 <div class="manage-access"> 
 
@@ -28,6 +33,21 @@
 
     private void HandleProjectLoaded(Datahub_Project project)
     {
-        _databricksNotebookUrl = project.Databricks_URL;
+        var databricksTemplateName = RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
+
+        var projectDatabricks = project.Resources
+            .Where(r => r.Project.Project_Acronym_CD == ProjectAcronym)
+            .FirstOrDefault(r => r.ResourceType == databricksTemplateName);
+
+        if (projectDatabricks is null) return;
+        
+        var deserializeOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        var jsonContent =
+            JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectDatabricks.JsonContent, deserializeOptions);
+        _databricksNotebookUrl = jsonContent[TerraformVariables.OutputAzureDatabricksWorkspaceUrl]?.Value;
     }
 }

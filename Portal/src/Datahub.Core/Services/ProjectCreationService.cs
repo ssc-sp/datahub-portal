@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Datahub.Core.Data;
 using Datahub.Core.Data.ResourceProvisioner;
+using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.ResourceManager;
-using Foundatio.Queues;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using Microsoft.Extensions.Logging;
 
@@ -83,7 +82,7 @@ public class ProjectCreationService : IProjectCreationService
                 var user = await _userInformationService.GetCurrentGraphUserAsync();
                 if (user is null) return false;
                 await AddProjectToDb(user, projectName, acronym, organization);
-                var project = new CreateResourceData(projectName, acronym, sectorName, organization, user?.Mail, user?.Id);
+                var project = CreateResourceData.NewProjectTemplate(projectName, acronym, sectorName, organization, user.Mail);
                 await requestQueueService.AddProjectToStorageQueue(project);
                 scope.Complete();
                 return true;
@@ -106,7 +105,7 @@ public class ProjectCreationService : IProjectCreationService
             Sector_Name = sectorName,
             Contact_List = user.Mail,
             Project_Admin = user.Mail,
-            Data_Sensitivity = NewProjectDataSensitivity,
+            Project_Phase = TerraformOutputStatus.PendingApproval,
             Project_Status_Desc = "Ongoing",
         };
         var projectUser = new Datahub_Project_User()

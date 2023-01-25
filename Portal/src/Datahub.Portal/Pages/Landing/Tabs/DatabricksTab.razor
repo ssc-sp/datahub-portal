@@ -2,11 +2,13 @@
 @using Microsoft.EntityFrameworkCore;
 @using Datahub.Core
 @using Datahub.Core.Model.Datahub
+@using Datahub.Core.Services.Projects
+@using Datahub.ProjectTools.Utils
 @inject IStringLocalizer<DataLabels> DataLocalizer
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @implements IDisposable
-@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IUserInformationService UserInformationService
 
 <div class="ae table-container">
@@ -61,9 +63,17 @@
     protected override async Task OnInitializedAsync()
     {
         var currentUserId = await UserInformationService.GetUserIdString();
-        Context = DbFactory.CreateDbContext();
-        _projects = Context.Project_Users.Include(u => u.Project)            
-            .Where(u => u.User_ID == currentUserId).Select(u => u.Project).Where(p => p.Databricks_URL != null).Distinct().ToList();
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+        
+        var databricksTemplateName = RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS); 
+        
+        _projects = Context.Project_Users
+            .Where(u => u.User_ID == currentUserId)
+            .Select(u => u.Project)
+            .Include(p => p.Resources
+                .Where(r => r.ResourceType == databricksTemplateName))            
+            .Distinct()
+            .ToList();
 
         FillAccessorFunctions();
         
@@ -76,17 +86,20 @@
         
         renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
             Datahub_Project => @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>,
-            Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@(Datahub_Project.Project_Acronym_CD)" DatabricksURL="@(Datahub_Project.Databricks_URL)" Name="Databricks Workspace">Databricks Workspace</DHLink></AeTypography></AeFlex>, 
+            Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@(Datahub_Project.Project_Acronym_CD)" DatabricksURL="@(GetProjectsDatabricksUrl(Datahub_Project))" Name="Databricks Workspace">Databricks Workspace</DHLink></AeTypography></AeFlex>, 
             Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@(Datahub_Project.Project_Acronym_CD)">@Datahub_Project.ProjectName</DHLink></AeTypography></AeFlex>             
         };
 
-        
-        
         //await FillRenderFunctions();
     }
 
     private List<string> headers = new List<string>();
 
+    private string GetProjectsDatabricksUrl(Datahub_Project project)
+    {
+        return TerraformVariableExtraction.ExtractDatabricksUrl(project);
+    }
+    
     private void FillAccessorFunctions()
     {
         accessorFunctions = new List<Func<Datahub_Project, string>>() {

@@ -1,6 +1,7 @@
 ﻿using Datahub.Core.Configuration;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Projects;
+using Datahub.ProjectTools.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -10,26 +11,27 @@ namespace Datahub.ProjectTools.Catalog;
 public class DHDatabricksResource : DHURLResource
 { 
 
-    private readonly IDbContextFactory<DatahubProjectDBContext> dbFactoryProject;
-    private readonly bool _isServiceConfigured;
-    private readonly bool isServiceConfigured;
+    private readonly IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject;
 
+    private bool _databricksServiceRequested;
+    private bool _databricksServiceCreated;
+    
     public DHDatabricksResource(IDbContextFactory<DatahubProjectDBContext> dbFactoryProject,            
         IOptions<DataProjectsConfiguration> configuration)
     {
-        this.dbFactoryProject = dbFactoryProject;
-        _isServiceConfigured = configuration.Value.Databricks;
+        _dbFactoryProject = dbFactoryProject;
+        IsServiceConfigured = configuration.Value.Databricks;
     }
-
-    private bool _databricksServiceRequested = false;
-    private bool _databricksServiceCreated = false;
 
     protected override async Task InitializeAsync(string userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
     {
-        await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
         var serviceRequests = Project.ServiceRequests;
-        _databricksServiceRequested = serviceRequests.Any(r => r.ServiceType == IRequestManagementService.DATABRICKS && r.Is_Completed == null);
-        _databricksServiceCreated = !string.IsNullOrEmpty(Project.Databricks_URL);
+        var serviceTerraformTemplateName =
+            RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
+        _databricksServiceRequested = serviceRequests.Any(r => r.ServiceType == serviceTerraformTemplateName && r.Is_Completed == null);
+        _databricksServiceCreated = serviceRequests.Any(r => r.ServiceType == serviceTerraformTemplateName && r.Is_Completed != null);
+        
         parameters.Add(nameof(Databricks.Project), Project);
     }
 
@@ -42,7 +44,7 @@ public class DHDatabricksResource : DHURLResource
 
     protected override bool IsServiceRequested => _databricksServiceRequested && !_databricksServiceCreated;
 
-    protected override bool IsServiceConfigured => _isServiceConfigured;
+    protected override bool IsServiceConfigured { get; }
 
     protected override bool IsServiceAvailable => _databricksServiceCreated;
 

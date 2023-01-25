@@ -1,7 +1,6 @@
 ﻿@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 @using Datahub.Core.Components.PageBanner
 @using Datahub.Achievements.Models
-@using Datahub.Core.Model.Datahub
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
@@ -12,13 +11,17 @@
 
 @page "/projects/{ProjectAcronymParam}"
 
-<DHPageAlert Title="Welcome to your Data Project" Key="@PageAlert.ProjectFeatures" WikiLinkEN="Onboarding---Data-Project" WikiLinkFR="Onboarding---Data-Project"/>
+<DHPageAlert 
+    Title=@Localizer["Welcome to your Data Project"] 
+    Key="@PageAlert.ProjectFeatures" 
+    WikiLinkEN="Onboarding---Data-Project"
+    WikiLinkFR="fr/Projet-de-données-d'embarquement" />
 
 <DHPageTitle PageTitleKey="@_projectName"/>
 
 @if (_project is not null)
 {
-    <div class="project-page">
+    <MudGrid>
         <CascadingValue Value=@_project Name="Project">
             <CascadingValue Value=@ProjectAcronymParam Name="ProjectAcronym">
                 <CascadingValue Value=@_userId Name="UserId">
@@ -26,14 +29,18 @@
                         <CascadingValue Value="@_isProjectAdmin" Name="IsProjectAdmin">
                             <CascadingValue Value=@_user Name="GraphUser">
                                 <CascadingValue Value=@_projectId Name="ProjectId">
-                                    <ProjectInfo />
-                                    @if (_clientEngagements.Any())
-                                    {
-                                        <ProjectEngagements />
-                                    }                                    
-                                    <ProjectCatalog IsFrench=@_isFrench />
-                                    <ProjectMembers />
-                                    <ProjectToolListing />
+                                    <MudItem sm="12" md="7" lg="9">
+                                        <ProjectInfo/>
+                                        @if (_clientEngagements.Any())
+                                        {
+                                            <ProjectEngagements/>
+                                        }
+                                        <ProjectCatalog IsFrench="@_isFrench"/>
+                                        <ProjectToolListing/>
+                                    </MudItem>
+                                    <MudItem sm="12" md="5" lg="3">
+                                        <ProjectAdmins/>
+                                    </MudItem>
                                 </CascadingValue>
                             </CascadingValue>
                         </CascadingValue>
@@ -41,7 +48,7 @@
                 </CascadingValue>
             </CascadingValue>
         </CascadingValue>
-    </div>
+    </MudGrid>
 }
 
 @code {
@@ -59,7 +66,7 @@
     private bool _isFrench;
     private bool _showCosts;
     private List<Client_Engagement> _clientEngagements = new();
-    
+
     protected override async Task OnInitializedAsync()
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
@@ -100,7 +107,7 @@
 
         if (firstRender)
         {
-            // refresh auth due to server pre-rendering
+    // refresh auth due to server pre-rendering
             StateHasChanged();
         }
     }
@@ -110,4 +117,5 @@
     {
         _showCosts = !_showCosts;
     }
+
 }

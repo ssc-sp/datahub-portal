@@ -1,11 +1,11 @@
 @using Datahub.Portal.Data.Forms
 @using Datahub.Core.Components.Common
-@using Datahub.Core.Model.Datahub
+@using Datahub.Application.Services
 
 @inject ILogger<Signup> _logger
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
 
-@inject RegistrationService _registrationservice
+@inject IUserEnrollmentService _userEnrollmentService
 
 
 @page "/register"
@@ -82,9 +82,11 @@
 
     private async Task HandleValidSubmit()
     {
-        var graphid = await _registrationservice.SendUserInvite(_basicIntakeForm.Email);
-        if (graphid != null)
+        var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(_basicIntakeForm.Email);
+        if (!string.IsNullOrWhiteSpace(userId))
+        {
             _showThankYou = true;
+        }
     }
 
     private static Task HandleConfigure(IModelFormContext context)

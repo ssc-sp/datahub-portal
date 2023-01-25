@@ -1,5 +1,5 @@
+using Datahub.Shared.Entities;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
-using ResourceProvisioner.Domain.Entities;
 using FluentAssertions;
 using FluentValidation;
 
@@ -26,7 +26,7 @@ public class CreateResourceRunTests
         
         var command = new CreateResourceRunCommand
         {
-            Templates = new List<DataHubTemplate>
+            Templates = new List<TerraformTemplate>
             {
                 new()
                 {
@@ -34,11 +34,11 @@ public class CreateResourceRunTests
                     Version = "latest"
                 }
             },
-            Workspace = new Workspace
+            Workspace = new TerraformWorkspace
             {
                 Acronym = "TEST",
                 Name = "Test Project",
-                Organization = new Organization
+                TerraformOrganization = new TerraformOrganization
                 {
                     Name = "SBDA Number 42",
                     Code = "SBDA-42"

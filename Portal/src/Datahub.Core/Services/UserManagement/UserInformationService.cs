@@ -382,6 +382,7 @@ public class UserInformationService : IUserInformationService
             throw new ArgumentException("projectAcronym expected");
 
         return ((await IsUserProjectAdmin(projectAcronym)) || (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}"));
+       
     }
 
     

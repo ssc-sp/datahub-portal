@@ -4,10 +4,12 @@
   "GlobalSearch": "enabled",
   "PortalRunAsManagedIdentity": "disabled",
   "PageAlertsEnabled": false,
-  "ProjectTools": {
+  "DataProjectsConfiguration": {
     "IoT": false,
-    "DataManagement": true,
     "WebForms": true,
-    "EnableGitModuleRepository":  false
+    "EnableGitModuleRepository":  false,
+    "PowerBI": true,
+    "PublicSharing": true,
+    "DataEntry": true
   }
 }

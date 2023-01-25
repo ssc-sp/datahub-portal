@@ -3,9 +3,12 @@
 @page "/admin/metadata/{ProjectAcronym}"
 @using Datahub.Core.Services.Projects;
 @using Datahub.Metadata.Model
-@using Datahub.Core.Model.Datahub
+@using System.Text.Json
+@using Datahub.Shared
+@using Datahub.Shared.Entities
 @inject IMetadataBrokerService MetadataBrokerService
-@inject IRequestManagementService RequestManagementService
+@inject IRequestManagementService _requestManagementService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
 <div class="manage-access"> 
 
@@ -29,10 +32,25 @@
     {
         project.MetadataAdded = true;
 
-        if (!string.IsNullOrEmpty(project.Databricks_URL))
+        using var ctx = _dbContextFactory.CreateDbContext();
+        var databricksTemplateName = RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
+        var projectDatabricks = ctx.Project_Resources2
+            .Where(r => r.ProjectId == project.Project_ID)
+            .FirstOrDefault(r => r.ResourceType == databricksTemplateName);
+
+        if (projectDatabricks != null && projectDatabricks.TimeCreated != null)
         {
+            var deserializeOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var jsonContent =
+                JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectDatabricks.JsonContent, deserializeOptions);
+            var databricksUrlVariable = jsonContent[TerraformVariables.OutputAzureDatabricksWorkspaceUrl];
+            
             MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, $"{project.Project_Acronym_CD}-Databricks", 
-                MetadataObjectType.Databricks, project.Databricks_URL, true);
+                MetadataObjectType.Databricks, databricksUrlVariable.Value, true);
         }
 
         foreach (var db in GetDbs(project))

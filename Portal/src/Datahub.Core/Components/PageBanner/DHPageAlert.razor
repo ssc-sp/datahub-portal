@@ -1,20 +1,23 @@
-﻿@using System.Web
+﻿@*DHPageAlert.razor*@
+@using System.Web
 @using System.Globalization
+@using Datahub.Core.Services.UserManagement;
+@inject CultureService _cultureService
 @inject NavigationManager _navigationManager
 @inject IJSRuntime _jsInterop
 @inject ILogger<DHPageAlert> _logger
 @inject IConfiguration configuration
+@inject IHttpClientFactory _httpClientFactory
 
 @if (_contentFound)
 {
     <PageAlert Title="@Localizer[Title]" Key=@Key>
-
-            <DHMarkdown Content="@_markdownContent"
-                        LinkRewriter="@RewriteLink"/>
+        <DHMarkdown Content="@_markdownContent" LinkRewriter="@RewriteLink"/>
     </PageAlert>
 }
 
 @code {
+
     [Parameter]
     public string Title { get; set; }
 
@@ -44,7 +47,7 @@
         var pageAlertEnabled = configuration.GetValue<bool>("PageAlertsEnabled", true);
         if (pageAlertEnabled)
         {
-            var link = CultureInfo.CurrentCulture.TwoLetterISOLanguageName == "fr" ? WikiLinkFR : WikiLinkEN;
+            var link = _cultureService.IsFrench ? WikiLinkFR : WikiLinkEN;
             var content = await LoadPage(link ?? DefaultPage);
             _markdownContent = content ?? Localizer[$"{link} cannot be found"];
             _contentFound = content != null;
@@ -54,25 +57,23 @@
         }
     }
 
-    private async Task<string> LoadPage(string name, List<(string,string)> substitutions = null)
+    private async Task<string> LoadPage(string name)
     {
-        if (name.StartsWith("/")) name = name[1..];
+        if (name.StartsWith("/")) 
+            name = name[1..];
+
         var wikiRoot = configuration["WikiURL"];
         var fullUrl = $"{wikiRoot}{name}.md";
-        using var client = new HttpClient();
+
+        var client = _httpClientFactory.CreateClient();
         try
         {
-            var content = await client.GetStringAsync(fullUrl);
-            if (substitutions == null)
-                return content;
-            return substitutions
-                .Aggregate(content, (current, s) => current.Replace(s.Item1, s.Item2));
+            return await client.GetStringAsync(fullUrl);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Cannot load page url", fullUrl);
+            _logger.LogError(ex, $"Cannot load page '{name}' from Wiki", fullUrl);
             return null;
         }
     }
-
 }
