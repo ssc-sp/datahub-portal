@@ -1,4 +1,6 @@
 ﻿@using Datahub.Core.Services.Notification
+@using Datahub.Core.Templates;
+@using Datahub.Portal.Templates;
 @inject IEmailNotificationService EmailService
 @inject ISystemNotificationService SystemNotificationService
 @inject IMSGraphService MSGraphService
@@ -116,7 +118,7 @@
         StateHasChanged();
 
         var html = await EmailService
-            .RenderTemplate<Datahub.Core.Templates.TestEmailTemplate>(new Dictionary<string, object>(){{ "Name", TestRecipientName }});
+            .RenderTemplate<TestEmailTemplate>(new Dictionary<string, object>(){{ "Name", TestRecipientName }});
         await EmailService.SendEmailMessage("Test", html, TestRecipientEmail, TestRecipientName);
 
         IsSendingTestEmail = false;
