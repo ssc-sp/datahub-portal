@@ -12,6 +12,7 @@ using System.Linq;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Notification;
+using Datahub.Shared.Entities;
 
 namespace Datahub.Core.Model.Datahub;
 
@@ -308,3 +309,4 @@ public class Datahub_Project : IComparable<Datahub_Project>
             Users = users
         };
     }
+}
