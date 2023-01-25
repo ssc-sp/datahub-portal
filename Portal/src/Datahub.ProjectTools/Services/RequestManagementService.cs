@@ -19,7 +19,7 @@ public class RequestManagementService : IRequestManagementService
 {
     private readonly ILogger<RequestManagementService> _logger;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-    private readonly IEmailNotificationService _emailNotificationService;
+    private readonly ProjectToolsEmailService _emailNotificationService;
     private readonly ISystemNotificationService _systemNotificationService;
     private readonly IUserInformationService _userInformationService;
     private readonly IDatahubAuditingService _datahubAuditingService;
@@ -31,7 +31,7 @@ public class RequestManagementService : IRequestManagementService
     public RequestManagementService(
         ILogger<RequestManagementService> logger,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        IEmailNotificationService emailNotificationService,
+        ProjectToolsEmailService emailNotificationService,
         ISystemNotificationService systemNotificationService,
         IUserInformationService userInformationService,
         IDatahubAuditingService datahubAuditingService,
