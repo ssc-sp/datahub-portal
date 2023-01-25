@@ -60,7 +60,6 @@ using Datahub.Core.Services.ResourceManager;
 using Datahub.Core.Services.Docs;
 using Datahub.Infrastructure;
 using Datahub.Infrastructure.Services;
-using Datahub.Core.Services.Resources;
 using Datahub.Portal.Services.Notification;
 using Datahub.LanguageTraining.Services;
 using Datahub.M365Forms.Services;
