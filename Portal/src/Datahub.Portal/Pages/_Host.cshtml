@@ -54,17 +54,17 @@
     @* <link rel="stylesheet" href="~/_content/Datahub.Core/css/third-party/datahub.css" type="text/css"/> *@
     @*<link href="~/_content/Datahub.Core/css/fontawesome/fontawesome.min.css" rel="stylesheet" />*@
     @* see https://fontawesome.com/docs/web/setup/host-yourself/webfonts *@
-    
+
     @* <link href="~/_content/Datahub.Core/css/fontawesome/all.min.css" rel="stylesheet" /> *@
-    <link href="~/_content/Datahub.Core/css/fontawesome/fontawesome.min.css" rel="stylesheet" />
-    <link href="~/_content/Datahub.Core/css/fontawesome/solid.min.css" rel="stylesheet" />
-    <link href="~/_content/Datahub.Core/css/fontawesome/duotone.min.css" rel="stylesheet" />
-    
+    <link href="~/_content/Datahub.Core/css/fontawesome/fontawesome.min.css" rel="stylesheet"/>
+    <link href="~/_content/Datahub.Core/css/fontawesome/solid.min.css" rel="stylesheet"/>
+    <link href="~/_content/Datahub.Core/css/fontawesome/duotone.min.css" rel="stylesheet"/>
+
     @* <link href="~/_content/Datahub.Core/css/third-party/normalize.css" rel="stylesheet" /> *@
     <link href="~/_content/Datahub.Core/css/site.min.css" rel="stylesheet"/>
-    
-    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
-    <link href="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.css" rel="stylesheet" />
+
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet"/>
+    <link href="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.css" rel="stylesheet"/>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
     <script src="~/js/powerbi-client/dist/powerbi.min.js"></script>
@@ -75,7 +75,7 @@
 
     <script src="~/js/BlazorInterop.js"></script>
     <script defer src="~/_content/Datahub.Core/js/inputfile.js"></script>
-    <script defer  src="~/_content/Datahub.Core/js/filegrid.js"></script>
+    <script defer src="~/_content/Datahub.Core/js/filegrid.js"></script>
     <script defer src="~/_content/Datahub.Core/js/anchorLink.js"></script>
     <script defer src="~/_content/Datahub.Core/js/clipboard-interop.js"></script>
     <script defer src="~/_content/Datahub.Core/js/iframe.js"></script>
@@ -86,8 +86,109 @@
 </head>
 
 <body>
+
+
+@* Custom Reconnect Message *@
+<style>
+    .my-reconnect-modal > div {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 10000;
+        overflow: hidden;
+        background-color: #fff;
+        text-align: center;
+        font-weight: bold;
+        padding-top:  16rem;
+    }
+    .components-reconnect-hide > div
+    {
+        display: none;
+    }
+
+    .components-reconnect-show > div
+    {
+        display: none;
+    }
+    .components-reconnect-show > .show
+    {
+        display: block;
+    }
+
+    .components-reconnect-failed > div
+    {
+        display: none;
+    }
+    .components-reconnect-failed > .failed
+    {
+        display: block;
+    }
+
+    .components-reconnect-rejected >div
+    {
+        display: none;
+    }
+    .components-reconnect-rejected > .rejected
+    {
+        display: block;
+    }
+</style>
+
+
+<div id="components-reconnect-modal" class="my-reconnect-modal components-reconnect-hide">
+    <div class="show">
+        <p>
+            Attempting to reconnect...
+        </p>
+        <p>
+            <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Click here</span> to try returning to the home page.
+        </p>
+        <div style="height: 100px;"></div>
+        <p>
+            Tentative de reconnexion...
+        </p>
+        <p>
+            <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Cliquez ici</span> pour essayer de retourner à la page d'accueil.
+        </p>
+    </div>
+
+    <div class="failed">
+        <p>
+            Connection to the server has failed. 
+        </p>
+        <p>
+             <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Click here</span> to try returning to the home page.
+        </p>
+        <div style="height: 100px;"></div>
+        <p>
+            La connexion au serveur a échoué.
+        </p>
+        <p>
+           <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Cliquez ici</span> pour essayer de retourner à la page d'accueil.
+        </p>
+    </div>
+    <div class="rejected">
+        <p>
+            Connection to the server has been rejected.
+        </p>
+        <p>
+            <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Click here</span> to try returning to the home page.
+        </p>
+        <div style="height: 100px;"></div>
+        <p>
+            La connexion au serveur a été rejetée.
+        </p>
+        <p>
+            <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Cliquez ici</span> pour essayer de retourner à la page d'accueil.
+        </p>
+    </div>
+</div>
+@* End of Custom Reconnect Message *@
+
 <app>
-    <component type="typeof(App)" render-mode="Server"/>
+    @(await Html.RenderComponentAsync<App>(RenderMode.ServerPrerendered))
 </app>
 
 <div id="browserNotSupported" style="display: none;">
