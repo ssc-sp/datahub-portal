@@ -189,10 +189,9 @@
     private RenderFragment CatalogEntryFragment(PowerBi_Report r) =>
     @<MudStack Row AlignItems=@AlignItems.Center >
         @(r.InCatalog? InCatalogIcon: NotInCatalogIcon)
-        <MudIconButton 
-            Icon=@Icons.Filled.Edit
-            OnClick=@(() => OpenMetadataEditor(r))
-        />
+        <MudTooltip Text="@Localizer["Edit"]">
+            <MudIconButton Icon="@Icons.Filled.Edit" OnClick="@(() => OpenMetadataEditor(r))" />
+        </MudTooltip>
         <Datahub.PowerBI.Pages.PowerBI.InternalPublishedPowerBIReportLinks ReportID=@r.Report_ID.ToString() />
     </MudStack>;
 

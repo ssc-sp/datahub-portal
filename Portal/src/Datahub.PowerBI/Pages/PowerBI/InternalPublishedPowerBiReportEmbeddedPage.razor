@@ -38,7 +38,9 @@
                 <MudContainer>
                     <MudStack Row>
                         <MudSpacer />
-                        <MudIconButton Icon=@Icons.Filled.Close OnClick=@(() => _relatedMenuOpen = false)/>
+                        <MudTooltip Text="@Localizer["Close"]">
+                            <MudIconButton Icon=@Icons.Filled.Close OnClick=@(() => _relatedMenuOpen = false)/>
+                        </MudTooltip>
                     </MudStack>
                     <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.ReportLanguage"]: @Localizer[_catalogReport.Language.ToString()]</MudText>
                     <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.ContactInformation"]: @_catalogReport.Contact</MudText>

@@ -21,6 +21,6 @@ public abstract class DatahubTheme
         PaletteDark =
         {
             AppbarBackground = Colors.Grey.Darken3
-        }
+        },
     };
 }

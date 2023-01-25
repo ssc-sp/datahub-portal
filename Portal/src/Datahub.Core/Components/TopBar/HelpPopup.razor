@@ -2,12 +2,14 @@
 @inject IConfiguration Configuration
 
 <span>
-    <MudToggleIconButton
-        aria-label="Help toggle"
-        ToggledIcon="@Icons.Filled.HelpCenter"
-        ToggledChanged="@ToggleHelp"
-        Toggled="_showHelp"
-        Icon="@Icons.Outlined.HelpCenter"/>
+    <MudTooltip Text="@Localizer[TOOLTIP_TEXT]">
+        <MudToggleIconButton
+            aria-label="Help toggle"
+            ToggledIcon="@Icons.Filled.HelpCenter"
+            ToggledChanged="@ToggleHelp"
+            Toggled="_showHelp"
+            Icon="@Icons.Outlined.HelpCenter"/>
+        </MudTooltip>
 
     <MudPopover
         Style="@_style"
@@ -55,6 +57,7 @@
     private bool _showHelp;
     private string _datahubEmail;
     private string DatahubEmail => $"mailto:{_datahubEmail}";
+    private const string TOOLTIP_TEXT = "Help";
 
     protected override async Task OnInitializedAsync()
     {
