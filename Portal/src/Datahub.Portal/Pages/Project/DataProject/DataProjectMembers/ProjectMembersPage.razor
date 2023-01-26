@@ -12,7 +12,7 @@
 
 @page "/w/{ProjectAcronymParam}/members"
 
-@if (_project is not null && _isProjectAdmin)
+@if (_project is not null && (_isProjectAdmin || _isDatahubAdmin))
 {
     <CascadingValue Value=@_project Name="Project">
         <CascadingValue Value=@ProjectAcronymParam Name="ProjectAcronym">
