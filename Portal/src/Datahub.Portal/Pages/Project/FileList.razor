@@ -2,7 +2,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject DataRetrievalService _dataRetrievalService
 
-@* @page "/projects/{ProjectAcronym}/filelist" *@
+@* @page "/w/{ProjectAcronym}/filelist" *@
 
 <DHPageTitle PageTitleKey=@(_project.ProjectName + " " + Localizer["Storage Explorer"])/>
 

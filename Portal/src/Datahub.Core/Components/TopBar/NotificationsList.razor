@@ -15,22 +15,26 @@
     @if (_unreadNotificationCount > 0)
     {
         <MudBadge Dot Color="Color.Primary" Overlap>
+            <MudTooltip Text="@Localizer[TOOLTIP_TEXT]">
+                <MudToggleIconButton
+                    aria-label="Notifications toggle"
+                    ToggledIcon="@Icons.Filled.Notifications"
+                    ToggledChanged="@ToggleNotifications"
+                    Toggled="_showNotifications"
+                    Icon="@Icons.Outlined.Notifications"/>
+            </MudTooltip>
+        </MudBadge>
+    }
+    else
+    {
+        <MudTooltip Text="@Localizer[TOOLTIP_TEXT]">
             <MudToggleIconButton
                 aria-label="Notifications toggle"
                 ToggledIcon="@Icons.Filled.Notifications"
                 ToggledChanged="@ToggleNotifications"
                 Toggled="_showNotifications"
                 Icon="@Icons.Outlined.Notifications"/>
-        </MudBadge>
-    }
-    else
-    {
-        <MudToggleIconButton
-            aria-label="Notifications toggle"
-            ToggledIcon="@Icons.Filled.Notifications"
-            ToggledChanged="@ToggleNotifications"
-            Toggled="_showNotifications"
-            Icon="@Icons.Outlined.Notifications"/>
+        </MudTooltip>
     }
 
     <MudPopover
@@ -124,6 +128,7 @@
     private bool _showNotificationBadge => _unreadNotificationCount > 0;
     private string _notificationIcon => _showNotificationBadge ? Icons.Filled.Notifications : Icons.Outlined.Notifications;
 
+    private const string TOOLTIP_TEXT = "Notifications";
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();

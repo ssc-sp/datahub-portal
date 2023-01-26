@@ -10,6 +10,7 @@ public class FinanceModule : IDatahubModule
 {
     public void ConfigureDatabases(IServiceCollection serviceProvider, IConfiguration configuration)
     {
+        //trigger a build
         serviceProvider.ConfigureDbContext<FinanceDBContext>(configuration, "datahub-mssql-finance", configuration.GetDriver());
     }
 

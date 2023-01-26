@@ -1,4 +1,5 @@
 @using Datahub.Core.Services.Projects;
+@using Datahub.Portal.Services.Notification;
 @using Datahub.ProjectTools.Services;
 @using Microsoft.Extensions.Options
 @using Datahub.Portal.Pages.Project.DataProject.ProjectTools
@@ -11,7 +12,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IOptions<DataProjectsConfiguration> _configuration
 @inject ServiceAuthManager ServiceAuthManager
-@inject IEmailNotificationService _emailNotificationService
+@inject ProjectToolsEmailService _emailNotificationService
 @inject ProjectResourcesListingService ProjectResourcesListingService
 
 <div>
@@ -36,7 +37,7 @@
             @if (_activeResources?.Count > 0)
             {
                 <MudStack Class="my-12">
-                    <MudText Class="mb-4" Typo="Typo.h4">@Localizer["Active Project Tools"]</MudText>
+                    <MudText Class="mb-4" Typo="Typo.h2">@Localizer["Active Project Tools"]</MudText>
                     @if (_isLoading)
                     {
                         <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
@@ -56,7 +57,7 @@
             @if (_inactiveResources?.Count > 0)
             {
                 <MudStack Class="my-12">
-                    <MudText Class="mb-4" Typo="Typo.h4">@Localizer["Service Catalog"]</MudText>
+                    <MudText Class="mb-4" Typo="Typo.h2">@Localizer["Service Catalog"]</MudText>
                     @if (_isLoading)
                     {
                         <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
