@@ -31,7 +31,11 @@
                         <MudText Typo="Typo.body2">@_user?.UserPrincipalName</MudText>
                     </CardHeaderContent>
                     <CardHeaderActions>
-                        <MudIconButton Icon="@Icons.Filled.Close" OnClick="@ToggleProfile" />
+                        @*Tooltip currently does not work here*@
+                        @*issue has been reported here: https://github.com/MudBlazor/MudBlazor/issues/5542*@
+                        <MudTooltip Text="@(Localizer["Close"])">
+                            <MudIconButton Icon="@Icons.Filled.Close" OnClick="@ToggleProfile"/>
+                        </MudTooltip>
                     </CardHeaderActions>
                 </MudCardHeader>
                 <MudCardContent>
