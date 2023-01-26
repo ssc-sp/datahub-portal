@@ -2,6 +2,9 @@
 
 @inject ServiceAuthManager ServiceAuthManager
 @inject IUserInformationService _userInformationService
+@inject IMetadataBrokerService MetadataBrokerService
+@inject IJSRuntime jsRuntime
+@inject NavigationManager navigationManager
 
 <DHPageTitle PageTitleKey=@Localizer["Metadata Definitions"] />
 <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
@@ -21,6 +24,35 @@
                     <MetadataProfileList />
                 </ChildContent>
             </AeCard>
+            <AeCard>
+                <ChildContent>
+                    <AeTypography Variant="h3">@Localizer["Upload Metadata"]</AeTypography>
+                    <MudStack>
+                        <MudText>
+                            @Localizer["Since you are an Admin in Datahub use the Upload button below to import a valid Metadata definition file."]
+                        </MudText>
+                        <MudStack Class="mt-4">
+                            <InputFile id="fileInput" OnChange="HandleUploadFiles" accept=".json" hidden />
+                            <MudStack Row>
+                                <MudButton HtmlTag="label"
+                                           Variant="Variant.Outlined"
+                                           Color="Color.Primary"
+                                           StartIcon="@Icons.Filled.CloudUpload"
+                                           for="fileInput">
+                                    @Localizer["Upload"]
+                                </MudButton>
+                                <MudButton HtmlTag="label"
+                                           Variant="Variant.Outlined"
+                                           Color="Color.Primary"
+                                           OnClick="HandleDownloadMetadata"
+                                           StartIcon="@Icons.Filled.CloudDownload">
+                                    @Localizer["Download"]
+                                </MudButton>
+                            </MudStack>
+                        </MudStack>
+                    </MudStack>                    
+                </ChildContent>
+            </AeCard>
         </div>
     </Authorized>
     <NotAuthorized>
@@ -35,8 +67,36 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        
+
         var user = await _userInformationService.GetCurrentGraphUserAsync();
         _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles(user.Id);
+    }
+
+    private async Task HandleUploadFiles(InputFileChangeEventArgs e)
+    {
+        foreach (var browserFile in e.GetMultipleFiles())
+        {
+            try
+            {
+                var stream = browserFile.OpenReadStream(int.MaxValue);
+                await MetadataBrokerService.UpdateMetadata(stream);
+                navigationManager.NavigateTo("/metadata/definitions", true);
+            }
+            catch (Exception)
+            {
+                //Logger.LogError(ex, "Failed to upload the file.");
+            }
+        }
+    }
+
+    private async void HandleDownloadMetadata()
+    {
+        try
+        {
+            await jsRuntime.InvokeVoidAsync("open", "/metadata/definitions/get", "_blank");
+        }
+        catch (Exception)
+        {
+        }
     }
 }
