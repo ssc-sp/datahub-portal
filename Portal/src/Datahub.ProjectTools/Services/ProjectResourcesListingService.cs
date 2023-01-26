@@ -44,10 +44,9 @@ public class ProjectResourcesListingService
 
     private static Type[] ResourceProviders = new[]
     {
-        typeof(DHPublicSharing),
-        typeof(DHPowerBIResource),
-        typeof(DHDataEntry)
-    };
+        typeof(DHPublicSharing)
+            
+    }; 
 
     public static void RegisterResources(IServiceCollection services)
     {

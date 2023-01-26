@@ -8,7 +8,9 @@
             <MudText Typo="Typo.h4">@Localizer["ERROR-PAGE.SomethingWentWrong-Label"]</MudText>
         </CardHeaderContent>
         <CardHeaderActions>
-            <MudIconButton Icon="@Icons.Material.Filled.Error" Color="Color.Default" />
+            <MudTooltip Text="@Localizer["Error"]">
+                <MudIconButton Icon="@Icons.Material.Filled.Error" Color="Color.Default"/>
+            </MudTooltip>
         </CardHeaderActions>
     </MudCardHeader>
     <MudCardContent>

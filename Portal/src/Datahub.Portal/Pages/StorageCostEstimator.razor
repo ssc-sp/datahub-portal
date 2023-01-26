@@ -2,7 +2,9 @@
 @using Datahub.Core.Templates
 @using Datahub.Core.Data.CostEstimators
 @using Datahub.Core.Services.Notification
-@inject IEmailNotificationService emailService
+@using Datahub.Portal.Services.Notification;
+@using Datahub.Portal.Templates;
+@inject PortalEmailService emailService
 @inject IUserInformationService userService
 @inject IAzurePriceListService azurePriceService
 @inject TimeZoneService timezoneService

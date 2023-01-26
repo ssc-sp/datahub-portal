@@ -13,7 +13,7 @@
     "PowerBI": "Power BI",
     "Admin": "Admin",
     "Tools": "Tools",
-    "Catalog":  "Data"
+    "Catalog": "Data"
   },
   "OPENDATA-WIZARD": {
     "Page_Title": "Share on Open Data",
@@ -244,6 +244,7 @@
   "Project_Engagement_Category_Other": "Other",
   "Project_Summary_Description": "Project Summary Description",
   "Project_Goal": "Project Goal",
-  "Project_Engagement_Category": "Engagement Category"
+  "Project_Engagement_Category": "Engagement Category",
+  "Project_Status_Values": "Project Status"
 
 }

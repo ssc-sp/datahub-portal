@@ -1,14 +1,16 @@
 ﻿using Datahub.Metadata.DTO;
-using Entities = Datahub.Metadata.Model;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Datahub.Metadata.Model;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Entities = Datahub.Metadata.Model;
 
 namespace Datahub.Core.Services.Metadata;
 
 public interface IMetadataBrokerService
 {
+    Task<List<Entities.MetadataProfile>> GetProfiles();
     Task<Entities.MetadataProfile> GetProfile(string name);
     Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId, string defaultMetadataId = null);
     Task<FieldValueContainer> GetObjectMetadataValues(string objectId, string defaultMetadataId = null);
@@ -38,6 +40,7 @@ public interface IMetadataBrokerService
     Task<CatalogObjectLanguage?> GetCatalogObjectLanguage(string objectId);
     Task<List<CatalogObjectResult>> GetProjectCatalogItems(int projectId);
     Task<ClassificationType?> GetObjectClassification(string objectId);
+    Task UpdateMetadata(Stream stream);
 }
 
 public record CatalogSearchRequest

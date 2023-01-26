@@ -302,5 +302,8 @@
   "You are not a member of this project.": "You are not a member of this initiative.",
   "InititativeRestricted": "Restricted to initiative members",
   "Active Project Tools": "Active Data Initiative Tools",
-  "Available Project Tools":  "Available Data Initiative Tools"
+  "Available Project Tools": "Available Data Initiative Tools",
+  "PowerBiReportListIntro": "This page displays a list of Power BI reports that have been created for this initiative. The names of the reports are set in Power BI and are displayed as is (without any translating). The table will show either French or English reports, depending on which ones have been created. The 'External Access' column allows users to request the creation of external reports that can be be shared with non-NRCAN users.",
+  "Project_Status_Values": "Initiative Status"
+
 }

@@ -104,15 +104,32 @@
         NavigationManager.NavigateTo("/metadata/definitions");
     }
 
+    /// <summary>
+    /// Expected format: id:eng:fre|id:eng:fre|...
+    /// </summary>    
     private IEnumerable<FieldChoice> ParseChoices(string choices, int definitionId)
     {
-        return choices.Split('|', StringSplitOptions.RemoveEmptyEntries).Select(c => new FieldChoice()
+        return choices.Split('|', StringSplitOptions.RemoveEmptyEntries).Select(c => CreateChoice(definitionId, c));
+    }
+
+    static FieldChoice CreateChoice(int definitionId, string data)
+    {
+        var choice = ParseChoiceData(data);
+        return new FieldChoice()
         {
             FieldDefinitionId = definitionId,
-            Label_English_TXT = c,
-            Label_French_TXT = c,
-            Value_TXT = c
-        });
+            Label_English_TXT = choice.English.Trim(),
+            Label_French_TXT = choice.French.Trim(),
+            Value_TXT = choice.Id.Trim()
+        };
+    }
+
+    static ChoiceData ParseChoiceData(string data)
+    {
+        var cols = data.Split(':', StringSplitOptions.RemoveEmptyEntries);
+        if (cols.Length == 3)
+            return new(cols[0], cols[1], cols[2]);
+        return new(data, data, data);
     }
 
     private async Task<Data.Forms.Metadata.FieldDefinitionForm> ClearForm()
@@ -127,4 +144,6 @@
     }
 
     static string MakeLabel(string label) => $"METADATA-EDIT.FIELD-DEFINITIONS.{label}";
+
+    record ChoiceData(string Id, string English, string French);
 }

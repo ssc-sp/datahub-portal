@@ -1,13 +1,25 @@
 ﻿@using Datahub.Metadata.Model
 
-<select class="ae input" style="width: 100%" size="15" multiple>
-    @foreach (var opt in _options)
-    {
-        <option value=@opt.Id selected=@opt.Selected @onclick="(e) => ToggleField(opt.Id)">
-            @opt.Name
-        </option>
-    }
-</select>
+@if (Fields is not null)
+{
+    <MudSelect T="string"
+        MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))"
+        SelectedValues=@_selectedIds
+        SelectedValuesChanged=@HandleSelectedValuesChanged
+        Label="Selected Fields"
+        MultiSelection="true"
+        Variant="Variant.Outlined"
+        AnchorOrigin="Origin.BottomCenter"
+        AdornmentIcon=@Icons.Filled.ArrowDropDown
+        Margin="Margin.Dense">
+
+        @foreach (var opt in _options)
+        {
+            <MudSelectItem T="string" Value=@opt.Id.ToString()>@opt.Name</MudSelectItem>
+        }
+
+    </MudSelect>
+}
 
 @code {
 
@@ -17,28 +29,41 @@
     [Parameter]
     public HashSet<int> Selection { get; set; }
 
+    private HashSet<string> _selectedIds = new();
+
     private FieldOption[] _options;
 
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
+
         if (Fields is not null && Selection is not null)
         {
-            _options = Fields.Select(f => new FieldOption(f.FieldDefinitionId, f.Name_English_TXT, Selection.Contains(f.FieldDefinitionId))).ToArray();
-        }        
+            _options = Fields.Select(f => new FieldOption($"{f.FieldDefinitionId}", f.Name_English_TXT, Selection.Contains(f.FieldDefinitionId))).ToArray();
+        }
+
+        _selectedIds = new(_options.Where(o => o.Selected).Select(o => o.Id));
     }
 
-    void ToggleField(int id)
+    private void HandleSelectedValuesChanged(IEnumerable<string> values)
     {
-        if (Selection.Contains(id))
-        {
-            Selection.Remove(id);
-        }
-        else
-        {
-            Selection.Add(id);
-        }
+        Selection.Clear();
+        foreach (var v in values)
+            Selection.Add(int.Parse(v));
+        _selectedIds = new HashSet<string>(values);
     }
 
-    record FieldOption(int Id, string Name, bool Selected);
+    private string GetMultiSelectionText(List<string> selectedValues)
+    {
+        var selection = new HashSet<string>(selectedValues);
+        List<string> labels = new();
+        foreach (var c in _options)
+        {
+            if (selection.Contains(c.Id))
+                labels.Add(c.Name);
+        }
+        return string.Join(", ", labels);
+    }
+
+    record FieldOption(string Id, string Name, bool Selected);
 }
