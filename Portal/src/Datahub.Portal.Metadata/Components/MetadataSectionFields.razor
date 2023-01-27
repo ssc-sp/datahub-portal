@@ -55,14 +55,7 @@
 
     private string GetMultiSelectionText(List<string> selectedValues)
     {
-        var selection = new HashSet<string>(selectedValues);
-        List<string> labels = new();
-        foreach (var c in _options)
-        {
-            if (selection.Contains(c.Id))
-                labels.Add(c.Name);
-        }
-        return string.Join(", ", labels);
+        return selectedValues.Count > 0 ? $"{selectedValues.Count} field(s) selected." : "No filed selected.";
     }
 
     record FieldOption(string Id, string Name, bool Selected);
