@@ -69,7 +69,7 @@ public class FieldValueContainer : List<ObjectFieldValue>
 
         var definition = Definitions.Get(fieldName);
         if (definition is null)
-            throw new ArgumentNullException(nameof(fieldName));
+            return null; //throw new ArgumentNullException(nameof(fieldName));
 
         var fieldValueObj = this.FirstOrDefault(v => v.FieldDefinitionId == definition.FieldDefinitionId);
         if (fieldValueObj is not null)

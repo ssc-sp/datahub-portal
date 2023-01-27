@@ -109,10 +109,11 @@ public class FieldChoiceDTO
 
 public static class MetadataDTOExtensions
 {
-    public static FieldDefinition ToEntity(this FieldDefinitionDTO source)
+    public static FieldDefinition ToEntity(this FieldDefinitionDTO source, int versionId)
     {
         var definition = new FieldDefinition()
         {
+            MetadataVersionId = versionId,
             Field_Name_TXT = source.Field_Name_TXT,
             Sort_Order_NUM = source.Sort_Order_NUM,
             Name_English_TXT = source.Name_English_TXT,
