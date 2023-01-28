@@ -55,7 +55,7 @@
 
     private string GetMultiSelectionText(List<string> selectedValues)
     {
-        return selectedValues.Count > 0 ? $"{selectedValues.Count} field(s) selected." : "No filed selected.";
+        return selectedValues.Count > 0 ? $"{selectedValues.Count} field(s) selected." : "No field selected.";
     }
 
     record FieldOption(string Id, string Name, bool Selected);
