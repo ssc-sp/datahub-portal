@@ -8,6 +8,7 @@
 @inject NavigationManager NavigationManager
 @inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
 @inject IOrganizationLevelsService OrganizationLevelsService
+@inject ILogger<ProjectObjectMetadata> Logger
 
 @if (_project is not null)
 {
@@ -163,19 +164,34 @@
         //    _editor.SetValue("initiative_goal", _project.Project_Goal);
     }
 
-    private async Task HandleSave()
+    private async Task HandleSave(FieldValueContainer values)
     {
-        await OnMetadataSaved.InvokeAsync(_project);
+        try
+        {
+            await OnMetadataSaved.InvokeAsync(_project);
 
-        _project.Sector_Name = _editor.GetSelectedChoices("sector").FirstOrDefault()?.Label ?? "";
-        _project.Branch_Name = _editor.GetSelectedChoices("branch").FirstOrDefault()?.Label ?? "";
+            // Metadata is "added" only when the profile required fields are entered
+            _project.MetadataAdded = _editor.ValidProfileFields();
 
-        var ctx = await ContextFactory.CreateDbContextAsync();
-        ctx.Attach(_project);
-        ctx.Projects.Update(_project);
-        await ctx.SaveChangesAsync();
+            var sector = _editor.GetSelectedChoices("sector").FirstOrDefault();
+            if (sector is not null)
+                _project.Sector_Name = sector.Label;
 
-        HandleNavigateToProject();
+            var branch = _editor.GetSelectedChoices("branch").FirstOrDefault();
+            if (branch is not null)
+                _project.Branch_Name = branch.Label;
+
+            var ctx = await ContextFactory.CreateDbContextAsync();
+            ctx.Attach(_project);
+            ctx.Projects.Update(_project);
+            await ctx.SaveChangesAsync();
+
+            HandleNavigateToProject();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Internal error updating project object metadata.");
+        }
     }
 
     private void HandleNavigateToProject()
