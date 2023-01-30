@@ -9,6 +9,7 @@
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IRequestManagementService _requestManagementService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject Logger<ProjectMetadata> Logger
 
 <div class="manage-access"> 
 
@@ -23,40 +24,45 @@
         OnMetadataSaved=@HandleMetadataSaved />
 </div>
 
-@code {
+    @code {
 
     [Parameter]
     public string ProjectAcronym { get; set; }
 
     private void HandleMetadataSaved(Datahub_Project project)
     {
-        project.MetadataAdded = true;
-
-        using var ctx = _dbContextFactory.CreateDbContext();
-        var databricksTemplateName = RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
-        var projectDatabricks = ctx.Project_Resources2
-            .Where(r => r.ProjectId == project.Project_ID)
-            .FirstOrDefault(r => r.ResourceType == databricksTemplateName);
-
-        if (projectDatabricks != null && projectDatabricks.TimeCreated != null)
+        try
         {
-            var deserializeOptions = new JsonSerializerOptions
+            using var ctx = _dbContextFactory.CreateDbContext();
+            var databricksTemplateName = RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
+            var projectDatabricks = ctx.Project_Resources2
+                .Where(r => r.ProjectId == project.Project_ID)
+                .FirstOrDefault(r => r.ResourceType == databricksTemplateName);
+
+            if (projectDatabricks != null && projectDatabricks.TimeCreated != null)
             {
-                PropertyNameCaseInsensitive = true
-            };
+                var deserializeOptions = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
 
-            var jsonContent =
-                JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectDatabricks.JsonContent, deserializeOptions);
-            var databricksUrlVariable = jsonContent[TerraformVariables.OutputAzureDatabricksWorkspaceUrl];
-            
-            MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, $"{project.Project_Acronym_CD}-Databricks", 
-                MetadataObjectType.Databricks, databricksUrlVariable.Value, true);
+                var jsonContent =
+                    JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectDatabricks.JsonContent, deserializeOptions);
+                var databricksUrlVariable = jsonContent[TerraformVariables.OutputAzureDatabricksWorkspaceUrl];
+
+                MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, $"{project.Project_Acronym_CD}-Databricks",
+                    MetadataObjectType.Databricks, databricksUrlVariable.Value, true);
+            }
+
+            foreach (var db in GetDbs(project))
+            {
+                MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, db.ResourceId.ToString(),
+                    MetadataObjectType.Database, project.Project_Acronym_CD, true);
+            }
         }
-
-        foreach (var db in GetDbs(project))
+        catch (Exception ex)
         {
-            MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, db.ResourceId.ToString(), 
-                MetadataObjectType.Database, project.Project_Acronym_CD, true);
+            Logger.LogError(ex, "Internal error updating project child metadata.");
         }
     }
 
