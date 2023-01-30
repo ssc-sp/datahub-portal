@@ -41,7 +41,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
     fileNameCache.SaveChanges();
 
     // save the file mappings
-    fileMappingService.SaveTo(Path.Combine(options.Path, "filemappings.json"));
+    fileMappingService.UpdateMappings(Path.Combine(options.Path, "filemappings.json"));
 
     // END
 }))
