@@ -7,10 +7,7 @@
 
 using SyncDocs;
 using Microsoft.Extensions.Configuration;
-using CommandLine.Text;
 using CommandLine;
-using System.Runtime.InteropServices;
-using System.Xml.Linq;
 
 var builder = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -56,7 +53,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
         var topLevelfiles = new List<string>();
         // iterate the provided source folder
         Func<string,bool> excluder = n => Path.GetFileName(n) == "_sidebar.md" || BuildExcluder(configParams)(n);
-        await IteratePath(options.Path, excluder, async f => topLevelfolders.Add(f), async f => topLevelfiles.Add(f), options.TopLevelDepth);
+        await IteratePath(options.Path, excluder, AddAsync(topLevelfolders!), AddAsync(topLevelfiles), options.TopLevelDepth);
         var gen = new SidebarGenerator();
         var topSidebar = gen.GenerateTopLevel(options.Path, topLevelfiles, topLevelfolders, options.Profile);
         Console.WriteLine($"Processing top level directory {options.Path}");
@@ -69,7 +66,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
             Console.WriteLine($"Processing {folder}");
             var folders = new List<string>();
             var files = new List<string>();
-            await IteratePath(folder, excluder, async f => folders.Add(f), async f => files.Add(f));
+            await IteratePath(folder, excluder, AddAsync(folders), AddAsync(files));
             Console.WriteLine($"Found {files.Count} files for sidebar");
             var sidebar = gen.GenerateSidebar(new DirectoryInfo(folder).Name, folder, files, folders, options.Profile);
             await File.WriteAllTextAsync(Path.Combine(folder, "_sidebar.md"), sidebar);
@@ -126,6 +123,15 @@ static int FolderDepth(string path)
             depth++;
     }
     return depth;
+}
+
+static Func<string, Task> AddAsync(List<string> list)
+{
+    return s =>
+    {
+        list.Add(s);
+        return Task.CompletedTask;
+    };
 }
 
 #endregion
