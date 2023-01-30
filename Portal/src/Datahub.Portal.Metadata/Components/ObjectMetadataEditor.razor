@@ -230,6 +230,11 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    public bool ValidProfileFields()
+    {
+        return _fieldValues?.ValidateRequired(IsFieldRequired) == true;
+    }
+
     private void SetSecurityClassification()
     {
         var secClsName = "security_classification";
@@ -242,7 +247,7 @@
 
     private bool CheckRequiredFieldValues()
     {
-        return !ValidateRequired || _fieldValues?.ValidateRequired(IsFieldRequired) == true;
+        return !ValidateRequired || ValidProfileFields();
     }
 
     private bool IsFieldRequired(FieldDefinition field)
