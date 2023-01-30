@@ -11,7 +11,7 @@ internal class FileMappingService
 		_pairs.Add(new(id, engPath, frePath));
 	}
 
-	public bool SaveTo(string path)
+	public bool UpdateMappings(string path)
 	{
         try
         {
@@ -21,8 +21,8 @@ internal class FileMappingService
             // delete unnecessary files
             if (File.Exists(path))
             {
-                var oldMappings = JsonSerializer.Deserialize<FilePair[]>(File.ReadAllText(path)) ?? Array.Empty<FilePair>();
-                foreach (var mapping in oldMappings)
+                var curMappings = JsonSerializer.Deserialize<FilePair[]>(File.ReadAllText(path)) ?? Array.Empty<FilePair>();
+                foreach (var mapping in curMappings)
                 {
                     var enPath = NormalizePath($"{directory}{mapping.En}");
                     if (!File.Exists(enPath))
