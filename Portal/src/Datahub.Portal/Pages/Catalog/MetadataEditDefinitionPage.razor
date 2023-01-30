@@ -73,8 +73,12 @@
         {
             if (isNewDefinition)
             {
-                def.MetadataVersionId = 2; // temp
-                ctx.FieldDefinitions.Add(def);
+                var version = await ctx.MetadataVersions.FirstOrDefaultAsync();
+                if (version is not null)
+                {
+                    def.MetadataVersionId = version.MetadataVersionId;
+                    ctx.FieldDefinitions.Add(def);
+                }
             }
             else
             {

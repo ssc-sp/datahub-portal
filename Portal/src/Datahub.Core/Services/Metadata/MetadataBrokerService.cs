@@ -483,13 +483,13 @@ public class MetadataBrokerService : IMetadataBrokerService
         return objectMetadata;
     }
 
-    const string OpenDataId = "OpenData";
+    const string DefaultSource = "default";
 
     private async Task<FieldDefinitions> GetLatestMetadataDefinition(MetadataDbContext ctx)
     {
         var latestVersion = await ctx
             .MetadataVersions
-            .Where(e => e.Source_TXT == OpenDataId)
+            .Where(e => e.Source_TXT == DefaultSource)
             .OrderByDescending(e => e.Last_Update_DT)
             .FirstOrDefaultAsync();
 
@@ -793,14 +793,16 @@ public class MetadataBrokerService : IMetadataBrokerService
     private async Task SyncDefinitions(MetadataDTO metadataDto)
     {
         using var ctx = await _contextFactory.CreateDbContextAsync();
-
+        
+        var versionId = await CreateVersion(ctx);
         var definitions = await GetLatestMetadataDefinition(ctx);
+
         foreach (var defDto in metadataDto.Definitions)
         {
             var definition = definitions.Get(defDto.Field_Name_TXT);
             if (definition is null)
             {
-                ctx.FieldDefinitions.Add(defDto.ToEntity());
+                ctx.FieldDefinitions.Add(defDto.ToEntity(versionId));
             }
             else
             {
@@ -813,6 +815,18 @@ public class MetadataBrokerService : IMetadataBrokerService
         }
 
         await ctx.TrackSaveChangesAsync(_auditingService);
+    }
+
+    private async Task<int> CreateVersion(MetadataDbContext ctx)
+    {
+        var version = await ctx.MetadataVersions.FirstOrDefaultAsync(e => e.Source_TXT == DefaultSource);
+        if (version is null)
+        {
+            version = new() { Source_TXT = DefaultSource };
+            ctx.MetadataVersions.Add(version);
+            await ctx.TrackSaveChangesAsync(_auditingService);
+        }
+        return version.MetadataVersionId;
     }
 
     private async Task SyncProfiles(MetadataDTO metadataDto)
