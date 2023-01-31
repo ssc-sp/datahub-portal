@@ -33,7 +33,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         _httpClientFactory = httpClientFactory;
     }
 
-    private bool IsValidGcEmail(string email)
+    public bool IsValidGcEmail(string email)
     {
         var reOld = GC_CA_Regex();
         var reNew = Canada_CA_Regex();
