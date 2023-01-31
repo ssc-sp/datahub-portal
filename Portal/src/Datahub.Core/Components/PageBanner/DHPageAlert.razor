@@ -1,12 +1,9 @@
 ﻿@*DHPageAlert.razor*@
 @using System.Web
-@using System.Globalization
 @using Datahub.Core.Services.UserManagement;
 @inject CultureService _cultureService
-@inject NavigationManager _navigationManager
-@inject IJSRuntime _jsInterop
 @inject ILogger<DHPageAlert> _logger
-@inject IConfiguration configuration
+@inject IConfiguration _configuration
 @inject IHttpClientFactory _httpClientFactory
 
 @if (_contentFound)
@@ -42,9 +39,9 @@
         return _baseUrl + "/" + HttpUtility.UrlEncode(link);
     }
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
-        var pageAlertEnabled = configuration.GetValue<bool>("PageAlertsEnabled", true);
+        var pageAlertEnabled = _configuration.GetValue<bool>("PageAlertsEnabled", true);
         if (pageAlertEnabled)
         {
             var link = _cultureService.IsFrench ? WikiLinkFR : WikiLinkEN;
@@ -62,7 +59,7 @@
         if (name.StartsWith("/")) 
             name = name[1..];
 
-        var wikiRoot = configuration["WikiURL"];
+        var wikiRoot = _configuration["WikiURL"];
         var fullUrl = $"{wikiRoot}{name}.md";
 
         var client = _httpClientFactory.CreateClient();
@@ -72,7 +69,7 @@
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Cannot load page '{name}' from Wiki", fullUrl);
+            _logger.LogWarning(ex, $"Cannot load page '{name}' from Wiki", fullUrl);
             return null;
         }
     }
