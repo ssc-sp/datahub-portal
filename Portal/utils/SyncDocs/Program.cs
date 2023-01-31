@@ -1,16 +1,14 @@
 ﻿// Console app will replicate all documentation folder structure and try to translate the content of .md files using DeepL
 
-// Usage > syncdocs <root-path>
-// or    > dotnet run <root-path>
+// Usage:
+// $ syncdocs gensidebars -P <path> -p ssc
+// $ syncdocs translate -P <path> -p ssc -f
 
 // Note: Expects an enviroment variable named "DEEPL_KEY" with the API key for DeepL
 
 using SyncDocs;
 using Microsoft.Extensions.Configuration;
-using CommandLine.Text;
 using CommandLine;
-using System.Runtime.InteropServices;
-using System.Xml.Linq;
 
 var builder = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -44,7 +42,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
     fileNameCache.SaveChanges();
 
     // save the file mappings
-    fileMappingService.SaveTo(Path.Combine(options.Path, "filemappings.json"));
+    fileMappingService.UpdateMappings(Path.Combine(options.Path, "filemappings.json"));
 
     // END
 }))
@@ -56,7 +54,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
         var topLevelfiles = new List<string>();
         // iterate the provided source folder
         Func<string,bool> excluder = n => Path.GetFileName(n) == "_sidebar.md" || BuildExcluder(configParams)(n);
-        await IteratePath(options.Path, excluder, async f => topLevelfolders.Add(f), async f => topLevelfiles.Add(f), options.TopLevelDepth);
+        await IteratePath(options.Path, excluder, AddAsync(topLevelfolders!), AddAsync(topLevelfiles), options.TopLevelDepth);
         var gen = new SidebarGenerator();
         var topSidebar = gen.GenerateTopLevel(options.Path, topLevelfiles, topLevelfolders, options.Profile);
         Console.WriteLine($"Processing top level directory {options.Path}");
@@ -69,7 +67,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
             Console.WriteLine($"Processing {folder}");
             var folders = new List<string>();
             var files = new List<string>();
-            await IteratePath(folder, excluder, async f => folders.Add(f), async f => files.Add(f));
+            await IteratePath(folder, excluder, AddAsync(folders), AddAsync(files));
             Console.WriteLine($"Found {files.Count} files for sidebar");
             var sidebar = gen.GenerateSidebar(new DirectoryInfo(folder).Name, folder, files, folders, options.Profile);
             await File.WriteAllTextAsync(Path.Combine(folder, "_sidebar.md"), sidebar);
@@ -126,6 +124,15 @@ static int FolderDepth(string path)
             depth++;
     }
     return depth;
+}
+
+static Func<string, Task> AddAsync(List<string> list)
+{
+    return s =>
+    {
+        list.Add(s);
+        return Task.CompletedTask;
+    };
 }
 
 #endregion
