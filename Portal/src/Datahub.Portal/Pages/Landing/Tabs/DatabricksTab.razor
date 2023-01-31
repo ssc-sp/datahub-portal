@@ -7,7 +7,6 @@
 @inject IStringLocalizer<DataLabels> DataLocalizer
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
-@implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IUserInformationService UserInformationService
 
@@ -44,7 +43,6 @@
     private IPageableComponent _myTable;
 
     private List<Datahub_Project> _projects;
-    DatahubProjectDBContext Context;
 
     private int _lastClicked = 0;
 
@@ -67,7 +65,7 @@
         
         var databricksTemplateName = RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS); 
         
-        _projects = Context.Project_Users
+        _projects = context.Project_Users
             .Where(u => u.User_ID == currentUserId)
             .Select(u => u.Project)
             .Include(p => p.Resources
@@ -77,14 +75,16 @@
 
         FillAccessorFunctions();
         
-        renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => 
+        renderFunctions = new List<Func<Datahub_Project, RenderFragment>>
+        {            
+            new(Datahub_Project => 
                 @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>),
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><NavLink href="@($"/w/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink></AeTypography></AeFlex> ),
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeMarkdown Content="@($"{Datahub_Project.ProjectDescription}")"></AeMarkdown> ),
+            new(Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><NavLink href="@($"/w/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink></AeTypography></AeFlex> ),
+            new(Datahub_Project => @<AeMarkdown Content="@($"{Datahub_Project.ProjectDescription}")"></AeMarkdown> ),
         };
         
-        renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
+        renderFunctions = new List<Func<Datahub_Project, RenderFragment>>
+        {            
             Datahub_Project => @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>,
             Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@(Datahub_Project.Project_Acronym_CD)" DatabricksURL="@(GetProjectsDatabricksUrl(Datahub_Project))" Name="Databricks Workspace">Databricks Workspace</DHLink></AeTypography></AeFlex>, 
             Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@(Datahub_Project.Project_Acronym_CD)">@Datahub_Project.ProjectName</DHLink></AeTypography></AeFlex>             
@@ -93,7 +93,7 @@
         //await FillRenderFunctions();
     }
 
-    private List<string> headers = new List<string>();
+    private List<string> headers = new();
 
     private string GetProjectsDatabricksUrl(Datahub_Project project)
     {
@@ -102,15 +102,11 @@
     
     private void FillAccessorFunctions()
     {
-        accessorFunctions = new List<Func<Datahub_Project, string>>() {
-            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.Project_Icon; }),
-            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.ProjectName; }),
-            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.ProjectDescription; }),
+        accessorFunctions = new List<Func<Datahub_Project, string>>
+        {
+            Datahub_Project => { return Datahub_Project?.Project_Icon; },
+            Datahub_Project => { return Datahub_Project?.ProjectName; },
+            Datahub_Project => { return Datahub_Project?.ProjectDescription; },
         };
-    }
-    
-    public void Dispose() 
-    { 
-        Context.Dispose();         
     }
 }
