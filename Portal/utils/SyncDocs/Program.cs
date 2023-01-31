@@ -1,7 +1,8 @@
 ﻿// Console app will replicate all documentation folder structure and try to translate the content of .md files using DeepL
 
-// Usage > syncdocs <root-path>
-// or    > dotnet run <root-path>
+// Usage:
+// $ syncdocs gensidebars -P <path> -p ssc
+// $ syncdocs translate -P <path> -p ssc -f
 
 // Note: Expects an enviroment variable named "DEEPL_KEY" with the API key for DeepL
 
