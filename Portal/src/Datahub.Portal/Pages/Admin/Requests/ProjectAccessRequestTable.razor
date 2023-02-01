@@ -3,7 +3,7 @@
 @using Datahub.Core.Services.Notification
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
-@inject IEmailNotificationService _emailService
+@inject ProjectToolsEmailService _emailService
 @inject ServiceAuthManager _serviceAuthManager
 @inject ILogger<ProjectAccessRequestTable> _logger
 

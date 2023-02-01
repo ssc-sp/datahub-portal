@@ -46,6 +46,14 @@
         "HostingProfile": "ssc"
       }
     },
+    "IIS Express (Sandbox) - No Launch": {
+      "commandName": "IISExpress",
+      "launchBrowser": false,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "sand",
+        "HostingProfile": "ssc"
+      }
+    },
     "Console Portal (Sandbox)": {
       "commandName": "Project",
       "launchBrowser": true,

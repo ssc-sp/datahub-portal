@@ -2,11 +2,14 @@
 @inject IConfiguration Configuration
 
 <span>
-    <MudToggleIconButton
-        ToggledIcon="@Icons.Filled.HelpCenter"
-        ToggledChanged="@ToggleHelp"
-        Toggled="_showHelp"
-        Icon="@Icons.Outlined.HelpCenter"/>
+    <MudTooltip Text="@Localizer[TOOLTIP_TEXT]">
+        <MudToggleIconButton
+            aria-label="Help toggle"
+            ToggledIcon="@Icons.Filled.HelpCenter"
+            ToggledChanged="@ToggleHelp"
+            Toggled="_showHelp"
+            Icon="@Icons.Outlined.HelpCenter"/>
+        </MudTooltip>
 
     <MudPopover
         Style="@_style"
@@ -16,10 +19,14 @@
         <MudCard Elevation="0" Class="py-4 px-6">
             <MudCardHeader>
                 <CardHeaderContent>
-                    <MudText Typo="Typo.h6">@Localizer["Help"]</MudText>
+                    <MudText Typo="Typo.h2">@Localizer["Help"]</MudText>
                 </CardHeaderContent>
                 <CardHeaderActions>
-                    <MudIconButton Icon="@Icons.Filled.Close" Color="Color.Default" OnClick="ToggleHelp"/>
+                    @*Tooltip currently does not work here*@
+                    @*issue has been reported here: https://github.com/MudBlazor/MudBlazor/issues/5542*@
+                    <MudTooltip Text="@(Localizer["Close"])">
+                        <MudIconButton Icon="@Icons.Filled.Close" Color="Color.Default" OnClick="ToggleHelp"/>
+                    </MudTooltip>
                 </CardHeaderActions>
             </MudCardHeader>
             <MudCardContent>
@@ -54,6 +61,7 @@
     private bool _showHelp;
     private string _datahubEmail;
     private string DatahubEmail => $"mailto:{_datahubEmail}";
+    private const string TOOLTIP_TEXT = "Help";
 
     protected override async Task OnInitializedAsync()
     {

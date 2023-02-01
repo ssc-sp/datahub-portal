@@ -9,7 +9,7 @@
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IRequestManagementService _requestManagementService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@inject Logger<ProjectMetadata> Logger
+@inject ILogger<ProjectMetadata> Logger
 
 <div class="manage-access"> 
 
@@ -20,6 +20,7 @@
         ObjectId=@ProjectAcronym
         Location=@ProjectAcronym
         ProjectAcronym=@ProjectAcronym 
+        ValidateRequired="false"
         ObjectType=@MetadataObjectType.DataInitiative
         OnMetadataSaved=@HandleMetadataSaved />
 </div>

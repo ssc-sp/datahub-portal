@@ -1,34 +1,46 @@
 @using Datahub.Core.Components.Skeleton
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Model.UserTracking
+@using MudBlazor.Utilities
 
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
-<MudText Typo="Typo.h6" Class="mt-12">@Localizer["Recent Places"]</MudText>
-<div class="recent-card-container">
+<MudText Typo="Typo.h1" Class="mt-12 mb-6">@Localizer["Recent Places"]</MudText>
+<MudGrid Class="mt-4 recent-card-grid">
     @if (_recentLinks is null)
     {
         @for (var i = 0; i < 6; i++)
         {
-            <Skeleton Height="150px" Style="margin-top: -2rem;"/>
+            <MudItem xs="2">
+                <MudSkeleton Height="100px" />
+            </MudItem>
         }
     }
     else
     {
         @foreach (var (link, project) in _recentLinks)
         {
-            <DHLink UserRecentLink="link">
-                <AeFlex class="@($"recent-card {GetIcon(link).Color}")">
-                    <i class="@GetIconName(link, project)"></i>
-                    <AeTypography class="title">@GetLinkDescription(link, project)</AeTypography>
-                    <AeTypography class="subtitle">@GetDescription(link, project)</AeTypography>
-                </AeFlex>
-            </DHLink>
+            <MudItem xs="2">
+                <DHLink UserRecentLink="link" Underline="Underline.None">
+                    <MudPaper Class="@($"pa-4 recent-card {GetIcon(link).Color}")" Outlined Elevation="0" Style="background-color: white">
+                        <MudGrid Spacing="1">
+                            <MudItem xs="12" Class="">
+                                <MudStack Row Spacing="3" AlignItems="AlignItems.Center">
+                                    <MudIcon Class="recent-icon" Icon="@GetIconName(link, project)" Style="@GetIconStyle()"/>
+                                    <MudText Typo="Typo.h6" Style="@GetTextStyle()">@GetLinkDescription(link, project)</MudText>
+                                </MudStack>
+                            </MudItem>
+                            <MudItem xs="12" Style="@GetTextStyle()">
+                                <MudText Typo="Typo.caption">@GetDescription(link, project)</MudText>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+                </DHLink>
+            </MudItem>
         }
     }
-</div>
-
+</MudGrid>
 @code {
 
     [CascadingParameter(Name = "GraphUser")]
@@ -54,6 +66,22 @@
     {
         return dbContext.Projects
             .FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject.Trim());
+    }
+    
+    private string GetTextStyle()
+    {
+        return new StyleBuilder()
+            .AddStyle("white-space", "nowrap")
+            .AddStyle("overflow", "hidden")
+            .AddStyle("text-overflow", "ellipsis")
+            .Build();
+    }
+    
+    private string GetIconStyle()
+    {
+        return new StyleBuilder()
+            .AddStyle("font-size", "2rem")
+            .Build();
     }
 
 }

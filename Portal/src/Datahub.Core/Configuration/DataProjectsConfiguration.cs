@@ -22,6 +22,7 @@ public record DataProjectsConfiguration
     public bool IoT { get; set; } = true;
     public bool StorageCost { get; set; } = true;
     public bool ComputeCost { get; set; } = true;
+    public bool VirtualMachines { get; set; } = false;
 
     public bool EnableGitModuleRepository { get; set; } = true;
 
