@@ -14,22 +14,23 @@ public class UpdateProjectMonthlyCost
 {
     private readonly DatahubProjectDBContext _dbContext;
     private readonly IConfiguration _configuration;
-    private readonly ILogger<UpdateProjectMonthlyCost> _logger;
+    private readonly ILogger<AzureCostManagementService> _logger;
     private const string TENANT_ID = "TENANT_ID";
     private const string CLIENT_ID = "FUNC_SP_CLIENT_ID";
     private const string CLIENT_SECRET = "FUNC_SP_CLIENT_SECRET";
     private const string SUBSCRIPTION_ID = "SUBSCRIPTION_ID";
+
     public UpdateProjectMonthlyCost(DatahubProjectDBContext dbContext, IConfiguration configuration, ILoggerFactory loggerFactory)
     {
         _dbContext = dbContext;
         _configuration = configuration;
-        _logger = loggerFactory.CreateLogger<UpdateProjectMonthlyCost>();
+        _logger = loggerFactory.CreateLogger<AzureCostManagementService>();
     }
     
     // This Azure Function will be triggered everyday at 2:00 AM UTC and will capture the current cost for the month using the Azure forecast API
     // The function will then store the data in a Azure SQL database
     [Function("UpdateProjectMonthlyCostScheduled")]
-    public async Task RunScheduledUpdate([TimerTrigger("0 0 2 * * *")]MyInfo myTimer)
+    public async Task RunScheduledUpdate([TimerTrigger("0 0 2 * * *")] TimerInfo timerInfo)
     {
         await Run();
     }
@@ -104,19 +105,3 @@ public record CostReturnRecord
 {
     public int NumberOfProjectsUpdated { get; init; }
 };
-
-public class MyInfo
-{
-    public MyScheduleStatus ScheduleStatus { get; set; }
-
-    public bool IsPastDue { get; set; }
-}
-
-public class MyScheduleStatus
-{
-    public DateTime Last { get; set; }
-
-    public DateTime Next { get; set; }
-
-    public DateTime LastUpdated { get; set; }
-}
