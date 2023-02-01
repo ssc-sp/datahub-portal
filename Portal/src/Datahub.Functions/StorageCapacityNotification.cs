@@ -83,7 +83,7 @@ public class StorageCapacityNotification
         // validate email smtp configuration...
 
         // obtain an access token
-        var token = await TryGetToken();
+        var token = await TryGetAccessToken();
         if (token is null)
         {
             _logger.LogError("Function failed to obtain oauth token, check function config and permissions");
@@ -228,7 +228,7 @@ public class StorageCapacityNotification
         return double.Parse(_config.MaxStorageCapacity);
     }
 
-    private async Task<string?> TryGetToken()
+    private async Task<string?> TryGetAccessToken()
     {
         string? token = default;
         try
