@@ -3,13 +3,14 @@
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core
 @using Datahub.Core.Services.Notification
+@using Datahub.ProjectTools.Services;
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject PowerBiServiceApi _powerBiApi
 @inject IPowerBiDataService _powerBiDataService
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject ILogger<ApprovePowerBiRequest> _logger
-@inject IEmailNotificationService _emailService
+@inject ProjectToolsEmailService _emailService
 @inject ISystemNotificationService _systemNotificationService
 @inject IMSGraphService _msGraphService
 
@@ -312,14 +313,14 @@
             notificationRecipients.Remove(requestingUserId);
             notificationTasks.Add(_emailService.SendServiceCreationRequestApprovedIndividual(liveProjectRequest.ServiceType, projectInfo, requestingUserId));
             notificationTasks.Add(_systemNotificationService.CreateSystemNotificationWithLink(requestingUserId, 
-                $"/projects/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+                $"/w/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
                 "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedIndividual",
                 liveProjectRequest.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
         }
 
         notificationTasks.Add(_emailService.SendServiceCreationGroupNotification(liveProjectRequest.ServiceType, projectInfo, notificationRecipients.ToList()));
         notificationTasks.Add(_systemNotificationService.CreateSystemNotificationsWithLink(notificationRecipients.ToList(), 
-            $"/projects/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+            $"/w/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
             "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedGroup",
             liveProjectRequest.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
 

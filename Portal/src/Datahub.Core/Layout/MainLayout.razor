@@ -18,63 +18,72 @@
 
 <PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
 
-<CascadingValue Value="@DatahubTheme.DEFAULT_THEME">
-    <AuthorizeView>
-        <Authorized>
-            <DatahubAchievementProvider/>
-            <MudLayout Style="@_style">
-                <MudAppBar Elevation="0">
-                    <Topbar/>
-                </MudAppBar>
-                <MudDrawer
-                    Open
-                    DisableOverlay
-                    Elevation="0"
-                    ClipMode="DrawerClipMode.Always">
-                    <Sidebar/>
-                </MudDrawer>
-                <MudMainContent>
-                    <div class="application-wrapper">
-                        <div class="main-layout">
-                            <div class="ui-control">
-                                <div class="main-page">
-                                    <ErrorBoundary @ref="_errorBoundary">
-                                        <ChildContent>
-                                            @if (_isSessionEnabled == true)
-                                            {
-                                                @Body
-                                            }
-                                            @if (_isSessionEnabled == false)
-                                            {
-                                                <TooManyTabs/>
-                                            }
-                                        </ChildContent>
-                                        <ErrorContent Context="ex">
-                                            @if (HandleException(@ex))
-                                            {
-                                                <Error User=@_userName CorrelationId=@_correlationId Exception=@ex/>
-                                            }
-                                            else
-                                            {
-                                                @Body
-                                            }
+@if (isLoaded)
+{
+    <CascadingValue Value="@DatahubTheme.DEFAULT_THEME">
+        <AuthorizeView>
+            <Authorized>
+                <DatahubAchievementProvider/>
+                <MudLayout Style="@_style">
+                    <MudAppBar Elevation="0">
+                        <Topbar/>
+                    </MudAppBar>
+                    <MudDrawer
+                        Open
+                        DisableOverlay
+                        Elevation="0"
+                        ClipMode="DrawerClipMode.Always">
+                        <Sidebar/>
+                    </MudDrawer>
+                    <MudMainContent>
+                        <div class="ui-control">
+                            <ErrorBoundary @ref="_errorBoundary">
+                                <ChildContent>
+                                    @if (_isSessionEnabled == true)
+                                    {
+                                        <MudContainer Class="mt-16" MaxWidth="MaxWidth.Large">
+                                            @Body
+                                        </MudContainer>
+                                    }
+                                    @if (_isSessionEnabled == false)
+                                    {
+                                        <TooManyTabs/>
+                                    }
+                                </ChildContent>
+                                <ErrorContent Context="ex">
+                                    @if (HandleException(@ex))
+                                    {
+                                        <Error User=@_userName CorrelationId=@_correlationId Exception=@ex/>
+                                    }
+                                    else
+                                    {
+                                        <MudContainer Class="mt-16" MaxWidth="MaxWidth.Large">
+                                            @Body
+                                        </MudContainer>
+                                    }
 
-                                        </ErrorContent>
-                                    </ErrorBoundary>
-                                </div>
-                                <RightSidebar/>
-                                <Modal/>
-                            </div>
+                                </ErrorContent>
+                            </ErrorBoundary>
                         </div>
-                    </div>
-                </MudMainContent>
-            </MudLayout>
-        </Authorized>
-        <NotAuthorized>
-            <div>@Localizer["ERROR-PAGE.ConnectionLost-Label"]</div>
-        </NotAuthorized>
-    </AuthorizeView>
-</CascadingValue>
+                        <RightSidebar/>
+                        <Modal/>
+                    </MudMainContent>
+                </MudLayout>
+            </Authorized>
+            <NotAuthorized>
+                <div>@Localizer["ERROR-PAGE.ConnectionLost-Label"]</div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </CascadingValue>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
+        <i class="fa-solid fa-house" style="opacity:0; position: absolute; top: 0; left: 0;"></i>
+        <i class="fa-duotone fa-house" style="opacity:0; position: absolute; top: 0; left: 0;"></i>
+        <DHLoadingInitializer Message="@Localizer["Initializing Federal Science Data Hub..."]"/>
+    </MudContainer>
+}
 
 @code
 {
@@ -85,6 +94,8 @@
     private bool? _isSessionEnabled;
 
     private string _style;
+
+    private bool isLoaded;
 
     protected override void OnParametersSet()
     {
@@ -120,6 +131,8 @@
         {
             _consentHandler.HandleException(ex);
         }
+
+        isLoaded = true;
     }
 
     private bool IsValidException(Exception ex)

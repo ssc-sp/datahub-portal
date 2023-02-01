@@ -9,13 +9,19 @@
     <Import_RootNamespace>Datahub.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Annotations\AnnotationTools.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Annotations\StringValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformOrganization.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformOutputVariable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformUser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformWorkspace.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformTemplate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Enums\TerraformRole.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Exceptions\ProjectNoFoundException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Exceptions\ProjectNotFoundException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Exceptions\UserNotFoundException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TerraformVariables.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Annotations\" />
   </ItemGroup>
 </Project>

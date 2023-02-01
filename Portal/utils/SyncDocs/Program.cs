@@ -7,6 +7,10 @@
 
 using SyncDocs;
 using Microsoft.Extensions.Configuration;
+using CommandLine.Text;
+using CommandLine;
+using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 var builder = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -17,59 +21,93 @@ var config = builder.Build();
 
 // read the app config
 var configParams = config.Get<ConfigParams>() ?? new();
-var deeplKey = config.GetSection("DeepL")?.GetValue<string>("Key") ?? Environment.GetEnvironmentVariable("DEEPL_KEY") ?? string.Empty;
 
-// get the source path
-var sourcePath = args.Length == 1 ? args[0] : "./";
+await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(args)
+.WithParsedAsync<TranslateOptions>(async options => {
+    var deeplKey = options.DeeplKey ?? config.GetSection("DeepL")?.GetValue<string>("Key") ?? Environment.GetEnvironmentVariable("DEEPL_KEY") ?? string.Empty;
+    // file name cache
+    var fileNameCache = new FileNameCache(Path.Combine(options.Path, configParams.Target, "filenamecache.json"));
 
-// file name cache
-var fileNameCache = new FileNameCache(Path.Combine(sourcePath, configParams.Target, "filenamecache.json"));
+    // file mapping service
+    var fileMappingService = new FileMappingService();
 
-// file mapping service
-var fileMappingService = new FileMappingService();
+    // translation service
+    var translationService = new TranslationService(options.Path, deeplKey, options.UseFreeAPI);
 
-// translation service
-var translationService = new TranslationService(sourcePath, deeplKey);
+    // replication service
+    var markdownService = new MarkdownDocumentationService(configParams, options.Path, translationService, fileNameCache, fileMappingService);
 
-// replication service
-var replicationService = new ReplicationService(configParams, sourcePath, translationService, fileNameCache, fileMappingService);
+    // iterate the provided source folder
+    await IteratePath(options.Path, BuildExcluder(configParams), markdownService.AddFolder, markdownService.AddFile);
 
-// iterate the provided source folder
-await IteratePath(sourcePath, BuildExcluder(configParams), replicationService);
+    // save translation cache
+    fileNameCache.SaveChanges();
 
-// save translation cache
-fileNameCache.SaveChanges();
+    // save the file mappings
+    fileMappingService.SaveTo(Path.Combine(options.Path, "filemappings.json"));
 
-// save the file mappings
-fileMappingService.SaveTo(Path.Combine(sourcePath, "filemappings.json"));
+    // END
+}))
+.WithParsedAsync<GensidebarOptions>(async options => {
+    try
+    {
+        // replication service
+        var topLevelfolders = new List<string>();
+        var topLevelfiles = new List<string>();
+        // iterate the provided source folder
+        Func<string,bool> excluder = n => Path.GetFileName(n) == "_sidebar.md" || BuildExcluder(configParams)(n);
+        await IteratePath(options.Path, excluder, async f => topLevelfolders.Add(f), async f => topLevelfiles.Add(f), options.TopLevelDepth);
+        var gen = new SidebarGenerator();
+        var topSidebar = gen.GenerateTopLevel(options.Path, topLevelfiles, topLevelfolders, options.Profile);
+        Console.WriteLine($"Processing top level directory {options.Path}");
+        await File.WriteAllTextAsync(Path.Combine(options.Path, "_sidebar.md"), topSidebar);
+        Console.WriteLine($"Generated top level sidebar");
+        var topFolders1 = topLevelfolders.Where(s => FolderDepth(Path.GetRelativePath(options.Path, s)) < options.TopLevelDepth).ToList();
 
-// END
+        foreach (var folder in topFolders1)
+        {
+            Console.WriteLine($"Processing {folder}");
+            var folders = new List<string>();
+            var files = new List<string>();
+            await IteratePath(folder, excluder, async f => folders.Add(f), async f => files.Add(f));
+            Console.WriteLine($"Found {files.Count} files for sidebar");
+            var sidebar = gen.GenerateSidebar(new DirectoryInfo(folder).Name, folder, files, folders, options.Profile);
+            await File.WriteAllTextAsync(Path.Combine(folder, "_sidebar.md"), sidebar);
+        }
+    } catch (Exception ex)
+    {
+        Console.WriteLine($"Error processing sidebar {ex.Message}");
+    }
+});
+
+
+
 
 #region util functions
 
-static async Task IteratePath(string path, Func<string, bool> excludeFunc, ReplicationService service)
+static async Task IteratePath(string path, Func<string, bool> excludeFunc, Func<string,Task> addFolder, Func<string,Task> addFile, int maxRecursion = int.MaxValue, int recursionLevel = 0)
 {
     foreach (var dir in Directory.GetDirectories(path))
     {
         var name = Path.GetFileName(dir);
 
         // ignore all .* folders
-        if (name.StartsWith('.'))
-            continue;
-
         // check for excluded
-        if (excludeFunc.Invoke(name))
-            continue;
+        if (!excludeFunc.Invoke(name) && !name.StartsWith('.'))
+        {
 
-        service.AddFolder(dir);
+            await addFolder(dir);
 
-        // check for exclusions
-        await IteratePath(dir, n => false, service);
+            if (recursionLevel < maxRecursion)
+                // check for exclusions
+                await IteratePath(dir, n => false, addFolder, addFile, maxRecursion, recursionLevel + 1);
+        }
     }
 
     foreach (var file in Directory.GetFiles(path, "*.md"))
     {
-        await service.AddFile(file);
+        if (!excludeFunc.Invoke(file))
+            await addFile(file);
     }
 }
 
@@ -79,4 +117,45 @@ static Func<string, bool> BuildExcluder(ConfigParams config)
     return n => excludeSet.Contains(n.ToLower());
 }
 
+static int FolderDepth(string path)
+{
+    var depth = 0;
+    foreach (var c in path)
+    {
+        if (c == '\\' || c == '/')
+            depth++;
+    }
+    return depth;
+}
+
 #endregion
+
+[Verb("translate", HelpText = "Translate the documentation")]
+public class TranslateOptions
+{
+    [Option('P', "path", Required = false)]
+    public string Path { get; set; } = ".";
+
+    [Option("deepl", Required = false)]
+    public string? DeeplKey { get; set; } = null;
+
+    [Option('f',"FreeAPI", Required = false)]
+    public bool UseFreeAPI { get; set; } = false;
+
+    [Option('p', "profile", Required = true)]
+    public string Profile { get; set; } = "ssc";
+}
+
+[Verb("gensidebars", HelpText = "Generate sidebar files")]
+public class GensidebarOptions
+{
+    [Option('P', "path", Required = false)]
+    public string Path { get; set; } = ".";
+
+    [Option('t', "topLevel", Required = false)]
+    public int TopLevelDepth { get; set; } = 1;
+    
+    [Option('p', "profile", Required = true)]
+    public string Profile { get; set; } = "ssc";
+    
+}

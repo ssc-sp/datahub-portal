@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Caching;
 using System.Text;
+using Datahub.ProjectTools.Utils;
 using Markdig;
 using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
@@ -12,10 +13,13 @@ namespace Datahub.ProjectTools.Services;
 public record GitHubModule(string Name, string Path,
     string? CardName,
     string? CalculatorPath,
+    string? DocumentationUrl,
+    string? ActionUrl,
+    string? ReadMorePath,
     string? Icon,
     List<GitHubModuleDescriptor> Descriptors);
 
-public record GitHubModuleDescriptor(string Language, string Title, string? Description, string[]? Tags);
+public record GitHubModuleDescriptor(string Language, string Title, string? CatalogSubtitle, string? CatalogDescription, string? ResourceDescription, string[]? Tags);
 
 public record RepositoryDescriptorErrors(string Path, string Error);
 
@@ -119,20 +123,29 @@ public class GitHubToolsService
         var en = new GitHubModuleDescriptor(
             "en",
             ValidateKey("Title", dir, descriptors) ?? "Missing Title",
-            ValidateKey("Why", dir, descriptors),
+            ValidateKey("Catalog Subtitle", dir, descriptors),
+            ValidateKey("Catalog Description", dir, descriptors),
+            ValidateKey("Resource Description", dir, descriptors),
             ValidateKey("Tags", dir, descriptors)?.Split(",").Select(t => t.Trim()).ToArray()
         );
         var fr = new GitHubModuleDescriptor(
             "fr",
             ValidateKey("Titre", dir, descriptors_fr) ?? "Titre absent",
-            ValidateKey("Pourquoi", dir, descriptors_fr),
+            ValidateKey("Sous-Titre du Catalogue", dir, descriptors_fr),
+            ValidateKey("Description du Catalogue", dir, descriptors_fr),
+            ValidateKey("Description de la Ressource", dir, descriptors_fr),
             ValidateKey("Mots Clefs", dir, descriptors_fr)?.Split(",").Select(t => t.Trim()).ToArray()
         );
+
+        var yaml = GetFrontMatter(readmeDoc, dir);
         return new GitHubModule(dir.Name,
             dir.Path,
-            GetFrontMatterValue(readmeDoc, "dhcard", dir),
-            GetFrontMatterValue(readmeDoc, "calculator", dir),
-            GetFrontMatterValue(readmeDoc, "icon", dir),
+            yaml.GetValueOrDefault("dhcard"),
+            yaml.GetValueOrDefault("calculator"),
+            yaml.GetValueOrDefault("documentationUrl"),
+            yaml.GetValueOrDefault("actionUrl"),
+            yaml.GetValueOrDefault("readMore"),
+            yaml.GetValueOrDefault("icon"),
             new List<GitHubModuleDescriptor> { en, fr }
         );
     }
@@ -216,43 +229,31 @@ public class GitHubToolsService
         return result;
     }
 
-    private string? GetFrontMatterValue(MarkdownDocument document, string key, RepositoryContent module)
+    private Dictionary<string, string> GetFrontMatter(MarkdownDocument document, RepositoryContent module)
     {
-        var yamlBlocks = document.Descendants<YamlFrontMatterBlock>()
-            .ToList();
-
-        if (yamlBlocks.Count != 1)
+        var yamlBlock = document
+            .Descendants<YamlFrontMatterBlock>()
+            .FirstOrDefault();
+        
+        if(yamlBlock is null)
         {
             errors.Add(new RepositoryDescriptorErrors(
                 module.Path,
                 $"Cannot find yaml front matter in '{GitHubTemplateReadme}' file"
             ));
-            return null;
+            return new Dictionary<string, string>();
         }
+        
+        var yaml = yamlBlock
+            .Lines
+            .Lines
+            .Select(x => $"{x}")
+            .ToList()
+            .Select(x => x.Replace("---", string.Empty))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x.Split(":", 2))
+            .ToDictionary(x => x[0].Trim(), x => x[1].Trim());
 
-        var yamlBlock = yamlBlocks[0];
-        var yamlBlockIterator = yamlBlock.Lines.ToCharIterator();
-        var yamlString = new StringBuilder();
-        while (yamlBlockIterator.CurrentChar != '\0')
-        {
-            yamlString.Append(yamlBlockIterator.CurrentChar);
-            yamlBlockIterator.NextChar();
-        }
-
-        var yamlDeserializer = new DeserializerBuilder().Build();
-        try
-        {
-            var yamlObject =
-                yamlDeserializer.Deserialize<Dictionary<string, string>>(new StringReader(yamlString.ToString()));
-            return yamlObject[key];
-        }
-        catch (Exception ex)
-        {
-            errors.Add(new RepositoryDescriptorErrors(
-                module.Path,
-                $"Key {key} is missing in '{GitHubTemplateReadme}' file"
-            ));
-            return null;
-        }
+        return yaml;
     }
 }

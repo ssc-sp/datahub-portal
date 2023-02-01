@@ -26,7 +26,7 @@
 	<ItemGroup>
 		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22329.4-beta" />
 		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
-		<PackageReference Include="MudBlazor" Version="6.1.2" />
+		<PackageReference Include="MudBlazor" Version="6.1.4" />
 	</ItemGroup>
 
 	<ItemGroup>

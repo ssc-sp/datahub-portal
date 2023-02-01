@@ -96,6 +96,7 @@ public static class ProjectResourceConstants
     public const string SERVICE_TYPE_STORAGE = "storage";
     public const string SERVICE_TYPE_DATABRICKS = "databricks";
     public const string SERVICE_TYPE_POWERBI = "powerbi";
+    public const string SERVICE_TYPE_VIRTUAL_MACHINE = "virtual-machine";
 
     public static readonly string[] ALL_RESOURCE_TYPES = new[] 
     { 
@@ -109,7 +110,6 @@ public static class ProjectResourceConstants
     public const string STORAGE_TYPE_BLOB = "blob";
     public const string STORAGE_TYPE_GEN2 = "gen2";
 }
-
 public class ProjectResource_Database
 {
     public string Database_Type { get; set; }
