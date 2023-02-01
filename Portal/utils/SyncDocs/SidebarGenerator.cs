@@ -1,28 +1,22 @@
 ﻿using Markdig;
 using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SyncDocs
 {
     internal record DocEntry
     {
         public string? FileName { get; set; }
-        public string FullPath { get; set; }
-        public string RelativePath { get; set; }
+        public string? FullPath { get; set; }
+        public string? RelativePath { get; set; }
         public DocEntry? Parent { get; set; }
         public string? Url { get; internal set; }
     }
+
     internal class SidebarGenerator
     {
         private const string DEFAULT_FILE = "README.md";
@@ -103,11 +97,11 @@ namespace SyncDocs
                 
                 if (entry.Url != null)
                 {
-                    sb.AppendLine($"- [{GetTitle(entry.Url ?? entry.RelativePath)}]({entry.Url})");
+                    sb.AppendLine($"- [{GetTitle(entry.Url ?? entry.RelativePath ?? "")}]({entry.Url})");
                 }
                 else
                 {
-                    sb.AppendLine($"- {GetTitle(entry.Url ?? entry.RelativePath)}");
+                    sb.AppendLine($"- {GetTitle(entry.Url ?? entry.RelativePath ?? "")}");
                 }
                 var sb2 = new StringBuilder();
                 if (WriteEntries(entries, entry, level + 1, sb2, activeProfile))
