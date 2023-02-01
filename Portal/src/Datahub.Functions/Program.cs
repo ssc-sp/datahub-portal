@@ -14,7 +14,6 @@ var host = new HostBuilder()
     })
     .ConfigureServices(services =>
     {
-        //
         var config = new ConfigurationBuilder()
             .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
             .Build();
@@ -27,6 +26,7 @@ var host = new HostBuilder()
             services.AddDbContextPool<DatahubProjectDBContext>(options => options.UseSqlServer(connectionString));
         }
 
+        services.AddHttpClient();
     })
     .Build();
 
