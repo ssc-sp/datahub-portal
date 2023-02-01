@@ -21,32 +21,44 @@ var config = builder.Build();
 var configParams = config.Get<ConfigParams>() ?? new();
 
 await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(args)
-.WithParsedAsync<TranslateOptions>(async options => {
-    var deeplKey = options.DeeplKey ?? config.GetSection("DeepL")?.GetValue<string>("Key") ?? Environment.GetEnvironmentVariable("DEEPL_KEY") ?? string.Empty;
-    // file name cache
-    var fileNameCache = new FileNameCache(Path.Combine(options.Path, configParams.Target, "filenamecache.json"));
+.WithParsedAsync<TranslateOptions>(async options => 
+{
+    try
+    {
+        // pick the deepL key
+        var deeplKey = options.DeeplKey ?? config.GetSection("DeepL")?.GetValue<string>("Key") ?? Environment.GetEnvironmentVariable("DEEPL_KEY") ?? string.Empty;
 
-    // file mapping service
-    var fileMappingService = new FileMappingService();
+        // file name cache
+        var fileNameCache = new FileNameCache(Path.Combine(options.Path, configParams.Target, "filenamecache.json"));
 
-    // translation service
-    var translationService = new TranslationService(options.Path, deeplKey, options.UseFreeAPI);
+        // file mapping service
+        var fileMappingService = new FileMappingService(Path.Combine(options.Path, "filemappings.json"));
 
-    // replication service
-    var markdownService = new MarkdownDocumentationService(configParams, options.Path, translationService, fileNameCache, fileMappingService);
+        // delete unnecessary files
+        fileMappingService.CleanUpMappings();
 
-    // iterate the provided source folder
-    await IteratePath(options.Path, BuildExcluder(configParams), markdownService.AddFolder, markdownService.AddFile);
+        // translation service
+        var translationService = new TranslationService(options.Path, deeplKey, options.UseFreeAPI);
 
-    // save translation cache
-    fileNameCache.SaveChanges();
+        // replication service
+        var markdownService = new MarkdownDocumentationService(configParams, options.Path, translationService, fileNameCache, fileMappingService);
 
-    // save the file mappings
-    fileMappingService.UpdateMappings(Path.Combine(options.Path, "filemappings.json"));
+        // iterate the provided source folder
+        await IteratePath(options.Path, BuildExcluder(configParams), markdownService.AddFolder, markdownService.AddFile);
 
-    // END
+        // save translation cache
+        fileNameCache.SaveChanges();
+
+        // save the file mappings
+        fileMappingService.SaveMappings();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error processing translations: {ex.Message}");
+    }
 }))
-.WithParsedAsync<GensidebarOptions>(async options => {
+.WithParsedAsync<GensidebarOptions>(async options => 
+{
     try
     {
         // replication service
@@ -72,14 +84,12 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
             var sidebar = gen.GenerateSidebar(new DirectoryInfo(folder).Name, folder, files, folders, options.Profile);
             await File.WriteAllTextAsync(Path.Combine(folder, "_sidebar.md"), sidebar);
         }
-    } catch (Exception ex)
+    } 
+    catch (Exception ex)
     {
-        Console.WriteLine($"Error processing sidebar {ex.Message}");
+        Console.WriteLine($"Error processing sidebar: {ex.Message}");
     }
 });
-
-
-
 
 #region util functions
 
