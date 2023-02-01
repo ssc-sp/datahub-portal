@@ -29,7 +29,7 @@ else
         <Authorized>
             <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-4">
                 <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
-                @if (IsProjectAdmin)
+                @if (IsProjectAdmin || IsDatahubAdmin)
                 {
                     <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@($"/w/{ProjectAcronym}/members")">
                         @Localizer["Manage"]
@@ -80,6 +80,8 @@ else
     public string ProjectAcronym { get; set; }
     [CascadingParameter(Name = "IsProjectAdmin")]
     public bool IsProjectAdmin { get; set; }
+    [CascadingParameter(Name = "IsDatahubAdmin")]
+    public bool IsDatahubAdmin { get; set; }
 
     private bool _isLoading = true;
 
