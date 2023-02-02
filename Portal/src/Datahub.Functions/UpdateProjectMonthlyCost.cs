@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.AzureCosting;
 using Microsoft.AspNetCore.Mvc;
@@ -7,25 +6,22 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-
 namespace Datahub.Functions;
 
 public class UpdateProjectMonthlyCost
 {
     private readonly DatahubProjectDBContext _dbContext;
-    private readonly IConfiguration _configuration;
+    private readonly AzureConfig _azureConfig;
     private readonly ILogger<AzureCostManagementService> _logger;
-    private const string TENANT_ID = "TENANT_ID";
-    private const string CLIENT_ID = "FUNC_SP_CLIENT_ID";
-    private const string CLIENT_SECRET = "FUNC_SP_CLIENT_SECRET";
-    private const string SUBSCRIPTION_ID = "SUBSCRIPTION_ID";
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public UpdateProjectMonthlyCost(DatahubProjectDBContext dbContext, IConfiguration configuration, ILoggerFactory loggerFactory)
+    public UpdateProjectMonthlyCost(DatahubProjectDBContext dbContext, IConfiguration configuration, ILoggerFactory loggerFactory, IHttpClientFactory httpClientFactory)
     {
         _dbContext = dbContext;
-        _configuration = configuration;
+        _azureConfig = new(configuration);
         _logger = loggerFactory.CreateLogger<AzureCostManagementService>();
-    }
+        _httpClientFactory = httpClientFactory;
+}
     
     // This Azure Function will be triggered everyday at 2:00 AM UTC and will capture the current cost for the month using the Azure forecast API
     // The function will then store the data in a Azure SQL database
@@ -41,7 +37,6 @@ public class UpdateProjectMonthlyCost
     {
         try
         {
-
             var returnRecord = await RunAndReturnUpdatedProjects();
             return new OkObjectResult(returnRecord);
         }
@@ -56,23 +51,18 @@ public class UpdateProjectMonthlyCost
     private async Task Run()
     {
         await RunAndReturnUpdatedProjects();
-
     }
 
     private async Task<CostReturnRecord> RunAndReturnUpdatedProjects()
     {
-        //Get the required environment variables
-        var subscriptionId = _configuration[SUBSCRIPTION_ID];
-        var tenantId = _configuration[TENANT_ID];
-        var clientId = _configuration[CLIENT_ID];
-        var clientSecret = _configuration[CLIENT_SECRET];
-
         var service = new AzureCostManagementService(_dbContext, (ILogger<AzureCostManagementService>) _logger);
+
         //Acquire the access token
-        var token = await GetAccessTokenAsync(tenantId, clientId, clientSecret);
-        
+        var authUtil = new AuthenticationUtils(_azureConfig, _httpClientFactory);
+        var token = await authUtil.GetAccessTokenAsync("https://management.azure.com/");
+
         //Get current month cost for each resource
-        var currentMonthlyCosts = (await service.GetCurrentMonthlyCostAsync(subscriptionId, token)).ToList();
+        var currentMonthlyCosts = (await service.GetCurrentMonthlyCostAsync(_azureConfig.SubscriptionId, token)).ToList();
         
         //group monthly cost by project and update the database
         await service.UpdateProjectMonthlyCostToDateAsync(currentMonthlyCosts);
@@ -81,24 +71,6 @@ public class UpdateProjectMonthlyCost
             NumberOfProjectsUpdated = currentMonthlyCosts.Count
         };
     }
-    
-    //Given tenantId, clientId, and clientSecret this function will return an access token
-    private async Task<string> GetAccessTokenAsync(string tenantId, string clientId, string clientSecret)
-    {
-        var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://login.microsoftonline.com/" + tenantId + "/oauth2/token");
-        tokenRequest.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-        {
-            {"grant_type", "client_credentials"},
-            {"client_id", clientId},
-            {"client_secret", clientSecret},
-            {"resource", "https://management.azure.com/"}
-        });
-        var tokenResponse = await new HttpClient().SendAsync(tokenRequest);
-        var tokenResponseContent = await tokenResponse.Content.ReadAsStringAsync();
-        var tokenResponseJson = JsonDocument.Parse(tokenResponseContent);
-        return tokenResponseJson.RootElement.GetProperty("access_token").GetString();
-    }
-
 }
 
 public record CostReturnRecord

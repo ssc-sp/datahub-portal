@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
@@ -7,7 +8,6 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
-using Newtonsoft.Json;
 
 namespace Datahub.Functions;
 
@@ -37,9 +37,9 @@ public class CreateGraphUser
         _logger.LogInformation("C# HTTP trigger function processed a request");
 
         var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-        dynamic data = JsonConvert.DeserializeObject(requestBody);
-        string userEmail = data?.email;
-
+        var data = JsonSerializer.Deserialize<CreateUserRequest>(requestBody);
+        
+        var userEmail = data?.email;
         if (string.IsNullOrEmpty(userEmail) || !userEmail!.Contains('@'))
         {
             return new BadRequestObjectResult("Please pass a valid email address in the request body");
@@ -47,7 +47,7 @@ public class CreateGraphUser
 
         try
         {
-            bool isMockInvite = data.mockInvite == "true";
+            bool isMockInvite = data?.mockInvite == "true";
             if (isMockInvite)
             {
                 return MockInviteUser(userEmail, _logger);
@@ -97,7 +97,7 @@ public class CreateGraphUser
         var groupId = _configuration[SP_GROUP_ID];
             
         log.LogInformation("Adding invited user {UserID} to group {GroupID}", result.InvitedUser.Id, groupId);
-        await AddToGroup(result.InvitedUser.Id, groupId, graphClient, log);
+        await AddToGroup(result.InvitedUser.Id, groupId!, graphClient, log);
             
         log.LogInformation("Success, {UserEmail} ({UserID}) is in group {GroupID}", userEmail,
             result.InvitedUser.Id, groupId);
@@ -195,4 +195,6 @@ public class CreateGraphUser
         var graphClient = new GraphServiceClient(clientSecretCredential, scopes);
         return graphClient;
     }
+
+    record CreateUserRequest(string email, string mockInvite);
 }
