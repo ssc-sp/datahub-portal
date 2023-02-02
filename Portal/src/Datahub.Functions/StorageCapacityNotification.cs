@@ -52,7 +52,7 @@ public class StorageCapacityNotification
     /// Storage Capacity Notification run every time a message is deposited in queue: 'storage-capacity'
     /// </summary>
     [Function("StorageCapacityNotification")]
-    public async Task RunStorageCapacityNotification([QueueTrigger("storage-capacity", Connection = "datahub-storage-queue")] string queueItem)
+    public async Task RunStorageCapacityNotification([QueueTrigger("storage-capacity", Connection = "datahub-storage-connection")] string queueItem)
     {
         // deserialize message
         var msg = DeserializeQueueMessage(queueItem);
@@ -194,28 +194,17 @@ public class StorageCapacityNotification
     {
         try
         {
-            // temp 
-            if (contacts.Count == 0)
-                return;
+            var queueClient = new QueueClient(_config.StorageQueueConnection, "email-notifications");
 
-            using MimeMessage message = new();
-
-            message.From.Add(new MailboxAddress("Datahub", _config.EmailSmtpFrom));
-            message.To.AddRange(contacts.Select(email => new MailboxAddress(email, email)));
-
-            message.Subject = $"Datahub storage capacity update / Mise à jour de la capacité de stockage Datahub";
-            message.Body = new TextPart("plain")
+            var msg = new EmailRequestMessage()
             {
-                Text = $"Notice, {perc}% of your Datahub Storage Capacity has been reached. \nNotez que {perc} % de votre capacité de stockage Datahub a été atteinte."
+                To = new(contacts),
+                Subject = "Datahub storage capacity update / Mise à jour de la capacité de stockage Datahub",
+                Body = $"Notice, {perc}% of your Datahub Storage Capacity has been reached. \nNotez que {perc} % de votre capacité de stockage Datahub a été atteinte."
             };
 
-            using var smtpClient = new SmtpClient();
-
-            await smtpClient.ConnectAsync(_config.EmailSmtpHost, _config.EmailSmtpPort, MailKit.Security.SecureSocketOptions.StartTls);
-            await smtpClient.AuthenticateAsync(new System.Net.NetworkCredential(_config.EmailSmtpUser, _config.EmailSmtpPassword));
-
-            await smtpClient.SendAsync(message);
-            await smtpClient.DisconnectAsync(true);
+            var messageJson = JsonSerializer.Serialize(msg, GetJsonSerializerOptions());
+            await queueClient.SendMessageAsync(EncodeBase64(messageJson));
         }
         catch (Exception ex)
         {
