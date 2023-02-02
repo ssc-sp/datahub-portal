@@ -21,7 +21,7 @@ namespace SyncDocs
     {
         private const string DEFAULT_FILE = "README.md";
         
-        private static readonly List<(string, string)> CasingExceptions = new List<(string, string)> { ("Power bI","PowerBI"), ("Az copy","AzCopy") };
+        private static readonly List<(string, string)> CasingExceptions = new List<(string, string)> { ("Power bI","PowerBI"), ("Az copy","AzCopy"), ("Po c", "PoC") };
 
         private static readonly MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseYamlFrontMatter().Build();
         
@@ -81,6 +81,13 @@ namespace SyncDocs
                 var excluded = excludedValue.Split(",").Select(e => e.Trim()).ToList();
                 if (excluded.Contains(activeProfile))
                     return false;
+            }
+            if (metadata.TryGetValue("onProfileInclude", out var includedValue))
+            {
+                var included = includedValue.Split(",").Select(e => e.Trim()).ToList();
+                if (included.Contains(activeProfile))
+                    return true;
+                return false;
             }
             return true;
         }
