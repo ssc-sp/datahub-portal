@@ -1,5 +1,6 @@
 ﻿@*MetadataFieldEditor.razor*@
 @using Datahub.Metadata.Model
+@using Microsoft.AspNetCore.Components
 
 <MudStack>
     @if (Preview)
@@ -45,11 +46,12 @@
                                   DebounceInterval="250"  
                                   Label=@FieldDefinition.Name
                                   HelperText=@FieldDefinition.Description
-                                  Clearable="!canTranslate"
-                                  Required=@Required
-                                  Adornment=@(canTranslate ? Adornment.End : Adornment.None)
-                                  AdornmentIcon=@Icons.Filled.GTranslate
-                                  AdornmentAriaLabel=@(canTranslate ? GetTranslationHint() : "")
+                                  aria-label="@FieldDefinition.Name"
+                                  Clearable="@(!canTranslate)"
+                                  Required="@Required"
+                                  Adornment="@(canTranslate ? Adornment.End : Adornment.None)"
+                                  AdornmentIcon=@Icons.Material.Filled.GTranslate
+                                  AdornmentAriaLabel=@(canTranslate ? GetTranslationHint() : Localizer["Reset"])
                                   OnAdornmentClick=@HandleTranslateField
                                   RequiredError=@(FieldDefinition.Description ?? Localizer["Required"])
                                   Variant="Variant.Outlined"
@@ -66,12 +68,13 @@
 
                 <MudSelect T="string"
                            Label=@FieldDefinition.Name
+                           aria-label="@FieldDefinition.Name"
                            @bind-Value=@BoundValue
                            Required=@Required
                            Variant="Variant.Outlined"
                            HelperText=@FieldDefinition.Description
                            AnchorOrigin="Origin.BottomCenter"
-                           AdornmentIcon=@Icons.Filled.ArrowDropDown
+                           AdornmentIcon=@Icons.Material.Filled.ArrowDropDown
                            Margin="Margin.Dense">
 
                     @if (allowEmptyOption)
@@ -236,6 +239,7 @@
         }
         catch (Exception)
         {
+            // ignored
         }
     }
 

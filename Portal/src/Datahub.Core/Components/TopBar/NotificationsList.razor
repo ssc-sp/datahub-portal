@@ -18,10 +18,10 @@
             <MudTooltip Text="@Localizer[TOOLTIP_TEXT]">
                 <MudToggleIconButton
                     aria-label="Notifications toggle"
-                    ToggledIcon="@Icons.Filled.Notifications"
+                    ToggledIcon="@Icons.Material.Filled.Notifications"
                     ToggledChanged="@ToggleNotifications"
                     Toggled="_showNotifications"
-                    Icon="@Icons.Outlined.Notifications"/>
+                    Icon="@Icons.Material.Outlined.Notifications"/>
             </MudTooltip>
         </MudBadge>
     }
@@ -30,10 +30,10 @@
         <MudTooltip Text="@Localizer[TOOLTIP_TEXT]">
             <MudToggleIconButton
                 aria-label="Notifications toggle"
-                ToggledIcon="@Icons.Filled.Notifications"
+                ToggledIcon="@Icons.Material.Filled.Notifications"
                 ToggledChanged="@ToggleNotifications"
                 Toggled="_showNotifications"
-                Icon="@Icons.Outlined.Notifications"/>
+                Icon="@Icons.Material.Outlined.Notifications"/>
         </MudTooltip>
     }
 
@@ -73,7 +73,7 @@
                                     <MudStack Row Justify="Justify.SpaceBetween">
                                         <MudButton
                                             OnClick="@(async () => await GoToActionLink(notification))"
-                                            EndIcon="@Icons.Filled.Send"
+                                            EndIcon="@Icons.Material.Filled.Send"
                                             Variant="Variant.Filled"
                                             Color="Color.Primary">
                                             @Localizer[notification.ActionLink_Key ?? $"{LocalizationPrefix}.DefaultActionLinkText"]
@@ -126,7 +126,7 @@
     private void ToggleNotifications() => _showNotifications = !_showNotifications;
     private int _notificationBadge;
     private bool _showNotificationBadge => _unreadNotificationCount > 0;
-    private string _notificationIcon => _showNotificationBadge ? Icons.Filled.Notifications : Icons.Outlined.Notifications;
+    private string _notificationIcon => _showNotificationBadge ? Icons.Material.Filled.Notifications : Icons.Material.Outlined.Notifications;
 
     private const string TOOLTIP_TEXT = "Notifications";
     protected override async Task OnInitializedAsync()
