@@ -52,7 +52,7 @@ public class StorageCapacityNotification
     /// Storage Capacity Notification run every time a message is deposited in queue: 'storage-capacity'
     /// </summary>
     [Function("StorageCapacityNotification")]
-    public async Task RunStorageCapacityNotification([QueueTrigger("storage-capacity", Connection = "datahub-storage-connection")] string queueItem)
+    public async Task RunStorageCapacityNotification([QueueTrigger("storage-capacity", Connection = "DatahubStorageConnectionString")] string queueItem)
     {
         // deserialize message
         var msg = DeserializeQueueMessage(queueItem);
@@ -113,16 +113,25 @@ public class StorageCapacityNotification
 
     private string? GetStorageAccountMessage(Project_Resources2 row)
     {
-        var content = JsonSerializer.Deserialize<Dictionary<string, string>>(row.JsonContent);
+        try
+        {
+            var content = JsonSerializer.Deserialize<DBResourceContent>(row.JsonContent);
+            if (string.IsNullOrEmpty(content?.resource_group) || string.IsNullOrEmpty(content?.storage_account))
+                return default;
 
-        if (content is null || !content.ContainsKey("resource_group") || !content.ContainsKey("storage_account"))
+            var msgObj = new StorageAccountMessage(row.ProjectId, content.resource_group, content.storage_account);
+            var message = JsonSerializer.Serialize(msgObj, GetJsonSerializerOptions());
+
+            return EncodeBase64(message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to deserialize resource JsonContent\n{row.JsonContent}.");
             return default;
+        }
+    }
 
-        var msgObj = new StorageAccountMessage(row.ProjectId, content["resource_group"], content["storage_account"]); 
-        var message = JsonSerializer.Serialize(msgObj, GetJsonSerializerOptions());
-
-        return EncodeBase64(message);
-    }    
+    record DBResourceContent(string resource_group, string storage_account);
 
     static string EncodeBase64(string value) => Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
 
