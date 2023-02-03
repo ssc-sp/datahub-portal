@@ -1,15 +1,18 @@
-﻿using System;
+﻿using Elemental.Components;
+using Datahub.Core.Services;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
 using System.Threading;
-using Datahub.Core.Services.Notification;
-using Datahub.Shared.Entities;
-using Elemental.Components;
 using MudBlazor.Forms;
 using AeFormCategoryAttribute = MudBlazor.Forms.AeFormCategoryAttribute;
 using AeFormIgnoreAttribute = MudBlazor.Forms.AeFormIgnoreAttribute;
+using System.Linq;
+using Datahub.Core.Data;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Services.Notification;
+using Datahub.Shared.Entities;
 
 namespace Datahub.Core.Model.Datahub;
 
@@ -17,7 +20,6 @@ public enum ProjectStatus
 {
     OnHold, InProgress, Support, Closed
 }
-
 public class Datahub_Project : IComparable<Datahub_Project>
 {
     public const string ONGOING = "Ongoing";
@@ -35,7 +37,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     [AeFormIgnore]
     public int? SectorId { get; set; }
-        
+
     [AeFormCategory("Sector Information")]
     [MudForm(IsDropDown = true)]
     [ForeignKey("SectorId")]
@@ -47,7 +49,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [MudForm(IsDropDown = true)]
     [ForeignKey("BranchId")]
     public Organization_Level Branch { get; set; }
-        
+
     [AeFormIgnore]
     public int? DivisionId { get; set; }
 
@@ -56,7 +58,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [ForeignKey("DivisionId")]
     public Organization_Level Division { get; set; }
 
-    [Required]
     [StringLength(4000)]
     [AeFormIgnore]
     [AeLabel(isDropDown: true, placeholder: " ")]
@@ -124,11 +125,17 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeFormCategory("Initiative Information")]
     public string Stage_Desc { get; set; }
 
-
-    [AeFormCategory("Initiative Information")]
-    [Required]
-    [AeLabel(validValues: new[] { ONGOING, CLOSED, ON_HOLD })]
+    [AeFormIgnore]
     public string Project_Status_Desc { get; set; }
+
+    [AeFormIgnore]
+    public int? Project_Status { get; set; }
+
+    [NotMapped]
+    [AeFormCategory("Initiative Information")]
+    [MudForm(IsDropDown = true)]
+    public DropDownContainer Project_Status_Values { get; set; }
+
 
     [AeFormCategory("Initiative Information")]
     [AeLabel(isDropDown: true)]
@@ -154,7 +161,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     [AeFormIgnore]
     public string Last_Updated_UserId { get; set; }
-        
+
 
     [AeFormIgnore]
     public DateTime? Deleted_DT { get; set; }
@@ -173,7 +180,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeFormCategory("Initiative Connections")]
     [Obsolete("Use the new Project Resources relationship instead.", true)]
     public string Databricks_URL { get; set; }
-    
+
     [AeFormCategory("Initiative Connections")]
     [StringLength(400)]
     public string PowerBI_URL { get; set; }
@@ -267,13 +274,13 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     public string GetProjectStatus()
     {
-        if (Project_Status_Desc == "Closed")
+        if (Project_Status == 2)
         {
-            return Project_Status_Desc;
+            return "Closed";
         }
         else if (Client_Engagements is null)
-        { 
-            return "On Hold";                            
+        {
+            return "On Hold";
         }
         else if (Client_Engagements.Where(e => e.Is_Engagement_Active).Any())
         {

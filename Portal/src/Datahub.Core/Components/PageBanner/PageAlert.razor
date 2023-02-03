@@ -12,7 +12,9 @@
                 <MudText Typo="Typo.h4">@Title</MudText>
             </CardHeaderContent>
             <CardHeaderActions>
-                <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Default" OnClick="HandlePageAlertClose" />
+                <MudTooltip Text="@Localizer["Close"]">
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Default" OnClick="HandlePageAlertClose"/>
+                </MudTooltip>
             </CardHeaderActions>
         </MudCardHeader>
         <MudCardContent>

@@ -43,3 +43,4 @@ DatahubTest/testsettings.json
 .idea/
 /Portal/src/Datahub.Portal/appsettings.json
 /Portal/src/Datahub.Portal/MissingTranslations.json
+/Portal/src/Datahub.Functions/appsettings.json

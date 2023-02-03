@@ -20,6 +20,7 @@ public class RequestManagementServiceTest
     {
         var loggerMock = new Mock<ILogger<RequestManagementService>>();
         var dbContextMock = new Mock<DbContextFactory<DatahubProjectDBContext>>();
+        var toolService = new Mock<ProjectToolsEmailService>();
         var emailMock = new Mock<IEmailNotificationService>();
         var systemNotificationMock = new Mock<ISystemNotificationService>();
         var userInformationMock = new Mock<IUserInformationService>();
@@ -29,7 +30,7 @@ public class RequestManagementServiceTest
         
         
         var requestManagementService = new RequestManagementService(
-            loggerMock.Object, dbContextMock.Object , emailMock.Object, systemNotificationMock.Object, userInformationMock.Object, auditingMock.Object, requestQueueMock.Object, miscStorageMock.Object);
+            loggerMock.Object, dbContextMock.Object, toolService.Object, systemNotificationMock.Object, userInformationMock.Object, auditingMock.Object, requestQueueMock.Object, miscStorageMock.Object);
 
         var project = new Datahub_Project
         {

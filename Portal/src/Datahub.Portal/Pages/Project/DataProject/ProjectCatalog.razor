@@ -7,7 +7,7 @@
 {
     <div class="project-tools">
         <MudStack>
-            <MudText Typo="Typo.h4">@Localizer["Shared Datasets"]</MudText>
+            <MudText Typo="Typo.h2">@Localizer["Shared Datasets"]</MudText>
             <MudGrid>
                 @foreach (var result in _results)
                 {
@@ -40,7 +40,7 @@ else
     if (_loading)
     {
         <MudStack>
-            <MudText Typo="Typo.h4">@Localizer["Shared Datasets"]</MudText>
+            <MudText Typo="Typo.h2">@Localizer["Shared Datasets"]</MudText>
             <MudGrid>
                 @for (var i = 0; i < 6; i++)
                 {

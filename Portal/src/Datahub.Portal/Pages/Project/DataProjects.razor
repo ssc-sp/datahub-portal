@@ -5,18 +5,17 @@
 @inject IJSRuntime _jsInterop
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
 
-@page "/projects"
+@page "/w"
 
 <DHPageAlert 
     Title=@Localizer["Welcome to Data Projects"]
     Key="@PageAlert.Projects"
-    WikiLinkEN="Onboarding---Data-Projects"
-    WikiLinkFR="fr/Projets-de-données-d'embarquement" 
-/>
+    WikiLinkEN="/UserGuide/Onboarding/Data-Project"
+    WikiLinkFR="/fr/UserGuide/Onboarding/Projet-de-donnÃ©es" />
 
 <UserProjects />
 
-<MudText Typo="Typo.h4" Class="mt-8">@Localizer["All Projects"]</MudText>
+<MudText Typo="Typo.h2" Class="py-4">@Localizer["All Projects"]</MudText>
 
 <div class="all-projects-container">
 
@@ -73,7 +72,7 @@
         await using var context = await _dbFactory.CreateDbContextAsync();
         _allProjects = context.Projects
             .Where(p =>
-                (p.Project_Status_Desc == Datahub_Project.ONGOING || p.Is_Featured) &&
+                (p.Project_Status == 1 || p.Is_Featured) &&
                 !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD)
                 && !string.IsNullOrWhiteSpace(p.Project_Name))
             // .Include(p => p.Users)

@@ -24,7 +24,7 @@ public class DocItem
         IsRoot = root;
         Title = title;
         MarkdownPage = markdownPage;
-        Childs = new List<DocItem>();
+        Children = new List<DocItem>();
         DocumentationGuide = guide;
         IsFolder = isFolder;
     }
@@ -35,7 +35,7 @@ public class DocItem
     public bool IsFolder { get; }
     public string? Title { get; set; }
     public string? Id { get; set; }
-    public List<DocItem> Childs { get; }
+    public List<DocItem> Children { get; }
     public string? Preview { get; set; }
     public string? ContentTitle { get; set; }
     public string? Content { get; set; }
@@ -51,7 +51,7 @@ public class DocItem
         if (string.Equals(id, this.Id, StringComparison.InvariantCultureIgnoreCase)) 
             return this;
 
-        foreach (var item in Childs)
+        foreach (var item in Children)
         {
             var found = item.LocateID(id);
             if (found != null)

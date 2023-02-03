@@ -1,0 +1,97 @@
+@using Datahub.Portal.Data.Forms
+@using Datahub.Application.Services
+
+@inject ILogger<RegisterPage> _logger
+
+@inject IUserEnrollmentService _userEnrollmentService
+@inject NavigationManager _navigationManager
+
+
+@page "/register"
+
+<PageTitle>@Localizer["DataHub | Registration"]</PageTitle>
+
+<PublicLandingDescription>
+    <MudStack>
+        <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
+            <MudStack>
+                <MudText>
+                    @Localizer["Register for the Federal Science DataHub"]
+                </MudText>
+                <MudTextField T="@string"
+                              Label="@Localizer["Government of Canada Email"]"
+                              @bind-Value="_basicRegistrationForm.Email"
+                              Required="true"
+                              RequiredError="@Localizer["Government of Canada Email is required"]"
+                              Validation="@(new Func<string, string>(EmailValidation))"/>
+                <MudAutocomplete T="@string"
+                                 Label="@Localizer["Selected Government of Canada Department/Agency"]"
+                                 @bind-Value="_basicRegistrationForm.DepartmentName"
+                                 SearchFunc="@SearchDepartmentAsync"
+                                 Required="true"
+                                 RequiredError="@Localizer["Government of Canada Department/Agency is required."]"/>
+                <MudCheckBox T="@bool" Required RequiredError="@Localizer["Agreement with the Terms and conditions is required"]" Class="mt-16">
+                    <MudText Typo="Typo.body2">
+                        @Localizer["I agree to the "]
+                        <MudLink Href="/privacy" Typo="Typo.body2">
+                            @Localizer["Terms and conditions"]
+                        </MudLink>
+                        @Localizer[" of use for the FSDH Proof-of-Concept Phase 2"]
+                    </MudText>
+                </MudCheckBox>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mr-auto" OnClick="HandleValidSubmit">
+                    @Localizer["Register"]
+                </MudButton>
+            </MudStack>
+        </MudForm>
+        <MudText Typo="Typo.body2" Align="Align.Center">
+            @Localizer["Already registered?"]
+            <MudLink Typo="Typo.body2" Href="/login">@Localizer["Login instead"]</MudLink>
+        </MudText>
+    </MudStack>
+</PublicLandingDescription>
+
+
+@code {
+
+    private BasicRegistrationForm _basicRegistrationForm;
+
+    private bool _success = true;
+    private string[] _errors = { };
+    MudForm _form;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _basicRegistrationForm = new BasicRegistrationForm();
+    }
+
+    private async Task<IEnumerable<string>> SearchDepartmentAsync(string searchTerm)
+    {
+        return await Task.FromResult(BasicRegistrationForm.DepartmentDictionary.Keys
+            .Where(x => x.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            .ToList());
+    }
+
+    private string EmailValidation(string email)
+    {
+        return _userEnrollmentService.IsValidGcEmail(email) ? null : Localizer["Invalid Government of Canada email address"];
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        _logger.LogInformation("Attempting to register user with email: {Email}", _basicRegistrationForm.Email);
+        var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(_basicRegistrationForm.Email);
+
+        if (!string.IsNullOrWhiteSpace(userId))
+        {
+            _logger.LogInformation("User with email: {Email} has been registered with id: {UserId}", _basicRegistrationForm.Email, userId);
+            _navigationManager.NavigateTo("/login");
+        }
+        else
+        {
+            _logger.LogWarning("User with email: {Email} was not registered", _basicRegistrationForm.Email);
+            _success = false;
+        }
+    }
+}

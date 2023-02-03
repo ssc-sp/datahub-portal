@@ -1,0 +1,108 @@
+@using Datahub.Core.Services.Docs
+@inject TimeZoneService _timezoneService;
+@inject DocumentationService _docService
+
+<AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+    <MudContainer Class="ma-8">
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderAvatar>
+                    <MudIcon Icon="@Icons.Filled.AdminPanelSettings"/>
+                </CardHeaderAvatar>
+                <CardHeaderContent>
+                    @Localizer["Administration"]
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudStack>
+                    <MudStack Row AlignItems="@AlignItems.Center">
+                        @if (_cacheIsRefreshing)
+                        {
+                            <MudProgressCircular Indeterminate Color="@Color.Secondary"/>
+                        }
+                        else
+                        {
+                            <MudButton OnClick="@RefreshCache"
+                                       StartIcon="@Icons.Filled.Refresh"
+                                       Variant="@Variant.Filled"
+                                       Color="@Color.Secondary">
+                                Refresh
+                            </MudButton>
+                        }
+
+                        <MudText>
+                            Refresh the cache. Please note, it can take Github a few minutes to update its resources, so this may not work right away after editing the wiki.
+                        </MudText>
+                    </MudStack>
+
+                    <MudContainer>
+                        <MudText Typo="@Typo.h5">Error(s)</MudText>
+                        @if (_formattedErrorList?.Count > 0)
+                        {
+                            <MudList>
+                                @foreach (var e in _formattedErrorList)
+                                {
+                                    <MudListItem>@e</MudListItem>
+                                }
+                            </MudList>
+                        }
+                        else
+                        {
+                            <MudText>None</MudText>
+                        }
+                    </MudContainer>
+
+                </MudStack>
+            </MudCardContent>
+        </MudCard>
+    </MudContainer>
+</AuthorizeView>
+
+@code {
+    private IReadOnlyList<string> _formattedErrorList;
+    private bool _cacheIsRefreshing;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        _docService.NotifyRefreshErrors += OnNotifyRefreshErrors;
+    }
+
+    private async Task RefreshCache()
+    {
+        _cacheIsRefreshing = true;
+        await InvokeAsync(StateHasChanged);
+
+        _cacheIsRefreshing = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnNotifyRefreshErrors()
+    {
+        await RefreshErrorList();
+    }
+
+    private async Task RefreshErrorList()
+    {
+        var errors = _docService.GetErrorList();
+
+        _formattedErrorList = await Task.WhenAll(errors.Select(async e => await FormatErrorMessage(e)));
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task<string> FormatErrorMessage(Core.Services.Wiki.TimeStampedStatus error)
+    {
+        var timestampUtc = DateTime.SpecifyKind(error.Timestamp, DateTimeKind.Utc);
+        var localDatetime = await _timezoneService.GetLocalDateTime(timestampUtc);
+        return $"{localDatetime.ToString("yyyy-MM-dd HH:mm:ss")} - {error.Message}";
+    }
+
+    public void Dispose()
+    {
+        _docService.NotifyRefreshErrors -= OnNotifyRefreshErrors;
+    }
+
+}

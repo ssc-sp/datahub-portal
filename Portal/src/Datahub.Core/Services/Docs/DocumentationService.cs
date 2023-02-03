@@ -91,7 +91,7 @@ public class DocumentationService
                 if (currentItem is null)
                 {
                     var docItem1 = DocItem.GetItem(parent.DocumentationGuide, id, level, title, null);
-                    parent?.Childs.Add(docItem1);
+                    parent?.Children.Add(docItem1);
                     return docItem1;
                 }
                 else
@@ -105,7 +105,7 @@ public class DocumentationService
 
                 var itemId = mapId.Invoke(linkInline.Url ?? "");
                 var docItem = DocItem.GetItem(parent.DocumentationGuide, itemId, level, linkInline.Title, linkInline.Url);
-                parent.Childs.Add(docItem);
+                parent.Children.Add(docItem);
 
                 foreach (var child in linkInline)
                 {
@@ -176,7 +176,7 @@ public class DocumentationService
             doc.Content = await LoadDocsPage(DocumentationGuide.RootFolder, doc.GetMarkdownFileName());
             await BuildPreview(doc);
         }
-        foreach (var item in doc.Childs)
+        foreach (var item in doc.Children)
         {
             await BuildDocAndPreviews(item);
         }
@@ -251,9 +251,9 @@ public class DocumentationService
         {
             return GetParent(docItem, enOutline) ?? GetParent(docItem, frOutline);
         }
-        if (currentNode.Childs is null || currentNode.Childs.Count == 0)
+        if (currentNode.Children is null || currentNode.Children.Count == 0)
             return null;
-        foreach (var item in currentNode.Childs)
+        foreach (var item in currentNode.Children)
         {
             if (item == docItem)
                 return currentNode;

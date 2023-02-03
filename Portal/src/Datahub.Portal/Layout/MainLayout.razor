@@ -1,0 +1,169 @@
+﻿@inherits LayoutComponentBase
+
+@using Microsoft.Identity.Web
+@using Datahub.Core.Components.TopBar
+@using Datahub.Core.Theme
+@using MudBlazor.Utilities
+
+@inject NavigationManager _navigationManager
+@inject IDatahubAuditingService _auditingService
+@inject IUserCircuitCounterService _userCircuitCounterService
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+@inject IConfiguration _configuration
+@inject IUserInformationService _userInformationService
+
+<MudThemeProvider Theme="@DatahubTheme.DEFAULT_THEME"/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+
+<PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
+
+@if (isLoaded)
+{
+    <CascadingValue Value="@DatahubTheme.DEFAULT_THEME">
+        <AuthorizeView>
+            <Authorized>
+                <DatahubAchievementProvider/>
+                <MudLayout Style="@_style">
+                    <MudAppBar Elevation="0">
+                        <Topbar/>
+                    </MudAppBar>
+                    <MudDrawer
+                        Open
+                        DisableOverlay
+                        Elevation="0"
+                        ClipMode="DrawerClipMode.Always">
+                        <Sidebar/>
+                    </MudDrawer>
+                    <MudMainContent>
+                        <div class="ui-control">
+                            <ErrorBoundary @ref="_errorBoundary">
+                                <ChildContent>
+                                    @if (_isSessionEnabled == true)
+                                    {
+                                        <MudContainer Class="mt-8" MaxWidth="MaxWidth.Large">
+                                            <DHBreadcrumbs />
+                                            @Body
+                                        </MudContainer>
+                                    }
+                                    @if (_isSessionEnabled == false)
+                                    {
+                                        <TooManyTabs/>
+                                    }
+                                </ChildContent>
+                                <ErrorContent Context="ex">
+                                    @if (HandleException(@ex))
+                                    {
+                                        <Error User=@_userName CorrelationId=@_correlationId Exception=@ex/>
+                                    }
+                                    else
+                                    {
+                                        <MudContainer Class="mt-16" MaxWidth="MaxWidth.Large">
+                                            @Body
+                                        </MudContainer>
+                                    }
+
+                                </ErrorContent>
+                            </ErrorBoundary>
+                        </div>
+                        <RightSidebar/>
+                        <Modal/>
+                    </MudMainContent>
+                </MudLayout>
+            </Authorized>
+            <NotAuthorized>
+                <div>@Localizer["ERROR-PAGE.ConnectionLost-Label"]</div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </CascadingValue>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
+        <i class="fa-solid fa-house" style="opacity:0; position: absolute; top: 0; left: 0;"></i>
+        <i class="fa-duotone fa-house" style="opacity:0; position: absolute; top: 0; left: 0;"></i>
+        <DHLoadingInitializer Message="@Localizer["Initializing Federal Science Data Hub..."]"/>
+    </MudContainer>
+}
+
+@code
+{
+    private string _userName;
+    private ErrorBoundary _errorBoundary;
+    private string _correlationId;
+    private Exception _lastException;
+    private bool? _isSessionEnabled;
+
+    private string _style;
+
+    private bool isLoaded;
+
+    protected override void OnParametersSet()
+    {
+        _errorBoundary?.Recover();
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _style = new StyleBuilder()
+            .AddStyle("--mud-drawer-width-left", "80px")
+            .Build();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await _userInformationService.GetAuthenticatedUser(true);
+        _userName = user.Identity?.Name ?? "?";
+
+        if (!user.Identity?.IsAuthenticated ?? true)
+        {
+            _navigationManager.NavigateTo("/login");
+            return;
+        }
+
+        try
+        {
+            _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
+            await _auditingService.TrackEvent("Login");
+        }
+        catch (Exception ex)
+        {
+            _consentHandler.HandleException(ex);
+        }
+
+        isLoaded = true;
+    }
+
+    private bool IsValidException(Exception ex)
+    {
+        return !(ex is ObjectDisposedException);
+    }
+
+    private bool HandleException(Exception ex)
+    {
+        if (!IsValidException(ex))
+            return false;
+        if (ex != _lastException)
+        {
+            _lastException = ex;
+            _ = AuditExceptionAsync(ex);
+        }
+        return true;
+    }
+
+    private async Task AuditExceptionAsync(Exception ex)
+    {
+        try
+        {
+            var correlationId = Guid.NewGuid().ToString();
+            await _auditingService.TrackException(ex, (nameof(correlationId), correlationId));
+            _correlationId = correlationId;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception)
+        {
+        }
+    }
+}

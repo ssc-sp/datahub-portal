@@ -1,0 +1,120 @@
+@using Datahub.Core.Model.Datahub
+@using Datahub.Core.Data.Project
+@using MudBlazor.Utilities
+@inject ServiceAuthManager _serviceAuthManager
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject IUserInformationService _userInformationService
+
+
+@if (_isLoading)
+{
+    <span class="project-members-skeleton-positioning">
+        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-4">
+            <Skeleton Width="150px" Height="2rem"/>
+            <Skeleton Width="100px" Height="1.5rem"/>
+        </MudStack>
+        @for (var i = 0; i < 4; i++)
+        {
+            <span style="display: flex; margin: 1rem 0">
+                <Skeleton Circle Width="2rem" Height="2rem"/>
+                <span style="display: block; width: .5rem"></span>
+                <Skeleton Width="150px" Height="2rem"/>
+            </span>
+        }
+    </span>
+}
+else
+{
+    <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+        <Authorized>
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-4">
+                <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
+                @if (IsProjectAdmin || IsDatahubAdmin)
+                {
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@($"/w/{ProjectAcronym}/members")">
+                        @Localizer["Manage"]
+                    </MudButton>
+                }
+            </MudStack>
+            <MudStack Class="admin-list">
+            
+                @foreach (var admin in _projectAdmins)
+                {
+                    <MudGrid Class="project-admin" Justify="Justify.SpaceBetween">
+                      
+
+                        <MudItem>
+                            <ProfileCircle FullName="@admin.Name"/>
+                        </MudItem>
+                        <MudItem Style="width: calc(95% - 2rem - 100px)">
+                            <MudGrid Class="admin-name" Spacing="0">
+                                <MudItem xs="12">
+                                    <MudText Style="@GetTextStyle()" Typo="Typo.subtitle1">@admin.Name</MudText>
+                                </MudItem>
+                                <MudItem xs="12">
+                                    <MudText Style="@GetTextStyle()" Typo="Typo.caption">@admin.Email</MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudItem>
+                        <MudItem Style="max-width: 100px">
+                            <MudStack Row Justify="Justify.SpaceBetween">
+                                <MudTooltip Text="@(Localizer["View User Profile"])">
+                                    <MudIconButton Size="Size.Small" Icon="fa-duotone fa-user" Href="@($"/profile/{Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(admin.UserId))}")"/>
+                                </MudTooltip>
+                                <MudTooltip Text="@(Localizer["Email User"])">
+                                    <MudIconButton Size="Size.Small" Icon="fa-duotone fa-envelope" Href="@($"mailto:{admin.Email}")"/>
+                                </MudTooltip>
+                            </MudStack>
+                        </MudItem>
+                    </MudGrid>
+                }
+            </MudStack>
+                    
+        </Authorized>
+    </AuthorizeView>
+}
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+    [CascadingParameter(Name = "IsProjectAdmin")]
+    public bool IsProjectAdmin { get; set; }
+    [CascadingParameter(Name = "IsDatahubAdmin")]
+    public bool IsDatahubAdmin { get; set; }
+
+    private bool _isLoading = true;
+
+    private List<string> _authorizedRoles = new();
+
+    private List<ProjectMember> _projectAdmins;
+    private Microsoft.Graph.User _user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        _user = await _userInformationService.GetCurrentGraphUserAsync();
+
+        _projectAdmins = await _serviceAuthManager.GetProjectAdmins(ProjectAcronym);
+
+        _authorizedRoles = new() { ProjectAcronym, $"{ProjectAcronym}-admin" };
+
+        if (!_serviceAuthManager.GetViewingAsGuest(_user.Id))
+        {
+            _authorizedRoles.Add(RoleConstants.DATAHUB_ROLE_ADMIN);
+        }
+
+        _isLoading = false;
+    }
+    private string GetTextStyle()
+    {
+        return new StyleBuilder()
+            .AddStyle("display", "block")
+            .AddStyle("overflow", "hidden")
+            .AddStyle("white-space", "nowrap")
+            .AddStyle("text-overflow", "ellipsis")
+            .Build();
+    }
+
+}
