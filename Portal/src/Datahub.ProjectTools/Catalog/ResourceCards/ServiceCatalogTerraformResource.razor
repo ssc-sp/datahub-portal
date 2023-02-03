@@ -2,7 +2,7 @@
 @using Datahub.Shared.Entities
 
 @inject IRequestManagementService RequestManagementService
-
+@inject ISnackbar _snackbar
 
 <ToolCard Title="@Descriptor?.Title"
           Subtitle="@Descriptor?.CatalogSubtitle"
@@ -74,6 +74,14 @@
     {
         _isRunning = true;
         ResourceRequested = await RequestManagementService.HandleTerraformRequestServiceAsync(Project, TemplateName);
+        if (ResourceRequested)
+        {
+            _snackbar.Add(Localizer["Resource request has been successfully submitted"], Severity.Success);
+        }
+        else
+        {
+            _snackbar.Add(Localizer["Resource request has failed, please contact an administrator"], Severity.Error);
+        }
         _isRunning = false;
     }
 
