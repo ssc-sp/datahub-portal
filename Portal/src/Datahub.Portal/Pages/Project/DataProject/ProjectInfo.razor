@@ -26,8 +26,8 @@
 
     @if (_currentProjectMonthlyCost is not null && _projectBudget > 0)
     {
-        <MudBadge Icon="@Icons.Filled.QuestionMark" Color="@GetCostChipColor()" Overlap="@true" Bordered="@true">
-            <MudChip Label="true" Icon="@Icons.Filled.AttachMoney" IconColor="@GetCostChipColor()" Variant="@Variant.Text"
+        <MudBadge Icon="@Icons.Material.Filled.QuestionMark" Color="@GetCostChipColor()" Overlap="@true" Bordered="@true">
+            <MudChip Label="true" Icon="@Icons.Material.Filled.AttachMoney" IconColor="@GetCostChipColor()" Variant="@Variant.Text"
                      Color="@GetCostChipColor()" class="project-data-sensitivity" OnClick=@HandleToggleCosts>
                 @($"{_currentProjectMonthlyCost:C} {Localizer["Azure cost for current month"]}")
             </MudChip>
@@ -37,7 +37,7 @@
     @if (IsProjectAdmin || IsDatahubAdmin)
     {
         var color = Project?.MetadataAdded ?? false ? Color.Default : Color.Warning;
-        var icon = Project?.MetadataAdded ?? false ? Icons.Filled.Edit : Icons.Filled.Warning;
+        var icon = Project?.MetadataAdded ?? false ? Icons.Material.Filled.Edit : Icons.Material.Filled.Warning;
         <MudChip Icon="@icon"
                  IconColor="@color"
                  Variant="@Variant.Text"

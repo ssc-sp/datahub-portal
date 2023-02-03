@@ -8,11 +8,12 @@
     <MudTextField @bind-Value="InputKeyword"
                   @ref=@_fieldValueInput
                   Label=@FieldDefinition.Name
+                  aria-label="@FieldDefinition.Name"
                   HelperText=@FieldDefinition.Description
                   DebounceInterval="250"
                   Adornment=@(string.IsNullOrEmpty(_inputKeyword) ? Adornment.None : Adornment.End)
                   AdornmentColor="Color.Info"
-                  AdornmentIcon="@Icons.Filled.Add"
+                  AdornmentIcon="@Icons.Material.Filled.Add"
                   OnAdornmentClick=HandleAddKeyword
                   Variant="Variant.Outlined" 
                   Margin="Margin.Dense" />
@@ -31,7 +32,7 @@
             <MudChip Text="@keyword" 
                      Variant="Variant.Filled" 
                      Color="Color.Default"
-                     Icon="@Icons.Filled.AddCircle"
+                     Icon="@Icons.Material.Filled.AddCircle"
                      OnClick=@(async () => await PickKeyword(keyword, false)) />
         }
     </MudChipSet>

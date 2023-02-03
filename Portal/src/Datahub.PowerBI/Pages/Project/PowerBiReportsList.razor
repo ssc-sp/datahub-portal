@@ -183,14 +183,14 @@
         </DHLink>
     </MudText>;
 
-    private RenderFragment InCatalogIcon = @<MudIcon Color=@Color.Success Icon=@Icons.Filled.Check />;
-    private RenderFragment NotInCatalogIcon = @<MudIcon Color=@Color.Error Icon=@Icons.Filled.Close />;
+    private RenderFragment InCatalogIcon = @<MudIcon Color=@Color.Success Icon=@Icons.Material.Filled.Check />;
+    private RenderFragment NotInCatalogIcon = @<MudIcon Color=@Color.Error Icon=@Icons.Material.Filled.Close />;
 
     private RenderFragment CatalogEntryFragment(PowerBi_Report r) =>
     @<MudStack Row AlignItems=@AlignItems.Center >
         @(r.InCatalog? InCatalogIcon: NotInCatalogIcon)
         <MudTooltip Text="@Localizer["Edit"]">
-            <MudIconButton Icon="@Icons.Filled.Edit" OnClick="@(() => OpenMetadataEditor(r))" />
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenMetadataEditor(r))" />
         </MudTooltip>
         <Datahub.PowerBI.Pages.PowerBI.InternalPublishedPowerBIReportLinks ReportID=@r.Report_ID.ToString() />
     </MudStack>;
