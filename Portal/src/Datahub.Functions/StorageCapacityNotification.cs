@@ -116,10 +116,10 @@ public class StorageCapacityNotification
         try
         {
             var content = JsonSerializer.Deserialize<DBResourceContent>(row.JsonContent);
-            if (string.IsNullOrEmpty(content?.resource_group) || string.IsNullOrEmpty(content?.storage_account))
+            if (string.IsNullOrEmpty(content?.resource_group_name) || string.IsNullOrEmpty(content?.storage_account))
                 return default;
 
-            var msgObj = new StorageAccountMessage(row.ProjectId, content.resource_group, content.storage_account);
+            var msgObj = new StorageAccountMessage(row.ProjectId, content.resource_group_name, content.storage_account);
             var message = JsonSerializer.Serialize(msgObj, GetJsonSerializerOptions());
 
             return EncodeBase64(message);
@@ -131,7 +131,7 @@ public class StorageCapacityNotification
         }
     }
 
-    record DBResourceContent(string resource_group, string storage_account);
+    record DBResourceContent(string resource_group_name, string storage_account);
 
     static string EncodeBase64(string value) => Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
 
