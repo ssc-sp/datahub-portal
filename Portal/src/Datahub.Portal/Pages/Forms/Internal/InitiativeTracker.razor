@@ -188,7 +188,7 @@
 
     private RenderFragment GetCommentIcon(Datahub_Project p)
     {
-        return@<MudIconButton @onclick="() => OpenComments(p)" Icon="@Icons.Filled.InsertComment" Color="Color.Default" />;
+        return @<MudIconButton @onclick="() => OpenComments(p)" Icon="@Icons.Filled.InsertComment" Color="Color.Default" />;
     }
     private RenderFragment GetMetadataFragment(Datahub_Project p)
     {
@@ -237,7 +237,7 @@
         {
             OnboardingParameters onboardingParameters = new()
                 {
-                    AppUrl = $"/admin/metadata/{p.Project_Acronym_CD}",
+                    AppUrl = $"/w/{p.Project_Acronym_CD}/metadata",
                     App = appForm,
                     AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
                 };
