@@ -2,7 +2,6 @@
 
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Model
-@using Datahub.Core.Model.Datahub
 @using Datahub.Core
 @using Datahub.Metadata.Utils;
 @inject NavigationManager NavigationManager
@@ -12,29 +11,23 @@
 
 @if (_project is not null)
 {
-    <MudCard>
-        <MudCardContent>
-            <MudItem Class="pa-2">
-                <ObjectMetadataEditor @ref="_editor"
-                                      @key=@ObjectId
-                                      ObjectId=@ObjectId
-                                      DefaultMetadataId=@DefaultMetadaId
-                                      ProfileName=@ProfileName
-                                      Location=@Location
-                                      ProjectId=@_project.Project_ID
-                                      ObjectType=@ObjectType
-                                      SecurityClass=@GetProjectSensitivity()
-                                      SaveButtonLabel=@GetSaveButtonLabel()
-                                      OnSave=@HandleSave
-                                      OnDiscard=@(AllowDiscard ? HandleNavigateToProject : null)
-                                      OnNewMetadataCreated=@OnMetadataCreated
-                                      OnExistingMetadataLoaded=@OnMetadataCreated
-                                      HideTranslationNote
-                                      UpdateCatalog="false"
-                                      ValidateRequired=@ValidateRequired />
-            </MudItem>
-        </MudCardContent>
-    </MudCard>
+    <ObjectMetadataEditor @ref="_editor"
+                          @key=@ObjectId
+                          ObjectId=@ObjectId
+                          DefaultMetadataId=@DefaultMetadaId
+                          ProfileName=@ProfileName
+                          Location=@Location
+                          ProjectId=@_project.Project_ID
+                          ObjectType=@ObjectType
+                          SecurityClass=@GetProjectSensitivity()
+                          SaveButtonLabel=@GetSaveButtonLabel()
+                          OnSave=@HandleSave
+                          OnDiscard=@(AllowDiscard ? HandleNavigateToProject : null)
+                          OnNewMetadataCreated=@OnMetadataCreated
+                          OnExistingMetadataLoaded=@OnMetadataCreated
+                          HideTranslationNote
+                          UpdateCatalog="false"
+                          ValidateRequired=@ValidateRequired/>
 }
 
 @code {
@@ -89,13 +82,13 @@
     {
         var ctx = await ContextFactory.CreateDbContextAsync();
         _project = await ctx.Projects.Include(p => p.Resources)
-                                     .AsSingleQuery()
-                                     .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+            .AsSingleQuery()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
         if (_project is not null)
         {
             await TryReadProjectSectorAndBranch();
             await OnProjectLoaded.InvokeAsync(_project);
-        }        
+        }
     }
 
     private async Task TryReadProjectSectorAndBranch()
@@ -106,7 +99,7 @@
         _branch = FindOrganizationLevelId(branches, _project.Branch_Name);
     }
 
-    private int? FindOrganizationLevelId(List<OrganizationLevel> levels, string value) 
+    private int? FindOrganizationLevelId(List<OrganizationLevel> levels, string value)
     {
         if (!string.IsNullOrEmpty(value))
             return levels.FirstOrDefault(l => MatchesLevelWithName(l, value))?.Id;
@@ -116,7 +109,7 @@
     private bool MatchesLevelWithName(OrganizationLevel level, string value)
     {
         var mode = StringComparison.OrdinalIgnoreCase;
-        return value.Equals(level.EnglishLabel, mode) || 
+        return value.Equals(level.EnglishLabel, mode) ||
                value.Equals(level.FrenchLabel, mode) ||
                value.Equals(level.EnglishAcronym, mode) ||
                value.Equals(level.FrenchAcronym, mode);
@@ -139,29 +132,29 @@
         if (string.IsNullOrEmpty(_editor.GetValue(FieldNames.description_fr)))
             _editor.SetValue(FieldNames.description_fr, _project.Project_Summary_Desc_Fr);
 
-        //if (string.IsNullOrEmpty(_editor.GetValue("title_translated_en")))
-        //    _editor.SetValue("title_translated_en", _project.Project_Name);
+    //if (string.IsNullOrEmpty(_editor.GetValue("title_translated_en")))
+    //    _editor.SetValue("title_translated_en", _project.Project_Name);
 
-        //if (string.IsNullOrEmpty(_editor.GetValue("title_translated_fr")))
-        //    _editor.SetValue("title_translated_fr", _project.Project_Name_Fr);
+    //if (string.IsNullOrEmpty(_editor.GetValue("title_translated_fr")))
+    //    _editor.SetValue("title_translated_fr", _project.Project_Name_Fr);
 
-        //if (string.IsNullOrEmpty(_editor.GetValue("notes_translated_en")))
-        //    _editor.SetValue("notes_translated_en", _project.Project_Name);
+    //if (string.IsNullOrEmpty(_editor.GetValue("notes_translated_en")))
+    //    _editor.SetValue("notes_translated_en", _project.Project_Name);
 
-        //if (string.IsNullOrEmpty(_editor.GetValue("notes_translated_fr")))
-        //    _editor.SetValue("notes_translated_fr", _project.Project_Name_Fr);
+    //if (string.IsNullOrEmpty(_editor.GetValue("notes_translated_fr")))
+    //    _editor.SetValue("notes_translated_fr", _project.Project_Name_Fr);
 
-        //if (string.IsNullOrEmpty(_editor.GetValue("contact_information")))
-        //    _editor.SetValue("contact_information", _project.Project_Admin);
+    //if (string.IsNullOrEmpty(_editor.GetValue("contact_information")))
+    //    _editor.SetValue("contact_information", _project.Project_Admin);
 
-        //if (string.IsNullOrEmpty(_editor.GetValue("sector")) && _sector.HasValue)
-        //    _editor.SetValue("sector", _sector.ToString());
+    //if (string.IsNullOrEmpty(_editor.GetValue("sector")) && _sector.HasValue)
+    //    _editor.SetValue("sector", _sector.ToString());
 
-        //if (string.IsNullOrEmpty(_editor.GetValue("branch")) && _branch.HasValue)
-        //    _editor.SetValue("branch", _branch.ToString());
+    //if (string.IsNullOrEmpty(_editor.GetValue("branch")) && _branch.HasValue)
+    //    _editor.SetValue("branch", _branch.ToString());
 
-        //if (string.IsNullOrEmpty(_editor.GetValue("initiative_goal")))
-        //    _editor.SetValue("initiative_goal", _project.Project_Goal);
+    //if (string.IsNullOrEmpty(_editor.GetValue("initiative_goal")))
+    //    _editor.SetValue("initiative_goal", _project.Project_Goal);
     }
 
     private async Task HandleSave(FieldValueContainer values)
@@ -170,7 +163,7 @@
         {
             await OnMetadataSaved.InvokeAsync(_project);
 
-            // Metadata is "added" only when the profile required fields are entered
+    // Metadata is "added" only when the profile required fields are entered
             _project.MetadataAdded = _editor.ValidProfileFields();
 
             var sector = _editor.GetSelectedChoices("sector").FirstOrDefault();
@@ -206,10 +199,10 @@
         return sensitivity switch
         {
             "CLASSIFIED" or
-            "PROTECTED B" => SecurityClassification.ProtectedB,
+                "PROTECTED B" => SecurityClassification.ProtectedB,
             "PROTECTED A" => SecurityClassification.ProtectedA,
             _ => SecurityClassification.Unclassified
-        };
+            };
     }
 
     private string GetSaveButtonLabel() => SaveButtonLabel ?? Localizer["OPENDATA-WIZARD.Save_button"];
