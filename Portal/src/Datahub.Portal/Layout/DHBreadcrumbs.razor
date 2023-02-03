@@ -4,6 +4,11 @@
 
 @inject CultureService _cultureService
 
+@if (_isResourcePage)
+{
+    return;
+}
+
 <MudBreadcrumbs Items="@_items" Separator=">" Class="mb-8 ml-n4">
     <ItemTemplate Context="item">
         @if (!item.Disabled)
@@ -35,6 +40,7 @@
     private NavigationManager _navigationManager { get; set; }
 
     private List<BreadcrumbItem> _items;
+    private bool _isResourcePage => _navigationManager.ToBaseRelativePath(_navigationManager.Uri).StartsWith("resources");
 
     protected override void OnInitialized()
     {
