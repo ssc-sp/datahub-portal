@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace Datahub.ProjectTools.Catalog;
 
 #nullable enable
-public class DHPowerBIResource : DHURLResource
+public class DHPowerBIResource : ActiveGitModuleResource
 {
     private readonly IDbContextFactory<DatahubProjectDBContext> dbFactoryProject;
     private readonly bool isServiceConfigured;
@@ -22,13 +22,13 @@ public class DHPowerBIResource : DHURLResource
     private bool _powerBiServiceRequested = false;
     private bool _powerBiServiceCreated = false;
 
-    protected override async Task InitializeAsync(string userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
+    protected override async Task InitializeAsync(string? userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
         var serviceRequests = Project.ServiceRequests;
         _powerBiServiceRequested = serviceRequests.Any(r => r.ServiceType == IRequestManagementService.POWERBI && r.Is_Completed == null);
         _powerBiServiceCreated = !string.IsNullOrEmpty(Project.PowerBI_URL);
-        parameters.Add(nameof(PowerBI.Project), Project);            
+        Parameters.Add(nameof(PowerBI.Project), Project);            
     }
 
     protected override string Title => "Power BI Workspace";

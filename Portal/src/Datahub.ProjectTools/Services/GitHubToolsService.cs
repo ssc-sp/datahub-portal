@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Caching;
 using System.Text;
+using System.Text.Json.Serialization;
 using Datahub.ProjectTools.Utils;
 using Markdig;
 using Markdig.Extensions.Yaml;
@@ -10,6 +11,14 @@ using YamlDotNet.Serialization;
 namespace Datahub.ProjectTools.Services;
 #nullable enable
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum GitHubModuleStatus
+{
+    Alpha,
+    Beta,
+    Stable,
+}
+
 public record GitHubModule(string Name, string Path,
     string? CardName,
     string? CalculatorPath,
@@ -17,7 +26,8 @@ public record GitHubModule(string Name, string Path,
     string? ActionUrl,
     string? ReadMorePath,
     string? Icon,
-    List<GitHubModuleDescriptor> Descriptors);
+    List<GitHubModuleDescriptor> Descriptors,
+    GitHubModuleStatus Status);
 
 public record GitHubModuleDescriptor(string Language, string Title, string? CatalogSubtitle, string? CatalogDescription, string? ResourceDescription, string[]? Tags);
 
@@ -138,6 +148,11 @@ public class GitHubToolsService
         );
 
         var yaml = GetFrontMatter(readmeDoc, dir);
+        var status = yaml.GetValueOrDefault("status");
+        var moduleStatus = Enum.TryParse<GitHubModuleStatus>(status, true, out var moduleStatusEnum)
+            ? moduleStatusEnum
+            : GitHubModuleStatus.Stable;
+        
         return new GitHubModule(dir.Name,
             dir.Path,
             yaml.GetValueOrDefault("dhcard"),
@@ -146,7 +161,8 @@ public class GitHubToolsService
             yaml.GetValueOrDefault("actionUrl"),
             yaml.GetValueOrDefault("readMore"),
             yaml.GetValueOrDefault("icon"),
-            new List<GitHubModuleDescriptor> { en, fr }
+            new List<GitHubModuleDescriptor> { en, fr },
+            moduleStatus
         );
     }
 
