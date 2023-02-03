@@ -12,7 +12,7 @@
         <MudButton Class="ml-2" OnClick="@ToggleProfile">
             <MudText>@_user?.DisplayName</MudText>
             <ProfileCircle FullName="@_user?.DisplayName" style="margin-left: 1rem"/>
-            <MudIcon Icon="@Icons.Filled.ArrowDropDown"/>
+            <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
         </MudButton>
         
         <MudPopover
@@ -34,7 +34,7 @@
                         @*Tooltip currently does not work here*@
                         @*issue has been reported here: https://github.com/MudBlazor/MudBlazor/issues/5542*@
                         <MudTooltip Text="@(Localizer["Close"])">
-                            <MudIconButton Icon="@Icons.Filled.Close" OnClick="@ToggleProfile"/>
+                            <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@ToggleProfile"/>
                         </MudTooltip>
                     </CardHeaderActions>
                 </MudCardHeader>
