@@ -36,7 +36,7 @@ The scopes are represented by the following table
 | ci | 👷 | `:construction_worker:` |
 | chore | 🔧 | `:wrench:` |
 | work in progress (WIP) | 🚧 | `:construction:` |
-| a11y | 🦜 | `:parrot:` |
+| accessibility | 🦜 | `:parrot:` |
 
 ## Branching
 
@@ -80,6 +80,7 @@ Les champs d'application sont représentés par le tableau suivant
 | | ci | 👷 | `:construction_worker:` |
 | corvée | 🔧 | `:wrench:`
 | travail en cours (WIP) | 🚧 | `:construction:` | travaux en cours (WIP)
+| accessibilité | 🦜 | `:parrot:` |
 
 ## Branches
 
