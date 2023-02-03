@@ -8,6 +8,7 @@
     <MudTextField @bind-Value="InputKeyword"
                   @ref=@_fieldValueInput
                   Label=@FieldDefinition.Name
+                  aria-label="@FieldDefinition.Name"
                   HelperText=@FieldDefinition.Description
                   DebounceInterval="250"
                   Adornment=@(string.IsNullOrEmpty(_inputKeyword) ? Adornment.None : Adornment.End)
