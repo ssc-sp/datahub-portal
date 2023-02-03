@@ -51,7 +51,7 @@
     public bool ReadOnly { get; set; }
 
     private bool _showPassword = false;
-    private string _passwordIcon => _showPassword ? Icons.Filled.Visibility : Icons.Filled.VisibilityOff;
+    private string _passwordIcon => _showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
     private InputType _passwordInputType => _showPassword ? InputType.Text : InputType.Password;
     private string _passwordIconLabel => _showPassword ? Localizer["Hide password"] : Localizer["Show password"];
         

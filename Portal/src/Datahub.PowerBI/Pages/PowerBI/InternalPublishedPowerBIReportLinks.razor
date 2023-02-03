@@ -3,7 +3,7 @@
 
 @if (_reportLinks?.Count() > 0)
 {
-    <MudIcon Icon=@Icons.Filled.Link Title=@Localizer["POWER_BI_SHARED_INTERNAL.PublicationLinks"] />
+    <MudIcon Icon=@Icons.Material.Filled.Link Title=@Localizer["POWER_BI_SHARED_INTERNAL.PublicationLinks"] />
     @foreach (var rl in _reportLinks)
     {
         <MudLink Href=@rl.Url title=@Localizer[$"DISCOVERY-LANGUAGE-TYPES.{rl.Language.ToString()}"]>@LocalizedShortLanguage(rl.Language.ToString())</MudLink>

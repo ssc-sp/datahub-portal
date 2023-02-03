@@ -39,7 +39,7 @@
                     <MudStack Row>
                         <MudSpacer />
                         <MudTooltip Text="@Localizer["Close"]">
-                            <MudIconButton Icon=@Icons.Filled.Close OnClick=@(() => _relatedMenuOpen = false)/>
+                            <MudIconButton Icon=@Icons.Material.Filled.Close OnClick=@(() => _relatedMenuOpen = false)/>
                         </MudTooltip>
                     </MudStack>
                     <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.ReportLanguage"]: @Localizer[_catalogReport.Language.ToString()]</MudText>
@@ -173,7 +173,7 @@
 
     private string SecurityClassKey => SecurityClassification.GetSecurityClassification(_catalogReport?.ClassificationType ?? Metadata.Model.ClassificationType.Unclassified);
 
-    private string SecurityClassIcon => _catalogReport?.ClassificationType != Metadata.Model.ClassificationType.Unclassified ? Icons.Filled.Lock : Icons.Filled.LockOpen;
+    private string SecurityClassIcon => _catalogReport?.ClassificationType != Metadata.Model.ClassificationType.Unclassified ? Icons.Material.Filled.Lock : Icons.Material.Filled.LockOpen;
 
     private void InvalidateReport()
     {
