@@ -46,6 +46,7 @@
                                   DebounceInterval="250"  
                                   Label=@FieldDefinition.Name
                                   HelperText=@FieldDefinition.Description
+                                  aria-label="@FieldDefinition.Name"
                                   Clearable="@(!canTranslate)"
                                   Required="@Required"
                                   Adornment="@(canTranslate ? Adornment.End : Adornment.None)"
@@ -67,6 +68,7 @@
 
                 <MudSelect T="string"
                            Label=@FieldDefinition.Name
+                           aria-label="@FieldDefinition.Name"
                            @bind-Value=@BoundValue
                            Required=@Required
                            Variant="Variant.Outlined"
