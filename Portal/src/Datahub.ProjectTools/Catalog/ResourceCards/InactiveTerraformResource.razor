@@ -33,7 +33,14 @@
         else
         {
             <CostEstimatorButton TemplateName="@TemplateName"/>
-            <RequestingButton IsRunning="_isRunning" ResourceRequested="ResourceRequested" Project="Project" OnRequestService="@HandleRequestService"/>
+            <RequestingButton 
+                IsRunning="_isRunning" 
+                ResourceRequested="ResourceRequested" 
+                ResourceCreated="ResourceCreated"
+                Project="Project" 
+                ModuleStatus="@GitHubModule?.Status"
+                OnRequestService="@HandleRequestService"
+                />
         }
     </ToolActionsList>
 </ToolCard>
@@ -52,6 +59,9 @@
 
     [Parameter]
     public bool ResourceRequested { get; set; }
+    
+    [Parameter]
+    public bool ResourceCreated { get; set; }
 
     [Parameter]
     public Datahub_Project? Project { get; set; }
@@ -63,7 +73,7 @@
     private async Task HandleRequestService()
     {
         _isRunning = true;
-        await RequestManagementService.HandleTerraformRequestServiceAsync(Project, TemplateName);
+        ResourceRequested = await RequestManagementService.HandleTerraformRequestServiceAsync(Project, TemplateName);
         _isRunning = false;
     }
 

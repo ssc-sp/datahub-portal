@@ -11,5 +11,5 @@ public interface IProjectResource
     public string? GetCostEstimatorLink();
 
     public string[] GetTags();
-    Task<bool> InitializeAsync(Datahub_Project project, string userId, User graphUser, bool isProjectAdmin);
+    Task<bool> InitializeAsync(Datahub_Project project, string? userId, User graphUser, bool isProjectAdmin);
 }
