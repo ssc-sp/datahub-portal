@@ -57,7 +57,7 @@ public class ServiceCatalogGitModuleResource : IProjectResource
 
     public (Type type, IDictionary<string, object> parameters)? GetInactiveResource()
     {
-        return (typeof(InactiveTerraformResource), GetInactiveParameters());
+        return (typeof(ServiceCatalogTerraformResource), GetInactiveParameters());
     }
 
     private IDictionary<string, object> GetActiveParameters(string template)
@@ -81,12 +81,12 @@ public class ServiceCatalogGitModuleResource : IProjectResource
     protected Dictionary<string, object> GetInactiveParameters()
         => new()
         {
-            { nameof(InactiveTerraformResource.Descriptor), _descriptor },
-            { nameof(InactiveTerraformResource.GitHubModule), _currentModule},
-            { nameof(InactiveTerraformResource.IsIconSvg), false },
-            { nameof(InactiveTerraformResource.ResourceRequested),_serviceRequested },            
-            { nameof(InactiveTerraformResource.ResourceCreated),_serviceCreated },            
-            { nameof(InactiveTerraformResource.Project), _project },
+            { nameof(ServiceCatalogTerraformResource.Descriptor), _descriptor },
+            { nameof(ServiceCatalogTerraformResource.GitHubModule), _currentModule},
+            { nameof(ServiceCatalogTerraformResource.IsIconSvg), false },
+            { nameof(ServiceCatalogTerraformResource.ResourceRequested),_serviceRequested },            
+            { nameof(ServiceCatalogTerraformResource.ResourceCreated),_serviceCreated },            
+            { nameof(ServiceCatalogTerraformResource.Project), _project },
         };
     public string[] GetTags() => _descriptor.Tags;
 
