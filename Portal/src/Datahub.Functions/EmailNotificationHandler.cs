@@ -19,7 +19,7 @@ public class EmailNotificationHandler
     }
 
     [Function("EmailNotificationHandler")]
-    public async Task Run([QueueTrigger("email-notifications", Connection = "datahub-storage-connection")] string requestMessage)
+    public async Task Run([QueueTrigger("email-notifications", Connection = "DatahubStorageConnectionString")] string requestMessage)
     {
         // check mail configuration
         if (!_config.Email.IsValid)
@@ -46,7 +46,7 @@ public class EmailNotificationHandler
         {
             using MimeMessage message = new();
 
-            message.From.Add(new MailboxAddress("Datahub", _config.Email.FromAddress));
+            message.From.Add(new MailboxAddress(_config.Email.SenderName, _config.Email.SenderAddress));
             message.To.AddRange(req.To.Select(GetMailboxAddress));
             message.Cc.AddRange(req.CcTo.Select(GetMailboxAddress));
             message.Bcc.AddRange(req.BccTo.Select(GetMailboxAddress));
@@ -64,7 +64,7 @@ public class EmailNotificationHandler
 
             using var smtpClient = new SmtpClient();
 
-            await smtpClient.ConnectAsync(_config.Email.SmtpServer, _config.Email.SmtpPort, MailKit.Security.SecureSocketOptions.StartTls);
+            await smtpClient.ConnectAsync(_config.Email.SmtpHost, _config.Email.SmtpPort, MailKit.Security.SecureSocketOptions.StartTls);
             await smtpClient.AuthenticateAsync(new System.Net.NetworkCredential(_config.Email.SmtpUsername, _config.Email.SmtpPassword));
 
             await smtpClient.SendAsync(message);

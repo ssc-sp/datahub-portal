@@ -25,7 +25,7 @@ public class TerraformOutputHandler
 
     [Function("TerraformOutputHandler")]
     public async Task RunAsync(
-        [QueueTrigger("terraform-output", Connection = "TerraformOutputConnectionString")]
+        [QueueTrigger("terraform-output", Connection = "DatahubStorageConnectionString")]
         string myQueueItem,
         FunctionContext context)
     {

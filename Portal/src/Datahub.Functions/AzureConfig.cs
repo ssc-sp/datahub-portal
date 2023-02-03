@@ -6,18 +6,18 @@ namespace Datahub.Functions;
 internal class AzureConfig
 {
     private readonly IConfiguration _config;
-    private readonly EmailConfig _emailConfig; 
+    private readonly EmailNotification _emailConfig; 
 
     public AzureConfig(IConfiguration config)
     {
         _config = config;
-        _emailConfig = new EmailConfig();
-        _config.Bind("EmailService", _emailConfig);
+        _emailConfig = new EmailNotification();
+        _config.Bind("EmailNotification", _emailConfig);
     }
 
     public string LoginUrl => "https://login.microsoftonline.com/";
     public string ManagementUrl => "https://management.azure.com/";
-    public EmailConfig Email => _emailConfig;
+    public EmailNotification Email => _emailConfig;
 
     #region Azure SP
 
@@ -30,22 +30,23 @@ internal class AzureConfig
 
     #region Storage Notifications
 
-    public string StorageQueueConnection => _config["datahub-storage-connection"] ?? "";
+    public string StorageQueueConnection => _config["DatahubStorageConnectionString"] ?? "";
     public string MaxStorageCapacity => _config["MAX_STORAGE_CAPACITY"] ?? "180000000000"; //"2000000000000";
     
     #endregion
 }
 
-internal class EmailConfig
+internal class EmailNotification
 {
-    public string? SmtpServer { get; set; }
+    public string? SmtpHost { get; set; }
     public int SmtpPort { get; set; }
     public string? SmtpUsername { get; set; }
     public string? SmtpPassword { get; set; }
-    public string? FromAddress { get; set; }
-    public bool IsValid => !string.IsNullOrEmpty(SmtpServer) && 
+    public string? SenderName { get; set; }
+    public string? SenderAddress { get; set; }
+    public bool IsValid => !string.IsNullOrEmpty(SmtpHost) && 
                            !string.IsNullOrEmpty(SmtpUsername) && 
                            !string.IsNullOrEmpty(SmtpPassword) && 
-                           !string.IsNullOrEmpty(FromAddress) &&
+                           !string.IsNullOrEmpty(SenderAddress) &&
                            SmtpPort != 0;
 }
