@@ -9,7 +9,7 @@
         @if (_showTranslationNote)
         {
             <MudItem Class="mb-4">
-                <MudAlert Severity="Severity.Info" Icon="@Icons.Filled.GTranslate">
+                <MudAlert Severity="Severity.Info" Icon="@Icons.Material.Filled.GTranslate">
                     @(new MarkupString(Localizer["METADATA-PAGE.TranslationNote"]))
                 </MudAlert>
             </MudItem>
@@ -82,7 +82,7 @@
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
 
     [Parameter]
-    public bool HideTranslationNote { get; set; } = false;
+    public bool HideTranslationNote { get; set; }
 
     private HashSet<int> _requiredFieldIds = new(); 
     private int _totalFields = 0;

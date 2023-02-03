@@ -20,13 +20,13 @@ else
     <MudGrid>
         <MudItem xs="2">
             <MudNavMenu Rounded Color=@Color.Primary>
-                <MudNavLink Href="/resources/" Match=NavLinkMatch.All Icon=@Icons.Filled.Home>
+                <MudNavLink Href="/resources/" Match=NavLinkMatch.All Icon=@Icons.Material.Filled.Home>
                     <MudText Inline Typo=@Typo.body1>@Localizer["Overview"]</MudText>
                 </MudNavLink>
                 @foreach (var cat in _resourceRoot.Categories)
                 {
                     var isCurrentCat = (_currentMarkdownCategory == cat);
-                    var catIcon = isCurrentCat ? Icons.Filled.FolderOpen : Icons.Filled.Folder;
+                    var catIcon = isCurrentCat ? Icons.Material.Filled.FolderOpen : Icons.Material.Filled.Folder;
 
                     <MudNavGroup Icon=@catIcon Expanded=@isCurrentCat Title=@cat.Title ExpandedChanged=@((v) => UpdateCategory(cat, v))>
                         @foreach (var article in cat.Cards)
@@ -49,7 +49,7 @@ else
                             <MudCard>
                                 <MudCardHeader>
                                     <CardHeaderAvatar>
-                                        <MudIcon Icon=@Icons.Filled.MenuBook />
+                                        <MudIcon Icon=@Icons.Material.Filled.MenuBook />
                                     </CardHeaderAvatar>
                                     <CardHeaderContent>
                                         <MudText Typo=@Typo.h5>@card.Title</MudText>
@@ -87,7 +87,7 @@ else
                                     <MudButton Href=@_resourcesService.GetEditUrl(CurrentCard)
                                                Color=@Color.Primary
                                                Variant=@Variant.Filled
-                                               StartIcon=@Icons.Filled.Launch
+                                               StartIcon=@Icons.Material.Filled.Launch
                                                Target="_blank">
                                         @Localizer["BUTTONS.Edit"]
                                     </MudButton>
@@ -105,7 +105,7 @@ else
             <MudCard>
                 <MudCardHeader>
                     <CardHeaderAvatar>
-                        <MudIcon Icon=@Icons.Filled.AdminPanelSettings />
+                        <MudIcon Icon=@Icons.Material.Filled.AdminPanelSettings />
                     </CardHeaderAvatar>
                     <CardHeaderContent>
                         @Localizer["Administration"]
@@ -121,7 +121,7 @@ else
                             else
                             {
                                 <MudButton OnClick=@RefreshCache
-                                           StartIcon=@Icons.Filled.Refresh
+                                           StartIcon=@Icons.Material.Filled.Refresh
                                            Variant=@Variant.Filled
                                            Color=@Color.Secondary>Refresh</MudButton>
                             }

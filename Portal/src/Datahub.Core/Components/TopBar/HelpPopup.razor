@@ -5,10 +5,10 @@
     <MudTooltip Text="@Localizer[TOOLTIP_TEXT]">
         <MudToggleIconButton
             aria-label="Help toggle"
-            ToggledIcon="@Icons.Filled.HelpCenter"
+            ToggledIcon="@Icons.Material.Filled.HelpCenter"
             ToggledChanged="@ToggleHelp"
             Toggled="_showHelp"
-            Icon="@Icons.Outlined.HelpCenter"/>
+            Icon="@Icons.Material.Outlined.HelpCenter"/>
         </MudTooltip>
 
     <MudPopover
@@ -25,7 +25,7 @@
                     @*Tooltip currently does not work here*@
                     @*issue has been reported here: https://github.com/MudBlazor/MudBlazor/issues/5542*@
                     <MudTooltip Text="@(Localizer["Close"])">
-                        <MudIconButton Icon="@Icons.Filled.Close" Color="Color.Default" OnClick="ToggleHelp"/>
+                        <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Default" OnClick="ToggleHelp"/>
                     </MudTooltip>
                 </CardHeaderActions>
             </MudCardHeader>
@@ -37,7 +37,7 @@
                         <MudButton
                             Class="my-4"
                             Variant="Variant.Filled"
-                            EndIcon="@Icons.Filled.Mail"
+                            EndIcon="@Icons.Material.Filled.Mail"
                             Color="Color.Primary"
                             Href="@DatahubEmail">
                             @Localizer["Contact Us"]
