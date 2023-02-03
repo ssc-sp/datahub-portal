@@ -42,7 +42,8 @@ public class DHDatabricksResource : DHURLResource
 
     protected override Type ComponentType => typeof(Databricks);
 
-    protected override bool IsServiceRequested => _databricksServiceRequested && !_databricksServiceCreated;
+    protected override bool IsServiceRequested => _databricksServiceRequested;
+    
 
     protected override bool IsServiceConfigured { get; }
 
