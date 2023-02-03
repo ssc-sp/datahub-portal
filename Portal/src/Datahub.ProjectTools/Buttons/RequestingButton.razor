@@ -1,10 +1,28 @@
 @using Datahub.Core.Enums
 @using Datahub.Core.Model.Datahub
 
-@if (IsRunning)
+@if (Project?.MetadataAdded != false)
+{
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Disabled EndIcon="fas fa-layer-plus">
+        @Localizer["Metadata Required"]
+    </MudButton>
+}
+else if (ModuleStatus != null && ModuleStatus != GitHubModuleStatus.Stable)
+{
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Disabled EndIcon="fa-solid fa-code">
+        @Localizer["Under Active Development"]
+    </MudButton>
+}
+else if (IsRunning)
 {
     <MudButton Size="Size.Small" Variant="Variant.Filled" Disabled EndIcon="fa-solid fa-spinner-third fa-spin">
         @Localizer["Requesting Service Creation"]
+    </MudButton>
+}
+else if (ResourceCreated)
+{
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Disabled EndIcon="fas fa-layer-plus">
+        @Localizer["Resource has been created"]
     </MudButton>
 }
 else if (ResourceRequested)
@@ -38,5 +56,11 @@ else
     public bool ResourceRequested { get; set; }
 
     [Parameter]
+    public bool ResourceCreated { get; set; }
+    
+    [Parameter]
     public bool IsRunning { get; set; }
+    
+    [Parameter]
+    public GitHubModuleStatus? ModuleStatus { get; set; }
 }

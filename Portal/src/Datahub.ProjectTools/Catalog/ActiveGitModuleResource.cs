@@ -3,19 +3,19 @@ using Microsoft.Graph;
 
 namespace Datahub.ProjectTools.Catalog;
 
-public abstract class DHURLResource : IProjectResource
+public abstract class ActiveGitModuleResource : IProjectResource
 {
     public string? GetCostEstimatorLink()
     {
         return null;
     }
 
-    protected Dictionary<string, object> parameters;
+    protected Dictionary<string, object> Parameters =  new();
 
     public (Type, IDictionary<string, object>)[] GetActiveResources()
     {
         if (IsServiceAvailable && IsServiceConfigured)
-            return new[] { GetComponent() };
+            return new (Type, IDictionary<string, object>)[] { GetComponent() };
         else
             return Array.Empty<(Type type, IDictionary<string, object> parameters)>();
     }
@@ -43,17 +43,17 @@ public abstract class DHURLResource : IProjectResource
         return (typeof(InactiveResource), GetInactiveParameters());
     }
 
-    protected (Type type, IDictionary<string, object> parameters) GetComponent()
-        => (ComponentType, parameters);
+    protected (Type ComponentType, Dictionary<string, object> Parameters) GetComponent()
+        => (ComponentType, Parameters);
 
     public abstract string[] GetTags();
 
-    public async Task<bool> InitializeAsync(Datahub_Project project, string userId, User graphUser, bool isProjectAdmin)
+    public async Task<bool> InitializeAsync(Datahub_Project project, string? userId, User graphUser, bool isProjectAdmin)
     {
         if (userId is null)
             return false;
         Project = project;
-        parameters = new Dictionary<string, object>
+        Parameters = new Dictionary<string, object>
         {
             { nameof(InactiveResource.Title), Title },
             { nameof(InactiveResource.Description), Description },
@@ -64,7 +64,7 @@ public abstract class DHURLResource : IProjectResource
         return true;
     }
 
-    protected abstract Task InitializeAsync(string userId, User graphUser, bool isProjectAdmin);
+    protected abstract Task InitializeAsync(string? userId, User graphUser, bool isProjectAdmin);
 
     protected Dictionary<string, object> GetInactiveParameters()
         => new Dictionary<string, object>
