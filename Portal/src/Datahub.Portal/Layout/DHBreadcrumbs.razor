@@ -1,0 +1,93 @@
+@using DocumentFormat.OpenXml.Vml.Spreadsheet
+@implements IDisposable
+@inject ILogger<DHBreadcrumbs> _logger
+
+@inject CultureService _cultureService
+
+<MudBreadcrumbs Items="@_items" Separator=">" Class="mb-8 ml-n4">
+    <ItemTemplate Context="item">
+        @if (!item.Disabled)
+        {
+            <MudLink Href="@item.Href" Typo="Typo.body1">
+                @if (item.Icon != null)
+                {
+                    <MudIcon Icon="@item.Icon" Class="mr-2"/>
+                }
+                @item.Text
+            </MudLink>
+        }
+        else
+        {
+            <MudText Typo="Typo.body1">
+                @if (item.Icon != null)
+                {
+                    <MudIcon Icon="@item.Icon" Class="mr-2"/>
+                }
+                @item.Text
+            </MudText>
+        }
+    </ItemTemplate>
+</MudBreadcrumbs>
+
+@code {
+
+    [Inject]
+    private NavigationManager _navigationManager { get; set; }
+
+    private List<BreadcrumbItem> _items;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _navigationManager.LocationChanged += OnLocationChanged;
+        _items = BuildBreadcrumbs();
+    }
+
+    private void OnLocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        _items = BuildBreadcrumbs();
+        StateHasChanged();
+    }
+
+    private List<BreadcrumbItem> BuildBreadcrumbs()
+    {
+        var relativePath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+        var paths = relativePath
+            .Split('/')
+            .Where(x => !string.IsNullOrWhiteSpace(x) && !x.Equals("home", StringComparison.InvariantCultureIgnoreCase))
+            .ToList();
+
+        var breadcrumbs = new List<BreadcrumbItem>
+        {
+            new(Localizer["breadcrumb_home"], "/", icon: Icons.Material.Filled.Home)
+        };
+
+        breadcrumbs.AddRange(paths
+            .Select((x, i) => BuildBreadcrumbItem(
+                x,
+                string.Join("/", paths.Take(i + 1)),
+                i + 1 == paths.Count))
+            .ToList());
+
+        return breadcrumbs;
+    }
+    
+    private BreadcrumbItem BuildBreadcrumbItem(string text, string path, bool disabled = false)
+    {
+        var label = Localizer[$"breadcrumb_{text}"].ToString();
+        if (!label.StartsWith("breadcrumb_"))
+        {
+            return new BreadcrumbItem(label, path, disabled);
+        }
+        
+        label = text;
+        _logger.LogInformation("No translation found for urlsegment '{Text}' in breadcrumbs.json, ignore if this is an acronym", text);
+        return new BreadcrumbItem(label, path, disabled);
+    }
+
+    void IDisposable.Dispose()
+    {
+        _navigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+}
