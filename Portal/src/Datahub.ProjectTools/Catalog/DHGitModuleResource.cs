@@ -14,6 +14,7 @@ public class DHGitModuleResource : IProjectResource
     private GitHubModuleDescriptor descriptor;
     private Datahub_Project project;
     private bool serviceRequested;
+    private bool serviceCreated;
     private readonly IDbContextFactory<DatahubProjectDBContext> dbFactoryProject;
     private readonly CultureService cultureService;
 
@@ -80,7 +81,8 @@ public class DHGitModuleResource : IProjectResource
             { nameof(InactiveTerraformResource.Descriptor), descriptor },
             { nameof(InactiveTerraformResource.GitHubModule), currentModule},
             { nameof(InactiveTerraformResource.IsIconSvg), false },
-            { nameof(InactiveTerraformResource.ResourceRequested),serviceRequested  },            
+            { nameof(InactiveTerraformResource.ResourceRequested),serviceRequested },            
+            { nameof(InactiveTerraformResource.ResourceCreated),serviceCreated },            
             { nameof(InactiveTerraformResource.Project), project },
         };
     public string[] GetTags() => descriptor.Tags;
@@ -91,6 +93,9 @@ public class DHGitModuleResource : IProjectResource
         this.project = project;
         var serviceRequests = project.ServiceRequests;
         serviceRequested = serviceRequests.Any(r => r.ServiceType == RequestManagementService.GetTerraformServiceType(currentModule.Name) && r.Is_Completed == null);
+        
+        // TODO: Check if service is created off a request GUID down the road
+        serviceCreated = serviceRequests.Any(r => r.ServiceType == RequestManagementService.GetTerraformServiceType(currentModule.Name) && r.Is_Completed != null);
         return true;
     }
 
