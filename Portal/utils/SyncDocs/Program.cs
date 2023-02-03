@@ -1,16 +1,14 @@
 ﻿// Console app will replicate all documentation folder structure and try to translate the content of .md files using DeepL
 
-// Usage > syncdocs <root-path>
-// or    > dotnet run <root-path>
+// Usage:
+// $ syncdocs gensidebars -P <path> -p ssc
+// $ syncdocs translate -P <path> -p ssc -f
 
 // Note: Expects an enviroment variable named "DEEPL_KEY" with the API key for DeepL
 
 using SyncDocs;
 using Microsoft.Extensions.Configuration;
-using CommandLine.Text;
 using CommandLine;
-using System.Runtime.InteropServices;
-using System.Xml.Linq;
 
 var builder = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -23,32 +21,44 @@ var config = builder.Build();
 var configParams = config.Get<ConfigParams>() ?? new();
 
 await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(args)
-.WithParsedAsync<TranslateOptions>(async options => {
-    var deeplKey = options.DeeplKey ?? config.GetSection("DeepL")?.GetValue<string>("Key") ?? Environment.GetEnvironmentVariable("DEEPL_KEY") ?? string.Empty;
-    // file name cache
-    var fileNameCache = new FileNameCache(Path.Combine(options.Path, configParams.Target, "filenamecache.json"));
+.WithParsedAsync<TranslateOptions>(async options => 
+{
+    try
+    {
+        // pick the deepL key
+        var deeplKey = options.DeeplKey ?? config.GetSection("DeepL")?.GetValue<string>("Key") ?? Environment.GetEnvironmentVariable("DEEPL_KEY") ?? string.Empty;
 
-    // file mapping service
-    var fileMappingService = new FileMappingService();
+        // file name cache
+        var fileNameCache = new FileNameCache(Path.Combine(options.Path, configParams.Target, "filenamecache.json"));
 
-    // translation service
-    var translationService = new TranslationService(options.Path, deeplKey, options.UseFreeAPI);
+        // file mapping service
+        var fileMappingService = new FileMappingService(Path.Combine(options.Path, "filemappings.json"));
 
-    // replication service
-    var markdownService = new MarkdownDocumentationService(configParams, options.Path, translationService, fileNameCache, fileMappingService);
+        // delete unnecessary files
+        fileMappingService.CleanUpMappings();
 
-    // iterate the provided source folder
-    await IteratePath(options.Path, BuildExcluder(configParams), markdownService.AddFolder, markdownService.AddFile);
+        // translation service
+        var translationService = new TranslationService(options.Path, deeplKey, options.UseFreeAPI);
 
-    // save translation cache
-    fileNameCache.SaveChanges();
+        // replication service
+        var markdownService = new MarkdownDocumentationService(configParams, options.Path, translationService, fileNameCache, fileMappingService);
 
-    // save the file mappings
-    fileMappingService.SaveTo(Path.Combine(options.Path, "filemappings.json"));
+        // iterate the provided source folder
+        await IteratePath(options.Path, BuildExcluder(configParams), markdownService.AddFolder, markdownService.AddFile);
 
-    // END
+        // save translation cache
+        fileNameCache.SaveChanges();
+
+        // save the file mappings
+        fileMappingService.SaveMappings();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error processing translations: {ex.Message}");
+    }
 }))
-.WithParsedAsync<GensidebarOptions>(async options => {
+.WithParsedAsync<GensidebarOptions>(async options => 
+{
     try
     {
         // replication service
@@ -56,7 +66,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
         var topLevelfiles = new List<string>();
         // iterate the provided source folder
         Func<string,bool> excluder = n => Path.GetFileName(n) == "_sidebar.md" || BuildExcluder(configParams)(n);
-        await IteratePath(options.Path, excluder, async f => topLevelfolders.Add(f), async f => topLevelfiles.Add(f), options.TopLevelDepth);
+        await IteratePath(options.Path, excluder, AddAsync(topLevelfolders!), AddAsync(topLevelfiles), options.TopLevelDepth);
         var gen = new SidebarGenerator();
         var topSidebar = gen.GenerateTopLevel(options.Path, topLevelfiles, topLevelfolders, options.Profile);
         Console.WriteLine($"Processing top level directory {options.Path}");
@@ -69,19 +79,17 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
             Console.WriteLine($"Processing {folder}");
             var folders = new List<string>();
             var files = new List<string>();
-            await IteratePath(folder, excluder, async f => folders.Add(f), async f => files.Add(f));
+            await IteratePath(folder, excluder, AddAsync(folders), AddAsync(files));
             Console.WriteLine($"Found {files.Count} files for sidebar");
             var sidebar = gen.GenerateSidebar(new DirectoryInfo(folder).Name, folder, files, folders, options.Profile);
             await File.WriteAllTextAsync(Path.Combine(folder, "_sidebar.md"), sidebar);
         }
-    } catch (Exception ex)
+    } 
+    catch (Exception ex)
     {
-        Console.WriteLine($"Error processing sidebar {ex.Message}");
+        Console.WriteLine($"Error processing sidebar: {ex.Message}");
     }
 });
-
-
-
 
 #region util functions
 
@@ -126,6 +134,15 @@ static int FolderDepth(string path)
             depth++;
     }
     return depth;
+}
+
+static Func<string, Task> AddAsync(List<string> list)
+{
+    return s =>
+    {
+        list.Add(s);
+        return Task.CompletedTask;
+    };
 }
 
 #endregion

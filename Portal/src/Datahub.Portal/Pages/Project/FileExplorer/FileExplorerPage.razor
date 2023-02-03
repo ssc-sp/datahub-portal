@@ -2,7 +2,7 @@
 @inject DataRetrievalService _dataRetrievalService
 @inject IUserInformationService _userInformationService
 
-@page "/projects/{ProjectAcronymParam}/filelist"
+@page "/w/{ProjectAcronymParam}/filelist"
 @using Datahub.Core.Components.PageBanner
 @using Datahub.Core.Services.Storage
 @using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
@@ -13,10 +13,9 @@
 
 <DHPageAlert 
     Title=@Localizer["How to use Project Storage"] 
-    Key="@PageAlert.Storage" 
-    WikiLinkEN="Onboarding---Project-Storage"
-    WikiLinkFR="fr/Stockage-du-projet-d'embarquement" 
-/>
+    Key="@PageAlert.Storage"
+    WikiLinkEN="/UserGuide/Onboarding/Onboarding---Project-Storage"
+    WikiLinkFR="/fr/UserGuide/Onboarding/Stockage-du-projet-d'embarquement" />
 
 <MudStack>
     <MudText Typo="Typo.h4">@Localizer["Storage Explorer"]</MudText>

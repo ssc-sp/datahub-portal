@@ -1,0 +1,25 @@
+﻿@using Datahub.Portal.Services.Notification
+
+<h3>Onboarding Application</h3>
+<h4>Onboarding Request</h4>
+<p>@ApplicationParameters.App.Client_Contact_Name </p>
+<p>Thank you for completing the DataHub Onboarding Form. We’ve received your application and a DataHub team member will be in touch with you shortly.</p>
+<p>Please contact datahub@nrcan-rncan.gc.ca if you have questions or require additional information.</p>
+
+<hr />
+
+<h3>Formulaire de demande de mise en place de services informatiques</h3>
+<h4>Demande de mise en place de services informatiques</h4>
+<p>@ApplicationParameters.App.Client_Contact_Name </p>
+<p>Merci d'avoir rempli le formulaire de demande de mise en place de services informatiques du Carrefour des données. Nous avons reçu votre demande et un membre de l'équipe du Carrefour des données communiquera avec vous sous peu.</p>
+<p>Veuillez écrire à datahub@nrcan-rncan.gc.ca si vous avez des questions ou si vous souhaitez obtenir des informations supplémentaires.</p>
+
+
+
+
+@code {
+
+    [Parameter]
+    public OnboardingParameters ApplicationParameters { get; set; }
+
+}

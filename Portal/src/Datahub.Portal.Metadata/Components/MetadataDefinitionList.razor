@@ -22,7 +22,7 @@
         Renderers=@_renderFunctions
         Page="@_lastClicked"
         PageSize=@_pageSize
-        GridTemplateColumns="3fr 3fr 3fr 2fr 1fr"
+        GridTemplateColumns="1fr 3fr 3fr 3fr 2fr 1fr"
     />
     @if (_table != null)
     {
@@ -63,9 +63,9 @@
 
         ApplyFilter();
 
-        _accessorFunctions = new() { GetName, GetNameEnglish, GetNameFrench, null, null };
-        _headers = new() { Localizer["ID"], Localizer["English Name"], Localizer["French Name"], Localizer["Has Choices?"], string.Empty };
-        _renderFunctions = new() { null, null, null, GetHasChoices, GetEditFragment };
+        _accessorFunctions = new() { GetOrder, GetName, GetNameEnglish, GetNameFrench, null, null };
+        _headers = new() { Localizer["Order"], Localizer["ID"], Localizer["English Name"], Localizer["French Name"], Localizer["Has Choices?"], string.Empty };
+        _renderFunctions = new() { null, null, null, null, GetHasChoices, GetEditFragment };
 
         _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
     }
@@ -80,6 +80,7 @@
         }
     }
 
+    private string GetOrder(FieldDefinition result) => result.Sort_Order_NUM.ToString();
     private string GetName(FieldDefinition result) => result.Field_Name_TXT;
     private string GetNameEnglish(FieldDefinition result) => result.Name_English_TXT;
     private string GetNameFrench(FieldDefinition result) => result.Name_French_TXT;

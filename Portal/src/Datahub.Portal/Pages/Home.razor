@@ -12,9 +12,9 @@
 
 <DHPageAlert 
     Title=@Localizer["Welcome To DataHub"] 
-    Key="@PageAlert.Home" 
-    WikiLinkEN="Onboarding---Landing" 
-    WikiLinkFR="fr/Atterrissage-de-l'embarquement" />
+    Key="@PageAlert.Home"
+    WikiLinkEN="/UserGuide/Onboarding/Onboarding---Landing"
+    WikiLinkFR="/fr/UserGuide/Onboarding/Atterrissage-de-l'embarquement" />
 
 <WelcomeBanner/>
 <CascadingValue Name="GraphUser" Value="_user">
@@ -87,7 +87,7 @@
                 _isUserValid = true;
                 await _uiControlsService.ToggleModal();
                 await SetupRootFolder();
-                await AdjustLanguage();
+                await AdjustLanguage(true);
             }
 
             StateHasChanged();
@@ -97,13 +97,20 @@
         _navigationManager.NavigateTo(LOGOUT_URL, forceLoad: true);
     }
 
-    private async Task AdjustLanguage()
+    private async Task AdjustLanguage(bool afterRender = false)
     {
-        var language = await _localStorage.GetItemAsStringAsync("language");
+        var language = string.Empty;
+        if (afterRender)
+        {
+            language = await _localStorage.GetItemAsStringAsync("language");
+        }
         if (string.IsNullOrWhiteSpace(language))
         {
             language = await _userInformationService.GetUserLanguage();
-            await _localStorage.SetItemAsStringAsync("language", language);
+            if (afterRender)
+            {
+                await _localStorage.SetItemAsStringAsync("language", language);
+            }
             _userInformationService.SetLanguage(language);
         }
     }

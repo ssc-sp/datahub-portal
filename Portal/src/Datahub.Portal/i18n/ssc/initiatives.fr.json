@@ -279,5 +279,6 @@
   "You currently do not have access to this project": "Vous n’avez actuellement pas accès à ce projet",
   "You currently do not have access to this project.": "Vous n’avez actuellement pas accès à ce projet.",
   "Project Information": "Informations sur le projet",
-  "Welcome to your Data Project": "Bienvenue a votre initiative de données"
+  "Welcome to your Data Project": "Bienvenue a votre projet",
+  "Project_Status_Values": "Statut du project"
 }

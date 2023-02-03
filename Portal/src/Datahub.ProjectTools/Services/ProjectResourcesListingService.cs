@@ -44,16 +44,15 @@ public class ProjectResourcesListingService
 
     private static Type[] ResourceProviders = new[]
     {
-        typeof(DHPublicSharing),
-        typeof(DHPowerBIResource),
-        typeof(DHDataEntry)
-    };
+        typeof(DHPublicSharing)
+            
+    }; 
 
     public static void RegisterResources(IServiceCollection services)
     {
         foreach (var resource in ResourceProviders)
             services.AddTransient(resource);
-        services.AddTransient<DHGitModuleResource>();
+        services.AddTransient<ServiceCatalogGitModuleResource>();
     }
 
     public async Task<List<IProjectResource>> GetResourcesForProject(Datahub_Project project)
@@ -106,7 +105,7 @@ public class ProjectResourcesListingService
             foreach (var item in githubModules)
             {
                 logger.LogDebug($"Configuring {item.Name} in project {project.Project_ID} ({project.Project_Name})");
-                var gitModule = serviceScope.ServiceProvider.GetRequiredService<DHGitModuleResource>();
+                var gitModule = serviceScope.ServiceProvider.GetRequiredService<ServiceCatalogGitModuleResource>();
                 gitModule.ConfigureGitModule(item);
                 await gitModule.InitializeAsync(project, await userInformationService.GetUserIdString(),
                     await userInformationService.GetCurrentGraphUserAsync(), isUserAdmin || isUserDHAdmin);

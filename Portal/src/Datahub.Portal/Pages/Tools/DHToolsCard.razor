@@ -1,10 +1,11 @@
-﻿            <MudCard>
+﻿@using MudBlazor.Utilities
+            <MudCard>
                 <MudCardHeader>
-                    <CardHeaderAvatar>
-                        <MudIcon Icon="@Icon" Color="Color.Default" Size="Size.Large" />
-                    </CardHeaderAvatar>
                     <CardHeaderContent>
-                        <MudText Typo="Typo.h6">@Localizer[Title]</MudText>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@Icon" Color="Color.Default" Size="Size.Large" Style="@GetIconStyle()"/>
+                            <MudText Typo="Typo.h3">@Localizer[Title]</MudText>
+                        </MudStack>
                     </CardHeaderContent>
                 </MudCardHeader>
                 <MudCardContent>
@@ -28,5 +29,13 @@
     public string Href { get; set; }
     [Parameter]
     public RenderFragment ChildContent { get; set; }
+
+    private string GetIconStyle()
+    {
+        return new StyleBuilder()
+            .AddStyle("width", "fit-content")
+            .AddStyle("height", "fit-content")
+            .Build();
+    }
     
 }

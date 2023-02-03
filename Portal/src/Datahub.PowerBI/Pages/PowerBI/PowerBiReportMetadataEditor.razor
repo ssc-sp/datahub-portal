@@ -3,7 +3,7 @@
 @using Datahub.PowerBI.Data;
 @using Datahub.PowerBI.Services
 @using Datahub.Core.Model.Datahub
-    using Datahub.Core.Services.Metadata;
+
 @inject IPowerBiDataService _powerBiDataService
 @inject TranslationService _translationService
 @inject IMetadataBrokerService _metadataService
@@ -99,6 +99,7 @@ else
             <MudButton OnClick=@CancelEditing Variant="Variant.Outlined" Color="Color.Default">
                 <MudText>@Localizer[$"BUTTONS.Cancel"]</MudText>
             </MudButton>
+            
         </MudStack>
     </MudStack>
 }
@@ -225,12 +226,12 @@ else
 
         if (success)
         {
-            await _saveReportInd.SignalSuccess();
+            //await _saveReportInd.SignalSuccess();
             await CloseItemBeingEdited(true);
         }
         else
         {
-            await _saveReportInd.SignalFailure();
+            //await _saveReportInd.SignalFailure();
         }
     }
 
