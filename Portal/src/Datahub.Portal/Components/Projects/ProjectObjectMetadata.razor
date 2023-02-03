@@ -8,6 +8,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
 @inject IOrganizationLevelsService OrganizationLevelsService
 @inject ILogger<ProjectObjectMetadata> Logger
+@inject ISnackbar _snackbar
 
 @if (_project is not null)
 {
@@ -179,6 +180,7 @@
             ctx.Projects.Update(_project);
             await ctx.SaveChangesAsync();
 
+            _snackbar.Add(Localizer["Successfully saved project metadata."], Severity.Success);
             HandleNavigateToProject();
         }
         catch (Exception ex)
