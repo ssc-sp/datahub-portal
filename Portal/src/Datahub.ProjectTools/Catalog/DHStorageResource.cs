@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace Datahub.ProjectTools.Catalog;
 
-public class DHStorageResource: DHURLResource
+public class DHStorageResource: ActiveGitModuleResource
 {
     private readonly IDbContextFactory<DatahubProjectDBContext> dbFactoryProject;
     private readonly bool _isServiceConfigured;
@@ -23,14 +23,14 @@ public class DHStorageResource: DHURLResource
     private bool _azStorageServiceRequested = false;
     private bool _azStorageServiceCreated = false;
 
-    protected override async Task InitializeAsync(string userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
+    protected override async Task InitializeAsync(string? userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
         var serviceRequests = Project.ServiceRequests.Where(r => r.ServiceType == IRequestManagementService.STORAGE).ToList();
         _azStorageServiceRequested = serviceRequests.Any(r=> r.Is_Completed == null);
         _azStorageServiceCreated = serviceRequests.Any(pr => pr.Is_Completed != null); 
 
-        parameters.Add(nameof(StorageResourceCard.Project), Project);
+        Parameters.Add(nameof(StorageResourceCard.Project), Project);
     }
 
     protected override string Title => "Project Storage";

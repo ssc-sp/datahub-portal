@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 namespace Datahub.ProjectTools.Catalog;
 
 #nullable enable
-public class DHDataEntry : DHURLResource
+public class DHDataEntry : ActiveGitModuleResource
 { 
 
     private readonly IDbContextFactory<DatahubProjectDBContext> dbFactoryProject;
@@ -22,13 +22,13 @@ public class DHDataEntry : DHURLResource
     private bool _dataEntryServiceRequested = false;
     private bool _dataEntryServiceCreated = false;
 
-    protected override async Task InitializeAsync(string userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
+    protected override async Task InitializeAsync(string? userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
         var serviceRequests = Project.ServiceRequests;
         _dataEntryServiceRequested = false; //serviceRequests.Any(r => r.ServiceType == IRequestManagementService. && r.Is_Completed == null);
         _dataEntryServiceCreated = !string.IsNullOrEmpty(Project.WebForms_URL);
-        parameters.Add(nameof(DataEntry.Project), Project);
+        Parameters.Add(nameof(DataEntry.Project), Project);
     }
 
     protected override string Title => "Data Entry";
