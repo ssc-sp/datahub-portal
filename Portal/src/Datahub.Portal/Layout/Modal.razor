@@ -24,7 +24,13 @@
 
     protected async override Task OnAfterRenderAsync(bool firstRender)
     {
-        await JSRuntime.InvokeVoidAsync("SetFocusToElement", "escapearea");
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("SetFocusToElement", "escapearea");
+        }
+        catch (Exception)
+        {
+        }
     }
 
     private async void UpdatePageOverlay()
