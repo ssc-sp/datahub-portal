@@ -2,8 +2,6 @@ using BoDi;
 using Datahub.Specs.PageObjects;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Playwright;
-using Microsoft.Extensions.Configuration.UserSecrets;
-using System.ComponentModel;
 
 namespace Datahub.Specs.Hooks;
 
@@ -20,25 +18,54 @@ public class Hooks
             .Build();
     }
 
-    private async Task SetupScenario(IObjectContainer container, Action<IBrowser, IConfiguration> setup, bool headless = true, int? slowmo = default)
+    #region Scenario utils
+
+    static LoginPageObject loginPageObject = default!;
+
+    private async Task SetupScenario(IObjectContainer container, Action<IConfiguration, IBrowser> setup)
     {
         var playwright = await Microsoft.Playwright.Playwright.CreateAsync();
+        var browser = await playwright.Chromium.LaunchAsync(GetBrowserOptions());
 
-        BrowserTypeLaunchOptions browserOptions = new() { Headless = headless };
-        if (slowmo.HasValue)
-        {
-            browserOptions.SlowMo = slowmo.Value;
-        }
-
-        var browser = await playwright.Chromium.LaunchAsync(browserOptions);
-
-        setup.Invoke(browser, _config);
+        // callback scenario
+        setup.Invoke(_config, browser);
 
         container.RegisterInstanceAs(playwright);
         container.RegisterInstanceAs(browser);
+
+        var mustLogin = false;
+        lock (typeof(Hooks))
+        {
+            if (loginPageObject is null)
+            {
+                // register the login page
+                loginPageObject = new(_config, browser);
+                mustLogin = true;
+            }
+            container.RegisterInstanceAs(loginPageObject);
+        }
+
+        if (mustLogin)
+        {
+            // always start scenario after login completed
+            await loginPageObject.LoginAsync();
+        }
     }
 
-    private async Task TeardownScenario(IObjectContainer container)
+    private BrowserTypeLaunchOptions GetBrowserOptions()
+    {
+        var options = new BrowserTypeLaunchOptions() 
+        { 
+            Headless = _config["Headless"] != "false"
+        };
+        if (int.TryParse(_config["SlowMo"], out int slowmo))
+        {
+            options.SlowMo = slowmo;
+        }
+        return options;
+    }
+
+    private static async Task TeardownScenario(IObjectContainer container)
     {
         var browser = container.Resolve<Microsoft.Playwright.IBrowser>();
         await browser.CloseAsync();
@@ -47,20 +74,32 @@ public class Hooks
         playwright.Dispose();
     }
 
+    #endregion
+
     [BeforeScenario("a11y")]
     public async Task BeforeA11yScenario(IObjectContainer container)
     {
-        LoginPageObject loginPageObject = null!;
-
-        await SetupScenario(container, (browser, config) =>
-        {
-            container.RegisterInstanceAs(loginPageObject = new LoginPageObject(browser, config));
-            container.RegisterInstanceAs(new HomePageObject(browser, config));
-        });
-
-        await loginPageObject.NavigateAsync();
+        await SetupScenario(container, (config, browser) 
+            => container.RegisterInstanceAs(new HomePageObject(config, browser)));
     }
 
-    [AfterScenario("a11y")]
-    public Task AfterA11yScenario(IObjectContainer container) => TeardownScenario(container);
+    [BeforeScenario("ws")]
+    public async Task BeforeWsScenario(IObjectContainer container)
+    {
+        await SetupScenario(container, (config, browser)
+            => container.RegisterInstanceAs(new WorkspacePageObject(config, browser)));
+    }
+
+    [BeforeScenario("res")]
+    public async Task BeforeResScenario(IObjectContainer container)
+    {
+        await SetupScenario(container, (config, browser)
+            => container.RegisterInstanceAs(new ResourcesPageObject(config, browser)));
+    }
+
+    [AfterScenario("a11y", "ws", "res")]
+    public static Task AfterResScenario(IObjectContainer container)
+    {
+        return TeardownScenario(container);
+    }
 }
