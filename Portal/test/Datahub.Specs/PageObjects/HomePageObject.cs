@@ -5,16 +5,7 @@ namespace Datahub.Specs.PageObjects;
 
 public class HomePageObject : BasePageObject
 {
-    private readonly IConfiguration _configuration;
-    public override string BaseUrl => _configuration["BaseUrl"] ?? "https://localhost:5001";
-    public override string PagePath => HomePath;
-    public sealed override IPage Page { get; set; }
-    public sealed override IBrowser Browser { get; }
-
-    public HomePageObject(IBrowser browser, IConfiguration configuration)
+    public HomePageObject(IConfiguration configuration, IBrowser browser) : base(configuration, browser, path: "home")
     {
-        Browser = browser;
-        _configuration = configuration;
-        Page = null!;
     }
 }

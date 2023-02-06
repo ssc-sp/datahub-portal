@@ -8,6 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <SpecFlowObsoleteCodeBehindFiles Remove="Features\A11y - Copy.feature.cs" />
+      <SpecFlowObsoleteCodeBehindFiles Remove="Features\Workspace - Copy.feature.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Using Include="TechTalk.SpecFlow" />
     </ItemGroup>
 
@@ -26,9 +31,29 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Compile Update="Features\Resources.feature.cs">
+        <DependentUpon>Resources.feature</DependentUpon>
+      </Compile>
+      <Compile Update="Features\Workspace.feature.cs">
+        <DependentUpon>Workspace.feature</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
       <None Update="appsettings.secret.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <SpecFlowFeatureFiles Update="Features\Resources.feature">
+        <Visible>$(UsingMicrosoftNETSdk)</Visible>
+        <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+      </SpecFlowFeatureFiles>
+      <SpecFlowFeatureFiles Update="Features\Workspace.feature">
+        <Visible>$(UsingMicrosoftNETSdk)</Visible>
+        <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+      </SpecFlowFeatureFiles>
     </ItemGroup>
 
 </Project>
