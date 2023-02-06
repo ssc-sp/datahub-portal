@@ -13,25 +13,12 @@ public static class ConfigureAuthServices
 
     public static void AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
     {
-
-        services.AddAuthentication(options =>
-        {
-            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-        })
-        //.AddCookie()
-        //.AddOpenIdConnect()
-        .AddMicrosoftIdentityWebApp(configuration)
-        .EnableTokenAcquisitionToCallDownstreamApi()
-        .AddMicrosoftGraph(configuration.GetSection("Graph"))
-        .AddInMemoryTokenCaches();
-
-        //services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-        //    .AddJwtBearer(opts => configuration.Bind("Jwt", opts))
-        //    .AddMicrosoftIdentityWebApp(configuration)
-        //    .EnableTokenAcquisitionToCallDownstreamApi()
-        //    .AddMicrosoftGraph(configuration.GetSection("Graph"))
-        //    .AddInMemoryTokenCaches();
+        services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+            //.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opts => configuration.Bind("Jwt", opts))
+            .AddMicrosoftIdentityWebApp(configuration)
+            .EnableTokenAcquisitionToCallDownstreamApi()
+            .AddMicrosoftGraph(configuration.GetSection("Graph"))
+            .AddInMemoryTokenCaches();
 
         services.AddMicrosoftIdentityConsentHandler();
 
