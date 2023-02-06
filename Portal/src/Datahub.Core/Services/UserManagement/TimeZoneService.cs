@@ -20,18 +20,11 @@ public sealed class TimeZoneService
 
     public async ValueTask<DateTimeOffset> GetLocalDateTime(DateTimeOffset dateTime)
     {
-        try
+        if (_userOffset == null)
         {
-            if (_userOffset == null)
-            {
-                int offsetInMinutes = await _jsRuntime.InvokeAsync<int>("blazorGetTimezoneOffset");
-                _userOffset = TimeSpan.FromMinutes(-offsetInMinutes);
-            }
-            return dateTime.ToOffset(_userOffset.Value);
+            int offsetInMinutes = await _jsRuntime.InvokeAsync<int>("blazorGetTimezoneOffset");
+            _userOffset = TimeSpan.FromMinutes(-offsetInMinutes);
         }
-        catch (Exception)
-        {
-            return DateTimeOffset.Now;
-        }
+        return dateTime.ToOffset(_userOffset.Value);
     }
 }

@@ -129,7 +129,7 @@ else
 
         if (_currentDoc is null)
         {
-            await _docService.LogNotFoundError(PageName, _resourceRoot.Title);
+            _docService.LogNotFoundError(PageName, _resourceRoot.Title);
         }
         else if (_currentDoc.MarkdownPage is null)
         {
