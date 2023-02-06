@@ -8,11 +8,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <SpecFlowObsoleteCodeBehindFiles Remove="Features\A11y - Copy.feature.cs" />
-      <SpecFlowObsoleteCodeBehindFiles Remove="Features\Workspace - Copy.feature.cs" />
-    </ItemGroup>
-
-    <ItemGroup>
         <Using Include="TechTalk.SpecFlow" />
     </ItemGroup>
 
