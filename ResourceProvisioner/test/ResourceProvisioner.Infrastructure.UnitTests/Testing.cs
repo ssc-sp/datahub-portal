@@ -4,6 +4,7 @@ using ResourceProvisioner.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
+using ResourceProvisioner.Application.Config;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests;
 
@@ -13,6 +14,8 @@ public partial class Testing
     internal static IConfiguration _configuration = null!;
     internal static IRepositoryService _repositoryService;
     internal static ITerraformService _terraformService;
+    
+    internal static ResourceProvisionerConfiguration _resourceProvisionerConfiguration = null!;
     
     
     internal const string ProjectAcronym = "TEST";
@@ -34,6 +37,9 @@ public partial class Testing
         _configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.Test.json")
             .Build();
+        
+        _resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
+        _configuration.Bind(_resourceProvisionerConfiguration);
         
         _terraformService = new TerraformService(Mock.Of<ILogger<TerraformService>>(), _configuration);
         
