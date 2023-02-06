@@ -5,49 +5,44 @@ namespace Datahub.Specs.PageObjects;
 
 public class LoginPageObject : BasePageObject
 {
-    private readonly IConfiguration _configuration;
-    
-    public override string BaseUrl => _configuration["BaseUrl"];
-    public override string PagePath => LoginPath;
-    public sealed override IPage Page { get; set; }
-    public sealed override IBrowser Browser { get; }
-
-    public LoginPageObject(IBrowser browser, IConfiguration configuration)
+    public LoginPageObject(IConfiguration configuration, IBrowser browser) : base(configuration, browser, path: "login")
     {
-        Browser = browser;
-        _configuration = configuration;
     }
 
     public async Task LoginAsync()
     {
         await NavigateAsync();
-        
-        await Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { NameString = "Log in" })
-            .ClickAsync();
-        
-        if (Page.Url.EndsWith("home"))
-        {
+
+        if (Page!.Url.EndsWith("home"))
             return;
-        }
-        
-        await Page.GetByPlaceholder("Email, phone, or Skype")
-            .FillAsync(_configuration["Username"]);
-        
-        await Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { NameString = "Next" })
-            .ClickAsync();
-        
-        await Page.Locator("#i0118")
-            .FillAsync(_configuration["Password"]);
 
-        await Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { NameString = "Sign in" })
-            .ClickAsync();
+        // click the new Login button
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Login" }).ClickAsync();
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        await Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { NameString = "No" })
-            .ClickAsync();
+        // Enter username
+        await Page.FillAsync("input[name='loginfmt']", Configuration["Username"]!);
+        await Page.ClickAsync("input[type=submit]");
 
+        // Wait until page has changed and is loaded
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+        // Enter password
+        await Page.FillAsync("input[name='passwd']", Configuration["password"]!);
+        await Page.ClickAsync("input[type=submit]");
+
+        // Wait until page has changed and is loaded
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+        await Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { NameString = "No" }).ClickAsync();
+
+        // Wait until page has changed and is loaded
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+        // create authentication context
         await Page.Context.StorageStateAsync(new BrowserContextStorageStateOptions
         {
-            Path = "auth.json"
+            Path = AuthStoragePath
         });
     }
 }

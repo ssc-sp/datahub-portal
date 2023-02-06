@@ -25,7 +25,6 @@ public sealed class TimeZoneService
             int offsetInMinutes = await _jsRuntime.InvokeAsync<int>("blazorGetTimezoneOffset");
             _userOffset = TimeSpan.FromMinutes(-offsetInMinutes);
         }
-
         return dateTime.ToOffset(_userOffset.Value);
     }
 }

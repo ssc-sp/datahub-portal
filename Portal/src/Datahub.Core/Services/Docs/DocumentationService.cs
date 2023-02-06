@@ -45,8 +45,6 @@ public class DocumentationService
     private DocItem? frOutline;
     private readonly IMemoryCache _cache;
 
-    public event Func<Task>? NotifyRefreshErrors;
-
     public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger, 
         IHttpClientFactory httpClientFactory,
         IMemoryCache docCache)
@@ -59,11 +57,10 @@ public class DocumentationService
         _cache = docCache;
     }
 
-    private async Task AddStatusMessage(string message)
+    private void AddStatusMessage(string message)
     {
         var error = new TimeStampedStatus(DateTime.UtcNow, message);
         _statusMessages.Add(error);
-        await InvokeNotifyRefreshErrors();
     }
 
     private static DocItem? ParseSidebar(DocumentationGuide guide, string? inputMarkdown, Func<string, string> mapId)
@@ -174,7 +171,7 @@ public class DocumentationService
         if (doc.Title is not null)
         {
             doc.Content = await LoadDocsPage(DocumentationGuide.RootFolder, doc.GetMarkdownFileName());
-            await BuildPreview(doc);
+            BuildPreview(doc);
         }
         foreach (var item in doc.Children)
         {
@@ -182,7 +179,7 @@ public class DocumentationService
         }
     }
 
-    private async Task BuildPreview(DocItem doc)
+    private void BuildPreview(DocItem doc)
     {
         if (string.IsNullOrEmpty(doc.Content)) return;
         var cardDoc = Markdown.Parse(doc.Content);
@@ -192,7 +189,7 @@ public class DocumentationService
         var firstPara = cardDocFlattened.FirstOrDefault(e => e is ParagraphBlock) as ParagraphBlock;
         if (firstHeading?.Inline?.FirstChild is null || firstPara?.Inline?.FirstChild is null)
         {
-            await AddStatusMessage($"Invalid card {doc.GetDescription()} - first Header or first Paragraph missing");
+            AddStatusMessage($"Invalid card {doc.GetDescription()} - first Header or first Paragraph missing");
             return;
         }
 
@@ -201,14 +198,6 @@ public class DocumentationService
 
         doc.ContentTitle = title;
         doc.Preview = preview;
-    }
-
-    private async Task InvokeNotifyRefreshErrors()
-    {
-        if (NotifyRefreshErrors != null)
-        {
-            await NotifyRefreshErrors.Invoke();
-        }
     }
 
     public const string LOCALE_EN = "";
@@ -221,7 +210,7 @@ public class DocumentationService
 
         _statusMessages = new List<TimeStampedStatus>();
 
-        await AddStatusMessage("Loading resources");
+        AddStatusMessage("Loading resources");
 
         enOutline = ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_EN, useCache), docFileMappings.GetEnglishDocumentId);
         if (enOutline is null)
@@ -231,7 +220,7 @@ public class DocumentationService
         if (frOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
         
-        await AddStatusMessage("Finished loading sidebars");
+        AddStatusMessage("Finished loading sidebars");
 
     }
 
@@ -326,7 +315,7 @@ public class DocumentationService
         catch (Exception e)
         {
             _logger.LogError(e, "Error loading {url}", url);
-            await AddStatusMessage($"Error loading {url}");
+            AddStatusMessage($"Error loading {url}");
 
             return default(string);
         }
@@ -389,9 +378,9 @@ public class DocumentationService
 
     public IReadOnlyList<TimeStampedStatus> GetErrorList() => _statusMessages.AsReadOnly();
 
-    public async Task LogNotFoundError(string pageName, string resourceRoot) => await AddStatusMessage($"{pageName} was not found in {resourceRoot} cache");
+    public void LogNotFoundError(string pageName, string resourceRoot) => AddStatusMessage($"{pageName} was not found in {resourceRoot} cache");
 
-    public async Task LogNoArticleSpecifiedError(string url, string resourceRoot) => await AddStatusMessage($"Embedded resource on page {url} does not specify a page name in {resourceRoot}");
+    public void LogNoArticleSpecifiedError(string url, string resourceRoot) => AddStatusMessage($"Embedded resource on page {url} does not specify a page name in {resourceRoot}");
 }
 
 #nullable disable
