@@ -31,5 +31,4 @@ public sealed class A11yStepDefinitions
         var axeResults = await _homePageObject.Page.RunAxe();
         axeResults.Violations.Should().BeEmpty();
     }
-
 }
