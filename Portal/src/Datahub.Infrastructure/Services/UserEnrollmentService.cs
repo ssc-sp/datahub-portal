@@ -33,15 +33,17 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         _httpClientFactory = httpClientFactory;
     }
 
-    public bool IsValidGcEmail(string email)
+    public bool IsValidGcEmail(string? email)
     {
+        if(email == null) return false;
+        
         var reOld = GC_CA_Regex();
         var reNew = Canada_CA_Regex();
 
         return reOld.IsMatch(email) || reNew.IsMatch(email);
     }
 
-    public async Task<string> SendUserDatahubPortalInvite(string registrationRequestEmail)
+    public async Task<string> SendUserDatahubPortalInvite(string? registrationRequestEmail)
     {
         var validGcEmail = IsValidGcEmail(registrationRequestEmail);
         if (validGcEmail == false || string.IsNullOrWhiteSpace(registrationRequestEmail))
