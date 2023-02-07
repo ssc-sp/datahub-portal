@@ -54,6 +54,7 @@ public class Variables
     public string environment_name { get; set; }
     public string az_location { get; set; }
     public string resource_prefix { get; set; }
+    public string datahub_app_sp_oid { get; set; }
     public CommonTags common_tags { get; set; }
 }
 
