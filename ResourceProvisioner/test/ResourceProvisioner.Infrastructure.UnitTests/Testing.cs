@@ -106,4 +106,52 @@ public partial class Testing
         return Directory
             .GetFiles(moduleDestinationPath, "*.*", SearchOption.TopDirectoryOnly).Length;
     }
+    
+    internal static string GenerateWorkspaceAcronym()
+    {
+        return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
+    }
+    
+    internal static TerraformWorkspace GenerateTestTerraformWorkspace(string workspaceAcronym, bool withUsers = true)
+    {
+        if (!withUsers)
+        {
+            return new TerraformWorkspace
+            {
+                Acronym = workspaceAcronym,
+            };
+        }
+
+        return new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym,
+            Users = new List<TerraformUser>
+            {
+                new()
+                {
+                    Email = "1@email.com",
+                    ObjectId = "00000000-0000-0000-0000-000000000001"
+                },
+                new()
+                {
+                    Email = "2@email.com",
+                    ObjectId = "00000000-0000-0000-0000-000000000002"
+                },
+                new()
+                {
+                    Email = "3@email.com",
+                    ObjectId = "00000000-0000-0000-0000-000000000003"
+                }
+            }
+        };
+    }
+    
+    internal static TerraformTemplate GenerateTerraformTemplate(string template)
+    {
+        return new TerraformTemplate
+        {
+            Name = TerraformTemplate.AzureDatabricks,
+            Version = "latest"
+        };
+    }
 }
