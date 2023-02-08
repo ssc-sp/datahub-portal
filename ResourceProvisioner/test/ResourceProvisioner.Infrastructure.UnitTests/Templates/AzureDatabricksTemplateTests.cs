@@ -46,7 +46,7 @@ public class AzureDatabricksTemplateTests
     [Test]
     public async Task ShouldCopyAzureDatabricksTemplate()
     {
-        const string workspaceAcronym = "ShouldCopyAzureDatabricksBlobTemplate";
+        const string workspaceAcronym = "ShouldCopyAzureDatabricksTemplate";
     
         // Setup new project template
         var newProjectTemplateExpectedFileCount = await SetupNewProjectTemplate(workspaceAcronym);
@@ -89,85 +89,90 @@ public class AzureDatabricksTemplateTests
         }
     }
     
-    // [Test]
-    // public async Task ShouldExtractAzureStorageBlobTemplateVariables()
-    // {
-    //     const string workspaceAcronym = "ShouldExtractAzureStorageBlobTemplateVariables";
-    //     // Setup new project template
-    //     await SetupNewProjectTemplate(workspaceAcronym);
-    //
-    //     var workspace = new TerraformWorkspace
-    //     {
-    //         Acronym = workspaceAcronym,
-    //         Users = new List<TerraformUser>
-    //         {
-    //             new()
-    //             {
-    //                 Email = "1@email.com",
-    //                 ObjectId = "00000000-0000-0000-0000-000000000001"
-    //             },
-    //             new()
-    //             {
-    //                 Email = "2@email.com",
-    //                 ObjectId = "00000000-0000-0000-0000-000000000002"
-    //             },
-    //             new()
-    //             {
-    //                 Email = "3@email.com",
-    //                 ObjectId = "00000000-0000-0000-0000-000000000003"
-    //             }
-    //         }
-    //     };
-    //
-    //     var expectedVariables = new JsonObject
-    //     {
-    //         ["storage_contributor_users"] = new JsonArray
-    //         {
-    //             new JsonObject
-    //             {
-    //                 ["email"] = "1@email.com",
-    //                 ["oid"] = "00000000-0000-0000-0000-000000000001"
-    //             },
-    //             new JsonObject
-    //             {
-    //                 ["email"] = "2@email.com",
-    //                 ["oid"] = "00000000-0000-0000-0000-000000000002"
-    //             },
-    //             new JsonObject
-    //             {
-    //                 ["email"] = "3@email.com",
-    //                 ["oid"] = "00000000-0000-0000-0000-000000000003"
-    //             },
-    //         },
-    //     };
-    //
-    //     var module = new TerraformTemplate
-    //     {
-    //         Name = TerraformTemplate.AzureStorageBlob,
-    //         Version = "latest"
-    //     };
-    //
-    //     await _terraformService.CopyTemplateAsync(module, workspace);
-    //     await _terraformService.ExtractVariables(module, workspace);
-    //
-    //     var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
-    //         $"{module.Name}.auto.tfvars.json");
-    //     Assert.That(File.Exists(expectedVariablesFilename), Is.True);
-    //
-    //     var actualVariables =
-    //         JsonSerializer.Deserialize<JsonObject>(
-    //             await File.ReadAllTextAsync(expectedVariablesFilename));
-    //
-    //     foreach (var (key, value) in actualVariables!)
-    //     {
-    //         Assert.Multiple(() =>
-    //         {
-    //             Assert.That(expectedVariables.ContainsKey(key), Is.True);
-    //             Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
-    //         });
-    //     }
-    // }
-    //
+    [Test]
+    public async Task ShouldExtractAzureStorageBlobTemplateVariables()
+    {
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        // Setup new project template
+        await SetupNewProjectTemplate(workspaceAcronym);
+    
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym,
+            Users = new List<TerraformUser>
+            {
+                new()
+                {
+                    Email = "1@email.com",
+                    ObjectId = "00000000-0000-0000-0000-000000000001"
+                },
+                new()
+                {
+                    Email = "2@email.com",
+                    ObjectId = "00000000-0000-0000-0000-000000000002"
+                },
+                new()
+                {
+                    Email = "3@email.com",
+                    ObjectId = "00000000-0000-0000-0000-000000000003"
+                }
+            }
+        };
+    
+        var expectedVariables = new JsonObject
+        {
+            ["storage_contributor_users"] = new JsonArray
+            {
+                new JsonObject
+                {
+                    ["email"] = "1@email.com",
+                    ["oid"] = "00000000-0000-0000-0000-000000000001"
+                },
+                new JsonObject
+                {
+                    ["email"] = "2@email.com",
+                    ["oid"] = "00000000-0000-0000-0000-000000000002"
+                },
+                new JsonObject
+                {
+                    ["email"] = "3@email.com",
+                    ["oid"] = "00000000-0000-0000-0000-000000000003"
+                },
+            },
+        };
+    
+        var module = new TerraformTemplate
+        {
+            Name = TerraformTemplate.AzureStorageBlob,
+            Version = "latest"
+        };
+    
+        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.ExtractVariables(module, workspace);
+    
+        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
+            $"{module.Name}.auto.tfvars.json");
+        Assert.That(File.Exists(expectedVariablesFilename), Is.True);
+    
+        var actualVariables =
+            JsonSerializer.Deserialize<JsonObject>(
+                await File.ReadAllTextAsync(expectedVariablesFilename));
+    
+        foreach (var (key, value) in actualVariables!)
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(expectedVariables.ContainsKey(key), Is.True);
+                Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
+            });
+        }
+    }
+
+    private static string GenerateWorkspaceAcronym()
+    {
+        return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
+    }
+
     // [Test]
     // public async Task ShouldExtractAzureStorageBlobTemplateVariablesWithNoUsers()
     // {
