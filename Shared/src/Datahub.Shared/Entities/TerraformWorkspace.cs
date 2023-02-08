@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Text.Json.Nodes;
 
 // This is actually required by some projects
