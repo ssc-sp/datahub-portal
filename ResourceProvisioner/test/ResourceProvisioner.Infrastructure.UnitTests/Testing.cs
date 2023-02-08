@@ -4,6 +4,8 @@ using ResourceProvisioner.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
+using ResourceProvisioner.Application.Config;
+using ResourceProvisioner.Infrastructure.Common;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests;
 
@@ -13,6 +15,8 @@ public partial class Testing
     internal static IConfiguration _configuration = null!;
     internal static IRepositoryService _repositoryService;
     internal static ITerraformService _terraformService;
+    
+    internal static ResourceProvisionerConfiguration _resourceProvisionerConfiguration = null!;
     
     
     internal const string ProjectAcronym = "TEST";
@@ -34,6 +38,9 @@ public partial class Testing
         _configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.Test.json")
             .Build();
+        
+        _resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
+        _configuration.Bind(_resourceProvisionerConfiguration);
         
         _terraformService = new TerraformService(Mock.Of<ILogger<TerraformService>>(), _configuration);
         
@@ -75,5 +82,76 @@ public partial class Testing
         {
             file.Attributes = FileAttributes.Normal;
         }
+    }
+    
+    internal static async Task<int> SetupNewProjectTemplate(string workspaceAcronym)
+    {
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym
+        };
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+
+        var module = new TerraformTemplate
+        {
+            Name = TerraformTemplate.NewProjectTemplate,
+            Version = "latest"
+        };
+
+        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.ExtractVariables(module, workspace);
+        await _terraformService.ExtractBackendConfig(workspaceAcronym);
+
+        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
+        return Directory
+            .GetFiles(moduleDestinationPath, "*.*", SearchOption.TopDirectoryOnly).Length;
+    }
+    
+    internal static string GenerateWorkspaceAcronym()
+    {
+        return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
+    }
+    
+    internal static TerraformWorkspace GenerateTestTerraformWorkspace(string workspaceAcronym, bool withUsers = true)
+    {
+        if (!withUsers)
+        {
+            return new TerraformWorkspace
+            {
+                Acronym = workspaceAcronym,
+            };
+        }
+
+        return new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym,
+            Users = new List<TerraformUser>
+            {
+                new()
+                {
+                    Email = "1@email.com",
+                    ObjectId = "00000000-0000-0000-0000-000000000001"
+                },
+                new()
+                {
+                    Email = "2@email.com",
+                    ObjectId = "00000000-0000-0000-0000-000000000002"
+                },
+                new()
+                {
+                    Email = "3@email.com",
+                    ObjectId = "00000000-0000-0000-0000-000000000003"
+                }
+            }
+        };
+    }
+    
+    internal static TerraformTemplate GenerateTerraformTemplate(string template)
+    {
+        return new TerraformTemplate
+        {
+            Name = template,
+            Version = "latest"
+        };
     }
 }

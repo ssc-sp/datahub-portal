@@ -9,6 +9,7 @@ public class TerraformTemplate
     public const string VariableUpdate = "variable-update";
     public const string AzureStorageBlob = "azure-storage-blob";
     public const string AzureDatabricks = "azure-databricks";
+    public const string AzureVirtualMachine = "azure-virtual-machine";
     public const string ContactUs = "contact-us";
 
     public string Name { get; set; }
