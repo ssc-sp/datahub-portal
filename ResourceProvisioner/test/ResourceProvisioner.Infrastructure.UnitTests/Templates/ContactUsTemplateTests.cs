@@ -47,31 +47,12 @@ public class ContactUsTemplateTests
     [Test]
     public async Task ShouldNotCopyContactUsTemplateInExistingProject()
     {
-        const string workspaceAcronym = "ShouldNotCopyContactUsTemplate";
-        var workspace = new TerraformWorkspace
-        {
-            Acronym = workspaceAcronym
-        };
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
+        var fileCount = await SetupNewProjectTemplate(workspaceAcronym);
 
-        var module = new TerraformTemplate()
-        {
-            Name = TerraformTemplate.NewProjectTemplate,
-            Version = "latest"
-        };
-
-        await _terraformService.CopyTemplateAsync(module, workspace);
-
+        var module = GenerateTerraformTemplate(TerraformTemplate.ContactUs);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
-
-        Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
-        var fileCount = Directory.GetFiles(moduleDestinationPath, "*", SearchOption.AllDirectories).Length;
-        
-        module = new TerraformTemplate()
-        {
-            Name = TerraformTemplate.ContactUs,
-            Version = "latest"
-        };
         
         await _terraformService.CopyTemplateAsync(module, workspace);
         
