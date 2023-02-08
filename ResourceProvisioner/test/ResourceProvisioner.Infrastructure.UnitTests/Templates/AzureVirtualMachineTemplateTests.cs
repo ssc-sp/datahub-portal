@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Shared.Entities;
+using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
 
@@ -25,12 +26,13 @@ public class AzureVirtualMachineTemplateTests
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
-        
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureVirtualMachine);
 
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
+        {
+            await _terraformService.CopyTemplateAsync(module, workspace);
+        });
 
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
 
@@ -38,40 +40,21 @@ public class AzureVirtualMachineTemplateTests
         Assert.That(Directory.Exists(moduleDestinationPath), Is.False);
     }
 
-    // [Test]
-    // public async Task ShouldNotCopyContactUsTemplateInExistingProject()
-    // {
-    //     const string workspaceAcronym = "ShouldNotCopyContactUsTemplate";
-    //     var workspace = new TerraformWorkspace
-    //     {
-    //         Acronym = workspaceAcronym
-    //     };
-    //     await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-    //
-    //     var module = new TerraformTemplate()
-    //     {
-    //         Name = TerraformTemplate.NewProjectTemplate,
-    //         Version = "latest"
-    //     };
-    //
-    //     await _terraformService.CopyTemplateAsync(module, workspace);
-    //
-    //     var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
-    //
-    //     Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
-    //     var fileCount = Directory.GetFiles(moduleDestinationPath, "*", SearchOption.AllDirectories).Length;
-    //     
-    //     module = new TerraformTemplate()
-    //     {
-    //         Name = TerraformTemplate.ContactUs,
-    //         Version = "latest"
-    //     };
-    //     
-    //     await _terraformService.CopyTemplateAsync(module, workspace);
-    //     
-    //     // assert that no new files were created
-    //     Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
-    //     var newFileCount = Directory.GetFiles(moduleDestinationPath, "*", SearchOption.AllDirectories).Length;
-    //     Assert.That(newFileCount, Is.EqualTo(fileCount));
-    // }
+    [Test]
+    public async Task ShouldNotCopyAzureVirtualMachineTemplateInExistingProject()
+    {
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
+        var fileCount = await SetupNewProjectTemplate(workspaceAcronym);
+
+        var module = GenerateTerraformTemplate(TerraformTemplate.AzureVirtualMachine);
+        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
+        
+        await _terraformService.CopyTemplateAsync(module, workspace);
+        
+        // assert that no new files were created
+        Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
+        var newFileCount = Directory.GetFiles(moduleDestinationPath, "*", SearchOption.AllDirectories).Length;
+        Assert.That(newFileCount, Is.EqualTo(fileCount));
+    }
 }
