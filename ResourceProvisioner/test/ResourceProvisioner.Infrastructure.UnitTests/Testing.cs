@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using ResourceProvisioner.Application.Config;
+using ResourceProvisioner.Infrastructure.Common;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests;
 
@@ -81,5 +82,28 @@ public partial class Testing
         {
             file.Attributes = FileAttributes.Normal;
         }
+    }
+    
+    internal static async Task<int> SetupNewProjectTemplate(string workspaceAcronym)
+    {
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym
+        };
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+
+        var module = new TerraformTemplate
+        {
+            Name = TerraformTemplate.NewProjectTemplate,
+            Version = "latest"
+        };
+
+        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.ExtractVariables(module, workspace);
+        await _terraformService.ExtractBackendConfig(workspaceAcronym);
+
+        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
+        return Directory
+            .GetFiles(moduleDestinationPath, "*.*", SearchOption.TopDirectoryOnly).Length;
     }
 }
