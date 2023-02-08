@@ -23,18 +23,12 @@ public class ContactUsTemplateTests
     [Test]
     public async Task ShouldNotCopyContactUsTemplate()
     {
-        const string workspaceAcronym = "ShouldNotCopyContactUsTemplate";
-        var workspace = new TerraformWorkspace
-        {
-            Acronym = workspaceAcronym
-        };
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
+        
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
 
-        var module = new TerraformTemplate()
-        {
-            Name = TerraformTemplate.ContactUs,
-            Version = "latest"
-        };
+        var module = GenerateTerraformTemplate(TerraformTemplate.ContactUs);
 
         await _terraformService.CopyTemplateAsync(module, workspace);
 
