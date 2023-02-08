@@ -47,7 +47,7 @@ public class AzureDatabricksTemplateTests
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var newProjectTemplateExpectedFileCount = await SetupNewProjectTemplate(workspaceAcronym);
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
-        var module = GenerateTerraformTemplate();
+        var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
 
         await _terraformService.CopyTemplateAsync(module, workspace);
 
@@ -81,7 +81,7 @@ public class AzureDatabricksTemplateTests
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
-        var module = GenerateTerraformTemplate();
+        var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
         var expectedVariables = GenerateExpectedVariables();
 
         await _terraformService.CopyTemplateAsync(module, workspace);
@@ -105,10 +105,7 @@ public class AzureDatabricksTemplateTests
         }
     }
 
-    private static string GenerateWorkspaceAcronym()
-    {
-        return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
-    }
+
 
     [Test]
     public async Task ShouldExtractAzureDatabricksTemplateVariablesWithNoUsers()
@@ -118,7 +115,7 @@ public class AzureDatabricksTemplateTests
         
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         var expectedVariables = GenerateExpectedVariables(false);
-        var module = GenerateTerraformTemplate();
+        var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
 
         await _terraformService.CopyTemplateAsync(module, workspace);
         await _terraformService.ExtractVariables(module, workspace);
@@ -149,7 +146,7 @@ public class AzureDatabricksTemplateTests
 
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
         var expectedVariables = GenerateExpectedVariables();
-        var module = GenerateTerraformTemplate();
+        var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
 
         await _terraformService.CopyTemplateAsync(module, workspace);
 
@@ -175,39 +172,7 @@ public class AzureDatabricksTemplateTests
         }
     }
 
-    private static TerraformWorkspace GenerateTestTerraformWorkspace(string workspaceAcronym, bool withUsers = true)
-    {
-        if (!withUsers)
-        {
-            return new TerraformWorkspace
-            {
-                Acronym = workspaceAcronym,
-            };
-        }
 
-        return new TerraformWorkspace
-        {
-            Acronym = workspaceAcronym,
-            Users = new List<TerraformUser>
-            {
-                new()
-                {
-                    Email = "1@email.com",
-                    ObjectId = "00000000-0000-0000-0000-000000000001"
-                },
-                new()
-                {
-                    Email = "2@email.com",
-                    ObjectId = "00000000-0000-0000-0000-000000000002"
-                },
-                new()
-                {
-                    Email = "3@email.com",
-                    ObjectId = "00000000-0000-0000-0000-000000000003"
-                }
-            }
-        };
-    }
 
     private static JsonObject GenerateExpectedVariables(bool withUsers = true)
     {
@@ -246,12 +211,5 @@ public class AzureDatabricksTemplateTests
         };
     }
 
-    private static TerraformTemplate GenerateTerraformTemplate()
-    {
-        return new TerraformTemplate
-        {
-            Name = TerraformTemplate.AzureDatabricks,
-            Version = "latest"
-        };
-    }
+
 }
