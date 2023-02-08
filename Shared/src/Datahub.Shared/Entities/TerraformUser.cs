@@ -5,7 +5,7 @@ namespace Datahub.Shared.Entities;
 
 public class TerraformUser
 {
-    public string Guid { get; set; }
+    public string ObjectId { get; set; }
     public string Email { get; set; }
     public IEnumerator<Role> Roles { get; set; }
 }
