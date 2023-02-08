@@ -18,7 +18,7 @@ public class UserEnrollmentServiceTests
     [TestCase("fake@email.com")]
     [TestCase("fake@canada.com")]
     [TestCase("fake@gc.canada.ca")]
-    public Task UserCanNotEnrollWithoutAGovernmentEmailTest(string email)
+    public Task UserCanNotEnrollWithoutAGovernmentEmailTest(string? email)
     {
         Assert.ThrowsAsync<InvalidOperationException>(async () =>
         {
