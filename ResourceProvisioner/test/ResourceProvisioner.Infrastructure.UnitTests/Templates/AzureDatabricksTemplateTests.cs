@@ -90,7 +90,7 @@ public class AzureDatabricksTemplateTests
     }
     
     [Test]
-    public async Task ShouldExtractAzureStorageBlobTemplateVariables()
+    public async Task ShouldExtractAzureDatabricksTemplateVariables()
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         // Setup new project template
@@ -121,7 +121,7 @@ public class AzureDatabricksTemplateTests
     
         var expectedVariables = new JsonObject
         {
-            ["storage_contributor_users"] = new JsonArray
+            ["databricks_admin_users"] = new JsonArray
             {
                 new JsonObject
                 {
@@ -139,11 +139,12 @@ public class AzureDatabricksTemplateTests
                     ["oid"] = "00000000-0000-0000-0000-000000000003"
                 },
             },
+            ["azure_databricks_enterprise_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.azure_databricks_enterprise_oid
         };
     
         var module = new TerraformTemplate
         {
-            Name = TerraformTemplate.AzureStorageBlob,
+            Name = TerraformTemplate.AzureDatabricks,
             Version = "latest"
         };
     
@@ -173,51 +174,50 @@ public class AzureDatabricksTemplateTests
         return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
     }
 
-    // [Test]
-    // public async Task ShouldExtractAzureStorageBlobTemplateVariablesWithNoUsers()
-    // {
-    //     const string workspaceAcronym = "ShouldExtractAzureStorageBlobTemplateVariablesWithNoUsers";
-    //     // Setup new project template
-    //     await SetupNewProjectTemplate(workspaceAcronym);
-    //
-    //
-    //     var workspace = new TerraformWorkspace
-    //     {
-    //         Acronym = workspaceAcronym,
-    //     };
-    //
-    //     var expectedVariables = new JsonObject
-    //     {
-    //         ["storage_contributor_users"] = new JsonArray()
-    //     };
-    //
-    //     var module = new TerraformTemplate
-    //     {
-    //         Name = TerraformTemplate.AzureStorageBlob,
-    //         Version = "latest"
-    //     };
-    //
-    //     await _terraformService.CopyTemplateAsync(module, workspace);
-    //     await _terraformService.ExtractVariables(module, workspace);
-    //
-    //     var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
-    //         $"{module.Name}.auto.tfvars.json");
-    //     Assert.That(File.Exists(expectedVariablesFilename), Is.True);
-    //
-    //     var actualVariables =
-    //         JsonSerializer.Deserialize<JsonObject>(
-    //             await File.ReadAllTextAsync(expectedVariablesFilename));
-    //
-    //     foreach (var (key, value) in actualVariables!)
-    //     {
-    //         Assert.Multiple(() =>
-    //         {
-    //             Assert.That(expectedVariables.ContainsKey(key), Is.True);
-    //             Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
-    //         });
-    //     }
-    // }
-    //
+    [Test]
+    public async Task ShouldExtractAzureDatabricksTemplateVariablesWithNoUsers()
+    {
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        await SetupNewProjectTemplate(workspaceAcronym);
+    
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym,
+        };
+    
+        var expectedVariables = new JsonObject
+        {
+            ["databricks_admin_users"] = new JsonArray(),
+            ["azure_databricks_enterprise_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.azure_databricks_enterprise_oid
+        };
+    
+        var module = new TerraformTemplate
+        {
+            Name = TerraformTemplate.AzureDatabricks,
+            Version = "latest"
+        };
+    
+        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.ExtractVariables(module, workspace);
+    
+        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
+            $"{module.Name}.auto.tfvars.json");
+        Assert.That(File.Exists(expectedVariablesFilename), Is.True);
+    
+        var actualVariables =
+            JsonSerializer.Deserialize<JsonObject>(
+                await File.ReadAllTextAsync(expectedVariablesFilename));
+    
+        foreach (var (key, value) in actualVariables!)
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(expectedVariables.ContainsKey(key), Is.True);
+                Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
+            });
+        }
+    }
+    
     //  [Test]
     //  public async Task ShouldExtractNewProjectTemplateVariablesWithoutDuplicates()
     //  {
