@@ -37,7 +37,7 @@ public class RequestManagementServiceTest
 
         };
         var users = Enumerable.Range(0, 15)
-            .Select(u => new TerraformUser() { Guid = Guid.NewGuid().ToString(), Email = $"{u}@email.com" })
+            .Select(u => new TerraformUser() { ObjectId = Guid.NewGuid().ToString(), Email = $"{u}@email.com" })
             .ToList();
 
         var workspace = project.ToResourceWorkspace(users);
