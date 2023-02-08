@@ -31,7 +31,7 @@ public class TerraformService : ITerraformService
 
     public Task CopyTemplateAsync(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
     {
-        if (template.Name == TerraformTemplate.VariableUpdate)
+        if (template.Name == TerraformTemplate.VariableUpdate || template.Name == TerraformTemplate.ContactUs)
         {
             return Task.CompletedTask;
         }
