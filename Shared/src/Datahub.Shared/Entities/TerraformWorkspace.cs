@@ -1,5 +1,9 @@
 using System.Text.Json.Nodes;
 
+// This is actually required by some projects
+// ReSharper disable once RedundantUsingDirective
+using System.Collections.Generic;
+
 namespace Datahub.Shared.Entities;
 
 public class TerraformWorkspace
