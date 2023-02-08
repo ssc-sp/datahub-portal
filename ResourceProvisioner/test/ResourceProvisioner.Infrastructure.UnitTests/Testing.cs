@@ -150,7 +150,7 @@ public partial class Testing
     {
         return new TerraformTemplate
         {
-            Name = TerraformTemplate.AzureDatabricks,
+            Name = template,
             Version = "latest"
         };
     }
