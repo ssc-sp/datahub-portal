@@ -31,7 +31,7 @@ public class AzureStorageBlobTemplateTests
         };
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
 
-        var module = new TerraformTemplate()
+        var module = new TerraformTemplate
         {
             Name = TerraformTemplate.AzureStorageBlob,
             Version = "latest"
@@ -42,12 +42,12 @@ public class AzureStorageBlobTemplateTests
             await _terraformService.CopyTemplateAsync(module, workspace);
         });
     }
-    
+
     [Test]
     public async Task ShouldCopyAzureStorageBlobTemplate()
     {
         const string workspaceAcronym = "ShouldCopyAzureStorageBlobTemplate";
-        
+
         // Setup new project template
         var newProjectTemplateExpectedFileCount = await SetupNewProjectTemplate(workspaceAcronym);
 
@@ -56,7 +56,7 @@ public class AzureStorageBlobTemplateTests
             Acronym = workspaceAcronym
         };
 
-        var module = new TerraformTemplate()
+        var module = new TerraformTemplate
         {
             Name = TerraformTemplate.AzureStorageBlob,
             Version = "latest"
@@ -71,7 +71,7 @@ public class AzureStorageBlobTemplateTests
         var expectedFiles = Directory.GetFiles(moduleSourcePath, "*.*", SearchOption.TopDirectoryOnly)
             .Where(filename => !TerraformService.EXCLUDED_FILE_EXTENSIONS.Contains(Path.GetExtension(filename)))
             .ToList();
-        
+
         Assert.Multiple(() =>
         {
             Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
@@ -89,62 +89,129 @@ public class AzureStorageBlobTemplateTests
         }
     }
 
-//     [Test]
-//     public async Task ShouldExtractNewProjectTemplateVariables()
-//     {
-//         const string workspaceAcronym = "ShouldExtractNewProjectTemplateVariables";
-//         var workspace = new TerraformWorkspace
-//         {
-//             Acronym = workspaceAcronym
-//         };
-//
-//         var expectedVariables = new JsonObject
-//         {
-//             ["az_subscription_id"] = _configuration["Terraform:Variables:az_subscription_id"],
-//             ["az_tenant_id"] = _configuration["Terraform:Variables:az_tenant_id"],
-//             ["datahub_app_sp_oid"] = _configuration["Terraform:Variables:datahub_app_sp_oid"],
-//             ["environment_classification"] = _configuration["Terraform:Variables:environment_classification"],
-//             ["environment_name"] = _configuration["Terraform:Variables:environment_name"],
-//             ["az_location"] = _configuration["Terraform:Variables:az_location"],
-//             ["resource_prefix"] = _configuration["Terraform:Variables:resource_prefix"],
-//             ["project_cd"] = "ShouldExtractNewProjectTemplateVariables",
-//             ["common_tags"] = new JsonObject
-//             {
-//                 ["ClientOrganization"] = _configuration["Terraform:Variables:common_tags:ClientOrganization"],
-//                 ["Environment"] = _configuration["Terraform:Variables:common_tags:Environment"],
-//                 ["Sector"] = _configuration["Terraform:Variables:common_tags:Sector"],
-//             },
-//         };
-//
-//         var module = new TerraformTemplate()
-//         {
-//             Name = TerraformTemplate.NewProjectTemplate,
-//             Version = "latest"
-//         };
-//
-//         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-//         await _terraformService.CopyTemplateAsync(module, workspace);
-//
-//
-//         await _terraformService.ExtractVariables(module, workspace);
-//
-//         var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
-//             $"{module.Name}.auto.tfvars.json");
-//         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
-//
-//         var actualVariables =
-//             JsonSerializer.Deserialize<JsonObject>(
-//                 await File.ReadAllTextAsync(expectedVariablesFilename));
-//
-//         foreach (var (key, value) in actualVariables!)
-//         {
-//             Assert.Multiple(() =>
-//             {
-//                 Assert.That(expectedVariables.ContainsKey(key), Is.True);
-//                 Assert.That(expectedVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
-//             });
-//         }
-//     }
+    [Test]
+    public async Task ShouldExtractAzureStorageBlobTemplateVariables()
+    {
+        const string workspaceAcronym = "ShouldExtractAzureStorageBlobTemplateVariables";
+        // Setup new project template
+        await SetupNewProjectTemplate(workspaceAcronym);
+
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym,
+            Users = new List<TerraformUser>
+            {
+                new()
+                {
+                    Email = "1@email.com",
+                    ObjectId = "00000000-0000-0000-0000-000000000001"
+                },
+                new()
+                {
+                    Email = "2@email.com",
+                    ObjectId = "00000000-0000-0000-0000-000000000002"
+                },
+                new()
+                {
+                    Email = "3@email.com",
+                    ObjectId = "00000000-0000-0000-0000-000000000003"
+                }
+            }
+        };
+
+        var expectedVariables = new JsonObject
+        {
+            ["storage_contributor_users"] = new JsonArray
+            {
+                new JsonObject
+                {
+                    ["email"] = "1@email.com",
+                    ["oid"] = "00000000-0000-0000-0000-000000000001"
+                },
+                new JsonObject
+                {
+                    ["email"] = "2@email.com",
+                    ["oid"] = "00000000-0000-0000-0000-000000000002"
+                },
+                new JsonObject
+                {
+                    ["email"] = "3@email.com",
+                    ["oid"] = "00000000-0000-0000-0000-000000000003"
+                },
+            },
+        };
+
+        var module = new TerraformTemplate
+        {
+            Name = TerraformTemplate.AzureStorageBlob,
+            Version = "latest"
+        };
+
+        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.ExtractVariables(module, workspace);
+
+        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
+            $"{module.Name}.auto.tfvars.json");
+        Assert.That(File.Exists(expectedVariablesFilename), Is.True);
+
+        var actualVariables =
+            JsonSerializer.Deserialize<JsonObject>(
+                await File.ReadAllTextAsync(expectedVariablesFilename));
+
+        foreach (var (key, value) in actualVariables!)
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(expectedVariables.ContainsKey(key), Is.True);
+                Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
+            });
+        }
+    }
+
+    [Test]
+    public async Task ShouldExtractAzureStorageBlobTemplateVariablesWithNoUsers()
+    {
+        const string workspaceAcronym = "ShouldExtractAzureStorageBlobTemplateVariablesWithNoUsers";
+        // Setup new project template
+        await SetupNewProjectTemplate(workspaceAcronym);
+
+
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym,
+        };
+
+        var expectedVariables = new JsonObject
+        {
+            ["storage_contributor_users"] = new JsonArray()
+        };
+
+        var module = new TerraformTemplate
+        {
+            Name = TerraformTemplate.AzureStorageBlob,
+            Version = "latest"
+        };
+
+        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.ExtractVariables(module, workspace);
+
+        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
+            $"{module.Name}.auto.tfvars.json");
+        Assert.That(File.Exists(expectedVariablesFilename), Is.True);
+
+        var actualVariables =
+            JsonSerializer.Deserialize<JsonObject>(
+                await File.ReadAllTextAsync(expectedVariablesFilename));
+
+        foreach (var (key, value) in actualVariables!)
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(expectedVariables.ContainsKey(key), Is.True);
+                Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
+            });
+        }
+    }
 //
 //     [Test]
 //     public async Task ShouldExtractNewProjectTemplateVariablesWithoutDuplicates()
@@ -268,8 +335,8 @@ public class AzureStorageBlobTemplateTests
 //         Assert.That(File.Exists(expectedConfigurationFilename), Is.True);
 //         Assert.That(await File.ReadAllTextAsync(expectedConfigurationFilename), Is.EqualTo(existingConfiguration));
 //     }
-    
-    
+
+
     private static async Task<int> SetupNewProjectTemplate(string workspaceAcronym)
     {
         var workspace = new TerraformWorkspace
@@ -278,7 +345,7 @@ public class AzureStorageBlobTemplateTests
         };
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
 
-        var module = new TerraformTemplate()
+        var module = new TerraformTemplate
         {
             Name = TerraformTemplate.NewProjectTemplate,
             Version = "latest"
@@ -287,7 +354,7 @@ public class AzureStorageBlobTemplateTests
         await _terraformService.CopyTemplateAsync(module, workspace);
         await _terraformService.ExtractVariables(module, workspace);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
-        
+
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
         return Directory
             .GetFiles(moduleDestinationPath, "*.*", SearchOption.TopDirectoryOnly).Length;

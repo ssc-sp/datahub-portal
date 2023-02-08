@@ -178,6 +178,7 @@ public class TerraformService : ITerraformService
         return variableName switch
         {
             "databricks_admin_users" => terraformWorkspace.ToUserList(),
+            "storage_contributor_users" => terraformWorkspace.ToUserList(),
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<{ListAnyType}> in configuration")
         };
