@@ -212,65 +212,89 @@ public class AzureStorageBlobTemplateTests
             });
         }
     }
-//
-//     [Test]
-//     public async Task ShouldExtractNewProjectTemplateVariablesWithoutDuplicates()
-//     {
-//         const string workspaceAcronym = "ShouldExtractNewProjectTemplateVariablesWithoutDuplicates";
-//         var workspace = new TerraformWorkspace
-//         {
-//             Acronym = workspaceAcronym
-//         };
-//
-//         var expectedVariables = new JsonObject
-//         {
-//             ["az_subscription_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id,
-//             ["az_tenant_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_tenant_id,
-//             ["datahub_app_sp_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.datahub_app_sp_oid,
-//             ["environment_classification"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_classification,
-//             ["environment_name"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_name,
-//             ["az_location"] = _resourceProvisionerConfiguration.Terraform.Variables.az_location,
-//             ["resource_prefix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix,
-//             ["project_cd"] = "ShouldExtractNewProjectTemplateVariablesWithoutDuplicates",
-//             ["common_tags"] = new JsonObject
-//             {
-//                 ["ClientOrganization"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.ClientOrganization,
-//                 ["Environment"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.Environment,
-//                 ["Sector"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.Sector,
-//             },
-//         };
-//
-//         var module = new TerraformTemplate()
-//         {
-//             Name = TerraformTemplate.NewProjectTemplate,
-//             Version = "latest"
-//         };
-//
-//         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-//         await _terraformService.CopyTemplateAsync(module, workspace);
-//
-//
-//         await _terraformService.ExtractVariables(module, workspace);
-//         await _terraformService.ExtractVariables(module, workspace);
-//         await _terraformService.ExtractVariables(module, workspace);
-//
-//         var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
-//             $"{module.Name}.auto.tfvars.json");
-//         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
-//
-//         var actualVariables =
-//             JsonSerializer.Deserialize<JsonObject>(
-//                 await File.ReadAllTextAsync(expectedVariablesFilename));
-//
-//         foreach (var (key, value) in actualVariables!)
-//         {
-//             Assert.Multiple(() =>
-//             {
-//                 Assert.That(expectedVariables.ContainsKey(key), Is.True);
-//                 Assert.That(expectedVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
-//             });
-//         }
-//     }
+
+     [Test]
+     public async Task ShouldExtractNewProjectTemplateVariablesWithoutDuplicates()
+     {
+         const string workspaceAcronym = "ShouldExtractNewProjectTemplateVariablesWithoutDuplicates";
+         // Setup new project template
+         await SetupNewProjectTemplate(workspaceAcronym);
+
+         var workspace = new TerraformWorkspace
+         {
+             Acronym = workspaceAcronym,
+             Users = new List<TerraformUser>
+             {
+                 new()
+                 {
+                     Email = "1@email.com",
+                     ObjectId = "00000000-0000-0000-0000-000000000001"
+                 },
+                 new()
+                 {
+                     Email = "2@email.com",
+                     ObjectId = "00000000-0000-0000-0000-000000000002"
+                 },
+                 new()
+                 {
+                     Email = "3@email.com",
+                     ObjectId = "00000000-0000-0000-0000-000000000003"
+                 }
+             }
+         };
+
+         var expectedVariables = new JsonObject
+         {
+             ["storage_contributor_users"] = new JsonArray
+             {
+                 new JsonObject
+                 {
+                     ["email"] = "1@email.com",
+                     ["oid"] = "00000000-0000-0000-0000-000000000001"
+                 },
+                 new JsonObject
+                 {
+                     ["email"] = "2@email.com",
+                     ["oid"] = "00000000-0000-0000-0000-000000000002"
+                 },
+                 new JsonObject
+                 {
+                     ["email"] = "3@email.com",
+                     ["oid"] = "00000000-0000-0000-0000-000000000003"
+                 },
+             },
+         };
+
+         var module = new TerraformTemplate()
+         {
+             Name = TerraformTemplate.AzureStorageBlob,
+             Version = "latest"
+         };
+
+         await _terraformService.CopyTemplateAsync(module, workspace);
+
+
+         await _terraformService.ExtractVariables(module, workspace);
+         await _terraformService.ExtractVariables(module, workspace);
+         await _terraformService.ExtractVariables(module, workspace);
+
+         var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
+             $"{module.Name}.auto.tfvars.json");
+         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
+
+         var actualVariables =
+             JsonSerializer.Deserialize<JsonObject>(
+                 await File.ReadAllTextAsync(expectedVariablesFilename));
+
+         foreach (var (key, value) in actualVariables!)
+         {
+             Assert.Multiple(() =>
+             {
+                 Assert.That(expectedVariables.ContainsKey(key), Is.True);
+                 Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
+             });
+         }
+     }
 //
 //     [Test]
 //     public async Task ShouldExtractBackendConfiguration()
