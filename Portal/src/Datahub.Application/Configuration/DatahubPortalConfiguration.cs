@@ -26,8 +26,8 @@ public class DatahubPortalConfiguration
     public string AzureSignalRStickyServerMode { get; set; } = "Required";
 
     public string AllowedHosts { get; set; } = null!;
-    public string GraphFunctionUrl { get; set; } = null!;
-    public ProjectCreationQueue ProjectCreationQueue { get; set; } = new();
+    public DatahubStorageQueue DatahubStorageQueue { get; set; } = new();
+    public string DatahubGraphInviteFunctionUrl { get; set; } = null!;
 }
 
 public class Achievements
@@ -141,10 +141,18 @@ public class KeyVault
     public string UserName { get; set; } = null!;
 }
 
-public class ProjectCreationQueue
+public class DatahubStorageQueue
 {
     public string ConnectionString { get; set; } = null!;
-    public string Name { get; set; } = "resource-run-request";
+    public QueueNames QueueNames { get; set; } = new();
+}
+
+public class QueueNames
+{
+    public string ResourceRunRequest { get; set; } = "resource-run-request";
+    public string EmailNotification { get; set; } = "email-notifications";
+    public string StorageCapacity { get; set; } = "storage-capacity";
+    public string TerraformOutput { get; set; } = "terraform-output";
 }
 
 public class PublicFileSharing
