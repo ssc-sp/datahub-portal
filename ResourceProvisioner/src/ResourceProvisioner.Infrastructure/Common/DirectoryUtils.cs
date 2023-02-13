@@ -13,7 +13,17 @@ public static class DirectoryUtils
 
         var dir = new DirectoryInfo(path);
         SetAttributesNormal(dir);
-        dir.Delete(true);
+
+        try
+        {
+            dir.Delete(true);
+        }
+        catch (IOException)
+        {
+            // wait for one second and try again
+            Thread.Sleep(1000);
+            dir.Delete(true);
+        }
     }
 
     public static void SetAttributesNormal(DirectoryInfo dir)
