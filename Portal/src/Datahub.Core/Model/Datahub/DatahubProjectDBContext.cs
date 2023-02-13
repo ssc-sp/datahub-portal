@@ -51,6 +51,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<Client_Engagement> Client_Engagements { get; set; }
 
     public DbSet<Project_Storage_Capacity> Storage_Capacities { get; set; }
+    
+    public DbSet<Datahub_Project_Resources_Whitelist> Project_Resources_Whitelists { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
@@ -189,5 +191,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
         modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
+
     }
 }

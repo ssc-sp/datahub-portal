@@ -21,8 +21,12 @@ public partial class Testing
     internal const string TestProjectAcronym = "TEST";
     internal const string? TestUserEmail = "user@email.gc.ca";
     internal const string TestUserId = "123456789";
+    internal const string OldUserEmail = "old-user@email.gc.ca";
+    internal const string OldUserId = "987654321";
     internal static readonly string[] TEST_USER_IDS = Enumerable.Range(0,5).Select(_ => new Guid().ToString()).ToArray();
     internal const string TestAdminUserId = "987654321";
+    internal static readonly string[] PROJECT_ACRONYMS = Enumerable.Range(1, 3).Select(i => $"TEST{i}").ToArray();
+    internal static readonly string[] PROJECT_NAMES = Enumerable.Range(1, 3).Select(i => $"Test Project {i}").ToArray();
 
     [OneTimeSetUp]
     public void RunBeforeAnyTests()

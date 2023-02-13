@@ -1,0 +1,95 @@
+@page "/admin/whitelist"
+@inject IProjectResourceWhitelistService ProjectResourceWhitelistService
+@inject IUserInformationService UserInformationService
+@using System.Security.Claims
+@using Datahub.Application.Services
+@if (_isLoaded)
+{
+    <MudTable Items="@_whitelists" Filter="new Func<Datahub_Project_Resources_Whitelist, bool>(FilterFunc)">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">@Localizer["Project Resource Whitelist"]</MudText>
+            <MudSpacer/>
+            <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTableSortLabel SortBy="new Func<Datahub_Project_Resources_Whitelist, object>(x => x.Project.Project_Acronym_CD)">
+                <MudTh>@Localizer["Project Acronym"]</MudTh>
+            </MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<Datahub_Project_Resources_Whitelist, object>(x => x.Project.Project_Name)" InitialDirection="SortDirection.Ascending">
+                <MudTh>@Localizer["Project Name"]</MudTh>
+            </MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<Datahub_Project_Resources_Whitelist, object>(x => x.Project.Sector_Name)">
+                <MudTh>@Localizer["Project Sector"]</MudTh>
+            </MudTableSortLabel>
+            <MudTh>@Localizer["Allow Storage"]</MudTh>
+            <MudTh>@Localizer["Allow Databricks"]</MudTh>
+            <MudTh>@Localizer["Allow VMs"]</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Acronym">@context.Project.Project_Acronym_CD</MudTd>
+            <MudTd DataLabel="Name">@context.Project.Project_Name</MudTd>
+            <MudTd DataLabel="Sector">@context.Project.Sector_Name</MudTd>
+            <MudTd DataLabel="Storage">
+                <MudCheckBox T="bool" Checked="@context.AllowStorage" CheckedChanged="async newValue => await SetStorage(context, newValue)"/>
+            </MudTd>
+            <MudTd DataLabel="Databricks">
+                <MudCheckBox T="bool" Checked="@context.AllowDatabricks" CheckedChanged="async newValue => await SetDatabricks(context, newValue)"/>
+            </MudTd>
+            <MudTd DataLabel="VMs">
+                <MudCheckBox T="bool" Checked="@context.AllowVMs" CheckedChanged="async newValue => await SetVMs(context, newValue)"/>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager/>
+        </PagerContent>
+    </MudTable>
+}
+@code {
+    
+    private List<Datahub_Project_Resources_Whitelist> _whitelists;
+    private string _searchString = string.Empty;
+    private bool _isLoaded;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var user = await UserInformationService.GetAuthenticatedUser();
+            if (user.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN))
+            {
+                _whitelists = (await ProjectResourceWhitelistService.GetAllProjectResourceWhitelistAsync()).ToList();
+            }
+            _isLoaded = true;
+            StateHasChanged();
+        }
+    }
+
+    private bool FilterFunc(Datahub_Project_Resources_Whitelist whitelist)
+    {
+        var project = whitelist.Project;
+        if (project == null) return false;
+        if (project.Sector_Name.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return project.Project_Name.Contains(_searchString, StringComparison.OrdinalIgnoreCase) || 
+               project.Project_Acronym_CD.Contains(_searchString, StringComparison.OrdinalIgnoreCase);
+    }
+    
+    private async Task SetStorage(Datahub_Project_Resources_Whitelist whitelist, bool allowStorage)
+    {
+        whitelist.AllowStorage = allowStorage;
+        await ProjectResourceWhitelistService.UpdateProjectResourceWhitelistAsync(whitelist);
+    }
+    
+    private async Task SetDatabricks(Datahub_Project_Resources_Whitelist whitelist, bool allowDatabricks)
+    {
+        whitelist.AllowDatabricks = allowDatabricks;
+        await ProjectResourceWhitelistService.UpdateProjectResourceWhitelistAsync(whitelist);
+    }
+    
+    
+    private async Task SetVMs(Datahub_Project_Resources_Whitelist whitelist, bool allowVMs)
+    {
+        whitelist.AllowVMs = allowVMs;
+        await ProjectResourceWhitelistService.UpdateProjectResourceWhitelistAsync(whitelist);
+    }
+}
