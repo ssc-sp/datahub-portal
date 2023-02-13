@@ -126,6 +126,7 @@ public class Startup
             });
 
         services.AddControllers();
+        
 
         ConfigureLocalization(services);
 
@@ -360,7 +361,7 @@ public class Startup
 
             services.AddScoped<UpdateProjectMonthlyCostService>();
             services.AddScoped<IProjectCreationService, ProjectCreationService>();
-            services.AddDatahubApplicationServices();
+            services.AddDatahubApplicationServices(Configuration);
             services.AddDatahubInfrastructureServices(Configuration);
 
         }
