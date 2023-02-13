@@ -1,3 +1,6 @@
+@using Datahub.Application.Configuration
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+
 <ProjectMemberBlock AdminOnly="true" ProjectAcronym="@ProjectAcronym">
     <ToolCard
         Title="@Localizer["PROJECT-PAGE.ADMIN-CARD.Title"]"
@@ -30,7 +33,7 @@
                         @Localizer["Onboard Users"]
                     </ToolActionButton>
                 </NavLink>
-                <NavLink href="@($"/w/{ProjectAcronym}/metadata")">
+                <NavLink href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{ProjectAcronym}/metadata")">
                     <ToolActionButton LinkType="LinkType.Internal">
                         @Localizer["Metadata"]
                     </ToolActionButton>
@@ -40,7 +43,7 @@
                         @Localizer["Engagements"]
                     </ToolActionButton>
                 </NavLink>
-                <NavLink href="@($"/project/{ProjectAcronym}/powerbirequest")">
+                <NavLink href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{ProjectAcronym}/powerbirequest")">
                     <ToolActionButton LinkType="LinkType.Internal">
                         @Localizer["Power BI Workspaces"]
                     </ToolActionButton>
