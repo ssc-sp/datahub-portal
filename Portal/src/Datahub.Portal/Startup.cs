@@ -56,7 +56,6 @@ using Datahub.Application.Services;
 using Datahub.Portal.Services.Auth;
 using Microsoft.Identity.Web.UI;
 using Tewr.Blazor.FileReader;
-using Datahub.Core.Services.ResourceManager;
 using Datahub.Core.Services.Docs;
 using Datahub.Infrastructure;
 using Datahub.Infrastructure.Services;
@@ -386,7 +385,6 @@ public class Startup
             services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
         }
         services.AddScoped<IProjectCreationService, ProjectCreationService>();
-        services.AddSingleton<RequestQueueService>();
 
 
         services.AddScoped<IPublicDataFileService, PublicDataFileService>();
