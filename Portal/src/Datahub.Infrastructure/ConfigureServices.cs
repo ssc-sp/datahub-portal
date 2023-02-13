@@ -14,6 +14,7 @@ public static class ConfigureServices
         services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
         services.AddSingleton<IResourceRequestService, ResourceRequestService>();
         services.AddScoped<IProjectDataRetrievalService, ProjectDataRetrievalService>();
+        services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
         
         return services;
     }
