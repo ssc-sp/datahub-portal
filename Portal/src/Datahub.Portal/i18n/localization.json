@@ -1056,7 +1056,8 @@
       "SharingAPIs": "DataHub Sharing APIs",
       "Metadata": "Metadata Management",
       "MonthlyCost": "Monthly Cost",
-      "InitiativeResourceDefinitions": "Initiative Resource Definitions"
+      "InitiativeResourceDefinitions": "Initiative Resource Definitions",
+      "WhitelistProjectResources": "Whitelist Project Resources"
     },
     "CARD_DESCRIPTIONS": {
       "ManageInitiatives": "Approve initiative requests and user access",
@@ -1067,7 +1068,8 @@
       "SharingAPIs": "Manage API keys for external users",
       "Metadata": "Manage the Datahub metadata model",
       "MonthlyCost": "Refresh monthly cost for initiatives",
-      "InitiativeResourceDefinitions": "Manage initiative resource settings"
+      "InitiativeResourceDefinitions": "Manage initiative resource settings",
+      "WhitelistProjectResources": "Manage resources projects have access to"
     },
     "BUTTON_CAPTIONS": {
       "OpenPage": "Open Page",
