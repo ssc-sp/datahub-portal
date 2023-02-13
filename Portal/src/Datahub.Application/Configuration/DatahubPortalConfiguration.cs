@@ -7,6 +7,7 @@ public class DatahubPortalConfiguration
     public CultureSettings CultureSettings { get; set; } = new();
     public string LandingBgFolder { get; set; } = "ssc";
     public int LandingBgImgCount { get; set; } = 2;
+    public bool ShowLoginPage { get; set; } = true;
     public string Title { get; set; } = "Federal Science DataHub default title";
     public string DataHubModules { get; set; } = null!;
     public DataProjects DataProjects { get; set; } = new();
