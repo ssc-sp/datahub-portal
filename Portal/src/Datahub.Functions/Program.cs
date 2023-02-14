@@ -1,4 +1,6 @@
 using Datahub.Core.Model.Datahub;
+using Datahub.Functions;
+using Datahub.Infrastructure.Services.Azure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,11 +14,9 @@ var host = new HostBuilder()
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .Build();
     })
-    .ConfigureServices(services =>
+    .ConfigureServices((hostContext, services) =>
     {
-        var config = new ConfigurationBuilder()
-            .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
-            .Build();
+        var config = hostContext.Configuration;
         
         var connectionString = config["datahub-mssql-project"];
         if (connectionString is not null)
@@ -27,6 +27,8 @@ var host = new HostBuilder()
         }
 
         services.AddHttpClient();
+        services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
+        services.AddSingleton<AzureManagementService>();
     })
     .Build();
 

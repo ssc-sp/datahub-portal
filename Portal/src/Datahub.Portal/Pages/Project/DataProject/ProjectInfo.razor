@@ -1,14 +1,21 @@
 @*ProjectInfo.razor*@
 
+@using System.Text.Json
 @using Datahub.Core.Components.Skeleton
 @using Datahub.Core.Enums
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Services.Metadata;
 @using Datahub.Metadata.DTO
+@using Datahub.Infrastructure.Services.Projects;
+@using Datahub.Infrastructure.Services.Azure
+
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject UIControlsService _uiControlService
 @inject NavigationManager NavigationManager
 @inject IMetadataBrokerService MetadataBrokerService
+@inject AzureManagementService azureManagementService
+@inject MonthlyUsageService monthlyUsageService
+
 
 @if (_loading)
 {
@@ -68,10 +75,13 @@
 
     <DHMarkdown class="description" Content=@GetProjectDescription()/>
 
-    @if (_showCosts && _currentProjectMonthlyCost < _projectBudget)
+    @*@if (_showCosts && _currentProjectMonthlyCost < _projectBudget)
     {
-        <ProjectCosting ProjectBudget=@_projectBudget ConsumedBudget=@_currentProjectMonthlyCost.Value/>
-    }
+        <ProjectCosting ProjectBudget=@_projectBudget 
+                        ConsumedBudget=@_currentProjectMonthlyCost.Value 
+                        ResourceGroupName=@_resourceGroupName />
+    }*@
+
 </MudStack>
 
 
@@ -88,20 +98,31 @@
 
     private string ProjectAcronym => Project?.Project_Acronym_CD;
 
+    private Project_MonthlyUsage _monthlyUsage = default;
+
     private decimal? _currentProjectMonthlyCost;
+    //private List<AzureDailyCost> _currentDailyCosts { get; set; } = new();
+
     private string _projectIcon => $"fas fa-{Project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
     private decimal _projectBudget;
     private bool _loading = true;
     private bool _showCosts;
     private FieldValueContainer _projectMetadata;
 
+    private string _resourceGroupName = default;
+
     protected override async Task OnInitializedAsync()
     {
         using var projectContext = _dbFactoryProject.CreateDbContext();
 
-        var projectMonthlyCost = await projectContext.Project_Current_Monthly_Costs.FirstOrDefaultAsync(mc => mc.ProjectAcronym == ProjectAcronym.ToLower());
-        if (projectMonthlyCost != null)
-            _currentProjectMonthlyCost = projectMonthlyCost.TotalCost;
+        //var projectMonthlyCost = await projectContext.Project_Current_Monthly_Costs.FirstOrDefaultAsync(mc => mc.ProjectAcronym == ProjectAcronym.ToLower());
+        //if (projectMonthlyCost != null)
+        //    _currentProjectMonthlyCost = projectMonthlyCost.TotalCost;
+
+        _monthlyUsage = await monthlyUsageService.GetProjectMonthlyUsage(Project.Project_ID, default);
+        
+        _resourceGroupName = await GetResourceGroupName(projectContext);
+        await CalcProjectMonthlyCost();
 
         _projectBudget = Project.Project_Budget ?? 0;
 
@@ -141,7 +162,7 @@
             "PROTECTED C" => Color.Secondary,
         "PROTECTED A" => Color.Error,
         _ => Color.Dark
-        };
+    };
 
     private string GetProjectDataSensitivity()
     {
@@ -150,7 +171,15 @@
 
     private void HandleToggleCosts(MouseEventArgs args)
     {
-        _showCosts = !_showCosts;
+        RenderFragment fragment = 
+            @<ProjectCosting 
+                ProjectBudget=@_projectBudget 
+                MonthyUsage="@_monthlyUsage" />;
+
+        var thisMonth = DateTime.UtcNow.ToString("MMMM");
+        _uiControlService.ShowDialog($"Cost analysis ({thisMonth})", fragment);
+
+        //_showCosts = !_showCosts;
     }
 
     private void HandleEditMetadata(MouseEventArgs args)
@@ -164,4 +193,35 @@
         return description ?? Project.ProjectDescription;
     }
 
+    private async Task<string> GetResourceGroupName(DatahubProjectDBContext ctx)
+    {
+        var resources = await ctx.Project_Resources2.Where(e => e.ProjectId == Project.Project_ID).ToListAsync();
+        var resourceData = resources.Select(r => GetProjectResourceJSON(r.JsonContent)).FirstOrDefault(r => !string.IsNullOrEmpty(r?.resource_group_name));
+        return resourceData?.resource_group_name;
+    }
+
+    private async Task CalcProjectMonthlyCost()
+    {
+        if (!string.IsNullOrEmpty(_resourceGroupName))
+        {
+            var session = await azureManagementService.GetSession(default);
+            var cost = await session.GetResourceGroupMonthlyCost(_resourceGroupName);
+            _currentProjectMonthlyCost = Convert.ToDecimal(cost ?? 0.0);
+            //_currentDailyCosts = await session.GetResourceGroupMonthlyCostPerDay(_resourceGroupName, default);
+        }
+    }
+
+    static ProjectResourceJSON GetProjectResourceJSON(string data)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<ProjectResourceJSON>(data ?? "")!;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    record ProjectResourceJSON(string resource_group_name);
 }
