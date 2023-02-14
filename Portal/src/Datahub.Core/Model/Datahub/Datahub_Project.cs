@@ -176,6 +176,8 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     public List<Project_Storage_Capacity> Storage_Capacities { get; set; }
 
+    public Project_MonthlyUsage MonthlyUsage { get; set; } 
+
     [StringLength(400)]
     [AeFormCategory("Initiative Connections")]
     [Obsolete("Use the new Project Resources relationship instead.", true)]
