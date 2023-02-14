@@ -1,5 +1,6 @@
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.AzureCosting;
+using Datahub.Infrastructure.Services.Azure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -12,14 +13,14 @@ public class UpdateProjectMonthlyCost
 {
     private readonly DatahubProjectDBContext _dbContext;
     private readonly AzureConfig _azureConfig;
-    private readonly ILogger<AzureCostManagementService> _logger;
+    private readonly ILogger<Core.Services.AzureCosting.AzureCostManagementService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
 
     public UpdateProjectMonthlyCost(DatahubProjectDBContext dbContext, IConfiguration configuration, ILoggerFactory loggerFactory, IHttpClientFactory httpClientFactory)
     {
         _dbContext = dbContext;
         _azureConfig = new(configuration);
-        _logger = loggerFactory.CreateLogger<AzureCostManagementService>();
+        _logger = loggerFactory.CreateLogger<Core.Services.AzureCosting.AzureCostManagementService>();
         _httpClientFactory = httpClientFactory;
 }
     
@@ -55,11 +56,11 @@ public class UpdateProjectMonthlyCost
 
     private async Task<CostReturnRecord> RunAndReturnUpdatedProjects()
     {
-        var service = new AzureCostManagementService(_dbContext, (ILogger<AzureCostManagementService>) _logger);
+        var service = new Core.Services.AzureCosting.AzureCostManagementService(_dbContext, (ILogger<Core.Services.AzureCosting.AzureCostManagementService>)_logger);
 
-        //Acquire the access token
-        var authUtil = new AuthenticationUtils(_azureConfig, _httpClientFactory);
-        var token = await authUtil.GetAccessTokenAsync("https://management.azure.com/");
+        // acquire the access token
+        var azureManager = new Infrastructure.Services.Azure.AzureManagementService(_azureConfig, _httpClientFactory);
+        var token = await azureManager.GetAccessTokenAsync(default);
 
         //Get current month cost for each resource
         var currentMonthlyCosts = (await service.GetCurrentMonthlyCostAsync(_azureConfig.SubscriptionId, token)).ToList();

@@ -34,9 +34,17 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     public DbSet<SystemNotification> SystemNotifications { get; set; }
 
+    /// <summary>
+    /// Deprecated
+    /// </summary>
     public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
         
+    /// <summary>
+    /// Deprecated
+    /// </summary>
     public DbSet<Project_Current_Monthly_Cost> Project_Current_Monthly_Costs { get; set; }
+
+    public DbSet<Project_MonthlyUsage> Project_MonthlyUsage { get; set; }
 
     public DbSet<MiscStoredObject> MiscStoredObjects { get; set; }
 
@@ -161,6 +169,15 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             entity.HasOne(e => e.Project)
                   .WithMany(e => e.Storage_Capacities)
                   .HasForeignKey(e => e.ProjectId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<Project_MonthlyUsage>(entity =>
+        {
+            entity.ToTable("Project_MonthlyUsage");
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Project)
+                  .WithOne(e => e.MonthlyUsage)
                   .OnDelete(DeleteBehavior.NoAction);
         });
 

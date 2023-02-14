@@ -1,14 +1,13 @@
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
-using System.Text.Json;
-using Datahub.Core.Model.Datahub;
-using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions;
-using MimeKit;
-using MailKit.Net.Smtp;
 using Azure.Storage.Queues;
+using Datahub.Core.Model.Datahub;
+using Datahub.Infrastructure.Services.Azure;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace Datahub.Functions;
 
@@ -18,13 +17,16 @@ public class StorageCapacityNotification
     private readonly AzureConfig _config;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly DatahubProjectDBContext _dbContext;
+    private readonly AzureManagementService _azureManagementService;
 
-    public StorageCapacityNotification(ILoggerFactory loggerFactory, IConfiguration configuration, IHttpClientFactory httpClientFactory, DatahubProjectDBContext dbContext)
+    public StorageCapacityNotification(ILoggerFactory loggerFactory, IConfiguration configuration, IHttpClientFactory httpClientFactory, 
+            DatahubProjectDBContext dbContext, AzureManagementService azureManagementService)
     {
         _logger = loggerFactory.CreateLogger<StorageCapacityNotification>();
         _config = new(configuration);
         _httpClientFactory = httpClientFactory;
         _dbContext = dbContext;
+        _azureManagementService = azureManagementService;
     }
 
     /// <summary>
@@ -52,7 +54,8 @@ public class StorageCapacityNotification
     /// Storage Capacity Notification run every time a message is deposited in queue: 'storage-capacity'
     /// </summary>
     [Function("StorageCapacityNotification")]
-    public async Task RunStorageCapacityNotification([QueueTrigger("storage-capacity", Connection = "DatahubStorageConnectionString")] string queueItem)
+    public async Task RunStorageCapacityNotification([QueueTrigger("storage-capacity", Connection = "DatahubStorageConnectionString")] string queueItem, 
+        CancellationToken cancellationToken)
     {
         // deserialize message
         var msg = DeserializeQueueMessage(queueItem);
@@ -82,16 +85,8 @@ public class StorageCapacityNotification
 
         // validate email smtp configuration...
 
-        // obtain an access token
-        var token = await TryGetAccessToken();
-        if (token is null)
-        {
-            _logger.LogError("Function failed to obtain oauth token, check function config and permissions");
-            return;
-        }
-
         // get used capacity from Azure
-        var usedCapacity = await GetStorageUsedCapacity(msg.ResourceGroup, msg.StorageAccount, token);
+        var usedCapacity = await GetStorageUsedCapacity(msg.ResourceGroup, msg.StorageAccount, cancellationToken);
         if (usedCapacity is null)
         {
             _logger.LogInformation($"Cannot read storage {msg.StorageAccount}'s used Capacity.");
@@ -130,8 +125,6 @@ public class StorageCapacityNotification
             return default;
         }
     }
-
-    record DBResourceContent(string resource_group_name, string storage_account);
 
     static string EncodeBase64(string value) => Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
 
@@ -226,42 +219,10 @@ public class StorageCapacityNotification
         return double.Parse(_config.MaxStorageCapacity);
     }
 
-    private async Task<string?> TryGetAccessToken()
+    private async Task<double?> GetStorageUsedCapacity(string resourceGroup, string storageAccount, CancellationToken cancellationToken)
     {
-        string? token = default;
-        try
-        {
-            var authUtil = new AuthenticationUtils(_config, _httpClientFactory);
-            token = await authUtil.GetAccessTokenAsync("https://management.core.windows.net/");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to obtain a token!");
-        }
-        return token;
-    }
-
-    private async Task<double?> GetStorageUsedCapacity(string resourceGroup, string storageAccount, string token)
-    {
-        var httpClient = _httpClientFactory.CreateClient();
-
-        var url = GetRequestUrl(resourceGroup, storageAccount, 2);
-        var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
-        httpRequest.Headers.Add("authorization", $"Bearer {token}");
-
-        var response = await httpClient.SendAsync(httpRequest);
-        var responseContent = await response.Content.ReadAsStringAsync();
-
-        var usageResponse = JsonSerializer.Deserialize<StorageUsedResponse>(responseContent);
-
-        return FindCapacity(usageResponse);
-    }
-
-    private string GetRequestUrl(string resourceGroup, string storageAccount, int hours)
-    {
-        var timespan = GetTimespan(hours);
-        var version = "2019-07-01";
-        return $"{_config.ManagementUrl}/subscriptions/{_config.SubscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}/providers/microsoft.Insights/metrics?timespan={timespan}&metricnames=UsedCapacity&aggregation=average&metricNamespace=microsoft.storage%2Fstorageaccounts&validatedimensions=false&api-version={version}";
+        var azureManagementSession = await _azureManagementService.GetSession(cancellationToken);
+        return await azureManagementSession.GetStorageUsedCapacity(resourceGroup, storageAccount);
     }
 
     private async Task UpdateDbStorageCapacity(Project_Storage_Capacity entity, bool isNew)
@@ -293,85 +254,8 @@ public class StorageCapacityNotification
         }
         return (capacity, isNew);
     }
-
-    static string GetTimespan(int hours)
-    {
-        var dt = DateTime.UtcNow;
-        var format = "yyyy-MM-ddTHH:mm:00.000Z";
-        return $"{dt.AddHours(-hours).ToString(format)}/{dt.ToString(format)}";
-    }
-
-    static double? FindCapacity(StorageUsedResponse? response)
-    {
-        if (response is null)
-            return default;
-
-        if (response?.value is null || response.value.Count == 0)
-            return default;
-
-        var value = response.value[0];
-        if (value.errorCode != "Success" || value.timeseries is null || value.timeseries.Count == 0)
-            return default;
-
-        var timeseries = value.timeseries[0];
-        if (timeseries is null || timeseries.data.Count == 0)
-            return default;
-
-        var data = timeseries.data.OrderByDescending(d => d.timeStamp).FirstOrDefault(d => d.average != 0);
-
-        return data?.average ?? 0.0;
-    }
 }
 
-#nullable disable
-
-#region Response Model
-
-class StorageUsedResponse
-{
-    public double cost { get; set; }
-    //public string timespan { get; set; }
-    public string interval { get; set; }
-    public List<MetricValue> value { get; set; }
-    //public string @namespace { get; set; }
-    //public string resourceregion { get; set; }
-}
-
-class MetricValue
-{
-    //public string id { get; set; }
-    //public string type { get; set; }
-    //public ValueName name { get; set; }
-    //public string displayDescription { get; set; }
-    public string unit { get; set; }
-    public List<Timeseries> timeseries { get; set; }
-    public string errorCode { get; set; }
-}
-
-class Timeseries
-{
-    //public List<object> metadatavalues { get; set; }
-    public List<TimeseriesValue> data { get; set; }
-}
-
-//class ValueName
-//{
-//    public string value { get; set; }
-//    public string localizedValue { get; set; }
-//}
-
-public class TimeseriesValue
-{
-    public DateTime timeStamp { get; set; }
-    public double average { get; set; }
-}
-
-#endregion
-
-#region Input Message
+record DBResourceContent(string resource_group_name, string storage_account);
 
 record StorageAccountMessage(int ProjectId, string ResourceGroup, string StorageAccount);
-
-#endregion
-
-#nullable enable
