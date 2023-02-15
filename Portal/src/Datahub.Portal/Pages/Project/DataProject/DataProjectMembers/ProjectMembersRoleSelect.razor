@@ -28,15 +28,15 @@
 
     private readonly Dictionary<ProjectMemberRole, string> _roleTitles = new()
     {
-        {ProjectMemberRole.Publisher, "Publisher"},
+        {ProjectMemberRole.WorkspaceLead, "Workspace Lead"},
         {ProjectMemberRole.Admin, "Admin"},
-        {ProjectMemberRole.Contributor, "Contributor"},
+        {ProjectMemberRole.Collaborator, "Collaborator"},
     };
 
     private readonly Dictionary<ProjectMemberRole, string> _roleDescriptions = new()
     {
         {
-            ProjectMemberRole.Publisher,
+            ProjectMemberRole.WorkspaceLead,
             "Head of the business unit and bears business responsibility for successful implementation and availability"
         },
         {
@@ -44,7 +44,7 @@
             "Management authority within the project with direct supervision over the project resources and deliverables"
         },
         {
-            ProjectMemberRole.Contributor,
+            ProjectMemberRole.Collaborator,
             "Responsible for contributing to the overall project objectives and deliverables to ensure success"
         },
 
