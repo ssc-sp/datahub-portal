@@ -2,9 +2,9 @@ namespace Datahub.Core.Data.Project
 {
     public enum ProjectMemberRole
     {
-        Contributor,
+        Collaborator,
         Admin,
-        Publisher,
+        WorkspaceLead,
         Remove
     }
     

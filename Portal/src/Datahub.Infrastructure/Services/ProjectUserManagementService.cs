@@ -207,7 +207,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
 
         try
         {
-            exists.IsDataApprover = projectMember.Role == ProjectMemberRole.Publisher;
+            exists.IsDataApprover = projectMember.Role == ProjectMemberRole.WorkspaceLead;
             exists.IsAdmin = exists.IsDataApprover || projectMember.Role == ProjectMemberRole.Admin;
             await context.SaveChangesAsync();
             _logger.LogInformation("User {UserGraphId} removed from project {ProjectAcronym}", projectMember.UserId, projectAcronym);
@@ -237,12 +237,12 @@ public class ProjectUserManagementService : IProjectUserManagementService
         // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault - Remove case is frontend only
         switch (projectMemberRole)
         {
-            case ProjectMemberRole.Publisher when !projectUser.IsDataApprover || !projectUser.IsAdmin:
+            case ProjectMemberRole.WorkspaceLead when !projectUser.IsDataApprover || !projectUser.IsAdmin:
             case ProjectMemberRole.Admin when !projectUser.IsAdmin || projectUser.IsDataApprover:
                 return true;
-            case ProjectMemberRole.Contributor:
+            case ProjectMemberRole.Collaborator:
             default:
-                return projectMemberRole == ProjectMemberRole.Contributor && (projectUser.IsDataApprover || projectUser.IsAdmin);
+                return projectMemberRole == ProjectMemberRole.Collaborator && (projectUser.IsDataApprover || projectUser.IsAdmin);
         }
     }
 }
