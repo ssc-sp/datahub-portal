@@ -18,6 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\src\Datahub.Application\Datahub.Application.csproj" />
       <ProjectReference Include="..\..\src\Datahub.ProjectTools\Datahub.ProjectTools.csproj" />
     </ItemGroup>
 

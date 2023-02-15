@@ -3,7 +3,6 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Projects;
-using Datahub.Core.Services.ResourceManager;
 using Datahub.Core.Services.Security;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
@@ -11,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Transactions;
+using Datahub.Application.Services;
 using Datahub.Shared.Entities;
 
 namespace Datahub.ProjectTools.Services;
@@ -23,7 +23,7 @@ public class RequestManagementService : IRequestManagementService
     private readonly ISystemNotificationService _systemNotificationService;
     private readonly IUserInformationService _userInformationService;
     private readonly IDatahubAuditingService _datahubAuditingService;
-    private readonly RequestQueueService requestQueueService;
+    private readonly IResourceRequestService _resourceRequestService;
     private readonly IMiscStorageService _miscStorageService;
 
     private const string RESOURCE_REQUEST_INPUT_JSON_PREFIX = "ResourceInput";
@@ -35,16 +35,16 @@ public class RequestManagementService : IRequestManagementService
         ISystemNotificationService systemNotificationService,
         IUserInformationService userInformationService,
         IDatahubAuditingService datahubAuditingService,
-        RequestQueueService requestQueueService,
+        IResourceRequestService resourceRequestService,
         IMiscStorageService miscStorageService)
     {
-        this._logger = logger;
+        _logger = logger;
         _dbContextFactory = dbContextFactory;
         _emailNotificationService = emailNotificationService;
         _systemNotificationService = systemNotificationService;
         _userInformationService = userInformationService;
         _datahubAuditingService = datahubAuditingService;
-        this.requestQueueService = requestQueueService;
+        _resourceRequestService = resourceRequestService;
         _miscStorageService = miscStorageService;
     }
 
@@ -266,7 +266,7 @@ public class RequestManagementService : IRequestManagementService
             }
 
             var request = CreateResourceData.ResourceRunTemplate(workspace, templates, graphUser.Mail);
-            await requestQueueService.AddProjectToStorageQueue(request);
+            await _resourceRequestService.AddProjectToStorageQueue(request);
             scope.Complete();
             return true;
         }

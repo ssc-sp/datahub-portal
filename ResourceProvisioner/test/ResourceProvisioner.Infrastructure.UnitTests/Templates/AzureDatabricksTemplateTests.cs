@@ -80,6 +80,8 @@ public class AzureDatabricksTemplateTests
     public async Task ShouldExtractAzureDatabricksTemplateVariables()
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
+        await SetupNewProjectTemplate(workspaceAcronym);
+        
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
         var expectedVariables = GenerateExpectedVariables();
