@@ -44,11 +44,14 @@ public class ProjectCreationService : IProjectCreationService
 
     public async Task<string> GenerateProjectAcronymAsync(string projectName, IEnumerable<string> existingAcronyms)
     {
-        var words = projectName.Split(' ').Select(w => new string(w.Where(char.IsLetterOrDigit).ToArray())).ToArray();
+        var words = projectName.Split(' ')
+            .Select(w => new string(w.Where(char.IsLetterOrDigit).ToArray()))
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .ToArray();
         var acronym = words.Length switch
         {
-            1 => words[0][..3].ToUpperInvariant(),
-            2 => string.Concat(words[0].AsSpan(0, 2), words[1].AsSpan(0, 2)).ToUpperInvariant(),
+            1 => new string(words[0].Take(3).ToArray()).ToUpperInvariant(),
+            2 => new string(words[0].Take(2).Concat(words[1].Take(2)).ToArray()).ToUpperInvariant(),
             _ => words.Select(w => w[0]).Aggregate("", (a, b) => a + b).ToUpperInvariant()
         };
         var enumerable = existingAcronyms.ToArray();
