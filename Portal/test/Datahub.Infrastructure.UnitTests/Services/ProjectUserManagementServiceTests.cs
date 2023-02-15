@@ -196,12 +196,12 @@ public class ProjectUserManagementServiceTests
     }
     
     [Test]
-    [TestCase(ProjectMemberRole.Contributor, ProjectMemberRole.Admin)]
-    [TestCase(ProjectMemberRole.Contributor, ProjectMemberRole.Publisher)]
-    [TestCase(ProjectMemberRole.Admin, ProjectMemberRole.Contributor)]
-    [TestCase(ProjectMemberRole.Admin, ProjectMemberRole.Publisher)]
-    [TestCase(ProjectMemberRole.Publisher, ProjectMemberRole.Contributor)]
-    [TestCase(ProjectMemberRole.Publisher, ProjectMemberRole.Admin)]
+    [TestCase(ProjectMemberRole.Collaborator, ProjectMemberRole.Admin)]
+    [TestCase(ProjectMemberRole.Collaborator, ProjectMemberRole.WorkspaceLead)]
+    [TestCase(ProjectMemberRole.Admin, ProjectMemberRole.Collaborator)]
+    [TestCase(ProjectMemberRole.Admin, ProjectMemberRole.WorkspaceLead)]
+    [TestCase(ProjectMemberRole.WorkspaceLead, ProjectMemberRole.Collaborator)]
+    [TestCase(ProjectMemberRole.WorkspaceLead, ProjectMemberRole.Admin)]
     public async Task ShouldUpdateUserInProject(ProjectMemberRole currentRole, ProjectMemberRole newRole)
     {
         var projectUserManagementService = GetProjectUserManagementService();
@@ -216,8 +216,8 @@ public class ProjectUserManagementServiceTests
         var projectUser = await context.Project_Users.FirstAsync();
         Assert.Multiple(() =>
         {
-            Assert.That(projectUser.IsAdmin, Is.EqualTo(newRole is ProjectMemberRole.Admin or ProjectMemberRole.Publisher));
-            Assert.That(projectUser.IsDataApprover, Is.EqualTo(newRole == ProjectMemberRole.Publisher));
+            Assert.That(projectUser.IsAdmin, Is.EqualTo(newRole is ProjectMemberRole.Admin or ProjectMemberRole.WorkspaceLead));
+            Assert.That(projectUser.IsDataApprover, Is.EqualTo(newRole == ProjectMemberRole.WorkspaceLead));
         });
     }
 
@@ -234,7 +234,7 @@ public class ProjectUserManagementServiceTests
         Assert.ThrowsAsync<ProjectNotFoundException>(async () =>
         {
             await projectUserManagementService.UpdateUserInProject(nonExistentProjectAcronym, 
-                new ProjectMember(TestUserId, ProjectMemberRole.Contributor));
+                new ProjectMember(TestUserId, ProjectMemberRole.Collaborator));
         });
     }
     
@@ -255,9 +255,9 @@ public class ProjectUserManagementServiceTests
     }
 
     [Test]
-    [TestCase(ProjectMemberRole.Contributor, ProjectMemberRole.Contributor)]
+    [TestCase(ProjectMemberRole.Collaborator, ProjectMemberRole.Collaborator)]
     [TestCase(ProjectMemberRole.Admin, ProjectMemberRole.Admin)]
-    [TestCase(ProjectMemberRole.Publisher, ProjectMemberRole.Publisher)]
+    [TestCase(ProjectMemberRole.WorkspaceLead, ProjectMemberRole.WorkspaceLead)]
     public async Task ShouldDoNothing_WhenUserRoleHasNotChanged(ProjectMemberRole currenRole, ProjectMemberRole newRole)
     {
         var projectUserManagementService = GetProjectUserManagementService();
@@ -270,8 +270,8 @@ public class ProjectUserManagementServiceTests
         var projectUser = await context.Project_Users.FirstAsync();
         Assert.Multiple(() =>
         {
-            Assert.That(projectUser.IsAdmin, Is.EqualTo(currenRole is ProjectMemberRole.Admin or ProjectMemberRole.Publisher));
-            Assert.That(projectUser.IsDataApprover, Is.EqualTo(currenRole is ProjectMemberRole.Publisher));
+            Assert.That(projectUser.IsAdmin, Is.EqualTo(currenRole is ProjectMemberRole.Admin or ProjectMemberRole.WorkspaceLead));
+            Assert.That(projectUser.IsDataApprover, Is.EqualTo(currenRole is ProjectMemberRole.WorkspaceLead));
         });
         await projectUserManagementService.UpdateUserInProject(TestProjectAcronym, projectMember);
         await projectUserManagementService.UpdateUserInProject(TestProjectAcronym, projectMember);
@@ -279,8 +279,8 @@ public class ProjectUserManagementServiceTests
         projectUser = await context.Project_Users.FirstAsync();
         Assert.Multiple(() =>
         {
-            Assert.That(projectUser.IsAdmin, Is.EqualTo(newRole is ProjectMemberRole.Admin or ProjectMemberRole.Publisher));
-            Assert.That(projectUser.IsDataApprover, Is.EqualTo(newRole == ProjectMemberRole.Publisher));
+            Assert.That(projectUser.IsAdmin, Is.EqualTo(newRole is ProjectMemberRole.Admin or ProjectMemberRole.WorkspaceLead));
+            Assert.That(projectUser.IsDataApprover, Is.EqualTo(newRole == ProjectMemberRole.WorkspaceLead));
         });
     }
 
@@ -350,14 +350,14 @@ public class ProjectUserManagementServiceTests
             It.IsAny<string>()), Times.Never);
     
         await SeedDatabase(new List<string>{TestUserId});
-        var projectMember = new ProjectMember(TestUserId, ProjectMemberRole.Publisher);
+        var projectMember = new ProjectMember(TestUserId, ProjectMemberRole.WorkspaceLead);
         await projectUserManagementService.UpdateUserInProject(TestProjectAcronym, projectMember);
 
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.Is<string>(s => s == TerraformTemplate.VariableUpdate)), Times.Once);
     }
 
-    private async Task SeedDatabase(IEnumerable<string>? userIds = null, string projectAcronym = TestProjectAcronym, ProjectMemberRole role = ProjectMemberRole.Contributor)
+    private async Task SeedDatabase(IEnumerable<string>? userIds = null, string projectAcronym = TestProjectAcronym, ProjectMemberRole role = ProjectMemberRole.Collaborator)
     {
         var project = new Datahub_Project
         {
@@ -372,8 +372,8 @@ public class ProjectUserManagementServiceTests
             {
                 Project = project,
                 User_ID = id,
-                IsAdmin = role is ProjectMemberRole.Admin or ProjectMemberRole.Publisher,
-                IsDataApprover = role is ProjectMemberRole.Publisher
+                IsAdmin = role is ProjectMemberRole.Admin or ProjectMemberRole.WorkspaceLead,
+                IsDataApprover = role is ProjectMemberRole.WorkspaceLead
             })
             .ToList();
 
