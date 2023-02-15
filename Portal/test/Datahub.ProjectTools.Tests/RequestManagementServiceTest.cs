@@ -1,8 +1,8 @@
+using Datahub.Application.Services;
 using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Notification;
-using Datahub.Core.Services.ResourceManager;
 using Datahub.ProjectTools.Services;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -25,12 +25,12 @@ public class RequestManagementServiceTest
         var systemNotificationMock = new Mock<ISystemNotificationService>();
         var userInformationMock = new Mock<IUserInformationService>();
         var auditingMock = new Mock<IDatahubAuditingService>();
-        var requestQueueMock = new Mock<RequestQueueService>();
+        var resourceRequestServiceMock = new Mock<IResourceRequestService>();
         var miscStorageMock = new Mock<IMiscStorageService>();
         
         
         var requestManagementService = new RequestManagementService(
-            loggerMock.Object, dbContextMock.Object, toolService.Object, systemNotificationMock.Object, userInformationMock.Object, auditingMock.Object, requestQueueMock.Object, miscStorageMock.Object);
+            loggerMock.Object, dbContextMock.Object, toolService.Object, systemNotificationMock.Object, userInformationMock.Object, auditingMock.Object, resourceRequestServiceMock.Object, miscStorageMock.Object);
 
         var project = new Datahub_Project
         {
