@@ -18,11 +18,13 @@ namespace Datahub.Core.Model.Datahub;
 
 public enum ProjectStatus
 {
-    OnHold, InProgress, Support, Closed
+    OnHold = 0, 
+    InProgress = 1,
+    Support = 2,
+    Closed = 3
 }
 public class Datahub_Project : IComparable<Datahub_Project>
 {
-    public const string ONGOING = "Ongoing";
     public const string CLOSED = "Closed";
     public const string ON_HOLD = "On Hold";
 

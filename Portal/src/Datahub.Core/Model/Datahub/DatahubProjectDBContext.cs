@@ -1,5 +1,6 @@
 ﻿using Datahub.Core.Data;
 using Datahub.Core.Model.Onboarding;
+using J2N;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -58,7 +59,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         {
             Project_ID = 1,
             Project_Acronym_CD = RoleConstants.DATAHUB_ADMIN_PROJECT,
-            Project_Status_Desc = Datahub_Project.ONGOING,
+            Project_Status_Desc = ProjectStatus.InProgress.ToString(),
             Project_Name = "Datahub Tracker",
             Is_Private = false,
             Project_Icon = "database",
@@ -70,7 +71,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             {
                 Project_ID = 2,
                 Project_Acronym_CD = "TEST1",
-                Project_Status_Desc = Datahub_Project.ONGOING,
+                Project_Status_Desc = ProjectStatus.InProgress.ToString(),
                 Project_Name = "Test Project 1",
                 Is_Private = false,
                 Project_Icon = "database",
@@ -81,7 +82,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         {
             Project_ID = 3,
             Project_Acronym_CD = "TEST2",
-            Project_Status_Desc = Datahub_Project.ONGOING,
+            Project_Status_Desc = ProjectStatus.InProgress.ToString(),
             Project_Name = "Test Project 2",
             Is_Private = false,
             Project_Icon = "database",
