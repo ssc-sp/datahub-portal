@@ -12,15 +12,21 @@
             <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
         </ToolBarContent>
         <HeaderContent>
-            <MudTableSortLabel SortBy="new Func<Datahub_Project_Resources_Whitelist, object>(x => x.Project.Project_Acronym_CD)">
-                <MudTh>@Localizer["Project Acronym"]</MudTh>
-            </MudTableSortLabel>
-            <MudTableSortLabel SortBy="new Func<Datahub_Project_Resources_Whitelist, object>(x => x.Project.Project_Name)" InitialDirection="SortDirection.Ascending">
-                <MudTh>@Localizer["Project Name"]</MudTh>
-            </MudTableSortLabel>
-            <MudTableSortLabel SortBy="new Func<Datahub_Project_Resources_Whitelist, object>(x => x.Project.Sector_Name)">
-                <MudTh>@Localizer["Project Sector"]</MudTh>
-            </MudTableSortLabel>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Datahub_Project_Resources_Whitelist, object>(x => x.Project.Project_Acronym_CD)">
+                    @Localizer["Workspace Acronym"]
+                </MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Datahub_Project_Resources_Whitelist, object>(x => x.Project.Project_Name)" InitialDirection="SortDirection.Ascending">
+                    @Localizer["Workspace Name"]
+                </MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Datahub_Project_Resources_Whitelist, object>(x => x.Project.Sector_Name)">
+                    @Localizer["Workspace Sector"]
+                </MudTableSortLabel>
+            </MudTh>
             <MudTh>@Localizer["Allow Storage"]</MudTh>
             <MudTh>@Localizer["Allow Databricks"]</MudTh>
             <MudTh>@Localizer["Allow VMs"]</MudTh>
@@ -43,6 +49,10 @@
             <MudTablePager/>
         </PagerContent>
     </MudTable>
+}
+else
+{
+    <MudSkeleton Width="100%" Height="600px"/>
 }
 @code {
     
