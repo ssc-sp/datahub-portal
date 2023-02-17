@@ -11,8 +11,7 @@
 @inject UIControlsService _uiControlService
 @inject NavigationManager NavigationManager
 @inject IMetadataBrokerService MetadataBrokerService
-@inject MonthlyUsageService monthlyUsageService
-
+@inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
 
 @if (_loading)
 {
@@ -85,6 +84,7 @@
     [CascadingParameter(Name = "IsDatahubAdmin")]
     private bool IsDatahubAdmin { get; set; }
 
+    // todo: change to use the Project_Credits
     private Project_MonthlyUsage _monthlyUsage = default;
 
     private decimal CurrentProjectMonthlyCost => Convert.ToDecimal(_monthlyUsage.CurrentCost);
@@ -99,7 +99,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _monthlyUsage = await monthlyUsageService.GetProjectMonthlyUsage(Project.Project_ID, default);
+        using var ctx = await dbContextFactory.CreateDbContextAsync();
+
+        //_monthlyUsage = await monthlyUsageService.GetProjectMonthlyUsage(Project.Project_ID, default);
+        _monthlyUsage = await ctx.Project_MonthlyUsage.FirstOrDefaultAsync(e => e.ProjectId == Project.Project_ID);
 
         _projectBudget = Project.Project_Budget ?? 0;
         _projectMetadata = await MetadataBrokerService.GetObjectMetadataValues(ProjectAcronym);

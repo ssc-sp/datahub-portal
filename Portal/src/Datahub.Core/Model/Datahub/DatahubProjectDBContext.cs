@@ -44,7 +44,12 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// </summary>
     public DbSet<Project_Current_Monthly_Cost> Project_Current_Monthly_Costs { get; set; }
 
+    /// <summary>
+    /// Deprecated
+    /// </summary>
     public DbSet<Project_MonthlyUsage> Project_MonthlyUsage { get; set; }
+
+    public DbSet<Project_Credits> Project_Credits { get; set; }
 
     public DbSet<MiscStoredObject> MiscStoredObjects { get; set; }
 
@@ -162,6 +167,9 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasForeignKey(f => f.DivisionId)
             .OnDelete(DeleteBehavior.NoAction);
 
+        /// <summary>
+        /// Deprecated
+        /// </summary>
         modelBuilder.Entity<Project_Storage_Capacity>(entity =>
         {
             entity.ToTable("Project_Storage_Capacities");
@@ -172,12 +180,24 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
                   .OnDelete(DeleteBehavior.NoAction);
         });
 
+        /// <summary>
+        /// Deprecated
+        /// </summary>
         modelBuilder.Entity<Project_MonthlyUsage>(entity =>
         {
             entity.ToTable("Project_MonthlyUsage");
             entity.HasKey(e => e.Id);
             entity.HasOne(e => e.Project)
                   .WithOne(e => e.MonthlyUsage)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<Project_Credits>(entity =>
+        {
+            entity.ToTable("Project_Credits");
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Project)
+                  .WithOne(e => e.Credits)
                   .OnDelete(DeleteBehavior.NoAction);
         });
 

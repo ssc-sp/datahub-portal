@@ -4,7 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Datahub.Functions;
 
-internal class AzureConfig : IAzureServicePrincipalConfig
+public class AzureConfig : IAzureServicePrincipalConfig
 {
     private readonly IConfiguration _config;
     private readonly EmailNotification _emailConfig; 
@@ -17,6 +17,8 @@ internal class AzureConfig : IAzureServicePrincipalConfig
     }
 
     public EmailNotification Email => _emailConfig;
+
+    public string? NotificationPercents => _config["ProjectUsageNotificationPercents"];
 
     #region Azure SP
 
@@ -35,8 +37,9 @@ internal class AzureConfig : IAzureServicePrincipalConfig
     #endregion
 }
 
-internal class EmailNotification
+public class EmailNotification
 {
+    public bool DumpMessages { get; set; }
     public string? SmtpHost { get; set; }
     public int SmtpPort { get; set; }
     public string? SmtpUsername { get; set; }

@@ -1,9 +1,8 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace Datahub.Core.Model.Datahub;
 
-public class Project_MonthlyUsage
+public class Project_Credits
 {
     /// <summary>
     /// Row key
@@ -18,54 +17,35 @@ public class Project_MonthlyUsage
     /// </summary>
     public virtual Datahub_Project Project { get; set; }
     /// <summary>
-    /// Last updated (expected once per day)
+    /// Last updated (once a day)
     /// </summary>
     public DateTime? LastUpdate { get; set; }
     /// <summary>
     /// Current credits consumed.
     /// </summary>
-    public double CurrentCost { get; set; }
+    public double Current { get; set; }
     /// <summary>
     /// JSON serialized cost per service (ServiceName, Cost)
     /// </summary>
-    public string CurrentCostPerService { get; set; }
+    public string CurrentPerService { get; set; }
     /// <summary>
     /// JSON serialized cost per day (Date, Cost)
     /// </summary>
-    public string CurrentCostPerDay { get; set; }
+    public string CurrentPerDay { get; set; }
     /// <summary>
     /// Current credits yesterday.
     /// </summary>
-    public double YesterdayCost { get; set; }
+    public double YesterdayCredits { get; set; }
     /// <summary>
     /// JSON serialized cost per service yesterday (ServiceName, Cost)
     /// </summary>
-    public string YesterdayCostPerService { get; set; }
-
-    #region deprecated 
-    
+    public string YesterdayPerService { get; set; }
     /// <summary>
-    /// Total storage capacity currently in used
+    /// Consumed notification date
     /// </summary>
-    public long CurrentStorageUsage { get; set; }
-    /// <summary>
-    /// Storage capacity notification date
-    /// </summary>
-    public DateTime? StorageLastNotified { get; set; }
-    /// <summary>
-    /// Storage percent notified
-    /// </summary>
-    public int? StoragePercNotified { get; set; }
-
-    #endregion
-
-    /// <summary>
-    /// Consume notification date
-    /// </summary>
-    public DateTime? ConsumeLastNotified { get; set; }
-
+    public DateTime? LastNotified { get; set; }
     /// <summary>
     /// Consume notification percent
     /// </summary>
-    public int? ConsumePercNotified { get; set; }
+    public int? PercNotified { get; set; }
 }
