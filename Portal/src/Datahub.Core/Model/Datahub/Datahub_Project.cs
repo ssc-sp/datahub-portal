@@ -174,9 +174,17 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     public List<Client_Engagement> Client_Engagements { get; set; }
 
+    /// <summary>
+    /// Deprecated
+    /// </summary>
     public List<Project_Storage_Capacity> Storage_Capacities { get; set; }
 
-    public Project_MonthlyUsage MonthlyUsage { get; set; } 
+    /// <summary>
+    /// Deprecated
+    /// </summary>
+    public Project_MonthlyUsage MonthlyUsage { get; set; }
+
+    public Project_Credits Credits { get; set; }
 
     [StringLength(400)]
     [AeFormCategory("Initiative Connections")]
