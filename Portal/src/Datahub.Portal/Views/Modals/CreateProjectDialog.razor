@@ -4,8 +4,8 @@
 <MudDialog>
     <DialogContent>
         <MudForm Class="my-4" @bind-IsValid="@_success">
-            <MudTextField T="string" @bind-Value="_projectTitle" Label="@Localizer[ProjectLabel]" Required
-                          RequiredError="@Localizer[MissingTitle]" HelperText="@Localizer[ProjectHelper]"
+            <MudTextField T="string" @bind-Value="_projectTitle" Label="@Localizer[WorkspaceLabel]" Required
+                          RequiredError="@Localizer[MissingTitle]" HelperText="@Localizer[WorkspaceHelper]"
                           DebounceInterval="500" OnDebounceIntervalElapsed="UpdateProjectAcronym"/>
             <MudTextField T="string" @bind-Value="_projectAcronym" Label="@Localizer[AcronymLabel]" AdornmentIcon="@AcronymGeneratorIcon"
                           HelperText="@Localizer[AcronymHelper]" Adornment="Adornment.End" OnAdornmentClick="GenerateAcronym"
@@ -40,21 +40,20 @@
     public bool ShowCancel { get; set; } = true;
 
 #nullable enable
-    private const string Description = "Required information to create a collaborative project";  
-    private const string ProjectLabel = "Project Title";
-    private const string ProjectHelper = "Enter a descriptive title for the workspace";
-    private const string AcronymLabel = "Project Acronym";
-    private const string AcronymHelper = "A unique alphanumeric acronym to identify the project";
+    private const string WorkspaceLabel = "Workspace Title";
+    private const string WorkspaceHelper = "Enter a descriptive title for the workspace";
+    private const string AcronymLabel = "Workspace Acronym";
+    private const string AcronymHelper = "A unique alphanumeric acronym to identify the workspace";
     private const string AcronymGeneratorIcon = "fa-light fa-arrows-rotate";
     private const string AcronymGeneratorTooltip = "Generate a unique acronym";
-    private const string ProjectException = "An error occurred while creating the project";
-    private const string CreateButton = "Create Project";
+    private const string WorkspaceException = "An error occurred while creating the workspace";
+        private const string CreateButton = "Create Workspace";
     private const string CancelButton = "Cancel";
     
-    private const string MissingTitle = "Project Title is required";
-    private const string MissingAcronym = "Project Acronym is required";
-    private const string AcronymExists = "Project Acronym already exists";
-    private const string ProjectRequiredToGenerateAcronym = "Project Title is required to generate an acronym";
+    private const string MissingTitle = "Workspace Title is required";
+    private const string MissingAcronym = "Workspace Acronym is required";
+    private const string AcronymExists = "Workspace Acronym already exists";
+    private const string WorkspaceRequiredToGenerateAcronym = "Workspace Title is required to generate an acronym";
     
     private string? _errorMessage;
     private string _projectTitle = string.Empty;
@@ -69,7 +68,7 @@
     {
         if (string.IsNullOrWhiteSpace(_projectTitle))
         {
-            _errorMessage = Localizer[ProjectRequiredToGenerateAcronym];
+            _errorMessage = Localizer[WorkspaceRequiredToGenerateAcronym];
             return;
         }
         _projectAcronym = await ProjectCreationService.GenerateProjectAcronymAsync(_projectTitle);
@@ -125,7 +124,7 @@
             }
             else
             {
-                _errorMessage = Localizer[ProjectException];
+                _errorMessage = Localizer[WorkspaceException];
                 StateHasChanged();
             }
         }

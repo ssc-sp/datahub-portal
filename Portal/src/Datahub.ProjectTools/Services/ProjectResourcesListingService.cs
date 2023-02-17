@@ -138,8 +138,8 @@ public class ProjectResourcesListingService
         // add legacy Databricks and Storage in case Git Modules are disabled
         if (!config.EnableGitModuleRepository)
         {
-            allResourceProviders.Add(typeof(DHDatabricksResource));
             allResourceProviders.Add(typeof(DHStorageResource));
+            allResourceProviders.Add(typeof(DHDatabricksResource));
         }
 
         return allResourceProviders;
