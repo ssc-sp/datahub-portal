@@ -24,8 +24,8 @@ public class RepositoryServiceTests
     public void RunBeforeEachTest()
     {
         var localModuleClonePath =
-            Path.Join(Environment.CurrentDirectory, _configuration["ModuleRepository:LocalPath"]);
-        var localInfrastructureClonePath = Path.Join(Environment.CurrentDirectory,
+            Path.Join(Path.GetTempPath(), _configuration["ModuleRepository:LocalPath"]);
+        var localInfrastructureClonePath = Path.Join(Path.GetTempPath(),
             _configuration["InfrastructureRepository:LocalPath"]);
 
         VerifyDirectoryDoesNotExist(localModuleClonePath);
@@ -35,7 +35,7 @@ public class RepositoryServiceTests
     [Test]
     public async Task ShouldFetchModuleRepository()
     {
-        var expectedClonePath = Path.Join(Environment.CurrentDirectory, _configuration["ModuleRepository:LocalPath"]);
+        var expectedClonePath = Path.Join(Path.GetTempPath(), _configuration["ModuleRepository:LocalPath"]);
 
         Assert.That(Directory.Exists(expectedClonePath), Is.False);
 
@@ -47,7 +47,7 @@ public class RepositoryServiceTests
     [Test]
     public async Task ShouldFetchModuleRepositoryAndOverwriteExisting()
     {
-        var expectedClonePath = Path.Join(Environment.CurrentDirectory, _configuration["ModuleRepository:LocalPath"]);
+        var expectedClonePath = Path.Join(Path.GetTempPath(), _configuration["ModuleRepository:LocalPath"]);
 
         Assert.That(Directory.Exists(expectedClonePath), Is.False);
 
@@ -75,7 +75,7 @@ public class RepositoryServiceTests
     public async Task ShouldFetchInfrastructureRepository()
     {
         var repositoryLocalPath = _configuration["InfrastructureRepository:LocalPath"];
-        var expectedClonePath = Path.Join(Environment.CurrentDirectory, repositoryLocalPath);
+        var expectedClonePath = Path.Join(Path.GetTempPath(), repositoryLocalPath);
 
         Assert.That(Directory.Exists(expectedClonePath), Is.False);
 
@@ -88,7 +88,7 @@ public class RepositoryServiceTests
     public async Task ShouldCheckoutProjectBranch()
     {
         var repositoryLocalPath = _configuration["InfrastructureRepository:LocalPath"];
-        var expectedClonePath = Path.Join(Environment.CurrentDirectory, repositoryLocalPath);
+        var expectedClonePath = Path.Join(Path.GetTempPath(), repositoryLocalPath);
 
         Assert.That(Directory.Exists(expectedClonePath), Is.False);
 
