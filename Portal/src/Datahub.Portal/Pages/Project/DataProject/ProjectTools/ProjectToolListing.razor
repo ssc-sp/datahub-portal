@@ -18,20 +18,22 @@
 <div>
     <ProjectMemberBlock AdminOnly=false ProjectAcronym="@ProjectAcronym">
         <NotAuthorized>
-            <div class="access-denied">
-                <AeTypography Variant="h3">@Localizer["Access Denied"]</AeTypography>
-                <AeTypography class="danger">@Localizer["You are not a member of this project."]</AeTypography>
+        
+            <MudAlert Severity="Severity.Error" Class="my-4">
+                @Localizer["Access Denied"]: @Localizer["You are not a member of this project."]
+            </MudAlert>
                 @if (_isProjectUserPendingApproval)
                 {
-                    <AeTypography class="access-request-reviewing">@Localizer["Access Request is being reviewed"]</AeTypography>
+                    <MudButton Disabled Variant="Variant.Filled" Color="Color.Primary">
+                        @Localizer["Access Request is being reviewed"]
+                    </MudButton>
                 }
                 else
                 {
-                    <span class="button-wrapper">
-                        <AeButton @onclick="RequestProjectAccess">@Localizer["Request Access"]</AeButton>
-                    </span>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="RequestProjectAccess">
+                        @Localizer["Request Access"]
+                    </MudButton>
                 }
-            </div>
         </NotAuthorized>
         <Authorized>
             @if (_activeResources?.Count > 0)
