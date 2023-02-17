@@ -5,10 +5,13 @@
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Services.Metadata;
 @using Datahub.Metadata.DTO
-@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@using Datahub.Infrastructure.Services.Projects;
+@using Datahub.Infrastructure.Services.Azure
+
 @inject UIControlsService _uiControlService
 @inject NavigationManager NavigationManager
 @inject IMetadataBrokerService MetadataBrokerService
+@inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
 
 @if (_loading)
 {
@@ -24,12 +27,12 @@
 <MudStack Row>
     <MudChip Label Color="@Color.Dark" class="project-data-sensitivity">@Localizer[Project.Data_Sensitivity]</MudChip>
 
-    @if (_currentProjectMonthlyCost is not null && _projectBudget > 0)
+    @if (_monthlyUsage is not null && _projectBudget > 0)
     {
         <MudBadge Icon="@Icons.Material.Filled.QuestionMark" Color="@GetCostChipColor()" Overlap="@true" Bordered="@true">
             <MudChip Label="true" Icon="@Icons.Material.Filled.AttachMoney" IconColor="@GetCostChipColor()" Variant="@Variant.Text"
                      Color="@GetCostChipColor()" class="project-data-sensitivity" OnClick=@HandleToggleCosts>
-                @($"{_currentProjectMonthlyCost:C} {Localizer["Azure cost for current month"]}")
+                @($"{CurrentProjectMonthlyCost:C} {Localizer["Azure cost for current month"]}")
             </MudChip>
         </MudBadge>
     }
@@ -67,11 +70,6 @@
     }
 
     <DHMarkdown class="description" Content=@GetProjectDescription()/>
-
-    @if (_showCosts && _currentProjectMonthlyCost < _projectBudget)
-    {
-        <ProjectCosting ProjectBudget=@_projectBudget ConsumedBudget=@_currentProjectMonthlyCost.Value/>
-    }
 </MudStack>
 
 
@@ -86,25 +84,27 @@
     [CascadingParameter(Name = "IsDatahubAdmin")]
     private bool IsDatahubAdmin { get; set; }
 
-    private string ProjectAcronym => Project?.Project_Acronym_CD;
+    // todo: change to use the Project_Credits
+    private Project_MonthlyUsage _monthlyUsage = default;
 
-    private decimal? _currentProjectMonthlyCost;
-    private string _projectIcon => $"fas fa-{Project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
+    private decimal CurrentProjectMonthlyCost => Convert.ToDecimal(_monthlyUsage.CurrentCost);
+
     private decimal _projectBudget;
     private bool _loading = true;
-    private bool _showCosts;
     private FieldValueContainer _projectMetadata;
+
+    private string ProjectAcronym => Project?.Project_Acronym_CD;
+    private string _projectIcon => $"fas fa-{Project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
+
 
     protected override async Task OnInitializedAsync()
     {
-        using var projectContext = _dbFactoryProject.CreateDbContext();
+        using var ctx = await dbContextFactory.CreateDbContextAsync();
 
-        var projectMonthlyCost = await projectContext.Project_Current_Monthly_Costs.FirstOrDefaultAsync(mc => mc.ProjectAcronym == ProjectAcronym.ToLower());
-        if (projectMonthlyCost != null)
-            _currentProjectMonthlyCost = projectMonthlyCost.TotalCost;
+        //_monthlyUsage = await monthlyUsageService.GetProjectMonthlyUsage(Project.Project_ID, default);
+        _monthlyUsage = await ctx.Project_MonthlyUsage.FirstOrDefaultAsync(e => e.ProjectId == Project.Project_ID);
 
         _projectBudget = Project.Project_Budget ?? 0;
-
         _projectMetadata = await MetadataBrokerService.GetObjectMetadataValues(ProjectAcronym);
 
         _loading = false;
@@ -112,24 +112,21 @@
 
     private Color GetCostChipColor()
     {
-        if (_currentProjectMonthlyCost.HasValue)
-        {
-            if (_currentProjectMonthlyCost < 0.01m)
-                return Color.Dark;
-            if (_currentProjectMonthlyCost >= _projectBudget)
-                return Color.Error;
-            if (_currentProjectMonthlyCost >= 0.75m * _projectBudget)
-                return Color.Warning;
-        }
+        if (CurrentProjectMonthlyCost < 0.01m)
+            return Color.Dark;
+        if (CurrentProjectMonthlyCost >= _projectBudget)
+            return Color.Error;
+        if (CurrentProjectMonthlyCost >= 0.75m * _projectBudget)
+            return Color.Warning;
         return Color.Default;
     }
 
     private string GetToolTipText()
     {
         var projectName = $"{Project.ProjectName} ";
-        if (_currentProjectMonthlyCost >= _projectBudget)
+        if (CurrentProjectMonthlyCost >= _projectBudget)
             return projectName + Localizer["is over budget"];
-        if (_currentProjectMonthlyCost >= 0.75m * _projectBudget)
+        if (CurrentProjectMonthlyCost >= 0.75m * _projectBudget)
             return projectName + Localizer["is nearing budget"];
         return projectName + Localizer["is under budget"];
     }
@@ -141,7 +138,7 @@
             "PROTECTED C" => Color.Secondary,
         "PROTECTED A" => Color.Error,
         _ => Color.Dark
-        };
+    };
 
     private string GetProjectDataSensitivity()
     {
@@ -150,7 +147,14 @@
 
     private void HandleToggleCosts(MouseEventArgs args)
     {
-        _showCosts = !_showCosts;
+        RenderFragment fragment = 
+            @<ProjectCosting 
+                ProjectBudget=@_projectBudget 
+                MonthyUsage="@_monthlyUsage"
+            />;
+
+        var thisMonth = DateTime.UtcNow.ToString("MMMM");
+        _uiControlService.ShowDialog($"{Localizer["Cost analysis"]} ({thisMonth})", fragment);
     }
 
     private void HandleEditMetadata(MouseEventArgs args)
@@ -163,5 +167,4 @@
         var description = _projectMetadata.GetValue($"notes_translated_{CultureService.Culture}", null);
         return description ?? Project.ProjectDescription;
     }
-
 }
