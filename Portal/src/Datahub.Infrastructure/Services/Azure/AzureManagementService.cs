@@ -2,6 +2,7 @@
 
 public class AzureManagementService
 {
+    public const string ClientName = "Azure Management";
     private readonly IAzureServicePrincipalConfig _configuration;
     private readonly IHttpClientFactory _httpClientFactory;
 
@@ -13,7 +14,7 @@ public class AzureManagementService
 
     public async Task<AzureManagementSession> GetSession(CancellationToken cancellationToken)
     {
-        var httpClient = _httpClientFactory.CreateClient();
+        var httpClient = _httpClientFactory.CreateClient(ClientName);
         var accessToken = await GetAccessTokenAsync(httpClient, AzureManagementUrls.ManagementUrl, cancellationToken);
 
         // validate access token

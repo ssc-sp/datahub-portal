@@ -1,9 +1,9 @@
+using Datahub.Infrastructure.Queues.Messages;
+using MailKit.Net.Smtp;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using MimeKit;
-using MailKit.Net.Smtp;
-using Datahub.Infrastructure.Queues.Messages;
+using System.Text.Json;
 
 namespace Datahub.Functions;
 

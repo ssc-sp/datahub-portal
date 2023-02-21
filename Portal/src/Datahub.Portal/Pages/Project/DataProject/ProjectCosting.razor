@@ -17,7 +17,7 @@
                      Color="@MonthChipColor"
                      Variant="@Variant.Text"
                      OnClick="@HandleShowMonth">
-                @($"{CurrentCost:C} {_thisMonth}")
+                @($"{CurrentCost:C} {Localizer["Total"]}")
             </MudChip>
             <MudChip Label="true"
                      Icon="@Icons.Material.Filled.AttachMoney"
@@ -36,7 +36,7 @@
                   InputLabels="@ServiceLabels">
                 <CustomGraphics>
                     <text class="donut-inner-text" x="47%" y="35%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">@SelectedTotalLabel</text>
-                    <text class="donut-inner-text" x="47%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="5">@($"{SelectedTotalCost:C}")</text>
+                    <text class="donut-inner-text" x="47%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="4">@($"{SelectedTotalCost:C}")</text>
                 </CustomGraphics>
             </MudChart>
         </div>
@@ -95,22 +95,20 @@
     public decimal ProjectBudget { get; set; }
 
     [Parameter]
-    public Project_MonthlyUsage MonthyUsage { get; set; }
-
-    private string _thisMonth = DateTime.UtcNow.ToString("MMMM");
+    public Project_Credits ProjectCredits { get; set; }
 
     private List<AzureDailyCost> _currentDailyCosts { get; set; } = new();
     private List<AzureServiceCost> _currentServiceCosts { get; set; } = new();
     private List<AzureServiceCost> _yesterdayServiceCosts { get; set; } = new();
 
-    private decimal CurrentCost => Convert.ToDecimal(MonthyUsage.CurrentCost);
-    private decimal YesterdayCost => Convert.ToDecimal(MonthyUsage.YesterdayCost);
+    private decimal CurrentCost => Convert.ToDecimal(ProjectCredits.Current);
+    private decimal YesterdayCost => Convert.ToDecimal(ProjectCredits.YesterdayCredits);
 
-    private bool _showingMonth = true;
-    private string SelectedTotalLabel => _showingMonth ? _thisMonth : Localizer["Yesterday"];
-    private decimal SelectedTotalCost => _showingMonth ? CurrentCost : YesterdayCost;
-    private MudBlazor.Color MonthChipColor => _showingMonth ? MudBlazor.Color.Primary : MudBlazor.Color.Default;
-    private MudBlazor.Color YesterdayChipColor => _showingMonth ? MudBlazor.Color.Default : MudBlazor.Color.Primary;
+    private bool _showingTotal = true;
+    private string SelectedTotalLabel => _showingTotal ? Localizer["Total"] : Localizer["Yesterday"];
+    private decimal SelectedTotalCost => _showingTotal ? CurrentCost : YesterdayCost;
+    private MudBlazor.Color MonthChipColor => _showingTotal ? MudBlazor.Color.Primary : MudBlazor.Color.Default;
+    private MudBlazor.Color YesterdayChipColor => _showingTotal ? MudBlazor.Color.Default : MudBlazor.Color.Primary;
 
     private decimal _remainingBudget;
     private SpendingEstimation _spendingEstimation;
@@ -125,8 +123,8 @@
     private string[] XAxisDailyLabels => _currentDailyCosts.Select(dc => FormatDay(dc.Date)).ToArray();
     static string FormatDay(DateTime date) => $"{date.Month.ToString("D2")}/{date.Day.ToString("D2")}";
 
-    private double[] ServiceCosts => _showingMonth ? GetMonthServiceCosts() : GetYesterdayServiceCosts();
-    private string[] ServiceLabels => _showingMonth ? GetMonthServiceLabels() : GetYesterdayServiceLabels();
+    private double[] ServiceCosts => _showingTotal ? GetMonthServiceCosts() : GetYesterdayServiceCosts();
+    private string[] ServiceLabels => _showingTotal ? GetMonthServiceLabels() : GetYesterdayServiceLabels();
 
     private double[] GetMonthServiceCosts() => _currentServiceCosts.Select(sc => sc.Cost).ToArray();
     private string[] GetMonthServiceLabels() => _currentServiceCosts.Select(sc => $"{sc.Name} ({sc.Cost:C})").ToArray();
@@ -192,24 +190,24 @@
 
     private void ConvertCosts()
     {
-        if (!string.IsNullOrEmpty(MonthyUsage.CurrentCostPerService))
+        if (!string.IsNullOrEmpty(ProjectCredits.CurrentPerService))
         {
-            _currentServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(MonthyUsage.CurrentCostPerService);
+            _currentServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(ProjectCredits.CurrentPerService);
         }
 
-        if (!string.IsNullOrEmpty(MonthyUsage.YesterdayCostPerService))
+        if (!string.IsNullOrEmpty(ProjectCredits.YesterdayPerService))
         {
-            _yesterdayServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(MonthyUsage.YesterdayCostPerService);
+            _yesterdayServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(ProjectCredits.YesterdayPerService);
         }
 
-        if (!string.IsNullOrEmpty(MonthyUsage.CurrentCostPerDay))
+        if (!string.IsNullOrEmpty(ProjectCredits.CurrentPerDay))
         {
-            _currentDailyCosts = JsonSerializer.Deserialize<List<AzureDailyCost>>(MonthyUsage.CurrentCostPerDay);
+            _currentDailyCosts = JsonSerializer.Deserialize<List<AzureDailyCost>>(ProjectCredits.CurrentPerDay);
         }
     }
 
-    private void HandleShowMonth() => _showingMonth = true;
-    private void HandleShowYesterday() => _showingMonth = false;
+    private void HandleShowMonth() => _showingTotal = true;
+    private void HandleShowYesterday() => _showingTotal = false;
 
     record SpendingEstimation(double Storage, double ComputeSmall, double ComputeMedium, double ComputeLarge);
 }

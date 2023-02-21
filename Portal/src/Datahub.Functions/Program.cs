@@ -8,7 +8,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Reflection;
+using Polly;
+using Polly.Contrib.WaitAndRetry;
+using System.Net;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -31,7 +33,13 @@ var host = new HostBuilder()
         }
 
         services.AddMediatR(typeof(QueueMessageSender<>));
-        services.AddHttpClient();
+
+        services.AddHttpClient(AzureManagementService.ClientName).AddPolicyHandler(
+            Policy<HttpResponseMessage>
+                .Handle<HttpRequestException>()
+                .OrResult(x => x.StatusCode == HttpStatusCode.TooManyRequests)
+                .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(1), 6)));
+
         services.AddSingleton<AzureConfig>();
         services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
         services.AddSingleton<AzureManagementService>();
