@@ -27,12 +27,12 @@
 <MudStack Row>
     <MudChip Label Color="@Color.Dark" class="project-data-sensitivity">@Localizer[Project.Data_Sensitivity]</MudChip>
 
-    @if (_monthlyUsage is not null && _projectBudget > 0)
+    @if (_projectCredits is not null && _projectBudget > 0)
     {
         <MudBadge Icon="@Icons.Material.Filled.QuestionMark" Color="@GetCostChipColor()" Overlap="@true" Bordered="@true">
             <MudChip Label="true" Icon="@Icons.Material.Filled.AttachMoney" IconColor="@GetCostChipColor()" Variant="@Variant.Text"
                      Color="@GetCostChipColor()" class="project-data-sensitivity" OnClick=@HandleToggleCosts>
-                @($"{CurrentProjectMonthlyCost:C} {Localizer["Azure cost for current month"]}")
+                @($"{CurrentCredits:C} {Localizer["Azure cost for current month"]}")
             </MudChip>
         </MudBadge>
     }
@@ -84,10 +84,9 @@
     [CascadingParameter(Name = "IsDatahubAdmin")]
     private bool IsDatahubAdmin { get; set; }
 
-    // todo: change to use the Project_Credits
-    private Project_MonthlyUsage _monthlyUsage = default;
+    private Project_Credits _projectCredits = default;
 
-    private decimal CurrentProjectMonthlyCost => Convert.ToDecimal(_monthlyUsage.CurrentCost);
+    private decimal CurrentCredits => Convert.ToDecimal(_projectCredits.Current);
 
     private decimal _projectBudget;
     private bool _loading = true;
@@ -101,8 +100,7 @@
     {
         using var ctx = await dbContextFactory.CreateDbContextAsync();
 
-        //_monthlyUsage = await monthlyUsageService.GetProjectMonthlyUsage(Project.Project_ID, default);
-        _monthlyUsage = await ctx.Project_MonthlyUsage.FirstOrDefaultAsync(e => e.ProjectId == Project.Project_ID);
+        _projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(e => e.ProjectId == Project.Project_ID);
 
         _projectBudget = Project.Project_Budget ?? 0;
         _projectMetadata = await MetadataBrokerService.GetObjectMetadataValues(ProjectAcronym);
@@ -112,11 +110,11 @@
 
     private Color GetCostChipColor()
     {
-        if (CurrentProjectMonthlyCost < 0.01m)
+        if (CurrentCredits < 0.01m)
             return Color.Dark;
-        if (CurrentProjectMonthlyCost >= _projectBudget)
+        if (CurrentCredits >= _projectBudget)
             return Color.Error;
-        if (CurrentProjectMonthlyCost >= 0.75m * _projectBudget)
+        if (CurrentCredits >= 0.75m * _projectBudget)
             return Color.Warning;
         return Color.Default;
     }
@@ -124,9 +122,9 @@
     private string GetToolTipText()
     {
         var projectName = $"{Project.ProjectName} ";
-        if (CurrentProjectMonthlyCost >= _projectBudget)
+        if (CurrentCredits >= _projectBudget)
             return projectName + Localizer["is over budget"];
-        if (CurrentProjectMonthlyCost >= 0.75m * _projectBudget)
+        if (CurrentCredits >= 0.75m * _projectBudget)
             return projectName + Localizer["is nearing budget"];
         return projectName + Localizer["is under budget"];
     }
@@ -148,10 +146,7 @@
     private void HandleToggleCosts(MouseEventArgs args)
     {
         RenderFragment fragment = 
-            @<ProjectCosting 
-                ProjectBudget=@_projectBudget 
-                MonthyUsage="@_monthlyUsage"
-            />;
+            @<ProjectCosting ProjectBudget=@_projectBudget ProjectCredits=@_projectCredits />;
 
         var thisMonth = DateTime.UtcNow.ToString("MMMM");
         _uiControlService.ShowDialog($"{Localizer["Cost analysis"]} ({thisMonth})", fragment);

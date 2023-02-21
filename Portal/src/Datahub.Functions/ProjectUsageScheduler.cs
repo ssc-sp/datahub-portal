@@ -48,17 +48,17 @@ public class ProjectUsageScheduler
         _logger.LogInformation($"{scheduled.Count} projects scheduled!");
     }
 
-    record DBResourceContent(string resource_group_name, string storage_account);
+    record DBResourceContent(string resource_group_name);
 
     private ProjectUsageUpdateMessage? TryDeserializeMessage(Project_Resources2 row)
     {
         try
         {
             var content = JsonSerializer.Deserialize<DBResourceContent>(row.JsonContent);
-            if (string.IsNullOrEmpty(content?.resource_group_name) || string.IsNullOrEmpty(content?.storage_account))
+            if (string.IsNullOrEmpty(content?.resource_group_name))
                 return default;
 
-            return new ProjectUsageUpdateMessage(row.ProjectId, content.resource_group_name, content.storage_account);
+            return new ProjectUsageUpdateMessage(row.ProjectId, content.resource_group_name);
         }
         catch
         {

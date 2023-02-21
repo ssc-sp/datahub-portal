@@ -16,7 +16,7 @@ public class ProjectUsageService
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<Project_Credits> UpdateProjectUsage(int projectId, string resourceGroup, string storageAccount, CancellationToken ct)
+    public async Task<Project_Credits> UpdateProjectUsage(int projectId, string resourceGroup, CancellationToken ct)
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
 
@@ -27,12 +27,12 @@ public class ProjectUsageService
         projectCredits ??= new() { ProjectId = projectId };
 
         // check the last update
-        var today = DateTime.UtcNow.Date;
-        if (projectCredits.LastUpdate.HasValue && today <= projectCredits.LastUpdate.Value)
-            return projectCredits;
+        //var today = DateTime.UtcNow.Date;
+        //if (projectCredits.LastUpdate.HasValue && today <= projectCredits.LastUpdate.Value)
+        //    return projectCredits;
 
         // update usage
-        await UpdateUsage(projectCredits, resourceGroup, storageAccount, ct);
+        await UpdateUsage(projectCredits, resourceGroup, ct);
 
         // add or update
         if (projectCredits.Id == 0)
@@ -50,26 +50,38 @@ public class ProjectUsageService
         return projectCredits;
     }
 
-    private async Task UpdateUsage(Project_Credits projectCredits, string rg, string storage, CancellationToken ct)
+    private async Task UpdateUsage(Project_Credits projectCredits, string resourceGroup, CancellationToken ct)
     {
         var session = await _azureManagementService.GetSession(ct);
 
         // current monthly cost
-        projectCredits.Current = await session.GetResourceGroupMonthlyCost(rg) ?? 0;
+        projectCredits.Current = await session.GetResourceGroupLastYearCost(resourceGroup) ?? 0;
+
+        // wait 5 seconds before trying next query
+        await Task.Delay(2000);
 
         // monthy by service
-        var costByService = await session.GetResourceGroupMonthlyCostByService(rg);
+        var costByService = await session.GetResourceGroupYearCostByService(resourceGroup);
         projectCredits.CurrentPerService = JsonSerializer.Serialize(costByService);
 
+        // wait 2 seconds before trying next query
+        await Task.Delay(2000);
+
         // yesterday cost
-        projectCredits.YesterdayCredits = await session.GetResourceGroupYesterdayCost(rg) ?? 0;
+        projectCredits.YesterdayCredits = await session.GetResourceGroupYesterdayCost(resourceGroup) ?? 0;
+
+        // wait 2 seconds before trying next query
+        await Task.Delay(2000);
 
         // yesterday by service
-        var yesterdayCostByService = await session.GetResourceGroupYesterdayCostByService(rg);
+        var yesterdayCostByService = await session.GetResourceGroupYesterdayCostByService(resourceGroup);
         projectCredits.YesterdayPerService = JsonSerializer.Serialize(yesterdayCostByService);
 
+        // wait 2 seconds before trying next query
+        await Task.Delay(2000);
+
         // current cost by day
-        var costsPerDay = await session.GetResourceGroupMonthlyCostPerDay(rg);
+        var costsPerDay = await session.GetResourceGroupMonthlyCostPerDay(resourceGroup);
         projectCredits.CurrentPerDay = JsonSerializer.Serialize(costsPerDay);
 
         // last updated

@@ -25,13 +25,13 @@ namespace Datahub.Functions
             var message = DeserializeQueueMessage(queueItem);
 
             // verify message 
-            if (message is null || message.ProjectId <= 0 || string.IsNullOrEmpty(message.ResourceGroup) || string.IsNullOrEmpty(message.StorageAccount))
+            if (message is null || message.ProjectId <= 0 || string.IsNullOrEmpty(message.ResourceGroup))
             {
                 throw new Exception($"Invalid queue message:\n{queueItem}");
             }
 
             // update the usage
-            await _usageService.UpdateProjectUsage(message.ProjectId, message.ResourceGroup, message.StorageAccount, cancellationToken);
+            await _usageService.UpdateProjectUsage(message.ProjectId, message.ResourceGroup, cancellationToken);
 
             // queue the usage notification message
             await _mediator.Send(new ProjectUsageNotificationMessage(message.ProjectId), cancellationToken);

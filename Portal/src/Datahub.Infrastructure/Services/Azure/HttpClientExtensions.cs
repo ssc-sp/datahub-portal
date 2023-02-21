@@ -1,10 +1,21 @@
-﻿using System.Text.Json;
+﻿using Polly;
+using Polly.Contrib.WaitAndRetry;
+using System;
+using System.Net;
+using System.Reflection;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Datahub.Infrastructure.Services.Azure;
 
 public static class HttpClientExtensions
 {
+    static readonly IAsyncPolicy<HttpResponseMessage> _retryPolicy =
+            Policy<HttpResponseMessage>
+                .Handle<HttpRequestException>()
+                .OrResult(x => x.StatusCode == HttpStatusCode.TooManyRequests)
+                .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(1), 5));
+
     public static async Task<ResponseType?> PostAsync<ResponseType>(this HttpClient httpClient, string url, string? accessToken, HttpContent? content, CancellationToken cancellationToken) where ResponseType : class
     {
         return await ExecuteQueryAsync<ResponseType>(httpClient, HttpMethod.Post, url, accessToken, content, cancellationToken);
@@ -15,7 +26,8 @@ public static class HttpClientExtensions
         return await ExecuteQueryAsync<ResponseType>(httpClient, HttpMethod.Get, url, accessToken, content, cancellationToken);
     }
 
-    static async Task<ResponseType?> ExecuteQueryAsync<ResponseType>(HttpClient httpClient, HttpMethod method, string url, string? accessToken, HttpContent? content, CancellationToken cancellationToken) where ResponseType : class
+    static async Task<ResponseType?> ExecuteQueryAsync<ResponseType>(HttpClient httpClient, HttpMethod method, 
+        string url, string? accessToken, HttpContent? content, CancellationToken ct) where ResponseType : class
     {
         var httpRequest = new HttpRequestMessage(method, url);
 
@@ -29,8 +41,8 @@ public static class HttpClientExtensions
             httpRequest.Content = content;
         }
 
-        var responseMessage = await httpClient.SendAsync(httpRequest, cancellationToken);
-        var responseContent = await responseMessage.Content.ReadAsStringAsync(cancellationToken);
+        var responseMessage = await httpClient.SendAsync(httpRequest, ct);
+        var responseContent = await responseMessage.Content.ReadAsStringAsync(ct);
 
         return JsonSerializer.Deserialize<ResponseType>(responseContent, GetJsonSerializerOptions());
     }
