@@ -19,7 +19,7 @@
         <MudCard Elevation="0" Class="py-4 px-6">
             <MudCardHeader>
                 <CardHeaderContent>
-                    <MudText Typo="Typo.h2">@Localizer["Help"]</MudText>
+                    <MudText Typo="Typo.h2">@Localizer["Troubleshooting"]</MudText>
                 </CardHeaderContent>
                 <CardHeaderActions>
                     @*Tooltip currently does not work here*@
@@ -32,22 +32,22 @@
             <MudCardContent>
                 <MudStack>
                     <MudText>@Localizer["Need a hand? We've got you covered."]</MudText>
-                    <MudText Typo="Typo.body2">@Localizer["Whether you need to report an issue or just want some guidance on setting up and using your account, send us an email at:"]</MudText>
+                    <MudText Typo="Typo.body2">@Localizer["To report an issue or request assistance please use the FSDH Support Request Form"]</MudText>
                     <MudStack Row Justify="Justify.Center">
                         <MudButton
                             Class="my-4"
                             Variant="Variant.Filled"
                             EndIcon="@Icons.Material.Filled.Mail"
                             Color="Color.Primary"
-                            Href="@DatahubEmail">
-                            @Localizer["Contact Us"]
+                            Target="_blank"
+                            Href="@HelpLink">
+                            @Localizer["Request Form"]
                         </MudButton>
                     </MudStack>
                 </MudStack>
             </MudCardContent>
             <MudCardActions>
                 <MudStack Row Justify="Justify.SpaceAround" Class="flex-grow-1">
-                    <MudButton Href="privacystatement" Variant="Variant.Text" Color="Color.Primary">@Localizer["Privacy Policy"]</MudButton>
                     <MudButton Href="termsandconditions" Variant="Variant.Text" Color="Color.Primary">@Localizer["Terms and Conditions"]</MudButton>
                 </MudStack>
             </MudCardActions>
@@ -60,7 +60,7 @@
     private string _style;
     private bool _showHelp;
     private string _datahubEmail;
-    private string DatahubEmail => $"mailto:{_datahubEmail}";
+    private string HelpLink => "https://forms.office.com/r/zk82ehvUtv)%E2%80%9D";
     private const string TOOLTIP_TEXT = "Help";
 
     protected override async Task OnInitializedAsync()

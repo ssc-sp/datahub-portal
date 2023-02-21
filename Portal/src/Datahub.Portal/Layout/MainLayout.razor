@@ -1,22 +1,22 @@
 ﻿@inherits LayoutComponentBase
 
 @using Microsoft.Identity.Web
-@using Datahub.Core.Components.TopBar
 @using Datahub.Core.Theme
 @using MudBlazor.Utilities
+@using Datahub.Application.Configuration
 
 @inject NavigationManager _navigationManager
 @inject IDatahubAuditingService _auditingService
 @inject IUserCircuitCounterService _userCircuitCounterService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
-@inject IConfiguration _configuration
+@inject DatahubPortalConfiguration _portalConfiguration
 @inject IUserInformationService _userInformationService
 
 <MudThemeProvider Theme="@DatahubTheme.DEFAULT_THEME"/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
-<PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
+<PageTitle>@Localizer[_portalConfiguration.Title]</PageTitle>
 
 @if (isLoaded)
 {
@@ -41,7 +41,7 @@
                                 <ChildContent>
                                     @if (_isSessionEnabled == true)
                                     {
-                                        <MudContainer Class="mt-8" MaxWidth="MaxWidth.Large">
+                                        <MudContainer Class="mt-8 px-16" MaxWidth="MaxWidth.ExtraLarge">
                                             <DHBreadcrumbs />
                                             @Body
                                         </MudContainer>

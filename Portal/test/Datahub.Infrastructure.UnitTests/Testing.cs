@@ -19,7 +19,7 @@ public partial class Testing
 
 
     internal const string TestProjectAcronym = "TEST";
-    internal const string TestUserEmail = "user@email.gc.ca";
+    internal const string? TestUserEmail = "user@email.gc.ca";
     internal const string TestUserId = "123456789";
     internal static readonly string[] TEST_USER_IDS = Enumerable.Range(0,5).Select(_ => new Guid().ToString()).ToArray();
     internal const string TestAdminUserId = "987654321";

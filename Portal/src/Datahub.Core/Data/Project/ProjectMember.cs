@@ -24,7 +24,7 @@ public class ProjectMember
         Email = projectUser.User_Name;
         UserId = projectUser.User_ID;
         UserAddedToProject = projectUser.Approved_DT;
-        Role = projectUser.IsDataApprover ? ProjectMemberRole.Publisher : projectUser.IsAdmin ? 
-            ProjectMemberRole.Admin : ProjectMemberRole.Contributor;
+        Role = projectUser.IsDataApprover ? ProjectMemberRole.WorkspaceLead : projectUser.IsAdmin ? 
+            ProjectMemberRole.Admin : ProjectMemberRole.Collaborator;
     }
 }
