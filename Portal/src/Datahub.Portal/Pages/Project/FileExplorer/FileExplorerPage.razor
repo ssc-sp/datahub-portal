@@ -1,12 +1,13 @@
 ﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject DataRetrievalService _dataRetrievalService
 @inject IUserInformationService _userInformationService
+@inject IProjectDataRetrievalService _projectDataRetrievalService
 
 @page "/w/{ProjectAcronymParam}/filelist"
 @using Datahub.Core.Components.PageBanner
 @using Datahub.Core.Services.Storage
 @using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
 @using Microsoft.Graph
+@using Datahub.Application.Services
 
 
 <DHPageTitle PageTitleKey="@_projectName"/>
@@ -69,7 +70,7 @@
 
     private async Task<List<(string Icon, string LabelText, RenderFragment Content)>> GetTabs()
     {
-        var containers = await _dataRetrievalService.GetProjectContainersAsync(ProjectAcronymParam, _user);
+        var containers = await _projectDataRetrievalService.GetProjectContainersAsync(ProjectAcronymParam);
 
         var tabs = new List<(string Icon, string LabelText, RenderFragment Content)>();
         containers.ForEach(container =>
