@@ -62,6 +62,8 @@ using Datahub.Infrastructure.Services;
 using Datahub.Portal.Services.Notification;
 using Datahub.LanguageTraining.Services;
 using Datahub.M365Forms.Services;
+using Datahub.Infrastructure.Services.Azure;
+using Datahub.Infrastructure.Services.Projects;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -181,6 +183,10 @@ public class Startup
         services.AddSingleton<DocumentationService>();
 
         services.AddSingleton<CultureService>();
+
+        services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
+        services.AddSingleton<AzureManagementService>();
+        services.AddSingleton<ProjectUsageService>();
 
         services.AddSignalRCore();
 

@@ -14,16 +14,6 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services.Api;
-using Datahub.GeoCore.Service;
-using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
-using Datahub.Core.Services.Metadata;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Datahub.Portal.Controllers;
 

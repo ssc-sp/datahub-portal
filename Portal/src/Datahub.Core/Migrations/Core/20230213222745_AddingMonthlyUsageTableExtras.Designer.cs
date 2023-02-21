@@ -4,20 +4,23 @@ using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230213222745_AddingMonthlyUsageTableExtras")]
+    partial class AddingMonthlyUsageTableExtras
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.3")
+                .HasAnnotation("ProductVersion", "7.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -742,49 +745,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("PowerBi_Workspaces");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.Project_Credits", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<double>("Current")
-                        .HasColumnType("float");
-
-                    b.Property<string>("CurrentPerDay")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CurrentPerService")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("LastNotified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastUpdate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("PercNotified")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.Property<double>("YesterdayCredits")
-                        .HasColumnType("float");
-
-                    b.Property<string>("YesterdayPerService")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectId")
-                        .IsUnique();
-
-                    b.ToTable("Project_Credits", (string)null);
-                });
-
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Project_Current_Monthly_Cost", b =>
                 {
                     b.Property<int>("Id")
@@ -817,12 +777,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("ConsumeLastNotified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ConsumePercNotified")
-                        .HasColumnType("int");
 
                     b.Property<double>("CurrentCost")
                         .HasColumnType("float");
@@ -1565,17 +1519,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.Project_Credits", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Datahub.Datahub_Project", "Project")
-                        .WithOne("Credits")
-                        .HasForeignKey("Datahub.Core.Model.Datahub.Project_Credits", "ProjectId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Project");
-                });
-
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Project_MonthlyUsage", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Datahub.Datahub_Project", "Project")
@@ -1661,8 +1604,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Client_Engagements");
 
                     b.Navigation("Comments");
-
-                    b.Navigation("Credits");
 
                     b.Navigation("MonthlyUsage");
 
