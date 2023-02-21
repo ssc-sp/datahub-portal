@@ -68,7 +68,7 @@ public class MSGraphService : IMSGraphService
     public async Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken token)
     {
         Dictionary<string, GraphUser> users = new();
-        await PrepareAuthenticatedClient();
+        PrepareAuthenticatedClient();
 
         var options = new List<Option>();
         options.Add(new QueryOption("$filter", $"startswith(mail,'{filterText}')"));
@@ -101,17 +101,16 @@ public class MSGraphService : IMSGraphService
         return users;
     }
 
-    private async Task PrepareAuthenticatedClient()
+    private void PrepareAuthenticatedClient()
     {
         if (_graphServiceClient == null)
         {
-            var clientSecret = await _keyVaultService.GetClientSecret();
             try
             {
                 IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
                     .Create(_configuration.GetSection("AzureAd").GetValue<string>("ClientId"))
                     .WithTenantId(_configuration.GetSection("AzureAd").GetValue<string>("TenantId"))
-                    .WithClientSecret(clientSecret)
+                    .WithClientSecret(_configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"))
                     .Build();
                 ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
 
@@ -131,7 +130,7 @@ public class MSGraphService : IMSGraphService
 
     private async Task<GraphUser> QueryUserAsync(string filter, CancellationToken token)
     {
-        await PrepareAuthenticatedClient();
+        PrepareAuthenticatedClient();
         try
         {
             var user = await _graphServiceClient.Users.Request().Filter(filter).GetAsync(token);
@@ -146,7 +145,7 @@ public class MSGraphService : IMSGraphService
 
     public async Task<GraphUser> GetUserFromSamAccountNameAsync(string userName, CancellationToken token)
     {
-        await PrepareAuthenticatedClient();
+        PrepareAuthenticatedClient();
         try
         {
             var queryOptions = new List<Option>()
