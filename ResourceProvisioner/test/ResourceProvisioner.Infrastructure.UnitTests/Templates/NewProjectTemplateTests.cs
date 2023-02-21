@@ -75,6 +75,7 @@ public class NewProjectTemplateTests
         {
             ["az_subscription_id"] = _configuration["Terraform:Variables:az_subscription_id"],
             ["az_tenant_id"] = _configuration["Terraform:Variables:az_tenant_id"],
+            ["datahub_app_sp_oid"] = _configuration["Terraform:Variables:datahub_app_sp_oid"],
             ["environment_classification"] = _configuration["Terraform:Variables:environment_classification"],
             ["environment_name"] = _configuration["Terraform:Variables:environment_name"],
             ["az_location"] = _configuration["Terraform:Variables:az_location"],
@@ -129,18 +130,19 @@ public class NewProjectTemplateTests
 
         var expectedVariables = new JsonObject
         {
-            ["az_subscription_id"] = _configuration["Terraform:Variables:az_subscription_id"],
-            ["az_tenant_id"] = _configuration["Terraform:Variables:az_tenant_id"],
-            ["environment_classification"] = _configuration["Terraform:Variables:environment_classification"],
-            ["environment_name"] = _configuration["Terraform:Variables:environment_name"],
-            ["az_location"] = _configuration["Terraform:Variables:az_location"],
-            ["resource_prefix"] = _configuration["Terraform:Variables:resource_prefix"],
+            ["az_subscription_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id,
+            ["az_tenant_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_tenant_id,
+            ["datahub_app_sp_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.datahub_app_sp_oid,
+            ["environment_classification"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_classification,
+            ["environment_name"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_name,
+            ["az_location"] = _resourceProvisionerConfiguration.Terraform.Variables.az_location,
+            ["resource_prefix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix,
             ["project_cd"] = "ShouldExtractNewProjectTemplateVariablesWithoutDuplicates",
             ["common_tags"] = new JsonObject
             {
-                ["ClientOrganization"] = _configuration["Terraform:Variables:common_tags:ClientOrganization"],
-                ["Environment"] = _configuration["Terraform:Variables:common_tags:Environment"],
-                ["Sector"] = _configuration["Terraform:Variables:common_tags:Sector"],
+                ["ClientOrganization"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.ClientOrganization,
+                ["Environment"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.Environment,
+                ["Sector"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.Sector,
             },
         };
 

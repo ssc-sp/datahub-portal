@@ -1,5 +1,6 @@
 @using Datahub.Core.Data.Project
 @using Datahub.Application.Services
+@using MudBlazor.Utilities
 @inject ServiceAuthManager ServiceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
 @inject IUserInformationService UserInformationService
@@ -22,20 +23,20 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@ADD_USER_ICON" OnClick="OpenDialog">
                     @Localizer["Invite New User"]
                 </MudButton>
-                <MudStack Row Justify="Justify.SpaceBetween" Style="width: 100%;">
+                <MudGrid Justify="Justify.SpaceBetween" Style="width: 100%;">
                     <MudTabs Elevation="0">
-                        <MudTabPanel Text="@Localizer["All"]" BadgeData='@_allCount' BadgeColor="Color.Transparent"
+                        <MudTabPanel Text="@Localizer["All"]" BadgeData='@_allCount' BadgeColor="Color.Transparent" Style="@GetStyleForTabs()"
                                      OnClick="@(() => ProjectMemberRoleFilter(null))"/>
-                        <MudTabPanel Text="@Localizer["Publishers"]" BadgeData='@_publisherCount' Disabled="_publisherCount == 0"
-                                     OnClick="@(() => ProjectMemberRoleFilter(ProjectMemberRole.Publisher))" BadgeColor="Color.Transparent"/>
-                        <MudTabPanel Text="@Localizer["Admins"]" BadgeData='@_adminCount' BadgeColor="Color.Transparent"
+                        <MudTabPanel Text="@Localizer["Workspace Leads"]" BadgeData='@_publisherCount' Disabled="_publisherCount == 0" Style="@GetStyleForTabs()"
+                                     OnClick="@(() => ProjectMemberRoleFilter(ProjectMemberRole.WorkspaceLead))" BadgeColor="Color.Transparent"/>
+                        <MudTabPanel Text="@Localizer["Admins"]" BadgeData='@_adminCount' BadgeColor="Color.Transparent" Style="@GetStyleForTabs()"
                                      OnClick="@(() => ProjectMemberRoleFilter(ProjectMemberRole.Admin))" Disabled="_adminCount == 0"/>
-                        <MudTabPanel Text="@Localizer["Contributors"]" BadgeData='@_contributorCount' BadgeColor="Color.Transparent"
-                                     OnClick="@(() => ProjectMemberRoleFilter(ProjectMemberRole.Contributor))" Disabled="_contributorCount == 0"/>
+                        <MudTabPanel Text="@Localizer["Collaborators"]" BadgeData='@_contributorCount' BadgeColor="Color.Transparent" Style="@GetStyleForTabs()"
+                                     OnClick="@(() => ProjectMemberRoleFilter(ProjectMemberRole.Collaborator))" Disabled="_contributorCount == 0"/>
                     </MudTabs>
                     <MudSpacer/>
                     <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-                </MudStack>
+                </MudGrid>
             </MudStack>
         </ToolBarContent>
         <HeaderContent>
@@ -161,9 +162,9 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
     private void UpdateProjectRoleCounts()
     {
         _allCount = _projectUsers.Count;
-        _publisherCount = _projectUsers.Count(x => x.Role == ProjectMemberRole.Publisher);
+        _publisherCount = _projectUsers.Count(x => x.Role == ProjectMemberRole.WorkspaceLead);
         _adminCount = _projectUsers.Count(x => x.Role == ProjectMemberRole.Admin);
-        _contributorCount = _projectUsers.Count(x => x.Role == ProjectMemberRole.Contributor);
+        _contributorCount = _projectUsers.Count(x => x.Role == ProjectMemberRole.Collaborator);
     }
 
     private async Task OpenDialog()
@@ -204,5 +205,12 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
             ProjectMemberRoleFilter(_currentRoleFilter);
             UpdateProjectRoleCounts();
         }
+    }
+
+    private string GetStyleForTabs()
+    {
+        return new StyleBuilder()
+            .AddStyle("min-width", "190px")
+            .Build();
     }
 }

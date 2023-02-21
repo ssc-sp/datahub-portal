@@ -51,4 +51,8 @@
       </SpecFlowFeatureFiles>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Datahub.Application\Datahub.Application.csproj" />
+    </ItemGroup>
+
 </Project>
