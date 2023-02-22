@@ -17,12 +17,28 @@ public partial class FileExplorer
         StateHasChanged();
 
         var (folders, files, continuationToken) =
-            await _dataRetrievalService.GetStorageBlobPagesAsync(ProjectAcronym, ContainerName, GraphUser, _currentFolder, _continuationToken);
+            await _projectDataRetrievalService.GetStorageBlobPagesAsync(ProjectAcronym, ContainerName, GraphUser, _currentFolder, _continuationToken);
 
         _continuationToken = continuationToken;
         _files = files;
         _folders = folders;
 
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task FetchDfsPageAsync()
+    {
+        _loading = true;
+        StateHasChanged();
+        
+        var (folders, files, continuationToken) =
+            await _projectDataRetrievalService.GetDfsPagesAsync(ProjectAcronym, ContainerName, GraphUser, _currentFolder, _continuationToken);
+        
+        _continuationToken = continuationToken;
+        _files = files;
+        _folders = folders;
+        
         _loading = false;
         StateHasChanged();
     }
@@ -88,7 +104,7 @@ public partial class FileExplorer
 
     private async Task<bool> IfFileExistsInLocation(string filename)
     {
-        return await _dataRetrievalService.StorageBlobExistsAsync(filename, ProjectAcronym, ContainerName);
+        return await _projectDataRetrievalService.StorageBlobExistsAsync(filename, ProjectAcronym, ContainerName);
     }
 
     private async Task<bool> PreventOverwrite(string filename)
@@ -148,7 +164,7 @@ public partial class FileExplorer
     private async Task HandleFileDownload(string filename)
     {   
         var selectedFile = _files?.FirstOrDefault(f => f.name == filename);
-        var uri = await _dataRetrievalService.DownloadFile(ContainerName, selectedFile, ProjectAcronym);
+        var uri = await _projectDataRetrievalService.DownloadFile(ContainerName, selectedFile, ProjectAcronym);
         
         await _module.InvokeVoidAsync("downloadFile", uri.ToString());
     }

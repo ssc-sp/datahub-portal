@@ -295,6 +295,11 @@ public class RepositoryService : IRepositoryService
             {
                 await _terraformService.ExtractBackendConfig(terraformWorkspace.Acronym);
             }
+
+            if (template.Name is TerraformTemplate.VariableUpdate)
+            {
+                await _terraformService.ExtractAllVariables(terraformWorkspace);
+            }
             await CommitTerraformTemplate(template, requestingUsername);
 
             return new RepositoryUpdateEvent()
