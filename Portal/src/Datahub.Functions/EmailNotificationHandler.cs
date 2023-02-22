@@ -1,9 +1,9 @@
+using Datahub.Infrastructure.Queues.Messages;
+using MailKit.Net.Smtp;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using MimeKit;
-using MailKit.Net.Smtp;
-using Microsoft.Extensions.Configuration;
+using System.Text.Json;
 
 namespace Datahub.Functions;
 
@@ -12,14 +12,14 @@ public class EmailNotificationHandler
     private readonly ILogger _logger;
     private readonly AzureConfig _config;
 
-    public EmailNotificationHandler(ILoggerFactory loggerFactory, IConfiguration configuration)
+    public EmailNotificationHandler(ILoggerFactory loggerFactory, AzureConfig config)
     {
         _logger = loggerFactory.CreateLogger<EmailNotificationHandler>();
-        _config = new(configuration);
+        _config = config;
     }
 
     [Function("EmailNotificationHandler")]
-    public async Task Run([QueueTrigger("email-notifications", Connection = "DatahubStorageConnectionString")] string requestMessage)
+    public async Task Run([QueueTrigger("%QueueEmailNotification%", Connection = "DatahubStorageConnectionString")] string requestMessage)
     {
         // check mail configuration
         if (!_config.Email.IsValid)
@@ -27,12 +27,19 @@ public class EmailNotificationHandler
             _logger.LogError($"Invalid mail configuration!");
             return;
         }
-        
+
         // deserialize message
         var message = JsonSerializer.Deserialize<EmailRequestMessage>(requestMessage);
         if (message is null || !message.IsValid)
         {
             _logger.LogError($"Invalid message received: \n{requestMessage}");
+            return;
+        }
+
+        // setting only used in development
+        if (_config.Email.DumpMessages)
+        {
+            _logger.LogInformation($"No email sent: Dumping messages!");
             return;
         }
 
