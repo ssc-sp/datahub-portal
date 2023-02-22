@@ -1,10 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MediatR" Version="11.1.0" />
+	  <PackageReference Include="Azure.Storage.Common" Version="12.13.0" />
+	  <PackageReference Include="Azure.Storage.Queues" Version="12.12.0" />
+	  <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
+	</ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />
