@@ -17,6 +17,9 @@ public class TerraformService : ITerraformService
 
     public const string MapAnyType = "map(any)";
     public const string ListAnyType = "list(any)";
+    
+    public const string DatabricksAdminUserList = "databricks_admin_users";
+    public const string StorageUserList = "storage_contributor_users";
 
     private const string BackendResourceGroupName = "resource_group_name";
     private const string BackendStorageAccountName = "storage_account_name";
@@ -173,6 +176,10 @@ public class TerraformService : ITerraformService
                     await File.ReadAllTextAsync(variablesFilePath)) ?? new JsonObject();
             foreach (var (key, value) in missingVariables)
             {
+                if (key is DatabricksAdminUserList or StorageUserList)
+                {
+                    preExistingVariables.Remove(key);
+                }
                 preExistingVariables.TryAdd(key, ComputeVariableValue(terraformWorkspace, key, value));
             }
 
