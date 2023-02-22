@@ -44,7 +44,7 @@
 
     @if (_currentDailyCosts.Count > 0)
     {
-        <MudText Typo="Typo.h4">Daily cost</MudText>
+        <MudText Typo="Typo.h4">@Localizer["Daily cost"]</MudText>
         <div>
             <MudChart ChartType="ChartType.Bar"
                       ChartSeries="@DailySeries"
@@ -121,7 +121,7 @@
         new() { Name = Localizer["$CAD"], Data = _currentDailyCosts.Select(dc => dc.Cost).ToArray() }
     };
     private string[] XAxisDailyLabels => _currentDailyCosts.Select(dc => FormatDay(dc.Date)).ToArray();
-    static string FormatDay(DateTime date) => $"{date.Month.ToString("D2")}/{date.Day.ToString("D2")}";
+    static string FormatDay(DateTime date) => $"{date.Day.ToString("D2")}";
 
     private double[] ServiceCosts => _showingTotal ? GetMonthServiceCosts() : GetYesterdayServiceCosts();
     private string[] ServiceLabels => _showingTotal ? GetMonthServiceLabels() : GetYesterdayServiceLabels();
