@@ -32,7 +32,7 @@
         <MudBadge Icon="@Icons.Material.Filled.QuestionMark" Color="@GetCostChipColor()" Overlap="@true" Bordered="@true">
             <MudChip Label="true" Icon="@Icons.Material.Filled.AttachMoney" IconColor="@GetCostChipColor()" Variant="@Variant.Text"
                      Color="@GetCostChipColor()" class="project-data-sensitivity" OnClick=@HandleToggleCosts>
-                @($"{CurrentCredits:C} {Localizer["Azure cost for current month"]}")
+                @($"{CurrentCredits:C} {Localizer["Total spent"]}")
             </MudChip>
         </MudBadge>
     }
@@ -148,8 +148,7 @@
         RenderFragment fragment = 
             @<ProjectCosting ProjectBudget=@_projectBudget ProjectCredits=@_projectCredits />;
 
-        var thisMonth = DateTime.UtcNow.ToString("MMMM");
-        _uiControlService.ShowDialog($"{Localizer["Cost analysis"]} ({thisMonth})", fragment);
+        _uiControlService.ShowDialog($"{Project.Project_Acronym_CD} - {Localizer["Cost analysis"]}", fragment);
     }
 
     private void HandleEditMetadata(MouseEventArgs args)
