@@ -27,6 +27,22 @@ public partial class FileExplorer
         StateHasChanged();
     }
 
+    private async Task FetchDfsPageAsync()
+    {
+        _loading = true;
+        StateHasChanged();
+        
+        var (folders, files, continuationToken) =
+            await _projectDataRetrievalService.GetDfsPagesAsync(ProjectAcronym, ContainerName, GraphUser, _currentFolder, _continuationToken);
+        
+        _continuationToken = continuationToken;
+        _files = files;
+        _folders = folders;
+        
+        _loading = false;
+        StateHasChanged();
+    }
+
     
     private async Task HandleNewFolder(string newFolderName)
     {

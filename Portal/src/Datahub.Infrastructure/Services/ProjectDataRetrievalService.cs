@@ -1,4 +1,5 @@
 using System.Globalization;
+using Azure.Identity;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -79,6 +80,12 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
         }
     }
 
+    public Task<(List<string>, List<FileMetaData>, string)> GetDfsPagesAsync(string projectAcronym, string containerName, User user, string prefix,
+        string? continuationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<bool> StorageBlobExistsAsync(string filename, string projectAcronym, string containerName)
     {
         var connectionString = await GetProjectConnectionStringAsync(projectAcronym.ToLower());
@@ -95,7 +102,7 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
         return await DownloadBlobFile(container, file, projectAcronym);
     }
 
-    public async Task<List<string>> GetProjectContainersAsync(string projectAcronym)
+    public async Task<List<string>> GetProjectBlobContainersAsync(string projectAcronym)
     {
         var connectionString = await GetProjectConnectionStringAsync(projectAcronym);
         var blobServiceClient = new BlobServiceClient(connectionString);
@@ -107,6 +114,32 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
         }
 
         return containers;
+    }
+
+    public async Task<List<string>> GetProjectDataLakeContainersAsync(string projectAcronym, User user)
+    {
+        // TODO: ACL this access
+        // var sharedKeyCredential = await GetSharedKeyCredentialAsync(projectAcronym);
+        var storageAccountName = GetProjectStorageAccountName(projectAcronym);
+        var dfsUri = BuildDfsUriFromStorageAccountName(storageAccountName);
+        
+        var dfsServiceClient = new DataLakeServiceClient(new Uri(dfsUri), new DefaultAzureCredential());
+        
+        // list all of the root folders
+        var pages = dfsServiceClient.GetFileSystemsAsync().AsPages();
+        
+        var containers = new List<string>();
+        await foreach (var page in pages)
+        {
+            containers.AddRange(page.Values.Select(c => c.Name));
+        }
+        
+        return containers;
+    }
+
+    private string BuildDfsUriFromStorageAccountName(string accountName)
+    {
+        return $"https://{accountName}.dfs.core.windows.net";
     }
 
     private async Task<Uri> DownloadBlobFile(string container, FileMetaData file, string projectAcronym,
@@ -140,13 +173,13 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
         var storageAccountName = GetProjectStorageAccountName(projectAcronym);
 
         return
-            @$"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
+            @$"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={accountKey.Value};EndpointSuffix=core.windows.net";
     }
     
     private string GetProjectStorageAccountName(string projectAcronym)
     {
         var envName = GetEnvironmentName();
-        return $"{_portalConfiguration.ResourcePrefix}proj{projectAcronym}{envName}";
+        return $"{_portalConfiguration.ResourcePrefix}proj{projectAcronym.ToLower()}{envName}";
     }
 
     private async Task<SecretBundle> GetProjectStorageAccountKeyAsync(string projectAcronym)
@@ -182,7 +215,7 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
             envName = "dev";
         }
 
-        return envName;
+        return envName.ToLower();
     }
 
     private async Task<BlobContainerClient> GetBlobContainerClient(string project, string containerName)
@@ -304,8 +337,9 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
 
     private async Task<StorageSharedKeyCredential> GetSharedKeyCredentialAsync(string projectAcronym)
     {
-        var storageAccountKey = await GetProjectStorageAccountKeyAsync(projectAcronym);
-        var storageAccountName = GetProjectStorageAccountName(projectAcronym);
-        return new StorageSharedKeyCredential(storageAccountName, storageAccountKey.ToString());
+        var projectAcronymLower = projectAcronym.ToLower();
+        var storageAccountKey = await GetProjectStorageAccountKeyAsync(projectAcronymLower);
+        var storageAccountName = GetProjectStorageAccountName(projectAcronymLower);
+        return new StorageSharedKeyCredential(storageAccountName, storageAccountKey.Value);
     }
 }

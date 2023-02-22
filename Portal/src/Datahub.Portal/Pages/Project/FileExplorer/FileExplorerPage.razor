@@ -70,8 +70,8 @@
 
     private async Task<List<(string Icon, string LabelText, RenderFragment Content)>> GetTabs()
     {
-        var containers = await _projectDataRetrievalService.GetProjectContainersAsync(ProjectAcronymParam);
-
+        var containers = await _projectDataRetrievalService.GetProjectDataLakeContainersAsync(ProjectAcronymParam, _user);
+        
         var tabs = new List<(string Icon, string LabelText, RenderFragment Content)>();
         containers.ForEach(container =>
             tabs.Add(("fas fa-hdd", Localizer[container], @<FileExplorer ProjectId=@_projectId ContainerName="@container"/>))
