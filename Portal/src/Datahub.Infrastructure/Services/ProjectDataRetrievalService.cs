@@ -83,7 +83,7 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
     public Task<(List<string>, List<FileMetaData>, string)> GetDfsPagesAsync(string projectAcronym, string containerName, User user, string prefix,
         string? continuationToken = default)
     {
-        throw new NotImplementedException();
+        return null;
     }
 
     public async Task<bool> StorageBlobExistsAsync(string filename, string projectAcronym, string containerName)
