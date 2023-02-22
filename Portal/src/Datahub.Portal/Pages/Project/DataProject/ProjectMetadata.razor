@@ -17,7 +17,7 @@
 <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
     <MudPaper Class="py-4 px-6">
         <MudStack>
-            <MudText Class="mb-6" Typo="Typo.h2">@Localizer["Initiative"] @ProjectAcronym @Localizer["Metadata"]</MudText>
+            <MudText Class="mb-6" Typo="Typo.h2">@Localizer["Workspace"] @ProjectAcronym @Localizer["Metadata"]</MudText>
             <ProjectObjectMetadata
                 ProfileName="project"
                 ObjectId="@ProjectAcronym"
