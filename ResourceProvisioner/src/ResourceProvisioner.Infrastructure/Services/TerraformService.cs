@@ -31,7 +31,7 @@ public class TerraformService : ITerraformService
 
     public Task CopyTemplateAsync(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
     {
-        if (template.Name == TerraformTemplate.VariableUpdate || template.Name == TerraformTemplate.ContactUs)
+        if (template.Name is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
         {
             return Task.CompletedTask;
         }
@@ -74,6 +74,11 @@ public class TerraformService : ITerraformService
 
     public async Task ExtractVariables(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
     {
+        if (template.Name is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
+        {
+            return;
+        }
+        
         var missingVariables = FindMissingVariables(template, terraformWorkspace);
         await WriteVariablesFile(template, terraformWorkspace, missingVariables);
     }
@@ -96,6 +101,39 @@ public class TerraformService : ITerraformService
 
         // Write the dictionary into a key value pair file
         await File.WriteAllLinesAsync(backendConfigFilePath, backendConfig.Select(x => $"{x.Key} = \"{x.Value}\""));
+    }
+
+    public async Task ExtractAllVariables(TerraformWorkspace terraformWorkspace)
+    {
+        // check if the project directory exists
+        var projectPath = DirectoryUtils.GetProjectPath(_configuration, terraformWorkspace.Acronym);
+        if (!Directory.Exists(projectPath))
+        {
+            _logger.LogInformation(
+                "Project directory {ProjectPath} does not exist please run template module first", projectPath);
+            throw new ProjectNotInitializedException(
+                "Project directory does not exist please run template module first");
+        }
+        
+        // get all the files in the project directory that end with *.auto.tfvars.json
+        var files = Directory.GetFiles(projectPath, "*.auto.tfvars.json", SearchOption.TopDirectoryOnly);
+        
+        // get the filename up to the first "."
+        var variableNames = files.Select(file => Path.GetFileName(file).Split('.')[0]).ToList();
+        
+        // match against the templates and rerun the extract variables
+        foreach (var variableName in variableNames)
+        {
+            try
+            {
+                var template = TerraformTemplate.GetTemplateByName(variableName);
+                await ExtractVariables(template, terraformWorkspace);
+            }
+            catch (ArgumentException e)
+            {
+                _logger.LogWarning("Unable to find template for variable {VariableName}", variableName);
+            }
+        }
     }
 
     private Dictionary<string, string> FindMissingVariables(TerraformTemplate template,
