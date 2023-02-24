@@ -82,9 +82,8 @@ else
     <MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
         <i class="fa-solid fa-house" style="opacity:0; position: absolute; top: 0; left: 0;"></i>
         <i class="fa-duotone fa-house" style="opacity:0; position: absolute; top: 0; left: 0;"></i>
-        <DHLoadingInitializer Message="@Localizer["Initializing Federal Science DataHub..."]"/>
+        <DHLoadingInitializer Message="@Localizer[GetLoadMessage()]" />
     </MudContainer>
-}
 }
 
 @code
@@ -95,6 +94,11 @@ else
     private Exception _lastException;
     private bool? _isSessionEnabled;
 
+    private static readonly string[] LOAD_MESSAGES = new[] { "Calculating rocket fuel consumption", "Initializing the flux capacitor", "Calculating the speed of light with 3,415,233 decimals", "Calculating the speed of dark cubed with 5 decimals" };
+    private static string GetLoadMessage()
+    {
+        return LOAD_MESSAGES[new Random().Next(LOAD_MESSAGES.Length)];
+    }
     private string _style;
 
     private bool isLoaded;

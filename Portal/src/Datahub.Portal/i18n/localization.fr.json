@@ -1728,5 +1728,10 @@
     "ReturnToAdmin": "Retourner à l'administration"
   },
   "Shared Datasets": "Ensembles de données partagées",
-  "Achievement Unlocked": "Trophée débloqué"
+  "Achievement Unlocked": "Trophée débloqué",
+  "Recomputing DNA sequence": "Recalcul de la séquence d'ADN",
+  "Identifying the pathogen": "Identification de l''agent pathogène",
+  "Recalculating fungal genome": "Recalcul du génome fongique",
+  "Predicting soil mapping": "Prédire la cartographie des sols",
+  "Analyzing forest coverage": "Analyse du couvert forestier"
 }
