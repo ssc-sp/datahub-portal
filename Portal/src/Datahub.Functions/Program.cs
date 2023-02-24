@@ -1,8 +1,16 @@
 using Datahub.Core.Model.Datahub;
+using Datahub.Functions;
+using Datahub.Infrastructure.Queues.MessageHandlers;
+using Datahub.Infrastructure.Services.Azure;
+using Datahub.Infrastructure.Services.Projects;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Polly;
+using Polly.Contrib.WaitAndRetry;
+using System.Net;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -12,11 +20,9 @@ var host = new HostBuilder()
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .Build();
     })
-    .ConfigureServices(services =>
+    .ConfigureServices((hostContext, services) =>
     {
-        var config = new ConfigurationBuilder()
-            .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
-            .Build();
+        var config = hostContext.Configuration;
         
         var connectionString = config["datahub-mssql-project"];
         if (connectionString is not null)
@@ -26,7 +32,18 @@ var host = new HostBuilder()
             services.AddDbContextPool<DatahubProjectDBContext>(options => options.UseSqlServer(connectionString));
         }
 
-        services.AddHttpClient();
+        services.AddMediatR(typeof(QueueMessageSender<>));
+
+        services.AddHttpClient(AzureManagementService.ClientName).AddPolicyHandler(
+            Policy<HttpResponseMessage>
+                .Handle<HttpRequestException>()
+                .OrResult(x => x.StatusCode == HttpStatusCode.TooManyRequests)
+                .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(1), 6)));
+
+        services.AddSingleton<AzureConfig>();
+        services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
+        services.AddSingleton<AzureManagementService>();
+        services.AddScoped<ProjectUsageService>();
     })
     .Build();
 

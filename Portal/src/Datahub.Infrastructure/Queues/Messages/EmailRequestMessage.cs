@@ -1,9 +1,10 @@
-﻿using System.Text.Json;
+﻿using MediatR;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Datahub.Functions;
+namespace Datahub.Infrastructure.Queues.Messages;
 
-public class EmailRequestMessage
+public class EmailRequestMessage : IRequest
 {
     [JsonPropertyName("to")]
     public required List<string> To { get; set; }
