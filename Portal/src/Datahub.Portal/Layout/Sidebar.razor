@@ -73,8 +73,8 @@
         return new()
         {
             ("/home", Icon.HOME, "SIDEBAR.Home", true),
-            ("/w", Icon.PROJECT, "SIDEBAR.Workspaces", true),
-            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources", _userHasInitiatives),
+            ("/w", Icon.PROJECT, "SIDEBAR.DataProjects", true), 
+            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources", true),
             ("/tools", Icon.TOOLS, "SIDEBAR.Tools", true),
             ("/discovery", Icon.CATALOG, "SIDEBAR.Catalog", (IsFeatureEnabled("DataCatalog") && _userHasInitiatives)),
             ("/profile", Icon.PROFILE, "My Profile", true),
