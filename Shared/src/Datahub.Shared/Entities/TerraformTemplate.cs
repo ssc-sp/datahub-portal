@@ -26,6 +26,17 @@ public class TerraformTemplate
         };
     }
     
+    public static TerraformTemplate GetTemplateByName(string name)
+    {
+        return name switch
+        {
+            NewProjectTemplate => LatestFromName(NewProjectTemplate),
+            AzureStorageBlob => LatestFromName(AzureStorageBlob),
+            AzureDatabricks => LatestFromName(AzureDatabricks),
+            _ => throw new ArgumentException($"Unknown template name: {name}")
+        };
+    }
+    
     public static List<TerraformTemplate> LatestFromNameWithDependencies(string name)
     {
         return name switch
