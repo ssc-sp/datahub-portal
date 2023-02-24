@@ -39,13 +39,13 @@ public static class DirectoryUtils
 
     public static string GetInfrastructureRepositoryPath(IConfiguration configuration)
     {
-        return Path.Join(Path.GetTempPath(),
+        return Path.Join(Environment.CurrentDirectory,
             configuration["InfrastructureRepository:LocalPath"]);
     }
 
     public static string GetModuleRepositoryPath(IConfiguration configuration)
     {
-        return Path.Join(Path.GetTempPath(),
+        return Path.Join(Environment.CurrentDirectory,
             configuration["ModuleRepository:LocalPath"]);
     }
 
