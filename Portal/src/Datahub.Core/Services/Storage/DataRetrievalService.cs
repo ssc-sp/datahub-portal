@@ -458,6 +458,7 @@ public class DataRetrievalService : BaseService
         return containers;
     }
 
+    [Obsolete("Obsolete")]
     public async Task<List<FileMetaData>> GetStorageBlobFiles(string projectAcronym, string container, User user)
     {
         try
@@ -494,11 +495,13 @@ public class DataRetrievalService : BaseService
         }
     }
         
+    [Obsolete("Use ProjectDataRetrievalService.VerifyFileIdMetadata instead")]
     private static async Task<string> VerifyFileIdMetadata(BlobHierarchyItem blobItem, BlobContainerClient containerClient)
     {
         return await VerifyFileIdMetadata(blobItem.Blob, containerClient);
     }
 
+    [Obsolete("Use ProjectDataRetrievalService.VerifyFileIdMetadata instead")]
     private static async Task<string> VerifyFileIdMetadata(BlobItem blobItem, BlobContainerClient containerClient)
     {
         if (blobItem.Metadata.TryGetValue(METADATA_FILE_ID, out var fileId))
@@ -513,11 +516,13 @@ public class DataRetrievalService : BaseService
         return fileId;
     }
 
+    [Obsolete("Use ProjectDataRetrievalService.GetFileMetadataFromBlobItem instead")]
     private static FileMetaData FileMetadataFromBlobItem(BlobHierarchyItem blobItem, string fileId)
     {
         return FileMetadataFromBlobItem(blobItem.Blob, fileId);
     }
 
+    [Obsolete("Use ProjectDataRetrievalService.GetFileMetadataFromBlobItem instead")]
     private static FileMetaData FileMetadataFromBlobItem(BlobItem blobItem, string fileId)
     {
         string ownedBy = blobItem.Metadata.TryGetValue(FileMetaData.OwnedBy, out ownedBy) ? ownedBy : "Unknown";
@@ -563,6 +568,7 @@ public class DataRetrievalService : BaseService
         };
     }
 
+    [Obsolete("Obsolete")]
     public async Task<(List<string>, List<FileMetaData>, string)> GetStorageBlobPagesAsync(string projectAcronym, string containerName, User user, string prefix, string continuationToken = default)
     {
         try

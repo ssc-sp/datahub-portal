@@ -1,9 +1,10 @@
 @using Datahub.Core.Components.FileUpload
 @using Datahub.Core.Services.Storage;
+@using Datahub.Application.Services
 
 @inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject DataRetrievalService _dataRetrievalService
+@inject IProjectDataRetrievalService _projectDataRetrievalService
 @inject IDataRemovalService _dataRemovalService
 @inject IJSRuntime _jsRuntime
 @inject AchievementService _achievementService
