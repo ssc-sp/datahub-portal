@@ -131,7 +131,7 @@
         var dialogResult = await dialog.Result;
         if (!dialogResult.Cancelled)
         {
-            NavigationManager.NavigateTo($"{_datahubPortalConfiguration.ProjectUrlSegment}/{dialogResult.Data}");
+            NavigationManager.NavigateTo($"{_datahubPortalConfiguration.ProjectUrlSegment}/{dialogResult.Data}",true);
         }
     }
 
