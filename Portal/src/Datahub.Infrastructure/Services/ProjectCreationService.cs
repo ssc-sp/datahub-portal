@@ -6,6 +6,7 @@ using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
+using Datahub.Core.Services.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
@@ -17,15 +18,17 @@ public class ProjectCreationService : IProjectCreationService
     
     private readonly IDbContextFactory<DatahubProjectDBContext> _datahubProjectDbFactory;
     private readonly ILogger<ProjectCreationService> _logger;
+    private readonly ServiceAuthManager serviceAuthManager;
     private readonly IUserInformationService _userInformationService;
     private readonly IResourceRequestService _resourceRequestService;
     
     public ProjectCreationService(IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        ILogger<ProjectCreationService> logger,
+        ILogger<ProjectCreationService> logger, ServiceAuthManager serviceAuthManager,
         IUserInformationService userInformationService, IResourceRequestService resourceRequestService)
     {
         _datahubProjectDbFactory = datahubProjectDbFactory;
         _logger = logger;
+        this.serviceAuthManager = serviceAuthManager;
         _userInformationService = userInformationService;
         _resourceRequestService = resourceRequestService;
     }
@@ -121,6 +124,7 @@ public class ProjectCreationService : IProjectCreationService
         await db.Projects.AddAsync(project);
         await db.Project_Users.AddAsync(projectUser);
         await db.SaveChangesAsync();
+        serviceAuthManager.InvalidateAuthCache();
     }
 
 
