@@ -1,9 +1,10 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Datahub.Infrastructure.Services.Azure;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Datahub.Functions;
 
-internal class AzureConfig
+public class AzureConfig : IAzureServicePrincipalConfig
 {
     private readonly IConfiguration _config;
     private readonly EmailNotification _emailConfig; 
@@ -15,9 +16,9 @@ internal class AzureConfig
         _config.Bind("EmailNotification", _emailConfig);
     }
 
-    public string LoginUrl => "https://login.microsoftonline.com/";
-    public string ManagementUrl => "https://management.azure.com/";
     public EmailNotification Email => _emailConfig;
+
+    public string? NotificationPercents => _config["ProjectUsageNotificationPercents"];
 
     #region Azure SP
 
@@ -36,8 +37,9 @@ internal class AzureConfig
     #endregion
 }
 
-internal class EmailNotification
+public class EmailNotification
 {
+    public bool DumpMessages { get; set; }
     public string? SmtpHost { get; set; }
     public int SmtpPort { get; set; }
     public string? SmtpUsername { get; set; }

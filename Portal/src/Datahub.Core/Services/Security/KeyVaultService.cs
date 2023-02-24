@@ -90,7 +90,8 @@ public class KeyVaultService : IKeyVaultService
     private void SetKeyVaultClient()
     {
         _logger.LogInformation("Entering setting Key Vault");
-        if (_webHostEnvironment.IsDevelopment() || _webHostEnvironment.EnvironmentName.Equals("sand", StringComparison.InvariantCultureIgnoreCase) || Environment.GetEnvironmentVariable("IS_LOCAL") != null)
+        if (_webHostEnvironment.IsDevelopment() || _webHostEnvironment.EnvironmentName.Equals("sand", StringComparison.InvariantCultureIgnoreCase) 
+                                                || Environment.GetEnvironmentVariable("IS_LOCAL") != null)
         {
             _logger.LogInformation("Entering key vault development");
 
