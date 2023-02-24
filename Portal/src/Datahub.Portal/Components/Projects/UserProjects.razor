@@ -1,11 +1,13 @@
 @using MudBlazor.Utilities
 @using Microsoft.Graph
 @using Datahub.Core.Model.Datahub
+@using Datahub.Application.Configuration
 @inject IUserInformationService _userInformationService
 @inject IConfiguration _configuration
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
 
 @if (_userRoles is null)
 {
@@ -77,7 +79,7 @@
     [Parameter]
     public bool ShowTitle { get; set; } = true;
 
-    private const string UserProjectOpenIcon = Icons.Filled.KeyboardDoubleArrowRight;
+    private const string UserProjectOpenIcon = Icons.Material.Filled.KeyboardDoubleArrowRight;
     private const string UserProjectCreateIcon = "fa-duotone fa-layer-plus";
     private User _user;
     private List<Datahub_Project_User> _userRoles;
@@ -129,7 +131,7 @@
         var dialogResult = await dialog.Result;
         if (!dialogResult.Cancelled)
         {
-            NavigationManager.NavigateTo($"projects/{dialogResult.Data}");
+            NavigationManager.NavigateTo($"{_datahubPortalConfiguration.ProjectUrlSegment}/{dialogResult.Data}");
         }
     }
 

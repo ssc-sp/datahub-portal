@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace Datahub.Core.Services;
+namespace Datahub.Application.Services;
 
 public interface IProjectCreationService
 {

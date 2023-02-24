@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace Datahub.ProjectTools.Catalog;
 
 #nullable enable
-public class DHDatabricksResource : DHURLResource
+public class DHDatabricksResource : ActiveGitModuleResource
 { 
 
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject;
@@ -23,7 +23,7 @@ public class DHDatabricksResource : DHURLResource
         IsServiceConfigured = configuration.Value.Databricks;
     }
 
-    protected override async Task InitializeAsync(string userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
+    protected override async Task InitializeAsync(string? userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
         var serviceRequests = Project.ServiceRequests;
@@ -32,7 +32,7 @@ public class DHDatabricksResource : DHURLResource
         _databricksServiceRequested = serviceRequests.Any(r => r.ServiceType == serviceTerraformTemplateName && r.Is_Completed == null);
         _databricksServiceCreated = serviceRequests.Any(r => r.ServiceType == serviceTerraformTemplateName && r.Is_Completed != null);
         
-        parameters.Add(nameof(Databricks.Project), Project);
+        Parameters.Add(nameof(Databricks.Project), Project);
     }
 
     protected override string Title => "Azure Databricks";
@@ -42,7 +42,8 @@ public class DHDatabricksResource : DHURLResource
 
     protected override Type ComponentType => typeof(Databricks);
 
-    protected override bool IsServiceRequested => _databricksServiceRequested && !_databricksServiceCreated;
+    protected override bool IsServiceRequested => _databricksServiceRequested;
+    
 
     protected override bool IsServiceConfigured { get; }
 

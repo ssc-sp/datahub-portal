@@ -921,6 +921,12 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<DateTime?>("LastUpdated")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("NotifiedAt50")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NotifiedAt75")
+                        .HasColumnType("datetime2");
+
                     b.Property<double>("UsedCapacity")
                         .HasColumnType("float");
 

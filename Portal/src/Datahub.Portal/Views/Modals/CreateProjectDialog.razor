@@ -1,11 +1,12 @@
+@using Datahub.Application.Services
 @inject IProjectCreationService ProjectCreationService
 
 <MudDialog>
     <DialogContent>
-        <MudForm Class="my-8" @bind-IsValid="@_success">
-            <MudText Class="mb-4">@Localizer[Description]</MudText>
+        <MudForm Class="my-4" @bind-IsValid="@_success">
             <MudTextField T="string" @bind-Value="_projectTitle" Label="@Localizer[ProjectLabel]" Required
-                          RequiredError="@Localizer[MissingTitle]" HelperText="@Localizer[ProjectHelper]"/>
+                          RequiredError="@Localizer[MissingTitle]" HelperText="@Localizer[ProjectHelper]"
+                          DebounceInterval="500" OnDebounceIntervalElapsed="UpdateProjectAcronym"/>
             <MudTextField T="string" @bind-Value="_projectAcronym" Label="@Localizer[AcronymLabel]" AdornmentIcon="@AcronymGeneratorIcon"
                           HelperText="@Localizer[AcronymHelper]" Adornment="Adornment.End" OnAdornmentClick="GenerateAcronym"
                           RequiredError="@Localizer[MissingAcronym]" Converter="_converter" @ref="_acronymField" Required
@@ -41,7 +42,7 @@
 #nullable enable
     private const string Description = "Required information to create a collaborative project";  
     private const string ProjectLabel = "Project Title";
-    private const string ProjectHelper = "A title that describes the project";
+    private const string ProjectHelper = "Enter a descriptive title for the workspace";
     private const string AcronymLabel = "Project Acronym";
     private const string AcronymHelper = "A unique alphanumeric acronym to identify the project";
     private const string AcronymGeneratorIcon = "fa-light fa-arrows-rotate";
@@ -98,6 +99,12 @@
         SetFunc = value => value?.ToUpperInvariant() ?? string.Empty,
         GetFunc = text => text?.ToUpperInvariant() ?? string.Empty,
     };
+
+    private async Task UpdateProjectAcronym()
+    {
+        if (string.IsNullOrWhiteSpace(_projectTitle)) return;
+        _projectAcronym = await ProjectCreationService.GenerateProjectAcronymAsync(_projectTitle);
+    }
     
     private async Task CreateProject()
     {

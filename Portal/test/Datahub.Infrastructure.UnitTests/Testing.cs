@@ -19,7 +19,7 @@ public partial class Testing
 
 
     internal const string TestProjectAcronym = "TEST";
-    internal const string TestUserEmail = "user@email.gc.ca";
+    internal const string? TestUserEmail = "user@email.gc.ca";
     internal const string TestUserId = "123456789";
     internal const string OldUserEmail = "old-user@email.gc.ca";
     internal const string OldUserId = "987654321";

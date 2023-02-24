@@ -4,6 +4,7 @@ using Datahub.Core.Data.Project;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
+using Datahub.Core.Services.Security;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
@@ -19,15 +20,18 @@ public class ProjectUserManagementService : IProjectUserManagementService
     private readonly IRequestManagementService _requestManagementService;
     private readonly ILogger<ProjectUserManagementService> _logger;
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
+    private readonly ServiceAuthManager _serviceAuthManager;
 
     public ProjectUserManagementService(
         ILogger<ProjectUserManagementService> logger,
         IDbContextFactory<DatahubProjectDBContext> contextFactory,
         IUserInformationService userInformationService,
         IMSGraphService msGraphService,
-        IRequestManagementService requestManagementService
+        IRequestManagementService requestManagementService,
+        ServiceAuthManager serviceAuthManager
     )
     {
+        _serviceAuthManager = serviceAuthManager;
         _userInformationService = userInformationService;
         _msGraphService = msGraphService;
         _requestManagementService = requestManagementService;
@@ -102,7 +106,9 @@ public class ProjectUserManagementService : IProjectUserManagementService
             
             await context.SaveChangesAsync();
             await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.VariableUpdate);
+            _serviceAuthManager.InvalidateAuthCache();
             _logger.LogInformation("Terraform variable update request created for project {ProjectAcronym}", projectAcronym);
+            
             scope.Complete();
         }
         catch (Exception ex)
@@ -207,7 +213,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
 
         try
         {
-            exists.IsDataApprover = projectMember.Role == ProjectMemberRole.Publisher;
+            exists.IsDataApprover = projectMember.Role == ProjectMemberRole.WorkspaceLead;
             exists.IsAdmin = exists.IsDataApprover || projectMember.Role == ProjectMemberRole.Admin;
             await context.SaveChangesAsync();
             _logger.LogInformation("User {UserGraphId} removed from project {ProjectAcronym}", projectMember.UserId, projectAcronym);
@@ -237,12 +243,12 @@ public class ProjectUserManagementService : IProjectUserManagementService
         // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault - Remove case is frontend only
         switch (projectMemberRole)
         {
-            case ProjectMemberRole.Publisher when !projectUser.IsDataApprover || !projectUser.IsAdmin:
+            case ProjectMemberRole.WorkspaceLead when !projectUser.IsDataApprover || !projectUser.IsAdmin:
             case ProjectMemberRole.Admin when !projectUser.IsAdmin || projectUser.IsDataApprover:
                 return true;
-            case ProjectMemberRole.Contributor:
+            case ProjectMemberRole.Collaborator:
             default:
-                return projectMemberRole == ProjectMemberRole.Contributor && (projectUser.IsDataApprover || projectUser.IsAdmin);
+                return projectMemberRole == ProjectMemberRole.Collaborator && (projectUser.IsDataApprover || projectUser.IsAdmin);
         }
     }
 }

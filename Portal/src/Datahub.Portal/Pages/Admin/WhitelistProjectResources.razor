@@ -36,12 +36,13 @@
             <MudTd DataLabel="Name">@context.Project.Project_Name</MudTd>
             <MudTd DataLabel="Sector">@context.Project.Sector_Name</MudTd>
             <MudTd DataLabel="Storage">
-                <MudCheckBox T="bool" Checked="@context.AllowStorage" CheckedChanged="async newValue => await SetStorage(context, newValue)"/>
+                <MudCheckBox T="bool" Checked="@context.AllowStorage" Style="text-align:center"
+                             CheckedChanged="async newValue => await SetStorage(context, newValue)"/>
             </MudTd>
-            <MudTd DataLabel="Databricks">
+            <MudTd DataLabel="Databricks" Style="text-align:center">
                 <MudCheckBox T="bool" Checked="@context.AllowDatabricks" CheckedChanged="async newValue => await SetDatabricks(context, newValue)"/>
             </MudTd>
-            <MudTd DataLabel="VMs">
+            <MudTd DataLabel="VMs" Style="text-align:center">
                 <MudCheckBox T="bool" Checked="@context.AllowVMs" CheckedChanged="async newValue => await SetVMs(context, newValue)"/>
             </MudTd>
         </RowTemplate>

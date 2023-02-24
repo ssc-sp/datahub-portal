@@ -67,9 +67,11 @@
         
         _projects = context.Project_Users
             .Where(u => u.User_ID == currentUserId)
+            .Include(u => u.Project)
+            .Include(u => u.Project.Resources.Where(r => r.ResourceType == databricksTemplateName))
             .Select(u => u.Project)
-            .Include(p => p.Resources
-                .Where(r => r.ResourceType == databricksTemplateName))            
+            //.Include(p => p.Resources
+            //    .Where(r => r.ResourceType == databricksTemplateName))            
             .Distinct()
             .ToList();
 

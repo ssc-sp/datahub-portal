@@ -22,26 +22,30 @@
 }
 
 <MudStack Row>
-    <MudChip Color="@Color.Dark" class="project-data-sensitivity">@Localizer[Project.Data_Sensitivity]</MudChip>
+    <MudChip Label Color="@Color.Dark" class="project-data-sensitivity">@Localizer[Project.Data_Sensitivity]</MudChip>
 
     @if (_currentProjectMonthlyCost is not null && _projectBudget > 0)
     {
-        <MudBadge Icon="@Icons.Filled.QuestionMark" Color="@GetCostChipColor()" Overlap="@true" Bordered="@true">
-            <MudChip Icon="@Icons.Filled.AttachMoney" IconColor="@GetCostChipColor()" Variant="@Variant.Text"
+        <MudBadge Icon="@Icons.Material.Filled.QuestionMark" Color="@GetCostChipColor()" Overlap="@true" Bordered="@true">
+            <MudChip Label="true" Icon="@Icons.Material.Filled.AttachMoney" IconColor="@GetCostChipColor()" Variant="@Variant.Text"
                      Color="@GetCostChipColor()" class="project-data-sensitivity" OnClick=@HandleToggleCosts>
                 @($"{_currentProjectMonthlyCost:C} {Localizer["Azure cost for current month"]}")
             </MudChip>
         </MudBadge>
     }
 
-    @if ((IsProjectAdmin || IsDatahubAdmin) && Project.MetadataAdded != true)
+    @if (IsProjectAdmin || IsDatahubAdmin)
     {
-        <MudChip Icon="@Icons.Filled.Info"
-                 IconColor="@Color.Warning"
+        var color = Project?.MetadataAdded ?? false ? Color.Default : Color.Warning;
+        var icon = Project?.MetadataAdded ?? false ? Icons.Material.Filled.Edit : Icons.Material.Filled.Warning;
+        <MudChip Icon="@icon"
+                 IconColor="@color"
                  Variant="@Variant.Text"
-                 Color="@Color.Warning"
+                 Color="@color"
                  class="project-data-sensitivity"
-                 OnClick=@HandleEditMetadata>
+                 OnClick="@HandleEditMetadata"
+                 Label
+                 >
             @Localizer["Edit Metadata"]
         </MudChip>
     }
@@ -49,7 +53,7 @@
 
 <MudStack>
     <MudText Typo="Typo.h1">
-        <MudIcon Icon="@_projectIcon" Title="@Localizer["Project Icon"]" />
+        <MudIcon Icon="@_projectIcon" Title="@Localizer["Project Icon"]"/>
         @Project.ProjectName
     </MudText>
 
@@ -57,11 +61,14 @@
     {
         <MudAlert Severity="Severity.Warning">@Localizer["The project is currently pending approval. No resources can be provisioned until the project is approved by a Datahub Administrator"]</MudAlert>
     }
-
+    @if (Project?.MetadataAdded != true)
+    {
+        <MudAlert Severity="Severity.Warning">@Localizer["The project's metadata is currently incomplete. No resources can be provisioned until the project metadata has been filled"]</MudAlert>
+    }
 
     <DHMarkdown class="description" Content=@GetProjectDescription()/>
 
-    @if (_showCosts && _currentProjectMonthlyCost.HasValue && _currentProjectMonthlyCost.Value < _projectBudget)
+    @if (_showCosts && _currentProjectMonthlyCost < _projectBudget)
     {
         <ProjectCosting ProjectBudget=@_projectBudget ConsumedBudget=@_currentProjectMonthlyCost.Value/>
     }
@@ -148,7 +155,7 @@
 
     private void HandleEditMetadata(MouseEventArgs args)
     {
-        NavigationManager.NavigateTo($"/admin/metadata/{Project.Project_Acronym_CD}");
+        NavigationManager.NavigateTo($"/w/{Project.Project_Acronym_CD}/metadata");
     }
 
     private string GetProjectDescription()

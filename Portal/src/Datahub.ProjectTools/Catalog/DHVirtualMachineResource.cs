@@ -8,7 +8,7 @@ using Microsoft.Graph;
 
 namespace Datahub.ProjectTools.Catalog;
 
-public class DHVirtualMachineResource : DHURLResource
+public class DHVirtualMachineResource : ActiveGitModuleResource
 {
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
     private bool _serviceRequested;
@@ -26,7 +26,7 @@ public class DHVirtualMachineResource : DHURLResource
         throw new NotImplementedException();
     }
 
-    protected override async Task InitializeAsync(string userId, User graphUser, bool isProjectAdmin)
+    protected override async Task InitializeAsync(string? userId, User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await _dbContextFactory.CreateDbContextAsync();
         var serviceRequests = Project.ServiceRequests;

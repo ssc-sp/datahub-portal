@@ -7,7 +7,7 @@
         <MudCard>
             <MudCardHeader>
                 <CardHeaderAvatar>
-                    <MudIcon Icon="@Icons.Filled.AdminPanelSettings"/>
+                    <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings"/>
                 </CardHeaderAvatar>
                 <CardHeaderContent>
                     @Localizer["Administration"]
@@ -23,7 +23,7 @@
                         else
                         {
                             <MudButton OnClick="@RefreshCache"
-                                       StartIcon="@Icons.Filled.Refresh"
+                                       StartIcon="@Icons.Material.Filled.Refresh"
                                        Variant="@Variant.Filled"
                                        Color="@Color.Secondary">
                                 Refresh
@@ -59,16 +59,9 @@
 </AuthorizeView>
 
 @code {
+
     private IReadOnlyList<string> _formattedErrorList;
     private bool _cacheIsRefreshing;
-
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-
-        _docService.NotifyRefreshErrors += OnNotifyRefreshErrors;
-    }
 
     private async Task RefreshCache()
     {
@@ -79,7 +72,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task OnNotifyRefreshErrors()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await RefreshErrorList();
     }
@@ -99,10 +92,4 @@
         var localDatetime = await _timezoneService.GetLocalDateTime(timestampUtc);
         return $"{localDatetime.ToString("yyyy-MM-dd HH:mm:ss")} - {error.Message}";
     }
-
-    public void Dispose()
-    {
-        _docService.NotifyRefreshErrors -= OnNotifyRefreshErrors;
-    }
-
 }

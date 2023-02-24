@@ -29,7 +29,7 @@
                           Margin="Margin.Dense"
                           Clearable="true"
                           Adornment="Adornment.End"
-                          AdornmentIcon="@Icons.Filled.Search" />
+                          AdornmentIcon="@Icons.Material.Filled.Search" />
         </MudItem>
     </MudGrid>
 
@@ -72,7 +72,7 @@
         await using var context = await _dbFactory.CreateDbContextAsync();
         _allProjects = context.Projects
             .Where(p =>
-                (p.Project_Status == 1 || p.Is_Featured) &&
+                (p.Project_Status == (int) ProjectStatus.InProgress || p.Is_Featured) &&
                 !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD)
                 && !string.IsNullOrWhiteSpace(p.Project_Name))
             // .Include(p => p.Users)

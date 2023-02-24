@@ -17,7 +17,7 @@ else
     <MudGrid>
         <MudItem xs="3">
             <MudNavMenu Rounded Color=@Color.Primary Dense>
-                <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All" Icon="@Icons.Filled.Home">
+                <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
                     <MudText Inline Typo=@Typo.body1>@Localizer["Overview"]</MudText>
                 </MudNavLink>
                 @foreach (var cat in _resourceRoot.Children)
@@ -129,7 +129,7 @@ else
 
         if (_currentDoc is null)
         {
-            await _docService.LogNotFoundError(PageName, _resourceRoot.Title);
+            _docService.LogNotFoundError(PageName, _resourceRoot.Title);
         }
         else if (_currentDoc.MarkdownPage is null)
         {
