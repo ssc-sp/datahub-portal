@@ -1,8 +1,5 @@
 using Datahub.Achievements.Models;
 using Datahub.Core.Data;
-using Datahub.Core.Services;
-using Datahub.Portal.Services;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
@@ -11,13 +8,13 @@ namespace Datahub.Portal.Pages.Project.FileExplorer;
 
 public partial class FileExplorer
 {
-    private async Task FetchStorageBlobsPageAsync()
+    private async Task RefreshStoragePageAsync()
     {
         _loading = true;
         StateHasChanged();
 
-        var (folders, files, continuationToken) =
-            await _projectDataRetrievalService.GetStorageBlobPagesAsync(ProjectAcronym, ContainerName, GraphUser, _currentFolder, _continuationToken);
+        var (folders, files, continuationToken) = await _projectDataRetrievalService.GetDfsPagesAsync(ProjectAcronym, 
+            ContainerName, _currentFolder, _continuationToken);
 
         _continuationToken = continuationToken;
         _files = files;
@@ -27,125 +24,133 @@ public partial class FileExplorer
         StateHasChanged();
     }
 
-    private async Task FetchDfsPageAsync()
+    private async Task HandleNewFolder(string folderName)
     {
-        _loading = true;
-        StateHasChanged();
-        
-        var (folders, files, continuationToken) =
-            await _projectDataRetrievalService.GetDfsPagesAsync(ProjectAcronym, ContainerName, GraphUser, _currentFolder, _continuationToken);
-        
-        _continuationToken = continuationToken;
-        _files = files;
-        _folders = folders;
-        
-        _loading = false;
-        StateHasChanged();
-    }
-
-    
-    private async Task HandleNewFolder(string newFolderName)
-    {
-        if (_folders.Contains(newFolderName))
+        var newFolderName = folderName.Replace("/", "").Trim();
+        var newFolderPath = $"{_currentFolder}{newFolderName}";
+        if (_folders.Contains(newFolderPath))
             return;
 
-        newFolderName = newFolderName
-            .Replace("/", "")
-            .Trim();
+        if (!await _projectDataRetrievalService.CreateFolderAsync(ProjectAcronym, ContainerName, _currentFolder, newFolderName))
+            return;
 
-        _folders.Add($"{_currentFolder}{newFolderName}/");
+        _folders.Add(newFolderPath);
+
         await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserCreateFolder);
     }
-    
-    private async Task HandleFileDelete(string filename)
+
+    private async Task HandleFileDelete(string fileName)
     {
-        var selectedFile = _files?.FirstOrDefault(f => f.name == filename);
-        var success = await _dataRemovalService.DeleteStorageBlob(selectedFile, ProjectAcronym, ContainerName, GraphUser);
-        if (success)
-        {
-            _files?.RemoveAll(f => f.name.Equals(filename, StringComparison.OrdinalIgnoreCase));
-        }
+        var message = string.Format(Localizer["Are you sure you want to delete file \"{0}\"?"], fileName);
+        if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
+            return;
+
+        if (!await _projectDataRetrievalService.DeleteFileAsync(ProjectAcronym, ContainerName, JoinPath(_currentFolder, fileName)))
+            return;
+
+        _files?.RemoveAll(f => f.name.Equals(fileName, StringComparison.OrdinalIgnoreCase));
 
         _selectedItems = new HashSet<string> {_currentFolder};
         await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserDeleteFile);
-
     }
 
-    private async Task HandleFileItemDrop(string folder, string filename)
+    private async Task HandleFileItemDrop(string folder, string fileName)
     {
-        if (!string.IsNullOrWhiteSpace(folder) && !string.IsNullOrWhiteSpace(filename))
-        {
-            var oldFilename = (_currentFolder + filename).TrimStart('/');
-            var newFilename = (folder + filename).TrimStart('/');
+        if (string.IsNullOrWhiteSpace(folder) || string.IsNullOrWhiteSpace(fileName))
+            return;
 
-            if (await PreventOverwrite(newFilename))
-                return;
-            
-            //await _dataUpdatingService.RenameStorageBlob(oldFilename, newFilename, ProjectAcronym, ContainerName);
-            _files.RemoveAll(f => f.name == oldFilename);
-        }
+        var oldFileName = JoinPath(_currentFolder, fileName);
+        var newFileName = JoinPath(folder, fileName);
+
+        if (await PreventOverwrite(newFileName))
+            return;
+
+        if (!await _projectDataRetrievalService.RenameFileAsync(ProjectAcronym, ContainerName, oldFileName, newFileName))
+            return;
+        
+        _files.RemoveAll(f => f.name == fileName);
     }
-    
+
     private async Task HandleFileRename(string fileRename)
     {
-        if (!string.IsNullOrWhiteSpace(fileRename))
-        {
-            var oldFilename = (_currentFolder + GetFileName(_selectedItem)).TrimStart('/');
-            var newFilename = (_currentFolder + fileRename).TrimStart('/');
+        if (string.IsNullOrWhiteSpace(fileRename))
+            return;
+        
+        var currentFileName = GetFileName(_selectedItem);
 
-            if (await PreventOverwrite(newFilename))
-                return;
-            
-            //await _dataUpdatingService.RenameStorageBlob(oldFilename, newFilename, ProjectAcronym, ContainerName);
-            var file = _files.First(f => f.name == oldFilename);
-            file.name = newFilename;
-        }
+        var oldFileName = JoinPath(_currentFolder, currentFileName);
+        var newFileName = JoinPath(_currentFolder, fileRename);
+
+        if (await PreventOverwrite(newFileName))
+            return;
+
+        if (!await _projectDataRetrievalService.RenameFileAsync(ProjectAcronym, ContainerName, oldFileName, newFileName))
+            return;
+
+        var targetFile = _files.FirstOrDefault(f => f.name == currentFileName);
+        if (targetFile is not null)
+            targetFile.name = fileRename;
     }
 
-    private async Task<bool> IfFileExistsInLocation(string filename)
+    private async Task HandleDeleteFolder()
     {
-        return await _projectDataRetrievalService.StorageBlobExistsAsync(filename, ProjectAcronym, ContainerName);
+        var message = string.Format(Localizer["Are you sure you want to delete folder \"{0}\"?"], GetDirectoryName(_currentFolder));
+        if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
+            return;
+
+        if (!await _projectDataRetrievalService.DeleteFolderAsync(ProjectAcronym, ContainerName, _currentFolder))
+            return;
+
+        await SetCurrentFolder(GetDirectoryName(_currentFolder));
     }
 
-    private async Task<bool> PreventOverwrite(string filename)
+    private async Task<bool> PreventOverwrite(string filePath)
     {
-        if (await IfFileExistsInLocation(filename))
-        {
-            return !await _jsRuntime.InvokeAsync<bool>("confirm",
-                string.Format(Localizer["File '{0}' already exists. Do you want to overwrite it?"], filename));
-        }
+        var fileExists = await _projectDataRetrievalService.FileExistsAsync(ProjectAcronym, ContainerName, filePath);
+        
+        if (!fileExists)
+            return false;
 
-        return false;
+        return !await _jsRuntime.InvokeAsync<bool>("confirm",
+            string.Format(Localizer["File '{0}' already exists. Do you want to overwrite it?"], filePath));
     }
-    
+
+    private string JoinPath(string folder, string fileName)
+    {
+        var splitPath = (folder ?? "").Split('/', StringSplitOptions.RemoveEmptyEntries).ToList();
+        splitPath.Add(fileName);
+        return string.Join("/", splitPath);
+    }
+
     private async Task UploadFile(IBrowserFile browserFile, string folder)
     {
         if (browserFile == null)
             return;
 
-        var newFilename = (folder + browserFile.Name).TrimStart('/');
-        if (await PreventOverwrite(newFilename))
+        var newFilePath = JoinPath(folder, browserFile.Name);
+        if (await PreventOverwrite(newFilePath))
             return;
 
         var fileMetadata = new FileMetaData
         {
+            id = Guid.NewGuid().ToString(),
+            createdby = GraphUser.Mail,
             folderpath = folder,
-            filename = (folder + browserFile.Name).TrimStart('/'),
+            filename = browserFile.Name,
             filesize = browserFile.Size.ToString(),
             uploadStatus = FileUploadStatus.SelectedToUpload,
             BrowserFile = browserFile
         };
 
-        //await _apiService.PopulateOtherMetadata(fileMetadata);
         _uploadingFiles.Add(fileMetadata);
 
         _ = InvokeAsync(async () =>
         {
-            //await _apiService.UploadGen2File(fileMetadata, ProjectAcronym.ToLower(), ContainerName, (uploadedBytes) =>
-            //{
-            //    fileMetadata.uploadedBytes = uploadedBytes;
-            //    StateHasChanged();
-            //});
+            await _projectDataRetrievalService.UploadFileAsync(ProjectAcronym.ToLower(), ContainerName, fileMetadata, uploadedBytes =>
+            {
+                fileMetadata.uploadedBytes = uploadedBytes;
+                _ = InvokeAsync(StateHasChanged);
+            });
 
             _uploadingFiles.Remove(fileMetadata);
             if (folder == _currentFolder)
@@ -163,18 +168,12 @@ public partial class FileExplorer
 
     private async Task HandleFileDownload(string filename)
     {   
-        var selectedFile = _files?.FirstOrDefault(f => f.name == filename);
-        var uri = await _projectDataRetrievalService.DownloadFile(ContainerName, selectedFile, ProjectAcronym);
-        
+        var uri = await _projectDataRetrievalService.DownloadFileAsync(ProjectAcronym, ContainerName, JoinPath(_currentFolder, filename));
         await _module.InvokeVoidAsync("downloadFile", uri.ToString());
     }
     
-    
     private string GetDirectoryName(string path)
     {
-        if (string.IsNullOrWhiteSpace(path) || !path.Contains("/"))
-            return string.Empty;
-
         var lastIndex = path.TrimEnd('/').LastIndexOf("/", StringComparison.Ordinal);
         return lastIndex == -1 ? "/" : path[..lastIndex] + "/";
     }
@@ -192,7 +191,7 @@ public partial class FileExplorer
     {
         _currentFolder = folderName;
         _selectedItems = new HashSet<string> { folderName };
-        await FetchStorageBlobsPageAsync();
+        await RefreshStoragePageAsync();
     }
 
     private async Task UploadFiles(InputFileChangeEventArgs e)
@@ -218,7 +217,6 @@ public partial class FileExplorer
     {
         _filterValue = string.Empty;
     }
-    
     
     private void HandleFileSelectionClick(string filename)
     {

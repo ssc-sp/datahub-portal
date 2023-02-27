@@ -1,8 +1,5 @@
-using System.Globalization;
-using Azure.Identity;
 using Azure.Storage;
 using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
@@ -13,7 +10,6 @@ using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
 
 namespace Datahub.Infrastructure.Services;
 
@@ -31,110 +27,234 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
         _portalConfiguration = portalConfiguration;
     }
 
-
-    public async Task<(List<string>, List<FileMetaData>, string)> GetStorageBlobPagesAsync(string projectAcronym,
-        string containerName, User user, string prefix,
-        string? continuationToken = default)
+    public async Task<List<string>> GetContainersAsync(string projectAcronym)
     {
-        try
+        var dfsServiceClient = await GetDataLakeServiceClientAsync(projectAcronym);
+
+        // list all of the root folders
+        var pages = dfsServiceClient.GetFileSystemsAsync().AsPages();
+
+        var containers = new List<string>();
+        await foreach (var page in pages)
         {
-            var folders = new List<string>();
-            var files = new List<FileMetaData>();
+            containers.AddRange(page.Values.Select(c => c.Name));
+        }
 
-            var connectionString = await GetProjectConnectionStringAsync(projectAcronym.ToLower());
-            var blobServiceClient = new BlobServiceClient(connectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+        return containers;
+    }
 
-            var resultSegment = containerClient
-                .GetBlobsByHierarchyAsync(prefix: prefix.TrimStart('/'), traits: BlobTraits.Metadata, delimiter: "/")
-                .AsPages(continuationToken);
+    public async Task<(List<string> Folders, List<FileMetaData> Files, string Token)> GetDfsPagesAsync(string projectAcronym, 
+        string containerName, string folderPath, string? continuationToken)
+    {
+        List<string> folders = new();
+        List<FileMetaData> files = new();
 
-            // Enumerate the blobs returned for each page.
-            await foreach (var blobPage in resultSegment)
+        var dirClient = await GetDirectoryClient(projectAcronym, containerName, folderPath);
+        if (dirClient is null)
+            return (folders, files, continuationToken!);
+
+        // iterate the folder
+        await IterateDataLakeDirectoryAsync(dirClient, continuationToken, folders.Add, files.Add, ct => continuationToken = ct);
+
+        return (folders, files, continuationToken!);
+    }
+
+    public async Task<bool> FileExistsAsync(string projectAcronym, string containerName, string filePath)
+    {
+        var fs = await GetFileSystemClient(projectAcronym, containerName);
+        if (fs is null) 
+            return false;
+
+        var fileClient = fs.GetFileClient(filePath);
+        if (fileClient is null)
+            return false;
+
+        return fileClient.Exists();
+    }
+
+    public async Task<Uri> DownloadFileAsync(string projectAcronym, string containerName, string filePath)
+    {
+        return await DownloadBlobFile(projectAcronym, containerName, filePath);
+    }
+
+    public async Task<bool> UploadFileAsync(string projectAcronym, string containerName, FileMetaData file, Action<long> progess)
+    {
+        // get the directory client
+        var dirClient = await GetDirectoryClient(projectAcronym, containerName, file.folderpath);
+        if (dirClient is null)
+            return false;
+
+        // create the file
+        var fileClient = dirClient.GetFileClient(file.filename);
+        if (fileClient is null || fileClient.Exists())
+            return false;
+
+        // generate the options with the metadata
+        DataLakeFileUploadOptions options = new()
+        {
+            Metadata = new Dictionary<string, string>()
             {
-                continuationToken = blobPage.ContinuationToken;
-                foreach (var blobHierarchyItem in blobPage.Values)
-                {
-                    if (blobHierarchyItem.IsPrefix)
-                    {
-                        folders.Add(blobHierarchyItem.Prefix);
-                    }
-                    else
-                    {
-                        var fileId = await VerifyFileIdMetadata(blobHierarchyItem, containerClient);
-                        var fileMetaData = FileMetadataFromBlobItem(blobHierarchyItem, fileId);
-                        files.Add(fileMetaData);
-                    }
-                }
+                { FileMetaData.FileId, file.id },
+                { FileMetaData.CreatedBy, file.createdby }
+            },
+            ProgressHandler = new UploadProgressHandler(progess)
+        };
 
-                return (folders, files, continuationToken);
-            }
+        var result = await fileClient.UploadAsync(file.BrowserFile.OpenReadStream(), options);
 
-            return (folders, files, continuationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Get file list for project: {ProjectAcronym} for user: {DisplayName} FAILED",
-                projectAcronym, user.DisplayName);
-            throw;
-        }
+        return result is not null;
     }
 
-    public Task<(List<string>, List<FileMetaData>, string)> GetDfsPagesAsync(string projectAcronym, string containerName, User user, string prefix,
-        string? continuationToken = default)
+    public async Task<bool> DeleteFileAsync(string projectAcronym, string container, string filePath)
     {
-        return null;
+        var fs = await GetFileSystemClient(projectAcronym, container);
+        if (fs is null)
+            return false;
+
+        // try to delete the file
+        var response = await fs.DeleteFileAsync(filePath);
+
+        // got a response and it is not an error response
+        return response is not null && !response.IsError;
     }
 
-    public async Task<bool> StorageBlobExistsAsync(string filename, string projectAcronym, string containerName)
+    public async Task<bool> RenameFileAsync(string projectAcronym, string container, string oldFilePath, string newFilePath)
     {
-        var connectionString = await GetProjectConnectionStringAsync(projectAcronym.ToLower());
-        var blobServiceClient = new BlobServiceClient(connectionString);
-            
-        var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-        var blobClient = containerClient.GetBlobClient(filename);
+        var fs = await GetFileSystemClient(projectAcronym, container);
+        if (fs is null)
+            return false;
 
-        return await blobClient.ExistsAsync();
+        var fileClient = fs.GetFileClient(oldFilePath);
+        if (fileClient is null)
+            return false;
+
+        // try to rename the file
+        var response = await fileClient.RenameAsync(newFilePath);
+
+        return response is not null;
     }
 
-    public async Task<Uri> DownloadFile(string container, FileMetaData file, string projectAcronym)
+    public async Task<bool> DeleteFolderAsync(string projectAcronym, string containerName, string folderPath)
     {
-        return await DownloadBlobFile(container, file, projectAcronym);
+        var fs = await GetFileSystemClient(projectAcronym, containerName);
+        if (fs is null)
+            return false;
+
+        var dirClient = fs.GetDirectoryClient(folderPath);
+        if (!await dirClient.ExistsAsync())
+            return false;
+
+        // try delete the folder
+        var result = await dirClient.DeleteAsync();
+
+        return result?.IsError == false;
     }
 
-    public async Task<List<string>> GetProjectBlobContainersAsync(string projectAcronym)
+    public async Task<bool> CreateFolderAsync(string projectAcronym, string containerName, string directoryPath, string folderName)
+    {
+        var dirClient = await GetDirectoryClient(projectAcronym, containerName, directoryPath);
+        
+        if (dirClient is null)
+            return false;
+
+        return await dirClient.CreateSubDirectoryAsync(folderName) is not null;
+    }
+
+    public async Task<StorageMetadata> GetStorageMetadataAsync(string projectAcronym)
     {
         var connectionString = await GetProjectConnectionStringAsync(projectAcronym);
         var blobServiceClient = new BlobServiceClient(connectionString);
-        var pages = blobServiceClient.GetBlobContainersAsync().AsPages();
-        var containers = new List<string>();
-        await foreach (var page in pages)
-        {
-            containers.AddRange(page.Values.Select(c => c.Name));
-        }
+        var containerClient = blobServiceClient.GetBlobContainerClient("datahub");
 
-        return containers;
+        var accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
+
+        StorageMetadata storageMetadata = new()
+        {
+            Container = "datahub",
+            Url = containerClient.Uri.ToString(),
+            Versioning = "True",
+            GeoRedundancy = accountInfo.SkuName.ToString(),
+            StorageAccountType = accountInfo.AccountKind.ToString()
+        };
+
+        return storageMetadata;
     }
 
-    public async Task<List<string>> GetProjectDataLakeContainersAsync(string projectAcronym, User user)
+    private async Task<DataLakeFileSystemClient?> GetFileSystemClient(string projectAcronym, string containerName)
     {
-        // TODO: ACL this access
-        // var sharedKeyCredential = await GetSharedKeyCredentialAsync(projectAcronym);
+        var client = await GetDataLakeServiceClientAsync(projectAcronym);
+        return client is not null ? client.GetFileSystemClient(containerName) : default;
+    }
+
+    private async Task<DataLakeDirectoryClient?> GetDirectoryClient(string projectAcronym, string containerName, string path)
+    {
+        var fs = await GetFileSystemClient(projectAcronym, containerName);
+        return fs is not null ? fs.GetDirectoryClient(path) : default;
+    }
+
+    private async Task IterateDataLakeDirectoryAsync(DataLakeDirectoryClient client, string? continuationToken,
+        Action<string> addFolder, Action<FileMetaData> addFile, Action<string?> setContinuationToken)
+    {
+        await foreach (var page in client.GetPathsAsync().AsPages(continuationToken))
+        {
+            if (page is null)
+                continue;
+
+            setContinuationToken(page.ContinuationToken);
+            foreach (var path in page.Values)
+            {
+                if (path.IsDirectory == true)
+                {
+                    addFolder(path.Name);
+                }
+                else
+                {
+                    var fileMetadata = await GetFileMetadataAsync(client, Path.GetFileName(path.Name));
+                    if (fileMetadata is not null)
+                    {
+                        addFile(fileMetadata);
+                    }
+                }
+            }
+        }
+    }
+
+    private async Task<FileMetaData?> GetFileMetadataAsync(DataLakeDirectoryClient client, string fileName)
+    {
+        var fileClient = client.GetFileClient(fileName);
+        if (fileClient is null)
+            return default;
+
+        var propResponse = await fileClient.GetPropertiesAsync();
+        if (propResponse is null)
+            return default;
+
+        var props = propResponse.Value;
+        var metadata = props.Metadata;
+
+        return new()
+        {
+            id = GetMetadata(metadata, METADATA_FILE_ID, Guid.NewGuid().ToString()),
+            name = fileName,
+            ownedby = GetMetadata(metadata, FileMetaData.OwnedBy),
+            createdby = GetMetadata(metadata, FileMetaData.CreatedBy),
+            lastmodifiedby = GetMetadata(metadata, FileMetaData.LastModifiedBy),
+            lastmodifiedts = props.LastModified.DateTime,
+            filesize = props.ContentLength.ToString()
+        };
+    }
+
+    static string? GetMetadata(IDictionary<string, string> dict, string key, string? defaultValue = default)
+    {
+        return dict.TryGetValue(key, out var value) ? value : defaultValue;
+    }
+
+    private async Task<DataLakeServiceClient> GetDataLakeServiceClientAsync(string projectAcronym)
+    {
+        var sharedKeyCredential = await GetSharedKeyCredentialAsync(projectAcronym);
         var storageAccountName = GetProjectStorageAccountName(projectAcronym);
         var dfsUri = BuildDfsUriFromStorageAccountName(storageAccountName);
-        
-        var dfsServiceClient = new DataLakeServiceClient(new Uri(dfsUri), new DefaultAzureCredential());
-        
-        // list all of the root folders
-        var pages = dfsServiceClient.GetFileSystemsAsync().AsPages();
-        
-        var containers = new List<string>();
-        await foreach (var page in pages)
-        {
-            containers.AddRange(page.Values.Select(c => c.Name));
-        }
-        
-        return containers;
+        return new DataLakeServiceClient(new Uri(dfsUri), sharedKeyCredential); // new DefaultAzureCredential());
     }
 
     private string BuildDfsUriFromStorageAccountName(string accountName)
@@ -142,11 +262,9 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
         return $"https://{accountName}.dfs.core.windows.net";
     }
 
-    private async Task<Uri> DownloadBlobFile(string container, FileMetaData file, string projectAcronym,
-        int daysValidity = 1)
+    private async Task<Uri> DownloadBlobFile(string projectAcronym, string container, string filePath, int daysValidity = 1)
     {
-        return await GetDelegationSasBlobUri(container, file.filename, projectAcronym, daysValidity,
-            BlobSasPermissions.Read | BlobSasPermissions.Write);
+        return await GetDelegationSasBlobUri(container, filePath, projectAcronym, daysValidity, BlobSasPermissions.Read | BlobSasPermissions.Write);
     }
 
     private async Task<Uri> GetDelegationSasBlobUri(string container, string fileName, string projectAcronym,
@@ -166,14 +284,11 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
         return blobUriBuilder.ToUri();
     }
 
-
     private async Task<string> GetProjectConnectionStringAsync(string projectAcronym)
     {
         var accountKey = await GetProjectStorageAccountKeyAsync(projectAcronym);
         var storageAccountName = GetProjectStorageAccountName(projectAcronym);
-
-        return
-            @$"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={accountKey.Value};EndpointSuffix=core.windows.net";
+        return @$"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={accountKey.Value};EndpointSuffix=core.windows.net";
     }
     
     private string GetProjectStorageAccountName(string projectAcronym)
@@ -200,6 +315,7 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
 
         return _portalConfiguration.ProjectStorageKeySecretName;
     }
+
     private string GetProjectKeyVaultName(string projectAcronym)
     {
         var envName = GetEnvironmentName();
@@ -208,14 +324,13 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
 
     private static string GetEnvironmentName()
     {
-        var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        envName = envName != null ? envName.ToLower() : "dev";
-        if (envName.Equals("development") || envName.Equals("sand"))
-        {
-            envName = "dev";
-        }
+        var envName = (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "dev").ToLower();
 
-        return envName.ToLower();
+        // map developemnt or sandbox to dev
+        if (envName.Equals("development") || envName.Equals("sand"))
+            return "dev";
+
+        return envName;
     }
 
     private async Task<BlobContainerClient> GetBlobContainerClient(string project, string containerName)
@@ -244,78 +359,7 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
                 new AzureServiceTokenProvider($"RunAs=App;AppId={clientId};TenantId={tenantId};AppKey={clientSecret}");
         }
 
-        return new KeyVaultClient(
-            new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-    }
-
-    private static async Task<string> VerifyFileIdMetadata(BlobHierarchyItem blobItem,
-        BlobContainerClient containerClient)
-    {
-        return await VerifyFileIdMetadata(blobItem.Blob, containerClient);
-    }
-
-    private static async Task<string> VerifyFileIdMetadata(BlobItem blobItem, BlobContainerClient containerClient)
-    {
-        if (blobItem.Metadata.TryGetValue(METADATA_FILE_ID, out var fileId))
-            return fileId;
-
-        var newId = Guid.NewGuid().ToString();
-        blobItem.Metadata.Add(METADATA_FILE_ID, newId);
-        var client = containerClient.GetBlobClient(blobItem.Name);
-        await client.SetMetadataAsync(blobItem.Metadata);
-        fileId = newId;
-
-        return fileId;
-    }
-
-    private static FileMetaData FileMetadataFromBlobItem(BlobHierarchyItem blobItem, string fileId)
-    {
-        return FileMetadataFromBlobItem(blobItem.Blob, fileId);
-    }
-
-    private static FileMetaData FileMetadataFromBlobItem(BlobItem blobItem, string fileId)
-    {
-        string? ownedBy = blobItem.Metadata.TryGetValue(FileMetaData.OwnedBy, out ownedBy) ? ownedBy : "Unknown";
-        string? createdBy = blobItem.Metadata.TryGetValue(FileMetaData.CreatedBy, out createdBy)
-            ? createdBy
-            : "Unknown";
-        string? lastModifiedBy = blobItem.Metadata.TryGetValue(FileMetaData.LastModifiedBy, out lastModifiedBy)
-            ? lastModifiedBy
-            : "lastmodifiedby";
-
-        if (Environment.GetEnvironmentVariable("HostingProfile") == "ssc")
-        {
-            return new FileMetaData()
-            {
-                id = fileId,
-                filename = blobItem.Name,
-                ownedby = ownedBy,
-                createdby = createdBy,
-                lastmodifiedby = lastModifiedBy,
-                lastmodifiedts = blobItem.Properties.LastModified?.DateTime ?? DateTime.Now,
-                filesize = blobItem.Properties.ContentLength.ToString()
-            };
-        }
-
-        string? lastModified = blobItem.Metadata.TryGetValue(FileMetaData.LastModified, out lastModified)
-            ? lastModified
-            : DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
-        string? fileSize = blobItem.Metadata.TryGetValue(FileMetaData.FileSize, out fileSize) ? fileSize : "0";
-
-        var isDateValid = DateTime.TryParse(lastModified, out var parsedModifiedDate);
-        if (!isDateValid)
-            parsedModifiedDate = DateTime.UtcNow;
-
-        return new FileMetaData()
-        {
-            id = fileId,
-            filename = blobItem.Name,
-            ownedby = ownedBy,
-            createdby = createdBy,
-            lastmodifiedby = lastModifiedBy,
-            lastmodifiedts = parsedModifiedDate,
-            filesize = fileSize
-        };
+        return new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
     }
 
     private static BlobSasBuilder GetBlobSasBuilder(string container, string fileName, int days,
@@ -342,4 +386,16 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
         var storageAccountName = GetProjectStorageAccountName(projectAcronymLower);
         return new StorageSharedKeyCredential(storageAccountName, storageAccountKey.Value);
     }
+}
+
+class UploadProgressHandler : IProgress<long>
+{
+    private readonly Action<long> _onProgress;
+
+    public UploadProgressHandler(Action<long> onProgress)
+    {
+        _onProgress = onProgress;
+    }
+
+    public void Report(long value) => _onProgress.Invoke(value);
 }
