@@ -4,14 +4,22 @@ namespace Datahub.Application.Services;
 
 public interface IProjectDataRetrievalService
 {
-    public Task<(List<string>, List<FileMetaData>, string)> GetStorageBlobPagesAsync(string projectAcronym,
-        string containerName, Microsoft.Graph.User user, string currentWorkingDirectory, string? continuationToken = default);
-    
-    public Task<(List<string>, List<FileMetaData>, string)> GetDfsPagesAsync(string projectAcronym,
-        string containerName, Microsoft.Graph.User user, string currentWorkingDirectory, string? continuationToken = default);
+    Task<List<string>> GetContainersAsync(string projectAcronym);
 
-    public Task<bool> StorageBlobExistsAsync(string filename, string projectAcronym, string containerName);
-    public Task<Uri> DownloadFile(string container, FileMetaData file, string projectAcronym);
-    public Task<List<string>> GetProjectBlobContainersAsync(string projectAcronym);
-    public Task<List<string>> GetProjectDataLakeContainersAsync(string projectAcronym, Microsoft.Graph.User user);
+    Task<(List<string> Folders, List<FileMetaData> Files, string Token)> GetDfsPagesAsync(string projectAcronym, string containerName, 
+        string folderPath, string? continuationToken = default);
+
+    Task<bool> FileExistsAsync(string projectAcronym, string containerName, string filePath);
+
+    Task<Uri> DownloadFileAsync(string projectAcronym, string containerName, string filePath);
+    Task<bool> UploadFileAsync(string projectAcronym, string containerName, FileMetaData file, Action<long> progess);
+
+    Task<bool> DeleteFileAsync(string projectAcronym, string containerName, string filePath);
+    Task<bool> RenameFileAsync(string projectAcronym, string containerName, string oldFilePath, string newFilePath);
+
+    Task<bool> DeleteFolderAsync(string projectAcronym, string containerName, string folderPath);
+
+    Task<bool> CreateFolderAsync(string projectAcronym, string containerName, string currentWorkingDirectory, string folderName);
+
+    Task<StorageMetadata> GetStorageMetadataAsync(string projectAcronym);
 }
