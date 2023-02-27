@@ -6,6 +6,17 @@ namespace Datahub.Portal.Pages.Project.FileExplorer;
 
 public partial class Heading
 {
+    private enum ButtonAction
+    {
+        Upload,
+        Download,
+        Share,
+        Delete,
+        Rename,
+        AzSync,
+        DeleteFolder
+    }
+
     private async Task BreadcrumbClicked(string breadcrumb)
     {
         var index = CurrentFolder.IndexOf(breadcrumb, StringComparison.OrdinalIgnoreCase);
@@ -95,14 +106,9 @@ public partial class Heading
         }
     }
 
-    private enum ButtonAction
+    private async Task HandleDeleteFolder()
     {
-        Upload,
-        Download,
-        Share,
-        Delete,
-        Rename,
-        AzSync,
+        await OnDeleteFolder.InvokeAsync();
     }
 
     private bool IsActionDisabled(ButtonAction buttonAction)
@@ -115,6 +121,7 @@ public partial class Heading
             ButtonAction.Share    => !_isUnclassifiedSingleFile,
             ButtonAction.Delete   => _selectedFiles is null || !_selectedFiles.Any() || !_ownsSelectedFiles,
             ButtonAction.Rename   => _selectedFiles is null || !_selectedFiles.Any() || !_ownsSelectedFiles || SelectedItems.Count > 1,
+            ButtonAction.DeleteFolder => Files.Any() || Folders.Any() || CurrentFolder == "/",
             _ => false
         };
     }
