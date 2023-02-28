@@ -99,8 +99,8 @@ namespace Datahub.Functions
 
         static EmailRequestMessage GetNotificationEmail(int perc, List<string> contacts)
         {
-            var subject = $"{perc}% Datahub credits consumed / {perc} % de crédits Datahub consommés";
-            var body = $"<p>Your workspace has consumed {perc}% of the allocated credits in Datahub.</p> <p>Votre espace de travail a consommé {perc} % des crédits alloués dans Datahub.</p>";
+            var subject = $"{perc}% Datahub credits consumed / {perc} % de crÃ©dits Datahub consommÃ©s";
+            var body = $"<p>Your workspace has consumed {perc}% of the allocated credits in Datahub.</p> <p>Votre espace de travail a consommÃ© {perc} % des crÃ©dits allouÃ©s dans Datahub.</p>";
             EmailRequestMessage notificationEmail = new() 
             { 
                 To = contacts, 
