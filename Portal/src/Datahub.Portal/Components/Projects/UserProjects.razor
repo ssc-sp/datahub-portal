@@ -58,19 +58,21 @@
                 </MudCard>
             </MudItem>
         }
-        <MudItem xs="6" md="4">
-            <MudCard Outlined Class="pa-2">
-                <MudCardContent>
-                    <MudChip Style="@_chipStyle" Label Size="Size.Small" Color="Color.Default">@Localizer["Create"]</MudChip>
-                    <MudText>@Localizer["Create Workspace"]</MudText>
-                </MudCardContent>
-                <MudCardActions>
-                    <MudButton EndIcon="@UserWorkspaceCreateIcon" Variant="Variant.Text" Color="Color.Primary" OnClick="ShowProjectDialog">
-                        @Localizer["Create Workspace"]
-                    </MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
+        <DHAdminActions>            
+            <MudItem xs="6" md="4">
+                <MudCard Outlined Class="pa-2">
+                    <MudCardContent>
+                        <MudChip Style="@_chipStyle" Label Size="Size.Small" Color="Color.Default">@Localizer["Create"]</MudChip>
+                        <MudText>@Localizer["Create Workspace"]</MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton EndIcon="@UserWorkspaceCreateIcon" Variant="Variant.Text" Color="Color.Primary" OnClick="ShowProjectDialog">
+                            @Localizer["Create Workspace"]
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </DHAdminActions>
     </MudGrid>
 </MudStack>
 
