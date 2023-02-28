@@ -1,8 +1,8 @@
+@using Datahub.Application.Services;
 @using Datahub.Core.Components.Skeleton
 @using Datahub.Core.Components.Code
 @using Datahub.Core.Services.Storage
-
-@inject DataRetrievalService _dataRetrievalService
+@inject IProjectDataRetrievalService _projectDataRetrievalService
 
 @if (_loading)
 {
@@ -69,7 +69,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var storageMetadata = await _dataRetrievalService.GetStorageMetadata(ProjectAcronym);
+        var storageMetadata = await _projectDataRetrievalService.GetStorageMetadataAsync(ProjectAcronym);
         _properties = new Dictionary<string, (string, RenderFragment)>();
         TryAdd(_properties, Localizer["Container Name"], storageMetadata.Container);
         TryAdd(_properties, Localizer["AccountName"], storageMetadata.AccountName);
