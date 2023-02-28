@@ -1,8 +1,8 @@
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Datahub.Infrastructure.Services;
@@ -11,8 +11,8 @@ public partial class UserEnrollmentService : IUserEnrollmentService
 {
     // private readonly IDbContextFactory<DatahubProjectDBContext> _dbFactory;
     private readonly ILogger<UserEnrollmentService> _logger;
-    private readonly IConfiguration? _configuration;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
 
     [GeneratedRegex("^([\\w\\.\\-]+)@([\\w\\-]+)(\\.gc\\.ca)$")]
     private static partial Regex GC_CA_Regex();
@@ -23,14 +23,14 @@ public partial class UserEnrollmentService : IUserEnrollmentService
     public UserEnrollmentService(
         // IDbContextFactory<DatahubProjectDBContext> dbFactory,
         ILogger<UserEnrollmentService> logger,
-        IConfiguration? configuration,
-        IHttpClientFactory httpClientFactory
+        IHttpClientFactory httpClientFactory,
+        DatahubPortalConfiguration datahubPortalConfiguration
     ) 
     {
         // _dbFactory = dbFactory;
         _logger = logger;
-        _configuration = configuration;
         _httpClientFactory = httpClientFactory;
+        _datahubPortalConfiguration = datahubPortalConfiguration;
     }
 
     public bool IsValidGcEmail(string? email)
@@ -59,9 +59,10 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         };
 
         var jsonBody = new JsonObject(payload!);
-        string? url = _configuration?["datahub-create-graph-user-url"];
+        var url = _datahubPortalConfiguration.DatahubGraphInviteFunctionUrl;
 
-        var content = new StringContent(jsonBody.ToString(), Encoding.UTF8, "application/json");
+        var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(jsonBody.ToString()));
+        var content = new StringContent(encoded, Encoding.UTF8, "application/json");
         using var client = _httpClientFactory.CreateClient();
         var result = await client.PostAsync(url, content);
 
