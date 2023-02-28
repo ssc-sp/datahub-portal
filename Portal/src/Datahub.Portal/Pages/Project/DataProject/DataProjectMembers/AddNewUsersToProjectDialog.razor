@@ -18,10 +18,9 @@
         }
         else
         {
-            <MudAutocomplete T="GraphUser" Label="@Localizer["User Email"]" @bind-Text="_inputDisplayText" Value="@null"
-                             ValueChanged="AddUser" SearchFuncWithCancel="@SearchUsers" AdornmentColor="Color.Primary"
-                             ResetValueOnEmptyText AdornmentIcon="@SEARCH_ICON" Error="@_error" ErrorText="@_errorMessage"
-                             ShowProgressIndicator>
+            <MudAutocomplete T="GraphUser" Label="@Localizer["User Email"]" ValueChanged="AddUser" DebounceInterval="500"
+                             SearchFuncWithCancel="@SearchUsers" AdornmentColor="Color.Primary" AdornmentIcon="@SEARCH_ICON" 
+                             Error="@_error" ErrorText="@_errorMessage" @ref="_userSearch">
                 <ItemTemplate>
                     <MudStack Class="px-2" Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                         <MudStack Spacing="0">
@@ -59,6 +58,7 @@
     public List<ProjectMember> CurrentProjectMembers { get; set; } = new();
     private readonly List<GraphUser?> _users = new();
     private readonly EmailAddressAttribute _emailValidator = new() { ErrorMessage = "The email address is invalid" };
+    private MudAutocomplete<GraphUser> _userSearch = null!;
     private string _inputDisplayText = string.Empty;
     private bool _error;
     private string _errorMessage = string.Empty;
@@ -70,6 +70,10 @@
     private const string REMOVE_USER_ICON = "fa-duotone fa-trash-can-slash";
     private const string USER_EXISTS_ERROR = "The user is already in the project";
     private const string NOT_VALID_EMAIL_ERROR = "The email address is invalid";
+    private const string NOT_VALID_USER_ERROR = "There is an issue with the user. Please contact Datahub support";
+    
+    // added to catch the case where the user is in graph but ID is null (GitHub issue # 404)
+    private const string NEW_USER_ID = "NEW_USER";
 
     private async Task<IEnumerable<GraphUser>> SearchUsers(string search, CancellationToken cancellationToken)
     {
@@ -95,7 +99,7 @@
             case -1 when _emailValidator.IsValid(search):
                 foundUsers.Insert(0, new GraphUser()
                 {
-                    mailAddress = new MailAddress(search), DisplayName = Localizer["Add New User"], Id = null
+                    mailAddress = new MailAddress(search), DisplayName = Localizer["Add New User"], Id = NEW_USER_ID
                 });
                 return foundUsers;
         }
@@ -113,15 +117,26 @@
         _errorMessage = Localizer[NOT_VALID_EMAIL_ERROR];
     }
     
+    private void UserNotValidError()
+    {
+        _error = true;
+        _errorMessage = Localizer[NOT_VALID_EMAIL_ERROR];
+    }
+    
     private void ClearError()
     {
         _error = false;
         _errorMessage = string.Empty;
     }
 
-    private void AddUser(GraphUser? user)
+    private async Task AddUser(GraphUser? user)
     {
         if (user is null) return;
+        if (user.Id is null)
+        {
+            UserNotValidError();
+            return;
+        }
         if (CurrentProjectMembers.Any(projectMember => projectMember.Email.Equals(user.Mail, StringComparison.OrdinalIgnoreCase)))
         {
             UserExistsInProjectError();
@@ -133,8 +148,8 @@
             return;
         }
         ClearError();
-        _inputDisplayText = string.Empty;
         _users.Add(user);
+        await _userSearch.Clear();
     }
     
     private void RemoveUser(GraphUser? user)
@@ -142,9 +157,9 @@
         _users.Remove(user);
     }
 
-    private string GetListText(GraphUser user)
+    private static string GetListText(GraphUser user)
     {
-        return user.Id == null ? user.Mail : $"{user.DisplayName} ({user.Mail})";
+        return user.Id == NEW_USER_ID ? user.Mail : $"{user.DisplayName} ({user.Mail})";
     }
 
     private async Task UpdateProject()
@@ -153,7 +168,7 @@
         StateHasChanged();
         //force update to show progress indicator
         await Task.Delay(1);
-        var userIds = _users.Select(async u => string.IsNullOrWhiteSpace(u!.Id) ? await UserEnrollmentService.SendUserDatahubPortalInvite(u.Mail) : u.Id).Select(u => u.Result).ToList();
+        var userIds = _users.Select(async u => u!.Id.Equals(NEW_USER_ID) ? await UserEnrollmentService.SendUserDatahubPortalInvite(u.Mail) : u.Id).Select(u => u.Result).ToList();
         await ProjectUserManagementService.AddUsersToProject(ProjectAcronym, userIds);
         MudDialog.Close(DialogResult.Ok(userIds.Count));
         _updateInProgress = false;
