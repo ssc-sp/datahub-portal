@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using System.Globalization;
 
 // todo: read from args
-var path = @"..\..\..\..\Portal\src\Datahub.Portal\i18n\ssc";
+var path = @"..\..\..\..\Portal\src\Datahub.Portal\i18n";
 
 var files = Directory.GetFiles(path);
 foreach (var file in files)
@@ -11,16 +11,43 @@ foreach (var file in files)
     var fileName = Path.GetFileName(file);
     if (fileName.Contains(".fr.", StringComparison.OrdinalIgnoreCase))
         continue;
-    
-    List<LocalizationEntry> rows = new();
-    var dict = ParseDictionary(File.ReadAllText(file));
-    Traverse(dict, default, (k, v) => rows.Add(new(k, v, "")));
 
-    var fileExt = Path.GetExtension(file);
-    var outputName = Path.ChangeExtension(Path.GetFileName(file), $".csv");
-    var outputPath = $"./{outputName}";
+    var translFile = GetTranslationFileName(file);
+    var translations = LoadFileKeys(translFile);
 
+    Func<string, string> translFunc = k => translations.TryGetValue(k, out var t) ? t : "";
+    var rows = LoadFile(file, translFunc);
+
+    var outputPath = $"./{GetOutputFile(file)}";
     OutputFile(outputPath, rows);
+}
+
+static string GetOutputFile(string fileName) => Path.ChangeExtension(Path.GetFileName(fileName), $".csv");
+
+static string GetTranslationFileName(string path)
+{
+    var ext = Path.GetExtension(path);
+    return Path.ChangeExtension(path, $".fr{ext}");
+}
+
+static List<LocalizationEntry> LoadFile(string file, Func<string, string> tranlator)
+{
+    List<LocalizationEntry> rows = new();
+    if (File.Exists(file))
+    {
+        Traverse(ParseDictionary(File.ReadAllText(file)), default, (k, v) => rows.Add(new(k, v, tranlator(k))));
+    }
+    return rows;
+}
+
+static IDictionary<string, string> LoadFileKeys(string file)
+{
+    Dictionary<string, string> keys = new();
+    if (File.Exists(file))
+    {
+        Traverse(ParseDictionary(File.ReadAllText(file)), default, (k, v) => keys[k] = v);
+    }
+    return keys;
 }
 
 static void OutputFile(string path, List<LocalizationEntry> rows)
@@ -60,5 +87,3 @@ static void Traverse(IDictionary<string, object> dictionary, string? path, Actio
 }
 
 record LocalizationEntry(string Key, string English, string French);
-
-
