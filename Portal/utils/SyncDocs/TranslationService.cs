@@ -30,20 +30,20 @@ internal class TranslationService
             return;
 
         var sourceFileUrl = GetSourceFilePathUrl(sourcePath);
-        var metadata = $"---\nremarks: Automatically translated with DeepL\nsource: {sourceFileUrl}\n---";
+        var metadata = $"---\nremarks: Automatically translated with DeepL\nsource: {sourceFileUrl}\ndraft: true\n---";
         //var remarks = $"[_metadata_: remarks]:- \"Automatically translated with DeepL. From: {sourceFileUrl}\"";
         //var note = $"[_(draft documentation, please review)_]({sourceFileUrl})";
-        var note = $"_(draft documentation, please review)_";
+        //var note = $"_(draft documentation, please review)_";
 
         using var writer = new StreamWriter(outputPath);
-        if (!isSidebar)
-        {
+        //if (!isSidebar)
+        //{
             writer.WriteLine(metadata);
             writer.WriteLine();
-        }
+        //}
 
-        writer.WriteLine(note);
-        writer.WriteLine();
+        //writer.WriteLine(note);
+        //writer.WriteLine();
 
         foreach (var line in File.ReadAllLines(sourcePath))
         {
