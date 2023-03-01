@@ -1,6 +1,7 @@
 ﻿using Datahub.Core.Services.Wiki;
 using Datahub.Shared.Annotations;
 using Markdig;
+using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using Microsoft.Extensions.Caching.Memory;
@@ -293,7 +294,7 @@ public class DocumentationService
         return await LoadDocs(BuildUrl(guide, locale??string.Empty, name), useCache);
     }
 
-    private async Task<string?> LoadDocs(string url, bool useCache = true)
+    private async Task<string?> LoadDocs(string url, bool useCache = true, bool skipFrontMatter = true)
     {
         if (_cache.TryGetValue(url, out var docContent) && useCache)
             return docContent as string;
@@ -302,6 +303,10 @@ public class DocumentationService
         try
         {
             var content = await httpClient.GetStringAsync(url);
+            if (skipFrontMatter)
+            {                 
+                content = MarkdownHelper.RemoveFrontMatter(content);
+            }
             var key = _cache.CreateEntry(url);
             // Set cache options.
             var cacheEntryOptions = new MemoryCacheEntryOptions()

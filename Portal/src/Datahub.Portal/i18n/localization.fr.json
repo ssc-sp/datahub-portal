@@ -1733,5 +1733,7 @@
   "Identifying the pathogen": "Identification de l''agent pathogène",
   "Recalculating fungal genome": "Recalcul du génome fongique",
   "Predicting soil mapping": "Prédire la cartographie des sols",
-  "Analyzing forest coverage": "Analyse du couvert forestier"
+  "Analyzing forest coverage": "Analyse du couvert forestier",
+  "Initializing Resources...": "Initialisation des ressources...",
+  "Initializing documentation...":  "Initialisation de la documentation..."
 }
