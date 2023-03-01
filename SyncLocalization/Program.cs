@@ -2,8 +2,11 @@
 using Newtonsoft.Json;
 using System.Globalization;
 
-// todo: read from args
-var path = @"..\..\..\..\Portal\src\Datahub.Portal\i18n";
+//var path = @"..\..\..\..\Portal\src\Datahub.Portal\i18n";
+if (args.Length == 0)
+    return;
+
+var path = args[0];
 
 var files = Directory.GetFiles(path);
 foreach (var file in files)
