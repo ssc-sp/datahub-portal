@@ -8,7 +8,7 @@
 
 <MudStack Class="mt-4 mb-4">
 
-    @if (_currentServiceCosts.Count > 0)
+    @if (_currentServiceCosts?.Count > 0)
     {
         <MudText Typo="Typo.h4">Cost per service</MudText>
         <MudStack Row>
@@ -42,7 +42,7 @@
         </div>
     }
 
-    @if (_currentDailyCosts.Count > 0)
+    @if (_currentDailyCosts?.Count > 0)
     {
         <MudText Typo="Typo.h4">@Localizer["Daily cost"]</MudText>
         <div>
@@ -54,7 +54,7 @@
         </div>
     }    
 
-    @if (_remainingBudget > 0 && _spendingEstimation != null)
+    @if (_remainingBudget > 0 && _spendingEstimation != null)s
     {
         <MudText Class="mb-4">
             <b>@Localizer["Project_Remaining_Credit_label"]</b> @(string.Format(Localizer["Project_Remaining_Credit_text"], _remainingBudget, ProjectBudget))
