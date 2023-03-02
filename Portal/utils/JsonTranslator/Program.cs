@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 
-var src = @"C:\code\datahub-portal\ps-translator\data.json";
+var src = @"../../../../../src/Datahub.Portal/MissingTranslations.json";
 var fPath = Path.GetFullPath(src);
 if (!File.Exists(fPath))
 {
@@ -12,14 +12,19 @@ if (!File.Exists(fPath))
 var tgt = Path.Combine(Path.GetDirectoryName(fPath)!, "output-fr.json");
 using var sourceFile = File.OpenRead(src);
 var data = (await JsonSerializer.DeserializeAsync<Dictionary<string,string>>(sourceFile)) ?? new();
-var cfgPath = Path.GetFullPath(@"../../../../WebPortal");
+var cfgPath = Path.GetFullPath(@"../../../../../src/Datahub.Portal");
 var config = new ConfigurationBuilder()
     //.SetBasePath(AppContext.BaseDirectory)
     .SetBasePath(cfgPath)
     .AddJsonFile("appsettings.json", false, true)
-    .AddJsonFile("appsettings.Development.json", false, true)
+    .AddJsonFile("appsettings.Development.json", true, false)
+    .AddJsonFile("appsettings.sand.json", true, false)
     .Build();
-
+var authKey = config.GetSection("DeepL").GetValue<string>("AuthKey");
+if (authKey is null)
+{
+    config.GetSection("DeepL")["AuthKey"] = Environment.GetEnvironmentVariable("DEEPL_KEY");
+}
 var translator = new TranslationService(config);
 var newDic = new Dictionary<string, string>();
 foreach (var item in data.Where(d => !String.IsNullOrWhiteSpace(d.Key)))

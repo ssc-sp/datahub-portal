@@ -3,15 +3,15 @@
 
 <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
     <Authorized>
-        <AeFlex Vertical>
-            <div class="ae typography h4 ">@Localizer["Admin Actions"]</div>
+@*        <AeFlex Vertical>
+            <div class="ae typography h4 ">@Localizer["Admin Actions"]</div>*@
             @if (ChildContent != null)
             {
-                <AeFlex>
+@*                <AeFlex>*@
                 @ChildContent
-                </AeFlex>
+@*                </AeFlex>*@
             }
-        </AeFlex>
+@*        </AeFlex>*@
     </Authorized>
 </AuthorizeView>
 @code {

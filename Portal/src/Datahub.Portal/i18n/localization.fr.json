@@ -1719,6 +1719,16 @@
   "Analyzing forest coverage": "Analyse du couvert forestier",
   "Initializing Resources...": "Initialisation des ressources...",
   "Initializing documentation...": "Initialisation de la documentation...",
-  "My Profile": "Mon Profil"
+  "My Profile": "Mon Profil",
+  "Welcome To DataHub": "Bienvenue à DataHub",
+  "Manage": "Gérer",
+  "View User Profile": "Voir le profil de l'utilisateur",
+  "Email User": "Courriel de l'utilisateur",
+  "Edit Metadata": "Modifier les métadonnées",
+  "Tools Catalogue": "Catalogue des outils",
+  "View Discussions": "Voir les discussions",
+  "Create New": "Créer un nouveau",
+  "Metadata Required": "Métadonnées requises",
+  "Administration": "Administration"
 
 }
