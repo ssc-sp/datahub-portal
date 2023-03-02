@@ -112,7 +112,7 @@ public class CreateGraphUser
             } 
         };
             
-        return new OkObjectResult(response.ToString());
+        return new OkObjectResult(response);
     }
 
     private async Task AddToGroup(string userId, string groupId, GraphServiceClient graphClient, ILogger log)
