@@ -258,6 +258,27 @@
     "serviceType": "Service Type",
     "requestingUser": "Requesting User"
   },
+  "ADMINISTRATION": {
+    "CARD_TITLES": {
+      "ManageInitiatives": "Manage Initiatives",
+      "ManageServices": "Manage Services in Initiatives",
+      "InitiativeResourceDefinitions": "Initiative Resource Definitions"
+    },
+    "CARD_DESCRIPTIONS": {
+      "ManageInitiatives": "Approve initiative requests and user access",
+      "PowerBI": "Link Power BI workspaces, reports and data sets with Datahub initiatives",
+      "MonthlyCost": "Refresh monthly cost for initiatives",
+      "InitiativeResourceDefinitions": "Manage initiative resource settings"
+    },
+    "SECTIONS": {
+      "InitiativeAdmin": "Initiative Administration",
+      "DataHubInitiativeTracker": "DataHub Initiative Tracker",
+      "InitiativeTrackerDesc": "Create, edit, and manage data initiatives",
+      "InitiativeAccessRequests": "Initiative Access Requests",
+    },
+    "StartingCostUpdate": "Starting initiative cost update",
+    "UpdatedNCosts": "Updated costs for {0} initiatives",
+  },
   "Welcome to Data Projects": "Welcome to Data Initiatives",
   "Filter projects": "Filter initiatives",
   "Project_Summary_Desc": "Initiative Summary (English)",
