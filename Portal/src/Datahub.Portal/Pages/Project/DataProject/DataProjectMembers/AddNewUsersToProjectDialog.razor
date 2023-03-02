@@ -60,7 +60,7 @@
     [Parameter]
     public List<ProjectMember> CurrentProjectMembers { get; set; } = new();
 
-    private readonly List<GraphUser?> _users = new();
+    private readonly List<GraphUser> _users = new();
     private readonly EmailAddressAttribute _emailValidator = new() { ErrorMessage = "The email address is invalid" };
     private MudAutocomplete<GraphUser> _userSearch = null!;
     private string _inputDisplayText = string.Empty;
@@ -158,7 +158,7 @@
         await _userSearch.Clear();
     }
 
-    private void RemoveUser(GraphUser? user)
+    private void RemoveUser(GraphUser user)
     {
         _users.Remove(user);
     }
@@ -174,8 +174,19 @@
         StateHasChanged();
         //force update to show progress indicator
         await Task.Delay(1);
-        var userIds = _users.Select(async u => u!.Id.Equals(NEW_USER_ID) ? await _userEnrollmentService.SendUserDatahubPortalInvite(u.Mail) : u.Id).Select(u => u.Result).ToList();
+        
+        // If the user is new, send an invite and get the ID, otherwise just get the ID
+        foreach (var user in _users.Where(user => user!.Id.Equals(NEW_USER_ID)))
+        {
+            user.Id = await _userEnrollmentService.SendUserDatahubPortalInvite(user.Mail);
+        }
+        
+        
+        var userIds = _users
+        .Select(u => u.Id)
+            .ToList();
         await _projectUserManagementService.AddUsersToProject(ProjectAcronym, userIds);
+        
         MudDialog.Close(DialogResult.Ok(userIds.Count));
         _updateInProgress = false;
     }
