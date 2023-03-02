@@ -9,6 +9,7 @@
 using SyncDocs;
 using Microsoft.Extensions.Configuration;
 using CommandLine;
+using Microsoft.Extensions.Options;
 
 var builder = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -29,7 +30,9 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
         var deeplKey = options.DeeplKey ?? config.GetSection("DeepL")?.GetValue<string>("Key") ?? Environment.GetEnvironmentVariable("DEEPL_KEY") ?? string.Empty;
 
         // file name cache
-        var fileNameCache = new FileNameCache(Path.Combine(options.Path, configParams.Target, "filenamecache.json"));
+        var fileNameCache = new DictionaryCache(Path.Combine(options.Path, configParams.Target, "filenamecache.json"));
+        // file name cache
+        var translationCache = new DictionaryCache(Path.Combine(options.Path, configParams.Target, "translationcache.json"));
 
         // file mapping service
         var fileMappingService = new FileMappingService(Path.Combine(options.Path, "filemappings.json"));
@@ -38,11 +41,12 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
         fileMappingService.CleanUpMappings();
 
         // translation service
-        var translationService = new TranslationService(options.Path, deeplKey, options.UseFreeAPI);
+        var translationService = new TranslationService(options.Path, deeplKey, options.UseFreeAPI, translationCache);
 
         // replication service
         var markdownService = new MarkdownDocumentationService(configParams, options.Path, translationService, fileNameCache, fileMappingService);
 
+        await CleanupTargetDirectory(configParams, options.Path);
         // iterate the provided source folder
         await IteratePath(options.Path, BuildExcluder(configParams), markdownService.AddFolder, markdownService.AddFile);
 
@@ -70,8 +74,13 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
         var gen = new SidebarGenerator();
         var topSidebar = gen.GenerateTopLevel(options.Path, topLevelfiles, topLevelfolders, options.Profile);
         Console.WriteLine($"Processing top level directory {options.Path}");
-        await File.WriteAllTextAsync(Path.Combine(options.Path, "_sidebar.md"), topSidebar);
-        Console.WriteLine($"Generated top level sidebar");
+        var metadata = "---\nautogenerate: true\n---\n";
+        var topSidebarPath = Path.Combine(options.Path, "_sidebar.md");
+        if (MarkdownDocumentationService.CheckIfAutogenerate(topSidebarPath))
+        {
+            await File.WriteAllTextAsync(topSidebarPath, metadata + topSidebar);
+            Console.WriteLine($"Generated top level sidebar");
+        }
         var topFolders1 = topLevelfolders.Where(s => FolderDepth(Path.GetRelativePath(options.Path, s)) < options.TopLevelDepth).ToList();
 
         foreach (var folder in topFolders1)
@@ -82,7 +91,12 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
             await IteratePath(folder, excluder, AddAsync(folders), AddAsync(files));
             Console.WriteLine($"Found {files.Count} files for sidebar");
             var sidebar = gen.GenerateSidebar(new DirectoryInfo(folder).Name, folder, files, folders, options.Profile);
-            await File.WriteAllTextAsync(Path.Combine(folder, "_sidebar.md"), sidebar);
+            var sidebarPath = Path.Combine(folder, "_sidebar.md");
+            if (MarkdownDocumentationService.CheckIfAutogenerate(sidebarPath))
+            {
+                await File.WriteAllTextAsync(sidebarPath, metadata + sidebar);
+                Console.WriteLine($"Generated sidebar {sidebarPath}");
+            }
         }
     } 
     catch (Exception ex)
@@ -116,6 +130,30 @@ static async Task IteratePath(string path, Func<string, bool> excludeFunc, Func<
     {
         if (!excludeFunc.Invoke(file))
             await addFile(file);
+    }
+}
+
+static async Task CleanupTargetDirectory(ConfigParams configParams, string path)
+{
+    var folders = new List<string>();
+    var files = new List<string>();
+    //cleanup French folder
+    await IteratePath(Path.Combine(path, configParams.Target), s => false, f => { folders.Add(f); return Task.CompletedTask; }, f => { files.Add(f); return Task.CompletedTask; });
+    foreach (var item in files.Where(f => Path.GetExtension(f) == ".md"))
+    {   
+        if (MarkdownDocumentationService.CheckIfDraft(item))
+        {
+            Console.WriteLine($"Deleting draft file {item}");
+            File.Delete(item);
+        }
+    }
+    foreach (var folder in folders.OrderByDescending(f => f.Split(Path.DirectorySeparatorChar).Count()))
+    {
+        if (Directory.EnumerateFiles(folder).Count() == 0)
+        {
+            Console.WriteLine($"Deleting empty folder {folder}");
+            Directory.Delete(folder);               
+        }
     }
 }
 
