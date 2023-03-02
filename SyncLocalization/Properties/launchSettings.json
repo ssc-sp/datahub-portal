@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "i18n": {
+      "commandName": "Project",
+      "commandLineArgs": "..\\..\\..\\..\\Portal\\src\\Datahub.Portal\\i18n"
+    },
+    "i18n-ssc": {
+      "commandName": "Project",
+      "commandLineArgs": "..\\..\\..\\..\\Portal\\src\\Datahub.Portal\\i18n\\ssc"
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
+    }
+  }
+}
