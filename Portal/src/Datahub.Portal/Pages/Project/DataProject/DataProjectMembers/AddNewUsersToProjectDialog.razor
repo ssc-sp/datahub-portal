@@ -147,7 +147,7 @@
             UserExistsInProjectError();
             return;
         }
-        if (!_userEnrollmentService.IsValidGcEmail(user.Mail))
+        if (user.Id.Equals(NEW_USER_ID) && _userEnrollmentService.IsValidGcEmail(user.Mail))
         {
             EmailNotValidError();
             return;
