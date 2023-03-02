@@ -71,6 +71,12 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         var resultJson = JsonNode.Parse(resultString);
         var id = resultJson?["data"]?["id"]?.ToString() ?? string.Empty;
         
+        // try to see if function wrapped it in a "Value" object
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            id = resultJson?["Value"]?["data"]?["id"]?.ToString() ?? string.Empty;
+        }
+        
         _logger.LogInformation("Invite sent to {Email} and received id {Id}", registrationRequestEmail, id);
         return id;
     }
