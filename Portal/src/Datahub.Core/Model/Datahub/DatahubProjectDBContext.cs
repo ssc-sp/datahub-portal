@@ -194,6 +194,12 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
                   .WithOne(e => e.MonthlyUsage)
                   .OnDelete(DeleteBehavior.NoAction);
         });
+        
+        modelBuilder.Entity<Datahub_Project_Resources_Whitelist>()
+            .HasOne(p => p.Project)
+            .WithOne(p => p.ResourcesWhitelist)
+            .OnDelete(DeleteBehavior.NoAction);
+            
 
         modelBuilder.Entity<Project_Credits>(entity =>
         {
