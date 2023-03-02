@@ -2,28 +2,28 @@
 
 namespace SyncDocs;
 
-internal class FileNameCache
+internal class DictionaryCache
 {
     private readonly Dictionary<string, NamePair> _cache;
     private readonly string _path;
     private bool _changed;
 
-    public FileNameCache(string path)
+    public DictionaryCache(string path)
     {
         _path = path;
         _cache = LoadCache(path).ToDictionary(kv => kv.English, kv => kv);
     }
 
-    public string? GetFrenchTranslation(string fileName)
+    public string? GetFrenchTranslation(string key)
     {
-        return _cache.TryGetValue(fileName, out NamePair? pair) ? pair?.French : default;
+        return _cache.TryGetValue(key, out NamePair? pair) ? pair?.French : default;
     }
 
-    public void SaveFrenchTranslation(string fileNameEnglish, string fileNameFrench)
+    public void SaveFrenchTranslation(string english, string french)
     {
-        if (!_cache.ContainsKey(fileNameEnglish))
+        if (!_cache.ContainsKey(english))
         {
-            _cache[fileNameEnglish] = new(fileNameEnglish, fileNameFrench);
+            _cache[english] = new(english, french);
             _changed = true;
         }
     }

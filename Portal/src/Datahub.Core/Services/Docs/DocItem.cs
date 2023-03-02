@@ -44,7 +44,7 @@ public class DocItem
     public DocumentationGuide DocumentationGuide { get; set; } 
 
     public string GetDescription() => $"Card '{Title}' - '{MarkdownPage}'";
-    public string GetMarkdownFileName() => MarkdownPage ?? "README.md";
+    public string? GetMarkdownFileName() => MarkdownPage;// ?? "README.md"
 
     public DocItem? LocateID(string id)
     {
