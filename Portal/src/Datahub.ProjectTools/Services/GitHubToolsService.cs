@@ -126,6 +126,8 @@ public class GitHubToolsService
         var english = GetSubSections(readmeDocFlattened, "English", 1);
         var descriptors = ExtractSubSections(english, 2);
         var french = GetSubSections(readmeDocFlattened, "Français", 1);
+        if (french?.Count == 0)
+            french = GetSubSections(readmeDocFlattened, "Francais", 1);
         var descriptors_fr = ExtractSubSections(french, 2);
 
         //Language            
