@@ -54,7 +54,7 @@
         </div>
     }    
 
-    @if (_remainingBudget > 0 && _spendingEstimation != null)s
+    @if (_remainingBudget > 0 && _spendingEstimation != null)
     {
         <MudText Class="mb-4">
             <b>@Localizer["Project_Remaining_Credit_label"]</b> @(string.Format(Localizer["Project_Remaining_Credit_text"], _remainingBudget, ProjectBudget))
