@@ -55,57 +55,45 @@ public class ProjectUsageService
         var session = await _azureManagementService.GetSession(ct);
 
         // current monthly cost
-        projectCredits.Current = await session.GetResourceGroupLastYearCost(resourceGroup) ?? 0;
+        var yearCost = await session.GetResourceGroupLastYearCost(resourceGroup);
+        if (yearCost == null)
+            throw new Exception($"Failed to read up to date cost for resource group '{resourceGroup}'");
 
-        // wait 5 seconds before trying next query
+        projectCredits.Current = yearCost.Value;
+
+        // wait 2 seconds before trying next query
         await Task.Delay(2000);
 
         // monthy by service
         var costByService = await session.GetResourceGroupYearCostByService(resourceGroup);
-        projectCredits.CurrentPerService = JsonSerializer.Serialize(costByService);
+        if (costByService is not null)
+            projectCredits.CurrentPerService = JsonSerializer.Serialize(costByService);
 
         // wait 2 seconds before trying next query
         await Task.Delay(2000);
 
         // yesterday cost
-        projectCredits.YesterdayCredits = await session.GetResourceGroupYesterdayCost(resourceGroup) ?? 0;
+        var yesterdayCredits = await session.GetResourceGroupYesterdayCost(resourceGroup);
+        if (yesterdayCredits.HasValue)
+            projectCredits.YesterdayCredits = yesterdayCredits.Value;
 
         // wait 2 seconds before trying next query
         await Task.Delay(2000);
 
         // yesterday by service
         var yesterdayCostByService = await session.GetResourceGroupYesterdayCostByService(resourceGroup);
-        projectCredits.YesterdayPerService = JsonSerializer.Serialize(yesterdayCostByService);
+        if (yesterdayCostByService is not null)
+            projectCredits.YesterdayPerService = JsonSerializer.Serialize(yesterdayCostByService);
 
         // wait 2 seconds before trying next query
         await Task.Delay(2000);
 
         // current cost by day
         var costsPerDay = await session.GetResourceGroupMonthlyCostPerDay(resourceGroup);
-        projectCredits.CurrentPerDay = JsonSerializer.Serialize(costsPerDay);
+        if (costsPerDay is not null)
+            projectCredits.CurrentPerDay = JsonSerializer.Serialize(costsPerDay);
 
         // last updated
         projectCredits.LastUpdate = DateTime.UtcNow.Date;
-    }
-
-    static async Task<ProjectResourceNames?> GetAzureResourceNames(DatahubProjectDBContext ctx, int projectId)
-    {
-        // >> review this!
-        var resources = await ctx.Project_Resources2.Where(e => e.ProjectId == projectId).ToListAsync();
-        return resources.Select(r => GetProjectResourceJSON(r.JsonContent)).FirstOrDefault(r => !string.IsNullOrEmpty(r?.resource_group_name));
-    }
-
-    static ProjectResourceNames? GetProjectResourceJSON(string data)
-    {
-        try
-        {
-            return JsonSerializer.Deserialize<ProjectResourceNames>(data ?? "")!;
-        }
-        catch
-        {
-            return default;
-        }
-    }
-
-    record ProjectResourceNames(string resource_group_name, string storage_account);
+    }    
 }
