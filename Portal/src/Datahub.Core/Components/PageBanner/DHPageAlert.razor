@@ -65,7 +65,8 @@
         var client = _httpClientFactory.CreateClient();
         try
         {
-            return await client.GetStringAsync(fullUrl);
+            var output = await client.GetStringAsync(fullUrl);
+            return Datahub.Core.Services.Docs.MarkdownHelper.RemoveFrontMatter(output);
         }
         catch (Exception ex)
         {
