@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Datahub.Application.Configuration;
@@ -61,8 +62,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         var jsonBody = new JsonObject(payload!);
         var url = _datahubPortalConfiguration.DatahubGraphInviteFunctionUrl;
 
-        var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(jsonBody.ToString()));
-        var content = new StringContent(encoded, Encoding.UTF8, "application/json");
+        var content = new StringContent(jsonBody.ToString(), Encoding.UTF8, "application/json");
         using var client = _httpClientFactory.CreateClient();
         var result = await client.PostAsync(url, content);
 
