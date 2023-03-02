@@ -1,18 +1,26 @@
 ﻿using DeepL;
+using Markdig.Extensions.Yaml;
+using Markdig.Renderers.Roundtrip;
+using Markdig;
+using Markdig.Syntax;
+using static System.Net.Mime.MediaTypeNames;
+
 namespace SyncDocs;
 
 internal class TranslationService
 {
     private readonly Translator? _client;
     private readonly string _sourcePath;
+    private readonly DictionaryCache translationCache;
 
-    public TranslationService(string sourcePath, string deeplKey, bool useFreeAPI) 
+    public TranslationService(string sourcePath, string deeplKey, bool useFreeAPI, DictionaryCache translationCache)
     {
         _sourcePath = sourcePath;
-        _client = !string.IsNullOrEmpty(deeplKey) ? new Translator(deeplKey, new TranslatorOptions() {  ServerUrl = useFreeAPI? "https://api-free.deepl.com":null }) : null;
+        this.translationCache = translationCache;
+        _client = !string.IsNullOrEmpty(deeplKey) ? new Translator(deeplKey, new TranslatorOptions() { ServerUrl = useFreeAPI ? "https://api-free.deepl.com" : null }) : null;
     }
 
-    public async Task<string> TranslateFileName(string fileName) 
+    public async Task<string> TranslateFileName(string fileName)
     {
         if (_client is null)
             return fileName;
@@ -24,29 +32,51 @@ internal class TranslationService
         return $"{AssembleName(tranlatedName, '-')}{ext}";
     }
 
+    private static readonly MarkdownPipeline pipeline = new MarkdownPipelineBuilder()
+        .UseYamlFrontMatter().EnableTrackTrivia().Build();
+
+    public static string RemoveFrontMatter(string input)
+    {
+        var document = Markdown.Parse(input, pipeline);
+        var sw = new StringWriter();
+        var renderer = new RoundtripRenderer(sw);
+        // extract the front matter from markdown document
+        var yamlBlocks = document.Descendants<YamlFrontMatterBlock>();
+
+        foreach (var block in yamlBlocks)
+        {
+            block.Lines = new Markdig.Helpers.StringLineGroup();
+        }
+        renderer.Write(document);
+        return sw.ToString();
+    }
+
     public async Task TranslateMarkupFile(string sourcePath, string outputPath, bool isSidebar)
     {
         if (_client is null)
             return;
 
         var sourceFileUrl = GetSourceFilePathUrl(sourcePath);
-        var metadata = $"---\nremarks: Automatically translated with DeepL\nsource: {sourceFileUrl}\n---";
+        var metadata = $"---\nremarks: Automatically translated with DeepL\nsource: {sourceFileUrl}\ndraft: true\n---";
         //var remarks = $"[_metadata_: remarks]:- \"Automatically translated with DeepL. From: {sourceFileUrl}\"";
         //var note = $"[_(draft documentation, please review)_]({sourceFileUrl})";
-        var note = $"_(draft documentation, please review)_";
+        //var note = $"_(draft documentation, please review)_";
 
         using var writer = new StreamWriter(outputPath);
-        if (!isSidebar)
-        {
-            writer.WriteLine(metadata);
-            writer.WriteLine();
-        }
-
-        writer.WriteLine(note);
+        //if (!isSidebar)
+        //{
+        writer.WriteLine(metadata);
         writer.WriteLine();
+        //}
 
-        foreach (var line in File.ReadAllLines(sourcePath))
+        //writer.WriteLine(note);
+        //writer.WriteLine();
+        var srcContent = RemoveFrontMatter(File.ReadAllText(sourcePath));
+        using StringReader sr = new StringReader(srcContent);
+        string? line;
+        while ((line = sr.ReadLine()) != null)
         {
+            // do something
             if (string.IsNullOrWhiteSpace(line))
             {
                 writer.WriteLine();
@@ -67,8 +97,8 @@ internal class TranslationService
         else
         {
             var heading = await Translate(link.Heading);
-            var path = await TranslateFilePath(link.Path);            
-            return string.Format(link.Template, heading, $"{relPath}{(path.StartsWith("/")?"":"/")}{path}");
+            var path = await TranslateFilePath(link.Path);
+            return string.Format(link.Template, heading, $"{relPath}{(path.StartsWith("/") ? "" : "/")}{path}");
         }
     }
 
@@ -77,7 +107,7 @@ internal class TranslationService
         var fileName = Path.GetFileName(filePath);
         var pathOnly = filePath[..(filePath.Length - fileName.Length)];
         var fileNameTranslated = await TranslateFileName(fileName);
-        return $"{pathOnly}{fileNameTranslated}"; 
+        return $"{pathOnly}{fileNameTranslated}";
     }
 
     private string GetSourceFilePathUrl(string filePath)
@@ -86,11 +116,19 @@ internal class TranslationService
         return !relPath.StartsWith('/') ? $"/{relPath}" : relPath;
     }
 
-    private async Task<string> Translate(string text) 
+    private async Task<string> Translate(string text)
     {
+        var output = translationCache.GetFrenchTranslation(text);
+        if (output != null)
+        {
+            return output;
+        }
         if (string.IsNullOrWhiteSpace(text)) return string.Empty;
         var translateResult = await _client!.TranslateTextAsync(text, LanguageCode.English, LanguageCode.French);
-        return translateResult?.Text ?? text;
+        var result = translateResult?.Text ?? text;
+        translationCache.SaveFrenchTranslation(text, result);
+        translationCache.SaveChanges();
+        return result;
     }
 
     private string AssembleName(string name, char sep)
@@ -130,7 +168,7 @@ internal class TranslationService
         var template = string.Concat(text[..(index1 + 1)], "{0}", text[index2..(index3 + 1)], "{1}", text[index4..]);
         var heading = text[(index1 + 1)..index2];
         var path = text[(index3 + 1)..index4];
-        
+
         return new LinkData(template, heading, path);
     }
 

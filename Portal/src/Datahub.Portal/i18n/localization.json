@@ -957,7 +957,6 @@
       "MonthNumber": "Month #{0}"
     }
   },
-
   "NRCan Datahub": "NRCan DataHub",
   "Search...": "Search...",
   "Good Morning": "Good Morning",
@@ -1050,44 +1049,31 @@
   },
   "ADMINISTRATION": {
     "CARD_TITLES": {
-      "ManageInitiatives": "Manage Initiatives",
       "ExternalSharing": "External Sharing",
-      "ManageServices": "Manage Services in Initiatives",
       "PowerBI": "Power BI",
       "Registrations": "Registrations",
       "SharingAPIs": "DataHub Sharing APIs",
       "Metadata": "Metadata Management",
       "MonthlyCost": "Monthly Cost",
-      "InitiativeResourceDefinitions": "Initiative Resource Definitions"
     },
     "CARD_DESCRIPTIONS": {
-      "ManageInitiatives": "Approve initiative requests and user access",
       "ExternalSharing": "Manage external sharing for files and Power BI reports",
       "ManageServices": "Approve service creation and access requests",
-      "PowerBI": "Link Power BI workspaces, reports and data sets with Datahub initiatives",
       "Registrations": "Manage registrations",
       "SharingAPIs": "Manage API keys for external users",
       "Metadata": "Manage the Datahub metadata model",
-      "MonthlyCost": "Refresh monthly cost for initiatives",
-      "InitiativeResourceDefinitions": "Manage initiative resource settings"
     },
     "BUTTON_CAPTIONS": {
       "OpenPage": "Open Page",
       "UpdateCosts": "Update Costs"
     },
     "SECTIONS": {
-      "InitiativeAdmin": "Initiative Administration",
-      "DataHubInitiativeTracker": "DataHub Initiative Tracker",
-      "InitiativeTrackerDesc": "Create, edit, and manage data initiatives",
-      "InitiativeAccessRequests": "Initiative Access Requests",
       "ServiceAdmin": "Service Administration",
       "ServiceCreationRequests": "Service Creation Requests",
       "ServiceAccessRequests": "Service Access Requests",
       "Registrations": "Registrations",
       "ExternalSharing": "External Power BI Requests"
     },
-    "StartingCostUpdate": "Starting initiative cost update",
-    "UpdatedNCosts": "Updated costs for {0} initiatives",
     "ErrorUpdatingCosts": "Error updating costs: {0}",
     "ReturnToAdmin": "Return to Administration"
   }

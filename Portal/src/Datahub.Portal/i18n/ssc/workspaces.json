@@ -130,7 +130,7 @@
       "ClickToExpand": "(click to expand)",
       "ErrorLoadingPostgresInfo": "There was an error loading the Postgres Resources",
       "RequestBeingReviewed": "A request for {0} is being reviewed.",
-      "ErrorLoadingDisplaying": "There was an error loading or displaying database information for this project. Please contact an administrator and include the initiative acronym {0}.",
+      "ErrorLoadingDisplaying": "There was an error loading or displaying database information for this project. Please contact an administrator and include the workspace acronym {0}.",
       "Copy": "Copy"
     },
     "PUBLIC-SHARING-CARD": {
@@ -151,7 +151,7 @@
     "Older": "Older",
     "Newer": "Newer",
     "ShowUnreadOnly": "Show Unread Only",
-    "GoToProject": "Go to initiative",
+    "GoToProject": "Go to workspace",
     "GoToAdminPage": "Go to admin page",
     "GoToSharingDashboard": "Go to sharing dashboard",
     "ViewSharingStatus": "View sharing status",
@@ -177,7 +177,7 @@
       "WorkspaceNameConflictInstruction": "Please update the parameters or use the Power BI management interface in the Admin section to address any conflicts.",
       "WorkspacesToBeCreated": "The following workspaces will be created and/or registered, and Power BI features will be enabled for this project:",
       "WorkspacesCreated": "The Power BI service has been enabled and the following workspaces have been created:",
-      "UsersToBeAdded": "These initiative users will be added to the workspaces:",
+      "UsersToBeAdded": "These workspace users will be added to the workspaces:",
       "UsersNotAssigned": "These users were not assigned:",
       "PowerBiAlreadyEnabled": "this project already has Power BI enabled. No further action is needed.",
       "NoPowerBiRequest": "this project has no open Power BI request at this time.",
@@ -189,7 +189,7 @@
       "ProjectAcronymLabel": "Project Acronym",
       "ProductionLabel": "Production",
       "SandboxLabel": "Sandbox",
-      "ReturnToProject": "Return to initiative",
+      "ReturnToProject": "Return to workspace",
       "WorkspaceNameTitle": "Workspace Name"
     },
     "POWER_BI_ADMIN": {
@@ -205,7 +205,7 @@
       "ManagementTitle": "Management",
       "Metadata": "Metadata",
       "NothingToImport": "Everything is up to date",
-      "Project": "Initiative",
+      "Project": "Workspace",
       "Report": "Report",
       "Sandbox": "Sandbox",
       "SynchronizeButton": "Synchronize",
@@ -237,14 +237,14 @@
   "Project_Category": "Project Category",
   "Project_Phase": "Project Phase",
   "Project_Icon": "Project Icon",
-  "[Enter_the_name_of_your_project]": "[Enter the name of your initiative]",
-  "[Provide_a_brief_summary/description_of_your_project]": "[Provide a brief summary/description of your initiative]",
-  "[Enter_any_additional_information/comments_regarding_your_project_or_questions_for_the_DataHub_team]": "[Enter any additional information/comments regarding your initiative or questions for the DataHub team]",
+  "[Enter_the_name_of_your_project]": "[Enter the name of your workspace]",
+  "[Provide_a_brief_summary/description_of_your_project]": "[Provide a brief summary/description of your workspace]",
+  "[Enter_any_additional_information/comments_regarding_your_project_or_questions_for_the_DataHub_team]": "[Enter any additional information/comments regarding your workspace or questions for the DataHub team]",
   "Project_Information": "Project Information",
   "Project_Engagement_Category_Other": "Other",
   "Project_Summary_Description": "Project Summary Description",
   "Project_Goal": "Project Goal",
   "Project_Engagement_Category": "Engagement Category",
   "Project_Status_Values": "Project Status",
-  "Initiative": "Project"
+  "Initiative": "Workspace"
 }
