@@ -80,5 +80,6 @@
   "breadcrumb_pip": "PIP",
   "breadcrumb_indicators": "Indicators",
   "breadcrumb_programs": "Programs",
-  "breadcrumb_risks": "Risks"
+  "breadcrumb_risks": "Risks",
+  "breadcrumb_whitelist": "Whitelist"
 }
