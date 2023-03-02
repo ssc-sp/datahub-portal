@@ -1,15 +1,21 @@
-﻿namespace SyncDocs;
+﻿using Markdig;
+using Markdig.Extensions.Yaml;
+using Markdig.Syntax;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
+
+namespace SyncDocs;
 
 internal class MarkdownDocumentationService
 {
 	private readonly ConfigParams _config;
 	private readonly string _sourcePath;
 	private readonly TranslationService _translationService;
-    private readonly FileNameCache _fileNameCache;
+    private readonly DictionaryCache _fileNameCache;
     private readonly FileMappingService _mappingService;
 
     public MarkdownDocumentationService(ConfigParams config, string sourcePath, TranslationService translationService, 
-        FileNameCache fileNameCache, FileMappingService mappingService)
+        DictionaryCache fileNameCache, FileMappingService mappingService)
 	{
 		_config = config;
         _sourcePath = sourcePath;
@@ -45,12 +51,66 @@ internal class MarkdownDocumentationService
 
         // add file mapping
         AddFileMapping(path, outputFilePath);
-
-        if (!File.Exists(outputFilePath))
+        var isSidebar = Path.GetFileName(outputFilePath) == "_sidebar.md";
+        if (!File.Exists(outputFilePath) || CheckIfDraft(outputFilePath) || isSidebar)
         {
             Console.WriteLine($"+ {outputFilePath}");
-            await _translationService.TranslateMarkupFile(path, outputFilePath, "_sidebar.md".Equals(translatedName));
+            await _translationService.TranslateMarkupFile(path, outputFilePath, isSidebar);
         }
+    }
+
+    private static MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseYamlFrontMatter().Build();
+
+    internal static bool CheckIfDraft(string outputFilePath)
+    {
+        var content = File.ReadAllText(outputFilePath);
+        var document = Markdown.Parse(content, pipeline);
+        // extract the front matter from markdown document
+        var yamlBlock = document.Descendants<YamlFrontMatterBlock>().FirstOrDefault();
+        if (yamlBlock is null)
+            return true;
+        var yaml = yamlBlock.Lines.ToString();
+
+        // deserialize the yaml block into a custom type
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+
+        var metadata = deserializer.Deserialize<Dictionary<string, string>>(yaml);
+        if (metadata.TryGetValue("draft", out var draftString))
+        {
+            var isDraft = Boolean.Parse(draftString);
+            //Console.WriteLine($"File {outputFilePath} - Draft={isDraft}");
+            return isDraft;
+        }
+        return false;
+    }
+
+    internal static bool CheckIfAutogenerate(string outputFilePath)
+    {
+        if (!File.Exists(outputFilePath))
+            return true;
+        var content = File.ReadAllText(outputFilePath);
+        var document = Markdown.Parse(content, pipeline);
+        // extract the front matter from markdown document
+        var yamlBlock = document.Descendants<YamlFrontMatterBlock>().FirstOrDefault();
+        if (yamlBlock is null)
+            return true;
+        var yaml = yamlBlock.Lines.ToString();
+
+        // deserialize the yaml block into a custom type
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+
+        var metadata = deserializer.Deserialize<Dictionary<string, string>>(yaml);
+        if (metadata.TryGetValue("autogenerate", out var draftString))
+        {
+            var isDraft = Boolean.Parse(draftString);
+            //Console.WriteLine($"File {outputFilePath} - Draft={isDraft}");
+            return isDraft;
+        }
+        return false;
     }
 
     private void AddFileMapping(string engPath, string frePath)
