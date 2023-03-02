@@ -42,7 +42,7 @@
         </div>
     }
 
-    @if (_currentDailyCosts?.Count > 0)
+    @if (_currentDailyCosts?.Count > 1 && _currentDailyCosts.Any(c => c.Cost > 0))
     {
         <MudText Typo="Typo.h4">@Localizer["Daily cost"]</MudText>
         <div>
