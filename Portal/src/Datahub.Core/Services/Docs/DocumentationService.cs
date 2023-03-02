@@ -173,6 +173,11 @@ public class DocumentationService
         {
             doc.Content = await LoadDocsPage(DocumentationGuide.RootFolder, doc.GetMarkdownFileName());
             BuildPreview(doc);
+        } else
+        {
+            //top level node
+            doc.Content = null;
+            doc.Preview = String.Join(" ,", doc.Children.Select(d => d.Title));
         }
         foreach (var item in doc.Children)
         {
@@ -182,7 +187,11 @@ public class DocumentationService
 
     private void BuildPreview(DocItem doc)
     {
-        if (string.IsNullOrEmpty(doc.Content)) return;
+        if (string.IsNullOrEmpty(doc.Content))
+        {
+            doc.Preview = String.Join(", ", doc.Children.Select(d => d.Title));
+            return;
+        }
         var cardDoc = Markdown.Parse(doc.Content);
         var cardDocFlattened = cardDoc.Descendants();
 
@@ -191,6 +200,8 @@ public class DocumentationService
         if (firstHeading?.Inline?.FirstChild is null || firstPara?.Inline?.FirstChild is null)
         {
             AddStatusMessage($"Invalid card {doc.GetDescription()} - first Header or first Paragraph missing");
+            doc.ContentTitle = null;
+            doc.Preview = String.Join(" ,",doc.Children.Select(d => d.Title));
             return;
         }
 
@@ -289,8 +300,9 @@ public class DocumentationService
     /// <param name="locale">Leave empty for "en", "fr" has its own folder</param>
     /// <param name="useCache"></param>
     /// <returns></returns>
-    private async Task<string?> LoadDocsPage(DocumentationGuide guide, string name, string? locale = "", bool useCache = true)
+    private async Task<string?> LoadDocsPage(DocumentationGuide guide, string? name, string? locale = "", bool useCache = true)
     {
+        if (name is null) return null;
         return await LoadDocs(BuildUrl(guide, locale??string.Empty, name), useCache);
     }
 
@@ -377,8 +389,11 @@ public class DocumentationService
 
     public void RemoveFromCache(DocItem item)
     {
-        var url = BuildUrl(item.DocumentationGuide,null,item.GetMarkdownFileName());
-        _cache.Remove(url);
+        if (item.GetMarkdownFileName != null)
+        {
+            var url = BuildUrl(item.DocumentationGuide, null, item.GetMarkdownFileName()!);
+            _cache.Remove(url);
+        }
     }
 
     public IReadOnlyList<TimeStampedStatus> GetErrorList() => _statusMessages.AsReadOnly();
