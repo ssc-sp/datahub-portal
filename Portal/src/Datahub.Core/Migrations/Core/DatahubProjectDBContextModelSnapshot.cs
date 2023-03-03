@@ -993,6 +993,43 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Project_Storage_Capacities", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Datahub.Project_Whitelist", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminLastUpdated_ID")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AdminLastUpdated_UserName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("AllowDatabricks")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("AllowStorage")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("AllowVMs")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId")
+                        .IsUnique();
+
+                    b.ToTable("Project_Whitelists");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Datahub.PublicDataFile", b =>
                 {
                     b.Property<long>("PublicDataFile_ID")
@@ -1625,6 +1662,17 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Datahub.Project_Whitelist", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Datahub.Datahub_Project", "Project")
+                        .WithOne("Whitelist")
+                        .HasForeignKey("Datahub.Core.Model.Datahub.Project_Whitelist", "ProjectId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Datahub.WebForm", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Datahub.Datahub_Project", "Project")
@@ -1683,6 +1731,8 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Users");
 
                     b.Navigation("WebForms");
+
+                    b.Navigation("Whitelist");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Organization_Level", b =>

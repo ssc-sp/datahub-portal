@@ -126,6 +126,7 @@ else
 
         if (IsDataHubAdmin)
         {
+            rawCardDefs.Add(new AdminCardDefinition("WhitelistProjectResources", "WhitelistProjectResources", new AdminCardUrlAction("OpenPage", "/admin/whitelist")));
             rawCardDefs.Add(new("PowerBI", "PowerBI", new AdminCardUrlAction("OpenPage", "/admin/powerbi")));
             rawCardDefs.Add(new("SharingAPIs", "SharingAPIs", new AdminCardUrlAction("OpenPage", "/apiusers")));
             rawCardDefs.Add(new("Metadata", "Metadata", new AdminCardUrlAction("OpenPage", "/metadata/definitions")));
