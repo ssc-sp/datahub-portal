@@ -187,6 +187,8 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public Project_MonthlyUsage MonthlyUsage { get; set; }
 
     public Project_Credits Credits { get; set; }
+    
+    public Project_Whitelist Whitelist { get; set; }
 
     [StringLength(400)]
     [AeFormCategory("Initiative Connections")]
