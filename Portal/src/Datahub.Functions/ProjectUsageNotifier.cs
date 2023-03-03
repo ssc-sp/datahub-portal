@@ -112,7 +112,7 @@ namespace Datahub.Functions
 
         private int GetNotificationPercent(int value)
         {
-            return _notificationPercents.OrderByDescending(v => v).FirstOrDefault(v => v < value);
+            return _notificationPercents.OrderByDescending(v => v).FirstOrDefault(v => value >= v);
         }
 
         static int[] ParseNotificationPercents(string percents)
