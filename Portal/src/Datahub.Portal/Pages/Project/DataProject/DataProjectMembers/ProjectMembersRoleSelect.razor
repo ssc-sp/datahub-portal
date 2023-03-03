@@ -3,11 +3,11 @@
 @*otherwise the entire render fragment is shown as selected value*@
 @*only other workaround is to enable multi-select and use the parameter MultiSelectionTextFunc*@
 @*I've created an issue for this here https://github.com/MudBlazor/MudBlazor/issues/6134*@
-<MudSelect T="object" Value="@_valueOfSelect" ValueChanged="RoleChanged" Variant="Variant.Outlined">
-    @foreach (var role in _roleTitles)
+<MudSelect T="object" Value="@_valueOfSelect" ValueChanged="RoleChanged" Variant="Variant.Outlined" MaxHeight="500">
+    @foreach (var role in RoleTitles)
     {
         <MudSelectItem Value="@((object)role.Key)" Class="@GetItemClass(role.Key)">
-            <MudText Typo="Typo.h6">@Localizer[_roleTitles[role.Key]]</MudText>
+            <MudText Typo="Typo.h6">@Localizer[RoleTitles[role.Key]]</MudText>
             <MudText>@Localizer[_roleDescriptions[role.Key]]</MudText>
         </MudSelectItem>
     }
@@ -26,7 +26,7 @@
     private string _valueOfSelect;
 
 
-    private readonly Dictionary<ProjectMemberRole, string> _roleTitles = new()
+    public static readonly Dictionary<ProjectMemberRole, string> RoleTitles = new()
     {
         {ProjectMemberRole.WorkspaceLead, "Workspace Lead"},
         {ProjectMemberRole.Admin, "Admin"},
@@ -52,7 +52,7 @@
 
     protected override void OnInitialized()
     {
-        _valueOfSelect = Localizer[_roleTitles[ProjectMember.Role]];
+        _valueOfSelect = Localizer[RoleTitles[ProjectMember.Role]];
     }
 
     private async Task RoleChanged(object role)
@@ -61,7 +61,7 @@
         if (newRole == ProjectMember.Role) return;
         ProjectMember.Role = newRole;
         if (newRole != ProjectMemberRole.Remove)
-            _valueOfSelect = Localizer[_roleTitles[ProjectMember.Role]];
+            _valueOfSelect = Localizer[RoleTitles[ProjectMember.Role]];
         if (OnRoleChanged.HasDelegate)
             await OnRoleChanged.InvokeAsync(ProjectMember);
     }
