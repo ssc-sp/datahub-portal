@@ -15,8 +15,8 @@
 <DHPageAlert 
     Title=@Localizer["How to use Project Storage"] 
     Key="@PageAlert.Storage"
-    WikiLinkEN="/UserGuide/Onboarding/Onboarding---Project-Storage"
-    WikiLinkFR="/fr/UserGuide/Onboarding/Stockage-du-projet-d'embarquement" />
+    WikiLinkEN="/Banners/Workspace-Storage"
+    WikiLinkFR="/fr/Banners/Stockage-de-l-espace-de-travail" />
 
 <MudStack>
     <MudText Typo="Typo.h4">@Localizer["Storage Explorer"]</MudText>
@@ -70,17 +70,15 @@
 
     private async Task<List<(string Icon, string LabelText, RenderFragment Content)>> GetTabs()
     {
-        var containers = await _projectDataRetrievalService.GetProjectDataLakeContainersAsync(ProjectAcronymParam, _user);
+        var containers = await _projectDataRetrievalService.GetContainersAsync(ProjectAcronymParam);
         
         var tabs = new List<(string Icon, string LabelText, RenderFragment Content)>();
         containers.ForEach(container =>
-            tabs.Add(("fas fa-hdd", Localizer[container], @<FileExplorer ProjectId=@_projectId ContainerName="@container"/>))
-            );
+            tabs.Add(("fas fa-hdd", Localizer[container], @<FileExplorer ProjectId=@_projectId ContainerName="@container"/>)));
 
         tabs.Add(("fas fa-info-circle", Localizer["AzCopy"], @<AzCopy/>));
         tabs.Add(("fas fa-info-circle", Localizer["Databricks Access"], @<Databricks/>));
 
         return tabs;
     }
-
 }

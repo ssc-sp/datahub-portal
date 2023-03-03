@@ -46,6 +46,7 @@ public class CultureSettings
 {
     public string Default { get; set; } = "en-CA";
     public string SupportedCultures { get; set; } = "fr-CA|en-CA";
+    public bool TrackTranslations = false;
 }
 
 public class DataProjects

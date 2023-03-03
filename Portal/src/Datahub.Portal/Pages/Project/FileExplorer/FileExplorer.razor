@@ -21,7 +21,8 @@
         SetCurrentFolder="SetCurrentFolder"
         OnFileDelete="HandleFileDelete"
         OnFileDownload="HandleFileDownload"
-        OnFileRename="HandleFileRename" />
+        OnFileRename="HandleFileRename"
+        OnDeleteFolder="HandleDeleteFolder" />
 
     <div class="file-list">
         <div class="file-list-header">
@@ -177,7 +178,7 @@
 
         _uploadingFiles = new List<FileMetaData>();
 
-        await FetchStorageBlobsPageAsync();
+        await RefreshStoragePageAsync();
     }
 
     private bool OwnsFile(FileMetaData file) => (file?.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);

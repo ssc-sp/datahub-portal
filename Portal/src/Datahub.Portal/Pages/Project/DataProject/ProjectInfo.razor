@@ -30,8 +30,13 @@
     @if (_projectCredits is not null && _projectBudget > 0)
     {
         <MudBadge Icon="@Icons.Material.Filled.QuestionMark" Color="@GetCostChipColor()" Overlap="@true" Bordered="@true">
-            <MudChip Label="true" Icon="@Icons.Material.Filled.AttachMoney" IconColor="@GetCostChipColor()" Variant="@Variant.Text"
-                     Color="@GetCostChipColor()" class="project-data-sensitivity" OnClick=@HandleToggleCosts>
+            <MudChip Label="true" 
+                     Icon="@Icons.Material.Filled.AttachMoney" 
+                     IconColor="@GetCostChipColor()" 
+                     Variant="@Variant.Text"
+                     Color="@GetCostChipColor()" 
+                     class="project-data-sensitivity" 
+                     OnClick=@HandleShowCosts>
                 @($"{CurrentCredits:C} {Localizer["Total spent"]}")
             </MudChip>
         </MudBadge>
@@ -100,7 +105,7 @@
     {
         using var ctx = await dbContextFactory.CreateDbContextAsync();
 
-        _projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(e => e.ProjectId == Project.Project_ID);
+        _projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(e => e.ProjectId == Project.Project_ID) ?? new();
 
         _projectBudget = Project.Project_Budget ?? 0;
         _projectMetadata = await MetadataBrokerService.GetObjectMetadataValues(ProjectAcronym);
@@ -143,22 +148,19 @@
         return !string.IsNullOrWhiteSpace(Project?.Data_Sensitivity) ? Project.Data_Sensitivity : "Unclassified";
     }
 
-    private void HandleToggleCosts(MouseEventArgs args)
-    {
-        RenderFragment fragment = 
-            @<ProjectCosting ProjectBudget=@_projectBudget ProjectCredits=@_projectCredits />;
-
-        _uiControlService.ShowDialog($"{Project.Project_Acronym_CD} - {Localizer["Cost analysis"]}", fragment);
-    }
-
     private void HandleEditMetadata(MouseEventArgs args)
     {
         NavigationManager.NavigateTo($"/w/{Project.Project_Acronym_CD}/metadata");
     }
 
+    private void HandleShowCosts(MouseEventArgs args)
+    {
+        NavigationManager.NavigateTo($"/w/{Project.Project_Acronym_CD}/costs");
+    }
+
     private string GetProjectDescription()
     {
-        var description = _projectMetadata.GetValue($"notes_translated_{CultureService.Culture}", null);
+        var description = _projectMetadata.GetValue($"description_{CultureService.Culture}", null);
         return description ?? Project.ProjectDescription;
     }
 }

@@ -271,6 +271,7 @@ public class Activity
 
 public class FileMetaData: BaseMetadata
 {
+    public const string FileId = "fileid";
     public const string OwnedBy = "ownedby";
     public const string CreatedBy = "createdby";
     public const string LastModifiedBy = "lastmodifiedby";
