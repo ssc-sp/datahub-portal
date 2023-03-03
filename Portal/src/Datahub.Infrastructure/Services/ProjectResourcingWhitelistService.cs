@@ -34,8 +34,9 @@ namespace Datahub.Infrastructure.Services
             await using var context = await _contextFactory.CreateDbContextAsync();
             var whitelist = await context.Project_Resources_Whitelists
                 .Include(wl => wl.Project)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Project.Project_ID == projectId);
-            return whitelist ?? new Datahub_Project_Resources_Whitelist();
+            return whitelist ?? new Datahub_Project_Resources_Whitelist(){ProjectId = projectId};
         }
 
         private async Task<Datahub_Project_Resources_Whitelist> GetProjectResourceWhitelistByProjectAsync(
@@ -48,8 +49,6 @@ namespace Datahub.Infrastructure.Services
 
         public async Task UpdateProjectResourceWhitelistAsync(Datahub_Project_Resources_Whitelist projectResourceWhitelist)
         {
-            using var scope = new TransactionScope(
-                TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
             var currentUser = await _userInformationService.GetCurrentGraphUserAsync();
             projectResourceWhitelist.LastUpdated = DateTime.Now;
             projectResourceWhitelist.AdminLastUpdated_ID = currentUser.Id;
@@ -64,7 +63,6 @@ namespace Datahub.Infrastructure.Services
                 context.Project_Resources_Whitelists.Update(projectResourceWhitelist);
             }
             await context.SaveChangesAsync();
-            scope.Complete();
         }
     }
 }

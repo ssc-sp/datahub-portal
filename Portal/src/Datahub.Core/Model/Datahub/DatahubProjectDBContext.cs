@@ -1,4 +1,5 @@
-﻿using Datahub.Core.Data;
+﻿using System;
+using Datahub.Core.Data;
 using Datahub.Core.Model.Onboarding;
 using J2N;
 using Microsoft.EntityFrameworkCore;
@@ -194,12 +195,15 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
                   .WithOne(e => e.MonthlyUsage)
                   .OnDelete(DeleteBehavior.NoAction);
         });
-        
-        modelBuilder.Entity<Datahub_Project_Resources_Whitelist>()
-            .HasOne(p => p.Project)
-            .WithOne(p => p.ResourcesWhitelist)
-            .OnDelete(DeleteBehavior.NoAction);
-            
+
+        modelBuilder.Entity<Datahub_Project_Resources_Whitelist>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Project)
+                .WithOne(e => e.ResourcesWhitelist)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+
 
         modelBuilder.Entity<Project_Credits>(entity =>
         {
@@ -237,4 +241,5 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .Property(u => u.ProjectUser_ID);
 
     }
+    
 }

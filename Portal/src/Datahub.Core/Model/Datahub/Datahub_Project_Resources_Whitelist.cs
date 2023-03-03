@@ -6,7 +6,6 @@ namespace Datahub.Core.Model.Datahub
 {
     public class Datahub_Project_Resources_Whitelist
     {
-        [Key]
         public int Id { get; set; }
         public int ProjectId { get; set; }
 
@@ -19,7 +18,7 @@ namespace Datahub.Core.Model.Datahub
         public bool AllowDatabricks { get; set; }
         public bool AllowVMs { get; set; }
         
-        public Datahub_Project Project { get; set; }
+        public virtual Datahub_Project Project { get; set; }
         
         public bool IsEqual(Datahub_Project_Resources_Whitelist other)
         {
