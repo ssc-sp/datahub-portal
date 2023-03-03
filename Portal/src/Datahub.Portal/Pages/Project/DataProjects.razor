@@ -1,12 +1,9 @@
+@page "/w"
 
 @using Datahub.Application.Configuration
 
-
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
-
-
-@page "/w"
 
 <UserProjects />
 
@@ -57,14 +54,12 @@ else
     </div>
 }
 
-
 @code {
     
     private const string UserWorkspaceOpenIcon = Icons.Material.Filled.KeyboardDoubleArrowRight;
 
     private List<Datahub_Project> _allProjects;
     private List<Datahub_Project> _filteredProjects;
-    private List<Datahub_Project> _featured;
     
     private string _projectSearchFilter = string.Empty;
 
@@ -78,7 +73,6 @@ else
                 && !string.IsNullOrWhiteSpace(p.Project_Name))
             // .Include(p => p.Users)
             .ToList();
-        _featured = _allProjects.Where(p => p.Is_Featured).ToList();
         _filteredProjects = _allProjects;
     }
     
