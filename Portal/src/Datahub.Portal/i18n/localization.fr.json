@@ -1688,6 +1688,8 @@
       "SharingAPIs": "Les API de partage de DataHub",
       "Metadata": "Gestion des métadonnées",
       "MonthlyCost": "Coûts mensuels",
+      "WhitelistProjectResources": "Ressources du projet de liste blanche"
+
     },
     "CARD_DESCRIPTIONS": {
       "ExternalSharing": "Gérer le partage externe des fichiers et des rapports Power BI",
@@ -1695,6 +1697,7 @@
       "Registrations": "Gérer les enregistrements",
       "SharingAPIs": "Gérer les clés API pour les utilisateurs externes",
       "Metadata": "Gérer le modèle de métadonnées de Datahub",
+      "WhitelistProjectResources": "Ressources du projet de liste blanche"
     },
     "BUTTON_CAPTIONS": {
       "OpenPage": "Ouvrir la page",
