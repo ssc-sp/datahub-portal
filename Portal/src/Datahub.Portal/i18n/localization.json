@@ -1055,6 +1055,7 @@
       "SharingAPIs": "DataHub Sharing APIs",
       "Metadata": "Metadata Management",
       "MonthlyCost": "Monthly Cost",
+      "WhitelistProjectResources": "Whitelist Workspace Resources"
     },
     "CARD_DESCRIPTIONS": {
       "ExternalSharing": "Manage external sharing for files and Power BI reports",
@@ -1062,6 +1063,7 @@
       "Registrations": "Manage registrations",
       "SharingAPIs": "Manage API keys for external users",
       "Metadata": "Manage the Datahub metadata model",
+      "WhitelistProjectResources": "Manage resources workspace have access to"
     },
     "BUTTON_CAPTIONS": {
       "OpenPage": "Open Page",
