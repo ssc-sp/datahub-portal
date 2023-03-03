@@ -51,6 +51,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<Project_MonthlyUsage> Project_MonthlyUsage { get; set; }
 
     public DbSet<Project_Credits> Project_Credits { get; set; }
+    public DbSet<Project_Whitelist> Project_Whitelists { get; set; }
 
     public DbSet<MiscStoredObject> MiscStoredObjects { get; set; }
 
@@ -191,6 +192,13 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             entity.HasOne(e => e.Project)
                   .WithOne(e => e.MonthlyUsage)
                   .OnDelete(DeleteBehavior.NoAction);
+        });
+        modelBuilder.Entity<Project_Whitelist>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Project)
+                .WithOne(e => e.Whitelist)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<Project_Credits>(entity =>
