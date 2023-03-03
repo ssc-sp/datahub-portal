@@ -3,7 +3,7 @@
 @*otherwise the entire render fragment is shown as selected value*@
 @*only other workaround is to enable multi-select and use the parameter MultiSelectionTextFunc*@
 @*I've created an issue for this here https://github.com/MudBlazor/MudBlazor/issues/6134*@
-<MudSelect T="object" Value="@_valueOfSelect" ValueChanged="RoleChanged" Variant="Variant.Outlined">
+<MudSelect T="object" Value="@_valueOfSelect" ValueChanged="RoleChanged" Variant="Variant.Outlined" MaxHeight="500">
     @foreach (var role in _roleTitles)
     {
         <MudSelectItem Value="@((object)role.Key)" Class="@GetItemClass(role.Key)">
