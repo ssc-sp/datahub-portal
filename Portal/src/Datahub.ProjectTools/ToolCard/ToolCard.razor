@@ -38,15 +38,16 @@
                         @ToolActionsList
                     </MudStack>
                 }
-                @if (Tags?.Count > 0)
-                {
-                    <MudElement Class="d-inline-flex flex-wrap mt-2">
-                        @foreach (var tag in Tags)
-                        {
-                            <MudChip Text="@tag" Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small"/>
-                        }
-                    </MudElement>
-                }
+                @*Removing Tags for Proof Of Concept Phase 2*@
+                @* @if (Tags?.Count > 0) *@
+                @* { *@
+                @*     <MudElement Class="d-inline-flex flex-wrap mt-2"> *@
+                @*         @foreach (var tag in Tags) *@
+                @*         { *@
+                @*             <MudChip Text="@tag" Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small"/> *@
+                @*         } *@
+                @*     </MudElement> *@
+                @* } *@
             </MudElement>
         </MudStack>
     </MudStack>

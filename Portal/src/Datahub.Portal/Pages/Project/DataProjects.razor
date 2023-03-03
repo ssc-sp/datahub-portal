@@ -1,65 +1,67 @@
-@using Datahub.Core.Components.PageBanner
-@using Datahub.Portal.Components.Projects
-
-@inject NavigationManager _navigationManager
-@inject IJSRuntime _jsInterop
-@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
-
 @page "/w"
+
+@using Datahub.Application.Configuration
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
 
 <UserProjects />
 
-<MudText Typo="Typo.h2" Class="py-4">@Localizer["All Workspaces"]</MudText>
-
-<div class="all-projects-container">
-
-    <MudGrid>
-        <MudItem sm="4">
-            <MudTextField DebounceInterval="500"
-                          T="string"
-                          OnDebounceIntervalElapsed="HandleAllProjectSearch"
-                          Label=@Localizer["Filter projects"]
-                          Variant="Variant.Outlined"
-                          Margin="Margin.Dense"
-                          Clearable="true"
-                          Adornment="Adornment.End"
-                          AdornmentIcon="@Icons.Material.Filled.Search" />
-        </MudItem>
-    </MudGrid>
-
-    <div class="all-projects">
-        @if (_filteredProjects.Any())
-        {
-            @foreach (var p in _filteredProjects)
-            {
-                <div class="project-row">
-                    <AeTypography class="sector">
-                        <i class="@($"fad fa-{p.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}")"></i>
-                        @Localizer[p.Sector_Name ?? "N/A"]
-                    </AeTypography>
-                    <DHLink class="name" DataProject="@p.Project_Acronym_CD" style="cursor: pointer;">
-                        <i class="fas fa-external-link"></i>
-                        @p.ProjectName
-                    </DHLink>
-                    <DHMarkdown class="description" Content="@p!.ProjectDescription"></DHMarkdown>
-                </div>
-            }
-        }
-        else
-        {
-            <div class="no-projects">
-                <i class="fas fa-box-full"></i>
-                <MudText Typo="Typo.h5">@Localizer["Sorry, we can't find any projects that match your filter!"]</MudText>
-            </div>
-        }
+@if (_filteredProjects.Any())
+{
+    <MudTable Striped Items="_filteredProjects" Class="my-12" Filter="new Func<Datahub_Project,bool>(ProjectFilter)">
+    <ToolBarContent>
+            <MudText Typo="Typo.h2" Class="py-4">@Localizer["All Workspaces"]</MudText>
+            <MudSpacer />
+            <MudTextField T="string" Placeholder="@Localizer["Search"]" DebounceInterval="500"
+                          @bind-Value="_projectSearchFilter" Adornment="Adornment.Start" 
+                          AdornmentIcon="@Icons.Material.Filled.Search" Clearable="true">
+            </MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.Project_Acronym_CD)">@Localizer["Acronym"]</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.Project_Name)" InitialDirection="SortDirection.Ascending">@Localizer["Name"]</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.Sector_Name)" >@Localizer["Department/Agency"]</MudTableSortLabel>
+            </MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Acronym">@context.Project_Acronym_CD</MudTd>
+            <MudTd DataLabel="Name">@context.Project_Name</MudTd>
+            <MudTd DataLabel="Department/Agency">@Localizer[context.Sector_Name ?? "N/A"]</MudTd>
+            <MudTd DataLabel="ProjectButton"> 
+                <MudButton EndIcon="@UserWorkspaceOpenIcon" Variant="Variant.Text" Color="Color.Primary"
+                           Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{context.Project_Acronym_CD}")">
+                    @Localizer["Open Workspace"]
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
+else
+{
+    <div class="no-projects">
+        <i class="fas fa-box-full"></i>
+        <MudText Typo="Typo.h5">@Localizer["Sorry, we can't find any projects that match your filter!"]</MudText>
     </div>
-</div>
+}
 
 @code {
+    
+    private const string UserWorkspaceOpenIcon = Icons.Material.Filled.KeyboardDoubleArrowRight;
 
     private List<Datahub_Project> _allProjects;
     private List<Datahub_Project> _filteredProjects;
-    private List<Datahub_Project> _featured;
+    
+    private string _projectSearchFilter = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,14 +73,13 @@
                 && !string.IsNullOrWhiteSpace(p.Project_Name))
             // .Include(p => p.Users)
             .ToList();
-        _featured = _allProjects.Where(p => p.Is_Featured).ToList();
         _filteredProjects = _allProjects;
     }
-
-    private void HandleAllProjectSearch(string filterValue)
+    
+    private bool ProjectFilter(Datahub_Project project)
     {
-        _filteredProjects = _allProjects
-            .Where(p => p.Project_Name.ToLowerInvariant().Contains(filterValue.ToLowerInvariant()))
-            .ToList();
+        return project.Project_Name.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant()) ||
+               project.Project_Acronym_CD.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant()) ||
+               project.Sector_Name.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant());
     }
 }
