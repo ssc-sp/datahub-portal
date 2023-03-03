@@ -29,7 +29,9 @@
                                  @bind-Value="_basicRegistrationForm.DepartmentName"
                                  SearchFunc="@SearchDepartmentAsync"
                                  Required="true"
-                                 RequiredError="@Localizer["Government of Canada Department/Agency is required."]"/>
+                                 RequiredError="@Localizer["Government of Canada Department/Agency is required."]"
+                                 AdornmentIcon="@Icons.Material.Filled.Search"
+                                 />
                 <MudCheckBox T="@bool" Required RequiredError="@Localizer["Agreement with the Terms and conditions is required"]" Class="mt-16">
                     <MudText Typo="Typo.body2">
                         @Localizer["I agree to the "]
