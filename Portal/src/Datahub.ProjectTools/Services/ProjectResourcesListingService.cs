@@ -101,15 +101,24 @@ public class ProjectResourcesListingService
         logger.LogTrace($"Git module repository enabled:{configuration.Value.EnableGitModuleRepository}");
         if (configuration.Value.EnableGitModuleRepository)
         {
-            var githubModules = await githubToolsService.GetAllModules();
-            foreach (var item in githubModules)
+            try
             {
-                logger.LogDebug($"Configuring {item.Name} in project {project.Project_ID} ({project.Project_Name})");
-                var gitModule = serviceScope.ServiceProvider.GetRequiredService<ServiceCatalogGitModuleResource>();
-                gitModule.ConfigureGitModule(item);
-                await gitModule.InitializeAsync(project, await userInformationService.GetUserIdString(),
-                    await userInformationService.GetCurrentGraphUserAsync(), isUserAdmin || isUserDHAdmin);
-                output.Add(gitModule);
+                var githubModules = await githubToolsService.GetAllModules();
+                foreach (var item in githubModules)
+                {
+                    logger.LogDebug($"Configuring {item.Name} in project {project.Project_ID} ({project.Project_Name})");
+                    var gitModule = serviceScope.ServiceProvider.GetRequiredService<ServiceCatalogGitModuleResource>();
+                    gitModule.ConfigureGitModule(item);
+                    await gitModule.InitializeAsync(project, await userInformationService.GetUserIdString(),
+                        await userInformationService.GetCurrentGraphUserAsync(), isUserAdmin || isUserDHAdmin);
+                    output.Add(gitModule);
+                }
+            }
+            catch
+            {
+                #if !DEBUG
+                throw;
+                #endif
             }
         }
 

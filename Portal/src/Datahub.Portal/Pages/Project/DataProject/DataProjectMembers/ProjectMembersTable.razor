@@ -62,7 +62,14 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
             <MudTd>@context.Name</MudTd>
             <MudTd>@context.Email</MudTd>
             <MudTd>
-                <ProjectMembersRoleSelect ProjectMember="@context" OnRoleChanged="UpdateProjectMemberRole"/>
+                @if (!_currentUserId.Equals(context.UserId, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    <ProjectMembersRoleSelect ProjectMember="@context" OnRoleChanged="UpdateProjectMemberRole"/>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2">@Localizer[ProjectMembersRoleSelect.RoleTitles[@context.Role]]</MudText>
+                }
             </MudTd>
             <MudTd>
                 @context.UserAddedToProject?.ToString("MMMM dd, yyyy")
@@ -105,13 +112,15 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
     private bool _isProjectAdmin = false;
     private bool _isDatahubAdmin = false;
 
+    private string _currentUserId;
+
     protected override async Task OnInitializedAsync()
     {
-        var userId = await UserInformationService.GetUserIdString();
-        if (userId is null) Logger.LogError("UserId is null");
+        _currentUserId = await UserInformationService.GetUserIdString();
+        if (_currentUserId is null) Logger.LogError("UserId is null");
         var authUser = (await UserInformationService.GetAuthenticatedUser());
-        _isDatahubAdmin = !ServiceAuthManager.GetViewingAsGuest(userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
-        _isProjectAdmin = !ServiceAuthManager.GetViewingAsGuest(userId) && authUser.IsInRole($"{ProjectAcronym}-admin");
+        _isDatahubAdmin = !ServiceAuthManager.GetViewingAsGuest(_currentUserId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+        _isProjectAdmin = !ServiceAuthManager.GetViewingAsGuest(_currentUserId) && authUser.IsInRole($"{ProjectAcronym}-admin");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
@@ -16,10 +17,11 @@ public partial class Testing
 {
     internal static IConfiguration _configuration = null!;
     internal static IUserEnrollmentService _userEnrollmentService = null!;
+    internal static DatahubPortalConfiguration _datahubPortalConfiguration = null!;
 
 
     internal const string TestProjectAcronym = "TEST";
-    internal const string? TestUserEmail = "user@email.gc.ca";
+    internal const string TestUserEmail = "user@email.gc.ca";
     internal const string TestUserId = "123456789";
     internal static readonly string[] TEST_USER_IDS = Enumerable.Range(0,5).Select(_ => new Guid().ToString()).ToArray();
     internal const string TestAdminUserId = "987654321";
@@ -30,6 +32,9 @@ public partial class Testing
         _configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.Test.json", optional: false, reloadOnChange: true)
             .Build();
+        
+        _datahubPortalConfiguration = new DatahubPortalConfiguration();
+        _configuration.Bind(_datahubPortalConfiguration);
 
         var expectedDatahubPortalInviteResponse = ExpectedDatahubPortalInviteResponse();
         var mockHandler = new Mock<HttpMessageHandler>();
@@ -47,7 +52,7 @@ public partial class Testing
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
         
-        _userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), _configuration, httpClientFactory.Object);
+        _userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), httpClientFactory.Object, _datahubPortalConfiguration);
     }
 
     private static StringContent ExpectedDatahubPortalInviteResponse()

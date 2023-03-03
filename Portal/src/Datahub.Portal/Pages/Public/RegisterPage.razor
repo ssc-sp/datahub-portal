@@ -29,7 +29,9 @@
                                  @bind-Value="_basicRegistrationForm.DepartmentName"
                                  SearchFunc="@SearchDepartmentAsync"
                                  Required="true"
-                                 RequiredError="@Localizer["Government of Canada Department/Agency is required."]"/>
+                                 RequiredError="@Localizer["Government of Canada Department/Agency is required."]"
+                                 AdornmentIcon="@Icons.Material.Filled.Search"
+                                 />
                 <MudCheckBox T="@bool" Required RequiredError="@Localizer["Agreement with the Terms and conditions is required"]" Class="mt-16">
                     <MudText Typo="Typo.body2">
                         @Localizer["I agree to the "]
@@ -39,9 +41,18 @@
                         @Localizer[" of use for the FSDH Proof-of-Concept Phase 2"]
                     </MudText>
                 </MudCheckBox>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mr-auto" OnClick="HandleValidSubmit">
-                    @Localizer["Register"]
-                </MudButton>
+                @if (_isRegistering)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mr-auto" EndIcon="fas fa-spinner-third fa-spin">
+                        @Localizer["Registering"]
+                    </MudButton>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mr-auto" OnClick="HandleValidSubmit">
+                        @Localizer["Register"]
+                    </MudButton>
+                }
             </MudStack>
         </MudForm>
         <MudText Typo="Typo.body2" Align="Align.Center">
@@ -57,6 +68,7 @@
     private BasicRegistrationForm _basicRegistrationForm;
 
     private bool _success = true;
+    private bool _isRegistering;
     private string[] _errors = { };
     MudForm _form;
 
@@ -80,6 +92,8 @@
 
     private async Task HandleValidSubmit()
     {
+        _isRegistering = true;
+        StateHasChanged();
         _logger.LogInformation("Attempting to register user with email: {Email}", _basicRegistrationForm.Email);
         var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(_basicRegistrationForm.Email);
 
@@ -93,5 +107,7 @@
             _logger.LogWarning("User with email: {Email} was not registered", _basicRegistrationForm.Email);
             _success = false;
         }
+        _isRegistering = false;
+        StateHasChanged();
     }
 }

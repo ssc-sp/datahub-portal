@@ -4,6 +4,7 @@ using Datahub.Core.Data.Project;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
+using Datahub.Core.Services.Security;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Infrastructure.Services;
 using Datahub.Shared.Entities;
@@ -390,7 +391,8 @@ public class ProjectUserManagementServiceTests
             _mockFactory.Object,
             _mockUserInformationService.Object,
             _mockIMSGraphService.Object,
-            _mockRequestManagementService.Object);
+            _mockRequestManagementService.Object,
+            Mock.Of<ServiceAuthManager>());
 
         return projectUserManagementService;
     }

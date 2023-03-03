@@ -31,22 +31,21 @@
             @Localizer["Download"]
         </AeButton>
         
-        <AeButton class="button-tool" @onclick="HandleAzSyncDown" Disabled="IsActionDisabled(ButtonAction.AzSync)">
+        @*<AeButton class="button-tool" @onclick="HandleAzSyncDown" Disabled="IsActionDisabled(ButtonAction.AzSync)">
             <i class="fas fa-cloud-download-alt"></i>
-            @Localizer["AzCopy"]
-        </AeButton>
+            @Localizer["Azure Copy"]
+        </AeButton>*@
 
         <AeButton class="button-tool" @onclick="HandleRename" Disabled="IsActionDisabled(ButtonAction.Rename)">
             <i class="fas fa-edit"></i>
             @Localizer["Rename"]
         </AeButton>
 
-        <span class="tool-divider"></span>
-
+        @*<span class="tool-divider"></span>
         <AeButton class="button-tool" @onclick="HandleShare" Disabled="!_isUnclassifiedSingleFile">
             <i class="fas fa-share-square"></i>
             @Localizer["Share"]
-        </AeButton>
+        </AeButton>*@
 
         <span class="tool-divider"></span>
 
@@ -61,9 +60,16 @@
             <i class="fas fa-folder-plus"></i>
             @Localizer["New Folder"]
         </AeButton>
+
+        <AeButton class="button-tool" @onclick="HandleDeleteFolder" Disabled="IsActionDisabled(ButtonAction.DeleteFolder)">
+            <i class="fas fa-folder-minus"></i>
+            @Localizer["Delete Folder"]
+        </AeButton>
+
     </div>
 </div>
 </Toaster>
+
 @code {
 
     [CascadingParameter(Name = "ProjectAcronym")]
@@ -101,6 +107,9 @@
 
     [Parameter]
     public EventCallback<string> OnNewFolder { get; set; }
+
+    [Parameter]
+    public EventCallback OnDeleteFolder { get; set; }
 
     [Parameter]
     public Guid MetadataSignature { get; set; } = Guid.NewGuid();
