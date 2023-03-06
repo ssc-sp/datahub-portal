@@ -1,0 +1,31 @@
+@inject IPortalVersionService _portalVersionService
+
+<MudText Typo="Typo.h2" Class="mb-6">
+    Portal Details
+</MudText>
+<MudSimpleTable Dense Hover Bordered>
+    <tbody>
+    <tr>
+        <td>Release Version</td>
+        <td>@_portalVersionService.ReleaseVersion</td>
+    </tr>
+    <tr>
+        <td>Build ID</td>
+        <td>@_portalVersionService.BuildId</td>
+    </tr>
+    <tr>
+        <td>Deployment</td>
+        <td>@_portalVersionService.Release</td>
+    </tr>
+    <tr>
+        <td>Commit</td>
+        <td>
+            <a href=@GetSourceVersionUrl(_portalVersionService.Commit) target="_blank">@_portalVersionService.Commit</a>
+        </td>
+    </tr>
+    </tbody>
+</MudSimpleTable>
+
+@code {
+    private static string GetSourceVersionUrl(string commit) => $"https://github.com/ssc-sp/datahub-portal/commit/{commit}";
+}
