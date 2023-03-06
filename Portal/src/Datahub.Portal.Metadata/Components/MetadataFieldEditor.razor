@@ -90,7 +90,10 @@
             }
             else
             {
-                <MultiSelectList FieldDefinition="FieldDefinition" FieldValue="FieldValue" OnFieldChanged="OnFieldChanged" />
+                <MultiSelectList FieldDefinition="FieldDefinition" 
+                                 FieldValue="FieldValue" 
+                                 Required=@Required
+                                 OnFieldChanged="OnFieldChanged" />
             }
         }
     }
@@ -189,10 +192,12 @@
         return string.Join(", ", labels); 
     }
 
-    private bool IsKeywordField()
-    {
-        return FieldDefinition.Field_Name_TXT.StartsWith("keywords_");
-    }
+    //private bool IsKeywordField()
+    //{
+    //    return FieldDefinition.Field_Name_TXT.StartsWith("keywords_");
+    //}
+    
+    private bool IsKeywordField() => false;
 
     private bool IsEnglishField()
     {
