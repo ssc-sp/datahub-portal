@@ -6,6 +6,7 @@ namespace Datahub.Core.Services;
 
 public interface IUserInformationService
 {
+    Task<bool> ClearUserSettingsAsync();
     Task<User> GetCurrentGraphUserAsync();
     Task<User> GetGraphUserAsync(string userId);
     Task<User> GetAnonymousGraphUserAsync();

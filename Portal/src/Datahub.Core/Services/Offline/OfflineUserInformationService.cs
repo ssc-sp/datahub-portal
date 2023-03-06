@@ -19,7 +19,11 @@ public class OfflineUserInformationService : IUserInformationService
         _logger = logger;
     }
 
-     
+
+    public Task<bool> ClearUserSettingsAsync()
+    {
+        throw new NotImplementedException();
+    }
 
     public Task<User> GetCurrentGraphUserAsync()
     {
