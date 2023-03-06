@@ -1,0 +1,72 @@
+@using System.Security.Claims;
+@inject IUserInformationService _userInformationService
+
+@if (_loading)
+{
+    <DHLoadingInitializer Message="Loading user information..."/>
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="4">
+            <MudText Typo="Typo.h2">
+                User Information
+            </MudText>
+            <MudSimpleTable Dense Hover Bordered>
+                <tbody>
+                <tr>
+                    <td>User ID</td>
+                    <td>@_userId</td>
+                </tr>
+                <tr>
+                    <td>Object ID</td>
+                    <td>@_oid</td>
+                </tr>
+                <tr>
+                    <td>User Name</td>
+                    <td>@_userName</td>
+                </tr>
+                </tbody>
+            </MudSimpleTable>
+        </MudItem>
+        <MudItem xs="4">
+            <MudText Typo="Typo.h2">
+                List of roles
+            </MudText>
+            <MudSimpleTable Dense Hover Bordered>
+                <tbody>
+                @foreach (var role in _roles)
+                {
+                    <tr>
+                        <td>Role</td>
+                        <td>@role.Value</td>
+                    </tr>
+                }
+                </tbody>
+            </MudSimpleTable>
+        </MudItem>
+    </MudGrid>
+}
+
+@code
+{
+    private bool _loading = true;
+
+    private string _userId;
+    private string _oid;
+    private string _userName;
+    private List<Claim> _roles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await _userInformationService.GetAuthenticatedUser(true);
+        _userName = user.Identity?.Name;
+        _userId = user.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+        _oid = await _userInformationService.GetUserIdString();
+        var userIdentity = (ClaimsIdentity)user.Identity;
+        var claims = userIdentity?.Claims;
+        var roleClaimType = userIdentity?.RoleClaimType;
+        _roles = claims?.Where(c => c.Type == roleClaimType).ToList() ?? new List<Claim>();
+        _loading = false;
+    }
+}
