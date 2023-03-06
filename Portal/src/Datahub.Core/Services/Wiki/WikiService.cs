@@ -192,16 +192,17 @@ public class WikiService : IWikiService
 
         var rootSidebar = await LoadSidebar();
         var rootLinks = GetListedLinks(rootSidebar);
+        if (rootLinks != null) {
+            var enLink = rootLinks[0];
+            var frLink = rootLinks[1];
 
-        var enLink = rootLinks[0];
-        var frLink = rootLinks[1];
+            EnglishLanguageRoot = await PopulateResourceLanguageRoot(enLink);
+            FrenchLanguageRoot = await PopulateResourceLanguageRoot(frLink);
 
-        EnglishLanguageRoot = await PopulateResourceLanguageRoot(enLink);
-        FrenchLanguageRoot = await PopulateResourceLanguageRoot(frLink);
-
-        await AddErrorMessage("Finished loading resources");
-
-        await Task.CompletedTask;
+            await AddErrorMessage("Finished loading resources");
+        } else {
+            _logger.LogWarning($"No data found for root sidebar {rootSidebar}");
+        }        
     }
 
     private static string BuildSidebarName(IList<string> folders = null)
