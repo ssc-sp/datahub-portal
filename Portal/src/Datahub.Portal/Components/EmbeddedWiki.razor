@@ -53,7 +53,7 @@
         if (string.IsNullOrEmpty(pageName))
         {
             var url = _navManager.Uri;
-            await _resourcesService.LogNoArticleSpecifiedError(url, _languageRoot.Title);
+            await _resourcesService.LogNoArticleSpecifiedError(url, _languageRoot?.Title);
             _markdownContent = Localizer["N/A"];
             return;
         }
