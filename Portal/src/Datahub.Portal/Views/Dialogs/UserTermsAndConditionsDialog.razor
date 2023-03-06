@@ -1,0 +1,38 @@
+<MudDialog Class="pa-6" Style="min-width:600px;">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Newspaper" Class="mr-3 mb-n1"/>
+            @Localizer["Terms and Conditions"]
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>
+            @Localizer["To continue to use the Federal Science DataHub, you must read and agree to the"]
+            <MudLink Href="/terms-and-conditions" Target="_blank">
+                @Localizer["Terms and Conditions"]
+            </MudLink>
+        </MudText>
+        <MudCheckBox
+            @bind-Checked="@_agreedToTerms"
+            Label="@(Localizer["I have read and agree to the terms and conditions"])"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@HandleSave" Color="Color.Primary" Variant="Variant.Filled" Disabled="@(!_agreedToTerms)">
+            @Localizer["Complete"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    private bool _agreedToTerms;
+
+    private void HandleSave()
+    {
+        MudDialog.Close(DialogResult.Ok(_agreedToTerms));
+    }
+
+}

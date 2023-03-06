@@ -1,20 +1,21 @@
 ﻿@using Datahub.Core.Components.PageBanner
 @using Datahub.Portal.Pages.Landing
+@using Datahub.Portal.Views.Dialogs
 @using Microsoft.Graph
 
 @inject IUserInformationService _userInformationService
 @inject IDataCreatorService _dataCreatorService
-@inject UIControlsService _uiControlsService
 @inject NavigationManager _navigationManager
 @inject ILocalStorageService _localStorage
+@inject IDialogService _dialogService
 
 @page "/home/{TabIndex?}"
 
-<DHPageAlert 
-    Title=@Localizer["Welcome To DataHub"] 
+<DHPageAlert
+    Title=@Localizer["Welcome To DataHub"]
     Key="@PageAlert.Home"
     WikiLinkEN="/Banners/Landing"
-    WikiLinkFR="/fr/Banners/Atterrissage" />
+    WikiLinkFR="/fr/Banners/Atterrissage"/>
 
 <WelcomeBanner/>
 <CascadingValue Name="GraphUser" Value="_user">
@@ -24,7 +25,7 @@
 
 @code
 {
-    public const string LOGOUT_URL = "/signout-oidc";
+        private const string LOGOUT_URL = "/signout-oidc";
 
     [Parameter]
     public string TabIndex { get; set; }
@@ -46,55 +47,74 @@
             await SetupRootFolder();
             await AdjustLanguage();
         }
-        else
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
         {
-            await InvalidUser();
+            var language = await _userInformationService.GetUserLanguage();
+            if (string.IsNullOrWhiteSpace(language))
+            {
+                await PromptForLanguage();
+            }
+            
+            var userAcceptedTac = await _userInformationService.HasUserAcceptedTAC();
+            if (!userAcceptedTac)
+            {
+                await PromptForTermsAndConditions();
+            }
         }
     }
 
-    private async Task InvalidUser()
+    private async Task PromptForTermsAndConditions()
     {
-        _uiControlsService.AllowEscape = false;
-
-        // Check if the user has a language set?
-        var language = await _userInformationService.GetUserLanguage();
-        if (string.IsNullOrWhiteSpace(language))
+        var options = new DialogOptions
         {
-            await _uiControlsService.ToggleModal(@<UserSelectModal HideCancel="true" ConfirmLabel="BUTTONS.ConfirmBilingual" HeaderText="@Localizer["LanguagePreferencePrompt"]" Values="_languages" OnDecision="SaveLanguage"/>);
+            CloseOnEscapeKey = false,
+            DisableBackdropClick = true,
+        };
+        
+        var tocDialog = await _dialogService.ShowAsync<UserTermsAndConditionsDialog>(Localizer["TermsAndConditions"], options);
+        var tocDialogResult = await tocDialog.Result;
+        if (!tocDialogResult.Canceled)
+        {
+            await _userInformationService.RegisterUserTAC();
+            await SetupRootFolder();
+            await AdjustLanguage();
+            _isUserValid = true;
         }
         else
         {
-            await _uiControlsService.ToggleModal(@<UserTermsAndConditionsModal OnDecision="HandleAlertDecision" Language="@language"/>);
+            _navigationManager.NavigateTo(LOGOUT_URL, forceLoad: true);
+        }
+    }
+    
+    private async Task PromptForLanguage()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = false,
+            DisableBackdropClick = true,
+        };
+
+        var languageDialog = await _dialogService.ShowAsync<UserSelectLanguageDialog>(Localizer["LanguagePreferencePrompt"], options);
+        var languageDialogResult = await languageDialog.Result;
+        if (!languageDialogResult.Canceled)
+        {
+            var selectedLanguage = languageDialogResult.Data.ToString();
+            var language = selectedLanguage?.Equals("english", StringComparison.InvariantCultureIgnoreCase) ?? true ? "en-CA" : "fr-CA";
+            await _userInformationService.RegisterUserLanguage(language);
+            _userInformationService.SetLanguage(language);
         }
     }
 
     private async Task SetupRootFolder()
     {
-        // We need to load user and check they have root folder
         var rootFolder = await _userInformationService.GetUserRootFolder();
-
         await _dataCreatorService.CreateRootFolderIfNotExist(_user.Id, rootFolder);
-    }
-
-    private async void HandleAlertDecision(bool isContinue)
-    {
-        if (isContinue)
-        {
-    // User has agreed to TAC, update in DB
-            if (await _userInformationService.RegisterUserTAC())
-            {
-    // ONLY valid if saved in DB
-                _isUserValid = true;
-                await _uiControlsService.ToggleModal();
-                await SetupRootFolder();
-                await AdjustLanguage(true);
-            }
-
-            StateHasChanged();
-            return;
-        }
-
-        _navigationManager.NavigateTo(LOGOUT_URL, forceLoad: true);
     }
 
     private async Task AdjustLanguage(bool afterRender = false)
@@ -114,23 +134,4 @@
             _userInformationService.SetLanguage(language);
         }
     }
-
-    private async void SaveLanguage((bool, string) saveTuple)
-    {
-        _uiControlsService.AllowEscape = true;
-        var (isContinue, newLanguage) = saveTuple;
-        if (isContinue)
-        {
-            var language = newLanguage.Equals("english", StringComparison.OrdinalIgnoreCase) ? "en-CA" : "fr-CA";
-            await _userInformationService.RegisterUserLanguage(language);
-
-            await _uiControlsService.ToggleModal();
-            await _uiControlsService.ToggleModal(@<UserTermsAndConditionsModal OnDecision="HandleAlertDecision" Language="@language"/>);
-        }
-        else
-        {
-            _navigationManager.NavigateTo(LOGOUT_URL, forceLoad: true);
-        }
-    }
-
 }
