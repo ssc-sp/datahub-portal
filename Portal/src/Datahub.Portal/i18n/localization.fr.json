@@ -1733,6 +1733,23 @@
   "View Discussions": "Voir les discussions",
   "Create New": "Créer un nouveau",
   "Metadata Required": "Métadonnées requises",
-  "Administration": "Administration"
+  "Administration": "Administration",
+  "Bienvenue à DataHub": "Bienvenue à DataHub",
+  "Acronym": "Acronyme",
+  "Department/Agency": "Département/Agence",
+  "Bienvenue dans votre espace de travail": "Bienvenue dans votre espace de travail",
+  "Total spent": "Total dépensé",
+  "Workspace": "Espace de travail",
+  "cost analysis": "analyse des coûts",
+  "Total": "Total",
+  "Pending Approval": "En attente d'approbation",
+  "Under Active Development": "En développement actif",
+  "Request is being reviewed": "La demande est en cours d'examen",
+  "Your Workspace Tools": "Vos outils de l'espace de travail",
+  "Resource has been created": "La ressource a été créée",
+  "Open Databricks": "Databricks ouverts",
+  "View Shared Files": "Afficher les fichiers partagés",
+  "How to use Project Storage": "Comment utiliser le stockage de projet",
+  "Delete Folder": "Supprimer le dossier"
 
 }
