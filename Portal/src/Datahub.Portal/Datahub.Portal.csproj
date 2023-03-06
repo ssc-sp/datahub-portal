@@ -18,6 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <_ContentIncludedByDefault Remove="efpt.config.json" />
+    <_ContentIncludedByDefault Remove="i18n\ssc\registration.fr.json" />
     <_ContentIncludedByDefault Remove="Pages\Admin\Requests\Registration\RegistrationActions.razor" />
     <_ContentIncludedByDefault Remove="Pages\Admin\Requests\Registration\ViewRegistrationRequests.razor" />
     <_ContentIncludedByDefault Remove="Pages\Static\en_CA\ContactEn.razor" />
