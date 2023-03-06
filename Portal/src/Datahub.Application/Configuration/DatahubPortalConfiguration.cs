@@ -23,7 +23,7 @@ public class DatahubPortalConfiguration
     public Hosting Hosting { get; set; } = new();
     public EmailNotification EmailNotification { get; set; } = new();
     public PublicFileSharing PublicFileSharing { get; set; } = new();
-    public string PortalRunAsManagedIdentity { get; set; } = "disabled"; 
+    public string PortalRunAsManagedIdentity { get; set; } = "disabled";
     public string ResourcePrefix { get; set; } = "fsdh";
     public bool CentralizedProjectSecrets { get; set; } = false;
     public string ProjectStorageKeySecretName { get; set; } = "storage-key";
@@ -34,12 +34,22 @@ public class DatahubPortalConfiguration
     public string AllowedHosts { get; set; } = null!;
     public DatahubStorageQueue DatahubStorageQueue { get; set; } = new();
     public string DatahubGraphInviteFunctionUrl { get; set; } = null!;
+    public TermsAndConditionsUrl TermsAndConditionsUrl { get; set; } = new();
 }
 
 public class Achievements
 {
     public bool Enabled { get; set; } = true;
     public bool LocalAchievementsOnly { get; set; } = false;
+}
+
+public class TermsAndConditionsUrl
+{
+    public string En { get; set; } =
+        "https://raw.githubusercontent.com/ssc-sp/datahub-docs/main/UserGuide/POC-Terms-And-Conditions.md";
+
+    public string Fr { get; set; } =
+        "https://raw.githubusercontent.com/ssc-sp/datahub-docs/main/fr/UserGuide/Conditions-g%C3%A9n%C3%A9rales-de-POC.md";
 }
 
 public class CultureSettings
@@ -97,13 +107,11 @@ public class AzureAd
 public class ConnectionStrings
 {
     [JsonProperty("datahub-mssql-project")]
-    public string? DatahubMsSqlProject { get; set; } 
+    public string? DatahubMsSqlProject { get; set; }
 
-    [JsonProperty("datahub-mssql-pip")] 
-    public string? DatahubMsSqlPip { get; set; }
+    [JsonProperty("datahub-mssql-pip")] public string? DatahubMsSqlPip { get; set; }
 
-    [JsonProperty("datahub-mssql-etldb")]
-    public string? DatahubMsSqlEtldb { get; set; }
+    [JsonProperty("datahub-mssql-etldb")] public string? DatahubMsSqlEtldb { get; set; }
 
     [JsonProperty("datahub-mssql-finance")]
     public string? DatahubMsSqlFinance { get; set; }
@@ -117,8 +125,7 @@ public class ConnectionStrings
     [JsonProperty("DATAHUB-MSSQL-LANGUAGETRAINING")]
     public string? DatahubMsSqlLanguageTraining { get; set; }
 
-    [JsonProperty("datahub-cosmosdb")]
-    public string? DatahubCosmosDb { get; set; }
+    [JsonProperty("datahub-cosmosdb")] public string? DatahubCosmosDb { get; set; }
 }
 
 public class EmailNotification
