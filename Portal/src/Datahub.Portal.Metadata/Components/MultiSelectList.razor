@@ -10,6 +10,7 @@
                Label=@FieldDefinition.Name
                aria-label="@FieldDefinition.Name"
                HelperText=@FieldDefinition.Description
+               Required=@Required
                MultiSelection="true"
                Variant="Variant.Outlined"
                AnchorOrigin="Origin.BottomCenter"
@@ -30,6 +31,9 @@
 
     [Parameter]
     public FieldDefinition FieldDefinition { get; set; }
+
+    [Parameter]
+    public bool Required { get; set; }
 
     [Parameter]
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
