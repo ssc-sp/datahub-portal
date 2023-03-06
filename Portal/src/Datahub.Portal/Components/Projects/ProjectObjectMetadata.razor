@@ -132,30 +132,6 @@
 
         if (string.IsNullOrEmpty(_editor.GetValue(FieldNames.description_fr)))
             _editor.SetValue(FieldNames.description_fr, _project.Project_Summary_Desc_Fr);
-
-    //if (string.IsNullOrEmpty(_editor.GetValue("title_translated_en")))
-    //    _editor.SetValue("title_translated_en", _project.Project_Name);
-
-    //if (string.IsNullOrEmpty(_editor.GetValue("title_translated_fr")))
-    //    _editor.SetValue("title_translated_fr", _project.Project_Name_Fr);
-
-    //if (string.IsNullOrEmpty(_editor.GetValue("notes_translated_en")))
-    //    _editor.SetValue("notes_translated_en", _project.Project_Name);
-
-    //if (string.IsNullOrEmpty(_editor.GetValue("notes_translated_fr")))
-    //    _editor.SetValue("notes_translated_fr", _project.Project_Name_Fr);
-
-    //if (string.IsNullOrEmpty(_editor.GetValue("contact_information")))
-    //    _editor.SetValue("contact_information", _project.Project_Admin);
-
-    //if (string.IsNullOrEmpty(_editor.GetValue("sector")) && _sector.HasValue)
-    //    _editor.SetValue("sector", _sector.ToString());
-
-    //if (string.IsNullOrEmpty(_editor.GetValue("branch")) && _branch.HasValue)
-    //    _editor.SetValue("branch", _branch.ToString());
-
-    //if (string.IsNullOrEmpty(_editor.GetValue("initiative_goal")))
-    //    _editor.SetValue("initiative_goal", _project.Project_Goal);
     }
 
     private async Task HandleSave(FieldValueContainer values)
@@ -164,7 +140,7 @@
         {
             await OnMetadataSaved.InvokeAsync(_project);
 
-    // Metadata is "added" only when the profile required fields are entered
+            // Metadata is "added" only when the profile required fields are entered
             _project.MetadataAdded = _editor.ValidProfileFields();
 
             var sector = _editor.GetSelectedChoices("sector").FirstOrDefault();
@@ -174,6 +150,22 @@
             var branch = _editor.GetSelectedChoices("branch").FirstOrDefault();
             if (branch is not null)
                 _project.Branch_Name = branch.Label;
+
+            var name_en = _editor.GetValue(FieldNames.name_en);
+            if (string.IsNullOrEmpty(name_en))
+                _project.Project_Name = name_en;
+
+            var name_fr = _editor.GetValue(FieldNames.name_en);
+            if (string.IsNullOrEmpty(name_fr))
+                _project.Project_Name_Fr = name_fr;
+
+            var desc_en = _editor.GetValue(FieldNames.description_en);
+            if (string.IsNullOrEmpty(desc_en))
+                _project.Project_Summary_Desc = desc_en;
+
+            var desc_fr = _editor.GetValue(FieldNames.description_fr);
+            if (string.IsNullOrEmpty(desc_en))
+                _project.Project_Summary_Desc_Fr = desc_fr;
 
             var ctx = await ContextFactory.CreateDbContextAsync();
             ctx.Attach(_project);
@@ -201,10 +193,10 @@
         return sensitivity switch
         {
             "CLASSIFIED" or
-                "PROTECTED B" => SecurityClassification.ProtectedB,
+            "PROTECTED B" => SecurityClassification.ProtectedB,
             "PROTECTED A" => SecurityClassification.ProtectedA,
             _ => SecurityClassification.Unclassified
-            };
+        };
     }
 
     private string GetSaveButtonLabel() => SaveButtonLabel ?? Localizer["OPENDATA-WIZARD.Save_button"];

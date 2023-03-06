@@ -42,7 +42,7 @@
         </MudBadge>
     }
 
-    @if ((IsProjectAdmin || IsDatahubAdmin) && Project?.MetadataAdded != true)
+    @if (IsProjectAdmin || IsDatahubAdmin)
     {
         var color = Project?.MetadataAdded ?? false ? Color.Default : Color.Warning;
         var icon = Project?.MetadataAdded ?? false ? Icons.Material.Filled.Edit : Icons.Material.Filled.Warning;
