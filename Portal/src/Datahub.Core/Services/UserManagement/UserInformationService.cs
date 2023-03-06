@@ -154,6 +154,38 @@ public class UserInformationService : IUserInformationService
             .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier") ?? throw new InvalidOperationException("Cannot access user claims")).Value;
     }
 
+    public async Task<bool> ClearUserSettingsAsync()
+    {
+        var userId = await GetUserIdString();
+        _logger.LogInformation("User: {CurrentUserDisplayName} has accepted Terms and Conditions", CurrentUser.DisplayName);
+
+        try
+        {
+            await using var userSettingsContext = await contextFactory.CreateDbContextAsync();
+            var userSetting = userSettingsContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
+            if (userSetting == null)
+            {
+                _logger.LogError("User: {CurrentUserDisplayName} with user id: {UserId} is not in DB to clear settings", CurrentUser.DisplayName, userId);
+                return false;
+            }
+
+            userSettingsContext.UserSettings.Remove(userSetting);
+
+            if (await userSettingsContext.SaveChangesAsync() > 0)
+            {
+                return true;
+            }
+
+            _logger.LogInformation("User: {CurrentUserDisplayName} has not cleared their settings. Changes NOT saved", CurrentUser.DisplayName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "User: {CurrentUserDisplayName} clearing settings has failed", CurrentUser.DisplayName);
+        }
+
+        return false;
+    }
+
     public async Task<User> GetCurrentGraphUserAsync()
     {
         await CheckUser();
