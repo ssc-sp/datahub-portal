@@ -51,7 +51,6 @@ public class WikiService : IWikiService
     {
         string nameTrimmed = name.TrimStart('/');
 
-
         var fullUrl = $"{_wikiRoot}{nameTrimmed}.md";
         using var client = _httpClientFactory.CreateClient();
         try
