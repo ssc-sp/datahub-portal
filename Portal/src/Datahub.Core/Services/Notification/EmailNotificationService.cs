@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BlazorTemplater;
+using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Services.Security;
@@ -42,8 +43,6 @@ public class EmailNotificationService : IEmailNotificationService
     public static readonly string USERNAME_TEMPLATE_KEY = "Username";
     public static readonly string SERVICE_TEMPLATE_KEY = "Service";
     public static readonly string DATA_PROJECT_TEMPLATE_KEY = "DataProject";
-
-    private static readonly string DATAHUB_ADMIN_PROJECT_CODE = "DHPGLIST";
 
     private EmailConfiguration _config;
 
@@ -171,7 +170,7 @@ public class EmailNotificationService : IEmailNotificationService
 
     public async Task EmailErrorToDatahub(string subject, string fromUser, string message, string appInsightsMessage, string stackTrace)
     {
-        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(DATAHUB_ADMIN_PROJECT_CODE);
+        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(RoleConstants.DATAHUB_ADMIN_PROJECT);
         var parameters = new Dictionary<string, object>()
         {
             { "Date", $"{DateTime.UtcNow} UTC" },

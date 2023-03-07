@@ -21,6 +21,7 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using MimeKit;
+using Datahub.Core.Data;
 
 namespace Datahub.Portal.Services.Notification;
 
@@ -39,8 +40,6 @@ public class EmailConfiguration
 
 public class PortalEmailService
 {
-
-    private static readonly string DATAHUB_ADMIN_PROJECT_CODE = "DHPGLIST";
 
     private IStringLocalizer _localizer;
 
@@ -190,7 +189,7 @@ public class PortalEmailService
         parameters.Add(nameof(StorageCostEstimateAdmin.UserEmail), estimatingUser.Mail);
         var adminHtml = await _emailNotificationService.RenderTemplate<StorageCostEstimateAdmin>(parameters);
 
-        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(DATAHUB_ADMIN_PROJECT_CODE);
+        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(RoleConstants.DATAHUB_ADMIN_PROJECT);
 
         var tasks = new List<Task>()
         {
@@ -213,7 +212,7 @@ public class PortalEmailService
 
         var adminHtml = await _emailNotificationService.RenderTemplate<ComputeCostEstimate>(parameters);
 
-        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(DATAHUB_ADMIN_PROJECT_CODE);
+        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(RoleConstants.DATAHUB_ADMIN_PROJECT);
 
         var tasks = new List<Task>()
         {

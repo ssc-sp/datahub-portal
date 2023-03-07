@@ -22,8 +22,6 @@ namespace Datahub.ProjectTools.Services
         public static readonly string SERVICE_TEMPLATE_KEY = "Service";
         public static readonly string DATA_PROJECT_TEMPLATE_KEY = "DataProject";
 
-        private static readonly string DATAHUB_ADMIN_PROJECT_CODE = "DHPGLIST";
-
         private EmailConfiguration _config;
 
         private IStringLocalizer _localizer;

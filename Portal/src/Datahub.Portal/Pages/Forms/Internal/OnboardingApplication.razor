@@ -56,7 +56,6 @@
     [Parameter]
     public string AppId { get; set; }
 
-    private const string PROJECTACRONYM = "DHPGLIST";
     private FormMetadata<OnboardingApp> _formMetadata;
     private bool _onchange;
     private List<OnboardingApp> _onboardingApplications;
@@ -97,7 +96,7 @@
         Context = DbFactory.CreateDbContext();
         _user = await UserInformationService.GetCurrentGraphUserAsync();
         _formMetadata = new();
-        _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
+        _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, RoleConstants.DATAHUB_ADMIN_PROJECT);
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
 
         _sectors = await OrganizationLevelsService.GetSectors();
@@ -209,7 +208,7 @@
                     {
                         AppUrl = $"/initiatives/validate/{_newProjectAcronym}",
                         App = _onboardingApplication,
-                        AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
+                        AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(RoleConstants.DATAHUB_ADMIN_PROJECT)
                     };
 
                 await EmailService.SendOnboardingMetadataEditRequest(onboardingParameters);
@@ -276,7 +275,7 @@
                 {
                     AppUrl = $"/onboarding/applications/{_onboardingApplication.Application_ID}",
                     App = _onboardingApplication,
-                    AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
+                    AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(RoleConstants.DATAHUB_ADMIN_PROJECT)
                 };
 
             await EmailService.SendOnboardingConfirmations(onboardingParameters, _onboardingApplication.NotificationsSent);
