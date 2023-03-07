@@ -2,7 +2,7 @@ namespace Datahub.Portal.Pages.Project.FileExplorer.ResourcePages;
 
 public static class ResourceSubstitutions 
 {
-    public const string Token = "<token>";
+    public const string SasUri = "<sas_uri>";
     public const string StorageAccount = "<storage_account>";
     public const string ProjectAcronym = "<project_acronym>";
     public const string ContainerName = "<container_name>";

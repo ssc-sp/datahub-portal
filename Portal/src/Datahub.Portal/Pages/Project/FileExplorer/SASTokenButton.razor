@@ -1,11 +1,12 @@
 @*SASTokenButton.razor*@
 
+@using Datahub.Application.Services;
 @using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
 @using Datahub.Core.Services.Storage
 @inject IJSRuntime _jsRuntime
-@inject DataRetrievalService _dataRetrievalService
+@inject IProjectDataRetrievalService _dataRetrievalService
 
-<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleSasButtonClick" Style="float: right;">
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleSasButtonClick">
     <MudText>
         @GetButtonText()
     </MudText>
@@ -21,6 +22,8 @@
 
     [Parameter]
     public bool ContainerToken { get; set; }
+
+    const string DefaultContainer = "datahuh";
 
     private string TokenName => ContainerToken ? "Container" : "SAS";
 
@@ -51,10 +54,10 @@
     {
         if (string.IsNullOrWhiteSpace(_sasToken))
         {
-            var uri = await _dataRetrievalService.GenerateSasToken(DataRetrievalService.DEFAULT_CONTAINER_NAME, ProjectAcronym, 14, ContainerToken);
+            var uri = await _dataRetrievalService.GenerateSasTokenAsync(ProjectAcronym, DefaultContainer, 14);
             _sasToken = ContainerToken ? uri.Query[1..] : uri.ToString();
 
-            await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> {(ResourceSubstitutions.Token, _sasToken)});
+            await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> {(ResourceSubstitutions.SasUri, _sasToken)});
         }
         else
         {
@@ -67,5 +70,4 @@
             StateHasChanged();
         }
     }
-
 }
