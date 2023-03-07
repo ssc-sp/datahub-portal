@@ -87,7 +87,7 @@ public class Hooks
     public async Task BeforeWsScenario(IObjectContainer container)
     {
         await SetupScenario(container, (config, browser)
-            => container.RegisterInstanceAs(new WorkspacePageObject(config, browser)));
+            => container.RegisterInstanceAs(new WorkspacePageObject(new(), config, browser)));
     }
 
     [BeforeScenario("res")]
