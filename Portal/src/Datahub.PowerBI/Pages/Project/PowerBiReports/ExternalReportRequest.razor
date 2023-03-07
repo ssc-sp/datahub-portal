@@ -65,8 +65,6 @@ else
 
 @code {
 
-    private const string PROJECTACRONYM = "DHPGLIST";
-
     [Parameter]
     public PowerBi_Report Report { get; set; }
 
@@ -125,7 +123,7 @@ else
         PowerBiExternalReportParameters powerbiExternalParameters = new() { 
                             AppUrl = $"/administration",
                             App = null, 
-                            AdminEmailAddresses =  ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
+                            AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(RoleConstants.DATAHUB_ADMIN_PROJECT)
                         };
         await EmailService.SendExternalPowerBiCreationRequested(powerbiExternalParameters);
 

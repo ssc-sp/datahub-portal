@@ -36,7 +36,6 @@
 
 @code {
 
-    private const string PROJECTACRONYM = "DHPGLIST";
     private FormMetadata<Datahub_Project> _formMetadata = new();
 
     private List<Datahub_Project> _projects;
@@ -239,7 +238,7 @@
                 {
                     AppUrl = $"/w/{p.Project_Acronym_CD}/metadata",
                     App = appForm,
-                    AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
+                    AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(RoleConstants.DATAHUB_ADMIN_PROJECT)
                 };
 
             await EmailService.SendOnboardingMetadataEditRequest(onboardingParameters);
