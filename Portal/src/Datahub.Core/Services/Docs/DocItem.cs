@@ -60,6 +60,23 @@ public class DocItem
 
         return null;
     }
+
+    public DocItem? LocatePath(string path)
+    {
+        if (string.Equals(path, this.MarkdownPage, StringComparison.InvariantCultureIgnoreCase))
+            return this;
+
+        foreach (var item in Children)
+        {
+            var found = item.LocatePath(path);
+            if (found != null)
+                return found;
+        }
+
+        return null;
+    }
+
+    public override string ToString() => GetDescription(); 
 }
 
 #nullable disable

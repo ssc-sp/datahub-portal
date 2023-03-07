@@ -1,23 +1,15 @@
+@*SASTokenButton.razor*@
+
 @using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
 @using Datahub.Core.Services.Storage
 @inject IJSRuntime _jsRuntime
 @inject DataRetrievalService _dataRetrievalService
 
-
-<AeButton class="sas-token-button dark" @onclick="HandleSasButtonClick">
-    @if (string.IsNullOrWhiteSpace(_sasToken))
-    {
-        <span>@Localizer[$"Generate {TokenName} Token"]</span>
-    }
-    else if (_showingCopiedForSasButton)
-    {
-        <span>@Localizer["Copied!"]</span>
-    }
-    else
-    {
-        <span>@Localizer[$"Copy {TokenName} Token"]</span>
-    }
-</AeButton>
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleSasButtonClick" Style="float: right;">
+    <MudText>
+        @GetButtonText()
+    </MudText>
+</MudButton>
 
 @code {
 
@@ -42,6 +34,17 @@
 
         _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
             "./Pages/Project/FileExplorer/FileExplorerPage.razor.js");
+    }
+
+    private string GetButtonText()
+    {
+        if (string.IsNullOrWhiteSpace(_sasToken))
+            return Localizer[$"Generate {TokenName} Token"];
+
+        if (_showingCopiedForSasButton)
+            return Localizer["Copied!"];
+
+        return Localizer[$"Copy {TokenName} Token"];
     }
 
     private async Task HandleSasButtonClick()
