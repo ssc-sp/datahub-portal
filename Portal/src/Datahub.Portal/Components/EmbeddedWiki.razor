@@ -1,23 +1,21 @@
-﻿@using Datahub.Core.Services.Wiki;
-@inject IWikiService _resourcesService
+﻿@*EmbeddedWiki.razor*@
+
+@using Datahub.Core.Services.Docs
+@using Datahub.Portal.Pages.Resources
+@inject DocumentationService _docService
 @inject CultureService _cultureService
-@inject NavigationManager _navManager
 
-
-<MudCard>
-    <MudCardContent>
-        @if (ArticleIsLoading)
-        {
-            <MudProgressCircular Indeterminate/>
-        }
-        else
-        {
-            <DHMarkdown Substitutions=@Substitutions
-                        Content=@_markdownContent
-                        LinkRewriter="@RewriteLink" />
-        }
-    </MudCardContent>
-</MudCard>
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate />
+}
+else
+{
+    @if (_currentDocument is not null)
+    {
+        <ResourcesMarkdown DocumentItem=@_currentDocument Substitutions=@Substitutions />
+    }
+}
 
 @code {
 
@@ -30,53 +28,26 @@
     [Parameter]
     public List<(string, string)> Substitutions { get; set; }
 
-    private string _baseUrl = "/resources";
-
-    private bool _isFrench;
-    private MarkdownLanguageRoot _languageRoot;
-
-    private string _markdownContent = string.Empty;
-
-    private bool ArticleIsLoading => string.IsNullOrEmpty(_markdownContent);
+    private DocItem _currentDocument;
+    private bool _loading;
 
     protected override async Task OnInitializedAsync()
     {
-        _isFrench = _cultureService.IsFrench;
-        _languageRoot = await _resourcesService.LoadLanguageRoot(_isFrench);
-        await base.OnInitializedAsync();
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        var pageName = _isFrench ? PageNameFr : PageNameEn;
-
-        if (string.IsNullOrEmpty(pageName))
+        _loading = true;
+        try
         {
-            var url = _navManager.Uri;
-            await _resourcesService.LogNoArticleSpecifiedError(url, _languageRoot?.Title);
-            _markdownContent = Localizer["N/A"];
-            return;
+            var resourceRoot = await _docService.GetLanguageRoot(DocumentationGuide.UserGuide, _cultureService.Culture);
+            _currentDocument = string.IsNullOrEmpty(PagePath) ? resourceRoot : _docService.LoadPageFromPath(PagePath, _cultureService.IsFrench);
+            if (_currentDocument is null)
+            {
+                _docService.LogNotFoundError(PagePath, resourceRoot.Title);
+            }
         }
-
-        var card = _languageRoot[pageName] as MarkdownCard;
-
-        if (card == null)
+        finally
         {
-            await _resourcesService.LogNotFoundError(pageName, _languageRoot.Title);
-            _markdownContent = Localizer["N/A"];
-            return;
+            _loading = false;
         }
-
-        _markdownContent = await _resourcesService.LoadResourcePage(card);
-
-        await base.OnParametersSetAsync();
     }
 
-    private string RewriteLink(string link)
-    {
-        if (link.StartsWith("http"))
-            return link;
-        return _baseUrl + "/" + System.Web.HttpUtility.UrlEncode(link);
-    }
-
+    private string PagePath => _cultureService.IsFrench ? PageNameFr : PageNameEn;
 }

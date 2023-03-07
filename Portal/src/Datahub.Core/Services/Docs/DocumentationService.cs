@@ -244,6 +244,14 @@ public class DocumentationService
         return searchRoot.LocateID(id);
     }
 
+    public DocItem? LoadPageFromPath(string path, bool isFrench)
+    {
+        var searchRoot = isFrench ? frOutline : enOutline;
+        if (searchRoot is null)
+            throw new InvalidOperationException("sidebar not loaded");
+        return searchRoot.LocatePath(path);
+    }
+
     public DocItem? GetParent(DocItem docItem, DocItem? currentNode = null)
     {
         if (docItem == enOutline || docItem == frOutline)
