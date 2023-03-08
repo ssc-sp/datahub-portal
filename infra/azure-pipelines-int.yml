@@ -1,9 +1,3 @@
-# 'Allow scripts to access the OAuth token' was selected in pipeline.  Add the following YAML to any steps requiring access:
-#       env:
-#           MY_ACCESS_TOKEN: $(System.AccessToken)
-# Variable 'target_os' was defined in the Variables tab
-# Variable 'version.MajorMinor' was defined in the Variables tab
-# Variable 'version.Revision' was defined in the Variables tab
 name: FSDH Integration Build
 
 variables:
