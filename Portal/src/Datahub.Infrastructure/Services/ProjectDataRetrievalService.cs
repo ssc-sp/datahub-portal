@@ -20,8 +20,7 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
     private readonly ILogger<ProjectDataRetrievalService> _logger;
     private readonly DatahubPortalConfiguration _portalConfiguration;
 
-    public ProjectDataRetrievalService(ILogger<ProjectDataRetrievalService> logger,
-        DatahubPortalConfiguration portalConfiguration)
+    public ProjectDataRetrievalService(ILogger<ProjectDataRetrievalService> logger, DatahubPortalConfiguration portalConfiguration)
     {
         _logger = logger;
         _portalConfiguration = portalConfiguration;
@@ -41,6 +40,21 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
         }
 
         return containers;
+    }
+
+    public async Task<Uri> GenerateSasTokenAsync(string projectAcronym, string containerName, int days)
+    {
+        var project = projectAcronym.ToLowerInvariant();
+        var containerClient = await GetBlobContainerClient(project, containerName);
+        var sasBuilder = GetContainerSasBuild(containerName, days, BlobSasPermissions.All);
+        var sharedKeyCred = await GetSharedKeyCredentialAsync(project);
+
+        var blobUriBuilder = new BlobUriBuilder(containerClient.Uri)
+        {
+            Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
+        };
+
+        return blobUriBuilder.ToUri();
     }
 
     public async Task<(List<string> Folders, List<FileMetaData> Files, string Token)> GetDfsPagesAsync(string projectAcronym, 
@@ -180,6 +194,21 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
         return storageMetadata;
     }
 
+    private static BlobSasBuilder GetContainerSasBuild(string containerName, int days, BlobSasPermissions permissions)
+    {
+        var sasBuilder = new BlobSasBuilder
+        {
+            BlobContainerName = containerName,
+            Resource = "c",
+            StartsOn = DateTimeOffset.Now,
+            ExpiresOn = DateTimeOffset.Now.AddDays(days)
+        };
+
+        sasBuilder.SetPermissions(permissions);
+
+        return sasBuilder;
+    }
+
     private async Task<DataLakeFileSystemClient?> GetFileSystemClient(string projectAcronym, string containerName)
     {
         var client = await GetDataLakeServiceClientAsync(projectAcronym);
@@ -264,11 +293,10 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
 
     private async Task<Uri> DownloadBlobFile(string projectAcronym, string container, string filePath, int daysValidity = 1)
     {
-        return await GetDelegationSasBlobUri(container, filePath, projectAcronym, daysValidity, BlobSasPermissions.Read | BlobSasPermissions.Write);
+        return await GetDelegationSasBlobUri(projectAcronym, container, filePath, daysValidity, BlobSasPermissions.Read | BlobSasPermissions.Write);
     }
 
-    private async Task<Uri> GetDelegationSasBlobUri(string container, string fileName, string projectAcronym,
-        int days, BlobSasPermissions permissions)
+    private async Task<Uri> GetDelegationSasBlobUri(string projectAcronym, string container, string fileName, int days, BlobSasPermissions permissions)
     {
         var project = projectAcronym.ToLowerInvariant();
         var containerClient = await GetBlobContainerClient(project, container);
