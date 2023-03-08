@@ -1,7 +1,7 @@
+@*ResourcesMarkdown.razor*@
+
 @using Datahub.Core.Services.Docs
-
 @inject DocumentationService _docService
-
 
 <MudPaper Class="px-8 py-6">
     <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
@@ -16,7 +16,8 @@
     </AuthorizeView>
     
     <DHMarkdown Content="@_markdownContent"
-                LinkRewriter="@ResourcesPage.RewriteLink"/>
+                LinkRewriter="@ResourcesPage.RewriteLink" 
+                Substitutions="@Substitutions" />
 
 </MudPaper>
 
@@ -24,6 +25,9 @@
 
     [Parameter]
     public DocItem DocumentItem { get; set; }
+
+    [Parameter]
+    public List<(string, string)> Substitutions { get; set; }
 
     private string _markdownContent;
     private string _editButtonStyle = "float: right;";
@@ -34,10 +38,8 @@
         _markdownContent = await _docService.LoadResourcePage(DocumentItem);
     }
 
-
     private void HandleRemoveFromCache()
     {
         _docService.RemoveFromCache(DocumentItem);
     }
-
 }
