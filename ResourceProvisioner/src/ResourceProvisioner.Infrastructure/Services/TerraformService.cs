@@ -213,6 +213,8 @@ public class TerraformService : ITerraformService
         return (variableName switch
         {
             "project_cd" => terraformWorkspace.Acronym,
+            "monthly_budget" => terraformWorkspace.MonthlyBudget,
+            "storage_size_limit_tb" => terraformWorkspace.StorageSizeLimitInTB,
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<{variableType}> in configuration")
         })!;
