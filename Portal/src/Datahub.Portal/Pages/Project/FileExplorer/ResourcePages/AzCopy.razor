@@ -1,8 +1,12 @@
-
-<SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" />
-<EmbeddedWiki PageNameEn="Use AzCopy to Interact with Azure Storage Account" Substitutions="_substitutions" />
+<MudStack>
+    <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" />
+    <EmbeddedWiki PageNameEn="/UserGuide/Storage/Use-AzCopy.md"
+                  PageNameFr="/fr/UserGuide/Storage/Utilisez-AzCopy.md"
+                  Substitutions="_substitutions" />
+</MudStack>
 
 @code {
+
     private List<(string, string)> _substitutions;
 
     private void HandleSubstitutionsChanged(List<(string, string)> substitutions)
