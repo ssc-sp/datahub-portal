@@ -4,6 +4,14 @@
 # Variable 'target_os' was defined in the Variables tab
 # Variable 'version.MajorMinor' was defined in the Variables tab
 # Variable 'version.Revision' was defined in the Variables tab
+
+env:
+  MY_ACCESS_TOKEN: $(System.AccessToken)
+variables:
+  target_os: win-x64
+  version.MajorMinor: 2.0
+  version.Revision: $[counter(variables['version.MajorMinor'], 0)]
+  
 trigger:
   branches:
     include:
@@ -40,13 +48,10 @@ jobs:
       targetType: inline
       script: >-
         [string] $dateCode = (Get-Date -Format 'yyyyMMdd')
-
-        [string] $buildName = "$(version.MajorMinor).$(version.Revision)_$dateCode"
-
-
+        [string] $buildName = "$(version.MajorMinor).$(version.Revision)_int_$dateCode"
         Write-Host "Setting the name of the build to '$buildName'."
-
         Write-Host "##vso[build.updatebuildnumber]$buildName"
+        
 - job: Job_2
   displayName: Agent job - build portal app
   dependsOn: Job_1
@@ -82,6 +87,7 @@ jobs:
     inputs:
       PathtoPublish: $(Build.ArtifactStagingDirectory)/output/portal
       ArtifactName: datahub-portal
+      
 - job: Job_3
   displayName: Agent job - build function app
   dependsOn: Job_1
@@ -114,6 +120,7 @@ jobs:
     inputs:
       PathtoPublish: $(Build.ArtifactStagingDirectory)/output/portal
       ArtifactName: datahub-function
+      
 - job: Job_5
   displayName: Agent job - build resource provisioner function app
   dependsOn: Job_1
