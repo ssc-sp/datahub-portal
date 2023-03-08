@@ -4,9 +4,8 @@
 # Variable 'target_os' was defined in the Variables tab
 # Variable 'version.MajorMinor' was defined in the Variables tab
 # Variable 'version.Revision' was defined in the Variables tab
+name: FSDH Integration Build
 
-env:
-  MY_ACCESS_TOKEN: $(System.AccessToken)
 variables:
   target_os: win-x64
   version.MajorMinor: 2.0
@@ -169,6 +168,8 @@ jobs:
     persistCredentials: True
   - task: PowerShell@2
     displayName: PowerShell Script
+    env:
+      MY_ACCESS_TOKEN: $(System.AccessToken)
     inputs:
       targetType: inline
       script: >-
