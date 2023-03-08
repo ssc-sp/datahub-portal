@@ -5,6 +5,7 @@ namespace Datahub.Application.Services;
 public interface IProjectDataRetrievalService
 {
     Task<List<string>> GetContainersAsync(string projectAcronym);
+    Task<Uri> GenerateSasTokenAsync(string projectAcronym, string containerName, int days);
 
     Task<(List<string> Folders, List<FileMetaData> Files, string Token)> GetDfsPagesAsync(string projectAcronym, string containerName, 
         string folderPath, string? continuationToken = default);
