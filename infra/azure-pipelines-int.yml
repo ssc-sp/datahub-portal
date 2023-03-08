@@ -183,4 +183,3 @@ jobs:
         git push origin "$versionNumber" --force
 
         Write-Output "Tagging $(Build.Repository.Name) with $versionNumber-int"
-...
