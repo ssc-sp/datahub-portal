@@ -12,6 +12,10 @@ public class TerraformWorkspace
 {
     public string? Name { get; set; }
     public string? Acronym { get; set; }
+    public int MonthlyBudget { get; set; } = 400;
+    
+    // TODO: Move this into the storage module
+    public int StorageSizeLimitInTB { get; set; } = 5;
     public TerraformOrganization? TerraformOrganization { get; set; }
     public IEnumerable<TerraformUser>? Users { get; set; }
 

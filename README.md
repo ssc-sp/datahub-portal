@@ -1,5 +1,3 @@
-[![Gitter](https://badges.gitter.im/Federal-Science-Data-Hub/community.svg)](https://gitter.im/Federal-Science-Data-Hub/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-
 # Welcome to DataHub 
 
 This repository contains the source code the federal DataHub. 
