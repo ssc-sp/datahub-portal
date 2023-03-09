@@ -15,7 +15,7 @@ public class TerraformService : ITerraformService
     private readonly IConfiguration _configuration;
     internal static readonly List<string> EXCLUDED_FILE_EXTENSIONS = new(new[] { ".md" });
 
-    public const string MapAnyType = "map(any)";
+    public const string MapType = "map";
     public const string ListAnyType = "list(any)";
     
     public const string DatabricksAdminUserList = "databricks_admin_users";
@@ -196,7 +196,7 @@ public class TerraformService : ITerraformService
     private JsonNode ComputeVariableValue(TerraformWorkspace terraformWorkspace, string variableName,
         string variableType)
     {
-        if (variableType == MapAnyType)
+        if (variableType.StartsWith(MapType, StringComparison.InvariantCultureIgnoreCase))
         {
             return ComputeMapVariableValue(variableName);
         }
@@ -213,6 +213,8 @@ public class TerraformService : ITerraformService
         return (variableName switch
         {
             "project_cd" => terraformWorkspace.Acronym,
+            "monthly_budget" => terraformWorkspace.MonthlyBudget,
+            "storage_size_limit_tb" => terraformWorkspace.StorageSizeLimitInTB,
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<{variableType}> in configuration")
         })!;
