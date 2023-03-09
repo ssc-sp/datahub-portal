@@ -17,9 +17,9 @@
                AdornmentIcon=@Icons.Material.Filled.ArrowDropDown
                Margin="Margin.Dense">
 
-        @foreach (var c in FieldDefinition.Choices)
+        @foreach (var c in GetChoices())
         {
-            <MudSelectItem T="string" Value=@c.Value_TXT>@c.Label</MudSelectItem>
+            <MudSelectItem T="string" Value=@c.Value>@c.Label</MudSelectItem>
         }
     </MudSelect>
 }
@@ -71,4 +71,14 @@
         }
         return string.Join(", ", labels);
     }
+
+    private List<ChoiceSelectItem> GetChoices()
+    {
+        return FieldDefinition.Choices
+            .Select(c => new ChoiceSelectItem(c.Label, c.Value_TXT))
+            .OrderBy(c => c.Label)
+            .ToList();
+    }
+
+    record ChoiceSelectItem(string Label, string Value);
 }
