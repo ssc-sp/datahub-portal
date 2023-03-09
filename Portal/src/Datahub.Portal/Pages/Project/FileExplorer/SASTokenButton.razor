@@ -20,12 +20,7 @@
     [Parameter]
     public EventCallback<List<(string, string)>> OnSubstitutionsChanged { get; set; }
 
-    [Parameter]
-    public bool ContainerToken { get; set; }
-
-    const string DefaultContainer = "datahuh";
-
-    private string TokenName => ContainerToken ? "Container" : "SAS";
+    const string DefaultContainer = "datahub";
 
     private bool _showingCopiedForSasButton;
     private string _sasToken;
@@ -42,12 +37,12 @@
     private string GetButtonText()
     {
         if (string.IsNullOrWhiteSpace(_sasToken))
-            return Localizer[$"Generate {TokenName} Token"];
+            return Localizer["Generate Container Token"];
 
         if (_showingCopiedForSasButton)
             return Localizer["Copied!"];
 
-        return Localizer[$"Copy {TokenName} Token"];
+        return Localizer["Copy Container Token"];
     }
 
     private async Task HandleSasButtonClick()
@@ -55,7 +50,7 @@
         if (string.IsNullOrWhiteSpace(_sasToken))
         {
             var uri = await _dataRetrievalService.GenerateSasTokenAsync(ProjectAcronym, DefaultContainer, 14);
-            _sasToken = ContainerToken ? uri.Query[1..] : uri.ToString();
+            _sasToken = uri.ToString();
 
             await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> {(ResourceSubstitutions.SasUri, _sasToken)});
         }
