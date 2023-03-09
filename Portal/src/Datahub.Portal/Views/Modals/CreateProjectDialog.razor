@@ -55,6 +55,8 @@
     private const string AcronymExists = "Workspace Acronym already exists";
     private const string WorkspaceRequiredToGenerateAcronym = "Workspace Title is required to generate an acronym";
     
+    private const string DefaultOrganizationName = "Unspecified";
+    
     private string? _errorMessage;
     private string _projectTitle = string.Empty;
     private string _projectAcronym = string.Empty;
@@ -116,7 +118,7 @@
             StateHasChanged();
             await Task.Delay(1);
             // TODO: Get Organization name?
-            var isAdded = await ProjectCreationService.CreateProjectAsync(_projectTitle, _projectAcronym);
+            var isAdded = await ProjectCreationService.CreateProjectAsync(_projectTitle, _projectAcronym, DefaultOrganizationName);
             _isCreating = false;
             if (isAdded)
             {
