@@ -1,23 +1,16 @@
+@*SASTokenButton.razor*@
+
+@using Datahub.Application.Services;
 @using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
 @using Datahub.Core.Services.Storage
 @inject IJSRuntime _jsRuntime
-@inject DataRetrievalService _dataRetrievalService
+@inject IProjectDataRetrievalService _dataRetrievalService
 
-
-<AeButton class="sas-token-button dark" @onclick="HandleSasButtonClick">
-    @if (string.IsNullOrWhiteSpace(_sasToken))
-    {
-        <span>@Localizer[$"Generate {TokenName} Token"]</span>
-    }
-    else if (_showingCopiedForSasButton)
-    {
-        <span>@Localizer["Copied!"]</span>
-    }
-    else
-    {
-        <span>@Localizer[$"Copy {TokenName} Token"]</span>
-    }
-</AeButton>
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleSasButtonClick">
+    <MudText>
+        @GetButtonText()
+    </MudText>
+</MudButton>
 
 @code {
 
@@ -27,10 +20,7 @@
     [Parameter]
     public EventCallback<List<(string, string)>> OnSubstitutionsChanged { get; set; }
 
-    [Parameter]
-    public bool ContainerToken { get; set; }
-
-    private string TokenName => ContainerToken ? "Container" : "SAS";
+    const string DefaultContainer = "datahub";
 
     private bool _showingCopiedForSasButton;
     private string _sasToken;
@@ -44,14 +34,25 @@
             "./Pages/Project/FileExplorer/FileExplorerPage.razor.js");
     }
 
+    private string GetButtonText()
+    {
+        if (string.IsNullOrWhiteSpace(_sasToken))
+            return Localizer["Generate Container Token"];
+
+        if (_showingCopiedForSasButton)
+            return Localizer["Copied!"];
+
+        return Localizer["Copy Container Token"];
+    }
+
     private async Task HandleSasButtonClick()
     {
         if (string.IsNullOrWhiteSpace(_sasToken))
         {
-            var uri = await _dataRetrievalService.GenerateSasToken(DataRetrievalService.DEFAULT_CONTAINER_NAME, ProjectAcronym, 14, ContainerToken);
-            _sasToken = ContainerToken ? uri.Query[1..] : uri.ToString();
+            var uri = await _dataRetrievalService.GenerateSasTokenAsync(ProjectAcronym, DefaultContainer, 14);
+            _sasToken = uri.ToString();
 
-            await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> {(ResourceSubstitutions.Token, _sasToken)});
+            await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> {(ResourceSubstitutions.SasUri, _sasToken)});
         }
         else
         {
@@ -64,5 +65,4 @@
             StateHasChanged();
         }
     }
-
 }
