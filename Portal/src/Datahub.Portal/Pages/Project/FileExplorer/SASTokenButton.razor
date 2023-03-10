@@ -20,7 +20,8 @@
     [Parameter]
     public EventCallback<List<(string, string)>> OnSubstitutionsChanged { get; set; }
 
-    const string DefaultContainer = "datahub";
+    [Parameter]
+    public string Container { get; set; } = "datahub";
 
     private bool _showingCopiedForSasButton;
     private string _sasToken;
@@ -49,7 +50,7 @@
     {
         if (string.IsNullOrWhiteSpace(_sasToken))
         {
-            var uri = await _dataRetrievalService.GenerateSasTokenAsync(ProjectAcronym, DefaultContainer, 14);
+            var uri = await _dataRetrievalService.GenerateSasTokenAsync(ProjectAcronym, Container, 14);
             _sasToken = uri.ToString();
 
             await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> {(ResourceSubstitutions.SasUri, _sasToken)});
