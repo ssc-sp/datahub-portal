@@ -41,6 +41,7 @@
                 ResourceCreated="ResourceCreated"
                 Project="Project" 
                 ModuleStatus="@GitHubModule?.Status"
+                IsResourceWhitelisted="IsResourceWhitelisted"
                 OnRequestService="@HandleRequestService"
                 />
         }
@@ -67,6 +68,9 @@
 
     [Parameter]
     public Datahub_Project? Project { get; set; }
+    
+    [Parameter]
+    public bool? IsResourceWhitelisted { get; set; }
 
     private bool _isRunning;
     private string Icon => GitHubModule?.Icon ?? "fa-solid fa-cloud-question";
