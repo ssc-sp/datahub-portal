@@ -174,17 +174,17 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
         return await dirClient.CreateSubDirectoryAsync(folderName) is not null;
     }
 
-    public async Task<StorageMetadata> GetStorageMetadataAsync(string projectAcronym)
+    public async Task<StorageMetadata> GetStorageMetadataAsync(string projectAcronym, string containerName)
     {
         var connectionString = await GetProjectConnectionStringAsync(projectAcronym);
         var blobServiceClient = new BlobServiceClient(connectionString);
-        var containerClient = blobServiceClient.GetBlobContainerClient("datahub");
+        var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 
         var accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
 
         StorageMetadata storageMetadata = new()
         {
-            Container = "datahub",
+            Container = containerName,
             Url = containerClient.Uri.ToString(),
             Versioning = "True",
             GeoRedundancy = accountInfo.SkuName.ToString(),

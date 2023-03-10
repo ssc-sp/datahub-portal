@@ -265,18 +265,16 @@
                     await NotifierService.Update("filegrid", true);
                 }
             }
-            else
-            {
-                var textList = new List<string>()
-                {
-                    Localizer.GetString("MANAGE-ACCESS-PAGE.FolderNotExist")
-                };
-
-                await UI.ToggleModal();
-                await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
-    );
-                return;
-            }
+            //else
+            //{
+            //    var textList = new List<string>()
+            //    {
+            //        Localizer.GetString("MANAGE-ACCESS-PAGE.FolderNotExist")
+            //    };
+            //    await UI.ToggleModal();
+            //    await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
+            //    return;
+            //}
         }
 
         waitingOnAddShare = false;
