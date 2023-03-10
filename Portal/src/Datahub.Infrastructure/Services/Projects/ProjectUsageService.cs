@@ -94,6 +94,6 @@ public class ProjectUsageService
             projectCredits.CurrentPerDay = JsonSerializer.Serialize(costsPerDay);
 
         // last updated
-        projectCredits.LastUpdate = DateTime.UtcNow.Date;
+        projectCredits.LastUpdate = DateTime.UtcNow;
     }    
 }
