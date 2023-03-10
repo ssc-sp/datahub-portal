@@ -74,6 +74,7 @@
         _project = await projectContext.Projects
             .Include(p => p.ServiceRequests)
             .Include(p => p.Pipelines)
+            .Include(p => p.Whitelist)
             .AsSingleQuery()
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
             .FirstOrDefaultAsync();
