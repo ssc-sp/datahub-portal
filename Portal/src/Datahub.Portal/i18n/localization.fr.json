@@ -1698,7 +1698,6 @@
       "Registrations": "Gérer les enregistrements",
       "SharingAPIs": "Gérer les clés API pour les utilisateurs externes",
       "Metadata": "Gérer le modèle de métadonnées de Datahub",
-      "WhitelistProjectResources": "Ressources du projet de liste blanche"
     },
     "BUTTON_CAPTIONS": {
       "OpenPage": "Ouvrir la page",
