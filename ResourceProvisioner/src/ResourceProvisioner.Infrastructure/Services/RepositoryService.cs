@@ -55,6 +55,17 @@ public class RepositoryService : IRepositoryService
         var pullRequestValueObject =
             await CreateInfrastructurePullRequest(command.Workspace.Acronym!, user);
 
+                        
+        if(!string.IsNullOrEmpty(_resourceProvisionerConfiguration.InfrastructureRepository.AutoApproveUserOid))
+        {
+            _logger.LogInformation("Auto-approving pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
+            await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId);
+        }
+        else
+        {
+            _logger.LogInformation("Auto-approve user OID not set, skipping auto-approve");
+        }
+        
         var pullRequestMessage = new PullRequestUpdateMessage
         {
             PullRequestValueObject = pullRequestValueObject,
@@ -216,7 +227,7 @@ public class RepositoryService : IRepositoryService
             $"{_resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}?api-version={_resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
 
         _logger.LogInformation("Posting infrastructure pull request to {Url}", postUrl);
-        using var httpClient = _httpClientFactory.CreateClient("InfrastructureHttpClient");
+        var httpClient = _httpClientFactory.CreateClient("InfrastructureHttpClient");
         var response = await httpClient.PostAsync(postUrl, postBody);
 
         // get the pull request id
@@ -240,14 +251,46 @@ public class RepositoryService : IRepositoryService
             }
         }
         
-        // if(_)
-        
         var pullRequestUrl = BuildPullRequestUrl(pullRequestId);
         _logger.LogInformation("Infrastructure pull request url is {PullRequestUrl}", pullRequestUrl);
 
-        return new PullRequestValueObject(workspaceAcronym, pullRequestUrl);
+        return new PullRequestValueObject(workspaceAcronym, pullRequestUrl, int.Parse(pullRequestId));
     }
 
+    private async Task AutoApproveInfrastructurePullRequest(int pullRequestId)
+    {
+        var patchContent = BuildPullRequestPatchBody();
+        var patchUrl =
+            $"{_resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}/{pullRequestId}?api-version={_resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
+
+        _logger.LogInformation("Posting infrastructure pull request to {Url}", patchUrl);
+        var httpClient = _httpClientFactory.CreateClient("InfrastructureHttpClient");
+        var response = await httpClient.PatchAsync(patchUrl, patchContent);
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("Could not auto-approve infrastructure pull request {PullRequestUrl}", patchUrl);
+        }
+        else
+        {
+            _logger.LogInformation("Infrastructure pull request {PullRequestUrl} auto-approved", patchUrl);
+        }
+        
+    }
+
+    private StringContent BuildPullRequestPatchBody()
+    {
+        var patchData = new JsonObject
+        {
+            ["autoCompleteSetBy"] = new JsonObject
+            {
+                ["id"] = _resourceProvisionerConfiguration.InfrastructureRepository.AutoApproveUserOid
+            }
+        };
+        var patchBody = new StringContent(JsonSerializer.Serialize(patchData), Encoding.UTF8, "application/json");
+        return patchBody;
+    }
+    
     private string BuildPullRequestUrl(string pullRequestId)
     {
         return $"{_resourceProvisionerConfiguration.InfrastructureRepository.PullRequestBrowserUrl}/{pullRequestId}";
