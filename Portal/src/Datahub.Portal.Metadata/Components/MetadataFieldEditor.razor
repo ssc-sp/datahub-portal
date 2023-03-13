@@ -84,7 +84,7 @@
 
                     @foreach (var choice in fieldChoices)
                     {
-                        <MudSelectItem T="string" Value=@choice.Value_TXT>@choice.Label</MudSelectItem>
+                        <MudSelectItem T="string" Value=@choice.Value>@choice.Label</MudSelectItem>
                     }
                 </MudSelect>
             }
@@ -248,8 +248,14 @@
         }
     }
 
-    private List<FieldChoice> GetChoices()
+    private List<ChoiceSelectItem> GetChoices()
     {
-        return FieldDefinition.Choices.Where(c => c.Cascading_Value_TXT == "*" || c.Cascading_Value_TXT == CascadingValue).ToList();
+        return FieldDefinition.Choices
+            .Where(c => c.Cascading_Value_TXT == "*" || c.Cascading_Value_TXT == CascadingValue)
+            .Select(c => new ChoiceSelectItem(c.Label, c.Value_TXT))
+            .OrderBy(c => c.Label)
+            .ToList();
     }
+
+    record ChoiceSelectItem(string Label, string Value);
 }

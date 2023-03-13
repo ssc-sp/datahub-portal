@@ -8,6 +8,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 
@@ -15,17 +16,18 @@ namespace Datahub.Infrastructure.Services;
 
 public class ProjectCreationService : IProjectCreationService
 {
-    
+    private readonly IConfiguration _configuration;
     private readonly IDbContextFactory<DatahubProjectDBContext> _datahubProjectDbFactory;
     private readonly ILogger<ProjectCreationService> _logger;
     private readonly ServiceAuthManager serviceAuthManager;
     private readonly IUserInformationService _userInformationService;
     private readonly IResourceRequestService _resourceRequestService;
     
-    public ProjectCreationService(IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
+    public ProjectCreationService(IConfiguration configuration, IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
         ILogger<ProjectCreationService> logger, ServiceAuthManager serviceAuthManager,
         IUserInformationService userInformationService, IResourceRequestService resourceRequestService)
     {
+        _configuration = configuration;
         _datahubProjectDbFactory = datahubProjectDbFactory;
         _logger = logger;
         this.serviceAuthManager = serviceAuthManager;
@@ -110,6 +112,7 @@ public class ProjectCreationService : IProjectCreationService
             Project_Phase = TerraformOutputStatus.PendingApproval,
             Project_Status_Desc = "Ongoing",
             Project_Status = (int)ProjectStatus.InProgress,
+            Project_Budget = GetDefaultBudget()
         };
         var projectUser = new Datahub_Project_User()
         {
@@ -128,6 +131,9 @@ public class ProjectCreationService : IProjectCreationService
         serviceAuthManager.InvalidateAuthCache();
     }
 
-
-
+    private decimal GetDefaultBudget()
+    {
+        var value = _configuration.GetValue<int>("DefaultProjectBudget", 400);
+        return Convert.ToDecimal(value);
+    }
 }

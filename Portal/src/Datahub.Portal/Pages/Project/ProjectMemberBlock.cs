@@ -12,13 +12,13 @@ namespace Datahub.Portal.Pages.Project
     {
 
         [Inject]
-        public IUserInformationService _userInformationService { get; set; } = null;
+        public IUserInformationService _userInformationService { get; set; } = null!;
 
-        [Inject] 
-        public ILogger<ProjectMemberBlock> logger { get; set; }
+        [Inject]
+        public ILogger<ProjectMemberBlock> logger { get; set; } = null!;
 
         [Parameter]
-        public string ProjectAcronym { get; set; } = null;
+        public string ProjectAcronym { get; set; } = null!;
 
         [Parameter]
         public bool AdminOnly { get; set; } = true;

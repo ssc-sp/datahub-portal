@@ -131,7 +131,7 @@
         var options = new DialogOptions { CloseOnEscapeKey = true };
         var dialog = await DialogService.ShowAsync<CreateProjectDialog>(Localizer[WORKSPACE_CREATION_DIALOG_TITLE], options);
         var dialogResult = await dialog.Result;
-        if (!dialogResult.Cancelled)
+        if (!dialogResult.Canceled)
         {
             NavigationManager.NavigateTo($"{_datahubPortalConfiguration.ProjectUrlSegment}/{dialogResult.Data}",true);
         }
