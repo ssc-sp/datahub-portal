@@ -50,16 +50,27 @@ public class ProjectUsageService
         return projectCredits;
     }
 
+    static bool UpdatedInPeriod(DateTime? date, int minutes)
+    {
+        return date.HasValue && DateTime.UtcNow.AddMinutes(-minutes) < date;
+    }
+
     private async Task UpdateUsage(Project_Credits projectCredits, string resourceGroup, CancellationToken ct)
     {
         var session = await _azureManagementService.GetSession(ct);
 
         // current monthly cost
         var yearCost = await session.GetResourceGroupLastYearCost(resourceGroup);
-        if (yearCost == null)
-            throw new Exception($"Failed to read up to date cost for resource group '{resourceGroup}'");
-
-        projectCredits.Current = yearCost.Value;
+        if (yearCost is not null)
+        {
+            projectCredits.Current = yearCost.Value;
+        }
+        else
+        {
+            // if not updated in the last 90 minutes, throw the exception
+            if (!UpdatedInPeriod(projectCredits.LastUpdate, 90))
+                throw new Exception($"Failed to read up to date cost for resource group '{resourceGroup}'");
+        }
 
         // wait 2 seconds before trying next query
         await Task.Delay(2000);
