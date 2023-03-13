@@ -16,7 +16,7 @@ var host = new HostBuilder()
     })
     .ConfigureServices((hostContext, services) =>
     {
-        services.AddApplicationServices();
+        services.AddApplicationServices(hostContext.Configuration);
         services.AddInfrastructureServices(hostContext.Configuration);
         services.AddScoped<CreateResourceRunCommandHandler>();
 
