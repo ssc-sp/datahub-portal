@@ -23,6 +23,7 @@ public class InfrastructureRepositoryConfiguration
     public string PullRequestBrowserUrl { get; set; }
     public string ApiVersion { get; set; }
     public string MainBranch { get; set; }
+    public string AutoApproveUserOid { get; set; }
 }
 
 public class ModuleRepositoryConfiguration
