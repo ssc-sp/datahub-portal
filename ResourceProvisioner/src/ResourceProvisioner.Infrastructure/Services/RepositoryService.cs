@@ -8,8 +8,8 @@ using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Domain.Messages;
 using ResourceProvisioner.Domain.ValueObjects;
 using LibGit2Sharp;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Infrastructure.Common;
@@ -19,17 +19,17 @@ namespace ResourceProvisioner.Infrastructure.Services;
 public class RepositoryService : IRepositoryService
 {
     private readonly ILogger<RepositoryService> _logger;
-    private readonly IConfiguration _configuration;
     private readonly ITerraformService _terraformService;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly SemaphoreSlim _semaphore;
+    private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
 
-    public RepositoryService(IHttpClientFactory httpClientFactory, ILogger<RepositoryService> logger, IConfiguration configuration,
+    public RepositoryService(IHttpClientFactory httpClientFactory, ILogger<RepositoryService> logger, ResourceProvisionerConfiguration resourceProvisionerConfiguration,
         ITerraformService terraformService)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
-        _configuration = configuration;
+        _resourceProvisionerConfiguration = resourceProvisionerConfiguration;
         _terraformService = terraformService;
 
         _semaphore = new SemaphoreSlim(1, 1);
@@ -41,7 +41,7 @@ public class RepositoryService : IRepositoryService
         
         var user = command.RequestingUserEmail ?? throw new NullReferenceException("Requesting user's email is null");
         _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
-        await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym);
+        await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym!);
 
         _logger.LogInformation("Executing resource runs for user {User}", user);
         var repositoryUpdateEvents =
@@ -49,12 +49,23 @@ public class RepositoryService : IRepositoryService
 
         _logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
             command.Workspace.Acronym);
-        await PushInfrastructureRepository(command.Workspace.Acronym);
+        await PushInfrastructureRepository(command.Workspace.Acronym!);
 
         _logger.LogInformation("Creating pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
         var pullRequestValueObject =
-            await CreateInfrastructurePullRequest(command.Workspace.Acronym, user);
+            await CreateInfrastructurePullRequest(command.Workspace.Acronym!, user);
 
+                        
+        if(!string.IsNullOrEmpty(_resourceProvisionerConfiguration.InfrastructureRepository.AutoApproveUserOid))
+        {
+            _logger.LogInformation("Auto-approving pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
+            await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId);
+        }
+        else
+        {
+            _logger.LogInformation("Auto-approve user OID not set, skipping auto-approve");
+        }
+        
         var pullRequestMessage = new PullRequestUpdateMessage
         {
             PullRequestValueObject = pullRequestValueObject,
@@ -68,11 +79,11 @@ public class RepositoryService : IRepositoryService
 
     public Task FetchModuleRepository()
     {
-        var repositoryUrl = _configuration["ModuleRepository:Url"];
-        var localPath = _configuration["ModuleRepository:LocalPath"];
+        var repositoryUrl = _resourceProvisionerConfiguration.ModuleRepository.Url;
+        var localPath = _resourceProvisionerConfiguration.ModuleRepository.LocalPath;
 
         _logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
-        var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_configuration);
+        var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
         DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
         _logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
@@ -84,18 +95,18 @@ public class RepositoryService : IRepositoryService
 
     public Task FetchInfrastructureRepository()
     {
-        var localPath = _configuration["InfrastructureRepository:LocalPath"];
-        var repositoryUrl = _configuration["InfrastructureRepository:Url"];
+        var localPath = _resourceProvisionerConfiguration.InfrastructureRepository.LocalPath;
+        var repositoryUrl = _resourceProvisionerConfiguration.InfrastructureRepository.Url;
         _logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_configuration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
         DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
         var co = new CloneOptions
         {
             CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
             {
-                Username = _configuration["InfrastructureRepository:Username"],
-                Password = _configuration["InfrastructureRepository:Password"]
+                Username = _resourceProvisionerConfiguration.InfrastructureRepository.Username,
+                Password = _resourceProvisionerConfiguration.InfrastructureRepository.Password
             }
         };
 
@@ -108,7 +119,7 @@ public class RepositoryService : IRepositoryService
 
     public Task CheckoutInfrastructureBranch(string workspaceName)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_configuration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
         _logger.LogInformation("Checking out branch {WorkspaceName} in {Path}", workspaceName, repositoryPath);
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[workspaceName];
@@ -131,8 +142,8 @@ public class RepositoryService : IRepositoryService
             {
                 CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
                 {
-                    Username = _configuration["InfrastructureRepository:Username"],
-                    Password = _configuration["InfrastructureRepository:Password"]
+                    Username = _resourceProvisionerConfiguration.InfrastructureRepository.Username,
+                    Password = _resourceProvisionerConfiguration.InfrastructureRepository.Password
                 }
             }
         };
@@ -154,7 +165,7 @@ public class RepositoryService : IRepositoryService
 
     public Task CommitTerraformTemplate(TerraformTemplate template, string username)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_configuration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
 
         _logger.LogInformation("Committing changes in {LocalPath}", repositoryPath);
         using var repository = new Repository(repositoryPath);
@@ -182,13 +193,13 @@ public class RepositoryService : IRepositoryService
 
     public async Task PushInfrastructureRepository(string workspaceAcronym)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_configuration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
         var options = new PushOptions
         {
             CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
             {
-                Username = _configuration["InfrastructureRepository:Username"],
-                Password = _configuration["InfrastructureRepository:Password"]
+                Username = _resourceProvisionerConfiguration.InfrastructureRepository.Username,
+                Password = _resourceProvisionerConfiguration.InfrastructureRepository.Password
             },
         };
 
@@ -213,10 +224,10 @@ public class RepositoryService : IRepositoryService
         var postBody = BuildPullRequestPostBody(workspaceAcronym);
 
         var postUrl =
-            $"{_configuration["InfrastructureRepository:PullRequestUrl"]}?api-version={_configuration["InfrastructureRepository:ApiVersion"]}";
+            $"{_resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}?api-version={_resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
 
         _logger.LogInformation("Posting infrastructure pull request to {Url}", postUrl);
-        using var httpClient = _httpClientFactory.CreateClient("InfrastructureHttpClient");
+        var httpClient = _httpClientFactory.CreateClient("InfrastructureHttpClient");
         var response = await httpClient.PostAsync(postUrl, postBody);
 
         // get the pull request id
@@ -240,15 +251,49 @@ public class RepositoryService : IRepositoryService
             }
         }
         
-        var pullRequestUrl = BuildPullRequestUrl(pullRequestId!);
+        var pullRequestUrl = BuildPullRequestUrl(pullRequestId);
         _logger.LogInformation("Infrastructure pull request url is {PullRequestUrl}", pullRequestUrl);
 
-        return new PullRequestValueObject(workspaceAcronym, pullRequestUrl);
+        return new PullRequestValueObject(workspaceAcronym, pullRequestUrl, int.Parse(pullRequestId));
     }
 
+    private async Task AutoApproveInfrastructurePullRequest(int pullRequestId)
+    {
+        var patchContent = BuildPullRequestPatchBody();
+        var patchUrl =
+            $"{_resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}/{pullRequestId}?api-version={_resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
+
+        _logger.LogInformation("Posting infrastructure pull request to {Url}", patchUrl);
+        var httpClient = _httpClientFactory.CreateClient("InfrastructureHttpClient");
+        var response = await httpClient.PatchAsync(patchUrl, patchContent);
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("Could not auto-approve infrastructure pull request {PullRequestUrl}", patchUrl);
+        }
+        else
+        {
+            _logger.LogInformation("Infrastructure pull request {PullRequestUrl} auto-approved", patchUrl);
+        }
+        
+    }
+
+    private StringContent BuildPullRequestPatchBody()
+    {
+        var patchData = new JsonObject
+        {
+            ["autoCompleteSetBy"] = new JsonObject
+            {
+                ["id"] = _resourceProvisionerConfiguration.InfrastructureRepository.AutoApproveUserOid
+            }
+        };
+        var patchBody = new StringContent(JsonSerializer.Serialize(patchData), Encoding.UTF8, "application/json");
+        return patchBody;
+    }
+    
     private string BuildPullRequestUrl(string pullRequestId)
     {
-        return $"{_configuration["InfrastructureRepository:PullRequestBrowserUrl"]}/{pullRequestId}";
+        return $"{_resourceProvisionerConfiguration.InfrastructureRepository.PullRequestBrowserUrl}/{pullRequestId}";
     }
 
     private StringContent BuildPullRequestPostBody(string workspaceAcronym)
@@ -256,7 +301,7 @@ public class RepositoryService : IRepositoryService
         var postData = new JsonObject
         {
             ["sourceRefName"] = $"refs/heads/{workspaceAcronym}",
-            ["targetRefName"] = $"refs/heads/{_configuration["InfrastructureRepository:MainBranch"]}",
+            ["targetRefName"] = $"refs/heads/{_resourceProvisionerConfiguration.InfrastructureRepository.MainBranch}",
             ["title"] = $"[{workspaceAcronym}] Infrastructure changes",
             ["description"] = $"[{workspaceAcronym}] Infrastructure changes",
         };
@@ -291,15 +336,16 @@ public class RepositoryService : IRepositoryService
         {
             await _terraformService.CopyTemplateAsync(template, terraformWorkspace);
             await _terraformService.ExtractVariables(template, terraformWorkspace);
-            if (template.Name == TerraformTemplate.NewProjectTemplate)
+            switch (template.Name)
             {
-                await _terraformService.ExtractBackendConfig(terraformWorkspace.Acronym);
+                case TerraformTemplate.NewProjectTemplate:
+                    await _terraformService.ExtractBackendConfig(terraformWorkspace.Acronym!);
+                    break;
+                case TerraformTemplate.VariableUpdate:
+                    await _terraformService.ExtractAllVariables(terraformWorkspace);
+                    break;
             }
 
-            if (template.Name is TerraformTemplate.VariableUpdate)
-            {
-                await _terraformService.ExtractAllVariables(terraformWorkspace);
-            }
             await CommitTerraformTemplate(template, requestingUsername);
 
             return new RepositoryUpdateEvent()
@@ -336,7 +382,7 @@ public class RepositoryService : IRepositoryService
     {
         _logger.LogInformation("Pull request already exists, fetching pull request id");
         var url =
-            $"{_configuration["InfrastructureRepository:PullRequestUrl"]}?searchCriteria.status=active&searchCriteria.sourceRefName=refs/heads/{workspaceAcronym}&api-version={_configuration["InfrastructureRepository:ApiVersion"]}";
+            $"{_resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}?searchCriteria.status=active&searchCriteria.sourceRefName=refs/heads/{workspaceAcronym}&api-version={_resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
         
         using var httpClient = _httpClientFactory.CreateClient("InfrastructureHttpClient");
         var response = await httpClient.GetAsync(url);
