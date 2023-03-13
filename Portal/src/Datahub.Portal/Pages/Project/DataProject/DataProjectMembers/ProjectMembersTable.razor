@@ -182,7 +182,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
         var dialogParameters = new DialogParameters { { "CurrentProjectMembers", _projectUsers}, {"ProjectAcronym", ProjectAcronym} };
         var dialog = await DialogService.ShowAsync<AddNewUsersToProjectDialog>(Localizer[INVITE_USERS_DIALOG_TITLE], dialogParameters, dialogOptions);
         var result = await dialog.Result;
-        if (!result.Cancelled)
+        if (!result.Canceled)
         {
             var resultInt = (int)result.Data;
             // if result int is 1, return a string in singular form saying 1 user was added, if multiple, return a string in plural form saying x users were added

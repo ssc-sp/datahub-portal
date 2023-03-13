@@ -64,7 +64,6 @@
     private bool _isDatahubAdmin;
     private bool _isProjectAdmin;
     private bool _isFrench;
-    private bool _showCosts;
     private List<Client_Engagement> _clientEngagements = new();
 
     protected override async Task OnInitializedAsync()
@@ -74,6 +73,7 @@
         _project = await projectContext.Projects
             .Include(p => p.ServiceRequests)
             .Include(p => p.Pipelines)
+            .Include(p => p.Whitelist)
             .AsSingleQuery()
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
             .FirstOrDefaultAsync();

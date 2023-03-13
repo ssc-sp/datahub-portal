@@ -81,6 +81,8 @@ public class NewProjectTemplateTests
             ["az_location"] = _configuration["Terraform:Variables:az_location"],
             ["resource_prefix"] = _configuration["Terraform:Variables:resource_prefix"],
             ["project_cd"] = "ShouldExtractNewProjectTemplateVariables",
+            ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
+            ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
             ["common_tags"] = new JsonObject
             {
                 ["ClientOrganization"] = _configuration["Terraform:Variables:common_tags:ClientOrganization"],
@@ -113,7 +115,7 @@ public class NewProjectTemplateTests
         {
             Assert.Multiple(() =>
             {
-                Assert.That(expectedVariables.ContainsKey(key), Is.True);
+                Assert.That(expectedVariables.ContainsKey(key), Is.True, $"Missing variable {key}");
                 Assert.That(expectedVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
             });
         }
@@ -137,6 +139,8 @@ public class NewProjectTemplateTests
             ["environment_name"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_name,
             ["az_location"] = _resourceProvisionerConfiguration.Terraform.Variables.az_location,
             ["resource_prefix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix,
+            ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
+            ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
             ["project_cd"] = "ShouldExtractNewProjectTemplateVariablesWithoutDuplicates",
             ["common_tags"] = new JsonObject
             {
@@ -172,7 +176,7 @@ public class NewProjectTemplateTests
         {
             Assert.Multiple(() =>
             {
-                Assert.That(expectedVariables.ContainsKey(key), Is.True);
+                Assert.That(expectedVariables.ContainsKey(key), Is.True, $"Missing variable {key}");
                 Assert.That(expectedVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
             });
         }
