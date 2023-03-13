@@ -50,6 +50,8 @@ public class Variables
 {
     public string az_subscription_id { get; set; }
     public string az_tenant_id { get; set; }
+    public string budget_amount { get; set; }
+    public string storage_size_limit_tb { get; set; }
     public string environment_classification { get; set; }
     public string environment_name { get; set; }
     public string az_location { get; set; }
