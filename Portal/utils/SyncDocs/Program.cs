@@ -11,6 +11,9 @@ using Microsoft.Extensions.Configuration;
 using CommandLine;
 using Microsoft.Extensions.Options;
 
+const string SIDEBAR = "_sidebar.md";
+const string SIDEBAR_META = "_sidebar.md.yaml";
+
 var builder = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("config.json", optional: false)
@@ -69,16 +72,18 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
         var topLevelfolders = new List<string>();
         var topLevelfiles = new List<string>();
         // iterate the provided source folder
-        Func<string,bool> excluder = n => Path.GetFileName(n) == "_sidebar.md" || BuildExcluder(configParams)(n);
+        Func<string,bool> excluder = n => Path.GetFileName(n) == SIDEBAR || BuildExcluder(configParams)(n);
         await IteratePath(options.Path, excluder, AddAsync(topLevelfolders!), AddAsync(topLevelfiles), options.TopLevelDepth);
         var gen = new SidebarGenerator();
         var topSidebar = gen.GenerateTopLevel(options.Path, topLevelfiles, topLevelfolders, options.Profile);
         Console.WriteLine($"Processing top level directory {options.Path}");
-        var metadata = "---\nautogenerate: true\n---\n";
-        var topSidebarPath = Path.Combine(options.Path, "_sidebar.md");
-        if (MarkdownDocumentationService.CheckIfAutogenerate(topSidebarPath))
+        var metadata = "autogenerate: true\n";
+        var topSidebarPath = Path.Combine(options.Path, SIDEBAR);
+        var topSidebarPathMeta = Path.Combine(options.Path, SIDEBAR_META);
+        if (MarkdownDocumentationService.CheckIfAutogenerateYaml(topSidebarPathMeta))
         {
-            await File.WriteAllTextAsync(topSidebarPath, metadata + topSidebar);
+            await File.WriteAllTextAsync(topSidebarPath, topSidebar);
+            await File.WriteAllTextAsync(topSidebarPathMeta, metadata);
             Console.WriteLine($"Generated top level sidebar");
         }
         var topFolders1 = topLevelfolders.Where(s => FolderDepth(Path.GetRelativePath(options.Path, s)) < options.TopLevelDepth).ToList();
@@ -91,10 +96,12 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
             await IteratePath(folder, excluder, AddAsync(folders), AddAsync(files));
             Console.WriteLine($"Found {files.Count} files for sidebar");
             var sidebar = gen.GenerateSidebar(new DirectoryInfo(folder).Name, folder, files, folders, options.Profile);
-            var sidebarPath = Path.Combine(folder, "_sidebar.md");
-            if (MarkdownDocumentationService.CheckIfAutogenerate(sidebarPath))
+            var sidebarPath = Path.Combine(folder, SIDEBAR);
+            var sidebarPathMeta = Path.Combine(folder, SIDEBAR_META);
+            if (MarkdownDocumentationService.CheckIfAutogenerateYaml(sidebarPathMeta))
             {
-                await File.WriteAllTextAsync(sidebarPath, metadata + sidebar);
+                await File.WriteAllTextAsync(sidebarPath, sidebar);
+                await File.WriteAllTextAsync(sidebarPathMeta, metadata);
                 Console.WriteLine($"Generated sidebar {sidebarPath}");
             }
         }
