@@ -17,7 +17,7 @@ public class UserEnrollmentServiceTests
     [Test]
     public async Task UserCanEnrollWithDataHubTest()
     {
-        var result = await _userEnrollmentService.SendUserDatahubPortalInvite(TestUserEmail);
+        var result = await _userEnrollmentService.SendUserDatahubPortalInvite(TestUserEmail, default);
         
         Assert.That(result, Is.Not.Null.Or.Empty);
         Assert.That(result, Is.EqualTo(TestUserId));
@@ -31,7 +31,7 @@ public class UserEnrollmentServiceTests
     {
         Assert.ThrowsAsync<InvalidOperationException>(async () =>
         {
-            await _userEnrollmentService.SendUserDatahubPortalInvite(email);
+            await _userEnrollmentService.SendUserDatahubPortalInvite(email, default);
         });
         return Task.CompletedTask;
     }
@@ -58,7 +58,7 @@ public class UserEnrollmentServiceTests
         
         
         var userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), httpClientFactory.Object, _datahubPortalConfiguration);
-        var result = await userEnrollmentService.SendUserDatahubPortalInvite(TestUserEmail);
+        var result = await userEnrollmentService.SendUserDatahubPortalInvite(TestUserEmail, default);
         
         Assert.That(result, Is.Not.Null.Or.Empty);
         Assert.That(result, Is.EqualTo(fakeReturnId));

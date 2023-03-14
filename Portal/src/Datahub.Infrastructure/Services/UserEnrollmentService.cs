@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Datahub.Application.Configuration;
@@ -10,7 +9,6 @@ namespace Datahub.Infrastructure.Services;
 
 public partial class UserEnrollmentService : IUserEnrollmentService
 {
-    // private readonly IDbContextFactory<DatahubProjectDBContext> _dbFactory;
     private readonly ILogger<UserEnrollmentService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
@@ -21,14 +19,9 @@ public partial class UserEnrollmentService : IUserEnrollmentService
     [GeneratedRegex("^([\\w\\.\\-]+)@(canada\\.ca)$")]
     private static partial Regex Canada_CA_Regex();
     
-    public UserEnrollmentService(
-        // IDbContextFactory<DatahubProjectDBContext> dbFactory,
-        ILogger<UserEnrollmentService> logger,
-        IHttpClientFactory httpClientFactory,
-        DatahubPortalConfiguration datahubPortalConfiguration
-    ) 
+    public UserEnrollmentService(ILogger<UserEnrollmentService> logger, IHttpClientFactory httpClientFactory,
+        DatahubPortalConfiguration datahubPortalConfiguration) 
     {
-        // _dbFactory = dbFactory;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _datahubPortalConfiguration = datahubPortalConfiguration;
@@ -44,7 +37,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         return reOld.IsMatch(email) || reNew.IsMatch(email);
     }
 
-    public async Task<string> SendUserDatahubPortalInvite(string? registrationRequestEmail)
+    public async Task<string> SendUserDatahubPortalInvite(string? registrationRequestEmail, string? inviterName)
     {
         var validGcEmail = IsValidGcEmail(registrationRequestEmail);
         if (validGcEmail == false || string.IsNullOrWhiteSpace(registrationRequestEmail))
@@ -57,6 +50,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         var payload = new Dictionary<string, JsonNode>
         {
             ["email"] = registrationRequestEmail!,
+            ["inviter"] = inviterName!
         };
 
         var jsonBody = new JsonObject(payload!);
