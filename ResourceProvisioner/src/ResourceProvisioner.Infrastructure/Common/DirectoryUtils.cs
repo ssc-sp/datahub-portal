@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using ResourceProvisioner.Application.Config;
 
 namespace ResourceProvisioner.Infrastructure.Common;
 
@@ -42,11 +43,23 @@ public static class DirectoryUtils
         return Path.Join(Environment.CurrentDirectory,
             configuration["InfrastructureRepository:LocalPath"]);
     }
+    
+    public static string GetInfrastructureRepositoryPath(ResourceProvisionerConfiguration configuration)
+    {
+        return Path.Join(Environment.CurrentDirectory,
+            configuration.InfrastructureRepository.LocalPath);
+    }
 
     public static string GetModuleRepositoryPath(IConfiguration configuration)
     {
         return Path.Join(Environment.CurrentDirectory,
             configuration["ModuleRepository:LocalPath"]);
+    }
+    
+    public static string GetModuleRepositoryPath(ResourceProvisionerConfiguration configuration)
+    {
+        return Path.Join(Environment.CurrentDirectory,
+            configuration.ModuleRepository.LocalPath);
     }
 
     public static string GetTemplatePath(IConfiguration configuration, string templateName)

@@ -35,6 +35,10 @@ public class AzureConfig : IAzureServicePrincipalConfig
     public string MaxStorageCapacity => _config["MAX_STORAGE_CAPACITY"] ?? "180000000000"; //"2000000000000";
     
     #endregion
+
+    public string PortalUrl => _config["PORTAL_URL"] ?? "";
+    public string ServicePrincipalGroupID => _config["SP_GROUP_ID"] ?? "";
+    public string KeyVaultName => _config["KEY_VAULT_NAME"] ?? "";
 }
 
 public class EmailNotification
