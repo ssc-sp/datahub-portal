@@ -65,12 +65,15 @@
 </MudDialog>
 
 @code {
-#nullable enable
+    #nullable enable
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
     public string ProjectAcronym { get; set; } = null!;
+
+    [Parameter]
+    public string Inviter { get; set; } = null!;
 
     [Parameter]
     public List<ProjectMember> CurrentProjectMembers { get; set; } = new();
@@ -86,14 +89,14 @@
     private bool _updateInProgress;
     private List<GraphUser> _searchResultUsers = new();
 
-        private const string SearchIcon = "fa-duotone fa-magnifying-glass";
-        private const string AddUserIcon = "fa-duotone fa-user-plus";
-        private const string RemoveUserIcon = "fa-duotone fa-trash-can-slash";
-        private const string UserExistsError = "The user is already in the project";
-        private const string NotValidEmailError = "Please enter a valid GC email address";
+    private const string SearchIcon = "fa-duotone fa-magnifying-glass";
+    private const string AddUserIcon = "fa-duotone fa-user-plus";
+    private const string RemoveUserIcon = "fa-duotone fa-trash-can-slash";
+    private const string UserExistsError = "The user is already in the project";
+    private const string NotValidEmailError = "Please enter a valid GC email address";
 
     // added to catch the case where the user is in graph but ID is null (GitHub issue # 404)
-        private const string NewUserId = "NEW_USER";
+    private const string NewUserId = "NEW_USER";
 
     private async Task<IEnumerable<string>> SearchUsers(string search, CancellationToken cancellationToken)
     {
@@ -105,24 +108,24 @@
         StateHasChanged();
 
         var foundUsersDict = await _msGraphService.GetUsersListAsync(search, cancellationToken);
-    //get found users as GraphUsers and remove current users from the list
+        //get found users as GraphUsers and remove current users from the list
         _searchResultUsers = foundUsersDict
             .Select(u => u.Value)
             .Where(u => CurrentProjectMembers.All(x => x.UserId != u.Id) || _users.Any(user => user.Id == u.Id))
             .ToList();
 
-    // If an exact match is found, put it at the top of the list, otherwise add an add user option
+        // If an exact match is found, put it at the top of the list, otherwise add an add user option
         var matchIndex = _searchResultUsers.FindIndex(u => u.Mail.Equals(search, StringComparison.InvariantCultureIgnoreCase));
         ClearError();
         StateHasChanged();
         switch (matchIndex)
         {
             case > 0:
-            {
-                var exactMatch = _searchResultUsers[matchIndex];
-                _searchResultUsers.RemoveAt(matchIndex);
-                _searchResultUsers.Insert(0, exactMatch);
-            }
+                {
+                    var exactMatch = _searchResultUsers[matchIndex];
+                    _searchResultUsers.RemoveAt(matchIndex);
+                    _searchResultUsers.Insert(0, exactMatch);
+                }
                 break;
             case -1 when _emailValidator.IsValid(search):
                 _searchResultUsers.Insert(0, new GraphUser()
@@ -131,7 +134,7 @@
                 });
                 break;
         }
-        
+
         _searchingForUsers = false;
         return _searchResultUsers.Select(u => u.Mail);
     }
@@ -204,24 +207,33 @@
     private async Task UpdateProject()
     {
         _updateInProgress = true;
-        StateHasChanged();
-    //force update to show progress indicator
-        await Task.Delay(1);
-
-    // If the user is new, send an invite and get the ID, otherwise just get the ID
-        foreach (var user in _users.Where(user => user.Id.Equals(NewUserId)))
+        try
         {
-            user.Id = await _userEnrollmentService.SendUserDatahubPortalInvite(user.Mail);
+            StateHasChanged();
+
+            //force update to show progress indicator
+            await Task.Delay(1);
+
+            // If the user is new, send an invite and get the ID, otherwise just get the ID
+            foreach (var user in _users.Where(user => user.Id.Equals(NewUserId)))
+            {
+                user.Id = await _userEnrollmentService.SendUserDatahubPortalInvite(user.Mail, Inviter);
+            }
+
+            var userIds = _users.Select(u => u.Id).ToList();
+            await _projectUserManagementService.AddUsersToProject(ProjectAcronym, userIds);
+
+            MudDialog.Close(DialogResult.Ok(userIds.Count));
         }
-
-
-        var userIds = _users
-            .Select(u => u.Id)
-            .ToList();
-        await _projectUserManagementService.AddUsersToProject(ProjectAcronym, userIds);
-
-        MudDialog.Close(DialogResult.Ok(userIds.Count));
-        _updateInProgress = false;
+        catch (Exception)
+        {
+            // todo: show error message and don't close the dialog yet!
+            MudDialog.Close(DialogResult.Ok(0));            
+        }
+        finally
+        {
+            _updateInProgress = false;
+        }
     }
 
     private void Cancel() => MudDialog.Cancel();

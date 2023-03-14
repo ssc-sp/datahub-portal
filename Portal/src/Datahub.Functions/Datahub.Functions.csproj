@@ -8,6 +8,18 @@
         <UserSecretsId>7085b673-23cc-4759-933a-5a22d1004411</UserSecretsId>
     </PropertyGroup>
     <ItemGroup>
+      <None Remove="templates\cost_alert.html" />
+      <None Remove="templates\user_invitation.html" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="templates\cost_alert.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="templates\user_invitation.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+    <ItemGroup>
         <PackageReference Include="Azure.Core" Version="1.27.0" />
         <PackageReference Include="Azure.Storage.Common" Version="12.13.0" />
         <PackageReference Include="Azure.Storage.Queues" Version="12.12.0" />
