@@ -95,7 +95,7 @@
         _isRegistering = true;
         StateHasChanged();
         _logger.LogInformation("Attempting to register user with email: {Email}", _basicRegistrationForm.Email);
-        var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(_basicRegistrationForm.Email);
+        var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(_basicRegistrationForm.Email, default);
 
         if (!string.IsNullOrWhiteSpace(userId))
         {

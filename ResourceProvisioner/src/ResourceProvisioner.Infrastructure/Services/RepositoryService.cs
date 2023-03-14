@@ -263,13 +263,15 @@ public class RepositoryService : IRepositoryService
         var patchUrl =
             $"{_resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}/{pullRequestId}?api-version={_resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
 
-        _logger.LogInformation("Posting infrastructure pull request to {Url}", patchUrl);
+        _logger.LogInformation("Patching auto-approve infrastructure pull request to {Url}", patchUrl);
         var httpClient = _httpClientFactory.CreateClient("InfrastructureHttpClient");
         var response = await httpClient.PatchAsync(patchUrl, patchContent);
         
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Could not auto-approve infrastructure pull request {PullRequestUrl}", patchUrl);
+            var content = await response.Content.ReadAsStringAsync();
+            _logger.LogError("Error: {Error}", content);
         }
         else
         {
