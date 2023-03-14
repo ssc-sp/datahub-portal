@@ -1,9 +1,9 @@
 using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
+using Datahub.Infrastructure.Queues.Messages;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using System.Text.Json;
@@ -13,26 +13,20 @@ namespace Datahub.Functions;
 
 public class CreateGraphUser
 {
-    private const string TENANT_ID = "TENANT_ID";
-    private const string CLIENT_ID = "FUNC_SP_CLIENT_ID";
-    private const string CLIENT_SECRET = "FUNC_SP_CLIENT_SECRET";
-    private const string SP_GROUP_ID = "SP_GROUP_ID";
-
-    private const string PORTAL_URL = "PORTAL_URL";
-    
     private readonly ILogger _logger;
-    private readonly IConfiguration _configuration;
+    private readonly AzureConfig _configuration;
+    private readonly IMediator _mediator;
 
-    public CreateGraphUser(ILoggerFactory loggerFactory, IConfiguration configuration)
+    public CreateGraphUser(ILoggerFactory loggerFactory, AzureConfig configuration, IMediator mediator)
     {
         _logger = loggerFactory.CreateLogger<CreateGraphUser>();
         _configuration = configuration;
+        _mediator = mediator;
     }
     
     [Function("CreateGraphUser")]
     public async Task<IActionResult> RunAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]
-        HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestData req)
     {
         _logger.LogInformation("C# HTTP trigger function processed a request");
 
@@ -44,6 +38,7 @@ public class CreateGraphUser
         {
             return new BadRequestObjectResult("Please pass a valid email address in the request body");
         }
+        var inviter = data?.inviter ?? "datahub";
 
         try
         {
@@ -53,7 +48,7 @@ public class CreateGraphUser
                 return MockInviteUser(userEmail, _logger);
             }
             
-            return await InviteUser(userEmail, _logger);
+            return await InviteUser(_logger, userEmail, inviter);
         }
         catch (Exception e)
         {
@@ -71,7 +66,7 @@ public class CreateGraphUser
         // sanity check the service principal credentials
         var graphClient = GetGraphServiceClientFromEnvVariables();
         
-        var groupId = _configuration[SP_GROUP_ID];
+        var groupId = _configuration.ServicePrincipalGroupID;
         
         var response = new JsonObject
         {
@@ -86,7 +81,7 @@ public class CreateGraphUser
         return new OkObjectResult(response.ToString());
     }
 
-    private async Task<IActionResult> InviteUser(string userEmail, ILogger log)
+    private async Task<IActionResult> InviteUser(ILogger log, string userEmail, string inviter)
     {
         log.LogInformation("Creating graph service client");
         var graphClient = GetGraphServiceClientFromEnvVariables();
@@ -94,14 +89,17 @@ public class CreateGraphUser
         log.LogInformation("Sending invitation to {UserEmail}", userEmail);
         
         var result = await SendInvitation(userEmail, graphClient);
-        var groupId = _configuration[SP_GROUP_ID];
+        var groupId = _configuration.ServicePrincipalGroupID;
             
         log.LogInformation("Adding invited user {UserID} to group {GroupID}", result.InvitedUser.Id, groupId);
         await AddToGroup(result.InvitedUser.Id, groupId!, graphClient, log);
             
         log.LogInformation("Success, {UserEmail} ({UserID}) is in group {GroupID}", userEmail,
             result.InvitedUser.Id, groupId);
-        
+
+        // send invite email
+        await SenInvitationEmail(userEmail, inviter);
+
         var response = new JsonObject
         {
             ["message"] = $"Successfully invited {userEmail} and added to group {groupId}",
@@ -141,8 +139,8 @@ public class CreateGraphUser
         var invitation = new Invitation
         {
             InvitedUserEmailAddress = userEmail,
-            InviteRedirectUrl = _configuration[PORTAL_URL],
-            SendInvitationMessage = true
+            InviteRedirectUrl = _configuration.PortalUrl,
+            SendInvitationMessage = false
         };
 
         var result = await graphClient.Invitations
@@ -155,46 +153,37 @@ public class CreateGraphUser
     {
         var scopes = new[] {"https://graph.microsoft.com/.default"};
 
-        var tenantId = _configuration[TENANT_ID];
-        var clientId = _configuration[CLIENT_ID];
-        var clientSecret = _configuration[CLIENT_SECRET];
-
-        var options = new TokenCredentialOptions
-        {
-            AuthorityHost = AzureAuthorityHosts.AzurePublicCloud
+        var options = new TokenCredentialOptions 
+        { 
+            AuthorityHost = AzureAuthorityHosts.AzurePublicCloud 
         };
 
-        var clientSecretCredential = new ClientSecretCredential(
-            tenantId, clientId, clientSecret, options);
+        var clientSecretCredential = new ClientSecretCredential(_configuration.TenantId, 
+            _configuration.ClientId, _configuration.ClientSecret, options);
 
-        var graphClient = new GraphServiceClient(clientSecretCredential, scopes);
-        return graphClient;
+        return new GraphServiceClient(clientSecretCredential, scopes); 
     }
 
-    private async Task<GraphServiceClient> GetGraphServiceClientFromAkv()
+    private async Task SenInvitationEmail(string userEmail, string inviter)
     {
-        var scopes = new[] {"https://graph.microsoft.com/.default"};
+        var (subjectTemplate, bodyTemplate) = TemplateUtils.GetEmailTemplate("user_invitation.html");
+        if (subjectTemplate is null || bodyTemplate is null)
+            _logger.LogWarning("user_invitation.html is missing");
 
-        var keyVaultName = _configuration["KEY_VAULT_NAME"];
-        var kvUri = "https://" + keyVaultName + ".vault.azure.net";
-        var secretClient = new SecretClient(new Uri(kvUri), new DefaultAzureCredential());
+        var portalLink = _configuration.PortalUrl ?? "";
+        var subject = subjectTemplate ?? "Datahub invitation";
+        var body = (bodyTemplate ?? "").Replace("{{inviter}}", inviter).Replace("{{datahub_link}}", portalLink);
+        var contacts = new List<string>() { userEmail };
 
-        var tenantId = (await secretClient.GetSecretAsync(TENANT_ID)).Value.Value;
-        var clientId = (await secretClient.GetSecretAsync(CLIENT_ID)).Value.Value;
-        var clientSecret = (await secretClient.GetSecretAsync(CLIENT_SECRET)).Value.Value;
-
-
-        var options = new TokenCredentialOptions
+        EmailRequestMessage notificationEmail = new()
         {
-            AuthorityHost = AzureAuthorityHosts.AzurePublicCloud
+            To = contacts,
+            Subject = subject,
+            Body = body
         };
 
-        var clientSecretCredential = new ClientSecretCredential(
-            tenantId, clientId, clientSecret, options);
-
-        var graphClient = new GraphServiceClient(clientSecretCredential, scopes);
-        return graphClient;
+        await _mediator.Send(notificationEmail);
     }
 
-    record CreateUserRequest(string email, string mockInvite);
+    record CreateUserRequest(string email, string mockInvite, string inviter);
 }
