@@ -1,4 +1,5 @@
-﻿using Datahub.Core.Model.Datahub;
+﻿using Datahub.Application.Services;
+using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.UserManagement;
 using Datahub.ProjectTools.Catalog.ResourceCards;
 using Datahub.ProjectTools.Services;
@@ -87,13 +88,14 @@ public class ServiceCatalogGitModuleResource : IProjectResource
             { nameof(ServiceCatalogTerraformResource.ResourceRequested),_serviceRequested },            
             { nameof(ServiceCatalogTerraformResource.ResourceCreated),_serviceCreated },            
             { nameof(ServiceCatalogTerraformResource.Project), _project },
+            { nameof(ServiceCatalogTerraformResource.IsResourceWhitelisted), GetWhitelistStatus()}
         };
     public string[] GetTags() => _descriptor.Tags;
 
     public async Task<bool> InitializeAsync(Datahub_Project project, string? userId, User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
-        this._project = project;
+        _project = project;
         var serviceRequests = project.ServiceRequests;
         _serviceRequested = serviceRequests.Any(r => r.ServiceType == RequestManagementService.GetTerraformServiceType(_currentModule.Name) && r.Is_Completed == null);
         
@@ -110,4 +112,18 @@ public class ServiceCatalogGitModuleResource : IProjectResource
         if (_cultureService.IsFrench)
             _descriptor = frDescriptor;
     }
+    
+    private bool GetWhitelistStatus()
+    {
+        var whitelist = _project.Whitelist ?? new Project_Whitelist();
+        return _currentModule.Name switch
+        {
+            TerraformTemplate.AzureDatabricks => whitelist.AllowDatabricks,
+            TerraformTemplate.AzureStorageBlob => whitelist.AllowStorage,
+            TerraformTemplate.AzureVirtualMachine => whitelist.AllowVMs,
+            //Add future modules here
+            _ => true
+        };
+    }
+    
 }

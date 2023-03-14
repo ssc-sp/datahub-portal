@@ -108,7 +108,7 @@
             <div class="details-container">
                 @if (_loading || _folders.Contains(_selectedItem) || _currentFolder == _selectedItem)
                 {
-                    <StorageProperties DisplayName="@GetFileName(_selectedItem)"/>
+                    <StorageProperties DisplayName="@GetFileName(_selectedItem)" ContainerName="@ContainerName" />
                 }
                 else
                 {

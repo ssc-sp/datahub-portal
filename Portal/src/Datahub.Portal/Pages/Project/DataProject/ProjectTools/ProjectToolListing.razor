@@ -6,6 +6,7 @@
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Services.Notification
 @using MudBlazor.Utilities
+@using Datahub.Application.Configuration
 
 @inject ServiceAuthManager _serviceAuthManager
 @inject IUserInformationService _userInformationService
@@ -14,6 +15,7 @@
 @inject ServiceAuthManager ServiceAuthManager
 @inject ProjectToolsEmailService _emailNotificationService
 @inject ProjectResourcesListingService ProjectResourcesListingService
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
 
 <div>
     <ProjectMemberBlock AdminOnly=false ProjectAcronym="@ProjectAcronym">
@@ -58,8 +60,19 @@
 
             @if (_inactiveResources?.Count > 0)
             {
-                <MudStack Class="my-12">
-                    <MudText Class="mb-4" Typo="Typo.h2">@Localizer["Tools Catalogue"]</MudText>
+                <MudStack Class="my-12">    
+                    <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                        <MudText Class="mb-4" Typo="Typo.h2">@Localizer["Tools Catalogue"]</MudText>
+                        @if (IsDatahubAdmin)
+                        {
+                            <MudTooltip Text="@ResourceWhitelistButtonTooltip" RootClass="mx-4" Placement="Placement.Bottom"
+                                        Arrow="true">
+                                    <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-2" Href="@WhitelistUrl">
+                                        @Localizer[ResourceWhitelistButtonText]
+                                    </MudButton>
+                            </MudTooltip>
+                        }
+                    </MudStack>
                     @if (_isLoading)
                     {
                         <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
@@ -83,14 +96,17 @@
 
     [CascadingParameter(Name = "Project")]
     private Datahub_Project Project { get; set; }
+    
+    [CascadingParameter(Name = "IsDatahubAdmin")]
+    private bool IsDatahubAdmin { get; set; }
 
     private bool _isLoading = true;
     private bool _isDense = false;
     private System.Security.Claims.ClaimsPrincipal _user;
-    private bool _canViewPowerBi;
     private Microsoft.Graph.User _graphUser;
 
     private string ProjectAcronym => Project?.Project_Acronym_CD;
+    private string WhitelistUrl => $"{_datahubPortalConfiguration.ProjectUrlSegment}/{ProjectAcronym}/whitelist";
 
     private List<Project_Resources2> _projectDatabaseResources = new();
 
@@ -98,9 +114,11 @@
     private bool _isProjectAdmin = false;
 
     private List<(Type type, IDictionary<string, object> parameters)> _activeResources;
-    private List<(Type type, IDictionary<string, object> parameters)> _inactiveResources;
+    private List<(Type type, IDictionary<string, object> parameters)> _inactiveResources;   
     private string _toolContainerClass;
 
+    private const string ResourceWhitelistButtonText = "Edit Available Resources";
+    private const string ResourceWhitelistButtonTooltip = "Whitelist resources for this workspace (Only available to Datahub Admins)";
     protected override void OnInitialized()
     {
         base.OnInitialized();

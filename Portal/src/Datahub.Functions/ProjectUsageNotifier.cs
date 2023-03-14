@@ -3,8 +3,11 @@ using System.Text.RegularExpressions;
 using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Queues.Messages;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Datahub.Functions
 {
@@ -13,9 +16,11 @@ namespace Datahub.Functions
         private readonly IMediator _mediator;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
         private readonly int[] _notificationPercents;
+        private readonly ILogger<ProjectUsageNotifier> _logger;
 
-        public ProjectUsageNotifier(AzureConfig config, IMediator mediator, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+        public ProjectUsageNotifier(ILoggerFactory loggerFactory, AzureConfig config, IMediator mediator, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
         {
+            _logger = loggerFactory.CreateLogger<ProjectUsageNotifier>();
             _mediator = mediator;
             _dbContextFactory = dbContextFactory;
             _notificationPercents = ParseNotificationPercents(config.NotificationPercents ?? "25,50,80,100");
@@ -97,10 +102,18 @@ namespace Datahub.Functions
             return new(contacts, budget, project.Credits);
         }
 
-        static EmailRequestMessage GetNotificationEmail(int perc, List<string> contacts)
+        private EmailRequestMessage GetNotificationEmail(int perc, List<string> contacts)
         {
-            var subject = $"{perc}% Datahub credits consumed / {perc} % de crédits Datahub consommés";
-            var body = $"<p>Your workspace has consumed {perc}% of the allocated credits in Datahub.</p> <p>Votre espace de travail a consommé {perc} % des crédits alloués dans Datahub.</p>";
+            var (subjectTemplate, bodyTemplate) = TemplateUtils.GetEmailTemplate("cost_alert.html");
+            if (subjectTemplate is null || bodyTemplate is null)
+                _logger.LogWarning("Email template file missing!");
+
+            subjectTemplate ??= "{perc}% Datahub credits consumed";
+            bodyTemplate ??= "<p>Your workspace has consumed {perc}% of the allocated credits in Datahub.</p>";
+
+            var subject = subjectTemplate.Replace("{perc}", perc.ToString());
+            var body = bodyTemplate.Replace("{perc}", perc.ToString());
+
             EmailRequestMessage notificationEmail = new() 
             { 
                 To = contacts, 

@@ -1,0 +1,62 @@
+@inject IUserInformationService UserInformationService
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
+@inject ServiceAuthManager ServiceAuthManager
+@inject ILogger<DataProjectPage> Logger
+@inject NavigationManager NavigationManager
+
+@page "/w/{ProjectAcronymParam}/whitelist"
+@if (_project is not null && _isDatahubAdmin)
+{
+
+    <CascadingValue Value="@_project" Name="Project">
+        <CascadingValue Value="@_isDatahubAdmin" Name="IsDatahubAdmin">
+            <CascadingValue Value="@_isProjectAdmin" Name="IsProjectAdmin">
+                <ProjectInfo/>
+                <ResourceWhitelist/>
+            </CascadingValue>
+        </CascadingValue>
+    </CascadingValue>
+}
+
+@code {
+    [Parameter]
+    public string ProjectAcronymParam { get; set; }
+
+    private Datahub_Project _project;
+   
+    private bool _isDatahubAdmin;
+    private bool _isProjectAdmin;
+    private string _userId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userId = await UserInformationService.GetUserIdString();
+        if (_userId is null) Logger.LogError("UserId is null");
+
+        var authUser = (await UserInformationService.GetAuthenticatedUser());
+        _isDatahubAdmin = !ServiceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+        if (!_isDatahubAdmin)
+        {
+            //redirect back to workspace page
+            NavigationManager.NavigateTo($"/w/{ProjectAcronymParam}");
+            return;
+        }
+        
+        _isProjectAdmin = !ServiceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole($"{_project?.Project_Acronym_CD}-admin");
+        await using var projectContext = await DbFactoryProject.CreateDbContextAsync();
+
+        _project = await projectContext.Projects
+            .Include(p => p.ServiceRequests)
+            .Include(p => p.Pipelines)
+            .Include(p => p.Whitelist)
+            .AsSingleQuery()
+            .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
+            .FirstOrDefaultAsync();
+
+        
+        
+
+
+    }
+ 
+}

@@ -134,7 +134,7 @@ public class DataUpdatingService : BaseService
                 foreach (var file in folder.AllFiles)
                 {
                     var fileClient = directoryClient.GetFileClient(file.filename);
-                    await UpdateFileFolderPath(fileClient, file, currentUser);
+                    UpdateFileFolderPath(fileClient, file, currentUser);
                 }
 
                 // Iterate down sub folders
@@ -153,7 +153,7 @@ public class DataUpdatingService : BaseService
         }
     }
 
-    protected async Task UpdateFileFolderPath(DataLakeFileClient fileClient, FileMetaData file, Microsoft.Graph.User currentUser)
+    private void UpdateFileFolderPath(DataLakeFileClient fileClient, FileMetaData file, Microsoft.Graph.User currentUser)
     {
         var oldFolderpath = file.folderpath;
 

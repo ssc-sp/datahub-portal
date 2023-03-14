@@ -13,7 +13,7 @@ public static class ConfigureServices
         services.AddSingleton<IRepositoryService, RepositoryService>();
         services.AddHttpClient("InfrastructureHttpClient", client =>
         {
-            client.BaseAddress = new Uri(configuration["InfrastructureRepository:PullRequestUrl"]);
+            // client.BaseAddress = new Uri(configuration["InfrastructureRepository:PullRequestUrl"]);
 
             var token =
                 $"{configuration["InfrastructureRepository:Username"]}:{configuration["InfrastructureRepository:Password"]}";
