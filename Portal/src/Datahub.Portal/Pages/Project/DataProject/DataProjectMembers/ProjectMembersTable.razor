@@ -113,11 +113,18 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
     private bool _isDatahubAdmin = false;
 
     private string _currentUserId;
+    private string _currentUserName;
+
 
     protected override async Task OnInitializedAsync()
     {
+        var user = await UserInformationService.GetCurrentGraphUserAsync();
+        _currentUserName = user?.DisplayName ?? user?.UserPrincipalName ?? "";
+
         _currentUserId = await UserInformationService.GetUserIdString();
-        if (_currentUserId is null) Logger.LogError("UserId is null");
+        if (_currentUserId is null) 
+            Logger.LogError("UserId is null");
+
         var authUser = (await UserInformationService.GetAuthenticatedUser());
         _isDatahubAdmin = !ServiceAuthManager.GetViewingAsGuest(_currentUserId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
         _isProjectAdmin = !ServiceAuthManager.GetViewingAsGuest(_currentUserId) && authUser.IsInRole($"{ProjectAcronym}-admin");
@@ -179,10 +186,15 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
     private async Task OpenDialog()
     {
         var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.ExtraLarge };
-        var dialogParameters = new DialogParameters { { "CurrentProjectMembers", _projectUsers}, {"ProjectAcronym", ProjectAcronym} };
+        var dialogParameters = new DialogParameters 
+        { 
+            { "CurrentProjectMembers", _projectUsers}, 
+            {"ProjectAcronym", ProjectAcronym},
+            {"Inviter", _currentUserName }
+        };
         var dialog = await DialogService.ShowAsync<AddNewUsersToProjectDialog>(Localizer[INVITE_USERS_DIALOG_TITLE], dialogParameters, dialogOptions);
         var result = await dialog.Result;
-        if (!result.Cancelled)
+        if (!result.Canceled)
         {
             var resultInt = (int)result.Data;
             // if result int is 1, return a string in singular form saying 1 user was added, if multiple, return a string in plural form saying x users were added

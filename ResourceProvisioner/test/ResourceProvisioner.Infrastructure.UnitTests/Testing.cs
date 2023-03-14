@@ -46,7 +46,7 @@ public partial class Testing
         
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
-        _repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(), _configuration, _terraformService);
+        _repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(), _resourceProvisionerConfiguration, _terraformService);
     }
 
     [OneTimeTearDown]

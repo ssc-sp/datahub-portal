@@ -145,7 +145,7 @@ public class RepositoryServiceTests
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
 
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _configuration, mockTerraformService);
+            _resourceProvisionerConfiguration, mockTerraformService);
 
         var result =
             await repositoryService.ExecuteResourceRun(TestTemplate, TestingWorkspace, RequestingUser);
@@ -171,7 +171,7 @@ public class RepositoryServiceTests
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
 
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _configuration, mockTerraformService);
+            _resourceProvisionerConfiguration, mockTerraformService);
 
         var result =
             await repositoryService.ExecuteResourceRun(TestTemplate, TestingWorkspace, RequestingUser);
@@ -203,7 +203,7 @@ public class RepositoryServiceTests
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
         
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _configuration, mockTerraformService);
+            _resourceProvisionerConfiguration, mockTerraformService);
 
         var result =
             await repositoryService.ExecuteResourceRuns(modules, TestingWorkspace, RequestingUser);
@@ -233,7 +233,7 @@ public class RepositoryServiceTests
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _configuration, mockTerraformService);
+            _resourceProvisionerConfiguration, mockTerraformService);
 
         await repositoryService.FetchRepositoriesAndCheckoutProjectBranch(ProjectAcronym);
 
@@ -272,7 +272,7 @@ public class RepositoryServiceTests
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
         
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _configuration, mockTerraformService);
+            _resourceProvisionerConfiguration, mockTerraformService);
 
         var result = await repositoryService.CreateInfrastructurePullRequest(ProjectAcronym, RequestingUser);
 

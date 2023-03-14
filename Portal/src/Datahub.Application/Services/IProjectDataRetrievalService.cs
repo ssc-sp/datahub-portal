@@ -22,5 +22,5 @@ public interface IProjectDataRetrievalService
 
     Task<bool> CreateFolderAsync(string projectAcronym, string containerName, string currentWorkingDirectory, string folderName);
 
-    Task<StorageMetadata> GetStorageMetadataAsync(string projectAcronym);
+    Task<StorageMetadata> GetStorageMetadataAsync(string projectAcronym, string containerName);
 }
