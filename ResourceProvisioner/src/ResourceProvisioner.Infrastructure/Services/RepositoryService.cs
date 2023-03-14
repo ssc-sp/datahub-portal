@@ -270,6 +270,8 @@ public class RepositoryService : IRepositoryService
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Could not auto-approve infrastructure pull request {PullRequestUrl}", patchUrl);
+            var content = await response.Content.ReadAsStringAsync();
+            _logger.LogError("Error: {Error}", content);
         }
         else
         {
