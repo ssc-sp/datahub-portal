@@ -68,7 +68,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         // try to see if function wrapped it in a "Value" object
         if (string.IsNullOrWhiteSpace(id))
         {
-            id = resultJson?["Value"]?["data"]?["id"]?.ToString() ?? string.Empty;
+            id = resultJson?["Value"]?["data"]?["id"]?.ToString() ?? throw new InvalidOperationException($"No ID available in response '{resultString}'");
         }
         
         _logger.LogInformation("Invite sent to {Email} and received id {Id}", registrationRequestEmail, id);
