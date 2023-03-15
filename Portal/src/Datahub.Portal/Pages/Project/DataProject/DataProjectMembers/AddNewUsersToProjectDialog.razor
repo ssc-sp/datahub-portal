@@ -172,7 +172,7 @@
             return;
         }
 
-        if (user.Id is null)
+        if (string.IsNullOrWhiteSpace(user.Id))
         {
             UserNotValidError();
             return;
