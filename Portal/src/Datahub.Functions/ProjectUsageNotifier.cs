@@ -1,7 +1,9 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Azure.Storage.Queues.Models;
 using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Infrastructure.Services;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -17,19 +19,26 @@ namespace Datahub.Functions
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
         private readonly int[] _notificationPercents;
         private readonly ILogger<ProjectUsageNotifier> _logger;
+        private readonly QueuePongService _pongService;
 
-        public ProjectUsageNotifier(ILoggerFactory loggerFactory, AzureConfig config, IMediator mediator, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+        public ProjectUsageNotifier(ILoggerFactory loggerFactory, AzureConfig config, IMediator mediator, 
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, QueuePongService pongService)
         {
             _logger = loggerFactory.CreateLogger<ProjectUsageNotifier>();
             _mediator = mediator;
             _dbContextFactory = dbContextFactory;
             _notificationPercents = ParseNotificationPercents(config.NotificationPercents ?? "25,50,80,100");
+            _pongService = pongService;
         }
 
         [Function("ProjectUsageNotifier")]
         public async Task Run([QueueTrigger("%QueueProjectUsageNotification%", Connection = "DatahubStorageConnectionString")] string queueItem, 
             CancellationToken cancellationToken)
         {
+            // test for ping
+            if (await _pongService.Pong(queueItem))
+                return;
+
             // deserialize message
             var message = DeserializeQueueMessage(queueItem);
 
