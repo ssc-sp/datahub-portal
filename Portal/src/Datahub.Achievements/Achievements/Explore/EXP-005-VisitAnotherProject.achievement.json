@@ -1,7 +1,7 @@
 {
   "Code": "EXP-005",
   "Name": "What are you guys up to?",
-  "Description": "View a project you are not a member of",
+  "Description": "View a workspace you are not a member of",
   "ParentAchievementCode": "EXP-009",
   "Icon": "fas fa-webcam",
   "RuleExpressions": [
