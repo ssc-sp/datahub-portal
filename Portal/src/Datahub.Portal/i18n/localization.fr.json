@@ -743,7 +743,7 @@
   "Azure Databricks Workspace": "Classeur Azure Databricks",
   "Access not authorized": "Accès non autorisé",
   "Request Access": "Demander l'accès",
-  "Service Request is being reviewed": "La demande de service est en cours d'examen",
+  "Request is being processed": "La demande est en cours de traitement",
   "Request Service Creation": "Demande de création de service",
   "Sharing requests awaiting approval:": "Demandes de partage en attente d'approbation :",
   "Azure Databricks": "Azure Databricks",
@@ -1697,7 +1697,7 @@
       "ManageServices": "Approuver la création de services et les demandes d'accès",
       "Registrations": "Gérer les enregistrements",
       "SharingAPIs": "Gérer les clés API pour les utilisateurs externes",
-      "Metadata": "Gérer le modèle de métadonnées de Datahub",
+      "Metadata": "Gérer le modèle de métadonnées de Datahub"
     },
     "BUTTON_CAPTIONS": {
       "OpenPage": "Ouvrir la page",
