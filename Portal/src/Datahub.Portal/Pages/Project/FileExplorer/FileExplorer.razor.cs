@@ -146,7 +146,7 @@ public partial class FileExplorer
 
         _ = InvokeAsync(async () =>
         {
-            await _projectDataRetrievalService.UploadFileAsync(ProjectAcronym.ToLower(), ContainerName, fileMetadata, uploadedBytes =>
+            var succeeded = await _projectDataRetrievalService.UploadFileAsync(ProjectAcronym.ToLower(), ContainerName, fileMetadata, uploadedBytes =>
             {
                 fileMetadata.uploadedBytes = uploadedBytes;
                 _ = InvokeAsync(StateHasChanged);
@@ -156,7 +156,10 @@ public partial class FileExplorer
             if (folder == _currentFolder)
             {
                 _files.RemoveAll(f => f.name == fileMetadata.name);
-                _files.Add(fileMetadata);
+                if (succeeded)
+                {
+                    _files.Add(fileMetadata);
+                }                    
             }
 
             await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserUploadFile);
