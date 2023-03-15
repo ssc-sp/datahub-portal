@@ -1,7 +1,7 @@
 {
   "Code": "PRJ-008",
   "Name": "Now we're cooking with gas",
-  "Description": "Unlock all the initial release project achievements",
+  "Description": "Unlock all the initial release workspace achievements",
   "Icon": "fas fa-cauldron",
   "MetaAchievement": true,
   "RuleExpressions": [

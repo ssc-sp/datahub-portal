@@ -1,7 +1,7 @@
 {
   "Code": "EXP-010",
   "Name": "Home, sweet home",
-  "Description": "Visit one of your own projects",
+  "Description": "Visit one of your own workspaces",
   "ParentAchievementCode": "EXP-009",
   "Icon": "fas fa-hot-tub",
   "RuleExpressions": [
