@@ -210,5 +210,9 @@
   "Government of Canada email address is required": "L’adresse courriel du gouvernement du Canada est requise",
   "REGISTER": "S'INSCRIRE",
   "Log in": "Se connecter",
-  "You will be redirected to the log in page.": "Vous serez redirigé vers la page d’ouverture de session."
+  "You will be redirected to the log in page.": "Vous serez redirigé vers la page d’ouverture de session.",
+  "Storage": "Stockage",
+  "Initializing Profile...": "Initialisation du profil...",
+  "Earned on": "Gagné le",
+  "Close": "Fermer"
 }
