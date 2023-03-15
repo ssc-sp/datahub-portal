@@ -1,7 +1,7 @@
 {
   "Code": "PRJ-006",
   "Name": "Another one bytes the dust",
-  "Description": "Delete a file from the project with the Storage Explorer",
+  "Description": "Delete a file from the workspace with the Storage Explorer",
   "ParentAchievementCode": "PRJ-008",
   "Icon": "fas fa-sun-dust",
   "RuleExpressions": [
