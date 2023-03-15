@@ -15,6 +15,7 @@ namespace Datahub.Infrastructure.Services;
 
 public class ProjectDataRetrievalService : IProjectDataRetrievalService
 {
+    private const long MaxFileSize = 10*1024*1024*1024L; // 10GB
     private const string METADATA_FILE_ID = "fileid";
 
     private readonly ILogger<ProjectDataRetrievalService> _logger;
@@ -114,9 +115,16 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
             ProgressHandler = new UploadProgressHandler(progess)
         };
 
-        var result = await fileClient.UploadAsync(file.BrowserFile.OpenReadStream(), options);
-
-        return result is not null;
+        try
+        {
+            var result = await fileClient.UploadAsync(file.BrowserFile.OpenReadStream(MaxFileSize), options);
+            return result is not null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message, ex);
+            return false;
+        }
     }
 
     public async Task<bool> DeleteFileAsync(string projectAcronym, string container, string filePath)
