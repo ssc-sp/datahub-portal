@@ -1,4 +1,5 @@
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Infrastructure.Services;
 using MailKit.Net.Smtp;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -11,16 +12,22 @@ public class EmailNotificationHandler
 {
     private readonly ILogger _logger;
     private readonly AzureConfig _config;
+    private readonly QueuePongService _pongService;
 
-    public EmailNotificationHandler(ILoggerFactory loggerFactory, AzureConfig config)
+    public EmailNotificationHandler(ILoggerFactory loggerFactory, AzureConfig config, QueuePongService pongService)
     {
         _logger = loggerFactory.CreateLogger<EmailNotificationHandler>();
         _config = config;
+        _pongService = pongService;
     }
 
     [Function("EmailNotificationHandler")]
     public async Task Run([QueueTrigger("%QueueEmailNotification%", Connection = "DatahubStorageConnectionString")] string requestMessage)
     {
+        // test for ping
+        if (await _pongService.Pong(requestMessage))
+            return;
+
         // check mail configuration
         if (!_config.Email.IsValid)
         {
