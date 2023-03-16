@@ -1,7 +1,7 @@
 {
   "Code": "PRJ-001",
   "Name": "One of us!",
-  "Description": "Invite a user to your project",
+  "Description": "Invite a user to your workspace",
   "ParentAchievementCode": "PRJ-008",
   "Icon": "fas fa-users",
   "RuleExpressions": [
