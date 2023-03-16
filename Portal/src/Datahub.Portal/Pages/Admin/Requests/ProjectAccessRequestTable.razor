@@ -68,7 +68,7 @@
 
     private List<Func<Datahub_Project_User_Request, string>> _projectRequestAccessorFunctions = new()
     {
-        p => p.Project.Project_Name,
+        p => p.Project.ProjectName,
         p => p.User_ID ?? "N/A",
         p => p.Requested_DT.ToShortDateString(),
         _ => ".."
