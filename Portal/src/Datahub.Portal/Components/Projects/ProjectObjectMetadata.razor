@@ -80,7 +80,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var ctx = await ContextFactory.CreateDbContextAsync();
+        using var ctx = await ContextFactory.CreateDbContextAsync();
         _project = await ctx.Projects.Include(p => p.Resources)
             .AsSingleQuery()
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
@@ -151,22 +151,22 @@
                 _project.Branch_Name = branch.Label;
 
             var name_en = _editor.GetValue(FieldNames.name_en);
-            if (string.IsNullOrEmpty(name_en))
+            if (!string.IsNullOrEmpty(name_en))
                 _project.Project_Name = name_en;
 
             var name_fr = _editor.GetValue(FieldNames.name_fr);
-            if (string.IsNullOrEmpty(name_fr))
+            if (!string.IsNullOrEmpty(name_fr))
                 _project.Project_Name_Fr = name_fr;
 
             var desc_en = _editor.GetValue(FieldNames.description_en);
-            if (string.IsNullOrEmpty(desc_en))
+            if (!string.IsNullOrEmpty(desc_en))
                 _project.Project_Summary_Desc = desc_en;
 
             var desc_fr = _editor.GetValue(FieldNames.description_fr);
-            if (string.IsNullOrEmpty(desc_en))
+            if (!string.IsNullOrEmpty(desc_en))
                 _project.Project_Summary_Desc_Fr = desc_fr;
 
-            var ctx = await ContextFactory.CreateDbContextAsync();
+            using var ctx = await ContextFactory.CreateDbContextAsync();
             ctx.Attach(_project);
             ctx.Projects.Update(_project);
             await ctx.SaveChangesAsync();
