@@ -57,6 +57,7 @@
         
         _userHasInitiatives = !(await _userInformationService.IsUserWithoutInitiatives());
         _isDatahubAdmin = await _userInformationService.IsUserDatahubAdmin();
+
         _navTextStyle = new StyleBuilder()
             .AddStyle("font-size", ".5rem")
             .AddStyle("text-transform", "uppercase")

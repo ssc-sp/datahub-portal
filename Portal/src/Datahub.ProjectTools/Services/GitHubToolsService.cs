@@ -23,13 +23,19 @@ public record GitHubModule(string Name, string Path,
     string? CardName,
     string? CalculatorPath,
     string? DocumentationUrl,
-    string? ActionUrl,
     string? ReadMorePath,
     string? Icon,
     List<GitHubModuleDescriptor> Descriptors,
     GitHubModuleStatus Status);
 
-public record GitHubModuleDescriptor(string Language, string Title, string? CatalogSubtitle, string? CatalogDescription, string? ResourceDescription, string[]? Tags);
+public record GitHubModuleDescriptor(string Language, 
+    string Title, 
+    string? CatalogSubtitle, 
+    string? CatalogDescription, 
+    string? ResourceDescription, 
+    string? ActionURL,
+    string? ActionDescription,
+    string[]? Tags);
 
 public record RepositoryDescriptorErrors(string Path, string Error);
 
@@ -130,6 +136,7 @@ public class GitHubToolsService
             french = GetSubSections(readmeDocFlattened, "Francais", 1);
         var descriptors_fr = ExtractSubSections(french, 2);
 
+        var yaml = GetFrontMatter(readmeDoc, dir);
         //Language            
 
         var en = new GitHubModuleDescriptor(
@@ -138,6 +145,8 @@ public class GitHubToolsService
             ValidateKey("Catalog Subtitle", dir, descriptors),
             ValidateKey("Catalog Description", dir, descriptors),
             ValidateKey("Resource Description", dir, descriptors),
+            yaml.GetValueOrDefault("actionUrlEn"),
+            yaml.GetValueOrDefault("actionDescriptionEn"),
             ValidateKey("Tags", dir, descriptors)?.Split(",").Select(t => t.Trim()).ToArray()
         );
         var fr = new GitHubModuleDescriptor(
@@ -146,10 +155,11 @@ public class GitHubToolsService
             ValidateKey("Sous-Titre du Catalogue", dir, descriptors_fr),
             ValidateKey("Description du Catalogue", dir, descriptors_fr),
             ValidateKey("Description de la Ressource", dir, descriptors_fr),
+            yaml.GetValueOrDefault("actionUrlFr"),
+            yaml.GetValueOrDefault("actionDescriptionFr"),
             ValidateKey("Mots Clefs", dir, descriptors_fr)?.Split(",").Select(t => t.Trim()).ToArray()
         );
 
-        var yaml = GetFrontMatter(readmeDoc, dir);
         var status = yaml.GetValueOrDefault("status");
         var moduleStatus = Enum.TryParse<GitHubModuleStatus>(status, true, out var moduleStatusEnum)
             ? moduleStatusEnum
@@ -160,7 +170,6 @@ public class GitHubToolsService
             yaml.GetValueOrDefault("dhcard"),
             yaml.GetValueOrDefault("calculator"),
             yaml.GetValueOrDefault("documentationUrl"),
-            yaml.GetValueOrDefault("actionUrl"),
             yaml.GetValueOrDefault("readMore"),
             yaml.GetValueOrDefault("icon"),
             new List<GitHubModuleDescriptor> { en, fr },

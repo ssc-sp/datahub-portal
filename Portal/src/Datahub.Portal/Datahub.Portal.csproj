@@ -15,9 +15,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="Controllers\OpenDataApprovalForm.docx" />
+    <None Remove="i18n\achievements.fr.json.bad" />
   </ItemGroup>
   <ItemGroup>
     <_ContentIncludedByDefault Remove="efpt.config.json" />
+    <_ContentIncludedByDefault Remove="i18n\achievements.fr.json.bad" />
     <_ContentIncludedByDefault Remove="i18n\ssc\registration.fr.json" />
     <_ContentIncludedByDefault Remove="Pages\Admin\Requests\Registration\RegistrationActions.razor" />
     <_ContentIncludedByDefault Remove="Pages\Admin\Requests\Registration\ViewRegistrationRequests.razor" />
@@ -51,6 +53,9 @@
     <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\PrivacyContentFr.razor" />
     <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\StartBuildTodayFr.razor" />
     <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\TryItFr.razor" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="i18n\achievements.fr.json.bad" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Controllers\OpenDataApprovalForm.docx" />
