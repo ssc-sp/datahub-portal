@@ -105,8 +105,8 @@ public class RepositoryServiceTests
     [Test]
     public async Task ShouldFetchBothRepositoriesAndCheckoutProjectBranch()
     {
-        var moduleRepositoryPath = DirectoryUtils.GetModuleRepositoryPath(_configuration);
-        var infrastructureRepositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_configuration);
+        var moduleRepositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
+        var infrastructureRepositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
 
         Assert.That(Directory.Exists(moduleRepositoryPath), Is.False);
         Assert.That(Directory.Exists(infrastructureRepositoryPath), Is.False);
@@ -295,8 +295,8 @@ public class RepositoryServiceTests
 
     private static Repository InitializeTestInfrastructureRepository()
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_configuration);
-        var projectPath = DirectoryUtils.GetProjectPath(_configuration, ProjectAcronym);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
+        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, ProjectAcronym);
 
         VerifyDirectoryDoesNotExist(repositoryPath);
         Directory.CreateDirectory(repositoryPath);
@@ -337,7 +337,7 @@ public class RepositoryServiceTests
     {
         var fileName = $"{Guid.NewGuid()}.tf";
         const string content = "# Commit this!";
-        var projectPath = DirectoryUtils.GetProjectPath(_configuration, ProjectAcronym);
+        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, ProjectAcronym);
 
         if (!Directory.Exists(projectPath))
         {
@@ -350,7 +350,7 @@ public class RepositoryServiceTests
 
     private static void DeleteAllFilesInTestProject()
     {
-        var projectPath = DirectoryUtils.GetProjectPath(_configuration, ProjectAcronym);
+        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, ProjectAcronym);
         if (!Directory.Exists(projectPath))
         {
             return;
