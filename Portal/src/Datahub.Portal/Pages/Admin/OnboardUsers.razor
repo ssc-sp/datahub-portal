@@ -205,16 +205,21 @@
 
     private async void OnUserClick(GraphUser chosenUser)
     {
+        if (string.IsNullOrWhiteSpace(chosenUser.Id))
+        {
+            throw new Exception("The user id is empty");
+        }
+        
         var user = new Datahub_Project_User()
-            {
-                User_ID = chosenUser.Id,
-                Project = _project,
-                ApprovedUser = await UserInformationService.GetUserIdString(),
-                Approved_DT = DateTime.Now,
-                IsAdmin = false,
-                IsDataApprover = false,
-                User_Name = chosenUser.Mail.ToLower()
-            };
+        {
+            User_ID = chosenUser.Id,
+            Project = _project,
+            ApprovedUser = await UserInformationService.GetUserIdString(),
+            Approved_DT = DateTime.Now,
+            IsAdmin = false,
+            IsDataApprover = false,
+            User_Name = chosenUser.Mail.ToLower()
+        };
         _chosenUsers.Add(user);
         _inputValue = string.Empty;
         Context.Project_Users.Add(user);
