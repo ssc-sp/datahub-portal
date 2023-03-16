@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using System.Transactions;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
+using Datahub.Infrastructure.Services;
 using Datahub.ProjectTools.Services;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
@@ -16,11 +17,13 @@ public class TerraformOutputHandler
 {
     private readonly DatahubProjectDBContext _projectDbContext;
     private readonly ILogger _logger;
+    private readonly QueuePongService _pongService;
 
-    public TerraformOutputHandler(ILoggerFactory loggerFactory, DatahubProjectDBContext projectDbContext)
+    public TerraformOutputHandler(ILoggerFactory loggerFactory, DatahubProjectDBContext projectDbContext, QueuePongService pongService)
     {
         _projectDbContext = projectDbContext;
         _logger = loggerFactory.CreateLogger("TerraformOutputHandler");
+        _pongService = pongService;
     }
 
     [Function("TerraformOutputHandler")]
@@ -30,6 +33,10 @@ public class TerraformOutputHandler
         FunctionContext context)
     {
         _logger.LogInformation($"C# Queue trigger function started");
+
+        // test for ping
+        if (await _pongService.Pong(myQueueItem))
+            return;
 
         var deserializeOptions = new JsonSerializerOptions
         {

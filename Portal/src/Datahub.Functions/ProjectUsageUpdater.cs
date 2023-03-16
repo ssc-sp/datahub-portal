@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Projects;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
@@ -10,17 +11,23 @@ namespace Datahub.Functions
     {
         private readonly ProjectUsageService _usageService;
         private readonly IMediator _mediator;
+        private readonly QueuePongService _pongService;
 
-        public ProjectUsageUpdater(ProjectUsageService usageService, IMediator mediator)
+        public ProjectUsageUpdater(ProjectUsageService usageService, IMediator mediator, QueuePongService pongService)
         {
             _usageService = usageService;
             _mediator = mediator;
+            _pongService = pongService;
         }
 
         [Function("ProjectUsageUpdater")]
         public async Task Run([QueueTrigger("%QueueProjectUsageUpdate%", Connection = "DatahubStorageConnectionString")] string queueItem, 
             CancellationToken cancellationToken)
         {
+            // test for ping
+            if (await _pongService.Pong(queueItem))
+                return;
+
             // deserialize message
             var message = DeserializeQueueMessage(queueItem);
 

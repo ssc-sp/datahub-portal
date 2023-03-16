@@ -56,19 +56,31 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         var jsonBody = new JsonObject(payload!);
         var url = _datahubPortalConfiguration.DatahubGraphInviteFunctionUrl;
 
+        var numberOfRetries = 0;
+        const int maxNumberOfRetries = 5;
+        string id, resultString;
+        
         var content = new StringContent(jsonBody.ToString(), Encoding.UTF8, "application/json");
-        using var client = _httpClientFactory.CreateClient();
-        var result = await client.PostAsync(url, content);
+        do
+        {
+            using var client = _httpClientFactory.CreateClient();
+            var result = await client.PostAsync(url, content);
 
-        var resultString = await result.Content.ReadAsStringAsync();
+            resultString = await result.Content.ReadAsStringAsync();
         
-        var resultJson = JsonNode.Parse(resultString);
-        var id = resultJson?["data"]?["id"]?.ToString() ?? string.Empty;
+            var resultJson = JsonNode.Parse(resultString);
+            id = resultJson?["data"]?["id"]?.ToString() ?? string.Empty;
         
-        // try to see if function wrapped it in a "Value" object
+            // try to see if function wrapped it in a "Value" object
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                id = resultJson?["Value"]?["data"]?["id"]?.ToString() ?? string.Empty;
+            }
+        } while (string.IsNullOrWhiteSpace(id) || numberOfRetries++ < maxNumberOfRetries);
+
         if (string.IsNullOrWhiteSpace(id))
         {
-            id = resultJson?["Value"]?["data"]?["id"]?.ToString() ?? throw new InvalidOperationException($"No ID available in response '{resultString}' from {url}");
+            throw new InvalidOperationException($"No ID available in response '{resultString}' from {url}");
         }
         
         _logger.LogInformation("Invite sent to {Email} and received id {Id}", registrationRequestEmail, id);
