@@ -282,6 +282,7 @@ public class RepositoryService : IRepositoryService
 
     private StringContent BuildPullRequestPatchBody()
     {
+        _logger.LogInformation("Building infrastructure pull request patch body for auto-approve user {AutoApproveUserOid}", _resourceProvisionerConfiguration.InfrastructureRepository.AutoApproveUserOid);
         var patchData = new JsonObject
         {
             ["autoCompleteSetBy"] = new JsonObject
