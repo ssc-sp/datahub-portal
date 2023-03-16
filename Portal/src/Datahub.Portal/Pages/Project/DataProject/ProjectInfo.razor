@@ -27,7 +27,7 @@
 <MudStack Row>
     <MudChip Label Color="@Color.Dark" class="project-data-sensitivity">@Localizer[Project.Data_Sensitivity]</MudChip>
 
-    @if (_projectCredits is not null && _projectBudget > 0)
+    @if (CreditsDataExists && _projectBudget > 0)
     {
         <MudBadge Icon="@Icons.Material.Filled.QuestionMark" Color="@GetCostChipColor()" Overlap="@true" Bordered="@true">
             <MudChip Label="true" 
@@ -35,11 +35,21 @@
                      IconColor="@GetCostChipColor()" 
                      Variant="@Variant.Text"
                      Color="@GetCostChipColor()" 
-                     class="project-data-sensitivity" 
                      OnClick=@HandleShowCosts>
                 @($"{CurrentCredits:C} {Localizer["Total spent"]}")
             </MudChip>
         </MudBadge>
+    }
+    else
+    {
+        <MudChip Label="true"
+                 Icon="@Icons.Material.Filled.AttachMoney"
+                 IconColor="@GetCostChipColor()"
+                 Variant="@Variant.Text"
+                 Color="@GetCostChipColor()"
+                 Disabled="true">
+                 @Localizer["No recent data"]
+        </MudChip>
     }
 
     @if (IsProjectAdmin || IsDatahubAdmin)
@@ -104,6 +114,8 @@
     private Project_Credits _projectCredits = default;
 
     private decimal CurrentCredits => Convert.ToDecimal(_projectCredits.Current);
+
+    private bool CreditsDataExists => _projectCredits is not null && _projectCredits.ProjectId != 0;
 
     private decimal _projectBudget;
     private bool _loading = true;
