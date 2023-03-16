@@ -43,7 +43,7 @@
 @code {
 
     private bool _userHasInitiatives;
-    private bool _isNotDatahubAdmin;
+    private bool _isDatahubAdmin;
     private string _navTextStyle;
 
     private List<(string Href, Icon Icon, string Label, List<string> Roles)> _authorizedLinks = new();
@@ -56,7 +56,7 @@
         _authorizedLinks = GetAuthorizedLinks(user.Id);
         
         _userHasInitiatives = !(await _userInformationService.IsUserWithoutInitiatives());
-        _isNotDatahubAdmin = !(await _userInformationService.IsUserDatahubAdmin());
+        _isDatahubAdmin = (await _userInformationService.IsUserDatahubAdmin());
         _navTextStyle = new StyleBuilder()
             .AddStyle("font-size", ".5rem")
             .AddStyle("text-transform", "uppercase")
@@ -77,7 +77,7 @@
             ("/home", Icon.HOME, "SIDEBAR.Home", true),
             ("/w", Icon.PROJECT, "SIDEBAR.Workspaces", true), 
             ("/resources", Icon.RESOURCES, "SIDEBAR.Resources", true),
-            ("/tools", Icon.TOOLS, "SIDEBAR.Tools", !_isNotDatahubAdmin),
+            ("/tools", Icon.TOOLS, "SIDEBAR.Tools", _isDatahubAdmin),
             ("/discovery", Icon.CATALOG, "SIDEBAR.Catalog", (IsFeatureEnabled("DataCatalog") && _userHasInitiatives)),
             ("/profile", Icon.PROFILE, "My Profile", true),
             //("/data", Icon.STORAGE, "SIDEBAR.Storage"),
@@ -88,7 +88,7 @@
 
     private List<(string Href, Icon Icon, string Label, List<string> Roles)> GetAuthorizedLinks(string userId = null)
     {
-        if (!_isNotDatahubAdmin)
+        if (_isDatahubAdmin)
         {
             return new()
             {
