@@ -1,0 +1,85 @@
+﻿@page "/debug/functions"
+@using Azure.Storage.Queues;
+
+@implements IDisposable
+@inject IConfiguration Configuration
+
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Function Health</MudText>
+        </CardHeaderContent>
+        <CardHeaderActions>
+            <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" />
+        </CardHeaderActions>
+    </MudCardHeader>
+    <MudCardContent>
+
+        <MudList Clickable="true" Dense="false" DisableGutters="false">
+            @foreach (var message in _messages)
+            {
+                <MudListItem Text=@message.Pong />
+            }
+        </MudList>
+
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Variant="Variant.Text" Color="Color.Primary">Read More</MudButton>
+    </MudCardActions>
+</MudCard>
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleRefreshMessages">Primary</MudButton>
+
+@code {
+
+    private Timer _timer;
+
+    private List<PongMessage> _messages = new()
+    {
+        new("...")
+    };
+
+    protected override void OnInitialized()
+    {
+        _timer = new(HandleRefreshMessages, this, TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
+    }
+
+    private async Task RefreshMessages()
+    {
+        await Task.CompletedTask;
+    }
+
+    private void HandleRefreshMessages(object data)
+    {
+        _ = HandleRefreshMessagesAsync();
+    }
+
+    private async Task HandleRefreshMessagesAsync()
+    {
+        var storageConnectionString = Configuration["DatahubStorageConnectionString"];
+        if (string.IsNullOrEmpty(storageConnectionString))
+            return;
+
+        var queueClient = new QueueClient(storageConnectionString, "pong-queue");
+        try
+        {
+            var result = await queueClient.ReceiveMessagesAsync();
+            foreach (var message in result.Value)
+            {
+                _messages.Add(new(message.Body.ToString()));
+            }
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
+        }
+    }
+
+
+    public void Dispose()
+    {
+        _timer?.Dispose();    
+    }
+
+    record PongMessage(string Pong);
+}
