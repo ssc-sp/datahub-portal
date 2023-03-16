@@ -6,15 +6,16 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Infrastructure.Common;
+// ReSharper disable InconsistentNaming
 
 namespace ResourceProvisioner.Infrastructure.UnitTests;
 
 [SetUpFixture]
-public partial class Testing
+public class Testing
 {
     internal static IConfiguration _configuration = null!;
-    internal static IRepositoryService _repositoryService;
-    internal static ITerraformService _terraformService;
+    internal static IRepositoryService _repositoryService = null!;
+    internal static ITerraformService _terraformService = null!;
     
     internal static ResourceProvisionerConfiguration _resourceProvisionerConfiguration = null!;
     
@@ -42,7 +43,7 @@ public partial class Testing
         _resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
         _configuration.Bind(_resourceProvisionerConfiguration);
         
-        _terraformService = new TerraformService(Mock.Of<ILogger<TerraformService>>(), _configuration);
+        _terraformService = new TerraformService(Mock.Of<ILogger<TerraformService>>(), _resourceProvisionerConfiguration, _configuration);
         
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
@@ -102,7 +103,7 @@ public partial class Testing
         await _terraformService.ExtractVariables(module, workspace);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
 
-        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
+        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
         return Directory
             .GetFiles(moduleDestinationPath, "*.*", SearchOption.TopDirectoryOnly).Length;
     }
