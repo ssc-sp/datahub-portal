@@ -59,7 +59,7 @@ namespace Datahub.Functions
             // load from details from db
             var details = await GetProjectDetails(ctx, projectId, cancellationToken);
 
-            if (details is null)
+            if (details is null || details.Credits is null)
             {
                 // log something
                 return;

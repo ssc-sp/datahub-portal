@@ -16,7 +16,7 @@ public class ProjectUsageService
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<Project_Credits?> UpdateProjectUsage(int projectId, string resourceGroup, CancellationToken ct)
+    public async Task<bool> UpdateProjectUsage(int projectId, string resourceGroup, CancellationToken ct)
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
 
@@ -28,7 +28,7 @@ public class ProjectUsageService
 
         // update usage
         if (!await UpdateUsage(projectCredits, resourceGroup, ct))
-            return default;
+            return false;
 
         // add or update
         if (projectCredits.Id == 0)
@@ -43,7 +43,7 @@ public class ProjectUsageService
         // save changes
         await ctx.SaveChangesAsync(ct);
 
-        return projectCredits;
+        return true;
     }
 
     static bool UpdatedInPeriod(DateTime? date, int minutes)
