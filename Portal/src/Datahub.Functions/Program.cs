@@ -1,6 +1,7 @@
 using Datahub.Core.Model.Datahub;
 using Datahub.Functions;
 using Datahub.Infrastructure.Queues.MessageHandlers;
+using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Azure;
 using Datahub.Infrastructure.Services.Projects;
 using MediatR;
@@ -44,6 +45,7 @@ var host = new HostBuilder()
         services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
         services.AddSingleton<AzureManagementService>();
         services.AddScoped<ProjectUsageService>();
+        services.AddScoped<QueuePongService>();
     })
     .Build();
 
