@@ -12,6 +12,7 @@
 @inject NavigationManager _navigationManager
 @inject IMetadataBrokerService _metadataBrokerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
 
 @if (_loading)
 {
@@ -89,7 +90,7 @@
         @if ((Project?.Project_Budget ?? 0) == 0)
         {
             <MudAlert Severity="Severity.Warning">
-                <MudLink Href=@_supportFormLink Underline="Underline.None">
+                <MudLink Href="@_datahubPortalConfiguration.SupportFormUrl" Underline="Underline.None">
                     @Localizer["The project doesn't have a budget assigned. Contact a Datahub Administrator."]
                 </MudLink>
             </MudAlert>
@@ -110,9 +111,7 @@
 
     [CascadingParameter(Name = "IsDatahubAdmin")]
     private bool IsDatahubAdmin { get; set; }
-
-    private string _supportFormLink = "https://forms.office.com/r/zk82ehvUtv)%E2%80%9D";
-
+    
     private Project_Credits _projectCredits = default;
 
     private decimal CurrentCredits => Convert.ToDecimal(_projectCredits.Current);

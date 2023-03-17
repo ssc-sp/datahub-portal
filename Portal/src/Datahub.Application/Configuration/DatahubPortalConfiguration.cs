@@ -35,6 +35,9 @@ public class DatahubPortalConfiguration
     public DatahubStorageQueue DatahubStorageQueue { get; set; } = new();
     public string DatahubGraphInviteFunctionUrl { get; set; } = null!;
     public TermsAndConditionsUrl TermsAndConditionsUrl { get; set; } = new();
+
+    public string SupportFormUrl { get; set; } =
+        "https://forms.office.com/pages/responsepage.aspx?id=lMFb0L-U1kquLh2w8uOPXhksOXzZ73RCp9fVTz4vTU5UNTc1U00yNVUxWVg4SkJGMFVHN1RCTTdQRS4u";
 }
 
 public class Achievements
