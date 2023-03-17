@@ -1,9 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Enums;
 using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
+using TerraformVariables = Datahub.Shared.TerraformVariables;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Templates;
 
@@ -15,7 +17,8 @@ public class AzureDatabricksTemplateTests
     public void RunBeforeEachTest()
     {
         var localModuleClonePath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
-        var localInfrastructureClonePath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
+        var localInfrastructureClonePath =
+            DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
 
         VerifyDirectoryDoesNotExist(localModuleClonePath);
         VerifyDirectoryDoesNotExist(localInfrastructureClonePath);
@@ -51,7 +54,8 @@ public class AzureDatabricksTemplateTests
 
         await _terraformService.CopyTemplateAsync(module, workspace);
 
-        var moduleSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.AzureDatabricks);
+        var moduleSourcePath =
+            DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.AzureDatabricks);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
 
         // verify all the files are copied except for the datahub readme
@@ -81,15 +85,16 @@ public class AzureDatabricksTemplateTests
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         await SetupNewProjectTemplate(workspaceAcronym);
-        
+
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
-        var expectedVariables = GenerateExpectedVariables();
+        var expectedVariables = GenerateExpectedVariables(workspace);
 
         await _terraformService.CopyTemplateAsync(module, workspace);
         await _terraformService.ExtractVariables(module, workspace);
 
-        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
+        var expectedVariablesFilename = Path.Join(
+            DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
             $"{module.Name}.auto.tfvars.json");
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
@@ -108,21 +113,21 @@ public class AzureDatabricksTemplateTests
     }
 
 
-
     [Test]
     public async Task ShouldExtractAzureDatabricksTemplateVariablesWithNoUsers()
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         await SetupNewProjectTemplate(workspaceAcronym);
-        
+
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
-        var expectedVariables = GenerateExpectedVariables(false);
+        var expectedVariables = GenerateExpectedVariables(workspace, false);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
 
         await _terraformService.CopyTemplateAsync(module, workspace);
         await _terraformService.ExtractVariables(module, workspace);
 
-        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
+        var expectedVariablesFilename = Path.Join(
+            DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
             $"{module.Name}.auto.tfvars.json");
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
@@ -147,7 +152,7 @@ public class AzureDatabricksTemplateTests
         await SetupNewProjectTemplate(workspaceAcronym);
 
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
-        var expectedVariables = GenerateExpectedVariables();
+        var expectedVariables = GenerateExpectedVariables(workspace);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
 
         await _terraformService.CopyTemplateAsync(module, workspace);
@@ -156,7 +161,8 @@ public class AzureDatabricksTemplateTests
         await _terraformService.ExtractVariables(module, workspace);
         await _terraformService.ExtractVariables(module, workspace);
 
-        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
+        var expectedVariablesFilename = Path.Join(
+            DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
             $"{module.Name}.auto.tfvars.json");
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
@@ -175,43 +181,55 @@ public class AzureDatabricksTemplateTests
     }
 
 
-
-    private static JsonObject GenerateExpectedVariables(bool withUsers = true)
+    private static JsonObject GenerateExpectedVariables(TerraformWorkspace workspace, bool withUsers = true)
     {
         if (!withUsers)
         {
             return new JsonObject
             {
-                ["databricks_admin_users"] = new JsonArray(),
-                ["azure_databricks_enterprise_oid"] = _resourceProvisionerConfiguration.Terraform.Variables
+                [TerraformVariables.DatabricksProjectLeadUsers] = new JsonArray(),
+                [TerraformVariables.DatabricksAdminUsers] = new JsonArray(),
+                [TerraformVariables.DatabricksProjectUsers] = new JsonArray(),
+                [TerraformVariables.AzureDatabricksEnterpriseOid] = _resourceProvisionerConfiguration.Terraform
+                    .Variables
                     .azure_databricks_enterprise_oid
             };
         }
 
         return new JsonObject
         {
-            ["databricks_admin_users"] = new JsonArray
-            {
-                new JsonObject
+            [TerraformVariables.DatabricksProjectLeadUsers] = new JsonArray(
+                (workspace.Users ?? Array.Empty<TerraformUser>())
+                .Where(u => u.Role == Role.Owner)
+                .Select(u => new JsonObject
                 {
-                    ["email"] = "1@email.com",
-                    ["oid"] = "00000000-0000-0000-0000-000000000001"
-                },
-                new JsonObject
+                    ["email"] = u.Email,
+                    ["oid"] = u.ObjectId,
+                })
+                .ToArray<JsonNode>()
+            ),
+            [TerraformVariables.DatabricksAdminUsers] = new JsonArray(
+                (workspace.Users ?? Array.Empty<TerraformUser>())
+                .Where(u => u.Role == Role.Admin)
+                .Select(u => new JsonObject
                 {
-                    ["email"] = "2@email.com",
-                    ["oid"] = "00000000-0000-0000-0000-000000000002"
-                },
-                new JsonObject
+                    ["email"] = u.Email,
+                    ["oid"] = u.ObjectId,
+                })
+                .ToArray<JsonNode>()
+            ),
+            [TerraformVariables.DatabricksProjectUsers] = new JsonArray(
+                (workspace.Users ?? Array.Empty<TerraformUser>())
+                .Where(u => u.Role == Role.User)
+                .Select(u => new JsonObject
                 {
-                    ["email"] = "3@email.com",
-                    ["oid"] = "00000000-0000-0000-0000-000000000003"
-                },
-            },
-            ["azure_databricks_enterprise_oid"] =
+                    ["email"] = u.Email,
+                    ["oid"] = u.ObjectId,
+                })
+                .ToArray<JsonNode>()
+            ),
+            [TerraformVariables.AzureDatabricksEnterpriseOid] =
                 _resourceProvisionerConfiguration.Terraform.Variables.azure_databricks_enterprise_oid
         };
     }
-
-
 }
