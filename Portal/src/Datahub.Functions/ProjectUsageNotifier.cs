@@ -59,9 +59,10 @@ namespace Datahub.Functions
             // load from details from db
             var details = await GetProjectDetails(ctx, projectId, cancellationToken);
 
-            if (details is null)
+            if (details?.Credits is null)
             {
-                // log something
+                // log that details credits are null
+                _logger.LogWarning("Project {ProjectId} details or credits are null", projectId);
                 return;
             }
 
