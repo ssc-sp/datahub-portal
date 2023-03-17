@@ -54,7 +54,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authUser = (await _userInformationService.GetAuthenticatedUser());
+        var authUser = await _userInformationService.GetAuthenticatedUser();
+        _userId = await _userInformationService.GetUserIdString();
         _isDatahubAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
         _isProjectAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(ProjectAdminRole);
         if (!_isDatahubAdmin && !_isProjectAdmin)
@@ -75,7 +76,6 @@
         _projectName = _project?.ProjectName;
         _projectId = _project?.Project_ID ?? 0;
 
-        _userId = await _userInformationService.GetUserIdString();
         if (_userId is null) logger.LogError("UserId is null");
 
         _user = await _userInformationService.GetCurrentGraphUserAsync();
