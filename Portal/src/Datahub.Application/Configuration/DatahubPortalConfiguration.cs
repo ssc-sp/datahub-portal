@@ -13,6 +13,7 @@ public class DatahubPortalConfiguration
     public DataProjects DataProjects { get; set; } = new();
     public Achievements Achievements { get; set; } = new();
     public string ProjectUrlSegment { get; set; } = "w";
+    public string ProfileUrlSegment { get; set; } = "profile";
 
     public ConnectionStrings ConnectionStrings { get; set; } = new();
     public AzureAd AzureAd { get; set; } = new();
