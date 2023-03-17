@@ -39,5 +39,10 @@
   "Delete a file from the project with the Storage Explorer": "Delete a file from the project with the Storage Explorer",
   "C'est mieux comme ça": "C'est mieux comme ça",
   "Download a file using the workspace Storage Explorer": "Download a file using the workspace Storage Explorer",
-  "View another person's profile": "View another person's profile"
+  "View another person's profile": "View another person's profile",
+  "Functions":"Functions",
+  "TermsAndConditions":"TermsAndConditions",
+  "I have read and agree to the terms and conditions":"I have read and agree to the terms and conditions",
+  "Complete":"Complete"
+  
 }
