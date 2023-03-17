@@ -89,6 +89,7 @@
             if (funct.PingTime.HasValue && (now - funct.PingTime.Value) > maxWait)
             {
                 funct.State = FunctionState.Failed;
+                funct.PingTime = null;
             }
         }
     }
