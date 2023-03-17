@@ -38,7 +38,8 @@ namespace Datahub.Functions
             }
 
             // update the usage
-            await _usageService.UpdateProjectUsage(message.ProjectId, message.ResourceGroup, cancellationToken);
+            if (!await _usageService.UpdateProjectUsage(message.ProjectId, message.ResourceGroup, cancellationToken))
+                return;
 
             // queue the usage notification message
             await _mediator.Send(new ProjectUsageNotificationMessage(message.ProjectId), cancellationToken);
