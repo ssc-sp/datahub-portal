@@ -1,0 +1,184 @@
+﻿@page "/debug/functions"
+@using Azure.Storage.Queues;
+@using System.Text;
+
+@implements IDisposable
+@inject IConfiguration Configuration
+@inject ILogger<FunctionHealth> Logger
+
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h4">Function Health</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudStack>
+            <MudList Clickable="true" Dense="false" DisableGutters="false">
+                @foreach (var funct in _functions)
+                {
+                    <MudListItem 
+                        Text=@funct.Name
+                        Icon=@GetFunctionIcon(funct)
+                        IconColor=@GetFunctionColor(funct)
+                        OnClick="() => HandleClickFunction(funct)"
+                    />
+                }
+            </MudList>
+        </MudStack>
+    </MudCardContent>
+</MudCard>
+
+@code {
+
+    private Timer _timer;
+    private List<FunctionData> _functions = new()
+    {
+        new("EmailNotificationHandler", "email-notification"),
+        new("ProjectUsageScheduler", "project-usage-update"),
+        new("ProjectUsageNotifier", "project-usage-notification"),
+        new("TerraformOutputHandler", "terraform-output"),
+    };
+
+    protected override void OnInitialized()
+    {
+        _timer = new(HandleRefreshMessages, this, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+    }
+
+    private void HandleRefreshMessages(object data)
+    {
+        _ = HandleRefreshMessagesAsync();
+    }
+
+    private async Task HandleRefreshMessagesAsync()
+    {
+        try
+        {
+            var queueClient = GetQueueClient("pong-queue");
+
+            if (queueClient is null)
+                return;
+
+            var result = await queueClient.ReceiveMessagesAsync();
+            foreach (var message in result.Value)
+            {
+                var pongMessage = DecodeMessage(message.Body.ToString());
+                if (pongMessage is not null)
+                {
+                    UpdateFunction(pongMessage.Pong);
+                }                
+                await queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt);
+            }
+
+            UpdateFunctionTimeouts();
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex.Message, ex);
+        }
+    }
+
+    private void UpdateFunctionTimeouts()
+    {
+        var maxWait = TimeSpan.FromMinutes(2);
+        var now = DateTime.Now;
+        foreach (var funct in _functions)
+        {
+            if (funct.PingTime.HasValue && (now - funct.PingTime.Value) > maxWait)
+            {
+                funct.State = FunctionState.Failed;
+                funct.PingTime = null;
+            }
+        }
+    }
+
+    private QueueClient GetQueueClient(string queueName)
+    {
+        var storageConnectionString = Configuration["DatahubStorageQueue:ConnectionString"];
+        return !string.IsNullOrEmpty(storageConnectionString) ? new QueueClient(storageConnectionString, queueName) : default;
+    }
+
+    private void UpdateFunction(string id)
+    {
+        var funct = _functions.FirstOrDefault(f => f.Id == id);
+        if (funct is not null)
+        {
+            funct.State = FunctionState.Succeded;
+            funct.PingTime = null;
+        }
+    }
+
+    private PongMessage DecodeMessage(string body)
+    {
+        try
+        {
+            var messageBody = Encoding.UTF8.GetString(Convert.FromBase64String(body));
+            return System.Text.Json.JsonSerializer.Deserialize<PongMessage>(messageBody);
+        }
+        catch
+        {
+            return default;
+        }
+    }
+
+    private void HandleClickFunction(FunctionData funct)
+    {
+        funct.State = FunctionState.Verifying;
+
+        var queue = GetQueueClient(funct.Queue);
+        if (queue is null)
+            return;
+
+        var message = Convert.ToBase64String(Encoding.UTF8.GetBytes($"PING: {funct.Id}"));
+        queue.SendMessageAsync(message);
+
+        funct.PingTime = DateTime.Now;
+    }
+
+    private string GetFunctionIcon(FunctionData funct) => funct.State switch
+    {
+        FunctionState.Unverified or
+        FunctionState.Verifying => Icons.Material.Filled.Autorenew,
+        FunctionState.Succeded => Icons.Material.Filled.CheckCircle,
+        FunctionState.Failed => Icons.Material.Filled.Error,
+        _ => string.Empty
+    };
+
+    private Color GetFunctionColor(FunctionData funct) => funct.State switch
+    {
+        FunctionState.Unverified => Color.Default,
+        FunctionState.Verifying => Color.Warning,
+        FunctionState.Succeded => Color.Success,
+        FunctionState.Failed => Color.Error,
+        _ => Color.Default
+    };
+
+
+    public void Dispose()
+    {
+        _timer?.Dispose();    
+    }
+
+    record PongMessage(string Pong);
+
+    class FunctionData
+    {
+        public FunctionData(string name, string queue)
+        {
+            Id = Guid.NewGuid().ToString();
+            Name = name;
+            Queue = queue;
+            State = FunctionState.Unverified;
+        }
+
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Queue { get; set; }
+        public FunctionState State { get; set; }
+        public DateTime? PingTime { get; set; }
+    }
+
+    enum FunctionState { Unverified, Verifying , Succeded, Failed }
+}
