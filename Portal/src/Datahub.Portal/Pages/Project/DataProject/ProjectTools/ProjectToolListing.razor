@@ -23,7 +23,12 @@
         <NotAuthorized>
         
             <MudAlert Severity="Severity.Error" Class="my-4">
-                @Localizer["Access Denied"]: @Localizer["You are not a member of this project. If you have been granted access recently please"] <MudLink OnClick=ReloadPage>@Localizer["click here to refresh the access."]</MudLink>
+                <MudText >
+                    @Localizer["Access Denied"]: @Localizer["You are not a member of this project. If you have been granted access recently please"] 
+                    <MudLink OnClick="ReloadPage">
+                        @Localizer["click here to refresh the access."]
+                    </MudLink>
+                </MudText>
             </MudAlert>
                 @if (_isProjectUserPendingApproval)
                 {
