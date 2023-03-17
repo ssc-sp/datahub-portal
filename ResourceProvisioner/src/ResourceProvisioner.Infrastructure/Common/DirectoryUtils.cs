@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using ResourceProvisioner.Application.Config;
 
 namespace ResourceProvisioner.Infrastructure.Common;
@@ -27,7 +26,7 @@ public static class DirectoryUtils
         }
     }
 
-    public static void SetAttributesNormal(DirectoryInfo dir)
+    private static void SetAttributesNormal(DirectoryInfo dir)
     {
         foreach (var subDir in dir.GetDirectories())
             SetAttributesNormal(subDir);
@@ -38,38 +37,36 @@ public static class DirectoryUtils
     }
 
 
-    public static string GetInfrastructureRepositoryPath(IConfiguration configuration)
+    public static string GetInfrastructureRepositoryPath(
+        ResourceProvisionerConfiguration resourceProvisionerConfiguration)
     {
         return Path.Join(Environment.CurrentDirectory,
-            configuration["InfrastructureRepository:LocalPath"]);
-    }
-    
-    public static string GetInfrastructureRepositoryPath(ResourceProvisionerConfiguration configuration)
-    {
-        return Path.Join(Environment.CurrentDirectory,
-            configuration.InfrastructureRepository.LocalPath);
+            resourceProvisionerConfiguration.InfrastructureRepository.LocalPath);
     }
 
-    public static string GetModuleRepositoryPath(IConfiguration configuration)
+    public static string GetModuleRepositoryPath(ResourceProvisionerConfiguration resourceProvisionerConfiguration)
     {
         return Path.Join(Environment.CurrentDirectory,
-            configuration["ModuleRepository:LocalPath"]);
-    }
-    
-    public static string GetModuleRepositoryPath(ResourceProvisionerConfiguration configuration)
-    {
-        return Path.Join(Environment.CurrentDirectory,
-            configuration.ModuleRepository.LocalPath);
+            resourceProvisionerConfiguration.ModuleRepository.LocalPath);
     }
 
-    public static string GetTemplatePath(IConfiguration configuration, string templateName)
+    public static string GetTemplatePath(ResourceProvisionerConfiguration resourceProvisionerConfiguration,
+        string? templateName)
     {
-        return Path.Join(GetModuleRepositoryPath(configuration), configuration["ModuleRepository:TemplatePathPrefix"], templateName);
+        if(templateName == null)
+            throw new ArgumentNullException(nameof(templateName));
+        
+        return Path.Join(GetModuleRepositoryPath(resourceProvisionerConfiguration),
+            resourceProvisionerConfiguration.ModuleRepository.TemplatePathPrefix, templateName);
     }
 
-    public static string GetProjectPath(IConfiguration configuration, string workspaceAcronym)
+    public static string GetProjectPath(ResourceProvisionerConfiguration resourceProvisionerConfiguration,
+        string? workspaceAcronym)
     {
-        return Path.Join(GetInfrastructureRepositoryPath(configuration),
-            configuration["InfrastructureRepository:ProjectPathPrefix"], workspaceAcronym);
+        if (workspaceAcronym == null)
+            throw new ArgumentNullException(nameof(workspaceAcronym));
+        
+        return Path.Join(GetInfrastructureRepositoryPath(resourceProvisionerConfiguration),
+            resourceProvisionerConfiguration.InfrastructureRepository.ProjectPathPrefix, workspaceAcronym);
     }
 }

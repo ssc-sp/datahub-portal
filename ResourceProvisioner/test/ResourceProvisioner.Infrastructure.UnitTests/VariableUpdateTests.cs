@@ -10,8 +10,8 @@ public class VariableUpdateTests
     [SetUp]
     public void RunBeforeEachTest()
     {
-        var localModuleClonePath = DirectoryUtils.GetModuleRepositoryPath(_configuration);
-        var localInfrastructureClonePath = DirectoryUtils.GetInfrastructureRepositoryPath(_configuration);
+        var localModuleClonePath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
+        var localInfrastructureClonePath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
 
         VerifyDirectoryDoesNotExist(localModuleClonePath);
         VerifyDirectoryDoesNotExist(localInfrastructureClonePath);
@@ -25,7 +25,7 @@ public class VariableUpdateTests
         await SetupNewProjectTemplate(workspaceAcronym);
         var template = GenerateTerraformTemplate(TerraformTemplate.VariableUpdate);
 
-        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
+        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
 
         // get all the files and their last modified dates
         var files = Directory.GetFiles(moduleDestinationPath, "*", SearchOption.AllDirectories);
@@ -53,7 +53,7 @@ public class VariableUpdateTests
         await SetupNewProjectTemplate(workspaceAcronym);
         var template = GenerateTerraformTemplate(TerraformTemplate.VariableUpdate);
 
-        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
+        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
 
         // get all the files and their last modified dates
         var files = Directory.GetFiles(moduleDestinationPath, "*", SearchOption.AllDirectories);
@@ -80,7 +80,7 @@ public class VariableUpdateTests
         var terraformWorkspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         await SetupNewProjectTemplate(workspaceAcronym);
 
-        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
+        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
 
         // get all the files and their last modified dates
         var files = Directory.GetFiles(moduleDestinationPath, "*", SearchOption.AllDirectories);
