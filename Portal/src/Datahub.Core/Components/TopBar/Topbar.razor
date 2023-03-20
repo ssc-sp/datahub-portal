@@ -12,11 +12,13 @@
 <MudSpacer/>
 
 <NotificationsList/>
-<HelpPopup/>
+<HelpPopup SupportFormUrl="@SupportFormUrl"/>
 <TopBarProfileButton />
 
 @code {
 
+    [Parameter]
+    public string SupportFormUrl { get; set; }
     private string _titleStyle;
 
     protected override void OnInitialized()

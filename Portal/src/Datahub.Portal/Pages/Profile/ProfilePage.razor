@@ -34,7 +34,7 @@
             <ProfileTitle User="@_user"/>
         </MudItem>
         <MudItem xs="8">
-            <UserProjects/>
+            <UserProjects UserId="@_user.Id"/>
         </MudItem>
         <MudItem xs="8">
             <ProfileAchievements User="@_user"/>
@@ -67,9 +67,9 @@
             .Build();
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        await base.OnInitializedAsync();
+        await base.OnParametersSetAsync();
         var user = await _userInformationService.GetCurrentGraphUserAsync();
         if (string.IsNullOrWhiteSpace(UserIdBase64))
         {
