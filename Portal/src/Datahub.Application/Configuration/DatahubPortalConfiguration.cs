@@ -43,7 +43,7 @@ public class DatahubPortalConfiguration
 
 public class Achievements
 {
-    public bool Enabled { get; set; } = true;
+    public bool Enabled { get; set; } = false;
     public bool LocalAchievementsOnly { get; set; } = false;
 }
 
