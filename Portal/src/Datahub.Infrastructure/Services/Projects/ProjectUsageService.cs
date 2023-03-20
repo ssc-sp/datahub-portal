@@ -16,7 +16,7 @@ public class ProjectUsageService
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<Project_Credits> UpdateProjectUsage(int projectId, string resourceGroup, CancellationToken ct)
+    public async Task<bool> UpdateProjectUsage(int projectId, string resourceGroup, CancellationToken ct)
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
 
@@ -26,13 +26,9 @@ public class ProjectUsageService
         // create if it does exists
         projectCredits ??= new() { ProjectId = projectId };
 
-        // check the last update
-        //var today = DateTime.UtcNow.Date;
-        //if (projectCredits.LastUpdate.HasValue && today <= projectCredits.LastUpdate.Value)
-        //    return projectCredits;
-
         // update usage
-        await UpdateUsage(projectCredits, resourceGroup, ct);
+        if (!await UpdateUsage(projectCredits, resourceGroup, ct))
+            return false;
 
         // add or update
         if (projectCredits.Id == 0)
@@ -47,7 +43,7 @@ public class ProjectUsageService
         // save changes
         await ctx.SaveChangesAsync(ct);
 
-        return projectCredits;
+        return true;
     }
 
     static bool UpdatedInPeriod(DateTime? date, int minutes)
@@ -55,22 +51,26 @@ public class ProjectUsageService
         return date.HasValue && DateTime.UtcNow.AddMinutes(-minutes) < date;
     }
 
-    private async Task UpdateUsage(Project_Credits projectCredits, string resourceGroup, CancellationToken ct)
+    private async Task<bool> UpdateUsage(Project_Credits projectCredits, string resourceGroup, CancellationToken ct)
     {
         var session = await _azureManagementService.GetSession(ct);
 
         // current monthly cost
         var yearCost = await session.GetResourceGroupLastYearCost(resourceGroup);
-        if (yearCost is not null)
+        if (yearCost is null)
         {
-            projectCredits.Current = yearCost.Value;
-        }
-        else
-        {
+            // allow a grace period for new projects
+            if (projectCredits.Id == 0)
+                return false;
+
             // if not updated in the last 90 minutes, throw the exception
             if (!UpdatedInPeriod(projectCredits.LastUpdate, 90))
                 throw new Exception($"Failed to read up to date cost for resource group '{resourceGroup}'");
         }
+        else
+        {
+            projectCredits.Current = yearCost.Value;
+        }       
 
         // wait 2 seconds before trying next query
         await Task.Delay(2000);
@@ -106,5 +106,7 @@ public class ProjectUsageService
 
         // last updated
         projectCredits.LastUpdate = DateTime.UtcNow;
+
+        return true;
     }    
 }

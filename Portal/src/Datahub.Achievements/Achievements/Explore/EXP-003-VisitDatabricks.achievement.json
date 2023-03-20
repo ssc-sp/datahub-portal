@@ -1,7 +1,7 @@
 {
   "Code": "EXP-003",
   "Name": "Let's analyze!",
-  "Description": "Navigate to the Databricks page of a project",
+  "Description": "Navigate to the Databricks page of a workspace",
   "ParentAchievementCode": "EXP-009",
   "Icon": "fas fa-analytics",
   "RuleExpressions": [

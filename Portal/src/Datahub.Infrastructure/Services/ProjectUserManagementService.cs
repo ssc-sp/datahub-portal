@@ -75,7 +75,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
                         "Adding user {UserGraphId} to project {ProjectAcronym} by user {ApprovingUser}",
                         userGraphId, projectAcronym, approvingUser);
                     var user = await _msGraphService.GetUserAsync(userGraphId);
-
+                    if (string.IsNullOrWhiteSpace(userGraphId)) throw new InvalidOperationException("Cannot add user without user ID");
                     var newProjectUser = new Datahub_Project_User
                     {
                         Project = project,
