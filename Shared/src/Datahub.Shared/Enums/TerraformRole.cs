@@ -6,6 +6,6 @@ namespace Datahub.Shared.Enums;
 public enum Role
 {
     Admin,
-    Member,
-    Guest
+    User,
+    Owner
 }

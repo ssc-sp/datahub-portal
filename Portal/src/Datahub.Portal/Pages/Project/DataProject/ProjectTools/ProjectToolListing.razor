@@ -16,13 +16,19 @@
 @inject ProjectToolsEmailService _emailNotificationService
 @inject ProjectResourcesListingService ProjectResourcesListingService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject NavigationManager NavigationManager
 
 <div>
     <ProjectMemberBlock AdminOnly=false ProjectAcronym="@ProjectAcronym">
         <NotAuthorized>
         
             <MudAlert Severity="Severity.Error" Class="my-4">
-                @Localizer["Access Denied"]: @Localizer["You are not a member of this project."]
+                <MudText >
+                    @Localizer["Access Denied"]: @Localizer["You are not a member of this project. If you have been granted access recently please"] 
+                    <MudLink OnClick="ReloadPage">
+                        @Localizer["click here to refresh the access."]
+                    </MudLink>
+                </MudText>
             </MudAlert>
                 @if (_isProjectUserPendingApproval)
                 {
@@ -96,7 +102,7 @@
 
     [CascadingParameter(Name = "Project")]
     private Datahub_Project Project { get; set; }
-    
+
     [CascadingParameter(Name = "IsDatahubAdmin")]
     private bool IsDatahubAdmin { get; set; }
 
@@ -119,6 +125,12 @@
 
     private const string ResourceWhitelistButtonText = "Edit Available Resources";
     private const string ResourceWhitelistButtonTooltip = "Whitelist resources for this workspace (Only available to Datahub Admins)";
+
+    private void ReloadPage()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri,true);
+    }
+
     protected override void OnInitialized()
     {
         base.OnInitialized();

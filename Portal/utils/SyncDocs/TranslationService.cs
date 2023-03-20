@@ -57,17 +57,21 @@ internal class TranslationService
             return;
 
         var sourceFileUrl = GetSourceFilePathUrl(sourcePath);
-        var metadata = $"---\nremarks: Automatically translated with DeepL\nsource: {sourceFileUrl}\ndraft: true\n---";
+        var metadata = $"remarks: Automatically translated with DeepL\nsource: {sourceFileUrl}\ndraft: true\n";
         //var remarks = $"[_metadata_: remarks]:- \"Automatically translated with DeepL. From: {sourceFileUrl}\"";
         //var note = $"[_(draft documentation, please review)_]({sourceFileUrl})";
         //var note = $"_(draft documentation, please review)_";
 
         using var writer = new StreamWriter(outputPath);
-        //if (!isSidebar)
-        //{
-        writer.WriteLine(metadata);
-        writer.WriteLine();
-        //}
+        if (!isSidebar)
+        {
+            writer.WriteLine($"---\n{metadata}---");
+            writer.WriteLine();
+        }
+        else
+        {
+            File.WriteAllText($"{outputPath}.yaml", metadata);
+        }
 
         //writer.WriteLine(note);
         //writer.WriteLine();

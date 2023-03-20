@@ -22,11 +22,11 @@
     <ToolActionsList>
         @if (TemplateName == TerraformTemplate.ContactUs)
         {
-            <ViewExternalLinkButton ExternalUrl="@GitHubModule?.DocumentationUrl" Text="@Localizer["View Discussions"]"/>
-            <ViewExternalLinkButton 
+@*            <ViewExternalLinkButton ExternalUrl="@GitHubModule?.DocumentationUrl" Text="@Localizer["View Discussions"]"/>
+*@            <ViewExternalLinkButton 
                 Variant="Variant.Filled" 
-                ExternalUrl="@GitHubModule?.ActionUrl" 
-                Text="@Localizer["Create New"]" 
+                ExternalUrl="@Descriptor?.ActionURL" 
+                Text="@Descriptor?.ActionDescription" 
                 Icon= "fa-solid fa-comments-question-check"
                 />
         }

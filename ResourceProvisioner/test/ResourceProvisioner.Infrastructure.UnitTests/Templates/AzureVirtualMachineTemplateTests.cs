@@ -14,8 +14,8 @@ public class AzureVirtualMachineTemplateTests
     [SetUp]
     public void RunBeforeEachTest()
     {
-        var localModuleClonePath = DirectoryUtils.GetModuleRepositoryPath(_configuration);
-        var localInfrastructureClonePath = DirectoryUtils.GetInfrastructureRepositoryPath(_configuration);
+        var localModuleClonePath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
+        var localInfrastructureClonePath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
 
         VerifyDirectoryDoesNotExist(localModuleClonePath);
         VerifyDirectoryDoesNotExist(localInfrastructureClonePath);
@@ -34,7 +34,7 @@ public class AzureVirtualMachineTemplateTests
             await _terraformService.CopyTemplateAsync(module, workspace);
         });
 
-        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
+        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
 
         // verify that the directory does not exist
         Assert.That(Directory.Exists(moduleDestinationPath), Is.False);
@@ -48,7 +48,7 @@ public class AzureVirtualMachineTemplateTests
         var fileCount = await SetupNewProjectTemplate(workspaceAcronym);
 
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureVirtualMachine);
-        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
+        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
         
         await _terraformService.CopyTemplateAsync(module, workspace);
         

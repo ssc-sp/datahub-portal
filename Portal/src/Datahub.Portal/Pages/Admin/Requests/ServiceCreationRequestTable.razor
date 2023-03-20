@@ -67,7 +67,7 @@
 
     private List<Func<Datahub_ProjectServiceRequests, string>> serviceRequestAccessors = new List<Func<Datahub_ProjectServiceRequests, string>>()
     {
-        p => p.Project.Project_Name,
+        p => p.Project.ProjectName,
         p => p.User_Name ?? "N/A",
         p => p.ServiceType ?? string.Empty,
         p => p.Is_Completed?.ToShortDateString() ?? "N/A",
