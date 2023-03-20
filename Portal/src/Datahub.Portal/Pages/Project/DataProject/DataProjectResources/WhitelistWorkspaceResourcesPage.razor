@@ -1,18 +1,24 @@
+@*WhitelistWorkspaceResourcesPage.razor*@
+
+@page "/w/{ProjectAcronymParam}/whitelist"
+
+@using Datahub.Core.Services.Projects;
+@using Datahub.Shared.Entities;
+
 @inject IUserInformationService UserInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
 @inject ServiceAuthManager ServiceAuthManager
 @inject ILogger<DataProjectPage> Logger
 @inject NavigationManager NavigationManager
+@inject IRequestManagementService requestManagementService
 
-@page "/w/{ProjectAcronymParam}/whitelist"
 @if (_project is not null && _isDatahubAdmin)
 {
-
     <CascadingValue Value="@_project" Name="Project">
         <CascadingValue Value="@_isDatahubAdmin" Name="IsDatahubAdmin">
             <CascadingValue Value="@_isProjectAdmin" Name="IsProjectAdmin">
                 <ProjectInfo/>
-                <ResourceWhitelist/>
+                <ResourceWhitelist OnBudgetUpdated=@HandleBudgetUpdated />
             </CascadingValue>
         </CascadingValue>
     </CascadingValue>
@@ -23,7 +29,7 @@
     public string ProjectAcronymParam { get; set; }
 
     private Datahub_Project _project;
-   
+
     private bool _isDatahubAdmin;
     private bool _isProjectAdmin;
     private string _userId;
@@ -41,7 +47,7 @@
             NavigationManager.NavigateTo($"/w/{ProjectAcronymParam}");
             return;
         }
-        
+
         _isProjectAdmin = !ServiceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole($"{_project?.Project_Acronym_CD}-admin");
         await using var projectContext = await DbFactoryProject.CreateDbContextAsync();
 
@@ -52,11 +58,21 @@
             .AsSingleQuery()
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
             .FirstOrDefaultAsync();
-
-        
-        
-
-
     }
- 
+
+    private async Task HandleBudgetUpdated(decimal budget)
+    {
+        if (_project.Project_Budget == budget)
+            return;
+
+        await using var ctx = await DbFactoryProject.CreateDbContextAsync();
+
+        _project.Project_Budget = budget;
+
+        ctx.Attach(_project);
+        ctx.Projects.Update(_project);
+        await ctx.SaveChangesAsync();
+
+        await requestManagementService.HandleTerraformRequestServiceAsync(_project, TerraformTemplate.VariableUpdate);
+    }
 }
