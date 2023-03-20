@@ -5,9 +5,9 @@
 @inject IConfiguration _configuration
 @inject IMSGraphService _mSGraphService;
 @inject AchievementService _achievementService;
+@inject DatahubPortalConfiguration _datahubPortalConfiguration;
 
 @using MudBlazor.Utilities
-@using Datahub.Portal.Components.Projects
 @using Datahub.Portal.Pages.Profile.Sections
 @using Datahub.Achievements.Models
 @using Datahub.Core.Extensions
@@ -33,12 +33,15 @@
         <MudItem xs="10" Class="">
             <ProfileTitle User="@_user"/>
         </MudItem>
-        <MudItem xs="8">
+        <MudItem xs="12">
             <UserProjects UserId="@_user.Id"/>
         </MudItem>
-        <MudItem xs="8">
-            <ProfileAchievements User="@_user"/>
-        </MudItem>
+        @if (_datahubPortalConfiguration.Achievements.Enabled)
+        {
+            <MudItem xs="8">
+                <ProfileAchievements User="@_user"/>
+            </MudItem>
+        }
     </MudGrid>
 </MudContainer>
 
