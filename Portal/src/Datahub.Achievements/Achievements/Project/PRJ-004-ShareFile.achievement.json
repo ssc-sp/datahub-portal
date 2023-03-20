@@ -1,7 +1,7 @@
 {
   "Code": "PRJ-004",
   "Name": "Check this out",
-  "Description": "Share a file using the project's Storage Explorer",
+  "Description": "Share a file using the workspace Storage Explorer",
   "ParentAchievementCode": "PRJ-008",
   "Icon": "fas fa-walkie-talkie",
   "RuleExpressions": [

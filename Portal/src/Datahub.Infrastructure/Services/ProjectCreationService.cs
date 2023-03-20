@@ -114,6 +114,9 @@ public class ProjectCreationService : IProjectCreationService
             Project_Status = (int)ProjectStatus.InProgress,
             Project_Budget = GetDefaultBudget()
         };
+        await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
+        await db.Projects.AddAsync(project);
+        if (string.IsNullOrWhiteSpace(user.Id)) throw new InvalidOperationException("Cannot add user without ID");
         var projectUser = new Datahub_Project_User()
         {
             User_ID = user.Id,
@@ -124,8 +127,6 @@ public class ProjectCreationService : IProjectCreationService
             Project = project,
             User_Name = user.Mail
         };
-        await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
-        await db.Projects.AddAsync(project);
         await db.Project_Users.AddAsync(projectUser);
         await db.SaveChangesAsync();
         serviceAuthManager.InvalidateAuthCache();

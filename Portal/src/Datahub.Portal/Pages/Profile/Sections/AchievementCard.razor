@@ -8,9 +8,9 @@
                 <MudIcon Style="" Color="@(UserAchievement.Earned ? Color.Tertiary : Color.Default)" Icon="@UserAchievement!.Achievement!.Icon"/>
                 <MudStack Spacing="0">
                     <MudText Typo="Typo.body1">
-                        <b>@UserAchievement.Achievement?.Name</b>
+                        <b>@Localizer[UserAchievement.Achievement?.Name]</b>
                     </MudText>
-                    <MudText Typo="Typo.caption">@UserAchievement.Achievement?.Description</MudText>
+                    <MudText Typo="Typo.caption">@Localizer[UserAchievement.Achievement?.Description]</MudText>
                 </MudStack>
             </MudStack>
         </MudItem>

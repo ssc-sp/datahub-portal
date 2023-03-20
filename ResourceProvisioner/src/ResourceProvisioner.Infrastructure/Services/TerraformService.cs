@@ -1,8 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Datahub.Shared;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
@@ -12,23 +15,24 @@ namespace ResourceProvisioner.Infrastructure.Services;
 public class TerraformService : ITerraformService
 {
     private readonly ILogger<TerraformService> _logger;
-    private readonly IConfiguration _configuration;
     internal static readonly List<string> EXCLUDED_FILE_EXTENSIONS = new(new[] { ".md" });
+    private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
+    private readonly IConfiguration _configuration;
 
-    public const string MapType = "map";
-    public const string ListAnyType = "list(any)";
-    
-    public const string DatabricksAdminUserList = "databricks_admin_users";
-    public const string StorageUserList = "storage_contributor_users";
+    private readonly List<string> _userListVariables = new()
+    {
+        TerraformVariables.DatabricksProjectLeadUsers,
+        TerraformVariables.DatabricksAdminUsers,
+        TerraformVariables.DatabricksProjectUsers,
 
-    private const string BackendResourceGroupName = "resource_group_name";
-    private const string BackendStorageAccountName = "storage_account_name";
-    private const string BackendContainerName = "container_name";
-    private const string BackendKeyName = "key";
+        TerraformVariables.StorageContributorUsers,
+    };
 
-    public TerraformService(ILogger<TerraformService> logger, IConfiguration configuration)
+    public TerraformService(ILogger<TerraformService> logger,
+        ResourceProvisionerConfiguration resourceProvisionerConfiguration, IConfiguration configuration)
     {
         _logger = logger;
+        _resourceProvisionerConfiguration = resourceProvisionerConfiguration;
         _configuration = configuration;
     }
 
@@ -38,9 +42,9 @@ public class TerraformService : ITerraformService
         {
             return Task.CompletedTask;
         }
-        
-        var templateSourcePath = DirectoryUtils.GetTemplatePath(_configuration, template.Name);
-        var projectPath = DirectoryUtils.GetProjectPath(_configuration, terraformWorkspace.Acronym);
+
+        var templateSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, template.Name);
+        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
 
         _logger.LogInformation("Copying template from {ModuleSource} to {ProjectPath}", templateSourcePath,
             projectPath);
@@ -81,14 +85,14 @@ public class TerraformService : ITerraformService
         {
             return;
         }
-        
+
         var missingVariables = FindMissingVariables(template, terraformWorkspace);
         await WriteVariablesFile(template, terraformWorkspace, missingVariables);
     }
 
     public async Task ExtractBackendConfig(string workspaceAcronym)
     {
-        var projectPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
+        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
         var backendConfigFilePath = Path.Join(projectPath, "project.tfbackend");
 
         if (File.Exists(backendConfigFilePath))
@@ -96,10 +100,22 @@ public class TerraformService : ITerraformService
 
         var backendConfig = new Dictionary<string, string>
         {
-            { BackendResourceGroupName, ComputeBackendConfigValue(workspaceAcronym, BackendResourceGroupName) },
-            { BackendStorageAccountName, ComputeBackendConfigValue(workspaceAcronym, BackendStorageAccountName) },
-            { BackendContainerName, ComputeBackendConfigValue(workspaceAcronym, BackendContainerName) },
-            { BackendKeyName, ComputeBackendConfigValue(workspaceAcronym, BackendKeyName) }
+            {
+                TerraformVariables.BackendResourceGroupName,
+                ComputeBackendConfigValue(workspaceAcronym, TerraformVariables.BackendResourceGroupName)
+            },
+            {
+                TerraformVariables.BackendStorageAccountName,
+                ComputeBackendConfigValue(workspaceAcronym, TerraformVariables.BackendStorageAccountName)
+            },
+            {
+                TerraformVariables.BackendContainerName,
+                ComputeBackendConfigValue(workspaceAcronym, TerraformVariables.BackendContainerName)
+            },
+            {
+                TerraformVariables.BackendKeyName,
+                ComputeBackendConfigValue(workspaceAcronym, TerraformVariables.BackendKeyName)
+            }
         };
 
         // Write the dictionary into a key value pair file
@@ -109,7 +125,7 @@ public class TerraformService : ITerraformService
     public async Task ExtractAllVariables(TerraformWorkspace terraformWorkspace)
     {
         // check if the project directory exists
-        var projectPath = DirectoryUtils.GetProjectPath(_configuration, terraformWorkspace.Acronym);
+        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
         if (!Directory.Exists(projectPath))
         {
             _logger.LogInformation(
@@ -117,13 +133,13 @@ public class TerraformService : ITerraformService
             throw new ProjectNotInitializedException(
                 "Project directory does not exist please run template module first");
         }
-        
+
         // get all the files in the project directory that end with *.auto.tfvars.json
         var files = Directory.GetFiles(projectPath, "*.auto.tfvars.json", SearchOption.TopDirectoryOnly);
-        
+
         // get the filename up to the first "."
         var variableNames = files.Select(file => Path.GetFileName(file).Split('.')[0]).ToList();
-        
+
         // match against the templates and rerun the extract variables
         foreach (var variableName in variableNames)
         {
@@ -132,7 +148,7 @@ public class TerraformService : ITerraformService
                 var template = TerraformTemplate.GetTemplateByName(variableName);
                 await ExtractVariables(template, terraformWorkspace);
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 _logger.LogWarning("Unable to find template for variable {VariableName}", variableName);
             }
@@ -142,8 +158,8 @@ public class TerraformService : ITerraformService
     private Dictionary<string, string> FindMissingVariables(TerraformTemplate template,
         TerraformWorkspace terraformWorkspace)
     {
-        var projectPath = DirectoryUtils.GetProjectPath(_configuration, terraformWorkspace.Acronym);
-        var templatePath = DirectoryUtils.GetTemplatePath(_configuration, template.Name);
+        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+        var templatePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, template.Name);
 
         var existingVariables = FindExistingVariables(projectPath);
         var requiredTemplateVariables = GetRequiredTemplateVariables(templatePath);
@@ -166,7 +182,7 @@ public class TerraformService : ITerraformService
     private async Task WriteVariablesFile(TerraformTemplate template, TerraformWorkspace terraformWorkspace,
         Dictionary<string, string> missingVariables)
     {
-        var projectPath = DirectoryUtils.GetProjectPath(_configuration, terraformWorkspace.Acronym);
+        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
         var variablesFilePath = Path.Join(projectPath, $"{template.Name}.auto.tfvars.json");
 
         if (File.Exists(variablesFilePath))
@@ -176,10 +192,11 @@ public class TerraformService : ITerraformService
                     await File.ReadAllTextAsync(variablesFilePath)) ?? new JsonObject();
             foreach (var (key, value) in missingVariables)
             {
-                if (key is DatabricksAdminUserList or StorageUserList)
+                if (_userListVariables.Contains(key))
                 {
                     preExistingVariables.Remove(key);
                 }
+
                 preExistingVariables.TryAdd(key, ComputeVariableValue(terraformWorkspace, key, value));
             }
 
@@ -196,12 +213,12 @@ public class TerraformService : ITerraformService
     private JsonNode ComputeVariableValue(TerraformWorkspace terraformWorkspace, string variableName,
         string variableType)
     {
-        if (variableType.StartsWith(MapType, StringComparison.InvariantCultureIgnoreCase))
+        if (variableType.StartsWith(TerraformVariables.MapType, StringComparison.InvariantCultureIgnoreCase))
         {
             return ComputeMapVariableValue(variableName);
         }
 
-        if (variableType == ListAnyType)
+        if (variableType == TerraformVariables.ListAnyType)
         {
             return ComputeListVariableValue(terraformWorkspace, variableName);
         }
@@ -212,9 +229,9 @@ public class TerraformService : ITerraformService
 
         return (variableName switch
         {
-            "project_cd" => terraformWorkspace.Acronym,
-            "budget_amount" => terraformWorkspace.BudgetAmount,
-            "storage_size_limit_tb" => terraformWorkspace.StorageSizeLimitInTB,
+            TerraformVariables.ProjectAcronym => terraformWorkspace.Acronym,
+            TerraformVariables.BudgetAmount => terraformWorkspace.BudgetAmount,
+            TerraformVariables.StorageSizeLimitInTb => terraformWorkspace.StorageSizeLimitInTB,
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<{variableType}> in configuration")
         })!;
@@ -224,10 +241,12 @@ public class TerraformService : ITerraformService
     {
         return variableName switch
         {
-            "databricks_admin_users" => terraformWorkspace.ToUserList(),
-            "storage_contributor_users" => terraformWorkspace.ToUserList(),
+            TerraformVariables.DatabricksProjectLeadUsers => terraformWorkspace.ToUserList(Role.Owner),
+            TerraformVariables.DatabricksAdminUsers => terraformWorkspace.ToUserList(Role.Admin),
+            TerraformVariables.DatabricksProjectUsers => terraformWorkspace.ToUserList(Role.User),
+            TerraformVariables.StorageContributorUsers => terraformWorkspace.ToUserList(),
             _ => throw new MissingTerraformVariableException(
-                $"Missing variable {variableName}:<{ListAnyType}> in configuration")
+                $"Missing variable {variableName}:<{TerraformVariables.ListAnyType}> in configuration")
         };
     }
 
@@ -255,17 +274,20 @@ public class TerraformService : ITerraformService
     {
         return (variableName switch
         {
-            BackendResourceGroupName => _configuration["Terraform:Backend:ResourceGroupName"],
-            BackendStorageAccountName =>
-                $"{_configuration["Terraform:Variables:resource_prefix"]}{_configuration["Terraform:Variables:environment_name"]}terraformbackend",
-            BackendContainerName => $"{_configuration["Terraform:Variables:resource_prefix"]}-project-states",
-            BackendKeyName => $"{_configuration["Terraform:Variables:resource_prefix"]}-{workspaceName}.tfstate",
+            TerraformVariables.BackendResourceGroupName => _resourceProvisionerConfiguration.Terraform.Backend
+                .ResourceGroupName,
+            TerraformVariables.BackendStorageAccountName =>
+                $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}{_resourceProvisionerConfiguration.Terraform.Variables.environment_name}terraformbackend",
+            TerraformVariables.BackendContainerName =>
+                $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-project-states",
+            TerraformVariables.BackendKeyName =>
+                $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-{workspaceName}.tfstate",
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<string> in configuration")
-        })!;
+        });
     }
 
-    public Dictionary<string, string> GetRequiredTemplateVariables(string templatePath)
+    private Dictionary<string, string> GetRequiredTemplateVariables(string templatePath)
     {
         var requiredVariables = new Dictionary<string, string>();
 

@@ -1,7 +1,4 @@
-@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
-@using Datahub.Core.Components.PageBanner
 @using Datahub.Achievements.Models
-@using Datahub.Core.Model.Datahub
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
@@ -9,6 +6,7 @@
 @inject AchievementService _achievementService
 @inject IDatahubAuditingService _auditingService
 @inject ILogger<DataProjectPage> logger
+@inject NavigationManager NavigationManager
 
 @page "/w/{ProjectAcronymParam}/members"
 
@@ -21,8 +19,12 @@
                     <CascadingValue Value="@_isProjectAdmin" Name="IsProjectAdmin">
                         <CascadingValue Value=@_user Name="GraphUser">
                             <CascadingValue Value=@_projectId Name="ProjectId">
-                                    <ProjectInfo/>
-                                    <ProjectMembersTable/>
+                                <ProjectInfo/>
+                                <AuthorizeView Roles="@AdminRoles">
+                                    <Authorized>
+                                        <ProjectMembersTable/>
+                                    </Authorized>
+                                </AuthorizeView>
                             </CascadingValue>
                         </CascadingValue>
                     </CascadingValue>
@@ -44,12 +46,24 @@
     private int _projectId;
     private bool _isDatahubAdmin;
     private bool _isProjectAdmin;
-    private bool _isFrench;
     private bool _showCosts;
-    private List<Client_Engagement> _clientEngagements = new();
+    
+    private string ProjectAdminRole => $"{ProjectAcronymParam}{RoleConstants.ADMIN_SUFFIX}";
+
+    private string AdminRoles => $"{ProjectAdminRole}, {RoleConstants.DATAHUB_ROLE_ADMIN}";
 
     protected override async Task OnInitializedAsync()
     {
+        var authUser = await _userInformationService.GetAuthenticatedUser();
+        _userId = await _userInformationService.GetUserIdString();
+        _isDatahubAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+        _isProjectAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(ProjectAdminRole);
+        if (!_isDatahubAdmin && !_isProjectAdmin)
+        {
+            NavigationManager.NavigateTo($"/w/{ProjectAcronymParam}");
+            return;
+        }
+        
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _project = await projectContext.Projects
@@ -59,17 +73,12 @@
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
             .FirstOrDefaultAsync();
 
-        _isFrench = Thread.CurrentThread.CurrentCulture.Name.Equals("fr-ca", StringComparison.OrdinalIgnoreCase);
         _projectName = _project?.ProjectName;
         _projectId = _project?.Project_ID ?? 0;
 
-        _userId = await _userInformationService.GetUserIdString();
         if (_userId is null) logger.LogError("UserId is null");
 
         _user = await _userInformationService.GetCurrentGraphUserAsync();
-        var authUser = (await _userInformationService.GetAuthenticatedUser());
-        _isDatahubAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
-        _isProjectAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole($"{_project?.Project_Acronym_CD}-admin");
 
         var isMemberOfProject = projectContext.Project_Users
             .Any(p => p.User_ID == _userId && p.Project.Project_Acronym_CD == ProjectAcronymParam);
@@ -78,7 +87,6 @@
         {
             await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserViewProjectNotMemberOf);
         }
-        _clientEngagements = await projectContext.Client_Engagements.Where(ce => ce.Project == _project && ce.Is_Engagement_Active).ToListAsync();
         await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
     }
 

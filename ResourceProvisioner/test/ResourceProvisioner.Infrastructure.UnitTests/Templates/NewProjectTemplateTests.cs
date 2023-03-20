@@ -13,8 +13,8 @@ public class NewProjectTemplateTests
     [SetUp]
     public void RunBeforeEachTest()
     {
-        var localModuleClonePath = DirectoryUtils.GetModuleRepositoryPath(_configuration);
-        var localInfrastructureClonePath = DirectoryUtils.GetInfrastructureRepositoryPath(_configuration);
+        var localModuleClonePath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
+        var localInfrastructureClonePath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
 
         VerifyDirectoryDoesNotExist(localModuleClonePath);
         VerifyDirectoryDoesNotExist(localInfrastructureClonePath);
@@ -38,8 +38,8 @@ public class NewProjectTemplateTests
 
         await _terraformService.CopyTemplateAsync(module, workspace);
 
-        var moduleSourcePath = DirectoryUtils.GetTemplatePath(_configuration, TerraformTemplate.NewProjectTemplate);
-        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
+        var moduleSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.NewProjectTemplate);
+        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
 
         // verify all the files are copied except for the datahub readme
         var expectedFiles = Directory.GetFiles(moduleSourcePath, "*.*", SearchOption.TopDirectoryOnly)
@@ -83,6 +83,7 @@ public class NewProjectTemplateTests
             ["project_cd"] = "ShouldExtractNewProjectTemplateVariables",
             ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
             ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
+            ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aad_admin_group_oid,
             ["common_tags"] = new JsonObject
             {
                 ["ClientOrganization"] = _configuration["Terraform:Variables:common_tags:ClientOrganization"],
@@ -103,7 +104,7 @@ public class NewProjectTemplateTests
 
         await _terraformService.ExtractVariables(module, workspace);
 
-        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
+        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
             $"{module.Name}.auto.tfvars.json");
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
@@ -141,6 +142,7 @@ public class NewProjectTemplateTests
             ["resource_prefix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix,
             ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
             ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
+            ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aad_admin_group_oid,
             ["project_cd"] = "ShouldExtractNewProjectTemplateVariablesWithoutDuplicates",
             ["common_tags"] = new JsonObject
             {
@@ -164,7 +166,7 @@ public class NewProjectTemplateTests
         await _terraformService.ExtractVariables(module, workspace);
         await _terraformService.ExtractVariables(module, workspace);
 
-        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
+        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
             $"{module.Name}.auto.tfvars.json");
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
@@ -207,7 +209,7 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
         await _terraformService.CopyTemplateAsync(module, workspace);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
 
-        var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
+        var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
             "project.tfbackend");
 
         Assert.That(File.Exists(expectedConfigurationFilename), Is.True);
@@ -233,10 +235,10 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
         await _terraformService.CopyTemplateAsync(module, workspace);
         
         // Write a fake backend config before extracting
-        var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
+        var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
             "project.tfbackend");
         var existingConfiguration = "test";
-        Directory.CreateDirectory(Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym)));
+        Directory.CreateDirectory(Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym)));
         await File.WriteAllTextAsync(expectedConfigurationFilename, existingConfiguration);
         
         

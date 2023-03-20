@@ -1,7 +1,7 @@
 {
   "Code": "PRJ-007",
   "Name": "It's turtles all the way down",
-  "Description": "Create a folder in the project's Storage Explorer",
+  "Description": "Create a folder in the workspace's Storage Explorer",
   "ParentAchievementCode": "PRJ-008",
   "Icon": "fas fa-turtle",
   "RuleExpressions": [
