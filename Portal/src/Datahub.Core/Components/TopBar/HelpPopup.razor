@@ -1,6 +1,7 @@
 @using MudBlazor.Utilities
 @inject IConfiguration Configuration
 
+
 <span>
     <MudTooltip Text="@Localizer[TOOLTIP_TEXT]">
         <MudToggleIconButton
@@ -40,7 +41,7 @@
                             EndIcon="@Icons.Material.Filled.Mail"
                             Color="Color.Primary"
                             Target="_blank"
-                            Href="@HelpLink">
+                            Href="@SupportFormUrl">
                             @Localizer["Request Form"]
                         </MudButton>
                     </MudStack>
@@ -56,11 +57,11 @@
 </span>
 
 @code {
-
+    [Parameter]
+    public string SupportFormUrl { get; set; }
     private string _style;
     private bool _showHelp;
     private string _datahubEmail;
-    private string HelpLink => "https://forms.office.com/r/zk82ehvUtv)%E2%80%9D";
     private const string TOOLTIP_TEXT = "Help";
 
     protected override async Task OnInitializedAsync()

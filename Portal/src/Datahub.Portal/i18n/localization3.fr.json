@@ -40,5 +40,8 @@
   "Delete a file from the project with the Storage Explorer": "Supprimer un fichier du projet à l'aide de l'explorateur de stockage",
   "C'est mieux comme ça": "C'est mieux comme ça",
   "Download a file using the workspace Storage Explorer": "Télécharger un fichier à l'aide de l'espace de travail Storage Explorer",
-  "View another person's profile": "Consulter le profil d'une autre personne"
+  "View another person's profile": "Consulter le profil d'une autre personne",
+  "Functions": "Fonctions",
+  "I have read and agree to the terms and conditions": "J'ai lu et j'accepte les conditions d'utilisation",
+  "Complete": "Compléter"
 }
