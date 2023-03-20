@@ -3,7 +3,6 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using System.Text;
 using System.Text.Json;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Datahub.Infrastructure.Queues.MessageHandlers;
 

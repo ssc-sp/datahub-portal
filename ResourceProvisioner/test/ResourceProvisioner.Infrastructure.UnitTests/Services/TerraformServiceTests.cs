@@ -11,8 +11,8 @@ public class TerraformServiceTests
     [SetUp]
     public void RunBeforeEachTest()
     {
-        var localModuleClonePath = DirectoryUtils.GetModuleRepositoryPath(_configuration);
-        var localInfrastructureClonePath = DirectoryUtils.GetInfrastructureRepositoryPath(_configuration);
+        var localModuleClonePath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
+        var localInfrastructureClonePath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
         
         VerifyDirectoryDoesNotExist(localModuleClonePath);
         VerifyDirectoryDoesNotExist(localInfrastructureClonePath);
@@ -21,7 +21,7 @@ public class TerraformServiceTests
     [Test]
     public void ShouldThrowExceptionWhenProjectNotInitialized()
     {
-        var moduleDestinationPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _configuration["InfrastructureRepository:LocalPath"]);
+        var moduleDestinationPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _resourceProvisionerConfiguration.InfrastructureRepository.LocalPath);
         var module = new TerraformTemplate()
         {
             Name = "azure-storage-blob",

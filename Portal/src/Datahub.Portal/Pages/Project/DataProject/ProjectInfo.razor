@@ -9,9 +9,10 @@
 @using Datahub.Infrastructure.Services.Azure
 
 @inject UIControlsService _uiControlService
-@inject NavigationManager NavigationManager
-@inject IMetadataBrokerService MetadataBrokerService
-@inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
+@inject NavigationManager _navigationManager
+@inject IMetadataBrokerService _metadataBrokerService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
 
 @if (_loading)
 {
@@ -26,37 +27,48 @@
 
 <MudStack Row>
     <MudChip Label Color="@Color.Dark" class="project-data-sensitivity">@Localizer[Project.Data_Sensitivity]</MudChip>
-
-    @if (_projectCredits is not null && _projectBudget > 0)
-    {
-        <MudBadge Icon="@Icons.Material.Filled.QuestionMark" Color="@GetCostChipColor()" Overlap="@true" Bordered="@true">
-            <MudChip Label="true" 
-                     Icon="@Icons.Material.Filled.AttachMoney" 
-                     IconColor="@GetCostChipColor()" 
+    <AuthorizeView Roles="@string.Join(",", $"{ProjectAcronym}", RoleConstants.DATAHUB_ROLE_ADMIN)">
+        @if (CreditsDataExists && _projectBudget > 0)
+        {
+            <MudBadge Icon="@Icons.Material.Filled.QuestionMark" Color="@GetCostChipColor()" Overlap="@true" Bordered="@true">
+                <MudChip Label="true"
+                         Icon="@Icons.Material.Filled.AttachMoney"
+                         IconColor="@GetCostChipColor()"
+                         Variant="@Variant.Text"
+                         Color="@GetCostChipColor()"
+                         OnClick=@HandleShowCosts>
+                    @($"{CurrentCredits:C} {Localizer["Total spent"]}")
+                </MudChip>
+            </MudBadge>
+        }
+        else
+        {
+            <MudChip Label="true"
+                     Icon="@Icons.Material.Filled.AttachMoney"
+                     IconColor="@GetCostChipColor()"
                      Variant="@Variant.Text"
-                     Color="@GetCostChipColor()" 
-                     class="project-data-sensitivity" 
-                     OnClick=@HandleShowCosts>
-                @($"{CurrentCredits:C} {Localizer["Total spent"]}")
+                     Color="@GetCostChipColor()"
+                     Disabled="true">
+                @Localizer["No recent data"]
             </MudChip>
-        </MudBadge>
-    }
+        }
+    </AuthorizeView>
+    <AuthorizeView Roles="@string.Join(",", $"{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX}", RoleConstants.DATAHUB_ROLE_ADMIN)">
+        @{
+            var color = Project?.MetadataAdded ?? false ? Color.Default : Color.Warning;
+            var icon = Project?.MetadataAdded ?? false ? Icons.Material.Filled.Edit : Icons.Material.Filled.Warning;
+            <MudChip Icon="@icon"
+                     IconColor="@color"
+                     Variant="@Variant.Text"
+                     Color="@color"
+                     class="project-data-sensitivity"
+                     OnClick="@HandleEditMetadata"
+                     Label>
+                @Localizer["Edit Metadata"]
+            </MudChip>
+        }
+    </AuthorizeView>
 
-    @if (IsProjectAdmin || IsDatahubAdmin)
-    {
-        var color = Project?.MetadataAdded ?? false ? Color.Default : Color.Warning;
-        var icon = Project?.MetadataAdded ?? false ? Icons.Material.Filled.Edit : Icons.Material.Filled.Warning;
-        <MudChip Icon="@icon"
-                 IconColor="@color"
-                 Variant="@Variant.Text"
-                 Color="@color"
-                 class="project-data-sensitivity"
-                 OnClick="@HandleEditMetadata"
-                 Label
-                 >
-            @Localizer["Edit Metadata"]
-        </MudChip>
-    }
 </MudStack>
 
 <MudStack>
@@ -64,27 +76,28 @@
         <MudIcon Icon="@_projectIcon" Title="@Localizer["Project Icon"]"/>
         @Project.ProjectName
     </MudText>
+    <AuthorizeView Roles="@string.Join(",", $"{ProjectAcronym}", RoleConstants.DATAHUB_ROLE_ADMIN)">
+        @if (Project.Project_Phase == TerraformOutputStatus.PendingApproval)
+        {
+            <MudAlert Severity="Severity.Warning">@Localizer["The workspace is currently being configured in Azure. No resources can be provisioned until this step is completed."]</MudAlert>
+        }
 
-    @if (Project.Project_Phase == TerraformOutputStatus.PendingApproval)
-    {
-        <MudAlert Severity="Severity.Warning">@Localizer["The workspace is currently being configured in Azure. No resources can be provisioned until this step is completed."]</MudAlert>
-    }
+        @if (Project?.MetadataAdded != true)
+        {
+            <MudAlert Severity="Severity.Warning">@Localizer["The workspace metadata is currently incomplete. No resources can be provisioned until the project metadata has been filled"]</MudAlert>
+        }
 
-    @if (Project?.MetadataAdded != true)
-    {
-        <MudAlert Severity="Severity.Warning">@Localizer["The workspace metadata is currently incomplete. No resources can be provisioned until the project metadata has been filled"]</MudAlert>
-    }
+        @if ((Project?.Project_Budget ?? 0) == 0)
+        {
+            <MudAlert Severity="Severity.Warning">
+                <MudLink Href="@_datahubPortalConfiguration.SupportFormUrl" Underline="Underline.None">
+                    @Localizer["The project doesn't have a budget assigned. Contact a Datahub Administrator."]
+                </MudLink>
+            </MudAlert>
+        }
+    </AuthorizeView>
 
-    @if ((Project.Project_Budget ?? 0) == 0)
-    {
-        <MudAlert Severity="Severity.Warning">
-            <MudLink Href=@SupportFormLink Underline="Underline.None">
-                @Localizer["The project doesn't have a budget assigned. Contact a Datahub Administrator."]
-            </MudLink>            
-        </MudAlert>
-    }
-
-    <DHMarkdown class="description" Content=@GetProjectDescription()/>
+    <DHMarkdown class="description" Content="@GetProjectDescription()"/>
 </MudStack>
 
 
@@ -98,12 +111,12 @@
 
     [CascadingParameter(Name = "IsDatahubAdmin")]
     private bool IsDatahubAdmin { get; set; }
-
-    private string SupportFormLink = "https://forms.office.com/r/zk82ehvUtv)%E2%80%9D";
-
+    
     private Project_Credits _projectCredits = default;
 
     private decimal CurrentCredits => Convert.ToDecimal(_projectCredits.Current);
+
+    private bool CreditsDataExists => _projectCredits is not null && _projectCredits.ProjectId != 0;
 
     private decimal _projectBudget;
     private bool _loading = true;
@@ -114,12 +127,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var ctx = await dbContextFactory.CreateDbContextAsync();
+        using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
         _projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(e => e.ProjectId == Project.Project_ID) ?? new();
 
         _projectBudget = Project.Project_Budget ?? 0;
-        _projectMetadata = await MetadataBrokerService.GetObjectMetadataValues(ProjectAcronym);
+        _projectMetadata = await _metadataBrokerService.GetObjectMetadataValues(ProjectAcronym);
 
         _loading = false;
     }
@@ -152,7 +165,7 @@
             "PROTECTED C" => Color.Secondary,
         "PROTECTED A" => Color.Error,
         _ => Color.Dark
-    };
+        };
 
     private string GetProjectDataSensitivity()
     {
@@ -161,12 +174,12 @@
 
     private void HandleEditMetadata(MouseEventArgs args)
     {
-        NavigationManager.NavigateTo($"/w/{Project.Project_Acronym_CD}/metadata");
+        _navigationManager.NavigateTo($"/w/{Project.Project_Acronym_CD}/metadata");
     }
 
     private void HandleShowCosts(MouseEventArgs args)
     {
-        NavigationManager.NavigateTo($"/w/{Project.Project_Acronym_CD}/costs");
+        _navigationManager.NavigateTo($"/w/{Project.Project_Acronym_CD}/costs");
     }
 
     private string GetProjectDescription()
@@ -174,4 +187,5 @@
         var description = _projectMetadata.GetValue($"description_{CultureService.Culture}", null);
         return description ?? Project.ProjectDescription;
     }
+
 }

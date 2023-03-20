@@ -5,6 +5,7 @@ using System.Text.Json.Nodes;
 // This is actually required by some projects
 // ReSharper disable once RedundantUsingDirective
 using System.Collections.Generic;
+using Datahub.Shared.Enums;
 
 namespace Datahub.Shared.Entities;
 
@@ -30,6 +31,31 @@ public class TerraformWorkspace
         
         foreach (var user in Users)
         {
+            var userJson = new JsonObject()
+            {
+                ["email"] = user.Email,
+                ["oid"] = user.ObjectId,
+            };
+            users.Add(userJson);
+        }
+
+        return users;
+    }
+
+    public JsonNode ToUserList(Role? role)
+    {
+        var users = new JsonArray();
+
+        if (Users == null)
+        {
+            return users;
+        }
+        
+        foreach (var user in Users)
+        {
+            if(role.HasValue && user.Role != role)
+                continue;
+            
             var userJson = new JsonObject()
             {
                 ["email"] = user.Email,

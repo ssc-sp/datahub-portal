@@ -1,7 +1,7 @@
 {
   "Code": "PRJ-003",
   "Name": "Beam us up, Scotty",
-  "Description": "Upload a file using the project's Storage Explorer",
+  "Description": "Upload a file using the workspace Storage Explorer",
   "ParentAchievementCode": "PRJ-008",
   "Icon": "fas fa-rocket",
   "RuleExpressions": [

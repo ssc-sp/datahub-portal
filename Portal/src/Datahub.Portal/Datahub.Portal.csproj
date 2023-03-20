@@ -15,9 +15,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="Controllers\OpenDataApprovalForm.docx" />
+    <None Remove="i18n\achievements.fr.json.bad" />
   </ItemGroup>
   <ItemGroup>
     <_ContentIncludedByDefault Remove="efpt.config.json" />
+    <_ContentIncludedByDefault Remove="i18n\achievements.fr.json.bad" />
     <_ContentIncludedByDefault Remove="i18n\ssc\registration.fr.json" />
     <_ContentIncludedByDefault Remove="Pages\Admin\Requests\Registration\RegistrationActions.razor" />
     <_ContentIncludedByDefault Remove="Pages\Admin\Requests\Registration\ViewRegistrationRequests.razor" />
@@ -53,6 +55,9 @@
     <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\TryItFr.razor" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="i18n\achievements.fr.json.bad" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="Controllers\OpenDataApprovalForm.docx" />
   </ItemGroup>
   <ItemGroup>
@@ -68,6 +73,7 @@
     <PackageReference Include="Azure.Identity" Version="1.8.0" />
     <PackageReference Include="Azure.Search.Documents" Version="11.4.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.14.1" />
+	<PackageReference Include="Azure.Storage.Queues" Version="12.12.0" />
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.12.1" />
     <PackageReference Include="BlazorDownloadFile" Version="2.4.0.2" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />

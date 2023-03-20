@@ -86,7 +86,7 @@ internal class MarkdownDocumentationService
         return false;
     }
 
-    internal static bool CheckIfAutogenerate(string outputFilePath)
+    internal static bool CheckIfAutogenerateFrontMatter(string outputFilePath)
     {
         if (!File.Exists(outputFilePath))
             return true;
@@ -112,6 +112,27 @@ internal class MarkdownDocumentationService
         }
         return false;
     }
+
+    internal static bool CheckIfAutogenerateYaml(string outputFilePath)
+    {
+        if (!File.Exists(outputFilePath))
+            return true;
+        var content = File.ReadAllText(outputFilePath);
+        // deserialize the yaml block into a custom type
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+
+        var metadata = deserializer.Deserialize<Dictionary<string, string>>(content);
+        if (metadata.TryGetValue("autogenerate", out var draftString))
+        {
+            var isDraft = Boolean.Parse(draftString);
+            //Console.WriteLine($"File {outputFilePath} - Draft={isDraft}");
+            return isDraft;
+        }
+        return false;
+    }
+
 
     private void AddFileMapping(string engPath, string frePath)
     {

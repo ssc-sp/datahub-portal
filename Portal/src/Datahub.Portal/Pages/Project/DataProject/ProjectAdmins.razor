@@ -29,12 +29,13 @@ else
         <Authorized>
             <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-4">
                 <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
-                @if (IsProjectAdmin || IsDatahubAdmin)
-                {
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@($"/w/{ProjectAcronym}/members")">
-                        @Localizer["Manage"]
-                    </MudButton>
-                }
+                <AuthorizeView Roles="@AdminRoles" Context="innerContext">
+                    <Authorized>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@($"/w/{ProjectAcronym}/members")">
+                            @Localizer["Manage"]
+                        </MudButton>
+                    </Authorized>
+                </AuthorizeView>
             </MudStack>
             <MudStack Class="admin-list">
             
@@ -89,6 +90,8 @@ else
 
     private List<ProjectMember> _projectAdmins;
     private Microsoft.Graph.User _user;
+    
+    private string AdminRoles => $"{RoleConstants.DATAHUB_ROLE_ADMIN},{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX}";
 
     protected override async Task OnInitializedAsync()
     {
