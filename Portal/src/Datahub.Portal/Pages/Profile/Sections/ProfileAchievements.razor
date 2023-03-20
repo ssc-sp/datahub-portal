@@ -45,6 +45,7 @@
 
     [Parameter]
     public GraphUser User { get; set; }
+    private GraphUser _previousUser;
 
     private Dictionary<string, List<UserAchievement>> _achievementsByParentCode;
     private List<UserAchievement> _metaAchievements;
@@ -53,7 +54,7 @@
     {
         await base.OnAfterRenderAsync(firstRender);
 
-        if (firstRender)
+        if (firstRender || User != _previousUser)
         {
             var achievements = await _achievementService.GetUserAchievements(User.Mail);
             _achievementsByParentCode = achievements
@@ -61,6 +62,7 @@
                 .ToDictionary(a => a.Key, a => a.ToList());
 
             _metaAchievements = achievements.Where(a => a.Achievement is { MetaAchievement: true }).ToList();
+            _previousUser = User;
             StateHasChanged();
         }
     }
