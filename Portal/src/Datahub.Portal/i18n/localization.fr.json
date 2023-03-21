@@ -1751,5 +1751,8 @@
   "How to use Project Storage": "Comment utiliser le stockage de projet",
   "Delete Folder": "Supprimer le dossier",
   "You are not a member of this project. If you have been granted access recently please": "Vous n'êtes pas membre de ce projet. Si l'accès vous a été accordé récemment, veuillez",
-  "click here to refresh the access.": "cliquer ici pour rafraîchir l'accès."
+  "click here to refresh the access.": "cliquer ici pour rafraîchir l'accès.",
+  "No recent data": "Pas de données récentes",
+  "Request New": "Demande Nouveau",
+  "Not Enabled": "Non Activé"
 }
