@@ -1,7 +1,8 @@
-﻿@page "/debug/functions"
+﻿@*FunctionHealth.razor*@
+
+@page "/debug/functions"
 @using Azure.Storage.Queues;
 @using System.Text;
-
 @implements IDisposable
 @inject IConfiguration Configuration
 @inject ILogger<FunctionHealth> Logger
@@ -154,7 +155,6 @@
         _ => Color.Default
     };
 
-
     public void Dispose()
     {
         _timer?.Dispose();    
@@ -179,5 +179,5 @@
         public DateTime? PingTime { get; set; }
     }
 
-    enum FunctionState { Unverified, Verifying , Succeded, Failed }
+    enum FunctionState { Unverified, Verifying, Succeded, Failed }
 }
