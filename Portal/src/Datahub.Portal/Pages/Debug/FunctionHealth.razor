@@ -1,7 +1,8 @@
-﻿@page "/debug/functions"
+﻿@*FunctionHealth.razor*@
+
+@page "/debug/functions"
 @using Azure.Storage.Queues;
 @using System.Text;
-
 @implements IDisposable
 @inject IConfiguration Configuration
 @inject ILogger<FunctionHealth> Logger
@@ -10,22 +11,21 @@
     <MudCardHeader>
         <CardHeaderContent>
             <MudText Typo="Typo.h4">Function Health</MudText>
+            <MudText Class="mt-2">
+                Click the function to check its status. It can take up to 5 minutes to return the status.
+            </MudText>
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <MudStack>
-            <MudList Clickable="true" Dense="false" DisableGutters="false">
-                @foreach (var funct in _functions)
-                {
-                    <MudListItem 
-                        Text=@funct.Name
-                        Icon=@GetFunctionIcon(funct)
-                        IconColor=@GetFunctionColor(funct)
-                        OnClick="() => HandleClickFunction(funct)"
-                    />
-                }
-            </MudList>
-        </MudStack>
+        <MudList Clickable="true" Dense="false" DisableGutters="false">
+            @foreach (var funct in _functions)
+            {
+                <MudListItem Text=@funct.Name
+                         Icon=@GetFunctionIcon(funct)
+                         IconColor=@GetFunctionColor(funct)
+                         OnClick="() => HandleClickFunction(funct)" />
+            }
+        </MudList>
     </MudCardContent>
 </MudCard>
 
@@ -155,7 +155,6 @@
         _ => Color.Default
     };
 
-
     public void Dispose()
     {
         _timer?.Dispose();    
@@ -180,5 +179,5 @@
         public DateTime? PingTime { get; set; }
     }
 
-    enum FunctionState { Unverified, Verifying , Succeded, Failed }
+    enum FunctionState { Unverified, Verifying, Succeded, Failed }
 }
