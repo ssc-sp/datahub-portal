@@ -19,13 +19,14 @@ public class TerraformService : ITerraformService
     private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
     private readonly IConfiguration _configuration;
 
-    private readonly List<string> _userListVariables = new()
+    private readonly List<string> _alwaysOverwriteVariables = new()
     {
         TerraformVariables.DatabricksProjectLeadUsers,
         TerraformVariables.DatabricksAdminUsers,
         TerraformVariables.DatabricksProjectUsers,
-
         TerraformVariables.StorageContributorUsers,
+        TerraformVariables.BudgetAmount,
+        TerraformVariables.StorageSizeLimitInTb
     };
 
     public TerraformService(ILogger<TerraformService> logger,
@@ -192,7 +193,7 @@ public class TerraformService : ITerraformService
                     await File.ReadAllTextAsync(variablesFilePath)) ?? new JsonObject();
             foreach (var (key, value) in missingVariables)
             {
-                if (_userListVariables.Contains(key))
+                if (_alwaysOverwriteVariables.Contains(key))
                 {
                     preExistingVariables.Remove(key);
                 }
