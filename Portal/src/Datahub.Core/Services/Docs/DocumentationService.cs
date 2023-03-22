@@ -64,6 +64,16 @@ public class DocumentationService
         _statusMessages.Add(error);
     }
 
+    public string BuildAbsoluteURL(string relLink)
+    {
+        if (relLink is null)
+        {
+            throw new ArgumentNullException(nameof(relLink));
+        }
+
+        return new Uri(_docsRoot + relLink).AbsoluteUri;
+    }
+
     private static DocItem? ParseSidebar(DocumentationGuide guide, string? inputMarkdown, Func<string, string> mapId)
     {
         if (string.IsNullOrEmpty(inputMarkdown))
@@ -276,7 +286,7 @@ public class DocumentationService
     public const string SIDEBAR = "_sidebar.md";
     public const string FILE_MAPPINGS = "filemappings.json";
 
-    private string BuildUrl(DocumentationGuide guide, string? locale, string name, IList<string>? folders = null)
+    private string BuildURL(DocumentationGuide guide, string? locale, string name, IList<string>? folders = null)
     {
         var allFolders = new List<string>();
         //sb.Append($"{(string.IsNullOrEmpty(locale) ? string.Empty : (locale + '/'))}{guide.GetStringValue()}/");
@@ -311,7 +321,7 @@ public class DocumentationService
     private async Task<string?> LoadDocsPage(DocumentationGuide guide, string? name, string? locale = "", bool useCache = true)
     {
         if (name is null) return null;
-        return await LoadDocs(BuildUrl(guide, locale??string.Empty, name), useCache);
+        return await LoadDocs(BuildURL(guide, locale??string.Empty, name), useCache);
     }
 
     private async Task<string?> LoadDocs(string url, bool useCache = true, bool skipFrontMatter = true)
@@ -399,8 +409,8 @@ public class DocumentationService
     {
         if (item.GetMarkdownFileName != null)
         {
-            var url = BuildUrl(item.DocumentationGuide, null, item.GetMarkdownFileName()!);
-            _cache.Remove(url);
+            var path = BuildURL(item.DocumentationGuide, null, item.GetMarkdownFileName()!);
+            _cache.Remove(path);
         }
     }
 
