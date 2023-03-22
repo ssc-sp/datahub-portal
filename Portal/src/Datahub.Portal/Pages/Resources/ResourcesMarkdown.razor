@@ -16,7 +16,7 @@
     </AuthorizeView>
     
     <DHMarkdown Content="@_markdownContent"
-                LinkRewriter="@ResourcesPage.RewriteLink" 
+                LinkRewriter="@RewriteLink" 
                 Substitutions="@Substitutions" />
 
 </MudPaper>
@@ -31,11 +31,30 @@
 
     private string _markdownContent;
     private string _editButtonStyle = "float: right;";
-    
+
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
         _markdownContent = await _docService.LoadResourcePage(DocumentItem);
+    }
+
+
+    public string RewriteLink(string link)
+    {
+        if (link.StartsWith("http"))
+            return link;
+        //if link has an image extension
+        var linkLc = link.ToLower();
+        if (linkLc.EndsWith(".png") || linkLc.EndsWith(".jpg") || linkLc.EndsWith(".jpeg") || linkLc.EndsWith(".gif"))
+        {
+            if (link.StartsWith("/"))
+                return _docService.BuildAbsoluteURL(link);
+            var baseAddress = new Uri(_docService.BuildAbsoluteURL(DocumentItem.MarkdownPage));
+            Uri directory = new Uri(baseAddress, "."); // "." == current dir, like MS-DOS
+            var imgLink = new Uri(directory,link).AbsoluteUri;
+            return imgLink;
+        }
+        return ResourcesPage.BaseUrl + "/" + System.Web.HttpUtility.UrlEncode(link);
     }
 
     private void HandleRemoveFromCache()
