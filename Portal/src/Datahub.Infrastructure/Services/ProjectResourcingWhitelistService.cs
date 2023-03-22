@@ -55,7 +55,7 @@ namespace Datahub.Infrastructure.Services
             await using var context = await _contextFactory.CreateDbContextAsync();
             if (projectResourceWhitelist.Id == 0)
             {
-                context.Project_Whitelists.Attach(projectResourceWhitelist);
+                await context.Project_Whitelists.AddAsync(projectResourceWhitelist);
             }
             else
             {
