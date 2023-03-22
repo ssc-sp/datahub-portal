@@ -1755,5 +1755,9 @@
   "No recent data": "Pas de données récentes",
   "Request New": "Demande Nouveau",
   "Not Enabled": "Non Activé",
-  "Edit Available Resources": "Editer les ressources disponibles"
+  "Edit Available Resources": "Editer les ressources disponibles",
+  "Virtual Machines": "Machines Virtuelles",
+  "Edit budget": "Editer le budget",
+  "Assigned Budget": "Budget alloué",
+  "Add to Queue": "Ajouter à la file d'attente"
 }
