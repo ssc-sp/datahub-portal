@@ -25,15 +25,15 @@
             <MudTh>
                 <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.ProjectName)" InitialDirection="SortDirection.Ascending">@Localizer["Name"]</MudTableSortLabel>
             </MudTh>
-            <MudTh>
+@*            <MudTh>
                 <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.Sector_Name)" >@Localizer["Department/Agency"]</MudTableSortLabel>
-            </MudTh>
+            </MudTh>*@
             <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Acronym">@context.Project_Acronym_CD</MudTd>
             <MudTd DataLabel="Name">@context.ProjectName</MudTd>
-            <MudTd DataLabel="Department/Agency">@Localizer[context.Sector_Name ?? "N/A"]</MudTd>
+@*            <MudTd DataLabel="Department/Agency">@Localizer[context.Sector_Name ?? "N/A"]</MudTd>*@
             <MudTd DataLabel="ProjectButton"> 
                 <MudButton EndIcon="@UserWorkspaceOpenIcon" Variant="Variant.Text" Color="Color.Primary"
                            Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{context.Project_Acronym_CD}")">
