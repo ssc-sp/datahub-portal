@@ -53,6 +53,7 @@ namespace Datahub.Infrastructure.Services
             projectResourceWhitelist.AdminLastUpdated_ID = currentUser.Id;
             projectResourceWhitelist.AdminLastUpdated_UserName = currentUser.Mail;
             await using var context = await _contextFactory.CreateDbContextAsync();
+            context.Attach(projectResourceWhitelist.Project);
             if (projectResourceWhitelist.Id == 0)
             {
                 await context.Project_Whitelists.AddAsync(projectResourceWhitelist);
