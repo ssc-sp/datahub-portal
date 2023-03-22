@@ -1746,7 +1746,7 @@
   "Request is being reviewed": "La demande est en cours d'examen",
   "Your Workspace Tools": "Vos outils de l'espace de travail",
   "Resource has been created": "La ressource a été créée",
-  "Open Databricks": "Databricks ouverts",
+  "Open Databricks": "Ouvrir Databricks",
   "View Shared Files": "Afficher les fichiers partagés",
   "How to use Project Storage": "Comment utiliser le stockage de projet",
   "Delete Folder": "Supprimer le dossier",
@@ -1754,5 +1754,6 @@
   "click here to refresh the access.": "cliquer ici pour rafraîchir l'accès.",
   "No recent data": "Pas de données récentes",
   "Request New": "Demande Nouveau",
-  "Not Enabled": "Non Activé"
+  "Not Enabled": "Non Activé",
+  "Edit Available Resources": "Editer les ressources disponibles"
 }
