@@ -180,6 +180,22 @@ public class AzureDatabricksTemplateTests
         }
     }
 
+    private static IEnumerable<JsonObject> GenerateOmniUsers()
+    {
+        return new List<JsonObject>
+        {
+            new()
+            {
+                ["email"] = "omni1@email.com",
+                ["oid"] = "00000000-0000-0000-0000-000000000001"
+            },
+            new()
+            {
+                ["email"] = "omni2@email.com",
+                ["oid"] = "00000000-0000-0000-0000-000000000002"
+            },
+        };
+    }
 
     private static JsonObject GenerateExpectedVariables(TerraformWorkspace workspace, bool withUsers = true)
     {
@@ -188,7 +204,7 @@ public class AzureDatabricksTemplateTests
             return new JsonObject
             {
                 [TerraformVariables.DatabricksProjectLeadUsers] = new JsonArray(),
-                [TerraformVariables.DatabricksAdminUsers] = new JsonArray(),
+                [TerraformVariables.DatabricksAdminUsers] = new JsonArray(GenerateOmniUsers().ToArray<JsonNode>()),
                 [TerraformVariables.DatabricksProjectUsers] = new JsonArray(),
                 [TerraformVariables.AzureDatabricksEnterpriseOid] = _resourceProvisionerConfiguration.Terraform
                     .Variables
@@ -209,14 +225,15 @@ public class AzureDatabricksTemplateTests
                 .ToArray<JsonNode>()
             ),
             [TerraformVariables.DatabricksAdminUsers] = new JsonArray(
-                (workspace.Users ?? Array.Empty<TerraformUser>())
-                .Where(u => u.Role == Role.Admin)
-                .Select(u => new JsonObject
-                {
-                    ["email"] = u.Email,
-                    ["oid"] = u.ObjectId,
-                })
-                .ToArray<JsonNode>()
+                GenerateOmniUsers().Concat(
+                        (workspace.Users ?? Array.Empty<TerraformUser>())
+                        .Where(u => u.Role == Role.Admin)
+                        .Select(u => new JsonObject
+                        {
+                            ["email"] = u.Email,
+                            ["oid"] = u.ObjectId,
+                        }))
+                    .ToArray<JsonNode>()
             ),
             [TerraformVariables.DatabricksProjectUsers] = new JsonArray(
                 (workspace.Users ?? Array.Empty<TerraformUser>())
