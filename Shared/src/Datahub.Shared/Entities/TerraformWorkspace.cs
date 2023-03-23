@@ -41,11 +41,11 @@ public class TerraformWorkspace
 
         return users;
     }
-
-    public JsonNode ToUserList(Role? role)
+    public JsonNode ToUserList(Role? role, List<JsonObject>? omniUsers = null)
     {
         var users = new JsonArray();
-
+        omniUsers?.ForEach(users.Add);
+        
         if (Users == null)
         {
             return users;
