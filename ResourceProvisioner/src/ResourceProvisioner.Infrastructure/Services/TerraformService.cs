@@ -243,7 +243,9 @@ public class TerraformService : ITerraformService
         return variableName switch
         {
             TerraformVariables.DatabricksProjectLeadUsers => terraformWorkspace.ToUserList(Role.Owner),
-            TerraformVariables.DatabricksAdminUsers => terraformWorkspace.ToUserList(Role.Admin),
+            TerraformVariables.DatabricksAdminUsers => terraformWorkspace.ToUserList(Role.Admin,
+                _resourceProvisionerConfiguration.Terraform.Modules.AzureDatabricks.OmniUsers
+                    .Select(u => u.ToJsonObject()).ToList()),
             TerraformVariables.DatabricksProjectUsers => terraformWorkspace.ToUserList(Role.User),
             TerraformVariables.StorageContributorUsers => terraformWorkspace.ToUserList(),
             _ => throw new MissingTerraformVariableException(
