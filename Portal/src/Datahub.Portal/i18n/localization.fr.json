@@ -40,7 +40,8 @@
     "Restore": "Restaurer",
     "Submit": "Soumettre",
     "Upload": "Upload",
-    "Save": "Sauvegarder"
+    "Save": "Sauvegarder",
+    "Edit":  "Editer"
   },
   "COMMON": {
     "Yes": "Oui",
@@ -1759,5 +1760,6 @@
   "Virtual Machines": "Machines Virtuelles",
   "Edit budget": "Editer le budget",
   "Assigned Budget": "Budget alloué",
-  "Add to Queue": "Ajouter à la file d'attente"
+  "Add to Queue": "Ajouter à la file d'attente",
+  "Copy Container Token": "Copier le jeton du conteneur"
 }
