@@ -44,7 +44,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
                                          OnClick="@(() => ProjectMemberRoleFilter(ProjectMemberRole.Collaborator))" Disabled="_contributorCount == 0"/>
                         </MudTabs>
                         <MudSpacer/>
-                        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                        <MudTextField @bind-Value="_searchString" Placeholder="@Localizer["Search"]" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                     </MudGrid>
                 </MudStack>
             </ToolBarContent>
@@ -61,7 +61,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
                 <MudTh>@Localizer["Role"]</MudTh>
                 <MudTh>
                     <MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.UserAddedToProject)">
-                        @Localizer["Added to Project"]
+                        @Localizer["Added to Workspace"]
                     </MudTableSortLabel>
                 </MudTh>
                 <MudTh></MudTh>
@@ -91,7 +91,8 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
                 </MudTd>
             </RowTemplate>
             <PagerContent>
-                <MudTablePager/>
+                <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]"
+                               InfoFormat="@PagerInfoFormat"/>
             </PagerContent>
         </MudTable>
     }
@@ -137,6 +138,8 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
     
     private List<(string UserId, ProjectMemberRole NewRole)> _usersToBeUpdated = new();
     private List<(string UserId, ProjectMemberRole Role)> _currentSavedUsers = new();
+    
+    private string PagerInfoFormat => "{first_item}-{last_item} " + Localizer["of"] + " {all_items}";
 
 
     protected override async Task OnInitializedAsync()
@@ -214,7 +217,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
         {
             if (result.Data is not List<ProjectMember> newUsers)
             {
-                Snackbar.Add(Localizer["Error inviting new users to project"], Severity.Error);
+                Snackbar.Add(Localizer["Error inviting new users to workspace"], Severity.Error);
             }
             else
             {

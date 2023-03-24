@@ -7,7 +7,7 @@
 
 <MudDialog>
     <DialogContent>
-        <MudText Class="py-2">@Localizer["Search for new users below using their email address. New users will be added as contributors."]</MudText>
+        <MudText Class="py-2">@Localizer["Search for new users below using their email address. New users will be added as collaborators."]</MudText>
         <MudAutocomplete T="string" @ref="@_autocomplete" Label="@Localizer["User's GC Email"]" ValueChanged="AddUser"
             DebounceInterval="500" SearchFuncWithCancel="@SearchUsers" AdornmentColor="Color.Primary" AdornmentIcon="@SearchIcon"
             Error="@_error" ErrorText="@_errorMessage" ShowProgressIndicator="@_searchingForUsers" ResetValueOnEmptyText
@@ -70,7 +70,7 @@
     private const string SearchIcon = "fa-duotone fa-magnifying-glass";
     private const string AddUserIcon = "fa-duotone fa-user-plus";
     private const string RemoveUserIcon = "fa-duotone fa-trash-can-slash";
-    private const string UserExistsError = "The user is already in the project";
+    private const string UserExistsError = "The user is already a member of this workspace";
     private const string NotValidEmailError = "Please enter a valid GC email address";
 
     // added to catch the case where the user is in graph but ID is null (GitHub issue # 404)
