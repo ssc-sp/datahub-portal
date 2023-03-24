@@ -57,7 +57,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         }
         // Remove users that are no longer in the project
         var usersToRemoveFromProject =
-            projectMembersList.Where(p => p.role == ProjectMemberRole.WorkspaceLead).ToList();
+            projectMembersList.Where(p => p.role == ProjectMemberRole.Remove).ToList();
         foreach (var user in usersToRemoveFromProject)
         {
             await RemoveUserFromProject(context, project, user.userGraphId);
@@ -76,7 +76,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         }
         
         // Update users that are already in the project
-        var usersToUpdateInProject = projectMembersList.Except(usersToAddToProject).ToList();
+        var usersToUpdateInProject = projectMembersList.Except(usersToAddToProject).Except(usersToRemoveFromProject).ToList();
         foreach (var user in usersToUpdateInProject)
         {
             await UpdateUserInProject(context, project, user.userGraphId, user.role);
@@ -86,6 +86,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             
             await context.SaveChangesAsync();
             await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.VariableUpdate);
+            _serviceAuthManager.InvalidateAuthCache();
             _logger.LogInformation("Terraform variable update request created for project {ProjectAcronym}", projectAcronym);
             scope.Complete();
         }
