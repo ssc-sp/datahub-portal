@@ -27,4 +27,12 @@ public class ProjectMember
         Role = projectUser.IsDataApprover ? ProjectMemberRole.WorkspaceLead : projectUser.IsAdmin ? 
             ProjectMemberRole.Admin : ProjectMemberRole.Collaborator;
     }
+
+    public ProjectMember(GraphUser graphUser, ProjectMemberRole role = ProjectMemberRole.Collaborator)
+    {
+        Email = graphUser.Mail;
+        UserId = graphUser.Id;
+        Role = role;
+        UserAddedToProject = DateTime.Now;
+    }
 }
