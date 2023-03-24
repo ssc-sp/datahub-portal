@@ -87,16 +87,9 @@ else
     private bool ShowPreviewCards => _currentDoc?.MarkdownPage is null;
     private bool _docIsLoading;
 
-    private const string BaseUrl = "/resources";
+    public const string BaseUrl = "/resources";
 
     public static string BuildResourceLink(DocItem res) => $"{BaseUrl}/{res.Id}";
-
-    public static string RewriteLink(string link)
-    {
-        if (link.StartsWith("http"))
-            return link;
-        return BaseUrl + "/" + System.Web.HttpUtility.UrlEncode(link);
-    }
 
     private bool UpdateCategory(DocItem cat, bool value)
     {
