@@ -40,7 +40,8 @@
     "Restore": "Restaurer",
     "Submit": "Soumettre",
     "Upload": "Upload",
-    "Save": "Sauvegarder"
+    "Save": "Sauvegarder",
+    "Edit":  "Editer"
   },
   "COMMON": {
     "Yes": "Oui",
@@ -1746,10 +1747,19 @@
   "Request is being reviewed": "La demande est en cours d'examen",
   "Your Workspace Tools": "Vos outils de l'espace de travail",
   "Resource has been created": "La ressource a été créée",
-  "Open Databricks": "Databricks ouverts",
+  "Open Databricks": "Ouvrir Databricks",
   "View Shared Files": "Afficher les fichiers partagés",
   "How to use Project Storage": "Comment utiliser le stockage de projet",
   "Delete Folder": "Supprimer le dossier",
   "You are not a member of this project. If you have been granted access recently please": "Vous n'êtes pas membre de ce projet. Si l'accès vous a été accordé récemment, veuillez",
-  "click here to refresh the access.": "cliquer ici pour rafraîchir l'accès."
+  "click here to refresh the access.": "cliquer ici pour rafraîchir l'accès.",
+  "No recent data": "Pas de données récentes",
+  "Request New": "Demande Nouveau",
+  "Not Enabled": "Non Activé",
+  "Edit Available Resources": "Editer les ressources disponibles",
+  "Virtual Machines": "Machines Virtuelles",
+  "Edit budget": "Editer le budget",
+  "Assigned Budget": "Budget alloué",
+  "Add to Queue": "Ajouter à la file d'attente",
+  "Copy Container Token": "Copier le jeton du conteneur"
 }
