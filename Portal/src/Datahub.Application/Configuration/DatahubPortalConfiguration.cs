@@ -13,6 +13,7 @@ public class DatahubPortalConfiguration
     public DataProjects DataProjects { get; set; } = new();
     public Achievements Achievements { get; set; } = new();
     public string ProjectUrlSegment { get; set; } = "w";
+    public string ProfileUrlSegment { get; set; } = "profile";
 
     public ConnectionStrings ConnectionStrings { get; set; } = new();
     public AzureAd AzureAd { get; set; } = new();
@@ -35,11 +36,14 @@ public class DatahubPortalConfiguration
     public DatahubStorageQueue DatahubStorageQueue { get; set; } = new();
     public string DatahubGraphInviteFunctionUrl { get; set; } = null!;
     public TermsAndConditionsUrl TermsAndConditionsUrl { get; set; } = new();
+
+    public string SupportFormUrl { get; set; } =
+        "https://forms.office.com/pages/responsepage.aspx?id=lMFb0L-U1kquLh2w8uOPXhksOXzZ73RCp9fVTz4vTU5UNTc1U00yNVUxWVg4SkJGMFVHN1RCTTdQRS4u";
 }
 
 public class Achievements
 {
-    public bool Enabled { get; set; } = true;
+    public bool Enabled { get; set; } = false;
     public bool LocalAchievementsOnly { get; set; } = false;
 }
 

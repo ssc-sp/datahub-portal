@@ -1,3 +1,5 @@
+using System.Text.Json.Nodes;
+
 namespace ResourceProvisioner.Application.Config;
 
 public class Backend
@@ -45,6 +47,33 @@ public class TerraformConfiguration
 {
     public Backend Backend { get; set; }
     public Variables Variables { get; set; }
+    
+    public Modules Modules { get; set; }
+}
+
+public class AzureDatabricks
+{
+    public List<OmniUser> OmniUsers { get; set; }
+}
+
+public class Modules
+{
+    public AzureDatabricks AzureDatabricks { get; set; }
+}
+
+public class OmniUser
+{
+    public string email { get; set; }
+    public string oid { get; set; }
+
+    public JsonObject ToJsonObject()
+    {
+        return new JsonObject()
+        {
+            ["email"] = email,
+            ["oid"] = oid,
+        };
+    }
 }
 
 public class Variables

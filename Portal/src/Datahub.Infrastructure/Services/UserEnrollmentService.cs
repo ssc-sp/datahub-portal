@@ -76,7 +76,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
             {
                 id = resultJson?["Value"]?["data"]?["id"]?.ToString() ?? string.Empty;
             }
-        } while (string.IsNullOrWhiteSpace(id) || numberOfRetries++ < maxNumberOfRetries);
+        } while (string.IsNullOrWhiteSpace(id) && numberOfRetries++ < maxNumberOfRetries);
 
         if (string.IsNullOrWhiteSpace(id))
         {
