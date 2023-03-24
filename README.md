@@ -1,6 +1,6 @@
 # Welcome to DataHub 
 
-This repository contains the source code the federal DataHub. 
+This repository contains the source code the Federal Science DataHub. 
 
 ## Learn more about DataHub
 
@@ -13,6 +13,7 @@ This repository contains the source code the federal DataHub.
 This project includes multiple projects
 - **DataHub**, contains the code for the application and presentation layer of the modules.
 - **Resource Provisioner** contains the code to handle the terraform infrastructure for the Datahub
+- **Shared** contains any code that is shared between the projects
 
 ## Commit Messages
 
@@ -57,6 +58,7 @@ Ce dépôt contient le code source du DataHub fédéral.
 Ce projet comprend plusieurs projets
 - **DataHub**, contient le code pour l'application et la couche de présentation des modules.
 - **Resource Provisioner** contient le code pour gérer l'infrastructure terraform pour le Datahub.
+- **Shared** contient le code qui est partagé entre les projets.
 
 ## Messages de commit
 

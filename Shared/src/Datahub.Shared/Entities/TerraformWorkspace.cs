@@ -13,7 +13,7 @@ public class TerraformWorkspace
 {
     public string? Name { get; set; }
     public string? Acronym { get; set; }
-    public int BudgetAmount { get; set; } = 400;
+    public double BudgetAmount { get; set; } = 400;
     
     // TODO: Move this into the storage module
     public int StorageSizeLimitInTB { get; set; } = 5;
@@ -41,11 +41,11 @@ public class TerraformWorkspace
 
         return users;
     }
-
-    public JsonNode ToUserList(Role? role)
+    public JsonNode ToUserList(Role? role, List<JsonObject>? omniUsers = null)
     {
         var users = new JsonArray();
-
+        omniUsers?.ForEach(users.Add);
+        
         if (Users == null)
         {
             return users;
