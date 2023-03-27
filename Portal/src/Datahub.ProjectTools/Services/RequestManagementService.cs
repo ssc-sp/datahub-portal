@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using System.Transactions;
 using Datahub.Application.Services;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Enums;
 
 namespace Datahub.ProjectTools.Services;
 
@@ -241,7 +242,7 @@ public class RequestManagementService : IRequestManagementService
             await ctx.Entry(project).Collection(p => p.Users).LoadAsync();
             var userId = await _userInformationService.GetUserIdString();
             var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-            var users = project.Users.Select(u => new TerraformUser() { ObjectId = u.User_ID, Email = u.User_Name })
+            var users = project.Users.Select(u => new TerraformUser() { ObjectId = u.User_ID, Email = u.User_Name, Role = GetTerraformUserRole(u)})
                 .ToList();
 
             var workspace = project.ToResourceWorkspace(users);
@@ -275,6 +276,16 @@ public class RequestManagementService : IRequestManagementService
             _logger.LogError(ex, $"Error creating resource {terraformTemplate} for {project.Project_Acronym_CD}");
             return false;
         }
+    }
+
+    private static Role GetTerraformUserRole(Datahub_Project_User projectUser)
+    {
+        if (projectUser.IsDataApprover)
+        {
+            return Role.Owner;
+        }
+
+        return projectUser.IsAdmin ? Role.Admin : Role.User;
     }
 
     public static FieldValueContainer BuildFieldValues(FieldDefinitions fieldDefinitions,
