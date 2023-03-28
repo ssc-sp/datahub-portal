@@ -207,6 +207,12 @@
             document.getElementById('browserNotSupported').style.cssText = "display: inline; text-align: center; position: absolute; width: 60%; max-width: 600px; top: 40%; left: 50%;transform: translate(-50%, -50%);";
         }
     </script>
+
+<script>
+function blazorGetTimezoneOffset() {
+    return new Date().getTimezoneOffset();
+}
+</script>
 <script src="_framework/blazor.server.js"></script>
 <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 <script defer src="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.js"></script>
