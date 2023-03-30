@@ -240,12 +240,13 @@ public class TerraformService : ITerraformService
 
     private JsonNode ComputeListVariableValue(TerraformWorkspace terraformWorkspace, string variableName)
     {
+        // var omniUsers = _resourceProvisionerConfiguration?.Terraform?.Modules?.AzureDatabricks?.OmniUsers?
+        //     .Select(u => u.ToJsonObject()).ToList() ?? new List<JsonObject>();
+        
         return variableName switch
         {
             TerraformVariables.DatabricksProjectLeadUsers => terraformWorkspace.ToUserList(Role.Owner),
-            TerraformVariables.DatabricksAdminUsers => terraformWorkspace.ToUserList(Role.Admin,
-                _resourceProvisionerConfiguration.Terraform.Modules.AzureDatabricks.OmniUsers
-                    .Select(u => u.ToJsonObject()).ToList()),
+            TerraformVariables.DatabricksAdminUsers => terraformWorkspace.ToUserList(Role.Admin),
             TerraformVariables.DatabricksProjectUsers => terraformWorkspace.ToUserList(Role.User),
             TerraformVariables.StorageContributorUsers => terraformWorkspace.ToUserList(),
             _ => throw new MissingTerraformVariableException(
