@@ -6,8 +6,8 @@
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
-<MudText Typo="Typo.h1" Class="mt-12 mb-6">@Localizer["Recent Places"]</MudText>
-<MudGrid Class="mt-4 recent-card-grid">
+<MudText Typo="Typo.h1">@Localizer["Recent Places"]</MudText>
+<MudGrid Class="recent-card-grid">
     @if (_recentLinks is null)
     {
         @for (var i = 0; i < 6; i++)

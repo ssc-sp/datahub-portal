@@ -1,35 +1,26 @@
 ﻿@using Microsoft.Extensions.Options
-@using Microsoft.Graph
 
 @using Datahub.Portal.Pages.Landing.Tabs
-@using Datahub.Portal.Components.Projects
 
-@inject IUserInformationService UserInformationService
-@inject UserLocationManagerService UserLocationManagerService
-@inject NavigationManager NavigationManager
+@* Note in use *@
+
 @inject IOptions<DataProjectsConfiguration> DataProjectsConfiguration
 
-<MudText Typo="Typo.h1" Class="mt-12 mb-6">@Localizer["My Places"]</MudText>
-<AeFlex class="landing-content-wrapper">
-    <AeFlex class="landing-content">
-        <MudTabs Elevation="0">
-            @foreach (var (label, content) in GetTabs())
-            {
-                <MudTabPanel Text="@label">
+<MudStack>
+    <MudText Typo="Typo.h1" Class="mt-12 mb-6">@Localizer["My Places"]</MudText>
+    <MudTabs Elevation="0" Color="Color.Primary">
+        @foreach (var (label, content) in GetTabs())
+        {
+            <MudTabPanel Text="@label" >
+                <MudCard Class="pt-2" Elevation="0" >
                     @content
-                </MudTabPanel>
-            }
-        </MudTabs>
-    </AeFlex>
-</AeFlex>
+                </MudCard>
+            </MudTabPanel>
+        }
+    </MudTabs>
+</MudStack>
 
 @code {
-
-    [Parameter]
-    public int TabIndex { get; set; }
-
-    [CascadingParameter(Name = "GraphUser")]
-    public User User { get; set; }
 
     private List<(string Control, RenderFragment Content)> GetTabs()
     {
@@ -47,13 +38,4 @@
 
         return res;
     }
-
-    private void OnChangeTab(int tabIndex)
-    {
-        if (tabIndex != TabIndex)
-        {
-            NavigationManager.NavigateTo($"/home/{tabIndex}");
-        }
-    }
-
 }
