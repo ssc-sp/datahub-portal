@@ -1,0 +1,67 @@
+@* <div class="breadcrumbs"> *@
+@*     <AeButton class="light" @onclick="@(async () => await SetCurrentFolder.InvokeAsync("/"))">@Localizer["/mnt/fsdh-dbk-main-mount"]</AeButton> *@
+@*     @foreach (var folder in CurrentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s))) *@
+@*     { *@
+@*         <i class="fas fa-chevron-right"></i> *@
+@*         <AeButton class="light" @onclick="@(async () => await BreadcrumbClicked(folder))">@folder</AeButton> *@
+@*     } *@
+@* </div> *@
+
+
+<MudBreadcrumbs Items="@_items">
+    <ItemTemplate Context="item">
+        @if (item.Href == "#")
+        {
+            <MudLink Typo="Typo.body2" Disabled="true">@item.Text</MudLink>
+        }
+        else
+        {
+            <MudLink Typo="Typo.body2" OnClick="@(async () => await BreadcrumbClicked(item.Href))">@item.Text</MudLink>
+        }
+    </ItemTemplate>
+</MudBreadcrumbs>
+
+@code {
+
+
+    [Parameter]
+    public EventCallback<string> SetCurrentFolder { get; set; }
+
+    [Parameter]
+    public string CurrentFolder { get; set; }
+    
+    private List<BreadcrumbItem> _items = new();
+
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        
+        _items.Clear();
+        _items.Add(new BreadcrumbItem("", "#", true));
+        _items.Add(new BreadcrumbItem("mnt", "#", true));
+        _items.Add(new BreadcrumbItem("fsdh-dbk-main-mount", "/"));
+        
+        var folders = CurrentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+        _items.AddRange(folders.Select(folder => new BreadcrumbItem(folder, folder)));
+    }
+
+    private async Task BreadcrumbClicked(string breadcrumb)
+    {
+        switch (breadcrumb)
+        {
+            case "#":
+                return;
+            case "/":
+                await SetCurrentFolder.InvokeAsync("/");
+                return;
+            default:
+            {
+                var index = CurrentFolder.IndexOf(breadcrumb, StringComparison.OrdinalIgnoreCase);
+                await SetCurrentFolder.InvokeAsync(CurrentFolder[..(index + breadcrumb.Length)] + "/");
+                break;
+            }
+        }
+    }
+
+}
