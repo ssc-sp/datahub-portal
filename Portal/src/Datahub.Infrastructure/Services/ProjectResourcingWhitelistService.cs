@@ -28,6 +28,13 @@ namespace Datahub.Infrastructure.Services
             return results.ToList();
         }
 
+        public async Task<Project_Whitelist> GetWhitelistByProjectAsync(int projectId)
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var whitelist = await context.Project_Whitelists.FirstOrDefaultAsync(x => x.Project.Project_ID == projectId);
+            return whitelist ?? new Project_Whitelist() { ProjectId = projectId };
+        }
+
         public async Task<Project_Whitelist> GetProjectResourceWhitelistByProjectAsync(int projectId)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
@@ -35,7 +42,7 @@ namespace Datahub.Infrastructure.Services
                 .Include(wl => wl.Project)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Project.Project_ID == projectId);
-            return whitelist ?? new Project_Whitelist(){ProjectId = projectId};
+            return whitelist ?? new Project_Whitelist() { ProjectId = projectId };
         }
 
         private async Task<Project_Whitelist> GetProjectResourceWhitelistByProjectAsync(
@@ -49,19 +56,23 @@ namespace Datahub.Infrastructure.Services
         public async Task UpdateProjectResourceWhitelistAsync(Project_Whitelist projectResourceWhitelist)
         {
             var currentUser = await _userInformationService.GetCurrentGraphUserAsync();
+            
             projectResourceWhitelist.LastUpdated = DateTime.Now;
             projectResourceWhitelist.AdminLastUpdated_ID = currentUser.Id;
             projectResourceWhitelist.AdminLastUpdated_UserName = currentUser.Mail;
+
             await using var context = await _contextFactory.CreateDbContextAsync();
-            context.Attach(projectResourceWhitelist.Project);
+            
+            // add or update whitelist
             if (projectResourceWhitelist.Id == 0)
             {
-                await context.Project_Whitelists.AddAsync(projectResourceWhitelist);
+                context.Project_Whitelists.Add(projectResourceWhitelist);
             }
             else
             {
                 context.Project_Whitelists.Update(projectResourceWhitelist);
             }
+
             await context.SaveChangesAsync();
         }
     }
