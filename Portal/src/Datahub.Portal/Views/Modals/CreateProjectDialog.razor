@@ -10,7 +10,7 @@
             <MudTextField T="string" @bind-Value="_projectAcronym" Label="@Localizer[AcronymLabel]" AdornmentIcon="@AcronymGeneratorIcon"
                           HelperText="@Localizer[AcronymHelper]" Adornment="Adornment.End" OnAdornmentClick="GenerateAcronym"
                           RequiredError="@Localizer[MissingAcronym]" Converter="_converter" @ref="_acronymField" Required
-                          Validation="new Func<string, Task<string>>(ValidateAcronym)"/>
+                          Validation="@(new Func<string, Task<string>>(ValidateAcronym))"/>
             @if (_errorMessage is not null)
             {
                 <MudAlert Severity="Severity.Error" Dense="true" Class="my-2" ShowCloseIcon CloseIconClicked="CloseAlert">
@@ -33,9 +33,12 @@
         </MudButton>
     </DialogActions>
 </MudDialog>
+
 @code {
 
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
     [Parameter]
     public bool ShowCancel { get; set; } = true;
 
@@ -47,16 +50,16 @@
     private const string AcronymGeneratorIcon = "fa-light fa-arrows-rotate";
     private const string AcronymGeneratorTooltip = "Generate a unique acronym";
     private const string WorkspaceException = "An error occurred while creating the workspace";
-        private const string CreateButton = "Create Workspace";
+    private const string CreateButton = "Create Workspace";
     private const string CancelButton = "Cancel";
-    
+
     private const string MissingTitle = "Workspace Title is required";
     private const string MissingAcronym = "Workspace Acronym is required";
     private const string AcronymExists = "Workspace Acronym already exists";
     private const string WorkspaceRequiredToGenerateAcronym = "Workspace Title is required to generate an acronym";
-    
+
     private const string DefaultOrganizationName = "Unspecified";
-    
+
     private string? _errorMessage;
     private string _projectTitle = string.Empty;
     private string _projectAcronym = string.Empty;
@@ -64,6 +67,7 @@
 
     private bool _success;
     private bool _isCreating;
+        private const int MaxAcronymLength = 7;
 
 
     private async Task GenerateAcronym()
@@ -75,26 +79,27 @@
         }
         _projectAcronym = await ProjectCreationService.GenerateProjectAcronymAsync(_projectTitle);
         _success = true;
-        _acronymField?.ResetValidation();    
+        _acronymField?.ResetValidation();
     }
 
     private void CloseAlert()
     {
         _errorMessage = null;
     }
-    
+
     private void CloseDialog()
     {
         MudDialog.Cancel();
     }
 
     private async Task<string?> ValidateAcronym(string acronym)
-    {   
+    {
         if (await ProjectCreationService.AcronymExists(acronym))
             return Localizer[AcronymExists];
-        return null;
+
+        return acronym.Length > MaxAcronymLength ? $"Acronym must be {MaxAcronymLength} characters or less" : null;
     }
-    
+
     private Converter<string> _converter = new Converter<string>
     {
         SetFunc = value => value?.ToUpperInvariant() ?? string.Empty,
@@ -106,7 +111,7 @@
         if (string.IsNullOrWhiteSpace(_projectTitle)) return;
         _projectAcronym = await ProjectCreationService.GenerateProjectAcronymAsync(_projectTitle);
     }
-    
+
     private async Task CreateProject()
     {
         if (_success)
