@@ -1,13 +1,3 @@
-@* <div class="breadcrumbs"> *@
-@*     <AeButton class="light" @onclick="@(async () => await SetCurrentFolder.InvokeAsync("/"))">@Localizer["/mnt/fsdh-dbk-main-mount"]</AeButton> *@
-@*     @foreach (var folder in CurrentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s))) *@
-@*     { *@
-@*         <i class="fas fa-chevron-right"></i> *@
-@*         <AeButton class="light" @onclick="@(async () => await BreadcrumbClicked(folder))">@folder</AeButton> *@
-@*     } *@
-@* </div> *@
-
-
 <MudBreadcrumbs Items="@_items">
     <ItemTemplate Context="item">
         @if (item.Href == "#")
