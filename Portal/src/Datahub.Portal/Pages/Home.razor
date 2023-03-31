@@ -9,7 +9,7 @@
 @inject ILocalStorageService _localStorage
 @inject IDialogService _dialogService
 
-@page "/home/{TabIndex?}"
+@page "/home"
 
 <DHPageAlert
     Title=@Localizer["Welcome To DataHub"]
@@ -19,21 +19,16 @@
 
 <WelcomeBanner/>
 <CascadingValue Name="GraphUser" Value="_user">
-    <RecentLinks/>
-    <LandingContent TabIndex="TabIndexParsed"/>
+    <MudStack Spacing="12" Class="mt-12">
+        <RecentLinks/>
+        <UserProjects/>
+    </MudStack>
 </CascadingValue>
 
-@code
-{
-        private const string LOGOUT_URL = "/signout-oidc";
-
-    [Parameter]
-    public string TabIndex { get; set; }
-
-    private int TabIndexParsed => int.TryParse(TabIndex, out var tabIndex) ? tabIndex : 0;
+@code {
+    
+    private const string LogoutUrl = "/signout-oidc";
     private bool _isUserValid = true;
-
-    private readonly List<string> _languages = new() { "English", "Français" };
     private User _user;
 
     protected override async Task OnInitializedAsync()
@@ -60,7 +55,7 @@
             {
                 await PromptForLanguage();
             }
-            
+
             var userAcceptedTac = await _userInformationService.HasUserAcceptedTAC();
             if (!userAcceptedTac)
             {
@@ -76,7 +71,7 @@
             CloseOnEscapeKey = false,
             DisableBackdropClick = true,
         };
-        
+
         var tocDialog = await _dialogService.ShowAsync<UserTermsAndConditionsDialog>(Localizer["TermsAndConditions"], options);
         var tocDialogResult = await tocDialog.Result;
         if (!tocDialogResult.Canceled)
@@ -88,10 +83,10 @@
         }
         else
         {
-            _navigationManager.NavigateTo(LOGOUT_URL, forceLoad: true);
+            _navigationManager.NavigateTo(LogoutUrl, forceLoad: true);
         }
     }
-    
+
     private async Task PromptForLanguage()
     {
         var options = new DialogOptions
@@ -134,4 +129,5 @@
             _userInformationService.SetLanguage(language);
         }
     }
+
 }
