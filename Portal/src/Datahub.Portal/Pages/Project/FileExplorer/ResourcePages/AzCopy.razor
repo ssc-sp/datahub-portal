@@ -1,8 +1,10 @@
 <MudStack>
-    <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container=@Container />
+    <MudElement>
+        <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container="@Container"/>
+    </MudElement>
     <EmbeddedWiki PageNameEn="/UserGuide/Storage/Use-AzCopy.md"
                   PageNameFr="/fr/UserGuide/Storage/Utilisez-AzCopy.md"
-                  Substitutions="_substitutions" />
+                  Substitutions="_substitutions"/>
 </MudStack>
 
 @code {
@@ -16,4 +18,4 @@
     {
         _substitutions = substitutions;
     }
-}
+s}
