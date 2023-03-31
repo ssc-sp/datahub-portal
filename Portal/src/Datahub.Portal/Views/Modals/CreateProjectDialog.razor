@@ -97,7 +97,7 @@
         if (await ProjectCreationService.AcronymExists(acronym))
             return Localizer[AcronymExists];
 
-        return acronym.Length > MaxAcronymLength ? $"Acronym must be {MaxAcronymLength} characters or less" : null;
+        return (acronym.Length > MaxAcronymLength ? Localizer["Acronym must be {0} characters or less", MaxAcronymLength] : null)!;
     }
 
     private Converter<string> _converter = new Converter<string>
