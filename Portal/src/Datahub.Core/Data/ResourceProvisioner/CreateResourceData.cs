@@ -15,11 +15,10 @@ public record CreateResourceData
     public string RequestingUserEmail { get; init; }
 
     public static CreateResourceData NewProjectTemplate(string projectName, string acronym, string sector,
-        string organization,
-        string requestingUserEmail)
+        string organization, string requestingUserEmail, double budgetAmount)
     {
         // TODO: Validation
-        return new CreateResourceData(projectName, acronym, sector, organization, requestingUserEmail);
+        return new CreateResourceData(projectName, acronym, sector, organization, requestingUserEmail, budgetAmount);
     }
 
     public static CreateResourceData ResourceRunTemplate(TerraformWorkspace workspace,
@@ -46,7 +45,7 @@ public record CreateResourceData
     /// <param name="organization"></param>
     /// <param name="requestingUserEmail"></param>
     private CreateResourceData(string projectName, string acronym, string sector, string organization,
-        string requestingUserEmail)
+        string requestingUserEmail, double budgetAmount)
     {
         Templates = new List<TerraformTemplate> { TerraformTemplate.Default };
         Workspace = new TerraformWorkspace()
@@ -58,7 +57,7 @@ public record CreateResourceData
                 Code = sector,
                 Name = organization,
             },
-
+            BudgetAmount = budgetAmount,
             Users = new List<TerraformUser>()
         };
         RequestingUserEmail = requestingUserEmail;
