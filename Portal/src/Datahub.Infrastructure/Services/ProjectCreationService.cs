@@ -83,10 +83,16 @@ public class ProjectCreationService : IProjectCreationService
             {
                 acronym ??= await GenerateProjectAcronymAsync(projectName);
                 var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
+                
                 var user = await _userInformationService.GetCurrentGraphUserAsync();
-                if (user is null) return false;
+                if (user is null) 
+                    return false;
+
                 await AddProjectToDb(user, projectName, acronym, organization);
-                var project = CreateResourceData.NewProjectTemplate(projectName, acronym, sectorName, organization, user.Mail);
+
+                var project = CreateResourceData.NewProjectTemplate(projectName, acronym, sectorName, organization, 
+                    user.Mail, Convert.ToDouble(GetDefaultBudget()));
+
                 await _resourceRequestService.AddProjectToStorageQueue(project);
                 scope.Complete();
                 return true;
