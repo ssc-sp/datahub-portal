@@ -214,5 +214,14 @@
   "Storage": "Stockage",
   "Initializing Profile...": "Initialisation du profil...",
   "Earned on": "Gagné le",
-  "Close": "Fermer"
+  "Close": "Fermer",
+  "Member":"Membre",
+  "Create a Workspace":"Créer un espace de travail",
+  "Workspace Title":"Titre de l'espace de travail",
+  "Workspace Title is required":"Le titre de l'espace de travail est obligatoire",
+  "Enter a descriptive title for the workspace":"Entrez un titre descriptif pour l'espace de travail",
+  "Workspace Acronym":"Acronyme de l'espace de travail",
+  "A unique alphanumeric acronym to identify the workspace":"Un acronyme alphanumérique unique pour identifier l'espace de travail",
+  "Workspace Acronym is required":"L'acronyme de l'espace de travail est requis",
+  "Acronym must be {0} characters or less":"L'acronyme doit être composé de {0} caractères ou moins."
 }

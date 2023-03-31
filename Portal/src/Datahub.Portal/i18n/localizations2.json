@@ -196,5 +196,14 @@
   "Government of Canada email address is required": "Government of Canada email address is required",
   "REGISTER": "REGISTER",
   "Log in": "Log in",
-  "You will be redirected to the log in page.": "You will be redirected to the log in page."
+  "You will be redirected to the log in page.": "You will be redirected to the log in page.",
+  "Member":"Member",
+  "Create a Workspace":"Create a Workspace",
+  "Workspace Title":"Workspace Title",
+  "Workspace Title is required":"Workspace Title is required",
+  "Enter a descriptive title for the workspace":"Enter a descriptive title for the workspace",
+  "Workspace Acronym":"Workspace Acronym",
+  "A unique alphanumeric acronym to identify the workspace":"A unique alphanumeric acronym to identify the workspace",
+  "Workspace Acronym is required":"Workspace Acronym is required",
+  "Acronym must be {0} characters or less":"Acronym must be {0} characters or less"
 }
