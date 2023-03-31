@@ -123,7 +123,7 @@
         switch (resource)
         {
             case Resource.ResourceGroup:
-                var project = CreateResourceData.NewProjectTemplate(Project.Project_Name, Project.Project_Acronym_CD, Project.Sector_Name, Project.Sector_Name, user.Mail);
+                var project = CreateResourceData.NewProjectTemplate(Project.Project_Name, Project.Project_Acronym_CD, Project.Sector_Name, Project.Sector_Name, user.Mail, _budget ?? 2400);
                 await _resourceRequestService.AddProjectToStorageQueue(project);
                 success = true;
                 break;
