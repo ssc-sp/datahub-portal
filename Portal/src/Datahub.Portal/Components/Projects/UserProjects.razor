@@ -14,7 +14,7 @@
     <MudStack>
         @if (ShowTitle)
         {
-            <MudText Typo="Typo.h3">@Localizer["Workspaces"]</MudText>
+            <MudText Typo="Typo.h1">@Localizer["Workspaces"]</MudText>
         }
         <MudGrid>
             <MudItem xs="6">
@@ -37,7 +37,7 @@
 <MudStack>
     @if (ShowTitle)
     {
-        <MudText Typo="Typo.h1">@Localizer["Workspaces"]</MudText>
+        <MudText Typo="Typo.h1" Class="mb-4">@Localizer["Workspaces"]</MudText>
     }
     <MudGrid>
         @foreach (var userRole in _userRoles)
@@ -88,7 +88,7 @@
     private const string UserWorkspaceCreateIcon = "fa-duotone fa-layer-plus";
     private List<Datahub_Project_User> _userRoles;
     private string _chipStyle;
-    private const string WORKSPACE_CREATION_DIALOG_TITLE = "Create a Workspace";
+    private const string WorkspaceCreationDialogTitle = "Create a Workspace";
 
     protected override async Task OnParametersSetAsync()
     {
@@ -131,7 +131,7 @@
     private async Task ShowProjectDialog()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await DialogService.ShowAsync<CreateProjectDialog>(Localizer[WORKSPACE_CREATION_DIALOG_TITLE], options);
+        var dialog = await DialogService.ShowAsync<CreateProjectDialog>(Localizer[WorkspaceCreationDialogTitle], options);
         var dialogResult = await dialog.Result;
         if (!dialogResult.Canceled)
         {

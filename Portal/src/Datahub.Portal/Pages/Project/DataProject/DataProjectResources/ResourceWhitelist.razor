@@ -103,33 +103,16 @@
         VMs
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        if (!IsDatahubAdmin) return;
-        _whitelist = Project.Whitelist ?? new Project_Whitelist { Project = Project };
-        _isLoaded = true;
+        if (!IsDatahubAdmin) 
+            return;
+
+        _whitelist = await _projectResourceWhitelistService.GetWhitelistByProjectAsync(Project.Project_ID);
         _budget = Convert.ToDouble(Project.Project_Budget);
+        _isLoaded = true;
+
         StateHasChanged();
-    }
-
-
-    private async Task SetStorage(bool allowStorage)
-    {
-        _whitelist.AllowStorage = allowStorage;
-        await _projectResourceWhitelistService.UpdateProjectResourceWhitelistAsync(_whitelist);
-    }
-
-    private async Task SetDatabricks(bool allowDatabricks)
-    {
-        _whitelist.AllowDatabricks = allowDatabricks;
-        await _projectResourceWhitelistService.UpdateProjectResourceWhitelistAsync(_whitelist);
-    }
-
-
-    private async Task SetVMs(bool allowVMs)
-    {
-        _whitelist.AllowVMs = allowVMs;
-        await _projectResourceWhitelistService.UpdateProjectResourceWhitelistAsync(_whitelist);
     }
 
     private async Task AddResourceToQueue(Resource resource)
@@ -140,7 +123,7 @@
         switch (resource)
         {
             case Resource.ResourceGroup:
-                var project = CreateResourceData.NewProjectTemplate(Project.Project_Name, Project.Project_Acronym_CD, Project.Sector_Name, Project.Sector_Name, user.Mail);
+                var project = CreateResourceData.NewProjectTemplate(Project.Project_Name, Project.Project_Acronym_CD, Project.Sector_Name, Project.Sector_Name, user.Mail, _budget ?? 2400);
                 await _resourceRequestService.AddProjectToStorageQueue(project);
                 success = true;
                 break;

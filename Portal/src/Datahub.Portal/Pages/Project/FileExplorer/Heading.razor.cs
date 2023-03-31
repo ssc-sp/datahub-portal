@@ -17,12 +17,6 @@ public partial class Heading
         DeleteFolder
     }
 
-    private async Task BreadcrumbClicked(string breadcrumb)
-    {
-        var index = CurrentFolder.IndexOf(breadcrumb, StringComparison.OrdinalIgnoreCase);
-        await SetCurrentFolder.InvokeAsync(CurrentFolder[..(index + breadcrumb.Length)] + "/");
-    }
-
     private async Task HandleDownload()
     {
         if (IsActionDisabled(ButtonAction.Download))

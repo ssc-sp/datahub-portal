@@ -51,11 +51,7 @@
         _isProjectAdmin = !ServiceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole($"{_project?.Project_Acronym_CD}-admin");
         await using var projectContext = await DbFactoryProject.CreateDbContextAsync();
 
-        _project = await projectContext.Projects
-            .Include(p => p.ServiceRequests)
-            .Include(p => p.Pipelines)
-            .Include(p => p.Whitelist)
-            .AsSingleQuery()
+        _project = await projectContext.Projects            
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
             .FirstOrDefaultAsync();
     }
