@@ -150,6 +150,7 @@
             return;
         }
 
+        _userSearch = string.Empty;
         if (string.IsNullOrWhiteSpace(user.Id))
         {
             UserNotValidError();
@@ -167,7 +168,6 @@
         }
         ClearError();
         _users.Add(user);
-        _userSearch = string.Empty;
         _autocomplete?.Clear();
         StateHasChanged();
     }
@@ -184,28 +184,20 @@
 
     private async Task UpdateProject()
     {
-        try
+        var projectMembers = new List<ProjectMember>();
+        // If the user is new, send an invite and get the ID, otherwise just get the ID
+        foreach (var user in _users)
         {
-            var projectMembers = new List<ProjectMember>();
-            // If the user is new, send an invite and get the ID, otherwise just get the ID
-            foreach (var user in _users)
+            // triggering the user invitation has been moved to ProjectUserManagementService
+            var projectMember = new ProjectMember(user)
             {
-                if (user.Id.Equals(NewUserId))
-                    user.Id = await _userEnrollmentService.SendUserDatahubPortalInvite(user.Mail, Inviter);
-                var projectMember = new ProjectMember(user)
-                {
-                    Name = await _msGraphService.GetUserName(user.Id, CancellationToken.None),
-                };
-                projectMembers.Add(projectMember);
-            }
+                Name = await _msGraphService.GetUserName(user.Id, CancellationToken.None),
+                UserHasBeenInvitedToDatahub = user.Id.Equals(NewUserId)
+            };
+            projectMembers.Add(projectMember);
+        }
 
-            MudDialog.Close(DialogResult.Ok<List<ProjectMember>?>(projectMembers));
-        }
-        catch (Exception)
-        {
-            // todo: show error message and don't close the dialog yet!
-            MudDialog.Close(DialogResult.Ok<List<ProjectMember>?>(null));            
-        }
+        MudDialog.Close(DialogResult.Ok<List<ProjectMember>?>(projectMembers));
 
     }
 

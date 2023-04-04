@@ -10,7 +10,6 @@ using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
 namespace Datahub.Infrastructure.Services;
 
 public class ProjectUserManagementService : IProjectUserManagementService
@@ -21,14 +20,15 @@ public class ProjectUserManagementService : IProjectUserManagementService
     private readonly ILogger<ProjectUserManagementService> _logger;
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
     private readonly ServiceAuthManager _serviceAuthManager;
-
+    private readonly IUserEnrollmentService _userEnrollmentService;
     public ProjectUserManagementService(
         ILogger<ProjectUserManagementService> logger,
         IDbContextFactory<DatahubProjectDBContext> contextFactory,
         IUserInformationService userInformationService,
         IMSGraphService msGraphService,
         IRequestManagementService requestManagementService,
-        ServiceAuthManager serviceAuthManager
+        ServiceAuthManager serviceAuthManager,
+        IUserEnrollmentService userEnrollmentService
     )
     {
         _serviceAuthManager = serviceAuthManager;
@@ -37,41 +37,57 @@ public class ProjectUserManagementService : IProjectUserManagementService
         _requestManagementService = requestManagementService;
         _logger = logger;
         _contextFactory = contextFactory;
+        _userEnrollmentService = userEnrollmentService;
     }
 
-    public async Task BatchUpdateUsersInProject(string projectAcronym, IEnumerable<(string userGraphId,
-        ProjectMemberRole role)> projectMembers)
+    public async Task<IEnumerable<ProjectMember>> BatchUpdateUsersInProject(string projectAcronym, IEnumerable<ProjectMember> projectMembers)
     {
+        
         var projectMembersList = projectMembers.ToList();
+        var errorSendingInvites = new List<ProjectMember>();
+        // send invites to users that are not members of Datahub
+        foreach (var member in projectMembersList.Where(member => !member.UserHasBeenInvitedToDatahub && member.Role != ProjectMemberRole.Remove))
+        {
+            try
+            {
+                member.UserId = await _userEnrollmentService.SendUserDatahubPortalInvite(member.UserId, member.Role.ToString());
+            }
+            catch (Exception e)
+            {
+                errorSendingInvites.Add(member);
+                _logger.LogError(e, "Error sending invite to user {UserGraphId} for project {ProjectAcronym}", member.UserId, projectAcronym);
+            }
+        }
         using var scope = new TransactionScope(
             TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
         await using var context = await _contextFactory.CreateDbContextAsync();
         var project = await context.Projects
             .Include(p => p.Users)
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+        
         if (project == null)
         {
             _logger.LogError("Project {ProjectAcronym} not found when trying to batch update users {Join}", 
-                projectAcronym, string.Join(", ", projectMembersList.Select(p => p.userGraphId)));
+                projectAcronym, string.Join(", ", projectMembersList.Select(p => p.UserId)));
             throw new ProjectNotFoundException($"Project {projectAcronym} not found");
         }
         // Remove users that are no longer in the project
         var usersToRemoveFromProject =
-            projectMembersList.Where(p => p.role == ProjectMemberRole.Remove).ToList();
+            projectMembersList.Where(p => p.Role == ProjectMemberRole.Remove).ToList();
         foreach (var user in usersToRemoveFromProject)
         {
-            await RemoveUserFromProject(context, project, user.userGraphId);
+            await RemoveUserFromProject(context, project, user.UserId);
         }
         
         // Add users that are not already in the project
         // Except usersToRemove here to handle edge case where user is added to project and then removed in same batch
         var usersToAddToProject = projectMembersList.Except(usersToRemoveFromProject)
-            .Where(p => project.Users.All(u => u.User_ID != p.userGraphId)).ToList();
+            .Where(p => project.Users.All(u => u.User_ID != p.UserId)).ToList();
         foreach (var user in usersToAddToProject)
         {
-            _logger.LogInformation("Preparing to add user {UserGraphId} to project {ProjectAcronym}", user,
+            _logger.LogInformation("Preparing to add user {UserGraphId} to project {ProjectAcronym}", user.UserId,
                 projectAcronym);
-                await AddUserToProject(context, project, user.userGraphId, user.role);
+                await AddUserToProject(context, project, user.UserId, user.Role);
 
         }
         
@@ -79,7 +95,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         var usersToUpdateInProject = projectMembersList.Except(usersToAddToProject).Except(usersToRemoveFromProject).ToList();
         foreach (var user in usersToUpdateInProject)
         {
-            await UpdateUserInProject(context, project, user.userGraphId, user.role);
+            await UpdateUserInProject(context, project, user.UserId, user.Role);
         }
         try
         {
@@ -95,7 +111,9 @@ public class ProjectUserManagementService : IProjectUserManagementService
             _logger.LogError(ex, "Error handling Terraform request for project {ProjectAcronym} when preforming batch update", projectAcronym);
             throw;
         }
-        
+
+        return errorSendingInvites;
+
     }
     
     
