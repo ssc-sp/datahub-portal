@@ -192,7 +192,7 @@
             var projectMember = new ProjectMember(user)
             {
                 Name = await _msGraphService.GetUserName(user.Id, CancellationToken.None),
-                UserHasBeenInvitedToDatahub = user.Id.Equals(NewUserId)
+                UserHasBeenInvitedToDatahub = !user.Id.Equals(NewUserId)
             };
             projectMembers.Add(projectMember);
         }
