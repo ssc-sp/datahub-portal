@@ -1,62 +1,33 @@
 ﻿@page "/tools"
-@using Datahub.Core.Modules
-@inject IConfiguration configuration
-@inject ModuleManager ModuleManager
-@inject IUserInformationService UserInformationService
 
-<div class="dh-page-header mt-6 mb-12">
+@attribute [Authorize(Roles = "DHPGLIST")]
+
+<MudStack>
     <MudText Typo="Typo.h1">@Localizer["DataHub Tools"]</MudText>
-</div>
-
-<MudGrid Spacing="4" Justify="Justify.FlexStart">
-
-    <MudItem xs="4">
-        <DHToolsCard Icon="fad fa-truck-loading fa-xs" Title="Onboarding Form" Description="Have a new project? Start your collaboration with us by completing the Onboarding Form">
-            <DHLink LinkType="DatahubLinkType.Onboarding">@Localizer["Open"]</DHLink>
-        </DHToolsCard>
-    </MudItem>
-    @if (_userHasInitiatives)
-    {
-        <MudItem xs="4">
-            <DHToolsCard Icon="fad fa-hdd card-icon fa-xs" Title="Storage Cost Estimator" Description="Looking for storage costs? Use the Storage Cost Estimator to estimate your storage needs">
-                <DHLink LinkType="DatahubLinkType.StorageCostEstimator">@Localizer["Open"]</DHLink>
-            </DHToolsCard>
-        </MudItem>
-
-        <MudItem xs="4">
-            <DHToolsCard Icon="fad fa-microchip card-icon fa-xs" Title="Compute Cost Estimator" Description="Looking for compute costs? Use the Compute Cost Estimator to estimate your compute needs">
-                <DHLink LinkType="DatahubLinkType.ComputeCostEstimator">@Localizer["Open"]</DHLink>
-            </DHToolsCard>
-        </MudItem>
-    }
-    @if (ModuleManager.IsEnabled("M365FormsModule"))
-    {
-        <MudItem xs="4">
-            <DHToolsCard Icon="fad fa-folder-plus card-icon fa-xs" Title="M365 teams Application" Description="Application to create a m365 team">
-                <DHLink LinkType="DatahubLinkType.M365Form">@Localizer["Open"]</DHLink>
-            </DHToolsCard>
-        </MudItem>
-    }
-    @if (CatalogReport.Exists())
-    {
-        <MudItem xs="4">
-            <DHToolsCard Icon="fad fa-album-collection card-icon fa-xs" Title="Data Catalog Report" Description="Data Cataloging status for PowerBI, Tableau and files">
-                <DHLink LinkType="DatahubLinkType.PowerBI" PBIReportId="@(CatalogReport.GetValue<string>("Report"))" PBIWorkspaceId="@(CatalogReport.GetValue<string>("Workspace"))">@Localizer["Open"]</DHLink>
-            </DHToolsCard>
-        </MudItem>
-    }
-
-</MudGrid>
+    <MudGrid Spacing="4">
+        @foreach (var tool in _tools)
+        {
+            <MudItem xs="6" sm="4" md="3" lg="2">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5">@tool.Title</MudText>
+                        <MudText Typo="Typo.body2">@tool.Description</MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" Class="mt-4" Href="@tool.Link">@tool.Label</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudStack>
 
 @code {
 
-    private IConfigurationSection CatalogReport;
-    private bool _userHasInitiatives;
-
-    protected override async Task OnInitializedAsync()
+    private List<(string Title, string Description, string Label, string Link)> _tools = new()
     {
-        CatalogReport = configuration.GetSection("PowerBI:CatalogReport");
-        var isViewAsGuest = UserInformationService.IsViewingAsGuest();
-        _userHasInitiatives = !(await UserInformationService.IsUserWithoutInitiatives());
-    }
+        ("Debug", "Get a developer's view of the current user", "View Debug", "tools/debug"),
+        ("Statistics", "View the current statistics of the portal", "View Stats", "tools/statistics"),
+        ("Health", "View the current health of the portal", "View Health", "tools/health"),
+    };
 }

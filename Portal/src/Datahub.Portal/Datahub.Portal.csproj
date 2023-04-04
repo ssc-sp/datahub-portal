@@ -180,4 +180,14 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Pages\Tools\Statistics" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="Pages\Tools\Debug\CacheDetails.razor" />
+    <AdditionalFiles Include="Pages\Tools\Debug\Debug.razor" />
+    <AdditionalFiles Include="Pages\Tools\Debug\ModuleDetails.razor" />
+    <AdditionalFiles Include="Pages\Tools\Debug\PortalDetails.razor" />
+    <AdditionalFiles Include="Pages\Tools\Debug\UserDetails.razor" />
+  </ItemGroup>
 </Project>
