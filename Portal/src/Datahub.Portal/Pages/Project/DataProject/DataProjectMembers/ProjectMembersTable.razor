@@ -16,76 +16,96 @@
     <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="700px"/>
 }
 else if (_isDatahubAdmin || _isProjectAdmin) {
-    <MudTable Items="@_filteredProjectMembers" Striped Filter="new Func<ProjectMember, bool>(SearchFilter)" Class="project-members-table">
+    @if (_usersToBeUpdated.Any())
+    {
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" 
+                   Style="width: 100%" Class="my-2" OnClick="SaveChanges">
+            @Localizer["Save Changes"]
+        </MudButton>
+    }
+    @if (!_updateInProgress)
+    {
+        <MudTable Items="@_filteredProjectMembers" Striped Filter="new Func<ProjectMember, bool>(SearchFilter)" Class="project-members-table">
 
-        <ToolBarContent>
-            <MudStack AlignItems="AlignItems.End" Style="width: 100%;" Class="pa-6">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@ADD_USER_ICON" OnClick="OpenDialog">
-                    @Localizer["Invite New User"]
-                </MudButton>
-                <MudGrid Justify="Justify.SpaceBetween" Style="width: 100%;">
-                    <MudTabs Elevation="0">
-                        <MudTabPanel Text="@Localizer["All"]" BadgeData='@_allCount' BadgeColor="Color.Transparent" Style="@GetStyleForTabs()"
-                                     OnClick="@(() => ProjectMemberRoleFilter(null))"/>
-                        <MudTabPanel Text="@Localizer["Workspace Leads"]" BadgeData='@_publisherCount' Disabled="_publisherCount == 0" Style="@GetStyleForTabs()"
-                                     OnClick="@(() => ProjectMemberRoleFilter(ProjectMemberRole.WorkspaceLead))" BadgeColor="Color.Transparent"/>
-                        <MudTabPanel Text="@Localizer["Admins"]" BadgeData='@_adminCount' BadgeColor="Color.Transparent" Style="@GetStyleForTabs()"
-                                     OnClick="@(() => ProjectMemberRoleFilter(ProjectMemberRole.Admin))" Disabled="_adminCount == 0"/>
-                        <MudTabPanel Text="@Localizer["Collaborators"]" BadgeData='@_contributorCount' BadgeColor="Color.Transparent" Style="@GetStyleForTabs()"
-                                     OnClick="@(() => ProjectMemberRoleFilter(ProjectMemberRole.Collaborator))" Disabled="_contributorCount == 0"/>
-                    </MudTabs>
-                    <MudSpacer/>
-                    <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-                </MudGrid>
-            </MudStack>
-        </ToolBarContent>
-        <HeaderContent>
-            <MudTh>
-                <MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.Name)" InitialDirection="SortDirection.Ascending">
-                    @Localizer["Account"]
-                </MudTableSortLabel></MudTh>
-            <MudTh>
-                <MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.Email)">
-                    @Localizer["Email"]
-                </MudTableSortLabel>
-            </MudTh>
-            <MudTh>@Localizer["Role"]</MudTh>
-            <MudTh>
-                <MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.UserAddedToProject)">
-                    @Localizer["Added to Project"]
-                </MudTableSortLabel>
-            </MudTh>
-            <MudTh></MudTh>
-        </HeaderContent>
-        <RowTemplate>
+            <ToolBarContent>
+                <MudStack AlignItems="AlignItems.End" Style="width: 100%;" Class="pa-6">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@ADD_USER_ICON" OnClick="OpenDialog">
+                        @Localizer["Invite New User"]
+                    </MudButton>
+                    <MudGrid Justify="Justify.SpaceBetween" Style="width: 100%;">
+                        <MudTabs Elevation="0">
+                            <MudTabPanel Text="@Localizer["All"]" BadgeData='@_allCount' BadgeColor="Color.Transparent" Style="@GetStyleForTabs()"
+                                         OnClick="@(() => ProjectMemberRoleFilter(null))"/>
+                            <MudTabPanel Text="@Localizer["Workspace Leads"]" BadgeData='@_publisherCount' Disabled="_publisherCount == 0" Style="@GetStyleForTabs()"
+                                         OnClick="@(() => ProjectMemberRoleFilter(ProjectMemberRole.WorkspaceLead))" BadgeColor="Color.Transparent"/>
+                            <MudTabPanel Text="@Localizer["Admins"]" BadgeData='@_adminCount' BadgeColor="Color.Transparent" Style="@GetStyleForTabs()"
+                                         OnClick="@(() => ProjectMemberRoleFilter(ProjectMemberRole.Admin))" Disabled="_adminCount == 0"/>
+                            <MudTabPanel Text="@Localizer["Collaborators"]" BadgeData='@_contributorCount' BadgeColor="Color.Transparent" Style="@GetStyleForTabs()"
+                                         OnClick="@(() => ProjectMemberRoleFilter(ProjectMemberRole.Collaborator))" Disabled="_contributorCount == 0"/>
+                        </MudTabs>
+                        <MudSpacer/>
+                        <MudTextField @bind-Value="_searchString" Placeholder="@Localizer["Search"]" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                    </MudGrid>
+                </MudStack>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.Name)" InitialDirection="SortDirection.Ascending">
+                        @Localizer["Account"]
+                    </MudTableSortLabel></MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.Email)">
+                        @Localizer["Email"]
+                    </MudTableSortLabel>
+                </MudTh>
+                <MudTh>@Localizer["Role"]</MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.UserAddedToProject)">
+                        @Localizer["Added to Workspace"]
+                    </MudTableSortLabel>
+                </MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
 
-            <MudTd>@context.Name</MudTd>
-            <MudTd>@context.Email</MudTd>
-            <MudTd>
-                @if (!_currentUserId.Equals(context.UserId, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    <ProjectMembersRoleSelect ProjectMember="@context" OnRoleChanged="UpdateProjectMemberRole"/>
-                }
-                else
-                {
-                    <MudText Typo="Typo.body2">@Localizer[ProjectMembersRoleSelect.RoleTitles[@context.Role]]</MudText>
-                }
-            </MudTd>
-            <MudTd>
-                @context.UserAddedToProject?.ToString("MMMM dd, yyyy")
-            </MudTd>
-            <MudTd>
-                <MudButton Variant="Variant.Text" EndIcon="@PROFILE_LINK_ICON" Color="Color.Primary"
-                           Href="@($"/profile/{Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(context.UserId))}")">
-                    @Localizer["View Profile"]
-                </MudButton>
-            </MudTd>
-        </RowTemplate>
-        <PagerContent>
-            <MudTablePager/>
-        </PagerContent>
-    </MudTable>
-    
+                <MudTd>@context.Name</MudTd>
+                <MudTd>@context.Email</MudTd>
+                <MudTd>
+                    @if (!_currentUserId.Equals(context.UserId, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        <ProjectMembersRoleSelect ProjectMember="@context" OnRoleChanged="UpdateProjectMemberRole"/>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2">@Localizer[ProjectMembersRoleSelect.RoleTitles[@context.Role]]</MudText>
+                    }
+                </MudTd>
+                <MudTd>
+                    @context.UserAddedToProject?.ToString("MMMM dd, yyyy")
+                </MudTd>
+                <MudTd>
+                    <MudButton Variant="Variant.Text" EndIcon="@PROFILE_LINK_ICON" Color="Color.Primary"
+                               Href="@($"/profile/{Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(context.UserId))}")">
+                        @Localizer["View Profile"]
+                    </MudButton>
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]"
+                               InfoFormat="@PagerInfoFormat"/>
+            </PagerContent>
+        </MudTable>
+    }
+    else
+    {
+
+        <MudStack Spacing="0" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-8">
+            <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+            <MudText Typo="Typo.caption">@Localizer["Updating workspace..."]</MudText>
+        </MudStack>
+
+    }
+
     <style>
         .project-members-table .mud-table-toolbar {
             height: fit-content !important;
@@ -100,7 +120,9 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
     private const string PROFILE_LINK_ICON = "fa-duotone fa-chevrons-right";
     private const string ADD_USER_ICON = "fa-duotone fa-user-plus";
     private const string INVITE_USERS_DIALOG_TITLE = "Invite New Users";
+    private const string EMAIL_FAILED_MESSAGE = "Unable to invite the following users. Please check their email addresses and try again, or contact DataHub support:";
     private bool _isLoading = true;
+    private bool _updateInProgress;
 
     private int _publisherCount;
     private int _adminCount;
@@ -114,6 +136,11 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
 
     private string _currentUserId;
     private string _currentUserName;
+    
+    private List<ProjectMember> _usersToBeUpdated = new();
+    private List<ProjectMember> _currentSavedUsers = new();
+    
+    private string PagerInfoFormat => "{first_item}-{last_item} " + Localizer["of"] + " {all_items}";
 
 
     protected override async Task OnInitializedAsync()
@@ -153,23 +180,16 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
     {
         _filteredProjectMembers = _projectUsers
             .Where(x => role is null || x.Role == role)
+            .Where(x => x.Role != ProjectMemberRole.Remove)
             .Where(SearchFilter)
             .ToList();
         StateHasChanged();
         _currentRoleFilter = role;
     }
     
-    private async Task UpdateProjectMemberRole(ProjectMember projectMember)
+    private void UpdateProjectMemberRole(ProjectMember projectMember)
     {
-        if (projectMember.Role == ProjectMemberRole.Remove)
-        {
-            await ProjectUserManagementService.RemoveUserFromProject(ProjectAcronym, projectMember.UserId);
-            _projectUsers.Remove(projectMember);
-        }
-        else
-        {
-            await ProjectUserManagementService.UpdateUserInProject(ProjectAcronym, projectMember);
-        }
+        UpdateUsersToBeUpdated(projectMember);
         UpdateProjectRoleCounts();
         ProjectMemberRoleFilter(_currentRoleFilter);
         StateHasChanged();
@@ -177,7 +197,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
 
     private void UpdateProjectRoleCounts()
     {
-        _allCount = _projectUsers.Count;
+        _allCount = _projectUsers.Count(t => t.Role != ProjectMemberRole.Remove);
         _publisherCount = _projectUsers.Count(x => x.Role == ProjectMemberRole.WorkspaceLead);
         _adminCount = _projectUsers.Count(x => x.Role == ProjectMemberRole.Admin);
         _contributorCount = _projectUsers.Count(x => x.Role == ProjectMemberRole.Collaborator);
@@ -188,7 +208,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
         var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.ExtraLarge };
         var dialogParameters = new DialogParameters 
         { 
-            { "CurrentProjectMembers", _projectUsers}, 
+            { "CurrentProjectMembers", _projectUsers.Where(x => x.Role != ProjectMemberRole.Remove).ToList()}, 
             {"ProjectAcronym", ProjectAcronym},
             {"Inviter", _currentUserName }
         };
@@ -196,33 +216,45 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
         var result = await dialog.Result;
         if (!result.Canceled)
         {
-            var resultInt = (int)result.Data;
-            // if result int is 1, return a string in singular form saying 1 user was added, if multiple, return a string in plural form saying x users were added
-            // if result int is 0, return a string saying no users were added
-
-            switch (resultInt)
+            if (result.Data is not List<ProjectMember> newUsers)
             {
-                case 0:
-                    Snackbar.Add(Localizer["No new users added to the project"], Severity.Info);
-                    break;
-                case 1:
-                    Snackbar.Add($"1 {Localizer["new user added to the project"]}", Severity.Success);
-                    break;
-                default:
-                    Snackbar.Add($"{resultInt} {Localizer["new users added to the project"]}", Severity.Success);
-                    break;
+                Snackbar.Add(Localizer["Error inviting new users to workspace"], Severity.Error);
             }
-            await RefreshProjectUsers();
+            else
+            {
+                _projectUsers.AddRange(newUsers);
+                foreach (var user in newUsers)
+                {
+                    UpdateUsersToBeUpdated(user);
+                }
+            }
+            UpdateProjectRoleCounts();
+            ProjectMemberRoleFilter(_currentRoleFilter);
             StateHasChanged();
         }
     }
 
-    private async Task RefreshProjectUsers()
+    private void UpdateUsersToBeUpdated(ProjectMember member)
+    {
+        if (_usersToBeUpdated.Any(u => u.UserId == member.UserId))
+            _usersToBeUpdated.Remove(_usersToBeUpdated.First(u => u.UserId == member.UserId));
+        // only add if the role has changed
+         if (_currentSavedUsers.FirstOrDefault(u => u.UserId == member.UserId)?.Role != member.Role)
+             _usersToBeUpdated.Add(member);
+    }
+
+    private async Task RefreshProjectUsers(bool fetchProjects = true)
     {
         if (_isDatahubAdmin || _isProjectAdmin)
         {
-            await using var projectContext = await DbFactoryProject.CreateDbContextAsync();
-            _projectUsers = await ServiceAuthManager.GetProjectMembers(ProjectAcronym);
+            if (fetchProjects)
+            {
+                await using var projectContext = await DbFactoryProject.CreateDbContextAsync();
+                _projectUsers = await ServiceAuthManager.GetProjectMembers(ProjectAcronym);
+                //create a hard copy of the current saved project members
+                _currentSavedUsers = _projectUsers.ToList();
+                
+            }
             ProjectMemberRoleFilter(_currentRoleFilter);
             UpdateProjectRoleCounts();
         }
@@ -233,5 +265,28 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
         return new StyleBuilder()
             .AddStyle("min-width", "190px")
             .Build();
+    }
+    
+    private async Task SaveChanges()
+    {
+        if (_usersToBeUpdated.Count == 0)
+        {
+            Snackbar.Add(Localizer["No changes to save"], Severity.Info);
+            return;
+        }
+        _updateInProgress = true;
+        StateHasChanged();
+        //force update to show progress indicator
+        await Task.Delay(1);
+        var userInvitesThatFailed = (await ProjectUserManagementService.BatchUpdateUsersInProject(ProjectAcronym, _usersToBeUpdated)).ToList();
+        if (userInvitesThatFailed.Any())
+        {
+            Snackbar.Add(@Localizer[EMAIL_FAILED_MESSAGE] + " " + string.Join(", ", userInvitesThatFailed),
+                Severity.Error, configure => configure.VisibleStateDuration = 10000);
+        }
+        _usersToBeUpdated.Clear();
+        await RefreshProjectUsers();
+        _updateInProgress = false;
+        StateHasChanged();
     }
 }
