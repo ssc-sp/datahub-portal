@@ -40,6 +40,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Portal", "Portal", "{BBA6CF1B-6BDA-4363-9641-2E4A4E43D321}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}"
+	ProjectSection(SolutionItems) = preProject
+		Portal\src\Datahub.Maintenance\maintenance-page.html = Portal\src\Datahub.Maintenance\maintenance-page.html
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{47D68FB0-47FE-485D-AE94-00C48643721E}"
 EndProject
