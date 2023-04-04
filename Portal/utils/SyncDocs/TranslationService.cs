@@ -96,7 +96,8 @@ internal class TranslationService
         var link = TryParseLink(text);
         if (link == null)
         {
-            return await Translate(text);
+            var translation = await Translate(text);
+            return (translation ?? "").Replace("] (", "](");
         }
         else
         {
