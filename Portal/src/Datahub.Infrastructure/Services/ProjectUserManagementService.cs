@@ -45,12 +45,14 @@ public class ProjectUserManagementService : IProjectUserManagementService
         
         var projectMembersList = projectMembers.ToList();
         var errorSendingInvites = new List<ProjectMember>();
+        var currentUser = await _userInformationService.GetCurrentGraphUserAsync();
+        var currentUserName = currentUser?.DisplayName ?? currentUser?.UserPrincipalName ?? "";
         // send invites to users that are not members of Datahub
         foreach (var member in projectMembersList.Where(member => !member.UserHasBeenInvitedToDatahub && member.Role != ProjectMemberRole.Remove))
         {
             try
             {
-                member.UserId = await _userEnrollmentService.SendUserDatahubPortalInvite(member.UserId, member.Role.ToString());
+                member.UserId = await _userEnrollmentService.SendUserDatahubPortalInvite(member.Email, currentUserName );
             }
             catch (Exception e)
             {
