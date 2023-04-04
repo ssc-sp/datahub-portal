@@ -3,57 +3,36 @@
 @using Datahub.Application.Services
 @using Datahub.Core.Data.Project
 @inject IMSGraphService _msGraphService 
-@inject IProjectUserManagementService _projectUserManagementService
 @inject IUserEnrollmentService _userEnrollmentService
 
 <MudDialog>
     <DialogContent>
-        <MudText Class="py-2">@Localizer["Search for new users below using their email address. New users will be added as contributors."]</MudText>
-        @if (_updateInProgress)
-        {
-            <MudStack Spacing="0" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-8">
-                <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true"/>
-                <MudText Typo="Typo.caption">@Localizer["Adding new users to project..."]</MudText>
-            </MudStack>
-        }
-        else
-        {
-            <MudAutocomplete
-                T="string"
-                @ref="@_autocomplete"
-                Label="@Localizer["User's GC Email"]"
-                ValueChanged="AddUser"
-                DebounceInterval="500"
-                SearchFuncWithCancel="@SearchUsers"
-                AdornmentColor="Color.Primary"
-                AdornmentIcon="@SearchIcon"
-                Error="@_error"
-                ErrorText="@_errorMessage"
-                ShowProgressIndicator="@_searchingForUsers"
-                ResetValueOnEmptyText
-                bind-Value="_userSearch"
-                >
-                <ItemTemplate>
-                    <MudStack Class="px-2" Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                        <MudStack Spacing="0">
-                            @{
-                                var user = _searchResultUsers.FirstOrDefault(u => u.Mail == context);
-                            }
-                            <MudText Typo="Typo.h6">@user?.DisplayName</MudText>
-                            <MudText Typo="Typo.h6">@user?.Mail</MudText>
-                        </MudStack>
-                        <MudIcon Icon="@AddUserIcon" Color="Color.Primary" Class="px-2"/>
+        <MudText Class="py-2">@Localizer["Search for new users below using their email address. New users will be added as collaborators."]</MudText>
+        <MudAutocomplete T="string" @ref="@_autocomplete" Label="@Localizer["User's GC Email"]" ValueChanged="AddUser"
+            DebounceInterval="500" SearchFuncWithCancel="@SearchUsers" AdornmentColor="Color.Primary" AdornmentIcon="@SearchIcon"
+            Error="@_error" ErrorText="@_errorMessage" ShowProgressIndicator="@_searchingForUsers" ResetValueOnEmptyText
+            bind-Value="_userSearch">
+            <ItemTemplate>
+                <MudStack Class="px-2" Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudStack Spacing="0">
+                        @{
+                            var user = _searchResultUsers.FirstOrDefault(u => u.Mail == context);
+                        }
+                        <MudText Typo="Typo.h6">@user?.DisplayName</MudText>
+                        <MudText Typo="Typo.h6">@user?.Mail</MudText>
                     </MudStack>
-                </ItemTemplate>
-            </MudAutocomplete>
-            <MudList Clickable>
-                @foreach (var user in _users)
-                {
-                    <MudListItem Text="@GetListText(user)" Icon="@RemoveUserIcon" IconColor="Color.Primary"
-                                 OnClick="() => RemoveUser(user)"/>
-                }
-            </MudList>
-        }
+                    <MudIcon Icon="@AddUserIcon" Color="Color.Primary" Class="px-2"/>
+                </MudStack>
+            </ItemTemplate>
+        </MudAutocomplete>
+        <MudList Clickable>
+            @foreach (var user in _users)
+            {
+                <MudListItem Text="@GetListText(user)" Icon="@RemoveUserIcon" IconColor="Color.Primary"
+                             OnClick="() => RemoveUser(user)"/>
+            }
+        </MudList>
+        
     </DialogContent>
 
     <DialogActions>
@@ -86,13 +65,12 @@
     private bool _error;
     private string _errorMessage = string.Empty;
 
-    private bool _updateInProgress;
     private List<GraphUser> _searchResultUsers = new();
 
     private const string SearchIcon = "fa-duotone fa-magnifying-glass";
     private const string AddUserIcon = "fa-duotone fa-user-plus";
     private const string RemoveUserIcon = "fa-duotone fa-trash-can-slash";
-    private const string UserExistsError = "The user is already in the project";
+    private const string UserExistsError = "The user is already a member of this workspace";
     private const string NotValidEmailError = "Please enter a valid GC email address";
 
     // added to catch the case where the user is in graph but ID is null (GitHub issue # 404)
@@ -172,6 +150,7 @@
             return;
         }
 
+        _userSearch = string.Empty;
         if (string.IsNullOrWhiteSpace(user.Id))
         {
             UserNotValidError();
@@ -189,7 +168,6 @@
         }
         ClearError();
         _users.Add(user);
-        _userSearch = string.Empty;
         _autocomplete?.Clear();
         StateHasChanged();
     }
@@ -206,34 +184,21 @@
 
     private async Task UpdateProject()
     {
-        _updateInProgress = true;
-        try
+        var projectMembers = new List<ProjectMember>();
+        // If the user is new, send an invite and get the ID, otherwise just get the ID
+        foreach (var user in _users)
         {
-            StateHasChanged();
-
-            //force update to show progress indicator
-            await Task.Delay(1);
-
-            // If the user is new, send an invite and get the ID, otherwise just get the ID
-            foreach (var user in _users.Where(user => user.Id.Equals(NewUserId)))
+            // triggering the user invitation has been moved to ProjectUserManagementService
+            var projectMember = new ProjectMember(user)
             {
-                user.Id = await _userEnrollmentService.SendUserDatahubPortalInvite(user.Mail, Inviter);
-            }
+                Name = await _msGraphService.GetUserName(user.Id, CancellationToken.None),
+                UserHasBeenInvitedToDatahub = !user.Id.Equals(NewUserId)
+            };
+            projectMembers.Add(projectMember);
+        }
 
-            var userIds = _users.Select(u => u.Id).ToList();
-            await _projectUserManagementService.AddUsersToProject(ProjectAcronym, userIds);
+        MudDialog.Close(DialogResult.Ok<List<ProjectMember>?>(projectMembers));
 
-            MudDialog.Close(DialogResult.Ok(userIds.Count));
-        }
-        catch (Exception)
-        {
-            // todo: show error message and don't close the dialog yet!
-            MudDialog.Close(DialogResult.Ok(0));            
-        }
-        finally
-        {
-            _updateInProgress = false;
-        }
     }
 
     private void Cancel() => MudDialog.Cancel();
