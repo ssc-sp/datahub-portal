@@ -1,11 +1,14 @@
 ﻿@*FunctionHealth.razor*@
+@page "/tools/health"
 
-@page "/debug/functions"
 @using Azure.Storage.Queues;
 @using System.Text;
+
 @implements IDisposable
-@inject IConfiguration Configuration
-@inject ILogger<FunctionHealth> Logger
+@inject IConfiguration _configuration
+@inject ILogger<FunctionHealth> _logger
+
+@attribute [Authorize(Roles = "DHPGLIST")]
 
 <MudCard>
     <MudCardHeader>
@@ -76,7 +79,7 @@
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex.Message, ex);
+            _logger.LogError(ex.Message, ex);
         }
     }
 
@@ -96,7 +99,7 @@
 
     private QueueClient GetQueueClient(string queueName)
     {
-        var storageConnectionString = Configuration["DatahubStorageQueue:ConnectionString"];
+        var storageConnectionString = _configuration["DatahubStorageQueue:ConnectionString"];
         return !string.IsNullOrEmpty(storageConnectionString) ? new QueueClient(storageConnectionString, queueName) : default;
     }
 
