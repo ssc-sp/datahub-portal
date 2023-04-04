@@ -50,10 +50,11 @@ public class RequestManagementService : IRequestManagementService
     }
 
 
+    // TODO: Remove unused parameter "inputParams"
     public async Task RequestService(Datahub_ProjectServiceRequests request,
-        Dictionary<string, string> inputParams = null)
+        Dictionary<string, string> inputParams = null!)
     {
-        if (request.Project.ServiceRequests.Any(a => a.ServiceType == request.ServiceType))
+        if (request.Project.ServiceRequests?.Any(a => a.ServiceType == request.ServiceType) ?? false)
         {
             _logger.LogInformation(
                 "Service request already exists for project {Acronym} and service type {ServiceType}",

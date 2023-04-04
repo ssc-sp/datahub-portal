@@ -1,4 +1,5 @@
 using System.Net.Mail;
+using Datahub.Application.Services;
 using Datahub.Core.Data;
 using Datahub.Core.Data.Project;
 using Datahub.Core.Model.Datahub;
@@ -10,7 +11,9 @@ using Datahub.Infrastructure.Services;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Moq;
 
 namespace Datahub.Infrastructure.UnitTests.Services;
@@ -24,6 +27,11 @@ public class ProjectUserManagementServiceTests
     // ReSharper disable once InconsistentNaming
     private Mock<IMSGraphService> _mockIMSGraphService = null!;
     private Mock<IRequestManagementService> _mockRequestManagementService = null!;
+    private Mock<IUserEnrollmentService> _mockUserEnrollmentService = null!;
+    private ServiceAuthManager _serviceAuthManager = null!;
+
+    private readonly string[] _testUserIds = TEST_USER_IDS;
+
 
 
     [SetUp]
@@ -50,7 +58,7 @@ public class ProjectUserManagementServiceTests
 
         _mockIMSGraphService = new Mock<IMSGraphService>();
         _mockIMSGraphService
-            .Setup(f => f.GetUserAsync(It.Is<string>(s => TEST_USER_IDS.Contains(s) || s == TestUserId), CancellationToken.None))
+            .Setup(f => f.GetUserAsync(It.Is<string>(s => _testUserIds.Contains(s) || s == TestUserId), CancellationToken.None))
             .Returns((string id, CancellationToken _) => Task.FromResult(new GraphUser
                 {
                     mailAddress = new MailAddress(TestUserEmail),
@@ -62,6 +70,15 @@ public class ProjectUserManagementServiceTests
         _mockRequestManagementService
             .Setup(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(), It.IsAny<string>()))
             .ReturnsAsync(true);
+
+        _mockUserEnrollmentService = new Mock<IUserEnrollmentService>();
+        _mockUserEnrollmentService
+            .Setup(f => f.SendUserDatahubPortalInvite(It.IsAny<string?>(), It.IsAny<string?>()) )
+            .ReturnsAsync(TestUserId);
+        
+        var mockMemoryCache = new Mock<IMemoryCache>();
+        
+        _serviceAuthManager = new ServiceAuthManager(mockMemoryCache.Object, _mockFactory.Object, _mockIMSGraphService.Object);
     }
 
     [Test]
@@ -94,7 +111,7 @@ public class ProjectUserManagementServiceTests
     {
         var projectUserManagementService = GetProjectUserManagementService();
         await SeedDatabase();
-        await projectUserManagementService.AddUsersToProject(TestProjectAcronym, TEST_USER_IDS);
+        await projectUserManagementService.AddUsersToProject(TestProjectAcronym, _testUserIds);
 
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
         var projectUsers = await context.Project_Users
@@ -108,9 +125,9 @@ public class ProjectUserManagementServiceTests
        
         Assert.Multiple(() =>
         { 
-            Assert.That(projectUsers, Has.Count.EqualTo(TEST_USER_IDS.Length));
+            Assert.That(projectUsers, Has.Count.EqualTo(_testUserIds.Length));
             Assert.That(projectUsers[0].Project.Project_ID, Is.EqualTo(projectId));
-            Assert.That(projectUsers.Select(p => p.User_ID), Is.EquivalentTo(TEST_USER_IDS));
+            Assert.That(projectUsers.Select(p => p.User_ID), Is.EquivalentTo(_testUserIds));
             
         });
     }
@@ -312,6 +329,188 @@ public class ProjectUserManagementServiceTests
     }
 
     [Test]
+    [TestCase(ProjectMemberRole.Remove)]
+    [TestCase(ProjectMemberRole.Collaborator)]
+    [TestCase(ProjectMemberRole.Admin)]
+    [TestCase(ProjectMemberRole.WorkspaceLead)]
+    public async Task AddingNewUsersWithBatchShouldAddNewUsers(ProjectMemberRole role)
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase();
+        var testUsers = _testUserIds.Select(t => new ProjectMember(t, role)).ToList();
+        await projectUserManagementService.BatchUpdateUsersInProject(TestProjectAcronym, testUsers);
+
+        await using var context = await _mockFactory.Object.CreateDbContextAsync();
+        var projectUsers = await context.Project_Users
+            .Include(p => p.Project)
+            .ToListAsync();
+        var projectId = await context.Projects
+            .Where(p => p.Project_Acronym_CD == TestProjectAcronym)
+            .Select(p => p.Project_ID)
+            .SingleAsync();
+
+        if (role == ProjectMemberRole.Remove)
+        {
+            Assert.That(projectUsers, Has.Count.EqualTo(0));
+        }
+        else
+        {
+            Assert.Multiple(() =>
+            { 
+                Assert.That(projectUsers, Has.Count.EqualTo(testUsers.Count));
+                Assert.That(projectUsers[0].Project.Project_ID, Is.EqualTo(projectId));
+                Assert.That(projectUsers.Select(p => p.User_ID), Is.EquivalentTo(testUsers.Select(t => t.UserId)));
+                Assert.That(projectUsers.All(t => t.IsAdmin), Is.EqualTo(role is ProjectMemberRole.Admin or ProjectMemberRole.WorkspaceLead));
+                Assert.That(projectUsers.All(t => t.IsDataApprover), Is.EqualTo(role is ProjectMemberRole.WorkspaceLead));
+            
+            });
+        }
+    }
+    
+    [Test]
+    [TestCase(ProjectMemberRole.Collaborator, ProjectMemberRole.Admin)]
+    [TestCase(ProjectMemberRole.Collaborator, ProjectMemberRole.WorkspaceLead)]
+    [TestCase(ProjectMemberRole.Admin, ProjectMemberRole.Collaborator)]
+    [TestCase(ProjectMemberRole.Admin, ProjectMemberRole.WorkspaceLead)]
+    [TestCase(ProjectMemberRole.WorkspaceLead, ProjectMemberRole.Collaborator)]
+    [TestCase(ProjectMemberRole.WorkspaceLead, ProjectMemberRole.Admin)]
+    public async Task UpdatingNewUsersWithBatchShouldUpdateUsers(ProjectMemberRole currentRole, ProjectMemberRole newRole)
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase(_testUserIds, TestProjectAcronym, currentRole);
+        var testUsers = _testUserIds.Select(t => new ProjectMember(t, newRole)).ToList();
+        await projectUserManagementService.BatchUpdateUsersInProject(TestProjectAcronym, testUsers);
+
+        await using var context = await _mockFactory.Object.CreateDbContextAsync();
+        var projectUsers = await context.Project_Users
+            .Include(p => p.Project)
+            .ToListAsync();
+        var projectId = await context.Projects
+            .Where(p => p.Project_Acronym_CD == TestProjectAcronym)
+            .Select(p => p.Project_ID)
+            .SingleAsync();
+
+        Assert.Multiple(() =>
+        { 
+            Assert.That(projectUsers, Has.Count.EqualTo(testUsers.Count));
+            Assert.That(projectUsers[0].Project.Project_ID, Is.EqualTo(projectId));
+            Assert.That(projectUsers.Select(p => p.User_ID), Is.EquivalentTo(testUsers.Select(t => t.UserId)));
+            Assert.That(projectUsers.All(t => t.IsAdmin), Is.EqualTo(newRole is ProjectMemberRole.Admin or ProjectMemberRole.WorkspaceLead));
+            Assert.That(projectUsers.All(t => t.IsDataApprover), Is.EqualTo(newRole is ProjectMemberRole.WorkspaceLead));
+        
+        });
+        
+    }
+    
+    [Test]
+    [TestCase(ProjectMemberRole.Collaborator)]
+    [TestCase(ProjectMemberRole.Admin)]
+    [TestCase(ProjectMemberRole.WorkspaceLead)]
+    public async Task RemovingUsersWithBatchUpdateShouldRemoveAllUsers(ProjectMemberRole currentRole)
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase(_testUserIds, TestProjectAcronym, currentRole);
+        var testUsers = _testUserIds.Select(t => new ProjectMember(t, ProjectMemberRole.Remove)).ToList();
+        await projectUserManagementService.BatchUpdateUsersInProject(TestProjectAcronym, testUsers);
+
+        await using var context = await _mockFactory.Object.CreateDbContextAsync();
+        var projectUsers = await context.Project_Users
+            .Include(p => p.Project)
+            .ToListAsync();
+        var projectId = await context.Projects
+            .Where(p => p.Project_Acronym_CD == TestProjectAcronym)
+            .Select(p => p.Project_ID)
+            .SingleAsync();
+        Assert.That(projectUsers, Has.Count.EqualTo(0));
+        
+    }
+    // each test case should have 5 roles to match 5 user ids set in Testings.cs
+    // there are 16 possible combinations of roles, and one extra test case to test for remove all
+    [Test]
+    [TestCase(new[] {ProjectMemberRole.Admin, ProjectMemberRole.Admin, ProjectMemberRole.Collaborator, ProjectMemberRole.Remove, ProjectMemberRole.Remove}, 
+        new[] {ProjectMemberRole.Collaborator, ProjectMemberRole.Remove, ProjectMemberRole.Admin, ProjectMemberRole.Collaborator, ProjectMemberRole.WorkspaceLead})]
+    [TestCase(new[] {ProjectMemberRole.Admin, ProjectMemberRole.Admin, ProjectMemberRole.Collaborator, ProjectMemberRole.Collaborator, ProjectMemberRole.Remove}, 
+        new[] {ProjectMemberRole.Admin, ProjectMemberRole.WorkspaceLead, ProjectMemberRole.Remove, ProjectMemberRole.Collaborator, ProjectMemberRole.WorkspaceLead})]
+    [TestCase(new[] {ProjectMemberRole.WorkspaceLead, ProjectMemberRole.WorkspaceLead, ProjectMemberRole.WorkspaceLead, ProjectMemberRole.WorkspaceLead, ProjectMemberRole.Remove}, 
+        new[] {ProjectMemberRole.Remove, ProjectMemberRole.Collaborator, ProjectMemberRole.Admin, ProjectMemberRole.WorkspaceLead, ProjectMemberRole.Admin})]
+    [TestCase(new[] {ProjectMemberRole.Remove, ProjectMemberRole.Remove, ProjectMemberRole.Remove, ProjectMemberRole.Remove, ProjectMemberRole.Remove}, 
+        new[] {ProjectMemberRole.Remove, ProjectMemberRole.Remove, ProjectMemberRole.Remove, ProjectMemberRole.Remove, ProjectMemberRole.Remove})]
+    public async Task BatchUpdateShouldBeAbleToHandleMixtureOfAddUpdateAndRemove(ProjectMemberRole[] currentRoles, ProjectMemberRole[] newRoles)
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+        var existingUsers = _testUserIds.Select((id, index) => currentRoles[index] != ProjectMemberRole.Remove ? (id, currentRoles[index]) : (null, ProjectMemberRole.Remove))
+            .Where(u => u.id is not null).Cast<(string id, ProjectMemberRole role)>().ToList();
+        await SeedDatabase(existingUsers);
+        var newUsers = _testUserIds.Select((id, index) => new ProjectMember(id, newRoles[index])).ToList();
+        await projectUserManagementService.BatchUpdateUsersInProject(TestProjectAcronym, newUsers);
+        await using var context = await _mockFactory.Object.CreateDbContextAsync();
+        var projectUsers = await context.Project_Users
+            .Include(p => p.Project)
+            .ToListAsync();
+        var projectId = await context.Projects
+            .Where(p => p.Project_Acronym_CD == TestProjectAcronym)
+            .Select(p => p.Project_ID)
+            .SingleAsync();
+
+        Assert.Multiple(() =>
+        { 
+            Assert.That(projectUsers, Has.Count.EqualTo(newRoles.Count(role => role != ProjectMemberRole.Remove)));
+            Assert.That(projectUsers.FirstOrDefault()?.Project.Project_ID, Is.EqualTo(projectUsers.IsNullOrEmpty() ? null : projectId));
+            Assert.That(projectUsers.Select(p => p.User_ID), Is.EquivalentTo(newUsers.Where(user => user.Role != ProjectMemberRole.Remove).Select(t => t.UserId)));
+            Assert.That(projectUsers.Count(t => t.IsAdmin), Is.EqualTo(newRoles.Count(role => role is ProjectMemberRole.Admin or ProjectMemberRole.WorkspaceLead)));
+            Assert.That(projectUsers.Count(t => t.IsDataApprover), Is.EqualTo(newRoles.Count(role => role is ProjectMemberRole.WorkspaceLead)));
+        
+        });
+        
+    }
+
+    [Test]
+    [TestCase(ProjectMemberRole.Remove)]
+    [TestCase(ProjectMemberRole.Collaborator)]
+    [TestCase(ProjectMemberRole.Admin)]
+    [TestCase(ProjectMemberRole.WorkspaceLead)]
+    public async Task BatchUpdateShouldSendInviteToNewUserAndAddToProject(ProjectMemberRole role)
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase();
+        var testUser = new ProjectMember("ID_DOES_NOT_EXIST", role)
+        {
+            UserHasBeenInvitedToDatahub = false,
+        };
+        await projectUserManagementService.BatchUpdateUsersInProject(TestProjectAcronym, new List<ProjectMember>(){testUser});
+
+        await using var context = await _mockFactory.Object.CreateDbContextAsync();
+        var projectUsers = await context.Project_Users
+            .Include(p => p.Project)
+            .ToListAsync();
+        var projectId = await context.Projects
+            .Where(p => p.Project_Acronym_CD == TestProjectAcronym)
+            .Select(p => p.Project_ID)
+            .SingleAsync();
+
+        if (role == ProjectMemberRole.Remove)
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(projectUsers, Has.Count.EqualTo(0));
+                Assert.That(testUser.UserId, Is.EqualTo("ID_DOES_NOT_EXIST"));
+            });
+        }
+        else
+        {
+            Assert.Multiple(() =>
+            { 
+                Assert.That(projectUsers, Has.Count.EqualTo(1));
+                Assert.That(projectUsers[0].Project.Project_ID, Is.EqualTo(projectId));
+                Assert.That(projectUsers.First().User_ID, Is.EqualTo(TestUserId));
+                Assert.That(projectUsers.All(t => t.IsAdmin), Is.EqualTo(role is ProjectMemberRole.Admin or ProjectMemberRole.WorkspaceLead));
+                Assert.That(projectUsers.All(t => t.IsDataApprover), Is.EqualTo(role is ProjectMemberRole.WorkspaceLead));
+            
+            });
+        }
+    }
+
+    [Test]
     public async Task ShouldSendTerraformVariableUpdateOnUserAdd()
     {
         var projectUserManagementService = GetProjectUserManagementService();
@@ -357,8 +556,25 @@ public class ProjectUserManagementServiceTests
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.Is<string>(s => s == TerraformTemplate.VariableUpdate)), Times.Once);
     }
+    [Test]
+    public async Task ShouldSendTerraformVariableUpdateOnBatchUpdate()
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+    
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Never);
+    
+        await SeedDatabase(_testUserIds);
 
+        await projectUserManagementService.BatchUpdateUsersInProject(TestProjectAcronym, new List<ProjectMember>{ new(TestUserId, ProjectMemberRole.Admin)});
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.Is<string>(s => s == TerraformTemplate.VariableUpdate)), Times.Once);
+    }
     private async Task SeedDatabase(IEnumerable<string>? userIds = null, string projectAcronym = TestProjectAcronym, ProjectMemberRole role = ProjectMemberRole.Collaborator)
+    {
+        await SeedDatabase(userIds?.Select(id => (id, role)), projectAcronym);
+    }
+    private async Task SeedDatabase(IEnumerable<(string id, ProjectMemberRole role)>? users, string projectAcronym = TestProjectAcronym)
     {
         var project = new Datahub_Project
         {
@@ -368,13 +584,13 @@ public class ProjectUserManagementServiceTests
             Sector_Name = "Test Sector",
         };
 
-        var projectUsers = userIds?
-            .Select(id => new Datahub_Project_User
+        var projectUsers = users?
+            .Select(user => new Datahub_Project_User
             {
                 Project = project,
-                User_ID = id,
-                IsAdmin = role is ProjectMemberRole.Admin or ProjectMemberRole.WorkspaceLead,
-                IsDataApprover = role is ProjectMemberRole.WorkspaceLead
+                User_ID = user.id,
+                IsAdmin = user.role is ProjectMemberRole.Admin or ProjectMemberRole.WorkspaceLead,
+                IsDataApprover = user.role is ProjectMemberRole.WorkspaceLead
             })
             .ToList();
 
@@ -392,7 +608,8 @@ public class ProjectUserManagementServiceTests
             _mockUserInformationService.Object,
             _mockIMSGraphService.Object,
             _mockRequestManagementService.Object,
-            Mock.Of<ServiceAuthManager>());
+            _serviceAuthManager,
+            _mockUserEnrollmentService.Object);
 
         return projectUserManagementService;
     }
