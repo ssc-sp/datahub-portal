@@ -5,11 +5,13 @@ namespace Datahub.Core.Data.Project;
 
 public class ProjectMember
 {
-    public string UserId { get; }
+    // Added set for case where user has not been invited to datahub
+    public string UserId { get; set; }
     public string Email { get; }
     public string Name { get; init; }
     public DateTime? UserAddedToProject { get; }
-    
+
+    public bool UserHasBeenInvitedToDatahub { get; init; } = true;
     public ProjectMemberRole Role { get; set; }
 
     //used for testing

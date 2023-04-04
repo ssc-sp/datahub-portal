@@ -120,6 +120,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
     private const string PROFILE_LINK_ICON = "fa-duotone fa-chevrons-right";
     private const string ADD_USER_ICON = "fa-duotone fa-user-plus";
     private const string INVITE_USERS_DIALOG_TITLE = "Invite New Users";
+    private const string EMAIL_FAILED_MESSAGE = "Unable to invite the following users. Please check their email addresses and try again, or contact DataHub support:";
     private bool _isLoading = true;
     private bool _updateInProgress;
 
@@ -136,8 +137,8 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
     private string _currentUserId;
     private string _currentUserName;
     
-    private List<(string UserId, ProjectMemberRole NewRole)> _usersToBeUpdated = new();
-    private List<(string UserId, ProjectMemberRole Role)> _currentSavedUsers = new();
+    private List<ProjectMember> _usersToBeUpdated = new();
+    private List<ProjectMember> _currentSavedUsers = new();
     
     private string PagerInfoFormat => "{first_item}-{last_item} " + Localizer["of"] + " {all_items}";
 
@@ -188,7 +189,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
     
     private void UpdateProjectMemberRole(ProjectMember projectMember)
     {
-        UpdateUsersToBeUpdated(projectMember.UserId, projectMember.Role);
+        UpdateUsersToBeUpdated(projectMember);
         UpdateProjectRoleCounts();
         ProjectMemberRoleFilter(_currentRoleFilter);
         StateHasChanged();
@@ -224,7 +225,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
                 _projectUsers.AddRange(newUsers);
                 foreach (var user in newUsers)
                 {
-                    UpdateUsersToBeUpdated(user.UserId, user.Role);
+                    UpdateUsersToBeUpdated(user);
                 }
             }
             UpdateProjectRoleCounts();
@@ -233,13 +234,13 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
         }
     }
 
-    private void UpdateUsersToBeUpdated(string userId, ProjectMemberRole role )
+    private void UpdateUsersToBeUpdated(ProjectMember member)
     {
-        if (_usersToBeUpdated.Any(u => u.UserId == userId))
-            _usersToBeUpdated.Remove(_usersToBeUpdated.First(u => u.UserId == userId));
+        if (_usersToBeUpdated.Any(u => u.UserId == member.UserId))
+            _usersToBeUpdated.Remove(_usersToBeUpdated.First(u => u.UserId == member.UserId));
         // only add if the role has changed
-         if (_currentSavedUsers.FirstOrDefault(u => u.UserId == userId).Role != role)
-             _usersToBeUpdated.Add((userId, role));
+         if (_currentSavedUsers.FirstOrDefault(u => u.UserId == member.UserId)?.Role != member.Role)
+             _usersToBeUpdated.Add(member);
     }
 
     private async Task RefreshProjectUsers(bool fetchProjects = true)
@@ -251,7 +252,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
                 await using var projectContext = await DbFactoryProject.CreateDbContextAsync();
                 _projectUsers = await ServiceAuthManager.GetProjectMembers(ProjectAcronym);
                 //create a hard copy of the current saved project members
-                _currentSavedUsers = _projectUsers.Select(x => (x.UserId, x.Role)).ToList();
+                _currentSavedUsers = _projectUsers.ToList();
                 
             }
             ProjectMemberRoleFilter(_currentRoleFilter);
@@ -277,7 +278,12 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
         StateHasChanged();
         //force update to show progress indicator
         await Task.Delay(1);
-        await ProjectUserManagementService.BatchUpdateUsersInProject(ProjectAcronym, _usersToBeUpdated);
+        var userInvitesThatFailed = (await ProjectUserManagementService.BatchUpdateUsersInProject(ProjectAcronym, _usersToBeUpdated)).ToList();
+        if (userInvitesThatFailed.Any())
+        {
+            Snackbar.Add(@Localizer[EMAIL_FAILED_MESSAGE] + " " + string.Join(", ", userInvitesThatFailed),
+                Severity.Error, configure => configure.VisibleStateDuration = 10000);
+        }
         _usersToBeUpdated.Clear();
         await RefreshProjectUsers();
         _updateInProgress = false;
