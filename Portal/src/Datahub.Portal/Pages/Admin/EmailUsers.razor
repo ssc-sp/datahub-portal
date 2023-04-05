@@ -1,0 +1,86 @@
+﻿@page "/admin/emailusers"
+
+@using Infrastructure.Queues.Messages
+@using MediatR
+
+@inject DatahubProjectDBContext _context
+@inject IMediator _mediator
+
+<AuthorizeView>
+    <Authorized>
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h4">Email Users</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudIconButton Icon="@Icons.Material.Filled.Send"
+                                   Color="Color.Default"
+                                   Disabled="IsDisabled"
+                                   OnClick="HandleSendEmail" />
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudStack>
+                    <MudTextField T="string"
+                                  DebounceInterval="100"
+                                  @bind-Value="_subject"
+                                  Label="Subject"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
+                    <MudTextField T="string"
+                                  DebounceInterval="100"
+                                  @bind-Value="_body"
+                                  Label="Message"
+                                  Variant="Variant.Outlined"
+                                  Lines="8" />
+                </MudStack>
+            </MudCardContent>
+        </MudCard>
+    </Authorized>
+    <NotAuthorized>
+        Your are not authorized!
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+    // todo: add security to this page
+
+    private string _subject;
+    private string _body;
+    private List<string> _emails;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _emails = await _context.Project_Users.Select(u => u.User_Name).Distinct().ToListAsync();
+    }
+
+    private bool IsDisabled => string.IsNullOrEmpty(_subject) || string.IsNullOrEmpty(_body);
+
+    private async Task HandleSendEmail()
+    {
+        foreach (var message in GetMessages())
+        {
+            await _mediator.Send(message);
+        }
+        
+        _subject = string.Empty;
+        _body = string.Empty;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private IEnumerable<EmailRequestMessage> GetMessages()
+    {
+        foreach (var email in _emails)
+        {
+            yield return new()
+            {
+                To = new() { email },
+                Subject = _subject,
+                Body = _body
+            };
+        }        
+    }
+}
