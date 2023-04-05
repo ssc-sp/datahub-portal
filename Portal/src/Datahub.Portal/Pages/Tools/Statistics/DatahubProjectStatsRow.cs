@@ -27,6 +27,16 @@ public class DatahubProjectStatsRow
     
     public bool MetadataComplete { get; set; }
     
+    public ResourceStatus StorageStatus { get; set; }
+    public ResourceStatus DatabricksStatus { get; set; }
+    
     public bool ShowUserDetails { get; set; }
     
+    
+    public enum ResourceStatus
+    {
+        None,
+        Requested,
+        Complete
+    }
 }
