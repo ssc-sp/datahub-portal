@@ -2,6 +2,7 @@
 @using Datahub.Shared.Entities
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@attribute [Authorize(Roles = "DHPGLIST")]
 
 <MudStack>
     <MudText Typo="Typo.h1">DataHub Statistics</MudText>
