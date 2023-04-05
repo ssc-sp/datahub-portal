@@ -44,7 +44,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
         fileMappingService.CleanUpMappings();
 
         // translation service
-        var translationService = new TranslationService(options.Path, deeplKey, options.UseFreeAPI, translationCache);
+        var translationService = new TranslationService(options.Path, deeplKey, options.UseFreeAPI, translationCache, GetGlossary(options.Path).ToList());
 
         // replication service
         var markdownService = new MarkdownDocumentationService(configParams, options.Path, translationService, fileNameCache, fileMappingService);
@@ -190,6 +190,21 @@ static Func<string, Task> AddAsync(List<string> list)
     };
 }
 
+static IEnumerable<GlossaryTerm> GetGlossary(string basePath)
+{
+    var glossaryPath = Path.Combine(basePath, "glossary.csv");
+    
+    if (!File.Exists(glossaryPath))
+        yield break;
+
+    foreach (var line in File.ReadLines(glossaryPath))
+    {
+        var terms = line.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        if (terms.Length == 2)
+            yield return new(terms[0], terms[1]);
+    }
+}
+
 #endregion
 
 [Verb("translate", HelpText = "Translate the documentation")]
@@ -219,5 +234,4 @@ public class GensidebarOptions
     
     [Option('p', "profile", Required = true)]
     public string Profile { get; set; } = "ssc";
-    
 }
