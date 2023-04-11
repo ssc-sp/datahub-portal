@@ -2,85 +2,102 @@
 @using Datahub.Application.Services
 
 @inject ILogger<RegisterPage> _logger
-
+@inject IMetadataBrokerService _metadataBrokerService
 @inject IUserEnrollmentService _userEnrollmentService
 @inject NavigationManager _navigationManager
-
 
 @page "/register"
 
 <PageTitle>@Localizer["DataHub | Registration"]</PageTitle>
 
 <PublicLandingDescription>
-    <MudStack>
-        <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
-            <MudStack>
-                <MudText>
-                    @Localizer["Register for the Federal Science DataHub"]
-                </MudText>
-                <MudTextField T="@string"
-                              Label="@Localizer["Government of Canada Email"]"
-                              @bind-Value="_basicRegistrationForm.Email"
-                              Required="true"
-                              RequiredError="@Localizer["Government of Canada Email is required"]"
-                              Validation="@(new Func<string, string>(EmailValidation))"/>
-                <MudAutocomplete T="@string"
-                                 Label="@Localizer["Selected Government of Canada Department/Agency"]"
-                                 @bind-Value="_basicRegistrationForm.DepartmentName"
-                                 SearchFunc="@SearchDepartmentAsync"
-                                 Required="true"
-                                 RequiredError="@Localizer["Government of Canada Department/Agency is required."]"
-                                 AdornmentIcon="@Icons.Material.Filled.Search"
-                                 />
-                <MudCheckBox T="@bool" Required RequiredError="@Localizer["Agreement with the Terms and conditions is required"]" Class="mt-16">
-                    <MudText Typo="Typo.body2">
-                        @Localizer["I agree to the "]
-                        <MudLink Href="/terms-and-conditions" Typo="Typo.body2">
-                            @Localizer["Terms and conditions"]
-                        </MudLink>
-                        @Localizer[" of use for the FSDH Proof-of-Concept Phase 2"]
+    @if (_basicRegistrationForm is not null)
+    {
+        <MudStack>
+            <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
+                <MudStack>
+                    <MudText>
+                        @Localizer["Register for the Federal Science DataHub"]
                     </MudText>
-                </MudCheckBox>
-                @if (_isRegistering)
-                {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mr-auto" EndIcon="fas fa-spinner-third fa-spin">
+
+                    <MudTextField T="string" 
+                                  Label=@Localizer["Government of Canada Email"]
+                                  @bind-Value="_basicRegistrationForm.Email"
+                                  Required
+                                  RequiredError=@Localizer["Government of Canada Email is required"]
+                                  Validation=@(new Func<string, string>(EmailValidation)) />
+
+                    <MudAutocomplete T="string"
+                                     Label=@Localizer["Selected Government of Canada Department/Agency"]
+                                     @bind-Value="_basicRegistrationForm.DepartmentName"
+                                     SearchFunc=@SearchDepartmentAsync
+                                     Required
+                                     RequiredError=@Localizer["Government of Canada Department/Agency is required."]
+                                     Adornment="Adornment.End"
+                                     AdornmentIcon="@Icons.Material.Filled.Search" />
+
+                    <MudCheckBox T="bool" 
+                                 Required 
+                                 RequiredError=@Localizer["Agreement with the Terms and conditions is required"] 
+                                 Class="mt-16">
+
+                        <MudText Typo="Typo.body2">                                 
+                            @Localizer["I agree to the "]
+                            <MudLink Href="/terms-and-conditions" Typo="Typo.body2">
+                                @Localizer["Terms and conditions"]
+                            </MudLink>
+                            @Localizer[" of use for the FSDH Proof-of-Concept Phase 2"]
+                        </MudText>
+
+                    </MudCheckBox>
+
+                    @if (_isRegistering)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mr-auto" EndIcon="fas fa-spinner-third fa-spin">
                         @Localizer["Registering"]
-                    </MudButton>
-                }
-                else
-                {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mr-auto" OnClick="HandleValidSubmit">
-                        @Localizer["Register"]
-                    </MudButton>
-                }
-            </MudStack>
-        </MudForm>
-        <MudText Typo="Typo.body2" Align="Align.Center">
-            @Localizer["Already registered?"]
-            <MudLink Typo="Typo.body2" Href="/login">@Localizer["Login instead"]</MudLink>
-        </MudText>
-    </MudStack>
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mr-auto" OnClick="HandleValidSubmit">
+                            @Localizer["Register"]
+                        </MudButton>
+                    }
+                </MudStack>
+            </MudForm>
+            <MudText Typo="Typo.body2" Align="Align.Center">
+                @Localizer["Already registered?"]
+                <MudLink Typo="Typo.body2" Href="/login">@Localizer["Login instead"]</MudLink>
+            </MudText>
+        </MudStack>
+    }
 </PublicLandingDescription>
 
 
 @code {
 
-    private BasicRegistrationForm _basicRegistrationForm;
+    private BasicRegistrationForm _basicRegistrationForm = new();
 
     private bool _success = true;
     private bool _isRegistering;
-    private string[] _errors = { };
-    MudForm _form;
+    private string[] _errors = {};
+    private MudForm _form;
+    private List<string> _departments = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
-        _basicRegistrationForm = new BasicRegistrationForm();
+        await LoadDepartmentsAsync();
+    }
+
+    private async Task LoadDepartmentsAsync()
+    {
+        var choices = await _metadataBrokerService.GetFieldChoices("organization_name");
+        _departments = choices.Select(c => c.Label).OrderBy(l => l).ToList();
     }
 
     private async Task<IEnumerable<string>> SearchDepartmentAsync(string searchTerm)
     {
-        return await Task.FromResult(BasicRegistrationForm.DepartmentDictionary.Keys
+        return await Task.FromResult(_departments
             .Where(x => x.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
             .ToList());
     }
