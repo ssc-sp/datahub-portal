@@ -790,6 +790,22 @@ public class MetadataBrokerService : IMetadataBrokerService
         }
     }
 
+    public async Task<List<FieldChoice>> GetFieldChoices(string fieldName)
+    {
+        using var ctx = await _contextFactory.CreateDbContextAsync();
+        
+        var definition = await ctx.FieldDefinitions
+            .Where(f => f.Field_Name_TXT == fieldName)
+            .Include(f => f.Choices)
+            .AsSingleQuery()
+            .FirstOrDefaultAsync();
+
+        if (definition is null)
+            return new();
+
+        return definition.Choices.ToList();
+    }
+
     private async Task SyncDefinitions(MetadataDTO metadataDto)
     {
         using var ctx = await _contextFactory.CreateDbContextAsync();
