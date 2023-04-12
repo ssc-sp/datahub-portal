@@ -793,17 +793,48 @@ public class MetadataBrokerService : IMetadataBrokerService
     public async Task<List<FieldChoice>> GetFieldChoices(string fieldName)
     {
         using var ctx = await _contextFactory.CreateDbContextAsync();
-        
-        var definition = await ctx.FieldDefinitions
+
+        var fieldDefinition = await FindDefinition(ctx, fieldName);
+        if (fieldDefinition is null)
+            return new();
+
+        return fieldDefinition.Choices.ToList();
+    }
+
+    public async Task<List<NameValuePair>> ListObjectFieldValues(string fieldName)
+    {
+        try
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var fieldDefinition = await FindDefinition(ctx, fieldName);
+            if (fieldDefinition is null || fieldDefinition.Choices.Count == 0)
+                return new();
+
+            var choices = fieldDefinition.Choices.ToDictionary(c => c.Value_TXT, c => c.Label);
+            Func<string, string> mapper = c => choices.TryGetValue(c, out string value) ? value : string.Empty;
+
+            var pairs = await ctx.ObjectFieldValues
+               .Where(e => e.FieldDefinitionId == fieldDefinition.FieldDefinitionId)
+               .Join(ctx.ObjectMetadataSet, e => e.ObjectMetadataId, e => e.ObjectMetadataId, (v, o) => new NameValuePair(o.ObjectId_TXT, v.Value_TXT))
+               .ToListAsync();
+
+            return pairs.Select(p => p with { Value = mapper(p.Value) }).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message, ex);
+            throw;
+        }
+    }
+
+    static async Task<FieldDefinition> FindDefinition(MetadataDbContext ctx, string fieldName)
+    {
+        return await ctx.FieldDefinitions
             .Where(f => f.Field_Name_TXT == fieldName)
             .Include(f => f.Choices)
             .AsSingleQuery()
             .FirstOrDefaultAsync();
-
-        if (definition is null)
-            return new();
-
-        return definition.Choices.ToList();
     }
 
     private async Task SyncDefinitions(MetadataDTO metadataDto)
