@@ -17,44 +17,7 @@
     <None Remove="Controllers\OpenDataApprovalForm.docx" />
     <None Remove="i18n\achievements.fr.json.bad" />
   </ItemGroup>
-  <ItemGroup>
-    <_ContentIncludedByDefault Remove="efpt.config.json" />
-    <_ContentIncludedByDefault Remove="i18n\achievements.fr.json.bad" />
-    <_ContentIncludedByDefault Remove="i18n\ssc\registration.fr.json" />
-    <_ContentIncludedByDefault Remove="Pages\Admin\Requests\Registration\RegistrationActions.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Admin\Requests\Registration\ViewRegistrationRequests.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\ContactEn.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\DataScientistsEn.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\DesignForProfessionals2En.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\EnterprisePlatformEn.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\ExecutivesEn.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\Faq1En.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\JumpStartEn.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\KeyCapabilities1En.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\KeyCapabilities2En.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\KeyCapabilities3En.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\KeyCapabilities4En.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\KeyCapabilities5En.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\PrivacyContentEn.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\StartBuildTodayEn.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\en_CA\TryItEn.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\ContactFr.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\DataScientistsFr.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\DesignForProfessionals2Fr.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\EnterprisePlatformFr.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\ExecutivesFr.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\Faq1Fr.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\JumpStartFr.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\KeyCapabilities1Fr.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\KeyCapabilities2Fr.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\KeyCapabilities3Fr.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\KeyCapabilities4Fr.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\KeyCapabilities5Fr.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\PrivacyContentFr.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\StartBuildTodayFr.razor" />
-    <_ContentIncludedByDefault Remove="Pages\Static\fr_CA\TryItFr.razor" />
-  </ItemGroup>
-  <ItemGroup>
+   <ItemGroup>
     <Content Include="i18n\achievements.fr.json.bad" />
   </ItemGroup>
   <ItemGroup>
