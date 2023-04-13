@@ -10,6 +10,7 @@ using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
 namespace Datahub.Infrastructure.Services;
 
 public class ProjectUserManagementService : IProjectUserManagementService
@@ -21,6 +22,8 @@ public class ProjectUserManagementService : IProjectUserManagementService
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
     private readonly ServiceAuthManager _serviceAuthManager;
     private readonly IUserEnrollmentService _userEnrollmentService;
+    private readonly IDatahubAuditingService _datahubAuditingService;
+
     public ProjectUserManagementService(
         ILogger<ProjectUserManagementService> logger,
         IDbContextFactory<DatahubProjectDBContext> contextFactory,
@@ -28,8 +31,8 @@ public class ProjectUserManagementService : IProjectUserManagementService
         IMSGraphService msGraphService,
         IRequestManagementService requestManagementService,
         ServiceAuthManager serviceAuthManager,
-        IUserEnrollmentService userEnrollmentService
-    )
+        IUserEnrollmentService userEnrollmentService,
+        IDatahubAuditingService datahubAuditingService)
     {
         _serviceAuthManager = serviceAuthManager;
         _userInformationService = userInformationService;
@@ -38,6 +41,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         _logger = logger;
         _contextFactory = contextFactory;
         _userEnrollmentService = userEnrollmentService;
+        _datahubAuditingService = datahubAuditingService;
     }
 
     public async Task<IEnumerable<ProjectMember>> BatchUpdateUsersInProject(string projectAcronym, IEnumerable<ProjectMember> projectMembers)
@@ -102,7 +106,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         try
         {
             
-            await context.SaveChangesAsync();
+            await context.TrackSaveChangesAsync(_datahubAuditingService);
             await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.VariableUpdate);
             _serviceAuthManager.InvalidateAuthCache();
             _logger.LogInformation("Terraform variable update request created for project {ProjectAcronym}", projectAcronym);
@@ -158,8 +162,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         }
         try
         {
-            
-            await context.SaveChangesAsync();
+            await context.TrackSaveChangesAsync(_datahubAuditingService);
             await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.VariableUpdate);
             _serviceAuthManager.InvalidateAuthCache();
             _logger.LogInformation("Terraform variable update request created for project {ProjectAcronym}", projectAcronym);
@@ -259,7 +262,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             return;
         }
         context.Project_Users.Remove(exists);
-        await context.SaveChangesAsync();
+        await context.TrackSaveChangesAsync(_datahubAuditingService);
         _logger.LogInformation("User {UserGraphId} removed from project {ProjectAcronym}", userGraphId, project.Project_Acronym_CD);
     }
 
@@ -287,7 +290,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         try
         {
             await UpdateUserInProject(context, project, projectMember.UserId, projectMember.Role);
-            await context.SaveChangesAsync();
+            await context.TrackSaveChangesAsync(_datahubAuditingService);
             _logger.LogInformation("User {UserGraphId} removed from project {ProjectAcronym}", projectMember.UserId, projectAcronym);
             await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.VariableUpdate);
             _logger.LogInformation("Terraform variable update request created for project {ProjectAcronym}", projectAcronym);
