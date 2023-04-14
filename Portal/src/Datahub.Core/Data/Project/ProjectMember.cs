@@ -37,4 +37,14 @@ public class ProjectMember
         Role = role;
         UserAddedToProject = DateTime.Now;
     }
+    
+    public ProjectMember(ProjectMember copy)
+    {
+        Email = copy.Email;
+        UserId = copy.UserId;
+        Name = copy.Name;
+        UserAddedToProject = copy.UserAddedToProject;
+        UserHasBeenInvitedToDatahub = copy.UserHasBeenInvitedToDatahub;
+        Role = copy.Role;
+    }
 }
