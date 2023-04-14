@@ -26,8 +26,8 @@ public partial class FileExplorer
 
     private async Task HandleNewFolder(string folderName)
     {
-        var newFolderName = folderName.Replace("/", "").Trim();
-        var newFolderPath = $"{_currentFolder}{newFolderName}";
+        var newFolderName = folderName.Replace("/", "").Replace("\\", "").Trim();
+        var newFolderPath = JoinPath(_currentFolder, newFolderName);
         if (_folders.Contains(newFolderPath))
             return;
 
