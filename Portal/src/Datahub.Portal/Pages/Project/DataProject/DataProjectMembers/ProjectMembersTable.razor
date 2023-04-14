@@ -252,7 +252,7 @@ else if (_isDatahubAdmin || _isProjectAdmin) {
                 await using var projectContext = await DbFactoryProject.CreateDbContextAsync();
                 _projectUsers = await ServiceAuthManager.GetProjectMembers(ProjectAcronym);
                 //create a hard copy of the current saved project members
-                _currentSavedUsers = _projectUsers.ToList();
+                _currentSavedUsers = _projectUsers.Select(x => new ProjectMember(x)).ToList();
                 
             }
             ProjectMemberRoleFilter(_currentRoleFilter);
