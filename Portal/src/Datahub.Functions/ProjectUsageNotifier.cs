@@ -78,15 +78,23 @@ namespace Datahub.Functions
                 return;
             }
 
-            var notificationEmail = GetNotificationEmail(notificationPerc, details.Contacts);
-            await _mediator.Send(notificationEmail, cancellationToken);
-            
-            details.Credits.PercNotified = notificationPerc;
-            details.Credits.LastNotified = DateTime.UtcNow;
+            try
+            {
+                var notificationEmail = GetNotificationEmail(notificationPerc, details.Contacts);
+                await _mediator.Send(notificationEmail, cancellationToken);
 
-            ctx.Project_Credits.Update(details.Credits);
+                details.Credits.PercNotified = notificationPerc;
+                details.Credits.LastNotified = DateTime.UtcNow;
 
-            await ctx.SaveChangesAsync(cancellationToken);
+                ctx.Project_Credits.Update(details.Credits);
+
+                await ctx.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("The ProjectUsageNotifier was unable the update the DB or send the email, check the next log.");
+                _logger.LogError(ex.Message, ex);
+            }
         }
 
         private async Task<ProjectNotificationDetails?> GetProjectDetails(DatahubProjectDBContext ctx, int projectId, 
