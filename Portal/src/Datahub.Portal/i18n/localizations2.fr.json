@@ -229,5 +229,6 @@
   "Management authority within the project with direct supervision over the project resources and deliverables": "Autorité de gestion au sein du projet avec une supervision directe des ressources et des résultats du projet",
   "Responsible for contributing to the overall project objectives and deliverables to ensure success": "Contribuer à la réalisation des objectifs du projet et des résultats attendus afin d'en assurer la réussite.",
   "Remove User": "Supprimer l'utilisateur",
-  "Revoke the user\u0027s access to the project\u0027s private resources": "Révoquer l'accès de l'utilisateur aux ressources privées du projet"
+  "Revoke the user\u0027s access to the project\u0027s private resources": "Révoquer l'accès de l'utilisateur aux ressources privées du projet",
+  "You are not authorized to view this page.": "Vous n'êtes pas autorisé à consulter cette page."
 }
