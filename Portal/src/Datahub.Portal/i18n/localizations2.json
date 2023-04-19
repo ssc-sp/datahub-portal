@@ -211,5 +211,6 @@
   "Management authority within the project with direct supervision over the project resources and deliverables":"Management authority within the project with direct supervision over the project resources and deliverables",
   "Responsible for contributing to the overall project objectives and deliverables to ensure success":"Responsible for contributing to the overall project objectives and deliverables to ensure success",
   "Remove User":"Remove User",
-  "Revoke the user\u0027s access to the project\u0027s private resources":"Revoke the user\u0027s access to the project\u0027s private resources"
+  "Revoke the user\u0027s access to the project\u0027s private resources":"Revoke the user\u0027s access to the project\u0027s private resources",
+  "You are not authorized to view this page.": "You are not authorized to view this page.",
 }
