@@ -25,6 +25,8 @@ public class DatahubProjectStatsRow
     
     public decimal BudgetRemaining => BudgetLimit - (decimal) BudgetSpent;
     
+    public decimal CostOfLastXDays { get; set; }
+    
     public bool MetadataComplete { get; set; }
     
     public ResourceStatus StorageStatus { get; set; }
