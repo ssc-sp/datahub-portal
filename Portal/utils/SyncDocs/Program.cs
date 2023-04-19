@@ -13,6 +13,7 @@ using Microsoft.Extensions.Options;
 
 const string SIDEBAR = "_sidebar.md";
 const string SIDEBAR_META = "_sidebar.md.yaml";
+const string NAVBAR = "_navbar.md";
 
 var builder = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -44,7 +45,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
         fileMappingService.CleanUpMappings();
 
         // translation service
-        var translationService = new TranslationService(options.Path, deeplKey, options.UseFreeAPI, translationCache);
+        var translationService = new TranslationService(options.Path, deeplKey, options.UseFreeAPI, translationCache, GetGlossary(options.Path).ToList());
 
         // replication service
         var markdownService = new MarkdownDocumentationService(configParams, options.Path, translationService, fileNameCache, fileMappingService);
@@ -148,7 +149,7 @@ static async Task CleanupTargetDirectory(ConfigParams configParams, string path)
     await IteratePath(Path.Combine(path, configParams.Target), s => false, f => { folders.Add(f); return Task.CompletedTask; }, f => { files.Add(f); return Task.CompletedTask; });
     foreach (var item in files.Where(f => Path.GetExtension(f) == ".md"))
     {   
-        if (MarkdownDocumentationService.CheckIfDraft(item))
+        if (MarkdownDocumentationService.CheckIfDraft(item) && !string.Equals(Path.GetFileName(item), NAVBAR, StringComparison.InvariantCultureIgnoreCase))
         {
             Console.WriteLine($"Deleting draft file {item}");
             File.Delete(item);
@@ -167,7 +168,7 @@ static async Task CleanupTargetDirectory(ConfigParams configParams, string path)
 static Func<string, bool> BuildExcluder(ConfigParams config)
 {
     var excludeSet = config.GetExcludedFolders().Select(s => s.ToLower()).ToHashSet();
-    return n => excludeSet.Contains(n.ToLower());
+    return n => excludeSet.Contains(n.ToLower()) || string.Equals(Path.GetFileName(n),NAVBAR,StringComparison.InvariantCultureIgnoreCase);
 }
 
 static int FolderDepth(string path)
@@ -188,6 +189,21 @@ static Func<string, Task> AddAsync(List<string> list)
         list.Add(s);
         return Task.CompletedTask;
     };
+}
+
+static IEnumerable<GlossaryTerm> GetGlossary(string basePath)
+{
+    var glossaryPath = Path.Combine(basePath, "glossary.csv");
+    
+    if (!File.Exists(glossaryPath))
+        yield break;
+
+    foreach (var line in File.ReadLines(glossaryPath))
+    {
+        var terms = line.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        if (terms.Length == 2)
+            yield return new(terms[0], terms[1]);
+    }
 }
 
 #endregion
@@ -219,5 +235,4 @@ public class GensidebarOptions
     
     [Option('p', "profile", Required = true)]
     public string Profile { get; set; } = "ssc";
-    
 }

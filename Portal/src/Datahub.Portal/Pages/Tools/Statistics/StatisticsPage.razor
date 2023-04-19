@@ -1,0 +1,258 @@
+@page "/tools/stats"
+@using Datahub.Shared.Entities
+@using System.Text.Json
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@attribute [Authorize(Roles = "DHPGLIST")]
+
+<MudStack>
+    <MudText Typo="Typo.h1">DataHub Statistics</MudText>
+    <MudText Typo="Typo.body1">This page shows statistics about the DataHub.</MudText>
+
+    <MudTable Items="@_statsRows" Hover="true" Loading="_isLoading" LoadingProgressColor="Color.Info">
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Name))">Workspace</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.UniqueDepartments.Count))">Departments</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Leads?.Count))">Leads</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Admins?.Count))">Admins</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Collaborators?.Count))">Collaborators</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.BudgetRemaining))">Budget Remaining</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.CostOfLastXDays))">Cost of last 7 days</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.MetadataComplete))">Metadata</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.StorageStatus))">Storage</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.DatabricksStatus))">Databricks</MudTableSortLabel>
+            </MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Workspace">
+                <MudTooltip Text="@($"Project ID {context.ProjectId}")" Arrow="true">
+                    <strong>@context.Acronym</strong> @context.Name
+                </MudTooltip>
+            </MudTd>
+            <MudTd DataLabel="Departments">
+                @foreach (var department in context.UniqueDepartments)
+                {
+                    <span>@department</span>
+                    <br/>
+                }
+            </MudTd>
+            <MudTd DataLabel="Leads">
+                @context.Leads?.Count
+            </MudTd>
+            <MudTd DataLabel="Admins">
+                @context.Admins?.Count
+            </MudTd>
+            <MudTd DataLabel="Collaborators">
+                @context.Collaborators?.Count
+            </MudTd>
+            <MudTd>
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowUsersPressed(context.ProjectId))">
+                    @(context.ShowUserDetails ? "Hide" : "Show") User details
+                </MudButton>
+            </MudTd>
+            <MudTd DataLabel="Budget">
+                <MudTooltip Text="@($"{context.BudgetSpent.ToString("C", CultureInfo.CurrentCulture)} / {context.BudgetLimit.ToString("C", CultureInfo.CurrentCulture)}")">
+                    @context.BudgetRemaining.ToString("C", CultureInfo.CurrentCulture)
+                </MudTooltip>
+            </MudTd>
+            <MudTd DataLabel="CostXDays">
+                @context.CostOfLastXDays.ToString("C", CultureInfo.CurrentCulture)
+            </MudTd>
+            <MudTd DataLabel="Metadata">
+                @if (context.MetadataComplete)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success"/>
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.WatchLater" Color="Color.Warning"/>
+                }
+            </MudTd>
+            <MudTd DataLabel="Storage">
+                @switch (context.StorageStatus)
+                {
+                    case DatahubProjectStatsRow.ResourceStatus.Complete:
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="@Color.Success"/>
+                        break;
+                    case DatahubProjectStatsRow.ResourceStatus.Requested:
+                        <MudIcon Icon="@Icons.Material.Filled.WatchLater" Color="@Color.Warning"/>
+                        break;
+                    case DatahubProjectStatsRow.ResourceStatus.None:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            </MudTd>
+            <MudTd DataLabel="Databricks">
+                @switch (context.DatabricksStatus)
+                {
+                    case DatahubProjectStatsRow.ResourceStatus.Complete:
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="@Color.Success"/>
+                        break;
+                    case DatahubProjectStatsRow.ResourceStatus.Requested:
+                        <MudIcon Icon="@Icons.Material.Filled.WatchLater" Color="@Color.Warning"/>
+                        break;
+                    case DatahubProjectStatsRow.ResourceStatus.None:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            </MudTd>
+        </RowTemplate>
+
+        <ChildRowContent>
+            @if (context.ShowUserDetails)
+            {
+                <MudTr>
+                    <td colspan="7">
+                        <MudCard Elevation="0">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.body1">User details for <strong>@context.Name</strong></MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent class="pl-6 py-0 pr-0">
+                                <MudTable Items="@context.Leads" Context="LeadContext" Elevation="0" Dense>
+                                    <HeaderContent>
+                                        <MudTh>
+                                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
+                                                <strong>Leads</strong>
+                                            </MudTableSortLabel>
+                                        </MudTh>
+                                    </HeaderContent>
+                                    <RowTemplate>
+                                        <MudTd DataLabel="Leads">
+                                            @LeadContext
+                                        </MudTd>
+                                    </RowTemplate>
+                                </MudTable>
+                                <MudTable Items="@context.Admins" Context="AdminContext" Elevation="0" Dense>
+                                    <HeaderContent>
+                                        <MudTh>
+                                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
+                                                <strong>Admins</strong>
+                                            </MudTableSortLabel>
+                                        </MudTh>
+                                    </HeaderContent>
+                                    <RowTemplate>
+                                        <MudTd DataLabel="Admins">
+                                            @AdminContext
+                                        </MudTd>
+                                    </RowTemplate>
+                                </MudTable>
+                                <MudTable Items="@context.Collaborators" Context="CollaboratorContext" Elevation="0" Dense>
+                                    <HeaderContent>
+                                        <MudTh>
+                                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
+                                                <strong>Collaborators</strong>
+                                            </MudTableSortLabel>
+                                        </MudTh>
+                                    </HeaderContent>
+                                    <RowTemplate>
+                                        <MudTd DataLabel="Collaborators">
+                                            @CollaboratorContext
+                                        </MudTd>
+                                    </RowTemplate>
+                                </MudTable>
+                            </MudCardContent>
+                        </MudCard>
+                    </td>
+                </MudTr>
+            }
+        </ChildRowContent>
+
+    </MudTable>
+</MudStack>
+
+@code {
+
+    private bool _isLoading = true;
+
+    private List<DatahubProjectStatsRow> _statsRows = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            const int numberOfDays = 7;
+
+
+            _statsRows = context.Projects
+                .Include(p => p.Credits)
+                .Include(p => p.Users)
+                .Include(p => p.ServiceRequests)
+                .AsEnumerable()
+                .Select(p => new DatahubProjectStatsRow()
+                {
+                    ProjectId = p.Project_ID,
+                    Name = p.Project_Name,
+                    Acronym = p.Project_Acronym_CD,
+                    MetadataComplete = p.MetadataAdded ?? false,
+                    BudgetLimit = p.Project_Budget ?? 0,
+                    BudgetSpent = p.Credits?.Current ?? 0,
+                    CostOfLastXDays = GetLastXDaysOfCosts(p.Credits, numberOfDays),
+                    Leads = p.Users?.Where(u => u.IsAdmin && u.IsDataApprover).Select(u => u.User_Name).ToList(),
+                    Admins = p.Users?.Where(u => u.IsAdmin && !u.IsDataApprover).Select(u => u.User_Name).ToList(),
+                    Collaborators = p.Users?.Where(u => !u.IsAdmin).Select(u => u.User_Name).ToList(),
+                    StorageStatus = p.ServiceRequests?
+                        .Where(sr => sr.ServiceType.Contains(TerraformTemplate.AzureStorageBlob))
+                        .Select(sr => sr.Is_Completed.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
+                        .FirstOrDefault() ?? DatahubProjectStatsRow.ResourceStatus.None,
+                    DatabricksStatus = p.ServiceRequests?
+                        .Where(sr => sr.ServiceType.Contains(TerraformTemplate.AzureDatabricks))
+                        .Select(sr => sr.Is_Completed.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
+                        .FirstOrDefault() ?? DatahubProjectStatsRow.ResourceStatus.None
+                })
+                .ToList();
+
+
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private static decimal GetLastXDaysOfCosts(Project_Credits projectCredits, int days)
+    {
+        if (projectCredits == null)
+        {
+            return 0;
+        }
+        
+        var currentPerDay = JsonSerializer.Deserialize(projectCredits.CurrentPerDay, typeof(List<DatahubProjectCurrentPerDay>)) as List<DatahubProjectCurrentPerDay>;
+        var cost = currentPerDay?.Where(c => c.Date > DateTime.Now.AddDays(-days)).Sum(c => c.Cost) ?? 0;
+        
+        return cost;
+    }
+
+
+    private void ShowUsersPressed(int projectId)
+    {
+        var row = _statsRows.First(r => r.ProjectId == projectId);
+        row.ShowUserDetails = !row.ShowUserDetails;
+    }
+
+}

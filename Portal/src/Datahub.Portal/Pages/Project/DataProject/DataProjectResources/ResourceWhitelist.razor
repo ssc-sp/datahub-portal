@@ -209,5 +209,5 @@
         await OnBudgetUpdated.InvokeAsync(Convert.ToDecimal(_budget));
     }
 
-    private bool IsSaveBudgetDisabled => Project is null || Project.Project_Budget == Convert.ToDecimal(_budget);
+    private bool IsSaveBudgetDisabled => Project is null;
 }
