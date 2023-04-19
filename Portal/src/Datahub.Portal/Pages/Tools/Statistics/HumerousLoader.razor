@@ -1,0 +1,50 @@
+@using System.Timers
+@using Timer = System.Timers.Timer
+
+@implements IDisposable
+
+<DHLoadingInitializer Message="@_message"/>
+
+@code {
+
+    private List<string> _loadingMessages = new()
+    {
+        "Hold on tight! Our developers are tying the digital shoelaces.",
+        "Counting pixels, please stand by.",
+        "Loading... just kidding, go grab a coffee!",
+        "Please wait patiently while the hamsters power up the servers.",
+        "Have you tried turning it off and on again? Loading, please wait.",
+        "Reticulating splines... and loading your content!",
+        "The internet gnomes are working their magic, just for you.",
+        "Please wait while we consult the oracle.",
+        "Loading... Do you prefer cats or dogs?",
+        "Don't worry, the bits are on their way. Loading, loading, loading."
+    };
+
+    private string _message;
+
+    private Timer _timer;
+
+    protected override void OnInitialized()
+    {
+        _timer = new Timer(2000);
+        _timer.Elapsed += UpdateLoadingMessage;
+        _timer.AutoReset = true;
+        _timer.Enabled = true;
+        
+        _message =_loadingMessages[new Random().Next(0, _loadingMessages.Count)];
+        StateHasChanged();
+    }
+
+    private void UpdateLoadingMessage(object sender, ElapsedEventArgs e)
+    {
+        _message =_loadingMessages[new Random().Next(0, _loadingMessages.Count)];
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+
+}

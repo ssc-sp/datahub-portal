@@ -11,13 +11,16 @@ internal class TranslationService
 {
     private readonly Translator? _client;
     private readonly string _sourcePath;
-    private readonly DictionaryCache translationCache;
+    private readonly DictionaryCache _translationCache;
+    private readonly List<GlossaryTerm> _glossaryTerms;
 
-    public TranslationService(string sourcePath, string deeplKey, bool useFreeAPI, DictionaryCache translationCache)
+    public TranslationService(string sourcePath, string deeplKey, bool useFreeAPI, 
+        DictionaryCache translationCache, List<GlossaryTerm> glossaryTerms)
     {
         _sourcePath = sourcePath;
-        this.translationCache = translationCache;
+        _translationCache = translationCache;
         _client = !string.IsNullOrEmpty(deeplKey) ? new Translator(deeplKey, new TranslatorOptions() { ServerUrl = useFreeAPI ? "https://api-free.deepl.com" : null }) : null;
+        _glossaryTerms = glossaryTerms;
     }
 
     public async Task<string> TranslateFileName(string fileName)
@@ -96,7 +99,8 @@ internal class TranslationService
         var link = TryParseLink(text);
         if (link == null)
         {
-            return await Translate(text);
+            var translation = await Translate(text);
+            return (translation ?? "").Replace("] (", "](");
         }
         else
         {
@@ -122,16 +126,29 @@ internal class TranslationService
 
     private async Task<string> Translate(string text)
     {
-        var output = translationCache.GetFrenchTranslation(text);
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        var output = _translationCache.GetFrenchTranslation(text);
         if (output != null)
-        {
-            return output;
-        }
-        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+            return ApplyGlossary(output);
+
         var translateResult = await _client!.TranslateTextAsync(text, LanguageCode.English, LanguageCode.French);
-        var result = translateResult?.Text ?? text;
-        translationCache.SaveFrenchTranslation(text, result);
-        translationCache.SaveChanges();
+        var result = ApplyGlossary(translateResult?.Text ?? text);
+
+        _translationCache.SaveFrenchTranslation(text, result);
+        _translationCache.SaveChanges();
+
+        return result;
+    }
+
+    private string ApplyGlossary(string text)
+    {
+        var result = text ?? string.Empty;
+        foreach (var term in _glossaryTerms)
+        {
+            result = result.Replace(term.English, term.French);
+        }
         return result;
     }
 

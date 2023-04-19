@@ -41,7 +41,7 @@
     "Submit": "Soumettre",
     "Upload": "Upload",
     "Save": "Sauvegarder",
-    "Edit":  "Editer"
+    "Edit": "Editer"
   },
   "COMMON": {
     "Yes": "Oui",
@@ -1761,5 +1761,6 @@
   "Edit budget": "Editer le budget",
   "Assigned Budget": "Budget alloué",
   "Add to Queue": "Ajouter à la file d'attente",
-  "Copy Container Token": "Copier le jeton du conteneur"
+  "Copy Container Token": "Copier le jeton du conteneur",
+  "Metadata": "Métadonnées"
 }

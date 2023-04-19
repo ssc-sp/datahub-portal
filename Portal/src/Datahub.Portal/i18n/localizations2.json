@@ -205,5 +205,12 @@
   "Workspace Acronym":"Workspace Acronym",
   "A unique alphanumeric acronym to identify the workspace":"A unique alphanumeric acronym to identify the workspace",
   "Workspace Acronym is required":"Workspace Acronym is required",
-  "Acronym must be {0} characters or less":"Acronym must be {0} characters or less"
+  "Acronym must be {0} characters or less":"Acronym must be {0} characters or less",
+  "You have unsaved changes. Please save them before leaving this page.":"You have unsaved changes. Please save them before leaving this page.",
+  "Head of the business unit and bears business responsibility for successful implementation and availability":"Head of the business unit and bears business responsibility for successful implementation and availability",
+  "Management authority within the project with direct supervision over the project resources and deliverables":"Management authority within the project with direct supervision over the project resources and deliverables",
+  "Responsible for contributing to the overall project objectives and deliverables to ensure success":"Responsible for contributing to the overall project objectives and deliverables to ensure success",
+  "Remove User":"Remove User",
+  "Revoke the user\u0027s access to the project\u0027s private resources":"Revoke the user\u0027s access to the project\u0027s private resources",
+  "You are not authorized to view this page.": "You are not authorized to view this page.",
 }

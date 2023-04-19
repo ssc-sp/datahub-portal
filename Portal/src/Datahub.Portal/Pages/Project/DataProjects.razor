@@ -4,10 +4,11 @@
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject IMetadataBrokerService _metadataBrokerService
 
 <UserProjects />
 
-@if (_filteredProjects.Any())
+@if (_filteredProjects?.Any() == true)
 {
     <MudTable Striped Items="_filteredProjects" Class="my-12" Filter="new Func<Datahub_Project,bool>(ProjectFilter)">
     <ToolBarContent>
@@ -22,18 +23,26 @@
             <MudTh>
                 <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.Project_Acronym_CD)">@Localizer["Acronym"]</MudTableSortLabel>
             </MudTh>
+            
             <MudTh>
                 <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.ProjectName)" InitialDirection="SortDirection.Ascending">@Localizer["Name"]</MudTableSortLabel>
             </MudTh>
-@*            <MudTh>
-                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.Sector_Name)" >@Localizer["Department/Agency"]</MudTableSortLabel>
-            </MudTh>*@
-            <MudTh></MudTh>
+
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => GetDepartment(x.Project_Acronym_CD))" InitialDirection="SortDirection.Ascending">@Localizer["Department"]</MudTableSortLabel>
+            </MudTh>
+
+            <MudTh>
+                @*placeholder for the actions colum*@
+            </MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Acronym">@context.Project_Acronym_CD</MudTd>
+            
             <MudTd DataLabel="Name">@context.ProjectName</MudTd>
-@*            <MudTd DataLabel="Department/Agency">@Localizer[context.Sector_Name ?? "N/A"]</MudTd>*@
+            
+            <MudTd DataLabel="Department/Agency">@GetDepartment(context.Project_Acronym_CD)</MudTd>
+            
             <MudTd DataLabel="ProjectButton"> 
                 <MudButton EndIcon="@UserWorkspaceOpenIcon" Variant="Variant.Text" Color="Color.Primary"
                            Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{context.Project_Acronym_CD}")">
@@ -55,27 +64,44 @@ else
 }
 
 @code {
-    
+
     private const string UserWorkspaceOpenIcon = Icons.Material.Filled.KeyboardDoubleArrowRight;
 
     private List<Datahub_Project> _allProjects;
     private List<Datahub_Project> _filteredProjects;
-    
+
     private string _projectSearchFilter = string.Empty;
+    private Dictionary<string, string> _departments = new();
 
     protected override async Task OnInitializedAsync()
     {
         await using var context = await _dbFactory.CreateDbContextAsync();
-        _allProjects = context.Projects
+        _allProjects = await context.Projects
             .Where(p =>
                 (p.Project_Status == (int) ProjectStatus.InProgress || p.Is_Featured) &&
                 !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD)
                 && !string.IsNullOrWhiteSpace(p.Project_Name))
-            // .Include(p => p.Users)
-            .ToList();
+            .ToListAsync();
+
         _filteredProjects = _allProjects;
+
+        await LoadMetadata();
     }
-    
+
+    private async Task LoadMetadata()
+    {
+        var values = await _metadataBrokerService.ListObjectFieldValues("organization_name");
+        foreach (var v in values)
+        {
+            _departments[v.Name.ToLower()] = v.Value;
+        }
+    }
+
+    private string GetDepartment(string acronym)
+    {
+        return _departments.TryGetValue(acronym.ToLower(), out string value) ? value : "N/A";
+    }
+
     private bool ProjectFilter(Datahub_Project project)
     {
         return project.Project_Name.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant()) ||

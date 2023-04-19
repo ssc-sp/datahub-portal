@@ -41,6 +41,8 @@ public interface IMetadataBrokerService
     Task<List<CatalogObjectResult>> GetProjectCatalogItems(int projectId);
     Task<ClassificationType?> GetObjectClassification(string objectId);
     Task UpdateMetadata(Stream stream);
+    Task<List<FieldChoice>> GetFieldChoices(string fieldName);
+    Task<List<NameValuePair>> ListObjectFieldValues(string fieldName);
 }
 
 public record CatalogSearchRequest

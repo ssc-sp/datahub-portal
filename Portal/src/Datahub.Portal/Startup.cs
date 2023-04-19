@@ -26,9 +26,7 @@ using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Services.Wiki;
 using Datahub.GeoCore.Service;
 using Datahub.Metadata.Model;
-using Datahub.PIP.Data;
 using Datahub.Portal.Data.Forms.WebAnalytics;
-using Datahub.Portal.Data.Pipelines;
 using Datahub.Portal.Services;
 using Datahub.Portal.Services.Api;
 using Datahub.Portal.Services.Offline;
@@ -246,9 +244,7 @@ public class Startup
         IDbContextFactory<DatahubProjectDBContext> datahubFactory,
         IDbContextFactory<UserTrackingContext> userTrackingFactory,
         IDbContextFactory<AchievementContext> achievementFactory,
-        IDbContextFactory<PIPDBContext> pipFactory,
-        IDbContextFactory<MetadataDbContext> metadataFactory,
-        IDbContextFactory<DatahubETLStatusContext> etlFactory)
+        IDbContextFactory<MetadataDbContext> metadataFactory)
     {
         if (Configuration.GetValue<bool>("HttpLogging:Enabled"))
         {
@@ -264,8 +260,6 @@ public class Startup
         InitializeDatabase(logger, datahubFactory);
         InitializeDatabase(logger, userTrackingFactory, false);
         InitializeDatabase(logger, achievementFactory, false);
-        InitializeDatabase(logger, etlFactory);
-        InitializeDatabase(logger, pipFactory);
         InitializeDatabase(logger, metadataFactory, true);
 
         app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>()
@@ -441,7 +435,6 @@ public class Startup
     private void ConfigureDbContexts(IServiceCollection services)
     {
         ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
-        ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", Configuration.GetDriver());
         if (Configuration.GetDriver() == DbDriver.Azure)
         {
             ConfigureCosmosDbContext<UserTrackingContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
@@ -454,7 +447,6 @@ public class Startup
         }
 
         ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics", Configuration.GetDriver());
-        ConfigureDbContext<DatahubETLStatusContext>(services, "datahub-mssql-etldb", Configuration.GetDriver());
         ConfigureDbContext<MetadataDbContext>(services, "datahub-mssql-metadata", Configuration.GetDriver());
     }
 
