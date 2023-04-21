@@ -1,0 +1,31 @@
+@using MudBlazor.Utilities
+@if (string.IsNullOrWhiteSpace(ProfilePictureSrc))
+{
+    <MudAvatar Elevation="4" Style="@_avatarStyle" Color="Color.Primary">
+        @DisplayName
+    </MudAvatar>
+}
+else
+{
+    <MudAvatar Elevation="4" Style="@_avatarStyle" Color="Color.Primary" Image="@ProfilePictureSrc"/>
+}
+
+@code {
+    [Parameter]
+    public string DisplayName { get; set; }
+    [Parameter]
+    public string ProfilePictureSrc { get; set; }
+    
+    private string _avatarStyle;
+    
+    protected override void OnInitialized()
+    {
+
+        //TODO: Get profile picture from User table
+        _avatarStyle = new StyleBuilder()
+            .AddStyle("height", "120px")
+            .AddStyle("width", "120px")
+            .AddStyle("margin-top", "-40px")
+            .Build();
+    }
+}
