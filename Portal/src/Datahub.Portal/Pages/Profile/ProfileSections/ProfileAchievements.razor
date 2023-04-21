@@ -1,0 +1,125 @@
+@using Microsoft.Graph
+@using MudBlazor.Utilities
+<MudContainer>
+    <MudText Typo="Typo.h3" GutterBottom>@Title</MudText>
+    <MudAvatarGroup Spacing="@Spacing" Max="@Max" Style="@_groupStyle">
+        @foreach(var achievement in Achievements.Select((achievement, index) => (index, achievement)))
+        {
+            <AchievementAvatar Achievement="achievement.achievement" Spacing="@Spacing" Max="Max" Count="achievement.index"/>
+        }
+    </MudAvatarGroup>
+    @if (!IsTrophyType)
+    {
+        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="ViewAllAchievements" Style="@_buttonStyle">
+            @Localizer["View All Achievements"]
+        </MudButton>
+    }
+</MudContainer>
+
+@code {
+    
+    // TODO: replace with Achievement model
+    [Parameter]
+    public List<(string name, string description, string imageSrc)> Achievements { get; set; } = new();
+    
+    //TODO: replace with AchievementType
+    [Parameter]
+    public bool IsTrophyType { get; set; }
+
+    private string Title => IsTrophyType ? Localizer["Trophies"] : Localizer["Achievements"];
+    private string _groupStyle;
+    private string _buttonStyle;
+    private int Spacing => IsTrophyType ? 0 : 3;
+    private int Max => IsTrophyType ? Achievements.Count : 8;
+
+    protected override void OnInitialized()
+    {
+        _groupStyle = new StyleBuilder()
+            .AddStyle("flex-wrap", "wrap")
+            .Build();
+        _buttonStyle = new StyleBuilder()
+            .AddStyle("margin-left", "auto")
+            .Build();
+    }
+
+    private void ViewAllAchievements()
+    {
+        //TODO: go to achievements page
+    }
+
+}
+
+
+
+
+@*TODO: remove, old implementation*@
+@* @using Datahub.Achievements.Models *@
+@* @using MudBlazor.Utilities *@
+@* @inject AchievementService _achievementService; *@
+@* *@
+@* <MudStack Class="my-4"> *@
+@*     <MudStack Row AlignItems="AlignItems.Baseline"> *@
+@*         <MudText Typo="Typo.h1">@Localizer["Achievements"]</MudText> *@
+@*     </MudStack> *@
+@*     <MudStack> *@
+@*         @if (_metaAchievements != null) *@
+@*         { *@
+@*             <MudExpansionPanels Elevation="0" MultiExpansion> *@
+@* *@
+@*                 @foreach (var metaAchievement in _metaAchievements *@
+@*                     .OrderBy(a => a.Code)) *@
+@*                 { *@
+@*                     var subAchievements = _achievementsByParentCode[metaAchievement.Code!] *@
+@*                         .OrderByDescending(a => a.Earned) *@
+@*                         .ThenBy(a => a.Achievement?.Code) *@
+@*                         .ToList(); *@
+@* *@
+@*                     var completion = (subAchievements.Count(a => a.Earned), subAchievements.Count); *@
+@*                      *@
+@*                     <MudExpansionPanel> *@
+@*                         <TitleContent> *@
+@*                             <AchievementCard UserAchievement="metaAchievement" Completion="completion"/> *@
+@*                         </TitleContent> *@
+@*                         <ChildContent> *@
+@*                             @foreach (var userAchievement in _achievementsByParentCode[metaAchievement.Code!] *@
+@*                                 .OrderByDescending(a => a.Earned) *@
+@*                                 .ThenBy(a => a.Achievement?.Code)) *@
+@*                             { *@
+@*                                 <AchievementCard UserAchievement="userAchievement"/> *@
+@*                             } *@
+@*                         </ChildContent> *@
+@*                     </MudExpansionPanel> *@
+@*                 } *@
+@* *@
+@*             </MudExpansionPanels> *@
+@*         } *@
+@*     </MudStack> *@
+@* </MudStack> *@
+@* *@
+@* @code { *@
+@* *@
+@*     [Parameter] *@
+@*     public GraphUser User { get; set; } *@
+@*     private GraphUser _previousUser; *@
+@* *@
+@*     private Dictionary<string, List<UserAchievement>> _achievementsByParentCode; *@
+@*     private List<UserAchievement> _metaAchievements; *@
+@* *@
+@*     protected override async Task OnAfterRenderAsync(bool firstRender) *@
+@*     { *@
+@*         await base.OnAfterRenderAsync(firstRender); *@
+@* *@
+@*         if (firstRender || User != _previousUser) *@
+@*         { *@
+@*             var achievements = await _achievementService.GetUserAchievements(User.Mail); *@
+@*             _achievementsByParentCode = achievements *@
+@*                 .GroupBy(a => a.Achievement?.ParentAchievementCode ?? "None") *@
+@*                 .ToDictionary(a => a.Key, a => a.ToList()); *@
+@* *@
+@*             _metaAchievements = achievements.Where(a => a.Achievement is { MetaAchievement: true }).ToList(); *@
+@*             _previousUser = User; *@
+@*             StateHasChanged(); *@
+@*         } *@
+@*     } *@
+@* *@
+@* } *@
