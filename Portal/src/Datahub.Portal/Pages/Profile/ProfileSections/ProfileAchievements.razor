@@ -29,7 +29,7 @@
     private string Title => IsTrophyType ? Localizer["Trophies"] : Localizer["Achievements"];
     private string _groupStyle;
     private string _buttonStyle;
-    private int Spacing => IsTrophyType ? 0 : 3;
+    private int Spacing => IsTrophyType ? 0 : 1;
     private int Max => IsTrophyType ? Achievements.Count : 8;
 
     protected override void OnInitialized()
@@ -38,7 +38,7 @@
             .AddStyle("flex-wrap", "wrap")
             .Build();
         _buttonStyle = new StyleBuilder()
-            .AddStyle("margin-left", "auto")
+            .AddStyle("float", "right")
             .Build();
     }
 
