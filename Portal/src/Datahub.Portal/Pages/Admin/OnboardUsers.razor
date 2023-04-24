@@ -223,7 +223,7 @@
         _chosenUsers.Add(user);
         _inputValue = string.Empty;
         Context.Project_Users.Add(user);
-        await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserSentInvite);
+        await _achievementService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserSentInvite);
         await RefreshData(true);
     }
 

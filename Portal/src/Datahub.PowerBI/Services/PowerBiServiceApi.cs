@@ -38,7 +38,7 @@ public class PowerBiServiceApi
 
     public const string POWERBI_ROOT_URL = "https://api.powerbi.com/";
 
-    public string? InternalPublicationGroupId { get; private set; }
+    public string InternalPublicationGroupId { get; private set; }
 
     public PowerBiServiceApi(ITokenAcquisition tokenAcquisition, ILogger<PowerBiServiceApi> logger, IConfiguration config)
     {
@@ -281,7 +281,7 @@ public class PowerBiServiceApi
         return errorUsers.Where(u => u != null).ToList();
     }
 
-    public async Task<bool> AssignGroupToWorkspace(Guid workspaceId, string? groupId)
+    public async Task<bool> AssignGroupToWorkspace(Guid workspaceId, string groupId)
     {
         if (string.IsNullOrEmpty(groupId))
         {
