@@ -15,7 +15,7 @@ public class MetadataDefinitionsTests
     public void Add_NullField_ShouldThrow()
     {
         FieldDefinitions definitions = new();
-        FieldDefinition field = null;
+        FieldDefinition field = null!;
         Assert.Throws<ArgumentException>(() => definitions.Add(field));
     }
 

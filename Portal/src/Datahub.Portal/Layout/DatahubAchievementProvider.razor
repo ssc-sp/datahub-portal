@@ -36,7 +36,7 @@
         {
             try
             {
-                await _achievementsService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserLogin);
+                await _achievementsService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserLogin);
             
                 await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
                 var userId = await _userInformationService.GetUserIdString();
@@ -44,7 +44,7 @@
                 var numberOfProjects = projectContext.Project_Users
                     .Count(p => p.User_ID == userId);
 
-                await _achievementsService.AddOrSetTelemetryEventKeepMax(DatahubUserTelemetry.TelemetryEvents.UserJoinedProject, numberOfProjects);
+                await _achievementsService.AddOrSetTelemetryEventKeepMax(TelemetryEvents.UserJoinedProject, numberOfProjects);
             }
             catch (AuthenticationException)
             {

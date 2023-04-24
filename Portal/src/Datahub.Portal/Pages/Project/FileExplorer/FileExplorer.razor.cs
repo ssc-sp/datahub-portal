@@ -36,7 +36,7 @@ public partial class FileExplorer
 
         _folders.Add(newFolderPath);
 
-        await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserCreateFolder);
+        await _achievementService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserCreateFolder);
     }
 
     private async Task HandleFileDelete(string fileName)
@@ -51,7 +51,7 @@ public partial class FileExplorer
         _files?.RemoveAll(f => f.name.Equals(fileName, StringComparison.OrdinalIgnoreCase));
 
         _selectedItems = new HashSet<string> {_currentFolder};
-        await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserDeleteFile);
+        await _achievementService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserDeleteFile);
     }
 
     private async Task HandleFileItemDrop(string folder, string fileName)
@@ -162,7 +162,7 @@ public partial class FileExplorer
                 }                    
             }
 
-            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserUploadFile);
+            await _achievementService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserUploadFile);
             StateHasChanged();
         });
 

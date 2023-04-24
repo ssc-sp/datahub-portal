@@ -28,7 +28,7 @@ public partial class Heading
         foreach (var download in downloads)
         {
             await OnFileDownload.InvokeAsync(download);
-            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserDownloadFile);
+            await _achievementService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserDownloadFile);
         }
     }
 
@@ -40,7 +40,7 @@ public partial class Heading
 
     private async Task HandleShare()
     {
-        await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserShareFile);
+        await _achievementService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserShareFile);
 
         var selectedFile = _selectedFiles.FirstOrDefault();
         if (selectedFile is null)
