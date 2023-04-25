@@ -1,7 +1,7 @@
 ﻿using Datahub.Core.Model.Achievements;
+using RulesEngine.Models;
 using System.Collections.Generic;
 using System.Linq;
-using RulesEngine.Models;
 
 namespace Datahub.Core.Services.Achievements;
 
@@ -67,13 +67,13 @@ public class AchievementEngine
 
     static IEnumerable<Workflow> CreateWorkflows(List<AchievementRule> rules)
     {
-        var achievementRules = rules.Where(r => !r.IsMeta).Select(r => r.Rule);
+        var achievementRules = rules.Where(r => !r.IsMeta).Select(r => r.Rule).ToList();
         if (achievementRules.Any())
         {
             yield return new Workflow() { WorkflowName = AchievementWorkflow, Rules = achievementRules };
         }
 
-        var metaAchievementRules = rules.Where(r => r.IsMeta).Select(r => r.Rule);
+        var metaAchievementRules = rules.Where(r => r.IsMeta).Select(r => r.Rule).ToList();
         if (metaAchievementRules.Any())
         {
             yield return new Workflow() { WorkflowName = MetaAchievementWorkflow, Rules = metaAchievementRules };

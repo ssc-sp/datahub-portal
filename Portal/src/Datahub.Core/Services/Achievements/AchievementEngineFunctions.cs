@@ -1,14 +1,16 @@
-﻿namespace Datahub.Core.Services.Achievements;
+﻿using System.Collections.Generic;
+
+namespace Datahub.Core.Services.Achievements;
 
 public static class Utils
 {
-    public static bool MatchMetric(string metricName, EngineFunctionParms state)
+    public static bool MatchMetric(string metricName, string currentMetric)
     {
-        return metricName == state.CurrentMetric;
+        return metricName == currentMetric;
     }
 
-    public static bool OwnsAchievement(string achieventId, EngineFunctionParms state)
+    public static bool OwnsAchievement(string achieventId, HashSet<string> achivements)
     {
-        return state.CurrentAchivements.Contains(achieventId);
+        return achivements.Contains(achieventId);
     }
 }
