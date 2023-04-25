@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Datahub.Core.Model.Achievements.Configuration;
 
-internal class TelemetryEventConfiguration : IEntityTypeConfiguration<TelemetryEvent>
+public class TelemetryEventConfiguration : IEntityTypeConfiguration<TelemetryEvent>
 {
     public void Configure(EntityTypeBuilder<TelemetryEvent> builder)
     {

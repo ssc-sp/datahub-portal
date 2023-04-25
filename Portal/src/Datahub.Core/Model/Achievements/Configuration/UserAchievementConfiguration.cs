@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Datahub.Core.Model.Achievements.Configuration;
 
-internal class UserAchievementConfiguration : IEntityTypeConfiguration<UserAchievement>
+public class UserAchievementConfiguration : IEntityTypeConfiguration<UserAchievement>
 {
     public void Configure(EntityTypeBuilder<UserAchievement> builder)
     {
