@@ -2,14 +2,14 @@
 @using Datahub.Portal.Pages.Profile
 
 <MudStack Row Spacing="0" AlignItems="AlignItems.Center">
-    <UserAvatar PortalUser="@PortalUser" />
+    <UserAvatar PortalUser="@ViewedUser" />
     <MudStack Spacing="0">
-        <MudText Typo="Typo.h6" Class="px-4">@PortalUser.DisplayName</MudText>
-        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">@PortalUser.Email</MudText>
+        <MudText Typo="Typo.h6" Class="px-4">@ViewedUser.DisplayName</MudText>
+        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">@ViewedUser.Email</MudText>
     </MudStack>
 </MudStack>
 
 @code {
     [Parameter]
-    public PortalUser PortalUser { get; set; }
+    public PortalUser ViewedUser { get; set; }
 }

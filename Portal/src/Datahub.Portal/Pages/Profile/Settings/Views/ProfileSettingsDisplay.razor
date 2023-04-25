@@ -3,55 +3,39 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDialogService _dialogService
 
-<MudStack Spacing="8">
+<MudStack Spacing="8" Class="mb-16">
     <MudStack>
         <MudText Typo="Typo.h4">@Localizer["Public Profile"]</MudText>
         <MudDivider/>
     </MudStack>
-    <MudStack>
-        <MudText Typo="Typo.body1">
-            <strong>
-                @Localizer["Profile Picture"]
-            </strong>
-        </MudText>
-        <MudText Typo="Typo.body2">@Localizer["Your profile picture will be displayed beside your name around DataHub. You can change it at any time."]</MudText>
-        <MudElement>
-            <MudLink OnClick="OpenImageDialog">
-                <MudTooltip Placement="Placement.Bottom" Arrow Text="@Localizer["Click to change your profile picture"]">
-                    <MudBadge Overlap Origin="Origin.BottomRight" Icon="@Icons.Material.Filled.Edit">
-                        <UserAvatar PortalUser="@ViewedUser"/>
-                    </MudBadge>
-                </MudTooltip>
-            </MudLink>
-        </MudElement>
-    </MudStack>
-    <MudStack>
-        <MudText Typo="Typo.body1">
-            <strong>
-                @Localizer["Profile Background"]
-            </strong>
-        </MudText>
-        <MudText Typo="Typo.body2">@Localizer["Your profile background will be displayed on your profile page. You can change it at any time."]</MudText>
-        <MudElement>
-            <MudLink OnClick="OpenImageDialog">
-                <MudTooltip Placement="Placement.Bottom" Arrow Text="@Localizer["Click to change your background picture"]">
-                    <MudBadge Overlap Origin="Origin.BottomRight" Icon="@Icons.Material.Filled.Edit">
-                        <MudImage Src="@BackgroundUrl" Alt="@Localizer["Background thumbnail"]" Elevation="25" Class="rounded-lg"/>
-                    </MudBadge>
-                </MudTooltip>
-            </MudLink>
-        </MudElement>
-    </MudStack>
+    <SettingsField Label="@Localizer["Display Name"]" Description="@Localizer["Your display name will be shown around DataHub as your username."]">
+        <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.DisplayName" />
+    </SettingsField>
+    <SettingsField Label="@Localizer["Email Address"]" Description="@Localizer["Your email address will be used to send you notifications."]">
+        <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.Email" />
+    </SettingsField>
+    <SettingsField Label="@Localizer["Profile Picture"]" Description="@Localizer["Your profile picture will be displayed beside your name around DataHub. You can it at any time and unlock more variations from completing achievements."]">
+        <MudLink OnClick="OpenProfilePictureDialog">
+            <MudTooltip Placement="Placement.Bottom" Arrow Text="@Localizer["Click to change your profile picture"]">
+                <MudBadge Overlap Origin="Origin.BottomRight" Icon="@Icons.Material.Filled.Edit">
+                    <UserAvatar PortalUser="@ViewedUser"/>
+                </MudBadge>
+            </MudTooltip>
+        </MudLink>
+    </SettingsField>
+    <SettingsField Label="@Localizer["Profile Background"]" Description="@Localizer["Your profile background will be displayed on your profile page. You can unlock more variations from completing achievements and change it at any time."]">
+        <MudLink OnClick="OpenProfileBackgroundDialog">
+            <MudTooltip Placement="Placement.Bottom" Arrow Text="@Localizer["Click to change your background picture"]">
+                <MudBadge Overlap Origin="Origin.BottomRight" Icon="@Icons.Material.Filled.Edit">
+                    <MudImage Src="@BackgroundUrl" Alt="@Localizer["Background thumbnail"]" Elevation="25" Class="rounded-lg"/>
+                </MudBadge>
+            </MudTooltip>
+        </MudLink>
+    </SettingsField>
     <MudDivider/>
-    <MudStack>
-        <MudText Typo="Typo.body1">
-            <strong>
-                @Localizer["Display Achievements"]
-            </strong>
-        </MudText>
-        <MudText Typo="Typo.body2">@Localizer["You can choose whether to hide or display your achievements in the DataHub. You can change it at any time."]</MudText>
+    <SettingsField Label="@Localizer["Display Achievements"]" Description="@Localizer["You can choose whether to hide or display your achievements in the DataHub. This will also prevent the achievement notifications from displaying on your screen. You can change it at any time."]">
         <MudSwitch T="bool" Label="@Localizer["Show Achievements"]" Checked="@(!ViewedUser.HideAchievements)" Color="Color.Primary" UnCheckedColor="Color.Dark"/>
-    </MudStack>
+    </SettingsField>
 </MudStack>
 
 @code {
@@ -60,31 +44,43 @@
     public PortalUser ViewedUser { get; set; }
 
     [Parameter]
-    public EventCallback<PortalUser> ViewedUserChanged { get; set; }
+    public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
 
 
-    private string BackgroundUrl => $"{_datahubPortalConfiguration?.Achievements.StaticAssetsUrl}/achievements/thumbnails/{ViewedUser?.BackgroundImageUrl}.jpg";
+    private string BackgroundUrl => _datahubPortalConfiguration?.Achievements.GetAchievementThumbnailUrl(ViewedUser?.BannerPictureUrl);
 
-    // display name
-    // bio
-    // pronouns
-    // department
-
-    // profile picture
-    // profile background
-    // hide achievements
-
-    // location
-    // timezone
-
-    private async Task OpenImageDialog()
+    private async Task OpenProfilePictureDialog()
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await _dialogService.ShowAsync<ChangePictureDialog>(Localizer["Change Picture"], options);
+        await OpenImageDialog(true);
+    }
+
+    private async Task OpenProfileBackgroundDialog()
+    {
+        await OpenImageDialog();
+    }
+
+    private async Task OpenImageDialog(bool isProfilePicture = false)
+    {
+        var parameters = new DialogParameters { ["ViewedUser"] = ViewedUser, ["IsProfilePictureDialog"] = isProfilePicture };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var title = isProfilePicture ? Localizer["Change Profile Picture"] : Localizer["Change Profile Background"];
+        var dialog = await _dialogService.ShowAsync<ChangePictureDialog>(title, parameters, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
+            var newCode = result.Data.ToString();
+            // TODO: Save to Database
+            if (isProfilePicture)
+            {
+                ViewedUser.ProfilePictureUrl = newCode;
+            }
+            else
+            {
+                ViewedUser.BannerPictureUrl = newCode;
+            }
+            await OnViewedUserChanged.InvokeAsync(ViewedUser);
         }
     }
 
