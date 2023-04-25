@@ -9,28 +9,22 @@
         <MudDivider/>
     </MudStack>
     <SettingsField Label="@Localizer["Display Name"]" Description="@Localizer["Your display name will be shown around DataHub as your username."]">
-        <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.DisplayName" />
+        <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.DisplayName"/>
     </SettingsField>
     <SettingsField Label="@Localizer["Email Address"]" Description="@Localizer["Your email address will be used to send you notifications."]">
-        <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.Email" />
+        <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.Email"/>
     </SettingsField>
     <SettingsField Label="@Localizer["Profile Picture"]" Description="@Localizer["Your profile picture will be displayed beside your name around DataHub. You can it at any time and unlock more variations from completing achievements."]">
-        <MudLink OnClick="OpenProfilePictureDialog">
-            <MudTooltip Placement="Placement.Bottom" Arrow Text="@Localizer["Click to change your profile picture"]">
-                <MudBadge Overlap Origin="Origin.BottomRight" Icon="@Icons.Material.Filled.Edit">
-                    <UserAvatar PortalUser="@ViewedUser"/>
-                </MudBadge>
-            </MudTooltip>
-        </MudLink>
+        <ImageSelectionView 
+            ViewedUser="@ViewedUser"
+            IsProfilePictureDialog="@true" 
+            OnImageSelected="@(code => HandleImageSelected(code, true))"/>
     </SettingsField>
     <SettingsField Label="@Localizer["Profile Background"]" Description="@Localizer["Your profile background will be displayed on your profile page. You can unlock more variations from completing achievements and change it at any time."]">
-        <MudLink OnClick="OpenProfileBackgroundDialog">
-            <MudTooltip Placement="Placement.Bottom" Arrow Text="@Localizer["Click to change your background picture"]">
-                <MudBadge Overlap Origin="Origin.BottomRight" Icon="@Icons.Material.Filled.Edit">
-                    <MudImage Src="@BackgroundUrl" Alt="@Localizer["Background thumbnail"]" Elevation="25" Class="rounded-lg"/>
-                </MudBadge>
-            </MudTooltip>
-        </MudLink>
+        <ImageSelectionView 
+            ViewedUser="@ViewedUser" 
+            IsProfilePictureDialog="@false" 
+            OnImageSelected="@(code => HandleImageSelected(code, false))"/>
     </SettingsField>
     <MudDivider/>
     <SettingsField Label="@Localizer["Display Achievements"]" Description="@Localizer["You can choose whether to hide or display your achievements in the DataHub. This will also prevent the achievement notifications from displaying on your screen. You can change it at any time."]">
@@ -49,39 +43,14 @@
 
     private string BackgroundUrl => _datahubPortalConfiguration?.Achievements.GetAchievementThumbnailUrl(ViewedUser?.BannerPictureUrl);
 
-    private async Task OpenProfilePictureDialog()
+    private async Task HandleImageSelected(string code, bool isProfilePicture)
     {
-        await OpenImageDialog(true);
-    }
+        await Task.Delay(1);
 
-    private async Task OpenProfileBackgroundDialog()
-    {
-        await OpenImageDialog();
-    }
+        ViewedUser.ProfilePictureUrl = isProfilePicture ? code : ViewedUser.ProfilePictureUrl;
+        ViewedUser.BannerPictureUrl = isProfilePicture ? ViewedUser.BannerPictureUrl : code;
 
-    private async Task OpenImageDialog(bool isProfilePicture = false)
-    {
-        var parameters = new DialogParameters { ["ViewedUser"] = ViewedUser, ["IsProfilePictureDialog"] = isProfilePicture };
-
-        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
-        var title = isProfilePicture ? Localizer["Change Profile Picture"] : Localizer["Change Profile Background"];
-        var dialog = await _dialogService.ShowAsync<ChangePictureDialog>(title, parameters, options);
-        var result = await dialog.Result;
-
-        if (!result.Canceled)
-        {
-            var newCode = result.Data.ToString();
-            // TODO: Save to Database
-            if (isProfilePicture)
-            {
-                ViewedUser.ProfilePictureUrl = newCode;
-            }
-            else
-            {
-                ViewedUser.BannerPictureUrl = newCode;
-            }
-            await OnViewedUserChanged.InvokeAsync(ViewedUser);
-        }
+        await OnViewedUserChanged.InvokeAsync(ViewedUser);
     }
 
 }

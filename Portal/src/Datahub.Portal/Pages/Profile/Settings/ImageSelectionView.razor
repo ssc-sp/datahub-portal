@@ -4,6 +4,7 @@
         <MudItem>
             <MudLink OnClick="@(() => SelectImage(achievement))">
                 <DialogImageItem
+                    Large="@(!IsProfilePictureDialog)"
                     Code="@(achievement.Code)"
                     Selected="@(achievement.Code == _selectedCode)"
                     Hidden="@(!achievement.Earned)"/>
@@ -21,7 +22,7 @@
     public bool IsProfilePictureDialog { get; set; }
     
     [Parameter]
-    public EventCallback<PortalUser> OnImageSelected { get; set; }
+    public EventCallback<string> OnImageSelected { get; set; }
 
     private string _selectedCode = "";
 
@@ -37,16 +38,10 @@
         {
             return;
         }
-        
         _selectedCode = userAchievement.Code;
-        ViewedUser.ProfilePictureUrl = IsProfilePictureDialog ? _selectedCode : ViewedUser.ProfilePictureUrl;
-        ViewedUser.BannerPictureUrl = IsProfilePictureDialog ? ViewedUser.BannerPictureUrl : _selectedCode;
-        
-        OnImageSelected.InvokeAsync(ViewedUser);
+        OnImageSelected.InvokeAsync(_selectedCode);
         StateHasChanged();
     }
-
-    
     
     private List<(string Code, bool Earned)> GetUsersAchievements()
     {
