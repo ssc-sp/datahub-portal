@@ -6,9 +6,7 @@
             <MudText Typo="Typo.body2">
                 @Localizer["Select a new picture to be displayed for your profile"]
             </MudText>
-
             <ImageSelectionView ViewedUser="@ViewedUser" IsProfilePictureDialog="@IsProfilePictureDialog" OnImageSelected="@HandleImageSelected" />
-
         </MudStack>
     </DialogContent>
     <DialogActions>
@@ -39,10 +37,9 @@
         _selectedCode = IsProfilePictureDialog ? ViewedUser.ProfilePictureUrl : ViewedUser.BannerPictureUrl;
     }
 
-    private void HandleImageSelected(string imageCode)
+    private void HandleImageSelected(PortalUser updatedUser)
     {
-        _selectedCode = imageCode;
-        ViewedUser.ProfilePictureUrl = IsProfilePictureDialog ? imageCode : ViewedUser.ProfilePictureUrl;
-        ViewedUser.BannerPictureUrl = IsProfilePictureDialog ? ViewedUser.BannerPictureUrl : imageCode;
+        ViewedUser = updatedUser;
+        _selectedCode = IsProfilePictureDialog ? ViewedUser.ProfilePictureUrl : ViewedUser.BannerPictureUrl;
     }
 }
