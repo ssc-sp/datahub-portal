@@ -1,0 +1,15 @@
+@using Microsoft.Graph
+@using Datahub.Portal.Pages.Profile
+
+<MudStack Row Spacing="0" AlignItems="AlignItems.Center">
+    <UserAvatar PortalUser="@PortalUser" />
+    <MudStack Spacing="0">
+        <MudText Typo="Typo.h6" Class="px-4">@PortalUser.DisplayName</MudText>
+        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">@PortalUser.Email</MudText>
+    </MudStack>
+</MudStack>
+
+@code {
+    [Parameter]
+    public PortalUser PortalUser { get; set; }
+}

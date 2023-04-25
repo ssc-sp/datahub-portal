@@ -45,6 +45,7 @@ public class Achievements
 {
     public bool Enabled { get; set; } = false;
     public bool LocalAchievementsOnly { get; set; } = false;
+    public string StaticAssetsUrl { get; set; } = "https://fsdhstaticassetstorage.blob.core.windows.net";
 }
 
 public class TermsAndConditionsUrl

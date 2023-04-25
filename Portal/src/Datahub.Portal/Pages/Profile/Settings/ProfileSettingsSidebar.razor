@@ -1,0 +1,22 @@
+@using Microsoft.Graph
+
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject NavigationManager _navigationManager
+
+<MudNavMenu Color="Color.Info" Bordered Dense>
+    <MudNavLink Icon="@Icons.Material.Filled.Person" Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.ProfileDisplay}")">
+        @Localizer["Public Profile"]
+    </MudNavLink>
+    <MudNavLink Icon="@Icons.Material.Filled.Brush" Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.Appearance}")">
+        @Localizer["Appearance"]
+    </MudNavLink>
+    <MudNavLink Icon="@Icons.Material.Filled.Mail" Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.EmailPreferences}")">
+        @Localizer["Email Preferences"]
+    </MudNavLink>
+</MudNavMenu>
+
+@code {
+    
+    [Parameter]
+    public PortalUser ViewedUser { get; set; }
+}

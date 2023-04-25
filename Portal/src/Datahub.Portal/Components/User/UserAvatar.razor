@@ -1,0 +1,14 @@
+@using Datahub.Portal.Pages.Profile
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+
+<MudAvatar Size="Size.Large">
+    <MudImage Src="@AvatarUrl"></MudImage>
+</MudAvatar>
+
+@code {
+    
+    [Parameter]
+    public PortalUser PortalUser { get; set; }
+    
+    private string AvatarUrl => $"{_datahubPortalConfiguration.Achievements.StaticAssetsUrl}/achievements/thumbnails/{PortalUser.ProfilePictureUrl}.jpg";
+}
