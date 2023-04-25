@@ -25,8 +25,8 @@
                     case SectionViews.Appearance:
                         <ProfileSettingsAppearance ViewedUser="@_portalUser" OnViewedUserChanged="HandleViewedUserChanged"/>
                         break;
-                    case SectionViews.EmailPreferences:
-                        <ProfileSettingsEmailPreferences/>
+                    case SectionViews.Notifications:
+                        <ProfileSettingsNotificationsPreferences ViewedUser="@_portalUser"/>
                         break;
                     case SectionViews.ProfileDisplay:
                         <ProfileSettingsDisplay ViewedUser="@_portalUser" OnViewedUserChanged="HandleViewedUserChanged"/>
@@ -51,7 +51,7 @@
     {
         public const string ProfileDisplay = "display";
         public const string Appearance = "appearance";
-        public const string EmailPreferences = "email";
+        public const string Notifications = "notifications";
     }
 
     protected override async Task OnInitializedAsync()

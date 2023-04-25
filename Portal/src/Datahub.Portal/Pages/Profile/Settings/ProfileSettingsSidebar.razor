@@ -3,15 +3,15 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject NavigationManager _navigationManager
 
-<MudNavMenu Color="Color.Info" Bordered Dense>
+<MudNavMenu Bordered Dense>
     <MudNavLink Icon="@Icons.Material.Filled.Person" Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.ProfileDisplay}")">
-        @Localizer["Public Profile"]
+        @Localizer["Profile"]
     </MudNavLink>
     <MudNavLink Icon="@Icons.Material.Filled.Brush" Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.Appearance}")">
         @Localizer["Appearance"]
     </MudNavLink>
-    <MudNavLink Icon="@Icons.Material.Filled.Mail" Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.EmailPreferences}")">
-        @Localizer["Email Preferences"]
+    <MudNavLink Icon="@Icons.Material.Filled.Mail" Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.Notifications}")">
+        @Localizer["Notifications"]
     </MudNavLink>
 </MudNavMenu>
 
