@@ -21,7 +21,7 @@
     public bool IsProfilePictureDialog { get; set; }
     
     [Parameter]
-    public EventCallback<string> OnImageSelected { get; set; }
+    public EventCallback<PortalUser> OnImageSelected { get; set; }
 
     private string _selectedCode = "";
 
@@ -39,7 +39,10 @@
         }
         
         _selectedCode = userAchievement.Code;
-        OnImageSelected.InvokeAsync(_selectedCode);
+        ViewedUser.ProfilePictureUrl = IsProfilePictureDialog ? _selectedCode : ViewedUser.ProfilePictureUrl;
+        ViewedUser.BannerPictureUrl = IsProfilePictureDialog ? ViewedUser.BannerPictureUrl : _selectedCode;
+        
+        OnImageSelected.InvokeAsync(ViewedUser);
         StateHasChanged();
     }
 
