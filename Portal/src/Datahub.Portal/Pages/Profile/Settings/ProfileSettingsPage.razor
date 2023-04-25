@@ -23,7 +23,7 @@
                 @switch (Section)
                 {
                     case SectionViews.Appearance:
-                        <ProfileSettingsAppearance/>
+                        <ProfileSettingsAppearance ViewedUser="@_portalUser" OnViewedUserChanged="HandleViewedUserChanged"/>
                         break;
                     case SectionViews.EmailPreferences:
                         <ProfileSettingsEmailPreferences/>
@@ -59,12 +59,14 @@
         await base.OnInitializedAsync();
 
         var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
+        var language = await _userInformationService.GetUserLanguage();
 
         _portalUser = new PortalUser
         {
             GraphGuid = graphUser.Id,
             DisplayName = graphUser.DisplayName,
             Email = graphUser.Mail,
+            Language = language
         };
     }
 

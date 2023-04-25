@@ -11,7 +11,7 @@ public class PortalUser
     public string BannerPictureUrl { get; set; } = "EXP-000";
     public string ProfilePictureUrl { get; set; } = "STR-004";
     public bool HideAchievements { get; set; }
-    public string Language { get; set; }
+    public string Language { get; set; } = "en-CA";
     public string DisplayName { get; set; }
     public string Email { get; set; }
 }
