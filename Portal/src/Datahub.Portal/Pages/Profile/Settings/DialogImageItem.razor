@@ -1,0 +1,34 @@
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+
+<MudBadge Color="@_color" Overlap="@_showingBadge" Icon="@_icon" Style="@_hiddenStyle">
+    <MudAvatar Size="Size.Large" Rounded>
+        <MudImage Src="@_imageSource" Alt="@(Localizer["The picture for achievement {0}", Code])"/>
+    </MudAvatar>
+</MudBadge>
+
+
+@code {
+
+    [Parameter]
+    public string Code { get; set; }
+
+    [Parameter]
+    public bool Selected { get; set; }
+
+    [Parameter]
+    public bool Hidden { get; set; }
+
+    private Color _color => Selected ? Color.Success : Color.Transparent;
+    private bool _showingBadge => Selected && !Hidden;
+    private string _icon => _showingBadge ? Icons.Material.Filled.Check : null;
+    private string _hiddenStyle => Hidden ? "opacity: 0.5;" : null;
+
+    private string _imageSource;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _imageSource = _datahubPortalConfiguration?.Achievements.GetAchievementThumbnailUrl(Code);
+    }
+
+}

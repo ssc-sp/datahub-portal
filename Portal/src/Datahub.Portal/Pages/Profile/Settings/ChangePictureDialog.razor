@@ -1,15 +1,99 @@
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+
 <MudDialog>
     <DialogContent>
-        Dialog Content
+        <MudStack Spacing="6" Class="pa-4">
+            <MudText Typo="Typo.body2">
+                @Localizer["Select a new picture to be displayed for your profile"]
+            </MudText>
+
+            <MudGrid Justify="Justify.Center">
+                @foreach (var achievement in GetUsersAchievements())
+                {
+                    <MudItem>
+                        <MudLink OnClick="@(() => SelectImage(achievement))">
+                            <DialogImageItem 
+                                Code="@(achievement.Code)" 
+                                Selected="@(achievement.Code == _selectedCode)" 
+                                Hidden="@(!achievement.Earned)" 
+                            />
+                        </MudLink>
+                    </MudItem>
+                }
+            </MudGrid>
+
+        </MudStack>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
         <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
     </DialogActions>
 </MudDialog>
-@code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
 
-    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public PortalUser ViewedUser { get; set; }
+    
+    [Parameter]
+    public bool IsProfilePictureDialog  { get; set; }
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(_selectedCode));
     void Cancel() => MudDialog.Cancel();
+
+    private string _selectedCode = "";
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _selectedCode = IsProfilePictureDialog ? ViewedUser.ProfilePictureUrl : ViewedUser.BannerPictureUrl;
+    }
+
+    private List<(string Code, bool Earned)> GetUsersAchievements()
+    {
+        return _achievementStub
+            .OrderBy(a => !a.Earned)
+            .ThenBy(a => a.Code)
+            .ToList();
+    }
+
+    private List<(string Code, bool Earned)> _achievementStub = new()
+    {
+        ("DHA-001", true),
+        ("DHA-002", true),
+        ("DHA-003", true),
+        ("DHA-004", true),
+        ("DHA-005", true),
+        ("EXP-000", false),
+        ("EXP-001", true),
+        ("EXP-002", true),
+        ("EXP-003", false),
+        ("EXP-004", true),
+        ("EXP-005", true),
+        ("EXP-006", false),
+        ("EXP-007", true),
+        ("EXP-008", true),
+        ("EXP-009", true),
+        ("STR-000", false),
+        ("STR-001", true),
+        ("STR-002", false),
+        ("STR-003", false),
+        ("STR-004", true),
+        ("STR-005", false),
+        ("STR-006", true),
+    };
+
+    private void SelectImage((string Code, bool Earned) userAchievement)
+    {
+        if(!userAchievement.Earned)
+        {
+            return;
+        }
+        
+        _selectedCode = userAchievement.Code;
+        StateHasChanged();
+    }
 }

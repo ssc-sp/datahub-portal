@@ -7,15 +7,13 @@
 
 <MudContainer MaxWidth="MaxWidth.Large">
     <MudGrid>
-        <MudItem xs="12">
-                <MudStack Row>
-                    <UserCard PortalUser="@_portalUser" />
-                </MudStack>
-        </MudItem>
         <MudItem xs="3">
-            <ProfileSettingsSidebar ViewedUser="@_portalUser"/>
+            <MudStack Spacing="6" Style="position: sticky; top: calc(var(--mud-appbar-height) + 8px);">
+                <UserCard ViewedUser="@_portalUser"/>
+                <ProfileSettingsSidebar ViewedUser="@_portalUser"/>
+            </MudStack>
         </MudItem>
-        <MudItem xs="9">
+        <MudItem xs="9" md="6">
             @if (_portalUser is null)
             {
                 <DHLoadingInitializer Message="@Localizer["Loading Settings"]"/>
@@ -31,10 +29,10 @@
                         <ProfileSettingsEmailPreferences/>
                         break;
                     case SectionViews.ProfileDisplay:
-                        <ProfileSettingsDisplay ViewedUser="@_portalUser"/>
+                        <ProfileSettingsDisplay ViewedUser="@_portalUser" OnViewedUserChanged="HandleViewedUserChanged"/>
                         break;
                     default:
-                        <ProfileSettingsDisplay ViewedUser="@_portalUser"/> // redundant, but just in case
+                        <ProfileSettingsDisplay ViewedUser="@_portalUser" OnViewedUserChanged="HandleViewedUserChanged"/> // redundant, but just in case
                         break;
                 }
             }
@@ -48,7 +46,7 @@
     public string Section { get; set; }
 
     private PortalUser _portalUser;
-    
+
     public struct SectionViews
     {
         public const string ProfileDisplay = "display";
@@ -59,7 +57,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        
+
         var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
 
         _portalUser = new PortalUser
@@ -68,6 +66,12 @@
             DisplayName = graphUser.DisplayName,
             Email = graphUser.Mail,
         };
+    }
+
+    private async Task HandleViewedUserChanged(PortalUser updatedUser)
+    {
+        _portalUser = updatedUser;
+        await InvokeAsync(StateHasChanged);
     }
 
 }

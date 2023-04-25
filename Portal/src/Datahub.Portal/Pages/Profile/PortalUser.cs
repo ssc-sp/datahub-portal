@@ -8,7 +8,7 @@ public class PortalUser
     public required string GraphGuid { get; set; }
     public DateTime? FirstLoginDateTime { get; set; }
     public DateTime? LastLoginDateTime { get; set; }
-    public string BackgroundImageUrl { get; set; } = "EXP-000";
+    public string BannerPictureUrl { get; set; } = "EXP-000";
     public string ProfilePictureUrl { get; set; } = "STR-004";
     public bool HideAchievements { get; set; }
     public string Language { get; set; }
