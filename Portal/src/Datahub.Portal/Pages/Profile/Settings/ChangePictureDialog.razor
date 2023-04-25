@@ -37,9 +37,8 @@
         _selectedCode = IsProfilePictureDialog ? ViewedUser.ProfilePictureUrl : ViewedUser.BannerPictureUrl;
     }
 
-    private void HandleImageSelected(PortalUser updatedUser)
+    private void HandleImageSelected(string updatedCode)
     {
-        ViewedUser = updatedUser;
-        _selectedCode = IsProfilePictureDialog ? ViewedUser.ProfilePictureUrl : ViewedUser.BannerPictureUrl;
+        _selectedCode = updatedCode;
     }
 }

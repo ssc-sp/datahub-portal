@@ -1,9 +1,17 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 
+
 <MudBadge Color="@_color" Overlap="@_showingBadge" Icon="@_icon" Style="@_hiddenStyle">
-    <MudAvatar Size="Size.Large" Rounded>
-        <MudImage Src="@_imageSource" Alt="@(Localizer["The picture for achievement {0}", Code])"/>
-    </MudAvatar>
+    @if (Large)
+    {
+        <MudImage Width="104" Height="60" Src="@_imageSource" Alt="@(Localizer["The picture for achievement {0}", Code])" Elevation="25" Class="rounded-lg"/>
+    }
+    else
+    {
+        <MudAvatar Size="Size.Large" Rounded Elevation="25">
+            <MudImage Src="@_imageSource" Alt="@(Localizer["The picture for achievement {0}", Code])"/>
+        </MudAvatar>
+    }
 </MudBadge>
 
 
@@ -11,12 +19,12 @@
 
     [Parameter]
     public string Code { get; set; }
-
     [Parameter]
     public bool Selected { get; set; }
-
     [Parameter]
     public bool Hidden { get; set; }
+    [Parameter]
+    public bool Large { get; set; }
 
     private Color _color => Selected ? Color.Success : Color.Transparent;
     private bool _showingBadge => Selected && !Hidden;
@@ -28,7 +36,9 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        _imageSource = _datahubPortalConfiguration?.Achievements.GetAchievementThumbnailUrl(Code);
+        _imageSource = Large ?
+            _datahubPortalConfiguration?.Achievements.GetAchievementImageUrl(Code) :
+            _datahubPortalConfiguration?.Achievements.GetAchievementThumbnailUrl(Code);
     }
 
 }
