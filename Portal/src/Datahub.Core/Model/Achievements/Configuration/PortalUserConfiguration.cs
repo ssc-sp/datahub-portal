@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Datahub.Core.Model.Achievements.Configuration;
 
-internal class PortalUserConfiguration : IEntityTypeConfiguration<PortalUser>
+public class PortalUserConfiguration : IEntityTypeConfiguration<PortalUser>
 {
     public void Configure(EntityTypeBuilder<PortalUser> builder)
     {
@@ -20,6 +20,9 @@ internal class PortalUserConfiguration : IEntityTypeConfiguration<PortalUser>
 
         builder.HasIndex(e => e.GraphGuid)
                .IsUnique();
+
+        builder.Property(e => e.Email)
+               .HasMaxLength(64);
 
         builder.Property(e => e.Language)
                .HasMaxLength(5);

@@ -72,6 +72,18 @@ public class UserInformationService : IUserInformationService
         return GetOid();
     }
 
+    public async Task<string> GetUserEmail()
+    {
+        await CheckUser();
+        return CurrentUser.Mail;
+    }
+
+    public async Task<string> GetDisplayName()
+    {
+        await CheckUser();
+        return CurrentUser.DisplayName;
+    }
+
     public async Task<string> GetUserEmailDomain()
     {
         await CheckUser();

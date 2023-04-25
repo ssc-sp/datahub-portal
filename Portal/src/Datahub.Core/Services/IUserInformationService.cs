@@ -15,7 +15,9 @@ public interface IUserInformationService
     Task<bool> RegisterUserTAC();
     Task<bool> RegisterUserLanguage(string language);
     Task<string> GetUserLanguage();
-    Task<bool> IsFrench();        
+    Task<bool> IsFrench();
+    Task<string> GetDisplayName();
+    Task<string> GetUserEmail();
     Task<string> GetUserEmailDomain();
     Task<string> GetUserEmailPrefix();
     bool SetLanguage(string language);

@@ -36,6 +36,16 @@ public class OfflineUserInformationService : IUserInformationService
         });
     }
 
+    public Task<string> GetDisplayName()
+    {
+        return Task.FromResult("Me");
+    }
+
+    public Task<string> GetUserEmail()
+    {
+        return Task.FromResult("me@me.com");
+    }
+
     public Task<string> GetUserEmailDomain()
     {
         return Task.FromResult("me@me.com");
