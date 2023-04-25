@@ -10,7 +10,7 @@
     </MudAvatarGroup>
     @if (!IsTrophyType)
     {
-        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="ViewAllAchievements" Style="@_buttonStyle">
+        <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/profile/achievements" Style="@_buttonStyle">
             @Localizer["View All Achievements"]
         </MudButton>
     }
@@ -41,12 +41,6 @@
             .AddStyle("float", "right")
             .Build();
     }
-
-    private void ViewAllAchievements()
-    {
-        //TODO: go to achievements page
-    }
-
 }
 
 

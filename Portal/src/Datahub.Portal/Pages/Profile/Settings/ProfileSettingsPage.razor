@@ -8,13 +8,14 @@
 <MudContainer MaxWidth="MaxWidth.Large">
     <MudGrid>
         <MudItem xs="3">
-            <MudStack Spacing="6" Style="position: sticky; top: calc(var(--mud-appbar-height) + 8px);">
-                <UserCard ViewedUser="@_portalUser"/>
-                <ProfileSettingsSidebar ViewedUser="@_portalUser"/>
+                <!--suppress CssUnresolvedCustomProperty -->
+                <MudStack Spacing="6" Style="position: sticky; top: calc(var(--mud-appbar-height) + 8px);">
+                <UserCard ViewedUser="@_viewedPortalUser"/>
+                <ProfileSettingsSidebar ViewedUser="@_viewedPortalUser"/>
             </MudStack>
         </MudItem>
         <MudItem xs="9" md="6">
-            @if (_portalUser is null)
+            @if (_viewedPortalUser is null)
             {
                 <DHLoadingInitializer Message="@Localizer["Loading Settings"]"/>
             }
@@ -23,16 +24,16 @@
                 @switch (Section)
                 {
                     case SectionViews.Appearance:
-                        <ProfileSettingsAppearance ViewedUser="@_portalUser" OnViewedUserChanged="HandleViewedUserChanged"/>
+                        <SettingsAppearanceView ViewedUser="@_viewedPortalUser" OnViewedUserChanged="HandleViewedUserChanged"/>
                         break;
                     case SectionViews.Notifications:
-                        <ProfileSettingsNotificationsPreferences ViewedUser="@_portalUser"/>
+                        <SettingsNotificationsView ViewedUser="@_viewedPortalUser"/>
                         break;
                     case SectionViews.ProfileDisplay:
-                        <ProfileSettingsDisplay ViewedUser="@_portalUser" OnViewedUserChanged="HandleViewedUserChanged"/>
+                        <SettingsPublicProfileView ViewedUser="@_viewedPortalUser" OnViewedUserChanged="HandleViewedUserChanged"/>
                         break;
                     default:
-                        <ProfileSettingsDisplay ViewedUser="@_portalUser" OnViewedUserChanged="HandleViewedUserChanged"/> // redundant, but just in case
+                        <SettingsPublicProfileView ViewedUser="@_viewedPortalUser" OnViewedUserChanged="HandleViewedUserChanged"/> // redundant, but just in case
                         break;
                 }
             }
@@ -45,7 +46,7 @@
     [Parameter]
     public string Section { get; set; }
 
-    private PortalUser _portalUser;
+    private PortalUser _viewedPortalUser;
 
     public struct SectionViews
     {
@@ -61,7 +62,7 @@
         var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
         var language = await _userInformationService.GetUserLanguage();
 
-        _portalUser = new PortalUser
+        _viewedPortalUser = new PortalUser
         {
             GraphGuid = graphUser.Id,
             DisplayName = graphUser.DisplayName,
@@ -72,7 +73,7 @@
 
     private async Task HandleViewedUserChanged(PortalUser updatedUser)
     {
-        _portalUser = updatedUser;
+        _viewedPortalUser = updatedUser;
         await InvokeAsync(StateHasChanged);
     }
 
