@@ -1,4 +1,3 @@
-
 @page "/profile"
 
 @inject IUserInformationService _userInformationService
@@ -11,6 +10,7 @@
 @using Datahub.Portal.Pages.Profile.ProfileSections
 @using Datahub.Achievements.Models
 @using Datahub.Core.Extensions
+@using Datahub.Portal.Pages.Profile.Settings
 
 @if (_user is null)
 {
@@ -27,43 +27,45 @@
     return;
 }
 
-<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Large">
-    <MudGrid Justify="Justify.Center">
-        <MudItem xs="12" Style="@_imageStyle">
-            @if (_isCurrentUser)
-            {
-                <MudTooltip Placement="Placement.Bottom" Arrow Text="@Localizer["Change your background picture"]" RootStyle="@_imageStyle">
-                    <MudLink OnClick="OpenBackgroundImageDialog" Style="@_imageStyle">
-                        <MudBadge Overlap Origin="Origin.BottomRight" Icon="@Icons.Material.Filled.Edit" Style="@_imageStyle">
-                            <MudImage  Src="@_backgroundImage" Alt="@Localizer["User's background image"]" Style="@_imageStyle"
-                                       Class="rounded-lg mud-elevation-4" ObjectFit="ObjectFit.Cover" Height="250" ObjectPosition="ObjectPosition.Center"/>
-                        </MudBadge>
-                    </MudLink>
-                </MudTooltip>
-            }
-            else
-            {
-                <MudImage Src="@_backgroundImage" Alt="@Localizer["User's background image"]" Style="@_imageStyle"
-                        Class="rounded-lg mud-elevation-4" ObjectFit="ObjectFit.Cover" Height="250" ObjectPosition="ObjectPosition.Center"/>
-                
-            }
-        </MudItem>
-        <MudItem xs="12" md="8" Class="">
-            <MudStack>
-                <ProfileTitle User="@_user" IsCurrentUser="_isCurrentUser"/>
-                <UserProjects UserId="@_user.Id"/>
-            </MudStack>
-        </MudItem>
-        <MudItem xs="12" md="4">
-            <MudStack Spacing="6">
-                <ProfileAchievements Achievements="@_userTrophies" IsTrophyType="@true"/>
-                <ProfileAchievements Achievements="@_userAchievements" IsTrophyType="@false"/>
-            </MudStack>
-        </MudItem>
-    </MudGrid>
-</MudContainer>
+
+<MudStack Row Justify="Justify.FlexEnd" Class="mt-n4 mb-8">
+    <MudButton Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.ProfileDisplay}")" Variant="Variant.Text" Color="Color.Primary">@Localizer["Manage Settings"]</MudButton>
+</MudStack>
+<MudGrid Justify="Justify.Center">
+    <MudItem xs="12" Style="@_imageStyle">
+        @if (_isCurrentUser)
+        {
+            <MudTooltip Placement="Placement.Bottom" Arrow Text="@Localizer["Change your background picture"]" RootStyle="@_imageStyle">
+                <MudLink OnClick="OpenBackgroundImageDialog" Style="@_imageStyle">
+                    <MudBadge Overlap Origin="Origin.BottomRight" Icon="@Icons.Material.Filled.Edit" Style="@_imageStyle">
+                        <MudImage Src="@_backgroundImage" Alt="@Localizer["User's background image"]" Style="@_imageStyle"
+                                  Class="rounded-lg mud-elevation-4" ObjectFit="ObjectFit.Cover" Height="250" ObjectPosition="ObjectPosition.Center"/>
+                    </MudBadge>
+                </MudLink>
+            </MudTooltip>
+        }
+        else
+        {
+            <MudImage Src="@_backgroundImage" Alt="@Localizer["User's background image"]" Style="@_imageStyle"
+                      Class="rounded-lg mud-elevation-4" ObjectFit="ObjectFit.Cover" Height="250" ObjectPosition="ObjectPosition.Center"/>
+        }
+    </MudItem>
+    <MudItem xs="12" md="8" Class="">
+        <MudStack>
+            <ProfileTitle User="@_user" IsCurrentUser="_isCurrentUser"/>
+            <UserProjects UserId="@_user.Id"/>
+        </MudStack>
+    </MudItem>
+    <MudItem xs="12" md="4">
+        <MudStack Spacing="6">
+            <ProfileAchievements Achievements="@_userTrophies" IsTrophyType="@true"/>
+            <ProfileAchievements Achievements="@_userAchievements" IsTrophyType="@false"/>
+        </MudStack>
+    </MudItem>
+</MudGrid>
 
 @code {
+
     [SupplyParameterFromQuery(Name = "u")]
     public string UserIdBase64 { get; set; }
 
@@ -75,10 +77,10 @@
     private string _imageStyle;
     private string _backgroundImage;
     private bool _isCurrentUser;
-    
+
     //TODO: remove this when new model is ready
-    private const string TempTrophyImage = "https://static1.pocketlintimages.com/wordpress/wp-content/uploads/161649-apps-news-feature-all-these-incredible-images-were-made-by-artificial-intelligence-image2-nry8isc9do.jpg?q=50&fit=crop&w=750&dpr=1.5";
-    private const string TempAchievementImage = "https://imageio.forbes.com/specials-images/imageserve/64213c10fc7ed6f0a3eb47ae/The-Intersection-Of-AI-And-Human-Creativity--Can-Machines-Really-Be-Creative-/960x0.jpg?format=jpg&width=960";
+        private const string TempTrophyImage = "https://static1.pocketlintimages.com/wordpress/wp-content/uploads/161649-apps-news-feature-all-these-incredible-images-were-made-by-artificial-intelligence-image2-nry8isc9do.jpg?q=50&fit=crop&w=750&dpr=1.5";
+        private const string TempAchievementImage = "https://imageio.forbes.com/specials-images/imageserve/64213c10fc7ed6f0a3eb47ae/The-Intersection-Of-AI-And-Human-Creativity--Can-Machines-Really-Be-Creative-/960x0.jpg?format=jpg&width=960";
     // TODO: replace with Achievement model
     private List<(string name, string description, string imageSrc)> _userTrophies = new();
     private List<(string name, string description, string imageSrc)> _userAchievements = new();
@@ -115,7 +117,7 @@
 
     private string GetBackgroundImage()
     {
-        // TODO: dynamically change background based on achievement level
+    // TODO: dynamically change background based on achievement level
         var folder = _configuration["LandingBgFolder"] ?? "nrcan";
         var imgCount = (_configuration.GetSection("LandingBgImgCount").Get<int?>() ?? 12) - 1;
         var randomId = (int)Math.Round(new Random().NextDouble() * imgCount);
@@ -124,23 +126,23 @@
 
     private async Task OpenBackgroundImageDialog()
     {
-        //TODO: implement
+    //TODO: implement
     }
 
     private async Task GetUserAchievements()
     {
-        //TODO: tie this into new data model
-        // Get all achievements, filter by type
-        
-        
-        // userAchievements where type == Trophy
+    //TODO: tie this into new data model
+    // Get all achievements, filter by type
+
+
+    // userAchievements where type == Trophy
         var randomInteger = Random.Shared.Next(2, 20);
         _userTrophies = Enumerable.Repeat(("Best Datahubber 🏆", "I am the best 😃.", TempTrohpyImage:TempTrophyImage), randomInteger).ToList();
-        
-        
+
+
         randomInteger = Random.Shared.Next(12, 120);
         _userAchievements = Enumerable.Repeat(("Some Cool Achievement", "You visited some part of the site.", TempTrohpyImage:TempAchievementImage), randomInteger).ToList();
     }
-    
+
 
 }

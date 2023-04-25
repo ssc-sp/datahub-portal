@@ -1,0 +1,73 @@
+@using Datahub.Portal.Pages.Profile.Settings.Views
+@using Datahub.Portal.Components.User
+
+@inject IUserInformationService _userInformationService
+
+@page "/profile/settings/{Section?}"
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudGrid>
+        <MudItem xs="12">
+                <MudStack Row>
+                    <UserCard PortalUser="@_portalUser" />
+                </MudStack>
+        </MudItem>
+        <MudItem xs="3">
+            <ProfileSettingsSidebar ViewedUser="@_portalUser"/>
+        </MudItem>
+        <MudItem xs="9">
+            @if (_portalUser is null)
+            {
+                <DHLoadingInitializer Message="@Localizer["Loading Settings"]"/>
+            }
+            else
+            {
+                @switch (Section)
+                {
+                    case SectionViews.Appearance:
+                        <ProfileSettingsAppearance/>
+                        break;
+                    case SectionViews.EmailPreferences:
+                        <ProfileSettingsEmailPreferences/>
+                        break;
+                    case SectionViews.ProfileDisplay:
+                        <ProfileSettingsDisplay ViewedUser="@_portalUser"/>
+                        break;
+                    default:
+                        <ProfileSettingsDisplay ViewedUser="@_portalUser"/> // redundant, but just in case
+                        break;
+                }
+            }
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+
+    [Parameter]
+    public string Section { get; set; }
+
+    private PortalUser _portalUser;
+    
+    public struct SectionViews
+    {
+        public const string ProfileDisplay = "display";
+        public const string Appearance = "appearance";
+        public const string EmailPreferences = "email";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        
+        var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
+
+        _portalUser = new PortalUser
+        {
+            GraphGuid = graphUser.Id,
+            DisplayName = graphUser.DisplayName,
+            Email = graphUser.Mail,
+        };
+    }
+
+}
