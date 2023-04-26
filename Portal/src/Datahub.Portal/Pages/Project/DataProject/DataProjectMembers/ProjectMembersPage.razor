@@ -85,7 +85,7 @@
 
         if (!isMemberOfProject)
         {
-            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserViewProjectNotMemberOf);
+            await _achievementService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserViewProjectNotMemberOf);
         }
         await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
     }

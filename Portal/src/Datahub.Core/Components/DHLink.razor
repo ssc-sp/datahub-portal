@@ -70,7 +70,7 @@
             link = UserRecentLink;
             link.accessedTime = DateTimeOffset.Now;
             await UserLocationManagerService.RegisterNavigation(link, false);
-            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserRecentLink);
+            await _achievementService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserRecentLink);
         }
         else
         {

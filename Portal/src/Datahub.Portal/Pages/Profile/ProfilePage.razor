@@ -84,7 +84,7 @@
             _user = await _mSGraphService.GetUserAsync(decodedUserId, CancellationToken.None);
             if (_user?.Id != null && user?.Id != decodedUserId)
             {
-                await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserViewOtherProfile);
+                await _achievementService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
             }
         }
     }

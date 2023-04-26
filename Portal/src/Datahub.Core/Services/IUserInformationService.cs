@@ -1,4 +1,5 @@
-﻿using Microsoft.Graph;
+﻿using Datahub.Core.Model.Achievements;
+using Microsoft.Graph;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -15,7 +16,9 @@ public interface IUserInformationService
     Task<bool> RegisterUserTAC();
     Task<bool> RegisterUserLanguage(string language);
     Task<string> GetUserLanguage();
-    Task<bool> IsFrench();        
+    Task<bool> IsFrench();
+    Task<string> GetDisplayName();
+    Task<string> GetUserEmail();
     Task<string> GetUserEmailDomain();
     Task<string> GetUserEmailPrefix();
     bool SetLanguage(string language);
@@ -32,6 +35,7 @@ public interface IUserInformationService
 
     Task<bool> IsUserDatahubAdmin();
 
+    Task<bool> RegisterAuthenticatedPortalUser();
 }
 
 public static class UserInformationServiceConstants

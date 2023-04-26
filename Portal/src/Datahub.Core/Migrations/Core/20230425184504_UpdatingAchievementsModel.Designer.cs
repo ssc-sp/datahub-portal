@@ -4,16 +4,19 @@ using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230425184504_UpdatingAchievementsModel")]
+    partial class UpdatingAchievementsModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,7 +54,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "DHA-001",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_login\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_login\", state)",
                             Description = "Logged in to DataHub",
                             Name = "Collaboration Connoisseur",
                             Points = 1
@@ -59,7 +62,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "DHA-002",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_sent_invite\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_sent_invite\", state)",
                             Description = "Invite a user to your workspace",
                             Name = "Collaboration Commander",
                             Points = 1
@@ -67,7 +70,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "DHA-003",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_joined_project\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_joined_project\", state)",
                             Description = "Join a workspace",
                             Name = "Workspace Warrior",
                             Points = 1
@@ -75,7 +78,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "DHA-004",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_left_project\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_left_project\", state)",
                             Description = "Leave a workspace",
                             Name = "Workspace Wanderlust",
                             Points = 1
@@ -83,7 +86,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "DHA-005",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_daily_login\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_daily_login\", state)",
                             Description = "Login on multiple days",
                             Name = "Consistent Contributor",
                             Points = 1
@@ -91,7 +94,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "STR-000",
-                            ConcatenatedRules = "Utils.OwnsAchievement(\"STR-001\", achivements)\nUtils.OwnsAchievement(\"STR-002\", achivements)\nUtils.OwnsAchievement(\"STR-003\", achivements)\nUtils.OwnsAchievement(\"STR-004\", achivements)\nUtils.OwnsAchievement(\"STR-005\", achivements)\nUtils.OwnsAchievement(\"STR-006\", achivements)",
+                            ConcatenatedRules = "Utils.OwnsAchievement(\"STR-001\", state)\nUtils.OwnsAchievement(\"STR-002\", state)\nUtils.OwnsAchievement(\"STR-003\", state)\nUtils.OwnsAchievement(\"STR-004\", state)\nUtils.OwnsAchievement(\"STR-005\", state)\nUtils.OwnsAchievement(\"STR-006\", state)",
                             Description = "Unlock all the 2.0 Storage Explorer achievements",
                             Name = "Storage Savant",
                             Points = 1
@@ -99,7 +102,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "STR-001",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_upload_file\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_upload_file\", state)",
                             Description = "Upload a file using the workspace Storage Explorer",
                             Name = "Unstoppable Uploader",
                             Points = 1
@@ -107,7 +110,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "STR-002",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_share_file\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_share_file\", state)",
                             Description = "Share a file using the workspace Storage Explorer",
                             Name = "Storage Socialite",
                             Points = 1
@@ -115,7 +118,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "STR-003",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_download_file\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_share_file\", state)",
                             Description = "Download a file using the workspace Storage Explorer",
                             Name = "File Fetcher",
                             Points = 1
@@ -123,7 +126,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "STR-004",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_delete_file\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_delete_file\", state)",
                             Description = "Delete a file from the workspace with the Storage Explorer",
                             Name = "Daredevil Deleter",
                             Points = 1
@@ -131,7 +134,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "STR-005",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_create_folder\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_create_folder\", state)",
                             Description = "Create a folder in the workspace's Storage Explorer",
                             Name = "Folder Fashionista",
                             Points = 1
@@ -139,7 +142,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "STR-006",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_delete_folder\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_delete_folder\", state)",
                             Description = "Delete a folder in the workspace's Storage Explorer",
                             Name = "Folder Farewell",
                             Points = 1
@@ -147,7 +150,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "EXP-000",
-                            ConcatenatedRules = "Utils.OwnsAchievement(\"EXP-001\", achivements)\nUtils.OwnsAchievement(\"EXP-002\", achivements)\nUtils.OwnsAchievement(\"EXP-003\", achivements)\nUtils.OwnsAchievement(\"EXP-004\", achivements)\nUtils.OwnsAchievement(\"EXP-005\", achivements)\nUtils.OwnsAchievement(\"EXP-006\", achivements)\nUtils.OwnsAchievement(\"EXP-007\", achivements)\nUtils.OwnsAchievement(\"EXP-008\", achivements)\nUtils.OwnsAchievement(\"EXP-009\", achivements)",
+                            ConcatenatedRules = "Utils.OwnsAchievement(\"EXP-001\", state)\nUtils.OwnsAchievement(\"EXP-002\", state)\nUtils.OwnsAchievement(\"EXP-003\", state)\nUtils.OwnsAchievement(\"EXP-004\", state)\nUtils.OwnsAchievement(\"EXP-005\", state)\nUtils.OwnsAchievement(\"EXP-006\", state)\nUtils.OwnsAchievement(\"EXP-007\", state)\nUtils.OwnsAchievement(\"EXP-008\", state)\nUtils.OwnsAchievement(\"EXP-009\", state)",
                             Description = "Unlock all the 2.0 Exploration achievements",
                             Name = "Explorer Extraordinaire",
                             Points = 1
@@ -155,7 +158,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "EXP-001",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_file_explorer\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_file_explorer\", state)",
                             Description = "Navigate to the Storage Explorer page of a workspace",
                             Name = "Storage Safari",
                             Points = 1
@@ -163,7 +166,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "EXP-002",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_click_databricks_link\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_click_databricks_link\", state)",
                             Description = "Navigate to the Databricks page of a workspace",
                             Name = "Databricks Discovery",
                             Points = 1
@@ -171,7 +174,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "EXP-003",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_visit_resources\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_visit_resources\", state)",
                             Description = "View the resources section of DataHub",
                             Name = "Resource Ranger",
                             Points = 1
@@ -179,7 +182,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "EXP-004",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_project_not_member_of\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_project_not_member_of\", state)",
                             Description = "View a workspace you are not a member of",
                             Name = "Workspace Wanderer",
                             Points = 1
@@ -187,7 +190,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "EXP-005",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_project\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_project\", state)",
                             Description = "Visit one of your own workspaces",
                             Name = "Workspace Wayfarer",
                             Points = 1
@@ -195,7 +198,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "EXP-006",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_click_recent_link\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_click_recent_link\", state)",
                             Description = "Use a recent link to get to the same page again",
                             Name = "Link Legend",
                             Points = 1
@@ -203,7 +206,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "EXP-007",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_click_toggle_culture\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_click_toggle_culture\", state)",
                             Description = "Switch languages in the portal",
                             Name = "Prolific Polyglot",
                             Points = 1
@@ -211,7 +214,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "EXP-008",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_profile\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_profile\", state)",
                             Description = "View your own profile page",
                             Name = "Profile Peruser",
                             Points = 1
@@ -219,7 +222,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "EXP-009",
-                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_other_profile\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_other_profile\", state)",
                             Description = "View another person's profile",
                             Name = "Profile Prowler",
                             Points = 1
