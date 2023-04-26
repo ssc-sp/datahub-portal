@@ -17,6 +17,8 @@ using Datahub.Core.Data;
 using Datahub.Core.Model.UserTracking;
 using Datahub.Core.Services.Security;
 using UserSettings = Datahub.Core.Model.UserTracking.UserSettings;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Achievements;
 
 namespace Datahub.Core.Services.UserManagement;
 
@@ -31,7 +33,10 @@ public class UserInformationService : IUserInformationService
     private IConfiguration _configuration;
     private readonly ServiceAuthManager serviceAuthManager;
 
-    //private GraphServiceClient _graphServiceClient;
+    private readonly IDbContextFactory<DatahubProjectDBContext> _datahubContextFactory;
+
+    private readonly CultureService _cultureService;
+
     public string imageHtml;
     private ClaimsPrincipal authenticatedUser;
 
@@ -45,8 +50,8 @@ public class UserInformationService : IUserInformationService
         NavigationManager navigationManager,
         IConfiguration configureOptions, ServiceAuthManager serviceAuthManager,
         GraphServiceClient graphServiceClient,
-        IDbContextFactory<UserTrackingContext> contextFactory
-    )
+        IDbContextFactory<UserTrackingContext> contextFactory,
+        IDbContextFactory<DatahubProjectDBContext> datahubContextFactory, CultureService cultureService)
     {
         _logger = logger;
         _authenticationStateProvider = authenticationStateProvider;
@@ -55,6 +60,8 @@ public class UserInformationService : IUserInformationService
         this.serviceAuthManager = serviceAuthManager;
         this.graphServiceClient = graphServiceClient;
         this.contextFactory = contextFactory;
+        _datahubContextFactory = datahubContextFactory;
+        _cultureService = cultureService;
     }
 
     public async Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
@@ -429,5 +436,36 @@ public class UserInformationService : IUserInformationService
        
     }
 
-    
+    public async Task<bool> RegisterAuthenticatedPortalUser()
+    {
+        using var ctx = await _datahubContextFactory.CreateDbContextAsync();
+        
+        var graphId = await GetUserIdString();
+        var portalUser = await ctx.PortalUsers.FirstOrDefaultAsync(p => p.GraphGuid == graphId);
+
+        if (portalUser is not null)
+        {
+            portalUser.LastLoginDateTime = DateTime.UtcNow;
+            await ctx.SaveChangesAsync();
+            return false;
+        }
+
+        var email = await GetUserEmail();
+        var displayName = await GetDisplayName();
+
+        portalUser = new()
+        {
+            GraphGuid = graphId,
+            Email = email,
+            DisplayName = displayName,
+            FirstLoginDateTime = DateTime.UtcNow,
+            LastLoginDateTime = DateTime.UtcNow,
+            Language = _cultureService.Culture
+        };
+
+        ctx.PortalUsers.Add(portalUser);
+        await ctx.SaveChangesAsync();
+
+        return true;
+    }
 }
