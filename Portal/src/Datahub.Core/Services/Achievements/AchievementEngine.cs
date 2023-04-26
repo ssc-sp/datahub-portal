@@ -17,16 +17,16 @@ public class AchievementEngine
     public async IAsyncEnumerable<string> Evaluate(string currentMetric, IEnumerable<string> ownedAchivements)
     {
         // create a set with the owned achievements (SET)
-        HashSet<string> ownedSet = new(ownedAchivements);
+        HashSet<string> earnedSet = new(ownedAchivements);
 
         // filter the rules (only non achieved achivements)
-        var filteredRules = _rules.Where(r => !ownedSet.Contains(r.AchivementId)).ToList();
+        var filteredRules = _rules.Where(r => !earnedSet.Contains(r.AchivementId)).ToList();
 
         // create the rule engine
         var engine = CreateRulesEngine(filteredRules);
 
         // create evaluation function params
-        var functParams = new EngineFunctionParms(currentMetric, ownedSet);
+        var functParams = new EngineFunctionParms(currentMetric, earnedSet);
 
         // evaluate "regular" achivement rules
         var response = await engine.ExecuteAllRulesAsync(AchievementWorkflow, functParams);
@@ -34,7 +34,7 @@ public class AchievementEngine
         // collect achievements
         foreach (var achivement in ExtractAchivements(response))
         {
-            ownedSet.Add(achivement);
+            earnedSet.Add(achivement);
             yield return achivement;
         }
 
