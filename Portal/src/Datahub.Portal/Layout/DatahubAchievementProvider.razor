@@ -2,12 +2,15 @@
 @using Blazored.LocalStorage
 @using Datahub.Achievements.Models
 @using Datahub.Core.Data
+@using Datahub.Core.Services.Achievements;
 @using Microsoft.EntityFrameworkCore
 @using System.Linq
 @using Datahub.Core.Model.Datahub
 @using Microsoft.Graph
 
-@inject AchievementService _achievementsService
+@*@inject AchievementService _achievementsService*@
+@inject IPortalUserTelemetryService _telemetryService
+
 @inject ISnackbar _snackbar
 @inject NavigationManager _navigationManager
 @inject ILocalStorageService _localStorage;
@@ -18,39 +21,50 @@
 @implements IDisposable
 
 @code {
-    
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        
+
         _navigationManager.LocationChanged += OnLocationChanged;
-        _achievementsService.AchievementEarned += OnAchievementEarned;
+
+        //_achievementsService.AchievementEarned += OnAchievementEarned;
+        _telemetryService.OnAchievementsEarned += OnAchievementsEarned;
+
         _snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
-        
+
         if (firstRender)
         {
             try
             {
-                await _achievementsService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserLogin);
-            
+                //await _achievementsService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserLogin);
+                await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserLogin);
+
                 await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
                 var userId = await _userInformationService.GetUserIdString();
-        
+
                 var numberOfProjects = projectContext.Project_Users
                     .Count(p => p.User_ID == userId);
 
-                await _achievementsService.AddOrSetTelemetryEventKeepMax(TelemetryEvents.UserJoinedProject, numberOfProjects);
+                //await _achievementsService.AddOrSetTelemetryEventKeepMax(TelemetryEvents.UserJoinedProject, numberOfProjects);
+                if (numberOfProjects > 0)
+                    await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserJoinedProject);
             }
             catch (AuthenticationException)
             {
                 _logger.LogInformation("Authentication unsuccessful for achievement service. User is not logged in and is likely being redirected to challenge");
             }
         }
+    }
+
+    private void OnAchievementsEarned(object sender, AchievementsEarnedEventArgs e)
+    {
+        // >>
     }
 
     private void OnAchievementEarned(object sender, AchievementEarnedEventArgs e)
@@ -71,18 +85,17 @@
 
     private void OnLocationChanged(object sender, LocationChangedEventArgs e)
     {
-        var relativeUrl = new Uri(e.Location).PathAndQuery;
-        
-        InvokeAsync(async () =>
-        {
-            await _achievementsService.AddOrIncrementTelemetryEvent(relativeUrl, 1);
-            StateHasChanged();
-        });
+        //var relativeUrl = new Uri(e.Location).PathAndQuery;
+        //InvokeAsync(async () =>
+        //{
+        //    await _achievementsService.AddOrIncrementTelemetryEvent(relativeUrl, 1);
+        //    StateHasChanged();
+        //});
     }
     
     void IDisposable.Dispose()
     {
         _navigationManager.LocationChanged -= OnLocationChanged;
-        _achievementsService.AchievementEarned -= OnAchievementEarned;
+        //_achievementsService.AchievementEarned -= OnAchievementEarned;
     }
 }

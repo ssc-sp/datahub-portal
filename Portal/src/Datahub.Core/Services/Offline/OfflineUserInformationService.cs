@@ -161,4 +161,9 @@ public class OfflineUserInformationService : IUserInformationService
     {
         return Task.FromResult(false);
     }
+
+    public Task<bool> RegisterAuthenticatedPortalUser()
+    {
+        return Task.FromResult(true);
+    }
 }

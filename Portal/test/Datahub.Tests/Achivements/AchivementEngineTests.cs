@@ -1,4 +1,4 @@
-﻿using Datahub.Achievements.Models;
+﻿using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Achievements.Configuration;
 using Datahub.Core.Services.Achievements;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ public class AchivementEngineTests
 
     public AchivementEngineTests()
     {
-        _achivementEngine = new(AchivementConfiguration.GetAchievements());
+        _achivementEngine = new(Achievement.GetAll());
     }
 
     [Fact]

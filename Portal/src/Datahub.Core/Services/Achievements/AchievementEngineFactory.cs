@@ -1,24 +1,16 @@
-﻿using Datahub.Core.Model.Datahub;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
+﻿using Datahub.Core.Model.Achievements;
+using System;
 
 namespace Datahub.Core.Services.Achievements;
 
 public class AchievementEngineFactory : IAchievementEngineFactory
 {
-    private readonly AchievementEngine _engine;
+    private readonly Lazy<AchievementEngine> _engine;
 
-    public AchievementEngineFactory(IDbContextFactory<DatahubProjectDBContext> contextFactory)
+    public AchievementEngineFactory()
     {
-        _engine = CreateAchievementEngine(contextFactory);
+        _engine = new(() => new(Achievement.GetAll()));
     }
 
-    public AchievementEngine GetAchievementEngine() => _engine;
-
-    private AchievementEngine CreateAchievementEngine(IDbContextFactory<DatahubProjectDBContext> contextFactory)
-    {
-        using var ctx = contextFactory.CreateDbContext();
-        var achievements = ctx.Achievements.ToList();
-        return new(achievements);
-    }
+    public AchievementEngine GetAchievementEngine() => _engine.Value;
 }

@@ -1,7 +1,6 @@
-﻿namespace Datahub.Core.Services.Achievements
+﻿namespace Datahub.Core.Services.Achievements;
+
+public interface IAchievementEngineFactory
 {
-    public interface IAchievementEngineFactory
-    {
-        AchievementEngine GetAchievementEngine();
-    }
+    AchievementEngine GetAchievementEngine();
 }

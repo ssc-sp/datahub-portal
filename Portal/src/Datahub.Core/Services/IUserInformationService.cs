@@ -1,4 +1,5 @@
-﻿using Microsoft.Graph;
+﻿using Datahub.Core.Model.Achievements;
+using Microsoft.Graph;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -34,6 +35,7 @@ public interface IUserInformationService
 
     Task<bool> IsUserDatahubAdmin();
 
+    Task<bool> RegisterAuthenticatedPortalUser();
 }
 
 public static class UserInformationServiceConstants
