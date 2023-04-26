@@ -10,5 +10,5 @@
     [Parameter]
     public PortalUser PortalUser { get; set; }
     
-    private string AvatarUrl => _datahubPortalConfiguration?.Achievements.GetAchievementThumbnailUrl(PortalUser.ProfilePictureUrl);
+    private string AvatarUrl => _datahubPortalConfiguration?.Achievements.GetAchievementPortraitUrl(PortalUser.ProfilePictureUrl);
 }

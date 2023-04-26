@@ -37,8 +37,8 @@
     {
         base.OnInitialized();
         _imageSource = Large ?
-            _datahubPortalConfiguration?.Achievements.GetAchievementImageUrl(Code) :
-            _datahubPortalConfiguration?.Achievements.GetAchievementThumbnailUrl(Code);
+            _datahubPortalConfiguration?.Achievements.GetAchievementThumbnailUrl(Code) :
+            _datahubPortalConfiguration?.Achievements.GetAchievementPortraitUrl(Code);
     }
 
 }

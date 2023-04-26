@@ -59,21 +59,13 @@
 
     private void BuildBreadcrumbs()
     {
-        InvokeAsync(async () =>
+        InvokeAsync(() =>
         {
-            _userProfileName = null;
             var relativePath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
             var paths = relativePath
                 .Split('/')
                 .Where(x => !string.IsNullOrWhiteSpace(x) && !x.Equals("home", StringComparison.InvariantCultureIgnoreCase))
                 .ToList();
-            var profileIndex = paths.IndexOf(_datahubPortalConfiguration.ProfileUrlSegment);
-            if (profileIndex >= 0 && profileIndex < paths.Count - 1)
-            {
-                var decodedUserId = paths.Last().Base64Decode();
-                var user = await _mSGraphService.GetUserAsync(decodedUserId, CancellationToken.None);
-                _userProfileName = user.DisplayName;
-            }
             var breadcrumbs = new List<BreadcrumbItem>
             {
                 new(Localizer["breadcrumb_home"], "/", icon: Icons.Material.Filled.Home)
@@ -81,12 +73,13 @@
 
             breadcrumbs.AddRange(paths
                 .Select((x, i) => BuildBreadcrumbItem(
-                    i+1 == paths.Count && _userProfileName is not null ? _userProfileName : x,
+                    x,
                     string.Join("/", paths.Take(i + 1)),
                     i + 1 == paths.Count))
                 .ToList());
             _items = breadcrumbs;
             StateHasChanged();
+            return Task.CompletedTask;
         });
 
     }
