@@ -11,7 +11,7 @@ public class CatalogImportTests
     [Fact]
     public void CatalogImport_Deserialize()
     {
-        var entries = JsonConvert.DeserializeObject<CatalogEntry[]>(GetFileContent("sample_catalog.json")).ToList();
+        var entries = JsonConvert.DeserializeObject<CatalogEntry[]>(GetFileContent("sample_catalog.json"))!.ToList();
         Assert.NotNull(entries);
     }
 

@@ -25,7 +25,7 @@
             await _localStorage.SetItemAsStringAsync("language", language);
         } else {
             await _userInformationService.RegisterUserLanguage(language);
-            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserToggleCulture);
+            await _achievementService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserToggleCulture);
             _userInformationService.SetLanguage(language);
             await _localStorage.SetItemAsStringAsync("language", language);
         }
