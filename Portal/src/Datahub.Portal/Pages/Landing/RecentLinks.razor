@@ -55,7 +55,7 @@
         var userRecent = await _userLocationManagerService.ReadRecentNavigations(User.Id);
 
         _recentLinks = userRecent?.UserRecentActions?
-            .Where(l => l.DataProject != null)
+            .Where(l => l.DataProject != null || l.ResourceArticleId != null)
             .OrderByDescending(l => l.accessedTime)
             .Take(_maxRecentLinks)
             .Select(l => (l, project:GetProject(dbContext, l)))
@@ -64,6 +64,7 @@
 
     private Datahub_Project GetProject(DatahubProjectDBContext dbContext, UserRecentLink link)
     {
+        if (link.DataProject is null) return null;
         return dbContext.Projects
             .FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject.Trim());
     }
