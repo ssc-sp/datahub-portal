@@ -164,9 +164,8 @@
                 NavigationManager.NavigateTo($"/resources/{link.ResourceArticleId}");
                 break;
             case DatahubLinkType.Undefined:
-                break;
             default:
-                throw new ArgumentOutOfRangeException();
+                break;
         }
     }
 }
