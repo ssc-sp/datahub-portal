@@ -55,6 +55,11 @@
 
     [Parameter]
     public string PBIWorkspaceId { get; set; } = null;
+    
+    [Parameter]
+    public string ResourceArticleId { get; set; } = null;
+    [Parameter]
+    public string ResourceArticleName { get; set; } = null;
 
     [Parameter]
     public UserRecentLink UserRecentLink { get; set; }
@@ -87,6 +92,8 @@
                     LinkType = DatahubLinkType.DataProject;
                 else if(ExternalUrl != null)
                     LinkType = DatahubLinkType.ExternalUrl;
+                else if (ResourceArticleId != null)
+                    LinkType = DatahubLinkType.ResourceArticle;
             }
             link.LinkType = LinkType;
             link.PowerBIURL = PowerBIURL;
@@ -97,6 +104,8 @@
             link.ExternalUrl = ExternalUrl;
             link.WebFormsURL = WebFormsURL;
             link.DataProject = DataProject;
+            link.ResourceArticleId = ResourceArticleId;
+            link.ResourceArticleTitle = ResourceArticleName;
             link.Name = Name;
             link.accessedTime = DateTimeOffset.Now;
         }
@@ -104,7 +113,6 @@
         await UserLocationManagerService.RegisterNavigation(link, true);
         
         await _achievementService.AddOrIncrementTelemetryEvent($"user_click_{link.LinkType.ToString().ToLower()}_link");
-        
         switch (LinkType)
         {
             case DatahubLinkType.PowerBI:
@@ -152,6 +160,13 @@
             case DatahubLinkType.M365Form:
                 NavigationManager.NavigateTo($"/m365form/applications");
                 break;
+            case DatahubLinkType.ResourceArticle:
+                NavigationManager.NavigateTo($"/resources/{link.ResourceArticleId}");
+                break;
+            case DatahubLinkType.Undefined:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
 }
