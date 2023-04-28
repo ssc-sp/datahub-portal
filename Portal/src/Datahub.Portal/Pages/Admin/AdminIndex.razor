@@ -1,6 +1,5 @@
 ﻿@inject IUserInformationService _userInformationService
 @inject ServiceAuthManager _serviceAuthManager
-@inject Datahub.Core.Services.AzureCosting.AzureCostManagementService _azureCostService
 @inject ILogger<AdminIndex> _logger
 @inject ISnackbar _snackbar
 @inject ITokenAcquisition _tokenAcquisition
@@ -9,7 +8,6 @@
 
 @page "/administration"
 @page "/admin"
-@using Datahub.Core.Services.AzureCosting;
 @using Microsoft.Identity.Web;
 @using Microsoft.Rest;    
 
@@ -62,39 +60,7 @@ else
 
     private List<string> _authorizedRoles;
 
-    private string _azureCostToken;
-    private AdminCardDefinition _updateCostsDef;
-
     private IEnumerable<AdminCardDefinition> _adminCards = new List<AdminCardDefinition>();
-
-    private async Task UpdateMonthlyInitiativeCosts()
-    {
-        try
-        {
-            _updateCostsDef.IsProcessing = true;
-
-            _snackbar.Add(Localizer[$"{LOCALIZATION_PREFIX}.StartingCostUpdate"]);
-            var subscriptionId = _configuration.GetSection(AzureCostManagementService.BILLING_CONFIG_SECTION).GetValue<string>(AzureCostManagementService.SUBSCRIPTION_ID_CONFIG_KEY);
-            var resourceGroup = _configuration.GetSection(AzureCostManagementService.BILLING_CONFIG_SECTION).GetValue<string>(AzureCostManagementService.RESOURCE_GROUP_CONFIG_KEY);
-
-            var currentMonthlyCosts = await _azureCostService.GetCurrentMonthlyCostAsync(subscriptionId, _azureCostToken, resourceGroup);
-            var updateTask = _azureCostService.UpdateProjectMonthlyCostToDateAsync(currentMonthlyCosts.ToList());
-            var successMsg = Localizer[$"{LOCALIZATION_PREFIX}.UpdatedNCosts", currentMonthlyCosts.Count()];
-            await updateTask;
-            _snackbar.Add(successMsg, Severity.Success);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogCritical(ex, "Cannot retrieve Azure Costs");
-            var msg = Localizer[$"{LOCALIZATION_PREFIX}.ErrorUpdatingCosts", ex.Message];
-            _snackbar.Add(msg, Severity.Error);
-        }
-        finally
-        {
-            _updateCostsDef.IsProcessing = false;
-        }
-    } 
-
 
     private AdminCardAction LocalizeAdminCardAction(AdminCardAction action)
     {
@@ -133,46 +99,14 @@ else
             
             // TODO: if we figure out external power bi sharing, re-enable this section
             //rawCardDefs.Add(new("ExternalSharing", "ExternalSharing", new AdminCardUrlAction("OpenPage", "/admin/externalsharing")));
-
-            _updateCostsDef = LocalizeCardDef(new("MonthlyCost", "MonthlyCost", new AdminCardCodeAction("UpdateCosts", async () => await UpdateMonthlyInitiativeCosts())));
-            rawCardDefs.Add(_updateCostsDef);
         }
 
 
         return rawCardDefs.Select(r => LocalizeCardDef(r));
     }
 
-    public async Task<string> GetAccessTokenForUserAsync()
-    {
-        var token = default(string);
-
-        try
-        {
-            token = await _tokenAcquisition.GetAccessTokenForUserAsync(AzureCostManagementService.RequiredScopes);
-        }
-        catch (MicrosoftIdentityWebChallengeUserException e)
-        {
-            // user isn't logged into Power BI -> redirect to Microsoft
-            _consentHandler.HandleException(e);
-        }
-        catch (HttpOperationException)
-        {
-            // couldn't load the report - missing or unauthorized
-        }
-        catch (Exception)
-        {
-            // some other exception, crash and log like normal
-            throw;
-        }
-
-        return await Task.FromResult(token);
-    }
-
-
     protected override async Task OnInitializedAsync()
     {
-        _azureCostToken = await GetAccessTokenForUserAsync();
-
         var user = await _userInformationService.GetCurrentGraphUserAsync();
         _authorizedRoles = _serviceAuthManager.GetAdminProjectRoles(user.Id);
         // if user has no admin roles, add Datahub Admin as a requirement (at least one role must be specified for AuthorizedView)

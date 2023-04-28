@@ -28,10 +28,18 @@ public abstract class QueueMessageSender<T> : AsyncRequestHandler<T> where T : I
         var queueClient = new QueueClient(storageConnectionString, queueName);
         var message = EncodeBase64(JsonSerializer.Serialize(request));
 
-        await queueClient.SendMessageAsync(message, cancellationToken);
+        // pick up the timeout span
+        TimeSpan? timeoutSpan = request is IMessageTimeout t ? TimeSpan.FromSeconds(t.Timeout) : default;
+
+        await queueClient.SendMessageAsync(message, visibilityTimeout: timeoutSpan, cancellationToken: cancellationToken);
     }
 
     protected abstract string ConfigPathOrQueueName { get; }
 
     static string EncodeBase64(string value) => Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+}
+
+public interface IMessageTimeout
+{
+    public int Timeout { get; }
 }
