@@ -39,7 +39,7 @@ var host = new HostBuilder()
             Policy<HttpResponseMessage>
                 .Handle<HttpRequestException>()
                 .OrResult(x => x.StatusCode == HttpStatusCode.TooManyRequests)
-                .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(1), 6)));
+                .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(2), 6)));
 
         services.AddSingleton<AzureConfig>();
         services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();

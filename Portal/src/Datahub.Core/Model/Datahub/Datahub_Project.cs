@@ -184,7 +184,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// <summary>
     /// Deprecated
     /// </summary>
-    public Project_MonthlyUsage MonthlyUsage { get; set; }
+    //public Project_MonthlyUsage MonthlyUsage { get; set; }
 
     public Project_Credits Credits { get; set; }
     
