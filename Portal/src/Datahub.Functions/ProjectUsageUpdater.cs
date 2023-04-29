@@ -52,6 +52,10 @@ namespace Datahub.Functions
             return JsonSerializer.Deserialize<ProjectUsageUpdateMessage>(message);
         }
 
+        /// <summary>
+        /// Given: fsdh_proj_die1_dev_rg
+        /// </summary>
+        /// <returns>[fsdh_proj_die1_dev_rg, fsdh_dbk_die1_dev_rg]</returns>
         static IEnumerable<string> GetResourceGroups(string name)
         {
             yield return name;
