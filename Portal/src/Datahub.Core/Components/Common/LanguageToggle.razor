@@ -1,10 +1,10 @@
 @using Blazored.LocalStorage
-@using Datahub.Achievements
-@using Datahub.Achievements.Models
+@using Datahub.Core.Model.Achievements;
+@using Datahub.Core.Services.Achievements;
 
 @inject IUserInformationService _userInformationService
 @inject ILocalStorageService _localStorage
-@inject AchievementService _achievementService
+@inject IPortalUserTelemetryService _telemetryService
 @inject NavigationManager NavManager
 
 <span @onclick="() => ChangeLanguage(Language)" style="cursor:pointer;">
@@ -15,7 +15,7 @@
 
     private static string Language => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "en-CA" : "fr-CA";
     private static string LanguageDisplay => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "English" : "Français";
-    
+
     private async void ChangeLanguage(string language)
     {
         // if in register page, user still needs to be able to translate languages
@@ -25,11 +25,9 @@
             await _localStorage.SetItemAsStringAsync("language", language);
         } else {
             await _userInformationService.RegisterUserLanguage(language);
-            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserToggleCulture);
+            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
             _userInformationService.SetLanguage(language);
             await _localStorage.SetItemAsStringAsync("language", language);
         }
-        
     }
-
 }
