@@ -468,4 +468,22 @@ public class UserInformationService : IUserInformationService
 
         return true;
     }
+    
+    public async Task<PortalUser> GetCurrentPortalUserAsync(bool includeAchievements = false)
+    {
+        var graphId = await GetUserIdString();
+        return await GetPortalUserAsync(graphId);
+    }
+    
+    public async Task<PortalUser> GetPortalUserAsync(string userGraphId, bool includeAchievements = false)
+    {
+        await using var ctx = await _datahubContextFactory.CreateDbContextAsync();
+        
+        
+        var portalUser = await ctx.PortalUsers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
+
+        return portalUser;
+    }
 }
