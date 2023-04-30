@@ -1,5 +1,6 @@
 @using Datahub.Portal.Pages.Profile.Settings.Views
 @using Datahub.Portal.Components.User
+@using Datahub.Core.Model.Achievements
 
 @inject IUserInformationService _userInformationService
 
@@ -13,9 +14,9 @@
                 @Localizer["Achievements"]
             </MudText>
 
-            @foreach (var achievement in GetUsersAchievements())
+            @foreach (var userAchievement in GetUserAchievements())
             {
-                <AchievementListItem UserAchievement="@((achievement.Code, "Achievement Name", "This is a slightly longer description of the achievement and how to get it", achievement.Earned))"/>
+                <AchievementListItem UserAchievement="@userAchievement"/>
                 <MudDivider/>
             }
         </MudStack>
@@ -32,52 +33,17 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
-        var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-        var language = await _userInformationService.GetUserLanguage();
-
-        _viewedPortalUser = new PortalUser
-        {
-            GraphGuid = graphUser.Id,
-            DisplayName = graphUser.DisplayName,
-            Email = graphUser.Mail,
-            Language = language
-        };
+        _viewedPortalUser = await _userInformationService.GetCurrentPortalUserWithAchievementsAsync();
     }
 
 
-    private List<(string Code, bool Earned)> GetUsersAchievements()
+    private IEnumerable<UserAchievement> GetUserAchievements()
     {
-        return _achievementStub
-            .OrderBy(a => !a.Earned)
-            .ThenBy(a => a.Code)
-            .ToList();
+        return _viewedPortalUser?.Achievements?
+            .OrderBy(a => a.Achievement.Id)
+            .ThenBy(a => a.UnlockedAt)
+            .ToList()
+               ?? new List<UserAchievement>();
     }
-
-    private List<(string Code, bool Earned)> _achievementStub = new()
-    {
-        ("DHA-001", true),
-        ("DHA-002", true),
-        ("DHA-003", true),
-        ("DHA-004", true),
-        ("DHA-005", true),
-        ("EXP-000", false),
-        ("EXP-001", true),
-        ("EXP-002", true),
-        ("EXP-003", false),
-        ("EXP-004", true),
-        ("EXP-005", true),
-        ("EXP-006", false),
-        ("EXP-007", true),
-        ("EXP-008", true),
-        ("EXP-009", true),
-        ("STR-000", false),
-        ("STR-001", true),
-        ("STR-002", false),
-        ("STR-003", false),
-        ("STR-004", true),
-        ("STR-005", false),
-        ("STR-006", true),
-    };
 
 }

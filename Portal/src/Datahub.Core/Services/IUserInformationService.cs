@@ -10,8 +10,12 @@ public interface IUserInformationService
     Task<bool> ClearUserSettingsAsync();
     Task<User> GetCurrentGraphUserAsync();
     Task<User> GetGraphUserAsync(string userId);
-    Task<PortalUser> GetCurrentPortalUserAsync(bool includeAchievements = false);
-    Task<PortalUser> GetPortalUserAsync(string userGraphId, bool includeAchievements = false);
+    Task<PortalUser> GetCurrentPortalUserAsync();
+    Task<PortalUser> GetPortalUserAsync(string userGraphId);
+    
+    Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync();
+    Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId);
+    
     Task<User> GetAnonymousGraphUserAsync();
     Task<string> GetUserIdString();
     Task<bool> HasUserAcceptedTAC();

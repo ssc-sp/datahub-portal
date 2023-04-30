@@ -469,19 +469,38 @@ public class UserInformationService : IUserInformationService
         return true;
     }
     
-    public async Task<PortalUser> GetCurrentPortalUserAsync(bool includeAchievements = false)
+    public async Task<PortalUser> GetCurrentPortalUserAsync()
     {
         var graphId = await GetUserIdString();
         return await GetPortalUserAsync(graphId);
     }
     
-    public async Task<PortalUser> GetPortalUserAsync(string userGraphId, bool includeAchievements = false)
+    public async Task<PortalUser> GetPortalUserAsync(string userGraphId)
     {
         await using var ctx = await _datahubContextFactory.CreateDbContextAsync();
         
         
         var portalUser = await ctx.PortalUsers
             .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
+
+        return portalUser;
+    }
+    
+    public async Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync()
+    {
+        var graphId = await GetUserIdString();
+        return await GetPortalUserWithAchievementsAsync(graphId);
+    }
+    
+    public async Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId)
+    {
+        await using var ctx = await _datahubContextFactory.CreateDbContextAsync();
+        
+        var portalUser = await ctx.PortalUsers
+            .AsNoTracking()
+            .Include(p => p.Achievements)
+                .ThenInclude(a => a.Achievement)
             .FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
 
         return portalUser;

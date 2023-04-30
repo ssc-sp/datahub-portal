@@ -4,6 +4,7 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 
 @using Datahub.Portal.Pages.Profile.Settings
+@using Datahub.Core.Model.Achievements
 
 @if (_viewedPortalUser is null)
 {
@@ -45,8 +46,8 @@
     </MudItem>
     <MudItem xs="12" md="4">
         <MudStack Spacing="6">
-            <ProfileAchievements Achievements="@_userTrophies" ShowAll="@true" Title="@Localizer["Trophy Achievements"]"/>
-            <ProfileAchievements Achievements="@_userAchievements" ShowAll="@false" Title="@Localizer["Achievements"]"/>
+            <ProfileAchievements ViewedUser="@_viewedPortalUser" TrophyCase="@true" />
+            <ProfileAchievements ViewedUser="@_viewedPortalUser" TrophyCase="@false" />
         </MudStack>
     </MudItem>
 </MudGrid>
@@ -59,31 +60,12 @@
     // yan's id: e828f0bf-a85e-42c3-b13e-08e267b05e0c
     // base64 encoded: ZTgyOGYwYmYtYTg1ZS00MmMzLWIxM2UtMDhlMjY3YjA1ZTBj
 
-    //TODO: remove this when new model is ready
-        private const string TempTrophyImage = "https://static1.pocketlintimages.com/wordpress/wp-content/uploads/161649-apps-news-feature-all-these-incredible-images-were-made-by-artificial-intelligence-image2-nry8isc9do.jpg?q=50&fit=crop&w=750&dpr=1.5";
-        private const string TempAchievementImage = "https://imageio.forbes.com/specials-images/imageserve/64213c10fc7ed6f0a3eb47ae/The-Intersection-Of-AI-And-Human-Creativity--Can-Machines-Really-Be-Creative-/960x0.jpg?format=jpg&width=960";
-    // TODO: replace with Achievement model
-    private List<(string name, string description, string imageSrc)> _userTrophies = new();
-    private List<(string name, string description, string imageSrc)> _userAchievements = new();
-
     private PortalUser _viewedPortalUser;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
-        var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-        var language = await _userInformationService.GetUserLanguage();
-
-        _viewedPortalUser = new PortalUser
-        {
-            GraphGuid = graphUser.Id,
-            DisplayName = graphUser.DisplayName,
-            Email = graphUser.Mail,
-            Language = language
-        };
-        
-        await GetUserAchievements();
+        _viewedPortalUser = await _userInformationService.GetCurrentPortalUserWithAchievementsAsync();
     }
 
 
@@ -106,17 +88,4 @@
     // }
     // _isCurrentUser = user?.Id.Equals(_user?.Id, StringComparison.Ordinal) ?? false;
     }
-
-    private async Task GetUserAchievements()
-    {
-    // userAchievements where type == Trophy
-        var randomInteger = Random.Shared.Next(2, 20);
-        _userTrophies = Enumerable.Repeat(("Best Datahubber 🏆", "I am the best 😃.", TempTrohpyImage:TempTrophyImage), randomInteger).ToList();
-
-
-        randomInteger = Random.Shared.Next(12, 120);
-        _userAchievements = Enumerable.Repeat(("Some Cool Achievement", "You visited some part of the site.", TempTrohpyImage:TempAchievementImage), randomInteger).ToList();
-    }
-
-
 }
