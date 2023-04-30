@@ -29,6 +29,7 @@ class CostManagementRequestDataSet
     public required CostManagementRequestAggregation Aggregation { get; set; }
     public List<CostManagementRequestSorting>? Sorting { get; set; }
     public List<CostManagementRequestGrouping>? Grouping { get; set; }
+    public CostManagementRequestFilter? Filter { get; set; }
 }
 
 class CostManagementRequestTimePeriod
@@ -61,8 +62,19 @@ class CostManagementRequestGrouping
     public required string Name { get; set; }
 }
 
-#endregion
+public class CostManagementRequestFilter
+{
+    public required CostManagementRequestDimensions Dimensions { get; set; }
+}
 
+public class CostManagementRequestDimensions
+{
+    public required string Name { get; set; }
+    public required string Operator { get; set; }
+    public List<string> Values { get; set; } = new();
+}
+
+#endregion
 
 #region Cost management response
 

@@ -41,7 +41,7 @@
     [Inject]
     private NavigationManager _navigationManager { get; set; }
 
-    private string? _userProfileName;
+    private string _userProfileName;
     private List<BreadcrumbItem> _items;
     private bool _isResourcePage => _navigationManager.ToBaseRelativePath(_navigationManager.Uri).StartsWith("resources");
 

@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
+@using Datahub.Core.Model.Achievements;
+@using Datahub.Core.Services.Achievements;
 @using Microsoft.Identity.Web
 @using Datahub.Core.Theme
 @using MudBlazor.Utilities
@@ -137,6 +139,9 @@ else
         {
             _consentHandler.HandleException(ex);
         }
+
+        // register and.or update authenticated portal user
+        await _userInformationService.RegisterAuthenticatedPortalUser();
 
         _isLoaded = true;
     }
