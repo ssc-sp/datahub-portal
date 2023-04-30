@@ -12,12 +12,12 @@
         <MudAvatarGroup Style="flex-wrap: wrap" MaxColor="Color.Primary">
             @foreach(var userAchievement in GetUserAchievements())
             {
-                <MudTooltip >
+                <MudTooltip Arrow Placement="Placement.Top">
                     <ChildContent>
                         <MudAvatar Image="@(_portalConfiguration.Achievements.GetAchievementThumbnailUrl(userAchievement.Achievement.Id))" />
                     </ChildContent>
                     <TooltipContent>
-                        <AchievementListItem UserAchievement="@userAchievement" />
+                        <AchievementCard UserAchievement="@userAchievement" />
                     </TooltipContent>
                 </MudTooltip>
             }
