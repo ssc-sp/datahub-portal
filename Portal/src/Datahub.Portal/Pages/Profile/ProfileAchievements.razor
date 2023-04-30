@@ -1,0 +1,34 @@
+@using Microsoft.Graph
+@using MudBlazor.Utilities
+<MudStack>
+    <MudText Typo="Typo.h3" GutterBottom>@Title</MudText>
+    <MudAvatarGroup Spacing="@Spacing" Max="@Max" Style="flex-wrap: wrap" MaxColor="Color.Primary">
+        @foreach(var achievement in Achievements.Select((achievement, index) => (index, achievement)))
+        {
+            <MudAvatar Image="@(achievement.achievement.imageSrc)" />
+        }
+    </MudAvatarGroup>
+    @if (!ShowAll)
+    {
+        <MudLink Href="/profile/achievements">
+            @Localizer["View All Achievements"]
+        </MudLink>
+    }
+</MudStack>
+
+@code {
+    
+    [Parameter]
+    public List<(string name, string description, string imageSrc)> Achievements { get; set; } = new();
+    
+    [Parameter]
+    public bool ShowAll { get; set; }
+    
+    [Parameter]
+    public string Title { get; set; }
+    
+
+    private string _groupStyle;
+    private int Spacing => ShowAll ? 0 : 2;
+    private int Max => ShowAll ? Achievements.Count : 8;
+}
