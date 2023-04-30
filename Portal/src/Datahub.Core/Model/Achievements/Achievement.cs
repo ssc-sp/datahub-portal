@@ -47,7 +47,7 @@ public class Achievement
 
     static Lazy<IEnumerable<Achievement>> _achievements = new(CreateAchievements); 
 
-    static IEnumerable<Achievement> CreateAchievements()
+    public static IEnumerable<Achievement> CreateAchievements()
     {
         return new List<Achievement>
         {

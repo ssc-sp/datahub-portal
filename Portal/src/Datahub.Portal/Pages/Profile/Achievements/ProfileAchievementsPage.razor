@@ -19,6 +19,12 @@
                 <AchievementListItem UserAchievement="@userAchievement"/>
                 <MudDivider/>
             }
+            
+            @foreach (var achievement in GetUnearedUserAchievements())
+            {
+                <AchievementListItem Achievement="@achievement"/>
+                <MudDivider/>
+            }
         </MudStack>
     </MudStack>
 </MudContainer>
@@ -44,6 +50,14 @@
             .ThenBy(a => a.UnlockedAt)
             .ToList()
                ?? new List<UserAchievement>();
+    }
+    
+    private IEnumerable<Achievement> GetUnearedUserAchievements()
+    {
+        return Achievement.GetAll()
+            .Where(a => _viewedPortalUser?.Achievements?.All(ua => ua.Achievement.Id != a.Id) ?? false)
+            .OrderBy(a => a.Id)
+            .ToList();
     }
 
 }

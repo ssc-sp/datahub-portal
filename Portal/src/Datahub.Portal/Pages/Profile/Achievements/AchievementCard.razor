@@ -3,17 +3,17 @@
 
 <MudStack Row>
     <MudAvatar Size="Size.Large" Rounded>
-        <MudImage Src="@_datahubPortalConfiguration?.Achievements.GetAchievementPortraitUrl(UserAchievement.AchievementId)"></MudImage>
+        <MudImage Src="@_datahubPortalConfiguration?.Achievements.GetAchievementPortraitUrl(Achievement.Id)"></MudImage>
     </MudAvatar>
     <MudStack Spacing="0">
         <MudText Typo="Typo.body1">
-            <strong>@Localizer[UserAchievement.Achievement.Name]</strong>
+            <strong>@Localizer[Achievement.Name]</strong>
         </MudText>
-        <MudText Typo="Typo.body2">@Localizer[UserAchievement.Achievement.Description]</MudText>
+        <MudText Typo="Typo.body2">@Localizer[Achievement.Description]</MudText>
     </MudStack>
 </MudStack>
 
 @code {
     [Parameter]
-    public UserAchievement UserAchievement { get; set; }
+    public Achievement Achievement { get; set; }
 }
