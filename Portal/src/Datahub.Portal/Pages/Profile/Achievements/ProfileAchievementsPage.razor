@@ -20,7 +20,7 @@
                 <MudDivider/>
             }
             
-            @foreach (var achievement in GetUnearedUserAchievements())
+            @foreach (var achievement in GetUnEaredUserAchievements())
             {
                 <AchievementListItem Achievement="@achievement"/>
                 <MudDivider/>
@@ -52,7 +52,7 @@
                ?? new List<UserAchievement>();
     }
     
-    private IEnumerable<Achievement> GetUnearedUserAchievements()
+    private IEnumerable<Achievement> GetUnEaredUserAchievements()
     {
         return Achievement.GetAll()
             .Where(a => _viewedPortalUser?.Achievements?.All(ua => ua.Achievement.Id != a.Id) ?? false)
