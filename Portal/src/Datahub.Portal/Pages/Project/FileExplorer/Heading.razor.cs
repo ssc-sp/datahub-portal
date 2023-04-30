@@ -1,4 +1,4 @@
-using Datahub.Achievements.Models;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Services.Storage;
 using Microsoft.JSInterop;
 
@@ -28,7 +28,7 @@ public partial class Heading
         foreach (var download in downloads)
         {
             await OnFileDownload.InvokeAsync(download);
-            await _achievementService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserDownloadFile);
+            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserDownloadFile);
         }
     }
 
@@ -40,7 +40,7 @@ public partial class Heading
 
     private async Task HandleShare()
     {
-        await _achievementService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserShareFile);
+        await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserShareFile);
 
         var selectedFile = _selectedFiles.FirstOrDefault();
         if (selectedFile is null)
