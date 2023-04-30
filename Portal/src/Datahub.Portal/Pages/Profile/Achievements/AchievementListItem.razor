@@ -4,17 +4,7 @@
 
 <MudGrid Style="@_itemStyle">
     <MudItem xs="12" sm="8">
-        <MudStack Row>
-            <MudAvatar Size="Size.Large" Rounded>
-                <MudImage Src="@_datahubPortalConfiguration?.Achievements.GetAchievementPortraitUrl(UserAchievement.AchievementId)"></MudImage>
-            </MudAvatar>
-            <MudStack Spacing="0">
-                <MudText Typo="Typo.body1">
-                    <strong>@Localizer[UserAchievement.Achievement.Name]</strong>
-                </MudText>
-                <MudText Typo="Typo.body2">@Localizer[UserAchievement.Achievement.Description]</MudText>
-            </MudStack>
-        </MudStack>
+        <AchievementCard UserAchievement="UserAchievement" />
     </MudItem>
     <MudItem xs="6" sm="2" Class="d-flex align-center">
         <MudStack Spacing="0">

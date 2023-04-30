@@ -9,7 +9,7 @@
 @code {
     
     [Parameter]
-    public PortalUser PortalUser { get; set; }
+    public PortalUser ViewedUser { get; set; }
     
-    private string AvatarUrl => _datahubPortalConfiguration?.Achievements.GetAchievementPortraitUrl(PortalUser.ProfilePictureUrl);
+    private string AvatarUrl => _datahubPortalConfiguration?.Achievements.GetAchievementPortraitUrl(ViewedUser?.ProfilePictureUrl);
 }
