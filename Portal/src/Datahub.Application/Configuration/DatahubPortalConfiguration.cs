@@ -47,9 +47,9 @@ public class Achievements
     public bool LocalAchievementsOnly { get; set; } = false;
     public string StaticAssetsUrl { get; set; } = "https://fsdhstaticassetstorage.blob.core.windows.net";
     
-    public string GetAchievementThumbnailUrl(string? code) => $"{StaticAssetsUrl}/achievements/thumbnails/{code}.jpg";
-    public string GetAchievementPortraitUrl(string? code) => $"{StaticAssetsUrl}/achievements/portraits/{code}.jpg";
-    public string GetAchievementImageUrl(string? code) => $"{StaticAssetsUrl}/achievements/backgrounds/{code}.jpg";
+    public string GetAchievementThumbnailUrl(string? code) => $"{StaticAssetsUrl}/achievements/thumbnails/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
+    public string GetAchievementPortraitUrl(string? code) => $"{StaticAssetsUrl}/achievements/portraits/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
+    public string GetAchievementImageUrl(string? code) => $"{StaticAssetsUrl}/achievements/backgrounds/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
 }
 
 public class TermsAndConditionsUrl

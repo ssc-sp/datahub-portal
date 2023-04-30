@@ -1,17 +1,18 @@
 @using MudBlazor.Utilities
+@using Datahub.Core.Model.Achievements
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 
 <MudGrid Style="@_itemStyle">
     <MudItem xs="12" sm="8">
         <MudStack Row>
             <MudAvatar Size="Size.Large" Rounded>
-                <MudImage Src="@_datahubPortalConfiguration?.Achievements.GetAchievementPortraitUrl(UserAchievement.Code)"></MudImage>
+                <MudImage Src="@_datahubPortalConfiguration?.Achievements.GetAchievementPortraitUrl(UserAchievement.AchievementId)"></MudImage>
             </MudAvatar>
             <MudStack Spacing="0">
                 <MudText Typo="Typo.body1">
-                    <strong>@UserAchievement.Name</strong>
+                    <strong>@Localizer[UserAchievement.Achievement.Name]</strong>
                 </MudText>
-                <MudText Typo="Typo.body2">@UserAchievement.Description</MudText>
+                <MudText Typo="Typo.body2">@Localizer[UserAchievement.Achievement.Description]</MudText>
             </MudStack>
         </MudStack>
     </MudItem>
@@ -52,14 +53,14 @@
 @code {
 
     [Parameter]
-    public (string Code, string Name, string Description, bool Earned) UserAchievement { get; set; }
+    public UserAchievement UserAchievement { get; set; }
 
     [Parameter]
     public (int, int)? Completion { get; set; } = (0,1);
 
     private readonly int _randomNumber = new Random().Next(1, 100);
 
-    private string _itemStyle => UserAchievement.Earned ? "" : "opacity: 0.5;";
+    private string _itemStyle => UserAchievement?.UnlockedAt != null ? "" : "opacity: 0.5;";
 
     private string GetRarity()
     {

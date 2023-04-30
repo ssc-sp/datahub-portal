@@ -1,5 +1,6 @@
 @using Datahub.Portal.Pages.Profile.Settings.Views
 @using Datahub.Portal.Components.User
+@using Datahub.Core.Model.Achievements
 
 @inject IUserInformationService _userInformationService
 
@@ -58,17 +59,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
-        var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-        var language = await _userInformationService.GetUserLanguage();
-
-        _viewedPortalUser = new PortalUser
-        {
-            GraphGuid = graphUser.Id,
-            DisplayName = graphUser.DisplayName,
-            Email = graphUser.Mail,
-            Language = language
-        };
+        _viewedPortalUser = await _userInformationService.GetCurrentPortalUserWithAchievementsAsync();
     }
 
     private async Task HandleViewedUserChanged(PortalUser updatedUser)

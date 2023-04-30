@@ -1,34 +1,54 @@
 @using Microsoft.Graph
 @using MudBlazor.Utilities
-<MudStack>
-    <MudText Typo="Typo.h3" GutterBottom>@Title</MudText>
-    <MudAvatarGroup Spacing="@Spacing" Max="@Max" Style="flex-wrap: wrap" MaxColor="Color.Primary">
-        @foreach(var achievement in Achievements.Select((achievement, index) => (index, achievement)))
+@using Datahub.Core.Model.Achievements
+@using Datahub.Portal.Pages.Profile.Achievements
+
+@inject DatahubPortalConfiguration _portalConfiguration
+
+@if (GetUserAchievements().Any())
+{
+    <MudStack>
+        <MudText Typo="Typo.h3" GutterBottom>@Title</MudText>
+        <MudAvatarGroup Style="flex-wrap: wrap" MaxColor="Color.Primary">
+            @foreach(var userAchievement in GetUserAchievements())
+            {
+                <MudTooltip >
+                    <ChildContent>
+                        <MudAvatar Image="@(_portalConfiguration.Achievements.GetAchievementThumbnailUrl(userAchievement.Achievement.Id))" />
+                    </ChildContent>
+                    <TooltipContent>
+                        <AchievementListItem UserAchievement="@userAchievement" />
+                    </TooltipContent>
+                </MudTooltip>
+            }
+        </MudAvatarGroup>
+        @if (!TrophyCase)
         {
-            <MudAvatar Image="@(achievement.achievement.imageSrc)" />
+            <MudLink Href="/profile/achievements">
+                @Localizer["View All Achievements"]
+            </MudLink>
         }
-    </MudAvatarGroup>
-    @if (!ShowAll)
-    {
-        <MudLink Href="/profile/achievements">
-            @Localizer["View All Achievements"]
-        </MudLink>
-    }
-</MudStack>
+    </MudStack>
+}
 
 @code {
     
     [Parameter]
-    public List<(string name, string description, string imageSrc)> Achievements { get; set; } = new();
+    public PortalUser ViewedUser { get; set; }
     
     [Parameter]
-    public bool ShowAll { get; set; }
+    public bool TrophyCase { get; set; }
     
-    [Parameter]
-    public string Title { get; set; }
-    
-
     private string _groupStyle;
-    private int Spacing => ShowAll ? 0 : 2;
-    private int Max => ShowAll ? Achievements.Count : 8;
+    private string Title => TrophyCase ? Localizer["Trophy Achievements"] : Localizer["Achievements"];
+
+    private IEnumerable<UserAchievement> GetUserAchievements()
+    {
+        return ViewedUser?.Achievements?
+            .Where(a => a.Achievement.IsTrophy() == TrophyCase)
+            .OrderBy(a => a.Achievement.Id)
+            .ThenBy(a => a.UnlockedAt)
+            .ToList()
+               ?? new List<UserAchievement>();
+    }
 }

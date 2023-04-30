@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Datahub.Core.Model.Achievements;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 
@@ -96,6 +97,11 @@ public class OfflineUserInformationService : IUserInformationService
         return true;
     }
 
+    public Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<User> GetAnonymousGraphUserAsync()
     {
         return Task.FromResult(AnonymousUser);
@@ -114,6 +120,21 @@ public class OfflineUserInformationService : IUserInformationService
             Id = userId,
             UserPrincipalName = "me@me.com"
         });
+    }
+
+    public Task<PortalUser> GetCurrentPortalUserAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<PortalUser> GetPortalUserAsync(string userGraphId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync()
+    {
+        throw new NotImplementedException();
     }
 
     public Task<bool> IsUserWithoutInitiatives()
