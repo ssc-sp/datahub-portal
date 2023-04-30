@@ -1,14 +1,15 @@
+@using Datahub.Core.Components.Common
+@using Datahub.Core.Services.Achievements;
+@using Datahub.Core.Services.Storage;
+@using Datahub.Metadata.Model;
+
 @inject NavigationManager _navigationManager
 @inject DataRetrievalService _dataRetrievalService
 @inject IUserInformationService _userInformationService
 @inject IJSRuntime _jsRuntime
-@inject AchievementService _achievementService
+@inject IPortalUserTelemetryService _telemetryService
 @inject ServiceAuthManager ServiceAuthManager
 @inject IMetadataBrokerService MetadataBrokerService
-
-@using Datahub.Core.Components.Common
-@using Datahub.Core.Services.Storage;
-@using Datahub.Metadata.Model;
 
 <Toaster Toasts="_toasts" >
     

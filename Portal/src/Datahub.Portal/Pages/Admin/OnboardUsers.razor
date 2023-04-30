@@ -1,6 +1,9 @@
 ﻿@page "/admin/onboardusers/{ProjectAcronym}"
-@using Datahub.Achievements.Models
+
+@using Datahub.Core.Model.Achievements;
 @using Datahub.Core.Model.Datahub
+@using Datahub.Core.Services.Achievements;
+
 @inject NavigationManager NavigationManager
 @inject IMSGraphService MSGraphService
 @inject IJSRuntime JSRuntime
@@ -8,7 +11,7 @@
 @inject IUserInformationService UserInformationService
 @inject IDatahubAuditingService AuditingService
 @inject ServiceAuthManager ServiceAuthManager
-@inject AchievementService _achievementService
+@inject IPortalUserTelemetryService _telemetryService
 
 <div class="manage-access">
 
@@ -223,7 +226,9 @@
         _chosenUsers.Add(user);
         _inputValue = string.Empty;
         Context.Project_Users.Add(user);
-        await _achievementService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserSentInvite);
+
+        await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserSentInvite);
+
         await RefreshData(true);
     }
 

@@ -1,15 +1,16 @@
 ﻿@using Datahub.Core.Services.UserManagement;
 @using Microsoft.Extensions.Logging 
 @using System.Text.RegularExpressions
-@using Datahub.Achievements
-@using Datahub.Achievements.Models
 @using Datahub.Core.Model.UserTracking
 @using Datahub.Core.Utils
+@using Datahub.Core.Model.Achievements;
+@using Datahub.Core.Services.Achievements;
+
 @inject ILogger<DHLink> Logger
 @inject NavigationManager NavigationManager
 @inject UserLocationManagerService UserLocationManagerService
 @inject IJSRuntime _jsRuntime
-@inject AchievementService _achievementService
+@inject IPortalUserTelemetryService _telemetryService
 
 @inherits HtmlElement
 
@@ -70,7 +71,8 @@
             link = UserRecentLink;
             link.accessedTime = DateTimeOffset.Now;
             await UserLocationManagerService.RegisterNavigation(link, false);
-            await _achievementService.AddOrIncrementTelemetryEvent(TelemetryEvents.UserRecentLink);
+
+            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserRecentLink);
         }
         else
         {
@@ -103,7 +105,8 @@
         
         await UserLocationManagerService.RegisterNavigation(link, true);
         
-        await _achievementService.AddOrIncrementTelemetryEvent($"user_click_{link.LinkType.ToString().ToLower()}_link");
+        // >> review [YR]
+        //await _achievementService.AddOrIncrementTelemetryEvent($"user_click_{link.LinkType.ToString().ToLower()}_link");
         
         switch (LinkType)
         {
