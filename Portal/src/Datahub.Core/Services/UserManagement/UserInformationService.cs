@@ -468,7 +468,25 @@ public class UserInformationService : IUserInformationService
 
         return true;
     }
-    
+
+    public async Task<bool> UpdatePortalUserAsync(PortalUser updatedUser)
+    {
+        try
+        {
+            await using var ctx = await _datahubContextFactory.CreateDbContextAsync();
+
+            ctx.PortalUsers.Attach(updatedUser);
+            ctx.Entry(updatedUser).State = EntityState.Modified;
+            await ctx.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error updating portal user");
+            return false;
+        }
+    }
+
     public async Task<PortalUser> GetCurrentPortalUserAsync()
     {
         var graphId = await GetUserIdString();

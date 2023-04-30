@@ -187,4 +187,9 @@ public class OfflineUserInformationService : IUserInformationService
     {
         return Task.FromResult(true);
     }
+
+    public Task<bool> UpdatePortalUserAsync(PortalUser updatedUser)
+    {
+        throw new NotImplementedException();
+    }
 }
