@@ -19,7 +19,7 @@
 </MudStack>
 <MudGrid>
     <MudItem xs="12">
-        <MudImage Src="@_datahubPortalConfiguration.Achievements.GetAchievementImageUrl(_viewedPortalUser.BannerPictureUrl)"
+        <MudImage Src="@_datahubPortalConfiguration.Achievements.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
                   Alt="@Localizer["User's background image"]"
                   Class="rounded-lg mud-elevation-4"
                   Style="width: 100%"
@@ -30,19 +30,19 @@
     <MudItem xs="12" md="8">
         <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
             <MudAvatar Style="width:120px; height: 120px">
-                <MudImage Src="@_datahubPortalConfiguration.Achievements.GetAchievementPortraitUrl(_viewedPortalUser.ProfilePictureUrl)"
+                <MudImage Src="@_datahubPortalConfiguration.Achievements.GetAchievementPortraitUrl(_viewedPortalUser?.ProfilePictureUrl)"
                           Alt="@Localizer["User's profile picture"]"
                           Height="120"
                           Width="120"/>
             </MudAvatar>
             <MudStack Spacing="0">
                 <MudText Typo="Typo.h1">
-                    <strong>@_viewedPortalUser.DisplayName</strong>
+                    <strong>@_viewedPortalUser?.DisplayName</strong>
                 </MudText>
-                <MudText Typo="Typo.caption" Class="ml-2">@_viewedPortalUser.Email</MudText>
+                <MudText Typo="Typo.caption" Class="ml-2">@_viewedPortalUser?.Email</MudText>
             </MudStack>
         </MudStack>
-        <UserProjects UserId="@_viewedPortalUser.GraphGuid"/>
+        <UserProjects UserId="@_viewedPortalUser?.GraphGuid"/>
     </MudItem>
     <MudItem xs="12" md="4">
         <MudStack Spacing="6">

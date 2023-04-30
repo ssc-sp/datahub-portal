@@ -17,7 +17,7 @@
                         <MudAvatar Image="@(_portalConfiguration.Achievements.GetAchievementThumbnailUrl(userAchievement.Achievement.Id))" />
                     </ChildContent>
                     <TooltipContent>
-                        <AchievementCard UserAchievement="@userAchievement" />
+                        <AchievementCard Achievement="@userAchievement.Achievement" />
                     </TooltipContent>
                 </MudTooltip>
             }
