@@ -44,7 +44,7 @@
 
     private IEnumerable<UserAchievement> GetUserAchievements()
     {
-        return ViewedUser?.Achievements?
+        return ViewedUser?.GetUserAchievements()
             .Where(a => a.Achievement.IsTrophy() == TrophyCase)
             .OrderBy(a => a.Achievement.Id)
             .ThenBy(a => a.UnlockedAt)
