@@ -1,5 +1,7 @@
 ﻿using Datahub.Application.Services;
+using Datahub.Infrastructure.Queues.MessageHandlers;
 using Datahub.Infrastructure.Services;
+using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,7 +18,8 @@ public static class ConfigureServices
         services.AddScoped<IProjectDataRetrievalService, ProjectDataRetrievalService>();
         services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
 
-        
+        services.AddMediatR(typeof(QueueMessageSender<>));
+
         return services;
     }
 }
