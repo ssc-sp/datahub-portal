@@ -9,7 +9,7 @@
     <MudItem xs="6" sm="2" Class="d-flex align-center">
         <MudStack Spacing="0">
             <MudText Typo="Typo.body2">@GetRarity()</MudText>
-            <MudText Typo="Typo.body2">@_randomNumber %</MudText>
+            <MudText Typo="Typo.body2">@Rarity %</MudText>
         </MudStack>
     </MudItem>
     <MudItem xs="6" sm="2" Class="d-flex align-center justify-center">
@@ -47,17 +47,18 @@
     
     [Parameter]
     public Achievement Achievement { get; set; }
+    
+    [Parameter]
+    public int Rarity { get; set; }
 
     [Parameter]
     public (int, int)? Completion { get; set; } = (0,1);
-
-    private readonly int _randomNumber = new Random().Next(1, 100);
 
     private string _itemStyle => UserAchievement?.UnlockedAt != null ? "" : "opacity: 0.5;";
 
     private string GetRarity()
     {
-        switch (_randomNumber)
+        switch (Rarity)
         {
             case < 5:
                 return Localizer["Legendary"];
