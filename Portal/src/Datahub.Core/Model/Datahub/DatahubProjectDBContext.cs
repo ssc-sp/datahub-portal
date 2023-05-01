@@ -1,5 +1,4 @@
-﻿using Datahub.Achievements.Models;
-using Datahub.Core.Data;
+﻿using Datahub.Core.Data;
 using Datahub.Core.Model.Onboarding;
 using J2N;
 using Microsoft.EntityFrameworkCore;
