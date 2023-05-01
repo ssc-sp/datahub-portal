@@ -7,6 +7,7 @@
 @using Microsoft.EntityFrameworkCore
 @using System.Linq
 @using Datahub.Core.Model.Datahub
+@using Datahub.Portal.Pages.Profile.Achievements
 @using Microsoft.Graph
 
 @inject IPortalUserTelemetryService _telemetryService
@@ -59,7 +60,12 @@
 
     private void OnAchievementsEarned(object sender, AchievementsEarnedEventArgs e)
     {
-        // >>
+        e.Achievements.ForEach(achievement =>
+        {
+            _snackbar.Add<AchievementCard>(
+                new Dictionary<string, object> { { "Achievement", achievement } },
+                configure: config => { config.HideIcon = true; });
+        });
     }
 
     private void OnAchievementEarned(object sender, AchievementEarnedEventArgs e)
@@ -80,17 +86,18 @@
 
     private void OnLocationChanged(object sender, LocationChangedEventArgs e)
     {
-        //var relativeUrl = new Uri(e.Location).PathAndQuery;
-        //InvokeAsync(async () =>
-        //{
-        //    await _achievementsService.AddOrIncrementTelemetryEvent(relativeUrl, 1);
-        //    StateHasChanged();
-        //});
+    //var relativeUrl = new Uri(e.Location).PathAndQuery;
+    //InvokeAsync(async () =>
+    //{
+    //    await _achievementsService.AddOrIncrementTelemetryEvent(relativeUrl, 1);
+    //    StateHasChanged();
+    //});
     }
-    
+
     void IDisposable.Dispose()
     {
         _navigationManager.LocationChanged -= OnLocationChanged;
         _telemetryService.OnAchievementsEarned -= OnAchievementsEarned;
     }
+
 }
