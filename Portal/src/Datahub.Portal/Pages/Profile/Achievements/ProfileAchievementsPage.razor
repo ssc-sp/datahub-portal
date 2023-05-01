@@ -3,6 +3,7 @@
 @using Datahub.Core.Model.Achievements
 
 @inject IUserInformationService _userInformationService
+@inject IDbContextFactory<DatahubProjectDBContext> _contextFactory;
 
 @page "/profile/achievements"
 
@@ -16,13 +17,15 @@
 
             @foreach (var userAchievement in GetUserAchievements())
             {
-                <AchievementListItem UserAchievement="@userAchievement"/>
+                var rarity = GetRarity(userAchievement);
+                <AchievementListItem UserAchievement="@userAchievement" Rarity="@rarity"/>
                 <MudDivider/>
             }
             
             @foreach (var achievement in GetUnEaredUserAchievements())
             {
-                <AchievementListItem Achievement="@achievement"/>
+                var rarity = GetRarity(achievement);
+                <AchievementListItem Achievement="@achievement" Rarity="@rarity"/>
                 <MudDivider/>
             }
         </MudStack>
@@ -36,10 +39,51 @@
 
     private PortalUser _viewedPortalUser;
 
+    private Dictionary<string, int> _achievementRarityDictionary;
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         _viewedPortalUser = await _userInformationService.GetCurrentPortalUserWithAchievementsAsync();
+        _achievementRarityDictionary = await FetchAchievementRarities();
+    }
+
+    private async Task<Dictionary<string,int>> FetchAchievementRarities()
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        
+        // get the total number of users
+        var totalUsers = await context.PortalUsers
+            .CountAsync();
+        
+        // get the number of users who have each achievement
+        var achievementCounts = await context.UserAchievements
+            .GroupBy(ua => ua.AchievementId)
+            .Select(g => new
+            {
+                AchievementId = g.Key,
+                Count = g.Count()
+            })
+            .ToListAsync();
+        
+        // get the number of users who have each achievement to a dictionary
+        var achievementRarityDictionary = achievementCounts
+            .ToDictionary(
+                ac => ac.AchievementId,
+                ac => (int) Math.Round((double) ac.Count / totalUsers * 100)
+            );
+        
+        return achievementRarityDictionary;
+    }
+
+    private int GetRarity(UserAchievement userAchievement)
+    {
+        return GetRarity(userAchievement.Achievement);
+    }
+    
+    private int GetRarity(Achievement achievement)
+    {
+        return _achievementRarityDictionary.TryGetValue(achievement.Id, out var value) ? value : 0;
     }
 
 
