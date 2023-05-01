@@ -1,22 +1,17 @@
-﻿using AngleSharp.Common;
-using Datahub.Core.Model.Datahub;
+﻿using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Services.Azure;
-using Lucene.Net.QueryParsers.Classic;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
-using System.Linq;
-using Microsoft.Azure.Cosmos.Linq;
-using Microsoft.Graph;
 
 namespace Datahub.Infrastructure.Services.Projects;
 
 public class ProjectUsageService
 {
-	private readonly AzureManagementService _azureManagementService;
+    private readonly AzureManagementService _azureManagementService;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 
     public ProjectUsageService(AzureManagementService azureManagementService, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
-	{
+    {
         _azureManagementService = azureManagementService;
         _dbContextFactory = dbContextFactory;
     }
@@ -60,9 +55,9 @@ public class ProjectUsageService
     {
         var session = await _azureManagementService.GetSession(ct);
 
-        // current monthly cost
-        var yearCost = await session.GetResourceGroupLastYearCost(resourceGroup);
-        if (yearCost is null)
+        // monthy by service
+        var costByService = await session.GetResourceGroupYearCostByService(resourceGroups);
+        if (costByService is not null)
         {
             projectCredits.CurrentPerService = JsonSerializer.Serialize(costByService);
             projectCredits.Current = costByService.Sum(c => c.Cost);
@@ -78,28 +73,13 @@ public class ProjectUsageService
                 throw new Exception($"Failed to read up to date cost for resource group '{resourceGroups}'");
         }
 
-        // wait 2 seconds before trying next query
-        await Task.Delay(2000);
-
-        // monthy by service
-        var costByService = await session.GetResourceGroupYearCostByService(resourceGroup);
-        if (costByService is not null)
-            projectCredits.CurrentPerService = JsonSerializer.Serialize(costByService);
-
-        // wait 2 seconds before trying next query
-        await Task.Delay(2000);
-
-        // yesterday cost
-        var yesterdayCredits = await session.GetResourceGroupYesterdayCost(resourceGroup);
-        if (yesterdayCredits.HasValue)
-            projectCredits.YesterdayCredits = yesterdayCredits.Value;
-
-        // wait 2 seconds before trying next query
-        await Task.Delay(2000);
+        // wait 5 seconds before trying next query
+        await Task.Delay(5000);
 
         // yesterday by service
-        var yesterdayCostByService = await session.GetResourceGroupYesterdayCostByService(resourceGroup);
+        var yesterdayCostByService = await session.GetResourceGroupYesterdayCostByService(resourceGroups);
         if (yesterdayCostByService is not null)
+        {
             projectCredits.YesterdayPerService = JsonSerializer.Serialize(yesterdayCostByService);
             projectCredits.YesterdayCredits = yesterdayCostByService.Sum(c => c.Cost);
         }
@@ -108,17 +88,13 @@ public class ProjectUsageService
         await Task.Delay(2000);
 
         // current cost by day
-        var costsPerDay = await session.GetResourceGroupMonthlyCostPerDay(resourceGroup);
+        var costsPerDay = await session.GetResourceGroupMonthlyCostPerDay(resourceGroups);
         if (costsPerDay is not null)
             projectCredits.CurrentPerDay = JsonSerializer.Serialize(costsPerDay);
 
-        if (l1.Count != l2.Count)
-            return default;
+        // last updated
+        projectCredits.LastUpdate = DateTime.UtcNow;
 
-        return l1.Zip(l2).Select(v => new AzureDailyCost() 
-        { 
-            Date = v.First.Date, 
-            Cost = v.First.Cost + v.Second.Cost 
-        }).ToList();
+        return true;
     }
 }
