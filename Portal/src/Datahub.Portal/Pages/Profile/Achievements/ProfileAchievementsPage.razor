@@ -25,7 +25,8 @@
             @foreach (var achievement in GetUnEaredUserAchievements())
             {
                 var rarity = GetRarity(achievement);
-                <AchievementListItem Achievement="@achievement" Rarity="@rarity"/>
+                var completion = GetCompletion(achievement);
+                <AchievementListItem Achievement="@achievement" Rarity="@rarity" Completion="@completion"/>
                 <MudDivider/>
             }
         </MudStack>
@@ -84,6 +85,20 @@
     private int GetRarity(Achievement achievement)
     {
         return _achievementRarityDictionary.TryGetValue(achievement.Id, out var value) ? value : 0;
+    }
+
+    private (int, int) GetCompletion(Achievement achievement)
+    {
+        if (!achievement.IsTrophy())
+        {
+            return (0, 1);
+        } 
+        var maxComplete = achievement.GetRules().Length;
+        // count how many match the first three characters of the id
+        var currentComplete = _viewedPortalUser?.Achievements
+            .Count(ua => ua.AchievementId.StartsWith(achievement.Id[..3])) ?? 0;
+
+        return (currentComplete, maxComplete);
     }
 
 
