@@ -15,7 +15,6 @@ public class TelemetryEventConfiguration : IEntityTypeConfiguration<TelemetryEve
                .ValueGeneratedOnAdd();
 
         builder.Property(e => e.EventName)
-               .HasMaxLength(32) 
                .IsRequired();
     }
 }

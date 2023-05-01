@@ -82,7 +82,7 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
         // report the new achievements
         if (newAchievements.Any())
         {
-            OnAchievementsEarned.Invoke(this, new AchievementsEarnedEventArgs(newAchievements));
+            OnAchievementsEarned?.Invoke(this, new AchievementsEarnedEventArgs(newAchievements));
         }
     }
 }
