@@ -736,7 +736,7 @@
   "Project_Cost_Button": "More details",
   "Project_Cost_Since": "Consumption since {0} 1st:",
   "Project_Remaining_Credit_label": "Remaining Credit:",
-  "Project_Remaining_Credit_text": "{0:C} out of {1:C} per month",
+  "Project_Remaining_Credit_text": "{0:C} out of {1:C}",
   "Project_Remaining_Credit_Storage": "{0:C} used for storage = {1} of data stored in Azure.",
   "Project_Remaining_Credit_Compute": "{0:C} used for compute",
   "Project_Remaining_Credit_Compute_Small": "= {0} hrs of Databricks for a Small Cluster.",
