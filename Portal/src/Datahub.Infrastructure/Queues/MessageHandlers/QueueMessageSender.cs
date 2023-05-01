@@ -17,7 +17,7 @@ public abstract class QueueMessageSender<T> : AsyncRequestHandler<T> where T : I
 
     protected override async Task Handle(T request, CancellationToken cancellationToken)
     {
-        var storageConnectionString = _configuration["DatahubStorageConnectionString"];
+        var storageConnectionString = _configuration["DatahubStorageConnectionString"] ?? _configuration["DatahubStorageQueue:ConnectionString"];
         var queueName = _configuration[ConfigPathOrQueueName] ?? ConfigPathOrQueueName;
 
         if (string.IsNullOrEmpty(storageConnectionString) || string.IsNullOrEmpty(queueName)) 

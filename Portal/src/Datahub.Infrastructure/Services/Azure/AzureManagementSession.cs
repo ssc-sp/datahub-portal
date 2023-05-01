@@ -21,42 +21,42 @@ public class AzureManagementSession
 
     public string AccessToken => _accessToken;
 
-    public async Task<double?> GetResourceGroupLastYearCost(string resourceGroup)
+    public async Task<double?> GetResourceGroupLastYearCost(string[] resourceGroups)
     {
-        var url = GetCostManagementRequestUrl(resourceGroup);
-        var request = GetYearCostRequest();
+        var url = GetCostManagementRequestUrl();
+        var request = GetYearCostRequest(resourceGroups);
         var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
         return GetResourceGroupCost(response);
     }
 
-    public async Task<List<AzureDailyCost>?> GetResourceGroupMonthlyCostPerDay(string resourceGroup)
+    public async Task<List<AzureDailyCost>?> GetResourceGroupMonthlyCostPerDay(string[] resourceGroups)
     {
-        var url = GetCostManagementRequestUrl(resourceGroup);
-        var request = GetMonthlyCostPerDayRequest();
+        var url = GetCostManagementRequestUrl();
+        var request = GetMonthlyCostPerDayRequest(resourceGroups);
         var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
         return GetResourceGroupCostPerDay(response);
     }
 
-    public async Task<double?> GetResourceGroupYesterdayCost(string resourceGroup)
+    public async Task<double?> GetResourceGroupYesterdayCost(string[] resourceGroups)
     {
-        var url = GetCostManagementRequestUrl(resourceGroup);
-        var request = GetYesterdayTotalCostRequest();
+        var url = GetCostManagementRequestUrl();
+        var request = GetYesterdayTotalCostRequest(resourceGroups);
         var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
         return GetResourceGroupCost(response);
     }
 
-    public async Task<List<AzureServiceCost>?> GetResourceGroupYearCostByService(string resourceGroup)
+    public async Task<List<AzureServiceCost>?> GetResourceGroupYearCostByService(string[] resourceGroups)
     {
-        var url = GetCostManagementRequestUrl(resourceGroup);
-        var request = GetYearCostByServiceRequest();
+        var url = GetCostManagementRequestUrl();
+        var request = GetYearCostByServiceRequest(resourceGroups);
         var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
         return GetServiceCosts(response, nameIndex: 1);
     }
 
-    public async Task<List<AzureServiceCost>?> GetResourceGroupYesterdayCostByService(string resourceGroup)
+    public async Task<List<AzureServiceCost>?> GetResourceGroupYesterdayCostByService(string[] resourceGroups)
     {
-        var url = GetCostManagementRequestUrl(resourceGroup);
-        var request = GetYesterdayCostByServiceRequest();
+        var url = GetCostManagementRequestUrl();
+        var request = GetYesterdayCostByServiceRequest(resourceGroups);
         var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
         return GetServiceCosts(response, nameIndex: 1);
     }
@@ -76,13 +76,12 @@ public class AzureManagementSession
         };
     }
 
-    private string GetCostManagementRequestUrl(string resourceGroup)
+    private string GetCostManagementRequestUrl()
     {
-        var version = "2021-10-01";
-        return $"{AzureManagementUrls.ManagementUrl}/subscriptions/{_configuration.SubscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.CostManagement/query?api-version={version}&$top=5000";
+        return $"{AzureManagementUrls.ManagementUrl}/subscriptions/{_configuration.SubscriptionId}/providers/Microsoft.CostManagement/query?api-version=2021-10-01&$top=5000";
     }
 
-    static CostManagementRequest GetYearCostRequest()
+    static CostManagementRequest GetYearCostRequest(string[] resourceGroups)
     {
         var (from, to) = GetLastYearPeriod();
         return new()
@@ -91,7 +90,8 @@ public class AzureManagementSession
             DataSet = new()
             {
                 Granularity = "None",
-                Aggregation = GetCostAggregation()
+                Aggregation = GetCostAggregation(),
+                Filter = GetResourceGroupsFilter(resourceGroups)
             },
             Timeframe = "Custom",
             TimePeriod = new()
@@ -102,7 +102,7 @@ public class AzureManagementSession
         };
     }
 
-    static CostManagementRequest GetMonthlyCostPerDayRequest()
+    static CostManagementRequest GetMonthlyCostPerDayRequest(string[] resourceGroups)
     {
         return new()
         {
@@ -110,12 +110,13 @@ public class AzureManagementSession
             DataSet = new()
             {
                 Granularity = "Daily",
-                Aggregation = GetCostAggregation()
+                Aggregation = GetCostAggregation(),
+                Filter = GetResourceGroupsFilter(resourceGroups)
             }
         };
     }
 
-    static CostManagementRequest GetYesterdayTotalCostRequest()
+    static CostManagementRequest GetYesterdayTotalCostRequest(string[] resourceGroups)
     {
         var (from, to) = GetYesterdayPeriod();
         return new()
@@ -124,7 +125,8 @@ public class AzureManagementSession
             DataSet = new()
             {
                 Granularity = "None",
-                Aggregation = GetCostAggregation()
+                Aggregation = GetCostAggregation(),
+                Filter = GetResourceGroupsFilter(resourceGroups)
             },
             Timeframe = "Custom",
             TimePeriod = new()
@@ -135,7 +137,7 @@ public class AzureManagementSession
         };
     }
 
-    static CostManagementRequest GetYearCostByServiceRequest()
+    static CostManagementRequest GetYearCostByServiceRequest(string[] resourceGroups)
     {
         var (from, to) = GetLastYearPeriod();
         return new()
@@ -152,7 +154,8 @@ public class AzureManagementSession
                         Type = "Dimension",
                         Name = "ServiceName"
                     }
-                }
+                },
+                Filter = GetResourceGroupsFilter(resourceGroups)
             },
             Timeframe = "Custom",
             TimePeriod = new()
@@ -163,7 +166,7 @@ public class AzureManagementSession
         };
     }
 
-    static CostManagementRequest GetYesterdayCostByServiceRequest()
+    static CostManagementRequest GetYesterdayCostByServiceRequest(string[] resourceGroups)
     {
         var (from, to) = GetYesterdayPeriod();
         return new()
@@ -180,7 +183,8 @@ public class AzureManagementSession
                         Type = "Dimension",
                         Name = "ServiceName"
                     }
-                }
+                },
+                Filter = GetResourceGroupsFilter(resourceGroups)
             },
             Timeframe = "Custom",
             TimePeriod = new()
@@ -190,6 +194,16 @@ public class AzureManagementSession
             }
         };
     }
+
+    static CostManagementRequestFilter GetResourceGroupsFilter(string[] rgs) => new()
+    {
+        Dimensions = new()
+        {
+            Name = "ResourceGroupName",
+            Operator = "in",
+            Values = new(rgs)
+        }
+    };
 
     static CostManagementRequestAggregation GetCostAggregation() => new()
     {
@@ -228,7 +242,7 @@ public class AzureManagementSession
             Name = ParseString(r[nameIndex]),
             Cost = ParseDouble(r[0])
         })
-        .Where(c => c.Cost > 0.01)
+        .Where(c => c.Cost > 0.0)
         .OrderByDescending(c => c.Cost)
         .ToList();
     }

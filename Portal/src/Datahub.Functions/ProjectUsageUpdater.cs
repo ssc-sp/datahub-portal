@@ -37,8 +37,10 @@ namespace Datahub.Functions
                 throw new Exception($"Invalid queue message:\n{queueItem}");
             }
 
+            var resourceGroups = GetResourceGroups(message.ResourceGroup).ToArray();
+
             // update the usage
-            if (!await _usageService.UpdateProjectUsage(message.ProjectId, message.ResourceGroup, cancellationToken))
+            if (!await _usageService.UpdateProjectUsage(message.ProjectId, resourceGroups, cancellationToken))
                 return;
 
             // queue the usage notification message
@@ -48,6 +50,17 @@ namespace Datahub.Functions
         static ProjectUsageUpdateMessage? DeserializeQueueMessage(string message)
         {
             return JsonSerializer.Deserialize<ProjectUsageUpdateMessage>(message);
+        }
+
+        /// <summary>
+        /// Given: fsdh_proj_die1_dev_rg
+        /// </summary>
+        /// <returns>[fsdh_proj_die1_dev_rg, fsdh-dbk-die1-dev-rg]</returns>
+        static IEnumerable<string> GetResourceGroups(string name)
+        {
+            yield return name;
+            var parts = name.Split('_').Select((s, idx) => idx == 1 ? "dbk" : s);
+            yield return string.Join("-", parts);
         }
     }
 }
