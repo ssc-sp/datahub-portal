@@ -94,10 +94,15 @@
         var isMemberOfProject = projectContext.Project_Users
             .Any(p => p.User_ID == _userId && p.Project.Project_Acronym_CD == ProjectAcronymParam);
 
-        if (!isMemberOfProject)
+        if (isMemberOfProject)
+        {
+            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewProject);
+        }
+        else
         {
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewProjectNotMemberOf);
         }
+
         _clientEngagements = await projectContext.Client_Engagements.Where(ce => ce.Project == _project && ce.Is_Engagement_Active).ToListAsync();
         await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
     }

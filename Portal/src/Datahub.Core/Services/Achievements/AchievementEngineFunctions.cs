@@ -1,9 +1,15 @@
 ﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Datahub.Core.Services.Achievements;
 
 public static class Utils
 {
+    public static bool MatchUrl(string regexPattern, string currentMetric)
+    {
+        return Regex.IsMatch(currentMetric, regexPattern);
+    }
+
     public static bool MatchMetric(string metricName, string currentMetric)
     {
         return metricName == currentMetric;
