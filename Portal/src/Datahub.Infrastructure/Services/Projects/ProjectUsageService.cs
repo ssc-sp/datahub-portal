@@ -16,7 +16,7 @@ public class ProjectUsageService
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<bool> UpdateProjectUsage(int projectId, string resourceGroup, CancellationToken ct)
+    public async Task<bool> UpdateProjectUsage(int projectId, string[] resourceGroups, CancellationToken ct)
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
 
@@ -27,7 +27,7 @@ public class ProjectUsageService
         projectCredits ??= new() { ProjectId = projectId };
 
         // update usage
-        if (!await UpdateUsage(projectCredits, resourceGroup, ct))
+        if (!await UpdateUsage(projectCredits, resourceGroups, ct))
             return false;
 
         // add or update
@@ -51,13 +51,18 @@ public class ProjectUsageService
         return date.HasValue && DateTime.UtcNow.AddMinutes(-minutes) < date;
     }
 
-    private async Task<bool> UpdateUsage(Project_Credits projectCredits, string resourceGroup, CancellationToken ct)
+    private async Task<bool> UpdateUsage(Project_Credits projectCredits, string[] resourceGroups, CancellationToken ct)
     {
         var session = await _azureManagementService.GetSession(ct);
 
-        // current monthly cost
-        var yearCost = await session.GetResourceGroupLastYearCost(resourceGroup);
-        if (yearCost is null)
+        // monthy by service
+        var costByService = await session.GetResourceGroupYearCostByService(resourceGroups);
+        if (costByService is not null)
+        {
+            projectCredits.CurrentPerService = JsonSerializer.Serialize(costByService);
+            projectCredits.Current = costByService.Sum(c => c.Cost);
+        }
+        else
         {
             // allow a grace period for new projects
             if (projectCredits.Id == 0)
@@ -65,42 +70,25 @@ public class ProjectUsageService
 
             // if not updated in the last 90 minutes, throw the exception
             if (!UpdatedInPeriod(projectCredits.LastUpdate, 90))
-                throw new Exception($"Failed to read up to date cost for resource group '{resourceGroup}'");
+                throw new Exception($"Failed to read up to date cost for resource group '{resourceGroups}'");
         }
-        else
-        {
-            projectCredits.Current = yearCost.Value;
-        }       
 
-        // wait 2 seconds before trying next query
-        await Task.Delay(2000);
-
-        // monthy by service
-        var costByService = await session.GetResourceGroupYearCostByService(resourceGroup);
-        if (costByService is not null)
-            projectCredits.CurrentPerService = JsonSerializer.Serialize(costByService);
-
-        // wait 2 seconds before trying next query
-        await Task.Delay(2000);
-
-        // yesterday cost
-        var yesterdayCredits = await session.GetResourceGroupYesterdayCost(resourceGroup);
-        if (yesterdayCredits.HasValue)
-            projectCredits.YesterdayCredits = yesterdayCredits.Value;
-
-        // wait 2 seconds before trying next query
-        await Task.Delay(2000);
+        // wait 5 seconds before trying next query
+        await Task.Delay(5000);
 
         // yesterday by service
-        var yesterdayCostByService = await session.GetResourceGroupYesterdayCostByService(resourceGroup);
+        var yesterdayCostByService = await session.GetResourceGroupYesterdayCostByService(resourceGroups);
         if (yesterdayCostByService is not null)
+        {
             projectCredits.YesterdayPerService = JsonSerializer.Serialize(yesterdayCostByService);
+            projectCredits.YesterdayCredits = yesterdayCostByService.Sum(c => c.Cost);
+        }
 
         // wait 2 seconds before trying next query
         await Task.Delay(2000);
 
         // current cost by day
-        var costsPerDay = await session.GetResourceGroupMonthlyCostPerDay(resourceGroup);
+        var costsPerDay = await session.GetResourceGroupMonthlyCostPerDay(resourceGroups);
         if (costsPerDay is not null)
             projectCredits.CurrentPerDay = JsonSerializer.Serialize(costsPerDay);
 

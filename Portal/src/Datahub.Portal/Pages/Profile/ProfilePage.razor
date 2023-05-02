@@ -1,16 +1,17 @@
 @page "/profile"
 @page "/profile/{UserIdBase64}"
 
+@using Datahub.Core.Services.Achievements;
+@using Datahub.Core.Model.Achievements;
+@using MudBlazor.Utilities
+@using Datahub.Portal.Pages.Profile.Sections
+@using Datahub.Core.Extensions
+
 @inject IUserInformationService _userInformationService
 @inject IConfiguration _configuration
 @inject IMSGraphService _mSGraphService;
-@inject AchievementService _achievementService;
+@inject IPortalUserTelemetryService _telemetryService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration;
-
-@using MudBlazor.Utilities
-@using Datahub.Portal.Pages.Profile.Sections
-@using Datahub.Achievements.Models
-@using Datahub.Core.Extensions
 
 @if (_user is null)
 {
@@ -84,7 +85,7 @@
             _user = await _mSGraphService.GetUserAsync(decodedUserId, CancellationToken.None);
             if (_user?.Id != null && user?.Id != decodedUserId)
             {
-                await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserViewOtherProfile);
+                await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
             }
         }
     }

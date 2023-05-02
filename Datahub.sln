@@ -54,8 +54,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonTranslator", "Portal\ut
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDbUsers", "Portal\utils\SyncDbUsers\SyncDbUsers.csproj", "{346091EA-1E82-4220-9387-C181BF5E1019}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Achievements.Test", "Portal\test\Datahub.Achievements.Test\Datahub.Achievements.Test.csproj", "{42246885-BFA5-4214-85BA-2DA5A788B4EB}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.CatalogSearch.Tests", "Portal\test\Datahub.CatalogSearch.Tests\Datahub.CatalogSearch.Tests.csproj", "{3404918C-7A35-4C30-91FB-F2A8D4DE8014}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.LanguageTraining.Tests", "Portal\test\Datahub.LanguageTraining.Tests\Datahub.LanguageTraining.Tests.csproj", "{1AC41270-FD3B-4EB4-BFDB-B030527C888C}"
@@ -189,10 +187,6 @@ Global
 		{346091EA-1E82-4220-9387-C181BF5E1019}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{346091EA-1E82-4220-9387-C181BF5E1019}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{346091EA-1E82-4220-9387-C181BF5E1019}.Release|Any CPU.Build.0 = Release|Any CPU
-		{42246885-BFA5-4214-85BA-2DA5A788B4EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{42246885-BFA5-4214-85BA-2DA5A788B4EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{42246885-BFA5-4214-85BA-2DA5A788B4EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{42246885-BFA5-4214-85BA-2DA5A788B4EB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3404918C-7A35-4C30-91FB-F2A8D4DE8014}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3404918C-7A35-4C30-91FB-F2A8D4DE8014}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3404918C-7A35-4C30-91FB-F2A8D4DE8014}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -319,7 +313,6 @@ Global
 		{7CAA042A-AA21-44BD-A0F8-0E89CD651B33} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 		{297AA1C7-6026-46B7-A494-B974E6663F94} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 		{346091EA-1E82-4220-9387-C181BF5E1019} = {73AC16BF-F514-4081-8C74-63C6399260E0}
-		{42246885-BFA5-4214-85BA-2DA5A788B4EB} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 		{3404918C-7A35-4C30-91FB-F2A8D4DE8014} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 		{1AC41270-FD3B-4EB4-BFDB-B030527C888C} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 		{693C3DC6-CF30-4942-80EA-EEC8ABB87DD3} = {47D68FB0-47FE-485D-AE94-00C48643721E}
@@ -351,9 +344,9 @@ Global
 		{78416465-E37B-4DB5-B96B-99E45581A0EE} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_ConfirmAddLanguageFile = True
-		RESX_AutoCreateNewLanguageFiles = True
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
+		RESX_AutoCreateNewLanguageFiles = True
+		RESX_ConfirmAddLanguageFile = True
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
