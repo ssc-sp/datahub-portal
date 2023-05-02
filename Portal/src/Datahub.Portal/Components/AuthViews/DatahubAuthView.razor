@@ -33,11 +33,11 @@
         switch (AuthLevel)
         {
             case AuthLevels.Unauthorized:
-                return "";
+                return "bad-dev";
             case AuthLevels.DatahubAdmin:
                 return $"{RoleConstants.DATAHUB_ROLE_ADMIN},{RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST}";
             default:
-                return "";
+                return null;
         }
     }
 }
