@@ -62,6 +62,7 @@ using Datahub.LanguageTraining.Services;
 using Datahub.M365Forms.Services;
 using Datahub.Infrastructure.Services.Azure;
 using Datahub.Infrastructure.Services.Projects;
+using Datahub.Core.Services.Achievements;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -142,11 +143,15 @@ public class Startup
         services.AddScoped<GetDimensionsService>();
         //TimeZoneService provides the user time zone to the server using JS Interop
         services.AddScoped<TimeZoneService>();
+
+        // todo: remove
         services.AddAchievementService(opts =>
         {
             opts.Enabled = Configuration.GetValue("Achievements:Enabled", false);
             opts.AchievementDirectoryPath = Path.Join(AppContext.BaseDirectory, "Achievements");
         });
+
+        services.AddUserAchievementServices();
 
         services.AddElemental();
         services.AddMudServices();

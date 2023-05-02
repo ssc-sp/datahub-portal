@@ -67,6 +67,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     public DbSet<Project_Storage_Capacity> Storage_Capacities { get; set; }
 
+    public DbSet<Achievements.Achievement> Achievements { get; set; }
+    public DbSet<Achievements.PortalUser> PortalUsers { get; set; }
+    public DbSet<Achievements.UserAchievement> UserAchievements { get; set; }
+    public DbSet<Achievements.TelemetryEvent> TelemetryEvents { get; set; }
+
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
         var p1 = context.Projects.Add(new Datahub_Project()
@@ -114,6 +119,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(DatahubProjectDBContext).Assembly);
+
         modelBuilder.Entity<WebForm_Field>()
             .HasOne(p => p.WebForm)
             .WithMany(p => p.Fields);
