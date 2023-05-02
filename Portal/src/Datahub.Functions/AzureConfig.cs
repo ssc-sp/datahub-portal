@@ -50,6 +50,7 @@ public class EmailNotification
     public string? SmtpPassword { get; set; }
     public string? SenderName { get; set; }
     public string? SenderAddress { get; set; }
+    public string? NotificationsCCAddress { get; set; }
     public bool IsValid => !string.IsNullOrEmpty(SmtpHost) && 
                            !string.IsNullOrEmpty(SmtpUsername) && 
                            !string.IsNullOrEmpty(SmtpPassword) && 
