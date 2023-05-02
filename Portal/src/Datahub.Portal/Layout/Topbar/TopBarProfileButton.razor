@@ -9,11 +9,15 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Portal.Components.User
 
-<AuthorizeView>
+@if (_viewedUser is null)
+{
+    return;
+}
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
     <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
         <ActivatorContent>
-            <MudButton Class="ml-2" OnClick="@ToggleProfile">
-                <UserCard ViewedUser="@_viewedUser" Size="@Size.Medium"/>
+            <MudButton Class="ml-2">
+                <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Medium"/>
                 <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
             </MudButton>
         </ActivatorContent>
@@ -38,7 +42,7 @@
             </MudCard>
         </ChildContent>
     </MudMenu>
-</AuthorizeView>
+</DatahubAuthView>
 
 @code {
 
@@ -67,10 +71,4 @@
             _consentHandler.HandleException(ex);
         }
     }
-
-    private void ToggleProfile()
-    {
-    // _showProfile = !_showProfile;
-    }
-
 }

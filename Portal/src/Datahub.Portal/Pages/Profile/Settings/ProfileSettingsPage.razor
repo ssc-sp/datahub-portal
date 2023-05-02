@@ -7,12 +7,17 @@
 
 @page "/profile/settings/{Section?}"
 
+@if (_viewedPortalUser is null)
+{
+    return;
+}
+
 <MudContainer MaxWidth="MaxWidth.Large">
     <MudGrid>
         <MudItem xs="3">
                 <!--suppress CssUnresolvedCustomProperty -->
                 <MudStack Spacing="6" Style="position: sticky; top: calc(var(--mud-appbar-height) + 8px);">
-                <UserCard ViewedUser="@_viewedPortalUser"/>
+                <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
                 <ProfileSettingsSidebar ViewedUser="@_viewedPortalUser"/>
             </MudStack>
         </MudItem>
