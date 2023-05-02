@@ -3,8 +3,8 @@
 @using Datahub.Core.Model.Achievements
 
 <MudStack Row Spacing="0" AlignItems="AlignItems.Center">
-    <UserAvatar ViewedUser="@ViewedUser" />
-    <MudStack Spacing="0">
+    <UserAvatar ViewedUser="@ViewedUser" Size="@Size" />
+    <MudStack Spacing="0" AlignItems="AlignItems.Start">
         <MudText Typo="Typo.h6" Class="px-4">@ViewedUser?.DisplayName</MudText>
         <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">@ViewedUser?.Email</MudText>
     </MudStack>
@@ -13,4 +13,7 @@
 @code {
     [Parameter]
     public PortalUser ViewedUser { get; set; }
+    
+    [Parameter]
+    public Size Size { get; set; } = Size.Large;
 }
