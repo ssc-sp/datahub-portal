@@ -90,7 +90,7 @@ public class Achievement
                 "STR-000", "Storage Savant", "Unlock all the 2.0 Storage Explorer achievements", 1,
                 // rules
                 """Utils.OwnsAchievement("STR-001", achivements)""",
-                """Utils.OwnsAchievement("STR-002", achivements)""",
+                //"""Utils.OwnsAchievement("STR-002", achivements)""",
                 """Utils.OwnsAchievement("STR-003", achivements)""",
                 """Utils.OwnsAchievement("STR-004", achivements)""",
                 """Utils.OwnsAchievement("STR-005", achivements)""",
@@ -153,7 +153,7 @@ public class Achievement
             (
                 "EXP-001", "Storage Safari", "Navigate to the Storage Explorer page of a workspace", 1,
                 // rules
-                $"""Utils.MatchMetric("{TelemetryEvents.UserViewFileExplorer}", currentMetric)"""
+                $"""Utils.MatchUrl("\\/w\\/([0-9a-zA-Z]+)?\\/filelist$", currentMetric)"""
             ),
             new Achievement
             (
@@ -165,7 +165,7 @@ public class Achievement
             (
                 "EXP-003", "Resource Ranger", "View the resources section of DataHub", 1,
                 // rules
-                $"""Utils.MatchMetric("{TelemetryEvents.UserVisitResources}", currentMetric)"""
+                $"""Utils.MatchUrl("\\/resources$", currentMetric)"""
             ),
             new Achievement
             (
@@ -195,7 +195,7 @@ public class Achievement
             (
                 "EXP-008", "Profile Peruser", "View your own profile page", 1,
                 // rules
-                $"""Utils.MatchMetric("{TelemetryEvents.UserViewProfile}", currentMetric)"""
+                $"""Utils.MatchUrl("\\/profile$", currentMetric)"""
             ),
             new Achievement
             (
