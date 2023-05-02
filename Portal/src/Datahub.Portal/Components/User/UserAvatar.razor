@@ -2,7 +2,7 @@
 @using Datahub.Core.Model.Achievements
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 
-<MudAvatar Size="Size.Large">
+<MudAvatar Size="@Size">
     <MudImage Src="@AvatarUrl"></MudImage>
 </MudAvatar>
 
@@ -10,6 +10,9 @@
     
     [Parameter]
     public PortalUser ViewedUser { get; set; }
+    
+    [Parameter]
+    public Size Size { get; set; } = Size.Large;
     
     private string AvatarUrl => _datahubPortalConfiguration?.Achievements.GetAchievementPortraitUrl(ViewedUser?.ProfilePictureUrl);
 }
