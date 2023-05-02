@@ -1,6 +1,5 @@
 @using Datahub.Achievements
 @using Blazored.LocalStorage
-@using Datahub.Achievements.Models
 @using Datahub.Core.Data
 @using Datahub.Core.Model.Achievements;
 @using Datahub.Core.Services.Achievements;
@@ -91,14 +90,10 @@
         });
     }
 
-    private void OnLocationChanged(object sender, LocationChangedEventArgs e)
+    private async void OnLocationChanged(object sender, LocationChangedEventArgs e)
     {
-    //var relativeUrl = new Uri(e.Location).PathAndQuery;
-    //InvokeAsync(async () =>
-    //{
-    //    await _achievementsService.AddOrIncrementTelemetryEvent(relativeUrl, 1);
-    //    StateHasChanged();
-    //});
+        var relativePath = new Uri(e.Location).LocalPath;
+        await _telemetryService.LogTelemetryEvent(relativePath);
     }
 
     void IDisposable.Dispose()
@@ -106,5 +101,4 @@
         _navigationManager.LocationChanged -= OnLocationChanged;
         _telemetryService.OnAchievementsEarned -= OnAchievementsEarned;
     }
-
 }
