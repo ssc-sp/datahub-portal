@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Services.UserManagement;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 
@@ -190,6 +191,8 @@ public class OfflineUserInformationService : IUserInformationService
 
     public Task<bool> UpdatePortalUserAsync(PortalUser updatedUser)
     {
+        PortalUserUpdated?.Invoke(this, new PortalUserUpdatedEventArgs(updatedUser));
         throw new NotImplementedException();
     }
+    public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated;
 }

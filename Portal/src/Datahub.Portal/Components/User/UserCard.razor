@@ -2,8 +2,12 @@
 @using Datahub.Portal.Pages.Profile
 @using Datahub.Core.Model.Achievements
 
+@inject IUserInformationService _userInformationService
+@implements IDisposable
+
+
 <MudStack Row Spacing="0" AlignItems="AlignItems.Center">
-    <UserAvatar ViewedUser="@ViewedUser" Size="@Size" />
+    <UserAvatar ViewedUser="@ViewedUser" Size="@Size"/>
     <MudStack Spacing="0" AlignItems="AlignItems.Start">
         <MudText Typo="Typo.h6" Class="px-4">@ViewedUser?.DisplayName</MudText>
         <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">@ViewedUser?.Email</MudText>
@@ -11,9 +15,34 @@
 </MudStack>
 
 @code {
+
     [Parameter]
     public PortalUser ViewedUser { get; set; }
-    
+
     [Parameter]
     public Size Size { get; set; } = Size.Large;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _userInformationService.PortalUserUpdated += OnViewedUserUpdated;
+    }
+    
+    private void OnViewedUserUpdated(object sender, PortalUserUpdatedEventArgs e)
+    {
+        if (ViewedUser.Id != e.UpdatedUser.Id)
+        {
+            return;
+        }
+        
+        ViewedUser = e.UpdatedUser;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        _userInformationService.PortalUserUpdated -= OnViewedUserUpdated;
+    }
+
 }
