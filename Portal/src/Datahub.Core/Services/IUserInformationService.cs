@@ -1,7 +1,9 @@
-﻿using Datahub.Core.Model.Achievements;
+﻿using System;
+using Datahub.Core.Model.Achievements;
 using Microsoft.Graph;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Datahub.Core.Services.UserManagement;
 
 namespace Datahub.Core.Services;
 
@@ -43,6 +45,7 @@ public interface IUserInformationService
 
     Task<bool> RegisterAuthenticatedPortalUser();
     Task<bool> UpdatePortalUserAsync(PortalUser updatedUser);
+    public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated; 
 }
 
 public static class UserInformationServiceConstants

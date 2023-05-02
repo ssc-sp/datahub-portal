@@ -24,21 +24,22 @@ namespace Datahub.Core.Services.UserManagement;
 
 public class UserInformationService : IUserInformationService
 {
-    private ILogger<UserInformationService> _logger;
-    private GraphServiceClient graphServiceClient;
-    private readonly IDbContextFactory<UserTrackingContext> contextFactory;
-    private AuthenticationStateProvider _authenticationStateProvider;
-    private NavigationManager _navigationManager;
+    private readonly ILogger<UserInformationService> _logger;
+    private GraphServiceClient _graphServiceClient;
+    private readonly IDbContextFactory<UserTrackingContext> _contextFactory;
+    private readonly AuthenticationStateProvider _authenticationStateProvider;
+    private readonly NavigationManager _navigationManager;
 
-    private IConfiguration _configuration;
-    private readonly ServiceAuthManager serviceAuthManager;
+    private readonly IConfiguration _configuration;
+    private readonly ServiceAuthManager _serviceAuthManager;
 
     private readonly IDbContextFactory<DatahubProjectDBContext> _datahubContextFactory;
 
     private readonly CultureService _cultureService;
 
-    public string imageHtml;
-    private ClaimsPrincipal authenticatedUser;
+    private ClaimsPrincipal _authenticatedUser;
+
+    public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated;
 
     public User CurrentUser { get; set; }
 
@@ -57,9 +58,9 @@ public class UserInformationService : IUserInformationService
         _authenticationStateProvider = authenticationStateProvider;
         _navigationManager = navigationManager;
         _configuration = configureOptions;
-        this.serviceAuthManager = serviceAuthManager;
-        this.graphServiceClient = graphServiceClient;
-        this.contextFactory = contextFactory;
+        this._serviceAuthManager = serviceAuthManager;
+        this._graphServiceClient = graphServiceClient;
+        this._contextFactory = contextFactory;
         _datahubContextFactory = datahubContextFactory;
         _cultureService = cultureService;
     }
@@ -67,8 +68,8 @@ public class UserInformationService : IUserInformationService
     public async Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
     {
         if (_authenticationStateProvider == null || forceReload)
-            authenticatedUser = (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
-        return authenticatedUser;
+            _authenticatedUser = (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
+        return _authenticatedUser;
     }
 
     public string UserLanguage { get; set; }
@@ -150,7 +151,7 @@ public class UserInformationService : IUserInformationService
             }
 
             PrepareAuthenticatedClient();
-            CurrentUser = await graphServiceClient.Users[userId].Request().GetAsync();
+            CurrentUser = await _graphServiceClient.Users[userId].Request().GetAsync();
         }
         catch (ServiceException e)
         {
@@ -169,7 +170,7 @@ public class UserInformationService : IUserInformationService
 
     private string GetOid()
     {
-        return (authenticatedUser?.Claims?
+        return (_authenticatedUser?.Claims?
             .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier") ?? throw new InvalidOperationException("Cannot access user claims")).Value;
     }
 
@@ -180,7 +181,7 @@ public class UserInformationService : IUserInformationService
 
         try
         {
-            await using var userSettingsContext = await contextFactory.CreateDbContextAsync();
+            await using var userSettingsContext = await _contextFactory.CreateDbContextAsync();
             var userSetting = userSettingsContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
             if (userSetting == null)
             {
@@ -223,7 +224,7 @@ public class UserInformationService : IUserInformationService
                 .WithClientSecret(_configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"))
                 .Build();
             ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
-            graphServiceClient = new GraphServiceClient(authProvider);
+            _graphServiceClient = new GraphServiceClient(authProvider);
         }
         catch (Exception e)
         {
@@ -240,7 +241,7 @@ public class UserInformationService : IUserInformationService
 
         try
         {
-            using var eFCoreDatahubContext = contextFactory.CreateDbContext();
+            using var eFCoreDatahubContext = _contextFactory.CreateDbContext();
             var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
             if (userSetting == null)
             {
@@ -278,7 +279,7 @@ public class UserInformationService : IUserInformationService
 
         try
         {
-            await using var eFCoreDatahubContext = await contextFactory.CreateDbContextAsync();
+            await using var eFCoreDatahubContext = await _contextFactory.CreateDbContextAsync();
             var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
             if (userSetting == null)
             {
@@ -308,7 +309,7 @@ public class UserInformationService : IUserInformationService
     public async Task<string> GetUserLanguage()
     {
         var userId = await GetUserIdString();
-        await using var eFCoreDatahubContext = await contextFactory.CreateDbContextAsync();
+        await using var eFCoreDatahubContext = await _contextFactory.CreateDbContextAsync();
         var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
         return userSetting != null ? userSetting.Language : string.Empty;
     }
@@ -339,7 +340,7 @@ public class UserInformationService : IUserInformationService
     public async Task<bool> HasUserAcceptedTAC()
     {
         var userId = await GetUserIdString();
-        await using var eFCoreDatahubContext = await contextFactory.CreateDbContextAsync();
+        await using var eFCoreDatahubContext = await _contextFactory.CreateDbContextAsync();
         var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
 
         return userSetting is { AcceptedDate: { } };
@@ -363,7 +364,7 @@ public class UserInformationService : IUserInformationService
         try
         {
             PrepareAuthenticatedClient();
-            CurrentUser = await graphServiceClient.Users[userId].Request().GetAsync();
+            CurrentUser = await _graphServiceClient.Users[userId].Request().GetAsync();
 
             return CurrentUser;
         }
@@ -384,12 +385,12 @@ public class UserInformationService : IUserInformationService
 
     public async Task<bool> IsViewingAsGuest()
     {
-        return serviceAuthManager.GetViewingAsGuest((await GetCurrentGraphUserAsync()).Id);
+        return _serviceAuthManager.GetViewingAsGuest((await GetCurrentGraphUserAsync()).Id);
     }
 
     public async Task SetViewingAsGuest(bool isGuest)
     {
-        serviceAuthManager.SetViewingAsGuest((await GetCurrentGraphUserAsync()).Id, isGuest);
+        _serviceAuthManager.SetViewingAsGuest((await GetCurrentGraphUserAsync()).Id, isGuest);
     }
 
     private bool isViewingAsVisitor = false;
@@ -453,7 +454,7 @@ public class UserInformationService : IUserInformationService
         var email = await GetUserEmail();
         var displayName = await GetDisplayName();
 
-        portalUser = new()
+        portalUser = new PortalUser
         {
             GraphGuid = graphId,
             Email = email,
@@ -478,6 +479,7 @@ public class UserInformationService : IUserInformationService
             ctx.PortalUsers.Attach(updatedUser);
             ctx.Entry(updatedUser).State = EntityState.Modified;
             await ctx.SaveChangesAsync();
+            PortalUserUpdated?.Invoke(this, new PortalUserUpdatedEventArgs(updatedUser));
             return true;
         }
         catch (Exception e)
