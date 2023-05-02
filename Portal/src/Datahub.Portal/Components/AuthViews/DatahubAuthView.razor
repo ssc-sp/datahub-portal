@@ -1,0 +1,42 @@
+@inject NavigationManager NavigationManager
+
+<AuthorizeView Roles="@GetRoles()">
+    <Authorized>
+        @ChildContent
+    </Authorized>
+    <NotAuthorized>
+        @NotAuthorizedContent
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment NotAuthorizedContent { get; set; }
+
+    [Parameter]
+    public AuthLevels AuthLevel { get; set; } = AuthLevels.DatahubAdmin;
+
+    public enum AuthLevels
+    {
+        Anonymous,
+        Authenticated,
+        WorkspaceCollaborator,
+        WorkspaceAdmin,
+        DatahubAdmin
+    }
+
+    private string GetRoles()
+    {
+        switch (AuthLevel)
+        {
+            case AuthLevels.DatahubAdmin:
+                return $"{RoleConstants.DATAHUB_ROLE_ADMIN},{RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST}";
+            default:
+                return "";
+        }
+    }
+}
