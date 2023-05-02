@@ -1,5 +1,4 @@
 ﻿using Datahub.Core.Model.Achievements;
-using Datahub.Core.Model.Achievements.Configuration;
 using Datahub.Core.Services.Achievements;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,5 +53,26 @@ public class AchivementEngineTests
         Assert.NotNull(result);
         Assert.Contains("STR-006", result);
         Assert.Contains("STR-000", result);
+    }
+
+    [Fact]
+    public async Task EvaluateAchivements_GivenUrl_ReturnsExpectedAchivement()
+    {
+        var achivements = new HashSet<string>() { "STR-001" };
+
+        var result = await _achivementEngine.Evaluate("/profile", achivements).ToListAsync();
+
+        Assert.NotNull(result);
+        Assert.Contains("EXP-008", result);
+
+        result = await _achivementEngine.Evaluate("/resources", achivements).ToListAsync();
+
+        Assert.NotNull(result);
+        Assert.Contains("EXP-003", result);
+
+        result = await _achivementEngine.Evaluate(@"/w/DIE1/filelist", achivements).ToListAsync();
+
+        Assert.NotNull(result);
+        Assert.Contains("EXP-001", result);
     }
 }
