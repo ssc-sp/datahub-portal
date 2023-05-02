@@ -1,6 +1,12 @@
 @using Datahub.Core.Model.Achievements
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 
+@if (Achievement is null)
+{
+    <DHLoadingInitializer Message="@Localizer["Loading Achievement"]"/>
+    return;
+}
+
 <MudStack Row>
     <MudAvatar Size="Size.Large" Rounded>
         <MudImage Src="@_datahubPortalConfiguration?.Achievements.GetAchievementPortraitUrl(Achievement.Id)"></MudImage>

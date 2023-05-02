@@ -7,6 +7,14 @@
 
 @page "/profile/achievements"
 
+@if (_viewedPortalUser is null)
+{
+    <MudContainer MaxWidth="MaxWidth.Small">
+        <DHLoadingInitializer Message="@Localizer["Loading Achievements"]"/>
+    </MudContainer>
+    return;
+}
+
 <MudContainer MaxWidth="MaxWidth.Large">
     <MudStack Spacing="6">
         <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
@@ -21,7 +29,7 @@
                 <AchievementListItem UserAchievement="@userAchievement" Rarity="@rarity"/>
                 <MudDivider/>
             }
-            
+
             @foreach (var achievement in GetUnEaredUserAchievements())
             {
                 var rarity = GetRarity(achievement);
@@ -49,15 +57,15 @@
         _achievementRarityDictionary = await FetchAchievementRarities();
     }
 
-    private async Task<Dictionary<string,int>> FetchAchievementRarities()
+    private async Task<Dictionary<string, int>> FetchAchievementRarities()
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        
-        // get the total number of users
+
+    // get the total number of users
         var totalUsers = await context.PortalUsers
             .CountAsync();
-        
-        // get the number of users who have each achievement
+
+    // get the number of users who have each achievement
         var achievementCounts = await context.UserAchievements
             .GroupBy(ua => ua.AchievementId)
             .Select(g => new
@@ -66,14 +74,14 @@
                 Count = g.Count()
             })
             .ToListAsync();
-        
-        // get the number of users who have each achievement to a dictionary
+
+    // get the number of users who have each achievement to a dictionary
         var achievementRarityDictionary = achievementCounts
             .ToDictionary(
                 ac => ac.AchievementId,
-                ac => (int) Math.Round((double) ac.Count / totalUsers * 100)
+                ac => (int)Math.Round((double)ac.Count / totalUsers * 100)
             );
-        
+
         return achievementRarityDictionary;
     }
 
@@ -81,7 +89,7 @@
     {
         return GetRarity(userAchievement.Achievement);
     }
-    
+
     private int GetRarity(Achievement achievement)
     {
         return _achievementRarityDictionary.TryGetValue(achievement.Id, out var value) ? value : 0;
@@ -92,9 +100,9 @@
         if (!achievement.IsTrophy())
         {
             return (0, 1);
-        } 
+        }
         var maxComplete = achievement.GetRules().Length;
-        // count how many match the first three characters of the id
+    // count how many match the first three characters of the id
         var currentComplete = _viewedPortalUser?.Achievements
             .Count(ua => ua.AchievementId.StartsWith(achievement.Id[..3])) ?? 0;
 
@@ -110,7 +118,7 @@
             .ToList()
                ?? new List<UserAchievement>();
     }
-    
+
     private IEnumerable<Achievement> GetUnEaredUserAchievements()
     {
         return Achievement.GetAll()

@@ -23,9 +23,11 @@ public interface IPortalUserTelemetryService
 public class AchievementsEarnedEventArgs : EventArgs
 {
     public List<string> Achievements { get; }
+    public bool Hide { get; }
 
-    public AchievementsEarnedEventArgs(List<string> achievements)
+    public AchievementsEarnedEventArgs(List<string> achievements, bool hide = false)
     {
         Achievements = achievements;
+        Hide = hide;
     }
 }
