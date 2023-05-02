@@ -1,6 +1,5 @@
 ﻿using Datahub.Core.Data;
 using Datahub.Core.Model.Onboarding;
-using J2N;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -37,16 +36,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
         
-    /// <summary>
-    /// Deprecated
-    /// </summary>
-    //public DbSet<Project_Current_Monthly_Cost> Project_Current_Monthly_Costs { get; set; }
-
-    /// <summary>
-    /// Deprecated
-    /// </summary>
-    //public DbSet<Project_MonthlyUsage> Project_MonthlyUsage { get; set; }
-
     public DbSet<Project_Credits> Project_Credits { get; set; }
     public DbSet<Project_Whitelist> Project_Whitelists { get; set; }
 
@@ -185,18 +174,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
                   .HasForeignKey(e => e.ProjectId)
                   .OnDelete(DeleteBehavior.NoAction);
         });
-
-        /// <summary>
-        /// Deprecated
-        /// </summary>
-        //modelBuilder.Entity<Project_MonthlyUsage>(entity =>
-        //{
-        //    entity.ToTable("Project_MonthlyUsage");
-        //    entity.HasKey(e => e.Id);
-        //    entity.HasOne(e => e.Project)
-        //          .WithOne(e => e.MonthlyUsage)
-        //          .OnDelete(DeleteBehavior.NoAction);
-        //});
 
         modelBuilder.Entity<Project_Whitelist>(entity =>
         {

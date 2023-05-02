@@ -181,11 +181,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// </summary>
     public List<Project_Storage_Capacity> Storage_Capacities { get; set; }
 
-    /// <summary>
-    /// Deprecated
-    /// </summary>
-    //public Project_MonthlyUsage MonthlyUsage { get; set; }
-
     public Project_Credits Credits { get; set; }
     
     public Project_Whitelist Whitelist { get; set; }
