@@ -86,5 +86,6 @@
     "breadcrumb_settings": "Paramètres",
     "breadcrumb_public": "Profil public",
     "breadcrumb_appearance": "Apparence du portail",
-    "breadcrumb_achievements": "Réalisations"
+    "breadcrumb_achievements": "Réalisations",
+    "breadcrumb_notifications": "Notifications"
 }
