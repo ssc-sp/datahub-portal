@@ -29,7 +29,7 @@
     </SettingsField>
     <MudDivider/>
     <SettingsField Label="@Localizer["Display Achievements"]" Description="@Localizer["You can choose whether to hide or display your achievements in the DataHub. This will also prevent the achievement notifications from displaying on your screen. You can change it at any time."]">
-        <MudSwitch T="bool" Label="@Localizer["Show Achievements"]" Checked="@(!ViewedUser.HideAchievements)" Color="Color.Primary" UnCheckedColor="Color.Dark"/>
+        <MudSwitch T="bool" Label="@Localizer["Show Achievements"]" Checked="@(!ViewedUser.HideAchievements)" Color="Color.Primary" UnCheckedColor="Color.Dark" CheckedChanged="HandleCheckChanged"/>
     </SettingsField>
 </MudStack>
 
@@ -46,11 +46,15 @@
 
     private async Task HandleImageSelected(string code, bool isProfilePicture)
     {
-        await Task.Delay(1);
-
         ViewedUser.ProfilePictureUrl = isProfilePicture ? code : ViewedUser.ProfilePictureUrl;
         ViewedUser.BannerPictureUrl = isProfilePicture ? ViewedUser.BannerPictureUrl : code;
 
+        await OnViewedUserChanged.InvokeAsync(ViewedUser);
+    }
+
+    private async Task HandleCheckChanged()
+    {
+        ViewedUser.HideAchievements = !ViewedUser.HideAchievements;
         await OnViewedUserChanged.InvokeAsync(ViewedUser);
     }
 

@@ -27,7 +27,7 @@
                   Height="320"
                   ObjectPosition="ObjectPosition.Center"/> 
     </MudItem>
-    <MudItem xs="12" md="8">
+    <MudItem xs="12" md="@(_viewedPortalUser.HideAchievements ? 12 : 8)">
         <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
             <MudAvatar Style="width:120px; height: 120px">
                 <MudImage Src="@_datahubPortalConfiguration.Achievements.GetAchievementPortraitUrl(_viewedPortalUser?.ProfilePictureUrl)"
@@ -44,12 +44,15 @@
         </MudStack>
         <UserProjects UserId="@_viewedPortalUser?.GraphGuid"/>
     </MudItem>
-    <MudItem xs="12" md="4">
-        <MudStack Spacing="6">
-            <ProfileAchievements ViewedUser="@_viewedPortalUser" TrophyCase="@true" />
-            <ProfileAchievements ViewedUser="@_viewedPortalUser" TrophyCase="@false" />
-        </MudStack>
-    </MudItem>
+    @if (!_viewedPortalUser.HideAchievements)
+    {
+        <MudItem xs="12" md="4">
+            <MudStack Spacing="6">
+                <ProfileAchievements ViewedUser="@_viewedPortalUser" TrophyCase="@true" />
+                <ProfileAchievements ViewedUser="@_viewedPortalUser" TrophyCase="@false" />
+            </MudStack>
+        </MudItem>
+    }
 </MudGrid>
 
 @code {
