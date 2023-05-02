@@ -47,7 +47,7 @@
 
     [Parameter]
     public string Name { get; set; }
-    
+
     [Parameter]
     public string ExternalUrl { get; set; }
 
@@ -102,12 +102,12 @@
             link.Name = Name;
             link.accessedTime = DateTimeOffset.Now;
         }
-        
+
         await UserLocationManagerService.RegisterNavigation(link, true);
-        
+
         // >> review [YR]
         //await _achievementService.AddOrIncrementTelemetryEvent($"user_click_{link.LinkType.ToString().ToLower()}_link");
-        
+
         switch (LinkType)
         {
             case DatahubLinkType.PowerBI:
@@ -120,6 +120,7 @@
                 NavigationManager.NavigateTo($"/w/{link.DataProject}");
                 break;
             case DatahubLinkType.Databricks:
+                await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserOpenDatabricks);
                 await _jsRuntime.InvokeVoidAsync("open", link?.DatabricksURL, "_blank");
                 break;
             case DatahubLinkType.ExternalUrl:
