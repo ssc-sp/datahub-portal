@@ -27,7 +27,8 @@ public class ProjectUsageService
         projectCredits ??= new() { ProjectId = projectId };
 
         // update usage
-        if (!await UpdateUsage(projectCredits, resourceGroups, ct))
+        var (succeeded, yesterdayCosts) = await UpdateUsage(projectCredits, resourceGroups, ct);
+        if (!succeeded)
             return false;
 
         // add or update
@@ -40,10 +41,37 @@ public class ProjectUsageService
             ctx.Project_Credits.Update(projectCredits);
         }
 
+        // update the day stats
+        if (yesterdayCosts is not null)
+            await UpdateYesterdayStats(ctx, projectId, yesterdayCosts);
+
         // save changes
         await ctx.SaveChangesAsync(ct);
 
         return true;
+    }
+
+    private async Task UpdateYesterdayStats(DatahubProjectDBContext ctx, int projectId, List<AzureServiceCost> yesterdayCosts)
+    {
+        if (yesterdayCosts.Count == 0)
+            return;
+
+        var yesterday = DateTime.Now.AddDays(-1).Date;
+
+        if (await ctx.Project_Costs.AnyAsync(c => c.Project_ID == projectId && c.Date == yesterday))
+            return;
+
+        foreach (var serviceCost in yesterdayCosts)
+        {
+            Datahub_Project_Costs cost = new()
+            {
+                Project_ID = projectId,
+                Date = yesterday,
+                CadCost = serviceCost.Cost,
+                ServiceName = serviceCost.Name
+            };
+            ctx.Project_Costs.Add(cost);
+        }
     }
 
     static bool UpdatedInPeriod(DateTime? date, int minutes)
@@ -51,7 +79,8 @@ public class ProjectUsageService
         return date.HasValue && DateTime.UtcNow.AddMinutes(-minutes) < date;
     }
 
-    private async Task<bool> UpdateUsage(Project_Credits projectCredits, string[] resourceGroups, CancellationToken ct)
+    private async Task<(bool Succeeded, List<AzureServiceCost>? yesterdayCosts)> UpdateUsage(Project_Credits projectCredits, 
+        string[] resourceGroups, CancellationToken ct)
     {
         var session = await _azureManagementService.GetSession(ct);
 
@@ -66,7 +95,7 @@ public class ProjectUsageService
         {
             // allow a grace period for new projects
             if (projectCredits.Id == 0)
-                return false;
+                return (false, default);
 
             // if not updated in the last 90 minutes, throw the exception
             if (!UpdatedInPeriod(projectCredits.LastUpdate, 90))
@@ -95,6 +124,11 @@ public class ProjectUsageService
         // last updated
         projectCredits.LastUpdate = DateTime.UtcNow;
 
-        return true;
+        return (true, yesterdayCostByService);
     }
+}
+
+public record DayServiceCosts(DateTime Date, List<AzureServiceCost>? ServiceCosts)
+{
+    public bool Valid => ServiceCosts is not null;
 }

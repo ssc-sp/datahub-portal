@@ -183,6 +183,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
                 .OnDelete(DeleteBehavior.NoAction);
         });
 
+        modelBuilder.Entity<Datahub_Project_Costs>(entity =>
+        {
+            entity.HasIndex(e => new { e.Project_ID, e.Date });
+        });
+
         modelBuilder.Entity<Project_Credits>(entity =>
         {
             entity.ToTable("Project_Credits");
