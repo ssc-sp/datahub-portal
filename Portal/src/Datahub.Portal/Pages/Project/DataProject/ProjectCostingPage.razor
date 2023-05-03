@@ -50,7 +50,7 @@
 
         @if (_currentDailyCosts?.Count > 1 && _currentDailyCosts.Any(c => c.Cost > 1))
         {
-            <MudText Typo="Typo.h4">@Localizer["Daily cost"]</MudText>
+            <MudText Typo="Typo.h4">@Localizer["Daily cost (over last 30 days)"]</MudText>
             <div>
                 <MudChart ChartType="ChartType.Bar"
                           ChartSeries="@DailySeries"

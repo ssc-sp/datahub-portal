@@ -1762,5 +1762,6 @@
   "Assigned Budget": "Budget alloué",
   "Add to Queue": "Ajouter à la file d'attente",
   "Copy Container Token": "Copier le jeton du conteneur",
-  "Metadata": "Métadonnées"
+  "Metadata": "Métadonnées",
+  "Daily cost (over last 30 days)": "Coût quotidien (sur les 30 derniers jours)"
 }
