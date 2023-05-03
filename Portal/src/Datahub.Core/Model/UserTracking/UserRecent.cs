@@ -39,4 +39,8 @@ public record UserRecentLink
     public DateTimeOffset accessedTime{ get; set; }
     
     public string ExternalUrl { get; set; }
+    
+    public string ResourceArticleId { get; set; }
+    
+    public string ResourceArticleTitle { get; set; }
 }

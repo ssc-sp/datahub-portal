@@ -86,4 +86,11 @@ public class Icon
         Color = "yellow",
         HexColor = Colors.Green.Darken1,
     };
+    
+    public static readonly Icon RESOURCE_ARTICLE = new()
+    {
+        Name = "fad fa-book",
+        Color = "purple",
+        HexColor = Colors.Purple.Default,
+    };
 }
