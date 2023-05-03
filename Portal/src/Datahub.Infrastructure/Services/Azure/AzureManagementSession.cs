@@ -104,6 +104,7 @@ public class AzureManagementSession
 
     static CostManagementRequest GetMonthlyCostPerDayRequest(string[] resourceGroups)
     {
+        var (from, to) = GetLast30DaysPeriod();
         return new()
         {
             Type = "ActualCost",
@@ -112,6 +113,12 @@ public class AzureManagementSession
                 Granularity = "Daily",
                 Aggregation = GetCostAggregation(),
                 Filter = GetResourceGroupsFilter(resourceGroups)
+            },
+            Timeframe = "Custom",
+            TimePeriod = new()
+            {
+                From = from,
+                To = to
             }
         };
     }
@@ -258,6 +265,13 @@ public class AzureManagementSession
     {
         var from = DateTime.Now.AddDays(-1).Date;
         var to = from.AddHours(24).AddSeconds(-1);
+        return (from, to);
+    }
+
+    static (DateTime from, DateTime to) GetLast30DaysPeriod()
+    {
+        var from = DateTime.Now.AddDays(-31).Date;
+        var to = from.AddDays(30);
         return (from, to);
     }
 
