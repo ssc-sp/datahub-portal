@@ -19,6 +19,7 @@ namespace Datahub.Functions
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
         private readonly int[] _notificationPercents;
         private readonly ILogger<ProjectUsageNotifier> _logger;
+        private readonly AzureConfig _config;
         private readonly QueuePongService _pongService;
 
         public ProjectUsageNotifier(ILoggerFactory loggerFactory, AzureConfig config, IMediator mediator, 
@@ -29,6 +30,7 @@ namespace Datahub.Functions
             _dbContextFactory = dbContextFactory;
             _notificationPercents = ParseNotificationPercents(config.NotificationPercents ?? "25,50,80,100");
             _pongService = pongService;
+            _config = config;
         }
 
         [Function("ProjectUsageNotifier")]
@@ -80,7 +82,7 @@ namespace Datahub.Functions
 
             try
             {
-                var notificationEmail = GetNotificationEmail(notificationPerc, details.Contacts);
+                var notificationEmail = GetNotificationEmail(details.ProjectAcro, notificationPerc, details.Contacts);
                 await _mediator.Send(notificationEmail, cancellationToken);
 
                 details.Credits.PercNotified = notificationPerc;
@@ -89,6 +91,8 @@ namespace Datahub.Functions
                 ctx.Project_Credits.Update(details.Credits);
 
                 await ctx.SaveChangesAsync(cancellationToken);
+
+                _logger.LogWarning("Notifiying {0}% comsumed for workspace {1}", notificationPerc, details.ProjectAcro);
             }
             catch (Exception ex)
             {
@@ -117,28 +121,39 @@ namespace Datahub.Functions
 
             var budget = Convert.ToDouble(project.Project_Budget);
 
-            return new(contacts, budget, project.Credits);
+            return new(project.Project_Acronym_CD, contacts, budget, project.Credits);
         }
 
-        private EmailRequestMessage GetNotificationEmail(int perc, List<string> contacts)
+        private EmailRequestMessage GetNotificationEmail(string projectAcro, int perc, List<string> contacts)
         {
             var (subjectTemplate, bodyTemplate) = TemplateUtils.GetEmailTemplate("cost_alert.html");
             if (subjectTemplate is null || bodyTemplate is null)
                 _logger.LogWarning("Email template file missing!");
 
-            subjectTemplate ??= "{perc}% Datahub credits consumed";
+            subjectTemplate ??= "{perc}% Datahub credits consumed ({ws})";
             bodyTemplate ??= "<p>Your workspace has consumed {perc}% of the allocated credits in Datahub.</p>";
 
-            var subject = subjectTemplate.Replace("{perc}", perc.ToString());
+            var subject = subjectTemplate
+                .Replace("{ws}", projectAcro)
+                .Replace("{perc}", perc.ToString());
+
             var body = bodyTemplate.Replace("{perc}", perc.ToString());
+
+            List<string> bcc = new() { GetNotificationCCAddress() };
 
             EmailRequestMessage notificationEmail = new() 
             { 
                 To = contacts, 
+                BccTo = bcc,
                 Subject = subject, 
                 Body = body 
             };
             return notificationEmail;
+        }
+
+        private string GetNotificationCCAddress()
+        {
+            return _config.Email?.NotificationsCCAddress ?? "fsdh-notifications-dhsf-notifications@ssc-spc.gc.ca";
         }
 
         private int GetNotificationPercent(int value)
@@ -163,6 +178,6 @@ namespace Datahub.Functions
             return JsonSerializer.Deserialize<ProjectUsageNotificationMessage>(message);
         }
 
-        record ProjectNotificationDetails(List<string> Contacts, double ProjectBudget, Project_Credits Credits);
+        record ProjectNotificationDetails(string ProjectAcro, List<string> Contacts, double ProjectBudget, Project_Credits Credits);
     }
 }

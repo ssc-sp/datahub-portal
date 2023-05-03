@@ -16,7 +16,7 @@
             <CascadingValue Value="IsDataHubAdmin" Name="IsDatahubAdmin">
                 <CascadingValue Value="CurrentUserEmail" Name="CurrentUserEmail">
                     <div class="file-explorer-layout-wrapper">
-                        <TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">
+                        @*<TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">
                             @foreach (var (control, content) in GetTabs())
                             {
                                 <TabPage>
@@ -28,7 +28,7 @@
                                     </ChildContent>
                                 </TabPage>
                             }
-                        </TabControl>
+                        </TabControl>*@
                     </div>
                 </CascadingValue>
             </CascadingValue>
