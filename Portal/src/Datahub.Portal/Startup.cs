@@ -13,7 +13,6 @@ using Datahub.Core.Model.UserTracking;
 using Datahub.Core.Modules;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
-using Datahub.Core.Services.AzureCosting;
 using Datahub.Core.Services.Data;
 using Datahub.Core.Services.Metadata;
 using Datahub.Core.Services.Notification;
@@ -409,7 +408,6 @@ public class Startup
         services.AddScoped<NotificationsService>();
         services.AddScoped<UIControlsService>();
         services.AddScoped<NotifierService>();
-        services.AddScoped<AzureCostManagementService>();
 
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
         services.AddScoped<PortalEmailService>();

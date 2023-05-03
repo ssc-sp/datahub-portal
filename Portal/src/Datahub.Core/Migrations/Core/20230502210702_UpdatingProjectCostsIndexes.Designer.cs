@@ -4,16 +4,19 @@ using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230502210702_UpdatingProjectCostsIndexes")]
+    partial class UpdatingProjectCostsIndexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,7 +94,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "STR-000",
-                            ConcatenatedRules = "Utils.OwnsAchievement(\"STR-001\", achivements)\nUtils.OwnsAchievement(\"STR-003\", achivements)\nUtils.OwnsAchievement(\"STR-004\", achivements)\nUtils.OwnsAchievement(\"STR-005\", achivements)\nUtils.OwnsAchievement(\"STR-006\", achivements)",
+                            ConcatenatedRules = "Utils.OwnsAchievement(\"STR-001\", achivements)\nUtils.OwnsAchievement(\"STR-002\", achivements)\nUtils.OwnsAchievement(\"STR-003\", achivements)\nUtils.OwnsAchievement(\"STR-004\", achivements)\nUtils.OwnsAchievement(\"STR-005\", achivements)\nUtils.OwnsAchievement(\"STR-006\", achivements)",
                             Description = "Unlock all the 2.0 Storage Explorer achievements",
                             Name = "Storage Savant",
                             Points = 1
@@ -155,7 +158,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "EXP-001",
-                            ConcatenatedRules = "Utils.MatchUrl(\"\\\\/w\\\\/([0-9a-zA-Z]+)?\\\\/filelist$\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_file_explorer\", currentMetric)",
                             Description = "Navigate to the Storage Explorer page of a workspace",
                             Name = "Storage Safari",
                             Points = 1
@@ -171,7 +174,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "EXP-003",
-                            ConcatenatedRules = "Utils.MatchUrl(\"\\\\/resources$\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_visit_resources\", currentMetric)",
                             Description = "View the resources section of DataHub",
                             Name = "Resource Ranger",
                             Points = 1
@@ -211,7 +214,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Id = "EXP-008",
-                            ConcatenatedRules = "Utils.MatchUrl(\"\\\\/profile$\", currentMetric)",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_profile\", currentMetric)",
                             Description = "View your own profile page",
                             Name = "Profile Peruser",
                             Points = 1
@@ -286,7 +289,8 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<string>("EventName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<int>("PortalUserId")
                         .HasColumnType("int");
