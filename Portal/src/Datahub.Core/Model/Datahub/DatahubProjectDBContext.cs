@@ -216,10 +216,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         modelBuilder.Entity<SpatialObjectShare>()
             .ToTable("SpatialObjectShares");
             
-        //modelBuilder.Entity<Project_Current_Monthly_Cost>()
-        //    .Property(mc => mc.Id)
-        //    .ValueGeneratedOnAdd();
-
         modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
     }
