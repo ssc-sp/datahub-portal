@@ -1,0 +1,116 @@
+@page "/"
+@using Microsoft.AspNetCore.Components.Web
+@namespace Datahub.Maintenance.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Federal Science Datahub - DataHub scientifique fédéral</title>   
+    <!-- For old IEs -->
+    <link rel="shortcut icon" href="https://raw.githubusercontent.com/ssc-sp/datahub-portal/develop/Portal/src/Datahub.Core/wwwroot/img/favicons/favicon.ico"/>
+    <!-- For new browsers - multisize ico  -->
+    <link rel="icon" type="image/x-icon" sizes="16x16 32x32" href="https://raw.githubusercontent.com/ssc-sp/datahub-portal/develop/Portal/src/Datahub.Core/wwwroot/img/favicons/favicon.ico ">
+    <!-- For iPad with high-resolution Retina display running iOS ≥ 7: -->
+    <link rel="apple-touch-icon" sizes="152x152" href="https://github.com/ssc-sp/datahub-portal/blob/develop/Portal/src/Datahub.Core/wwwroot/img/favicons/favicon-152-precomposed.png?raw=true">
+    <!-- For iPad with high-resolution Retina display running iOS ≤ 6: -->
+    <link rel="apple-touch-icon" sizes="144x144" href="https://github.com/ssc-sp/datahub-portal/blob/develop/Portal/src/Datahub.Core/wwwroot/img/favicons/favicon-144-precomposed.png?raw=true">
+    <!-- For iPhone with high-resolution Retina display running iOS ≥ 7: -->
+    <link rel="apple-touch-icon" sizes="120x120" href="https://github.com/ssc-sp/datahub-portal/blob/develop/Portal/src/Datahub.Core/wwwroot/img/favicons/favicon-120-precomposed.png?raw=true">
+    <!-- For iPhone with high-resolution Retina display running iOS ≤ 6: -->
+    <link rel="apple-touch-icon" sizes="114x114" href="https://github.com/ssc-sp/datahub-portal/blob/develop/Portal/src/Datahub.Core/wwwroot/img/favicons/favicon-114-precomposed.png?raw=true">
+    <!-- For iPhone 6+ -->
+    <link rel="apple-touch-icon" sizes="180x180" href="https://github.com/ssc-sp/datahub-portal/blob/develop/Portal/src/Datahub.Core/wwwroot/img/favicons/favicon-180-precomposed.png?raw=true">
+    <!-- For first- and second-generation iPad: -->
+    <link rel="apple-touch-icon" sizes="72x72" href="https://github.com/ssc-sp/datahub-portal/blob/develop/Portal/src/Datahub.Core/wwwroot/img/favicons/favicon-72-precomposed.png?raw=true">
+    <!-- For non-Retina iPhone, iPod Touch, and Android 2.1+ devices: -->
+    <link rel="apple-touch-icon" sizes="57x57" href="https://github.com/ssc-sp/datahub-portal/blob/develop/Portal/src/Datahub.Core/wwwroot/img/favicons/favicon-57.png?raw=true">
+    <!-- For Old Chrome -->
+    <link rel="icon" sizes="32x32" href="https://github.com/ssc-sp/datahub-portal/blob/develop/Portal/src/Datahub.Core/wwwroot/img/favicons/favicon-32.png?raw=true">
+    <!-- For IE10 Metro -->
+    <meta name="msapplication-TileColor" content="#FFFFFF">
+    <meta name="msapplication-TileImage" content="https://github.com/ssc-sp/datahub-portal/blob/develop/Portal/src/Datahub.Core/wwwroot/img/favicons/favicon-144-precomposed.png?raw=true">
+    <meta name="theme-color" content="#ffffff">
+    <!-- Chrome for Android -->
+    <link rel="manifest" href="https://raw.githubusercontent.com/ssc-sp/datahub-portal/develop/Portal/src/Datahub.Core/wwwroot/img/favicons/manifest.json">
+    <link rel="icon" sizes="192x192" href="https://github.com/ssc-sp/datahub-portal/blob/develop/Portal/src/Datahub.Core/wwwroot/img/favicons/favicon-192.png?raw=true">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #fafafa;
+            font-family: "Open Sans", sans-serif;
+        }
+        .mud-appbar {
+            width: 100%;
+            display: flex;
+            z-index: 1300;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            flex-direction: column;
+            color: #424242ff;
+            background-color: #FFFFFF;
+            transition: margin 225ms cubic-bezier(0,0,.2,1) 0ms,width 225ms cubic-bezier(0,0,.2,1) 0ms;
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+        }
+        .mud-appbar .mud-toolbar{
+            height: 64px;
+            display: flex;
+            position: relative;
+            align-items: center;
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+        .flex-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+        }
+        .mud-image{
+            object-fit: fill;
+            object-position: center;
+            max-width: 100%;
+            max-height: 100%;
+            float: left;
+            background-size: cover;    
+            border-style: none;
+        }
+        .mud-appbar .mud-toolbar .flex-row .mud-typography {
+            font-size: 1rem;
+            font-weight: 600;
+            line-height: 1.2;
+            letter-spacing: 0.0075em;
+            text-transform: none;
+        }
+        .maintenance-section{
+            position: absolute;
+            top: 33%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            gap:24px
+        }
+    </style>
+</head>
+<body>
+    <header class="mud-appbar">
+        <div class="mud-toolbar">
+            <div class="flex-row">  
+                <img src="https://github.com/ssc-sp/datahub-portal/blob/develop/Portal/src/Datahub.Core/wwwroot/img/datahub-logo-v2.png?raw=true" alt="datahub logo" class="mud-image" height="30">
+                <h6 class="mud-typography">DataHub</h6>
+            </div>
+        </div>
+    </header>
+    <section class="maintenance-section">
+        <p class="english">The DataHub portal is currently undergoing updates and maintenance. Please check back soon.</p>
+        <p class="french">Le portail DataHub fait actuellement l'objet d'une mise à jour et d'une maintenance. Nous vous invitons à revenir bientôt.</p>
+    </section>
+</body>
+</html>
