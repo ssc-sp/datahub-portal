@@ -1,6 +1,7 @@
 @using Microsoft.Graph
 @using Datahub.Portal.Pages.Profile
 @using Datahub.Core.Model.Achievements
+@using Datahub.Core.Extensions
 
 @inject IUserInformationService _userInformationService
 @inject ILogger<UserCard> _logger;
@@ -17,6 +18,13 @@
         <MudText Typo="Typo.h6" Class="px-4">@_viewedUser?.DisplayName</MudText>
         <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">@_viewedUser?.Email</MudText>
     </MudStack>
+    <MudSpacer />
+    @if (ShowProfileLink)
+    {
+        <MudTooltip Delay="600" Text="@Localizer["View profile"]">
+            <MudIconButton Class="align-self-end" Icon="@Icons.Material.Outlined.Person" aria-label="view profile" Href="@($"/profile?u={ViewedUserGraphId.Base64Encode()}")"/>
+        </MudTooltip>
+    }
 </MudStack>
 
 @code {
@@ -26,6 +34,9 @@
 
     [Parameter]
     public Size Size { get; set; } = Size.Large;
+
+    [Parameter]
+    public bool ShowProfileLink { get; set; } = false;
 
     private PortalUser _viewedUser;
 
