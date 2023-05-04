@@ -10,7 +10,9 @@ namespace Datahub.Core.Services;
 public interface IUserInformationService
 {
     Task<bool> ClearUserSettingsAsync();
+    [Obsolete("Use GetCurrentPortalUserAsync instead")]
     Task<User> GetCurrentGraphUserAsync();
+    [Obsolete("Use GetPortalUserAsync instead")]
     Task<User> GetGraphUserAsync(string userId);
     Task<PortalUser> GetCurrentPortalUserAsync();
     Task<PortalUser> GetPortalUserAsync(string userGraphId);
@@ -18,19 +20,31 @@ public interface IUserInformationService
     Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync();
     Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId);
     
+    [Obsolete("Use GetAnonymousPortalUserAsync instead")]
     Task<User> GetAnonymousGraphUserAsync();
+    [Obsolete("Use GetCurrentPortalUserAsync instead to get the user's id")]
     Task<string> GetUserIdString();
+    [Obsolete("Use GetCurrentPortalUserAsync instead to check if the user has accepted the TAC")]
     Task<bool> HasUserAcceptedTAC();
     Task<bool> RegisterUserTAC();
+    [Obsolete("Use SetLanguage instead")]
     Task<bool> RegisterUserLanguage(string language);
+    [Obsolete("Use GetCurrentPortalUserAsync instead to get the user's language")]
     Task<string> GetUserLanguage();
+    [Obsolete("Use GetCurrentPortalUserAsync instead to get the user's language")]
     Task<bool> IsFrench();
+    [Obsolete("Use GetCurrentPortalUserAsync")]
     Task<string> GetDisplayName();
+    [Obsolete("Use GetCurrentPortalUserAsync")]
     Task<string> GetUserEmail();
+    [Obsolete("Use GetCurrentPortalUserAsync")]
     Task<string> GetUserEmailDomain();
+    [Obsolete("Use GetCurrentPortalUserAsync")]
     Task<string> GetUserEmailPrefix();
     bool SetLanguage(string language);
+    [Obsolete("This feature is no longer supported")]
     Task<string> GetUserRootFolder();
+    [Obsolete("Use GetCurrentPortalUserAsync")]
     Task<bool> IsUserWithoutInitiatives();
     Task<bool> IsViewingAsGuest();
     Task<bool> IsViewingAsVisitor();
