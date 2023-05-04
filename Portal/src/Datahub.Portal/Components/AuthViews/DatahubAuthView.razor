@@ -1,26 +1,32 @@
 <AuthorizeView Roles="@GetRoles()">
     <Authorized>
-        @ChildContent
+        @(Authorized ?? ChildContent)
     </Authorized>
     <NotAuthorized>
-        @NotAuthorizedContent
+        @NotAuthorized
     </NotAuthorized>
+    <Authorizing>
+        @Authorizing
+    </Authorizing>
 </AuthorizeView>
 
 @code {
 
     [Parameter]
     public RenderFragment ChildContent { get; set; }
-
     [Parameter]
-    public RenderFragment NotAuthorizedContent { get; set; }
-
+    public RenderFragment Authorizing { get; set; }
+    [Parameter]
+    public RenderFragment Authorized { get; set; }
+    [Parameter]
+    public RenderFragment NotAuthorized { get; set; }
     [Parameter]
     public AuthLevels AuthLevel { get; set; } = AuthLevels.Unauthorized;
+    [Parameter]
+    public string ProjectAcronym { get; set; }
 
     public enum AuthLevels
     {
-        Anonymous,
         Authenticated,
         WorkspaceCollaborator,
         WorkspaceAdmin,
@@ -28,16 +34,36 @@
         Unauthorized
     }
 
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (ChildContent != null && Authorized != null)
+        {
+            throw new InvalidOperationException($"Do not specify both '{nameof(Authorized)}' and '{nameof(ChildContent)}'.");
+        }
+
+        if (string.IsNullOrWhiteSpace(ProjectAcronym) && AuthLevel is AuthLevels.WorkspaceCollaborator or AuthLevels.WorkspaceAdmin)
+        {
+            throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
+        }
+    }
+
     private string GetRoles()
     {
         switch (AuthLevel)
         {
+            case AuthLevels.WorkspaceCollaborator:
+                return $"{ProjectAcronym},{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX},{RoleConstants.DATAHUB_ROLE_ADMIN}";
+            case AuthLevels.WorkspaceAdmin:
+                return $"{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX},{RoleConstants.DATAHUB_ROLE_ADMIN}";
+            case AuthLevels.DatahubAdmin:
+                return RoleConstants.DATAHUB_ROLE_ADMIN;
             case AuthLevels.Unauthorized:
                 return "🏗️ Unauthorized";
-            case AuthLevels.DatahubAdmin:
-                return $"{RoleConstants.DATAHUB_ROLE_ADMIN},{RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST}";
             default:
                 return null;
         }
     }
+
 }

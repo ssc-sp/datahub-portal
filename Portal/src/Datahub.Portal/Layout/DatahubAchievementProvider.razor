@@ -49,6 +49,11 @@
 
                 if (numberOfProjects > 0)
                     await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserJoinedProject);
+
+                if (await _userInformationService.IsDailyLogin())
+                {
+                    await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserLoginMultipleDays);
+                }
             }
             catch (AuthenticationException)
             {
