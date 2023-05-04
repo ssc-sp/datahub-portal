@@ -184,7 +184,7 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult(false);
     }
 
-    public Task<bool> RegisterAuthenticatedPortalUser()
+    public Task RegisterAuthenticatedPortalUser()
     {
         return Task.FromResult(true);
     }
@@ -195,4 +195,8 @@ public class OfflineUserInformationService : IUserInformationService
         throw new NotImplementedException();
     }
     public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated;
+    public Task<bool> IsDailyLogin()
+    {
+        return Task.FromResult(false);
+    }
 }

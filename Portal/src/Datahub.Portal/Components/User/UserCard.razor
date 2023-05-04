@@ -3,8 +3,13 @@
 @using Datahub.Core.Model.Achievements
 
 @inject IUserInformationService _userInformationService
+@inject ILogger<UserCard> _logger;
 @implements IDisposable
 
+@if (_viewedUser is null)
+{
+    return;
+}
 
 <MudStack Row Spacing="0" AlignItems="AlignItems.Center">
     <UserAvatar ViewedUser="@_viewedUser" Size="@Size"/>
@@ -31,14 +36,14 @@
         _viewedUser = await _userInformationService.GetPortalUserAsync(ViewedUserGraphId);
         _userInformationService.PortalUserUpdated += OnViewedUserUpdated;
     }
-    
+
     private void OnViewedUserUpdated(object sender, PortalUserUpdatedEventArgs e)
     {
         if (_viewedUser.Id != e.UpdatedUser.Id)
         {
             return;
         }
-        
+
         _viewedUser = e.UpdatedUser;
         InvokeAsync(StateHasChanged);
     }

@@ -142,10 +142,7 @@ else
         }
 
         // register and or update authenticated portal user
-        if (!await _userInformationService.RegisterAuthenticatedPortalUser())
-        {
-            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserLoginMultipleDays);
-        }
+        await _userInformationService.RegisterAuthenticatedPortalUser();
 
         _isLoaded = true;
     }
