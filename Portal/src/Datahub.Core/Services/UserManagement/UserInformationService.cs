@@ -459,17 +459,24 @@ public class UserInformationService : IUserInformationService
             return;
         }
 
-        var graphUser = await _graphServiceClient.Users[userGraphId].Request().GetAsync();
-        var portalUser = new PortalUser
+        try
         {
-            GraphGuid = userGraphId,
-            Email = graphUser.Mail,
-            DisplayName = graphUser.DisplayName,
-        };
+            var graphUser = await _graphServiceClient.Users[userGraphId].Request().GetAsync();
+            var portalUser = new PortalUser
+            {
+                GraphGuid = userGraphId,
+                Email = graphUser.Mail,
+                DisplayName = graphUser.DisplayName,
+            };
 
-        ctx.PortalUsers.Add(portalUser);
-        await ctx.SaveChangesAsync();
-        _logger.LogInformation("Created new Portal User with GraphId: {GraphId}", userGraphId);
+            ctx.PortalUsers.Add(portalUser);
+            await ctx.SaveChangesAsync();
+            _logger.LogInformation("Created new Portal User with GraphId: {GraphId}", userGraphId);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error Loading User from Graph with GraphId: {GraphId}. It's possible they no longer exist", userGraphId);
+        }
     }
 
     private async Task UpdatePortalUserLastLogin(string userGraphId)
