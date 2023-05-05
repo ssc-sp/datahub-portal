@@ -25,29 +25,28 @@ public class UserLocationManagerService
         _portalContext = portalContext;
     }
 
-
-    private const ushort MaxLocationHistory = 6;
-
     public async Task RegisterNavigation(UserRecentLink link, bool isNew)
     {
         try
         {
-            var user = await _userInformationService.GetCurrentGraphUserAsync();
-            var userId = user.Id;
+            var user = await _userInformationService.GetAuthenticatedPortalUser();
 
             await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
 
-            var existingEntity = await efCoreDatahubContext.UserRecent
-                .FirstOrDefaultAsync(u => u.UserId == userId);
+            //remove existing entry for the same LinkType and DataProject if it exists
+            var existingEntity = efCoreDatahubContext.UserRecentLinks
+                .Include(l => l.User)
+                .FirstOrDefault(l => l.User == user && l.LinkType == link.LinkType &&
+                            l.DataProject == link.DataProject);
+            
 
             if (existingEntity != null)
             {
-                efCoreDatahubContext.UserRecent.Remove(existingEntity);
+                efCoreDatahubContext.UserRecentLinks.Remove(existingEntity);
                 await efCoreDatahubContext.SaveChangesAsync();
             }
-            var links = GetRecentLinks(existingEntity, link);
-            var newUserRecent = new UserRecent { UserId = userId, UserRecentActions = links };
-            efCoreDatahubContext.UserRecent.Add(newUserRecent);
+            link.UserId = user.Id;
+            efCoreDatahubContext.UserRecentLinks.Add(link);
 
             await efCoreDatahubContext.SaveChangesAsync();
         }
@@ -57,43 +56,11 @@ public class UserLocationManagerService
         }
     }
 
-    private static ICollection<UserRecentLink> GetRecentLinks(UserRecent userRecent, UserRecentLink link)
-    {
-        if (userRecent == null)
-            return new List<UserRecentLink>() { link };
-
-        userRecent.UserRecentActions.Add(link);
-
-        return userRecent.UserRecentActions
-            .OrderByDescending(x => x.accessedTime)
-            .DistinctBy(x => (x.DataProject, x.LinkType))
-            .Take(MaxLocationHistory)
-            .ToList();
-    }
-
-    public async Task DeleteUserRecent(string userId)
+    public async Task<ICollection<UserRecentLink>> GetRecentLinks(string userId)
     {
         await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
-        var userRecentActions = efCoreDatahubContext.UserRecent.FirstOrDefault(u => u.UserId == userId);
-        if (userRecentActions != null)
-        {
-            efCoreDatahubContext.UserRecent.Remove(userRecentActions);
-            await efCoreDatahubContext.SaveChangesAsync();
-        }
-    }
-
-    public async Task<UserRecent> ReadRecentNavigations(string userId)
-    {
-        await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
-        var userRecentActions = await efCoreDatahubContext.UserRecent
-            .FirstOrDefaultAsync(u => u.UserId == userId);
-        return userRecentActions;
-    }
-
-    public async Task RegisterNavigation(UserRecent recent)
-    {
-        await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
-        efCoreDatahubContext.UserRecent.Add(recent);
-        await efCoreDatahubContext.SaveChangesAsync();
+        return efCoreDatahubContext.UserRecentLinks
+            .Include(l => l.User)
+            .Where(l => l.User.GraphGuid == userId).ToList();
     }
 }
