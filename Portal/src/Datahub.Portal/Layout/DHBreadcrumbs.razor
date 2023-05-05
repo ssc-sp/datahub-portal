@@ -61,7 +61,11 @@
     {
         InvokeAsync(() =>
         {
-            var relativePath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+            var fullPath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri).Split('?');
+            
+            var relativePath = fullPath[0];
+            var query = fullPath.Length > 1 ? fullPath[1] : string.Empty;
+            
             var paths = relativePath
                 .Split('/')
                 .Where(x => !string.IsNullOrWhiteSpace(x) && !x.Equals("home", StringComparison.InvariantCultureIgnoreCase))
@@ -74,7 +78,7 @@
             breadcrumbs.AddRange(paths
                 .Select((x, i) => BuildBreadcrumbItem(
                     x,
-                    string.Join("/", paths.Take(i + 1)),
+                    string.Join("/", paths.Take(i + 1)) + (string.IsNullOrWhiteSpace(query) ? string.Empty : $"?{query}"),
                     i + 1 == paths.Count))
                 .ToList());
             _items = breadcrumbs;
