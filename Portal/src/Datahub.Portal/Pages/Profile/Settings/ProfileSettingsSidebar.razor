@@ -5,13 +5,13 @@
 @inject NavigationManager _navigationManager
 
 <MudNavMenu Bordered Dense>
-    <MudNavLink Icon="@Icons.Material.Filled.Person" Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.Public}")">
+    <MudNavLink Icon="@Icons.Material.Filled.Person" Href="@($"/settings/{ProfileSettingsPage.SectionViews.Public}{_query}")">
         @Localizer["Profile"]
     </MudNavLink>
-    <MudNavLink Icon="@Icons.Material.Filled.Brush" Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.Appearance}")">
+    <MudNavLink Icon="@Icons.Material.Filled.Brush" Href="@($"/settings/{ProfileSettingsPage.SectionViews.Appearance}{_query}")">
         @Localizer["Appearance"]
     </MudNavLink>
-    <MudNavLink Icon="@Icons.Material.Filled.Mail" Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.Notifications}")">
+    <MudNavLink Icon="@Icons.Material.Filled.Mail" Href="@($"/settings/{ProfileSettingsPage.SectionViews.Notifications}{_query}")">
         @Localizer["Notifications"]
     </MudNavLink>
 </MudNavMenu>
@@ -20,4 +20,9 @@
     
     [Parameter]
     public PortalUser ViewedUser { get; set; }
+    
+    [Parameter]
+    public string UserIdBase64 { get; set; }
+    
+    private string _query => string.IsNullOrEmpty(UserIdBase64) ? string.Empty : $"?u={UserIdBase64}";
 }
