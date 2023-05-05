@@ -61,6 +61,8 @@
     {
         switch (AuthLevel)
         {
+            case AuthLevels.Personal:
+                return $"{UserGraphId},{RoleConstants.DATAHUB_ROLE_ADMIN}";
             case AuthLevels.WorkspaceCollaborator:
                 return $"{ProjectAcronym},{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX},{RoleConstants.DATAHUB_ROLE_ADMIN}";
             case AuthLevels.WorkspaceAdmin:

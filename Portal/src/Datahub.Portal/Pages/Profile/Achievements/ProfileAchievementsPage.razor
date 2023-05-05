@@ -1,8 +1,8 @@
-@using Datahub.Portal.Pages.Profile.Settings.Views
+@inherits ViewUserBase<ProfileAchievementsPage>
+
 @using Datahub.Portal.Components.User
 @using Datahub.Core.Model.Achievements
 
-@inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory;
 
 @page "/profile/achievements"
@@ -43,18 +43,15 @@
 
 @code {
 
-    [Parameter]
-    public string Section { get; set; }
-
     private PortalUser _viewedPortalUser;
-
     private Dictionary<string, int> _achievementRarityDictionary;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        await base.OnInitializedAsync();
-        _viewedPortalUser = await _userInformationService.GetCurrentPortalUserWithAchievementsAsync();
+        await base.OnParametersSetAsync();
+        
         _achievementRarityDictionary = await FetchAchievementRarities();
+        _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
     }
 
     private async Task<Dictionary<string, int>> FetchAchievementRarities()

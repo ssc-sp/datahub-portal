@@ -1,6 +1,7 @@
 @page "/profile"
 
-@inject IUserInformationService _userInformationService
+@inherits ViewUserBase<ProfilePage>
+
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 
 @using Datahub.Portal.Pages.Profile.Settings
@@ -14,9 +15,13 @@
     return;
 }
 
-<MudStack Row Justify="Justify.FlexEnd" Class="mb-8" Style="margin-top: -80px;">
-    <MudButton Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.Public}")" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Settings">@Localizer["Manage Settings"]</MudButton>
-</MudStack>
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Personal" UserGraphId="@_viewedPortalUser.GraphGuid">
+    <MudStack Row Justify="Justify.FlexEnd" Class="mb-8" Style="margin-top: -80px;">
+        <MudButton Href="@_manageSettingsUrl" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Settings">
+            @Localizer["Manage Settings"]
+        </MudButton>
+    </MudStack>
+</DatahubAuthView>
 <MudGrid>
     <MudItem xs="12">
         <MudImage Src="@_datahubPortalConfiguration.Achievements.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
@@ -25,7 +30,7 @@
                   Style="width: 100%"
                   ObjectFit="ObjectFit.Cover"
                   Height="320"
-                  ObjectPosition="ObjectPosition.Center"/> 
+                  ObjectPosition="ObjectPosition.Center"/>
     </MudItem>
     <MudItem xs="12" md="@(_viewedPortalUser.HideAchievements ? 12 : 8)">
         <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
@@ -48,8 +53,8 @@
     {
         <MudItem xs="12" md="4">
             <MudStack Spacing="6">
-                <ProfileAchievements ViewedUser="@_viewedPortalUser" TrophyCase="@true" />
-                <ProfileAchievements ViewedUser="@_viewedPortalUser" TrophyCase="@false" />
+                <ProfileAchievements ViewedUser="@_viewedPortalUser" TrophyCase="@true"/>
+                <ProfileAchievements ViewedUser="@_viewedPortalUser" TrophyCase="@false"/>
             </MudStack>
         </MudItem>
     }
@@ -57,38 +62,13 @@
 
 @code {
 
-    [SupplyParameterFromQuery(Name = "u")]
-    public string UserIdBase64 { get; set; }
-
-    // yan's id: e828f0bf-a85e-42c3-b13e-08e267b05e0c
-    // base64 encoded: ZTgyOGYwYmYtYTg1ZS00MmMzLWIxM2UtMDhlMjY3YjA1ZTBj
-
     private PortalUser _viewedPortalUser;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        _viewedPortalUser = await _userInformationService.GetCurrentPortalUserWithAchievementsAsync();
-    }
-
+    private string _manageSettingsUrl => $"/settings/{ProfileSettingsPage.SectionViews.Public}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
 
     protected override async Task OnParametersSetAsync()
     {
-    // await base.OnParametersSetAsync();
-    // var user = await _userInformationService.GetCurrentGraphUserAsync();
-    // if (string.IsNullOrWhiteSpace(UserIdBase64))
-    // {
-    //     _user = await _mSGraphService.GetUserAsync(user.Id, CancellationToken.None);
-    // }
-    // else
-    // {
-    //     var decodedUserId = UserIdBase64.Base64Decode();
-    //     _user = await _mSGraphService.GetUserAsync(decodedUserId, CancellationToken.None);
-    //     if (_user?.Id != null && user?.Id != decodedUserId)
-    //     {
-    //         await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserViewOtherProfile);
-    //     }
-    // }
-    // _isCurrentUser = user?.Id.Equals(_user?.Id, StringComparison.Ordinal) ?? false;
+        await base.OnParametersSetAsync();
+
+        _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
     }
 }
