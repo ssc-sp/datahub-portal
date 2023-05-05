@@ -24,10 +24,13 @@
     public AuthLevels AuthLevel { get; set; } = AuthLevels.Unauthorized;
     [Parameter]
     public string ProjectAcronym { get; set; }
+    [Parameter]
+    public string UserGraphId { get; set; }
 
     public enum AuthLevels
     {
         Authenticated,
+        Personal,
         WorkspaceCollaborator,
         WorkspaceAdmin,
         DatahubAdmin,
@@ -46,6 +49,11 @@
         if (string.IsNullOrWhiteSpace(ProjectAcronym) && AuthLevel is AuthLevels.WorkspaceCollaborator or AuthLevels.WorkspaceAdmin)
         {
             throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
+        }
+        
+        if (string.IsNullOrWhiteSpace(UserGraphId) && AuthLevel is AuthLevels.Personal)
+        {
+            throw new InvalidOperationException($"'{nameof(UserGraphId)}' is required");
         }
     }
 
