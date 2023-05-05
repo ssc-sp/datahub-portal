@@ -10,35 +10,29 @@
     <MudStack>
         <MudText Typo="Typo.h3" GutterBottom>@Title</MudText>
         <MudAvatarGroup Style="flex-wrap: wrap" MaxColor="Color.Primary">
-            @foreach(var userAchievement in GetUserAchievements())
+            @foreach (var userAchievement in GetUserAchievements())
             {
                 <MudTooltip Arrow Placement="Placement.Top">
                     <ChildContent>
-                        <MudAvatar Image="@(_portalConfiguration.Achievements.GetAchievementThumbnailUrl(userAchievement.Achievement.Id))" />
+                        <MudAvatar Image="@(_portalConfiguration.Achievements.GetAchievementThumbnailUrl(userAchievement.Achievement.Id))"/>
                     </ChildContent>
                     <TooltipContent>
-                        <AchievementCard Achievement="@userAchievement.Achievement" />
+                        <AchievementCard Achievement="@userAchievement.Achievement"/>
                     </TooltipContent>
                 </MudTooltip>
             }
         </MudAvatarGroup>
-        @if (!TrophyCase)
-        {
-            <MudLink Href="/profile/achievements">
-                @Localizer["View All Achievements"]
-            </MudLink>
-        }
     </MudStack>
 }
 
 @code {
-    
+
     [Parameter]
     public PortalUser ViewedUser { get; set; }
-    
+
     [Parameter]
     public bool TrophyCase { get; set; }
-    
+
     private string _groupStyle;
     private string Title => TrophyCase ? Localizer["Trophy Achievements"] : Localizer["Achievements"];
 
@@ -51,4 +45,5 @@
             .ToList()
                ?? new List<UserAchievement>();
     }
+
 }
