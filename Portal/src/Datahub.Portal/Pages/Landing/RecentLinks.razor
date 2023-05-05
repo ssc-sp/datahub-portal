@@ -52,9 +52,9 @@
     protected override async Task OnInitializedAsync()
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        var userRecent = await _userLocationManagerService.ReadRecentNavigations(User.Id);
+        var userRecent = await _userLocationManagerService.GetRecentLinks(User.Id);
 
-        _recentLinks = userRecent?.UserRecentActions?
+        _recentLinks = userRecent?
             .Where(l => l.DataProject != null || l.ResourceArticleId != null)
             .OrderByDescending(l => l.accessedTime)
             .Take(_maxRecentLinks)

@@ -60,7 +60,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     
     public DbSet<UserTracking.UserSettings> UserSettings { get; set; }
 
-    public DbSet<UserTracking.UserRecent> UserRecent { get; set; }
 
     public DbSet<UserTracking.UserRecentLink> UserRecentLinks { get; set; }
 
@@ -224,7 +223,5 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             
         modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
-        
-        modelBuilder.Entity<UserTracking.UserRecent>().OwnsMany(p => p.UserRecentActions);
     }
 }

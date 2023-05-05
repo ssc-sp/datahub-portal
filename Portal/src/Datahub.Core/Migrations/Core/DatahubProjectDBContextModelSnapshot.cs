@@ -1664,33 +1664,82 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("OnboardingApps");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserRecent", b =>
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserRecentLink", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.HasKey("UserId");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.ToTable("UserRecent");
+                    b.Property<string>("DataProject")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DatabricksURL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("LinkType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PBIReportId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PBIWorkspaceId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PowerBIURL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResourceArticleId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResourceArticleTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Variant")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WebFormsURL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("accessedTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserRecentLink", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserSettings", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<DateTime?>("AcceptedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Language")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
                     b.Property<string>("UserName")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UserId");
 
-                    b.ToTable("UserSettings");
+                    b.ToTable("UserSettings", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
@@ -1974,67 +2023,15 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("WebForm");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserRecent", b =>
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserRecentLink", b =>
                 {
-                    b.OwnsMany("Datahub.Core.Model.UserTracking.UserRecentLink", "UserRecentActions", b1 =>
-                        {
-                            b1.Property<Guid>("UserRecentActionId")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("uniqueidentifier");
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "User")
+                        .WithMany("RecentLinks")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
-                            b1.Property<string>("DataProject")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("DatabricksURL")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("ExternalUrl")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<int>("LinkType")
-                                .HasColumnType("int");
-
-                            b1.Property<string>("Name")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("PBIReportId")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("PBIWorkspaceId")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("PowerBIURL")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("ResourceArticleId")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("ResourceArticleTitle")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("UserRecentUserId")
-                                .HasColumnType("nvarchar(450)");
-
-                            b1.Property<string>("Variant")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("WebFormsURL")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<DateTimeOffset>("accessedTime")
-                                .HasColumnType("datetimeoffset");
-
-                            b1.HasKey("UserRecentActionId");
-
-                            b1.HasIndex("UserRecentUserId");
-
-                            b1.ToTable("UserRecentLinks");
-
-                            b1.WithOwner()
-                                .HasForeignKey("UserRecentUserId");
-                        });
-
-                    b.Navigation("UserRecentActions");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
@@ -2054,6 +2051,8 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
             modelBuilder.Entity("Datahub.Core.Model.Achievements.PortalUser", b =>
                 {
                     b.Navigation("Achievements");
+
+                    b.Navigation("RecentLinks");
 
                     b.Navigation("TelemetryEvents");
                 });

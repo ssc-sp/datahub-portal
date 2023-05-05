@@ -70,50 +70,7 @@ public class DbTests
             Assert.True(user != null);
         }
     }
-
-    [Fact]
-    public async void GivenCosmosCxnStr_ValidateConnection()
-    {
-        LoadServices();
-
-        using (var scope = _serviceProvider.CreateScope())
-        {
-
-
-            var myDataService = scope.ServiceProvider.GetService<UserLocationManagerService>();
-            var userRecentActions = await myDataService.ReadRecentNavigations(_userId);
-
-            if (userRecentActions != null)
-            {
-                await myDataService.DeleteUserRecent(_userId);
-            }
-
-            userRecentActions = await myDataService.ReadRecentNavigations(_userId);
-            Assert.True(userRecentActions == null);
-
-            var userRecentActions1 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), DataProject = "ABC", DatabricksURL = "https://databricks", accessedTime = DateTimeOffset.Now };
-            var userRecentActions2 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), DataProject = "ABC", DatabricksURL = "https://databricks", accessedTime = DateTimeOffset.Now };
-            var userRecentActions3 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), DataProject = "ABC", DatabricksURL = "https://databricks", accessedTime = DateTimeOffset.Now };
-            var userRecentActions4 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), DataProject = "ABC", DatabricksURL = "https://databricks", accessedTime = DateTimeOffset.Now };
-            var userRecentActions5 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), DataProject = "ABC", DatabricksURL = "https://databricks", accessedTime = DateTimeOffset.Now };
-            var userRecent = new UserRecent() { UserId = _userId };
-            userRecent.UserRecentActions.Add(userRecentActions1);
-            userRecent.UserRecentActions.Add(userRecentActions2);
-            userRecent.UserRecentActions.Add(userRecentActions3);
-            userRecent.UserRecentActions.Add(userRecentActions4);
-            userRecent.UserRecentActions.Add(userRecentActions5);
-
-
-            await myDataService.RegisterNavigation(userRecent);
-            userRecentActions = await myDataService.ReadRecentNavigations(_userId);
-
-            Assert.True(userRecentActions.UserRecentActions.Count == 5);
-        }
-    }
-
-
-       
-
+     
     private void LoadServices()
     {
         var serviceCollection = new ServiceCollection();

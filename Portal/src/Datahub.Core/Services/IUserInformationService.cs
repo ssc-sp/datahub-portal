@@ -36,6 +36,8 @@ public interface IUserInformationService
     Task<bool> IsUserDatahubAdmin();
 
     Task<bool> RegisterAuthenticatedPortalUser();
+    
+    Task<PortalUser> GetAuthenticatedPortalUser();
 }
 
 public static class UserInformationServiceConstants

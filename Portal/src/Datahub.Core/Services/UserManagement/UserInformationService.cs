@@ -14,6 +14,7 @@ using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
 using System.Security.Claims;
 using Datahub.Core.Data;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Services.Security;
 using UserSettings = Datahub.Core.Model.UserTracking.UserSettings;
 using Datahub.Core.Model.Datahub;
@@ -462,5 +463,21 @@ public class UserInformationService : IUserInformationService
         await ctx.SaveChangesAsync();
 
         return true;
+    }
+
+    public async Task<PortalUser> GetAuthenticatedPortalUser()
+    {
+        await using var ctx = await _datahubContextFactory.CreateDbContextAsync();
+        var graphId = await GetUserIdString();
+        try
+        {
+            return await ctx.PortalUsers.FirstAsync(p => p.GraphGuid == graphId);
+
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error getting portal user");
+            return null;
+        }
     }
 }

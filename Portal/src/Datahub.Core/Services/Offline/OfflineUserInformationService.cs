@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Datahub.Core.Model.Achievements;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 
@@ -165,5 +166,10 @@ public class OfflineUserInformationService : IUserInformationService
     public Task<bool> RegisterAuthenticatedPortalUser()
     {
         return Task.FromResult(true);
+    }
+
+    public Task<PortalUser> GetAuthenticatedPortalUser()
+    {
+        return Task.FromResult(new PortalUser(){GraphGuid = AnonymousUser.Id});
     }
 }
