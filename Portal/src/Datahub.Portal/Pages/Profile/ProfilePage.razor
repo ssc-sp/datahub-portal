@@ -3,9 +3,12 @@
 @inherits ViewUserBase<ProfilePage>
 
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject IPortalUserTelemetryService _telemetryService
 
 @using Datahub.Portal.Pages.Profile.Settings
 @using Datahub.Core.Model.Achievements
+@using Datahub.Core.Extensions
+@using Datahub.Core.Services.Achievements
 
 @if (_viewedPortalUser is null)
 {
@@ -67,15 +70,27 @@
 
 @code {
 
+    private PortalUser _currentUser;
     private PortalUser _viewedPortalUser;
     private string _manageSettingsUrl => $"/settings/{ProfileSettingsPage.SectionViews.Public}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
     private string _achievementsUrl => $"/profile/achievements{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+    }
 
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
 
         _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
+        
+        if (_viewedPortalUser.GraphGuid != _currentUser.GraphGuid)
+        {
+            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
+        }
     }
 
 }
