@@ -4,24 +4,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.UserTracking;
 
 namespace Datahub.Core.Services.UserManagement;
 
 public class UserLocationManagerService
 {
-    private ILogger<UserLocationManagerService> _logger;
-    private IUserInformationService _userInformationService;
-    private IDbContextFactory<UserTrackingContext> _userTrackingContextFactory;
+    private readonly ILogger<UserLocationManagerService> _logger;
+    private readonly IUserInformationService _userInformationService;
+    private readonly IDbContextFactory<DatahubProjectDBContext> _portalContext;
 
 
     public UserLocationManagerService(ILogger<UserLocationManagerService> logger,
         IUserInformationService userInformationService,
-        IDbContextFactory<UserTrackingContext> userTrackingContextFactory)
+        IDbContextFactory<DatahubProjectDBContext> portalContext)
     {
         _logger = logger;
         _userInformationService = userInformationService;
-        _userTrackingContextFactory = userTrackingContextFactory;
+        _portalContext = portalContext;
     }
 
 
@@ -34,7 +35,7 @@ public class UserLocationManagerService
             var user = await _userInformationService.GetCurrentGraphUserAsync();
             var userId = user.Id;
 
-            await using var efCoreDatahubContext = await _userTrackingContextFactory.CreateDbContextAsync();
+            await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
 
             var existingEntity = await efCoreDatahubContext.UserRecent
                 .FirstOrDefaultAsync(u => u.UserId == userId);
@@ -72,20 +73,18 @@ public class UserLocationManagerService
 
     public async Task DeleteUserRecent(string userId)
     {
-        using (var efCoreDatahubContext = _userTrackingContextFactory.CreateDbContext())
+        await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
+        var userRecentActions = efCoreDatahubContext.UserRecent.FirstOrDefault(u => u.UserId == userId);
+        if (userRecentActions != null)
         {
-            var userRecentActions = efCoreDatahubContext.UserRecent.Where(u => u.UserId == userId).FirstOrDefault();
-            if (userRecentActions != null)
-            {
-                efCoreDatahubContext.UserRecent.Remove(userRecentActions);
-                await efCoreDatahubContext.SaveChangesAsync();
-            }
+            efCoreDatahubContext.UserRecent.Remove(userRecentActions);
+            await efCoreDatahubContext.SaveChangesAsync();
         }
     }
 
     public async Task<UserRecent> ReadRecentNavigations(string userId)
     {
-        await using var efCoreDatahubContext = await _userTrackingContextFactory.CreateDbContextAsync();
+        await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
         var userRecentActions = await efCoreDatahubContext.UserRecent
             .FirstOrDefaultAsync(u => u.UserId == userId);
         return userRecentActions;
@@ -93,10 +92,8 @@ public class UserLocationManagerService
 
     public async Task RegisterNavigation(UserRecent recent)
     {
-        using (var efCoreDatahubContext = _userTrackingContextFactory.CreateDbContext())
-        {
-            efCoreDatahubContext.UserRecent.Add(recent);
-            await efCoreDatahubContext.SaveChangesAsync();
-        }
+        await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
+        efCoreDatahubContext.UserRecent.Add(recent);
+        await efCoreDatahubContext.SaveChangesAsync();
     }
 }
