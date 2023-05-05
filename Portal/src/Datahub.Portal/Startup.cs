@@ -246,7 +246,6 @@ public class Startup
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
         IDbContextFactory<DatahubProjectDBContext> datahubFactory,
-        IDbContextFactory<UserTrackingContext> userTrackingFactory,
         IDbContextFactory<AchievementContext> achievementFactory,
         IDbContextFactory<MetadataDbContext> metadataFactory)
     {
@@ -262,7 +261,6 @@ public class Startup
         }
 
         InitializeDatabase(logger, datahubFactory);
-        InitializeDatabase(logger, userTrackingFactory, false);
         InitializeDatabase(logger, achievementFactory, false);
         InitializeDatabase(logger, metadataFactory, true);
 
@@ -440,12 +438,10 @@ public class Startup
         ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
         if (Configuration.GetDriver() == DbDriver.Azure)
         {
-            ConfigureCosmosDbContext<UserTrackingContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
             ConfigureCosmosDbContext<AchievementContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
         }
         else
         {
-            ConfigureDbContext<UserTrackingContext>(services, "datahub-cosmosdb", Configuration.GetDriver());
             ConfigureDbContext<AchievementContext>(services, "datahub-cosmosdb", Configuration.GetDriver());
         }
 

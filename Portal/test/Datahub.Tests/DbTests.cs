@@ -117,15 +117,6 @@ public class DbTests
     private void LoadServices()
     {
         var serviceCollection = new ServiceCollection();
-        serviceCollection.AddDbContext<UserTrackingContext>(options =>
-        {
-
-            options.UseCosmos(
-                _cosmosCxnStr,
-                databaseName: "datahub-catalog-db"
-            );
-        });
-
         serviceCollection.AddSingleton(Configuration);
         serviceCollection.AddLogging(builder =>
         {

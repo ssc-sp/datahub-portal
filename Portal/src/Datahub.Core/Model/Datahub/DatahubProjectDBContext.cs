@@ -57,6 +57,12 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<Achievements.PortalUser> PortalUsers { get; set; }
     public DbSet<Achievements.UserAchievement> UserAchievements { get; set; }
     public DbSet<Achievements.TelemetryEvent> TelemetryEvents { get; set; }
+    
+    public DbSet<UserTracking.UserSettings> UserSettings { get; set; }
+
+    public DbSet<UserTracking.UserRecent> UserRecent { get; set; }
+
+    public DbSet<UserTracking.UserRecentLink> UserRecentLinks { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
@@ -218,5 +224,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             
         modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
+        
+        modelBuilder.Entity<UserTracking.UserRecent>().OwnsMany(p => p.UserRecentActions);
     }
 }
