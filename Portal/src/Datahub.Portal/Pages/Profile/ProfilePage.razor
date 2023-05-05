@@ -52,9 +52,14 @@
     @if (!_viewedPortalUser.HideAchievements)
     {
         <MudItem xs="12" md="4">
-            <MudStack Spacing="6">
-                <ProfileAchievements ViewedUser="@_viewedPortalUser" TrophyCase="@true"/>
-                <ProfileAchievements ViewedUser="@_viewedPortalUser" TrophyCase="@false"/>
+            <MudStack>
+                <MudStack Spacing="6">
+                    <ProfileAchievements ViewedUser="@_viewedPortalUser" TrophyCase="@true"/>
+                    <ProfileAchievements ViewedUser="@_viewedPortalUser" TrophyCase="@false"/>
+                </MudStack>
+                <MudLink Href="@_achievementsUrl">
+                    @Localizer["View All Achievements"]
+                </MudLink>
             </MudStack>
         </MudItem>
     }
@@ -64,6 +69,7 @@
 
     private PortalUser _viewedPortalUser;
     private string _manageSettingsUrl => $"/settings/{ProfileSettingsPage.SectionViews.Public}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
+    private string _achievementsUrl => $"/profile/achievements{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
 
     protected override async Task OnParametersSetAsync()
     {
@@ -71,4 +77,5 @@
 
         _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
     }
+
 }
