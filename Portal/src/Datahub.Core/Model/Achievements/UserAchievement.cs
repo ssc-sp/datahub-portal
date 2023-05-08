@@ -14,4 +14,10 @@ public class UserAchievement
     public virtual PortalUser PortalUser { get; set; }
     public virtual Achievement Achievement { get; set; }
     #endregion
+    
+    #region Utility functions
+    
+    public bool Earned => UnlockedAt != default;
+
+    #endregion
 }

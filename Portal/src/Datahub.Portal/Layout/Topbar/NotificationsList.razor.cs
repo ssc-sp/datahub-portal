@@ -1,12 +1,8 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Datahub.Core.Model.Datahub;
-using MudBlazor;
 using MudBlazor.Utilities;
 
 
-namespace Datahub.Core.Components.TopBar;
+namespace Datahub.Portal.Layout.Topbar;
 
 public partial class NotificationsList
 {
