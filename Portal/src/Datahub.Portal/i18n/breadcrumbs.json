@@ -87,5 +87,6 @@
   "breadcrumb_public": "Public Profile",
   "breadcrumb_appearance": "Portal Appearance",
   "breadcrumb_achievements": "Achievements",
-  "breadcrumb_notifications": "Notifications"
+  "breadcrumb_notifications": "Notifications",
+  "breadcrumb_diagnostics": "Diagnostics"
 }
