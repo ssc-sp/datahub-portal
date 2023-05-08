@@ -4,6 +4,7 @@
 @inject IUserInformationService _userInformationService
 @inject NavigationManager _navigationManager
 
+
 <AuthorizeView Roles=@($"{RoleConstants.DATAHUB_ROLE_ADMIN},{RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST}")>
     <MudStack Row>
         <MudTooltip Text="@Localizer["Initiative admin and global admin priviledges"]">
