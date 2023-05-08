@@ -1,10 +1,10 @@
 ﻿@inherits LayoutComponentBase
 
-@using Datahub.Core.Model.Achievements;
-@using Datahub.Core.Services.Achievements;
 @using Microsoft.Identity.Web
 @using Datahub.Core.Theme
 @using MudBlazor.Utilities
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Services.Achievements
 
 @inject NavigationManager _navigationManager
 @inject IDatahubAuditingService _auditingService
@@ -44,7 +44,7 @@
                                 <ChildContent>
                                     @if (_isSessionEnabled == true)
                                     {
-                                        <MudContainer Class="mt-8 px-16" MaxWidth="MaxWidth.ExtraLarge">
+                                        <MudContainer Class="mt-8 px-16" MaxWidth="MaxWidth.Large">
                                             <DHBreadcrumbs />
                                             @Body
                                         </MudContainer>
@@ -142,10 +142,7 @@ else
         }
 
         // register and or update authenticated portal user
-        if (!await _userInformationService.RegisterAuthenticatedPortalUser())
-        {
-            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserLoginMultipleDays);
-        }
+        await _userInformationService.RegisterAuthenticatedPortalUser();
 
         _isLoaded = true;
     }

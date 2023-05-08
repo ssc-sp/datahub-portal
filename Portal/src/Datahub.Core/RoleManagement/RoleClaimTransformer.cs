@@ -37,6 +37,7 @@ public class RoleClaimTransformer : IClaimsTransformation
 
                 var authorizedProjects = await serviceAuthManager.GetUserAuthorizations(userId);
                 ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, $"default"));
+                ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, userId));
                 foreach (var project in allProjects)
                 {
                     if (await serviceAuthManager.IsProjectAdmin(userId, project))

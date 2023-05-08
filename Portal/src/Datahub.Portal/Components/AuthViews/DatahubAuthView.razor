@@ -1,0 +1,79 @@
+<AuthorizeView Roles="@GetRoles()">
+    <Authorized>
+        @(Authorized ?? ChildContent)
+    </Authorized>
+    <NotAuthorized>
+        @NotAuthorized
+    </NotAuthorized>
+    <Authorizing>
+        @Authorizing
+    </Authorizing>
+</AuthorizeView>
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [Parameter]
+    public RenderFragment Authorizing { get; set; }
+    [Parameter]
+    public RenderFragment Authorized { get; set; }
+    [Parameter]
+    public RenderFragment NotAuthorized { get; set; }
+    [Parameter]
+    public AuthLevels AuthLevel { get; set; } = AuthLevels.Unauthorized;
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+    [Parameter]
+    public string UserGraphId { get; set; }
+
+    public enum AuthLevels
+    {
+        Authenticated,
+        Personal,
+        WorkspaceCollaborator,
+        WorkspaceAdmin,
+        DatahubAdmin,
+        Unauthorized
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (ChildContent != null && Authorized != null)
+        {
+            throw new InvalidOperationException($"Do not specify both '{nameof(Authorized)}' and '{nameof(ChildContent)}'.");
+        }
+
+        if (string.IsNullOrWhiteSpace(ProjectAcronym) && AuthLevel is AuthLevels.WorkspaceCollaborator or AuthLevels.WorkspaceAdmin)
+        {
+            throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
+        }
+        
+        if (string.IsNullOrWhiteSpace(UserGraphId) && AuthLevel is AuthLevels.Personal)
+        {
+            throw new InvalidOperationException($"'{nameof(UserGraphId)}' is required");
+        }
+    }
+
+    private string GetRoles()
+    {
+        switch (AuthLevel)
+        {
+            case AuthLevels.Personal:
+                return $"{UserGraphId},{RoleConstants.DATAHUB_ROLE_ADMIN}";
+            case AuthLevels.WorkspaceCollaborator:
+                return $"{ProjectAcronym},{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX},{RoleConstants.DATAHUB_ROLE_ADMIN}";
+            case AuthLevels.WorkspaceAdmin:
+                return $"{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX},{RoleConstants.DATAHUB_ROLE_ADMIN}";
+            case AuthLevels.DatahubAdmin:
+                return RoleConstants.DATAHUB_ROLE_ADMIN;
+            case AuthLevels.Unauthorized:
+                return "🏗️ Unauthorized";
+            default:
+                return null;
+        }
+    }
+
+}
