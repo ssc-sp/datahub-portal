@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Datahub.Core.Data.Project;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.UserManagement;
 
@@ -86,6 +87,7 @@ public class ServiceAuthManager
     }
 
 
+    // TODO: Align this with PortalUsers instead of pinging MSGraph
     public async Task<List<ProjectMember>> GetProjectMembers(string projectAcronym)
     {
         await using var ctx = await dbFactory.CreateDbContextAsync();

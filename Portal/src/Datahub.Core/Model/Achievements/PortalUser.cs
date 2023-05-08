@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Datahub.Core.Model.Achievements;
 
@@ -19,5 +20,25 @@ public class PortalUser
     #region Navigation props
     public ICollection<UserAchievement> Achievements { get; set; }
     public ICollection<TelemetryEvent> TelemetryEvents { get; set; }
+    #endregion
+    
+    #region Utility functions
+    
+    public IEnumerable<UserAchievement> GetUserAchievements()
+    {
+        return Achievements?
+                   .OrderBy(a => a.Achievement.Id)
+                   .ThenBy(a => a.UnlockedAt)
+                   .ToList()
+               ?? new List<UserAchievement>();
+    }
+    
+    public IEnumerable<Achievement> GetUnEarnedAchievements()
+    {
+        return Achievement.GetAll()
+            .Where(a => Achievements?.All(ua => ua.Achievement.Id != a.Id) ?? false)
+            .OrderBy(a => a.Id)
+            .ToList();
+    }
     #endregion
 }
