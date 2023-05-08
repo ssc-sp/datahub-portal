@@ -34,5 +34,10 @@ public class PortalUserConfiguration : IEntityTypeConfiguration<PortalUser>
         builder.HasMany(e => e.TelemetryEvents)
                .WithOne(e => e.PortalUser)
                .OnDelete(DeleteBehavior.NoAction);
+        
+        builder.HasMany(e => e.RecentLinks)
+            .WithOne(l => l.User)
+            .HasForeignKey(l => l.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

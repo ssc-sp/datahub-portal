@@ -57,6 +57,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<Achievements.PortalUser> PortalUsers { get; set; }
     public DbSet<Achievements.UserAchievement> UserAchievements { get; set; }
     public DbSet<Achievements.TelemetryEvent> TelemetryEvents { get; set; }
+    
+    public DbSet<UserTracking.UserSettings> UserSettings { get; set; }
+
+
+    public DbSet<UserTracking.UserRecentLink> UserRecentLinks { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {

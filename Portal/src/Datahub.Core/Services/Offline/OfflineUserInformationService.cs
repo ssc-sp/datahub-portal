@@ -189,6 +189,11 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult(true);
     }
 
+    public Task<PortalUser> GetAuthenticatedPortalUser()
+    {
+        return Task.FromResult(new PortalUser(){GraphGuid = AnonymousUser.Id});
+    }
+    
     public Task<bool> UpdatePortalUserAsync(PortalUser updatedUser)
     {
         PortalUserUpdated?.Invoke(this, new PortalUserUpdatedEventArgs(updatedUser));
