@@ -14,11 +14,10 @@ using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
 using System.Security.Claims;
 using Datahub.Core.Data;
-using Datahub.Core.Model.UserTracking;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Services.Security;
 using UserSettings = Datahub.Core.Model.UserTracking.UserSettings;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.Achievements;
 
 namespace Datahub.Core.Services.UserManagement;
 
@@ -26,7 +25,6 @@ public class UserInformationService : IUserInformationService
 {
     private readonly ILogger<UserInformationService> _logger;
     private GraphServiceClient _graphServiceClient;
-    private readonly IDbContextFactory<UserTrackingContext> _contextFactory;
     private readonly AuthenticationStateProvider _authenticationStateProvider;
     private readonly NavigationManager _navigationManager;
 
@@ -41,9 +39,12 @@ public class UserInformationService : IUserInformationService
 
     public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated;
 
-    public User CurrentUser { get; set; }
+    private User _currentUser;
 
-    private User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
+    private static User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
+    
+    
+    private bool _isViewingAsVisitor;
 
     public UserInformationService(
         ILogger<UserInformationService> logger,
@@ -51,7 +52,6 @@ public class UserInformationService : IUserInformationService
         NavigationManager navigationManager,
         IConfiguration configureOptions, ServiceAuthManager serviceAuthManager,
         GraphServiceClient graphServiceClient,
-        IDbContextFactory<UserTrackingContext> contextFactory,
         IDbContextFactory<DatahubProjectDBContext> datahubContextFactory, CultureService cultureService)
     {
         _logger = logger;
@@ -60,7 +60,6 @@ public class UserInformationService : IUserInformationService
         _configuration = configureOptions;
         this._serviceAuthManager = serviceAuthManager;
         this._graphServiceClient = graphServiceClient;
-        this._contextFactory = contextFactory;
         _datahubContextFactory = datahubContextFactory;
         _cultureService = cultureService;
     }
@@ -83,13 +82,13 @@ public class UserInformationService : IUserInformationService
     public async Task<string> GetUserEmail()
     {
         await CheckUser();
-        return CurrentUser.Mail;
+        return _currentUser.Mail;
     }
 
     public async Task<string> GetDisplayName()
     {
         await CheckUser();
-        return CurrentUser.DisplayName;
+        return _currentUser.DisplayName;
     }
 
     public async Task<string> GetUserEmailDomain()
@@ -97,12 +96,12 @@ public class UserInformationService : IUserInformationService
         await CheckUser();
         try
         {
-            MailAddress email = new MailAddress(CurrentUser.Mail);
+            MailAddress email = new MailAddress(_currentUser.Mail);
             return email.Host.ToLower();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Cannot parse email from {CurrentUserMail}", CurrentUser?.Mail);
+            _logger.LogError(ex, "Cannot parse email from {CurrentUserMail}", _currentUser?.Mail);
             return "?";
         }
     }
@@ -112,12 +111,12 @@ public class UserInformationService : IUserInformationService
         await CheckUser();
         try
         {
-            var email = new MailAddress(CurrentUser.Mail);
+            var email = new MailAddress(_currentUser.Mail);
             return email.User.ToLower();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Cannot parse email from {CurrentUserMail}", CurrentUser?.Mail);
+            _logger.LogError(ex, "Cannot parse email from {CurrentUserMail}", _currentUser?.Mail);
             return "?";
         }
     }
@@ -131,16 +130,16 @@ public class UserInformationService : IUserInformationService
 
     public async Task<bool> IsUserWithoutInitiatives()
     {
-        if (isViewingAsVisitor)
+        if (_isViewingAsVisitor)
             return true;
         var claims = (await GetAuthenticatedUser()).Claims.Where(c => c.Type == ClaimTypes.Role).ToList();
 
-        return claims.Count() == 0 || claims.Count() == 1 && claims[0].Value == "default";
+        return !claims.Any() || claims.Count == 1 && claims[0].Value == "default";
     }
 
     private async Task GetUserAsyncInternal()
     {
-        if (CurrentUser != null) return;
+        if (_currentUser != null) return;
         try
         {
             var email = (await GetAuthenticatedUser())?.Identity?.Name;
@@ -151,7 +150,7 @@ public class UserInformationService : IUserInformationService
             }
 
             PrepareAuthenticatedClient();
-            CurrentUser = await _graphServiceClient.Users[userId].Request().GetAsync();
+            _currentUser = await _graphServiceClient.Users[userId].Request().GetAsync();
         }
         catch (ServiceException e)
         {
@@ -170,6 +169,7 @@ public class UserInformationService : IUserInformationService
 
     private string GetOid()
     {
+        // ReSharper disable once ConstantConditionalAccessQualifier
         return (_authenticatedUser?.Claims?
                     .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier") ??
                 throw new InvalidOperationException("Cannot access user claims")).Value;
@@ -178,34 +178,29 @@ public class UserInformationService : IUserInformationService
     public async Task<bool> ClearUserSettingsAsync()
     {
         var userId = await GetUserIdString();
-        _logger.LogInformation("User: {CurrentUserDisplayName} has accepted Terms and Conditions",
-            CurrentUser.DisplayName);
 
         try
         {
-            await using var userSettingsContext = await _contextFactory.CreateDbContextAsync();
-            var userSetting = userSettingsContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
+            await using var context = await _datahubContextFactory.CreateDbContextAsync();
+            var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == userId);
             if (userSetting == null)
             {
-                _logger.LogError("User: {CurrentUserDisplayName} with user id: {UserId} is not in DB to clear settings",
-                    CurrentUser.DisplayName, userId);
+                _logger.LogError("User: {CurrentUserDisplayName} with user id: {UserId} is not in DB to clear settings", _currentUser.DisplayName, userId);
                 return false;
             }
 
-            userSettingsContext.UserSettings.Remove(userSetting);
+            context.UserSettings.Remove(userSetting);
 
-            if (await userSettingsContext.SaveChangesAsync() > 0)
+            if (await context.SaveChangesAsync() > 0)
             {
                 return true;
             }
 
-            _logger.LogInformation("User: {CurrentUserDisplayName} has not cleared their settings. Changes NOT saved",
-                CurrentUser.DisplayName);
+            _logger.LogInformation("User: {CurrentUserDisplayName} has not cleared their settings. Changes NOT saved", _currentUser.DisplayName);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "User: {CurrentUserDisplayName} clearing settings has failed",
-                CurrentUser.DisplayName);
+            _logger.LogError(ex, "User: {CurrentUserDisplayName} clearing settings has failed", _currentUser.DisplayName);
         }
 
         return false;
@@ -214,7 +209,7 @@ public class UserInformationService : IUserInformationService
     public async Task<User> GetCurrentGraphUserAsync()
     {
         await CheckUser();
-        return CurrentUser;
+        return _currentUser;
     }
 
 
@@ -242,34 +237,34 @@ public class UserInformationService : IUserInformationService
     public async Task<bool> RegisterUserTAC()
     {
         var userId = await GetUserIdString();
-        _logger.LogInformation($"User: {CurrentUser.DisplayName} has accepted Terms and Conditions.");
+        _logger.LogInformation($"User: {_currentUser.DisplayName} has accepted Terms and Conditions.");
 
         try
         {
-            using var eFCoreDatahubContext = _contextFactory.CreateDbContext();
-            var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
+            await using var context = await _datahubContextFactory.CreateDbContextAsync();
+            var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == userId);
+
             if (userSetting == null)
             {
                 _logger.LogError(
-                    $"User: {CurrentUser.DisplayName} with user id: {userId} is not in DB to register TAC.");
+                    $"User: {_currentUser.DisplayName} with user id: {userId} is not in DB to register TAC.");
                 return false;
             }
 
-            userSetting.UserName = CurrentUser.DisplayName;
+            userSetting.UserName = _currentUser.DisplayName;
             userSetting.AcceptedDate = DateTime.UtcNow;
 
-            if (await eFCoreDatahubContext.SaveChangesAsync() <= 0)
-            {
-                _logger.LogInformation(
-                    $"User: {CurrentUser.DisplayName} has accepted Terms and Conditions. Changes NOT saved");
-                return false;
-            }
+            if (await context.SaveChangesAsync() > 0)
+                return true;
 
-            return true;
+            _logger.LogInformation(
+                $"User: {_currentUser.DisplayName} has accepted Terms and Conditions. Changes NOT saved");
+            return false;
+
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"User: {CurrentUser.DisplayName} registering TAC failed.");
+            _logger.LogError(ex, $"User: {_currentUser.DisplayName} registering TAC failed.");
         }
 
         return false;
@@ -280,31 +275,32 @@ public class UserInformationService : IUserInformationService
         var userId = await GetUserIdString();
         _logger.LogInformation(
             "User: {DisplayName} has selected language: {Language}",
-            CurrentUser.DisplayName, language);
+            _currentUser.DisplayName, language);
 
         try
         {
-            await using var eFCoreDatahubContext = await _contextFactory.CreateDbContextAsync();
-            var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
+            await using var context = await _datahubContextFactory.CreateDbContextAsync();
+            var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == userId);
+
             if (userSetting == null)
             {
                 userSetting = new UserSettings { UserId = userId };
-                eFCoreDatahubContext.UserSettings.Add(userSetting);
+                context.UserSettings.Add(userSetting);
             }
 
-            userSetting.UserName = CurrentUser.DisplayName;
+            userSetting.UserName = _currentUser.DisplayName;
             userSetting.Language = language;
-            if (await eFCoreDatahubContext.SaveChangesAsync() > 0)
+            if (await context.SaveChangesAsync() > 0)
                 return true;
 
             _logger.LogInformation(
                 "User: {DisplayName} has selected language: {Language}. Changes NOT saved",
-                CurrentUser.DisplayName, language);
+                _currentUser.DisplayName, language);
             return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "User: {DisplayName} registering language failed", CurrentUser.DisplayName);
+            _logger.LogError(ex, "User: {DisplayName} registering language failed", _currentUser.DisplayName);
         }
 
         return false;
@@ -313,26 +309,26 @@ public class UserInformationService : IUserInformationService
     public async Task<string> GetUserLanguage()
     {
         var userId = await GetUserIdString();
-        await using var eFCoreDatahubContext = await _contextFactory.CreateDbContextAsync();
-        var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
+        await using var context = await _datahubContextFactory.CreateDbContextAsync();
+        var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == userId);
+
         return userSetting != null ? userSetting.Language : string.Empty;
     }
 
     public bool SetLanguage(string language)
     {
-        if (!Thread.CurrentThread.CurrentCulture.Name.Equals(language, StringComparison.OrdinalIgnoreCase))
-        {
-            var uri = new Uri(_navigationManager.Uri).GetComponents(UriComponents.PathAndQuery,
-                UriFormat.Unescaped);
-            var query = $"?culture={Uri.EscapeDataString(language)}&" +
-                        $"redirectionUri={Uri.EscapeDataString(uri)}";
-            _navigationManager.NavigateTo($"/Culture/SetCulture{query}", forceLoad: true);
+        if (language == null || Thread.CurrentThread.CurrentCulture.Name.Equals(language, StringComparison.OrdinalIgnoreCase))
+            return false;
 
-            //                Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
-            return true;
-        }
+        var uri = new Uri(_navigationManager.Uri).GetComponents(UriComponents.PathAndQuery,
+            UriFormat.Unescaped);
+        var query = $"?culture={Uri.EscapeDataString(language)}&" +
+                    $"redirectionUri={Uri.EscapeDataString(uri)}";
+        _navigationManager.NavigateTo($"/Culture/SetCulture{query}", forceLoad: true);
 
-        return false;
+        //                Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
+        return true;
+
     }
 
     public async Task<bool> IsFrench()
@@ -344,15 +340,16 @@ public class UserInformationService : IUserInformationService
     public async Task<bool> HasUserAcceptedTAC()
     {
         var userId = await GetUserIdString();
-        await using var eFCoreDatahubContext = await _contextFactory.CreateDbContextAsync();
-        var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
+        await using var context = await _datahubContextFactory.CreateDbContextAsync();
+        var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == userId);
+
 
         return userSetting is { AcceptedDate: { } };
     }
 
     private async Task CheckUser()
     {
-        if (CurrentUser == null)
+        if (_currentUser == null)
         {
             await GetUserAsyncInternal();
         }
@@ -368,9 +365,10 @@ public class UserInformationService : IUserInformationService
         try
         {
             PrepareAuthenticatedClient();
-            CurrentUser = await _graphServiceClient.Users[userId].Request().GetAsync();
+            _currentUser = await _graphServiceClient.Users[userId].Request().GetAsync();
 
-            return CurrentUser;
+
+            return _currentUser;
         }
         catch (ServiceException e)
         {
@@ -397,22 +395,21 @@ public class UserInformationService : IUserInformationService
         _serviceAuthManager.SetViewingAsGuest((await GetCurrentGraphUserAsync()).Id, isGuest);
     }
 
-    private bool isViewingAsVisitor = false;
 
     public Task<bool> IsViewingAsVisitor()
     {
-        return Task.FromResult(isViewingAsVisitor);
+        return Task.FromResult(_isViewingAsVisitor);
     }
 
     public Task SetViewingAsVisitor(bool isVisitor)
     {
-        isViewingAsVisitor = isVisitor;
+        _isViewingAsVisitor = isVisitor;
         return Task.CompletedTask;
     }
 
     private async Task<bool> IsUserInDataHubAdminRole()
     {
-        if ((await IsViewingAsGuest()) || isViewingAsVisitor)
+        if ((await IsViewingAsGuest()) || _isViewingAsVisitor)
             return false;
         return await IsUserDatahubAdmin();
     }
@@ -449,7 +446,6 @@ public class UserInformationService : IUserInformationService
     private async Task CreatePortalUserAsync(string userGraphId)
     {
         await using var ctx = await _datahubContextFactory.CreateDbContextAsync();
-
         var exists = await ctx.PortalUsers
             .FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
 
@@ -611,5 +607,21 @@ public class UserInformationService : IUserInformationService
             .FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
 
         return portalUser;
+    }
+
+    public async Task<PortalUser> GetAuthenticatedPortalUser()
+    {
+        await using var ctx = await _datahubContextFactory.CreateDbContextAsync();
+        var graphId = await GetUserIdString();
+        try
+        {
+            return await ctx.PortalUsers.FirstAsync(p => p.GraphGuid == graphId);
+
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error getting portal user");
+            return null;
+        }
     }
 }
