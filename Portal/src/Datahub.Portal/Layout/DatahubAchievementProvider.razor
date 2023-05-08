@@ -74,7 +74,11 @@
         {
             _snackbar.Add<AchievementToast>(
                 new Dictionary<string, object> { { "Achievement", achievements.FirstOrDefault(a => a.Id == achievement) } },
-                configure: config => { config.HideIcon = true; });
+                configure: config =>
+                {
+                    config.HideIcon = true;
+                    config.ShowCloseIcon = false;
+                });
         });
     }
 
