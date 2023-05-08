@@ -42,8 +42,8 @@ public class UserInformationService : IUserInformationService
     private User _currentUser;
 
     private static User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
-    
-    
+
+
     private bool _isViewingAsVisitor;
 
     public UserInformationService(
@@ -185,7 +185,8 @@ public class UserInformationService : IUserInformationService
             var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == userId);
             if (userSetting == null)
             {
-                _logger.LogError("User: {CurrentUserDisplayName} with user id: {UserId} is not in DB to clear settings", _currentUser.DisplayName, userId);
+                _logger.LogError("User: {CurrentUserDisplayName} with user id: {UserId} is not in DB to clear settings",
+                    _currentUser.DisplayName, userId);
                 return false;
             }
 
@@ -196,11 +197,13 @@ public class UserInformationService : IUserInformationService
                 return true;
             }
 
-            _logger.LogInformation("User: {CurrentUserDisplayName} has not cleared their settings. Changes NOT saved", _currentUser.DisplayName);
+            _logger.LogInformation("User: {CurrentUserDisplayName} has not cleared their settings. Changes NOT saved",
+                _currentUser.DisplayName);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "User: {CurrentUserDisplayName} clearing settings has failed", _currentUser.DisplayName);
+            _logger.LogError(ex, "User: {CurrentUserDisplayName} clearing settings has failed",
+                _currentUser.DisplayName);
         }
 
         return false;
@@ -260,7 +263,6 @@ public class UserInformationService : IUserInformationService
             _logger.LogInformation(
                 $"User: {_currentUser.DisplayName} has accepted Terms and Conditions. Changes NOT saved");
             return false;
-
         }
         catch (Exception ex)
         {
@@ -317,7 +319,8 @@ public class UserInformationService : IUserInformationService
 
     public bool SetLanguage(string language)
     {
-        if (language == null || Thread.CurrentThread.CurrentCulture.Name.Equals(language, StringComparison.OrdinalIgnoreCase))
+        if (language == null ||
+            Thread.CurrentThread.CurrentCulture.Name.Equals(language, StringComparison.OrdinalIgnoreCase))
             return false;
 
         var uri = new Uri(_navigationManager.Uri).GetComponents(UriComponents.PathAndQuery,
@@ -328,7 +331,6 @@ public class UserInformationService : IUserInformationService
 
         //                Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
         return true;
-
     }
 
     public async Task<bool> IsFrench()
@@ -471,7 +473,9 @@ public class UserInformationService : IUserInformationService
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error Loading User from Graph with GraphId: {GraphId}. It's possible they no longer exist", userGraphId);
+            _logger.LogError(e,
+                "Error Loading User from Graph with GraphId: {GraphId}. It's possible they no longer exist",
+                userGraphId);
         }
     }
 
@@ -616,7 +620,6 @@ public class UserInformationService : IUserInformationService
         try
         {
             return await ctx.PortalUsers.FirstAsync(p => p.GraphGuid == graphId);
-
         }
         catch (Exception e)
         {
