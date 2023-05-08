@@ -17,12 +17,11 @@
 
         <MudContainer MaxWidth="MaxWidth.Large">
             <MudGrid>
+                <MudItem xs="12">
+                    <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
+                </MudItem>
                 <MudItem xs="3">
-                    <!--suppress CssUnresolvedCustomProperty -->
-                    <MudStack Spacing="6" Style="position: sticky; top: calc(var(--mud-appbar-height) + 8px);">
-                        <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
-                        <ProfileSettingsSidebar ViewedUser="@_viewedPortalUser" UserIdBase64="@UserIdBase64"/>
-                    </MudStack>
+                    <ProfileSettingsSidebar ViewedUser="@_viewedPortalUser" UserIdBase64="@UserIdBase64"/>
                 </MudItem>
                 <MudItem xs="9" md="7">
                     @if (_viewedPortalUser is null)
