@@ -72,27 +72,27 @@
         var achievements = Achievement.GetAll();
         e.Achievements.ForEach(achievement =>
         {
-            _snackbar.Add<AchievementCard>(
+            _snackbar.Add<AchievementToast>(
                 new Dictionary<string, object> { { "Achievement", achievements.FirstOrDefault(a => a.Id == achievement) } },
                 configure: config => { config.HideIcon = true; });
         });
     }
 
-    private void OnAchievementEarned(object sender, AchievementEarnedEventArgs e)
-    {
-        var message = $"<ul><li><h3>{Localizer["Achievement Unlocked"]}!</h3></li><li><h4>{e.Achievement!.Name}</h4></li><li>{e.Achievement!.Description}</li></ul>";
-        _snackbar.Add(message, Severity.Normal, config =>
-        {
-            config.Icon = e.Achievement!.Icon;
-            config.IconColor = Color.Tertiary;
-            config.ShowCloseIcon = false;
-            config.Onclick = delegate
-            {
-                _navigationManager.NavigateTo("/profile");
-                return Task.CompletedTask;
-            };
-        });
-    }
+    // private void OnAchievementEarned(object sender, AchievementEarnedEventArgs e)
+    // {
+    //     var message = $"<ul><li><h3>{Localizer["Achievement Unlocked"]}!</h3></li><li><h4>{e.Achievement!.Name}</h4></li><li>{e.Achievement!.Description}</li></ul>";
+    //     _snackbar.Add(message, Severity.Normal, config =>
+    //     {
+    //         config.Icon = e.Achievement!.Icon;
+    //         config.IconColor = Color.Tertiary;
+    //         config.ShowCloseIcon = false;
+    //         config.Onclick = delegate
+    //         {
+    //             _navigationManager.NavigateTo("/profile");
+    //             return Task.CompletedTask;
+    //         };
+    //     });
+    // }
 
     private async void OnLocationChanged(object sender, LocationChangedEventArgs e)
     {
