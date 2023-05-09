@@ -16,7 +16,7 @@
         }
     </Logo>
     <ToolActionsList>
-        <ViewDatabricksButton DatabricksUrl="@_databricksUrl" />
+        <ViewDatabricksButton DatabricksUrl="@_databricksUrl" ProjectAcronym="@_projectAcronym" />
         @* Hide for POC Stage 2 *@
         @* <CostEstimatorButton TemplateName="@TemplateName"/> *@
     </ToolActionsList>
@@ -33,12 +33,13 @@
     public bool ResourceRequested { get; set; }
     [Parameter]
     public Datahub_Project? Project { get; set; }
-    
+
     private string Icon => GitHubModule?.Icon ?? "fa-solid fa-cloud-question";
     private string? TemplateName => GitHubModule?.Name;
 
     private string? _databricksUrl;
-    
+    private string _projectAcronym;
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -48,5 +49,6 @@
         {
             _databricksUrl = $"https://{_databricksUrl}";
         }
+        _projectAcronym = Project?.Project_Acronym_CD;
     }
 }

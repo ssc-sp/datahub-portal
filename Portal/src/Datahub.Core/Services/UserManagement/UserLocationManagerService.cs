@@ -34,13 +34,9 @@ public class UserLocationManagerService
             await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
 
             //remove existing entry for the same LinkType and DataProject if it exists
-            var existingEntity = efCoreDatahubContext.UserRecentLinks
-                .FirstOrDefault(l =>
-                    l.User == user
-                    && l.LinkType == link.LinkType
-                    && l.DataProject == link.DataProject
-                );
-
+            var existingEntity = await efCoreDatahubContext.UserRecentLinks
+                .FirstOrDefaultAsync(l => l.UserId == user.Id && l.LinkType == link.LinkType && 
+                    (l.LinkType == DatahubLinkType.DataProject || l.DataProject == link.DataProject));
 
             // if the link is new, we need to add it to the database
             if (existingEntity == null)
@@ -61,6 +57,22 @@ public class UserLocationManagerService
                 {
                     // otherwise, we need to add a new entry
                     link.UserId = user.Id;
+                    efCoreDatahubContext.UserRecentLinks.Remove(existingEntity);
+                    efCoreDatahubContext.UserRecentLinks.Add(link);
+                }
+            }
+            // override the data project link
+            else if (existingEntity.LinkType == DatahubLinkType.DataProject)
+            {
+                if (existingEntity.DataProject == link.DataProject)
+                {
+                    existingEntity.accessedTime = link.accessedTime;
+                }
+                else
+                {
+                    // otherwise, we need to add a new entry
+                    link.UserId = user.Id;
+                    efCoreDatahubContext.UserRecentLinks.Remove(existingEntity);
                     efCoreDatahubContext.UserRecentLinks.Add(link);
                 }
             }
