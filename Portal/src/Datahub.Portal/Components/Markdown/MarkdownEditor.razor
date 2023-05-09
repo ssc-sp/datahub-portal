@@ -1,0 +1,57 @@
+﻿@*Markdown.razor*@
+
+@implements IAsyncDisposable
+
+<CascadingValue Value="@this" IsFixed="true">
+    <textarea @ref="_elementRef" id="@ElementId"></textarea>
+</CascadingValue>
+
+@code {
+
+    [Inject]
+    public ILogger<MarkdownEditor> Logger { get; set; }
+
+    [Inject]
+    public IJSRuntime jsRuntime { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    private string ElementId { get; set; }
+    private ElementReference _elementRef;
+    private DotNetObjectReference<MarkdownEditor> _dotNetObjectRef;
+
+    protected override void OnInitialized()
+    {
+        ElementId = $"md-textarea-{Guid.NewGuid()}";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            _dotNetObjectRef ??= DotNetObjectReference.Create(this);
+            await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/markdown-editor.js");
+            await jsRuntime.InvokeVoidAsync("initializeMarkdown", ElementId, _dotNetObjectRef);
+        }
+    }
+
+    [JSInvokable]
+    public async Task UpdateInternalValue(string value)
+    {
+        await ValueChanged.InvokeAsync(value);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await jsRuntime.InvokeVoidAsync("destroyMarkdown", ElementId);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex.Message, ex);
+        }
+    }
+}
