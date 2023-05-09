@@ -612,19 +612,4 @@ public class UserInformationService : IUserInformationService
 
         return portalUser;
     }
-
-    public async Task<PortalUser> GetAuthenticatedPortalUser()
-    {
-        await using var ctx = await _datahubContextFactory.CreateDbContextAsync();
-        var graphId = await GetUserIdString();
-        try
-        {
-            return await ctx.PortalUsers.FirstAsync(p => p.GraphGuid == graphId);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error getting portal user");
-            return null;
-        }
-    }
 }
