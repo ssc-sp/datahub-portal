@@ -1,9 +1,11 @@
-﻿@*Markdown.razor*@
+@*Markdown.razor*@
 
-@implements IAsyncDisposable
+@implements IDisposable
 
 <CascadingValue Value="@this" IsFixed="true">
-    <textarea @ref="_elementRef" id="@ElementId"></textarea>
+    <span id="@_wrapperId">
+        <textarea @ref="_elementRef" id="@ElementId"></textarea>
+    </span>
 </CascadingValue>
 
 @code {
@@ -18,8 +20,10 @@
     public EventCallback<string> ValueChanged { get; set; }
 
     private string ElementId { get; set; }
+    private string _wrapperId => $"{ElementId}-wrapper";
     private ElementReference _elementRef;
     private DotNetObjectReference<MarkdownEditor> _dotNetObjectRef;
+    private IJSObjectReference _markdownModule;
 
     protected override void OnInitialized()
     {
@@ -32,8 +36,8 @@
         if (firstRender)
         {
             _dotNetObjectRef ??= DotNetObjectReference.Create(this);
-            await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/markdown-editor.js");
-            await jsRuntime.InvokeVoidAsync("initializeMarkdown", ElementId, _dotNetObjectRef);
+            _markdownModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/markdown-editor.js");
+            await _markdownModule.InvokeVoidAsync("initializeMarkdown", ElementId, _dotNetObjectRef);
         }
     }
 
@@ -43,15 +47,11 @@
         await ValueChanged.InvokeAsync(value);
     }
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
-        try
-        {
-            await jsRuntime.InvokeVoidAsync("destroyMarkdown", ElementId);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex.Message, ex);
-        }
+        InvokeAsync(async () => await _markdownModule.InvokeVoidAsync("destroyMarkdown", ElementId));
+        InvokeAsync(async () => await _markdownModule.DisposeAsync());
+        _dotNetObjectRef?.Dispose();
     }
+
 }
