@@ -1,7 +1,8 @@
 ﻿const _instances = [];
 
-function initializeMarkdown(elementId, dotNetObjectRef) {
-
+export function initializeMarkdown(elementId, dotNetObjectRef) {
+    console.log("initializeMarkdown", elementId, dotNetObjectRef);
+    
     const easyMDE = new EasyMDE({
         element: document.getElementById(elementId),
         hideIcons: ["side-by-side", "fullscreen"]
@@ -21,9 +22,18 @@ function initializeMarkdown(elementId, dotNetObjectRef) {
         initialize: true,
         dispose: () => destroy_editor(elementId)
     };
-};
+}
 
-function destroyMarkdown(elementId) {
+export function destroyMarkdown(elementId) {
+    console.log("destroyMarkdown", elementId);
+    
     const instances = _instances || {};
+    
+    // remove the js created elements from the DOM
+    if (instances[elementId]) {
+        document.querySelector(`#${elementId}-wrapper .EasyMDEContainer`).remove();
+    }
+        
+    // delete the reference
     delete instances[elementId];
 }
