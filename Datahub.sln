@@ -130,7 +130,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure.Unit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncLocalization", "SyncLocalization\SyncLocalization.csproj", "{78416465-E37B-4DB5-B96B-99E45581A0EE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Maintenance", "Portal\src\Datahub.Maintenance\Datahub.Maintenance.csproj", "{5FB450AC-5E50-46A8-B454-EAD8ACD24FC6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Maintenance", "Portal\src\Datahub.Maintenance\Datahub.Maintenance.csproj", "{5FB450AC-5E50-46A8-B454-EAD8ACD24FC6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -348,9 +348,9 @@ Global
 		{5FB450AC-5E50-46A8-B454-EAD8ACD24FC6} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5

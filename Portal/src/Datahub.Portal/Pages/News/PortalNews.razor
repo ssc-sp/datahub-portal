@@ -1,7 +1,20 @@
 ﻿@page "/news"
 
-<h3>PortalNews</h3>
+<h3>Markdown Editor</h3>
+
+<MarkdownEditor ValueChanged="HandleValueChanged" />
+    
+<MudText>
+    @_markdown
+</MudText>
 
 @code {
+
+    private string _markdown;
+
+    private void HandleValueChanged(string value)
+    {
+        _markdown = value;
+    }
 
 }
