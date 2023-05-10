@@ -137,7 +137,9 @@ namespace Datahub.Functions
                 .Replace("{ws}", projectAcro)
                 .Replace("{perc}", perc.ToString());
 
-            var body = bodyTemplate.Replace("{perc}", perc.ToString());
+            var body = bodyTemplate
+                .Replace("{ws}", projectAcro)
+                .Replace("{perc}", perc.ToString());
 
             List<string> bcc = new() { GetNotificationCCAddress() };
 
