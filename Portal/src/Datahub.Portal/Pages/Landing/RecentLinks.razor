@@ -6,6 +6,8 @@
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
+@if (_recentLinks.Any())
+{
 <MudText Typo="Typo.h1">@Localizer["Recent Places"]</MudText>
 <MudGrid Class="recent-card-grid">
     @if (_recentLinks is null)
@@ -41,12 +43,14 @@
         }
     }
 </MudGrid>
+}
+
 @code {
 
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.User User { get; set; }
 
-    private List<(UserRecentLink, Datahub_Project)> _recentLinks;
+    private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
     private ushort _maxRecentLinks = 6;
 
     protected override async Task OnInitializedAsync()
