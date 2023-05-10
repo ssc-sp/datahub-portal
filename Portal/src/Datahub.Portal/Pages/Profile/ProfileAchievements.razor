@@ -33,7 +33,6 @@
     [Parameter]
     public bool TrophyCase { get; set; }
 
-    private string _groupStyle;
     private string Title => TrophyCase ? Localizer["Trophy Achievements"] : Localizer["Achievements"];
 
     private IEnumerable<UserAchievement> GetUserAchievements()

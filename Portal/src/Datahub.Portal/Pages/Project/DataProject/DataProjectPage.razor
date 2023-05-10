@@ -1,5 +1,6 @@
 ﻿@page "/w/{ProjectAcronymParam}"
 
+@using Datahub.Core.Model.UserTracking;
 @using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 @using Datahub.Core.Components.PageBanner
 @using Datahub.Core.Services.Achievements
@@ -10,6 +11,7 @@
 @inject ServiceAuthManager _serviceAuthManager
 @inject IPortalUserTelemetryService _telemetryService
 @inject IDatahubAuditingService _auditingService
+@inject UserLocationManagerService UserLocationManagerService
 @inject ILogger<DataProjectPage> logger
 
 <DHPageAlert 
@@ -105,5 +107,23 @@
 
         _clientEngagements = await projectContext.Client_Engagements.Where(ce => ce.Project == _project && ce.Is_Engagement_Active).ToListAsync();
         await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
+
+        // record recent link
+        await RecordRecentLink();
+    }
+
+    private async Task RecordRecentLink()
+    {
+        if (string.IsNullOrEmpty(ProjectAcronymParam))
+            return;
+
+        var userRecentLink = new UserRecentLink()
+        {
+            LinkType = DatahubLinkType.DataProject,
+            DataProject = ProjectAcronymParam,
+            accessedTime = DateTimeOffset.Now
+        };
+
+        await UserLocationManagerService.RegisterNavigation(userRecentLink);
     }
 }
