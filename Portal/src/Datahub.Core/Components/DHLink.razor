@@ -74,9 +74,6 @@
         {
             LinkType = UserRecentLink.LinkType;
             link = UserRecentLink;
-            link.accessedTime = DateTimeOffset.Now;
-            await UserLocationManagerService.RegisterNavigation(link, false);
-
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserRecentLink);
         }
         else
@@ -109,14 +106,10 @@
             link.ResourceArticleId = ResourceArticleId;
             link.ResourceArticleTitle = ResourceArticleName;
             link.Name = Name;
-            link.accessedTime = DateTimeOffset.Now;
         }
+        link.accessedTime = DateTimeOffset.Now;
 
-        await UserLocationManagerService.RegisterNavigation(link, true);
-
-        // >> review [YR]
-        //await _achievementService.AddOrIncrementTelemetryEvent($"user_click_{link.LinkType.ToString().ToLower()}_link");
-
+        await UserLocationManagerService.RegisterNavigation(link);
         switch (LinkType)
         {
             case DatahubLinkType.PowerBI:
