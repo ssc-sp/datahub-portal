@@ -1,13 +1,15 @@
 @using Datahub.Achievements
 @using Blazored.LocalStorage
-@using Datahub.Achievements.Models
 @using Datahub.Core.Data
+@using Datahub.Core.Model.Achievements;
+@using Datahub.Core.Services.Achievements;
 @using Microsoft.EntityFrameworkCore
 @using System.Linq
 @using Datahub.Core.Model.Datahub
+@using Datahub.Portal.Pages.Profile.Achievements
 @using Microsoft.Graph
 
-@inject AchievementService _achievementsService
+@inject IPortalUserTelemetryService _telemetryService
 @inject ISnackbar _snackbar
 @inject NavigationManager _navigationManager
 @inject ILocalStorageService _localStorage;
@@ -18,33 +20,40 @@
 @implements IDisposable
 
 @code {
-    
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        
+
         _navigationManager.LocationChanged += OnLocationChanged;
-        _achievementsService.AchievementEarned += OnAchievementEarned;
+        _telemetryService.OnAchievementsEarned += OnAchievementsEarned;
+
         _snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
-        
+
         if (firstRender)
         {
             try
             {
-                await _achievementsService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserLogin);
-            
+                await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserLogin);
+
                 await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
                 var userId = await _userInformationService.GetUserIdString();
-        
+
                 var numberOfProjects = projectContext.Project_Users
                     .Count(p => p.User_ID == userId);
 
-                await _achievementsService.AddOrSetTelemetryEventKeepMax(DatahubUserTelemetry.TelemetryEvents.UserJoinedProject, numberOfProjects);
+                if (numberOfProjects > 0)
+                    await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserJoinedProject);
+
+                if (await _userInformationService.IsDailyLogin())
+                {
+                    await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserLoginMultipleDays);
+                }
             }
             catch (AuthenticationException)
             {
@@ -53,36 +62,51 @@
         }
     }
 
-    private void OnAchievementEarned(object sender, AchievementEarnedEventArgs e)
+    private void OnAchievementsEarned(object sender, AchievementsEarnedEventArgs e)
     {
-        var message = $"<ul><li><h3>{Localizer["Achievement Unlocked"]}!</h3></li><li><h4>{e.Achievement!.Name}</h4></li><li>{e.Achievement!.Description}</li></ul>";
-        _snackbar.Add(message, Severity.Normal, config =>
+        if (e.Hide)
         {
-            config.Icon = e.Achievement!.Icon;
-            config.IconColor = Color.Tertiary;
-            config.ShowCloseIcon = false;
-            config.Onclick = delegate
-            {
-                _navigationManager.NavigateTo("/profile");
-                return Task.CompletedTask;
-            };
+            return;
+        }
+        
+        var achievements = Achievement.GetAll();
+        e.Achievements.ForEach(achievement =>
+        {
+            _snackbar.Add<AchievementToast>(
+                new Dictionary<string, object> { { "Achievement", achievements.FirstOrDefault(a => a.Id == achievement) } },
+                configure: config =>
+                {
+                    config.HideIcon = true;
+                    config.ShowCloseIcon = false;
+                });
         });
     }
 
-    private void OnLocationChanged(object sender, LocationChangedEventArgs e)
+    // private void OnAchievementEarned(object sender, AchievementEarnedEventArgs e)
+    // {
+    //     var message = $"<ul><li><h3>{Localizer["Achievement Unlocked"]}!</h3></li><li><h4>{e.Achievement!.Name}</h4></li><li>{e.Achievement!.Description}</li></ul>";
+    //     _snackbar.Add(message, Severity.Normal, config =>
+    //     {
+    //         config.Icon = e.Achievement!.Icon;
+    //         config.IconColor = Color.Tertiary;
+    //         config.ShowCloseIcon = false;
+    //         config.Onclick = delegate
+    //         {
+    //             _navigationManager.NavigateTo("/profile");
+    //             return Task.CompletedTask;
+    //         };
+    //     });
+    // }
+
+    private async void OnLocationChanged(object sender, LocationChangedEventArgs e)
     {
-        var relativeUrl = new Uri(e.Location).PathAndQuery;
-        
-        InvokeAsync(async () =>
-        {
-            await _achievementsService.AddOrIncrementTelemetryEvent(relativeUrl, 1);
-            StateHasChanged();
-        });
+        var relativePath = new Uri(e.Location).LocalPath;
+        await _telemetryService.LogTelemetryEvent(relativePath);
     }
-    
+
     void IDisposable.Dispose()
     {
         _navigationManager.LocationChanged -= OnLocationChanged;
-        _achievementsService.AchievementEarned -= OnAchievementEarned;
+        _telemetryService.OnAchievementsEarned -= OnAchievementsEarned;
     }
 }

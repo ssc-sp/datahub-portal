@@ -1,8 +1,7 @@
-@using Datahub.Core.Services.AzureCosting
 @using Microsoft.Azure.Services.AppAuthentication
 @using Microsoft.Identity.Web
 @using Microsoft.Rest
-@inject AzureCostManagementService AzureCostManagementService
+@*@inject AzureCostManagementService AzureCostManagementService*@
 @inject ITokenAcquisition tokenAcquisition
 @inject IConfiguration configuration
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
@@ -117,11 +116,11 @@
 			{
 				if (string.IsNullOrWhiteSpace(resourceGroup)) resourceGroup = null;
 				//Get current month cost for each resource
-				var currentMonthlyCosts = (await AzureCostManagementService.GetCurrentMonthlyCostAsync(subscriptionId, token, resourceGroup)).ToList();
+				//var currentMonthlyCosts = (await AzureCostManagementService.GetCurrentMonthlyCostAsync(subscriptionId, token, resourceGroup)).ToList();
 
 				//group monthly cost by project and update the database
-				await AzureCostManagementService.UpdateProjectMonthlyCostToDateAsync(currentMonthlyCosts);
-				var numberOfProjectsUpdated = currentMonthlyCosts.Count;
+				//await AzureCostManagementService.UpdateProjectMonthlyCostToDateAsync(currentMonthlyCosts);
+				//var numberOfProjectsUpdated = currentMonthlyCosts.Count;
 			}
 			_processing = false;
 		}

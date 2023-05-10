@@ -1,0 +1,73 @@
+@inject IUserInformationService _userInformationService
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+@inject UIControlsService _uiControlsService
+
+
+@using Microsoft.Identity.Web
+@using MudBlazor.Utilities
+@using Datahub.Core.Components.Common
+@using Datahub.Core.Model.Achievements
+@using Datahub.Portal.Components.User
+
+@if (_viewedUser is null)
+{
+    return;
+}
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+    <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+        <ActivatorContent>
+            <MudButton Class="ml-2">
+                <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Medium"/>
+                <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
+            </MudButton>
+        </ActivatorContent>
+        <ChildContent>
+            <MudCard Elevation="0" Class="py-4 px-6">
+                <MudCardContent>
+                    <MudStack>
+                        <MudLink Href="/profile">@Localizer["View your profile"]</MudLink>
+                        <GuestModeToggler/>
+                    </MudStack>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudStack Row Class="flex-grow-1" Justify="Justify.SpaceBetween">
+                        <MudButton Variant="Variant.Text">
+                            <LanguageToggle/>
+                        </MudButton>
+                        <MudButton Href="MicrosoftIdentity/Account/SignOut" Variant="Variant.Text">
+                            @Localizer["Sign Out"]
+                        </MudButton>
+                    </MudStack>
+                </MudCardActions>
+            </MudCard>
+        </ChildContent>
+    </MudMenu>
+</DatahubAuthView>
+
+@code {
+
+    private string _style;
+
+    private PortalUser _viewedUser;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _style = new StyleBuilder()
+            .AddStyle("width", "600px")
+            .Build();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+        }
+        catch (Exception ex)
+        {
+            _consentHandler.HandleException(ex);
+        }
+    }
+}

@@ -28,15 +28,18 @@ public class ProjectUsageScheduler
         
         // set to keep track of already schedule projects
         HashSet<int> scheduled = new();
+        var timeout = 0;
 
         await foreach (var resource in ctx.Project_Resources2.AsAsyncEnumerable())
         {
             if (scheduled.Contains(resource.ProjectId))
                 continue;
 
-            var message = TryDeserializeMessage(resource);
+            var message = TryDeserializeMessage(resource, timeout);
             if (message is null)
                 continue;
+
+            timeout += 10; // add 10 seconds
 
             // track project id
             scheduled.Add(message.ProjectId);
@@ -50,7 +53,7 @@ public class ProjectUsageScheduler
 
     record DBResourceContent(string resource_group_name);
 
-    private ProjectUsageUpdateMessage? TryDeserializeMessage(Project_Resources2 row)
+    private ProjectUsageUpdateMessage? TryDeserializeMessage(Project_Resources2 row, int timeout)
     {
         try
         {
@@ -58,7 +61,7 @@ public class ProjectUsageScheduler
             if (string.IsNullOrEmpty(content?.resource_group_name))
                 return default;
 
-            return new ProjectUsageUpdateMessage(row.ProjectId, content.resource_group_name);
+            return new ProjectUsageUpdateMessage(row.ProjectId, content.resource_group_name, timeout);
         }
         catch
         {

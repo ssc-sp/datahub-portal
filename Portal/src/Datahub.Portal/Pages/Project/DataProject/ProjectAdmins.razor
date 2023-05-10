@@ -60,7 +60,7 @@ else
                         <MudItem Style="max-width: 100px">
                             <MudStack Row Justify="Justify.SpaceBetween">
                                 <MudTooltip Text="@(Localizer["View User Profile"])">
-                                    <MudIconButton Size="Size.Small" Icon="fa-duotone fa-user" Href="@($"/profile/{Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(admin.UserId))}")"/>
+                                    <MudIconButton Size="Size.Small" Icon="fa-duotone fa-user" Href="@($"/profile?u={Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(admin.UserId))}")"/>
                                 </MudTooltip>
                                 <MudTooltip Text="@(Localizer["Email User"])">
                                     <MudIconButton Size="Size.Small" Icon="fa-duotone fa-envelope" Href="@($"mailto:{admin.Email}")"/>
