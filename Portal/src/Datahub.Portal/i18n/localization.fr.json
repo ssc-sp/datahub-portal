@@ -809,7 +809,7 @@
   "Project_Or_Initiative": "Projet ou Initiative",
   "Project_Cost_Since": "Consommation depuis le 1er {0} :",
   "Project_Remaining_Credit_label": "Crédit restant:",
-  "Project_Remaining_Credit_text": "{0:C} sur {1:C} par mois.",
+  "Project_Remaining_Credit_text": "{0:C} sur {1:C}",
   "Storage Equivalent:": "Équivalent stockage :",
   "Project_Remaining_Credit_Storage": "{0:C} utilisé pour le stockage = {1} de données stockées dans Azure.",
   "Compute Equivalent:": "Équivalent de calcul :",
