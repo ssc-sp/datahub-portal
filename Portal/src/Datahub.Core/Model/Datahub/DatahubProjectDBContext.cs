@@ -1,4 +1,5 @@
 ﻿using Datahub.Core.Data;
+using Datahub.Core.Model.Announcements;
 using Datahub.Core.Model.Onboarding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -60,8 +61,9 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     
     public DbSet<UserTracking.UserSettings> UserSettings { get; set; }
 
-
     public DbSet<UserTracking.UserRecentLink> UserRecentLinks { get; set; }
+
+    public DbSet<Announcement> Announcements { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
