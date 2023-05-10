@@ -609,7 +609,7 @@ public class ProjectUserManagementServiceTests
             _mockIMSGraphService.Object,
             _mockRequestManagementService.Object,
             _serviceAuthManager,
-            _mockUserEnrollmentService.Object);
+            _mockUserEnrollmentService.Object, null);
 
         return projectUserManagementService;
     }

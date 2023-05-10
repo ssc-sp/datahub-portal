@@ -5,7 +5,6 @@ namespace Datahub.Core.Model.UserTracking;
 
 public class UserSettings
 {
-    [Key]
     public string UserId { get; set; }
     public string UserName { get; set; }
     public DateTime? AcceptedDate { get; set; } 

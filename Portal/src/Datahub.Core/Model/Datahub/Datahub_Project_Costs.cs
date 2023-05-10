@@ -10,12 +10,12 @@ public class Datahub_Project_Costs
 
     public int Project_ID { get; set; }
 
-    [StringLength(10)]
-    public string Project_Acronym_CD { get; set; }
+    public DateTime Date { get; set; } = DateTime.UtcNow;
+    public double CadCost { get; set; }
 
-    public DateTime Usage_DT { get; set; }
+    [StringLength(64)]
+    public required string ServiceName { get; set; }
 
-    public double Cost_AMT { get; set; }
-
-    public DateTime Updated_DT { get; set; }
+    [StringLength(5)]
+    public string CloudProvider { get; set; } = "azure";
 }

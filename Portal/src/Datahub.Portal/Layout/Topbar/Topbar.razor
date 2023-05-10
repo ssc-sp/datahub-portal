@@ -1,0 +1,33 @@
+@using MudBlazor.Utilities
+
+<MudStack Row AlignItems="AlignItems.Center">
+    <MudImage src="_content/Datahub.Core/img/datahub-logo-v2.png" Alt="datahub logo" Height="30"/>
+    <MudText Typo="Typo.h6" Style="@_titleStyle">
+        @Localizer["MainTitle"]
+    </MudText>
+</MudStack>
+
+<MudSpacer/>
+<HomeSearch />
+<MudSpacer/>
+
+<NotificationsList/>
+<HelpPopup SupportFormUrl="@SupportFormUrl"/>
+<TopBarProfileButton />
+
+@code {
+
+    [Parameter]
+    public string SupportFormUrl { get; set; }
+    
+    private string _titleStyle;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _titleStyle = new StyleBuilder()
+            .AddStyle("color", "var(--mud-palette-text-primary)")
+            .Build();
+    }
+}

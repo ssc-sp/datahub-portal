@@ -1,14 +1,15 @@
-@using Datahub.Achievements.Models
+@page "/w/{ProjectAcronymParam}/members"
+
+@using Datahub.Core.Services.Achievements
+@using Datahub.Core.Model.Achievements
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
 @inject ServiceAuthManager _serviceAuthManager
-@inject AchievementService _achievementService
+@inject IPortalUserTelemetryService _telemetryService
 @inject IDatahubAuditingService _auditingService
 @inject ILogger<DataProjectPage> logger
 @inject NavigationManager NavigationManager
-
-@page "/w/{ProjectAcronymParam}/members"
 
 @if (_project is not null && (_isProjectAdmin || _isDatahubAdmin))
 {
@@ -85,7 +86,7 @@
 
         if (!isMemberOfProject)
         {
-            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserViewProjectNotMemberOf);
+            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewProjectNotMemberOf);
         }
         await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
     }

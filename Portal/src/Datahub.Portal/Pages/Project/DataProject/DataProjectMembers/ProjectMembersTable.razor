@@ -51,6 +51,7 @@
                                                  OnClick="@(() => ProjectMemberRoleFilter(ProjectMemberRole.Collaborator))" Disabled="_contributorCount == 0"/>
                                 </MudTabs>
                                 <MudSpacer/>
+                                
                                 <MudTextField @bind-Value="_searchString" Placeholder="@Localizer["Search"]" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                             </MudGrid>
                         </MudStack>
@@ -79,7 +80,7 @@
                         <MudTd>@rowContext.Name</MudTd>
                         <MudTd>@rowContext.Email</MudTd>
                         <MudTd>
-                            @if (!_currentUserId.Equals(rowContext.UserId, StringComparison.InvariantCultureIgnoreCase))
+                            @if (_isDatahubAdmin || !_currentUserId.Equals(rowContext.UserId, StringComparison.InvariantCultureIgnoreCase))
                             {
                                 <ProjectMembersRoleSelect ProjectMember="@rowContext" OnRoleChanged="UpdateProjectMemberRole"/>
                             }
@@ -93,7 +94,7 @@
                         </MudTd>
                         <MudTd>
                             <MudButton Variant="Variant.Text" EndIcon="@PROFILE_LINK_ICON" Color="Color.Primary"
-                                       Href="@($"/profile/{Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(rowContext.UserId))}")">
+                                       Href="@($"/profile?u={Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(rowContext.UserId))}")">
                                 @Localizer["View Profile"]
                             </MudButton>
                         </MudTd>

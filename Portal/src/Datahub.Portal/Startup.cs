@@ -13,7 +13,6 @@ using Datahub.Core.Model.UserTracking;
 using Datahub.Core.Modules;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
-using Datahub.Core.Services.AzureCosting;
 using Datahub.Core.Services.Data;
 using Datahub.Core.Services.Metadata;
 using Datahub.Core.Services.Notification;
@@ -62,6 +61,7 @@ using Datahub.LanguageTraining.Services;
 using Datahub.M365Forms.Services;
 using Datahub.Infrastructure.Services.Azure;
 using Datahub.Infrastructure.Services.Projects;
+using Datahub.Core.Services.Achievements;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -142,11 +142,15 @@ public class Startup
         services.AddScoped<GetDimensionsService>();
         //TimeZoneService provides the user time zone to the server using JS Interop
         services.AddScoped<TimeZoneService>();
+
+        // todo: remove
         services.AddAchievementService(opts =>
         {
             opts.Enabled = Configuration.GetValue("Achievements:Enabled", false);
             opts.AchievementDirectoryPath = Path.Join(AppContext.BaseDirectory, "Achievements");
         });
+
+        services.AddUserAchievementServices();
 
         services.AddElemental();
         services.AddMudServices();
@@ -242,7 +246,6 @@ public class Startup
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
         IDbContextFactory<DatahubProjectDBContext> datahubFactory,
-        IDbContextFactory<UserTrackingContext> userTrackingFactory,
         IDbContextFactory<AchievementContext> achievementFactory,
         IDbContextFactory<MetadataDbContext> metadataFactory)
     {
@@ -258,7 +261,6 @@ public class Startup
         }
 
         InitializeDatabase(logger, datahubFactory);
-        InitializeDatabase(logger, userTrackingFactory, false);
         InitializeDatabase(logger, achievementFactory, false);
         InitializeDatabase(logger, metadataFactory, true);
 
@@ -404,7 +406,6 @@ public class Startup
         services.AddScoped<NotificationsService>();
         services.AddScoped<UIControlsService>();
         services.AddScoped<NotifierService>();
-        services.AddScoped<AzureCostManagementService>();
 
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
         services.AddScoped<PortalEmailService>();
@@ -437,12 +438,10 @@ public class Startup
         ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
         if (Configuration.GetDriver() == DbDriver.Azure)
         {
-            ConfigureCosmosDbContext<UserTrackingContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
             ConfigureCosmosDbContext<AchievementContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
         }
         else
         {
-            ConfigureDbContext<UserTrackingContext>(services, "datahub-cosmosdb", Configuration.GetDriver());
             ConfigureDbContext<AchievementContext>(services, "datahub-cosmosdb", Configuration.GetDriver());
         }
 
