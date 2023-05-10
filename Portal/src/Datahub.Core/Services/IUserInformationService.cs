@@ -1,6 +1,9 @@
-﻿using Microsoft.Graph;
+﻿using System;
+using Datahub.Core.Model.Achievements;
+using Microsoft.Graph;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Datahub.Core.Services.UserManagement;
 
 namespace Datahub.Core.Services;
 
@@ -9,13 +12,21 @@ public interface IUserInformationService
     Task<bool> ClearUserSettingsAsync();
     Task<User> GetCurrentGraphUserAsync();
     Task<User> GetGraphUserAsync(string userId);
+    Task<PortalUser> GetCurrentPortalUserAsync();
+    Task<PortalUser> GetPortalUserAsync(string userGraphId);
+    
+    Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync();
+    Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId);
+    
     Task<User> GetAnonymousGraphUserAsync();
     Task<string> GetUserIdString();
     Task<bool> HasUserAcceptedTAC();
     Task<bool> RegisterUserTAC();
     Task<bool> RegisterUserLanguage(string language);
     Task<string> GetUserLanguage();
-    Task<bool> IsFrench();        
+    Task<bool> IsFrench();
+    Task<string> GetDisplayName();
+    Task<string> GetUserEmail();
     Task<string> GetUserEmailDomain();
     Task<string> GetUserEmailPrefix();
     bool SetLanguage(string language);
@@ -32,6 +43,10 @@ public interface IUserInformationService
 
     Task<bool> IsUserDatahubAdmin();
 
+    Task RegisterAuthenticatedPortalUser();
+    Task<bool> UpdatePortalUserAsync(PortalUser updatedUser);
+    public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated;
+    Task<bool> IsDailyLogin();
 }
 
 public static class UserInformationServiceConstants

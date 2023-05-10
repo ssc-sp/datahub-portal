@@ -1,5 +1,5 @@
-using Datahub.Achievements.Models;
 using Datahub.Core.Data;
+using Datahub.Core.Model.Achievements;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
@@ -36,7 +36,7 @@ public partial class FileExplorer
 
         _folders.Add(newFolderPath);
 
-        await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserCreateFolder);
+        await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserCreateFolder);
     }
 
     private async Task HandleFileDelete(string fileName)
@@ -51,7 +51,7 @@ public partial class FileExplorer
         _files?.RemoveAll(f => f.name.Equals(fileName, StringComparison.OrdinalIgnoreCase));
 
         _selectedItems = new HashSet<string> {_currentFolder};
-        await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserDeleteFile);
+        await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserDeleteFile);
     }
 
     private async Task HandleFileItemDrop(string folder, string fileName)
@@ -162,7 +162,8 @@ public partial class FileExplorer
                 }                    
             }
 
-            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserUploadFile);
+            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserUploadFile);
+
             StateHasChanged();
         });
 

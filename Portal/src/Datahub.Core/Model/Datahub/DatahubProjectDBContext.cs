@@ -1,6 +1,5 @@
 ﻿using Datahub.Core.Data;
 using Datahub.Core.Model.Onboarding;
-using J2N;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -35,21 +34,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     public DbSet<SystemNotification> SystemNotifications { get; set; }
 
-    /// <summary>
-    /// Deprecated
-    /// </summary>
     public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
         
-    /// <summary>
-    /// Deprecated
-    /// </summary>
-    public DbSet<Project_Current_Monthly_Cost> Project_Current_Monthly_Costs { get; set; }
-
-    /// <summary>
-    /// Deprecated
-    /// </summary>
-    public DbSet<Project_MonthlyUsage> Project_MonthlyUsage { get; set; }
-
     public DbSet<Project_Credits> Project_Credits { get; set; }
     public DbSet<Project_Whitelist> Project_Whitelists { get; set; }
 
@@ -66,6 +52,16 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<Client_Engagement> Client_Engagements { get; set; }
 
     public DbSet<Project_Storage_Capacity> Storage_Capacities { get; set; }
+
+    public DbSet<Achievements.Achievement> Achievements { get; set; }
+    public DbSet<Achievements.PortalUser> PortalUsers { get; set; }
+    public DbSet<Achievements.UserAchievement> UserAchievements { get; set; }
+    public DbSet<Achievements.TelemetryEvent> TelemetryEvents { get; set; }
+    
+    public DbSet<UserTracking.UserSettings> UserSettings { get; set; }
+
+
+    public DbSet<UserTracking.UserRecentLink> UserRecentLinks { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
@@ -114,6 +110,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(DatahubProjectDBContext).Assembly);
+
         modelBuilder.Entity<WebForm_Field>()
             .HasOne(p => p.WebForm)
             .WithMany(p => p.Fields);
@@ -182,23 +180,17 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
                   .OnDelete(DeleteBehavior.NoAction);
         });
 
-        /// <summary>
-        /// Deprecated
-        /// </summary>
-        modelBuilder.Entity<Project_MonthlyUsage>(entity =>
-        {
-            entity.ToTable("Project_MonthlyUsage");
-            entity.HasKey(e => e.Id);
-            entity.HasOne(e => e.Project)
-                  .WithOne(e => e.MonthlyUsage)
-                  .OnDelete(DeleteBehavior.NoAction);
-        });
         modelBuilder.Entity<Project_Whitelist>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.HasOne(e => e.Project)
                 .WithOne(e => e.Whitelist)
                 .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<Datahub_Project_Costs>(entity =>
+        {
+            entity.HasIndex(e => new { e.Project_ID, e.Date });
         });
 
         modelBuilder.Entity<Project_Credits>(entity =>
@@ -229,10 +221,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         modelBuilder.Entity<SpatialObjectShare>()
             .ToTable("SpatialObjectShares");
             
-        modelBuilder.Entity<Project_Current_Monthly_Cost>()
-            .Property(mc => mc.Id)
-            .ValueGeneratedOnAdd();
-
         modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
     }

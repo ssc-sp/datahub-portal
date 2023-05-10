@@ -81,5 +81,12 @@
     "breadcrumb_pip": "PIP",
     "breadcrumb_indicators": "Indicateurs",
     "breadcrumb_programs": "Programmes",
-    "breadcrumb_risks": "Risques"
+    "breadcrumb_risks": "Risques",
+    "breadcrumb_costs": "Coûts",
+    "breadcrumb_settings": "Paramètres",
+    "breadcrumb_public": "Profil public",
+    "breadcrumb_appearance": "Apparence du portail",
+    "breadcrumb_achievements": "Réalisations",
+    "breadcrumb_notifications": "Notifications",
+    "breadcrumb_diagnostics": "Diagnostiques"
 }

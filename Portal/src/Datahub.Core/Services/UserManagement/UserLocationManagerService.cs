@@ -4,49 +4,84 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Datahub.Core.Components;
+using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.UserTracking;
 
 namespace Datahub.Core.Services.UserManagement;
 
 public class UserLocationManagerService
 {
-    private ILogger<UserLocationManagerService> _logger;
-    private IUserInformationService _userInformationService;
-    private IDbContextFactory<UserTrackingContext> _userTrackingContextFactory;
+    private readonly ILogger<UserLocationManagerService> _logger;
+    private readonly IUserInformationService _userInformationService;
+    private readonly IDbContextFactory<DatahubProjectDBContext> _portalContext;
 
 
     public UserLocationManagerService(ILogger<UserLocationManagerService> logger,
         IUserInformationService userInformationService,
-        IDbContextFactory<UserTrackingContext> userTrackingContextFactory)
+        IDbContextFactory<DatahubProjectDBContext> portalContext)
     {
         _logger = logger;
         _userInformationService = userInformationService;
-        _userTrackingContextFactory = userTrackingContextFactory;
+        _portalContext = portalContext;
     }
 
-
-    private const ushort MaxLocationHistory = 6;
-
-    public async Task RegisterNavigation(UserRecentLink link, bool isNew)
+    public async Task RegisterNavigation(UserRecentLink link)
     {
         try
         {
-            var user = await _userInformationService.GetCurrentGraphUserAsync();
-            var userId = user.Id;
+            var user = await _userInformationService.GetCurrentPortalUserAsync();
+            await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
 
-            await using var efCoreDatahubContext = await _userTrackingContextFactory.CreateDbContextAsync();
+            //remove existing entry for the same LinkType and DataProject if it exists
+            var existingEntity = await efCoreDatahubContext.UserRecentLinks
+                .FirstOrDefaultAsync(l => l.UserId == user.Id && l.LinkType == link.LinkType && 
+                    (l.LinkType == DatahubLinkType.DataProject || l.DataProject == link.DataProject));
 
-            var existingEntity = await efCoreDatahubContext.UserRecent
-                .FirstOrDefaultAsync(u => u.UserId == userId);
-
-            if (existingEntity != null)
+            // if the link is new, we need to add it to the database
+            if (existingEntity == null)
             {
-                efCoreDatahubContext.UserRecent.Remove(existingEntity);
-                await efCoreDatahubContext.SaveChangesAsync();
+                link.UserId = user.Id;
+                efCoreDatahubContext.UserRecentLinks.Add(link);
             }
-            var links = GetRecentLinks(existingEntity, link);
-            var newUserRecent = new UserRecent { UserId = userId, UserRecentActions = links };
-            efCoreDatahubContext.UserRecent.Add(newUserRecent);
+            // if the link is not new but is a resource article
+            else if (existingEntity.LinkType == DatahubLinkType.ResourceArticle)
+            {
+                // we need to check if the resource article id is the same as the existing one
+                if (existingEntity.ResourceArticleId == link.ResourceArticleId)
+                {
+                    // if it is, we need to update the accessed time
+                    existingEntity.accessedTime = link.accessedTime;
+                }
+                else
+                {
+                    // otherwise, we need to add a new entry
+                    link.UserId = user.Id;
+                    efCoreDatahubContext.UserRecentLinks.Remove(existingEntity);
+                    efCoreDatahubContext.UserRecentLinks.Add(link);
+                }
+            }
+            // override the data project link
+            else if (existingEntity.LinkType == DatahubLinkType.DataProject)
+            {
+                if (existingEntity.DataProject == link.DataProject)
+                {
+                    existingEntity.accessedTime = link.accessedTime;
+                }
+                else
+                {
+                    // otherwise, we need to add a new entry
+                    link.UserId = user.Id;
+                    efCoreDatahubContext.UserRecentLinks.Remove(existingEntity);
+                    efCoreDatahubContext.UserRecentLinks.Add(link);
+                }
+            }
+            // if the link is not new but is not a resource article
+            else
+            {
+                // we need to update the accessed time
+                existingEntity.accessedTime = link.accessedTime;
+            }
 
             await efCoreDatahubContext.SaveChangesAsync();
         }
@@ -56,47 +91,15 @@ public class UserLocationManagerService
         }
     }
 
-    private static ICollection<UserRecentLink> GetRecentLinks(UserRecent userRecent, UserRecentLink link)
+    public async Task<ICollection<UserRecentLink>> GetRecentLinks(string userId, int maxRecentLinks)
     {
-        if (userRecent == null)
-            return new List<UserRecentLink>() { link };
-
-        userRecent.UserRecentActions.Add(link);
-
-        return userRecent.UserRecentActions
-            .OrderByDescending(x => x.accessedTime)
-            .DistinctBy(x => (x.DataProject, x.LinkType))
-            .Take(MaxLocationHistory)
+        await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
+        return efCoreDatahubContext.UserRecentLinks
+            .AsNoTracking()
+            .Include(l => l.User)
+            .Where(l => l.User.GraphGuid == userId && (l.DataProject != null || l.ResourceArticleId != null))
+            .OrderByDescending(l => l.accessedTime)
+            .Take(maxRecentLinks)
             .ToList();
-    }
-
-    public async Task DeleteUserRecent(string userId)
-    {
-        using (var efCoreDatahubContext = _userTrackingContextFactory.CreateDbContext())
-        {
-            var userRecentActions = efCoreDatahubContext.UserRecent.Where(u => u.UserId == userId).FirstOrDefault();
-            if (userRecentActions != null)
-            {
-                efCoreDatahubContext.UserRecent.Remove(userRecentActions);
-                await efCoreDatahubContext.SaveChangesAsync();
-            }
-        }
-    }
-
-    public async Task<UserRecent> ReadRecentNavigations(string userId)
-    {
-        await using var efCoreDatahubContext = await _userTrackingContextFactory.CreateDbContextAsync();
-        var userRecentActions = await efCoreDatahubContext.UserRecent
-            .FirstOrDefaultAsync(u => u.UserId == userId);
-        return userRecentActions;
-    }
-
-    public async Task RegisterNavigation(UserRecent recent)
-    {
-        using (var efCoreDatahubContext = _userTrackingContextFactory.CreateDbContext())
-        {
-            efCoreDatahubContext.UserRecent.Add(recent);
-            await efCoreDatahubContext.SaveChangesAsync();
-        }
     }
 }

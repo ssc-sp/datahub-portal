@@ -139,12 +139,12 @@ namespace Datahub.Functions
 
             var body = bodyTemplate.Replace("{perc}", perc.ToString());
 
-            List<string> cc = new() { GetNotificationCCAddress() };
+            List<string> bcc = new() { GetNotificationCCAddress() };
 
             EmailRequestMessage notificationEmail = new() 
             { 
                 To = contacts, 
-                CcTo = cc,
+                BccTo = bcc,
                 Subject = subject, 
                 Body = body 
             };

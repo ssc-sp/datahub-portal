@@ -1,0 +1,44 @@
+@using Datahub.Core.Model.Achievements
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="6" Class="pa-4">
+            <MudText Typo="Typo.body2">
+                @Localizer["Select a new picture to be displayed for your profile"]
+            </MudText>
+            <ImageSelectionView ViewedUser="@ViewedUser" IsProfilePictureDialog="@IsProfilePictureDialog" OnImageSelected="@HandleImageSelected" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public PortalUser ViewedUser { get; set; }
+    
+    [Parameter]
+    public bool IsProfilePictureDialog  { get; set; }
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(_selectedCode));
+    void Cancel() => MudDialog.Cancel();
+
+    private string _selectedCode = "";
+    
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _selectedCode = IsProfilePictureDialog ? ViewedUser.ProfilePictureUrl : ViewedUser.BannerPictureUrl;
+    }
+
+    private void HandleImageSelected(string updatedCode)
+    {
+        _selectedCode = updatedCode;
+    }
+}
