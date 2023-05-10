@@ -93,4 +93,10 @@ public class Icon
         Color = "purple",
         HexColor = Colors.Purple.Default,
     };
+    public static readonly Icon NEWS = new()
+    {
+        Name = "fad fa-newspaper",
+        Color = "grey",
+        HexColor = Colors.Grey.Default,
+    };
 }

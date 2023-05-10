@@ -81,10 +81,10 @@
     <PackageReference Include="Tewr.Blazor.FileReader" Version="3.3.1.21360" />
   </ItemGroup>
   <ItemGroup>
-    <Content Update="i18n\localization.fr.json">
-      <CustomToolNamespace>Resources</CustomToolNamespace>
-    </Content>
     <Content Update="wwwroot\infinite-scrolling.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\markdown-editor.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -104,40 +104,5 @@
 	<ProjectReference Include="..\modules\Datahub.LanguageTraining\Datahub.LanguageTraining.csproj" />
 	<ProjectReference Include="..\modules\Datahub.M365Forms\Datahub.M365Forms.csproj" />
 	<ProjectReference Include="..\modules\Datahub.PIP\Datahub.PIP.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="Pages\Forms\LanguageTraining\FormFooterSubmitted.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Pages\Forms\LanguageTraining\FormFooterWarning.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Pages\Forms\LanguageTraining\FormFooterSubmittedFr.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Pages\Forms\LanguageTraining\FormFooterWarningFr.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Pages\Forms\LanguageTraining\FormFooterFr.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Pages\Forms\LanguageTraining\FormFooter.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Pages\Forms\LanguageTraining\FormIntroFr.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Pages\Forms\LanguageTraining\FormIntro.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Pages\Forms\M365Forms\FormFooter.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Pages\Forms\M365Forms\FormFooterFr.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Pages\Forms\Pip\PipFormIntro.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 </Project>

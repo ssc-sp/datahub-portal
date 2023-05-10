@@ -1,0 +1,75 @@
+﻿@page "/news"
+
+@using Timer = System.Timers.Timer
+@implements IDisposable
+
+
+<h3>Markdown Editor</h3>
+
+<MarkdownEditor ValueChanged="HandleValueChanged" />
+@if (_hideSome && _hideSome2)
+{
+    <MarkdownEditor ValueChanged="HandleValueChanged" />
+}
+@if (_hideSome)
+{
+    <MarkdownEditor ValueChanged="HandleValueChanged" />
+}
+@if (_hideSome2)
+{
+    <MarkdownEditor ValueChanged="HandleValueChanged" />
+}
+    
+<MudText>
+    @_markdown
+</MudText>
+
+@code {
+
+    private string _markdown;
+    private bool _hideSome;
+    private bool _hideSome2;
+    private Timer _timer;
+    private Timer _timer2;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        // start a timer for 1s
+        // every 1s toggle _hideSome
+
+        _timer = new System.Timers.Timer(1000);
+        _timer.Elapsed += (sender, args) =>
+        {
+            _hideSome = !_hideSome;
+            InvokeAsync(StateHasChanged);
+        };
+        
+        _timer.Start();
+        
+        // start a second timer for 2s
+        // every 2s toggle _hideSome2
+        
+        _timer2 = new System.Timers.Timer(2000);
+        _timer2.Elapsed += (sender, args) =>
+        {
+            _hideSome2 = !_hideSome2;
+            InvokeAsync(StateHasChanged);
+        };
+        
+        _timer2.Start();
+    }
+
+    private void HandleValueChanged(string value)
+    {
+        _markdown = value;
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+        _timer2?.Dispose();
+    }
+
+}
