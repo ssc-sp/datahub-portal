@@ -11,11 +11,11 @@ public static class FieldDefinitionHelper
 {
     public static FieldDefinitions LoadDefinitions()
     {
-        var defs = JsonConvert.DeserializeObject<FieldDefinition[]>(GetFileContent("open_data_definitions.json")).ToList();
+        var defs = JsonConvert.DeserializeObject<FieldDefinition[]>(GetFileContent("open_data_definitions.json"))!.ToList();
         var choices = JsonConvert.DeserializeObject<FieldChoice[]>(GetFileContent("open_data_definition_choices.json"));
 
         var defDict = defs.ToDictionary(v => v.FieldDefinitionId, v => v);
-        foreach (var c in choices)
+        foreach (var c in choices!)
         {
             var def = defDict[c.FieldDefinitionId];
             def.Choices ??= new List<FieldChoice>();
@@ -30,7 +30,7 @@ public static class FieldDefinitionHelper
 
     public static FieldValueContainer LoadFields(FieldDefinitions definitions)
     {
-        var fieldValues = JsonConvert.DeserializeObject<ObjectFieldValue[]>(GetFileContent("field_values.json")).ToList();
+        var fieldValues = JsonConvert.DeserializeObject<ObjectFieldValue[]>(GetFileContent("field_values.json"))!.ToList();
 
         foreach (var fvalue in fieldValues)
         {

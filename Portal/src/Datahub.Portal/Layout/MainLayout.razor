@@ -3,6 +3,8 @@
 @using Microsoft.Identity.Web
 @using Datahub.Core.Theme
 @using MudBlazor.Utilities
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Services.Achievements
 
 @inject NavigationManager _navigationManager
 @inject IDatahubAuditingService _auditingService
@@ -11,6 +13,7 @@
 @inject DatahubPortalConfiguration _portalConfiguration
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject IPortalUserTelemetryService _telemetryService
 
 <MudThemeProvider Theme="@DatahubTheme.DEFAULT_THEME"/>
 <MudDialogProvider/>
@@ -41,7 +44,7 @@
                                 <ChildContent>
                                     @if (_isSessionEnabled == true)
                                     {
-                                        <MudContainer Class="mt-8 px-16" MaxWidth="MaxWidth.ExtraLarge">
+                                        <MudContainer Class="mt-8 px-16" MaxWidth="MaxWidth.Large">
                                             <DHBreadcrumbs />
                                             @Body
                                         </MudContainer>
@@ -137,6 +140,9 @@ else
         {
             _consentHandler.HandleException(ex);
         }
+
+        // register and or update authenticated portal user
+        await _userInformationService.RegisterAuthenticatedPortalUser();
 
         _isLoaded = true;
     }

@@ -1,15 +1,18 @@
-﻿@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
+﻿@page "/w/{ProjectAcronymParam}"
+
+@using Datahub.Core.Model.UserTracking;
+@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 @using Datahub.Core.Components.PageBanner
-@using Datahub.Achievements.Models
+@using Datahub.Core.Services.Achievements
+@using Datahub.Core.Model.Achievements
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
 @inject ServiceAuthManager _serviceAuthManager
-@inject AchievementService _achievementService
+@inject IPortalUserTelemetryService _telemetryService
 @inject IDatahubAuditingService _auditingService
+@inject UserLocationManagerService UserLocationManagerService
 @inject ILogger<DataProjectPage> logger
-
-@page "/w/{ProjectAcronymParam}"
 
 <DHPageAlert 
     Title=@Localizer["Welcome to your Workspace"] 
@@ -29,7 +32,7 @@
                         <CascadingValue Value="@_isProjectAdmin" Name="IsProjectAdmin">
                             <CascadingValue Value=@_user Name="GraphUser">
                                 <CascadingValue Value=@_projectId Name="ProjectId">
-                                    <MudItem sm="12" md="7" lg="9">
+                                    <MudItem sm="12" md="7" lg="8">
                                         <ProjectInfo/>
                                         @if (_clientEngagements.Any())
                                         {
@@ -38,8 +41,8 @@
                                         <ProjectCatalog IsFrench="@_isFrench"/>
                                         <ProjectToolListing/>
                                     </MudItem>
-                                    <MudItem sm="12" md="5" lg="3">
-                                        <ProjectAdmins/>
+                                    <MudItem sm="12" md="5" lg="4">
+                                        <ProjectUserCardList ProjectAcronym="@ProjectAcronymParam" />
                                     </MudItem>
                                 </CascadingValue>
                             </CascadingValue>
@@ -93,11 +96,34 @@
         var isMemberOfProject = projectContext.Project_Users
             .Any(p => p.User_ID == _userId && p.Project.Project_Acronym_CD == ProjectAcronymParam);
 
-        if (!isMemberOfProject)
+        if (isMemberOfProject)
         {
-            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserViewProjectNotMemberOf);
+            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewProject);
         }
+        else
+        {
+            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewProjectNotMemberOf);
+        }
+
         _clientEngagements = await projectContext.Client_Engagements.Where(ce => ce.Project == _project && ce.Is_Engagement_Active).ToListAsync();
         await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
+
+        // record recent link
+        await RecordRecentLink();
+    }
+
+    private async Task RecordRecentLink()
+    {
+        if (string.IsNullOrEmpty(ProjectAcronymParam))
+            return;
+
+        var userRecentLink = new UserRecentLink()
+        {
+            LinkType = DatahubLinkType.DataProject,
+            DataProject = ProjectAcronymParam,
+            accessedTime = DateTimeOffset.Now
+        };
+
+        await UserLocationManagerService.RegisterNavigation(userRecentLink);
     }
 }

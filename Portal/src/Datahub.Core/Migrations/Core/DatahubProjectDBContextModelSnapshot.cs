@@ -17,10 +17,316 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.3")
+                .HasAnnotation("ProductVersion", "7.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<string>("ConcatenatedRules")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Achivements", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "DHA-001",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_login\", currentMetric)",
+                            Description = "Logged in to DataHub",
+                            Name = "Collaboration Connoisseur",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "DHA-002",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_sent_invite\", currentMetric)",
+                            Description = "Invite a user to your workspace",
+                            Name = "Collaboration Commander",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "DHA-003",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_joined_project\", currentMetric)",
+                            Description = "Join a workspace",
+                            Name = "Workspace Warrior",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "DHA-004",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_left_project\", currentMetric)",
+                            Description = "Leave a workspace",
+                            Name = "Workspace Wanderlust",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "DHA-005",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_daily_login\", currentMetric)",
+                            Description = "Login on multiple days",
+                            Name = "Consistent Contributor",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "STR-000",
+                            ConcatenatedRules = "Utils.OwnsAchievement(\"STR-001\", achivements)\nUtils.OwnsAchievement(\"STR-003\", achivements)\nUtils.OwnsAchievement(\"STR-004\", achivements)\nUtils.OwnsAchievement(\"STR-005\", achivements)\nUtils.OwnsAchievement(\"STR-006\", achivements)",
+                            Description = "Unlock all the 2.0 Storage Explorer achievements",
+                            Name = "Storage Savant",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "STR-001",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_upload_file\", currentMetric)",
+                            Description = "Upload a file using the workspace Storage Explorer",
+                            Name = "Unstoppable Uploader",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "STR-002",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_share_file\", currentMetric)",
+                            Description = "Share a file using the workspace Storage Explorer",
+                            Name = "Storage Socialite",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "STR-003",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_download_file\", currentMetric)",
+                            Description = "Download a file using the workspace Storage Explorer",
+                            Name = "File Fetcher",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "STR-004",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_delete_file\", currentMetric)",
+                            Description = "Delete a file from the workspace with the Storage Explorer",
+                            Name = "Daredevil Deleter",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "STR-005",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_create_folder\", currentMetric)",
+                            Description = "Create a folder in the workspace's Storage Explorer",
+                            Name = "Folder Fashionista",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "STR-006",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_delete_folder\", currentMetric)",
+                            Description = "Delete a folder in the workspace's Storage Explorer",
+                            Name = "Folder Farewell",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "EXP-000",
+                            ConcatenatedRules = "Utils.OwnsAchievement(\"EXP-001\", achivements)\nUtils.OwnsAchievement(\"EXP-002\", achivements)\nUtils.OwnsAchievement(\"EXP-003\", achivements)\nUtils.OwnsAchievement(\"EXP-004\", achivements)\nUtils.OwnsAchievement(\"EXP-005\", achivements)\nUtils.OwnsAchievement(\"EXP-006\", achivements)\nUtils.OwnsAchievement(\"EXP-007\", achivements)\nUtils.OwnsAchievement(\"EXP-008\", achivements)\nUtils.OwnsAchievement(\"EXP-009\", achivements)",
+                            Description = "Unlock all the 2.0 Exploration achievements",
+                            Name = "Explorer Extraordinaire",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "EXP-001",
+                            ConcatenatedRules = "Utils.MatchUrl(\"\\\\/w\\\\/([0-9a-zA-Z]+)?\\\\/filelist$\", currentMetric)",
+                            Description = "Navigate to the Storage Explorer page of a workspace",
+                            Name = "Storage Safari",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "EXP-002",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_click_databricks_link\", currentMetric)",
+                            Description = "Navigate to the Databricks page of a workspace",
+                            Name = "Databricks Discovery",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "EXP-003",
+                            ConcatenatedRules = "Utils.MatchUrl(\"\\\\/resources$\", currentMetric)",
+                            Description = "View the resources section of DataHub",
+                            Name = "Resource Ranger",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "EXP-004",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_project_not_member_of\", currentMetric)",
+                            Description = "View a workspace you are not a member of",
+                            Name = "Workspace Wanderer",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "EXP-005",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_project\", currentMetric)",
+                            Description = "Visit one of your own workspaces",
+                            Name = "Workspace Wayfarer",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "EXP-006",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_click_recent_link\", currentMetric)",
+                            Description = "Use a recent link to get to the same page again",
+                            Name = "Link Legend",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "EXP-007",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_click_toggle_culture\", currentMetric)",
+                            Description = "Switch languages in the portal",
+                            Name = "Prolific Polyglot",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "EXP-008",
+                            ConcatenatedRules = "Utils.MatchUrl(\"\\\\/profile$\", currentMetric)",
+                            Description = "View your own profile page",
+                            Name = "Profile Peruser",
+                            Points = 1
+                        },
+                        new
+                        {
+                            Id = "EXP-009",
+                            ConcatenatedRules = "Utils.MatchMetric(\"user_view_other_profile\", currentMetric)",
+                            Description = "View another person's profile",
+                            Name = "Profile Prowler",
+                            Points = 1
+                        });
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Achievements.PortalUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BannerPictureUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("FirstLoginDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("GraphGuid")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("HideAchievements")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<DateTime?>("LastLoginDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ProfilePictureUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GraphGuid")
+                        .IsUnique();
+
+                    b.ToTable("PortalUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Achievements.TelemetryEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("EventDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EventName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PortalUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PortalUserId");
+
+                    b.ToTable("TelemetryEvents", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Achievements.UserAchievement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AchievementId")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PortalUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UnlockedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AchievementId");
+
+                    b.HasIndex("PortalUserId");
+
+                    b.ToTable("UserAchievements", (string)null);
+                });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Client_Engagement", b =>
                 {
@@ -409,23 +715,26 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProjectCosts_ID"));
 
-                    b.Property<double>("Cost_AMT")
+                    b.Property<double>("CadCost")
                         .HasColumnType("float");
 
-                    b.Property<string>("Project_Acronym_CD")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                    b.Property<string>("CloudProvider")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Project_ID")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("Updated_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("Usage_DT")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("ServiceName")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.HasKey("ProjectCosts_ID");
+
+                    b.HasIndex("Project_ID", "Date");
 
                     b.ToTable("Project_Costs");
                 });
@@ -783,83 +1092,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .IsUnique();
 
                     b.ToTable("Project_Credits", (string)null);
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.Project_Current_Monthly_Cost", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ProjectAcronym")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("TotalCost")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("TotalCostUSD")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("UpdateDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Project_Current_Monthly_Costs");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.Project_MonthlyUsage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("ConsumeLastNotified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ConsumePercNotified")
-                        .HasColumnType("int");
-
-                    b.Property<double>("CurrentCost")
-                        .HasColumnType("float");
-
-                    b.Property<string>("CurrentCostPerDay")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CurrentCostPerService")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("CurrentStorageUsage")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("LastUpdate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("StorageLastNotified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("StoragePercNotified")
-                        .HasColumnType("int");
-
-                    b.Property<double>("YesterdayCost")
-                        .HasColumnType("float");
-
-                    b.Property<string>("YesterdayCostPerService")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectId")
-                        .IsUnique();
-
-                    b.ToTable("Project_MonthlyUsage", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Project_Resources", b =>
@@ -1432,6 +1664,84 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("OnboardingApps");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserRecentLink", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DataProject")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DatabricksURL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("LinkType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PBIReportId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PBIWorkspaceId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PowerBIURL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResourceArticleId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResourceArticleTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Variant")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WebFormsURL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("accessedTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserRecentLink", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserSettings", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("AcceptedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("UserSettings", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
                 {
                     b.HasBaseType("Datahub.Core.Model.Datahub.SharedDataFile");
@@ -1461,6 +1771,35 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("int");
 
                     b.ToTable("OpenDataSharedFile");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Achievements.TelemetryEvent", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "PortalUser")
+                        .WithMany("TelemetryEvents")
+                        .HasForeignKey("PortalUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("PortalUser");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Achievements.UserAchievement", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.Achievement", "Achievement")
+                        .WithMany("UserAchievements")
+                        .HasForeignKey("AchievementId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "PortalUser")
+                        .WithMany("Achievements")
+                        .HasForeignKey("PortalUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Achievement");
+
+                    b.Navigation("PortalUser");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Client_Engagement", b =>
@@ -1613,17 +1952,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.Project_MonthlyUsage", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Datahub.Datahub_Project", "Project")
-                        .WithOne("MonthlyUsage")
-                        .HasForeignKey("Datahub.Core.Model.Datahub.Project_MonthlyUsage", "ProjectId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Project");
-                });
-
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Project_Resources", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Datahub.Datahub_Project", "Project")
@@ -1695,6 +2023,17 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("WebForm");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserRecentLink", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "User")
+                        .WithMany("RecentLinks")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Datahub.SharedDataFile", null)
@@ -1704,6 +2043,20 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
+                {
+                    b.Navigation("UserAchievements");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Achievements.PortalUser", b =>
+                {
+                    b.Navigation("Achievements");
+
+                    b.Navigation("RecentLinks");
+
+                    b.Navigation("TelemetryEvents");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Datahub_Project", b =>
                 {
                     b.Navigation("Client_Engagements");
@@ -1711,8 +2064,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Comments");
 
                     b.Navigation("Credits");
-
-                    b.Navigation("MonthlyUsage");
 
                     b.Navigation("PBI_License_Request");
 

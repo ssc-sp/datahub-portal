@@ -16,9 +16,6 @@
     <None Remove="Controllers\OpenDataApprovalForm.docx" />
     <None Remove="i18n\achievements.fr.json.bad" />
   </ItemGroup>
-   <ItemGroup>
-    <Content Include="i18n\achievements.fr.json.bad" />
-  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Controllers\OpenDataApprovalForm.docx" />
   </ItemGroup>

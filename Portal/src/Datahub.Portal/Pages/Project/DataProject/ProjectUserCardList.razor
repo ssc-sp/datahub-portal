@@ -1,0 +1,60 @@
+@using Datahub.Portal.Components.AuthViews
+@using Datahub.Core.Data.Project
+@using Datahub.Portal.Components.User
+
+@inject ServiceAuthManager _serviceAuthManager
+
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated" ProjectAcronym="@ProjectAcronym">
+    <MudStack>
+        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
+            <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@($"/w/{ProjectAcronym}/members")">
+                    @Localizer["Manage Members"]
+                </MudButton>
+            </DatahubAuthView>
+        </MudStack>
+        <MudStack>
+            @foreach (var admin in _projectAdmins)
+            {
+                <UserCard ViewedUserGraphId="@admin.UserId" Size="Size.Medium" ShowProfileLink/>
+            }
+        </MudStack>
+
+        @if (_projectMembers.Any())
+        {
+            <MudDivider Class="my-4"/>
+
+            <MudStack Class="mb-2">
+                <MudText Typo="Typo.h5">@Localizer["Collaborators"]</MudText>
+            </MudStack>
+            <MudStack>
+                @foreach (var member in _projectMembers)
+                {
+                    <UserCard ViewedUserGraphId="@member.UserId" Size="Size.Medium" ShowProfileLink/>
+                }
+            </MudStack>
+        }
+    </MudStack>
+</DatahubAuthView>
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private List<ProjectMember> _projectAdmins = new();
+    private List<ProjectMember> _projectMembers = new();
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        var allMembers = await _serviceAuthManager.GetProjectMembers(ProjectAcronym);
+        _projectAdmins = allMembers.Where(m => m.Role == ProjectMemberRole.Admin || m.Role == ProjectMemberRole.WorkspaceLead).ToList();
+        _projectMembers = allMembers.Where(m => m.Role == ProjectMemberRole.Collaborator).ToList();
+    }
+
+}

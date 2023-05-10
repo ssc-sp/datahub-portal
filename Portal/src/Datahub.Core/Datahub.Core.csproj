@@ -66,6 +66,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.21.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="7.0.*" />
 		<PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
+		<PackageReference Include="RulesEngine" Version="4.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.*">
@@ -96,7 +97,6 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
 	  <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
-	  <ProjectReference Include="..\Datahub.Achievements\Datahub.Achievements.csproj" />
 	</ItemGroup>
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
@@ -127,6 +127,10 @@
 	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-thin-100.woff2" />
 	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.ttf" />
 	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.woff2" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Services\AzureCosting\" />
 	</ItemGroup>
 
 	<Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />

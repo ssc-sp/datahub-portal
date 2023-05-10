@@ -1,0 +1,14 @@
+@using Datahub.Core.Model.Achievements
+
+<MudStack>
+    <MudStack Row>
+        <MudIcon Icon="@Icons.Material.Outlined.Celebration" Title="@Localizer["Achievement Unlocked"]" />
+        <MudText Typo="Typo.body1">@Localizer["New Achievement Unlocked!"]</MudText>
+    </MudStack>
+    <AchievementCard Achievement="@Achievement"/>
+</MudStack>
+
+@code {
+    [Parameter]
+    public Achievement Achievement { get; set; }
+}

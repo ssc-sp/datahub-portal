@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Datahub.Core.Model.Achievements;
+using Datahub.Core.Services.UserManagement;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 
@@ -34,6 +36,16 @@ public class OfflineUserInformationService : IUserInformationService
             UserPrincipalName = "me@me.com",
             Mail = "nabeel.bader@nrcan-rncan.gc.ca"
         });
+    }
+
+    public Task<string> GetDisplayName()
+    {
+        return Task.FromResult("Me");
+    }
+
+    public Task<string> GetUserEmail()
+    {
+        return Task.FromResult("me@me.com");
     }
 
     public Task<string> GetUserEmailDomain()
@@ -86,6 +98,11 @@ public class OfflineUserInformationService : IUserInformationService
         return true;
     }
 
+    public Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<User> GetAnonymousGraphUserAsync()
     {
         return Task.FromResult(AnonymousUser);
@@ -104,6 +121,21 @@ public class OfflineUserInformationService : IUserInformationService
             Id = userId,
             UserPrincipalName = "me@me.com"
         });
+    }
+
+    public Task<PortalUser> GetCurrentPortalUserAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<PortalUser> GetPortalUserAsync(string userGraphId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync()
+    {
+        throw new NotImplementedException();
     }
 
     public Task<bool> IsUserWithoutInitiatives()
@@ -148,6 +180,27 @@ public class OfflineUserInformationService : IUserInformationService
     }
 
     public Task<bool> IsUserProjectMember(string projectAcronym)
+    {
+        return Task.FromResult(false);
+    }
+
+    public Task RegisterAuthenticatedPortalUser()
+    {
+        return Task.FromResult(true);
+    }
+
+    public Task<PortalUser> GetAuthenticatedPortalUser()
+    {
+        return Task.FromResult(new PortalUser(){GraphGuid = AnonymousUser.Id});
+    }
+    
+    public Task<bool> UpdatePortalUserAsync(PortalUser updatedUser)
+    {
+        PortalUserUpdated?.Invoke(this, new PortalUserUpdatedEventArgs(updatedUser));
+        throw new NotImplementedException();
+    }
+    public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated;
+    public Task<bool> IsDailyLogin()
     {
         return Task.FromResult(false);
     }

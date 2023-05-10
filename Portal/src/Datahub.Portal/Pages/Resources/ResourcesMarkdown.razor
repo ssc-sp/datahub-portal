@@ -1,7 +1,9 @@
 @*ResourcesMarkdown.razor*@
 
 @using Datahub.Core.Services.Docs
+@using Datahub.Core.Model.UserTracking
 @inject DocumentationService _docService
+@inject UserLocationManagerService UserLocationManagerService
 
 <MudPaper Class="px-8 py-6">
     <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
@@ -36,8 +38,16 @@
     {
         await base.OnParametersSetAsync();
         _markdownContent = await _docService.LoadResourcePage(DocumentItem);
-    }
+        var userRecentLink = new UserRecentLink()
+        {
+            LinkType = DatahubLinkType.ResourceArticle,
+            ResourceArticleId = DocumentItem.Id,
+            ResourceArticleTitle = DocumentItem.Title,
+            accessedTime = DateTimeOffset.Now,
 
+        };
+        await UserLocationManagerService.RegisterNavigation(userRecentLink);
+    }
 
     public string RewriteLink(string link)
     {
