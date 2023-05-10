@@ -16,8 +16,8 @@
         @if (UserAchievement?.Earned ?? false)
         {
             <MudStack Spacing="0" Class="d-flex align-center">
-                <MudText Typo="Typo.body2">@DateTime.Now.ToString("yyyy MMMM dd")</MudText>
-                <MudText Typo="Typo.body2">@DateTime.Now.ToString("h:mm tt")</MudText>
+                <MudText Typo="Typo.body2">@(UserAchievement.UnlockedAt.ToString("yyyy MMMM dd"))</MudText>
+                <MudText Typo="Typo.body2">@(UserAchievement.UnlockedAt.ToString("h:mm tt"))</MudText>
             </MudStack>
         }
         else
