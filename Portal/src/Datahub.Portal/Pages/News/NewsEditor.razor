@@ -1,144 +1,151 @@
 ﻿@*Announcements.razor*@
 
 @page "/news"
-@page "/announcements"
-@page "/announcements/{Id}"
+@page "/news/{Id}"
 
 @using Datahub.Core.Model.Announcements;
 
-<MudCard Class="mb-4">
-    <MudCardHeader>
-        <CardHeaderAvatar>
-            <MudIconButton Icon="@Icons.Material.Filled.Newspaper" Color="Color.Default" />
-        </CardHeaderAvatar>
-        <CardHeaderContent>
-            @if (_announcement.IsNew())
-            {
-                <MudText Typo="Typo.h3">@Localizer["New Article"]</MudText>
-            }
-            else
-            {
-                <MudText Typo="Typo.h3">@Localizer["Edit Article"]</MudText>
-            }
-        </CardHeaderContent>
-    </MudCardHeader>
-    
-    <MudCardContent>
-        <MudStack Class="ma-4">
-            <MudText Typo="Typo.h4">English</MudText>
-            <MudTextField @bind-Value=@_announcement.TitleEn Label="Title" Variant="Variant.Outlined"></MudTextField>
-            <MudTextField @bind-Value=@_announcement.PreviewEn T="string" Label="Preview" Lines="3" Variant="Variant.Outlined" />
-            <MarkdownEditor InitialValue=@_announcement.BodyEn ValueChanged="HandleEnglishValueChanged" />
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+    @if (_article is not null)
+    {
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <CardHeaderAvatar>
+                    <MudIconButton Icon="@Icons.Material.Filled.Newspaper" Color="Color.Default" />
+                </CardHeaderAvatar>
+                <CardHeaderContent>
+                    @if (_article.IsNew())
+                    {
+                        <MudText Typo="Typo.h3">@Localizer["New Article"]</MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.h3">@Localizer["Edit Article"]</MudText>
+                    }
+                </CardHeaderContent>
+            </MudCardHeader>
 
-            <MudText Typo="Typo.h4" Class="mt-2">Français</MudText>
-            <MudTextField @bind-Value=@_announcement.TitleFr Label="Titre" Variant="Variant.Outlined"></MudTextField>
-            <MudTextField @bind-Value=@_announcement.PreviewFr T="string" Label="Aperçu" Lines="3" Variant="Variant.Outlined" />
-            <MarkdownEditor InitialValue=@_announcement.BodyFr ValueChanged="HandleFrenchValueChanged" />
+            <MudCardContent>
+                <MudStack Class="ma-4">
+                    <MudText Typo="Typo.h4">English</MudText>
+                    <MudTextField @bind-Value=@_article.TitleEn Label="Title" Variant="Variant.Outlined"></MudTextField>
+                    <MudTextField @bind-Value=@_article.PreviewEn T="string" Label="Preview" Lines="3" Variant="Variant.Outlined" />
+                    <MarkdownEditor InitialValue=@_article.BodyEn ValueChanged="HandleEnglishValueChanged" />
 
-            <MudText Typo="Typo.h4" Class="mt-2">@Localizer["Schedule"]</MudText>
-            <MudDatePicker @bind-Date="_startDate"
-                           Label="Start Date"
-                           Required="true"
-                           Variant="Variant.Outlined"
-                           DateFormat="yyyy-MM-dd"
-                           Margin="Margin.Dense" />
+                    <MudText Typo="Typo.h4" Class="mt-2">Français</MudText>
+                    <MudTextField @bind-Value=@_article.TitleFr Label="Titre" Variant="Variant.Outlined"></MudTextField>
+                    <MudTextField @bind-Value=@_article.PreviewFr T="string" Label="Aperçu" Lines="3" Variant="Variant.Outlined" />
+                    <MarkdownEditor InitialValue=@_article.BodyFr ValueChanged="HandleFrenchValueChanged" />
 
-            <MudCheckBox @bind-Checked="_neverExpires" Label="Doesn't expire" Color="Color.Primary"></MudCheckBox>
+                    <MudText Typo="Typo.h4" Class="mt-2">@Localizer["Schedule"]</MudText>
+                    <MudDatePicker @bind-Date="_startDate"
+                               Label="Start Date"
+                               Required="true"
+                               Variant="Variant.Outlined"
+                               DateFormat="yyyy-MM-dd"
+                               Margin="Margin.Dense" />
 
-            <MudDatePicker @bind-Date="_endDate"
-                           Label="End Date"
-                           Required="true"
-                           Variant="Variant.Outlined"
-                           DateFormat="yyyy-MM-dd"
-                           Disabled=@_neverExpires
-                           Margin="Margin.Dense" />
+                    <MudCheckBox @bind-Checked="_neverExpires" Label="Doesn't expire" Color="Color.Primary"></MudCheckBox>
 
-            <MudCheckBox @bind-Checked="_hidden" Label="Hidden" Color="Color.Primary"></MudCheckBox>
+                    <MudDatePicker @bind-Date="_endDate"
+                               Label="End Date"
+                               Required="true"
+                               Variant="Variant.Outlined"
+                               DateFormat="yyyy-MM-dd"
+                               Disabled=@_neverExpires
+                               Margin="Margin.Dense" />
 
-        </MudStack>
-    </MudCardContent>
+                    <MudCheckBox @bind-Checked="_article.ForceHidden" Label="Hidden" Color="Color.Primary"></MudCheckBox>
 
-    <MudCardActions>
-        <MudStack Row Spacing="2" Class="ma-4">
-            <MudButton Variant="Variant.Text"
-                       Color="Color.Primary"
-                       OnClick="HandleSave">
-                @Localizer["Save Changes"]
-            </MudButton>
-            <MudButton Variant="Variant.Text" 
-                       Color="Color.Default"
-                       OnClick="HandleDiscard">
-                @Localizer["Discard changes"]
-            </MudButton>
-        </MudStack>
-    </MudCardActions>
-</MudCard>
+                </MudStack>
+            </MudCardContent>
 
-        @code {
+            <MudCardActions>
+                <MudStack Row Spacing="2" Class="ma-4">
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Primary"
+                               OnClick="HandleSave">
+                        @Localizer["Save Changes"]
+                    </MudButton>
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Default"
+                               OnClick="HandleDiscard">
+                        @Localizer["Discard changes"]
+                    </MudButton>
+                </MudStack>
+            </MudCardActions>
+        </MudCard>
+    }
+</DatahubAuthView>
+
+
+@code {
 
     [Parameter]
     public string Id { get; set; }
 
     [Inject]
-    public IDbContextFactory<DatahubProjectDBContext> dbContextFactory { get; set; }
+    public IDbContextFactory<DatahubProjectDBContext> _dbContextFactory { get; set; }
 
-    private Announcement _announcement;
+    [Inject]
+    public NavigationManager _navigationManager { get; set; }
 
-    private string _titleEnglish;
-    private string _titleFrench;
-
-    private string _abstractEnglish;
-    private string _abstractFrench;
-
-    private string _englishBody = "# English\n## Abstract";
-    private string _frenchBody = "# French\n## Abstract";
-
-    private DateTime? _startDate = DateTime.Now;
-    private DateTime? _endDate = DateTime.Now.AddDays(1);
+    private Announcement _article;
+    private DateTime? _startDate;
+    private DateTime? _endDate;
     private bool _neverExpires;
-
-    private bool _hidden = true;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-        _announcement = new()
-        {
-            TitleEn = "Enter title",
-            TitleFr = "Enter title",
-            PreviewEn = "Enter preview",
-            PreviewFr = "Enter preview",
-            BodyEn = "# English\n## Abstract",
-            BodyFr = "# French\n## Abstract"
-        };
+        _article = await GetArticle();
+
+        _startDate = _article.StartDateTime;
+        _endDate = _article.EndDateTime ?? _startDate.Value.AddDays(30);
     }
+
+    private async Task<Announcement> GetArticle()
+    {
+        var id = GetArticleId();
+        if (id == 0)
+            return new();
+
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        var article = await ctx.Announcements
+                               .AsNoTracking()
+                               .FirstOrDefaultAsync(e => e.Id == id);
+
+        return article ?? new();
+    }
+
+    private int GetArticleId() => int.TryParse(Id, out int value) ? value : 0;
 
     private void HandleEnglishValueChanged(string value)
     {
-        _announcement.BodyEn = value;
+        _article.BodyEn = value;
     }
 
     private void HandleFrenchValueChanged(string value)
     {
-        _announcement.BodyFr = value;
+        _article.BodyFr = value;
     }
 
     private async Task HandleSave()
     {
-        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
         // correct the start date
-        _announcement.StartDateTime = _startDate ?? DateTime.Now;
-        _announcement.EndDateTime = !_neverExpires ? _endDate : default;
+        _article.StartDateTime = _startDate ?? DateTime.Now;
+        _article.EndDateTime = !_neverExpires ? _endDate : default;
 
-        if (_announcement.Id == 0)
+        if (_article.Id == 0)
         {
-            ctx.Announcements.Add(_announcement);
+            ctx.Announcements.Add(_article);
         }
         else
         {
-            ctx.Announcements.Update(_announcement);
+            ctx.Announcements.Update(_article);
         }
 
         await ctx.SaveChangesAsync();
@@ -146,6 +153,6 @@
 
     private void HandleDiscard()
     {
-        // >>
+        _navigationManager.NavigateTo("/news");
     }
 }

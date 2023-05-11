@@ -4,6 +4,11 @@ namespace Datahub.Core.Model.Announcements;
 
 public class Announcement
 {
+    public Announcement()
+    {
+        StartDateTime = DateTime.Now;
+    }
+
     public int Id { get; set; }
     public string TitleEn { get; set; }
     public string TitleFr { get; set; }
