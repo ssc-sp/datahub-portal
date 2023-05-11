@@ -37,3 +37,13 @@ export function destroyMarkdown(elementId) {
     // delete the reference
     delete instances[elementId];
 }
+
+export function setValue(elementId, value) {
+    console.log("calling setValue");
+    const instance = _instances[elementId];
+    if (instance) {
+        console.log("value changed");
+        instance.editor.value(value);
+    }
+}
+
