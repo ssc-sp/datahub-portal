@@ -1,0 +1,151 @@
+﻿@*Announcements.razor*@
+
+@page "/news"
+@page "/announcements"
+@page "/announcements/{Id}"
+
+@using Datahub.Core.Model.Announcements;
+
+<MudCard Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudIconButton Icon="@Icons.Material.Filled.Newspaper" Color="Color.Default" />
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            @if (_announcement.IsNew())
+            {
+                <MudText Typo="Typo.h3">@Localizer["New Article"]</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.h3">@Localizer["Edit Article"]</MudText>
+            }
+        </CardHeaderContent>
+    </MudCardHeader>
+    
+    <MudCardContent>
+        <MudStack Class="ma-4">
+            <MudText Typo="Typo.h4">English</MudText>
+            <MudTextField @bind-Value=@_announcement.TitleEn Label="Title" Variant="Variant.Outlined"></MudTextField>
+            <MudTextField @bind-Value=@_announcement.PreviewEn T="string" Label="Preview" Lines="3" Variant="Variant.Outlined" />
+            <MarkdownEditor InitialValue=@_announcement.BodyEn ValueChanged="HandleEnglishValueChanged" />
+
+            <MudText Typo="Typo.h4" Class="mt-2">Français</MudText>
+            <MudTextField @bind-Value=@_announcement.TitleFr Label="Titre" Variant="Variant.Outlined"></MudTextField>
+            <MudTextField @bind-Value=@_announcement.PreviewFr T="string" Label="Aperçu" Lines="3" Variant="Variant.Outlined" />
+            <MarkdownEditor InitialValue=@_announcement.BodyFr ValueChanged="HandleFrenchValueChanged" />
+
+            <MudText Typo="Typo.h4" Class="mt-2">@Localizer["Schedule"]</MudText>
+            <MudDatePicker @bind-Date="_startDate"
+                           Label="Start Date"
+                           Required="true"
+                           Variant="Variant.Outlined"
+                           DateFormat="yyyy-MM-dd"
+                           Margin="Margin.Dense" />
+
+            <MudCheckBox @bind-Checked="_neverExpires" Label="Doesn't expire" Color="Color.Primary"></MudCheckBox>
+
+            <MudDatePicker @bind-Date="_endDate"
+                           Label="End Date"
+                           Required="true"
+                           Variant="Variant.Outlined"
+                           DateFormat="yyyy-MM-dd"
+                           Disabled=@_neverExpires
+                           Margin="Margin.Dense" />
+
+            <MudCheckBox @bind-Checked="_hidden" Label="Hidden" Color="Color.Primary"></MudCheckBox>
+
+        </MudStack>
+    </MudCardContent>
+
+    <MudCardActions>
+        <MudStack Row Spacing="2" Class="ma-4">
+            <MudButton Variant="Variant.Text"
+                       Color="Color.Primary"
+                       OnClick="HandleSave">
+                @Localizer["Save Changes"]
+            </MudButton>
+            <MudButton Variant="Variant.Text" 
+                       Color="Color.Default"
+                       OnClick="HandleDiscard">
+                @Localizer["Discard changes"]
+            </MudButton>
+        </MudStack>
+    </MudCardActions>
+</MudCard>
+
+        @code {
+
+    [Parameter]
+    public string Id { get; set; }
+
+    [Inject]
+    public IDbContextFactory<DatahubProjectDBContext> dbContextFactory { get; set; }
+
+    private Announcement _announcement;
+
+    private string _titleEnglish;
+    private string _titleFrench;
+
+    private string _abstractEnglish;
+    private string _abstractFrench;
+
+    private string _englishBody = "# English\n## Abstract";
+    private string _frenchBody = "# French\n## Abstract";
+
+    private DateTime? _startDate = DateTime.Now;
+    private DateTime? _endDate = DateTime.Now.AddDays(1);
+    private bool _neverExpires;
+
+    private bool _hidden = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        _announcement = new()
+        {
+            TitleEn = "Enter title",
+            TitleFr = "Enter title",
+            PreviewEn = "Enter preview",
+            PreviewFr = "Enter preview",
+            BodyEn = "# English\n## Abstract",
+            BodyFr = "# French\n## Abstract"
+        };
+    }
+
+    private void HandleEnglishValueChanged(string value)
+    {
+        _announcement.BodyEn = value;
+    }
+
+    private void HandleFrenchValueChanged(string value)
+    {
+        _announcement.BodyFr = value;
+    }
+
+    private async Task HandleSave()
+    {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+
+        // correct the start date
+        _announcement.StartDateTime = _startDate ?? DateTime.Now;
+        _announcement.EndDateTime = !_neverExpires ? _endDate : default;
+
+        if (_announcement.Id == 0)
+        {
+            ctx.Announcements.Add(_announcement);
+        }
+        else
+        {
+            ctx.Announcements.Update(_announcement);
+        }
+
+        await ctx.SaveChangesAsync();
+    }
+
+    private void HandleDiscard()
+    {
+        // >>
+    }
+}
