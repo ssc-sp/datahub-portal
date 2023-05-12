@@ -1,0 +1,26 @@
+@using Datahub.Core.Model.Announcements
+
+<MudStack>
+    <MudText>@Announcement.ForceHidden</MudText>
+    <MudText>@Announcement.IsDeleted</MudText>
+    
+    <MudText>@Announcement.StartDateTime.Date.ToString("yyyy-MM-dd")</MudText>
+    <MudText>@Announcement.StartDateTime.TimeOfDay.ToString("hh\\:mm\\:ss")</MudText>
+    <MudText>@Announcement.EndDateTime?.Date.ToString("yyyy-MM-dd")</MudText>
+    <MudText>@Announcement.EndDateTime?.TimeOfDay.ToString("hh\\:mm\\:ss")</MudText>
+    
+    
+    <MudText>@Announcement.CreatedBy.DisplayName</MudText>
+    <MudText>@Announcement.CreatedAt.Date.ToString("yyyy-MM-dd")</MudText>
+    <MudText>@Announcement.CreatedAt.TimeOfDay.ToString("hh\\:mm\\:ss")</MudText>
+    
+    <MudText>@Announcement.UpdatedAt?.Date.ToString("yyyy-MM-dd")</MudText>
+    <MudText>@Announcement.UpdatedAt?.TimeOfDay.ToString("hh\\:mm\\:ss")</MudText>
+    <MudText>@Announcement.UpdatedBy?.DisplayName</MudText>
+</MudStack>
+
+@code {
+    
+    [Parameter]
+    public Announcement Announcement { get; set; }
+}

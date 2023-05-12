@@ -1,6 +1,8 @@
 ﻿using Datahub.Application.Services;
+using Datahub.Application.Services.Announcements;
 using Datahub.Infrastructure.Queues.MessageHandlers;
 using Datahub.Infrastructure.Services;
+using Datahub.Infrastructure.Services.Announcements;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +19,7 @@ public static class ConfigureServices
         services.AddSingleton<IResourceRequestService, ResourceRequestService>();
         services.AddScoped<IProjectDataRetrievalService, ProjectDataRetrievalService>();
         services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
+        services.AddScoped<IAnnouncementService, AnnouncementService>();
 
         services.AddMediatR(typeof(QueueMessageSender<>));
 
