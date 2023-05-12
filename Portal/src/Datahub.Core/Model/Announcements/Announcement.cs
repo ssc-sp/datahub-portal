@@ -25,8 +25,8 @@ public class Announcement
     
     public DateTime CreatedAt { get; set; }
     public int CreatedById { get; set; }
-    public DateTime UpdatedAt { get; set; }
-    public int UpdatedById { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public int? UpdatedById { get; set; }
 
     public bool IsNew() => Id == 0;
     public bool IsVisible() => !IsDeleted && !ForceHidden;
