@@ -17,6 +17,9 @@
     public IJSRuntime jsRuntime { get; set; }
 
     [Parameter]
+    public string InitialValue { get; set; }
+
+    [Parameter]
     public EventCallback<string> ValueChanged { get; set; }
 
     private string ElementId { get; set; }
@@ -38,8 +41,17 @@
             _dotNetObjectRef ??= DotNetObjectReference.Create(this);
             _markdownModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/markdown-editor.js");
             await _markdownModule.InvokeVoidAsync("initializeMarkdown", ElementId, _dotNetObjectRef);
+            if (!string.IsNullOrEmpty(InitialValue))
+            {
+                await _markdownModule.InvokeVoidAsync("setValue", ElementId, InitialValue);
+            }
         }
     }
+
+    //public async ValueTask SetValue(string value)
+    //{
+    //    await _markdownModule.InvokeVoidAsync("setValue", ElementId, value);
+    //}
 
     [JSInvokable]
     public async Task UpdateInternalValue(string value)
@@ -49,8 +61,11 @@
 
     public void Dispose()
     {
-        InvokeAsync(async () => await _markdownModule.InvokeVoidAsync("destroyMarkdown", ElementId));
-        InvokeAsync(async () => await _markdownModule.DisposeAsync());
+        if (_markdownModule is not null)
+        {
+            InvokeAsync(async () => await _markdownModule.InvokeVoidAsync("destroyMarkdown", ElementId));
+            InvokeAsync(async () => await _markdownModule.DisposeAsync());
+        }
         _dotNetObjectRef?.Dispose();
     }
 
