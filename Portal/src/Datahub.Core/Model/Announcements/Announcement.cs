@@ -1,4 +1,5 @@
 ﻿using System;
+using Datahub.Core.Model.Achievements;
 
 namespace Datahub.Core.Model.Announcements;
 
@@ -16,6 +17,14 @@ public class Announcement
     public bool IsDeleted { get; set; }
     public DateTime StartDateTime { get; set; }
     public DateTime? EndDateTime { get; set; }
+    
+    public DateTime CreatedAt { get; set; }
+    public int CreatedById { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public int UpdatedById { get; set; }
 
     public bool IsVisible() => !IsDeleted && !ForceHidden;
+    
+    public PortalUser CreatedBy { get; set; }
+    public PortalUser UpdatedBy { get; set; }
 }
