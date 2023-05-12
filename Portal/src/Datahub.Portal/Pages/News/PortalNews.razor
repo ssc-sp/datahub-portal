@@ -1,75 +1,58 @@
 ﻿@page "/news"
-
-@using Timer = System.Timers.Timer
-@implements IDisposable
+@using Datahub.Core.Model.Announcements
 
 
-<h3>Markdown Editor</h3>
-
-<MarkdownEditor ValueChanged="HandleValueChanged" />
-@if (_hideSome && _hideSome2)
-{
-    <MarkdownEditor ValueChanged="HandleValueChanged" />
-}
-@if (_hideSome)
-{
-    <MarkdownEditor ValueChanged="HandleValueChanged" />
-}
-@if (_hideSome2)
-{
-    <MarkdownEditor ValueChanged="HandleValueChanged" />
-}
+<MudStack Spacing="6">
+    <MudText Typo="Typo.h1">@Localizer["DataHub News"]</MudText>
     
-<MudText>
-    @_markdown
-</MudText>
+    @foreach (var announcement in _announcements)
+    {
+        <MudPaper Elevation="0" Class="px-6 py-4">
+            <MudStack>
+                <MudText Typo="Typo.caption">@Localizer["Posted at {0} by DataHub", announcement.StartDateTime.ToString("yyyy-MM-dd")]</MudText>
+                <MudText Typo="Typo.h5">@announcement.TitleEn</MudText>
+                <MudText Typo="Typo.body2">@announcement.BodyEn</MudText>
+            </MudStack>
+        </MudPaper>
+    }
+</MudStack>
+
 
 @code {
 
-    private string _markdown;
-    private bool _hideSome;
-    private bool _hideSome2;
-    private Timer _timer;
-    private Timer _timer2;
 
-    protected override void OnInitialized()
+
+    private IEnumerable<Announcement> _announcements;
+    
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
-        
-        // start a timer for 1s
-        // every 1s toggle _hideSome
-
-        _timer = new System.Timers.Timer(1000);
-        _timer.Elapsed += (sender, args) =>
-        {
-            _hideSome = !_hideSome;
-            InvokeAsync(StateHasChanged);
-        };
-        
-        _timer.Start();
-        
-        // start a second timer for 2s
-        // every 2s toggle _hideSome2
-        
-        _timer2 = new System.Timers.Timer(2000);
-        _timer2.Elapsed += (sender, args) =>
-        {
-            _hideSome2 = !_hideSome2;
-            InvokeAsync(StateHasChanged);
-        };
-        
-        _timer2.Start();
+        // _announcements = await _announcementService.GetAnnouncementsAsync();
+        _announcements = await GetAnnouncementsAsync();
     }
 
-    private void HandleValueChanged(string value)
+    private async Task<IEnumerable<Announcement>> GetAnnouncementsAsync()
     {
-        _markdown = value;
-    }
+        var results = Enumerable.Range(15, Random.Shared.Next(25))
+            .Select((_, i) => new Announcement
+            {
+                Id = i,
+                TitleEn = LoremNET.Lorem.Words(3, 5),
+                TitleFr = LoremNET.Lorem.Words(3, 5),
+                PreviewEn = LoremNET.Lorem.Sentence(5, 10),
+                PreviewFr = LoremNET.Lorem.Sentence(5, 10),
+                BodyEn = LoremNET.Lorem.Paragraph(5, 8, 4, 10),
+                BodyFr = LoremNET.Lorem.Paragraph(5, 8, 4, 10),
+                StartDateTime = DateTime.Now.AddDays(Random.Shared.Next(10)),
+                EndDateTime = DateTime.Now.AddDays(Random.Shared.Next(10, 20)),
+                ForceHidden = Random.Shared.Next(10) > 8,
+                IsDeleted = Random.Shared.Next(10) > 8,
+                
+                CreatedAt = DateTime.Now.AddDays(Random.Shared.Next(10, 20) * -1),
+                CreatedById = Random.Shared.Next(1, 10),
+                UpdatedAt = DateTime.Now.AddDays(Random.Shared.Next(0, 10) * -1),
+                UpdatedById = Random.Shared.Next(1, 10),
+            });
 
-    public void Dispose()
-    {
-        _timer?.Dispose();
-        _timer2?.Dispose();
+        return await Task.FromResult(results);
     }
-
 }
