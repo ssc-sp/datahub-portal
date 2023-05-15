@@ -6,10 +6,10 @@
     <MudGrid>
         <MudItem xs="12" sm="8">
             <MudStack>
-                <MudText Typo="Typo.caption">@Localizer["Posted at {0} by {1}", Announcement.StartDateTime.ToString("yyyy-MM-dd"), Announcement.CreatedBy.DisplayName]</MudText>
+                <MudText Typo="Typo.caption">@Localizer["Posted at {0} by {1}", Announcement.CreatedAt.ToString("yyyy-MM-dd"), Announcement.CreatedBy.DisplayName]</MudText>
                 @if (Announcement.UpdatedAt.HasValue)
                 {
-                    <MudText Typo="Typo.caption">@Localizer["Last updated at {0} by {1}", Announcement.StartDateTime.ToString("yyyy-MM-dd"), Announcement.UpdatedBy.DisplayName]</MudText>
+                    <MudText Typo="Typo.caption">@Localizer["Last updated at {0} by {1}", Announcement.UpdatedAt?.ToString("yyyy-MM-dd")!, Announcement.UpdatedBy.DisplayName]</MudText>
                 }
                 <MudText Typo="Typo.h5">@GetTitle()</MudText>
                 <MudText Typo="Typo.body2">@GetBody()</MudText>

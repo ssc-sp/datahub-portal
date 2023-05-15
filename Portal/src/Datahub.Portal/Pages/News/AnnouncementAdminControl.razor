@@ -4,8 +4,8 @@
     <MudText>@Announcement.ForceHidden</MudText>
     <MudText>@Announcement.IsDeleted</MudText>
     
-    <MudText>@Announcement.StartDateTime.Date.ToString("yyyy-MM-dd")</MudText>
-    <MudText>@Announcement.StartDateTime.TimeOfDay.ToString("hh\\:mm\\:ss")</MudText>
+    <MudText>@Announcement.StartDateTime?.Date.ToString("yyyy-MM-dd")</MudText>
+    <MudText>@Announcement.StartDateTime?.TimeOfDay.ToString("hh\\:mm\\:ss")</MudText>
     <MudText>@Announcement.EndDateTime?.Date.ToString("yyyy-MM-dd")</MudText>
     <MudText>@Announcement.EndDateTime?.TimeOfDay.ToString("hh\\:mm\\:ss")</MudText>
     
