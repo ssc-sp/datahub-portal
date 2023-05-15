@@ -15,7 +15,7 @@ public interface IAnnouncementService
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    public Task<Announcement> GetAnnouncementAsync(int id);
+    public Task<Announcement?> GetAnnouncementAsync(int id);
     public Task<bool> SaveAnnouncementAsync(Announcement announcement);
     public Task<bool> DeleteAnnouncementAsync(int id);
 }
