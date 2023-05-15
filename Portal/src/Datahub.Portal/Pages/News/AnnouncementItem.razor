@@ -2,26 +2,26 @@
 
 @inject IUserInformationService _userInformationService
 
-<MudPaper Elevation="0" Outlined Class="px-6 py-4">
-    <MudGrid>
-        <MudItem xs="12" sm="8">
+<MudGrid>
+    <MudItem xs="12" sm="8">
+        <MudPaper Elevation="0" Outlined Class="px-6 py-4">
             <MudStack>
-                <MudText Typo="Typo.caption">@Localizer["Posted at {0} by {1}", Announcement.CreatedAt.ToString("yyyy-MM-dd"), Announcement.CreatedBy.DisplayName]</MudText>
+                <MudText Typo="Typo.caption">@Localizer["Posted at {0} by {1}", Announcement.CreatedAt.ToString("yyyy-MM-dd"), Announcement.CreatedBy?.DisplayName ?? "DataHub"]</MudText>
                 @if (Announcement.UpdatedAt.HasValue)
                 {
-                    <MudText Typo="Typo.caption">@Localizer["Last updated at {0} by {1}", Announcement.UpdatedAt?.ToString("yyyy-MM-dd")!, Announcement.UpdatedBy.DisplayName]</MudText>
+                    <MudText Typo="Typo.caption">@Localizer["Last updated at {0} by {1}", Announcement.UpdatedAt?.ToString("yyyy-MM-dd")!, Announcement.UpdatedBy?.DisplayName ?? "DataHub"]</MudText>
                 }
                 <MudText Typo="Typo.h5">@GetTitle()</MudText>
                 <MudText Typo="Typo.body2">@GetBody()</MudText>
             </MudStack>
+        </MudPaper>
+    </MudItem>
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+        <MudItem xs="12" sm="4">
+            <AnnouncementAdminControl Announcement="@Announcement"/>
         </MudItem>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
-            <MudItem xs="12" sm="4">
-                <AnnouncementAdminControl Announcement="@Announcement" />
-            </MudItem>
-        </DatahubAuthView>
-    </MudGrid>
-</MudPaper>
+    </DatahubAuthView>
+</MudGrid>
 
 @code {
 
