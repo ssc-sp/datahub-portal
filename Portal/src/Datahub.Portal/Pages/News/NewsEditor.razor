@@ -112,7 +112,11 @@
         _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
     // if the path is /news/edit/new, then id will be 0
-        _announcement = await _announcementService.GetAnnouncementAsync(GetArticleId());
+        _announcement = await _announcementService.GetAnnouncementAsync(GetArticleId()) ?? new Announcement()
+        {
+            StartDateTime = DateTime.UtcNow,
+        };
+        
         InitializeControlParameters();
     }
 

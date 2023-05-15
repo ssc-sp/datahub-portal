@@ -39,7 +39,7 @@ public class AnnouncementService : IAnnouncementService
     }
 
 
-    public async Task<Announcement> GetAnnouncementAsync(int id)
+    public async Task<Announcement?> GetAnnouncementAsync(int id)
     {
         _logger.LogInformation("Getting announcement with id {Id}", id);
         await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
@@ -47,10 +47,7 @@ public class AnnouncementService : IAnnouncementService
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == id);
 
-        return article ?? new Announcement()
-        {
-            StartDateTime = DateTime.UtcNow
-        };
+        return article;
     }
 
     public Task<Announcement> CreateAnnouncementAsync(Announcement announcement)
