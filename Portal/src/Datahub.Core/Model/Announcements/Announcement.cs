@@ -30,7 +30,8 @@ public class Announcement
 
     public bool IsNew() => Id == 0;
     public bool IsVisible() => !IsDeleted && !ForceHidden;
-    public bool IsCurrent() => IsVisible() && StartDateTime <= DateTime.Now && (EndDateTime == null || EndDateTime >= DateTime.Now);
+    public bool IsInCarousel() => IsVisible() && StartDateTime <= DateTime.UtcNow && (EndDateTime == null || EndDateTime >= DateTime.UtcNow);
+    public bool IsScheduled() => StartDateTime > DateTime.UtcNow;
     
     public PortalUser CreatedBy { get; set; }
     public PortalUser UpdatedBy { get; set; }
