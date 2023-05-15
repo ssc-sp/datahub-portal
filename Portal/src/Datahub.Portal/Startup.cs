@@ -1,15 +1,12 @@
 using Askmethat.Aspnet.JsonLocalizer.Extensions;
 using BlazorDownloadFile;
 using Blazored.LocalStorage;
-using Datahub.Achievements;
-using Datahub.Achievements.Models;
 using Datahub.CatalogSearch;
 using Datahub.CKAN.Service;
 using Datahub.Core;
 using Datahub.Core.Configuration;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.UserTracking;
 using Datahub.Core.Modules;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
@@ -62,6 +59,7 @@ using Datahub.M365Forms.Services;
 using Datahub.Infrastructure.Services.Azure;
 using Datahub.Infrastructure.Services.Projects;
 using Datahub.Core.Services.Achievements;
+using Datahub.Core.Services.Announcements;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -143,13 +141,6 @@ public class Startup
         //TimeZoneService provides the user time zone to the server using JS Interop
         services.AddScoped<TimeZoneService>();
 
-        // todo: remove
-        services.AddAchievementService(opts =>
-        {
-            opts.Enabled = Configuration.GetValue("Achievements:Enabled", false);
-            opts.AchievementDirectoryPath = Path.Join(AppContext.BaseDirectory, "Achievements");
-        });
-
         services.AddUserAchievementServices();
 
         services.AddElemental();
@@ -189,6 +180,8 @@ public class Startup
         services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
         services.AddSingleton<AzureManagementService>();
         services.AddSingleton<ProjectUsageService>();
+
+        services.AddScoped<IAnnouncementService, AnnouncementService>();
 
         services.AddSignalRCore();
 
@@ -246,7 +239,6 @@ public class Startup
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
         IDbContextFactory<DatahubProjectDBContext> datahubFactory,
-        IDbContextFactory<AchievementContext> achievementFactory,
         IDbContextFactory<MetadataDbContext> metadataFactory)
     {
         if (Configuration.GetValue<bool>("HttpLogging:Enabled"))
@@ -261,7 +253,6 @@ public class Startup
         }
 
         InitializeDatabase(logger, datahubFactory);
-        InitializeDatabase(logger, achievementFactory, false);
         InitializeDatabase(logger, metadataFactory, true);
 
         app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>()
@@ -436,15 +427,6 @@ public class Startup
     private void ConfigureDbContexts(IServiceCollection services)
     {
         ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
-        if (Configuration.GetDriver() == DbDriver.Azure)
-        {
-            ConfigureCosmosDbContext<AchievementContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
-        }
-        else
-        {
-            ConfigureDbContext<AchievementContext>(services, "datahub-cosmosdb", Configuration.GetDriver());
-        }
-
         ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics", Configuration.GetDriver());
         ConfigureDbContext<MetadataDbContext>(services, "datahub-mssql-metadata", Configuration.GetDriver());
     }
