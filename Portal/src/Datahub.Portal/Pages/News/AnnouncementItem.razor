@@ -3,31 +3,33 @@
 @inject IUserInformationService _userInformationService
 
 <MudGrid>
-    <MudItem xs="12" sm="8">
-        <MudPaper Elevation="0" Outlined Class="px-6 py-4" Style="@_style">
-            <MudStack>
-                <MudText Typo="Typo.caption">@Localizer["Posted at {0} by {1}", Announcement.CreatedAt.ToString("yyyy-MM-dd"), Announcement.CreatedBy?.DisplayName ?? "DataHub"]</MudText>
-                @if (Announcement.UpdatedAt.HasValue)
-                {
-                    <MudText Typo="Typo.caption">@Localizer["Last updated at {0} by {1}", Announcement.UpdatedAt?.ToString("yyyy-MM-dd")!, Announcement.UpdatedBy?.DisplayName ?? "DataHub"]</MudText>
-                }
-                <MudText Typo="Typo.h5">@GetTitle()</MudText>
-                <MudText Typo="Typo.body2">@GetBody()</MudText>
-            </MudStack>
-        </MudPaper>
-    </MudItem>
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
         <MudItem xs="12" sm="4">
             <AnnouncementAdminControl Announcement="@Announcement"/>
         </MudItem>
     </DatahubAuthView>
+    <MudItem>
+        <MudPaper Elevation="0" Outlined Class="px-6 py-4" Style="@_style">
+            <MudStack>
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.caption">@Localizer["Posted at {0} by {1}", Announcement.CreatedAt.ToString("yyyy-MM-dd"), Announcement.CreatedBy?.DisplayName ?? "DataHub"]</MudText>
+                    @if (Announcement.UpdatedAt.HasValue)
+                    {
+                        <MudText Typo="Typo.caption">@Localizer["Last updated at {0} by {1}", Announcement.UpdatedAt?.ToString("yyyy-MM-dd")!, Announcement.UpdatedBy?.DisplayName ?? "DataHub"]</MudText>
+                    }
+                </MudStack>
+                <MudText Typo="Typo.h5">@GetTitle()</MudText>
+                <DHMarkdown Content="@GetBody()" LinkRewriter="RewriteLink"/>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
 </MudGrid>
 
 @code {
 
     [Parameter]
     public Announcement Announcement { get; set; }
-    
+
     [Parameter]
     public bool IsHidden { get; set; }
 
@@ -39,6 +41,11 @@
         await base.OnParametersSetAsync();
 
         _isFrench = await _userInformationService.IsFrench();
+    }
+
+    private static string RewriteLink(string link)
+    {
+        return link;
     }
 
     private string GetTitle()

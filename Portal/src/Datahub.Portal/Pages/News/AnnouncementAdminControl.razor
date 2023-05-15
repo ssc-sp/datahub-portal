@@ -1,7 +1,7 @@
 @using Datahub.Core.Model.Announcements
 
 <MudStack>
-    <MudText Typo="Typo.body2">
+    <MudText Typo="Typo.body2" Color="@(Announcement.IsScheduled())">
         @Localizer["Starting from {0} at {1}", Announcement.StartDateTime?.Date.ToString("yyyy-MM-dd")!, Announcement.StartDateTime?.TimeOfDay.ToString("hh\\:mm\\:ss")!]
     </MudText>
     @if (Announcement.EndDateTime.HasValue)
@@ -29,8 +29,8 @@
     }
 
     <MudDivider Class="my-2"/>
-    <MudStack Row>
-        <MudButton Variant="Variant.Text" Href="@($"/news/edit/{Announcement.Id}")">
+    <MudStack Row Class="mb-16">
+        <MudButton Variant="Variant.Text" EndIcon="@Icons.Material.Outlined.Edit" Href="@($"/news/edit/{Announcement.Id}")">
             @Localizer["Edit Announcement"]
         </MudButton>
     </MudStack>

@@ -17,14 +17,15 @@
 
         @if (_announcements.Any())
         {
-            @foreach (var announcement in _announcements)
-            {
-                var authLevel = announcement.IsDeleted ? DatahubAuthView.AuthLevels.DatahubAdmin : DatahubAuthView.AuthLevels.Authenticated;
-                <DatahubAuthView AuthLevel="authLevel">
-                    <AnnouncementItem Announcement="@announcement" IsHidden="@(announcement.IsDeleted || announcement.IsScheduled())"/>
-
-                </DatahubAuthView>
-            }
+            <MudStack>
+                @foreach (var announcement in _announcements)
+                {
+                    var authLevel = announcement.IsVisible() ? DatahubAuthView.AuthLevels.Authenticated : DatahubAuthView.AuthLevels.DatahubAdmin;
+                    <DatahubAuthView AuthLevel="authLevel">
+                        <AnnouncementItem Announcement="@announcement" IsHidden="@(announcement.IsDeleted || announcement.IsScheduled())"/>
+                    </DatahubAuthView>
+                }
+            </MudStack>
         }
         else
         {
