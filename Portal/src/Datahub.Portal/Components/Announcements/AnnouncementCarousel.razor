@@ -1,0 +1,39 @@
+﻿@using Datahub.Core.Services.Announcements;
+
+@inject NavigationManager navigationManager
+
+<MudCarousel Class="mud-width-full" 
+             Style="height:320px;" 
+             ShowArrows="false" 
+             ShowBullets="true" 
+             EnableSwipeGesture="true" 
+             AutoCycle="false" 
+             TData="object">
+
+    @foreach (var preview in Previews)
+    {
+        <MudCarouselItem Transition="Transition.None" Color="@Color.Primary">
+            <div class="d-flex" style="height:100%">
+                <MudStack Class="ma-8">
+                    <MudText Typo="Typo.h3">@preview.Title</MudText>
+                    <DHMarkdown Content="@preview.Body" />
+                    <MudButton Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
+                        @Localizer["Read more"]
+                    </MudButton>
+                </MudStack>
+            </div>
+        </MudCarouselItem>
+    }
+
+</MudCarousel>
+
+@code {
+
+    [Parameter]
+    public List<AnnouncementPreview> Previews { get; set; } = new();
+
+    private void HandleReadMore(int newId)
+    {
+        navigationManager.NavigateTo("/news"); // $"/news/{newId}"
+    }
+}
