@@ -33,6 +33,7 @@ public class AnnouncementService : IAnnouncementService
             .AsNoTracking()
             .Include(a => a.CreatedBy)
             .Include(a => a.UpdatedBy)
+            .OrderByDescending(a => a.StartDateTime)
             .ToListAsync();
         
         return announcements;

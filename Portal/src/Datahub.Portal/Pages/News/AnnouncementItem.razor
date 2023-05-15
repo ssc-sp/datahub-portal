@@ -27,9 +27,11 @@
 
     [Parameter]
     public Announcement Announcement { get; set; }
+    
+    [Parameter]
+    public bool IsHidden { get; set; }
 
-    private string _style => Announcement.IsCurrent() ? "" : "opacity: 0.5;";
-
+    private string _style => IsHidden ? "opacity: 0.5;" : string.Empty;
     private bool _isFrench;
 
     protected override async Task OnParametersSetAsync()

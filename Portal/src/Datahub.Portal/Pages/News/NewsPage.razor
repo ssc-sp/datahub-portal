@@ -19,13 +19,17 @@
         {
             @foreach (var announcement in _announcements)
             {
-                <AnnouncementItem Announcement="@announcement"/>
+                var authLevel = announcement.IsDeleted ? DatahubAuthView.AuthLevels.DatahubAdmin : DatahubAuthView.AuthLevels.Authenticated;
+                <DatahubAuthView AuthLevel="authLevel">
+                    <AnnouncementItem Announcement="@announcement" IsHidden="@(announcement.IsDeleted || announcement.IsScheduled())"/>
+
+                </DatahubAuthView>
             }
         }
         else
         {
             <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center">
-                <MudIcon Size="Size.Large" Class="mt-16 mb-4" Icon="@Icons.Material.Outlined.Deck" />
+                <MudIcon Size="Size.Large" Class="mt-16 mb-4" Icon="@Icons.Material.Outlined.Deck"/>
                 <MudText Typo="Typo.h3">@Localizer["No announcements yet!"]</MudText>
             </MudStack>
         }
@@ -33,7 +37,7 @@
 </DatahubAuthView>
 
 @code {
-    
+
     private List<Announcement> _announcements = new();
 
     protected override async Task OnInitializedAsync()
