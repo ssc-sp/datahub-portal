@@ -20,7 +20,7 @@ public class Announcement
 
     public bool ForceHidden { get; set; }
     public bool IsDeleted { get; set; }
-    public DateTime StartDateTime { get; set; }
+    public DateTime? StartDateTime { get; set; }
     public DateTime? EndDateTime { get; set; }
     
     public DateTime CreatedAt { get; set; }

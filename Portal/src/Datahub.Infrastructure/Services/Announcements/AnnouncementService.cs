@@ -36,9 +36,19 @@ public class AnnouncementService : IAnnouncementService
         return announcements;
     }
 
-    public Task<Announcement> GetAnnouncementAsync(int id)
+
+    public async Task<Announcement> GetAnnouncementAsync(int id)
     {
-        throw new NotImplementedException();
+        _logger.LogInformation("Getting announcement with id {Id}", id);
+        await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
+        var article = await context.Announcements
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        return article ?? new Announcement()
+        {
+            StartDateTime = DateTime.Now
+        };
     }
 
     public Task<Announcement> CreateAnnouncementAsync(Announcement announcement)
@@ -46,9 +56,27 @@ public class AnnouncementService : IAnnouncementService
         throw new NotImplementedException();
     }
 
-    public Task<Announcement> UpdateAnnouncementAsync(Announcement announcement)
+    public async Task<bool> SaveAnnouncementAsync(Announcement announcement)
     {
-        throw new NotImplementedException();
+        try
+        {
+            await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
+            if (announcement.Id == 0)
+            {
+                context.Announcements.Add(announcement);
+            }
+            else
+            {
+                context.Announcements.Update(announcement);
+            }
+            await context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error saving announcement");
+            return false;
+        }
     }
 
     public Task<bool> DeleteAnnouncementAsync(int id)
