@@ -5,10 +5,12 @@
 
 @using Datahub.Core.Model.Announcements;
 @using Datahub.Application.Services.Announcements
+@using Datahub.Core.Model.Achievements
 
 @inject IAnnouncementService _announcementService
 @inject ISnackbar _snackbar
 @inject NavigationManager _navigationManager
+@inject IUserInformationService _userInformationService
 
 @if (_announcement is null)
 {
@@ -20,23 +22,21 @@
     <MudGrid>
         <MudItem xs="4">
             <MudPaper Elevation="0" Outlined Class="px-6 py-4 sticky" Style="">
+                <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
+                    <MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" Color="Color.Default"/>
+                    <MudText Typo="Typo.h2">@Localizer["Schedule"]</MudText>
+                </MudStack>
+                <MudDivider Class="my-4"/>
                 <MudStack Spacing="4">
-                    <MudText Typo="Typo.h3">@Localizer["Announcement Schedule"]</MudText>
-                    <MudCheckBox @bind-Checked="_announcement.ForceHidden" Label="@(Localizer["Always hide this announcement"])" Color="Color.Primary"/>
+                    <MudSwitch @bind-Checked="_announcement.ForceHidden"
+                               Label="@(Localizer["Always hide this announcement"])"
+                               Color="Color.Primary"/>
                     <MudSwitch @bind-Checked="_announcementHasEndDate"
-                               Label="@(Localizer["Schedule an end date"])"
+                               Label="@(Localizer["Announcement has an end date"])"
                                Disabled="@_announcement.ForceHidden"
                                Color="Color.Primary"/>
-                    @if (_announcementHasEndDate)
-                    {
-                        <MudDatePicker @bind-Date="@_announcement.EndDateTime"
-                                       Label="@(Localizer["Stop showing announcement on"])"
-                                       Variant="Variant.Outlined"
-                                       DateFormat="yyyy-MM-dd"
-                                       Disabled="@_announcement.ForceHidden"
-                                       Margin="Margin.Dense"/>
-                    }
-                    else
+
+                    @if (!_announcementHasEndDate)
                     {
                         <MudDatePicker @bind-Date="@_announcement.StartDateTime"
                                        Label="@(Localizer["Start showing announcement on"])"
@@ -45,6 +45,11 @@
                                        DateFormat="yyyy-MM-dd"
                                        Disabled="@_announcement.ForceHidden"
                                        Margin="Margin.Dense"/>
+                    }
+                    else
+                    {
+                        <MudDateRangePicker @bind-DateRange="@_dateRange"
+                                            Label="@(Localizer["Select the start and end dates"])"/>
                     }
 
                     <MudStack Row Justify="Justify.Center">
@@ -95,6 +100,8 @@
 
     private Announcement _announcement;
     private bool _announcementHasEndDate;
+    private DateRange _dateRange;
+    private PortalUser _currentUser;
 
     private int GetArticleId() => int.TryParse(Id, out var value) ? value : 0;
 
@@ -102,8 +109,17 @@
     {
         await base.OnInitializedAsync();
 
+        _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+
     // if the path is /news/edit/new, then id will be 0
         _announcement = await _announcementService.GetAnnouncementAsync(GetArticleId());
+        InitializeControlParameters();
+    }
+
+    private void InitializeControlParameters()
+    {
+        _dateRange = new DateRange(_announcement.StartDateTime, _announcement.EndDateTime ?? _announcement.StartDateTime?.AddDays(7));
+        _announcementHasEndDate = _announcement.EndDateTime.HasValue;
     }
 
     private void HandleEnglishValueChanged(string value)
@@ -116,8 +132,35 @@
         _announcement.BodyFr = value;
     }
 
+    private void ApplyControlParameters()
+    {
+        if (_announcementHasEndDate)
+        {
+            _announcement.StartDateTime = _dateRange.Start;
+            _announcement.EndDateTime = _dateRange.End;
+        }
+        else
+        {
+            _announcement.EndDateTime = null;
+        }
+    }
+
+    private void ApplyAuditInformation()
+    {
+        if (_announcement.CreatedById == 0)
+        {
+            _announcement.CreatedById = _currentUser.Id;
+            _announcement.CreatedAt = DateTime.UtcNow;
+        }
+
+        _announcement.UpdatedById = _currentUser.Id;
+        _announcement.UpdatedAt = DateTime.UtcNow;
+    }
+
     private async Task HandleSave()
     {
+        ApplyControlParameters();
+        ApplyAuditInformation();
         var success = await _announcementService.SaveAnnouncementAsync(_announcement);
 
         if (success)

@@ -1,26 +1,45 @@
 @using Datahub.Core.Model.Announcements
 
 <MudStack>
-    <MudText>@Announcement.ForceHidden</MudText>
-    <MudText>@Announcement.IsDeleted</MudText>
-    
-    <MudText>@Announcement.StartDateTime?.Date.ToString("yyyy-MM-dd")</MudText>
-    <MudText>@Announcement.StartDateTime?.TimeOfDay.ToString("hh\\:mm\\:ss")</MudText>
-    <MudText>@Announcement.EndDateTime?.Date.ToString("yyyy-MM-dd")</MudText>
-    <MudText>@Announcement.EndDateTime?.TimeOfDay.ToString("hh\\:mm\\:ss")</MudText>
-    
-    
-    <MudText>@Announcement.CreatedBy.DisplayName</MudText>
-    <MudText>@Announcement.CreatedAt.Date.ToString("yyyy-MM-dd")</MudText>
-    <MudText>@Announcement.CreatedAt.TimeOfDay.ToString("hh\\:mm\\:ss")</MudText>
-    
-    <MudText>@Announcement.UpdatedAt?.Date.ToString("yyyy-MM-dd")</MudText>
-    <MudText>@Announcement.UpdatedAt?.TimeOfDay.ToString("hh\\:mm\\:ss")</MudText>
-    <MudText>@Announcement.UpdatedBy?.DisplayName</MudText>
+    <MudText Typo="Typo.body2">
+        @Localizer["Starting from {0} at {1}", Announcement.StartDateTime?.Date.ToString("yyyy-MM-dd")!, Announcement.StartDateTime?.TimeOfDay.ToString("hh\\:mm\\:ss")!]
+    </MudText>
+    @if (Announcement.EndDateTime.HasValue)
+    {
+        <MudText Typo="Typo.body2">
+            @Localizer["Until {0} at {1}", Announcement.StartDateTime?.Date.ToString("yyyy-MM-dd")!, Announcement.StartDateTime?.TimeOfDay.ToString("hh\\:mm\\:ss")!]
+        </MudText>
+    }
+    else
+    {
+        <MudText Typo="Typo.body2">
+            @Localizer["Until further notice"]
+        </MudText>
+    }
+    <MudDivider Class="my-2"/>
+
+    <MudText Typo="Typo.body2">
+        @Localizer["Created by {0} on {1} at {2}", Announcement.CreatedBy.DisplayName, Announcement.CreatedAt.Date.ToString("yyyy-MM-dd"), Announcement.CreatedAt.TimeOfDay.ToString("hh\\:mm\\:ss")]
+    </MudText>
+    @if (Announcement.UpdatedBy is not null)
+    {
+        <MudText Typo="Typo.body2">
+            @Localizer["Updated by {0} on {1} at {2}", Announcement.UpdatedBy?.DisplayName!, Announcement.UpdatedAt?.Date.ToString("yyyy-MM-dd")!, Announcement.UpdatedAt?.TimeOfDay.ToString("hh\\:mm\\:ss")!]
+        </MudText>
+    }
+
+    <MudDivider Class="my-2"/>
+    <MudStack Row>
+        <MudButton Variant="Variant.Text" Href="@($"/news/edit/{Announcement.Id}")">
+            @Localizer["Edit Announcement"]
+        </MudButton>
+    </MudStack>
+
 </MudStack>
 
 @code {
-    
+
     [Parameter]
     public Announcement Announcement { get; set; }
+
 }

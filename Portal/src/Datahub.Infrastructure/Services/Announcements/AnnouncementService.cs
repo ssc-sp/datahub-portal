@@ -31,6 +31,8 @@ public class AnnouncementService : IAnnouncementService
         await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
         var announcements = await context.Announcements
             .AsNoTracking()
+            .Include(a => a.CreatedBy)
+            .Include(a => a.UpdatedBy)
             .ToListAsync();
         
         return announcements;
@@ -47,7 +49,7 @@ public class AnnouncementService : IAnnouncementService
 
         return article ?? new Announcement()
         {
-            StartDateTime = DateTime.Now
+            StartDateTime = DateTime.UtcNow
         };
     }
 
