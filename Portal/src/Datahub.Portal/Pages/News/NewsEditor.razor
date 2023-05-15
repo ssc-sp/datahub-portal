@@ -26,9 +26,6 @@
                     <MudCarousel TData="object" Class="mud-width-full" ShowArrows="false" Style="min-height: 200px">
                         <MudCarouselItem>
                             <MudText>
-                                Title
-                            </MudText>
-                            <MudText>
                                 Preview
                             </MudText>
                         </MudCarouselItem>
@@ -90,7 +87,6 @@
 
                 <MudStack>
                     <MudText Typo="Typo.h4">English</MudText>
-                    <MudTextField @bind-Value="@_announcement.TitleEn" Label="Title" Variant="Variant.Outlined"></MudTextField>
                     <MudTextField @bind-Value="@_announcement.PreviewEn" T="string" Label="Preview" Lines="3" Variant="Variant.Outlined"/>
                     <MarkdownEditor InitialValue="@_announcement.BodyEn" ValueChanged="HandleEnglishValueChanged"/>
                 </MudStack>
@@ -99,7 +95,6 @@
 
                 <MudStack>
                     <MudText Typo="Typo.h4" Class="mt-2">Français</MudText>
-                    <MudTextField @bind-Value="@_announcement.TitleFr" Label="Titre" Variant="Variant.Outlined"></MudTextField>
                     <MudTextField @bind-Value="@_announcement.PreviewFr" T="string" Label="Aperçu" Lines="3" Variant="Variant.Outlined"/>
                     <MarkdownEditor InitialValue="@_announcement.BodyFr" ValueChanged="HandleFrenchValueChanged"/>
                 </MudStack>

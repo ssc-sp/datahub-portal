@@ -14,14 +14,6 @@ internal class AnnouncementConfiguration : IEntityTypeConfiguration<Announcement
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedOnAdd();
 
-        builder.Property(e => e.TitleEn)
-            .IsRequired()
-            .HasMaxLength(128);
-
-        builder.Property(e => e.TitleFr)
-            .IsRequired()
-            .HasMaxLength(128);
-
         builder.Property(e => e.PreviewEn)
             .IsRequired();
 
