@@ -29,8 +29,23 @@ public class Announcement
     public int? UpdatedById { get; set; }
 
     public bool IsNew() => Id == 0;
-    public bool IsVisible() => !IsDeleted && !ForceHidden;
+    
+    /// <summary>
+    /// Check whether the announcement is visible to regular users.
+    /// </summary>
+    /// <returns></returns>
+    public bool IsVisible() => !IsDeleted && !ForceHidden && !IsScheduled();
+    
+    /// <summary>
+    /// Check whether the announcement is visible in the carousel.
+    /// </summary>
+    /// <returns></returns>
     public bool IsInCarousel() => IsVisible() && StartDateTime <= DateTime.UtcNow && (EndDateTime == null || EndDateTime >= DateTime.UtcNow);
+    
+    /// <summary>
+    /// Check whether the announcement is scheduled to be visible in the future.
+    /// </summary>
+    /// <returns></returns>
     public bool IsScheduled() => StartDateTime > DateTime.UtcNow;
     
     public PortalUser CreatedBy { get; set; }
