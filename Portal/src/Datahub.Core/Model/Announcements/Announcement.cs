@@ -11,8 +11,6 @@ public class Announcement
     }
 
     public int Id { get; set; }
-    public string TitleEn { get; set; }
-    public string TitleFr { get; set; }
     public string PreviewEn { get; set; }
     public string PreviewFr { get; set; }
     public string BodyEn { get; set; }
