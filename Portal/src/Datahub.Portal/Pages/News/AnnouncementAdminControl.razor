@@ -1,30 +1,30 @@
 @using Datahub.Core.Model.Announcements
 
-<MudStack>
-    <MudText Typo="Typo.body2" Color="@(Announcement.IsScheduled())">
+<MudStack Spacing="0">
+    <MudText Typo="Typo.body2" Color="@GetColor()">
         @Localizer["Starting from {0} at {1}", Announcement.StartDateTime?.Date.ToString("yyyy-MM-dd")!, Announcement.StartDateTime?.TimeOfDay.ToString("hh\\:mm\\:ss")!]
     </MudText>
     @if (Announcement.EndDateTime.HasValue)
     {
-        <MudText Typo="Typo.body2">
+        <MudText Typo="Typo.body2" Color="@GetColor()">
             @Localizer["Until {0} at {1}", Announcement.StartDateTime?.Date.ToString("yyyy-MM-dd")!, Announcement.StartDateTime?.TimeOfDay.ToString("hh\\:mm\\:ss")!]
         </MudText>
     }
     else
     {
-        <MudText Typo="Typo.body2">
+        <MudText Typo="Typo.body2" Color="@GetColor()">
             @Localizer["Until further notice"]
         </MudText>
     }
     <MudDivider Class="my-2"/>
 
     <MudText Typo="Typo.body2">
-        @Localizer["Created by {0} on {1} at {2}", Announcement.CreatedBy.DisplayName, Announcement.CreatedAt.Date.ToString("yyyy-MM-dd"), Announcement.CreatedAt.TimeOfDay.ToString("hh\\:mm\\:ss")]
+        @Localizer["Created by {0} on {1}", Announcement.CreatedBy.DisplayName, Announcement.CreatedAt.Date.ToString("yyyy-MM-dd")]
     </MudText>
     @if (Announcement.UpdatedBy is not null)
     {
         <MudText Typo="Typo.body2">
-            @Localizer["Updated by {0} on {1} at {2}", Announcement.UpdatedBy?.DisplayName!, Announcement.UpdatedAt?.Date.ToString("yyyy-MM-dd")!, Announcement.UpdatedAt?.TimeOfDay.ToString("hh\\:mm\\:ss")!]
+            @Localizer["Updated by {0} on {1}", Announcement.UpdatedBy?.DisplayName!, Announcement.UpdatedAt?.Date.ToString("yyyy-MM-dd")!]
         </MudText>
     }
 
@@ -34,12 +34,26 @@
             @Localizer["Edit Announcement"]
         </MudButton>
     </MudStack>
-
 </MudStack>
 
 @code {
 
     [Parameter]
     public Announcement Announcement { get; set; }
+
+    private Color GetColor()
+    {
+        if (Announcement.IsScheduled())
+        {
+            return Color.Error;
+        }
+
+        if (Announcement.IsInCarousel())
+        {
+            return Color.Success;
+        }
+
+        return Color.Default;
+    }
 
 }

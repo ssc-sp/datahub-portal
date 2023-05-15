@@ -8,7 +8,7 @@
             <AnnouncementAdminControl Announcement="@Announcement"/>
         </MudItem>
     </DatahubAuthView>
-    <MudItem>
+    <MudItem xs="12" sm="@(_isAdminView ? 8 : 12)">
         <MudPaper Elevation="0" Outlined Class="px-6 py-4" Style="@_style">
             <MudStack>
                 <MudStack Spacing="0">
@@ -35,12 +35,14 @@
 
     private string _style => IsHidden ? "opacity: 0.5;" : string.Empty;
     private bool _isFrench;
+    private bool _isAdminView;
 
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
 
         _isFrench = await _userInformationService.IsFrench();
+        _isAdminView = await _userInformationService.IsUserDatahubAdmin();
     }
 
     private static string RewriteLink(string link)
