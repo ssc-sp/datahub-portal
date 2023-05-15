@@ -19,8 +19,25 @@
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
     <MudGrid>
+        <MudItem xs="12">
+            <MudStack>
+                <MudText Typo="Typo.h2">@Localizer["Carousel Preview"]</MudText>
+                <MudPaper Elevation="0" Outlined>
+                    <MudCarousel TData="object" Class="mud-width-full" ShowArrows="false" Style="min-height: 200px">
+                        <MudCarouselItem>
+                            <MudText>
+                                Title
+                            </MudText>
+                            <MudText>
+                                Preview
+                            </MudText>
+                        </MudCarouselItem>
+                    </MudCarousel>
+                </MudPaper>
+            </MudStack>
+        </MudItem>
         <MudItem xs="4">
-            <MudPaper Elevation="0" Outlined Class="px-6 py-4 sticky" Style="">
+            <MudPaper Elevation="0" Outlined Class="px-6 py-4 sticky">
                 <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
                     <MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" Color="Color.Default"/>
                     <MudText Typo="Typo.h2">@Localizer["Schedule"]</MudText>
@@ -115,7 +132,7 @@
         {
             StartDateTime = DateTime.UtcNow,
         };
-        
+
         InitializeControlParameters();
     }
 
