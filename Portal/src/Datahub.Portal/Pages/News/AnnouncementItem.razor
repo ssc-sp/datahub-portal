@@ -4,7 +4,7 @@
 
 <MudGrid>
     <MudItem xs="12" sm="8">
-        <MudPaper Elevation="0" Outlined Class="px-6 py-4">
+        <MudPaper Elevation="0" Outlined Class="px-6 py-4" Style="@_style">
             <MudStack>
                 <MudText Typo="Typo.caption">@Localizer["Posted at {0} by {1}", Announcement.CreatedAt.ToString("yyyy-MM-dd"), Announcement.CreatedBy?.DisplayName ?? "DataHub"]</MudText>
                 @if (Announcement.UpdatedAt.HasValue)
@@ -27,6 +27,8 @@
 
     [Parameter]
     public Announcement Announcement { get; set; }
+
+    private string _style => Announcement.IsCurrent() ? "" : "opacity: 0.5;";
 
     private bool _isFrench;
 
