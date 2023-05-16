@@ -1,32 +1,27 @@
 ﻿@using Datahub.Application.Services.Announcements
 
-@inject NavigationManager navigationManager
+@inject NavigationManager _navigationManager
 
-<MudCarousel Class="mud-width-full" 
-             Style="height:320px;" 
-             ShowArrows="false" 
-             ShowBullets="true" 
-             EnableSwipeGesture="true" 
-             AutoCycle="true" 
-             AutoCycleTime=@TimeSpan.FromSeconds(10)
+<MudCarousel Class="mud-width-full rounded"
+             Style="@_carouselStyle"
+             ShowArrows="true"
+             ShowBullets="false"
+             EnableSwipeGesture="true"
+             AutoCycle="true"
+             AutoCycleTime="@TimeSpan.FromSeconds(10)"
              TData="object">
 
     @foreach (var preview in Previews)
     {
-        <MudCarouselItem Transition="Transition.None" Color="@Color.Primary">
-            <div class="d-flex" style="height:100%">
-                <MudStack Class="ma-8">
-                    <DHMarkdown Content="@preview.Preview" />
-                    <MudStack Row="true" Justify="Justify.FlexStart">
-                        <MudButton Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
-                            @Localizer["Read more"]
-                        </MudButton>
-                    </MudStack>
-                </MudStack>
-            </div>
+        <MudCarouselItem Transition="Transition.Fade" >
+            <MudPaper Class="px-12 py-4" Elevation="0" Outlined Style="height: 100%">
+                <DHMarkdown Content="@preview.Preview"/>
+                <MudButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
+                    @Localizer["Read more"]
+                </MudButton>
+            </MudPaper>
         </MudCarouselItem>
     }
-
 </MudCarousel>
 
 @code {
@@ -34,8 +29,15 @@
     [Parameter]
     public List<AnnouncementPreview> Previews { get; set; } = new();
 
+    private string _carouselStyle = $"height: {CarouselHeight}px;";
+    
+    // get the style so it's always at the bottom of the carousel
+    private string _readMoreStyle => "position: absolute; bottom: 1rem; left: 2rem;";
+
     private void HandleReadMore(int newId)
     {
-        navigationManager.NavigateTo("/news"); // $"/news/{newId}"
+        _navigationManager.NavigateTo("/news"); // $"/news/{newId}"
     }
+
+    public readonly static int CarouselHeight = 320;
 }
