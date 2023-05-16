@@ -32,12 +32,11 @@ else
         var portalUser = await userInformationService.GetCurrentPortalUserAsync();
         _userBackgroundUrl = datahubPortalConfiguration.Achievements.GetAchievementImageUrl(portalUser.BannerPictureUrl);
         _now = await timeZoneService.GetLocalDateTime(DateTimeOffset.UtcNow);
-        _ = LoadPreviews();
+        await LoadPreviews();
     }
 
     private async Task LoadPreviews()
     {
-        await Task.Delay(TimeSpan.FromSeconds(5));
         _previews = await newsService.GetActivePreviews(cultureService.IsFrench);
         await InvokeAsync(StateHasChanged);        
     }
