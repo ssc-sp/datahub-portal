@@ -18,4 +18,7 @@ public interface IAnnouncementService
     public Task<Announcement?> GetAnnouncementAsync(int id);
     public Task<bool> SaveAnnouncementAsync(Announcement announcement);
     public Task<bool> DeleteAnnouncementAsync(int id);
+    Task<List<AnnouncementPreview>> GetActivePreviews(bool isFrench);
 }
+
+public record AnnouncementPreview(int Id, string Preview);

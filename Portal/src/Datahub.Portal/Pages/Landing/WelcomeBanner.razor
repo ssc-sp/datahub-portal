@@ -1,43 +1,71 @@
-﻿@inject TimeZoneService TimeZoneService
-@inject IConfiguration configuration
+﻿@*WelcomeBanner.razor*@
 
-<MudPaper class="welcome-banner" style=@($"background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{GetBackground()}') no-repeat;background-size: cover;")>
-    <MudText Typo="Typo.h1" class="greeting">@GetGreeting()</MudText>
-</MudPaper>
+@using Datahub.Application.Services.Announcements
+
+@inject TimeZoneService timeZoneService
+@inject IConfiguration configuration
+@inject IUserInformationService userInformationService
+@inject DatahubPortalConfiguration datahubPortalConfiguration
+@inject IAnnouncementService newsService
+@inject CultureService cultureService
+
+@if (_previews.Count == 0)
+{
+    <MudPaper class="welcome-banner" style=@($"background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{GetBackground()}') no-repeat;background-size: cover;")>
+        <MudText Typo="Typo.h1" class="greeting">@GetGreeting()</MudText>
+    </MudPaper>
+}
+else
+{
+    <AnnouncementCarousel Previews="_previews" />
+}
 
 
 @code {
 
+    private string _userBackgroundUrl;
+    private List<AnnouncementPreview> _previews = new();
     private DateTimeOffset _now = DateTimeOffset.Now;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var portalUser = await userInformationService.GetCurrentPortalUserAsync();
+        _userBackgroundUrl = datahubPortalConfiguration.Achievements.GetAchievementImageUrl(portalUser.BannerPictureUrl);
+        _previews = await newsService.GetActivePreviews(cultureService.IsFrench);
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _now = await TimeZoneService.GetLocalDateTime(DateTimeOffset.UtcNow);
+            _now = await timeZoneService.GetLocalDateTime(DateTimeOffset.UtcNow);
         }
-    }
-
-    private string GetGreeting(){
-        var hour = _now.Hour;
-
-        if(hour < 12){
-            return @Localizer["Good Morning"];
-        }
-        else if(hour < 16){
-            return @Localizer["Good Afternoon"];
-        }
-        return @Localizer["Good Evening"];
     }
 
     private string GetBackground()
     {
-    //earth-background.jpg
-    //LandingBgFolder
+        return _userBackgroundUrl ?? GetDefaultBackground();
+    }
+
+    private string GetDefaultBackground()
+    {
+        //earth-background.jpg
+        //LandingBgFolder
         var folder = configuration["LandingBgFolder"] ?? "nrcan";
         var imgCount = (configuration.GetSection("LandingBgImgCount").Get<int?>() ?? 12)-1;
         var randomId = (int)Math.Round(new Random().NextDouble() * imgCount);
         return $"/img/{folder}/landing{randomId:00}_1800x400.jpg";
     }
-}
 
+    private string GetGreeting()
+    {
+        var hour = _now.Hour;
+        if (hour < 12)
+            return Localizer["Good Morning"];
+
+        if (hour < 16)
+            return Localizer["Good Afternoon"];
+
+        return Localizer["Good Evening"];
+    }
+}
