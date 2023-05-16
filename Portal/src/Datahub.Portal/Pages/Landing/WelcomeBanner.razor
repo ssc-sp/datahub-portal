@@ -31,14 +31,15 @@ else
     {
         var portalUser = await userInformationService.GetCurrentPortalUserAsync();
         _userBackgroundUrl = datahubPortalConfiguration.Achievements.GetAchievementImageUrl(portalUser.BannerPictureUrl);
-        _now = await timeZoneService.GetLocalDateTime(DateTimeOffset.UtcNow);
-        await LoadPreviews();
+        _previews = await newsService.GetActivePreviews(cultureService.IsFrench);
     }
 
-    private async Task LoadPreviews()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _previews = await newsService.GetActivePreviews(cultureService.IsFrench);
-        await InvokeAsync(StateHasChanged);        
+        if (firstRender)
+        {
+            _now = await timeZoneService.GetLocalDateTime(DateTimeOffset.UtcNow);
+        }
     }
 
     private string GetBackground()
@@ -68,4 +69,3 @@ else
         return Localizer["Good Evening"];
     }
 }
-
