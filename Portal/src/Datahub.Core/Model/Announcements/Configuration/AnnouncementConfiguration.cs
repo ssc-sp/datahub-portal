@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
+using Datahub.Core.Model.Achievements;
 
 namespace Datahub.Core.Model.Announcements.Configuration;
 
@@ -13,24 +14,16 @@ internal class AnnouncementConfiguration : IEntityTypeConfiguration<Announcement
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedOnAdd();
 
-        builder.Property(e => e.TitleEn)
-               .IsRequired()
-               .HasMaxLength(128);
-
-        builder.Property(e => e.TitleFr)
-               .IsRequired()
-               .HasMaxLength(128);
-
         builder.Property(e => e.PreviewEn)
-               .IsRequired();
+            .IsRequired();
 
         builder.Property(e => e.PreviewFr)
-               .IsRequired();
+            .IsRequired();
 
         builder.Property(e => e.BodyEn)
-               .IsRequired();
+            .IsRequired();
 
         builder.Property(e => e.BodyFr)
-               .IsRequired();
+            .IsRequired();
     }
 }
