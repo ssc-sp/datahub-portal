@@ -1,4 +1,4 @@
-﻿@using Datahub.Core.Services.Announcements;
+﻿@using Datahub.Application.Services.Announcements
 
 @inject NavigationManager navigationManager
 
@@ -7,7 +7,8 @@
              ShowArrows="false" 
              ShowBullets="true" 
              EnableSwipeGesture="true" 
-             AutoCycle="false" 
+             AutoCycle="true" 
+             AutoCycleTime=@TimeSpan.FromSeconds(10)
              TData="object">
 
     @foreach (var preview in Previews)
@@ -15,11 +16,12 @@
         <MudCarouselItem Transition="Transition.None" Color="@Color.Primary">
             <div class="d-flex" style="height:100%">
                 <MudStack Class="ma-8">
-                    <MudText Typo="Typo.h3">@preview.Title</MudText>
-                    <DHMarkdown Content="@preview.Body" />
-                    <MudButton Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
-                        @Localizer["Read more"]
-                    </MudButton>
+                    <DHMarkdown Content="@preview.Preview" />
+                    <MudStack Row="true" Justify="Justify.FlexStart">
+                        <MudButton Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
+                            @Localizer["Read more"]
+                        </MudButton>
+                    </MudStack>
                 </MudStack>
             </div>
         </MudCarouselItem>

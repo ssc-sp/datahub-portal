@@ -1,11 +1,13 @@
 ﻿@*WelcomeBanner.razor*@
 
-@using Datahub.Core.Services.Announcements;
+@using Datahub.Application.Services.Announcements
+
 @inject TimeZoneService timeZoneService
 @inject IConfiguration configuration
 @inject IUserInformationService userInformationService
 @inject DatahubPortalConfiguration datahubPortalConfiguration
 @inject IAnnouncementService newsService
+@inject CultureService cultureService
 
 @if (_previews.Count == 0)
 {
@@ -29,8 +31,15 @@ else
     {
         var portalUser = await userInformationService.GetCurrentPortalUserAsync();
         _userBackgroundUrl = datahubPortalConfiguration.Achievements.GetAchievementImageUrl(portalUser.BannerPictureUrl);
-        _previews = await newsService.GetActivePreviews();
         _now = await timeZoneService.GetLocalDateTime(DateTimeOffset.UtcNow);
+        _ = LoadPreviews();
+    }
+
+    private async Task LoadPreviews()
+    {
+        await Task.Delay(TimeSpan.FromSeconds(5));
+        _previews = await newsService.GetActivePreviews(cultureService.IsFrench);
+        await InvokeAsync(StateHasChanged);        
     }
 
     private string GetBackground()

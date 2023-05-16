@@ -1,12 +1,8 @@
 using Datahub.Application.Configuration;
-using Datahub.Application.Services;
 using Datahub.Application.Services.Announcements;
 using Datahub.Core.Model.Announcements;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services;
-using Datahub.Core.Services.Security;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Datahub.Infrastructure.Services.Announcements;
@@ -16,7 +12,6 @@ public class AnnouncementService : IAnnouncementService
     private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
     private readonly IDbContextFactory<DatahubProjectDBContext> _datahubProjectDbFactory;
     private readonly ILogger<AnnouncementService> _logger;
-
 
     public AnnouncementService(DatahubPortalConfiguration datahubPortalConfiguration, IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
         ILogger<AnnouncementService> logger)
@@ -38,7 +33,6 @@ public class AnnouncementService : IAnnouncementService
         
         return announcements;
     }
-
 
     public async Task<Announcement?> GetAnnouncementAsync(int id)
     {
@@ -82,5 +76,19 @@ public class AnnouncementService : IAnnouncementService
     public Task<bool> DeleteAnnouncementAsync(int id)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<List<AnnouncementPreview>> GetActivePreviews(bool isFrench)
+    {
+        await using var ctx = await _datahubProjectDbFactory.CreateDbContextAsync();
+
+        var today = DateTime.Now.Date;
+
+        var articles = await ctx.Announcements
+            .Where(e => !e.ForceHidden && today > e.StartDateTime && (!e.EndDateTime.HasValue || today < e.EndDateTime.Value))
+            .Select(e => new AnnouncementPreview(e.Id, isFrench ? e.PreviewFr : e.PreviewEn))
+            .ToListAsync();
+
+        return articles;
     }
 }
