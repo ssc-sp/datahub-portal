@@ -1,81 +1,106 @@
 ﻿@*Announcements.razor*@
 
-@page "/news/edit/new"
 @page "/news/edit/{Id}"
 
 @using Datahub.Core.Model.Announcements;
+@using Datahub.Application.Services.Announcements
+@using Datahub.Core.Model.Achievements
+
+@inject IAnnouncementService _announcementService
+@inject ISnackbar _snackbar
+@inject NavigationManager _navigationManager
+@inject IUserInformationService _userInformationService
+
+@if (_announcement is null)
+{
+    <DHLoadingInitializer/>
+    return;
+}
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
-    @if (_article is not null)
-    {
-        <MudCard Class="mb-4">
-            <MudCardHeader>
-                <CardHeaderAvatar>
-                    <MudIconButton Icon="@Icons.Material.Filled.Newspaper" Color="Color.Default" />
-                </CardHeaderAvatar>
-                <CardHeaderContent>
-                    @if (_article.IsNew())
+    <MudGrid>
+        <MudItem xs="12">
+            <MudStack>
+                <MudText Typo="Typo.h2">@Localizer["Carousel Preview"]</MudText>
+                <MudPaper Elevation="0" Outlined>
+                    <MudCarousel TData="object" Class="mud-width-full" ShowArrows="false" Style="min-height: 200px">
+                        <MudCarouselItem>
+                            <MudText>
+                                Preview
+                            </MudText>
+                        </MudCarouselItem>
+                    </MudCarousel>
+                </MudPaper>
+            </MudStack>
+        </MudItem>
+        <MudItem xs="4">
+            <MudPaper Elevation="0" Outlined Class="px-6 py-4 sticky">
+                <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
+                    <MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" Color="Color.Default"/>
+                    <MudText Typo="Typo.h2">@Localizer["Schedule"]</MudText>
+                </MudStack>
+                <MudDivider Class="my-4"/>
+                <MudStack Spacing="4">
+                    <MudSwitch @bind-Checked="_announcement.ForceHidden"
+                               Label="@(Localizer["Always hide this announcement"])"
+                               Color="Color.Primary"/>
+                    <MudSwitch @bind-Checked="_announcementHasEndDate"
+                               Label="@(Localizer["Announcement has an end date"])"
+                               Disabled="@_announcement.ForceHidden"
+                               Color="Color.Primary"/>
+
+                    @if (!_announcementHasEndDate)
                     {
-                        <MudText Typo="Typo.h3">@Localizer["New Article"]</MudText>
+                        <MudDatePicker @bind-Date="@_announcement.StartDateTime"
+                                       Label="@(Localizer["Start showing announcement on"])"
+                                       Required
+                                       Variant="Variant.Outlined"
+                                       DateFormat="yyyy-MM-dd"
+                                       Disabled="@_announcement.ForceHidden"
+                                       Margin="Margin.Dense"/>
                     }
                     else
                     {
-                        <MudText Typo="Typo.h3">@Localizer["Edit Article"]</MudText>
+                        <MudDateRangePicker @bind-DateRange="@_dateRange"
+                                            Label="@(Localizer["Select the start and end dates"])"/>
                     }
-                </CardHeaderContent>
-            </MudCardHeader>
 
-            <MudCardContent>
-                <MudStack Class="ma-4">
+                    <MudStack Row Justify="Justify.Center">
+                        <MudButton Variant="Variant.Filled"
+                                   Class="mt-4 mb-2"
+                                   Color="Color.Primary"
+                                   OnClick="HandleSave">
+                            @Localizer["Save Changes"]
+                        </MudButton>
+                    </MudStack>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="8">
+            <MudPaper Elevation="0" Outlined Class="px-6 py-4">
+                <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
+                    <MudIcon Icon="@Icons.Material.Outlined.Newspaper" Color="Color.Default"/>
+                    <MudText Typo="Typo.h2">@Localizer[_announcement.IsNew() ? "Create a new Announcement" : "Edit Announcement"]</MudText>
+                </MudStack>
+
+                <MudDivider Class="my-4"/>
+
+                <MudStack>
                     <MudText Typo="Typo.h4">English</MudText>
-                    <MudTextField @bind-Value=@_article.TitleEn Label="Title" Variant="Variant.Outlined"></MudTextField>
-                    <MudTextField @bind-Value=@_article.PreviewEn T="string" Label="Preview" Lines="3" Variant="Variant.Outlined" />
-                    <MarkdownEditor InitialValue=@_article.BodyEn ValueChanged="HandleEnglishValueChanged" />
+                    <MudTextField @bind-Value="@_announcement.PreviewEn" T="string" Label="Preview" Lines="3" Variant="Variant.Outlined"/>
+                    <MarkdownEditor InitialValue="@_announcement.BodyEn" ValueChanged="HandleEnglishValueChanged"/>
+                </MudStack>
 
+                <MudDivider Class="my-4"/>
+
+                <MudStack>
                     <MudText Typo="Typo.h4" Class="mt-2">Français</MudText>
-                    <MudTextField @bind-Value=@_article.TitleFr Label="Titre" Variant="Variant.Outlined"></MudTextField>
-                    <MudTextField @bind-Value=@_article.PreviewFr T="string" Label="Aperçu" Lines="3" Variant="Variant.Outlined" />
-                    <MarkdownEditor InitialValue=@_article.BodyFr ValueChanged="HandleFrenchValueChanged" />
-
-                    <MudText Typo="Typo.h4" Class="mt-2">@Localizer["Schedule"]</MudText>
-                    <MudDatePicker @bind-Date="_startDate"
-                               Label="Start Date"
-                               Required="true"
-                               Variant="Variant.Outlined"
-                               DateFormat="yyyy-MM-dd"
-                               Margin="Margin.Dense" />
-
-                    <MudCheckBox @bind-Checked="_neverExpires" Label="Doesn't expire" Color="Color.Primary"></MudCheckBox>
-
-                    <MudDatePicker @bind-Date="_endDate"
-                               Label="End Date"
-                               Required="true"
-                               Variant="Variant.Outlined"
-                               DateFormat="yyyy-MM-dd"
-                               Disabled=@_neverExpires
-                               Margin="Margin.Dense" />
-
-                    <MudCheckBox @bind-Checked="_article.ForceHidden" Label="Hidden" Color="Color.Primary"></MudCheckBox>
-
+                    <MudTextField @bind-Value="@_announcement.PreviewFr" T="string" Label="Aperçu" Lines="3" Variant="Variant.Outlined"/>
+                    <MarkdownEditor InitialValue="@_announcement.BodyFr" ValueChanged="HandleFrenchValueChanged"/>
                 </MudStack>
-            </MudCardContent>
-
-            <MudCardActions>
-                <MudStack Row Spacing="2" Class="ma-4">
-                    <MudButton Variant="Variant.Text"
-                               Color="Color.Primary"
-                               OnClick="HandleSave">
-                        @Localizer["Save Changes"]
-                    </MudButton>
-                    <MudButton Variant="Variant.Text"
-                               Color="Color.Default"
-                               OnClick="HandleDiscard">
-                        @Localizer["Discard changes"]
-                    </MudButton>
-                </MudStack>
-            </MudCardActions>
-        </MudCard>
-    }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
 </DatahubAuthView>
 
 
@@ -84,75 +109,84 @@
     [Parameter]
     public string Id { get; set; }
 
-    [Inject]
-    public IDbContextFactory<DatahubProjectDBContext> _dbContextFactory { get; set; }
+    private Announcement _announcement;
+    private bool _announcementHasEndDate;
+    private DateRange _dateRange;
+    private PortalUser _currentUser;
 
-    [Inject]
-    public NavigationManager _navigationManager { get; set; }
-
-    private Announcement _article;
-    private DateTime? _startDate;
-    private DateTime? _endDate;
-    private bool _neverExpires;
+    private int GetArticleId() => int.TryParse(Id, out var value) ? value : 0;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-        _article = await GetArticle();
+        _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
-        _startDate = _article.StartDateTime;
-        _endDate = _article.EndDateTime ?? _startDate.Value.AddDays(30);
+    // if the path is /news/edit/new, then id will be 0
+        _announcement = await _announcementService.GetAnnouncementAsync(GetArticleId()) ?? new Announcement()
+        {
+            StartDateTime = DateTime.UtcNow,
+        };
+
+        InitializeControlParameters();
     }
 
-    private async Task<Announcement> GetArticle()
+    private void InitializeControlParameters()
     {
-        var id = GetArticleId();
-        if (id == 0)
-            return new();
-
-        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        var article = await ctx.Announcements
-                               .AsNoTracking()
-                               .FirstOrDefaultAsync(e => e.Id == id);
-
-        return article ?? new();
+        _dateRange = new DateRange(_announcement.StartDateTime, _announcement.EndDateTime ?? _announcement.StartDateTime?.AddDays(7));
+        _announcementHasEndDate = _announcement.EndDateTime.HasValue;
     }
-
-    private int GetArticleId() => int.TryParse(Id, out int value) ? value : 0;
 
     private void HandleEnglishValueChanged(string value)
     {
-        _article.BodyEn = value;
+        _announcement.BodyEn = value;
     }
 
     private void HandleFrenchValueChanged(string value)
     {
-        _article.BodyFr = value;
+        _announcement.BodyFr = value;
+    }
+
+    private void ApplyControlParameters()
+    {
+        if (_announcementHasEndDate)
+        {
+            _announcement.StartDateTime = _dateRange.Start;
+            _announcement.EndDateTime = _dateRange.End;
+        }
+        else
+        {
+            _announcement.EndDateTime = null;
+        }
+    }
+
+    private void ApplyAuditInformation()
+    {
+        if (_announcement.CreatedById == 0)
+        {
+            _announcement.CreatedById = _currentUser.Id;
+            _announcement.CreatedAt = DateTime.UtcNow;
+        }
+
+        _announcement.UpdatedById = _currentUser.Id;
+        _announcement.UpdatedAt = DateTime.UtcNow;
     }
 
     private async Task HandleSave()
     {
-        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        ApplyControlParameters();
+        ApplyAuditInformation();
+        var success = await _announcementService.SaveAnnouncementAsync(_announcement);
 
-        // correct the start date
-        _article.StartDateTime = _startDate ?? DateTime.Now;
-        _article.EndDateTime = !_neverExpires ? _endDate : default;
-
-        if (_article.Id == 0)
+        if (success)
         {
-            ctx.Announcements.Add(_article);
+            _snackbar.Add(Localizer["Article saved"], Severity.Success);
+            _navigationManager.NavigateTo("/news");
         }
         else
         {
-            ctx.Announcements.Update(_article);
+            _snackbar.Add(Localizer["Failed to save article"], Severity.Error);
         }
-
-        await ctx.SaveChangesAsync();
     }
 
-    private void HandleDiscard()
-    {
-        _navigationManager.NavigateTo("/news");
-    }
 }
