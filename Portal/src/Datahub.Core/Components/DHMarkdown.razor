@@ -52,7 +52,10 @@
         }
     }
 
-    private string OverrideLinkUrl(Markdig.Syntax.Inlines.LinkInline linkElement) => LinkRewriter(linkElement.Url);
+    private string OverrideLinkUrl(Markdig.Syntax.Inlines.LinkInline linkElement)
+    {
+        return LinkRewriter?.Invoke(linkElement.Url) ?? linkElement.Url;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

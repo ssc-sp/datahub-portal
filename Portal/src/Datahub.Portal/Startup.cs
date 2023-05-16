@@ -59,7 +59,6 @@ using Datahub.M365Forms.Services;
 using Datahub.Infrastructure.Services.Azure;
 using Datahub.Infrastructure.Services.Projects;
 using Datahub.Core.Services.Achievements;
-using Datahub.Core.Services.Announcements;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -180,8 +179,6 @@ public class Startup
         services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
         services.AddSingleton<AzureManagementService>();
         services.AddSingleton<ProjectUsageService>();
-
-        services.AddScoped<IAnnouncementService, AnnouncementService>();
 
         services.AddSignalRCore();
 
