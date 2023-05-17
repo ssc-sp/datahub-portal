@@ -121,9 +121,19 @@
         _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
         _announcement = await _announcementService.GetAnnouncementAsync(GetArticleId());
 
-        if (_announcement is null && Id != "new")
+        if (_announcement is null )
         {
-            _navigationManager.NavigateTo("/news");
+            if (Id != "new")
+            {
+                _navigationManager.NavigateTo("/news");
+            }
+            else
+            {
+                _announcement = new Announcement()
+                {
+                    StartDateTime = DateTime.UtcNow
+                };
+            }
         }
 
         InitializeControlParameters();
