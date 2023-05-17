@@ -1,7 +1,7 @@
 @inject IUserInformationService _userInformationService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject UIControlsService _uiControlsService
-
+@inject NavigationManager _navigationManager
 
 @using Microsoft.Identity.Web
 @using MudBlazor.Utilities
@@ -14,7 +14,7 @@
     return;
 }
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-    <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+    <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" FullWidth>
         <ActivatorContent>
             <MudButton Class="ml-2">
                 <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Medium"/>
@@ -22,52 +22,57 @@
             </MudButton>
         </ActivatorContent>
         <ChildContent>
-            <MudCard Elevation="0" Class="py-4 px-6">
-                <MudCardContent>
-                    <MudStack>
-                        <MudLink Href="/profile">@Localizer["View your profile"]</MudLink>
-                        <GuestModeToggler/>
-                    </MudStack>
-                </MudCardContent>
-                <MudCardActions>
-                    <MudStack Row Class="flex-grow-1" Justify="Justify.SpaceBetween">
-                        <MudButton Variant="Variant.Text">
-                            <LanguageToggle/>
-                        </MudButton>
-                        <MudButton Href="MicrosoftIdentity/Account/SignOut" Variant="Variant.Text">
-                            @Localizer["Sign Out"]
-                        </MudButton>
-                    </MudStack>
-                </MudCardActions>
-            </MudCard>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
+                <MudMenuItem>
+                    <MudSwitch
+                        T="bool"
+                        Color="Color.Primary"
+                        Checked="@_isViewAsAdmin"
+                        Label="@Localizer["Admin Access Enabled"]"
+                        CheckedChanged="ToggleAdminMode"/>
+                </MudMenuItem>
+                <MudDivider/>
+            </DatahubAuthView>
+            <MudMenuItem Href="/profile">@Localizer["Your profile"]</MudMenuItem>
+            <MudMenuItem Href="/w">@Localizer["Your workspaces"]</MudMenuItem>
+            <MudMenuItem Href="/notifications">@Localizer["Your notifications"]</MudMenuItem>
+            <MudDivider/>
+            <MudMenuItem Href="/profile/settings">@Localizer["Settings"]</MudMenuItem>
+            <MudMenuItem>
+                <LanguageToggle/>
+            </MudMenuItem>
+            <MudMenuItem Href="https://forms.office.com/pages/responsepage.aspx?id=lMFb0L-U1kquLh2w8uOPXhksOXzZ73RCp9fVTz4vTU5UNTc1U00yNVUxWVg4SkJGMFVHN1RCTTdQRS4u">@Localizer["Help"]</MudMenuItem>
+            <MudDivider/>
+            <MudMenuItem Href="MicrosoftIdentity/Account/SignOut">
+                @Localizer["Sign Out"]
+            </MudMenuItem>
         </ChildContent>
     </MudMenu>
 </DatahubAuthView>
 
 @code {
 
-    private string _style;
 
     private PortalUser _viewedUser;
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-
-        _style = new StyleBuilder()
-            .AddStyle("width", "600px")
-            .Build();
-    }
+    private bool _isViewAsAdmin;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+            _isViewAsAdmin = !(await _userInformationService.IsViewingAsGuest());
         }
         catch (Exception ex)
         {
             _consentHandler.HandleException(ex);
         }
     }
+
+    private async Task ToggleAdminMode(bool newValue)
+    {
+        await _userInformationService.SetViewingAsGuest(!newValue);
+        _navigationManager.NavigateTo(_navigationManager.Uri, true);
+    }
+
 }
