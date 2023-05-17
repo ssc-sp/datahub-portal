@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Datahub.Desktop.Uploader.UploadPage"
+             Loaded="ContentPage_Loaded">
+
+    <ScrollView x:Name="UploadScrollView">
+        <VerticalStackLayout
+            Spacing="25"
+            Padding="30,0"
+            VerticalOptions="Center">
+
+            <Image
+                Source="dotnet_bot.png"
+                SemanticProperties.Description="Cute dot net bot waving hi to you!"
+                HeightRequest="50"
+                HorizontalOptions="Center" />
+
+            <Label
+                x:Name="LbUpload1"
+                Text="Drop your files here to upload them to DataHub"
+                SemanticProperties.HeadingLevel="Level2"
+                SemanticProperties.Description="Welcome to dot net Multi platform App U I"
+                FontSize="18"
+                HorizontalOptions="Center" />
+
+            <TableView Intent="Data" x:Name="FileListTbView" IsVisible="False">
+                <TableRoot>
+                    <TableSection x:Name="FileListSection" Title="Files to upload">
+                    </TableSection>
+                </TableRoot>
+            </TableView>
+
+            <HorizontalStackLayout HorizontalOptions="Center">
+            <Button
+                x:Name="AddfileBtn"
+                Text="Add file(s)"
+                SemanticProperties.Hint="Counts the number of times you click"
+                Clicked="AddfileBtn_Clicked"
+                HorizontalOptions="Center" />
+                <Button
+                x:Name="AddfolderBtn"
+                Text="Add folder"
+                SemanticProperties.Hint="Counts the number of times you click"                
+                HorizontalOptions="Center" />
+
+            </HorizontalStackLayout>
+            <HorizontalStackLayout HorizontalOptions="Center">
+                <Button
+                x:Name="UploadBtn"
+                Text="Start Upload"
+                IsEnabled="False"
+                Clicked="UploadBtn_Clicked"
+                SemanticProperties.Hint="Counts the number of times you click"
+                HorizontalOptions="Center" />
+
+            <Button
+                x:Name="OpenWSBtn"
+                Text="Open DataHub Storage" 
+                Clicked="OpenWSBtn_Clicked"
+                SemanticProperties.Hint="Counts the number of times you click"
+                HorizontalOptions="Center" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
