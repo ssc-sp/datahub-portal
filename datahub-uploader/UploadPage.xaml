@@ -31,6 +31,8 @@
                 </TableRoot>
             </TableView>
 
+            <ProgressBar x:Name="UploadProgressBar" Progress="0" />
+
             <HorizontalStackLayout HorizontalOptions="Center">
             <Button
                 x:Name="AddfileBtn"
