@@ -22,15 +22,7 @@
         <MudItem xs="12">
             <MudStack>
                 <MudText Typo="Typo.h2">@Localizer["Carousel Preview"]</MudText>
-                <MudPaper Elevation="0" Outlined>
-                    <MudCarousel TData="object" Class="mud-width-full" ShowArrows="false" Style="min-height: 200px">
-                        <MudCarouselItem>
-                            <MudText>
-                                Preview
-                            </MudText>
-                        </MudCarouselItem>
-                    </MudCarousel>
-                </MudPaper>
+                <AnnouncementCarousel Previews="@_announcementPreviews"  />
             </MudStack>
         </MudItem>
         <MudItem xs="4">
@@ -114,6 +106,12 @@
     private DateRange _dateRange;
     private PortalUser _currentUser;
 
+    private List<AnnouncementPreview> _announcementPreviews => new()
+    {
+        new AnnouncementPreview(0, _announcement?.PreviewEn ?? "English Preview"),
+        new AnnouncementPreview(0, _announcement?.PreviewFr ?? "French Preview"),
+    };
+
     private int GetArticleId() => int.TryParse(Id, out var value) ? value : 0;
 
     protected override async Task OnInitializedAsync()
@@ -121,12 +119,22 @@
         await base.OnInitializedAsync();
 
         _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        _announcement = await _announcementService.GetAnnouncementAsync(GetArticleId());
 
-    // if the path is /news/edit/new, then id will be 0
-        _announcement = await _announcementService.GetAnnouncementAsync(GetArticleId()) ?? new Announcement()
+        if (_announcement is null )
         {
-            StartDateTime = DateTime.UtcNow,
-        };
+            if (Id != "new")
+            {
+                _navigationManager.NavigateTo("/news");
+            }
+            else
+            {
+                _announcement = new Announcement()
+                {
+                    StartDateTime = DateTime.UtcNow
+                };
+            }
+        }
 
         InitializeControlParameters();
     }
