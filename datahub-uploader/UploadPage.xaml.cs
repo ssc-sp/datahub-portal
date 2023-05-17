@@ -100,15 +100,17 @@ namespace Datahub.Desktop.Uploader
             var client = GetBlobServiceClient();
             uploadInProgress = true;
             UploadBtn.IsEnabled = false;
+            UploadProgressBar.IsVisible = true;
             foreach (var item in fileList)
             {
                 fileList[item.Key] = "In Progress";
                 await UpdateFileLayout();
-                await Uploader.UploadBlocksAsync(client, item.Key, 4096);
+                await Uploader.UploadBlocksAsync(client, item.Key, 4096, async p => { UploadProgressBar.Progress = p; });
                 fileList[item.Key] = "Completed";
                 await UpdateFileLayout();
             }
             UploadBtn.IsEnabled = true;
+            UploadProgressBar.IsVisible = false;
             uploadInProgress = true;
 
         }

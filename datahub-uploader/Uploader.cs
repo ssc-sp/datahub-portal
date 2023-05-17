@@ -14,7 +14,7 @@ namespace Datahub.Desktop.Uploader
         public static async Task UploadBlocksAsync(
             BlobContainerClient blobContainerClient,
             string localFilePath,
-            int blockSize)
+            int blockSize, Func<double,Task> progressFunction)
         {
             string fileName = Path.GetFileName(localFilePath);
             BlockBlobClient blobClient = blobContainerClient.GetBlockBlobClient(fileName);
@@ -48,6 +48,8 @@ namespace Datahub.Desktop.Uploader
                     await blobClient.StageBlockAsync(blockID, stream);
                 }
                 bytesLeft = (fileStream.Length - fileStream.Position);
+                if (progressFunction != null)
+                    await progressFunction.Invoke(fileStream.Position * 1.0 / fileStream.Length);
             }
 
             string[] blockIDArray = (string[])blockIDArrayList.ToArray(typeof(string));
