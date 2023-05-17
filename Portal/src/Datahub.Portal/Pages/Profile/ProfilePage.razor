@@ -72,7 +72,7 @@
 
     private PortalUser _currentUser;
     private PortalUser _viewedPortalUser;
-    private string _manageSettingsUrl => $"/settings/{ProfileSettingsPage.SectionViews.Public}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
+    private string _manageSettingsUrl => $"/profile/settings/{ProfileSettingsPage.SectionViews.Public}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
     private string _achievementsUrl => $"/profile/achievements{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
 
     protected override async Task OnInitializedAsync()
