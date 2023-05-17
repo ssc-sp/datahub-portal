@@ -33,6 +33,7 @@
         Personal,
         WorkspaceCollaborator,
         WorkspaceAdmin,
+        DatahubAdminGuestView,
         DatahubAdmin,
         Unauthorized
     }
@@ -67,6 +68,8 @@
                 return $"{ProjectAcronym},{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX},{RoleConstants.DATAHUB_ROLE_ADMIN}";
             case AuthLevels.WorkspaceAdmin:
                 return $"{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX},{RoleConstants.DATAHUB_ROLE_ADMIN}";
+            case AuthLevels.DatahubAdminGuestView:
+                return $"{RoleConstants.DATAHUB_ROLE_ADMIN},{RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST}";
             case AuthLevels.DatahubAdmin:
                 return RoleConstants.DATAHUB_ROLE_ADMIN;
             case AuthLevels.Unauthorized:
