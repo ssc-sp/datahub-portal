@@ -119,12 +119,12 @@
         await base.OnInitializedAsync();
 
         _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        _announcement = await _announcementService.GetAnnouncementAsync(GetArticleId());
 
-    // if the path is /news/edit/new, then id will be 0
-        _announcement = await _announcementService.GetAnnouncementAsync(GetArticleId()) ?? new Announcement()
+        if (_announcement is null && Id != "new")
         {
-            StartDateTime = DateTime.UtcNow,
-        };
+            _navigationManager.NavigateTo("/news");
+        }
 
         InitializeControlParameters();
     }
