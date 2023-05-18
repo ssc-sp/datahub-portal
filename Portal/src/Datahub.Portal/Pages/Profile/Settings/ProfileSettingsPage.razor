@@ -6,7 +6,7 @@
 
 @inject ISnackbar _snackbar
 
-@page "/settings/{Section?}"
+@page "/profile/settings/{Section?}"
 
 @if (_viewedPortalUser is null)
 {
@@ -55,7 +55,7 @@
             <MudItem xs="12" sm="9">
                 <MudStack Spacing="6">
                     <MudText Typo="Typo.h2">@Localizer["These are not the settings you're looking for..."]</MudText>
-                    <MudLink Href="/settings" Typo="Typo.body1">@Localizer["Click here to return to your settings"]</MudLink>
+                    <MudLink Href="/profile/settings" Typo="Typo.body1">@Localizer["Click here to return to your settings"]</MudLink>
                 </MudStack>
             </MudItem>
         </MudGrid>
