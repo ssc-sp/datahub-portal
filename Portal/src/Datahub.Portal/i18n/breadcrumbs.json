@@ -1,6 +1,7 @@
 {
   "breadcrumb_apiusers": "API Users",
   "breadcrumb_tools": "Tools",
+  "breadcrumb_email": "Email",
   "breadcrumb_computecost": "Compute Cost",
   "breadcrumb_debug": "Debug",
   "breadcrumb_errortest": "Error Test",
@@ -82,5 +83,12 @@
   "breadcrumb_indicators": "Indicators",
   "breadcrumb_programs": "Programs",
   "breadcrumb_risks": "Risks",
-  "breadcrumb_costs": "Costs"
+  "breadcrumb_costs": "Costs",
+  "breadcrumb_settings": "Settings",
+  "breadcrumb_public": "Public Profile",
+  "breadcrumb_appearance": "Portal Appearance",
+  "breadcrumb_achievements": "Achievements",
+  "breadcrumb_notifications": "Notifications",
+  "breadcrumb_diagnostics": "Diagnostics",
+  "breadcrumb_news": "News"
 }

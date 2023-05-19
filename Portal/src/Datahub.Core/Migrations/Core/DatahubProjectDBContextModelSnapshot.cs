@@ -328,6 +328,63 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("UserAchievements", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Announcements.Announcement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BodyEn")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BodyFr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("ForceHidden")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PreviewEn")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PreviewFr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StartDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedById")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("Announcements", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Client_Engagement", b =>
                 {
                     b.Property<int>("Engagement_ID")
@@ -1664,6 +1721,84 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("OnboardingApps");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserRecentLink", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DataProject")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DatabricksURL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("LinkType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PBIReportId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PBIWorkspaceId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PowerBIURL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResourceArticleId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResourceArticleTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Variant")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WebFormsURL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("accessedTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserRecentLink", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserSettings", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("AcceptedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("UserSettings", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
                 {
                     b.HasBaseType("Datahub.Core.Model.Datahub.SharedDataFile");
@@ -1722,6 +1857,23 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Achievement");
 
                     b.Navigation("PortalUser");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Announcements.Announcement", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Client_Engagement", b =>
@@ -1945,6 +2097,17 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("WebForm");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserRecentLink", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "User")
+                        .WithMany("RecentLinks")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Datahub.SharedDataFile", null)
@@ -1962,6 +2125,8 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
             modelBuilder.Entity("Datahub.Core.Model.Achievements.PortalUser", b =>
                 {
                     b.Navigation("Achievements");
+
+                    b.Navigation("RecentLinks");
 
                     b.Navigation("TelemetryEvents");
                 });

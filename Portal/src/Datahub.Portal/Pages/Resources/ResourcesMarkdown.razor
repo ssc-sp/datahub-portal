@@ -46,10 +46,8 @@
             accessedTime = DateTimeOffset.Now,
 
         };
-        await UserLocationManagerService.RegisterNavigation(userRecentLink, true);
-
+        await UserLocationManagerService.RegisterNavigation(userRecentLink);
     }
-
 
     public string RewriteLink(string link)
     {

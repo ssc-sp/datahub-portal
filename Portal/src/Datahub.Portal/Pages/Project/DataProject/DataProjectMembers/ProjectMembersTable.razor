@@ -94,7 +94,7 @@
                         </MudTd>
                         <MudTd>
                             <MudButton Variant="Variant.Text" EndIcon="@PROFILE_LINK_ICON" Color="Color.Primary"
-                                       Href="@($"/profile/{Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(rowContext.UserId))}")">
+                                       Href="@($"/profile?u={Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(rowContext.UserId))}")">
                                 @Localizer["View Profile"]
                             </MudButton>
                         </MudTd>

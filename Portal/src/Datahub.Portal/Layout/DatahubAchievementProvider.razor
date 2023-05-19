@@ -1,12 +1,11 @@
-@using Datahub.Achievements
 @using Blazored.LocalStorage
-@using Datahub.Achievements.Models
 @using Datahub.Core.Data
 @using Datahub.Core.Model.Achievements;
 @using Datahub.Core.Services.Achievements;
 @using Microsoft.EntityFrameworkCore
 @using System.Linq
 @using Datahub.Core.Model.Datahub
+@using Datahub.Portal.Pages.Profile.Achievements
 @using Microsoft.Graph
 
 @inject IPortalUserTelemetryService _telemetryService
@@ -49,6 +48,11 @@
 
                 if (numberOfProjects > 0)
                     await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserJoinedProject);
+
+                if (await _userInformationService.IsDailyLogin())
+                {
+                    await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserLoginMultipleDays);
+                }
             }
             catch (AuthenticationException)
             {
@@ -59,24 +63,39 @@
 
     private void OnAchievementsEarned(object sender, AchievementsEarnedEventArgs e)
     {
-        // >>
-    }
-
-    private void OnAchievementEarned(object sender, AchievementEarnedEventArgs e)
-    {
-        var message = $"<ul><li><h3>{Localizer["Achievement Unlocked"]}!</h3></li><li><h4>{e.Achievement!.Name}</h4></li><li>{e.Achievement!.Description}</li></ul>";
-        _snackbar.Add(message, Severity.Normal, config =>
+        if (e.Hide)
         {
-            config.Icon = e.Achievement!.Icon;
-            config.IconColor = Color.Tertiary;
-            config.ShowCloseIcon = false;
-            config.Onclick = delegate
-            {
-                _navigationManager.NavigateTo("/profile");
-                return Task.CompletedTask;
-            };
+            return;
+        }
+        
+        var achievements = Achievement.GetAll();
+        e.Achievements.ForEach(achievement =>
+        {
+            _snackbar.Add<AchievementToast>(
+                new Dictionary<string, object> { { "Achievement", achievements.FirstOrDefault(a => a.Id == achievement) } },
+                configure: config =>
+                {
+                    config.HideIcon = true;
+                    config.ShowCloseIcon = false;
+                });
         });
     }
+
+    // private void OnAchievementEarned(object sender, AchievementEarnedEventArgs e)
+    // {
+    //     var message = $"<ul><li><h3>{Localizer["Achievement Unlocked"]}!</h3></li><li><h4>{e.Achievement!.Name}</h4></li><li>{e.Achievement!.Description}</li></ul>";
+    //     _snackbar.Add(message, Severity.Normal, config =>
+    //     {
+    //         config.Icon = e.Achievement!.Icon;
+    //         config.IconColor = Color.Tertiary;
+    //         config.ShowCloseIcon = false;
+    //         config.Onclick = delegate
+    //         {
+    //             _navigationManager.NavigateTo("/profile");
+    //             return Task.CompletedTask;
+    //         };
+    //     });
+    // }
 
     private async void OnLocationChanged(object sender, LocationChangedEventArgs e)
     {
