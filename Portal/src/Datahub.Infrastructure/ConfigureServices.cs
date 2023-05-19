@@ -1,8 +1,10 @@
 ﻿using Datahub.Application.Services;
 using Datahub.Application.Services.Announcements;
+using Datahub.Application.Services.Notifications;
 using Datahub.Infrastructure.Queues.MessageHandlers;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
+using Datahub.Infrastructure.Services.Notifications;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +22,7 @@ public static class ConfigureServices
         services.AddScoped<IProjectDataRetrievalService, ProjectDataRetrievalService>();
         services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
         services.AddScoped<IAnnouncementService, AnnouncementService>();
+        services.AddScoped<IDatahubEmailService, DatahubEmailService>();
 
         services.AddMediatR(typeof(QueueMessageSender<>));
 
