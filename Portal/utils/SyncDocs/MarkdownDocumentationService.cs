@@ -1,6 +1,8 @@
 ﻿using Markdig;
 using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
+using System.Globalization;
+using System.Text;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -34,6 +36,27 @@ internal class MarkdownDocumentationService
         return Task.CompletedTask;
     }
 
+    static string RemoveDiacritics(string text)
+    {
+        var normalizedString = text.Normalize(NormalizationForm.FormD);
+        var stringBuilder = new StringBuilder(capacity: normalizedString.Length);
+
+        for (int i = 0; i < normalizedString.Length; i++)
+        {
+            char c = normalizedString[i];
+            var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+            if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+            {
+                stringBuilder.Append(c);
+            }
+        }
+
+        return stringBuilder
+            .ToString()
+            .Normalize(NormalizationForm.FormC);
+    }
+
+
     public async Task AddFile(string path)
     {
         var sourceFileName = Path.GetFileName(path);
@@ -47,6 +70,7 @@ internal class MarkdownDocumentationService
         string translatedName = await TranslateFileName(sourceFileName);
 
         // build output path
+        //var outputFilePath = Path.Combine(outputPath, RemoveDiacritics(translatedName));
         var outputFilePath = Path.Combine(outputPath, translatedName);
 
         // add file mapping

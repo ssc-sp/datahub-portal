@@ -1,0 +1,49 @@
+﻿@using Datahub.Core.Model.Announcements
+@using Datahub.Application.Services.Announcements
+
+@page "/news"
+
+@inject IAnnouncementService _announcementService
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+    <MudStack Spacing="6">
+        <MudStack Row>
+            <MudText Typo="Typo.h1">@Localizer["DataHub News"]</MudText>
+            <MudSpacer/>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/news/edit/new">@Localizer["Create a new Announcement"]</MudButton>
+            </DatahubAuthView>
+        </MudStack>
+
+        @if (_announcements.Any())
+        {
+            <MudStack>
+                @foreach (var announcement in _announcements)
+                {
+                    var authLevel = announcement.IsVisible() ? DatahubAuthView.AuthLevels.Authenticated : DatahubAuthView.AuthLevels.DatahubAdmin;
+                    <DatahubAuthView AuthLevel="authLevel">
+                        <AnnouncementItem Announcement="@announcement" IsHidden="@(announcement.IsDeleted || announcement.IsScheduled())"/>
+                    </DatahubAuthView>
+                }
+            </MudStack>
+        }
+        else
+        {
+            <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center">
+                <MudIcon Size="Size.Large" Class="mt-16 mb-4" Icon="@Icons.Material.Outlined.Deck"/>
+                <MudText Typo="Typo.h3">@Localizer["No announcements yet!"]</MudText>
+            </MudStack>
+        }
+    </MudStack>
+</DatahubAuthView>
+
+@code {
+
+    private List<Announcement> _announcements = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _announcements = await _announcementService.GetAnnouncementsAsync();
+    }
+
+}
