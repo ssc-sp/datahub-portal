@@ -6,41 +6,45 @@
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
-<MudText Typo="Typo.h1">@Localizer["Recent Places"]</MudText>
-<MudGrid Class="recent-card-grid">
-    @if (_recentLinks is null)
-    {
-        @for (var i = 0; i < 6; i++)
+@if (_recentLinks.Any())
+{
+    <MudText Typo="Typo.h1">@Localizer["Recent Places"]</MudText>
+    <MudGrid Class="recent-card-grid">
+        @if (_recentLinks is null)
         {
-            <MudItem xs="2">
-                <MudSkeleton Height="100px" />
-            </MudItem>
+            @for (var i = 0; i < 6; i++)
+            {
+                <MudItem xs="2">
+                    <MudSkeleton Height="100px"/>
+                </MudItem>
+            }
         }
-    }
-    else
-    {
-        @foreach (var (link, project) in _recentLinks)
+        else
         {
-            <MudItem xs="2">
-                <DHLink UserRecentLink="link" Underline="Underline.None">
-                    <MudPaper Class="@($"pa-4 recent-card {GetIcon(link).Color}")" Outlined Elevation="0" Style="background-color: white">
-                        <MudGrid Spacing="1">
-                            <MudItem xs="12" Class="">
-                                <MudStack Row Spacing="3" AlignItems="AlignItems.Center">
-                                    <MudIcon Class="recent-icon" Icon="@GetIconName(link, project)" Style="@GetIconStyle()"/>
-                                    <MudText Typo="Typo.h6" Style="@GetTextStyle()">@GetLinkDescription(link, project)</MudText>
-                                </MudStack>
-                            </MudItem>
-                            <MudItem xs="12" Style="@GetTextStyle()">
-                                <MudText Typo="Typo.caption">@GetDescription(link, project)</MudText>
-                            </MudItem>
-                        </MudGrid>
-                    </MudPaper>
-                </DHLink>
-            </MudItem>
+            @foreach (var (link, project) in _recentLinks)
+            {
+                <MudItem xs="2">
+                    <DHLink UserRecentLink="link" Underline="Underline.None">
+                        <MudPaper Class="@($"pa-4 recent-card {GetIcon(link).Color}")" Outlined Elevation="0" Style="background-color: white">
+                            <MudGrid Spacing="1">
+                                <MudItem xs="12" Class="">
+                                    <MudStack Row Spacing="3" AlignItems="AlignItems.Center">
+                                        <MudIcon Class="recent-icon" Icon="@GetIconName(link, project)" Style="@GetIconStyle()"/>
+                                        <MudText Typo="Typo.h6" Style="@GetTextStyle()">@GetLinkDescription(link, project)</MudText>
+                                    </MudStack>
+                                </MudItem>
+                                <MudItem xs="12" Style="@GetTextStyle()">
+                                    <MudText Typo="Typo.caption">@GetDescription(link, project)</MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+                    </DHLink>
+                </MudItem>
+            }
         }
-    }
-</MudGrid>
+    </MudGrid>
+}
+
 @code {
 
     [CascadingParameter(Name = "GraphUser")]
@@ -52,12 +56,9 @@
     protected override async Task OnInitializedAsync()
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        var userRecent = await _userLocationManagerService.ReadRecentNavigations(User.Id);
+        var userRecent = await _userLocationManagerService.GetRecentLinks(User.Id, _maxRecentLinks);
 
-        _recentLinks = userRecent?.UserRecentActions?
-            .Where(l => l.DataProject != null || l.ResourceArticleId != null)
-            .OrderByDescending(l => l.accessedTime)
-            .Take(_maxRecentLinks)
+        _recentLinks = userRecent?
             .Select(l => (l, project:GetProject(dbContext, l)))
             .ToList() ?? new List<(UserRecentLink l, Datahub_Project project)>();
     }
@@ -66,9 +67,10 @@
     {
         if (link.DataProject is null) return null;
         return dbContext.Projects
+            .AsNoTracking()
             .FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject.Trim());
     }
-    
+
     private string GetTextStyle()
     {
         return new StyleBuilder()
@@ -77,7 +79,7 @@
             .AddStyle("text-overflow", "ellipsis")
             .Build();
     }
-    
+
     private string GetIconStyle()
     {
         return new StyleBuilder()
@@ -86,4 +88,3 @@
     }
 
 }
-

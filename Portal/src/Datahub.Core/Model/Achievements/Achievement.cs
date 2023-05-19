@@ -35,8 +35,6 @@ public class Achievement
     #region Utility functions
     
     public string[] GetRules() => (ConcatenatedRules ?? "").Split(RuleSeparator);
-    public string ImageUrl(string storagePath) => throw new NotImplementedException();
-    public string UnlocableUrl(string storagePath) => throw new NotImplementedException();
     public bool IsTrophy() => Id.EndsWith("-000");
 
     #endregion
@@ -47,7 +45,7 @@ public class Achievement
 
     static Lazy<IEnumerable<Achievement>> _achievements = new(CreateAchievements); 
 
-    static IEnumerable<Achievement> CreateAchievements()
+    public static IEnumerable<Achievement> CreateAchievements()
     {
         return new List<Achievement>
         {

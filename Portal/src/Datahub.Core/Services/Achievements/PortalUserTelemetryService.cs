@@ -31,7 +31,7 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
 
     public async Task LogTelemetryEvent(string eventName)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
 
         // get the logged user graph Id
         var userId = await _userInformationService.GetUserIdString();
@@ -82,7 +82,7 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
         // report the new achievements
         if (newAchievements.Any())
         {
-            OnAchievementsEarned?.Invoke(this, new AchievementsEarnedEventArgs(newAchievements));
+            OnAchievementsEarned?.Invoke(this, new AchievementsEarnedEventArgs(newAchievements, portalUser.HideAchievements));
         }
     }
 }

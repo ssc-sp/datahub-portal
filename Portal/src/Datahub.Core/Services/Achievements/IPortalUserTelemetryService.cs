@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -23,9 +22,11 @@ public interface IPortalUserTelemetryService
 public class AchievementsEarnedEventArgs : EventArgs
 {
     public List<string> Achievements { get; }
+    public bool Hide { get; }
 
-    public AchievementsEarnedEventArgs(List<string> achievements)
+    public AchievementsEarnedEventArgs(List<string> achievements, bool hide = false)
     {
         Achievements = achievements;
+        Hide = hide;
     }
 }

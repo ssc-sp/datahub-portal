@@ -15,7 +15,7 @@
     @if (_unreadNotificationCount > 0)
     {
         <MudBadge Dot Color="Color.Primary" Overlap>
-            <MudTooltip Text="@Localizer[TOOLTIP_TEXT]">
+            <MudTooltip Text="@Localizer[TooltipText]">
                 <MudToggleIconButton
                     aria-label="Notifications toggle"
                     ToggledIcon="@Icons.Material.Filled.Notifications"
@@ -27,7 +27,7 @@
     }
     else
     {
-        <MudTooltip Text="@Localizer[TOOLTIP_TEXT]">
+        <MudTooltip Text="@Localizer[TooltipText]">
             <MudToggleIconButton
                 aria-label="Notifications toggle"
                 ToggledIcon="@Icons.Material.Filled.Notifications"
@@ -128,7 +128,7 @@
     private bool _showNotificationBadge => _unreadNotificationCount > 0;
     private string _notificationIcon => _showNotificationBadge ? Icons.Material.Filled.Notifications : Icons.Material.Outlined.Notifications;
 
-    private const string TOOLTIP_TEXT = "Notifications";
+    private const string TooltipText = "Notifications";
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -172,5 +172,4 @@
     {
         _systemNotificationService.Notify -= OnNotify;
     }
-
 }
