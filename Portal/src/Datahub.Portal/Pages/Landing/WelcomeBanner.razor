@@ -36,7 +36,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
-        _userBackgroundUrl = _datahubPortalConfiguration.Achievements.GetAchievementImageUrl(portalUser.BannerPictureUrl);
+        _userBackgroundUrl = _datahubPortalConfiguration.Media.GetAchievementImageUrl(portalUser.BannerPictureUrl);
         _previews = await _announcementService.GetActivePreviews(_cultureService.IsFrench);
         _isLoading = false;
         StateHasChanged();
