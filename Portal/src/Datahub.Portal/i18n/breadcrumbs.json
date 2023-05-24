@@ -1,6 +1,7 @@
 {
   "breadcrumb_apiusers": "API Users",
   "breadcrumb_tools": "Tools",
+  "breadcrumb_email": "Email",
   "breadcrumb_computecost": "Compute Cost",
   "breadcrumb_debug": "Debug",
   "breadcrumb_errortest": "Error Test",
@@ -88,5 +89,6 @@
   "breadcrumb_appearance": "Portal Appearance",
   "breadcrumb_achievements": "Achievements",
   "breadcrumb_notifications": "Notifications",
-  "breadcrumb_diagnostics": "Diagnostics"
+  "breadcrumb_diagnostics": "Diagnostics",
+  "breadcrumb_news": "News"
 }
