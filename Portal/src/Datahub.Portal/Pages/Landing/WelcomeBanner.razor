@@ -1,43 +1,79 @@
-﻿@inject TimeZoneService TimeZoneService
-@inject IConfiguration configuration
+﻿@*WelcomeBanner.razor*@
 
-<MudPaper class="welcome-banner" style=@($"background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{GetBackground()}') no-repeat;background-size: cover;")>
-    <MudText Typo="Typo.h1" class="greeting">@GetGreeting()</MudText>
-</MudPaper>
+@using Datahub.Application.Services.Announcements
+
+@inject TimeZoneService _timeZoneService
+@inject IConfiguration _configuration
+@inject IUserInformationService _userInformationService
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject IAnnouncementService _announcementService
+@inject CultureService _cultureService
+
+@if (_isLoading)
+{
+    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="@(AnnouncementCarousel.CarouselHeight + "px")" />
+}
+else if (_previews.Count == 0)
+{
+    <MudPaper Class="welcome-banner" Style="@_personalBackgroundStyle" >
+        <MudText Typo="Typo.h1" class="greeting">@GetGreeting()</MudText>
+    </MudPaper>
+}
+else
+{
+    <AnnouncementCarousel Previews="_previews" BackgroundUrl="@_userBackgroundUrl" />
+}
 
 
 @code {
 
+    private string _userBackgroundUrl;
+    private List<AnnouncementPreview> _previews = new();
+    private bool _isLoading = true;
     private DateTimeOffset _now = DateTimeOffset.Now;
+    private string _personalBackgroundStyle => $"background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{GetBackground()}') no-repeat;background-size: cover; height: {AnnouncementCarousel.CarouselHeight}px;";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
+        _userBackgroundUrl = _datahubPortalConfiguration.Achievements.GetAchievementImageUrl(portalUser.BannerPictureUrl);
+        _previews = await _announcementService.GetActivePreviews(_cultureService.IsFrench);
+        _isLoading = false;
+        StateHasChanged();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _now = await TimeZoneService.GetLocalDateTime(DateTimeOffset.UtcNow);
+            _now = await _timeZoneService.GetLocalDateTime(DateTimeOffset.UtcNow);
         }
-    }
-
-    private string GetGreeting(){
-        var hour = _now.Hour;
-
-        if(hour < 12){
-            return @Localizer["Good Morning"];
-        }
-        else if(hour < 16){
-            return @Localizer["Good Afternoon"];
-        }
-        return @Localizer["Good Evening"];
     }
 
     private string GetBackground()
     {
-    //earth-background.jpg
-    //LandingBgFolder
-        var folder = configuration["LandingBgFolder"] ?? "nrcan";
-        var imgCount = (configuration.GetSection("LandingBgImgCount").Get<int?>() ?? 12)-1;
+        return _userBackgroundUrl ?? GetDefaultBackground();
+    }
+
+    private string GetDefaultBackground()
+    {
+        //earth-background.jpg
+        //LandingBgFolder
+        var folder = _configuration["LandingBgFolder"] ?? "nrcan";
+        var imgCount = (_configuration.GetSection("LandingBgImgCount").Get<int?>() ?? 12)-1;
         var randomId = (int)Math.Round(new Random().NextDouble() * imgCount);
         return $"/img/{folder}/landing{randomId:00}_1800x400.jpg";
     }
-}
 
+    private string GetGreeting()
+    {
+        var hour = _now.Hour;
+        if (hour < 12)
+            return Localizer["Good Morning"];
+
+        if (hour < 16)
+            return Localizer["Good Afternoon"];
+
+        return Localizer["Good Evening"];
+    }
+}

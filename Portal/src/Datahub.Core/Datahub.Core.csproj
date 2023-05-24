@@ -92,6 +92,13 @@
 		<GitHookFiles Include="../.githooks/*.*" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Compile Remove="Services\AzureCosting\**" />
+	  <Content Remove="Services\AzureCosting\**" />
+	  <EmbeddedResource Remove="Services\AzureCosting\**" />
+	  <GitHookFiles Remove="Services\AzureCosting\**" />
+	  <None Remove="Services\AzureCosting\**" />
+	</ItemGroup>
+	<ItemGroup>
 	  <Content Remove="Services\DialogModalFrame.razor" />
 	</ItemGroup>
 	<ItemGroup>
@@ -127,10 +134,6 @@
 	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-thin-100.woff2" />
 	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.ttf" />
 	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.woff2" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Services\AzureCosting\" />
 	</ItemGroup>
 
 	<Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
