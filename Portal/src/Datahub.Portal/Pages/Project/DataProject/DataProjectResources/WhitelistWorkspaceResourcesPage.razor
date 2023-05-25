@@ -11,6 +11,7 @@
 @inject ILogger<DataProjectPage> Logger
 @inject NavigationManager NavigationManager
 @inject IRequestManagementService requestManagementService
+@inject IDatahubAuditingService auditingService
 
 @if (_project is not null && _isDatahubAdmin)
 {
@@ -67,7 +68,7 @@
 
         ctx.Attach(_project);
         ctx.Projects.Update(_project);
-        await ctx.SaveChangesAsync();
+        await ctx.TrackSaveChangesAsync(auditingService);
 
         await requestManagementService.HandleTerraformRequestServiceAsync(_project, TerraformTemplate.VariableUpdate);
     }
