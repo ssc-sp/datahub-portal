@@ -1,4 +1,5 @@
 using Datahub.Application.Configuration;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
@@ -20,14 +21,9 @@ public class MediaController : Controller
     /// </summary>
     /// <returns></returns>
     [HttpGet("api/media/{**filePath}")]
-    public async Task<IActionResult> GetMedia(string filePath)
+    [Authorize]
+    public IActionResult GetMedia(string filePath)
     {
-        // verify the user is authenticated
-        if (User.Identity is { IsAuthenticated: false })
-        {
-            return Unauthorized();
-        }
-        
         var blobReference = CloudStorageAccount.Parse(_datahubPortalConfiguration.Media.StorageConnectionString)
             .CreateCloudBlobClient()
             .GetContainerReference("media")
