@@ -16,4 +16,9 @@
         ContentTemplate="{DataTemplate local:UploadPage}"
         Route="Upload" />
 
+    <ShellContent
+        Title="DataHub Uploader"
+        ContentTemplate="{DataTemplate local:SpeedTestPage}"
+        Route="SpeedTest" />
+
 </Shell>

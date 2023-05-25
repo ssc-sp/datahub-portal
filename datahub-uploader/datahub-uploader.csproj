@@ -50,9 +50,13 @@
 	<ItemGroup>
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.16.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
+		<PackageReference Include="SuchByte.SpeedTestSharp" Version="1.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="SpeedTestPage.xaml.cs">
+	    <DependentUpon>SpeedTestPage.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="UploadPage.xaml.cs">
 	    <DependentUpon>UploadPage.xaml</DependentUpon>
 	  </Compile>
@@ -62,6 +66,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="SpeedTestPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="ValidateCodePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
