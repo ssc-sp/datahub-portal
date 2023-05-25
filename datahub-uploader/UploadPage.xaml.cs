@@ -89,7 +89,7 @@ namespace Datahub.Desktop.Uploader
         public BlobContainerClient GetBlobServiceClient()
         {
             BlobContainerClient client = new(
-                new Uri($"https://fsdhprojdw1poc.blob.core.windows.net/datahub?sp=racwd&st=2023-05-17T21:49:28Z&se=2023-06-18T05:49:28Z&spr=https&sv=2022-11-02&sr=c&sig=IE6faaF8a%2F6VJmxxaHOur4EqqlVaI8CYDX8Mteon5aM%3D"),
+                new Uri($"key"),
                 null);
 
             return client;
