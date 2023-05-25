@@ -43,7 +43,7 @@
 
         private async void Clipboard_ClipboardContentChanged(object sender, EventArgs e)
         {
-            await Shell.Current.GoToAsync("//Upload");
+            await Shell.Current.GoToAsync("//SpeedTest");
         }
     }
 }

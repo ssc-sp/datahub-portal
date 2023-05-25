@@ -33,5 +33,7 @@
             window.X = (displayInfo.Width / displayInfo.Density - window.Width) / 2;
             window.Y = (displayInfo.Height / displayInfo.Density - window.Height) / 2;
         }
+
+        public Context Context { get; set; } = new Context();
     }
 }
