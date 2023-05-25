@@ -10,7 +10,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Datahub.Core.Data.Project;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.UserManagement;
 
@@ -60,6 +59,7 @@ public class ServiceAuthManager
         projects = projects.Select(x => $"{x}-admin").ToList();
         return projects;
     }
+
     private static CancellationTokenSource _resetCacheToken = new CancellationTokenSource();
 
     public static readonly Regex Email_Extractor = new Regex(".*<(.*@.*)>", RegexOptions.Compiled);
@@ -85,7 +85,6 @@ public class ServiceAuthManager
         var split = emailList.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(email => email.Trim()).ToArray();
         return split.Select(b => ExtractEmail(b)?.ToLowerInvariant()).Where(b => b != null).ToList();
     }
-
 
     // TODO: Align this with PortalUsers instead of pinging MSGraph
     public async Task<List<ProjectMember>> GetProjectMembers(string projectAcronym)
@@ -137,38 +136,6 @@ public class ServiceAuthManager
         return result;
     }
 
-    // public async Task<string> GetAdminUserString(string projectAcronym)
-    // {
-    //     var adminEmailList = GetProjectAdminsEmails(projectAcronym);
-    //     StringBuilder admins = new();
-    //    
-    //     foreach (var admin in adminEmailList)
-    //     {
-    //         var userId = await mSGraphService.GetUserIdFromEmailAsync(admin, CancellationToken.None);
-    //         var userName = await mSGraphService.GetUserName(userId, CancellationToken.None);
-    //         admins.Append($"{userName}; ");
-    //     }
-    //     return admins.ToString().Trim().TrimEnd(';');
-    // }
-    //public async Task ClearProjectAdminCache()
-    //{
-    //    await Task.Run(() =>
-    //    {
-    //        serviceAuthCache.Remove(PROJECT_ADMIN_KEY);
-    //        if (_resetCacheToken != null && !_resetCacheToken.IsCancellationRequested && _resetCacheToken.Token.CanBeCanceled)
-    //        {
-    //            _resetCacheToken.Cancel();
-    //            _resetCacheToken.Dispose();
-    //        }
-    //        _resetCacheToken = new CancellationTokenSource();
-    //    });
-
-    //    await checkCacheForAdmins();
-
-    //}
-
-
-
     public bool InvalidateAuthCache()
     {
         var cache = serviceAuthCache as MemoryCache;
@@ -188,11 +155,8 @@ public class ServiceAuthManager
 
     public async Task<bool> IsProjectAdmin(string userid, string projectAcronym)
     {
-
-        Dictionary<string, List<string>> allProjectAdmins;
-        allProjectAdmins = await checkCacheForAdmins();
+        var allProjectAdmins = await CheckCacheForAdmins();
         bool isProjectAdmin = allProjectAdmins.ContainsKey(projectAcronym) ? allProjectAdmins[projectAcronym].Contains(userid) : false;
-
 
         var options = new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.Normal).SetAbsoluteExpiration(TimeSpan.FromHours(1));
         options.AddExpirationToken(new CancellationChangeToken(_resetCacheToken.Token));
@@ -222,72 +186,8 @@ public class ServiceAuthManager
             return GetProjectAdminsEmails(projectAcronym);
         }
     }
-    public async Task RegisterProjectAdmin(Datahub_Project project, string currentUserId)
-    {
-        using var ctx = dbFactory.CreateDbContext();
-        var users = ctx.Project_Users.Where(u => u.Project == project).ToList();
 
-        //clean admins not in list            
-        var extractedEmails = ExtractEmails(project.Project_Admin);
-
-        foreach (var user in users.Where(u => u.IsAdmin))
-        {
-            var email = await mSGraphService.GetUserEmail(user.User_ID, CancellationToken.None);
-            if (!extractedEmails.Contains(email.ToLower()))
-            {
-                user.IsAdmin = false;
-            }
-        }
-
-
-        foreach (var email in extractedEmails)
-        {
-            var adminUserid = await mSGraphService.GetUserIdFromEmailAsync(email, CancellationToken.None);
-            if (!string.IsNullOrEmpty(adminUserid))
-            {
-                //if user exists but is not admin
-                if (users.Any(u => u.User_ID == adminUserid && !u.IsAdmin))
-                {
-                    var user = users.Where(u => u.User_ID == adminUserid).First();
-                    user.IsAdmin = true;
-                }
-                //else if user doesnt exist
-                else if (!users.Any(u => u.User_ID == adminUserid))
-                {
-                    var proj = ctx.Projects.Where(p => p == project).FirstOrDefault();
-                    var user = new Datahub_Project_User()
-                    {
-                        User_ID = adminUserid,
-                        Project = proj,
-                        ApprovedUser = currentUserId,
-                        Approved_DT = DateTime.Now,
-                        IsAdmin = true,
-                        IsDataApprover = false,
-                        User_Name = email
-                    };
-
-                    ctx.Project_Users.Add(user);
-                }
-            }
-        }
-
-        await ctx.SaveChangesAsync();
-        //await ClearProjectAdminCache();
-        InvalidateAuthCache();
-        ctx.Dispose();
-    }
-    private async Task<List<string>> GetProjectRoles()
-    {
-        var allProjectAdmins = await checkCacheForAdmins();
-        List<string> projectRoles = new();
-        foreach (var item in allProjectAdmins)
-        {
-            projectRoles.Add($"{item.Key}-admin");
-        }
-        return projectRoles;
-    }
-
-    private async Task<Dictionary<string, List<string>>> checkCacheForAdmins()
+    private async Task<Dictionary<string, List<string>>> CheckCacheForAdmins()
     {
         Dictionary<string, List<string>> allProjectAdmins;
         if (!serviceAuthCache.TryGetValue(PROJECT_ADMIN_KEY, out allProjectAdmins))
@@ -336,8 +236,5 @@ public class ServiceAuthManager
             .Select(a => a.Project)
             .Distinct()
             .ToImmutableList();
-
     }
-
-
 }
