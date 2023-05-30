@@ -58,6 +58,32 @@ public class DocumentationService
         _cache = docCache;
     }
 
+    public bool InvalidateCache()
+    {
+        try
+        {
+            var cache = _cache as MemoryCache;
+            if (cache != null)
+            {
+                //https://stackoverflow.com/questions/49176244/asp-net-core-clear-cache-from-imemorycache-set-by-set-method-of-cacheextensions/49425102#49425102
+                //this weird trick removes all the entries
+                var percentage = 1.0;//100%
+                cache.Compact(percentage);
+                _logger.LogInformation("Document cache has been cleared");
+                return true;
+            }
+            else
+            {
+                _logger.LogWarning("Could not clear the cache.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message, ex);
+        }
+        return false;
+    }
+
     private void AddStatusMessage(string message)
     {
         var error = new TimeStampedStatus(DateTime.UtcNow, message);
