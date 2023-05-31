@@ -25,7 +25,7 @@ public static class ConfigureServices
         services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
         services.AddScoped<IAnnouncementService, AnnouncementService>();
         services.AddScoped<IDatahubEmailService, DatahubEmailService>();
-        services.AddScoped<IDatabricksNotebookService, DatabricksNotebookService>();
+        services.AddScoped<IDatabricksApiService, DatabricksApiService>();
 
         services.AddMediatR(typeof(QueueMessageSender<>));
 

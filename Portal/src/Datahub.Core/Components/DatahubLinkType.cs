@@ -6,7 +6,7 @@ public enum DatahubLinkType
     Storage, 
     WebForm,
     Databricks, 
-    DatabricksNotebooks, 
+    Repository, 
     DataProject, 
     FormBuilder, 
     DataSharingDashboard, 

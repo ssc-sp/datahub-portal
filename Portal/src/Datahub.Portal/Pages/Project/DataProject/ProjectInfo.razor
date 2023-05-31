@@ -26,8 +26,8 @@
 }
 
 <MudStack Row>
-    <MudChip Label Color="@Color.Dark" class="project-data-sensitivity">@Localizer[Project.Data_Sensitivity]</MudChip>
-    <AuthorizeView Roles="@string.Join(",", $"{ProjectAcronym}", RoleConstants.DATAHUB_ROLE_ADMIN)">
+    <MudChip Label Color="@Color.Dark" class="project-data-sensitivity">@Localizer[_project.Data_Sensitivity]</MudChip>
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
         @if (CreditsDataExists && _projectBudget > 0)
         {
             <MudBadge Icon="@Icons.Material.Filled.QuestionMark" Color="@GetCostChipColor()" Overlap="@true" Bordered="@true">
@@ -52,11 +52,11 @@
                 @Localizer["No recent data"]
             </MudChip>
         }
-    </AuthorizeView>
-    <AuthorizeView Roles="@string.Join(",", $"{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX}", RoleConstants.DATAHUB_ROLE_ADMIN)">
+    </DatahubAuthView>
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
         @{
-            var color = Project?.MetadataAdded ?? false ? Color.Default : Color.Warning;
-            var icon = Project?.MetadataAdded ?? false ? Icons.Material.Filled.Edit : Icons.Material.Filled.Warning;
+            var color = _project?.MetadataAdded ?? false ? Color.Default : Color.Warning;
+            var icon = _project?.MetadataAdded ?? false ? Icons.Material.Filled.Edit : Icons.Material.Filled.Warning;
             <MudChip Icon="@icon"
                      IconColor="@color"
                      Variant="@Variant.Text"
@@ -67,27 +67,26 @@
                 @Localizer["Edit Metadata"]
             </MudChip>
         }
-    </AuthorizeView>
-
+    </DatahubAuthView>
 </MudStack>
 
 <MudStack>
     <MudText Typo="Typo.h1">
         <MudIcon Icon="@_projectIcon" Title="@Localizer["Project Icon"]"/>
-        @Project.ProjectName
+        @_project.ProjectName
     </MudText>
-    <AuthorizeView Roles="@string.Join(",", $"{ProjectAcronym}", RoleConstants.DATAHUB_ROLE_ADMIN)">
-        @if (Project.Project_Phase == TerraformOutputStatus.PendingApproval)
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
+        @if (_project.Project_Phase == TerraformOutputStatus.PendingApproval)
         {
             <MudAlert Severity="Severity.Warning">@Localizer["The workspace is currently being configured in Azure. No resources can be provisioned until this step is completed."]</MudAlert>
         }
 
-        @if (Project?.MetadataAdded != true)
+        @if (_project?.MetadataAdded != true)
         {
             <MudAlert Severity="Severity.Warning">@Localizer["The workspace metadata is currently incomplete. No resources can be provisioned until the project metadata has been filled"]</MudAlert>
         }
 
-        @if ((Project?.Project_Budget ?? 0) == 0)
+        @if ((_project?.Project_Budget ?? 0) == 0)
         {
             <MudAlert Severity="Severity.Warning">
                 <MudLink Href="@_datahubPortalConfiguration.SupportFormUrl" Underline="Underline.None">
@@ -95,25 +94,19 @@
                 </MudLink>
             </MudAlert>
         }
-    </AuthorizeView>
-
+    </DatahubAuthView>
     <DHMarkdown class="description" Content="@GetProjectDescription()"/>
 </MudStack>
 
 
 @code {
 
-    [CascadingParameter(Name = "Project")]
-    private Datahub_Project Project { get; set; }
+    [Parameter]
+    public string ProjectAcronym { get; set; }
 
-    [CascadingParameter(Name = "IsProjectAdmin")]
-    private bool IsProjectAdmin { get; set; }
+    private Datahub_Project _project;
 
-    [CascadingParameter(Name = "IsDatahubAdmin")]
-    private bool IsDatahubAdmin { get; set; }
-    
     private Project_Credits _projectCredits = default;
-
     private decimal CurrentCredits => Convert.ToDecimal(_projectCredits.Current);
 
     private bool CreditsDataExists => _projectCredits is not null && _projectCredits.ProjectId != 0;
@@ -122,19 +115,31 @@
     private bool _loading = true;
     private FieldValueContainer _projectMetadata;
 
-    private string ProjectAcronym => Project?.Project_Acronym_CD;
-    private string _projectIcon => $"fas fa-{Project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
+    private string _projectIcon => $"fas fa-{_project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
+    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (string.IsNullOrWhiteSpace(ProjectAcronym))
+        {
+            throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        _project = await ctx.Projects
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Project_Acronym_CD == ProjectAcronym);
 
-        _projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(e => e.ProjectId == Project.Project_ID) ?? new();
+        _projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(e => e.ProjectId == _project.Project_ID) ?? new Project_Credits();
 
-        _projectBudget = Project.Project_Budget ?? 0;
+        _projectBudget = _project.Project_Budget ?? 0;
         _projectMetadata = await _metadataBrokerService.GetObjectMetadataValues(ProjectAcronym);
-
         _loading = false;
+        StateHasChanged();
     }
 
     private Color GetCostChipColor()
@@ -150,7 +155,7 @@
 
     private string GetToolTipText()
     {
-        var projectName = $"{Project.ProjectName} ";
+        var projectName = $"{_project.ProjectName} ";
         if (CurrentCredits >= _projectBudget)
             return projectName + Localizer["is over budget"];
         if (CurrentCredits >= 0.75m * _projectBudget)
@@ -158,7 +163,7 @@
         return projectName + Localizer["is under budget"];
     }
 
-    private Color GetProtectionColor() => (Project?.Data_Sensitivity ?? "").ToUpper() switch
+    private Color GetProtectionColor() => (_project?.Data_Sensitivity ?? "").ToUpper() switch
     {
         "CLASSIFIED"  or
             "PROTECTED B" or
@@ -169,23 +174,23 @@
 
     private string GetProjectDataSensitivity()
     {
-        return !string.IsNullOrWhiteSpace(Project?.Data_Sensitivity) ? Project.Data_Sensitivity : "Unclassified";
+        return !string.IsNullOrWhiteSpace(_project?.Data_Sensitivity) ? _project.Data_Sensitivity : "Unclassified";
     }
 
     private void HandleEditMetadata(MouseEventArgs args)
     {
-        _navigationManager.NavigateTo($"/w/{Project.Project_Acronym_CD}/metadata");
+        _navigationManager.NavigateTo($"/w/{_project.Project_Acronym_CD}/metadata");
     }
 
     private void HandleShowCosts(MouseEventArgs args)
     {
-        _navigationManager.NavigateTo($"/w/{Project.Project_Acronym_CD}/costs");
+        _navigationManager.NavigateTo($"/w/{_project.Project_Acronym_CD}/costs");
     }
 
     private string GetProjectDescription()
     {
         var description = _projectMetadata.GetValue($"description_{CultureService.Culture}", null);
-        return description ?? Project.ProjectDescription;
+        return description ?? _project.ProjectDescription;
     }
 
 }

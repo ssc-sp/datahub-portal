@@ -17,7 +17,7 @@
     </Logo>
     <ToolActionsList>
         <ViewDatabricksButton DatabricksUrl="@_databricksUrl" ProjectAcronym="@_projectAcronym" />
-        <ViewDatabricksNotebooksButton ProjectAcronym="@_projectAcronym" />
+        <ViewRepositoriesButton ProjectAcronym="@_projectAcronym" />
         @* Hide for POC Stage 2 *@
         @* <CostEstimatorButton TemplateName="@TemplateName"/> *@
     </ToolActionsList>
@@ -46,10 +46,6 @@
         base.OnInitialized();
 
         _databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(Project);
-        if (!_databricksUrl?.StartsWith("https://") ?? false)
-        {
-            _databricksUrl = $"https://{_databricksUrl}";
-        }
         _projectAcronym = Project?.Project_Acronym_CD;
     }
 }
