@@ -14,6 +14,7 @@
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IPortalUserTelemetryService _telemetryService
+@inject ITokenAcquisition _tokenAcquisition
 
 <MudThemeProvider Theme="@DatahubTheme.DEFAULT_THEME"/>
 <MudDialogProvider/>
@@ -133,6 +134,11 @@ else
 
         try
         {
+    //         var scopes = new string[] {
+    // //"https://management.azure.com/.default"
+    //             "https://management.azure.com/user_impersonation"
+    //         };
+            // var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes);
             _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
             await _auditingService.TrackEvent("Login");
         }

@@ -11,6 +11,7 @@ using AeFormIgnoreAttribute = MudBlazor.Forms.AeFormIgnoreAttribute;
 using System.Linq;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Repositories;
 using Datahub.Core.Services.Notification;
 using Datahub.Shared.Entities;
 
@@ -228,6 +229,8 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public IList<Project_Resources2> Resources { get; set; }
 
     public IList<PowerBi_Workspace> PowerBi_Workspaces { get; set; }
+    
+    public List<ProjectRepository> Repositories { get; set; }
 
     [AeFormIgnore]
     public int OnboardingApplicationId { get; set; }

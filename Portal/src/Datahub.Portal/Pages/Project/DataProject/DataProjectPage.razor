@@ -33,7 +33,7 @@
                             <CascadingValue Value=@_user Name="GraphUser">
                                 <CascadingValue Value=@_projectId Name="ProjectId">
                                     <MudItem sm="12" md="7" lg="8">
-                                        <ProjectInfo/>
+                                        <ProjectInfo ProjectAcronym="@ProjectAcronymParam"/>
                                         @if (_clientEngagements.Any())
                                         {
                                             <ProjectEngagements/>

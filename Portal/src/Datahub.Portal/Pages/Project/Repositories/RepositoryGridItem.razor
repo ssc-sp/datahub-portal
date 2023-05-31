@@ -1,0 +1,53 @@
+@using Datahub.Core.Data.Databricks
+@using Datahub.Application.Services.Notebooks
+@using System.ComponentModel.DataAnnotations
+
+@inject IDatabricksApiService _databricksApiService
+
+<MudItem xs="8">
+    <RepositoryCard RepositoryInfo="@RepositoryInfo" />
+</MudItem>
+<MudItem xs="4">
+    <MudSwitch T="bool"
+               Label="@GetLabel()"
+               Checked="@RepositoryInfo.IsPublic"
+               Color="Color.Primary"
+               UnCheckedColor="Color.Dark"
+               CheckedChanged="HandleCheckChanged"/>
+</MudItem>
+
+@code {
+
+    [Parameter]
+    public RepositoryInfo RepositoryInfo { get; set; }
+    
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (string.IsNullOrWhiteSpace(ProjectAcronym))
+        {
+            throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
+        }
+        
+        if(RepositoryInfo == null)
+        {
+            throw new InvalidOperationException($"'{nameof(RepositoryInfo)}' is required");
+        }
+    }
+
+    private string GetLabel()
+    {
+        return RepositoryInfo.IsPublic ? Localizer["Displayed in Workspace"] : Localizer["Not displayed in Workspace"];
+    }
+
+    private async Task HandleCheckChanged()
+    {
+        RepositoryInfo.IsPublic = !RepositoryInfo.IsPublic;
+        await _databricksApiService.SetWorkspaceRepositoryVisibility(ProjectAcronym, RepositoryInfo.Url, RepositoryInfo.IsPublic);
+        await InvokeAsync(StateHasChanged);
+    }
+}
