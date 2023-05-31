@@ -1,0 +1,35 @@
+@using Datahub.Application.Services.Notebooks
+@using Datahub.Core.Data.Databricks
+@using Datahub.Portal.Pages.Project.DataProject
+
+@inject IDatabricksApiService _databricksApiService
+
+@page "/w/{ProjectAcronymParam}/repository"
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronymParam">
+    <MudStack>
+        <ProjectInfo ProjectAcronym="@ProjectAcronymParam"/>
+        <MudText Typo="Typo.h2">@Localizer["Workspace Repositories"]</MudText>
+
+        <MudGrid>
+            @foreach (var repositoryInfo in _repositoryInfos)
+            {
+                <RepositoryGridItem RepositoryInfo="@repositoryInfo" ProjectAcronym="@ProjectAcronymParam"/>
+            }
+        </MudGrid>
+    </MudStack>
+</DatahubAuthView>
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronymParam { get; set; }
+
+    private List<RepositoryInfo> _repositoryInfos = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _repositoryInfos = await _databricksApiService.ListWorkspaceRepositories(ProjectAcronymParam);
+    }
+}
