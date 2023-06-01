@@ -24,14 +24,32 @@
         <CascadingValue Value="@_project" Name="Project">
             <CascadingValue Value="_user" Name="GraphUser">
                 <MudPaper Elevation="0" Class="file-explorer-layout-wrapper">
-                    <MudTabs PanelClass="pa-6" Elevation="0" ActivePanelIndexChanged="HandleTabChanged">
-                        @foreach (var (icon, label, content) in _tabs)
-                        {
-                            <MudTabPanel Text="@label" Icon="@icon">
-                                @content
+                    @if (_containers.Count > 1)
+                    {
+                        <MudRadioGroup T="string" @bind-SelectedOption="SelectedContainer" >
+                            @foreach (var container in _containers)
+                            {
+                                <MudRadio Option="@container" Color="Color.Primary" Size="Size.Medium">@container</MudRadio>
+                            }
+                        </MudRadioGroup>
+                    }
+                    @if (SelectedContainer != null)
+                    {
+                        <MudTabs PanelClass="pa-6" Elevation="0">
+                            <MudTabPanel Text="@((_containers.Count == 1) ? _containers[0] : Localizer["File Explorer"])" Icon="fas fa-hdd">
+                                    <FileExplorer ProjectId=@_projectId ContainerName="@SelectedContainer" />
+                                </MudTabPanel>
+                            <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
+                                <AzCopy Container="@SelectedContainer" />
+                                </MudTabPanel>
+                            <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
+                                <Databricks Container="@SelectedContainer" />
+                                </MudTabPanel>
+                            <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
+                                <UploaderCode Container="@SelectedContainer" />
                             </MudTabPanel>
-                        }
-                    </MudTabs>
+                        </MudTabs>
+                    }
                 </MudPaper>
             </CascadingValue>
         </CascadingValue>
@@ -47,7 +65,9 @@
     private int? _projectId;
     private string _projectName;
     private List<string> _containers = new();
-    private string _selectedContainer;
+
+
+    //private string _selectedContainer;
 
     private List<(string Icon, string LabelText, RenderFragment Content)> _tabs = new();
     private User _user;
@@ -67,30 +87,26 @@
         _projectName = _project?.ProjectName;
         _projectId = _project?.Project_ID;
 
-        _tabs = await GetTabs();
-    }
-
-    private async Task<List<(string Icon, string LabelText, RenderFragment Content)>> GetTabs()
-    {
         _containers = await _projectDataRetrievalService.GetContainersAsync(ProjectAcronymParam);
-        _selectedContainer = _containers.FirstOrDefault() ?? string.Empty;
+        SelectedContainer = _containers.FirstOrDefault();
 
-        var tabs = new List<(string Icon, string LabelText, RenderFragment Content)>();
-        _containers.ForEach(container =>
-            tabs.Add(("fas fa-hdd", Localizer[container], @<FileExplorer ProjectId=@_projectId ContainerName="@container"/>)));
-
-        tabs.Add(("fas fa-info-circle", Localizer["AzCopy"], @<AzCopy Container="@_selectedContainer"/>));
-        tabs.Add(("fas fa-info-circle", Localizer["Databricks Access"], @<Databricks/>));
-        tabs.Add(("fas fa-info-circle", Localizer["DataHub Uploader"], @<UploaderCode />));
-
-        return tabs;
     }
 
-    private void HandleTabChanged(int index)
+
+    private string selectedContainer;
+
+    public string SelectedContainer
     {
-        if (index >= 0 && index < _containers.Count)
-        {
-            _selectedContainer = _containers[index];
-        }
+        get { return selectedContainer; }
+        set { selectedContainer = value; StateHasChanged(); }
     }
+    
+
+    // private void HandleTabChanged(int index)
+    // {
+    //     if (index >= 0 && index < _containers.Count)
+    //     {
+    //         _selectedContainer = _containers[index];
+    //     }
+    // }
 }
