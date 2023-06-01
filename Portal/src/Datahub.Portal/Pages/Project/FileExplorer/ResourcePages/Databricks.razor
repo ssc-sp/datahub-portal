@@ -16,6 +16,9 @@
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
 
+    [Parameter]
+    public string Container { get; set; }
+
     private List<(string, string)> _substitutions;
 
     private void HandleSubstitutionsChanged(List<(string, string)> substitutions)
@@ -23,7 +26,7 @@
         _substitutions = substitutions;
         _substitutions.Add((ResourceSubstitutions.ProjectAcronym, ProjectAcronym));
         _substitutions.Add((ResourceSubstitutions.StorageAccount, ResourceSubstitutions.GetStorageAccountNameFromProjectAcronym(ProjectAcronym)));
-        _substitutions.Add((ResourceSubstitutions.ContainerName, DataRetrievalService.DEFAULT_CONTAINER_NAME));
+        _substitutions.Add((ResourceSubstitutions.ContainerName, Container));
     }
     
     private string GetPageName()
