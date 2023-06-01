@@ -6,12 +6,8 @@ using Datahub.Core.Data.Databricks;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Repositories;
 using Datahub.ProjectTools.Utils;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Web;
-using Microsoft.Rest;
 
 namespace Datahub.Infrastructure.Services.Notebooks;
 
@@ -45,7 +41,6 @@ public class DatabricksApiService : IDatabricksApiService
         
         response.EnsureSuccessStatusCode();
         var contentString = await response.Content.ReadAsStringAsync();
-        // var contentString = Stub();
         var content = JsonSerializer.Deserialize<JsonObject>(contentString);
         
         var existingRepositoryPreferences = await GetWorkspaceRepositoryVisibilitiesAsync(projectAcronym);
@@ -100,38 +95,6 @@ public class DatabricksApiService : IDatabricksApiService
         await dbContext.SaveChangesAsync();
 
         return true;
-    }
-
-    private string Stub()
-    {
-        return @"{
-        ""repos"": [
-        {
-            ""id"": 1551602177705819,
-            ""path"": ""/Repos/sean.stilwell@ssc-spc.gc.ca/radarsat1-scripts"",
-            ""url"": ""https://github.com/ssc-sp/radarsat1-scripts.git"",
-            ""provider"": ""gitHub"",
-            ""branch"": ""main"",
-            ""head_commit_id"": ""ef0a2dae3e4318acd8d5e614da0cf9ffc3e6497d""
-        },
-        {
-            ""id"": 2809546570892951,
-            ""path"": ""/Repos/david.rene@ssc-spc.gc.ca/Google-API-on-Databricks"",
-            ""url"": ""https://github.com/davidreneuw/Google-API-on-Databricks.git"",
-            ""provider"": ""gitHub"",
-            ""branch"": ""master"",
-            ""head_commit_id"": ""b8832dc6a3af7cc076947167a7aa9129dddef338""
-        },
-        {
-            ""id"": 4027945598515864,
-            ""path"": ""/Repos/sean.stilwell@ssc-spc.gc.ca/datahub-demos"",
-            ""url"": ""https://github.com/ssc-sp/datahub-demos.git"",
-            ""provider"": ""gitHub"",
-            ""branch"": ""main"",
-            ""head_commit_id"": ""79550b79fc4624cc6b67d8ac05267ff596b985e3""
-        }
-        ]
-    }";
     }
 
     private async Task<Dictionary<string, bool>> GetWorkspaceRepositoryVisibilitiesAsync(string projectAcronym)

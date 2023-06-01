@@ -22,7 +22,7 @@ public record RepositoryInfo
         Provider = jsonNode["provider"]?.ToString();
         Branch = jsonNode["branch"]?.ToString();
         HeadCommitId = jsonNode["head_commit_id"]?.ToString();
-        IsPublic = true;
+        IsPublic = false;
     }
     
     public string RepositoryName => Path.Split('/').Last();
