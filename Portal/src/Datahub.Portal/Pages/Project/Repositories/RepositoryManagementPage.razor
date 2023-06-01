@@ -51,12 +51,13 @@
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
         {
-    // user isn't logged into Power BI -> redirect to Microsoft
+            // token's expired, or consent is needed
             _consentHandler.HandleException(e);
+            return;
         }
         catch (HttpOperationException)
         {
-    // couldn't load the report - missing or unauthorized
+            // something else went wrong
             throw new UnauthorizedAccessException();
         }
         

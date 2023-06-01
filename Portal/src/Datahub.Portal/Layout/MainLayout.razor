@@ -153,14 +153,14 @@ else
         _isLoaded = true;
     }
 
-    private bool IsValidException(Exception ex)
+    private bool IsIgnoredException(Exception ex)
     {
-        return !(ex is ObjectDisposedException);
+        return ex is ObjectDisposedException or MicrosoftIdentityWebChallengeUserException;
     }
 
     private bool HandleException(Exception ex)
     {
-        if (!IsValidException(ex))
+        if (IsIgnoredException(ex))
             return false;
         if (ex != _lastException)
         {
