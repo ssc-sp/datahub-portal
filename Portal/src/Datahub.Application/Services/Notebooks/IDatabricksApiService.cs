@@ -4,7 +4,7 @@ namespace Datahub.Application.Services.Notebooks;
 
 public interface IDatabricksApiService
 {
-        public Task<List<RepositoryInfo>> ListWorkspaceRepositories(string projectAcronym);
+        public Task<List<RepositoryInfo>> ListWorkspaceRepositories(string projectAcronym, string accessToken);
         public Task<bool> SetWorkspaceRepositoryVisibility(string projectAcronym, string repositoryUrl, bool isPublic);
         
 }
