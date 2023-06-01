@@ -1,6 +1,7 @@
 ﻿using Foundation;
+using Datahub.Maui.Uploader;
 
-namespace Datahub.Desktop.Uploader
+namespace Datahub.Maui.Uploader.Platforms.MacCatalyst
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate

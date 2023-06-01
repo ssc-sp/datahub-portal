@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using Datahub.Maui.Uploader;
 
-namespace Datahub.Desktop.Uploader
+namespace Datahub.Maui.Uploader
 {
     public static class MauiProgram
     {

@@ -1,8 +1,8 @@
 ﻿using Azure.Storage.Blobs;
-using Datahub.Desktop.Uploader.Platforms;
 using Microsoft.Maui.Platform;
+using Datahub.Maui.Uploader;
 
-namespace Datahub.Desktop.Uploader
+namespace Datahub.Maui.Uploader
 {
     public partial class UploadPage : ContentPage
     {
