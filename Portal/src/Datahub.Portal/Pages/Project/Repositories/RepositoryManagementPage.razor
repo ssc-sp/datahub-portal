@@ -1,8 +1,13 @@
 @using Datahub.Application.Services.Notebooks
 @using Datahub.Core.Data.Databricks
 @using Datahub.Portal.Pages.Project.DataProject
+@using Microsoft.Identity.Web
+@using Microsoft.Rest
 
 @inject IDatabricksApiService _databricksApiService
+@inject ITokenAcquisition _tokenAcquisition
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+
 
 @page "/w/{ProjectAcronymParam}/repository"
 
@@ -27,9 +32,34 @@
 
     private List<RepositoryInfo> _repositoryInfos = new();
 
+    public static readonly string[] RequiredScopes = new string[]
+    {
+    //"https://management.azure.com/.default"
+        // "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default"
+        "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/user_impersonation"
+    };
+    
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _repositoryInfos = await _databricksApiService.ListWorkspaceRepositories(ProjectAcronymParam);
+        
+        var accessToken = "";
+        
+        try
+        {
+            accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(RequiredScopes);
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e)
+        {
+    // user isn't logged into Power BI -> redirect to Microsoft
+            _consentHandler.HandleException(e);
+        }
+        catch (HttpOperationException)
+        {
+    // couldn't load the report - missing or unauthorized
+            throw new UnauthorizedAccessException();
+        }
+        
+        _repositoryInfos = await _databricksApiService.ListWorkspaceRepositories(ProjectAcronymParam, accessToken);
     }
 }

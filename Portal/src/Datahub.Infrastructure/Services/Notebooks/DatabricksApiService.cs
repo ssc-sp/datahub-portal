@@ -20,59 +20,32 @@ public class DatabricksApiService : IDatabricksApiService
     private readonly ILogger<DatabricksApiService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-    private readonly ITokenAcquisition _tokenAcquisition;
-    private readonly MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler;
 
     public DatabricksApiService(
         ILogger<DatabricksApiService> logger,
         IHttpClientFactory httpClientFactory,
-        ITokenAcquisition tokenAcquisition,
-        MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _dbContextFactory = dbContextFactory;
-        _tokenAcquisition = tokenAcquisition;
-        _consentHandler = consentHandler;
     }
 
-    public static readonly string[] RequiredScopes = new string[]
-    {
-        //"https://management.azure.com/.default"
-        "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default"
-    };
+ 
 
-    public async Task<List<RepositoryInfo>> ListWorkspaceRepositories(string projectAcronym)
+    public async Task<List<RepositoryInfo>> ListWorkspaceRepositories(string projectAcronym, string accessToken)
     {
         var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym);
-        // string accessToken = "";
-        //
-        // try
-        // {
-        //     accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(RequiredScopes);
-        // }
-        // catch (MicrosoftIdentityWebChallengeUserException e)
-        // {
-        //     // user isn't logged into Power BI -> redirect to Microsoft
-        //     _consentHandler.HandleException(e);
-        // }
-        // catch (HttpOperationException)
-        // {
-        //     // couldn't load the report - missing or unauthorized
-        //     throw new UnauthorizedAccessException();
-        // }
 
         // Use the access token to call a protected web API.
-        // var httpClient = _httpClientFactory.CreateClient();
-        // var queryUrl = $"{workspaceDatabricksUrl}/api/2.0/repos";
-        // httpClient.DefaultRequestHeaders.Authorization =
-        //     new AuthenticationHeaderValue(OpenIdConnectDefaults.AuthenticationScheme, $"Bearer {accessToken}");
-        // using var response = await httpClient.GetAsync(queryUrl);
-        //
-        // response.EnsureSuccessStatusCode();
-        // var contentString = await response.Content.ReadAsStringAsync();
-        var contentString = Stub();
+        var httpClient = _httpClientFactory.CreateClient();
+        var queryUrl = $"{workspaceDatabricksUrl}/api/2.0/repos";
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        using var response = await httpClient.GetAsync(queryUrl);
+        
+        response.EnsureSuccessStatusCode();
+        var contentString = await response.Content.ReadAsStringAsync();
+        // var contentString = Stub();
         var content = JsonSerializer.Deserialize<JsonObject>(contentString);
         
         var existingRepositoryPreferences = await GetWorkspaceRepositoryVisibilitiesAsync(projectAcronym);
