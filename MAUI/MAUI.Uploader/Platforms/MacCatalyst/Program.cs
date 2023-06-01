@@ -1,7 +1,8 @@
 ﻿using ObjCRuntime;
 using UIKit;
+using Datahub.Maui.Uploader.Platforms.MacCatalyst;
 
-namespace Datahub.Desktop.Uploader
+namespace Datahub.Maui.Uploader.Platforms.MacCatalyst
 {
     public class Program
     {

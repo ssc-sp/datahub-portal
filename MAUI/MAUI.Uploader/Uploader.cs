@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datahub.Desktop.Uploader
+namespace Datahub.Maui.Uploader
 {
     internal class Uploader
     {

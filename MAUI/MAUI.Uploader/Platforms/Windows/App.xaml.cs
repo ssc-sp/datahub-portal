@@ -1,9 +1,10 @@
 ﻿using Microsoft.UI.Xaml;
+using Datahub.Maui.Uploader;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-namespace Datahub.Desktop.Uploader.WinUI
+namespace Datahub.Maui.Uploader.Platforms.Windows
 {
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.

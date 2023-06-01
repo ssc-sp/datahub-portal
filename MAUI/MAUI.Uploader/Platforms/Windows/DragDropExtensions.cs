@@ -4,8 +4,6 @@ using Windows.Storage;
 using DataPackageOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation;
 using DragEventArgs = Microsoft.UI.Xaml.DragEventArgs;
 
-namespace Datahub.Desktop.Uploader.Platforms;
-
 using System.Text;
 
 //https://github.com/VladislavAntonyuk/MauiSamples/blob/main/MauiPaint/Platforms/Windows/DragDropHelper.cs

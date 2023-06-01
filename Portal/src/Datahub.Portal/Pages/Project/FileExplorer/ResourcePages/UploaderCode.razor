@@ -1,10 +1,10 @@
-<MudStack>
+﻿<MudStack>
     <MudElement>
-        <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container="@Container" ExpiryDays="5"/>
+        <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container="@Container" UseUploadCode=true />
     </MudElement>
     <EmbeddedWiki PageNameEn="/UserGuide/Storage/Use-AzCopy.md"
                   PageNameFr="/fr/UserGuide/Storage/Utilisez-AzCopy.md"
-                  Substitutions="_substitutions"/>
+                  Substitutions="_substitutions" />
 </MudStack>
 
 @code {

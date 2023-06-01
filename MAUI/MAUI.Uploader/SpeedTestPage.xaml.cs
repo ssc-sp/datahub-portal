@@ -1,8 +1,9 @@
 
 using SpeedTestSharp.Client;
 using SpeedTestSharp.Enums;
+using Datahub.Maui.Uploader;
 
-namespace Datahub.Desktop.Uploader;
+namespace Datahub.Maui.Uploader;
 
 public partial class SpeedTestPage : ContentPage
 {

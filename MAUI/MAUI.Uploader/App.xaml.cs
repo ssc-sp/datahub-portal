@@ -1,4 +1,5 @@
-﻿namespace Datahub.Desktop.Uploader
+﻿using Datahub.Maui.Uploader;
+namespace Datahub.Maui.Uploader
 {
     public partial class App : Application
     {
