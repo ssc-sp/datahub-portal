@@ -32,10 +32,7 @@
 
     private List<RepositoryInfo> _repositoryInfos = new();
 
-    public static readonly string[] RequiredScopes = new string[]
-    {
-    //"https://management.azure.com/.default"
-        // "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default"
+    private static readonly string[] DatabricksScopes = {
         "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/user_impersonation"
     };
     
@@ -43,24 +40,20 @@
     {
         await base.OnInitializedAsync();
         
-        var accessToken = "";
-        
         try
         {
-            accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(RequiredScopes);
+            var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(DatabricksScopes);
+            _repositoryInfos = await _databricksApiService.ListWorkspaceRepositories(ProjectAcronymParam, accessToken);
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
         {
             // token's expired, or consent is needed
             _consentHandler.HandleException(e);
-            return;
         }
         catch (HttpOperationException)
         {
             // something else went wrong
             throw new UnauthorizedAccessException();
         }
-        
-        _repositoryInfos = await _databricksApiService.ListWorkspaceRepositories(ProjectAcronymParam, accessToken);
     }
 }
