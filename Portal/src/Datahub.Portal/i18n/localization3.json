@@ -124,5 +124,16 @@
   "Your profile": "Your profile",
   "Your workspaces": "Your workspaces",
   "Your notifications": "Your notifications",
-  "Settings": "Settings"
+  "Settings": "Settings",
+  "DataHub News": "DataHub News",
+  "No announcements yet!": "No announcements yet!",
+  "Create a new Announcement": "Create a new Announcement",
+  "Posted at {0} by {1}": "Posted at {0} by {1}",
+  "Last updated at {0} by {1}": "Last updated at {0} by {1}",
+  "Starting from {0} at {1}": "Starting from {0} at {1}",
+  "Until {0} at {1}": "Until {0} at {1}",
+  "Created by {0} on {1}": "Created by {0} on {1}",
+  "Updated by {0} on {1}": "Updated by {0} on {1}",
+  "Until further notice": "Until further notice",
+  "Edit Announcement": "Edit Announcement"
 }
