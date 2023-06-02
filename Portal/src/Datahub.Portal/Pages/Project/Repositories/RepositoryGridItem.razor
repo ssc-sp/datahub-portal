@@ -5,12 +5,12 @@
 @inject IDatabricksApiService _databricksApiService
 
 <MudItem xs="8">
-    <RepositoryCard RepositoryInfo="@RepositoryInfo" />
+    <RepositoryCard RepositoryInfoDto="@RepositoryInfoDto" />
 </MudItem>
 <MudItem xs="4">
     <MudSwitch T="bool"
                Label="@GetLabel()"
-               Checked="@RepositoryInfo.IsPublic"
+               Checked="@RepositoryInfoDto.IsPublic"
                Color="Color.Primary"
                UnCheckedColor="Color.Dark"
                CheckedChanged="HandleCheckChanged"/>
@@ -19,7 +19,7 @@
 @code {
 
     [Parameter]
-    public RepositoryInfo RepositoryInfo { get; set; }
+    public RepositoryInfoDto RepositoryInfoDto { get; set; }
     
     [Parameter]
     public string ProjectAcronym { get; set; }
@@ -33,21 +33,21 @@
             throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
         }
         
-        if(RepositoryInfo == null)
+        if(RepositoryInfoDto == null)
         {
-            throw new InvalidOperationException($"'{nameof(RepositoryInfo)}' is required");
+            throw new InvalidOperationException($"'{nameof(RepositoryInfoDto)}' is required");
         }
     }
 
     private string GetLabel()
     {
-        return RepositoryInfo.IsPublic ? Localizer["Displayed in Workspace"] : Localizer["Not displayed in Workspace"];
+        return RepositoryInfoDto.IsPublic ? Localizer["Displayed in Workspace"] : Localizer["Not displayed in Workspace"];
     }
 
     private async Task HandleCheckChanged()
     {
-        RepositoryInfo.IsPublic = !RepositoryInfo.IsPublic;
-        await _databricksApiService.SetWorkspaceRepositoryVisibility(ProjectAcronym, RepositoryInfo.Url, RepositoryInfo.IsPublic);
+        RepositoryInfoDto.IsPublic = !RepositoryInfoDto.IsPublic;
+        await _databricksApiService.UpdateWorkspaceRepository(ProjectAcronym, RepositoryInfoDto);
         await InvokeAsync(StateHasChanged);
     }
 }

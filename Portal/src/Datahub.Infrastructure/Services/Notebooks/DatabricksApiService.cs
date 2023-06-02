@@ -27,9 +27,29 @@ public class DatabricksApiService : IDatabricksApiService
         _dbContextFactory = dbContextFactory;
     }
 
- 
 
-    public async Task<List<RepositoryInfo>> ListWorkspaceRepositories(string projectAcronym, string accessToken)
+    public async Task<List<ProjectRepository>> ListDisplayedWorkspaceRepositoriesAsync(string projectAcronym)
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        var project = await dbContext.Projects
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+
+        if (project == null)
+        {
+            _logger.LogError("Project with acronym {ProjectAcronym} not found", projectAcronym);
+            return new List<ProjectRepository>();
+        }
+
+        var results = await dbContext.ProjectRepositories
+            .Where(pr => pr.ProjectId == project.Project_ID
+                         && pr.IsPublic)
+            .ToListAsync();
+
+        return results;
+    }
+
+    public async Task<List<RepositoryInfoDto>> ListWorkspaceRepositoriesAsync(string projectAcronym, string accessToken)
     {
         var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym);
 
@@ -38,17 +58,17 @@ public class DatabricksApiService : IDatabricksApiService
         var queryUrl = $"{workspaceDatabricksUrl}/api/2.0/repos";
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         using var response = await httpClient.GetAsync(queryUrl);
-        
+
         response.EnsureSuccessStatusCode();
         var contentString = await response.Content.ReadAsStringAsync();
         var content = JsonSerializer.Deserialize<JsonObject>(contentString);
-        
+
         var existingRepositoryPreferences = await GetWorkspaceRepositoryVisibilitiesAsync(projectAcronym);
 
         var results = content?["repos"]?
             .AsArray()
-            .Select(node => new RepositoryInfo(node))
-            .ToList() ?? new List<RepositoryInfo>();
+            .Select(node => new RepositoryInfoDto(node))
+            .ToList() ?? new List<RepositoryInfoDto>();
 
         foreach (var repositoryInfo in results)
         {
@@ -61,10 +81,10 @@ public class DatabricksApiService : IDatabricksApiService
         return results;
     }
 
-    public async Task<bool> SetWorkspaceRepositoryVisibility(string projectAcronym, string repositoryUrl, bool isPublic)
+    public async Task<bool> UpdateWorkspaceRepository(string projectAcronym, RepositoryInfoDto repositoryInfoDto)
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        
+
         var project = await dbContext.Projects
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
 
@@ -73,24 +93,34 @@ public class DatabricksApiService : IDatabricksApiService
             _logger.LogError("Project with acronym {ProjectAcronym} not found", projectAcronym);
             return false;
         }
-        
+
         var projectRepository = await dbContext.ProjectRepositories
-            .FirstOrDefaultAsync(pr => pr.ProjectId == project.Project_ID 
-                                       && pr.RepositoryUrl == repositoryUrl);
+            .FirstOrDefaultAsync(pr => pr.ProjectId == project.Project_ID
+                                       && pr.RepositoryUrl == repositoryInfoDto.Url);
 
         if (projectRepository == null)
         {
             projectRepository = new ProjectRepository()
             {
                 Project = project,
-                RepositoryUrl = repositoryUrl,
-                IsPublic = isPublic
+                RepositoryUrl = repositoryInfoDto.Url,
+                IsPublic = repositoryInfoDto.IsPublic,
+                Branch = repositoryInfoDto.Branch,
+                HeadCommitId = repositoryInfoDto.HeadCommitId,
+                Provider = repositoryInfoDto.Provider,
+                Path = repositoryInfoDto.Path,
             };
-            
+
             dbContext.ProjectRepositories.Add(projectRepository);
         }
-        
-        projectRepository.IsPublic = isPublic;
+        else
+        {
+            projectRepository.IsPublic = repositoryInfoDto.IsPublic;
+            projectRepository.Branch = repositoryInfoDto.Branch;
+            projectRepository.HeadCommitId = repositoryInfoDto.HeadCommitId;
+            projectRepository.Provider = repositoryInfoDto.Provider;
+            projectRepository.Path = repositoryInfoDto.Path;
+        }
         
         await dbContext.SaveChangesAsync();
 
@@ -103,13 +133,13 @@ public class DatabricksApiService : IDatabricksApiService
         var project = await dbContext.Projects
             .Include(p => p.Resources)
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-        
+
         if (project == null)
         {
             _logger.LogError("Project with acronym {ProjectAcronym} not found", projectAcronym);
             throw new ArgumentException($"Project with acronym {projectAcronym} not found");
         }
-        
+
         return await dbContext.ProjectRepositories
             .Where(pr => pr.ProjectId == project.Project_ID)
             .ToDictionaryAsync(pr => pr.RepositoryUrl, pr => pr.IsPublic);

@@ -19,7 +19,7 @@
         <MudGrid>
             @foreach (var repositoryInfo in _repositoryInfos)
             {
-                <RepositoryGridItem RepositoryInfo="@repositoryInfo" ProjectAcronym="@ProjectAcronymParam"/>
+                <RepositoryGridItem RepositoryInfoDto="@repositoryInfo" ProjectAcronym="@ProjectAcronymParam"/>
             }
         </MudGrid>
     </MudStack>
@@ -30,7 +30,7 @@
     [Parameter]
     public string ProjectAcronymParam { get; set; }
 
-    private List<RepositoryInfo> _repositoryInfos = new();
+    private List<RepositoryInfoDto> _repositoryInfos = new();
 
     private static readonly string[] DatabricksScopes = {
         "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/user_impersonation"
@@ -43,7 +43,7 @@
         try
         {
             var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(DatabricksScopes);
-            _repositoryInfos = await _databricksApiService.ListWorkspaceRepositories(ProjectAcronymParam, accessToken);
+            _repositoryInfos = await _databricksApiService.ListWorkspaceRepositoriesAsync(ProjectAcronymParam, accessToken);
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
         {

@@ -1,3 +1,4 @@
+using Datahub.Core.Data.Databricks;
 using Datahub.Core.Model.Datahub;
 
 namespace Datahub.Core.Model.Repositories;
@@ -18,6 +19,26 @@ public sealed class ProjectRepository
     /// Repository URL
     /// </summary>
     public string RepositoryUrl { get; set; }
+    
+    /// <summary>
+    /// The location of the repository in the workspace
+    /// </summary>
+    public string Path { get; set; }
+    
+    /// <summary>
+    /// The repository provider (ie. GitHub)
+    /// </summary>
+    public string Provider { get; set; }
+    
+    /// <summary>
+    /// The repository branch
+    /// </summary>
+    public string Branch { get; set; }
+    
+    /// <summary>
+    /// The repository head commit id
+    /// </summary>
+    public string HeadCommitId { get; set; }
     
     /// <summary>
     /// Whether the repository is public
