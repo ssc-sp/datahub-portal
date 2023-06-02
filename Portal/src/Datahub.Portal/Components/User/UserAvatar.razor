@@ -14,5 +14,5 @@
     [Parameter]
     public Size Size { get; set; } = Size.Large;
     
-    private string AvatarUrl => _datahubPortalConfiguration?.Achievements.GetAchievementPortraitUrl(ViewedUser?.ProfilePictureUrl);
+    private string AvatarUrl => _datahubPortalConfiguration?.Media.GetAchievementPortraitUrl(ViewedUser?.ProfilePictureUrl);
 }
