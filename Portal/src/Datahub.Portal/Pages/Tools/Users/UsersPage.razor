@@ -1,19 +1,21 @@
 @page "/tools/users"
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@attribute [Authorize(Roles = "DHPGLIST")]
 
-<MudText Typo="Typo.h1" Class="mb-12">
-    @Localizer["Users"]
-</MudText>
-@if (_userWorkspaces == null)
-{
-    <MudSkeleton Height="600px" Width="100%"/>
-}
-else
-{
-    <UsersTable UserWorkspaces="_userWorkspaces"/>
-}
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+  <MudText Typo="Typo.h1" Class="mb-12">
+      @Localizer["Users"]
+  </MudText>
+  @if (_userWorkspaces == null)
+  {
+      <MudSkeleton Height="600px" Width="100%"/>
+  }
+  else
+  {
+      <UsersTable UserWorkspaces="_userWorkspaces"/>
+  }
+</DatahubAuthView>
+
 
 
 @code {
