@@ -42,7 +42,7 @@
     public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
 
 
-    private string BackgroundUrl => _datahubPortalConfiguration?.Achievements.GetAchievementThumbnailUrl(ViewedUser?.BannerPictureUrl);
+    private string BackgroundUrl => _datahubPortalConfiguration?.Media.GetAchievementThumbnailUrl(ViewedUser?.BannerPictureUrl);
 
     private async Task HandleImageSelected(string code, bool isProfilePicture)
     {

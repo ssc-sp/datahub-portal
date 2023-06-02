@@ -12,6 +12,7 @@ public class DatahubPortalConfiguration
     public string DataHubModules { get; set; } = null!;
     public DataProjects DataProjects { get; set; } = new();
     public Achievements Achievements { get; set; } = new();
+    public Media Media { get; set; } = new();
     public string ProjectUrlSegment { get; set; } = "w";
     public string ProfileUrlSegment { get; set; } = "profile";
 
@@ -45,12 +46,19 @@ public class Achievements
 {
     public bool Enabled { get; set; } = false;
     public bool LocalAchievementsOnly { get; set; } = false;
+
+}
+
+public class Media
+{
+    public string StorageConnectionString { get; set; } = null!;
     public string StaticAssetsUrl { get; set; } = "https://fsdhstaticassetstorage.blob.core.windows.net";
     
     public string GetAchievementThumbnailUrl(string? code) => $"{StaticAssetsUrl}/achievements/thumbnails/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
     public string GetAchievementPortraitUrl(string? code) => $"{StaticAssetsUrl}/achievements/portraits/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
     public string GetAchievementImageUrl(string? code) => $"{StaticAssetsUrl}/achievements/backgrounds/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
 }
+
 
 public class TermsAndConditionsUrl
 {
