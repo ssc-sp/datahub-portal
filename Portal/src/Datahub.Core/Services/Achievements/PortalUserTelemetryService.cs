@@ -15,16 +15,19 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
     private readonly IUserInformationService _userInformationService;
     private readonly ILogger<PortalUserTelemetryService> _logger;
+    private readonly IDatahubAuditingService _auditingService;
 
     public PortalUserTelemetryService(ILogger<PortalUserTelemetryService> logger,
         IAchievementEngineFactory engineFactory,
         IDbContextFactory<DatahubProjectDBContext> contextFactory,
-        IUserInformationService userInformationService)
+        IUserInformationService userInformationService,
+        IDatahubAuditingService auditingService)
     {
         _logger = logger;
         _engineFactory = engineFactory;
         _contextFactory = contextFactory;
         _userInformationService = userInformationService;
+        _auditingService = auditingService;
     }
 
     public event EventHandler<AchievementsEarnedEventArgs> OnAchievementsEarned;
@@ -77,12 +80,13 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
             EventDate = DateTime.UtcNow
         });
 
-        await ctx.SaveChangesAsync();
+        await ctx.TrackSaveChangesAsync(_auditingService);
 
         // report the new achievements
         if (newAchievements.Any())
         {
             OnAchievementsEarned?.Invoke(this, new AchievementsEarnedEventArgs(newAchievements, portalUser.HideAchievements));
-        }
+            await _auditingService.TrackEvent("Achivements", ("Codes", string.Join(", ", newAchievements)));
+        }        
     }
 }
