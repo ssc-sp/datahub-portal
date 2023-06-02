@@ -50,7 +50,7 @@
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.User User { get; set; }
 
-    private List<(UserRecentLink, Datahub_Project)> _recentLinks;
+    private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
     private ushort _maxRecentLinks = 6;
 
     protected override async Task OnInitializedAsync()

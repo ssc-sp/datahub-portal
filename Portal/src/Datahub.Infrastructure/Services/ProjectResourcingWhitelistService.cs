@@ -10,12 +10,15 @@ namespace Datahub.Infrastructure.Services
 
         private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
         private readonly IUserInformationService _userInformationService;
+        private readonly IDatahubAuditingService _auditingService;
 
-        public ProjectResourcingWhitelistService(IDbContextFactory<DatahubProjectDBContext> contextFactory, 
-            IUserInformationService userInformationService)
+        public ProjectResourcingWhitelistService(IDbContextFactory<DatahubProjectDBContext> contextFactory,
+            IUserInformationService userInformationService,
+            IDatahubAuditingService auditingService)
         {
             _contextFactory = contextFactory;
             _userInformationService = userInformationService;
+            _auditingService = auditingService;
         }
 
         public async Task<IEnumerable<Project_Whitelist>> GetAllProjectResourceWhitelistAsync()
@@ -73,7 +76,7 @@ namespace Datahub.Infrastructure.Services
                 context.Project_Whitelists.Update(projectResourceWhitelist);
             }
 
-            await context.SaveChangesAsync();
+            await context.TrackSaveChangesAsync(_auditingService);
         }
     }
 }

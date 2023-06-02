@@ -27,7 +27,7 @@
 </DatahubAuthView>
 <MudGrid>
     <MudItem xs="12">
-        <MudImage Src="@_datahubPortalConfiguration.Achievements.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
+        <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
                   Alt="@Localizer["User's background image"]"
                   Class="rounded-lg mud-elevation-4"
                   Style="width: 100%"
@@ -38,7 +38,7 @@
     <MudItem xs="12" md="@(_viewedPortalUser.HideAchievements ? 12 : 8)">
         <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
             <MudAvatar Style="width:120px; height: 120px">
-                <MudImage Src="@_datahubPortalConfiguration.Achievements.GetAchievementPortraitUrl(_viewedPortalUser?.ProfilePictureUrl)"
+                <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementPortraitUrl(_viewedPortalUser?.ProfilePictureUrl)"
                           Alt="@Localizer["User's profile picture"]"
                           Height="120"
                           Width="120"/>

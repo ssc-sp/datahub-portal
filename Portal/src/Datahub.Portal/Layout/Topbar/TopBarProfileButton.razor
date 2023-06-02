@@ -43,7 +43,7 @@
             </MudMenuItem>
             <MudMenuItem Href="https://forms.office.com/pages/responsepage.aspx?id=lMFb0L-U1kquLh2w8uOPXhksOXzZ73RCp9fVTz4vTU5UNTc1U00yNVUxWVg4SkJGMFVHN1RCTTdQRS4u">@Localizer["Help"]</MudMenuItem>
             <MudDivider/>
-            <MudMenuItem Href="MicrosoftIdentity/Account/SignOut">
+            <MudMenuItem OnClick="HandleLogOut">
                 @Localizer["Sign Out"]
             </MudMenuItem>
         </ChildContent>
@@ -73,6 +73,11 @@
     {
         await _userInformationService.SetViewingAsGuest(!newValue);
         _navigationManager.NavigateTo(_navigationManager.Uri, true);
+    }
+    
+    private void HandleLogOut()
+    {
+        _navigationManager.NavigateTo("MicrosoftIdentity/Account/SignOut", true);
     }
 
 }

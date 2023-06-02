@@ -22,10 +22,11 @@ public class ProjectCreationService : IProjectCreationService
     private readonly ServiceAuthManager serviceAuthManager;
     private readonly IUserInformationService _userInformationService;
     private readonly IResourceRequestService _resourceRequestService;
-    
+    private readonly IDatahubAuditingService _auditingService;
+
     public ProjectCreationService(IConfiguration configuration, IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        ILogger<ProjectCreationService> logger, ServiceAuthManager serviceAuthManager,
-        IUserInformationService userInformationService, IResourceRequestService resourceRequestService)
+        ILogger<ProjectCreationService> logger, ServiceAuthManager serviceAuthManager, IUserInformationService userInformationService, 
+        IResourceRequestService resourceRequestService, IDatahubAuditingService auditingService)
     {
         _configuration = configuration;
         _datahubProjectDbFactory = datahubProjectDbFactory;
@@ -33,8 +34,9 @@ public class ProjectCreationService : IProjectCreationService
         this.serviceAuthManager = serviceAuthManager;
         _userInformationService = userInformationService;
         _resourceRequestService = resourceRequestService;
+        _auditingService = auditingService;
     }
-    
+
     public async Task<bool> AcronymExists(string acronym)
     {
         await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
@@ -134,7 +136,7 @@ public class ProjectCreationService : IProjectCreationService
             User_Name = user.Mail
         };
         await db.Project_Users.AddAsync(projectUser);
-        await db.SaveChangesAsync();
+        await db.TrackSaveChangesAsync(_auditingService);
         serviceAuthManager.InvalidateAuthCache();
     }
 
