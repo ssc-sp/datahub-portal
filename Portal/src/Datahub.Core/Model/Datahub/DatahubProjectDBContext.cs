@@ -6,6 +6,10 @@ using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Core.Model.Datahub;
 
+/// <summary>
+/// Datahub Main DbContext
+/// Add a migration using PS command: Add-Migration MIGRATION_NAME -Context DatahubProjectDBContext
+/// </summary>
 public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBContext>
 {
     public DatahubProjectDBContext(DbContextOptions<DatahubProjectDBContext> options) : base(options)
@@ -25,7 +29,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<Datahub_Project_Pipeline_Lnk> Project_Pipeline_Links { get; set; }
     public DbSet<Organization_Level> Organization_Levels { get; set; }
     public DbSet<OnboardingApp> OnboardingApps {  get; set; }
-    public DbSet<Project_Resources> Project_Resources { get; set; }
+
     public DbSet<Project_Resources2> Project_Resources2 { get; set; }
 
     public DbSet<PublicDataFile> PublicDataFiles { get; set; }
@@ -51,9 +55,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<ExternalPowerBiReport> ExternalPowerBiReports { get; set; }
 
     public DbSet<Client_Engagement> Client_Engagements { get; set; }
-
-    public DbSet<Project_Storage_Capacity> Storage_Capacities { get; set; }
-
+        
     public DbSet<Achievements.Achievement> Achievements { get; set; }
     public DbSet<Achievements.PortalUser> PortalUsers { get; set; }
     public DbSet<Achievements.UserAchievement> UserAchievements { get; set; }
@@ -168,19 +170,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .WithMany(p => p.Divisions)
             .HasForeignKey(f => f.DivisionId)
             .OnDelete(DeleteBehavior.NoAction);
-
-        /// <summary>
-        /// Deprecated
-        /// </summary>
-        modelBuilder.Entity<Project_Storage_Capacity>(entity =>
-        {
-            entity.ToTable("Project_Storage_Capacities");
-            entity.HasKey(e => new { e.ProjectId, e.Type });
-            entity.HasOne(e => e.Project)
-                  .WithMany(e => e.Storage_Capacities)
-                  .HasForeignKey(e => e.ProjectId)
-                  .OnDelete(DeleteBehavior.NoAction);
-        });
 
         modelBuilder.Entity<Project_Whitelist>(entity =>
         {
