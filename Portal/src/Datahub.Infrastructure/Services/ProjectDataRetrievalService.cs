@@ -101,7 +101,7 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
 
         // create the file
         var fileClient = dirClient.GetFileClient(file.filename);
-        if (fileClient is null || fileClient.Exists())
+        if (fileClient is null)
             return false;
 
         // generate the options with the metadata
@@ -122,7 +122,8 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.Message, ex);
+            var message = $"File upload in project: '{projectAcronym}', container: '{containerName}', file name: '{file.name}' has failed with error: {ex.Message}";
+            _logger.LogError(message, ex);
             return false;
         }
     }

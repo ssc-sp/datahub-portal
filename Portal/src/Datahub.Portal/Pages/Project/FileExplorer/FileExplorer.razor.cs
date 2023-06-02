@@ -62,7 +62,8 @@ public partial class FileExplorer
         var oldFileName = JoinPath(_currentFolder, fileName);
         var newFileName = JoinPath(folder, fileName);
 
-        if (await PreventOverwrite(newFileName))
+        var (fileExists, allowOverride) = await VerifyOverwrite(newFileName);
+        if (!allowOverride)
             return;
 
         if (!await _projectDataRetrievalService.RenameFileAsync(ProjectAcronym, ContainerName, oldFileName, newFileName))
@@ -81,11 +82,17 @@ public partial class FileExplorer
         var oldFileName = JoinPath(_currentFolder, currentFileName);
         var newFileName = JoinPath(_currentFolder, fileRename);
 
-        if (await PreventOverwrite(newFileName))
+        var (fileExists, allowOverride) = await VerifyOverwrite(newFileName);
+        if (!allowOverride)
             return;
 
         if (!await _projectDataRetrievalService.RenameFileAsync(ProjectAcronym, ContainerName, oldFileName, newFileName))
             return;
+
+        if (fileExists)
+        {
+            _files.RemoveAll(f => f.name == fileRename);
+        }
 
         var targetFile = _files.FirstOrDefault(f => f.name == currentFileName);
         if (targetFile is not null)
@@ -104,15 +111,15 @@ public partial class FileExplorer
         await SetCurrentFolder(GetDirectoryName(_currentFolder));
     }
 
-    private async Task<bool> PreventOverwrite(string filePath)
+    private async Task<(bool FileExists, bool AllowOverride)> VerifyOverwrite(string filePath)
     {
-        var fileExists = await _projectDataRetrievalService.FileExistsAsync(ProjectAcronym, ContainerName, filePath);
-        
-        if (!fileExists)
-            return false;
+        if (!await _projectDataRetrievalService.FileExistsAsync(ProjectAcronym, ContainerName, filePath))
+            return (false, true);
 
-        return !await _jsRuntime.InvokeAsync<bool>("confirm",
+        var allowOverride = await _jsRuntime.InvokeAsync<bool>("confirm",
             string.Format(Localizer["File '{0}' already exists. Do you want to overwrite it?"], filePath));
+
+        return (true, allowOverride);
     }
 
     private string JoinPath(string folder, string fileName)
@@ -128,7 +135,9 @@ public partial class FileExplorer
             return;
 
         var newFilePath = JoinPath(folder, browserFile.Name);
-        if (await PreventOverwrite(newFilePath))
+
+        var (fileExists, allowOverride) = await VerifyOverwrite(newFilePath);
+        if (!allowOverride)
             return;
 
         var fileMetadata = new FileMetaData
@@ -139,10 +148,16 @@ public partial class FileExplorer
             filename = browserFile.Name,
             filesize = browserFile.Size.ToString(),
             uploadStatus = FileUploadStatus.SelectedToUpload,
+            bytesToUpload = browserFile.Size,
+            createdts = DateTime.UtcNow,
+            lastmodifiedts = DateTime.UtcNow,
             BrowserFile = browserFile
         };
 
-        _uploadingFiles.Add(fileMetadata);
+        lock (this)
+        {
+            _uploadingFiles.Add(fileMetadata);
+        }                
 
         _ = InvokeAsync(async () =>
         {
@@ -152,22 +167,29 @@ public partial class FileExplorer
                 _ = InvokeAsync(StateHasChanged);
             });
 
-            _uploadingFiles.Remove(fileMetadata);
-            if (folder == _currentFolder)
+            lock (this)
             {
-                _files.RemoveAll(f => f.name == fileMetadata.name);
-                if (succeeded)
+                _uploadingFiles.Remove(fileMetadata);
+                if (!_uploadingFiles.Any())
                 {
-                    _files.Add(fileMetadata);
-                }                    
+                    _uploadingFiles = new();
+                }
             }
 
-            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserUploadFile);
+            if (folder == _currentFolder)
+            {
+                if (succeeded)
+                {
+                    if (fileExists)
+                    {
+                        _files.RemoveAll(f => f.name == fileMetadata.name);
+                    }
+                    _files.Add(fileMetadata);
+                }
+            }
 
-            StateHasChanged();
-        });
-
-        StateHasChanged();
+            await InvokeAsync(StateHasChanged);
+        });        
     }
 
     private async Task HandleFileDownload(string filename)
@@ -209,19 +231,13 @@ public partial class FileExplorer
         {
             await UploadFile(browserFile, folderName);
         }
+
+        await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserUploadFile);
+
+        // refresh ui
+        await InvokeAsync(StateHasChanged);
     }
 
-    private void HandleSearch(string newValue, KeyboardEventArgs ev)
-    {
-        _filterValue = newValue.Trim();
-        StateHasChanged();
-    }
-
-    private void ResetSearch()
-    {
-        _filterValue = string.Empty;
-    }
-    
     private void HandleFileSelectionClick(string filename)
     {
         _selectedItems.RemoveWhere(i => i.EndsWith("/", StringComparison.InvariantCulture));
