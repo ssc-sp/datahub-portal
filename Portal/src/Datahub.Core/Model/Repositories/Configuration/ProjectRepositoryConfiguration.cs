@@ -24,5 +24,21 @@ public class ProjectRepositoryConfiguration : IEntityTypeConfiguration<ProjectRe
         builder.Property(e => e.IsPublic)
             .IsRequired();
 
+        builder.Property(e => e.Provider)
+            .IsRequired()
+            .HasMaxLength(32);
+        
+        builder.Property(e => e.HeadCommitId)
+            .IsRequired()
+            .HasMaxLength(64);
+        
+        builder.Property(e => e.Branch)
+            .IsRequired()
+            .HasMaxLength(64);
+        
+        builder.Property(e => e.Path)
+            .IsRequired()
+            .HasMaxLength(256);
+
     }
 }
