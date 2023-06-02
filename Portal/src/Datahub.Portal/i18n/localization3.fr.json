@@ -126,5 +126,16 @@
   "Your profile": "Votre profil",
   "Your workspaces": "Vos espaces de travail",
   "Your notifications": "Vos notifications",
-  "Settings": "Paramètres"
+  "Settings": "Paramètres",
+  "DataHub News": "Nouvelles de DataHub",
+  "No announcements yet!": "Pas encore d'annonces !",
+  "Create a new Announcement": "Créer une nouvelle annonce",
+  "Posted at {0} by {1}": "Publié à {0} par {1}",
+  "Last updated at {0} by {1}": "Dernière mise à jour à {0} par {1}",
+  "Starting from {0} at {1}": "À partir de {0} à {1}",
+  "Until {0} at {1}": "Jusqu'à {0} à {1}",
+  "Created by {0} on {1}": "Créé par {0} le {1}",
+  "Updated by {0} on {1}": "Mis à jour par {0} le {1}",
+  "Until further notice": "Jusqu'à nouvel ordre",
+  "Edit Announcement": "Modifier l'annonce"
 }
