@@ -90,5 +90,6 @@
   "breadcrumb_achievements": "Achievements",
   "breadcrumb_notifications": "Notifications",
   "breadcrumb_diagnostics": "Diagnostics",
-  "breadcrumb_news": "News"
+  "breadcrumb_news": "News",
+  "breadcrumb_repository": "Repositories"
 }
