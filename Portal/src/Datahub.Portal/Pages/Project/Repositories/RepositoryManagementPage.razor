@@ -14,7 +14,7 @@
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronymParam">
     <MudStack>
         <ProjectInfo ProjectAcronym="@ProjectAcronymParam"/>
-        <MudText Typo="Typo.h2">@Localizer["Workspace Repositories"]</MudText>
+        <MudText Class="mt-2 mb-4" Typo="Typo.h2">@Localizer["Workspace Repositories"]</MudText>
 
         <MudGrid>
             @foreach (var repositoryInfo in _repositoryInfos)
