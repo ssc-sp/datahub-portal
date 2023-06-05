@@ -135,5 +135,13 @@
   "Created by {0} on {1}": "Created by {0} on {1}",
   "Updated by {0} on {1}": "Updated by {0} on {1}",
   "Until further notice": "Until further notice",
-  "Edit Announcement": "Edit Announcement"
+  "Edit Announcement": "Edit Announcement",
+  "Workspace Repositories": "Workspace Repositories",
+  "Displayed in Workspace": "Displayed in Workspace",
+  "Open Repository": "Open Repository",
+  "Not displayed in Workspace": "Not displayed in Workspace",
+  "Shared Content": "Shared Content",
+  "No shared content available.": "No shared content available.",
+  "Please contact the workspace administrators for access or to share repositories.": "Please contact the workspace administrators for access or to share repositories.",
+  "Manage Linked Repositories": "Manage Linked Repositories"
 }
