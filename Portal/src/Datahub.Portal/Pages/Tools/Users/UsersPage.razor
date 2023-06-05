@@ -1,0 +1,43 @@
+@page "/tools/users"
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+  <MudText Typo="Typo.h1" Class="mb-12">
+      @Localizer["Users"]
+  </MudText>
+  @if (_userWorkspaces == null)
+  {
+      <MudSkeleton Height="600px" Width="100%"/>
+  }
+  else
+  {
+      <UsersTable UserWorkspaces="_userWorkspaces"/>
+  }
+</DatahubAuthView>
+
+
+
+@code {
+    
+    private List<UserWorkspaces> _userWorkspaces;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+        
+        var users = await context.PortalUsers.ToListAsync();
+        
+        _userWorkspaces = users.Select(u => new UserWorkspaces
+        {
+            User = u,
+            Workspaces = context.Project_Users.Include(pu => pu.Project)
+                .Where(pu => pu.User_ID == u.GraphGuid)
+                .Select(pu => pu.Project).ToList(),
+        }).ToList();
+        StateHasChanged();
+
+    }
+
+}
