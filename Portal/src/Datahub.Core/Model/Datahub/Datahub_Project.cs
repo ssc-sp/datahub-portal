@@ -176,11 +176,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     public List<Client_Engagement> Client_Engagements { get; set; }
 
-    /// <summary>
-    /// Deprecated
-    /// </summary>
-    public List<Project_Storage_Capacity> Storage_Capacities { get; set; }
-
     public Project_Credits Credits { get; set; }
     
     public Project_Whitelist Whitelist { get; set; }
@@ -222,8 +217,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public bool HasAssociatedDatabase => IsDatabasePostgres || IsDatabaseSqlServer;
 
     public List<Datahub_Project_Pipeline_Lnk> Pipelines { get; set; }
-
-    public List<Project_Storage> StorageAccounts { get; set; }
 
     public IList<Project_Resources2> Resources { get; set; }
 

@@ -148,7 +148,8 @@ public class ProjectResourcingWhitelistServiceTests
 
         var projectUserManagementService = new ProjectResourcingWhitelistService(
             _mockFactory.Object,
-            _mockUserInformationService.Object);
+            _mockUserInformationService.Object, 
+            null!);
         return projectUserManagementService;
     }
 }
