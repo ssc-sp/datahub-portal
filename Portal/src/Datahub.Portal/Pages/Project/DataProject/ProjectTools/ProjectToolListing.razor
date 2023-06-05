@@ -44,7 +44,7 @@
                 }
             </MudStack>
         }
-    
+
         @if (_inactiveResources?.Count > 0)
         {
             <MudStack Class="my-12">
@@ -79,14 +79,19 @@
         <MudStack>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
                 <MudStack>
-                    <MudText Typo="Typo.h2">@Localizer["Workspace Repositories"]</MudText>
-            
-                    <MudGrid>
+                        <MudText Class="mt-2 mb-6" Typo="Typo.h2">@Localizer["Shared Content"]</MudText>
+                    @if (_projectRepositories != null && _projectRepositories.Any())
+                    {
                         @foreach (var projectRepository in _projectRepositories)
                         {
-                            <RepositoryCard ProjectRepository="@projectRepository" />
+                            <RepositoryCard ProjectRepository="@projectRepository"/>
                         }
-                    </MudGrid>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body1">@Localizer["No shared content available."]</MudText>
+                        <MudText Typo="Typo.body1">@Localizer["Please contact the workspace administrators for access or to share repositories."]</MudText>
+                    }
                 </MudStack>
             </DatahubAuthView>
         </MudStack>
@@ -133,11 +138,11 @@
         {
             throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
         }
-        
+
         await base.OnInitializedAsync();
 
         _projectRepositories = await _databricksApiService.ListDisplayedWorkspaceRepositoriesAsync(ProjectAcronym);
-        
+
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
 
         var allResources = await ProjectResourcesListingService.GetResourcesForProject(ProjectAcronym);
