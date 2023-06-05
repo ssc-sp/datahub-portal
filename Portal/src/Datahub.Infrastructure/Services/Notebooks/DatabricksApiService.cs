@@ -100,27 +100,17 @@ public class DatabricksApiService : IDatabricksApiService
 
         if (projectRepository == null)
         {
-            projectRepository = new ProjectRepository()
-            {
-                Project = project,
-                RepositoryUrl = repositoryInfoDto.Url,
-                IsPublic = repositoryInfoDto.IsPublic,
-                Branch = repositoryInfoDto.Branch,
-                HeadCommitId = repositoryInfoDto.HeadCommitId,
-                Provider = repositoryInfoDto.Provider,
-                Path = repositoryInfoDto.Path,
-            };
-
+            projectRepository = new ProjectRepository();
             dbContext.ProjectRepositories.Add(projectRepository);
         }
-        else
-        {
-            projectRepository.IsPublic = repositoryInfoDto.IsPublic;
-            projectRepository.Branch = repositoryInfoDto.Branch;
-            projectRepository.HeadCommitId = repositoryInfoDto.HeadCommitId;
-            projectRepository.Provider = repositoryInfoDto.Provider;
-            projectRepository.Path = repositoryInfoDto.Path;
-        }
+            
+        projectRepository.Project = project;
+        projectRepository.RepositoryUrl = repositoryInfoDto.Url;
+        projectRepository.IsPublic = repositoryInfoDto.IsPublic;
+        projectRepository.Branch = repositoryInfoDto.Branch;
+        projectRepository.HeadCommitId = repositoryInfoDto.HeadCommitId;
+        projectRepository.Provider = repositoryInfoDto.Provider;
+        projectRepository.Path = repositoryInfoDto.Path;
         
         await dbContext.SaveChangesAsync();
 
