@@ -4,7 +4,7 @@ using Datahub.Core.Model.Repositories;
 
 namespace Datahub.Core.Data.Databricks;
 
-public record RepositoryInfoDto
+public class RepositoryInfoDto
 {
     public string Id { get; set; }
     public string Path { get; set; }
