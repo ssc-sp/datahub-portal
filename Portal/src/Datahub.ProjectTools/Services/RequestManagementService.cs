@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Transactions;
 using Datahub.Application.Services;
+using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Enums;
 

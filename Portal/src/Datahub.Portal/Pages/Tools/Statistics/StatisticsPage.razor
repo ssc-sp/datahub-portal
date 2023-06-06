@@ -1,6 +1,7 @@
 @page "/tools/stats"
 @using Datahub.Shared.Entities
 @using System.Text.Json
+@using Datahub.Core.Model.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @attribute [Authorize(Roles = "DHPGLIST")]

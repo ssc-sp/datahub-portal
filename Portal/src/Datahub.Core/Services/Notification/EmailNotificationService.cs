@@ -7,17 +7,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using BlazorTemplater;
 using Datahub.Core.Data;
-using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Services.Security;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Templates;
-using Datahub.Core.Utils;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
 using MimeKit;
 
 namespace Datahub.Core.Services.Notification;

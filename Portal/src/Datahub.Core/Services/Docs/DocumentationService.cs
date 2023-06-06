@@ -1,7 +1,6 @@
 ﻿using Datahub.Core.Services.Wiki;
 using Datahub.Shared.Annotations;
 using Markdig;
-using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using Microsoft.Extensions.Caching.Memory;

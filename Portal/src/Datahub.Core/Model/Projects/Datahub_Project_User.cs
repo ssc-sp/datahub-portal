@@ -1,9 +1,8 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Elemental.Components;
 
-namespace Datahub.Core.Model.Datahub;
+namespace Datahub.Core.Model.Projects;
 
 public class Datahub_Project_User {
 

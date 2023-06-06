@@ -5,6 +5,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Security;
 using Microsoft.EntityFrameworkCore;

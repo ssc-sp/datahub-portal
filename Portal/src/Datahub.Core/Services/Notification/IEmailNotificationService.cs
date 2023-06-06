@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Datahub.Core.Model.Datahub;
-using Microsoft.Graph;
 using MimeKit;
 
 namespace Datahub.Core.Services.Notification;

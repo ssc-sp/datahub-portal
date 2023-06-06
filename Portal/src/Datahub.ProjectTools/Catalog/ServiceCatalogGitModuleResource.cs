@@ -1,5 +1,6 @@
 ﻿using Datahub.Application.Services;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Services.UserManagement;
 using Datahub.ProjectTools.Catalog.ResourceCards;
 using Datahub.ProjectTools.Services;

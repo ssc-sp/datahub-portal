@@ -1,4 +1,5 @@
-﻿@implements IDisposable
+﻿@using Datahub.Core.Model.Projects
+@implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject NavigationManager NavigationManager
 @page "/licenses/{ProjectIDParam}"

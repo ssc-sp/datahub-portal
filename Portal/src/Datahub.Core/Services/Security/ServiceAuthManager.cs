@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Datahub.Core.Data.Project;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Services.UserManagement;
 
 namespace Datahub.Core.Services.Security;

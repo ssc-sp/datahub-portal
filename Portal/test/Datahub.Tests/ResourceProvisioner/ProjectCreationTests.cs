@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Datahub.Application.Services;
 using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Offline;
 using Datahub.Infrastructure.Services;
