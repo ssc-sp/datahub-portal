@@ -3,6 +3,7 @@ namespace Datahub.Portal.Pages.Project.FileExplorer.ResourcePages;
 public static class ResourceSubstitutions 
 {
     public const string SasUri = "<sas_uri>";
+    public const string DesktopCode = "<desktop_code>";
     public const string UploadCode = "<upload_code>";
     public const string StorageAccount = "<storage_account>";
     public const string ProjectAcronym = "<project_acronym>";

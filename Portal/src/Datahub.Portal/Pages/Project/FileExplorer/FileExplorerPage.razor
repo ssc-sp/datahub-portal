@@ -1,7 +1,7 @@
 ﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
 @inject IProjectDataRetrievalService _projectDataRetrievalService
-
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
 @page "/w/{ProjectAcronymParam}/filelist"
 @using Datahub.Core.Components.PageBanner
 @using Datahub.Core.Services.Storage
@@ -46,9 +46,12 @@
                             <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
                                 <Databricks Container="@SelectedContainer" />
                                 </MudTabPanel>
-                            <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
-                                <UploaderCode Container="@SelectedContainer" />
-                            </MudTabPanel>
+                            @if (_datahubPortalConfiguration.DesktopFileUploader.DisplayDesktopUploaderTab)
+                            {
+                                <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
+                                    <UploaderCode Container="@SelectedContainer" />
+                                </MudTabPanel>
+                            }
                         </MudTabs>
                     }
                 </MudPaper>
