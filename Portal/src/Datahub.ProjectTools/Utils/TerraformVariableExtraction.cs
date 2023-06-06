@@ -42,6 +42,11 @@ public static class TerraformVariableExtraction
             JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);
         var databricksUrlVariable = jsonContent?["workspace_url"];
         
+        if (!databricksUrlVariable?.StartsWith("https://") ?? false)
+        {
+            databricksUrlVariable = $"https://{databricksUrlVariable}";
+        }
+        
         return databricksUrlVariable;
     }
 }
