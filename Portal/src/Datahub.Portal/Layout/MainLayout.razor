@@ -14,6 +14,7 @@
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IPortalUserTelemetryService _telemetryService
+@inject ITokenAcquisition _tokenAcquisition
 
 <MudThemeProvider Theme="@DatahubTheme.DEFAULT_THEME"/>
 <MudDialogProvider/>
@@ -45,7 +46,7 @@
                                     @if (_isSessionEnabled == true)
                                     {
                                         <MudContainer Class="mt-8 px-16" MaxWidth="MaxWidth.Large">
-                                            <DHBreadcrumbs />
+                                            <DHBreadcrumbs/>
                                             @Body
                                         </MudContainer>
                                     }
@@ -61,7 +62,8 @@
                                     }
                                     else
                                     {
-                                        <MudContainer Class="mt-16" MaxWidth="MaxWidth.Large">
+                                        <MudContainer Class="mt-8 px-16" MaxWidth="MaxWidth.Large">
+                                            <DHBreadcrumbs/>
                                             @Body
                                         </MudContainer>
                                     }
@@ -85,7 +87,7 @@ else
     <MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
         <i class="fa-solid fa-house" style="opacity:0; position: absolute; top: 0; left: 0;"></i>
         <i class="fa-duotone fa-house" style="opacity:0; position: absolute; top: 0; left: 0;"></i>
-        <DHLoadingInitializer Message="@Localizer[GetLoadMessage()]" />
+        <DHLoadingInitializer Message="@Localizer[GetLoadMessage()]"/>
     </MudContainer>
 }
 
@@ -98,10 +100,12 @@ else
     private bool? _isSessionEnabled;
 
     private static readonly string[] LOAD_MESSAGES = new[] { "Recomputing DNA sequence", "Identifying the pathogen", "Recalculating fungal genome", "Predicting soil mapping", "Analyzing forest coverage" };
+
     private static string GetLoadMessage()
     {
         return LOAD_MESSAGES[new Random().Next(LOAD_MESSAGES.Length)];
     }
+
     private string _style;
 
     private bool _isLoaded;
@@ -133,6 +137,11 @@ else
 
         try
         {
+    //         var scopes = new string[] {
+    // //"https://management.azure.com/.default"
+    //             "https://management.azure.com/user_impersonation"
+    //         };
+    // var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes);
             _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
             await _auditingService.TrackEvent("Login");
         }
@@ -141,20 +150,20 @@ else
             _consentHandler.HandleException(ex);
         }
 
-        // register and or update authenticated portal user
+    // register and or update authenticated portal user
         await _userInformationService.RegisterAuthenticatedPortalUser();
 
         _isLoaded = true;
     }
 
-    private bool IsValidException(Exception ex)
+    private bool IsIgnoredException(Exception ex)
     {
-        return !(ex is ObjectDisposedException);
+        return ex is ObjectDisposedException or MicrosoftIdentityWebChallengeUserException;
     }
 
     private bool HandleException(Exception ex)
     {
-        if (!IsValidException(ex))
+        if (IsIgnoredException(ex))
             return false;
         if (ex != _lastException)
         {
@@ -175,7 +184,7 @@ else
         }
         catch (Exception)
         {
-            // ignored
+    // ignored
         }
     }
 }

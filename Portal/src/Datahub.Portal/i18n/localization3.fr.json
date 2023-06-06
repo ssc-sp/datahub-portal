@@ -137,5 +137,13 @@
   "Created by {0} on {1}": "Créé par {0} le {1}",
   "Updated by {0} on {1}": "Mis à jour par {0} le {1}",
   "Until further notice": "Jusqu'à nouvel ordre",
-  "Edit Announcement": "Modifier l'annonce"
+  "Edit Announcement": "Modifier l'annonce",
+  "Workspace Repositories": "Dépôts de l'espace de travail",
+  "Displayed in Workspace": "Affiché dans l'espace de travail",
+  "Open Repository": "Ouvrir le dépôt",
+  "Not displayed in Workspace": "Non affiché dans l'espace de travail",
+  "Shared Content": "Contenu partagé",
+  "No shared content available.": "Aucun contenu partagé disponible.",
+  "Please contact the workspace administrators for access or to share repositories.": "Veuillez contacter les administrateurs de l'espace de travail pour accéder à l'espace de travail ou pour partager des dépôts.",
+  "Manage Linked Repositories": "Gérer les dépôts liés"
 }

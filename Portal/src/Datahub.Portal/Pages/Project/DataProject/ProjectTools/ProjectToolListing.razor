@@ -7,6 +7,9 @@
 @using Datahub.Core.Services.Notification
 @using MudBlazor.Utilities
 @using Datahub.Application.Configuration
+@using Datahub.Application.Services.Notebooks
+@using Datahub.Core.Model.Repositories
+@using Datahub.Portal.Pages.Project.Repositories
 
 @inject ServiceAuthManager _serviceAuthManager
 @inject IUserInformationService _userInformationService
@@ -17,119 +20,105 @@
 @inject ProjectResourcesListingService ProjectResourcesListingService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject NavigationManager NavigationManager
-@inject IDatahubAuditingService auditingService
+@inject IDatahubAuditingService _auditingService
+@inject IDatabricksApiService _databricksApiService
 
-<div>
-    <ProjectMemberBlock AdminOnly=false ProjectAcronym="@ProjectAcronym">
-        <NotAuthorized>
-        
-            <MudAlert Severity="Severity.Error" Class="my-4">
-                <MudText >
-                    @Localizer["Access Denied"]: @Localizer["You are not a member of this project. If you have been granted access recently please"] 
-                    <MudLink OnClick="ReloadPage">
-                        @Localizer["click here to refresh the access."]
-                    </MudLink>
-                </MudText>
-            </MudAlert>
-                @if (_isProjectUserPendingApproval)
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
+    <Authorized>
+        @if (_activeResources?.Count > 0)
+        {
+            <MudStack Class="my-12">
+                <MudText Class="mb-4" Typo="Typo.h2">@Localizer["Your Workspace Tools"]</MudText>
+                @if (_isLoading)
                 {
-                    <MudButton Disabled Variant="Variant.Filled" Color="Color.Primary">
-                        @Localizer["Access Request is being reviewed"]
-                    </MudButton>
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
                 }
                 else
                 {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="RequestProjectAccess">
-                        @Localizer["Request Access"]
-                    </MudButton>
-                }
-        </NotAuthorized>
-        <Authorized>
-            @if (_activeResources?.Count > 0)
-            {
-                <MudStack Class="my-12">
-                    <MudText Class="mb-4" Typo="Typo.h2">@Localizer["Your Workspace Tools"]</MudText>
-                    @if (_isLoading)
-                    {
-                        <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
-                    }
-                    else
-                    {
-                        <MudElement HtmlTag="div" class="@_toolContainerClass">
-                            @foreach (var active in _activeResources)
-                            {
-                                <DynamicComponent Parameters="active.parameters" Type="active.type"/>
-                            }
-                        </MudElement>
-                    }
-                </MudStack>
-            }
-
-            @if (_inactiveResources?.Count > 0)
-            {
-                <MudStack Class="my-12">    
-                    <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                        <MudText Class="mb-4" Typo="Typo.h2">@Localizer["Tools Catalogue"]</MudText>
-                        @if (IsDatahubAdmin)
+                    <MudElement HtmlTag="div" class="@_toolContainerClass">
+                        @foreach (var active in _activeResources)
                         {
-                            <MudTooltip Text="@ResourceWhitelistButtonTooltip" RootClass="mx-4" Placement="Placement.Bottom"
-                                        Arrow="true">
-                                    <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-2" Href="@WhitelistUrl">
-                                        @Localizer[ResourceWhitelistButtonText]
-                                    </MudButton>
-                            </MudTooltip>
+                            <DynamicComponent Parameters="active.parameters" Type="active.type"/>
                         }
-                    </MudStack>
-                    @if (_isLoading)
+                    </MudElement>
+                }
+            </MudStack>
+        }
+
+        @if (_inactiveResources?.Count > 0)
+        {
+            <MudStack Class="my-12">
+                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudText Class="mb-4" Typo="Typo.h2">@Localizer["Tools Catalogue"]</MudText>
+                    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+                        <MudTooltip Text="@ResourceWhitelistButtonTooltip" RootClass="mx-4" Placement="Placement.Bottom"
+                                    Arrow="true">
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-2" Href="@WhitelistUrl">
+                                @Localizer[ResourceWhitelistButtonText]
+                            </MudButton>
+                        </MudTooltip>
+                    </DatahubAuthView>
+                </MudStack>
+                @if (_isLoading)
+                {
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+                }
+                else
+                {
+                    <MudElement HtmlTag="div" class="@_toolContainerClass">
+                        @foreach (var resource in _inactiveResources)
+                        {
+                            <DynamicComponent Parameters="resource.parameters" Type="resource.type"/>
+                        }
+                    </MudElement>
+                }
+            </MudStack>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <MudStack>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+                <MudStack>
+                        <MudText Class="mt-2 mb-6" Typo="Typo.h2">@Localizer["Shared Content"]</MudText>
+                    @if (_projectRepositories != null && _projectRepositories.Any())
                     {
-                        <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+                        @foreach (var projectRepository in _projectRepositories)
+                        {
+                            <RepositoryCard ProjectRepository="@projectRepository"/>
+                        }
                     }
                     else
                     {
-                        <MudElement HtmlTag="div" class="@_toolContainerClass">
-                            @foreach (var resource in _inactiveResources)
-                            {
-                                <DynamicComponent Parameters="resource.parameters" Type="resource.type"/>
-                            }
-                        </MudElement>
+                        <MudText Typo="Typo.body1">@Localizer["No shared content available."]</MudText>
+                        <MudText Typo="Typo.body1">@Localizer["Please contact the workspace administrators for access or to share repositories."]</MudText>
                     }
                 </MudStack>
-            }
-        </Authorized>
-    </ProjectMemberBlock>
-</div>
+            </DatahubAuthView>
+        </MudStack>
+    </NotAuthorized>
+</DatahubAuthView>
 
 @code {
 
-    [CascadingParameter(Name = "Project")]
-    private Datahub_Project Project { get; set; }
-
-    [CascadingParameter(Name = "IsDatahubAdmin")]
-    private bool IsDatahubAdmin { get; set; }
+    [CascadingParameter(Name = "ProjectAcronym")]
+    private string ProjectAcronym { get; set; }
 
     private bool _isLoading = true;
-    private bool _isDense = false;
-    private System.Security.Claims.ClaimsPrincipal _user;
-    private Microsoft.Graph.User _graphUser;
-
-    private string ProjectAcronym => Project?.Project_Acronym_CD;
     private string WhitelistUrl => $"{_datahubPortalConfiguration.ProjectUrlSegment}/{ProjectAcronym}/whitelist";
 
     private List<Project_Resources2> _projectDatabaseResources = new();
-
-    private bool _isProjectUserPendingApproval;
-    private bool _isProjectAdmin = false;
+    private List<ProjectRepository> _projectRepositories = new();
 
     private List<(Type type, IDictionary<string, object> parameters)> _activeResources;
-    private List<(Type type, IDictionary<string, object> parameters)> _inactiveResources;   
+    private List<(Type type, IDictionary<string, object> parameters)> _inactiveResources;
     private string _toolContainerClass;
 
-    private const string ResourceWhitelistButtonText = "Edit Available Resources";
-    private const string ResourceWhitelistButtonTooltip = "Whitelist resources for this workspace (Only available to Datahub Admins)";
+        private const string ResourceWhitelistButtonText = "Edit Available Resources";
+        private const string ResourceWhitelistButtonTooltip = "Whitelist resources for this workspace (Only available to Datahub Admins)";
 
     private void ReloadPage()
     {
-        NavigationManager.NavigateTo(NavigationManager.Uri,true);
+        NavigationManager.NavigateTo(NavigationManager.Uri, true);
     }
 
     protected override void OnInitialized()
@@ -145,85 +134,21 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (string.IsNullOrWhiteSpace(ProjectAcronym))
+        {
+            throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
+        }
+
+        await base.OnInitializedAsync();
+
+        _projectRepositories = await _databricksApiService.ListDisplayedWorkspaceRepositoriesAsync(ProjectAcronym);
+
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        var user = await _userInformationService.GetCurrentGraphUserAsync();
-
-
-        _user = await _userInformationService.GetAuthenticatedUser();
-
-        _graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-
-        _isProjectAdmin = await _userInformationService.IsUserProjectAdmin(Project.Project_Acronym_CD);
-
-        _isProjectUserPendingApproval = projectDbContext.Project_Users_Requests
-            .Any(u => u.User_ID == _graphUser.Id && Project == u.Project && u.Approved_DT == null);
-
-
-        var _serviceRequests = await projectDbContext.Project_Requests.Where(p => p.Project == Project).ToListAsync();
-
-        var isPowerBiActiveForNonAdmin = !string.IsNullOrEmpty(Project.PowerBI_URL) ||
-                                         _serviceRequests.Any(r => r.ServiceType == IRequestManagementService.POWERBI && r.Is_Completed.HasValue);
-
-    //_canViewPowerBi = isUserAdmin || isPowerBiActiveForNonAdmin || IsDatahubAdmin;
-
-        var allProjectResources = await projectDbContext.Project_Resources2.Where(r => r.Project == Project).ToListAsync();
-
-        _projectDatabaseResources = allProjectResources
-            .Where(r => r.ResourceType == IRequestManagementService.POSTGRESQL || r.ResourceType == IRequestManagementService.SQLSERVER)
-            .ToList();
-
-        var allResources = await ProjectResourcesListingService.GetResourcesForProject(Project);
+        var allResources = await ProjectResourcesListingService.GetResourcesForProject(ProjectAcronym);
         _activeResources = allResources.SelectMany(a => a.GetActiveResources()).ToList();
         _inactiveResources = allResources.Select(a => a.GetInactiveResource()).Where(a => a != null).Select(a => a.Value).ToList();
         _isLoading = false;
-    }
-
-    private async Task RequestProjectAccess()
-    {
-        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-
-        projectContext.Attach(Project);
-
-        var request = new Datahub_Project_User_Request()
-        {
-            User_ID = _graphUser.Id,
-            Project = Project,
-            Requested_DT = DateTime.Now
-        };
-
-        projectContext.Project_Users_Requests.Add(request);
-        await projectContext.TrackSaveChangesAsync(auditingService);
-
-        var admins = await GetProjectAdministratorEmailsAndIds();
-
-        await _emailNotificationService.SendServiceAccessRequestNotification(_graphUser.DisplayName, "project", Project.ProjectInfo, admins);
-
-        _isProjectUserPendingApproval = true;
-    }
-
-    private async Task<List<string>> GetProjectAdministratorEmailsAndIds()
-    {
-        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-        projectContext.Attach(Project);
-        var loadUsersTask = projectContext
-            .Entry(Project)
-            .Collection(p => p.Users)
-            .LoadAsync();
-
-        await loadUsersTask;
-
-        var adminUsers = Project.Users
-            .Where(u => u.IsAdmin)
-            .Select(u => u.User_ID)
-            .ToList();
-
-        return adminUsers;
-    }
-
-    private void ToggleDense(bool isDense)
-    {
-        _isDense = isDense;
     }
 
 }
