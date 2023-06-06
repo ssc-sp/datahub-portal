@@ -70,6 +70,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<Announcement> Announcements { get; set; }
     
     public DbSet<ProjectRepository> ProjectRepositories { get; set; }
+    
+    public DbSet<Project_Role> Project_Roles { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
