@@ -1,0 +1,59 @@
+@using Datahub.Application.Services.Notebooks
+@using Datahub.Core.Data.Databricks
+@using Datahub.Portal.Pages.Project.DataProject
+@using Microsoft.Identity.Web
+@using Microsoft.Rest
+
+@inject IDatabricksApiService _databricksApiService
+@inject ITokenAcquisition _tokenAcquisition
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+
+
+@page "/w/{ProjectAcronymParam}/repository"
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronymParam">
+    <MudStack>
+        <ProjectInfo ProjectAcronym="@ProjectAcronymParam"/>
+        <MudText Class="mt-2 mb-4" Typo="Typo.h2">@Localizer["Workspace Repositories"]</MudText>
+
+        <MudGrid>
+            @foreach (var repositoryInfo in _repositoryInfos)
+            {
+                <RepositoryGridItem RepositoryInfoDto="@repositoryInfo" ProjectAcronym="@ProjectAcronymParam"/>
+            }
+        </MudGrid>
+    </MudStack>
+</DatahubAuthView>
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronymParam { get; set; }
+
+    private List<RepositoryInfoDto> _repositoryInfos = new();
+
+    private static readonly string[] DatabricksScopes = {
+        "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/user_impersonation"
+    };
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        
+        try
+        {
+            var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(DatabricksScopes);
+            _repositoryInfos = await _databricksApiService.ListWorkspaceRepositoriesAsync(ProjectAcronymParam, accessToken);
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e)
+        {
+            // token's expired, or consent is needed
+            _consentHandler.HandleException(e);
+        }
+        catch (HttpOperationException)
+        {
+            // something else went wrong
+            throw new UnauthorizedAccessException();
+        }
+    }
+}
