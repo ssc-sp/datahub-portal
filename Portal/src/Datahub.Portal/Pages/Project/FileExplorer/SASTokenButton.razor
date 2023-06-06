@@ -61,13 +61,14 @@
             if (UseUploadCode)
             {
                 _token = CredentialEncoder.EncodeCredentials(new UploadCredentials() { SASToken = uri.ToString(), SASTokenExpiry = DateTimeOffset.Now.AddDays(ExpiryDays), WorkspaceCode = ProjectAcronym });
+                await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> { (ResourceSubstitutions.DesktopCode, _token) });
             }
             else
             {
                 _token = uri.ToString();
+                await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> { (ResourceSubstitutions.SasUri, _token) });
             }
 
-            await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> {(ResourceSubstitutions.SasUri, _token)});
         }
         else
         {
