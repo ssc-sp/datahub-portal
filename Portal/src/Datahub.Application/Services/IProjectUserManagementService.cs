@@ -1,5 +1,6 @@
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Data.Project;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.Application.Services;
 

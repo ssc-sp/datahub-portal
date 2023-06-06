@@ -1,6 +1,7 @@
 using System.Net;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Metadata;

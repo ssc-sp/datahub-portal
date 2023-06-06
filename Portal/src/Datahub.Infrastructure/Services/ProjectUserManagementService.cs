@@ -2,6 +2,7 @@ using System.Transactions;
 using Datahub.Application.Services;
 using Datahub.Core.Data.Project;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.Security;

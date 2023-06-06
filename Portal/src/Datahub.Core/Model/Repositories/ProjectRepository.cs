@@ -1,5 +1,4 @@
-using Datahub.Core.Data.Databricks;
-using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Model.Repositories;
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Datahub.Core.Model.Datahub;
+namespace Datahub.Core.Model.Projects;
 
 public class Project_Credits
 {

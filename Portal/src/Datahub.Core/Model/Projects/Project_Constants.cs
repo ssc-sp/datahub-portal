@@ -1,7 +1,7 @@
-﻿using Datahub.Core.Data;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Datahub.Core.Data;
 
-namespace Datahub.Core.Model.Datahub
+namespace Datahub.Core.Model.Projects
 {
     public class Project_Constants
     {

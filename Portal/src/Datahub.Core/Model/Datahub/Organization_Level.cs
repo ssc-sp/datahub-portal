@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Model.Datahub;
 

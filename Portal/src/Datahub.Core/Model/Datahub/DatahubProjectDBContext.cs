@@ -1,6 +1,7 @@
 ﻿using Datahub.Core.Data;
 using Datahub.Core.Model.Announcements;
 using Datahub.Core.Model.Onboarding;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
