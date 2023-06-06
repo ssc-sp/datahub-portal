@@ -159,7 +159,10 @@ public partial class FileExplorer
             BrowserFile = browserFile
         };
 
-        _uploadingFiles.Add(fileMetadata);
+        lock (this)
+        {
+            _uploadingFiles.Add(fileMetadata);
+        }                
 
         _ = InvokeAsync(async () =>
         {
@@ -169,7 +172,15 @@ public partial class FileExplorer
                 _ = InvokeAsync(StateHasChanged);
             });
 
-            _uploadingFiles.Remove(fileMetadata);
+            lock (this)
+            {
+                _uploadingFiles.Remove(fileMetadata);
+                if (!_uploadingFiles.Any())
+                {
+                    _uploadingFiles = new();
+                }
+            }
+
             if (folder == _currentFolder)
             {
                 if (succeeded)
@@ -182,10 +193,8 @@ public partial class FileExplorer
                 }
             }
 
-            StateHasChanged();
-        });
-
-        StateHasChanged();
+            await InvokeAsync(StateHasChanged);
+        });        
     }
 
     private async Task HandleFileDownload(string filename)
@@ -227,7 +236,11 @@ public partial class FileExplorer
         {
             await UploadFile(browserFile, folderName);
         }
+
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserUploadFile);
+
+        // refresh ui
+        await InvokeAsync(StateHasChanged);
     }
 
     private void HandleFileSelectionClick(string filename)

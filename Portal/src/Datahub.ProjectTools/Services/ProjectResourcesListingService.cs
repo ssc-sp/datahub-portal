@@ -20,12 +20,12 @@ public static class ProjectResourcesListingServiceExtensions
 
 public class ProjectResourcesListingService
 {
-    private readonly IServiceProvider serviceProvider;
-    private readonly IUserInformationService userInformationService;
-    private readonly GitHubToolsService githubToolsService;
-    private readonly IOptions<DataProjectsConfiguration> configuration;
-    private readonly IDbContextFactory<DatahubProjectDBContext> dbFactoryProject;
-    private readonly ILogger<ProjectResourcesListingService> logger;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IUserInformationService _userInformationService;
+    private readonly GitHubToolsService _githubToolsService;
+    private readonly IOptions<DataProjectsConfiguration> _configuration;
+    private readonly IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject;
+    private readonly ILogger<ProjectResourcesListingService> _logger;
 
     public ProjectResourcesListingService(IServiceProvider serviceProvider,
         IUserInformationService userInformationService,
@@ -34,18 +34,16 @@ public class ProjectResourcesListingService
         ILogger<ProjectResourcesListingService> logger,
         IDbContextFactory<DatahubProjectDBContext> dbFactoryProject)
     {
-        this.serviceProvider = serviceProvider;
-        this.userInformationService = userInformationService;
-        this.githubToolsService = githubToolsService;
-        this.configuration = configuration;
-        this.dbFactoryProject = dbFactoryProject;
-        this.logger = logger;
+        _serviceProvider = serviceProvider;
+        _userInformationService = userInformationService;
+        _githubToolsService = githubToolsService;
+        _configuration = configuration;
+        _dbFactoryProject = dbFactoryProject;
+        _logger = logger;
     }
 
-    private static Type[] ResourceProviders = new[]
-    {
+    private static readonly Type[] ResourceProviders = {
         typeof(DHPublicSharing)
-            
     }; 
 
     public static void RegisterResources(IServiceCollection services)
@@ -55,62 +53,63 @@ public class ProjectResourcesListingService
         services.AddTransient<ServiceCatalogGitModuleResource>();
     }
 
-    public async Task<List<IProjectResource>> GetResourcesForProject(Datahub_Project project)
+    public async Task<List<IProjectResource>> GetResourcesForProject(string projectAcronym)
     {
-        using var ctx = dbFactoryProject.CreateDbContext();
+        await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
         //load requests for project
-        ctx.Attach(project);
-        await ctx.Entry(project)
-            .Collection(b => b.ServiceRequests)
-            .LoadAsync();
+        
+        var project = await ctx.Projects
+            .Include(p => p.ServiceRequests)
+            .Include(p => p.Resources)
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
 
-        await ctx.Entry(project)
-            .Collection(b => b.Resources)
-            .LoadAsync();
+        if (project == null)
+        {
+            _logger.LogError("Project {ProjectAcronym} not found", projectAcronym);
+            return new List<IProjectResource>();
+        }
 
         var services = new ServiceCollection();
 
-        using var serviceScope = serviceProvider.CreateScope();
-        var authUser = await userInformationService.GetAuthenticatedUser();
+        using var serviceScope = _serviceProvider.CreateScope();
+        var authUser = await _userInformationService.GetAuthenticatedUser();
         var output = new List<IProjectResource>();
-        var isUserAdmin = await userInformationService.IsUserProjectAdmin(project.Project_Acronym_CD);
-        var isUserDHAdmin = await userInformationService.IsUserDatahubAdmin();
+        var isUserAdmin = await _userInformationService.IsUserProjectAdmin(project.Project_Acronym_CD);
+        var isUserDHAdmin = await _userInformationService.IsUserDatahubAdmin();
 
-        var allResourceProviders = GetAllResourceProviders(configuration.Value);
+        var allResourceProviders = GetAllResourceProviders(_configuration.Value);
 
         foreach (var item in allResourceProviders)
         {
-            logger.LogDebug($"Configuring {item.Name} in project {project.Project_ID} ({project.Project_Name})");
+            _logger.LogDebug("Configuring {ItemName} in project {ProjectProjectId} ({ProjectProjectName})", item.Name, project.Project_ID, project.Project_Name);
             try
             {
-                var dhResource = serviceScope.ServiceProvider.GetRequiredService(item) as IProjectResource;
-                if (dhResource != null)
+                if (serviceScope.ServiceProvider.GetRequiredService(item) is IProjectResource dhResource)
                 {
-                    await dhResource.InitializeAsync(project, await userInformationService.GetUserIdString(),
-                        await userInformationService.GetCurrentGraphUserAsync(), isUserAdmin || isUserDHAdmin);
+                    await dhResource.InitializeAsync(project, await _userInformationService.GetUserIdString(),
+                        await _userInformationService.GetCurrentGraphUserAsync(), isUserAdmin || isUserDHAdmin);
                     output.Add(dhResource);
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex,
-                    $"Error configuring {item.Name} in project {project.Project_ID} ({project.Project_Name})");
+                _logger.LogError(ex, "Error configuring {ItemName} in project {ProjectProjectId} ({ProjectProjectName})", item.Name, project.Project_ID, project.Project_Name);
             }
         }
 
-        logger.LogTrace($"Git module repository enabled:{configuration.Value.EnableGitModuleRepository}");
-        if (configuration.Value.EnableGitModuleRepository)
+        _logger.LogTrace("Git module repository enabled:{ValueEnableGitModuleRepository}", _configuration.Value.EnableGitModuleRepository);
+        if (_configuration.Value.EnableGitModuleRepository)
         {
             try
             {
-                var githubModules = await githubToolsService.GetAllModules();
+                var githubModules = await _githubToolsService.GetAllModules();
                 foreach (var item in githubModules)
                 {
-                    logger.LogDebug($"Configuring {item.Name} in project {project.Project_ID} ({project.Project_Name})");
+                    _logger.LogDebug($"Configuring {item.Name} in project {project.Project_ID} ({project.Project_Name})");
                     var gitModule = serviceScope.ServiceProvider.GetRequiredService<ServiceCatalogGitModuleResource>();
                     gitModule.ConfigureGitModule(item);
-                    await gitModule.InitializeAsync(project, await userInformationService.GetUserIdString(),
-                        await userInformationService.GetCurrentGraphUserAsync(), isUserAdmin || isUserDHAdmin);
+                    await gitModule.InitializeAsync(project, await _userInformationService.GetUserIdString(),
+                        await _userInformationService.GetCurrentGraphUserAsync(), isUserAdmin || isUserDHAdmin);
                     output.Add(gitModule);
                 }
             }
