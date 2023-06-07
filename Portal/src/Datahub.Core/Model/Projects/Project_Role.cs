@@ -57,10 +57,10 @@ public class Project_Role
 
     public enum RoleNames
     {
-        Remove = 0, // default is used in the UI to remove a user from a project
-        WorkspaceLead = 1,
-        Admin = 2,
-        Collaborator = 3,
-        Guest = 4
+        Remove = 1, // default is used in the UI to remove a user from a project
+        WorkspaceLead = 2,
+        Admin = 3,
+        Collaborator = 4,
+        Guest = 5
     }
 }
