@@ -182,12 +182,11 @@ public class RequestManagementService : IRequestManagementService
             .Include(p => p.Users)
             .FirstAsync(p => p.Project_ID == projectId);
 
-
         var adminEmails = ServiceAuthManager.ExtractEmails(project.Project_Admin ?? string.Empty);
 
         var adminUsers = project.Users
-            .Where(u => u.IsAdmin)
-            .Select(u => u.User_ID);
+            .Where(u => u.Role.IsAdmin) 
+            .Select(u => u.PortalUser.Email);
 
         return adminEmails
             .Concat(adminUsers)
@@ -282,12 +281,13 @@ public class RequestManagementService : IRequestManagementService
 
     private static Role GetTerraformUserRole(Datahub_Project_User projectUser)
     {
-        if (projectUser.IsDataApprover)
+        return projectUser.RoleId switch
         {
-            return Role.Owner;
-        }
-
-        return projectUser.IsAdmin ? Role.Admin : Role.User;
+            (int)Project_Role.RoleNames.WorkspaceLead => Role.Owner,
+            (int)Project_Role.RoleNames.Admin => Role.Admin,
+            (int)Project_Role.RoleNames.Collaborator => Role.User,
+            _ => Role.Guest
+        };
     }
 
     public static FieldValueContainer BuildFieldValues(FieldDefinitions fieldDefinitions,

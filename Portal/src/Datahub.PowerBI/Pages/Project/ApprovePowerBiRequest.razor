@@ -422,7 +422,7 @@
         var usersToAssign = await Task.WhenAll(users.Select(async u =>
         {
             var userEmail = await _msGraphService.GetUserEmail(u.User_ID, default);
-            return new PowerBiAdminGroupUser(userEmail, u.IsAdmin);
+            return new PowerBiAdminGroupUser(userEmail, u.Role.IsAdmin);
         }));
 
         var globalAdmins = (await _powerBiDataService.GetGlobalPowerBiAdmins()).Select(e => new PowerBiAdminGroupUser(e, true));

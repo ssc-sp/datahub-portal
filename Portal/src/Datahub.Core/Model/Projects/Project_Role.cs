@@ -9,6 +9,18 @@ public class Project_Role
     public int Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
+    
+    /// <summary>
+    /// This should be used to determine if the user is an admin or not.
+    /// Note: If you are looking to show or hide UI elements off this, use the "DatahubAuthView" instead.
+    /// </summary>
+    public bool IsAdmin => Id is (int)RoleNames.Admin or (int)RoleNames.WorkspaceLead;
+    
+    /// <summary>
+    /// This should be used to determine if the user is a collaborator or not.
+    /// Note: If you are looking to show or hide UI elements off this, use the "DatahubAuthView" instead.
+    /// </summary>
+    public bool IsCollaborator => Id is (int)RoleNames.Admin or (int)RoleNames.WorkspaceLead or (int)RoleNames.Collaborator;
 
     public static IEnumerable<Project_Role> GetAll() => _roles.Value;
 
