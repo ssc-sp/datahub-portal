@@ -216,9 +216,9 @@
                     BudgetLimit = p.Project_Budget ?? 0,
                     BudgetSpent = p.Credits?.Current ?? 0,
                     CostOfLastXDays = GetLastXDaysOfCosts(p.Credits, numberOfDays),
-                    Leads = p.Users?.Where(u => u.IsAdmin && u.IsDataApprover).Select(u => u.User_Name).ToList(),
-                    Admins = p.Users?.Where(u => u.IsAdmin && !u.IsDataApprover).Select(u => u.User_Name).ToList(),
-                    Collaborators = p.Users?.Where(u => !u.IsAdmin).Select(u => u.User_Name).ToList(),
+                    Leads = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.WorkspaceLead).Select(u => u.User_Name).ToList(),
+                    Admins = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Admin).Select(u => u.User_Name).ToList(),
+                    Collaborators = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Collaborator).Select(u => u.User_Name).ToList(),
                     StorageStatus = p.ServiceRequests?
                         .Where(sr => sr.ServiceType.Contains(TerraformTemplate.AzureStorageBlob))
                         .Select(sr => sr.Is_Completed.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)

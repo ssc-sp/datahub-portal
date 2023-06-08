@@ -189,6 +189,11 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult(true);
     }
 
+    public Task CreatePortalUserAsync(string userGraphId)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<PortalUser> GetAuthenticatedPortalUser()
     {
         return Task.FromResult(new PortalUser(){GraphGuid = AnonymousUser.Id});

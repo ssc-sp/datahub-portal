@@ -25,8 +25,7 @@ public class RoleClaimTransformer : IClaimsTransformation
     {
         try
         {
-            var userName = principal.Identity.Name;
-            var userId = principal.Claims.First(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+            var userId = principal?.Claims.First(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
             if (userId is null)
             {
                 logger.LogCritical("user uid not available in claims");

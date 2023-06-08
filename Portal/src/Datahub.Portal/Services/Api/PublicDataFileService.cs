@@ -370,7 +370,7 @@ public class PublicDataFileService : IPublicDataFileService
         var projectUserEntries = await _projectDbContext.Project_Users
             .Where(p => p.Project.Project_Acronym_CD == projectCode && p.User_ID == userId)
             .ToListAsync();
-        return projectUserEntries.Any(p => p.IsDataApprover);
+        return projectUserEntries.Any(p => p.Role.IsCollaborator);
     }
 
     public async Task<Datahub_Project> GetProjectWithUsers(string projectCode)

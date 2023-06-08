@@ -494,12 +494,12 @@ public class PowerBiDataService : IPowerBiDataService
 
     private async Task<IEnumerable<string>> GetProjectAdmins(int projectId)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
         var projectUsers = await ctx.Project_Users
-            .Where(u => u.Project.Project_ID == projectId && u.IsAdmin)
+            .Where(u => u.Project.Project_ID == projectId && u.Role.IsAdmin)
             .ToListAsync();
 
-        return projectUsers.Select(u => u.User_ID);
+        return projectUsers.Select(u => u.PortalUser.GraphGuid);
     }
 
     public async Task NotifyOfMissingReport(Guid reportId, string userEmail)

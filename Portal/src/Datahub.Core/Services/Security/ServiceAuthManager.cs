@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Datahub.Core.Data.Project;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services.UserManagement;
@@ -86,57 +85,6 @@ public class ServiceAuthManager
         var split = emailList.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(email => email.Trim()).ToArray();
         return split.Select(b => ExtractEmail(b)?.ToLowerInvariant()).Where(b => b != null).ToList();
     }
-
-    // TODO: Align this with PortalUsers instead of pinging MSGraph
-    public async Task<List<ProjectMember>> GetProjectMembers(string projectAcronym)
-    {
-        await using var ctx = await dbFactory.CreateDbContextAsync();
-
-        var project = await ctx.Projects
-            .FirstAsync(p => p.Project_Acronym_CD.ToLower() == projectAcronym.ToLower());
-
-        var users = await ctx.Project_Users
-            .Where(u => u.Project == project)
-            .ToListAsync();
-
-        var result = new List<ProjectMember>();
-        foreach (var user in users)
-        {
-            var username = await mSGraphService.GetUserName(user.User_ID, CancellationToken.None);
-
-            result.Add(new ProjectMember(user)
-            {
-                Name = username
-            });
-        }
-        return result;
-    }
-    
-    public async Task<List<ProjectMember>> GetProjectAdmins(string projectAcronym)
-    {
-        await using var ctx = await dbFactory.CreateDbContextAsync();
-
-        var project = await ctx.Projects
-            .FirstAsync(p => p.Project_Acronym_CD.ToLower() == projectAcronym.ToLower());
-
-        var users = await ctx.Project_Users
-            .Where(u => u.Project == project)
-            .Where(u => u.IsAdmin)
-            .ToListAsync();
-
-        var result = new List<ProjectMember>();
-        foreach (var user in users)
-        {
-            var username = await mSGraphService.GetUserName(user.User_ID, CancellationToken.None);
-
-            result.Add(new ProjectMember(user)
-            {
-                Name = username
-            });
-        }
-        return result;
-    }
-
     public bool InvalidateAuthCache()
     {
         var cache = serviceAuthCache as MemoryCache;
@@ -168,9 +116,14 @@ public class ServiceAuthManager
     public List<string> GetProjectAdminsEmails(string projectAcronym)
     {
         using var ctx = dbFactory.CreateDbContext();
-        var project = ctx.Projects.Where(p => p.Project_Acronym_CD.ToLower() == projectAcronym.ToLower()).First();
 
-        return ctx.Project_Users.Where(a => a.Project == project && a.IsAdmin && !string.IsNullOrEmpty(a.User_Name)).Select(f => f.User_Name).ToList();
+        return ctx.Project_Users
+            .Where(a => 
+                a.Project.Project_Acronym_CD == projectAcronym 
+                && (a.RoleId == (int) Project_Role.RoleNames.Admin || a.RoleId == (int) Project_Role.RoleNames.WorkspaceLead)  
+                && !string.IsNullOrEmpty(a.PortalUser.Email))
+            .Select(f => f.PortalUser.Email)
+            .ToList();
     }
 
     public List<string> GetProjectMailboxEmails(string projectAcronym)
@@ -194,19 +147,26 @@ public class ServiceAuthManager
         if (!serviceAuthCache.TryGetValue(PROJECT_ADMIN_KEY, out allProjectAdmins))
         {
             allProjectAdmins = new Dictionary<string, List<string>>();
-            using var ctx = dbFactory.CreateDbContext();
+            await using var ctx = await dbFactory.CreateDbContextAsync();
 
-            var adminsFromProjectUsersTable = await ctx.Project_Users.Include(a => a.Project).Where(u => u.IsAdmin).ToListAsync();
+            var adminsFromProjectUsersTable = await ctx.Project_Users
+                .AsNoTracking()
+                .Include(a => a.Project)
+                .Include(a => a.PortalUser)
+                .Where(u => 
+                    u.RoleId == (int) Project_Role.RoleNames.Admin 
+                    || u.RoleId == (int) Project_Role.RoleNames.WorkspaceLead)
+                .ToListAsync();
 
             foreach (var admin in adminsFromProjectUsersTable)
             {
-                if (allProjectAdmins.ContainsKey(admin.Project?.Project_Acronym_CD))
+                if (allProjectAdmins.TryGetValue(admin.Project.Project_Acronym_CD, out var projectAdmin))
                 {
-                    allProjectAdmins[admin.Project.Project_Acronym_CD].Add(admin.User_ID);
+                    projectAdmin.Add(admin.PortalUser.GraphGuid);
                 }
                 else
                 {
-                    allProjectAdmins.Add(admin.Project.Project_Acronym_CD, new List<string>() { admin.User_ID });
+                    allProjectAdmins.Add(admin.Project.Project_Acronym_CD, new List<string> { admin.PortalUser.GraphGuid });
                 }
             }
 
@@ -217,15 +177,19 @@ public class ServiceAuthManager
         return allProjectAdmins;
     }
 
-    public async Task<ImmutableList<Datahub_Project>> GetUserAuthorizations(string userId)
+    public async Task<ImmutableList<Datahub_Project>> GetUserAuthorizations(string userGraphId)
     {
         List<Datahub_Project_User> usersAuthorization;
         if (!serviceAuthCache.TryGetValue(AUTH_KEY, out usersAuthorization))
         {
-            using var ctx = dbFactory.CreateDbContext();
+            await using var ctx = await dbFactory.CreateDbContextAsync();
 
 
-            usersAuthorization = await ctx.Project_Users.Include(a => a.Project).ToListAsync();
+            usersAuthorization = await ctx.Project_Users
+                .AsNoTracking()
+                .Include(a => a.Project)
+                .Include(a => a.PortalUser)
+                .ToListAsync();
             //var cacheEntryOptions = new MemoryCacheEntryOptions()
             //                // Set cache entry size by extension method.
             //                .SetSize(1)
@@ -233,7 +197,7 @@ public class ServiceAuthManager
             //                .SetSlidingExpiration(TimeSpan.FromHours(1));
             serviceAuthCache.Set(AUTH_KEY, usersAuthorization, TimeSpan.FromHours(1));
         }
-        return usersAuthorization.Where(a => a.User_ID == userId)
+        return usersAuthorization.Where(a => a.PortalUser.GraphGuid == userGraphId)
             .Select(a => a.Project)
             .Distinct()
             .ToImmutableList();

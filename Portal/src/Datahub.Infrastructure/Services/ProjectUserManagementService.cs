@@ -1,6 +1,7 @@
 using System.Transactions;
+using Datahub.Application.Commands;
 using Datahub.Application.Services;
-using Datahub.Core.Data.Project;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
@@ -44,308 +45,120 @@ public class ProjectUserManagementService : IProjectUserManagementService
         _userEnrollmentService = userEnrollmentService;
         _datahubAuditingService = datahubAuditingService;
     }
-
-    public async Task<IEnumerable<ProjectMember>> BatchUpdateUsersInProject(string projectAcronym, IEnumerable<ProjectMember> projectMembers)
+    
+    public async Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands,
+        List<ProjectUserAddUserCommand> projectUserAddUserCommands)
     {
-        
-        var projectMembersList = projectMembers.ToList();
-        var errorSendingInvites = new List<ProjectMember>();
-        var currentUser = await _userInformationService.GetCurrentGraphUserAsync();
-        var currentUserName = currentUser?.DisplayName ?? currentUser?.UserPrincipalName ?? "";
-        // send invites to users that are not members of Datahub
-        foreach (var member in projectMembersList.Where(member => !member.UserHasBeenInvitedToDatahub && member.Role != ProjectMemberRole.Remove))
-        {
-            try
-            {
-                member.UserId = await _userEnrollmentService.SendUserDatahubPortalInvite(member.Email, currentUserName );
-            }
-            catch (Exception e)
-            {
-                errorSendingInvites.Add(member);
-                _logger.LogError(e, "Error sending invite to user {UserGraphId} for project {ProjectAcronym}", member.UserId, projectAcronym);
-            }
-        }
-        using var scope = new TransactionScope(
-            TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        var project = await context.Projects
-            .Include(p => p.Users)
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-        
-        if (project == null)
-        {
-            _logger.LogError("Project {ProjectAcronym} not found when trying to batch update users {Join}", 
-                projectAcronym, string.Join(", ", projectMembersList.Select(p => p.UserId)));
-            throw new ProjectNotFoundException($"Project {projectAcronym} not found");
-        }
-        // Remove users that are no longer in the project
-        var usersToRemoveFromProject =
-            projectMembersList.Where(p => p.Role == ProjectMemberRole.Remove).ToList();
-        foreach (var user in usersToRemoveFromProject)
-        {
-            await RemoveUserFromProject(context, project, user.UserId);
-        }
-        
-        // Add users that are not already in the project
-        // Except usersToRemove here to handle edge case where user is added to project and then removed in same batch
-        var usersToAddToProject = projectMembersList.Except(usersToRemoveFromProject)
-            .Where(p => project.Users.All(u => u.User_ID != p.UserId)).ToList();
-        foreach (var user in usersToAddToProject)
-        {
-            _logger.LogInformation("Preparing to add user {UserGraphId} to project {ProjectAcronym}", user.UserId,
-                projectAcronym);
-                await AddUserToProject(context, project, user.UserId, user.Role);
 
-        }
-        
-        // Update users that are already in the project
-        var usersToUpdateInProject = projectMembersList.Except(usersToAddToProject).Except(usersToRemoveFromProject).ToList();
-        foreach (var user in usersToUpdateInProject)
-        {
-            await UpdateUserInProject(context, project, user.UserId, user.Role);
-        }
         try
         {
-            
-            await context.TrackSaveChangesAsync(_datahubAuditingService);
-            await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.VariableUpdate);
-            _serviceAuthManager.InvalidateAuthCache();
-            _logger.LogInformation("Terraform variable update request created for project {ProjectAcronym}", projectAcronym);
-            scope.Complete();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error handling Terraform request for project {ProjectAcronym} when preforming batch update", projectAcronym);
-            throw;
-        }
-
-        return errorSendingInvites;
-
-    }
-    
-    
-    public async Task AddUserToProject(string projectAcronym, string userGraphId)
-    {
-        await AddUsersToProject(projectAcronym, new List<string> {userGraphId});
-    }
-    
-    public async Task AddUsersToProject(string projectAcronym, IEnumerable<string> userGraphIds)
-    {
-        using var scope = new TransactionScope(
-            TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        var project = await context.Projects
-            .Include(p => p.Users)
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-        if (project == null)
-        {
-            _logger.LogError("Project {ProjectAcronym} not found when trying to add users {Join}", projectAcronym, string.Join(", ", userGraphIds));
-            throw new ProjectNotFoundException($"Project {projectAcronym} not found");
-        }
-
-        foreach (var userGraphId in userGraphIds)
-        {
-            _logger.LogInformation("Preparing to add user {UserGraphId} to project {ProjectAcronym}", userGraphId,
-                projectAcronym);
-
-            var exists = context.Project_Users
-                .Any(u => u.User_ID == userGraphId && u.Project.Project_ID == project.Project_ID);
-
-            if (exists)
+            if (projectUserAddUserCommands.Any())
             {
-                _logger.LogInformation("User {UserGraphId} already exists in project {ProjectAcronym}", userGraphId,
-                    projectAcronym);
+                await AddNewUsersToProjectAsync(projectUserAddUserCommands);
+            }
+            
+            if(projectUserUpdateCommands.Any())
+            {
+                await UpdateProjectUsersAsync(projectUserUpdateCommands);
+            }
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error updating project users");
+            return false;
+        }
+    }
+
+    private async Task UpdateProjectUsersAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        foreach (var projectUserUpdateCommand in projectUserUpdateCommands)
+        {
+            context.Attach(projectUserUpdateCommand.ProjectUser);
+
+            if (projectUserUpdateCommand.NewRoleId == (int) Project_Role.RoleNames.Remove)
+            {
+                context.Project_Users.Remove(projectUserUpdateCommand.ProjectUser);
             }
             else
             {
-                await AddUserToProject(context, project, userGraphId);
+                projectUserUpdateCommand.ProjectUser.RoleId = projectUserUpdateCommand.NewRoleId;
+                context.Update(projectUserUpdateCommand.ProjectUser);
             }
-        }
-        try
-        {
-            await context.TrackSaveChangesAsync(_datahubAuditingService);
-            await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.VariableUpdate);
-            _serviceAuthManager.InvalidateAuthCache();
-            _logger.LogInformation("Terraform variable update request created for project {ProjectAcronym}", projectAcronym);
             
-            scope.Complete();
+            await context.TrackSaveChangesAsync(_datahubAuditingService);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error handling Terraform request for project {ProjectAcronym}", projectAcronym);
-            throw;
-        }
-        
     }
-    
-    private async Task AddUserToProject(DatahubProjectDBContext context, Datahub_Project project, string userGraphId, ProjectMemberRole role = ProjectMemberRole.Collaborator)
+
+    private async Task AddNewUsersToProjectAsync(List<ProjectUserAddUserCommand> projectUserAddUserCommands)
     {
-        try
+        
+        foreach (var projectUserAddUserCommand in projectUserAddUserCommands)
         {
-                
-            var approvingUser = await _userInformationService.GetUserIdString();
-            _logger.LogInformation(
-                "Adding user {UserGraphId} to project {ProjectAcronym} by user {ApprovingUser}",
-                userGraphId, project.Project_Acronym_CD, approvingUser);
-            var user = await _msGraphService.GetUserAsync(userGraphId);
-            if (string.IsNullOrWhiteSpace(userGraphId)) throw new InvalidOperationException("Cannot add user without user ID");
-            var newProjectUser = new Datahub_Project_User
+            if(projectUserAddUserCommand.RoleId == (int) Project_Role.RoleNames.Remove)
+            {
+                throw new InvalidOperationException("Cannot remove a user that is not already a member of the project");
+            }
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            
+            if (projectUserAddUserCommand.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID)
+            {
+                projectUserAddUserCommand.GraphGuid = await _userEnrollmentService.SendUserDatahubPortalInvite(projectUserAddUserCommand.Email, currentUser.DisplayName);
+                await _userInformationService.CreatePortalUserAsync(projectUserAddUserCommand.GraphGuid);
+            }
+
+            var portalUser = await _userInformationService.GetPortalUserAsync(projectUserAddUserCommand.GraphGuid);
+            
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var project = await context.Projects
+                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym);
+
+            // Verify that the project exists
+            if (project == null)
+            {
+                _logger.LogError("Project {ProjectAcronym} not found", projectUserAddUserCommand.ProjectAcronym);
+                throw new ProjectNotFoundException($"Project {projectUserAddUserCommand.ProjectAcronym} not found");
+            }
+            
+            var projectUser = await context.Project_Users
+                .FirstOrDefaultAsync(u => u.Project.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym 
+                                          && u.PortalUser.GraphGuid == projectUserAddUserCommand.GraphGuid);
+            
+            // Double check that the user is not already a member of the project
+            if (projectUser is not null)
+            {
+                _logger.LogError("User {GraphGuid} is already a member of project {ProjectAcronym}",
+                    projectUserAddUserCommand.GraphGuid, projectUserAddUserCommand.ProjectAcronym);
+                continue;
+            }
+
+            var newProjectUser = new Datahub_Project_User()
             {
                 Project = project,
-                User_ID = userGraphId,
-                User_Name = user.Mail,
-
-                IsAdmin = role is ProjectMemberRole.WorkspaceLead or ProjectMemberRole.Admin,
-                IsDataApprover = role == ProjectMemberRole.WorkspaceLead,
-
-                Approved_DT = DateTime.Now,
-                ApprovedUser = approvingUser
+                PortalUser = portalUser,
+                ApprovedPortalUser = currentUser,
+                Approved_DT = DateTime.UtcNow,
+                RoleId = projectUserAddUserCommand.RoleId,
             };
-
-            context.Project_Users.Add(newProjectUser);
-            _logger.LogInformation("User {UserGraphId} added to project {ProjectAcronym}", userGraphId,
-                project.Project_Acronym_CD);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding user {UserGraphId} to project {ProjectAcronym}", userGraphId,
-                project.Project_Acronym_CD);
-            throw;
-        }
-    }
-    
-    public async Task RemoveUserFromProject(string projectAcronym, string userGraphId)
-    {
-        _logger.LogInformation("Preparing to remove user {UserGraphId} from project {ProjectAcronym}", userGraphId,
-            projectAcronym);
-
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        
-        using var scope = new TransactionScope(
-            TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
-        var project = await context.Projects
-            .Include(p => p.Users)
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-
-        if (project == null)
-        {
-            _logger.LogError("Project {ProjectAcronym} not found when trying to remove user {UserGraphId}",
-                projectAcronym,
-                userGraphId);
-            throw new ProjectNotFoundException($"Project {projectAcronym} not found");
-        }
-
-        try
-        {
-            await RemoveUserFromProject(context, project, userGraphId);
-            await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.VariableUpdate);
-            _logger.LogInformation("Terraform variable update request created for project {ProjectAcronym}", projectAcronym);
-            scope.Complete();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing user {UserGraphId} from project {ProjectAcronym}", userGraphId,
-                projectAcronym);
-            throw;
-        }
-
-    }
-
-    private async Task RemoveUserFromProject(DatahubProjectDBContext context, Datahub_Project project, string userGraphId)
-    {
-        var exists = await context.Project_Users
-            .FirstOrDefaultAsync(u => u.User_ID == userGraphId && u.Project.Project_ID == project.Project_ID);
-
-        if (exists is null)
-        {
-            _logger.LogInformation("User {UserGraphId} does not exist in project {ProjectAcronym}", userGraphId,
-                project.Project_Acronym_CD);
-            return;
-        }
-        context.Project_Users.Remove(exists);
-        await context.TrackSaveChangesAsync(_datahubAuditingService);
-        _logger.LogInformation("User {UserGraphId} removed from project {ProjectAcronym}", userGraphId, project.Project_Acronym_CD);
-    }
-
-    public async Task UpdateUserInProject(string projectAcronym, ProjectMember projectMember)
-    {
-        _logger.LogInformation("Preparing to remove user {UserGraphId} from project {ProjectAcronym}", projectMember.UserId,
-            projectAcronym);
-
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        
-        using var scope = new TransactionScope(
-            TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
-        
-        var project = await context.Projects
-            .Include(p => p.Users)
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-
-        if (project == null)
-        {
-            _logger.LogError("Project {ProjectAcronym} not found when trying to remove user {UserGraphId}",
-                projectAcronym,
-                projectMember.UserId);
-            throw new ProjectNotFoundException($"Project {projectAcronym} not found");
-        }
-        try
-        {
-            await UpdateUserInProject(context, project, projectMember.UserId, projectMember.Role);
+            
+            context.Attach(currentUser);
+            context.Attach(portalUser);
+            
+            await context.Project_Users.AddAsync(newProjectUser);
             await context.TrackSaveChangesAsync(_datahubAuditingService);
-            _logger.LogInformation("User {UserGraphId} removed from project {ProjectAcronym}", projectMember.UserId, projectAcronym);
-            await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.VariableUpdate);
-            _logger.LogInformation("Terraform variable update request created for project {ProjectAcronym}", projectAcronym);
-            scope.Complete();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing user {UserGraphId} from project {ProjectAcronym}", projectMember.UserId,
-                projectAcronym);
-            throw;
         }
     }
 
-    private async Task UpdateUserInProject(DatahubProjectDBContext context, Datahub_Project project, string userGraphId, ProjectMemberRole role)
-    {
-        var exists = await context.Project_Users
-            .FirstOrDefaultAsync(u => u.User_ID == userGraphId && u.Project.Project_ID == project.Project_ID);
-
-        if (exists is null)
-        {
-            _logger.LogInformation("User {UserGraphId} does not exist in project {ProjectAcronym}", userGraphId,
-                project.Project_Acronym_CD);
-            throw new UserNotFoundException($"User {userGraphId} not found in project { project.Project_Acronym_CD}");
-        }
-        if (!ShouldUpdateUser(exists, role))
-        {
-            _logger.LogInformation("User {UserGraphId} already has role {Role} in project {ProjectAcronym}", userGraphId,
-                role, project.Project_Acronym_CD);
-            return;
-        } 
-        exists.IsDataApprover = role == ProjectMemberRole.WorkspaceLead;
-        exists.IsAdmin = exists.IsDataApprover || role == ProjectMemberRole.Admin;
-    }
-
-    public async Task<IEnumerable<Datahub_Project_User>> GetUsersFromProject(string projectAcronym)
+    public async Task<List<Datahub_Project_User>> GetProjectUsersAsync(string projectAcronym)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
         return await context.Project_Users
+            .AsNoTracking()
             .Include(u => u.Project)
+            .Include(u => u.PortalUser)
             .Where(u => u.Project.Project_Acronym_CD == projectAcronym)
             .ToListAsync();
-    }
-
-    private bool ShouldUpdateUser(Datahub_Project_User projectUser, ProjectMemberRole projectMemberRole)
-    {
-        // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault - Remove case is frontend only
-        switch (projectMemberRole)
-        {
-            case ProjectMemberRole.WorkspaceLead when !projectUser.IsDataApprover || !projectUser.IsAdmin:
-            case ProjectMemberRole.Admin when !projectUser.IsAdmin || projectUser.IsDataApprover:
-                return true;
-            case ProjectMemberRole.Collaborator:
-            default:
-                return projectMemberRole == ProjectMemberRole.Collaborator && (projectUser.IsDataApprover || projectUser.IsAdmin);
-        }
     }
 }

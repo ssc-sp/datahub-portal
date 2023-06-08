@@ -126,15 +126,17 @@ public class ProjectCreationService : IProjectCreationService
         await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
         await db.Projects.AddAsync(project);
         if (string.IsNullOrWhiteSpace(user.Id)) throw new InvalidOperationException("Cannot add user without ID");
+        var portalUser = await _userInformationService.GetPortalUserAsync(user.Id);
+        var role = Project_Role.GetAll()
+            .First(r => r.Id == (int)Project_Role.RoleNames.WorkspaceLead);
+            
         var projectUser = new Datahub_Project_User()
         {
-            User_ID = user.Id,
+            PortalUser = portalUser,
             Approved_DT = DateTime.Now,
-            ApprovedUser = user.Id,
-            IsAdmin = true,
-            IsDataApprover = true,
+            ApprovedPortalUser = portalUser,
             Project = project,
-            User_Name = user.Mail
+            Role = role
         };
         await db.Project_Users.AddAsync(projectUser);
         await db.TrackSaveChangesAsync(_auditingService);
