@@ -125,6 +125,8 @@ public class ProjectUserManagementServiceTests
         Assert.That(result, Is.True);
     }
 
+    #region ProjectUserAddUserCommand
+    
     [Test]
     [TestCase((int)Project_Role.RoleNames.WorkspaceLead)]
     [TestCase((int)Project_Role.RoleNames.Admin)]
@@ -263,7 +265,78 @@ public class ProjectUserManagementServiceTests
 
         Assert.That(result, Is.False);
     }
+    #endregion
 
+    #region ProjectUserUpdateCommand
+
+    [Test]
+    [TestCase((int)Project_Role.RoleNames.WorkspaceLead)]
+    [TestCase((int)Project_Role.RoleNames.Admin)]
+    [TestCase((int)Project_Role.RoleNames.Collaborator)]
+    [TestCase((int)Project_Role.RoleNames.Guest)]
+    [TestCase((int)Project_Role.RoleNames.Remove)]
+    public async Task ShouldProcessUpdateUserCommandTest(int roleId)
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+
+        var existingProjectUser = await _dbContext.Project_Users
+            .AsNoTracking()
+            .Include(u => u.Project)
+            .Include(u => u.PortalUser)
+            .FirstAsync(u => u.RoleId != roleId);
+
+        var command = new ProjectUserUpdateCommand
+        {
+            ProjectUser = existingProjectUser,
+            NewRoleId = roleId,
+        };
+
+        var result =
+            await projectUserManagementService.ProcessProjectUserCommandsAsync(
+                new List<ProjectUserUpdateCommand>(){command },
+                new List<ProjectUserAddUserCommand>());
+
+        Assert.That(result, Is.True);
+
+        if (roleId == (int)Project_Role.RoleNames.Remove)
+        {
+            // double check that the project user is gone
+            var projectUser = await _dbContext.Project_Users
+                .AsNoTracking()
+                .Include(u => u.PortalUser)
+                .FirstOrDefaultAsync(u => u.PortalUser.GraphGuid == existingProjectUser.PortalUser.GraphGuid);
+            
+            Assert.That(projectUser, Is.Null);
+        }
+    }
+
+    #endregion
+
+
+    #region GetProjectUsersAsync
+
+    [Test]
+    public async Task ShouldGetProjectUsersAsync()
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+
+        var seededProjectUsers = await _dbContext.Project_Users
+            .AsNoTracking()
+            .Include(u => u.Project)
+            .Include(u => u.PortalUser)
+            .ToListAsync();
+
+        foreach (var seededProject in seededProjectUsers.Select(u => u.Project).Distinct())
+        {
+            var projectUsers = await projectUserManagementService.GetProjectUsersAsync(seededProject.Project_Acronym_CD);
+            
+            Assert.That(projectUsers, Is.Not.Null);
+            Assert.That(projectUsers, Has.Count.EqualTo(seededProjectUsers.Count(u => u.Project.Project_Acronym_CD == seededProject.Project_Acronym_CD)));
+        }
+    }
+
+    #endregion
+    
     //
     // [Test]
     // public async Task ShouldAddUserToProject()
