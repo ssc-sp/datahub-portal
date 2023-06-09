@@ -1434,19 +1434,22 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProjectUser_ID"));
 
+                    b.Property<int>("ApprovedPortalUserId")
+                        .HasColumnType("int");
+
                     b.Property<string>("ApprovedUser")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Approved_DT")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsAdmin")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDataApprover")
-                        .HasColumnType("bit");
+                    b.Property<int>("PortalUserId")
+                        .HasColumnType("int");
 
                     b.Property<int?>("Project_ID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoleId")
                         .HasColumnType("int");
 
                     b.Property<byte[]>("Timestamp")
@@ -1464,7 +1467,13 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasKey("ProjectUser_ID");
 
+                    b.HasIndex("ApprovedPortalUserId");
+
+                    b.HasIndex("PortalUserId");
+
                     b.HasIndex("Project_ID");
+
+                    b.HasIndex("RoleId");
 
                     b.ToTable("Project_Users");
                 });
@@ -2018,11 +2027,35 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_User", b =>
                 {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "ApprovedPortalUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovedPortalUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "PortalUser")
+                        .WithMany()
+                        .HasForeignKey("PortalUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
                         .WithMany("Users")
                         .HasForeignKey("Project_ID");
 
+                    b.HasOne("Datahub.Core.Model.Projects.Project_Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApprovedPortalUser");
+
+                    b.Navigation("PortalUser");
+
                     b.Navigation("Project");
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_User_Request", b =>

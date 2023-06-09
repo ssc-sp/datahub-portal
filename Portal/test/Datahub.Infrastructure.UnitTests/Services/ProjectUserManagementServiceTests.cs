@@ -123,6 +123,9 @@ public class ProjectUserManagementServiceTests
                 new List<ProjectUserAddUserCommand>());
 
         Assert.That(result, Is.True);
+        
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Never);
     }
 
     #region ProjectUserAddUserCommand
@@ -135,6 +138,9 @@ public class ProjectUserManagementServiceTests
     [TestCase((int)Project_Role.RoleNames.Remove)]
     public async Task ShouldProcessAddExistingUserCommandTest(int roleId)
     {
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Never);
+        
         var projectUserManagementService = GetProjectUserManagementService();
 
         var existingProjectUser = await _dbContext.Project_Users
@@ -161,9 +167,18 @@ public class ProjectUserManagementServiceTests
                 new List<ProjectUserAddUserCommand> { command });
 
         if (roleId == (int)Project_Role.RoleNames.Remove)
+        {
             Assert.That(result, Is.False);
+            _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Never);
+        }
         else
+        {
             Assert.That(result, Is.True);
+            _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Once);
+        }
+        
     }
 
     [Test]
@@ -171,7 +186,10 @@ public class ProjectUserManagementServiceTests
     {
         var projectUserManagementService = GetProjectUserManagementService();
 
-        const string email = "new@email.com";
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Never);
+        _mockUserEnrollmentService.Verify(f => f.SendUserDatahubPortalInvite(It.IsAny<string?>(), It.IsAny<string?>()),
+            Times.Never);
 
         var firstProject = await _dbContext.Projects.FirstAsync();
 
@@ -193,6 +211,8 @@ public class ProjectUserManagementServiceTests
 
         _mockUserEnrollmentService.Verify(f => f.SendUserDatahubPortalInvite(It.IsAny<string?>(), It.IsAny<string?>()),
             Times.Once);
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Once);
 
         var projectUser = _dbContext.Project_Users
             .Include(u => u.Project)
@@ -211,6 +231,9 @@ public class ProjectUserManagementServiceTests
     public async Task ShouldFailIfProjectDoesNotExist()
     {
         var projectUserManagementService = GetProjectUserManagementService();
+        
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Never);
 
         var existingProjectUser = await _dbContext.Project_Users
             .AsNoTracking()
@@ -233,12 +256,17 @@ public class ProjectUserManagementServiceTests
                 new List<ProjectUserAddUserCommand> { command });
 
         Assert.That(result, Is.False);
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Never);
     }
 
     [Test]
     public async Task ShouldFailIfUserAlreadyOnProject()
     {
         var projectUserManagementService = GetProjectUserManagementService();
+        
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Never);
 
         var existingProjectUser = await _dbContext.Project_Users
             .AsNoTracking()
@@ -264,6 +292,9 @@ public class ProjectUserManagementServiceTests
                 new List<ProjectUserAddUserCommand> { command });
 
         Assert.That(result, Is.False);
+        
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Never);
     }
     #endregion
 
@@ -278,6 +309,9 @@ public class ProjectUserManagementServiceTests
     public async Task ShouldProcessUpdateUserCommandTest(int roleId)
     {
         var projectUserManagementService = GetProjectUserManagementService();
+        
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Never);
 
         var existingProjectUser = await _dbContext.Project_Users
             .AsNoTracking()
@@ -308,6 +342,9 @@ public class ProjectUserManagementServiceTests
             
             Assert.That(projectUser, Is.Null);
         }
+        
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Once);
     }
 
     #endregion
@@ -813,20 +850,7 @@ public class ProjectUserManagementServiceTests
     //     _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
     //         It.Is<string>(s => s == TerraformTemplate.VariableUpdate)), Times.Once);
     // }
-    // [Test]
-    // public async Task ShouldSendTerraformVariableUpdateOnBatchUpdate()
-    // {
-    //     var projectUserManagementService = GetProjectUserManagementService();
-    //
-    //     _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-    //         It.IsAny<string>()), Times.Never);
-    //
-    //     await SeedDatabase(_testUserIds);
-    //
-    //     await projectUserManagementService.BatchUpdateUsersInProject(TestProjectAcronym, new List<ProjectMember>{ new(TestUserId, ProjectMemberRole.Admin)});
-    //     _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-    //         It.Is<string>(s => s == TerraformTemplate.VariableUpdate)), Times.Once);
-    // }
+
     private void SeedDatabase(DatahubProjectDBContext context)
     {
         const int count = 5;
