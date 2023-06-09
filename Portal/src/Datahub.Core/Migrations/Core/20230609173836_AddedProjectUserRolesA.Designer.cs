@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    [Migration("20230609153537_AddedProjectRoles")]
-    partial class AddedProjectRoles
+    [Migration("20230609173836_AddedProjectUserRolesA")]
+    partial class AddedProjectUserRolesA
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1437,7 +1437,7 @@ namespace Datahub.Core.Migrations.Core
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProjectUser_ID"));
 
-                    b.Property<int>("ApprovedPortalUserId")
+                    b.Property<int?>("ApprovedPortalUserId")
                         .HasColumnType("int");
 
                     b.Property<string>("ApprovedUser")
@@ -1446,13 +1446,19 @@ namespace Datahub.Core.Migrations.Core
                     b.Property<DateTime?>("Approved_DT")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("PortalUserId")
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDataApprover")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("PortalUserId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Project_ID")
+                    b.Property<int>("Project_ID")
                         .HasColumnType("int");
 
-                    b.Property<int>("RoleId")
+                    b.Property<int?>("RoleId")
                         .HasColumnType("int");
 
                     b.Property<byte[]>("Timestamp")
@@ -1478,7 +1484,7 @@ namespace Datahub.Core.Migrations.Core
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("Project_Users");
+                    b.ToTable("Project_Users", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_User_Request", b =>
@@ -2032,25 +2038,21 @@ namespace Datahub.Core.Migrations.Core
                 {
                     b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "ApprovedPortalUser")
                         .WithMany()
-                        .HasForeignKey("ApprovedPortalUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ApprovedPortalUserId");
 
                     b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "PortalUser")
                         .WithMany()
-                        .HasForeignKey("PortalUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PortalUserId");
 
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
                         .WithMany("Users")
-                        .HasForeignKey("Project_ID");
+                        .HasForeignKey("Project_ID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("Datahub.Core.Model.Projects.Project_Role", "Role")
                         .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("RoleId");
 
                     b.Navigation("ApprovedPortalUser");
 

@@ -5,39 +5,38 @@
 namespace Datahub.Core.Migrations.Core
 {
     /// <inheritdoc />
-    public partial class AddedProjectRoles : Migration
+    public partial class AddedProjectUserRolesA : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "IsAdmin",
-                table: "Project_Users");
-
-            migrationBuilder.DropColumn(
-                name: "IsDataApprover",
-                table: "Project_Users");
+            migrationBuilder.AlterColumn<int>(
+                name: "Project_ID",
+                table: "Project_Users",
+                type: "int",
+                nullable: false,
+                defaultValue: 0,
+                oldClrType: typeof(int),
+                oldType: "int",
+                oldNullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "ApprovedPortalUserId",
                 table: "Project_Users",
                 type: "int",
-                nullable: false,
-                defaultValue: 0);
+                nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "PortalUserId",
                 table: "Project_Users",
                 type: "int",
-                nullable: false,
-                defaultValue: 0);
+                nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "RoleId",
                 table: "Project_Users",
                 type: "int",
-                nullable: false,
-                defaultValue: 0);
+                nullable: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Project_Users_ApprovedPortalUserId",
@@ -59,24 +58,21 @@ namespace Datahub.Core.Migrations.Core
                 table: "Project_Users",
                 column: "ApprovedPortalUserId",
                 principalTable: "PortalUsers",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Project_Users_PortalUsers_PortalUserId",
                 table: "Project_Users",
                 column: "PortalUserId",
                 principalTable: "PortalUsers",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Project_Users_Project_Roles_RoleId",
                 table: "Project_Users",
                 column: "RoleId",
                 principalTable: "Project_Roles",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "Id");
         }
 
         /// <inheritdoc />
@@ -118,19 +114,13 @@ namespace Datahub.Core.Migrations.Core
                 name: "RoleId",
                 table: "Project_Users");
 
-            migrationBuilder.AddColumn<bool>(
-                name: "IsAdmin",
+            migrationBuilder.AlterColumn<int>(
+                name: "Project_ID",
                 table: "Project_Users",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
-
-            migrationBuilder.AddColumn<bool>(
-                name: "IsDataApprover",
-                table: "Project_Users",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
+                type: "int",
+                nullable: true,
+                oldClrType: typeof(int),
+                oldType: "int");
         }
     }
 }
