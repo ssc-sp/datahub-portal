@@ -36,7 +36,7 @@ public class ProjectUserManagementServiceTests
     private Mock<IDatahubAuditingService> _mockDatahubAuditingService = null!;
 
     private readonly string[] _testUserIds = TEST_USER_IDS;
-    
+
     private DatahubProjectDBContext _dbContext = null!;
 
     private PortalUser _testCurrentUser = null!;
@@ -64,14 +64,27 @@ public class ProjectUserManagementServiceTests
         _mockUserInformationService
             .Setup(f => f.GetCurrentPortalUserAsync())
             .ReturnsAsync(_testCurrentUser);
-        
+
         _mockUserInformationService
             .Setup(f => f.GetPortalUserAsync(It.IsAny<string>()))
             .ReturnsAsync((string id) => _dbContext.PortalUsers.First(u => u.GraphGuid == id));
 
+        _mockUserInformationService
+            .Setup(f => f.CreatePortalUserAsync(It.IsAny<string>()))
+            .Callback((string graphId) =>
+            {
+                _dbContext.PortalUsers.Add(new PortalUser()
+                {
+                    GraphGuid = graphId,
+                    Email = TestUserEmail,
+                    DisplayName = TestUserEmail
+                });
+                _dbContext.SaveChanges();
+            });
+
         _mockIMSGraphService = new Mock<IMSGraphService>();
         _mockIMSGraphService
-            .Setup(f => f.GetUserAsync(It.Is<string>(s => _testUserIds.Contains(s) || s == TestUserId),
+            .Setup(f => f.GetUserAsync(It.Is<string>(s => _testUserIds.Contains(s) || s == TestUserGraphGuid),
                 CancellationToken.None))
             .Returns((string id, CancellationToken _) => Task.FromResult(new GraphUser
                 {
@@ -88,8 +101,8 @@ public class ProjectUserManagementServiceTests
         _mockUserEnrollmentService = new Mock<IUserEnrollmentService>();
         _mockUserEnrollmentService
             .Setup(f => f.SendUserDatahubPortalInvite(It.IsAny<string?>(), It.IsAny<string?>()))
-            .ReturnsAsync(TestUserId);
-        
+            .ReturnsAsync(TestUserGraphGuid);
+
         _mockDatahubAuditingService = new Mock<IDatahubAuditingService>();
 
         var mockMemoryCache = new Mock<IMemoryCache>();
@@ -113,11 +126,11 @@ public class ProjectUserManagementServiceTests
     }
 
     [Test]
-    [TestCase((int) Project_Role.RoleNames.WorkspaceLead)]
-    [TestCase((int) Project_Role.RoleNames.Admin)]
-    [TestCase((int) Project_Role.RoleNames.Collaborator)]
-    [TestCase((int) Project_Role.RoleNames.Guest)]
-    [TestCase((int) Project_Role.RoleNames.Remove)]
+    [TestCase((int)Project_Role.RoleNames.WorkspaceLead)]
+    [TestCase((int)Project_Role.RoleNames.Admin)]
+    [TestCase((int)Project_Role.RoleNames.Collaborator)]
+    [TestCase((int)Project_Role.RoleNames.Guest)]
+    [TestCase((int)Project_Role.RoleNames.Remove)]
     public async Task ShouldProcessAddExistingUserCommandTest(int roleId)
     {
         var projectUserManagementService = GetProjectUserManagementService();
@@ -127,7 +140,7 @@ public class ProjectUserManagementServiceTests
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
             .FirstAsync();
-        
+
         var foreignProject = await _dbContext.Projects
             .FirstAsync(p => existingProjectUser.Project.Project_Acronym_CD != p.Project_Acronym_CD);
 
@@ -139,16 +152,56 @@ public class ProjectUserManagementServiceTests
             ProjectAcronym = foreignProject.Project_Acronym_CD,
             RoleId = roleId,
         };
-        
+
         var result =
             await projectUserManagementService.ProcessProjectUserCommandsAsync(
                 new List<ProjectUserUpdateCommand>(),
-                new List<ProjectUserAddUserCommand> {command});
+                new List<ProjectUserAddUserCommand> { command });
 
-        if(roleId == (int) Project_Role.RoleNames.Remove)
+        if (roleId == (int)Project_Role.RoleNames.Remove)
             Assert.That(result, Is.False);
         else
             Assert.That(result, Is.True);
+    }
+
+    [Test]
+    public async Task ShouldSendInviteIfNewUserTest()
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+
+        const string email = "new@email.com";
+
+        var firstProject = await _dbContext.Projects.FirstAsync();
+
+        var command = new ProjectUserAddUserCommand
+        {
+            DisplayName = TestUserEmail,
+            Email = TestUserEmail,
+            GraphGuid = ProjectUserAddUserCommand.NEW_USER_GUID,
+            ProjectAcronym = firstProject.Project_Acronym_CD,
+            RoleId = (int)Project_Role.RoleNames.Collaborator,
+        };
+
+        var result =
+            await projectUserManagementService.ProcessProjectUserCommandsAsync(
+                new List<ProjectUserUpdateCommand>(),
+                new List<ProjectUserAddUserCommand> { command });
+
+        Assert.That(result, Is.True);
+        
+        _mockUserEnrollmentService.Verify(f => f.SendUserDatahubPortalInvite(It.IsAny<string?>(), It.IsAny<string?>()), Times.Once);
+        
+        var projectUser = _dbContext.Project_Users
+            .Include(u => u.Project)
+            .Include(u => u.PortalUser)
+            .First(u => u.PortalUser.GraphGuid == TestUserGraphGuid);
+        
+        Assert.Multiple(() =>
+        {
+            Assert.That(projectUser.Project.Project_Acronym_CD, Is.EqualTo(firstProject.Project_Acronym_CD));
+            Assert.That(projectUser.RoleId, Is.EqualTo((int)Project_Role.RoleNames.Collaborator));
+            Assert.That(projectUser.PortalUser.Email, Is.EqualTo(TestUserEmail));
+        });
     }
 
     //
@@ -700,7 +753,7 @@ public class ProjectUserManagementServiceTests
             _mockIMSGraphService.Object,
             _mockRequestManagementService.Object,
             _serviceAuthManager,
-            _mockUserEnrollmentService.Object, 
+            _mockUserEnrollmentService.Object,
             _mockDatahubAuditingService.Object);
 
         return projectUserManagementService;
