@@ -188,20 +188,80 @@ public class ProjectUserManagementServiceTests
                 new List<ProjectUserAddUserCommand> { command });
 
         Assert.That(result, Is.True);
-        
-        _mockUserEnrollmentService.Verify(f => f.SendUserDatahubPortalInvite(It.IsAny<string?>(), It.IsAny<string?>()), Times.Once);
-        
+
+        _mockUserEnrollmentService.Verify(f => f.SendUserDatahubPortalInvite(It.IsAny<string?>(), It.IsAny<string?>()),
+            Times.Once);
+
         var projectUser = _dbContext.Project_Users
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
             .First(u => u.PortalUser.GraphGuid == TestUserGraphGuid);
-        
+
         Assert.Multiple(() =>
         {
             Assert.That(projectUser.Project.Project_Acronym_CD, Is.EqualTo(firstProject.Project_Acronym_CD));
             Assert.That(projectUser.RoleId, Is.EqualTo((int)Project_Role.RoleNames.Collaborator));
             Assert.That(projectUser.PortalUser.Email, Is.EqualTo(TestUserEmail));
         });
+    }
+
+    [Test]
+    public async Task ShouldFailIfProjectDoesNotExist()
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+
+        var existingProjectUser = await _dbContext.Project_Users
+            .AsNoTracking()
+            .Include(u => u.Project)
+            .Include(u => u.PortalUser)
+            .FirstAsync();
+
+        var command = new ProjectUserAddUserCommand
+        {
+            DisplayName = existingProjectUser.PortalUser.DisplayName,
+            Email = existingProjectUser.PortalUser.Email,
+            GraphGuid = existingProjectUser.PortalUser.GraphGuid,
+            ProjectAcronym = "AbsolutelyNotARealProject",
+            RoleId = (int)Project_Role.RoleNames.Collaborator,
+        };
+
+        var result =
+            await projectUserManagementService.ProcessProjectUserCommandsAsync(
+                new List<ProjectUserUpdateCommand>(),
+                new List<ProjectUserAddUserCommand> { command });
+
+        Assert.That(result, Is.False);
+    }
+
+    [Test]
+    public async Task ShouldFailIfUserAlreadyOnProject()
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+
+        var existingProjectUser = await _dbContext.Project_Users
+            .AsNoTracking()
+            .Include(u => u.Project)
+            .Include(u => u.PortalUser)
+            .FirstAsync();
+
+        var datahubProject = await _dbContext.Projects
+            .FirstAsync(p => existingProjectUser.Project.Project_Acronym_CD == p.Project_Acronym_CD);
+
+        var command = new ProjectUserAddUserCommand
+        {
+            DisplayName = existingProjectUser.PortalUser.DisplayName,
+            Email = existingProjectUser.PortalUser.Email,
+            GraphGuid = existingProjectUser.PortalUser.GraphGuid,
+            ProjectAcronym = datahubProject.Project_Acronym_CD,
+            RoleId = (int)Project_Role.RoleNames.Collaborator,
+        };
+
+        var result =
+            await projectUserManagementService.ProcessProjectUserCommandsAsync(
+                new List<ProjectUserUpdateCommand>(),
+                new List<ProjectUserAddUserCommand> { command });
+
+        Assert.That(result, Is.False);
     }
 
     //

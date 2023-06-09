@@ -131,7 +131,8 @@ public class ProjectUserManagementService : IProjectUserManagementService
             {
                 _logger.LogError("User {GraphGuid} is already a member of project {ProjectAcronym}",
                     projectUserAddUserCommand.GraphGuid, projectUserAddUserCommand.ProjectAcronym);
-                continue;
+                throw new InvalidOperationException(
+                    $"User {projectUserAddUserCommand.GraphGuid} is already a member of project {projectUserAddUserCommand.ProjectAcronym}");
             }
 
             var newProjectUser = new Datahub_Project_User()
