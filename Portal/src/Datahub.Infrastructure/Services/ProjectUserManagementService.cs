@@ -49,6 +49,11 @@ public class ProjectUserManagementService : IProjectUserManagementService
     public async Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands,
         List<ProjectUserAddUserCommand> projectUserAddUserCommands)
     {
+        // if there are no commands, return true
+        if (!projectUserUpdateCommands.Any() && !projectUserAddUserCommands.Any())
+        {
+            return true;
+        }
 
         try
         {
@@ -61,13 +66,37 @@ public class ProjectUserManagementService : IProjectUserManagementService
             {
                 await UpdateProjectUsersAsync(projectUserUpdateCommands);
             }
-
+            
+            await ProcessTerraformUpdates(projectUserUpdateCommands, projectUserAddUserCommands);
             return true;
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Error updating project users");
             return false;
+        }
+    }
+
+    private async Task ProcessTerraformUpdates(IEnumerable<ProjectUserUpdateCommand> projectUserUpdateCommands, IEnumerable<ProjectUserAddUserCommand> projectUserAddUserCommands)
+    {
+        // get all the distinct projects that have been modified
+        var projectAcronyms = projectUserUpdateCommands
+            .Select(p => p.ProjectUser.Project.Project_Acronym_CD)
+            .Distinct()
+            .Union(projectUserAddUserCommands
+                .Select(p => p.ProjectAcronym)
+                .Distinct())
+            .ToList();
+
+        // update the terraform template
+        foreach (var projectAcronym in projectAcronyms)
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var project = await context.Projects
+                .AsNoTracking()
+                .FirstAsync(p => p.Project_Acronym_CD == projectAcronym);
+
+            await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.VariableUpdate);
         }
     }
 
