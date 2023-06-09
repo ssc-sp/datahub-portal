@@ -123,13 +123,13 @@ public class ProjectUserManagementServiceTests
                 new List<ProjectUserAddUserCommand>());
 
         Assert.That(result, Is.True);
-        
+
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.IsAny<string>()), Times.Never);
     }
 
     #region ProjectUserAddUserCommand
-    
+
     [Test]
     [TestCase((int)Project_Role.RoleNames.WorkspaceLead)]
     [TestCase((int)Project_Role.RoleNames.Admin)]
@@ -140,7 +140,7 @@ public class ProjectUserManagementServiceTests
     {
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.IsAny<string>()), Times.Never);
-        
+
         var projectUserManagementService = GetProjectUserManagementService();
 
         var existingProjectUser = await _dbContext.Project_Users
@@ -170,15 +170,14 @@ public class ProjectUserManagementServiceTests
         {
             Assert.That(result, Is.False);
             _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-            It.IsAny<string>()), Times.Never);
+                It.IsAny<string>()), Times.Never);
         }
         else
         {
             Assert.That(result, Is.True);
             _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-            It.IsAny<string>()), Times.Once);
+                It.IsAny<string>()), Times.Once);
         }
-        
     }
 
     [Test]
@@ -231,7 +230,7 @@ public class ProjectUserManagementServiceTests
     public async Task ShouldFailIfProjectDoesNotExist()
     {
         var projectUserManagementService = GetProjectUserManagementService();
-        
+
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.IsAny<string>()), Times.Never);
 
@@ -264,7 +263,7 @@ public class ProjectUserManagementServiceTests
     public async Task ShouldFailIfUserAlreadyOnProject()
     {
         var projectUserManagementService = GetProjectUserManagementService();
-        
+
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.IsAny<string>()), Times.Never);
 
@@ -292,10 +291,11 @@ public class ProjectUserManagementServiceTests
                 new List<ProjectUserAddUserCommand> { command });
 
         Assert.That(result, Is.False);
-        
+
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.IsAny<string>()), Times.Never);
     }
+
     #endregion
 
     #region ProjectUserUpdateCommand
@@ -309,7 +309,7 @@ public class ProjectUserManagementServiceTests
     public async Task ShouldProcessUpdateUserCommandTest(int roleId)
     {
         var projectUserManagementService = GetProjectUserManagementService();
-        
+
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.IsAny<string>()), Times.Never);
 
@@ -327,7 +327,7 @@ public class ProjectUserManagementServiceTests
 
         var result =
             await projectUserManagementService.ProcessProjectUserCommandsAsync(
-                new List<ProjectUserUpdateCommand>(){command },
+                new List<ProjectUserUpdateCommand>() { command },
                 new List<ProjectUserAddUserCommand>());
 
         Assert.That(result, Is.True);
@@ -339,10 +339,10 @@ public class ProjectUserManagementServiceTests
                 .AsNoTracking()
                 .Include(u => u.PortalUser)
                 .FirstOrDefaultAsync(u => u.PortalUser.GraphGuid == existingProjectUser.PortalUser.GraphGuid);
-            
+
             Assert.That(projectUser, Is.Null);
         }
-        
+
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.IsAny<string>()), Times.Once);
     }
@@ -365,15 +365,18 @@ public class ProjectUserManagementServiceTests
 
         foreach (var seededProject in seededProjectUsers.Select(u => u.Project).Distinct())
         {
-            var projectUsers = await projectUserManagementService.GetProjectUsersAsync(seededProject.Project_Acronym_CD);
-            
+            var projectUsers =
+                await projectUserManagementService.GetProjectUsersAsync(seededProject.Project_Acronym_CD);
+
             Assert.That(projectUsers, Is.Not.Null);
-            Assert.That(projectUsers, Has.Count.EqualTo(seededProjectUsers.Count(u => u.Project.Project_Acronym_CD == seededProject.Project_Acronym_CD)));
+            Assert.That(projectUsers,
+                Has.Count.EqualTo(seededProjectUsers.Count(u =>
+                    u.Project.Project_Acronym_CD == seededProject.Project_Acronym_CD)));
         }
     }
 
     #endregion
-    
+
     //
     // [Test]
     // public async Task ShouldAddUserToProject()
