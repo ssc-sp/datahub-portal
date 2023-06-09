@@ -20,7 +20,7 @@ public class UserEnrollmentServiceTests
         var result = await _userEnrollmentService.SendUserDatahubPortalInvite(TestUserEmail, default);
         
         Assert.That(result, Is.Not.Null.Or.Empty);
-        Assert.That(result, Is.EqualTo(TestUserId));
+        Assert.That(result, Is.EqualTo(TestUserGraphGuid));
     }
 
     [Test]
