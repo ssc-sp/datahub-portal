@@ -7,21 +7,21 @@ namespace Datahub.Specs.Steps;
 
 [Binding]
 // ReSharper disable once InconsistentNaming
-public sealed class A11yStepDefinitions
+public sealed class HomeStepDefinitions
 {
 
     private readonly HomePageObject _homePageObject;
 
-    public A11yStepDefinitions(HomePageObject homePageObject)
+    public HomeStepDefinitions(HomePageObject homePageObject)
     {
         _homePageObject = homePageObject;
     }
 
-    [Given(@"the user is on the home page")]
-    public async Task GivenTheUserIsOnTheHomePage()
+    [Then(@"the user is on the home page")]
+    public async Task ThenTheUserIsOnTheHomePage()
     {
         await _homePageObject.NavigateAsync();
-        _homePageObject.Page.Url.Should().EndWith("/home");
+        await _homePageObject.ValidateLocationAsync();
     }
 
     [Then(@"there should be no accessibility errors")]
