@@ -18,9 +18,12 @@ public class Hooks
             .Build();
     }
 
+    public bool Headless => _config["Headless"] != "false";
+
     #region Scenario utils
 
     static LoginPageObject loginPageObject = default!;
+    static LoginPageObject adminLoginPageObject = default!;
 
     private async Task SetupScenario(IObjectContainer container, Action<IConfiguration, IBrowser> setup)
     {
@@ -39,7 +42,7 @@ public class Hooks
             if (loginPageObject is null)
             {
                 // register the login page
-                loginPageObject = new(_config, browser);
+                loginPageObject = new(_config, browser, false);
                 mustLogin = true;
             }
             container.RegisterInstanceAs(loginPageObject);
@@ -48,7 +51,23 @@ public class Hooks
         if (mustLogin)
         {
             // always start scenario after login completed
-            await loginPageObject.LoginAsync();
+            await loginPageObject.LoginAsync(true);
+        }
+
+        mustLogin = false;
+        lock (typeof(Hooks))
+        {
+            if (adminLoginPageObject is null)
+            {
+                // register the login page
+                adminLoginPageObject = new(_config, browser, true);
+                mustLogin = true;
+            }
+        }
+
+        if (mustLogin)
+        {
+            await adminLoginPageObject.LoginAsync(true);
         }
     }
 
@@ -56,7 +75,7 @@ public class Hooks
     {
         var options = new BrowserTypeLaunchOptions() 
         { 
-            Headless = _config["Headless"] != "false"
+            Headless = this.Headless
         };
         if (int.TryParse(_config["SlowMo"], out int slowmo))
         {
@@ -83,21 +102,78 @@ public class Hooks
             => container.RegisterInstanceAs(new HomePageObject(config, browser)));
     }
 
+    [BeforeScenario("home")]
+    public async Task BeforeHomeScenario(IObjectContainer container)
+    {
+        await SetupScenario(container, (config, browser)
+            => container.RegisterInstanceAs(new HomePageObject(config, browser)));
+    }
+
     [BeforeScenario("ws")]
     public async Task BeforeWsScenario(IObjectContainer container)
     {
-        await SetupScenario(container, (config, browser)
-            => container.RegisterInstanceAs(new WorkspacePageObject(new(), config, browser)));
+        await SetupScenario(container, (config, browser) => 
+        {
+            container.RegisterInstanceAs(new WorkspacePageObject(new(), config, browser));
+            container.RegisterInstanceAs(new WorkspaceAdminPageObject(new(), config, browser));
+        });
     }
 
     [BeforeScenario("res")]
     public async Task BeforeResScenario(IObjectContainer container)
     {
-        await SetupScenario(container, (config, browser)
-            => container.RegisterInstanceAs(new ResourcesPageObject(config, browser)));
+        await SetupScenario(container, (config, browser) => 
+        {
+            container.RegisterInstanceAs(new ResourcesPageObject(config, browser));
+        });
     }
 
-    [AfterScenario("a11y", "ws", "res")]
+    [BeforeScenario("news")]
+    public async Task BeforeNewsScenario(IObjectContainer container)
+    {
+        await SetupScenario(container, (config, browser) =>
+        {
+            container.RegisterInstanceAs(new NewsPageObject(config, browser));
+        });
+    }
+
+    [BeforeScenario("admnews")]
+    public async Task BeforeAdminNewsScenario(IObjectContainer container)
+    {
+        await SetupScenario(container, (config, browser) =>
+        {
+            container.RegisterInstanceAs(new NewsPageObjectAdmin(config, browser));
+        });
+    }
+
+    [BeforeScenario("admintools")]
+    public async Task BeforeAdminToolsScenario(IObjectContainer container)
+    {
+        await SetupScenario(container, (config, browser) =>
+        {
+            container.RegisterInstanceAs(new AdminToolsPageObject(config, browser));
+        });
+    }
+
+    [BeforeScenario("prof")]
+    public async Task BeforeProfileScenario(IObjectContainer container)
+    {
+        await SetupScenario(container, (config, browser) =>
+        {
+            container.RegisterInstanceAs(new ProfilePageObject(config, browser));
+        });
+    }
+
+    [BeforeScenario("sidebar")]
+    public async Task BeforeSidebarScenario(IObjectContainer container)
+    {
+        await SetupScenario(container, (config, browser) =>
+        {
+            container.RegisterInstanceAs(new SideBarPageObject(config, browser, Headless));
+        });
+    }
+
+    [AfterScenario("home", "a11y", "ws", "res", "news", "admnews", "admintools", "prof", "sidebar")]
     public static Task AfterResScenario(IObjectContainer container)
     {
         return TeardownScenario(container);

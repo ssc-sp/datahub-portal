@@ -19,7 +19,7 @@ public sealed class WorkspaceStepDefinitions
     public async Task GivenTheUserIsOnTheWorkspacePage()
     {
         await _wsPageObject.NavigateAsync();
-        _wsPageObject.Page.Url.Should().EndWith("/w");
+        await _wsPageObject.ValidateLocationAsync();
     }
 
     [Then(@"the workspace page should be without accessibility errors")]
