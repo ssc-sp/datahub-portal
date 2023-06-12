@@ -185,7 +185,7 @@ public class RequestManagementService : IRequestManagementService
         var adminEmails = ServiceAuthManager.ExtractEmails(project.Project_Admin ?? string.Empty);
 
         var adminUsers = project.Users
-            .Where(u => u.Role.IsAdmin) 
+            .Where(u => u.RoleId is (int)Project_Role.RoleNames.Admin or (int)Project_Role.RoleNames.WorkspaceLead) 
             .Select(u => u.PortalUser.Email);
 
         return adminEmails
