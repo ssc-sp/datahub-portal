@@ -32,38 +32,28 @@ public class RoleClaimTransformer : IClaimsTransformation
             }
             else
             {
-                var allProjects = serviceAuthManager.GetAllProjects();
-
                 var authorizedProjects = await serviceAuthManager.GetUserAuthorizations(userId);
-                ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, $"default"));
-                ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, userId));
-                foreach (var project in allProjects)
+                ((ClaimsIdentity)principal.Identity)?.AddClaim(new Claim(ClaimTypes.Role, "default"));
+                ((ClaimsIdentity)principal.Identity)?.AddClaim(new Claim(ClaimTypes.Role, userId));
+
+                foreach (var (role, project) in authorizedProjects)
                 {
-                    if (await serviceAuthManager.IsProjectAdmin(userId, project))
+                    if (project.Project_Acronym_CD == RoleConstants.DATAHUB_ADMIN_PROJECT && serviceAuthManager.GetViewingAsGuest(userId))
                     {
-                        if (project == RoleConstants.DATAHUB_ADMIN_PROJECT && serviceAuthManager.GetViewingAsGuest(userId))
-                        {
-                            ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST));
-                        } 
-                        else
-                        {
-                            ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, $"{project}{RoleConstants.ADMIN_SUFFIX}"));
-                        }
+                        ((ClaimsIdentity)principal.Identity)?.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST));
+                    }
+                    else
+                    {
+                        ((ClaimsIdentity)principal.Identity)?.AddClaim(new Claim(ClaimTypes.Role,
+                            $"{project.Project_Acronym_CD}{RoleConstants.GetRoleConstants(role)}"));
                     }
                 }
-                foreach (var project in authorizedProjects)
-                {
-                    ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, project.Project_Acronym_CD));
-                }
             }
-
         }
         catch (Exception ex)
         {
             logger.LogCritical(ex, "Cannot load project permissions");
         }
         return principal;
-
     }
-
 }
