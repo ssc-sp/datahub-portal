@@ -243,7 +243,12 @@ public class RequestManagementService : IRequestManagementService
             await ctx.Entry(project).Collection(p => p.Users).LoadAsync();
             var userId = await _userInformationService.GetUserIdString();
             var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-            var users = project.Users.Select(u => new TerraformUser() { ObjectId = u.User_ID, Email = u.User_Name, Role = GetTerraformUserRole(u)})
+            var users = project.Users.Select(u => new TerraformUser()
+                {
+                    ObjectId = u.User_ID, 
+                    Email = u.User_Name, 
+                    Role = GetTerraformUserRole(u)
+                })
                 .ToList();
 
             var workspace = project.ToResourceWorkspace(users);
@@ -286,6 +291,7 @@ public class RequestManagementService : IRequestManagementService
             (int)Project_Role.RoleNames.WorkspaceLead => Role.Owner,
             (int)Project_Role.RoleNames.Admin => Role.Admin,
             (int)Project_Role.RoleNames.Collaborator => Role.User,
+            (int)Project_Role.RoleNames.Guest => Role.Guest,
             _ => Role.Guest
         };
     }
