@@ -33,7 +33,7 @@ public class DHPublicSharing : IProjectResource
         await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
         isDataApprover = await projectDbContext.Project_Users
             .Where(u => u.User_ID == userId && project == u.Project)
-            .AnyAsync(u => u.Role.IsAdmin);
+            .AnyAsync(u => u.RoleId == (int)Project_Role.RoleNames.Admin || u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead);
         parameters.Add(nameof(PublicSharing.isDataApprover), isDataApprover);
         sharingRequestAwaitingApprovalCount = await publicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(project.Project_Acronym_CD);
         parameters.Add(nameof(PublicSharing.sharingRequestAwaitingApprovalCount), sharingRequestAwaitingApprovalCount);

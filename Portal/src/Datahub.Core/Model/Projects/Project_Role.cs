@@ -13,6 +13,7 @@ public class Project_Role
     /// <summary>
     /// This should be used to determine if the user is an admin or not.
     /// Note: If you are looking to show or hide UI elements off this, use the "DatahubAuthView" instead.
+    /// Note: This will not work inside EF Core Queries
     /// </summary>
     public bool IsAdmin => Id is (int)RoleNames.Admin or (int)RoleNames.WorkspaceLead;
     
