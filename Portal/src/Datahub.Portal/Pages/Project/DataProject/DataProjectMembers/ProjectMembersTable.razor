@@ -4,6 +4,7 @@
 @using MudBlazor.Utilities
 @using Datahub.Portal.Components.User
 @using Datahub.Application.Commands
+@using System.Text
 
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -13,19 +14,38 @@
 @inject IDialogService _dialogService
 @inject ISnackbar _snackbar
 
+@if (_updateInProgress)
+{
+    <DHLoadingInitializer/>
+}
 
 <DatahubAuthView AuthLevel="@DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
     <Authorized>
         <MudStack>
-            <MudStack Row>
+            <MudStack Row Class="mt-6 mb-4">
                 <MudText Typo="Typo.h2">
                     @Localizer["Workspace Members"]
                 </MudText>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
-                    @Localizer["Invite New User"]
-                </MudButton>
+                <MudSpacer/>
+                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
+                        @Localizer["Invite New User"]
+                    </MudButton>
+                </DatahubAuthView>
             </MudStack>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
+                @if (_usersToAdd.Any() || _usersToUpdate.Any())
+                {
+                    <MudAlert Severity="Severity.Info" Class="my-3">
+                        <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
+                    </MudAlert>
+                    <MudElement>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="SaveChanges">
+                            @Localizer["Save Changes"]
+                        </MudButton>
+                    </MudElement>
+                }
+
                 @if (_usersToAdd.Any())
                 {
                     <MudStack>
@@ -40,7 +60,7 @@
                                         <MudText Typo="Typo.body2">
                                             @userToBeAdded.DisplayName
                                         </MudText>
-                                        <ProjectMembersRoleSelect OnRoleChanged="@(newRoleId => UpdateProjectMemberRole(userToBeAdded, newRoleId))"/>
+                                        <ProjectMembersRoleSelect InitialValue="@userToBeAdded.RoleId" OnRoleChanged="@(newRoleId => UpdateProjectMemberRole(userToBeAdded, newRoleId))"/>
                                     </MudStack>
                                 </MudListItem>
                             }
@@ -49,10 +69,10 @@
                 }
             </DatahubAuthView>
 
-            <MudTable Items="@_filteredProjectUsers" Striped Filter="@(new Func<Datahub_Project_User, bool>(SearchFilter))" Class="project-members-table mt-6">
+            <MudTable Items="@_filteredProjectUsers" Striped Filter="@(new Func<Datahub_Project_User, bool>(SearchFilter))">
                 <ToolBarContent>
-                    <MudStack>
-                        <MudTabs Elevation="0">
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudTabs Elevation="0" Rounded>
                             <MudTabPanel Text="@Localizer["All"]"
                                          BadgeData="@_allCount"
                                          BadgeColor="Color.Transparent"
@@ -83,8 +103,9 @@
                                          OnClick="@(() => ProjectMemberRoleFilter((int)Project_Role.RoleNames.Guest))"
                                          Disabled="@(_guestCount == 0)"/>
                         </MudTabs>
-                        <MudSpacer/>
-                        <MudTextField @bind-Value="_filterString" Placeholder="@Localizer["Search"]" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"/>
+                        <MudStack AlignItems="AlignItems.Center">
+                            <MudTextField @bind-Value="_filterString" Placeholder="@Localizer["Search"]" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"/>
+                        </MudStack>
                     </MudStack>
                 </ToolBarContent>
 
@@ -109,7 +130,7 @@
                 </HeaderContent>
 
                 <RowTemplate Context="rowContext">
-                    <MudTd>
+                    <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                         <MudStack Row>
                             <UserAvatar ViewedUser="@rowContext.PortalUser" Size="@Size.Small"/>
                             <MudText Typo="Typo.body2">
@@ -117,24 +138,29 @@
                             </MudText>
                         </MudStack>
                     </MudTd>
-                    <MudTd>@rowContext.PortalUser.Email</MudTd>
-                    <MudTd>
+                    <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
+                        @rowContext.PortalUser.Email
+                    </MudTd>
+                    <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
                             <Authorized>
-                                <ProjectMembersRoleSelect OnRoleChanged="@(newRoleId => UpdateProjectMemberRole(rowContext, newRoleId))"/>
+                                @{
+                                    var updateCommand = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.Id == rowContext.PortalUser.Id);
+                                }
+                                <ProjectMembersRoleSelect InitialValue="@(updateCommand?.NewRoleId ?? rowContext.RoleId ?? 0)" OnRoleChanged="@(newRoleId => UpdateProjectMemberRole(rowContext, newRoleId))"/>
                             </Authorized>
                             <NotAuthorized>
                                 <MudText Typo="Typo.body2">@Localizer[rowContext.Role.Name]</MudText>
                             </NotAuthorized>
                         </DatahubAuthView>
                     </MudTd>
-                    <MudTd>
+                    <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                         @if (rowContext.Approved_DT != null)
                         {
                             @rowContext.Approved_DT.Value.ToString("MMMM dd, yyyy")
                         }
                     </MudTd>
-                    <MudTd>
+                    <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                         <UserViewProfileIconButton ViewedUserGraphId="@rowContext.PortalUser.GraphGuid"/>
                     </MudTd>
                 </RowTemplate>
@@ -158,19 +184,19 @@
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
 
-    private string _filterString = "";
+    private string _filterString = null;
     private string _tabStyle;
     //     private const string PROFILE_LINK_ICON = "fa-duotone fa-chevrons-right";
     //     private const string ADD_USER_ICON = "fa-duotone fa-user-plus";
     //     private const string INVITE_USERS_DIALOG_TITLE = "Invite New Users";
     //     private const string EMAIL_FAILED_MESSAGE = "Unable to invite the following users. Please check their email addresses and try again, or contact DataHub support:";
     // private bool _isLoading = true;
-    // private bool _updateInProgress;
+    private bool _updateInProgress;
     //
-    private int _workspaceLeadCount => _projectUsers?.Count(x => x.Role.Id == (int)Project_Role.RoleNames.WorkspaceLead) ?? 0;
-    private int _adminCount => _projectUsers?.Count(x => x.Role.Id == (int)Project_Role.RoleNames.Admin) ?? 0;
-    private int _contributorCount => _projectUsers?.Count(x => x.Role.Id == (int)Project_Role.RoleNames.Collaborator) ?? 0;
-    private int _guestCount => _projectUsers?.Count(x => x.Role.Id == (int)Project_Role.RoleNames.Guest) ?? 0;
+    private int _workspaceLeadCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.WorkspaceLead) ?? 0;
+    private int _adminCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Admin) ?? 0;
+    private int _contributorCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Collaborator) ?? 0;
+    private int _guestCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Guest) ?? 0;
     private int _allCount => _projectUsers?.Count ?? 0;
     // private ProjectMemberRole? _currentRoleFilter = null;
     // private List<ProjectMember> _projectUsers;
@@ -178,8 +204,8 @@
     private List<Datahub_Project_User> _projectUsers;
     private List<Datahub_Project_User> _filteredProjectUsers;
 
-    private List<ProjectUserAddUserCommand> _usersToAdd;
-    private List<ProjectUserUpdateCommand> _usersToUpdate;
+    private List<ProjectUserAddUserCommand> _usersToAdd = new();
+    private List<ProjectUserUpdateCommand> _usersToUpdate = new();
 
     // private string _currentUserId;
     // private string _currentUserName;
@@ -187,12 +213,23 @@
     // private List<ProjectMember> _usersToBeUpdated = new();
     // private List<ProjectMember> _currentSavedUsers = new();
 
+    private string _modifiedCellStyle;
 
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        // red border on top, left, and bottom
+        _modifiedCellStyle = new StyleBuilder()
+            .AddStyle("background-color", $"{Colors.Amber.Default}4D")
+            .Build();
+    }
 
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
         _projectUsers = await _projectUserManagementService.GetProjectUsersAsync(ProjectAcronym);
+        ProjectMemberRoleFilter();
     }
 
     private bool SearchFilter(Datahub_Project_User projectUser)
@@ -204,7 +241,7 @@
         return projectUser.PortalUser?.Email?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true;
     }
 
-    private void ProjectMemberRoleFilter(int? roleId)
+    private void ProjectMemberRoleFilter(int? roleId = null)
     {
         _filteredProjectUsers = _projectUsers
             .Where(x => roleId is null || x.Role.Id == roleId)
@@ -220,6 +257,10 @@
         if (existingUser != null)
         {
             existingUser.NewRoleId = newRoleId;
+            if(existingUser.NewRoleId == existingUser.ProjectUser.Role.Id)
+            {
+                _usersToUpdate.Remove(existingUser);
+            }
         }
         else
         {
@@ -232,11 +273,15 @@
         StateHasChanged();
     }
 
-
     private void UpdateProjectMemberRole(ProjectUserAddUserCommand projectUser, int newRoleId)
     {
         projectUser.RoleId = newRoleId;
         StateHasChanged();
+    }
+
+    private bool IsModified(Datahub_Project_User projectUser)
+    {
+        return _usersToUpdate.Any(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
     }
 
     private async Task OpenDialog()
@@ -260,7 +305,7 @@
             else
             {
                 _usersToAdd.AddRange(userAddUserCommands
-                    .Where(c => 
+                    .Where(c =>
                         !_usersToAdd.Any(x => x.Email.Equals(c.Email, StringComparison.InvariantCultureIgnoreCase)))
                     .ToList());
                 StateHasChanged();
@@ -270,8 +315,10 @@
 
     private async Task SaveChanges()
     {
-        if(_usersToUpdate.Any() || _usersToAdd.Any())
+        if (_usersToUpdate.Any() || _usersToAdd.Any())
         {
+            _updateInProgress = true;
+            StateHasChanged();
             await _projectUserManagementService.ProcessProjectUserCommandsAsync(_usersToUpdate, _usersToAdd);
             _usersToUpdate.Clear();
             _usersToAdd.Clear();
@@ -280,6 +327,7 @@
         {
             _snackbar.Add(Localizer["No changes to save"], Severity.Info);
         }
+        _updateInProgress = false;
         StateHasChanged();
     }
 
