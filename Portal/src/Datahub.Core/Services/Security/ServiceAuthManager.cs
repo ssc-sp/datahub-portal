@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services.UserManagement;
@@ -177,29 +178,29 @@ public class ServiceAuthManager
         return allProjectAdmins;
     }
 
-    public async Task<ImmutableList<Datahub_Project>> GetUserAuthorizations(string userGraphId)
+    public async Task<ImmutableList<(Project_Role, Datahub_Project)>> GetUserAuthorizations(string userGraphId)
     {
-        List<Datahub_Project_User> usersAuthorization;
-        if (!serviceAuthCache.TryGetValue(AUTH_KEY, out usersAuthorization))
+        if (serviceAuthCache.TryGetValue(AUTH_KEY, out List<(Project_Role, Datahub_Project)> usersAuthorization))
         {
-            await using var ctx = await dbFactory.CreateDbContextAsync();
-
-
-            usersAuthorization = await ctx.Project_Users
-                .AsNoTracking()
-                .Include(a => a.Project)
-                .Include(a => a.PortalUser)
-                .ToListAsync();
-            //var cacheEntryOptions = new MemoryCacheEntryOptions()
-            //                // Set cache entry size by extension method.
-            //                .SetSize(1)
-            //                // Keep in cache for this time, reset time if accessed.
-            //                .SetSlidingExpiration(TimeSpan.FromHours(1));
-            serviceAuthCache.Set(AUTH_KEY, usersAuthorization, TimeSpan.FromHours(1));
+            return usersAuthorization.ToImmutableList();
         }
-        return usersAuthorization.Where(a => a.PortalUser.GraphGuid == userGraphId)
-            .Select(a => a.Project)
-            .Distinct()
-            .ToImmutableList();
+
+        await using var ctx = await dbFactory.CreateDbContextAsync();
+
+        var usersRoles = await ctx.Project_Users
+            .AsNoTracking()
+            .Include(a => a.Project)
+            .Include(a => a.PortalUser)
+            .Include(a => a.Role)
+            .Where(a => a.PortalUser.GraphGuid == userGraphId)
+            .ToListAsync();
+            
+        usersAuthorization = usersRoles
+            .Select(a => (a.Role, a.Project))
+            .ToList();
+
+        serviceAuthCache.Set(AUTH_KEY, usersAuthorization, TimeSpan.FromMinutes(15));
+
+        return usersAuthorization.ToImmutableList();
     }
 }
