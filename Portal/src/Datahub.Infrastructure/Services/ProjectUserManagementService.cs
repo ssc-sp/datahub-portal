@@ -188,6 +188,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
+            .Include(u => u.Role)
             .Where(u => u.Project.Project_Acronym_CD == projectAcronym)
             .ToListAsync();
     }

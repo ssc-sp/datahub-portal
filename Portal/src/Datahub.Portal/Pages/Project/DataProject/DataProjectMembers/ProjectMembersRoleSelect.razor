@@ -1,36 +1,64 @@
 @using Datahub.Core.Model.Projects
 
-<MudSelect T="int" ValueChanged="RoleChanged" Variant="Variant.Outlined">
-    @foreach (var role in _projectRoles)
-    {
-        <MudSelectItem Value="@(role.Id)" Class="@GetItemClass(role.Id)">
-            <MudText Typo="Typo.h6">@Localizer[role.Name]</MudText>
-            <MudText>@Localizer[role.Description]</MudText>
-        </MudSelectItem>
-    }
-    <MudDivider />
-</MudSelect>
+@inject IJSRuntime _jsRuntime;
+
+<MudMenu AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
+    <ActivatorContent>
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.body1">@Localizer[_currentRole.Name]</MudText>
+            <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
+        </MudStack>
+    </ActivatorContent>
+    <ChildContent>
+        @foreach (var role in _projectRoles)
+        {
+            <MudMenuItem OnClick="@(() => RoleChanged(role.Id))">
+                <MudText Typo="Typo.h6">@Localizer[role.Name]</MudText>
+                <MudText>@Localizer[role.Description]</MudText>
+            </MudMenuItem>
+        }
+        <MudDivider/>
+        <MudMenuItem OnClick="@(() => RoleChanged(_removeRole.Id))">
+            <MudText Color="Color.Error" Typo="Typo.h6">@Localizer[_removeRole.Name]</MudText>
+            <MudText Color="Color.Error">@Localizer[_removeRole.Description]</MudText>
+        </MudMenuItem>
+    </ChildContent>
+</MudMenu>
 
 @code {
-    
-    [Parameter] 
+
+    [Parameter]
+    public int InitialValue { get; set; }
+
+    [Parameter]
     public EventCallback<int> OnRoleChanged { get; set; }
 
-    private string _valueOfSelect;
+    private Project_Role _currentRole;
     private IEnumerable<Project_Role> _projectRoles;
+    private Project_Role _removeRole;
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
-        _projectRoles = Project_Role.GetAll();
+        _projectRoles = Project_Role.GetAll().ToList();
+        _removeRole = _projectRoles.First(r => r.Id == (int)Project_Role.RoleNames.Remove);
+        _projectRoles = _projectRoles.Where(r => r.Id != (int)Project_Role.RoleNames.Remove);
+
+        _currentRole = _projectRoles.First(r => r.Id == InitialValue);
     }
 
     private async Task RoleChanged(int newRoleId)
     {
+        if(newRoleId == (int)Project_Role.RoleNames.Remove)
+        {
+            var message = Localizer["Are you sure you want to remove this user from the workspace?"].Value;
+            var confirmed = await _jsRuntime.InvokeAsync<bool>("confirm", message);
+            if (!confirmed)
+            {
+                return;
+            }
+        }
+        
         await OnRoleChanged.InvokeAsync(newRoleId);
     }
 
-    private string GetItemClass(int roleId)
-    {
-        return roleId == (int) Project_Role.RoleNames.Remove ? "mud-selected-item mud-primary-text mud-primary-hover" : string.Empty;
-    }
 }
