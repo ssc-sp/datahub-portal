@@ -109,20 +109,26 @@ public class ProjectUserManagementService : IProjectUserManagementService
         await using var context = await _contextFactory.CreateDbContextAsync();
         foreach (var projectUserUpdateCommand in projectUserUpdateCommands)
         {
-            context.Attach(projectUserUpdateCommand.ProjectUser);
+            var userToUpdate = await context.Project_Users
+                .FirstOrDefaultAsync(pu => pu.ProjectUser_ID == projectUserUpdateCommand.ProjectUser.ProjectUser_ID);
+
+            if (userToUpdate == null)
+            {
+                throw new InvalidOperationException("Cannot update a user that is not already a member of the project");
+            }
 
             if (projectUserUpdateCommand.NewRoleId == (int)Project_Role.RoleNames.Remove)
             {
-                context.Project_Users.Remove(projectUserUpdateCommand.ProjectUser);
+                context.Project_Users.Remove(userToUpdate);
             }
             else
             {
-                projectUserUpdateCommand.ProjectUser.RoleId = projectUserUpdateCommand.NewRoleId;
-                context.Update(projectUserUpdateCommand.ProjectUser);
+                userToUpdate.RoleId = projectUserUpdateCommand.NewRoleId;
+                context.Update(userToUpdate);
             }
-
-            await context.TrackSaveChangesAsync(_datahubAuditingService);
         }
+
+        await context.TrackSaveChangesAsync(_datahubAuditingService);
     }
 
     private async Task AddNewUsersToProjectAsync(List<ProjectUserAddUserCommand> projectUserAddUserCommands)
