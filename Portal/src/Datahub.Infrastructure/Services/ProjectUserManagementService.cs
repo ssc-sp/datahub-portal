@@ -45,7 +45,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         _userEnrollmentService = userEnrollmentService;
         _datahubAuditingService = datahubAuditingService;
     }
-    
+
     public async Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands,
         List<ProjectUserAddUserCommand> projectUserAddUserCommands)
     {
@@ -61,12 +61,12 @@ public class ProjectUserManagementService : IProjectUserManagementService
             {
                 await AddNewUsersToProjectAsync(projectUserAddUserCommands);
             }
-            
-            if(projectUserUpdateCommands.Any())
+
+            if (projectUserUpdateCommands.Any())
             {
                 await UpdateProjectUsersAsync(projectUserUpdateCommands);
             }
-            
+
             await ProcessTerraformUpdates(projectUserUpdateCommands, projectUserAddUserCommands);
             return true;
         }
@@ -77,7 +77,8 @@ public class ProjectUserManagementService : IProjectUserManagementService
         }
     }
 
-    private async Task ProcessTerraformUpdates(IEnumerable<ProjectUserUpdateCommand> projectUserUpdateCommands, IEnumerable<ProjectUserAddUserCommand> projectUserAddUserCommands)
+    private async Task ProcessTerraformUpdates(IEnumerable<ProjectUserUpdateCommand> projectUserUpdateCommands,
+        IEnumerable<ProjectUserAddUserCommand> projectUserAddUserCommands)
     {
         // get all the distinct projects that have been modified
         var projectAcronyms = projectUserUpdateCommands
@@ -94,9 +95,12 @@ public class ProjectUserManagementService : IProjectUserManagementService
             await using var context = await _contextFactory.CreateDbContextAsync();
             var project = await context.Projects
                 .AsNoTracking()
+                .Include(p => p.Users)
+                .ThenInclude(u => u.PortalUser)
                 .FirstAsync(p => p.Project_Acronym_CD == projectAcronym);
 
-            await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.VariableUpdate);
+            await _requestManagementService.HandleTerraformRequestServiceAsync(project,
+                TerraformTemplate.VariableUpdate);
         }
     }
 
@@ -107,7 +111,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         {
             context.Attach(projectUserUpdateCommand.ProjectUser);
 
-            if (projectUserUpdateCommand.NewRoleId == (int) Project_Role.RoleNames.Remove)
+            if (projectUserUpdateCommand.NewRoleId == (int)Project_Role.RoleNames.Remove)
             {
                 context.Project_Users.Remove(projectUserUpdateCommand.ProjectUser);
             }
@@ -116,30 +120,32 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 projectUserUpdateCommand.ProjectUser.RoleId = projectUserUpdateCommand.NewRoleId;
                 context.Update(projectUserUpdateCommand.ProjectUser);
             }
-            
+
             await context.TrackSaveChangesAsync(_datahubAuditingService);
         }
     }
 
     private async Task AddNewUsersToProjectAsync(List<ProjectUserAddUserCommand> projectUserAddUserCommands)
     {
-        
         foreach (var projectUserAddUserCommand in projectUserAddUserCommands)
         {
-            if(projectUserAddUserCommand.RoleId == (int) Project_Role.RoleNames.Remove)
+            if (projectUserAddUserCommand.RoleId == (int)Project_Role.RoleNames.Remove)
             {
                 throw new InvalidOperationException("Cannot remove a user that is not already a member of the project");
             }
+
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            
+
             if (projectUserAddUserCommand.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID)
             {
-                projectUserAddUserCommand.GraphGuid = await _userEnrollmentService.SendUserDatahubPortalInvite(projectUserAddUserCommand.Email, currentUser.DisplayName);
+                projectUserAddUserCommand.GraphGuid =
+                    await _userEnrollmentService.SendUserDatahubPortalInvite(projectUserAddUserCommand.Email,
+                        currentUser.DisplayName);
                 await _userInformationService.CreatePortalUserAsync(projectUserAddUserCommand.GraphGuid);
             }
 
             var portalUser = await _userInformationService.GetPortalUserAsync(projectUserAddUserCommand.GraphGuid);
-            
+
             await using var context = await _contextFactory.CreateDbContextAsync();
             var project = await context.Projects
                 .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym);
@@ -150,11 +156,11 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 _logger.LogError("Project {ProjectAcronym} not found", projectUserAddUserCommand.ProjectAcronym);
                 throw new ProjectNotFoundException($"Project {projectUserAddUserCommand.ProjectAcronym} not found");
             }
-            
+
             var projectUser = await context.Project_Users
-                .FirstOrDefaultAsync(u => u.Project.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym 
+                .FirstOrDefaultAsync(u => u.Project.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym
                                           && u.PortalUser.GraphGuid == projectUserAddUserCommand.GraphGuid);
-            
+
             // Double check that the user is not already a member of the project
             if (projectUser is not null)
             {
@@ -172,10 +178,10 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 Approved_DT = DateTime.UtcNow,
                 RoleId = projectUserAddUserCommand.RoleId,
             };
-            
+
             context.Attach(currentUser);
             context.Attach(portalUser);
-            
+
             await context.Project_Users.AddAsync(newProjectUser);
             await context.TrackSaveChangesAsync(_datahubAuditingService);
         }
