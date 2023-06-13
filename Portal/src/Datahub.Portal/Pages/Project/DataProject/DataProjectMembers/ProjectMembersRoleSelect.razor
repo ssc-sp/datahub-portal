@@ -7,20 +7,20 @@
 <MudMenu AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
     <ActivatorContent>
         <MudStack Row AlignItems="AlignItems.Center" Style="@_outlineStyle" Class="py-2 px-4">
-            <MudText Typo="Typo.body1">@Localizer[_currentRole.Name]</MudText>
+            <MudText Typo="Typo.body1">@Localizer[_currentRole?.Name ?? string.Empty]</MudText>
             <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
         </MudStack>
     </ActivatorContent>
     <ChildContent>
-        @foreach (var role in _projectRoles)
+        @foreach (var role in _projectRoles.Where(r => r.Id != (int)Project_Role.RoleNames.Remove))
         {
-            <MudMenuItem OnClick="@(() => RoleChanged(role.Id))">
+            <MudMenuItem OnClick="@(() => RoleChanged(role.Id))" Style="max-width: 400px;">
                 <MudText Typo="Typo.h6">@Localizer[role.Name]</MudText>
                 <MudText>@Localizer[role.Description]</MudText>
             </MudMenuItem>
         }
         <MudDivider/>
-        <MudMenuItem OnClick="@(() => RoleChanged(_removeRole.Id))">
+        <MudMenuItem OnClick="@(() => RoleChanged(_removeRole.Id))" Style="max-width: 400px;">
             <MudText Color="Color.Error" Typo="Typo.h6">@Localizer[_removeRole.Name]</MudText>
             <MudText Color="Color.Error">@Localizer[_removeRole.Description]</MudText>
         </MudMenuItem>
@@ -48,9 +48,9 @@
     {
         _projectRoles = Project_Role.GetAll().ToList();
         _removeRole = _projectRoles.First(r => r.Id == (int)Project_Role.RoleNames.Remove);
-        _projectRoles = _projectRoles.Where(r => r.Id != (int)Project_Role.RoleNames.Remove);
+        // _projectRoles = _projectRoles.Where(r => r.Id != (int)Project_Role.RoleNames.Remove);
 
-        _currentRole = _projectRoles.First(r => r.Id == InitialValue);
+        _currentRole = _projectRoles.FirstOrDefault(r => r.Id == InitialValue);
     }
 
     private async Task RoleChanged(int newRoleId)

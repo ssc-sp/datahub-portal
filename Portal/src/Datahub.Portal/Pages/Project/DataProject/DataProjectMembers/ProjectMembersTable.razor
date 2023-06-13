@@ -22,35 +22,29 @@
 <DatahubAuthView AuthLevel="@DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
     <Authorized>
         <MudStack>
-            <MudStack Row Class="mt-6 mb-4">
-                <MudText Typo="Typo.h2">
-                    @Localizer["Workspace Members"]
-                </MudText>
-                <MudSpacer/>
-                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
-                        @Localizer["Invite New User"]
-                    </MudButton>
-                </DatahubAuthView>
-            </MudStack>
+
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
                 <MudStack>
-
                     @if (_usersToAdd.Any() || _usersToUpdate.Any())
                     {
-                        <MudElement>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="SaveChanges">
-                                @Localizer["Save Changes"]
-                            </MudButton>
-                        </MudElement>
-                        <MudAlert Severity="Severity.Info" Class="my-3">
-                            <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
-                        </MudAlert>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudElement>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="SaveChanges">
+                                    @Localizer["Save Changes"]
+                                </MudButton>
+                            </MudElement>
+                            <MudAlert Severity="Severity.Info" Class="my-3">
+                                <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
+                            </MudAlert>
+                        </MudStack>
                     }
 
                     @if (_usersToAdd.Any())
                     {
                         <MudStack>
+                            <MudText Typo="Typo.h2">
+                                @Localizer["Invitations"]
+                            </MudText>
                             <MudText Typo="Typo.body1">
                                 @Localizer["You will be inviting the following users to your workspace"]
                             </MudText>
@@ -99,7 +93,17 @@
                     }
                 </MudStack>
             </DatahubAuthView>
-
+            <MudStack Row Class="mt-6 mb-4">
+                <MudText Typo="Typo.h2">
+                    @Localizer["Workspace Members"]
+                </MudText>
+                <MudSpacer/>
+                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
+                        @Localizer["Invite New User"]
+                    </MudButton>
+                </DatahubAuthView>
+            </MudStack>
             <MudTable Items="@_filteredProjectUsers" Striped Filter="@(new Func<Datahub_Project_User, bool>(SearchFilter))">
                 <ToolBarContent>
                     <MudStack Row AlignItems="AlignItems.Center">
@@ -259,6 +263,11 @@
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
+        await InitializedProjectMembers();
+    }
+
+    private async Task InitializedProjectMembers()
+    {
         _projectUsers = await _projectUserManagementService.GetProjectUsersAsync(ProjectAcronym);
         ProjectMemberRoleFilter();
     }
@@ -363,6 +372,7 @@
             _snackbar.Add(Localizer["No changes to save"], Severity.Info);
         }
         _updateInProgress = false;
+        await InitializedProjectMembers();
         StateHasChanged();
     }
 
