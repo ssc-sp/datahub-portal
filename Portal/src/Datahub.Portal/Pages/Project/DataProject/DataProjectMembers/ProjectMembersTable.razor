@@ -34,39 +34,70 @@
                 </DatahubAuthView>
             </MudStack>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
-                @if (_usersToAdd.Any() || _usersToUpdate.Any())
-                {
-                    <MudAlert Severity="Severity.Info" Class="my-3">
-                        <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
-                    </MudAlert>
-                    <MudElement>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="SaveChanges">
-                            @Localizer["Save Changes"]
-                        </MudButton>
-                    </MudElement>
-                }
+                <MudStack>
 
-                @if (_usersToAdd.Any())
-                {
-                    <MudStack>
-                        <MudText Typo="Typo.h2">
-                            @Localizer["You will be inviting the following users to your workspace"]
-                        </MudText>
-                        <MudList>
+                    @if (_usersToAdd.Any() || _usersToUpdate.Any())
+                    {
+                        <MudElement>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="SaveChanges">
+                                @Localizer["Save Changes"]
+                            </MudButton>
+                        </MudElement>
+                        <MudAlert Severity="Severity.Info" Class="my-3">
+                            <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
+                        </MudAlert>
+                    }
+
+                    @if (_usersToAdd.Any())
+                    {
+                        <MudStack>
+                            <MudText Typo="Typo.body1">
+                                @Localizer["You will be inviting the following users to your workspace"]
+                            </MudText>
                             @foreach (var userToBeAdded in _usersToAdd)
                             {
-                                <MudListItem Avatar="@Icons.Material.Outlined.PersonAdd">
-                                    <MudStack Row>
-                                        <MudText Typo="Typo.body2">
-                                            @userToBeAdded.DisplayName
-                                        </MudText>
-                                        <ProjectMembersRoleSelect InitialValue="@userToBeAdded.RoleId" OnRoleChanged="@(newRoleId => UpdateProjectMemberRole(userToBeAdded, newRoleId))"/>
-                                    </MudStack>
-                                </MudListItem>
+                                <MudPaper Elevation="0" Outlined Class="py-4 px-6">
+                                    <MudGrid>
+                                        <MudItem xs="4">
+                                            <MudStack Row AlignItems="AlignItems.Center">
+                                                @if (userToBeAdded.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID)
+                                                {
+                                                    <MudAvatar>
+                                                        <MudIcon Icon="@Icons.Material.Outlined.PersonAdd"/>
+                                                    </MudAvatar>
+                                                }
+                                                else
+                                                {
+                                                    <UserAvatar ViewedUser="@userToBeAdded.PortalUser" Size="@Size.Medium"/>
+                                                }
+                                                <MudText Typo="Typo.body2">
+                                                    @if (userToBeAdded.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID)
+                                                    {
+                                                        @userToBeAdded.Email
+                                                    }
+                                                    else
+                                                    {
+                                                        @userToBeAdded.DisplayName
+                                                    }
+                                                </MudText>
+                                            </MudStack>
+                                        </MudItem>
+
+                                        <MudItem xs="4">
+                                            <MudStack Row AlignItems="AlignItems.Center">
+                                                <MudText Typo="Typo.body2">
+                                                    @Localizer["will be added as a"]
+                                                </MudText>
+                                                <ProjectMembersRoleSelect InitialValue="@userToBeAdded.RoleId" OnRoleChanged="@(newRoleId => UpdateProjectMemberRole(userToBeAdded, newRoleId))"/>
+                                            </MudStack>
+                                        </MudItem>
+
+                                    </MudGrid>
+                                </MudPaper>
                             }
-                        </MudList>
-                    </MudStack>
-                }
+                        </MudStack>
+                    }
+                </MudStack>
             </DatahubAuthView>
 
             <MudTable Items="@_filteredProjectUsers" Striped Filter="@(new Func<Datahub_Project_User, bool>(SearchFilter))">
@@ -131,8 +162,8 @@
 
                 <RowTemplate Context="rowContext">
                     <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
-                        <MudStack Row>
-                            <UserAvatar ViewedUser="@rowContext.PortalUser" Size="@Size.Small"/>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <UserAvatar ViewedUser="@rowContext.PortalUser" Size="@Size.Medium"/>
                             <MudText Typo="Typo.body2">
                                 @rowContext.PortalUser.DisplayName
                             </MudText>
@@ -218,8 +249,8 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        
-        // red border on top, left, and bottom
+
+    // red border on top, left, and bottom
         _modifiedCellStyle = new StyleBuilder()
             .AddStyle("background-color", $"{Colors.Amber.Default}4D")
             .Build();
@@ -257,7 +288,7 @@
         if (existingUser != null)
         {
             existingUser.NewRoleId = newRoleId;
-            if(existingUser.NewRoleId == existingUser.ProjectUser.Role.Id)
+            if (existingUser.NewRoleId == existingUser.ProjectUser.Role.Id)
             {
                 _usersToUpdate.Remove(existingUser);
             }
@@ -276,6 +307,10 @@
     private void UpdateProjectMemberRole(ProjectUserAddUserCommand projectUser, int newRoleId)
     {
         projectUser.RoleId = newRoleId;
+        if (projectUser.RoleId == (int)Project_Role.RoleNames.Remove)
+        {
+            _usersToAdd.Remove(projectUser);
+        }
         StateHasChanged();
     }
 
@@ -290,7 +325,7 @@
         var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
         var dialogParameters = new DialogParameters
         {
-            { "CurrentProjectMembers", _projectUsers.Where(x => x.Role.Id != (int)Project_Role.RoleNames.Remove).ToList() },
+            { "CurrentProjectUsers", _projectUsers.Where(x => x.Role.Id != (int)Project_Role.RoleNames.Remove).ToList() },
             { "ProjectAcronym", ProjectAcronym },
             { "Inviter", currentUser }
         };
