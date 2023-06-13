@@ -9,7 +9,10 @@
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated" ProjectAcronym="@ProjectAcronym">
     <MudStack>
         <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
-            <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
+            @if (_projectAdmins.Any())
+            {
+                <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
+            }
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
                 <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@($"/w/{ProjectAcronym}/members")">
                     @Localizer["Manage Members"]
