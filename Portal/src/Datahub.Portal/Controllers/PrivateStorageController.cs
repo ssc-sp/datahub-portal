@@ -27,43 +27,6 @@ public class PrivateStorageController : Controller
         this.dataRetrievalService = dataRetrievalService;
     }
 
-    public IActionResult HelloWorld()
-    {
-        _logger.LogDebug("Unauthenticated hello world");
-        return Ok("hello world");
-    }
-
-    public async Task<IActionResult> BlobTest()
-    {
-        var filemd = new FileMetaData()
-        {
-            filename = "privacy.html",
-            name = "privacy.html"
-        };
-
-        var project = "canmetrobo";
-
-        _logger.LogDebug($"Downloading {filemd.filename} from project {project}");
-
-        var uri = await dataRetrievalService.GetUserDelegationSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, filemd.filename, project);
-
-        return Redirect(uri.ToString());
-    }
-
-    public async Task<IActionResult> DataLakeTest()
-    {
-        var filemd = new FileMetaData()
-        {
-            folderpath = "nrcan-rncan.gc.ca/alexander.khavich",
-            filename = "serious.gif"
-        };
-
-        _logger.LogDebug($"Downloading {filemd.filename}");
-
-        var uri = await dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, filemd,null);
-        return Redirect(uri.ToString());
-    }
-
     [Route("{fileId}")]
     public async Task<IActionResult> DownloadFile(string fileId)
     {
