@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31710.8
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.33529.622
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B6CC5ED1-A990-4AC7-89C7-B0F62FFEEC26}"
 	ProjectSection(SolutionItems) = preProject
@@ -130,13 +130,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncLocalization", "SyncLoc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Maintenance", "Portal\src\Datahub.Maintenance\Datahub.Maintenance.csproj", "{5FB450AC-5E50-46A8-B454-EAD8ACD24FC6}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MAUI", "MAUI", "{8B889747-F089-4150-AC80-FCAE5FA33571}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Desktop", "Desktop", "{8B889747-F089-4150-AC80-FCAE5FA33571}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MAUI.Uploader", "MAUI\MAUI.Uploader\MAUI.Uploader.csproj", "{99E69964-BB4A-4830-9C4D-6E1608356EC4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desktop.Uploader", "Desktop\Desktop.Uploader\Desktop.Uploader.csproj", "{99E69964-BB4A-4830-9C4D-6E1608356EC4}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Uploader.SharedCode", "MAUI\Uploader.SharedCode\Uploader.SharedCode.shproj", "{5C04757A-F91E-41A5-B7D5-05C469FC65C7}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Uploader.SharedCode", "Desktop\Uploader.SharedCode\Uploader.SharedCode.shproj", "{5C04757A-F91E-41A5-B7D5-05C469FC65C7}"
 EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Desktop\Uploader.SharedCode\UploaderSharedCode.projitems*{5c04757a-f91e-41a5-b7d5-05c469fc65c7}*SharedItemsImports = 13
+		Desktop\Uploader.SharedCode\UploaderSharedCode.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
+		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
+		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{79da8e04-5655-493a-80e4-37a07fbec90e}*SharedItemsImports = 13
+		Desktop\Uploader.SharedCode\UploaderSharedCode.projitems*{99e69964-bb4a-4830-9c4d-6e1608356ec4}*SharedItemsImports = 5
+		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{cf8de3c8-8b81-4569-8075-aad80b478b5f}*SharedItemsImports = 5
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -357,13 +365,5 @@ Global
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
-	EndGlobalSection
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		MAUI\Uploader.SharedCode\UploaderSharedCode.projitems*{5c04757a-f91e-41a5-b7d5-05c469fc65c7}*SharedItemsImports = 13
-		MAUI\Uploader.SharedCode\UploaderSharedCode.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
-		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
-		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{79da8e04-5655-493a-80e4-37a07fbec90e}*SharedItemsImports = 13
-		MAUI\Uploader.SharedCode\UploaderSharedCode.projitems*{99e69964-bb4a-4830-9c4d-6e1608356ec4}*SharedItemsImports = 5
-		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{cf8de3c8-8b81-4569-8075-aad80b478b5f}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
