@@ -26,7 +26,7 @@
                 <MudPaper Elevation="0" Class="file-explorer-layout-wrapper">
                     @if (_containers.Count > 1)
                     {
-                        <MudText>Current Container</MudText>
+                        <MudText><b>@Localizer["Current Container"]</b></MudText>
                         <MudRadioGroup T="string" @bind-SelectedOption="SelectedContainer" >
                             @foreach (var container in _containers)
                             {
