@@ -245,8 +245,8 @@ public class RequestManagementService : IRequestManagementService
             var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
             var users = project.Users.Select(u => new TerraformUser()
                 {
-                    ObjectId = u.User_ID, 
-                    Email = u.User_Name, 
+                    ObjectId = u.PortalUser.GraphGuid, 
+                    Email = u.PortalUser.Email, 
                     Role = GetTerraformUserRole(u)
                 })
                 .ToList();
