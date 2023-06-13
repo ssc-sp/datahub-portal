@@ -1,10 +1,12 @@
 @using Datahub.Core.Model.Projects
+@using MudBlazor.Utilities
 
 @inject IJSRuntime _jsRuntime;
 
+<!--suppress CssUnresolvedCustomProperty -->
 <MudMenu AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
     <ActivatorContent>
-        <MudStack Row AlignItems="AlignItems.Center">
+        <MudStack Row AlignItems="AlignItems.Center" Style="@_outlineStyle" Class="py-2 px-4">
             <MudText Typo="Typo.body1">@Localizer[_currentRole.Name]</MudText>
             <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
         </MudStack>
@@ -36,6 +38,11 @@
     private Project_Role _currentRole;
     private IEnumerable<Project_Role> _projectRoles;
     private Project_Role _removeRole;
+
+    private string _outlineStyle = new StyleBuilder()
+        .AddStyle("border", "1px solid var(--mud-palette-table-lines)")
+        .AddStyle("border-radius", "var(--mud-default-borderradius)")
+        .Build();
 
     protected override void OnParametersSet()
     {

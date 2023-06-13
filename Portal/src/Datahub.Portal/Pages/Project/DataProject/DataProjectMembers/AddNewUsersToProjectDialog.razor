@@ -6,6 +6,7 @@
 @using Datahub.Core.Model.Projects
 @inject IMSGraphService _msGraphService 
 @inject IUserEnrollmentService _userEnrollmentService
+@inject IUserInformationService _userInformationService
 
 <MudDialog>
     <DialogContent>
@@ -144,7 +145,7 @@
         _errorMessage = string.Empty;
     }
 
-    private void AddUser(string searchValue)
+    private async Task AddUser(string searchValue)
     {
         var user = _searchResultUsers.FirstOrDefault(u => u.Mail.Equals(searchValue, StringComparison.OrdinalIgnoreCase));
 
@@ -171,15 +172,23 @@
         }
         ClearError();
 
-        _usersToAdd.Add(new ProjectUserAddUserCommand()
+        var addUserCommand = new ProjectUserAddUserCommand()
         {
             ProjectAcronym = ProjectAcronym,
             GraphGuid = user.Id,
             Email = user.Mail,
             DisplayName = user.DisplayName,
             RoleId = (int)Project_Role.RoleNames.Guest,
-        });
-        _autocomplete.Clear();
+        };
+
+        if (!user.Id.Equals(ProjectUserAddUserCommand.NEW_USER_GUID))
+        {
+            var existingPortalUser = await _userInformationService.GetPortalUserAsync(user.Id);
+            addUserCommand.PortalUser = existingPortalUser;
+        }
+
+        _usersToAdd.Add(addUserCommand);
+        await _autocomplete.Clear();
         StateHasChanged();
     }
 
