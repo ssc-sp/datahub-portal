@@ -14,9 +14,25 @@
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronymParam">
     <MudStack>
         <ProjectInfo ProjectAcronym="@ProjectAcronymParam"/>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
+            <Authorized>
+                <MudAlert Severity="Severity.Info">
+                    <MudText>@Localizer["You are an administrator and can view all the repositories linked to your instance of Databricks. Collaborators can only view their own linked repositories."]</MudText>
+                </MudAlert>
+            </Authorized>
+            <NotAuthorized>
+                <MudAlert Severity="Severity.Info">
+                    <MudText>@Localizer["You are not an administrator and you can only see the repositories linked to your own account in Databricks. If you wish to share other repositories, request a workspace administrator to share them."]</MudText>
+                </MudAlert>
+            </NotAuthorized>
+        </DatahubAuthView>
         <MudText Class="mt-2 mb-4" Typo="Typo.h2">@Localizer["Workspace Repositories"]</MudText>
+        <MudText>@Localizer["This section lets you share inside Datahub your Git repositories that have been linked inside Databricks."]</MudText>
+        <MudText>@Localizer["If you wish to learn more about Databricks and Git integration, "]
+            <MudLink Href="/resources" Target="_blank">@Localizer["please refer to the resources page on it."]</MudLink>
+        </MudText>
 
-        <MudGrid>
+        <MudGrid Class="mt-6">
             @foreach (var repositoryInfo in _repositoryInfos)
             {
                 <RepositoryGridItem RepositoryInfoDto="@repositoryInfo" ProjectAcronym="@ProjectAcronymParam"/>
@@ -32,14 +48,15 @@
 
     private List<RepositoryInfoDto> _repositoryInfos = new();
 
-    private static readonly string[] DatabricksScopes = {
+    private static readonly string[] DatabricksScopes =
+    {
         "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/user_impersonation"
     };
-    
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        
+
         try
         {
             var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(DatabricksScopes);
@@ -47,13 +64,14 @@
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
         {
-            // token's expired, or consent is needed
+    // token's expired, or consent is needed
             _consentHandler.HandleException(e);
         }
         catch (HttpOperationException)
         {
-            // something else went wrong
+    // something else went wrong
             throw new UnauthorizedAccessException();
         }
     }
+
 }
