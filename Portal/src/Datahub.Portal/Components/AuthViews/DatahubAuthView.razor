@@ -31,8 +31,10 @@
     {
         Authenticated,
         Personal,
+        WorkspaceGuest,
         WorkspaceCollaborator,
         WorkspaceAdmin,
+        WorkspaceLead,
         DatahubAdminGuestView,
         DatahubAdmin,
         Unauthorized
@@ -60,18 +62,28 @@
 
     private string GetRoles()
     {
+        var guestRole = $"{ProjectAcronym}{RoleConstants.GUEST_SUFFIX}";
+        var collaboratorRole = $"{ProjectAcronym}{RoleConstants.COLLABORATOR_SUFFIX}";
+        var adminRole = $"{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX}";
+        var workspaceLeadRole = $"{ProjectAcronym}{RoleConstants.WORKSPACE_LEAD_SUFFIX}";
+        const string datahubAdminRole = RoleConstants.DATAHUB_ROLE_ADMIN;
+        
         switch (AuthLevel)
         {
             case AuthLevels.Personal:
                 return $"{UserGraphId},{RoleConstants.DATAHUB_ROLE_ADMIN}";
+            case AuthLevels.WorkspaceGuest:
+                return $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubAdminRole}";
             case AuthLevels.WorkspaceCollaborator:
-                return $"{ProjectAcronym},{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX},{RoleConstants.DATAHUB_ROLE_ADMIN}";
+                return $"{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubAdminRole}";
             case AuthLevels.WorkspaceAdmin:
-                return $"{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX},{RoleConstants.DATAHUB_ROLE_ADMIN}";
+                return $"{adminRole},{workspaceLeadRole},{datahubAdminRole}";
+            case AuthLevels.WorkspaceLead:
+                return $"{workspaceLeadRole},{datahubAdminRole}";
             case AuthLevels.DatahubAdminGuestView:
-                return $"{RoleConstants.DATAHUB_ROLE_ADMIN},{RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST}";
+                return $"{datahubAdminRole},{RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST}";
             case AuthLevels.DatahubAdmin:
-                return RoleConstants.DATAHUB_ROLE_ADMIN;
+                return datahubAdminRole;
             case AuthLevels.Unauthorized:
                 return "🏗️ Unauthorized";
             default:

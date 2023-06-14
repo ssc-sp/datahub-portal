@@ -1,246 +1,247 @@
-﻿@page "/admin/onboardusers/{ProjectAcronym}"
-
-@using Datahub.Core.Model.Achievements;
-@using Datahub.Core.Model.Datahub
-@using Datahub.Core.Services.Achievements;
-
-@inject NavigationManager NavigationManager
-@inject IMSGraphService MSGraphService
-@inject IJSRuntime JSRuntime
-@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
-@inject IUserInformationService UserInformationService
-@inject IDatahubAuditingService AuditingService
-@inject ServiceAuthManager ServiceAuthManager
-@inject IPortalUserTelemetryService _telemetryService
-
-<div class="manage-access">
-
-    @if (ShowTitle)
-    {
-        <MudText Typo="Typo.h4">@($"{ProjectAcronym} {Localizer["Project Users"]}")</MudText>
-    }
-
-    <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
-
-        <MudGrid Class="mb-4">
-            <MudItem sm="4">
-                <MudTextField DebounceInterval="1000"
-                              T="string"
-                              OnDebounceIntervalElapsed="HandleSearchUsers"
-                              Label=@Localizer["Search Users"]
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense"
-                              Clearable="true"
-                              Adornment="Adornment.End"
-                              AdornmentIcon="@Icons.Material.Filled.Search" />
-            </MudItem>
-        </MudGrid>
-        
-        <div class="nrcan-typography dropdown-content ddsearch" id="usermenu">
-            @foreach (var item in filteredUsersList.Take(10))
-            {
-                <a @onclick="() => OnUserClick(item.Value)">@item.Value.DisplayName</a>
-            }
-        </div>
-
-        @if (_chosenUsers.Any())
-        {
-            <div class="ae table-container">
-
-                <AePaginatedTable Accessors="accessorFunctions"
-                              Renderers="renderFunctions"
-                              T="Datahub_Project_User"
-                              Dataset="_chosenUsers"
-                              Headers="headers"
-                              class="custom light"
-                              style="Width:100%"
-                              GridTemplateColumns="4fr 4fr 2fr 2fr 2fr"
-                              Page="@_lastClicked"
-                              PageSize="20"
-                              @ref=_myTable />
-
-                @if (_myTable != null)
-                {
-                    <AePagination Pageable="@_myTable"
-                          OnPageClick="OnPageClick">
-                        <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon>
-                        <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-                    </AePagination>
-                }
-            </div>
-
-            @* <AeButton @onclick="@(async () => await AddUsersToProject())">@Localizer["Add Users"]</AeButton>*@
-        }
-
-        <div style="margin-top: 8px;">
-            @if (OnCompleted.HasDelegate)
-            {
-                <AeButton OnClickEvent=@OnCompleted>@Localizer["Done"]</AeButton>
-            }
-        </div>
-    </AeCard>
-</div>
-
-@code {
-
-    [Parameter]
-    public string ProjectAcronym { get; set; }
-
-    [Parameter]
-    public bool ShowTitle { get; set; } = true;
-
-    [Parameter]
-    public EventCallback OnCompleted { get; set; }
-
-    private List<Func<Datahub_Project_User, string>> accessorFunctions;
-    private List<Func<Datahub_Project_User, RenderFragment>> renderFunctions;
-
-    private Dictionary<string, GraphUser> filteredUsersList { get; set; } = new Dictionary<string, GraphUser>();
-    private string _inputValue = string.Empty;
-    private DatahubProjectDBContext Context;
-    private Datahub_Project _project;
-    private List<string> headers = new List<string>() { "Name", "Email", "Admin", "Data Approver", "Delete User" };
-    private int _lastClicked = 0;
-    private IPageableComponent _myTable;
-
-    private void OnPageClick(int pageIndex)
-    {
-        _lastClicked = pageIndex;
-    }
-
-    private List<Datahub_Project_User> _chosenUsers;
-
-    protected override void OnInitialized()
-    {
-        //var currentUserId = await UserInformationService.GetUserIdString();
-
-        Context = DbFactory.CreateDbContext();
-        _project = Context.Projects.Single(p => p.Project_Acronym_CD == ProjectAcronym);
-        _chosenUsers = Context.Project_Users.Where(p => p.Project == _project).ToList();
-        FillAccessorFunctions();
-
-        renderFunctions = new List<Func<Datahub_Project_User, RenderFragment>>() {
-            user => @<div class="help icon-container"><GraphUserInformation UserId="@user.User_ID" IsUserNameRequested="true"></GraphUserInformation></div>,
-            user => @<div class="help icon-container"><GraphUserInformation UserId="@user.User_ID"></GraphUserInformation></div>,
-            user => @<div class="help icon-container">
-            <DHCheckbox IsChecked="@user.IsAdmin"
-                IsCheckedChanged="e => HandleAdminChanged(user, e)" />
-    </div>,
-            user => @<div class="help icon-container">
-            <DHCheckbox IsChecked="@user.IsDataApprover"
-                IsCheckedChanged="e => HandleDataApproverChanged(user, e)" />
-    </div>,
-            user => @<div class="help icon-container" @onclick="() => DeleteRecord(user)"><i class="far fa-trash-alt"></i></div>
-    ,
-        };
-    }
-
-
-    private async void HandleAdminChanged(Datahub_Project_User user, bool isChecked)
-    {
-        _chosenUsers.Where(u => u.User_ID == user.User_ID).First().IsAdmin = isChecked;
-        //Context.Project_Users.Where(u => u.ProjectUser_ID == _chosen).First().IsAdmin = isChecked;
-        await RefreshData();
-    }
-
-    private async void HandleDataApproverChanged(Datahub_Project_User user, bool isChecked)
-    {
-        _chosenUsers.Where(u => u.User_ID == user.User_ID).First().IsDataApprover = isChecked;
-        //Context.Project_Users.Where(u => u.User_ID == user.User_ID).First().IsDataApprover = isChecked;
-        await RefreshData();
-    }
-
-    private async void DeleteRecord(Datahub_Project_User user)
-    {
-        var userrec = _chosenUsers.Where(u => u.User_ID == user.User_ID).First();
-        Context.Project_Users.Remove(userrec);
-
-        _chosenUsers.Clear();
-        await Context.TrackSaveChangesAsync(AuditingService);
-
-        _chosenUsers = Context.Project_Users.Where(p => p.Project == _project).ToList();
-        StateHasChanged();
-    }
-
-    private void FillAccessorFunctions()
-    {
-        accessorFunctions = new List<Func<Datahub_Project_User, string>>() {
-            (user => { return user.User_ID; }),
-            null,
-            null,
-            null,
-            null,
-        };
-    }
-
-    private async Task RefreshData(bool reloadUsers = false)
-    {
-        await Context.TrackSaveChangesAsync(AuditingService);
-        if (reloadUsers)
-        {
-            _chosenUsers.Clear();
-            _chosenUsers = Context.Project_Users.Where(p => p.Project == _project).ToList();
-        }
-        ServiceAuthManager.InvalidateAuthCache();
-        StateHasChanged();
-    }
-
-    private async Task HandleSearchUsers(string filterValue)
-    {
-        if ((filterValue ?? "").Length > 3)
-        {
-            filteredUsersList = await MSGraphService.GetUsersListAsync(filterValue, CancellationToken.None);
-            await JSRuntime.InvokeVoidAsync("toggleMenuWithBool", $"usermenu", "true");
-        }
-    }
-
-    private async Task OnSearchUserClick()
-    {
-        var toggleMenu = "false";
-
-        if (_inputValue.Length > 3)
-        {
-            filteredUsersList = await MSGraphService.GetUsersListAsync(_inputValue, CancellationToken.None);
-            toggleMenu = "true";
-        }
-        await JSRuntime.InvokeVoidAsync("toggleMenuWithBool", $"usermenu", toggleMenu);
-    }
-
-    private async void OnUserClick(GraphUser chosenUser)
-    {
-        if (string.IsNullOrWhiteSpace(chosenUser.Id))
-        {
-            throw new Exception("The user id is empty");
-        }
-        
-        var user = new Datahub_Project_User()
-        {
-            User_ID = chosenUser.Id,
-            Project = _project,
-            ApprovedUser = await UserInformationService.GetUserIdString(),
-            Approved_DT = DateTime.Now,
-            IsAdmin = false,
-            IsDataApprover = false,
-            User_Name = chosenUser.Mail.ToLower()
-        };
-        _chosenUsers.Add(user);
-        _inputValue = string.Empty;
-        Context.Project_Users.Add(user);
-
-        await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserSentInvite);
-
-        await RefreshData(true);
-    }
-
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        // You must re-render after the components are initialized in order for the
-        // component reference to not be null
-        if (firstRender)
-        {
-            StateHasChanged();
-        }
-    }
-
-}
+﻿@* @page "/admin/onboardusers/{ProjectAcronym}" *@
+@* *@
+@* @using Datahub.Core.Model.Achievements; *@
+@* @using Datahub.Core.Model.Datahub *@
+@* @using Datahub.Core.Model.Projects *@
+@* @using Datahub.Core.Services.Achievements; *@
+@* *@
+@* @inject NavigationManager NavigationManager *@
+@* @inject IMSGraphService MSGraphService *@
+@* @inject IJSRuntime JSRuntime *@
+@* @inject IDbContextFactory<DatahubProjectDBContext> DbFactory *@
+@* @inject IUserInformationService UserInformationService *@
+@* @inject IDatahubAuditingService AuditingService *@
+@* @inject ServiceAuthManager ServiceAuthManager *@
+@* @inject IPortalUserTelemetryService _telemetryService *@
+@* *@
+@* <div class="manage-access"> *@
+@* *@
+@*     @if (ShowTitle) *@
+@*     { *@
+@*         <MudText Typo="Typo.h4">@($"{ProjectAcronym} {Localizer["Project Users"]}")</MudText> *@
+@*     } *@
+@* *@
+@*     <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal"> *@
+@* *@
+@*         <MudGrid Class="mb-4"> *@
+@*             <MudItem sm="4"> *@
+@*                 <MudTextField DebounceInterval="1000" *@
+@*                               T="string" *@
+@*                               OnDebounceIntervalElapsed="HandleSearchUsers" *@
+@*                               Label=@Localizer["Search Users"] *@
+@*                               Variant="Variant.Outlined" *@
+@*                               Margin="Margin.Dense" *@
+@*                               Clearable="true" *@
+@*                               Adornment="Adornment.End" *@
+@*                               AdornmentIcon="@Icons.Material.Filled.Search" /> *@
+@*             </MudItem> *@
+@*         </MudGrid> *@
+@*          *@
+@*         <div class="nrcan-typography dropdown-content ddsearch" id="usermenu"> *@
+@*             @foreach (var item in filteredUsersList.Take(10)) *@
+@*             { *@
+@*                 <a @onclick="() => OnUserClick(item.Value)">@item.Value.DisplayName</a> *@
+@*             } *@
+@*         </div> *@
+@* *@
+@*         @if (_chosenUsers.Any()) *@
+@*         { *@
+@*             <div class="ae table-container"> *@
+@* *@
+@*                 <AePaginatedTable Accessors="accessorFunctions" *@
+@*                               Renderers="renderFunctions" *@
+@*                               T="Datahub_Project_User" *@
+@*                               Dataset="_chosenUsers" *@
+@*                               Headers="headers" *@
+@*                               class="custom light" *@
+@*                               style="Width:100%" *@
+@*                               GridTemplateColumns="4fr 4fr 2fr 2fr 2fr" *@
+@*                               Page="@_lastClicked" *@
+@*                               PageSize="20" *@
+@*                               @ref=_myTable /> *@
+@* *@
+@*                 @if (_myTable != null) *@
+@*                 { *@
+@*                     <AePagination Pageable="@_myTable" *@
+@*                           OnPageClick="OnPageClick"> *@
+@*                         <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> *@
+@*                         <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon> *@
+@*                     </AePagination> *@
+@*                 } *@
+@*             </div> *@
+@* *@
+@*             $1$ <AeButton @onclick="@(async () => await AddUsersToProject())">@Localizer["Add Users"]</AeButton>#1# *@
+@*         } *@
+@* *@
+@*         <div style="margin-top: 8px;"> *@
+@*             @if (OnCompleted.HasDelegate) *@
+@*             { *@
+@*                 <AeButton OnClickEvent=@OnCompleted>@Localizer["Done"]</AeButton> *@
+@*             } *@
+@*         </div> *@
+@*     </AeCard> *@
+@* </div> *@
+@* *@
+@* @code { *@
+@* *@
+@*     [Parameter] *@
+@*     public string ProjectAcronym { get; set; } *@
+@* *@
+@*     [Parameter] *@
+@*     public bool ShowTitle { get; set; } = true; *@
+@* *@
+@*     [Parameter] *@
+@*     public EventCallback OnCompleted { get; set; } *@
+@* *@
+@*     private List<Func<Datahub_Project_User, string>> accessorFunctions; *@
+@*     private List<Func<Datahub_Project_User, RenderFragment>> renderFunctions; *@
+@* *@
+@*     private Dictionary<string, GraphUser> filteredUsersList { get; set; } = new Dictionary<string, GraphUser>(); *@
+@*     private string _inputValue = string.Empty; *@
+@*     private DatahubProjectDBContext Context; *@
+@*     private Datahub_Project _project; *@
+@*     private List<string> headers = new List<string>() { "Name", "Email", "Admin", "Data Approver", "Delete User" }; *@
+@*     private int _lastClicked = 0; *@
+@*     private IPageableComponent _myTable; *@
+@* *@
+@*     private void OnPageClick(int pageIndex) *@
+@*     { *@
+@*         _lastClicked = pageIndex; *@
+@*     } *@
+@* *@
+@*     private List<Datahub_Project_User> _chosenUsers; *@
+@* *@
+@*     protected override void OnInitialized() *@
+@*     { *@
+@*         //var currentUserId = await UserInformationService.GetUserIdString(); *@
+@* *@
+@*         Context = DbFactory.CreateDbContext(); *@
+@*         _project = Context.Projects.Single(p => p.Project_Acronym_CD == ProjectAcronym); *@
+@*         _chosenUsers = Context.Project_Users.Where(p => p.Project == _project).ToList(); *@
+@*         FillAccessorFunctions(); *@
+@* *@
+@*         renderFunctions = new List<Func<Datahub_Project_User, RenderFragment>>() { *@
+@*             user => @<div class="help icon-container"><GraphUserInformation UserId="@user.User_ID" IsUserNameRequested="true"></GraphUserInformation></div>, *@
+@*             user => @<div class="help icon-container"><GraphUserInformation UserId="@user.User_ID"></GraphUserInformation></div>, *@
+@*             user => @<div class="help icon-container"> *@
+@*             <DHCheckbox IsChecked="@user.IsAdmin" *@
+@*                 IsCheckedChanged="e => HandleAdminChanged(user, e)" /> *@
+@*     </div>, *@
+@*             user => @<div class="help icon-container"> *@
+@*             <DHCheckbox IsChecked="@user.IsDataApprover" *@
+@*                 IsCheckedChanged="e => HandleDataApproverChanged(user, e)" /> *@
+@*     </div>, *@
+@*             user => @<div class="help icon-container" @onclick="() => DeleteRecord(user)"><i class="far fa-trash-alt"></i></div> *@
+@*     , *@
+@*         }; *@
+@*     } *@
+@* *@
+@* *@
+@*     private async void HandleAdminChanged(Datahub_Project_User user, bool isChecked) *@
+@*     { *@
+@*         _chosenUsers.Where(u => u.User_ID == user.User_ID).First().IsAdmin = isChecked; *@
+@*         //Context.Project_Users.Where(u => u.ProjectUser_ID == _chosen).First().IsAdmin = isChecked; *@
+@*         await RefreshData(); *@
+@*     } *@
+@* *@
+@*     private async void HandleDataApproverChanged(Datahub_Project_User user, bool isChecked) *@
+@*     { *@
+@*         _chosenUsers.Where(u => u.User_ID == user.User_ID).First().IsDataApprover = isChecked; *@
+@*         //Context.Project_Users.Where(u => u.User_ID == user.User_ID).First().IsDataApprover = isChecked; *@
+@*         await RefreshData(); *@
+@*     } *@
+@* *@
+@*     private async void DeleteRecord(Datahub_Project_User user) *@
+@*     { *@
+@*         var userrec = _chosenUsers.Where(u => u.User_ID == user.User_ID).First(); *@
+@*         Context.Project_Users.Remove(userrec); *@
+@* *@
+@*         _chosenUsers.Clear(); *@
+@*         await Context.TrackSaveChangesAsync(AuditingService); *@
+@* *@
+@*         _chosenUsers = Context.Project_Users.Where(p => p.Project == _project).ToList(); *@
+@*         StateHasChanged(); *@
+@*     } *@
+@* *@
+@*     private void FillAccessorFunctions() *@
+@*     { *@
+@*         accessorFunctions = new List<Func<Datahub_Project_User, string>>() { *@
+@*             (user => { return user.User_ID; }), *@
+@*             null, *@
+@*             null, *@
+@*             null, *@
+@*             null, *@
+@*         }; *@
+@*     } *@
+@* *@
+@*     private async Task RefreshData(bool reloadUsers = false) *@
+@*     { *@
+@*         await Context.TrackSaveChangesAsync(AuditingService); *@
+@*         if (reloadUsers) *@
+@*         { *@
+@*             _chosenUsers.Clear(); *@
+@*             _chosenUsers = Context.Project_Users.Where(p => p.Project == _project).ToList(); *@
+@*         } *@
+@*         ServiceAuthManager.InvalidateAuthCache(); *@
+@*         StateHasChanged(); *@
+@*     } *@
+@* *@
+@*     private async Task HandleSearchUsers(string filterValue) *@
+@*     { *@
+@*         if ((filterValue ?? "").Length > 3) *@
+@*         { *@
+@*             filteredUsersList = await MSGraphService.GetUsersListAsync(filterValue, CancellationToken.None); *@
+@*             await JSRuntime.InvokeVoidAsync("toggleMenuWithBool", $"usermenu", "true"); *@
+@*         } *@
+@*     } *@
+@* *@
+@*     private async Task OnSearchUserClick() *@
+@*     { *@
+@*         var toggleMenu = "false"; *@
+@* *@
+@*         if (_inputValue.Length > 3) *@
+@*         { *@
+@*             filteredUsersList = await MSGraphService.GetUsersListAsync(_inputValue, CancellationToken.None); *@
+@*             toggleMenu = "true"; *@
+@*         } *@
+@*         await JSRuntime.InvokeVoidAsync("toggleMenuWithBool", $"usermenu", toggleMenu); *@
+@*     } *@
+@* *@
+@*     private async void OnUserClick(GraphUser chosenUser) *@
+@*     { *@
+@*         if (string.IsNullOrWhiteSpace(chosenUser.Id)) *@
+@*         { *@
+@*             throw new Exception("The user id is empty"); *@
+@*         } *@
+@*          *@
+@*         var user = new Datahub_Project_User() *@
+@*         { *@
+@*             User_ID = chosenUser.Id, *@
+@*             Project = _project, *@
+@*             ApprovedUser = await UserInformationService.GetUserIdString(), *@
+@*             Approved_DT = DateTime.Now, *@
+@*             IsAdmin = false, *@
+@*             IsDataApprover = false, *@
+@*             User_Name = chosenUser.Mail.ToLower() *@
+@*         }; *@
+@*         _chosenUsers.Add(user); *@
+@*         _inputValue = string.Empty; *@
+@*         Context.Project_Users.Add(user); *@
+@* *@
+@*         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserSentInvite); *@
+@* *@
+@*         await RefreshData(true); *@
+@*     } *@
+@* *@
+@* *@
+@*     protected override void OnAfterRender(bool firstRender) *@
+@*     { *@
+@*         // You must re-render after the components are initialized in order for the *@
+@*         // component reference to not be null *@
+@*         if (firstRender) *@
+@*         { *@
+@*             StateHasChanged(); *@
+@*         } *@
+@*     } *@
+@* *@
+@* } *@

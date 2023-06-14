@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using Datahub.Core.Model.Achievements;
 
 namespace Datahub.Core.Model.Announcements.Configuration;
 

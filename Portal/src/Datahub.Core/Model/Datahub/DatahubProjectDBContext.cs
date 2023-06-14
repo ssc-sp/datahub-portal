@@ -1,6 +1,8 @@
 ﻿using Datahub.Core.Data;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Announcements;
 using Datahub.Core.Model.Onboarding;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -69,6 +71,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<Announcement> Announcements { get; set; }
     
     public DbSet<ProjectRepository> ProjectRepositories { get; set; }
+    
+    public DbSet<Project_Role> Project_Roles { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
@@ -109,7 +113,15 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         var initialSetup = configuration.GetSection("InitialSetup");
         if (initialSetup?.GetValue<string>("AdminGUID") != null)
         {
-            var user = context.Project_Users.Add(new Datahub_Project_User() { User_ID = initialSetup.GetValue<string>("AdminGUID"), IsAdmin = true, ProjectUser_ID = 1, Project = p1 });
+            var user = context.Project_Users.Add(new Datahub_Project_User()
+            {
+                PortalUser = new PortalUser()
+                {
+                    GraphGuid = initialSetup.GetValue<string>("AdminGUID"), 
+                },
+                Project = p1,
+                RoleId = (int) Project_Role.RoleNames.Admin
+            });
             //var permissions = context.Project_Users_Requests.Add(new Datahub_)
         }
 

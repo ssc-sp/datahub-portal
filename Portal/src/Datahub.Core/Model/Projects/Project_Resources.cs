@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Newtonsoft.Json;
 
-namespace Datahub.Core.Model.Datahub;
+namespace Datahub.Core.Model.Projects;
 
 public class Project_Resources2
 {

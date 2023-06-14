@@ -433,7 +433,7 @@
     private async Task LoadProjectInfo()
     {
         var project = await PublicFileService.GetProjectWithUsers(_projectCode);
-        _dataApproverUserIds = project.Users.Where(pu => pu.IsDataApprover).Select(pu => pu.User_ID).ToList();
+        _dataApproverUserIds = project.Users.Where(pu => pu.Role.IsCollaborator).Select(pu => pu.User_ID).ToList();
         _projectInfo = project.ProjectInfo;
     }
 

@@ -445,7 +445,7 @@ public class UserInformationService : IUserInformationService
     /// </summary>
     /// <param name="userGraphId"></param>
     /// <returns>Portal User</returns>
-    private async Task CreatePortalUserAsync(string userGraphId)
+    public async Task CreatePortalUserAsync(string userGraphId)
     {
         await using var ctx = await _datahubContextFactory.CreateDbContextAsync();
         var exists = await ctx.PortalUsers
@@ -516,14 +516,18 @@ public class UserInformationService : IUserInformationService
         var graphId = await GetUserIdString();
 
         var portalUser = await GetPortalUserAsync(graphId);
-        if (portalUser is not null)
-        {
-            await UpdatePortalUserLastLogin(graphId);
-        }
-        else
+        if (portalUser is null)
         {
             await CreatePortalUserAsync(graphId);
             await UpdatePortalUserFirstLogin(graphId);
+        }
+        else
+        {
+            if (portalUser.FirstLoginDateTime is null)
+            {
+                await UpdatePortalUserFirstLogin(graphId);
+            }
+            await UpdatePortalUserLastLogin(graphId);
         }
     }
 

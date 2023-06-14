@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using MudBlazor.Forms;
 
-namespace Datahub.Core.Model.Datahub;
+namespace Datahub.Core.Model.Projects;
 
 public class Datahub_ProjectComment
 {
