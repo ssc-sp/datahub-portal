@@ -134,7 +134,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Desktop", "Desktop", "{8B88
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desktop.Uploader", "Desktop\Desktop.Uploader\Desktop.Uploader.csproj", "{99E69964-BB4A-4830-9C4D-6E1608356EC4}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Uploader.SharedCode", "Desktop\Uploader.SharedCode\Uploader.SharedCode.shproj", "{5C04757A-F91E-41A5-B7D5-05C469FC65C7}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Desktop.SharedCode", "Desktop\Desktop.SharedCode\Desktop.SharedCode.shproj", "{5C04757A-F91E-41A5-B7D5-05C469FC65C7}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
