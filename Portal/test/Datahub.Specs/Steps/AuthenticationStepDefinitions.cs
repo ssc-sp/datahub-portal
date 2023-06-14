@@ -1,21 +1,20 @@
 using Datahub.Specs.PageObjects;
 
-namespace Datahub.Specs.Steps
+namespace Datahub.Specs.Steps;
+
+[Binding]
+public sealed class AuthenticationStepDefinitions
 {
-    [Binding]
-    public sealed class AuthenticationStepDefinitions
+    private readonly LoginPageObject _loginPageObject;
+
+    public AuthenticationStepDefinitions(LoginPageObject loginPageObject)
     {
-        private readonly LoginPageObject _loginPageObject;
+        _loginPageObject = loginPageObject;
+    }
 
-        public AuthenticationStepDefinitions(LoginPageObject loginPageObject)
-        {
-            _loginPageObject = loginPageObject;
-        }
-
-        [Given(@"the user is authenticated")]
-        public async Task GivenTheUserIsAuthenticated()
-        {
-            await _loginPageObject.LoginAsync();
-        }
+    [Given(@"the user is authenticated")]
+    public async Task GivenTheUserIsAuthenticated()
+    {
+        await _loginPageObject.LoginAsync();
     }
 }

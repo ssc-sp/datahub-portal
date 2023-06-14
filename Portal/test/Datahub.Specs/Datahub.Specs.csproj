@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
@@ -6,6 +6,27 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>cce3a628-1e77-4f9d-9d6e-247ef30bfaf7</UserSecretsId>
     </PropertyGroup>
+
+    <ItemGroup>
+      <None Remove="Screenshots\sidebar_admin.txt" />
+      <None Remove="Screenshots\sidebar_admin_headless.txt" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <SpecFlowObsoleteCodeBehindFiles Remove="Features\A11y - Copy.feature.cs" />
+      <SpecFlowObsoleteCodeBehindFiles Remove="Features\Home - Copy.feature.cs" />
+      <SpecFlowObsoleteCodeBehindFiles Remove="Features\Tools - Copy.feature.cs" />
+      <SpecFlowObsoleteCodeBehindFiles Remove="Features\Workspace - Copy.feature.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="Screenshots\sidebar_admin.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Screenshots\sidebar_admin_headless.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
 
     <ItemGroup>
         <Using Include="TechTalk.SpecFlow" />
@@ -26,8 +47,23 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Compile Update="Features\Sidebar.feature.cs">
+        <DependentUpon>Sidebar.feature</DependentUpon>
+      </Compile>
+      <Compile Update="Features\Tools.feature.cs">
+        <DependentUpon>Tools.feature</DependentUpon>
+      </Compile>
+      <Compile Update="Features\Home.feature.cs">
+        <DependentUpon>Home.feature</DependentUpon>
+      </Compile>
       <Compile Update="Features\Resources.feature.cs">
         <DependentUpon>Resources.feature</DependentUpon>
+      </Compile>
+      <Compile Update="Features\News.feature.cs">
+        <DependentUpon>News.feature</DependentUpon>
+      </Compile>
+      <Compile Update="Features\Profile.feature.cs">
+        <DependentUpon>Profile.feature</DependentUpon>
       </Compile>
       <Compile Update="Features\Workspace.feature.cs">
         <DependentUpon>Workspace.feature</DependentUpon>
@@ -41,7 +77,27 @@
     </ItemGroup>
 
     <ItemGroup>
+      <SpecFlowFeatureFiles Update="Features\Sidebar.feature">
+        <Visible>$(UsingMicrosoftNETSdk)</Visible>
+        <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+      </SpecFlowFeatureFiles>
+      <SpecFlowFeatureFiles Update="Features\Tools.feature">
+        <Visible>$(UsingMicrosoftNETSdk)</Visible>
+        <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+      </SpecFlowFeatureFiles>
+      <SpecFlowFeatureFiles Update="Features\Home.feature">
+        <Visible>$(UsingMicrosoftNETSdk)</Visible>
+        <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+      </SpecFlowFeatureFiles>
       <SpecFlowFeatureFiles Update="Features\Resources.feature">
+        <Visible>$(UsingMicrosoftNETSdk)</Visible>
+        <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+      </SpecFlowFeatureFiles>
+      <SpecFlowFeatureFiles Update="Features\News.feature">
+        <Visible>$(UsingMicrosoftNETSdk)</Visible>
+        <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+      </SpecFlowFeatureFiles>
+      <SpecFlowFeatureFiles Update="Features\Profile.feature">
         <Visible>$(UsingMicrosoftNETSdk)</Visible>
         <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
       </SpecFlowFeatureFiles>
