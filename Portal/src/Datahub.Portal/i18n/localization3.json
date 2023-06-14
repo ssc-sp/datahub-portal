@@ -143,5 +143,5 @@
   "Shared Content": "Shared Content",
   "No shared content available.": "No shared content available.",
   "Please contact the workspace administrators for access or to share repositories.": "Please contact the workspace administrators for access or to share repositories.",
-  "Manage Linked Repositories": "Manage Linked Repositories"
+  "Share Databricks Git Repositories": "Share Databricks Git Repositories"
 }
