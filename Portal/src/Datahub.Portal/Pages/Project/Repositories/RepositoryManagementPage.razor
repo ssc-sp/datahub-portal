@@ -11,7 +11,7 @@
 
 @page "/w/{ProjectAcronymParam}/repository"
 
-<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronymParam">
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@ProjectAcronymParam">
     <MudStack>
         <ProjectInfo ProjectAcronym="@ProjectAcronymParam"/>
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
