@@ -1,4 +1,5 @@
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +32,7 @@ public class ProjectResourcingWhitelistServiceTests
         _mockUserInformationService = new Mock<IUserInformationService>();
         _mockUserInformationService
             .Setup(f => f.GetCurrentGraphUserAsync())
-            .ReturnsAsync(new User(){Id = TestUserId, Mail = TestUserEmail});
+            .ReturnsAsync(new User(){Id = TestUserGraphGuid, Mail = TestUserEmail});
     }
     /*
      * Test Cases:
@@ -97,7 +98,7 @@ public class ProjectResourcingWhitelistServiceTests
         //var whitelist = await whitelistService.GetProjectResourceWhitelistByProjectAsync(project!.Project_ID);
         Assert.Multiple(() =>
         {
-            Assert.That(whitelist.AdminLastUpdated_ID, Is.EqualTo(TestUserId));
+            Assert.That(whitelist.AdminLastUpdated_ID, Is.EqualTo(TestUserGraphGuid));
             Assert.That(whitelist.AdminLastUpdated_UserName, Is.EqualTo(TestUserEmail));
         });
 

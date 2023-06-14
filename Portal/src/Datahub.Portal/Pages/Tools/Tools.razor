@@ -1,10 +1,9 @@
-﻿@page "/tools"
-@using Datahub.Portal.Pages.Profile.Achievements
+﻿@using Datahub.Portal.Pages.Profile.Achievements
 @using Datahub.Core.Model.Achievements
 
 @inject ISnackbar _snackbar
 
-@attribute [Authorize(Roles = "DHPGLIST")]
+@page "/tools"
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
     <MudStack>

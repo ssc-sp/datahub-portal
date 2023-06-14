@@ -18,12 +18,10 @@
         <MudText Typo="Typo.h6" Class="px-4">@_viewedUser?.DisplayName</MudText>
         <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">@_viewedUser?.Email</MudText>
     </MudStack>
-    <MudSpacer />
+    <MudSpacer/>
     @if (ShowProfileLink)
     {
-        <MudTooltip Delay="600" Text="@Localizer["View profile"]">
-            <MudIconButton Class="align-self-end" Icon="@Icons.Material.Outlined.Person" aria-label="view profile" Href="@($"/profile?u={ViewedUserGraphId.Base64Encode()}")"/>
-        </MudTooltip>
+        <UserViewProfileIconButton ViewedUserGraphId="@ViewedUserGraphId"/>
     }
 </MudStack>
 
@@ -31,6 +29,9 @@
 
     [Parameter]
     public string ViewedUserGraphId { get; set; }
+    
+    [Parameter]
+    public PortalUser ViewedUser { get; set; }
 
     [Parameter]
     public Size Size { get; set; } = Size.Large;
@@ -39,7 +40,6 @@
     public bool ShowProfileLink { get; set; } = false;
 
     private PortalUser _viewedUser;
-
 
     protected override async Task OnInitializedAsync()
     {

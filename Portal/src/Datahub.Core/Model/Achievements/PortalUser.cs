@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Datahub.Core.Model.UserTracking;
 using System.Linq;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Model.Achievements;
 

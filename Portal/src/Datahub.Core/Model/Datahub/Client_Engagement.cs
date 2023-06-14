@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Datahub.Core.Model.Projects;
 using Elemental.Components;
 using MudBlazor;
 using AeFormCategoryAttribute = MudBlazor.Forms.AeFormCategoryAttribute;

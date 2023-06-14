@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Datahub.Core.Model.Datahub;
+namespace Datahub.Core.Model.Projects;
 
 public class Datahub_Project_Pipeline_Lnk
 {
