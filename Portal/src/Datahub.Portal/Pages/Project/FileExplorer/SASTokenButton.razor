@@ -1,6 +1,7 @@
 @*SASTokenButton.razor*@
 
 @using Datahub.Application.Services;
+@using Datahub.Core.DataTransfers;
 @using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
 @using Datahub.Core.Services.Storage
 @inject IJSRuntime _jsRuntime
@@ -21,10 +22,16 @@
     public EventCallback<List<(string, string)>> OnSubstitutionsChanged { get; set; }
 
     [Parameter]
+    public int ExpiryDays { get; set; } = 5;
+
+    [Parameter]
+    public bool UseUploadCode { get; set; } = false;
+
+    [Parameter]
     public string Container { get; set; } = "datahub";
 
     private bool _showingCopiedForSasButton;
-    private string _sasToken;
+    private string _token;
     private IJSObjectReference _module;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -37,7 +44,7 @@
 
     private string GetButtonText()
     {
-        if (string.IsNullOrWhiteSpace(_sasToken))
+        if (string.IsNullOrWhiteSpace(_token))
             return Localizer["Generate Container Token"];
 
         if (_showingCopiedForSasButton)
@@ -48,17 +55,25 @@
 
     private async Task HandleSasButtonClick()
     {
-        if (string.IsNullOrWhiteSpace(_sasToken))
+        if (string.IsNullOrWhiteSpace(_token))
         {
-            var uri = await _dataRetrievalService.GenerateSasTokenAsync(ProjectAcronym, Container, 14);
-            _sasToken = uri.ToString();
+            var uri = await _dataRetrievalService.GenerateSasTokenAsync(ProjectAcronym, Container, ExpiryDays);
+            if (UseUploadCode)
+            {
+                _token = CredentialEncoder.EncodeCredentials(new UploadCredentials() { SASToken = uri.ToString(), SASTokenExpiry = DateTimeOffset.Now.AddDays(ExpiryDays), WorkspaceCode = ProjectAcronym });
+                await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> { (ResourceSubstitutions.DesktopCode, _token) });
+            }
+            else
+            {
+                _token = uri.ToString();
+                await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> { (ResourceSubstitutions.SasUri, _token) });
+            }
 
-            await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> {(ResourceSubstitutions.SasUri, _sasToken)});
         }
         else
         {
             _showingCopiedForSasButton = true;
-            await _module.InvokeVoidAsync("copyTextToClipboard", _sasToken);
+            await _module.InvokeVoidAsync("copyTextToClipboard", _token);
             StateHasChanged();
 
             await Task.Delay(1000);
