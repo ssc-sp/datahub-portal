@@ -151,5 +151,14 @@
   "This section lets you share inside Datahub your Git repositories that have been linked inside Databricks.": "Cette section vous permet de partager dans Datahub vos dépôts Git qui ont été liés dans Databricks.",
   "If you wish to learn more about Databricks and Git integration, ": "Si vous souhaitez en savoir plus sur l'intégration de Databricks et Git, ",
   "please refer to the resources page on it.": "veuillez vous référer à la page de ressources à ce sujet.",
-  "Share Databricks Git Repositories": "Partager les dépôts Git de Databricks"
+  "Share Databricks Git Repositories": "Partager les dépôts Git de Databricks",
+  "Are you sure you want to remove this user from the workspace?": "Êtes-vous sûr de vouloir supprimer cet utilisateur de l'espace de travail ?",
+  "Workspace Members": "Membres de l'espace de travail",
+  "Guests": "Invités",
+  "Guest": "Invité",
+  "Able to view the workspace and its contents but not able to contribute or modify anything": "Capable de voir l'espace de travail et son contenu mais pas capable de contribuer ou de modifier quoi que ce soit",
+  "Invitations": "Invitations",
+  "You will be inviting the following users to your workspace": "Vous allez inviter les utilisateurs suivants dans votre espace de travail",
+  "will be added as a": "sera ajouté en tant que",
+  "Add New User": "Ajouter un nouvel utilisateur"
 }
