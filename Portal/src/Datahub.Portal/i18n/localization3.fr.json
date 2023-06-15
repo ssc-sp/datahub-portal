@@ -145,5 +145,11 @@
   "Shared Content": "Contenu partagé",
   "No shared content available.": "Aucun contenu partagé disponible.",
   "Please contact the workspace administrators for access or to share repositories.": "Veuillez contacter les administrateurs de l'espace de travail pour accéder à l'espace de travail ou pour partager des dépôts.",
+  "Share Databricks Git Repositories": "Partager les dépôts Git de Databricks",
+  "You are an administrator and can view all the repositories linked to your instance of Databricks. Collaborators can only view their own linked repositories.": "Vous êtes un administrateur et pouvez voir tous les dépôts liés à votre instance de Databricks. Les collaborateurs ne peuvent voir que leurs propres dépôts liés.",
+  "You are not an administrator and you can only see the repositories linked to your own account in Databricks. If you wish to share other repositories, request a workspace administrator to share them.": "Vous n'êtes pas un administrateur et vous ne pouvez voir que les dépôts liés à votre propre compte dans Databricks. Si vous souhaitez partager d'autres dépôts, demandez à un administrateur de l'espace de travail de les partager.",
+  "This section lets you share inside Datahub your Git repositories that have been linked inside Databricks.": "Cette section vous permet de partager dans Datahub vos dépôts Git qui ont été liés dans Databricks.",
+  "If you wish to learn more about Databricks and Git integration, ": "Si vous souhaitez en savoir plus sur l'intégration de Databricks et Git, ",
+  "please refer to the resources page on it.": "veuillez vous référer à la page de ressources à ce sujet.",
   "Share Databricks Git Repositories": "Partager les dépôts Git de Databricks"
 }
