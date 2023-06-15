@@ -143,5 +143,11 @@
   "Shared Content": "Shared Content",
   "No shared content available.": "No shared content available.",
   "Please contact the workspace administrators for access or to share repositories.": "Please contact the workspace administrators for access or to share repositories.",
+  "Share Databricks Git Repositories": "Share Databricks Git Repositories",
+  "You are an administrator and can view all the repositories linked to your instance of Databricks. Collaborators can only view their own linked repositories.": "You are an administrator and can view all the repositories linked to your instance of Databricks. Collaborators can only view their own linked repositories.",
+  "You are not an administrator and you can only see the repositories linked to your own account in Databricks. If you wish to share other repositories, request a workspace administrator to share them.": "You are not an administrator and you can only see the repositories linked to your own account in Databricks. If you wish to share other repositories, request a workspace administrator to share them.",
+  "This section lets you share inside Datahub your Git repositories that have been linked inside Databricks.": "This section lets you share inside Datahub your Git repositories that have been linked inside Databricks.",
+  "If you wish to learn more about Databricks and Git integration, ": "If you wish to learn more about Databricks and Git integration, ",
+  "please refer to the resources page on it.": "please refer to the resources page on it.",
   "Share Databricks Git Repositories": "Share Databricks Git Repositories"
 }
