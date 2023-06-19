@@ -138,5 +138,5 @@
 
 	<Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
 
-	<Import Project="..\..\..\Desktop\Uploader.SharedCode\UploaderSharedCode.projitems" Label="Shared" />
+	<Import Project="..\..\..\Desktop\Desktop.SharedCode\DesktopSharedCode.projitems" Label="Shared" />
 </Project>

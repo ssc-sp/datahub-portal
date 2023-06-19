@@ -143,5 +143,20 @@
   "Shared Content": "Shared Content",
   "No shared content available.": "No shared content available.",
   "Please contact the workspace administrators for access or to share repositories.": "Please contact the workspace administrators for access or to share repositories.",
-  "Manage Linked Repositories": "Manage Linked Repositories"
+  "Share Databricks Git Repositories": "Share Databricks Git Repositories",
+  "You are an administrator and can view all the repositories linked to your instance of Databricks. Collaborators can only view their own linked repositories.": "You are an administrator and can view all the repositories linked to your instance of Databricks. Collaborators can only view their own linked repositories.",
+  "You are not an administrator and you can only see the repositories linked to your own account in Databricks. If you wish to share other repositories, request a workspace administrator to share them.": "You are not an administrator and you can only see the repositories linked to your own account in Databricks. If you wish to share other repositories, request a workspace administrator to share them.",
+  "This section lets you share inside Datahub your Git repositories that have been linked inside Databricks.": "This section lets you share inside Datahub your Git repositories that have been linked inside Databricks.",
+  "If you wish to learn more about Databricks and Git integration, ": "If you wish to learn more about Databricks and Git integration, ",
+  "please refer to the resources page on it.": "please refer to the resources page on it.",
+  "Share Databricks Git Repositories": "Share Databricks Git Repositories",
+  "Are you sure you want to remove this user from the workspace?": "Are you sure you want to remove this user from the workspace?",
+  "Workspace Members": "Workspace Members",
+  "Guests": "Guests",
+  "Guest": "Guest",
+  "Able to view the workspace and its contents but not able to contribute or modify anything": "Able to view the workspace and its contents but not able to contribute or modify anything",
+  "Invitations": "Invitations",
+  "You will be inviting the following users to your workspace": "You will be inviting the following users to your workspace",
+  "will be added as a": "will be added as a",
+  "Add New User": "Add New User"
 }
