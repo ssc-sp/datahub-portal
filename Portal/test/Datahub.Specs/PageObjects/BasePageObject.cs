@@ -50,6 +50,7 @@ public abstract class BasePageObject
         var context = await Browser.NewContextAsync(new BrowserNewContextOptions()
         {
             StorageStatePath = stgStatePath,
+            DeviceScaleFactor = 1.0f,
             ViewportSize = new() { Width = 1440, Height = 800 }
         });
 
