@@ -47,15 +47,18 @@ public abstract class BasePageObject
     {
         var stgStatePath = File.Exists(AuthStoragePath) ? AuthStoragePath : string.Empty;
 
-        var context = await Browser.NewContextAsync(new BrowserNewContextOptions()
+        if (_page is null)
         {
-            StorageStatePath = stgStatePath,
-            DeviceScaleFactor = 1.0f,
-            ViewportSize = new() { Width = 1440, Height = 800 }
-        });
+            var context = await Browser.NewContextAsync(new BrowserNewContextOptions()
+            {
+                StorageStatePath = stgStatePath,
+                DeviceScaleFactor = 1.0f,
+                ViewportSize = new() { Width = 1440, Height = 800 }
+            });
+            _page = await context.NewPageAsync();
+        }
 
-        Page = await context.NewPageAsync();
-        await Page.GotoAsync($"{BaseUrl}/{Path}");
+        await _page.GotoAsync($"{BaseUrl}/{Path}");
     }
 
     public async Task<AxeResults> RunAxe()
