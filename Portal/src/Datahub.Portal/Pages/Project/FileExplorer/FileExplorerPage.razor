@@ -29,8 +29,8 @@
                 @if (_containers.Count > 1)
                 {
                 <MudStack Style="border-bottom: 1px solid var(--mud-palette-lines-default);" Class="my-6">
-                    <MudText><b>@Localizer["Current Container"]</b></MudText>
-                    <MudRadioGroup T="string" @bind-SelectedOption="SelectedContainer">
+                    <MudText Typo="Typo.h2">@Localizer["Current  Container"]</MudText>
+                    <MudRadioGroup T="string" @bind-SelectedOption="SelectedContainer" Dense>
                         @foreach (var container in _containers)
                         {
                             <MudRadio Option="@container" Color="Color.Primary" Size="Size.Medium">@container</MudRadio>
