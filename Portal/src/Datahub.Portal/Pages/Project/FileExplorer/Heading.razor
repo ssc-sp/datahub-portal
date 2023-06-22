@@ -15,7 +15,6 @@
 <Toaster Toasts="_toasts" >
     
     <div class="heading">
-        <HeadingBreadcrumbs SetCurrentFolder="@SetCurrentFolder" CurrentFolder="@CurrentFolder" />
         <div class="actions">
             <AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();" Disabled="IsActionDisabled(ButtonAction.Upload)">
                 <i class="fas fa-upload"></i>@Localizer["Upload"]
@@ -62,6 +61,7 @@
             </AeButton>
 
         </div>
+        <HeadingBreadcrumbs SetCurrentFolder="@SetCurrentFolder" CurrentFolder="@CurrentFolder" />
     </div>
 </Toaster>
 
