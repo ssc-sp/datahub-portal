@@ -145,5 +145,6 @@
   "Shared Content": "Contenu partagé",
   "No shared content available.": "Aucun contenu partagé disponible.",
   "Please contact the workspace administrators for access or to share repositories.": "Veuillez contacter les administrateurs de l'espace de travail pour accéder à l'espace de travail ou pour partager des dépôts.",
-  "Manage Linked Repositories": "Gérer les dépôts liés"
+  "Manage Linked Repositories": "Gérer les dépôts liés",
+  "In This Resource": "Dans cette documentation",
 }
