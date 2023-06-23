@@ -107,15 +107,18 @@ public partial class Heading
 
     private bool IsActionDisabled(ButtonAction buttonAction)
     {
+        if (_currentUserRole is null)
+            return true;
+        
         return buttonAction switch
         {
-            ButtonAction.Upload   => !(_isDatahubAdmin || _isProjectMember),
+            ButtonAction.Upload   => !_currentUserRole.IsAtLeastCollaborator,
             ButtonAction.AzSync   => !_isElectron,
-            ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !(_isDatahubAdmin || _isProjectMember),
+            ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastGuest,
             ButtonAction.Share    => !_isUnclassifiedSingleFile,
-            ButtonAction.Delete   => _selectedFiles is null || !_selectedFiles.Any() || !_ownsSelectedFiles,
-            ButtonAction.Rename   => _selectedFiles is null || !_selectedFiles.Any() || !_ownsSelectedFiles || SelectedItems.Count > 1,
-            ButtonAction.DeleteFolder => Files.Any() || Folders.Any() || CurrentFolder == "/",
+            ButtonAction.Delete   => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
+            ButtonAction.Rename   => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator || SelectedItems.Count > 1,
+            ButtonAction.DeleteFolder => Files.Any() || Folders.Any() || CurrentFolder == "/" || !_currentUserRole.IsAtLeastCollaborator,
             _ => false
         };
     }
