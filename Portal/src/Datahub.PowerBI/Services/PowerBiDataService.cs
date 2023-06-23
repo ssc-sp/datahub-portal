@@ -496,7 +496,7 @@ public class PowerBiDataService : IPowerBiDataService
     {
         await using var ctx = await _contextFactory.CreateDbContextAsync();
         var projectUsers = await ctx.Project_Users
-            .Where(u => u.Project.Project_ID == projectId && u.Role.IsAdmin)
+            .Where(u => u.Project.Project_ID == projectId && u.Role.IsAtLeastAdmin)
             .ToListAsync();
 
         return projectUsers.Select(u => u.PortalUser.GraphGuid);
