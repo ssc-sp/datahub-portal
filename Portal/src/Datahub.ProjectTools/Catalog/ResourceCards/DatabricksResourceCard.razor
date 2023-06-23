@@ -19,7 +19,7 @@
     </Logo>
     <ToolActionsList>
         <ViewDatabricksButton DatabricksUrl="@_databricksUrl" ProjectAcronym="@_projectAcronym" />
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator">
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@_projectAcronym">
             <ViewRepositoriesButton ProjectAcronym="@_projectAcronym" />
         </DatahubAuthView>
         @* Hide for POC Stage 2 *@
