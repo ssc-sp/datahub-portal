@@ -38,6 +38,10 @@
             <MudItem sm="12" md="5" lg="4">
                 <ProjectUserCardList ProjectAcronym="@ProjectAcronymParam"/>
             </MudItem>
+
+            <MudItem>
+                <MudLink Href=@GetAppUrl() Target=@ProjectAcronymParam>Visit App</MudLink>
+            </MudItem>
         </CascadingValue>
     </MudGrid>
 }
@@ -86,7 +90,7 @@
         _clientEngagements = await projectContext.Client_Engagements.Where(ce => ce.Project == _project && ce.Is_Engagement_Active).ToListAsync();
         await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
 
-    // record recent link
+        // record recent link
         await RecordRecentLink();
     }
 
@@ -105,4 +109,5 @@
         await _userLocationManagerService.RegisterNavigation(userRecentLink);
     }
 
+    private string GetAppUrl() => $"/wsapp/{ProjectAcronymParam}/";
 }

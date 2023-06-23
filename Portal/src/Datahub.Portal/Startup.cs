@@ -1,6 +1,8 @@
 using Askmethat.Aspnet.JsonLocalizer.Extensions;
 using BlazorDownloadFile;
 using Blazored.LocalStorage;
+using Datahub.Application;
+using Datahub.Application.Services;
 using Datahub.CatalogSearch;
 using Datahub.CKAN.Service;
 using Datahub.Core;
@@ -9,8 +11,10 @@ using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Modules;
 using Datahub.Core.Services;
+using Datahub.Core.Services.Achievements;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Data;
+using Datahub.Core.Services.Docs;
 using Datahub.Core.Services.Metadata;
 using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Offline;
@@ -21,10 +25,19 @@ using Datahub.Core.Services.Storage;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Services.Wiki;
 using Datahub.GeoCore.Service;
+using Datahub.Infrastructure;
+using Datahub.Infrastructure.Services;
+using Datahub.Infrastructure.Services.Azure;
+using Datahub.Infrastructure.Services.Projects;
+using Datahub.LanguageTraining.Services;
+using Datahub.M365Forms.Services;
 using Datahub.Metadata.Model;
 using Datahub.Portal.Data.Forms.WebAnalytics;
+using Datahub.Portal.Middleware;
 using Datahub.Portal.Services;
 using Datahub.Portal.Services.Api;
+using Datahub.Portal.Services.Auth;
+using Datahub.Portal.Services.Notification;
 using Datahub.Portal.Services.Offline;
 using Datahub.PowerBI.Services;
 using Datahub.PowerBI.Services.Offline;
@@ -38,6 +51,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
 using MudBlazor;
 using MudBlazor.Services;
 using Polly;
@@ -45,20 +59,10 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Datahub.Application;
-using Datahub.Application.Services;
-using Datahub.Portal.Services.Auth;
-using Microsoft.Identity.Web.UI;
+using System.Text.Json;
 using Tewr.Blazor.FileReader;
-using Datahub.Core.Services.Docs;
-using Datahub.Infrastructure;
-using Datahub.Infrastructure.Services;
-using Datahub.Portal.Services.Notification;
-using Datahub.LanguageTraining.Services;
-using Datahub.M365Forms.Services;
-using Datahub.Infrastructure.Services.Azure;
-using Datahub.Infrastructure.Services.Projects;
-using Datahub.Core.Services.Achievements;
+using Yarp.ReverseProxy.Configuration;
+using Yarp.ReverseProxy.Transforms;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -122,7 +126,7 @@ public class Startup
             });
 
         services.AddControllers();
-        
+
 
         ConfigureLocalization(services);
 
@@ -214,6 +218,46 @@ public class Startup
         }
 
         services.AddMiniProfiler().AddEntityFramework();
+
+        ConfigureReverseProxy(services, Configuration);
+    }
+
+    record ReverseProxyConfig(List<RouteConfig> Routes, List<ClusterConfig> Clusters);
+
+    static void ConfigureReverseProxy(IServiceCollection services, IConfiguration configuration)
+    {
+        var configPath = "./reverseproxy.json";
+        if (!System.IO.File.Exists(configPath))
+            return;
+
+        var json = System.IO.File.ReadAllText(configPath);
+        var proxyConfig = JsonSerializer.Deserialize<ReverseProxyConfig>(json);
+
+        if (proxyConfig?.Routes is null || proxyConfig?.Clusters is null)
+            return;
+
+        services.AddReverseProxy()
+                .LoadFromMemory(proxyConfig.Routes, proxyConfig.Clusters)
+                .AddTransforms(builderContext =>
+                {
+                    foreach (var prefix in GetPrefixes(proxyConfig.Routes))
+                    {
+                        builderContext.AddPathRemovePrefix(prefix);
+                    }
+                });
+
+        static IEnumerable<string> GetPrefixes(List<RouteConfig> routes)
+        {
+            foreach (var route in routes)
+            {
+                var path = (route.Match?.Path ?? "");
+                var index = path.IndexOf("/{");
+                if (index >= 0)
+                {
+                    yield return path[..index];
+                }
+            }
+        }
     }
 
     static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
@@ -275,13 +319,17 @@ public class Startup
 
         app.UseAuthentication();
         app.UseAuthorization();
+
+        app.UseMiddleware<WorkspaceAppMiddleware>();
+
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapRazorPages();
             endpoints.MapBlazorHub();
             endpoints.MapControllers();
             endpoints.MapFallbackToPage("/_Host");
-        });
+            endpoints.MapReverseProxy();
+        });       
     }
 
     private void ConfigureLocalization(IServiceCollection services)
