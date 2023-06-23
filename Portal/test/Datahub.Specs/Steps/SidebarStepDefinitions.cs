@@ -29,7 +29,13 @@ public sealed class SidebarStepDefinitions
 
         var bytes = await _sideBarPageObject.Page.Locator(".mud-drawer-content").ScreenshotAsync();
         var current = Convert.ToBase64String(bytes);
-        
-        Assert.True(current == saved, "Sidebars don't match!");
+
+        var matched = current == saved;
+        if (!matched)
+        {
+            File.WriteAllText($"./Screenshots/latest_{screenshotName}", current);
+        }
+
+        Assert.True(matched, "Sidebars don't match!");
     }
 }

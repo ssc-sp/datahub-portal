@@ -193,8 +193,11 @@ public class ServiceAuthManager
     {
         if (serviceAuthCache.TryGetValue(AUTH_KEY, out Dictionary<string, List<(Project_Role, Datahub_Project)>> usersAuthorization))
         {
-            return usersAuthorization[userGraphId]
-                .ToImmutableList();
+            if(usersAuthorization.TryGetValue(userGraphId, out var userAuths))
+            {
+                return userAuths
+                    .ToImmutableList();
+            }
         }
 
         await using var ctx = await dbFactory.CreateDbContextAsync();
@@ -212,7 +215,7 @@ public class ServiceAuthManager
                 u.Select(a => (a.Role, a.Project))
                     .ToList());
 
-        serviceAuthCache.Set(AUTH_KEY, usersAuthorization, TimeSpan.FromMinutes(15));
+        serviceAuthCache.Set(AUTH_KEY, usersAuthorization, TimeSpan.FromMinutes(5));
 
         return usersAuthorization[userGraphId]
             .ToImmutableList();
