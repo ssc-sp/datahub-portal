@@ -14,7 +14,16 @@ public partial class Heading
         Delete,
         Rename,
         AzSync,
-        DeleteFolder
+        DeleteFolder,
+        NewFolder
+    }
+    
+    private async Task HandleUpload()
+    {
+        if (IsActionDisabled(ButtonAction.Upload))
+            return;
+
+        await _module.InvokeVoidAsync("promptForFileUpload");
     }
 
     private async Task HandleDownload()
@@ -66,9 +75,9 @@ public partial class Heading
 
     private async Task HandleDelete()
     {
-        if (!_ownsSelectedFiles)
+        if (IsActionDisabled(ButtonAction.Delete))
             return;
-        
+
         var deletes = SelectedItems
             .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
 
@@ -80,6 +89,9 @@ public partial class Heading
 
     private async Task HandleRename()
     {
+        if (IsActionDisabled(ButtonAction.Rename))
+            return;
+        
         var selectedFile = _selectedFiles.FirstOrDefault();
         if (selectedFile is not null && _ownsSelectedFiles)
         {
@@ -93,6 +105,9 @@ public partial class Heading
 
     private async Task HandleNewFolder()
     {
+        if (IsActionDisabled(ButtonAction.NewFolder))
+            return;
+        
         var newFolderName = await _module.InvokeAsync<string>("promptForNewFolderName");
         if (!string.IsNullOrWhiteSpace(newFolderName))
         {
@@ -102,6 +117,9 @@ public partial class Heading
 
     private async Task HandleDeleteFolder()
     {
+        if (IsActionDisabled(ButtonAction.DeleteFolder))
+            return;
+        
         await OnDeleteFolder.InvokeAsync();
     }
 
@@ -118,6 +136,7 @@ public partial class Heading
             ButtonAction.Share    => !_isUnclassifiedSingleFile,
             ButtonAction.Delete   => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
             ButtonAction.Rename   => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator || SelectedItems.Count > 1,
+            ButtonAction.NewFolder => !_currentUserRole.IsAtLeastCollaborator,
             ButtonAction.DeleteFolder => Files.Any() || Folders.Any() || CurrentFolder == "/" || !_currentUserRole.IsAtLeastCollaborator,
             _ => false
         };
