@@ -26,7 +26,8 @@ public class ServiceAuthManager
 
     private ConcurrentDictionary<string, bool> _viewingAsGuest = new();
 
-    public ServiceAuthManager(IMemoryCache serviceAuthCache, IDbContextFactory<DatahubProjectDBContext> dbFactory, IMSGraphService mSGraphService)
+    public ServiceAuthManager(IMemoryCache serviceAuthCache, IDbContextFactory<DatahubProjectDBContext> dbFactory,
+        IMSGraphService mSGraphService)
     {
         this.serviceAuthCache = serviceAuthCache;
         this.dbFactory = dbFactory;
@@ -65,7 +66,10 @@ public class ServiceAuthManager
 
     public static readonly Regex Email_Extractor = new Regex(".*<(.*@.*)>", RegexOptions.Compiled);
 
-    public static readonly Regex Email_Regex = new Regex(@"\A(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\Z", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    public static readonly Regex Email_Regex =
+        new Regex(
+            @"\A(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\Z",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     public static string ExtractEmail(string input)
     {
@@ -78,6 +82,7 @@ public class ServiceAuthManager
             if (Email_Regex.IsMatch(ingroup))
                 return ingroup;
         }
+
         return null;
     }
 
@@ -86,6 +91,7 @@ public class ServiceAuthManager
         var split = emailList.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(email => email.Trim()).ToArray();
         return split.Select(b => ExtractEmail(b)?.ToLowerInvariant()).Where(b => b != null).ToList();
     }
+
     public bool InvalidateAuthCache()
     {
         var cache = serviceAuthCache as MemoryCache;
@@ -93,7 +99,7 @@ public class ServiceAuthManager
         {
             //https://stackoverflow.com/questions/49176244/asp-net-core-clear-cache-from-imemorycache-set-by-set-method-of-cacheextensions/49425102#49425102
             //this weird trick removes all the entries
-            var percentage = 1.0;//100%
+            var percentage = 1.0; //100%
             cache.Compact(percentage);
             return true;
         }
@@ -106,9 +112,12 @@ public class ServiceAuthManager
     public async Task<bool> IsProjectAdmin(string userid, string projectAcronym)
     {
         var allProjectAdmins = await CheckCacheForAdmins();
-        bool isProjectAdmin = allProjectAdmins.ContainsKey(projectAcronym) ? allProjectAdmins[projectAcronym].Contains(userid) : false;
+        bool isProjectAdmin = allProjectAdmins.ContainsKey(projectAcronym)
+            ? allProjectAdmins[projectAcronym].Contains(userid)
+            : false;
 
-        var options = new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.Normal).SetAbsoluteExpiration(TimeSpan.FromHours(1));
+        var options = new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.Normal)
+            .SetAbsoluteExpiration(TimeSpan.FromHours(1));
         options.AddExpirationToken(new CancellationChangeToken(_resetCacheToken.Token));
 
         return isProjectAdmin;
@@ -119,9 +128,10 @@ public class ServiceAuthManager
         using var ctx = dbFactory.CreateDbContext();
 
         return ctx.Project_Users
-            .Where(a => 
-                a.Project.Project_Acronym_CD == projectAcronym 
-                && (a.RoleId == (int) Project_Role.RoleNames.Admin || a.RoleId == (int) Project_Role.RoleNames.WorkspaceLead)  
+            .Where(a =>
+                a.Project.Project_Acronym_CD == projectAcronym
+                && (a.RoleId == (int)Project_Role.RoleNames.Admin ||
+                    a.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
                 && !string.IsNullOrEmpty(a.PortalUser.Email))
             .Select(f => f.PortalUser.Email)
             .ToList();
@@ -130,7 +140,8 @@ public class ServiceAuthManager
     public List<string> GetProjectMailboxEmails(string projectAcronym)
     {
         using var ctx = dbFactory.CreateDbContext();
-        var mailboxEmails = ctx.Projects.Where(u => u.Project_Acronym_CD == projectAcronym).Select(s => s.Project_Admin).FirstOrDefault();
+        var mailboxEmails = ctx.Projects.Where(u => u.Project_Acronym_CD == projectAcronym).Select(s => s.Project_Admin)
+            .FirstOrDefault();
 
         if (!string.IsNullOrEmpty(mailboxEmails))
         {
@@ -154,9 +165,9 @@ public class ServiceAuthManager
                 .AsNoTracking()
                 .Include(a => a.Project)
                 .Include(a => a.PortalUser)
-                .Where(u => 
-                    u.RoleId == (int) Project_Role.RoleNames.Admin 
-                    || u.RoleId == (int) Project_Role.RoleNames.WorkspaceLead)
+                .Where(u =>
+                    u.RoleId == (int)Project_Role.RoleNames.Admin
+                    || u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
                 .ToListAsync();
 
             foreach (var admin in adminsFromProjectUsersTable)
@@ -167,12 +178,12 @@ public class ServiceAuthManager
                 }
                 else
                 {
-                    allProjectAdmins.Add(admin.Project.Project_Acronym_CD, new List<string> { admin.PortalUser.GraphGuid });
+                    allProjectAdmins.Add(admin.Project.Project_Acronym_CD,
+                        new List<string> { admin.PortalUser.GraphGuid });
                 }
             }
 
             serviceAuthCache.Set(PROJECT_ADMIN_KEY, allProjectAdmins, TimeSpan.FromHours(1));
-
         }
 
         return allProjectAdmins;
@@ -180,9 +191,13 @@ public class ServiceAuthManager
 
     public async Task<ImmutableList<(Project_Role, Datahub_Project)>> GetUserAuthorizations(string userGraphId)
     {
-        if (serviceAuthCache.TryGetValue(AUTH_KEY, out List<(Project_Role, Datahub_Project)> usersAuthorization))
+        if (serviceAuthCache.TryGetValue(AUTH_KEY, out Dictionary<string, List<(Project_Role, Datahub_Project)>> usersAuthorization))
         {
-            return usersAuthorization.ToImmutableList();
+            if(usersAuthorization.TryGetValue(userGraphId, out var userAuths))
+            {
+                return userAuths
+                    .ToImmutableList();
+            }
         }
 
         await using var ctx = await dbFactory.CreateDbContextAsync();
@@ -192,15 +207,17 @@ public class ServiceAuthManager
             .Include(a => a.Project)
             .Include(a => a.PortalUser)
             .Include(a => a.Role)
-            .Where(a => a.PortalUser.GraphGuid == userGraphId)
             .ToListAsync();
-            
+
         usersAuthorization = usersRoles
-            .Select(a => (a.Role, a.Project))
-            .ToList();
+            .GroupBy(u => u.PortalUser.GraphGuid)
+            .ToDictionary(u => u.Key, u => 
+                u.Select(a => (a.Role, a.Project))
+                    .ToList());
 
-        serviceAuthCache.Set(AUTH_KEY, usersAuthorization, TimeSpan.FromMinutes(15));
+        serviceAuthCache.Set(AUTH_KEY, usersAuthorization, TimeSpan.FromMinutes(5));
 
-        return usersAuthorization.ToImmutableList();
+        return usersAuthorization[userGraphId]
+            .ToImmutableList();
     }
 }
