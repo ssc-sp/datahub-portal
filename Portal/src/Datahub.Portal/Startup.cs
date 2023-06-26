@@ -219,8 +219,13 @@ public class Startup
 
         services.AddMiniProfiler().AddEntityFramework();
 
-        ConfigureReverseProxy(services, Configuration);
+        if (ReverseProxyEnabled())
+        {
+            ConfigureReverseProxy(services, Configuration);
+        }                    
     }
+
+    private bool ReverseProxyEnabled() => Configuration.GetValue<bool>("ReverseProxy:Enabled");
 
     record ReverseProxyConfig(List<RouteConfig> Routes, List<ClusterConfig> Clusters);
 
@@ -328,7 +333,11 @@ public class Startup
             endpoints.MapBlazorHub();
             endpoints.MapControllers();
             endpoints.MapFallbackToPage("/_Host");
-            endpoints.MapReverseProxy();
+            // reverse proxy
+            if (ReverseProxyEnabled())
+            {
+                endpoints.MapReverseProxy();
+            }            
         });       
     }
 

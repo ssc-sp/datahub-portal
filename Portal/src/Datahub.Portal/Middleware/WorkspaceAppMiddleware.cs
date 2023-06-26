@@ -5,28 +5,34 @@ namespace Datahub.Portal.Middleware;
 public class WorkspaceAppMiddleware
 {
     private readonly RequestDelegate _next;
-    public WorkspaceAppMiddleware(RequestDelegate next)
+    private readonly bool _enabled;
+
+    public WorkspaceAppMiddleware(RequestDelegate next, IConfiguration config)
     {
         _next = next;
+        _enabled = config.GetValue<bool>("ReverseProxy:Enabled");
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var urlPath = context.Request.Path;
-        if (urlPath.StartsWithSegments("/wsapp", StringComparison.OrdinalIgnoreCase))
+        if (_enabled)
         {
-            var (acronym, missingSlash) = InspectWorkspaceAcronym(urlPath);
-
-            if (!ClaimsContainAcronymRole(context, acronym))
+            var urlPath = context.Request.Path;
+            if (urlPath.StartsWithSegments("/wsapp", StringComparison.OrdinalIgnoreCase))
             {
-                context.Response.Redirect(@"/Notfound");
-                return;
-            }
+                var (acronym, missingSlash) = InspectWorkspaceAcronym(urlPath);
 
-            if (missingSlash)
-            {
-                context.Response.Redirect($@"{GetFullUrl(context.Request)}/");
-                return;
+                if (!ClaimsContainAcronymRole(context, acronym))
+                {
+                    context.Response.Redirect(@"/Notfound");
+                    return;
+                }
+
+                if (missingSlash)
+                {
+                    context.Response.Redirect($@"{GetFullUrl(context.Request)}/");
+                    return;
+                }
             }
         }
         await _next(context);
