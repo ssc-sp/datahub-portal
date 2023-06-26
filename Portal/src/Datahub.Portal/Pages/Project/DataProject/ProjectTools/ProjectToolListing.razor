@@ -24,7 +24,7 @@
 @inject IDatahubAuditingService _auditingService
 @inject IDatabricksApiService _databricksApiService
 
-<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@ProjectAcronym">
     <Authorized>
         @if (_activeResources?.Count > 0)
         {
