@@ -1,0 +1,9 @@
+.resources-nav-group-wrapper{
+  .mud-nav-item {
+    .mud-nav-link {
+      padding-left: 0 !important; // overriding MudBlazor default
+      padding-inline-start: 0 !important; // overriding MudBlazor default
+    }
+  }
+  
+}
