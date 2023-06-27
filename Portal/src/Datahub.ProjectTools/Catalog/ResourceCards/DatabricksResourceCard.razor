@@ -1,6 +1,7 @@
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Model.Projects
 @using Datahub.ProjectTools.Utils
+@using Datahub.Core.Components.AuthViews
 
 <ToolCard Title="@Descriptor?.Title" 
           Description="@Descriptor?.ResourceDescription"
@@ -18,7 +19,9 @@
     </Logo>
     <ToolActionsList>
         <ViewDatabricksButton DatabricksUrl="@_databricksUrl" ProjectAcronym="@_projectAcronym" />
-        <ViewRepositoriesButton ProjectAcronym="@_projectAcronym" />
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@_projectAcronym">
+            <ViewRepositoriesButton ProjectAcronym="@_projectAcronym" />
+        </DatahubAuthView>
         @* Hide for POC Stage 2 *@
         @* <CostEstimatorButton TemplateName="@TemplateName"/> *@
     </ToolActionsList>

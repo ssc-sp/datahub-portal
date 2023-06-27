@@ -3,6 +3,7 @@
 @using Datahub.Core.Services.Achievements;
 @using Datahub.Core.Services.Storage;
 @using Datahub.Metadata.Model;
+@using Datahub.Application.Services
 
 @inject NavigationManager _navigationManager
 @inject DataRetrievalService _dataRetrievalService
@@ -11,13 +12,13 @@
 @inject IPortalUserTelemetryService _telemetryService
 @inject ServiceAuthManager ServiceAuthManager
 @inject IMetadataBrokerService MetadataBrokerService
+@inject IProjectUserManagementService _projectUserManagementService
 
 <Toaster Toasts="_toasts" >
     
     <div class="heading">
-        <HeadingBreadcrumbs SetCurrentFolder="@SetCurrentFolder" CurrentFolder="@CurrentFolder" />
         <div class="actions">
-            <AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();" Disabled="IsActionDisabled(ButtonAction.Upload)">
+            <AeButton class="button-tool" @onclick="HandleUpload" Disabled="IsActionDisabled(ButtonAction.Upload)">
                 <i class="fas fa-upload"></i>@Localizer["Upload"]
             </AeButton>
 
@@ -51,7 +52,7 @@
 
             <span class="tool-divider"></span>
 
-            <AeButton class="button-tool" @onclick="HandleNewFolder">
+            <AeButton class="button-tool" @onclick="HandleNewFolder" Disabled="IsActionDisabled(ButtonAction.NewFolder)">
                 <i class="fas fa-folder-plus"></i>
                 @Localizer["New Folder"]
             </AeButton>
@@ -62,6 +63,7 @@
             </AeButton>
 
         </div>
+        <HeadingBreadcrumbs SetCurrentFolder="@SetCurrentFolder" CurrentFolder="@CurrentFolder" />
     </div>
 </Toaster>
 
@@ -116,21 +118,19 @@
     private bool _isUnclassifiedSingleFile;
     private bool _isElectron = true;
 
-    private bool _isDatahubAdmin;
-    private bool _isProjectMember;
+    // private bool _isDatahubAdmin;
+    // private bool _isProjectMember;
+
+    private Project_Role _currentUserRole;
 
     private List<Toast> _toasts = new();
     private DotNetObjectReference<Heading> _dotNetHelper;
 
     protected override async Task OnInitializedAsync()
     {
-        // is datahub admin
-        var authUser = await _userInformationService.GetAuthenticatedUser();
-        _isDatahubAdmin = authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN) && !ServiceAuthManager.GetViewingAsGuest(GraphUser.Id);
-
-        // is project admin
-        var adminProjectRoles = ServiceAuthManager.GetAdminProjectRoles(GraphUser.Id);
-        _isProjectMember = (adminProjectRoles.Count > 0) && (await IsCurrentUserMemberOfProject());
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var projectUsers = await _projectUserManagementService.GetProjectUsersAsync(ProjectAcronym);
+        _currentUserRole = projectUsers.FirstOrDefault(pu => pu.PortalUser.Id == currentUser.Id)?.Role;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

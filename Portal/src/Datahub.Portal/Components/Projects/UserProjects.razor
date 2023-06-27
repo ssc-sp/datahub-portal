@@ -113,7 +113,7 @@
 
     private Color RoleColor(Datahub_Project_User projectUser)
     {
-        if (projectUser.Role.IsAdmin)
+        if (projectUser.Role.IsAtLeastAdmin)
         {
             return Color.Primary;
         }
@@ -123,7 +123,7 @@
 
     private string RoleLabel(Datahub_Project_User projectUser)
     {
-        if (projectUser.Role.IsAdmin)
+        if (projectUser.Role.IsAtLeastAdmin)
         {
             return "Admin";
         }

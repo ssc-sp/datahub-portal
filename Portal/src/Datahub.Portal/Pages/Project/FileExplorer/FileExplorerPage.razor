@@ -11,6 +11,7 @@
 @using Datahub.Core.Model.Projects
 
 
+<!--suppress CssUnresolvedCustomProperty -->
 <DHPageTitle PageTitleKey="@_projectName"/>
 
 <DHPageAlert 
@@ -20,37 +21,40 @@
     WikiLinkFR="/fr/Banners/Stockage-de-l-espace-de-travail" />
 
 <MudStack>
-    <MudText Typo="Typo.h4">@Localizer["Storage Explorer"]</MudText>
+    <MudText Typo="Typo.h1">@Localizer["{0} Storage Explorer", ProjectAcronymParam]</MudText>
     <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
         <CascadingValue Value="@_project" Name="Project">
             <CascadingValue Value="_user" Name="GraphUser">
-                <MudPaper Elevation="0" Class="file-explorer-layout-wrapper">
-                    @if (_containers.Count > 1)
-                    {
-                        <MudText><b>@Localizer["Current Container"]</b></MudText>
-                        <MudRadioGroup T="string" @bind-SelectedOption="SelectedContainer" >
-                            @foreach (var container in _containers)
-                            {
-                                <MudRadio Option="@container" Color="Color.Primary" Size="Size.Medium">@container</MudRadio>
-                            }
-                        </MudRadioGroup>
-                    }
+                    
+                @if (_containers.Count > 1)
+                {
+                <MudStack Style="border-bottom: 1px solid var(--mud-palette-lines-default);" Class="my-6">
+                    <MudText Typo="Typo.h2">@Localizer["Current  Container"]</MudText>
+                    <MudRadioGroup T="string" @bind-SelectedOption="SelectedContainer" Dense>
+                        @foreach (var container in _containers)
+                        {
+                            <MudRadio Option="@container" Color="Color.Primary" Size="Size.Medium">@container</MudRadio>
+                        }
+                    </MudRadioGroup>
+                </MudStack>
+                }
+                <MudPaper Elevation="0" Class="file-explorer-layout-wrapper py-4 px-6">
                     @if (SelectedContainer != null)
                     {
-                        <MudTabs PanelClass="pa-6" Elevation="0">
+                        <MudTabs Elevation="0">
                             <MudTabPanel Text="@((_containers.Count == 1) ? _containers[0] : Localizer["File Explorer"])" Icon="fas fa-hdd">
-                                    <FileExplorer ProjectId=@_projectId ContainerName="@SelectedContainer" />
-                                </MudTabPanel>
+                                <FileExplorer ProjectId=@_projectId ContainerName="@SelectedContainer"/>
+                            </MudTabPanel>
                             <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
-                                <AzCopy Container="@SelectedContainer" />
-                                </MudTabPanel>
+                                <AzCopy Container="@SelectedContainer"/>
+                            </MudTabPanel>
                             <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
-                                <Databricks Container="@SelectedContainer" />
-                                </MudTabPanel>
+                                <Databricks Container="@SelectedContainer"/>
+                            </MudTabPanel>
                             @if (_datahubPortalConfiguration.DesktopFileUploader.DisplayDesktopUploaderTab)
                             {
                                 <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
-                                    <UploaderCode Container="@SelectedContainer" />
+                                    <UploaderCode Container="@SelectedContainer"/>
                                 </MudTabPanel>
                             }
                         </MudTabs>
