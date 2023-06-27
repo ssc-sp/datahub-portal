@@ -241,10 +241,20 @@ public class Startup
         if (proxyConfig?.Routes is null || proxyConfig?.Clusters is null)
             return;
 
+        var dhUserHeader = configuration.GetValue<string>("UserHeader") ?? "dh-user";
+
         services.AddReverseProxy()
                 .LoadFromMemory(proxyConfig.Routes, proxyConfig.Clusters)
                 .AddTransforms(builderContext =>
                 {
+                    builderContext.AddRequestTransform(async transformContext =>
+                    {
+                        // passing the logged user to the proxied app
+                        var loggedUser = transformContext.HttpContext?.User?.Identity?.Name ?? "";
+                        transformContext.ProxyRequest.Headers.Add(dhUserHeader, loggedUser);
+                        await Task.CompletedTask;
+                    });
+
                     foreach (var prefix in GetPrefixes(proxyConfig.Routes))
                     {
                         builderContext.AddPathRemovePrefix(prefix);

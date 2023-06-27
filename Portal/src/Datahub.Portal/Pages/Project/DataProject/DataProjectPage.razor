@@ -13,6 +13,8 @@
 @inject IDatahubAuditingService _auditingService
 @inject UserLocationManagerService _userLocationManagerService
 @inject ILogger<DataProjectPage> _logger
+@inject IConfiguration _configuration
+
 
 <DHPageAlert
     Title=@Localizer["Welcome to your Workspace"]
@@ -39,9 +41,12 @@
                 <ProjectUserCardList ProjectAcronym="@ProjectAcronymParam"/>
             </MudItem>
 
-            <MudItem>
-                <MudLink Href=@GetAppUrl() Target=@ProjectAcronymParam>Visit App</MudLink>
-            </MudItem>
+            @if (_showAppLink)
+            {
+                <MudItem>
+                    <MudLink Href=@GetAppUrl() Target=@ProjectAcronymParam>@Localizer["Visit App"]</MudLink>
+                </MudItem>
+            }
         </CascadingValue>
     </MudGrid>
 }
@@ -55,6 +60,7 @@
     private string _userId;
     private string _projectName;
     private bool _isFrench;
+    private bool _showAppLink;
     private List<Client_Engagement> _clientEngagements = new();
 
     protected override async Task OnInitializedAsync()
@@ -92,6 +98,8 @@
 
         // record recent link
         await RecordRecentLink();
+
+        _showAppLink = _configuration.GetValue<bool>("ReverseProxy:Enabled");
     }
 
     private async Task RecordRecentLink()
