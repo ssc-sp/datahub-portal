@@ -6005,6 +6005,16 @@ code {
   margin-bottom: 0.5rem;
 }
 
+.resources-nav-group-wrapper .mud-nav-item .mud-nav-link {
+  padding-left: 0 !important;
+  padding-inline-start: 0 !important;
+}
+
+.markdown-content .mud-markdown-body video {
+  width: 100% !important;
+  height: auto !important;
+}
+
 .item-details-container {
   padding: 1rem;
   font-size: 0.8rem;
@@ -6362,48 +6372,6 @@ pre {
 
 .markdown-content img {
   float: none;
-}
-
-.page-alert {
-  padding: 2rem;
-  margin-bottom: 2rem;
-  position: relative;
-  background-color: var(--alert--bg-color);
-  border-left: 2px solid var(--alert-color);
-  box-shadow: var(--box-shadow-1);
-  border-radius: var(--border-radius);
-}
-.page-alert .alert-heading {
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
-}
-.page-alert .alert-heading .alert-level-icon {
-  font-size: 2.5rem;
-  color: var(--alert-color);
-}
-.page-alert .alert-heading .alert-title {
-  margin-top: 0;
-}
-.page-alert .alert-heading .close-button-wrapper {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-}
-.page-alert .alert-heading .close-button-wrapper .button-tool {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 500px;
-  font-size: 1rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: transparent;
-  color: var(--tertiary-text);
-}
-.page-alert .alert-heading .close-button-wrapper .button-tool:hover {
-  background-color: var(--bg-color-accent);
-  color: var(--primary-text);
 }
 
 /*# sourceMappingURL=site.css.map */
