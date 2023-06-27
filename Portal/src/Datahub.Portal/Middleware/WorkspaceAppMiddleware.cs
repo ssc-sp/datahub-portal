@@ -6,11 +6,13 @@ public class WorkspaceAppMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly bool _enabled;
+    private readonly string _matchPath;
 
     public WorkspaceAppMiddleware(RequestDelegate next, IConfiguration config)
     {
         _next = next;
         _enabled = config.GetValue<bool>("ReverseProxy:Enabled");
+        _matchPath = config.GetValue<string>("ReverseProxy:MatchPath") ?? "/wsapp";
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -18,13 +20,13 @@ public class WorkspaceAppMiddleware
         if (_enabled)
         {
             var urlPath = context.Request.Path;
-            if (urlPath.StartsWithSegments("/wsapp", StringComparison.OrdinalIgnoreCase))
+            if (urlPath.StartsWithSegments(_matchPath, StringComparison.OrdinalIgnoreCase))
             {
                 var (acronym, missingSlash) = InspectWorkspaceAcronym(urlPath);
 
                 if (!ClaimsContainAcronymRole(context, acronym))
                 {
-                    context.Response.Redirect(@"/Notfound");
+                    context.Response.StatusCode = StatusCodes.Status404NotFound;
                     return;
                 }
 
