@@ -181,7 +181,7 @@ public class MetadataBrokerService : IMetadataBrokerService
             childCatalog.Location_TXT = location;
 
             ctx.CatalogObjects.Add(childCatalog);
-            await ctx.SaveChangesAsync();
+            await ctx.TrackSaveChangesAsync(_auditingService);
 
             return true;
         }
@@ -215,7 +215,7 @@ public class MetadataBrokerService : IMetadataBrokerService
             ctx.ApprovalForms.Update(form);
         }
 
-        await ctx.SaveChangesAsync();
+        await ctx.TrackSaveChangesAsync(_auditingService);
 
         return form.ApprovalFormId;
     }
@@ -478,7 +478,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         };
 
         ctx.ObjectMetadataSet.Add(objectMetadata);
-        await ctx.SaveChangesAsync();
+        await ctx.TrackSaveChangesAsync(_auditingService);
 
         return objectMetadata;
     }
@@ -524,7 +524,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         using var ctx = _contextFactory.CreateDbContext();
         var approvalForm = await GetApprovalFormEntity(ctx, approvalFormId);
         ctx.ApprovalForms.Remove(approvalForm);
-        await ctx.SaveChangesAsync();
+        await ctx.TrackSaveChangesAsync(_auditingService);
     }
 
     public async Task<ObjectMetadata> GetMetadata(long objectMetadataId)

@@ -1,0 +1,95 @@
+@using Datahub.Core.Data
+<AuthorizeView Roles="@GetRoles()">
+    <Authorized>
+        @(Authorized ?? ChildContent)
+    </Authorized>
+    <NotAuthorized>
+        @NotAuthorized
+    </NotAuthorized>
+    <Authorizing>
+        @Authorizing
+    </Authorizing>
+</AuthorizeView>
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [Parameter]
+    public RenderFragment Authorizing { get; set; }
+    [Parameter]
+    public RenderFragment Authorized { get; set; }
+    [Parameter]
+    public RenderFragment NotAuthorized { get; set; }
+    [Parameter]
+    public AuthLevels AuthLevel { get; set; } = AuthLevels.Unauthorized;
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+    [Parameter]
+    public string UserGraphId { get; set; }
+
+    public enum AuthLevels
+    {
+        Authenticated,
+        Personal,
+        WorkspaceGuest,
+        WorkspaceCollaborator,
+        WorkspaceAdmin,
+        WorkspaceLead,
+        DatahubAdminGuestView,
+        DatahubAdmin,
+        Unauthorized
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (ChildContent != null && Authorized != null)
+        {
+            throw new InvalidOperationException($"Do not specify both '{nameof(Authorized)}' and '{nameof(ChildContent)}'.");
+        }
+
+        if (string.IsNullOrWhiteSpace(ProjectAcronym) && AuthLevel is AuthLevels.WorkspaceCollaborator or AuthLevels.WorkspaceAdmin)
+        {
+            throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
+        }
+        
+        if (string.IsNullOrWhiteSpace(UserGraphId) && AuthLevel is AuthLevels.Personal)
+        {
+            throw new InvalidOperationException($"'{nameof(UserGraphId)}' is required");
+        }
+    }
+
+    private string GetRoles()
+    {
+        var guestRole = $"{ProjectAcronym}{RoleConstants.GUEST_SUFFIX}";
+        var collaboratorRole = $"{ProjectAcronym}{RoleConstants.COLLABORATOR_SUFFIX}";
+        var adminRole = $"{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX}";
+        var workspaceLeadRole = $"{ProjectAcronym}{RoleConstants.WORKSPACE_LEAD_SUFFIX}";
+        const string datahubAdminRole = RoleConstants.DATAHUB_ROLE_ADMIN;
+        
+        switch (AuthLevel)
+        {
+            case AuthLevels.Personal:
+                return $"{UserGraphId},{RoleConstants.DATAHUB_ROLE_ADMIN}";
+            case AuthLevels.WorkspaceGuest:
+                return $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubAdminRole}";
+            case AuthLevels.WorkspaceCollaborator:
+                return $"{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubAdminRole}";
+            case AuthLevels.WorkspaceAdmin:
+                return $"{adminRole},{workspaceLeadRole},{datahubAdminRole}";
+            case AuthLevels.WorkspaceLead:
+                return $"{workspaceLeadRole},{datahubAdminRole}";
+            case AuthLevels.DatahubAdminGuestView:
+                return $"{datahubAdminRole},{RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST}";
+            case AuthLevels.DatahubAdmin:
+                return datahubAdminRole;
+            case AuthLevels.Unauthorized:
+                return "🏗️ Unauthorized";
+            default:
+                return null;
+        }
+    }
+
+}

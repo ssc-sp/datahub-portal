@@ -5,51 +5,48 @@
 @using Datahub.Core.Components.PageBanner
 @using Datahub.Core.Services.Achievements
 @using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
-@inject ServiceAuthManager _serviceAuthManager
 @inject IPortalUserTelemetryService _telemetryService
 @inject IDatahubAuditingService _auditingService
-@inject UserLocationManagerService UserLocationManagerService
-@inject ILogger<DataProjectPage> logger
+@inject UserLocationManagerService _userLocationManagerService
+@inject ILogger<DataProjectPage> _logger
+@inject IConfiguration _configuration
 
-<DHPageAlert 
-    Title=@Localizer["Welcome to your Workspace"] 
+
+<DHPageAlert
+    Title=@Localizer["Welcome to your Workspace"]
     Key="@PageAlert.ProjectFeatures"
     WikiLinkEN="/Banners/Workspace"
-    WikiLinkFR="/fr/Banners/Espace-de-travail" />
+    WikiLinkFR="/fr/Banners/Espace-de-travail"/>
 
 <DHPageTitle PageTitleKey="@_projectName"/>
 
 @if (_project is not null)
 {
     <MudGrid>
-        <CascadingValue Value=@_project Name="Project">
-            <CascadingValue Value=@ProjectAcronymParam Name="ProjectAcronym">
-                <CascadingValue Value=@_userId Name="UserId">
-                    <CascadingValue Value=@_isDatahubAdmin Name="IsDatahubAdmin">
-                        <CascadingValue Value="@_isProjectAdmin" Name="IsProjectAdmin">
-                            <CascadingValue Value=@_user Name="GraphUser">
-                                <CascadingValue Value=@_projectId Name="ProjectId">
-                                    <MudItem sm="12" md="7" lg="8">
-                                        <ProjectInfo/>
-                                        @if (_clientEngagements.Any())
-                                        {
-                                            <ProjectEngagements/>
-                                        }
-                                        <ProjectCatalog IsFrench="@_isFrench"/>
-                                        <ProjectToolListing/>
-                                    </MudItem>
-                                    <MudItem sm="12" md="5" lg="4">
-                                        <ProjectUserCardList ProjectAcronym="@ProjectAcronymParam" />
-                                    </MudItem>
-                                </CascadingValue>
-                            </CascadingValue>
-                        </CascadingValue>
-                    </CascadingValue>
-                </CascadingValue>
-            </CascadingValue>
+        <CascadingValue Value=@ProjectAcronymParam Name="ProjectAcronym">
+            <MudItem sm="12" md="7" lg="8">
+                <ProjectInfo ProjectAcronym="@ProjectAcronymParam"/>
+                @if (_clientEngagements.Any())
+                {
+                    <ProjectEngagements/>
+                }
+                <ProjectCatalog IsFrench="@_isFrench"/>
+                <ProjectToolListing/>
+            </MudItem>
+            <MudItem sm="12" md="5" lg="4">
+                <ProjectUserCardList ProjectAcronym="@ProjectAcronymParam"/>
+            </MudItem>
+
+            @if (_showAppLink)
+            {
+                <MudItem>
+                    <MudLink Href=@GetAppUrl() Target=@ProjectAcronymParam>@Localizer["Visit App"]</MudLink>
+                </MudItem>
+            }
         </CascadingValue>
     </MudGrid>
 }
@@ -60,13 +57,10 @@
     public string ProjectAcronymParam { get; set; }
 
     private Datahub_Project _project;
-    private Microsoft.Graph.User _user;
     private string _userId;
     private string _projectName;
-    private int _projectId;
-    private bool _isDatahubAdmin;
-    private bool _isProjectAdmin;
     private bool _isFrench;
+    private bool _showAppLink;
     private List<Client_Engagement> _clientEngagements = new();
 
     protected override async Task OnInitializedAsync()
@@ -74,24 +68,18 @@
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _project = await projectContext.Projects
+            .AsNoTracking()
             .Include(p => p.ServiceRequests)
             .Include(p => p.Pipelines)
             .Include(p => p.Whitelist)
-            .AsSingleQuery()
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
             .FirstOrDefaultAsync();
 
         _isFrench = Thread.CurrentThread.CurrentCulture.Name.Equals("fr-ca", StringComparison.OrdinalIgnoreCase);
         _projectName = _project?.ProjectName;
-        _projectId = _project?.Project_ID ?? 0;
 
         _userId = await _userInformationService.GetUserIdString();
-        if (_userId is null) logger.LogError("UserId is null");
-
-        _user = await _userInformationService.GetCurrentGraphUserAsync();
-        var authUser = (await _userInformationService.GetAuthenticatedUser());
-        _isDatahubAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
-        _isProjectAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole($"{_project?.Project_Acronym_CD}-admin");
+        if (_userId is null) _logger.LogError("UserId is null");
 
         var isMemberOfProject = projectContext.Project_Users
             .Any(p => p.User_ID == _userId && p.Project.Project_Acronym_CD == ProjectAcronymParam);
@@ -110,6 +98,8 @@
 
         // record recent link
         await RecordRecentLink();
+
+        _showAppLink = _configuration.GetValue<bool>("ReverseProxy:Enabled");
     }
 
     private async Task RecordRecentLink()
@@ -124,6 +114,8 @@
             accessedTime = DateTimeOffset.Now
         };
 
-        await UserLocationManagerService.RegisterNavigation(userRecentLink);
+        await _userLocationManagerService.RegisterNavigation(userRecentLink);
     }
+
+    private string GetAppUrl() => $"/wsapp/{ProjectAcronymParam}/";
 }

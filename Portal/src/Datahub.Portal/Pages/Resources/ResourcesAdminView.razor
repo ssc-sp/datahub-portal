@@ -26,7 +26,7 @@
                                        StartIcon="@Icons.Material.Filled.Refresh"
                                        Variant="@Variant.Filled"
                                        Color="@Color.Secondary">
-                                Refresh
+                                @Localizer["Refresh"]
                             </MudButton>
                         }
 
@@ -36,7 +36,7 @@
                     </MudStack>
 
                     <MudContainer>
-                        <MudText Typo="@Typo.h5">Error(s)</MudText>
+                        <MudText Typo="@Typo.h5">@Localizer["Error(s)"]</MudText>
                         @if (_formattedErrorList?.Count > 0)
                         {
                             <MudList>
@@ -66,10 +66,12 @@
     private async Task RefreshCache()
     {
         _cacheIsRefreshing = true;
-        await InvokeAsync(StateHasChanged);
+        StateHasChanged();
+
+        await _docService.InvalidateCache();
 
         _cacheIsRefreshing = false;
-        await InvokeAsync(StateHasChanged);
+        StateHasChanged();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

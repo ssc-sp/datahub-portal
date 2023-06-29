@@ -3,7 +3,7 @@ using Datahub.Metadata.Model;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Services.Projects;
 

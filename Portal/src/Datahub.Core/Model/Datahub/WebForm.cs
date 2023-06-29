@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Datahub.Core.Model.Projects;
 using Elemental.Components;
 
 namespace Datahub.Core.Model.Datahub;

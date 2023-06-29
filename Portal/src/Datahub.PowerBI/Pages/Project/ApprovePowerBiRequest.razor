@@ -2,6 +2,7 @@
 @using Datahub.PowerBI.Services
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core
+@using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Notification
 @using Datahub.ProjectTools.Services;
 
@@ -421,7 +422,7 @@
         var usersToAssign = await Task.WhenAll(users.Select(async u =>
         {
             var userEmail = await _msGraphService.GetUserEmail(u.User_ID, default);
-            return new PowerBiAdminGroupUser(userEmail, u.IsAdmin);
+            return new PowerBiAdminGroupUser(userEmail, u.Role.IsAtLeastAdmin);
         }));
 
         var globalAdmins = (await _powerBiDataService.GetGlobalPowerBiAdmins()).Select(e => new PowerBiAdminGroupUser(e, true));

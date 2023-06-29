@@ -1,0 +1,9 @@
+.markdown-content{
+  .mud-markdown-body {
+    video {
+      // need to override the raw markdown video styling
+      width: 100% !important;
+      height: auto !important;
+    }
+  }
+}
