@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Transactions;
 using Datahub.Application.Services;
+using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Enums;
 
@@ -181,12 +182,11 @@ public class RequestManagementService : IRequestManagementService
             .Include(p => p.Users)
             .FirstAsync(p => p.Project_ID == projectId);
 
-
         var adminEmails = ServiceAuthManager.ExtractEmails(project.Project_Admin ?? string.Empty);
 
         var adminUsers = project.Users
-            .Where(u => u.IsAdmin)
-            .Select(u => u.User_ID);
+            .Where(u => u.RoleId is (int)Project_Role.RoleNames.Admin or (int)Project_Role.RoleNames.WorkspaceLead) 
+            .Select(u => u.PortalUser.Email);
 
         return adminEmails
             .Concat(adminUsers)
@@ -243,7 +243,12 @@ public class RequestManagementService : IRequestManagementService
             await ctx.Entry(project).Collection(p => p.Users).LoadAsync();
             var userId = await _userInformationService.GetUserIdString();
             var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-            var users = project.Users.Select(u => new TerraformUser() { ObjectId = u.User_ID, Email = u.User_Name, Role = GetTerraformUserRole(u)})
+            var users = project.Users.Select(u => new TerraformUser()
+                {
+                    ObjectId = u.PortalUser.GraphGuid, 
+                    Email = u.PortalUser.Email, 
+                    Role = GetTerraformUserRole(u)
+                })
                 .ToList();
 
             var workspace = project.ToResourceWorkspace(users);
@@ -281,12 +286,14 @@ public class RequestManagementService : IRequestManagementService
 
     private static Role GetTerraformUserRole(Datahub_Project_User projectUser)
     {
-        if (projectUser.IsDataApprover)
+        return projectUser.RoleId switch
         {
-            return Role.Owner;
-        }
-
-        return projectUser.IsAdmin ? Role.Admin : Role.User;
+            (int)Project_Role.RoleNames.WorkspaceLead => Role.Owner,
+            (int)Project_Role.RoleNames.Admin => Role.Admin,
+            (int)Project_Role.RoleNames.Collaborator => Role.User,
+            (int)Project_Role.RoleNames.Guest => Role.Guest,
+            _ => Role.Guest
+        };
     }
 
     public static FieldValueContainer BuildFieldValues(FieldDefinitions fieldDefinitions,

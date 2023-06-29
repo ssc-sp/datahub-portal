@@ -1,3 +1,4 @@
+using Datahub.Core.Model.Projects;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
 
@@ -41,6 +42,11 @@ public static class TerraformVariableExtraction
         var jsonContent =
             JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);
         var databricksUrlVariable = jsonContent?["workspace_url"];
+        
+        if (!databricksUrlVariable?.StartsWith("https://") ?? false)
+        {
+            databricksUrlVariable = $"https://{databricksUrlVariable}";
+        }
         
         return databricksUrlVariable;
     }

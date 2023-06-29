@@ -98,6 +98,7 @@ public class UserLocationManagerService
             .AsNoTracking()
             .Include(l => l.User)
             .Where(l => l.User.GraphGuid == userId && (l.DataProject != null || l.ResourceArticleId != null))
+            .Where(l => l.LinkType != DatahubLinkType.Repository)
             .OrderByDescending(l => l.accessedTime)
             .Take(maxRecentLinks)
             .ToList();

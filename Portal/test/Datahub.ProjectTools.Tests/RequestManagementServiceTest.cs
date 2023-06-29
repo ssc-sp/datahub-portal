@@ -1,6 +1,7 @@
 using Datahub.Application.Services;
 using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Notification;
 using Datahub.ProjectTools.Services;

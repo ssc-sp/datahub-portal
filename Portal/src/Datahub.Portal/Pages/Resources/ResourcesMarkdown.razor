@@ -2,26 +2,37 @@
 
 @using Datahub.Core.Services.Docs
 @using Datahub.Core.Model.UserTracking
+@using System.Text.RegularExpressions
 @inject DocumentationService _docService
 @inject UserLocationManagerService UserLocationManagerService
+<MudGrid Spacing="3">
+    <MudItem xs="_headings.Any() ? 9 : 0">
+        <MudPaper Class="px-8 py-6">
+            
+            <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+                <MudButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
+                           OnClick="@HandleRemoveFromCache"
+                           Color="@Color.Primary"
+                           Variant="@Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.Launch"
+                           Target="_blank">
+                    @Localizer["BUTTONS.Edit"]
+                </MudButton>
+            </AuthorizeView>
+                <DHMarkdown Content="@_markdownContent"
+                            LinkRewriter="@RewriteLink"
+                            Substitutions="@Substitutions"/>
+        </MudPaper>
+    </MudItem>   
+    @if (_headings?.Any() ?? false)
+    {
+        <MudItem xs="3">
+            <ResourcesTableOfContents Headings="_headings"/>
+        </MudItem>
+    }
+</MudGrid>
 
-<MudPaper Class="px-8 py-6">
-    <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
-        <MudButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
-                   OnClick="@HandleRemoveFromCache"
-                   Color="@Color.Primary"
-                   Variant="@Variant.Filled"
-                   StartIcon="@Icons.Material.Filled.Launch"
-                   Target="_blank">
-            @Localizer["BUTTONS.Edit"]
-        </MudButton>
-    </AuthorizeView>
-    
-    <DHMarkdown Content="@_markdownContent"
-                LinkRewriter="@RewriteLink" 
-                Substitutions="@Substitutions" />
 
-</MudPaper>
 
 @code {
 
@@ -32,12 +43,14 @@
     public List<(string, string)> Substitutions { get; set; }
 
     private string _markdownContent;
+    private List<(bool isChild, string text)> _headings;
     private string _editButtonStyle = "float: right;";
 
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
         _markdownContent = await _docService.LoadResourcePage(DocumentItem);
+        _headings = GetHeadings(_markdownContent);
         var userRecentLink = new UserRecentLink()
         {
             LinkType = DatahubLinkType.ResourceArticle,
@@ -51,7 +64,7 @@
 
     public string RewriteLink(string link)
     {
-        if (link.StartsWith("http"))
+        if (link.StartsWith("http") || link.StartsWith("/api"))
             return link;
         //if link has an image extension
         var linkLc = link.ToLower();
@@ -70,5 +83,35 @@
     private void HandleRemoveFromCache()
     {
         _docService.RemoveFromCache(DocumentItem);
+    }
+    
+    private List<(bool isChild, string text)> GetHeadings(string markdownContent)
+    {
+        if (string.IsNullOrEmpty(markdownContent))
+            return new List<(bool, string)>();
+    // Pattern for second (##) and third (###) headings only.
+        const string pattern = @"(^(#{2,3}).*?$)";
+
+        var matches = Regex.Matches(markdownContent, pattern, RegexOptions.Multiline);
+
+        var headings = new List<(bool,string)>();
+        foreach (Match match in matches)
+        {
+    // Remove the leading hash characters and whitespace to only keep the text of the heading.
+            var headingText = match.Value.TrimStart('#').Trim();
+    // Check if the heading contains a link
+            const string linkPattern = @"\[(.*?)\]\((.*?)\)";
+
+            headingText = Regex.Replace(headingText, linkPattern, "$1"); // Replace the link with its text only
+            // Remove any styling characters
+            const string stylingPattern = @"(\*\*|__|\*|_|\~\~)";
+            headingText = Regex.Replace(headingText, stylingPattern, "");
+
+            var numberOfHashes = match.Groups[2].Value.Length;
+            
+            headings.Add((numberOfHashes>2,headingText));
+        }
+
+        return headings;
     }
 }

@@ -1,4 +1,5 @@
 @using System.Security.Claims;
+@using Datahub.Core.Model.Projects
 @inject IUserInformationService _userInformationService
 
 @if (_loading)
@@ -29,7 +30,7 @@ else
                 </tbody>
             </MudSimpleTable>
         </MudItem>
-        <MudItem xs="4">
+        <MudItem xs="8">
             <MudText Typo="Typo.h2" Class="mb-6">
                 List of roles
             </MudText>
@@ -39,21 +40,21 @@ else
                     <th>
                         Project Acronym
                     </th>
-                    <th>
-                        Role
-                    </th>
-                    <th>
-                        Admin Role
-                    </th>
+                    @foreach(var role in _projectRoles)
+                    {
+                        <th>@role.Name (id: @role.Id)</th>
+                    }
                 </tr>
                 </thead>
                 <tbody>
-                @foreach (var role in _groupedRoles)
+                @foreach (var userRole in _groupedRoles)
                 {
                     <tr>
-                        <td>@role.Key</td>
-                        <td>@(role.Value.FirstOrDefault(r => !r.Value.Contains("-admin"))?.Value ?? "-")</td>
-                        <td>@(role.Value.FirstOrDefault(r => r.Value.Contains("-admin"))?.Value ?? "-")</td>
+                        <td>@userRole.Key</td>
+                        @foreach (var role in _projectRoles)
+                        {
+                            <td>@(userRole.Value.FirstOrDefault(r => r.Value.Contains(RoleConstants.GetRoleConstants(role)))?.Value ?? "-")</td>
+                        }
                     </tr>
                 }
                 </tbody>
@@ -72,6 +73,10 @@ else
     private List<Claim> _roles;
     private Dictionary<string, List<Claim>> _groupedRoles;
 
+    private IEnumerable<Project_Role> _projectRoles = Project_Role
+        .GetAll()
+        .Where(r => r.Id != (int) Project_Role.RoleNames.Remove);
+
     protected override async Task OnInitializedAsync()
     {
         var user = await _userInformationService.GetAuthenticatedUser(true);
@@ -82,12 +87,10 @@ else
         var claims = userIdentity?.Claims;
         var roleClaimType = userIdentity?.RoleClaimType;
         _roles = claims?.Where(c => c.Type == roleClaimType).ToList() ?? new List<Claim>();
-
-
-    // group the roles by value and value-admin (if exists) and then convert to a dictionary
-        _groupedRoles = _roles.GroupBy(r => r.Value.Contains("-admin") ? r.Value.Replace("-admin", "") : r.Value)
+        
+        _groupedRoles = _roles
+            .GroupBy(r => r.Value.Split("-")[0])
             .ToDictionary(g => g.Key, g => g.ToList());
-
 
         _loading = false;
     }

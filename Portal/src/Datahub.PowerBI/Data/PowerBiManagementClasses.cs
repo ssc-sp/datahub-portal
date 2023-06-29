@@ -1,4 +1,5 @@
 ﻿using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Microsoft.PowerBI.Api.Models;
 
 namespace Datahub.PowerBI.Data;

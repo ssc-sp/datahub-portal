@@ -1,0 +1,1 @@
+dotnet run --project .\Portal\src\Datahub.Portal\Datahub.Portal.csproj

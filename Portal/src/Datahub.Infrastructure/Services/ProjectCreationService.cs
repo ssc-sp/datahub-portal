@@ -5,6 +5,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Security;
 using Microsoft.EntityFrameworkCore;
@@ -22,10 +23,11 @@ public class ProjectCreationService : IProjectCreationService
     private readonly ServiceAuthManager serviceAuthManager;
     private readonly IUserInformationService _userInformationService;
     private readonly IResourceRequestService _resourceRequestService;
-    
+    private readonly IDatahubAuditingService _auditingService;
+
     public ProjectCreationService(IConfiguration configuration, IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        ILogger<ProjectCreationService> logger, ServiceAuthManager serviceAuthManager,
-        IUserInformationService userInformationService, IResourceRequestService resourceRequestService)
+        ILogger<ProjectCreationService> logger, ServiceAuthManager serviceAuthManager, IUserInformationService userInformationService, 
+        IResourceRequestService resourceRequestService, IDatahubAuditingService auditingService)
     {
         _configuration = configuration;
         _datahubProjectDbFactory = datahubProjectDbFactory;
@@ -33,8 +35,9 @@ public class ProjectCreationService : IProjectCreationService
         this.serviceAuthManager = serviceAuthManager;
         _userInformationService = userInformationService;
         _resourceRequestService = resourceRequestService;
+        _auditingService = auditingService;
     }
-    
+
     public async Task<bool> AcronymExists(string acronym)
     {
         await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
@@ -123,18 +126,20 @@ public class ProjectCreationService : IProjectCreationService
         await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
         await db.Projects.AddAsync(project);
         if (string.IsNullOrWhiteSpace(user.Id)) throw new InvalidOperationException("Cannot add user without ID");
+        var portalUser = await _userInformationService.GetPortalUserAsync(user.Id);
+        var role = Project_Role.GetAll()
+            .First(r => r.Id == (int)Project_Role.RoleNames.WorkspaceLead);
+            
         var projectUser = new Datahub_Project_User()
         {
-            User_ID = user.Id,
+            PortalUser = portalUser,
             Approved_DT = DateTime.Now,
-            ApprovedUser = user.Id,
-            IsAdmin = true,
-            IsDataApprover = true,
+            ApprovedPortalUser = portalUser,
             Project = project,
-            User_Name = user.Mail
+            Role = role
         };
         await db.Project_Users.AddAsync(projectUser);
-        await db.SaveChangesAsync();
+        await db.TrackSaveChangesAsync(_auditingService);
         serviceAuthManager.InvalidateAuthCache();
     }
 

@@ -1,5 +1,6 @@
 ﻿@inject IDbContextFactory<MetadataDbContext> ContextFactory
 @inject NavigationManager NavigationManager
+@inject IDatahubAuditingService auditingService
 @using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
 
@@ -73,7 +74,7 @@
         if (entity is not null)
         {
             ctx.Profiles.Remove(entity);
-            await ctx.SaveChangesAsync();
+            await ctx.TrackSaveChangesAsync(auditingService);
             _profiles.Remove(profile);
         }
     }

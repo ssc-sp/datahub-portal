@@ -2,6 +2,7 @@
 @using Microsoft.Graph
 @using Datahub.Core.Model.Datahub
 @using Datahub.Application.Configuration
+@using Datahub.Core.Model.Projects
 @inject IUserInformationService _userInformationService
 @inject IConfiguration _configuration
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -82,7 +83,7 @@
     public bool ShowTitle { get; set; } = true;
 
     [Parameter]
-    public string UserId { get; set; } = null;
+    public string UserId { get; set; }
 
     private const string UserWorkspaceOpenIcon = Icons.Material.Filled.KeyboardDoubleArrowRight;
     private const string UserWorkspaceCreateIcon = "fa-duotone fa-layer-plus";
@@ -103,29 +104,31 @@
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
         _userRoles = await dbContext.Project_Users
-            .Where(u => u.User_ID == userId)
+            .Include(u => u.Role)
             .Include(u => u.Project)
+            .Include(u => u.PortalUser)
+            .Where(u =>  u.PortalUser.GraphGuid == userId)
             .ToListAsync();
     }
 
-    private Color RoleColor(Datahub_Project_User userRole)
+    private Color RoleColor(Datahub_Project_User projectUser)
     {
-        if (userRole.IsAdmin)
+        if (projectUser.Role.IsAtLeastAdmin)
         {
             return Color.Primary;
         }
 
-        return userRole.IsDataApprover ? Color.Secondary : Color.Default;
+        return projectUser.Role.Id == (int) Project_Role.RoleNames.Collaborator ? Color.Secondary : Color.Default;
     }
 
-    private string RoleLabel(Datahub_Project_User userRole)
+    private string RoleLabel(Datahub_Project_User projectUser)
     {
-        if (userRole.IsAdmin)
+        if (projectUser.Role.IsAtLeastAdmin)
         {
             return "Admin";
         }
 
-        return userRole.IsDataApprover ? "Data Approver" : "Member";
+        return projectUser.Role.Id == (int) Project_Role.RoleNames.Collaborator ? "Collaborator" : "Guest";
     }
 
     private async Task ShowProjectDialog()

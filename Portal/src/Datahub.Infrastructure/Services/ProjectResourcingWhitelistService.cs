@@ -1,5 +1,6 @@
 using Datahub.Application.Services;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,12 +11,15 @@ namespace Datahub.Infrastructure.Services
 
         private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
         private readonly IUserInformationService _userInformationService;
+        private readonly IDatahubAuditingService _auditingService;
 
-        public ProjectResourcingWhitelistService(IDbContextFactory<DatahubProjectDBContext> contextFactory, 
-            IUserInformationService userInformationService)
+        public ProjectResourcingWhitelistService(IDbContextFactory<DatahubProjectDBContext> contextFactory,
+            IUserInformationService userInformationService,
+            IDatahubAuditingService auditingService)
         {
             _contextFactory = contextFactory;
             _userInformationService = userInformationService;
+            _auditingService = auditingService;
         }
 
         public async Task<IEnumerable<Project_Whitelist>> GetAllProjectResourceWhitelistAsync()
@@ -73,7 +77,7 @@ namespace Datahub.Infrastructure.Services
                 context.Project_Whitelists.Update(projectResourceWhitelist);
             }
 
-            await context.SaveChangesAsync();
+            await context.TrackSaveChangesAsync(_auditingService);
         }
     }
 }

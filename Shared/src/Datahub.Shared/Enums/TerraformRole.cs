@@ -7,5 +7,6 @@ public enum Role
 {
     Admin,
     User,
-    Owner
+    Owner,
+    Guest
 }

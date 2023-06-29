@@ -2,6 +2,7 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services.Announcements;
 using Datahub.Core.Model.Announcements;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -11,14 +12,16 @@ public class AnnouncementService : IAnnouncementService
 {
     private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
     private readonly IDbContextFactory<DatahubProjectDBContext> _datahubProjectDbFactory;
+    private readonly IDatahubAuditingService _auditingService;
     private readonly ILogger<AnnouncementService> _logger;
 
     public AnnouncementService(DatahubPortalConfiguration datahubPortalConfiguration, IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        ILogger<AnnouncementService> logger)
+        IDatahubAuditingService auditingService, ILogger<AnnouncementService> logger)
     {
         _datahubPortalConfiguration = datahubPortalConfiguration;
         _datahubProjectDbFactory = datahubProjectDbFactory;
         _logger = logger;
+        _auditingService = auditingService;
     }
     public async Task<List<Announcement>> GetAnnouncementsAsync()
     {
@@ -45,11 +48,6 @@ public class AnnouncementService : IAnnouncementService
         return article;
     }
 
-    public Task<Announcement> CreateAnnouncementAsync(Announcement announcement)
-    {
-        throw new NotImplementedException();
-    }
-
     public async Task<bool> SaveAnnouncementAsync(Announcement announcement)
     {
         try
@@ -63,7 +61,7 @@ public class AnnouncementService : IAnnouncementService
             {
                 context.Announcements.Update(announcement);
             }
-            await context.SaveChangesAsync();
+            await context.TrackSaveChangesAsync(_auditingService);
             return true;
         }
         catch (Exception e)

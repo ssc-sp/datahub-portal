@@ -19,7 +19,7 @@ public class ResourcesStepDefinitions
     public async Task GivenTheUserIsOnTheResourcePage()
     {
         await _resPageObject.NavigateAsync();
-        _resPageObject.Page.Url.Should().EndWith("/resources");
+        await _resPageObject.ValidateLocationAsync();
     }
 
     [Then(@"the resource page should be without accessibility errors")]

@@ -179,7 +179,7 @@
 
         _uploadingFiles = new List<FileMetaData>();
 
-        await RefreshStoragePageAsync();
+        //await RefreshStoragePageAsync();
     }
 
     private bool OwnsFile(FileMetaData file) => (file?.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);

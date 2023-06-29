@@ -1,4 +1,6 @@
 ﻿@using Datahub.Core.Services.Docs
+@using MudBlazor.Utilities
+@using System.Text.RegularExpressions
 @inject DocumentationService _docService
 @inject CultureService _cultureService
 @inject NavigationManager _navManager
@@ -18,7 +20,7 @@ else
         <MudItem xs="3">
             <MudNavMenu Rounded Color=@Color.Primary Dense>
                 <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
-                    <MudText Inline Typo=@Typo.body1>@Localizer["Overview"]</MudText>
+                    <MudText Inline Typo=@Typo.h5 Style="@GetNavTextStyle()">@Localizer["Overview"]</MudText>
                 </MudNavLink>
                 @foreach (var cat in _resourceRoot.Children)
                 {
@@ -28,18 +30,22 @@ else
                     if (isDoc)
                     {
                         <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat)>
-                            <MudText Typo=@Typo.body2>@cat.Title</MudText>
+                            <MudText Typo=@Typo.h5 Style="@GetNavTextStyle()">@cat.Title</MudText>
                         </MudNavLink>
                     }
                     else
                     {
-                        <MudNavGroup Expanded="@isCurrentCat" Title="@cat.Title" ExpandedChanged=@((v) => UpdateCategory(cat, v))>
-                            @foreach (var article in cat.Children)
-                            {
-                                <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article)>
-                                    <MudText Typo=@Typo.body2>@article.Title</MudText>
-                                </MudNavLink>
-                            }
+                        <MudNavGroup Expanded="@isCurrentCat" Title="@cat.Title" ExpandedChanged=@((v) => UpdateCategory(cat, v)) Style="@GetNavTextStyle(isNavGroup: true)">
+                            <div style="@NavGroupStyle" class="resources-nav-group-wrapper">
+                                
+                                @foreach (var article in cat.Children)
+                                {
+                                    <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article) Style="@InnerNavLinkStyle">
+                                        <MudText Typo=@Typo.h6>@article.Title</MudText>
+                                    </MudNavLink>
+                                }
+                            
+                            </div>
                         </MudNavGroup>
                     }
                 }
@@ -81,7 +87,7 @@ else
     private DocItem _resourceRoot;
     private DocItem _currentMarkdownCategory;
     private DocItem _currentDoc;
-
+    private List<(bool isChild, string heading)> _headings;
 
     private bool PageIsLoading => _resourceRoot is null;
     private bool ShowPreviewCards => _currentDoc?.MarkdownPage is null;
@@ -110,7 +116,7 @@ else
     protected override async Task OnParametersSetAsync()
     {
         _docIsLoading = true;
-        _currentDoc = string.IsNullOrEmpty(PageName) ? _resourceRoot : _docService.LoadPage(PageName, _cultureService.IsFrench);
+        _currentDoc = string.IsNullOrEmpty(PageName) ? _resourceRoot     : _docService.LoadPage(PageName, _cultureService.IsFrench);
 
         if (_currentDoc is not null)
         {
@@ -132,10 +138,50 @@ else
         {
             _currentMarkdownCategory = _docService.GetParent(_currentDoc);
         }
+        _headings = GetHeadings(_currentDoc?.Content ?? "");
     }
 
     protected override async Task OnInitializedAsync()
     {
         _resourceRoot = await _docService.GetLanguageRoot(DocumentationGuide.UserGuide, _cultureService.Culture);
     }
+
+    private static string GetNavTextStyle(bool isNavGroup = false) => new StyleBuilder()
+        .AddStyle("font-size", "var(--mud-typography-h5-size)", when: isNavGroup)
+        .AddStyle("font-family", "var(--mud-typography-h5-family)", when: isNavGroup)
+        .AddStyle("font-weight", "600")
+        .AddStyle("line-height", "var(--mud-typography-h5-lineheight)", when: isNavGroup)
+        .AddStyle("letter-spacing", "var(--mud-typography-h5-letterspacing)", when: isNavGroup)
+        .AddStyle("text-transform", "var(--mud-typography-h5-text-transform)", when: isNavGroup)
+        .Build();
+
+    private static readonly string NavGroupStyle = new StyleBuilder()
+        .AddStyle("border-left", "1px solid var(--mud-palette-divider)")
+        // spacing on the margin above this div is 12px margin + 16px padding = 28px
+        .AddStyle("margin-left", "28px")
+        .Build();
+
+    private static readonly string InnerNavLinkStyle = new StyleBuilder()
+        .AddStyle("padding-left", "8px")
+        .Build();
+    
+    public static List<(bool isChild, string heading)> GetHeadings(string markdown)
+    {
+        // Pattern for second (##) and third (###) headings only.
+        const string pattern = @"(^(#{2,3}).*?$)";
+
+        var matches = Regex.Matches(markdown, pattern, RegexOptions.Multiline);
+
+        var headings = new List<(bool,string)>();
+        foreach (Match match in matches)
+        {
+            // Remove the leading hash characters and whitespace to only keep the text of the heading.
+            var headingText = match.Value.TrimStart('#').TrimStart();
+            var numberOfHashes = match.Groups[2].Value.Length;
+            headings.Add((numberOfHashes>2,headingText));
+        }
+
+        return headings;
+    }
+
 }
