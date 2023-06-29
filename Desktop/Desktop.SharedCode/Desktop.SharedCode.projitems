@@ -3,10 +3,10 @@
   <PropertyGroup>
     <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
     <HasSharedItems>true</HasSharedItems>
-    <SharedGUID>5c04757a-f91e-41a5-b7d5-05c469fc65c7</SharedGUID>
+    <SharedGUID>c694124a-399c-4fd6-b795-d9ace5ebecdc</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>UploaderSharedCode</Import_RootNamespace>
+    <Import_RootNamespace>Desktop.SharedCode</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CredentialEncoder.cs" />
