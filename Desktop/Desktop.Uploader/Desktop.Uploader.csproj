@@ -74,6 +74,6 @@
 	  </MauiXaml>
 	</ItemGroup>
 
-	<Import Project="..\Uploader.SharedCode\UploaderSharedCode.projitems" Label="Shared" />
+	<Import Project="..\Desktop.SharedCode\Desktop.SharedCode.projitems" Label="Shared" />
 
 </Project>
