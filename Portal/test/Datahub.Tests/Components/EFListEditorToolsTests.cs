@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Xunit;
 
 namespace Datahub.Tests.Components;

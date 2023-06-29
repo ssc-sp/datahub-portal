@@ -14,6 +14,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.Portal.Controllers;
 

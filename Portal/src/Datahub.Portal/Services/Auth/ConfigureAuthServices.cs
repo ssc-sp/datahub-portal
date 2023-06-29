@@ -21,13 +21,7 @@ public static class ConfigureAuthServices
             .AddInMemoryTokenCaches();
 
         services.AddMicrosoftIdentityConsentHandler();
-
-        // services.AddSession(options =>
-        // {
-        //     options.Cookie.IsEssential = true;
-        //     options.Cookie.HttpOnly = true;
-        // });
-
+        
         services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
         services.Configure<SessionsConfig>(configuration.GetSection("Sessions"));
     }

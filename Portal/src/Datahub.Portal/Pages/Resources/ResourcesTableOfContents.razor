@@ -1,0 +1,44 @@
+@using System.Text.RegularExpressions
+@using MudBlazor.Utilities
+@inject NavigationManager NavigationManager
+
+<MudText Typo="Typo.overline" Style="@GetTitleStyle">
+    @Localizer["In This Resource"]
+</MudText>
+<MudList Dense>
+    @foreach (var heading in Headings)
+    {
+        <MudListItem Style="@GetItemStyle(heading.isChild)">
+            <MudLink Typo="heading.isChild ? Typo.body2 : Typo.body1" Href="@GetLink(heading.text)">
+                @heading.text
+            </MudLink>
+        </MudListItem>
+    }
+</MudList>
+@code {
+    [Parameter]
+    public List<(bool isChild, string text)> Headings { get; set; }
+    //Comes from MudMarkdown library. Unfortunately, it's not public.
+    private static readonly string[] EscapeChars = { "+", ":", "&"};
+
+    private static readonly string GetTitleStyle = new StyleBuilder()
+        .AddStyle("font-weight", "bold")
+        .AddStyle("text-transform", "uppercase")
+        .Build();
+    
+    private static string GetItemStyle(bool isChild) => new StyleBuilder()
+        .AddStyle("padding-left", isChild ? "8px" : "0")
+        .AddStyle("padding-right", isChild ? "8px" : "0")
+        .Build();
+
+    private string GetLink(string heading)
+    {
+        var headingId = string.Join("-", heading.Split(EscapeChars, StringSplitOptions.None)
+            .Select(word => word.TrimStart().ToLowerInvariant()))
+            .Replace(" ", "-");
+        // remove the current heading from the url
+        var hashIndex = NavigationManager.Uri.IndexOf('#');
+        var url = hashIndex >= 0 ? NavigationManager.Uri[..hashIndex] : NavigationManager.Uri;
+        return $"{url}#{headingId}";
+    }
+}

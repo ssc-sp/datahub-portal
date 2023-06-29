@@ -1,17 +1,30 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Net.Mail
+@using Datahub.Application.Commands
 @using Datahub.Application.Services
-@using Datahub.Core.Data.Project
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Projects
 @inject IMSGraphService _msGraphService 
 @inject IUserEnrollmentService _userEnrollmentService
+@inject IUserInformationService _userInformationService
 
 <MudDialog>
     <DialogContent>
-        <MudText Class="py-2">@Localizer["Search for new users below using their email address. New users will be added as collaborators."]</MudText>
+        <MudStack>
+            <MudText Class="py-2">@Localizer["Search for new users below using their email address. New users will be added as collaborators."]</MudText>
+
+        </MudStack>
+        <MudList Clickable>
+            @foreach (var user in _usersToAdd)
+            {
+                <MudListItem Text="@GetListText(user)" Icon="@RemoveUserIcon" IconColor="Color.Primary"
+                             OnClick="() => RemoveUser(user)"/>
+            }
+        </MudList>
         <MudAutocomplete T="string" @ref="@_autocomplete" Label="@Localizer["User's GC Email"]" ValueChanged="AddUser"
-            DebounceInterval="500" SearchFuncWithCancel="@SearchUsers" AdornmentColor="Color.Primary" AdornmentIcon="@SearchIcon"
-            Error="@_error" ErrorText="@_errorMessage" ShowProgressIndicator="@_searchingForUsers" ResetValueOnEmptyText
-            bind-Value="_userSearch">
+                         DebounceInterval="500" SearchFuncWithCancel="@SearchUsers" AdornmentColor="Color.Primary" AdornmentIcon="@Icons.Material.Outlined.Search"
+                         Error="@_error" ErrorText="@_errorMessage" ShowProgressIndicator="@_searchingForUsers" ResetValueOnEmptyText
+                         Value="_userSearch">
             <ItemTemplate>
                 <MudStack Class="px-2" Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                     <MudStack Spacing="0">
@@ -25,26 +38,18 @@
                 </MudStack>
             </ItemTemplate>
         </MudAutocomplete>
-        <MudList Clickable>
-            @foreach (var user in _users)
-            {
-                <MudListItem Text="@GetListText(user)" Icon="@RemoveUserIcon" IconColor="Color.Primary"
-                             OnClick="() => RemoveUser(user)"/>
-            }
-        </MudList>
-        
     </DialogContent>
 
     <DialogActions>
         <MudButton OnClick="Cancel" Class="px-4">@Localizer["Cancel"]</MudButton>
-        <MudButton Color="Color.Primary" OnClick="UpdateProject" Disabled="@(_users.Count == 0)" Variant="Variant.Filled">
+        <MudButton Color="Color.Primary" OnClick="UpdateProject" Disabled="@(_usersToAdd.Count == 0)" Variant="Variant.Filled">
             @Localizer["Add New Users"]
         </MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    #nullable enable
+#nullable enable
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; } = null!;
 
@@ -52,12 +57,12 @@
     public string ProjectAcronym { get; set; } = null!;
 
     [Parameter]
-    public string Inviter { get; set; } = null!;
+    public PortalUser Inviter { get; set; } = null!;
 
     [Parameter]
-    public List<ProjectMember> CurrentProjectMembers { get; set; } = new();
+    public List<Datahub_Project_User> CurrentProjectUsers { get; set; } = new();
 
-    private readonly List<GraphUser> _users = new();
+    private readonly List<ProjectUserAddUserCommand> _usersToAdd = new();
     private readonly EmailAddressAttribute _emailValidator = new() { ErrorMessage = "The email address is invalid" };
     private string _userSearch = string.Empty;
     private MudAutocomplete<string> _autocomplete = null!;
@@ -67,14 +72,11 @@
 
     private List<GraphUser> _searchResultUsers = new();
 
-    private const string SearchIcon = "fa-duotone fa-magnifying-glass";
-    private const string AddUserIcon = "fa-duotone fa-user-plus";
-    private const string RemoveUserIcon = "fa-duotone fa-trash-can-slash";
-    private const string UserExistsError = "The user is already a member of this workspace";
-    private const string NotValidEmailError = "Please enter a valid GC email address";
+        private const string AddUserIcon = "fa-duotone fa-user-plus";
+        private const string RemoveUserIcon = "fa-duotone fa-trash-can-slash";
+        private const string UserExistsError = "The user is already a member of this workspace";
+        private const string NotValidEmailError = "Please enter a valid GC email address";
 
-    // added to catch the case where the user is in graph but ID is null (GitHub issue # 404)
-    private const string NewUserId = "NEW_USER";
 
     private async Task<IEnumerable<string>> SearchUsers(string search, CancellationToken cancellationToken)
     {
@@ -85,30 +87,32 @@
         _searchingForUsers = true;
         StateHasChanged();
 
-        var foundUsersDict = await _msGraphService.GetUsersListAsync(search, cancellationToken);
-        //get found users as GraphUsers and remove current users from the list
-        _searchResultUsers = foundUsersDict
+        var existingUsersList = await _msGraphService.GetUsersListAsync(search, cancellationToken);
+        _searchResultUsers = existingUsersList
             .Select(u => u.Value)
-            .Where(u => CurrentProjectMembers.All(x => x.UserId != u.Id) || _users.Any(user => user.Id == u.Id))
+            .Where(u => CurrentProjectUsers.All(x => x.PortalUser.GraphGuid != u.Id) 
+                        || _usersToAdd.Any(user => user.GraphGuid == u.Id))
             .ToList();
 
-        // If an exact match is found, put it at the top of the list, otherwise add an add user option
+    // If an exact match is found, put it at the top of the list, otherwise add an add user option
         var matchIndex = _searchResultUsers.FindIndex(u => u.Mail.Equals(search, StringComparison.InvariantCultureIgnoreCase));
+
         ClearError();
+
         StateHasChanged();
         switch (matchIndex)
         {
             case > 0:
-                {
-                    var exactMatch = _searchResultUsers[matchIndex];
-                    _searchResultUsers.RemoveAt(matchIndex);
-                    _searchResultUsers.Insert(0, exactMatch);
-                }
+            {
+                var exactMatch = _searchResultUsers[matchIndex];
+                _searchResultUsers.RemoveAt(matchIndex);
+                _searchResultUsers.Insert(0, exactMatch);
+            }
                 break;
             case -1 when _emailValidator.IsValid(search):
                 _searchResultUsers.Insert(0, new GraphUser()
                 {
-                    mailAddress = new MailAddress(search), DisplayName = Localizer["Add New User"], Id = NewUserId
+                    mailAddress = new MailAddress(search), DisplayName = Localizer["Add New User"], Id = ProjectUserAddUserCommand.NEW_USER_GUID
                 });
                 break;
         }
@@ -141,7 +145,7 @@
         _errorMessage = string.Empty;
     }
 
-    private void AddUser(string searchValue)
+    private async Task AddUser(string searchValue)
     {
         var user = _searchResultUsers.FirstOrDefault(u => u.Mail.Equals(searchValue, StringComparison.OrdinalIgnoreCase));
 
@@ -149,56 +153,60 @@
         {
             return;
         }
-
         _userSearch = string.Empty;
+
         if (string.IsNullOrWhiteSpace(user.Id))
         {
             UserNotValidError();
             return;
         }
-        if (CurrentProjectMembers.Any(projectMember => projectMember.Email.Equals(user.Mail, StringComparison.OrdinalIgnoreCase)))
+        if (CurrentProjectUsers.Any(datahubProjectUser => datahubProjectUser.PortalUser.Email.Equals(user.Mail, StringComparison.OrdinalIgnoreCase)))
         {
             UserExistsInProjectError();
             return;
         }
-        if (user.Id.Equals(NewUserId) && !_userEnrollmentService.IsValidGcEmail(user.Mail))
+        if (user.Id.Equals(ProjectUserAddUserCommand.NEW_USER_GUID) && !_userEnrollmentService.IsValidGcEmail(user.Mail))
         {
             EmailNotValidError();
             return;
         }
         ClearError();
-        _users.Add(user);
-        _autocomplete?.Clear();
+
+        var addUserCommand = new ProjectUserAddUserCommand()
+        {
+            ProjectAcronym = ProjectAcronym,
+            GraphGuid = user.Id,
+            Email = user.Mail,
+            DisplayName = user.DisplayName,
+            RoleId = (int)Project_Role.RoleNames.Guest,
+        };
+
+        if (!user.Id.Equals(ProjectUserAddUserCommand.NEW_USER_GUID))
+        {
+            var existingPortalUser = await _userInformationService.GetPortalUserAsync(user.Id);
+            addUserCommand.PortalUser = existingPortalUser;
+        }
+
+        _usersToAdd.Add(addUserCommand);
+        await _autocomplete.Clear();
         StateHasChanged();
     }
 
-    private void RemoveUser(GraphUser user)
+    private void RemoveUser(ProjectUserAddUserCommand user)
     {
-        _users.Remove(user);
+        _usersToAdd.RemoveAll(u => u.Email == user.Email);
     }
 
-    private static string GetListText(GraphUser user)
+    private static string GetListText(ProjectUserAddUserCommand projectUserAddUserCommand)
     {
-        return user.Id == NewUserId ? user.Mail : $"{user.DisplayName} ({user.Mail})";
+        return projectUserAddUserCommand.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID 
+            ? projectUserAddUserCommand.Email 
+            : $"{projectUserAddUserCommand.DisplayName} ({projectUserAddUserCommand.Email})";
     }
 
-    private async Task UpdateProject()
+    private void UpdateProject()
     {
-        var projectMembers = new List<ProjectMember>();
-        // If the user is new, send an invite and get the ID, otherwise just get the ID
-        foreach (var user in _users)
-        {
-            // triggering the user invitation has been moved to ProjectUserManagementService
-            var projectMember = new ProjectMember(user)
-            {
-                Name = await _msGraphService.GetUserName(user.Id, CancellationToken.None),
-                UserHasBeenInvitedToDatahub = !user.Id.Equals(NewUserId)
-            };
-            projectMembers.Add(projectMember);
-        }
-
-        MudDialog.Close(DialogResult.Ok<List<ProjectMember>?>(projectMembers));
-
+        MudDialog.Close(DialogResult.Ok(_usersToAdd));
     }
 
     private void Cancel() => MudDialog.Cancel();

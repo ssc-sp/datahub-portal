@@ -2,6 +2,7 @@
 
 @using Datahub.Core.Services.Achievements
 @using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
@@ -11,29 +12,12 @@
 @inject ILogger<DataProjectPage> logger
 @inject NavigationManager NavigationManager
 
-@if (_project is not null && (_isProjectAdmin || _isDatahubAdmin))
-{
-    <CascadingValue Value=@_project Name="Project">
-        <CascadingValue Value=@ProjectAcronymParam Name="ProjectAcronym">
-            <CascadingValue Value=@_userId Name="UserId">
-                <CascadingValue Value=@_isDatahubAdmin Name="IsDatahubAdmin">
-                    <CascadingValue Value="@_isProjectAdmin" Name="IsProjectAdmin">
-                        <CascadingValue Value=@_user Name="GraphUser">
-                            <CascadingValue Value=@_projectId Name="ProjectId">
-                                <ProjectInfo/>
-                                <AuthorizeView Roles="@AdminRoles">
-                                    <Authorized>
-                                        <ProjectMembersTable/>
-                                    </Authorized>
-                                </AuthorizeView>
-                            </CascadingValue>
-                        </CascadingValue>
-                    </CascadingValue>
-                </CascadingValue>
-            </CascadingValue>
-        </CascadingValue>
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronymParam">
+    <CascadingValue Value=@ProjectAcronymParam Name="ProjectAcronym">
+        <ProjectInfo ProjectAcronym="@ProjectAcronymParam"/>
+        <ProjectMembersTable/>
     </CascadingValue>
-}
+</DatahubAuthView>
 
 @code {
 
@@ -48,7 +32,7 @@
     private bool _isDatahubAdmin;
     private bool _isProjectAdmin;
     private bool _showCosts;
-    
+
     private string ProjectAdminRole => $"{ProjectAcronymParam}{RoleConstants.ADMIN_SUFFIX}";
 
     private string AdminRoles => $"{ProjectAdminRole}, {RoleConstants.DATAHUB_ROLE_ADMIN}";
@@ -64,7 +48,7 @@
             NavigationManager.NavigateTo($"/w/{ProjectAcronymParam}");
             return;
         }
-        
+
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _project = await projectContext.Projects
@@ -97,7 +81,7 @@
 
         if (firstRender)
         {
-            // refresh auth due to server pre-rendering
+    // refresh auth due to server pre-rendering
             StateHasChanged();
         }
     }
@@ -106,4 +90,5 @@
     {
         _showCosts = !_showCosts;
     }
+
 }

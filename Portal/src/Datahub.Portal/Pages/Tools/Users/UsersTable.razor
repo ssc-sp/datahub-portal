@@ -1,0 +1,63 @@
+@using MudBlazor.Utilities
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+
+<MudTable Striped Items="@UserWorkspaces" Filter="new Func<UserWorkspaces,bool>(FilterUserWorkspaces)">
+<ToolBarContent>
+    <MudTextField @bind-Value="_searchString" Placeholder="Search by User or Workspace" Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<UserWorkspaces, object>(x => x.User.DisplayName)" InitialDirection="SortDirection.Ascending">
+                @Localizer["User"]
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            @Localizer["Workspaces"]
+        </MudTh>
+            
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="User">
+            <MudText Typo="Typo.h6">@context.User.DisplayName</MudText>
+            <MudText Typo="Typo.body2">@context.User.Email</MudText>
+        </MudTd>
+        <MudTd DataLabel="Workspaces">
+            <ul style="list-style: outside;">
+                @foreach(var workspace in context.Workspaces)
+                {
+                    <li>
+                        <MudLink Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{workspace.Project_Acronym_CD}")">
+                            <MudText>@workspace.ProjectName <span style="@AcronymStyle">(@workspace.Project_Acronym_CD)</span></MudText>
+                        </MudLink>
+                    </li>
+                }
+            </ul>
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    [Parameter]
+    public ICollection<UserWorkspaces> UserWorkspaces { get; set; }
+
+    private string _searchString;
+
+    private string AcronymStyle => new StyleBuilder()
+        .Build();
+
+    private bool FilterUserWorkspaces(UserWorkspaces userWorkspaces)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+        if (userWorkspaces.User.DisplayName.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (userWorkspaces.User.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return userWorkspaces.Workspaces.Any(x => x.Project_Acronym_CD.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) || 
+               userWorkspaces.Workspaces.Any(x => x.ProjectName.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+    }
+}

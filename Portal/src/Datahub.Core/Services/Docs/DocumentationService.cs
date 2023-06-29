@@ -1,7 +1,6 @@
 ﻿using Datahub.Core.Services.Wiki;
 using Datahub.Shared.Annotations;
 using Markdig;
-using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using Microsoft.Extensions.Caching.Memory;
@@ -56,6 +55,35 @@ public class DocumentationService
         _httpClientFactory = httpClientFactory;
         _statusMessages = new List<TimeStampedStatus>();
         _cache = docCache;
+    }
+
+    public async Task<bool> InvalidateCache()
+    {
+        try
+        {
+            var cache = _cache as MemoryCache;
+            if (cache != null)
+            {
+                //https://stackoverflow.com/questions/49176244/asp-net-core-clear-cache-from-imemorycache-set-by-set-method-of-cacheextensions/49425102#49425102
+                //this weird trick removes all the entries
+                var percentage = 1.0;//100%
+                cache.Compact(percentage);
+
+                await LoadResourceTree(DocumentationGuide.UserGuide);
+
+                _logger.LogInformation("Document cache has been cleared");
+                return true;
+            }
+            else
+            {
+                _logger.LogWarning("Could not clear the cache.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message, ex);
+        }
+        return false;
     }
 
     private void AddStatusMessage(string message)

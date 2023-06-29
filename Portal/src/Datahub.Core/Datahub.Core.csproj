@@ -136,5 +136,11 @@
 	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.woff2" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <AdditionalFiles Include="Components\AuthViews\DatahubAuthView.razor" />
+	</ItemGroup>
+
 	<Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
+
+	<Import Project="..\..\..\Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems" Label="Shared" />
 </Project>

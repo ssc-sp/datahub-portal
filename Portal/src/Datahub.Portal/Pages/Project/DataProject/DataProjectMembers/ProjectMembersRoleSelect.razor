@@ -1,73 +1,71 @@
-@using Datahub.Core.Data.Project
-@*need value of select to be a string, so it renders the string as the presented value*@
-@*otherwise the entire render fragment is shown as selected value*@
-@*only other workaround is to enable multi-select and use the parameter MultiSelectionTextFunc*@
-@*I've created an issue for this here https://github.com/MudBlazor/MudBlazor/issues/6134*@
-<MudSelect T="object" Value="@_valueOfSelect" ValueChanged="RoleChanged" Variant="Variant.Outlined" MaxHeight="500">
-    @foreach (var role in RoleTitles)
-    {
-        <MudSelectItem Value="@((object)role.Key)" Class="@GetItemClass(role.Key)">
-            <MudText Typo="Typo.h6">@Localizer[RoleTitles[role.Key]]</MudText>
-            <MudText>@Localizer[_roleDescriptions[role.Key]]</MudText>
-        </MudSelectItem>
-    }
-    <MudSelectItem Value="@((object)ProjectMemberRole.Remove)" Style="border-top:1px solid var(--mud-palette-lines-inputs)">
-        <MudText Typo="Typo.h6" Color="Color.Error">@Localizer["Remove User"]</MudText>
-        <MudText Color="Color.Error">@Localizer["Revoke the user's access to the project's private resources"]</MudText>
-    </MudSelectItem>
-</MudSelect>
+@using Datahub.Core.Model.Projects
+@using MudBlazor.Utilities
+
+@inject IJSRuntime _jsRuntime;
+
+<!--suppress CssUnresolvedCustomProperty -->
+<MudMenu AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
+    <ActivatorContent>
+        <MudStack Row AlignItems="AlignItems.Center" Style="@_outlineStyle" Class="py-2 px-4">
+            <MudText Typo="Typo.body1">@Localizer[_currentRole?.Name ?? string.Empty]</MudText>
+            <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
+        </MudStack>
+    </ActivatorContent>
+    <ChildContent>
+        @foreach (var role in _projectRoles.Where(r => r.Id != (int)Project_Role.RoleNames.Remove))
+        {
+            <MudMenuItem OnClick="@(() => RoleChanged(role.Id))" Style="max-width: 400px;">
+                <MudText Typo="Typo.h6">@Localizer[role.Name]</MudText>
+                <MudText>@Localizer[role.Description]</MudText>
+            </MudMenuItem>
+        }
+        <MudDivider/>
+        <MudMenuItem OnClick="@(() => RoleChanged(_removeRole.Id))" Style="max-width: 400px;">
+            <MudText Color="Color.Error" Typo="Typo.h6">@Localizer[_removeRole.Name]</MudText>
+            <MudText Color="Color.Error">@Localizer[_removeRole.Description]</MudText>
+        </MudMenuItem>
+    </ChildContent>
+</MudMenu>
 
 @code {
+
     [Parameter]
-    public ProjectMember ProjectMember { get; set; }
-    [Parameter] 
-    public EventCallback<ProjectMember> OnRoleChanged { get; set; }
+    public int InitialValue { get; set; }
 
-    private string _valueOfSelect;
+    [Parameter]
+    public EventCallback<int> OnRoleChanged { get; set; }
 
+    private Project_Role _currentRole;
+    private IEnumerable<Project_Role> _projectRoles;
+    private Project_Role _removeRole;
 
-    public static readonly Dictionary<ProjectMemberRole, string> RoleTitles = new()
+    private string _outlineStyle = new StyleBuilder()
+        .AddStyle("border", "1px solid var(--mud-palette-table-lines)")
+        .AddStyle("border-radius", "var(--mud-default-borderradius)")
+        .Build();
+
+    protected override void OnParametersSet()
     {
-        {ProjectMemberRole.WorkspaceLead, "Workspace Lead"},
-        {ProjectMemberRole.Admin, "Admin"},
-        {ProjectMemberRole.Collaborator, "Collaborator"},
-    };
+        _projectRoles = Project_Role.GetAll().ToList();
+        _removeRole = _projectRoles.First(r => r.Id == (int)Project_Role.RoleNames.Remove);
+        // _projectRoles = _projectRoles.Where(r => r.Id != (int)Project_Role.RoleNames.Remove);
 
-    private readonly Dictionary<ProjectMemberRole, string> _roleDescriptions = new()
-    {
-        {
-            ProjectMemberRole.WorkspaceLead,
-            "Head of the business unit and bears business responsibility for successful implementation and availability"
-        },
-        {
-            ProjectMemberRole.Admin,
-            "Management authority within the project with direct supervision over the project resources and deliverables"
-        },
-        {
-            ProjectMemberRole.Collaborator,
-            "Responsible for contributing to the overall project objectives and deliverables to ensure success"
-        },
-
-    };
-
-    protected override void OnInitialized()
-    {
-        _valueOfSelect = Localizer[RoleTitles[ProjectMember.Role]];
+        _currentRole = _projectRoles.FirstOrDefault(r => r.Id == InitialValue);
     }
 
-    private async Task RoleChanged(object role)
+    private async Task RoleChanged(int newRoleId)
     {
-        var newRole = (ProjectMemberRole)role;
-        if (newRole == ProjectMember.Role) return;
-        ProjectMember.Role = newRole;
-        if (newRole != ProjectMemberRole.Remove)
-            _valueOfSelect = Localizer[RoleTitles[ProjectMember.Role]];
-        if (OnRoleChanged.HasDelegate)
-            await OnRoleChanged.InvokeAsync(ProjectMember);
+        if(newRoleId == (int)Project_Role.RoleNames.Remove)
+        {
+            var message = Localizer["Are you sure you want to remove this user from the workspace?"].Value;
+            var confirmed = await _jsRuntime.InvokeAsync<bool>("confirm", message);
+            if (!confirmed)
+            {
+                return;
+            }
+        }
+        
+        await OnRoleChanged.InvokeAsync(newRoleId);
     }
 
-    private string GetItemClass(ProjectMemberRole role)
-    {
-        return role == ProjectMember.Role ? "mud-selected-item mud-primary-text mud-primary-hover" : "";
-    }
 }

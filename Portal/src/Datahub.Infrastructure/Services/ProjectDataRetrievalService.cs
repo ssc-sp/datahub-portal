@@ -45,6 +45,11 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
 
     public async Task<Uri> GenerateSasTokenAsync(string projectAcronym, string containerName, int days)
     {
+        if (string.IsNullOrWhiteSpace(containerName))
+        {
+            throw new ArgumentException($"'{nameof(containerName)}' cannot be null or whitespace.", nameof(containerName));
+        }
+
         var project = projectAcronym.ToLowerInvariant();
         var containerClient = await GetBlobContainerClient(project, containerName);
         var sasBuilder = GetContainerSasBuild(containerName, days, BlobSasPermissions.All);
@@ -372,6 +377,11 @@ public class ProjectDataRetrievalService : IProjectDataRetrievalService
 
     private async Task<BlobContainerClient> GetBlobContainerClient(string project, string containerName)
     {
+        if (string.IsNullOrWhiteSpace(containerName))
+        {
+            throw new ArgumentException($"'{nameof(containerName)}' cannot be null or whitespace.", nameof(containerName));
+        }
+
         var connectionString = await GetProjectConnectionStringAsync(project);
         var blobServiceClient = new BlobServiceClient(connectionString);
         return blobServiceClient.GetBlobContainerClient(containerName);

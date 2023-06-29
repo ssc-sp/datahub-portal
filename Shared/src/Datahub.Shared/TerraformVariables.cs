@@ -19,8 +19,10 @@ public static class TerraformVariables
 
     public const string DatabricksProjectLeadUsers = "databricks_project_lead_users";
     public const string DatabricksAdminUsers = "databricks_admin_users";
-    public const string DatabricksProjectUsers = "databricks_project_users";
+    public const string DatabricksProjectUsers = "project_guest_users";
+    public const string DatabricksProjectGuests = "databricks_project_guests";
     public const string StorageContributorUsers = "storage_contributor_users";
+    public const string StorageGuestUsers = "storage_reader_users";
     
     
     public const string BackendResourceGroupName = "resource_group_name";
