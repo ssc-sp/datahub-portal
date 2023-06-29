@@ -57,7 +57,7 @@ public class DocumentationService
         _cache = docCache;
     }
 
-    public bool InvalidateCache()
+    public async Task<bool> InvalidateCache()
     {
         try
         {
@@ -68,6 +68,9 @@ public class DocumentationService
                 //this weird trick removes all the entries
                 var percentage = 1.0;//100%
                 cache.Compact(percentage);
+
+                await LoadResourceTree(DocumentationGuide.UserGuide);
+
                 _logger.LogInformation("Document cache has been cleared");
                 return true;
             }
