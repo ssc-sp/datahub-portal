@@ -63,12 +63,12 @@
     private IReadOnlyList<string> _formattedErrorList;
     private bool _cacheIsRefreshing;
 
-    private void RefreshCache()
+    private async Task RefreshCache()
     {
         _cacheIsRefreshing = true;
         StateHasChanged();
 
-        _docService.InvalidateCache();
+        await _docService.InvalidateCache();
 
         _cacheIsRefreshing = false;
         StateHasChanged();
