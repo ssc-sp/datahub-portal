@@ -7,11 +7,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		COPYRIGHT.md = COPYRIGHT.md
+		dh-portal.ps1 = dh-portal.ps1
 		global.json = global.json
 		LICENSE.md = LICENSE.md
 		nuget.config = nuget.config
 		README.md = README.md
-		dh-portal.ps1 = dh-portal.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{48CAB0F7-CFCC-443B-B71D-E015878CE5B7}"
@@ -135,7 +135,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Desktop", "Desktop", "{8B88
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desktop.Uploader", "Desktop\Desktop.Uploader\Desktop.Uploader.csproj", "{99E69964-BB4A-4830-9C4D-6E1608356EC4}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Desktop.SharedCode", "Desktop\Desktop.SharedCode\Desktop.SharedCode.shproj", "{5C04757A-F91E-41A5-B7D5-05C469FC65C7}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Desktop.SharedCode", "Desktop\Desktop.SharedCode\Desktop.SharedCode.shproj", "{C694124A-399C-4FD6-B795-D9ACE5EBECDC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -352,17 +352,19 @@ Global
 		{78416465-E37B-4DB5-B96B-99E45581A0EE} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 		{5FB450AC-5E50-46A8-B454-EAD8ACD24FC6} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{99E69964-BB4A-4830-9C4D-6E1608356EC4} = {8B889747-F089-4150-AC80-FCAE5FA33571}
-		{5C04757A-F91E-41A5-B7D5-05C469FC65C7} = {8B889747-F089-4150-AC80-FCAE5FA33571}
+		{C694124A-399C-4FD6-B795-D9ACE5EBECDC} = {8B889747-F089-4150-AC80-FCAE5FA33571}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Desktop\Desktop.SharedCode\DesktopSharedCode.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
+		Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{79da8e04-5655-493a-80e4-37a07fbec90e}*SharedItemsImports = 13
+		Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems*{99e69964-bb4a-4830-9c4d-6e1608356ec4}*SharedItemsImports = 5
+		Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems*{c694124a-399c-4fd6-b795-d9ace5ebecdc}*SharedItemsImports = 13
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{cf8de3c8-8b81-4569-8075-aad80b478b5f}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
