@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Azure.Storage.Queues.Models;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using MediatR;

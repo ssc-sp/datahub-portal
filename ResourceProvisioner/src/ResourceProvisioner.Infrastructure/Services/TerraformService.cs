@@ -248,7 +248,9 @@ public class TerraformService : ITerraformService
             TerraformVariables.DatabricksProjectLeadUsers => terraformWorkspace.ToUserList(Role.Owner),
             TerraformVariables.DatabricksAdminUsers => terraformWorkspace.ToUserList(Role.Admin),
             TerraformVariables.DatabricksProjectUsers => terraformWorkspace.ToUserList(Role.User),
+            TerraformVariables.DatabricksProjectGuests => terraformWorkspace.ToUserList(Role.Guest),
             TerraformVariables.StorageContributorUsers => terraformWorkspace.ToUserList(),
+            TerraformVariables.StorageGuestUsers => terraformWorkspace.ToUserList(Role.Guest),
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<{TerraformVariables.ListAnyType}> in configuration")
         };

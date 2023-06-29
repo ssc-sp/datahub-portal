@@ -1,14 +1,18 @@
-@using Datahub.Portal.Components.AuthViews
-@using Datahub.Core.Data.Project
+@using Datahub.Core.Components.AuthViews
 @using Datahub.Portal.Components.User
+@using Datahub.Application.Services
+@using Datahub.Core.Model.Projects
 
-@inject ServiceAuthManager _serviceAuthManager
+@inject IProjectUserManagementService _projectUserManagementService
 
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated" ProjectAcronym="@ProjectAcronym">
     <MudStack>
         <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
-            <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
+            @if (_projectAdmins.Any())
+            {
+                <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
+            }
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
                 <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@($"/w/{ProjectAcronym}/members")">
                     @Localizer["Manage Members"]
@@ -18,7 +22,7 @@
         <MudStack>
             @foreach (var admin in _projectAdmins)
             {
-                <UserCard ViewedUserGraphId="@admin.UserId" Size="Size.Medium" ShowProfileLink/>
+                <UserCard ViewedUserGraphId="@admin.PortalUser.GraphGuid" Size="Size.Medium" ShowProfileLink/>
             }
         </MudStack>
 
@@ -32,7 +36,7 @@
             <MudStack>
                 @foreach (var member in _projectMembers)
                 {
-                    <UserCard ViewedUserGraphId="@member.UserId" Size="Size.Medium" ShowProfileLink/>
+                    <UserCard ViewedUserGraphId="@member.PortalUser.GraphGuid" Size="Size.Medium" ShowProfileLink/>
                 }
             </MudStack>
         }
@@ -44,17 +48,26 @@
     [Parameter]
     public string ProjectAcronym { get; set; }
 
-    private List<ProjectMember> _projectAdmins = new();
-    private List<ProjectMember> _projectMembers = new();
+    private List<Datahub_Project_User> _projectAdmins = new();
+    private List<Datahub_Project_User> _projectMembers = new();
 
 
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
 
-        var allMembers = await _serviceAuthManager.GetProjectMembers(ProjectAcronym);
-        _projectAdmins = allMembers.Where(m => m.Role == ProjectMemberRole.Admin || m.Role == ProjectMemberRole.WorkspaceLead).ToList();
-        _projectMembers = allMembers.Where(m => m.Role == ProjectMemberRole.Collaborator).ToList();
+        var workspaceMembers = await _projectUserManagementService.GetProjectUsersAsync(ProjectAcronym);
+        
+        _projectAdmins = workspaceMembers
+            .Where(m => m.RoleId 
+                is (int) Project_Role.RoleNames.Admin 
+                or (int) Project_Role.RoleNames.WorkspaceLead)
+            .ToList();
+        
+        _projectMembers = workspaceMembers
+            .Where(m => m.RoleId
+                is (int) Project_Role.RoleNames.Collaborator)
+            .ToList();
     }
 
 }

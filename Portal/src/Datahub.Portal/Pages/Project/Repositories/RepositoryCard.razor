@@ -1,0 +1,87 @@
+@using Datahub.Core.Data.Databricks
+@using Datahub.Core.Model.Repositories
+@using MudBlazor.Utilities
+<MudPaper Elevation="0" Outlined Class="px-6 py-4">
+    <MudStack Row AlignItems="AlignItems.Center">
+        <MudStack>
+            <MudStack Row AlignItems="AlignItems.Center">
+                <MudImage Src="/api/media/third-party/databricks-logo.svg" Style="width: 1.25rem;"/>
+                <MudText Typo="Typo.body1" Style="font-weight: bold;">@RepositoryInfoDto.RepositoryName</MudText>
+            </MudStack>
+            @if (RepositoryInfoDto.Path != null)
+            {
+                <MudText Typo="Typo.caption">@RepositoryInfoDto.Path</MudText>
+            }
+            <MudStack Row AlignItems="AlignItems.Center">
+                <MudIcon Icon="@GetRepositoryIcon()" Size="Size.Small"/>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fa-regular fa-code-branch" Style="@_smallIconStyle"/>
+                    <MudText Style="@_codeBlockStyle" Typo="Typo.caption">@RepositoryInfoDto.Branch</MudText>
+                </MudStack>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fa-regular fa-code-commit" Style="@_smallIconStyle"/>
+                    <MudText Style="@_codeBlockStyle" Typo="Typo.caption">@RepositoryInfoDto.HeadCommitId[..8]</MudText>
+                </MudStack>
+            </MudStack>
+        </MudStack>
+        <MudSpacer/>
+        <MudStack >
+            <MudButton Variant="Variant.Text" EndIcon="@Icons.Material.Filled.OpenInNew" Color="Color.Primary" Size="Size.Small">
+                <DHLink Underline="Underline.None"
+                        Typo="Typo.button"
+                        ExternalUrl="@RepositoryInfoDto.Url"
+                        LinkType="DatahubLinkType.ExternalUrl">
+                    @Localizer["Open Repository"]
+                </DHLink>
+            </MudButton>
+        </MudStack>
+    </MudStack>
+</MudPaper>
+
+@code {
+
+    [Parameter]
+    public RepositoryInfoDto RepositoryInfoDto { get; set; }
+    
+    [Parameter]
+    public ProjectRepository ProjectRepository { get; set; }
+
+    
+    private string _smallIconStyle;
+    private string _codeBlockStyle;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        if(RepositoryInfoDto == null && ProjectRepository == null)
+        {
+            throw new InvalidOperationException($"'{nameof(RepositoryInfoDto)}' is required");
+        }
+
+        RepositoryInfoDto ??= new RepositoryInfoDto(ProjectRepository);
+
+        _smallIconStyle = new StyleBuilder()
+            .AddStyle("font-size", "0.75rem")
+            .Build();
+
+        _codeBlockStyle = new StyleBuilder()
+            .AddStyle("font-size", "0.75rem")
+            .AddStyle("font-family", "monospace")
+            .AddStyle("background-color", "#f5f5f5")
+            .AddStyle("padding-left", "0.25rem")
+            .AddStyle("padding-right", "0.25rem")
+            .AddStyle("border-radius", "var(--mud-default-borderradius)")
+            .Build();
+    }
+    
+    private string GetRepositoryIcon()
+    {
+        if(RepositoryInfoDto.Provider.Equals("GitHub", StringComparison.InvariantCultureIgnoreCase))
+        {
+            return Icons.Custom.Brands.GitHub;
+        }
+        
+        return Icons.Custom.Brands.GitHub;
+    }
+}

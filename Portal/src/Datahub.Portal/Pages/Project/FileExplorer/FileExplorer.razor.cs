@@ -24,6 +24,11 @@ public partial class FileExplorer
         StateHasChanged();
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        await RefreshStoragePageAsync();
+    }
+
     private async Task HandleNewFolder(string folderName)
     {
         var newFolderName = folderName.Replace("/", "").Replace("\\", "").Trim();

@@ -1,5 +1,6 @@
 ﻿@using Datahub.Core.Services.Projects;
 @using Datahub.Core.Model.Datahub
+@using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Notification
 @inject IDbContextFactory<DatahubProjectDBContext> dbFactory
 @inject ProjectToolsEmailService EmailService
@@ -146,7 +147,10 @@
     {
         using var ctx = await dbFactory.CreateDbContextAsync();
 
-        var validProjects = (IsDatahubAdmin ? ctx.Project_Users : ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == UserId))
+        var validProjects = (IsDatahubAdmin 
+            ? ctx.Project_Users 
+            : ctx.Project_Users.Where(u => (u.RoleId == (int)Project_Role.RoleNames.Admin || u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
+                                           && u.User_ID == UserId))
             .Select(p => p.Project.Project_ID)
             .ToHashSet();
 

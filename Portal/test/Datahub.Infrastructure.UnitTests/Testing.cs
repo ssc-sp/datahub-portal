@@ -22,7 +22,7 @@ public partial class Testing
 
     internal const string TestProjectAcronym = "TEST";
     internal const string TestUserEmail = "user@email.gc.ca";
-    internal const string TestUserId = "123456789";
+    internal const string TestUserGraphGuid = "0000-0000-0000-0000-0000";
     internal static readonly string[] TEST_USER_IDS = Enumerable.Range(0,5).Select(_ => Guid.NewGuid().ToString()).ToArray();
     internal const string TestAdminUserId = "987654321";
     internal const string OldUserEmail = "old-user@email.gc.ca";
@@ -64,7 +64,7 @@ public partial class Testing
         {
             ["data"] = new JsonObject
             {
-                ["id"] = TestUserId
+                ["id"] = TestUserGraphGuid
             }
         };
         var stringContent = new StringContent(JsonSerializer.Serialize(data), Encoding.UTF8, "application/json");

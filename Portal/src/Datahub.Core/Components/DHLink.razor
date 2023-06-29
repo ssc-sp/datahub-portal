@@ -137,6 +137,9 @@
             case DatahubLinkType.Storage:
                 NavigationManager.NavigateTo($"/w/{link.DataProject}/filelist");
                 break;
+            case DatahubLinkType.Repository:
+                NavigationManager.NavigateTo($"/w/{link.DataProject}/repository");
+                break;
             case DatahubLinkType.DataSharingDashboard:
                 NavigationManager.NavigateTo($"/w/{link.DataProject}/datasharing");
                 break;

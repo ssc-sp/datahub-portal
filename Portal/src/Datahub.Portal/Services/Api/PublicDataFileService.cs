@@ -1,6 +1,7 @@
 using System.Net;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Metadata;
@@ -369,7 +370,7 @@ public class PublicDataFileService : IPublicDataFileService
         var projectUserEntries = await _projectDbContext.Project_Users
             .Where(p => p.Project.Project_Acronym_CD == projectCode && p.User_ID == userId)
             .ToListAsync();
-        return projectUserEntries.Any(p => p.IsDataApprover);
+        return projectUserEntries.Any(p => p.Role.IsAtLeastCollaborator);
     }
 
     public async Task<Datahub_Project> GetProjectWithUsers(string projectCode)
