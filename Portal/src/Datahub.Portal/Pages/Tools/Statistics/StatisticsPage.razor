@@ -4,7 +4,7 @@
 @using Datahub.Core.Model.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@attribute [Authorize(Roles = "DHPGLIST")]
+@attribute [Authorize(Roles = "DHPGLIST-admin")]
 
 <MudStack>
     <MudText Typo="Typo.h1">DataHub Statistics</MudText>
