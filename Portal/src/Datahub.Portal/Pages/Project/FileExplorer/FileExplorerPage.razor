@@ -29,7 +29,7 @@
                 @if (_containers.Count > 1)
                 {
                 <MudStack Style="border-bottom: 1px solid var(--mud-palette-lines-default);" Class="my-6">
-                    <MudText Typo="Typo.h2">@Localizer["Current  Container"]</MudText>
+                    <MudText Typo="Typo.h2">@Localizer["Current Container"]</MudText>
                     <MudRadioGroup T="string" @bind-SelectedOption="SelectedContainer" Dense>
                         @foreach (var container in _containers)
                         {
