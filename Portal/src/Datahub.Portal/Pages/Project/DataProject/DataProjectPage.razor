@@ -99,7 +99,7 @@
         // record recent link
         await RecordRecentLink();
 
-        _showAppLink = _configuration.GetValue<bool>("ReverseProxy:Enabled");
+        _showAppLink = _configuration.GetValue<bool>("ReverseProxy:Enabled") && _project.WebAppEnabled == true;
     }
 
     private async Task RecordRecentLink()
