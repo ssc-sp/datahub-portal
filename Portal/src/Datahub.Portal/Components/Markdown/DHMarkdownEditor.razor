@@ -1,38 +1,58 @@
 @*Markdown.razor*@
 
-@implements IDisposable
-
 <CascadingValue Value="@this" IsFixed="true">
-    <span id="@_wrapperId">
-        <textarea @ref="_elementRef" id="@ElementId"></textarea>
-    </span>
+    <MardownEditor @bind-Value="@markdownValue" ValueChanged="@OnMarkdownValueChanged" ValueHTMLChanged="@OnMarkdownValueHTMLChanged"></MardownEditor>
 </CascadingValue>
 
 @code {
-
+    /*
     [Inject]
-    public ILogger<MarkdownEditor> Logger { get; set; }
-
+    public ILogger<DHMarkdownEditor> Logger { get; set; }
+    
+    
     [Inject]
     public IJSRuntime jsRuntime { get; set; }
-
+*/
     [Parameter]
     public string InitialValue { get; set; }
-
+    
+    [Parameter]
+    public string markdownValue { get; set; }
+    
+    [Parameter]
+    public string markdownHtml { get; set; }
+    
+    
     [Parameter]
     public EventCallback<string> ValueChanged { get; set; }
 
+    /*
     private string ElementId { get; set; }
     private string _wrapperId => $"{ElementId}-wrapper";
     private ElementReference _elementRef;
-    private DotNetObjectReference<MarkdownEditor> _dotNetObjectRef;
+    private DotNetObjectReference<DHMarkdownEditor> _dotNetObjectRef;
     private IJSObjectReference _markdownModule;
-
+    */
+    
     protected override void OnInitialized()
     {
-        ElementId = $"md-textarea-{Guid.NewGuid()}";
+        //ElementId = $"md-textarea-{Guid.NewGuid()}";
+        markdownHtml = Markdig.Markdown.ToHtml(markdownValue ?? string.Empty);
+        base.OnInitialized();
     }
-
+    
+    public Task OnMarkdownValueChanged(string value)
+    {
+        return Task.CompletedTask;
+    }
+ 
+    public Task OnMarkdownValueHTMLChanged(string value)
+    {
+        markdownHtml = value;
+        return Task.CompletedTask;
+    }
+    
+    /*
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
@@ -52,12 +72,13 @@
     //{
     //    await _markdownModule.InvokeVoidAsync("setValue", ElementId, value);
     //}
-
+    /*
     [JSInvokable]
     public async Task UpdateInternalValue(string value)
     {
         await ValueChanged.InvokeAsync(value);
     }
+    
 
     public void Dispose()
     {
@@ -68,5 +89,5 @@
         }
         _dotNetObjectRef?.Dispose();
     }
-
+    */
 }
