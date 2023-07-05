@@ -22,7 +22,11 @@
         <MudStack>
             @foreach (var admin in _projectAdmins)
             {
-                <UserCard ViewedUserGraphId="@admin.PortalUser.GraphGuid" Size="Size.Medium" ShowProfileLink/>
+                var graphId = admin.PortalUser?.GraphGuid;
+                if (!string.IsNullOrEmpty(graphId))
+                {
+                    <UserCard ViewedUserGraphId=@graphId Size="Size.Medium" ShowProfileLink />
+                }
             }
         </MudStack>
 
@@ -36,7 +40,11 @@
             <MudStack>
                 @foreach (var member in _projectMembers)
                 {
-                    <UserCard ViewedUserGraphId="@member.PortalUser.GraphGuid" Size="Size.Medium" ShowProfileLink/>
+                    var graphId = member.PortalUser?.GraphGuid;
+                    if (!string.IsNullOrEmpty(graphId))
+                    {
+                        <UserCard ViewedUserGraphId=@graphId Size="Size.Medium" ShowProfileLink />
+                    }                    
                 }
             </MudStack>
         }
