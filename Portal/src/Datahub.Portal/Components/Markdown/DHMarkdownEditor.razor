@@ -1,8 +1,7 @@
 @*Markdown.razor*@
 
-
-    <span id="@_wrapperId">
-        <MardownEditor Value="@MarkdownValue" ValueChanged="@OnMarkdownValueChanged" ValueHTMLChanged="@OnMarkdownValueHTMLChanged" ElementId="@ElementId" @ref="_elementRef"/>
+    <span id="@ElementId">
+        <MarkdownEditor Value="@MarkdownValue" ValueChanged="@OnMarkdownValueChanged" ValueHTML="@MarkdownHtml" ValueHTMLChanged="@OnMarkdownValueHTMLChanged" @ref="_elementRef"/>
     </span>
 
 @code {
@@ -21,15 +20,17 @@
     public string MarkdownValue { get; set; }
 
     [Parameter]
-    public string markdownHtml { get; set; }
+    public string MarkdownHtml { get; set; }
     
     [Parameter]
     public EventCallback<string> ValueChanged { get; set; }
-
     
+    [Parameter]
+    public EventCallback<string> HtmlChanged { get; set; }
+
+
     private string ElementId { get; set; }
-    private string _wrapperId => $"{ElementId}-wrapper";
-    private ElementReference _elementRef;
+    private MarkdownEditor _elementRef;
     private DotNetObjectReference<DHMarkdownEditor> _dotNetObjectRef;
     
     
@@ -37,38 +38,41 @@
     {
         await base.OnInitializedAsync();
         MarkdownValue = InitialValue;
-        ElementId = $"md-textarea-{Guid.NewGuid()}";
-        markdownHtml = Markdig.Markdown.ToHtml(MarkdownValue ?? string.Empty);
+        ElementId = $"md-span-wrapper-{Guid.NewGuid()}";
+        MarkdownHtml = Markdig.Markdown.ToHtml(MarkdownValue ?? string.Empty);
     }
-
+    
+    /*
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await _elementRef.FocusAsync();
     }
-    
-    public Task OnMarkdownValueChanged(string value)
+    */
+    public async Task OnMarkdownValueChanged(string value)
     {
-        return Task.CompletedTask;
+        MarkdownValue = value;
+        await ValueChanged.InvokeAsync(value);
     }
  
-    public Task OnMarkdownValueHTMLChanged(string value)
+    public async Task OnMarkdownValueHTMLChanged(string value)
     {
-        markdownHtml = value;
-        return Task.CompletedTask;
+        MarkdownHtml = value;
+        await HtmlChanged.InvokeAsync(value);
     }
 
     //public async ValueTask SetValue(string value)
     //{
     //    await _markdownModule.InvokeVoidAsync("setValue", ElementId, value);
     //}
-    
+    /*
     [JSInvokable]
     public async Task UpdateInternalValue(string value)
     {
+        Console.Write("changed");
         await ValueChanged.InvokeAsync(value);
     }
     
-    /*
+    
     public void Dispose()
     {
         if (_markdownModule is not null)
