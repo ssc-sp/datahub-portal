@@ -231,6 +231,9 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public bool? MetadataAdded { get; set; }
 
     [AeFormIgnore]
+    public bool? WebAppEnabled { get; set; }
+
+    [AeFormIgnore]
     [NotMapped]
     public string ProjectName
     {

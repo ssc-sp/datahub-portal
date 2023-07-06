@@ -8,7 +8,8 @@ public static class RoleConstants
     public const string WORKSPACE_LEAD_SUFFIX = "-workspace-lead";
     public const string COLLABORATOR_SUFFIX = "-collaborator";
     public const string GUEST_SUFFIX = "-guest";
-    
+    public const string WEBAPP_SUFFIX = "-wsapp";
+
     public const string DATAHUB_ADMIN_PROJECT = "DHPGLIST";
     public const string DATAHUB_ROLE_ADMIN = DATAHUB_ADMIN_PROJECT + ADMIN_SUFFIX;
     public const string DATAHUB_ROLE_ADMIN_AS_GUEST = DATAHUB_ADMIN_PROJECT + "-admin-as-guest";
