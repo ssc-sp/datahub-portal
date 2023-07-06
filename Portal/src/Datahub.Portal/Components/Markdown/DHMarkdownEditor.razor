@@ -1,8 +1,9 @@
 @*Markdown.razor*@
 
-<CascadingValue Value="@this" IsFixed="true">
-    <MardownEditor @bind-Value="@markdownValue" ValueChanged="@OnMarkdownValueChanged" ValueHTMLChanged="@OnMarkdownValueHTMLChanged"></MardownEditor>
-</CascadingValue>
+
+    <span id="@_wrapperId">
+        <MardownEditor Value="@MarkdownValue" ValueChanged="@OnMarkdownValueChanged" ValueHTMLChanged="@OnMarkdownValueHTMLChanged" ElementId="@ElementId" @ref="_elementRef"/>
+    </span>
 
 @code {
     /*
@@ -17,28 +18,32 @@
     public string InitialValue { get; set; }
     
     [Parameter]
-    public string markdownValue { get; set; }
-    
+    public string MarkdownValue { get; set; }
+
     [Parameter]
     public string markdownHtml { get; set; }
-    
     
     [Parameter]
     public EventCallback<string> ValueChanged { get; set; }
 
-    /*
+    
     private string ElementId { get; set; }
     private string _wrapperId => $"{ElementId}-wrapper";
     private ElementReference _elementRef;
     private DotNetObjectReference<DHMarkdownEditor> _dotNetObjectRef;
-    private IJSObjectReference _markdownModule;
-    */
     
-    protected override void OnInitialized()
+    
+    protected override async Task OnInitializedAsync()
     {
-        //ElementId = $"md-textarea-{Guid.NewGuid()}";
-        markdownHtml = Markdig.Markdown.ToHtml(markdownValue ?? string.Empty);
-        base.OnInitialized();
+        await base.OnInitializedAsync();
+        MarkdownValue = InitialValue;
+        ElementId = $"md-textarea-{Guid.NewGuid()}";
+        markdownHtml = Markdig.Markdown.ToHtml(MarkdownValue ?? string.Empty);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await _elementRef.FocusAsync();
     }
     
     public Task OnMarkdownValueChanged(string value)
@@ -51,35 +56,19 @@
         markdownHtml = value;
         return Task.CompletedTask;
     }
-    
-    /*
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-        if (firstRender)
-        {
-            _dotNetObjectRef ??= DotNetObjectReference.Create(this);
-            _markdownModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/markdown-editor.js");
-            await _markdownModule.InvokeVoidAsync("initializeMarkdown", ElementId, _dotNetObjectRef);
-            if (!string.IsNullOrEmpty(InitialValue))
-            {
-                await _markdownModule.InvokeVoidAsync("setValue", ElementId, InitialValue);
-            }
-        }
-    }
 
     //public async ValueTask SetValue(string value)
     //{
     //    await _markdownModule.InvokeVoidAsync("setValue", ElementId, value);
     //}
-    /*
+    
     [JSInvokable]
     public async Task UpdateInternalValue(string value)
     {
         await ValueChanged.InvokeAsync(value);
     }
     
-
+    /*
     public void Dispose()
     {
         if (_markdownModule is not null)
