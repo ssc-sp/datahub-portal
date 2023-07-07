@@ -51,13 +51,13 @@
     public async Task OnMarkdownValueChanged(string value)
     {
         MarkdownValue = value;
-        await ValueChanged.InvokeAsync(value);
+        await HtmlChanged.InvokeAsync(value);
     }
  
-    public async Task OnMarkdownValueHTMLChanged(string value)
+    public Task OnMarkdownValueHTMLChanged(string value)
     {
         MarkdownHtml = value;
-        await HtmlChanged.InvokeAsync(value);
+        return Task.CompletedTask;
     }
 
     //public async ValueTask SetValue(string value)

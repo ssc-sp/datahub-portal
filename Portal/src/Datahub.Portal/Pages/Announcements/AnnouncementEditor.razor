@@ -78,21 +78,17 @@
                 <MudDivider Class="my-4"/>
 
                 <MudStack>
-                    <MudText Typo="Typo.h4">English preview</MudText>
-                    <MudPaper Elevation="1" Height="200px" Class="overflow-scroll px-6 py-4">
-                        <MudText>@((MarkupString)_announcement.PreviewEn)</MudText>
-                    </MudPaper>
-                    <DHMarkdownEditor InitialValue="@_announcement.BodyEn" ValueChanged="HandleEnglishValueChanged" HtmlChanged="HandleEnglishHtmlChanged"/>
+                    <MudText Typo="Typo.h4">English</MudText>
+                    <MudTextField @bind-Value="@_announcement.PreviewEn" T="string" Label="English carousel preview" Lines="3" Variant="Variant.Outlined"/>
+                    <DHMarkdownEditor InitialValue="@_announcement.BodyEn" ValueChanged="HandleEnglishValueChanged" HtmlChanged="HandleEnglishValueChanged"/>
                 </MudStack>
 
                 <MudDivider Class="my-4"/>
 
                 <MudStack>
-                    <MudText Typo="Typo.h4" Class="mt-2">Aperçu français</MudText>
-                        <MudPaper Elevation="1" Height="200px" Class="overflow-scroll px-6 py-4">
-                            <MudText>@((MarkupString)_announcement.PreviewFr)</MudText>
-                        </MudPaper>
-                    <DHMarkdownEditor InitialValue="@_announcement.BodyFr" ValueChanged="HandleFrenchValueChanged" HtmlChanged="HandleFrenchHtmlChanged"/>
+                    <MudText Typo="Typo.h4" Class="mt-2">Français</MudText>
+                    <MudTextField @bind-Value="@_announcement.PreviewFr" T="string" Label="Aperçu du carrousel français" Lines="3" Variant="Variant.Outlined"/>
+                    <DHMarkdownEditor InitialValue="@_announcement.BodyFr" ValueChanged="HandleFrenchValueChanged" HtmlChanged="HandleFrenchValueChanged"/>
                 </MudStack>
             </MudPaper>
         </MudItem>
@@ -154,19 +150,9 @@
         _announcement.BodyEn = value;
     }
 
-    private void HandleEnglishHtmlChanged(string value)
-    {
-        _announcement.PreviewEn = value;
-    }
-
     private void HandleFrenchValueChanged(string value)
     {
         _announcement.BodyFr = value;
-    }
-
-    private void HandleFrenchHtmlChanged(string value)
-    {
-        _announcement.PreviewFr = value;
     }
 
     private void ApplyControlParameters()
