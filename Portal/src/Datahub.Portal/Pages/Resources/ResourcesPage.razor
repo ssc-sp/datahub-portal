@@ -2,6 +2,7 @@
 @using MudBlazor.Utilities
 @using System.Text.RegularExpressions
 @inject DocumentationService _docService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject CultureService _cultureService
 @inject NavigationManager _navManager
 
@@ -83,6 +84,7 @@ else
     [Parameter]
     public List<(string, string)> Substitutions { get; set; }
 
+    const string MostPopularId = "6B9B9B8D-B071-44F7-B264-A7670192F446";
 
     private DocItem _resourceRoot;
     private DocItem _currentMarkdownCategory;
@@ -112,6 +114,11 @@ else
         return value;
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        _resourceRoot = await _docService.GetLanguageRoot(DocumentationGuide.UserGuide, _cultureService.Culture);
+        await CreateMostPopularFolder();
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -141,11 +148,6 @@ else
         _headings = GetHeadings(_currentDoc?.Content ?? "");
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        _resourceRoot = await _docService.GetLanguageRoot(DocumentationGuide.UserGuide, _cultureService.Culture);
-    }
-
     private static string GetNavTextStyle(bool isNavGroup = false) => new StyleBuilder()
         .AddStyle("font-size", "var(--mud-typography-h5-size)", when: isNavGroup)
         .AddStyle("font-family", "var(--mud-typography-h5-family)", when: isNavGroup)
@@ -164,7 +166,7 @@ else
     private static readonly string InnerNavLinkStyle = new StyleBuilder()
         .AddStyle("padding-left", "8px")
         .Build();
-    
+
     public static List<(bool isChild, string heading)> GetHeadings(string markdown)
     {
         // Pattern for second (##) and third (###) headings only.
@@ -184,4 +186,34 @@ else
         return headings;
     }
 
+    const int MaxPopularDocuments = 10;
+
+    private async Task CreateMostPopularFolder()
+    {
+        if (_resourceRoot.LocateID(MostPopularId) is not null)
+            return;
+
+        var ids = await GetPopularDocumentIds();
+
+        var popularDocs = ids
+            .Select(id => _resourceRoot.LocateID(id)?.Clone())
+            .Where(doc => doc != null)
+            .ToList();
+
+        if (popularDocs.Count == 0)
+            return;
+
+        var item = DocItem.GetFolderItem(DocumentationGuide.UserGuide, MostPopularId, 1, Localizer["Most Popular"], popularDocs.Take(MaxPopularDocuments));
+
+        _resourceRoot.AddFirstChild(item);
+    }
+
+    private async Task<List<string>> GetPopularDocumentIds()
+    {
+        using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        return await ctx.DocumentationResources
+            .OrderByDescending(e => e.Hits)
+            .Select(e => e.Id.ToString())
+            .ToListAsync();
+    }
 }

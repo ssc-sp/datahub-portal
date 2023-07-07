@@ -17,6 +17,13 @@ public class DocItem
         return new DocItem(guide, id, level, false, title, markdownPage);
     }
 
+    public static DocItem GetFolderItem(DocumentationGuide guide, string id, int level, string? title, IEnumerable<DocItem> children)
+    {
+        var item = new DocItem(guide, id, level, false, title, null, true);
+        item.Children.AddRange(children);
+        return item;
+    }
+
     private DocItem(DocumentationGuide guide, string id, int level, bool root, string? title, string? markdownPage, bool isFolder = false)
     {
         Id = id;
@@ -74,6 +81,18 @@ public class DocItem
         }
 
         return null;
+    }
+
+    public void AddFirstChild(DocItem item)
+    {
+        Children.Insert(0, item);
+    }
+
+    public DocItem Clone()
+    {
+        var cloned = this.MemberwiseClone() as DocItem;
+        cloned!.Id = Guid.NewGuid().ToString();
+        return cloned;
     }
 
     public override string ToString() => GetDescription(); 
