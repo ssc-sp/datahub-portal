@@ -41,10 +41,39 @@
                 <ProjectUserCardList ProjectAcronym="@ProjectAcronymParam"/>
             </MudItem>
 
-            @if (_showAppLink)
+            @if (_proxyEnabled)
             {
                 <MudItem>
-                    <MudLink Href=@GetAppUrl() Target=@ProjectAcronymParam>@Localizer["Visit App"]</MudLink>
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderAvatar>
+                                <MudIcon Icon="@Icons.Material.Filled.Web" />
+                            </CardHeaderAvatar>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h5">@Localizer["Web Application"]</MudText>
+                            </CardHeaderContent>                            
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
+                                <MudSwitch T="bool"
+                                           CheckedChanged="HandleCheckedChanged"
+                                           Checked="WebAppEnabled"
+                                           Label="Enabled"
+                                           Color="Color.Info" />
+                            </DatahubAuthView>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Href=@GetAppUrl() 
+                                       Target=@ProjectAcronymParam 
+                                       Variant="Variant.Text" 
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight"
+                                       Disabled="!WebAppEnabled">
+                                @Localizer["Visit"]
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
                 </MudItem>
             }
         </CascadingValue>
@@ -60,7 +89,7 @@
     private string _userId;
     private string _projectName;
     private bool _isFrench;
-    private bool _showAppLink;
+    private bool _proxyEnabled;
     private List<Client_Engagement> _clientEngagements = new();
 
     protected override async Task OnInitializedAsync()
@@ -99,8 +128,10 @@
         // record recent link
         await RecordRecentLink();
 
-        _showAppLink = _configuration.GetValue<bool>("ReverseProxy:Enabled");
+        _proxyEnabled = _configuration.GetValue<bool>("ReverseProxy:Enabled");
     }
+
+    private bool WebAppEnabled => _proxyEnabled && _project?.WebAppEnabled == true;
 
     private async Task RecordRecentLink()
     {
@@ -115,6 +146,22 @@
         };
 
         await _userLocationManagerService.RegisterNavigation(userRecentLink);
+    }
+
+    private async Task HandleCheckedChanged(bool value)
+    {
+        await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
+
+        var project = await ctx.Projects
+            .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
+            .FirstOrDefaultAsync();
+
+        project.WebAppEnabled = value;
+        await ctx.SaveChangesAsync();
+
+        _project.WebAppEnabled = value;
+
+        await InvokeAsync(StateHasChanged);
     }
 
     private string GetAppUrl() => $"/wsapp/{ProjectAcronymParam}/";
