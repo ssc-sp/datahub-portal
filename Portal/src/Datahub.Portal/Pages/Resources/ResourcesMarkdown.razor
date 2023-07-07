@@ -43,7 +43,7 @@
     public List<(string, string)> Substitutions { get; set; }
 
     private string _markdownContent;
-    private List<(bool isChild, string text)> _headings;
+    private List<(bool isChild, string text)> _headings = new();
     private string _editButtonStyle = "float: right;";
 
     protected override async Task OnParametersSetAsync()
