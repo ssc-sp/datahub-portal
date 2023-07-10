@@ -146,18 +146,18 @@
 
                 <HeaderContent>
                     <MudTh>
-                        <MudTableSortLabel SortBy="@(new Func<Datahub_Project_User, object>(x => x.PortalUser.DisplayName))" InitialDirection="SortDirection.Ascending">
+                        <MudTableSortLabel SortBy="@(new Func<Datahub_Project_User, object>(x => x?.PortalUser?.DisplayName))" InitialDirection="SortDirection.Ascending">
                             @Localizer["Account"]
                         </MudTableSortLabel>
                     </MudTh>
                     <MudTh>
-                        <MudTableSortLabel SortBy="@(new Func<Datahub_Project_User, object>(x => x.PortalUser.Email))">
+                        <MudTableSortLabel SortBy="@(new Func<Datahub_Project_User, object>(x => x?.PortalUser?.Email))">
                             @Localizer["Email"]
                         </MudTableSortLabel>
                     </MudTh>
                     <MudTh>@Localizer["Role"]</MudTh>
                     <MudTh>
-                        <MudTableSortLabel SortBy="@(new Func<Datahub_Project_User, object>(x => x.Approved_DT))">
+                        <MudTableSortLabel SortBy="@(new Func<Datahub_Project_User, object>(x => x?.Approved_DT))">
                             @Localizer["Added to Workspace"]
                         </MudTableSortLabel>
                     </MudTh>
@@ -169,7 +169,7 @@
                         <MudStack Row AlignItems="AlignItems.Center">
                             <UserAvatar ViewedUser="@rowContext.PortalUser" Size="@Size.Medium"/>
                             <MudText Typo="Typo.body2">
-                                @rowContext.PortalUser.DisplayName
+                                @rowContext.PortalUser?.DisplayName
                             </MudText>
                         </MudStack>
                     </MudTd>
