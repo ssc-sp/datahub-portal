@@ -21,7 +21,7 @@ else
         <MudItem xs="3">
             <MudNavMenu Rounded Color=@Color.Primary Dense>
                 <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
-                    <MudText Inline Typo=@Typo.h5 Style="@GetNavTextStyle()">@Localizer["Overview"]</MudText>
+                    @Localizer["Overview"]
                 </MudNavLink>
                 @foreach (var cat in _resourceRoot.Children)
                 {
@@ -31,22 +31,18 @@ else
                     if (isDoc)
                     {
                         <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat)>
-                            <MudText Typo=@Typo.h5 Style="@GetNavTextStyle()">@cat.Title</MudText>
+                            @cat.Title
                         </MudNavLink>
                     }
                     else
                     {
-                        <MudNavGroup Expanded="@isCurrentCat" Title="@cat.Title" ExpandedChanged=@((v) => UpdateCategory(cat, v)) Style="@GetNavTextStyle(isNavGroup: true)">
-                            <div style="@NavGroupStyle" class="resources-nav-group-wrapper">
-                                
+                        <MudNavGroup Title="@cat.Title" ExpandedChanged=@((v) => UpdateCategory(cat, v))>
                                 @foreach (var article in cat.Children)
                                 {
-                                    <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article) Style="@InnerNavLinkStyle">
-                                        <MudText Typo=@Typo.h6>@article.Title</MudText>
+                                    <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article) >
+                                        @article.Title
                                     </MudNavLink>
                                 }
-                            
-                            </div>
                         </MudNavGroup>
                     }
                 }
@@ -147,25 +143,6 @@ else
         }
         _headings = GetHeadings(_currentDoc?.Content ?? "");
     }
-
-    private static string GetNavTextStyle(bool isNavGroup = false) => new StyleBuilder()
-        .AddStyle("font-size", "var(--mud-typography-h5-size)", when: isNavGroup)
-        .AddStyle("font-family", "var(--mud-typography-h5-family)", when: isNavGroup)
-        .AddStyle("font-weight", "600")
-        .AddStyle("line-height", "var(--mud-typography-h5-lineheight)", when: isNavGroup)
-        .AddStyle("letter-spacing", "var(--mud-typography-h5-letterspacing)", when: isNavGroup)
-        .AddStyle("text-transform", "var(--mud-typography-h5-text-transform)", when: isNavGroup)
-        .Build();
-
-    private static readonly string NavGroupStyle = new StyleBuilder()
-        .AddStyle("border-left", "1px solid var(--mud-palette-divider)")
-        // spacing on the margin above this div is 12px margin + 16px padding = 28px
-        .AddStyle("margin-left", "28px")
-        .Build();
-
-    private static readonly string InnerNavLinkStyle = new StyleBuilder()
-        .AddStyle("padding-left", "8px")
-        .Build();
 
     public static List<(bool isChild, string heading)> GetHeadings(string markdown)
     {
