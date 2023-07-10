@@ -202,6 +202,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             .Include(u => u.PortalUser)
             .Include(u => u.Role)
             .Where(u => u.Project.Project_Acronym_CD == projectAcronym)
+            .Where(u => u.PortalUser != null)
             .ToListAsync();
     }
 }

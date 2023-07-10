@@ -169,7 +169,7 @@
                         <MudStack Row AlignItems="AlignItems.Center">
                             <UserAvatar ViewedUser="@rowContext.PortalUser" Size="@Size.Medium"/>
                             <MudText Typo="Typo.body2">
-                                @rowContext.PortalUser.DisplayName
+                                @rowContext.PortalUser?.DisplayName
                             </MudText>
                         </MudStack>
                     </MudTd>
