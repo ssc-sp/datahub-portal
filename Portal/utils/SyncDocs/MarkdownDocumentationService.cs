@@ -2,6 +2,7 @@
 using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
 using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -26,7 +27,7 @@ internal class MarkdownDocumentationService
         _mappingService = mappingService;
     }
 
-	public Task AddFolder(string path) 
+	public Task AddFolder(string relative, string path) 
 	{
         var outputFolder = GetTargetPath(path);
         if (!Directory.Exists(outputFolder))
@@ -57,7 +58,7 @@ internal class MarkdownDocumentationService
     }
 
 
-    public async Task AddFile(string path)
+    public async Task AddFile(string relative, string path)
     {
         var sourceFileName = Path.GetFileName(path);
 
@@ -74,7 +75,7 @@ internal class MarkdownDocumentationService
         var outputFilePath = Path.Combine(outputPath, translatedName);
 
         // add file mapping
-        AddFileMapping(path, outputFilePath);
+        AddFileMapping(relative, path, outputFilePath);
         var isSidebar = Path.GetFileName(outputFilePath) == "_sidebar.md";
         if (!File.Exists(outputFilePath) || CheckIfDraft(outputFilePath) || isSidebar)
         {
@@ -157,10 +158,17 @@ internal class MarkdownDocumentationService
         return false;
     }
 
-
-    private void AddFileMapping(string engPath, string frePath)
+    private static Guid GenerateGuid(string input)
     {
-        var id = Guid.NewGuid().ToString();
+        using (MD5 md5 = MD5.Create())
+        {
+            byte[] hash = md5.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(hash);
+        }
+    }
+    private void AddFileMapping(string relative, string engPath, string frePath)
+    {
+        var id = GenerateGuid(relative).ToString();
         var engUrl = ExtractUrlFromPath(engPath);
         var freUrl = ExtractUrlFromPath(frePath);
         _mappingService.AddPair(id, engUrl, freUrl);
