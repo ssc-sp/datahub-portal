@@ -9,9 +9,12 @@
 @page "/resources/"
 @page "/resources/{PageName}"
 
+<!--suppress CssUnresolvedCustomProperty -->
+
+
 @if (PageIsLoading)
 {
-    <MudContainer MaxWidth="MaxWidth.Small">
+<MudContainer MaxWidth="MaxWidth.Small">
         <DHLoadingInitializer Message="@Localizer["Initializing Resources..."]"/>
     </MudContainer>
 }
@@ -36,8 +39,8 @@ else
             </MudGrid>
         </MudStack>
         <MudGrid>
-            <MudItem xs="3">
-                <MudNavMenu Dense Color=@Color.Primary>
+            <MudItem xs="3" >
+                <MudNavMenu Dense Color=@Color.Primary Style="position: sticky; top: calc(var(--mud-appbar-height) + 1rem); max-height:  calc(95vh - (var(--mud-appbar-height) + 1rem)); overflow: auto;">
                     <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All">
                         @Localizer["Overview"]
                     </MudNavLink>
