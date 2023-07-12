@@ -8,23 +8,23 @@
     /*
     [Inject]
     public ILogger<DHMarkdownEditor> Logger { get; set; }
-    
-    
+
+
     [Inject]
     public IJSRuntime jsRuntime { get; set; }
-*/
+    */
     [Parameter]
     public string InitialValue { get; set; }
-    
+
     [Parameter]
     public string MarkdownValue { get; set; }
 
     [Parameter]
     public string MarkdownHtml { get; set; }
-    
+
     [Parameter]
     public EventCallback<string> ValueChanged { get; set; }
-    
+
     [Parameter]
     public EventCallback<string> HtmlChanged { get; set; }
 
@@ -32,8 +32,8 @@
     private string ElementId { get; set; }
     private MarkdownEditor _elementRef;
     private DotNetObjectReference<DHMarkdownEditor> _dotNetObjectRef;
-    
-    
+
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -41,23 +41,23 @@
         ElementId = $"md-span-wrapper-{Guid.NewGuid()}";
         MarkdownHtml = Markdig.Markdown.ToHtml(MarkdownValue ?? string.Empty);
     }
-    
+
     /*
     protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
+        {
         await _elementRef.FocusAsync();
     }
     */
     public async Task OnMarkdownValueChanged(string value)
     {
         MarkdownValue = value;
-        await HtmlChanged.InvokeAsync(value);
+        await ValueChanged.InvokeAsync(value);
     }
- 
-    public Task OnMarkdownValueHTMLChanged(string value)
+
+    public async Task OnMarkdownValueHTMLChanged(string value)
     {
         MarkdownHtml = value;
-        return Task.CompletedTask;
+        await HtmlChanged.InvokeAsync(value);
     }
 
     //public async ValueTask SetValue(string value)
