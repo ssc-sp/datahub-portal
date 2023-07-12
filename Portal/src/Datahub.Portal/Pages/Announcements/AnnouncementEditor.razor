@@ -80,7 +80,7 @@
                 <MudStack>
                     <MudText Typo="Typo.h4">English</MudText>
                     <MudTextField @bind-Value="@_announcement.PreviewEn" T="string" Label="English carousel preview" Lines="3" Variant="Variant.Outlined"/>
-                    <DHMarkdownEditor InitialValue="@_announcement.BodyEn" ValueChanged="HandleEnglishValueChanged" HtmlChanged="HandleEnglishValueChanged"/>
+                    <DHMarkdownEditor InitialValue="@_announcement.BodyEn" ValueChanged="HandleEnglishValueChanged"/>
                 </MudStack>
 
                 <MudDivider Class="my-4"/>
@@ -88,7 +88,7 @@
                 <MudStack>
                     <MudText Typo="Typo.h4" Class="mt-2">Français</MudText>
                     <MudTextField @bind-Value="@_announcement.PreviewFr" T="string" Label="Aperçu du carrousel français" Lines="3" Variant="Variant.Outlined"/>
-                    <DHMarkdownEditor InitialValue="@_announcement.BodyFr" ValueChanged="HandleFrenchValueChanged" HtmlChanged="HandleFrenchValueChanged"/>
+                    <DHMarkdownEditor InitialValue="@_announcement.BodyFr" ValueChanged="HandleFrenchValueChanged"/>
                 </MudStack>
             </MudPaper>
         </MudItem>
