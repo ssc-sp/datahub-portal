@@ -2,14 +2,17 @@
 using Datahub.Application.Services.Announcements;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Notifications;
+using Datahub.Application.Services.ReverseProxy;
 using Datahub.Infrastructure.Queues.MessageHandlers;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
 using Datahub.Infrastructure.Services.Notebooks;
 using Datahub.Infrastructure.Services.Notifications;
+using Datahub.Infrastructure.Services.ReverseProxy;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Yarp.ReverseProxy.Configuration;
 
 namespace Datahub.Infrastructure;
 
@@ -29,6 +32,14 @@ public static class ConfigureServices
 
         services.AddMediatR(typeof(QueueMessageSender<>));
 
+        if (ReverseProxyEnabled(configuration))
+        {
+            services.AddTransient<IReverseProxyConfigService, ReverseProxyConfigService>();
+            services.AddSingleton<IProxyConfigProvider, ProxyConfigProvider>();
+        }
+
         return services;
     }
+
+    static bool ReverseProxyEnabled(IConfiguration configuration) => configuration.GetValue<bool>("ReverseProxy:Enabled");
 }

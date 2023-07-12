@@ -234,6 +234,10 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public bool? WebAppEnabled { get; set; }
 
     [AeFormIgnore]
+    [StringLength(128)]
+    public string WebApp_URL { get; set; }
+
+    [AeFormIgnore]
     [NotMapped]
     public string ProjectName
     {
