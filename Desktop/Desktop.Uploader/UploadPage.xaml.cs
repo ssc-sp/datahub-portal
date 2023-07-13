@@ -1,6 +1,7 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.Maui.Platform;
 using Datahub.Maui.Uploader;
+using Foundatio.Storage;
 
 namespace Datahub.Maui.Uploader
 {
@@ -95,7 +96,33 @@ namespace Datahub.Maui.Uploader
             return client;
         }
 
+        public IFileStorage GetFileStorage()
+        {
+            return new AzureFileStorage( b => b.ConnectionString($"key"));
+        }
+
         private async void UploadBtn_Clicked(object sender, EventArgs e)
+        {
+            var client = GetFileStorage();
+            uploadInProgress = true;
+            UploadBtn.IsEnabled = false;
+            UploadProgressBar.IsVisible = true;
+            foreach (var item in fileList)
+            {
+                fileList[item.Key] = "In Progress";
+                await UpdateFileLayout();
+                await client.CopyFileAsync(item.Key, Path.GetFileName(item.Key));
+                    //Uploader.UploadBlocksAsync(client, item.Key, 4096, async p => { UploadProgressBar.Progress = p; });
+                fileList[item.Key] = "Completed";
+                await UpdateFileLayout();
+            }
+            UploadBtn.IsEnabled = true;
+            UploadProgressBar.IsVisible = false;
+            uploadInProgress = true;
+
+        }
+
+        private async void UploadBtn_Clicked_AzNative(object sender, EventArgs e)
         {
             var client = GetBlobServiceClient();
             uploadInProgress = true;
