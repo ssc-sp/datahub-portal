@@ -1,18 +1,8 @@
 @*Markdown.razor*@
 
-    <span id="@ElementId">
-        <MarkdownEditor Value="@MarkdownValue" ValueChanged="@OnMarkdownValueChanged" ValueHTML="@MarkdownHtml" ValueHTMLChanged="@OnMarkdownValueHTMLChanged" @ref="_elementRef"/>
-    </span>
+<MarkdownEditor Value="@MarkdownValue" ValueChanged="@OnMarkdownValueChanged" ValueHTML="@MarkdownHtml" ValueHTMLChanged="@OnMarkdownValueHTMLChanged" @ref="_elementRef"/>
 
 @code {
-    /*
-    [Inject]
-    public ILogger<DHMarkdownEditor> Logger { get; set; }
-
-
-    [Inject]
-    public IJSRuntime jsRuntime { get; set; }
-    */
     [Parameter]
     public string InitialValue { get; set; }
 
@@ -28,8 +18,6 @@
     [Parameter]
     public EventCallback<string> HtmlChanged { get; set; }
 
-
-    private string ElementId { get; set; }
     private MarkdownEditor _elementRef;
     private DotNetObjectReference<DHMarkdownEditor> _dotNetObjectRef;
 
@@ -38,16 +26,8 @@
     {
         await base.OnInitializedAsync();
         MarkdownValue = InitialValue;
-        ElementId = $"md-span-wrapper-{Guid.NewGuid()}";
-        MarkdownHtml = Markdig.Markdown.ToHtml(MarkdownValue ?? string.Empty);
     }
 
-    /*
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-        await _elementRef.FocusAsync();
-    }
-    */
     public async Task OnMarkdownValueChanged(string value)
     {
         MarkdownValue = value;
@@ -60,27 +40,9 @@
         await HtmlChanged.InvokeAsync(value);
     }
 
-    //public async ValueTask SetValue(string value)
-    //{
-    //    await _markdownModule.InvokeVoidAsync("setValue", ElementId, value);
-    //}
-    /*
-    [JSInvokable]
-    public async Task UpdateInternalValue(string value)
-    {
-        Console.Write("changed");
-        await ValueChanged.InvokeAsync(value);
-    }
-    
-    
     public void Dispose()
     {
-        if (_markdownModule is not null)
-        {
-            InvokeAsync(async () => await _markdownModule.InvokeVoidAsync("destroyMarkdown", ElementId));
-            InvokeAsync(async () => await _markdownModule.DisposeAsync());
-        }
-        _dotNetObjectRef?.Dispose();
+        _elementRef.Dispose();
     }
-    */
+    
 }
