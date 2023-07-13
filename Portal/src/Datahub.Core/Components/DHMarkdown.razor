@@ -103,9 +103,9 @@
     public async Task StyleCodeblocks()
     {
         await base.OnInitializedAsync();
-        /* var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
+        var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
             "./_content/Datahub.Core/Components/DHMarkdown.razor.js");
-        await module.InvokeVoidAsync("styleCodeblocks", _elementReference);*/
+        await module.InvokeVoidAsync("styleCodeblocks", _elementReference);
         
     }
 
