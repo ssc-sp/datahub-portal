@@ -25,13 +25,13 @@ public class DocumentationRankUpdate
         UpdateRanking();
     }
 
-    [Function("DocumentationRankUpdateHttp")]
-    public IActionResult RunHttp([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestData req)
-    {
-        var ranking = UpdateRanking();
-        var ordered = ranking.OrderByDescending(x => x.Value);
-        return new OkObjectResult(ordered);
-    }
+    //[Function("DocumentationRankUpdateHttp")]
+    //public IActionResult RunHttp([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestData req)
+    //{
+    //    var ranking = UpdateRanking();
+    //    var ordered = ranking.OrderByDescending(x => x.Value);
+    //    return new OkObjectResult(ordered);
+    //}
 
     private Dictionary<Guid, int> UpdateRanking()
     {
