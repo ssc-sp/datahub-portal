@@ -5,8 +5,7 @@
 
 <!--suppress CssUnresolvedCustomProperty -->
 <MudStack Style="position: sticky; top: calc(var(--mud-appbar-height) + 1rem); max-height:  calc(95vh - (var(--mud-appbar-height) + 1rem)); overflow: auto;">
-    <MudText Typo="Typo.h6" Style="text-transform: uppercase;">@Localizer["On This Page"]</MudText>
-    <MudDivider Class="my-2" />
+    <MudText Class="mb-3" Typo="Typo.body2" Style="text-transform: uppercase; font-weight: bold;">@Localizer["On This Page"]</MudText>
     @foreach (var heading in Headings)
     {
         <MudLink Href="@GetLink(heading)">
@@ -22,8 +21,6 @@
     [Parameter]
     public List<string> Headings { get; set; }
     
-    
-
     //Comes from MudMarkdown library. Unfortunately, it's not public.
     private static readonly string[] EscapeChars = { "+", ":", "&" };
 
