@@ -1,8 +1,20 @@
 @*Markdown.razor*@
 
-<MarkdownEditor Value="@MarkdownValue" ValueChanged="@OnMarkdownValueChanged" ValueHTML="@MarkdownHtml" ValueHTMLChanged="@OnMarkdownValueHTMLChanged" @ref="_elementRef"/>
+@implements IDisposable
+
+<CascadingValue Value="@this" IsFixed="true">
+    <span id="@ElementId">
+        <MarkdownEditor Value="@MarkdownValue" ValueChanged="OnMarkdownValueChanged" ValueHTML="@MarkdownHtml" ValueHTMLChanged="OnMarkdownValueHTMLChanged" @ref="_elementRef"/>
+    </span>
+</CascadingValue>
 
 @code {
+    [Inject]
+    public ILogger<DHMarkdownEditor> Logger { get; set; }
+
+    [Inject]
+    public IJSRuntime _jsRuntime { get; set; }
+
     [Parameter]
     public string InitialValue { get; set; }
 
@@ -19,6 +31,7 @@
     public EventCallback<string> HtmlChanged { get; set; }
 
     private MarkdownEditor _elementRef;
+    private string ElementId { get; set; }
     private DotNetObjectReference<DHMarkdownEditor> _dotNetObjectRef;
 
 
@@ -26,6 +39,16 @@
     {
         await base.OnInitializedAsync();
         MarkdownValue = InitialValue;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            _dotNetObjectRef ??= DotNetObjectReference.Create(this);
+            ElementId = $"md-{Guid.NewGuid()}";
+        }
     }
 
     public async Task OnMarkdownValueChanged(string value)
@@ -40,9 +63,10 @@
         await HtmlChanged.InvokeAsync(value);
     }
 
-    public void Dispose()
+    public async void Dispose()
     {
-        _elementRef.Dispose();
+        _elementRef?.Dispose();
+        _dotNetObjectRef?.Dispose();
     }
     
 }
