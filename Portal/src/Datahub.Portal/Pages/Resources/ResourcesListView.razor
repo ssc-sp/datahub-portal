@@ -4,7 +4,9 @@
 <MudGrid>
     @foreach (var documentItem in DocumentItems)
     {
-        <ResourcesPreviewCard DocumentItem="@documentItem"/>
+        <MudItem xs="6">
+            <ResourcesPreviewCard DocumentItem="@documentItem"/>
+        </MudItem>
     }
 </MudGrid>
 
