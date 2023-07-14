@@ -20,7 +20,6 @@ public static class ConfigureServices
 {
     public static IServiceCollection AddDatahubInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
-
         services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
         services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
         services.AddSingleton<IResourceRequestService, ResourceRequestService>();
@@ -29,17 +28,9 @@ public static class ConfigureServices
         services.AddScoped<IAnnouncementService, AnnouncementService>();
         services.AddScoped<IDatahubEmailService, DatahubEmailService>();
         services.AddScoped<IDatabricksApiService, DatabricksApiService>();
-
+        services.AddTransient<IReverseProxyConfigService, ReverseProxyConfigService>();
+        services.AddSingleton<IProxyConfigProvider, ProxyConfigProvider>();
         services.AddMediatR(typeof(QueueMessageSender<>));
-
-        if (ReverseProxyEnabled(configuration))
-        {
-            services.AddTransient<IReverseProxyConfigService, ReverseProxyConfigService>();
-            services.AddSingleton<IProxyConfigProvider, ProxyConfigProvider>();
-        }
-
         return services;
     }
-
-    static bool ReverseProxyEnabled(IConfiguration configuration) => configuration.GetValue<bool>("ReverseProxy:Enabled");
 }
