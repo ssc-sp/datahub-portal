@@ -88,12 +88,11 @@
                 <MudStack>
                     <MudText Typo="Typo.h4" Class="mt-2">Français</MudText>
                     <MudTextField @bind-Value="@_announcement.PreviewFr" T="string" Label="Aperçu du carrousel français" Lines="3" Variant="Variant.Outlined"/>
-                    <DHMarkdownEditor InitialValue="@_announcement.BodyFr" ValueChanged="HandleFrenchValueChanged" @ref="_ref"/>
+                    <DHMarkdownEditor InitialValue="@_announcement.BodyFr" ValueChanged="HandleFrenchValueChanged"/>
                 </MudStack>
             </MudPaper>
         </MudItem>
     </MudGrid>
-    <MudButton OnClick="DeleteMarkdown">Click this:)</MudButton>
 </DatahubAuthView>
 
 
@@ -106,7 +105,6 @@
     private bool _announcementHasEndDate;
     private DateRange _dateRange;
     private PortalUser _currentUser;
-    private DHMarkdownEditor _ref;
 
     private List<AnnouncementPreview> _announcementPreviews => new()
     {
@@ -146,13 +144,6 @@
     {
         _dateRange = new DateRange(_announcement.StartDateTime, _announcement.EndDateTime ?? _announcement.StartDateTime?.AddDays(7));
         _announcementHasEndDate = _announcement.EndDateTime.HasValue;
-    }
-
-    private void DeleteMarkdown()
-    {
-        Console.WriteLine("disposing......");
-        _ref.Dispose();
-        Console.WriteLine("Disposed");
     }
 
     private void HandleEnglishValueChanged(string value)

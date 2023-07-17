@@ -1,20 +1,8 @@
 @*Markdown.razor*@
 
-@implements IDisposable
-
-<CascadingValue Value="@this" IsFixed="true">
-    <span @ref="_objRef">
-        <MarkdownEditor Value="@MarkdownValue" ValueChanged="OnMarkdownValueChanged" ValueHTML="@MarkdownHtml" ValueHTMLChanged="OnMarkdownValueHTMLChanged" @ref="_elementRef"/>
-    </span>
-</CascadingValue>
+<MarkdownEditor Value="@MarkdownValue" ValueChanged="OnMarkdownValueChanged" ValueHTML="@MarkdownHtml" ValueHTMLChanged="OnMarkdownValueHTMLChanged" @ref="_elementRef"/>
 
 @code {
-    [Inject]
-    public ILogger<DHMarkdownEditor> Logger { get; set; }
-
-    [Inject]
-    public IJSRuntime _jsRuntime { get; set; }
-
     [Parameter]
     public string InitialValue { get; set; }
 
@@ -32,22 +20,12 @@
 
     private MarkdownEditor _elementRef;
     private DotNetObjectReference<DHMarkdownEditor> _dotNetObjectRef;
-    private ElementReference _objRef;
 
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         MarkdownValue = InitialValue;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-        if (firstRender)
-        {
-            _dotNetObjectRef ??= DotNetObjectReference.Create(this);
-        }
     }
 
     public async Task OnMarkdownValueChanged(string value)
