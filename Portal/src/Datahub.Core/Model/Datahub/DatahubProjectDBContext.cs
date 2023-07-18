@@ -1,6 +1,7 @@
 ﻿using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Announcements;
+using Datahub.Core.Model.Documentation;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Repositories;
@@ -73,6 +74,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<ProjectRepository> ProjectRepositories { get; set; }
     
     public DbSet<Project_Role> Project_Roles { get; set; }
+
+    public DbSet<DocumentationResource> DocumentationResources { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
