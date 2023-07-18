@@ -10,6 +10,7 @@ using SyncDocs;
 using Microsoft.Extensions.Configuration;
 using CommandLine;
 using Microsoft.Extensions.Options;
+using System.Runtime.CompilerServices;
 
 const string SIDEBAR = "_sidebar.md";
 const string SIDEBAR_META = "_sidebar.md.yaml";
@@ -114,8 +115,17 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
 });
 
 #region util functions
+static Task IteratePath(string path, Func<string, bool> excludeFunc, Func<string,string, Task> addFolder, Func<string,string, Task> addFile, int maxRecursion = int.MaxValue, int recursionLevel = 0)
+    => IteratePath2(path, path, excludeFunc, addFolder, addFile, maxRecursion, recursionLevel);
 
-static async Task IteratePath(string path, Func<string, bool> excludeFunc, Func<string,Task> addFolder, Func<string,Task> addFile, int maxRecursion = int.MaxValue, int recursionLevel = 0)
+static string GetRelativePath(string current, string root)
+{
+    Uri path1 = new Uri(Path.GetFullPath(root));
+    Uri path2 = new Uri(Path.GetFullPath(current));
+    return path1.MakeRelativeUri(path2).OriginalString;
+}
+
+static async Task IteratePath2(string root, string path, Func<string, bool> excludeFunc, Func<string,string,Task> addFolder, Func<string,string,Task> addFile, int maxRecursion = int.MaxValue, int recursionLevel = 0)
 {
     foreach (var dir in Directory.GetDirectories(path))
     {
@@ -125,19 +135,22 @@ static async Task IteratePath(string path, Func<string, bool> excludeFunc, Func<
         // check for excluded
         if (!excludeFunc.Invoke(name) && !name.StartsWith('.'))
         {
-
-            await addFolder(dir);
+            var relativeFolder = GetRelativePath(dir, root);
+            await addFolder(relativeFolder, dir);
 
             if (recursionLevel < maxRecursion)
                 // check for exclusions
-                await IteratePath(dir, n => false, addFolder, addFile, maxRecursion, recursionLevel + 1);
+                await IteratePath2(root, dir, n => false, addFolder, addFile, maxRecursion, recursionLevel + 1);
         }
     }
 
     foreach (var file in Directory.GetFiles(path, "*.md"))
     {
         if (!excludeFunc.Invoke(file))
-            await addFile(file);
+        {
+            var relativePath = GetRelativePath(file, root);
+            await addFile(relativePath, file);
+        }
     }
 }
 
@@ -146,7 +159,7 @@ static async Task CleanupTargetDirectory(ConfigParams configParams, string path)
     var folders = new List<string>();
     var files = new List<string>();
     //cleanup French folder
-    await IteratePath(Path.Combine(path, configParams.Target), s => false, f => { folders.Add(f); return Task.CompletedTask; }, f => { files.Add(f); return Task.CompletedTask; });
+    await IteratePath(Path.Combine(path, configParams.Target), s => false, (_,f) => { folders.Add(f); return Task.CompletedTask; }, (_,f) => { files.Add(f); return Task.CompletedTask; });
     foreach (var item in files.Where(f => Path.GetExtension(f) == ".md"))
     {   
         if (MarkdownDocumentationService.CheckIfDraft(item) && !string.Equals(Path.GetFileName(item), NAVBAR, StringComparison.InvariantCultureIgnoreCase))
@@ -182,9 +195,9 @@ static int FolderDepth(string path)
     return depth;
 }
 
-static Func<string, Task> AddAsync(List<string> list)
+static Func<string, string, Task> AddAsync(List<string> list)
 {
-    return s =>
+    return (relative,s) =>
     {
         list.Add(s);
         return Task.CompletedTask;
