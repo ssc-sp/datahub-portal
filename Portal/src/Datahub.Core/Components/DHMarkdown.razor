@@ -105,6 +105,7 @@
         var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
             "./_content/Datahub.Core/Components/DHMarkdown.razor.js");
         await module.InvokeVoidAsync("styleCodeblocks", _elementReference);
+        
     }
 
 }
