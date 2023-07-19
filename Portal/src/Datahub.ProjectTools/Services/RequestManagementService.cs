@@ -180,6 +180,7 @@ public class RequestManagementService : IRequestManagementService
 
         var project = await ctx.Projects
             .Include(p => p.Users)
+                .ThenInclude(u => u.PortalUser)
             .FirstAsync(p => p.Project_ID == projectId);
 
         var adminEmails = ServiceAuthManager.ExtractEmails(project.Project_Admin ?? string.Empty);
