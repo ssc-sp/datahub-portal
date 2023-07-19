@@ -2,42 +2,40 @@
 
 #nullable disable
 
-class StorageUsedResponse
+record GetStorageAccountsResponse(StorageAccountInfo[] value);
+
+record StorageAccountInfo(string id, string name);
+
+public class StorageCapacityResponse
 {
-    public double cost { get; set; }
+    //public double cost { get; set; }
     //public string timespan { get; set; }
-    public string interval { get; set; }
-    public List<MetricValue> value { get; set; }
+    //public string interval { get; set; }
+    public List<StorageCapacityResponseValue> value { get; set; } = new();
     //public string @namespace { get; set; }
     //public string resourceregion { get; set; }
 }
 
-class MetricValue
+public class StorageCapacityResponseValue
 {
     //public string id { get; set; }
     //public string type { get; set; }
-    //public ValueName name { get; set; }
+    //public Name name { get; set; }
     //public string displayDescription { get; set; }
-    public string unit { get; set; }
-    public List<Timeseries> timeseries { get; set; }
-    public string errorCode { get; set; }
+    //public string unit { get; set; }
+    public List<StorageCapacityResponseTimeseries> timeseries { get; set; } = new();
+    //public string errorCode { get; set; }
 }
 
-class Timeseries
+public class StorageCapacityResponseTimeseries
 {
     //public List<object> metadatavalues { get; set; }
-    public List<TimeseriesValue> data { get; set; }
+    public List<StorageCapacityResponseDatum> data { get; set; }
 }
 
-//class ValueName
-//{
-//    public string value { get; set; }
-//    public string localizedValue { get; set; }
-//}
-
-public class TimeseriesValue
+public class StorageCapacityResponseDatum
 {
-    public DateTime timeStamp { get; set; }
+    //public DateTime timeStamp { get; set; }
     public double average { get; set; }
 }
 
