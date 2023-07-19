@@ -8,7 +8,7 @@
 
     <ShellContent
         Title="DataHub Uploader"
-        ContentTemplate="{DataTemplate local:UploadCodePage}"
+        ContentTemplate="{DataTemplate local:ValidateCodePage}"
         Route="ValidateCodePage" />
 
     <ShellContent

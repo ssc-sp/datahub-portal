@@ -7,10 +7,13 @@ namespace Datahub.Maui.Uploader;
 
 public partial class SpeedTestPage : ContentPage
 {
-	public SpeedTestPage()
+    private readonly SpeedTestResults speedTestResults;
+
+    public SpeedTestPage(SpeedTestResults speedTestResults)
 	{
 		InitializeComponent();
-	}
+        this.speedTestResults = speedTestResults;
+    }
 
     private async void SkipBtn_Clicked(object sender, EventArgs e)
     {
@@ -27,8 +30,8 @@ public partial class SpeedTestPage : ContentPage
             SpeedTestActivity.IsRunning = true;
             ISpeedTestClient speedTestClient = new SpeedTestClient();
             var result = await speedTestClient.TestSpeedAsync(SpeedUnit.Mbps);
-            (Application.Current as App).Context.UploadSpeedMpbs = result.UploadSpeed;
-            (Application.Current as App).Context.DownloadSpeedMpbs = result.DownloadSpeed;
+            speedTestResults.UploadSpeedMpbs = result.UploadSpeed;
+            speedTestResults.DownloadSpeedMpbs = result.DownloadSpeed;
             SpeedTestResultLb.Text = $"Download: {result.DownloadSpeed:0.#} {result.SpeedUnit} / Upload: {result.UploadSpeed:0.#} {result.SpeedUnit}";
         }
         finally

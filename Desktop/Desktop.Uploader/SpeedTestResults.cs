@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Datahub.Maui.Uploader
 {
-    public class Context
+    public class SpeedTestResults
     {
         public double UploadSpeedMpbs { get; internal set; }
         public double DownloadSpeedMpbs { get; internal set; }
