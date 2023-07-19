@@ -233,6 +233,7 @@ public class TerraformService : ITerraformService
             TerraformVariables.ProjectAcronym => terraformWorkspace.Acronym,
             TerraformVariables.BudgetAmount => terraformWorkspace.BudgetAmount,
             TerraformVariables.StorageSizeLimitInTb => terraformWorkspace.StorageSizeLimitInTB,
+            TerraformVariables.AzureLogWorkspaceId => string.Empty,
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<{variableType}> in configuration")
         })!;
