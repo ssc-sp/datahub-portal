@@ -15,7 +15,7 @@
 @inject ServiceAuthManager _serviceAuthManager
 @inject IUserInformationService _userInformationService
 
-<AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
     <MudPaper Class="py-4 px-6">
         <MudStack>
             <MudText Class="mb-6" Typo="Typo.h2">@Localizer["Workspace"] @ProjectAcronym @Localizer["Metadata"]</MudText>
@@ -29,22 +29,18 @@
                 OnMetadataSaved="@HandleMetadataSaved"/>
         </MudStack>
     </MudPaper>
-</AuthorizeView>
+</DatahubAuthView>
 
 @code {
 
     [Parameter]
     public string ProjectAcronym { get; set; }
 
-    private List<string> _authorizedRoles;
-
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
         var user = await _userInformationService.GetCurrentGraphUserAsync();
-        _authorizedRoles = _serviceAuthManager.GetAdminProjectRoles(user.Id);
-        _authorizedRoles.Add(RoleConstants.DATAHUB_ROLE_ADMIN);
     }
 
     private void HandleMetadataSaved(Datahub_Project project)
