@@ -34,7 +34,8 @@ public static class TerraformVariables
     public const string ProjectAcronym = "project_cd";
     public const string BudgetAmount = "budget_amount";
     public const string StorageSizeLimitInTb = "storage_size_limit_tb";
-    public const string AzureDatabricksEnterpriseOid = "azure_databricks_enterprise_oid";
+    public const string AzureDatabricksEnterpriseOid = "azure_databricks_enterprise_oid"; 
+    public const string AzureLogWorkspaceId = "log_workspace_id"; 
 
     
     public const string MapType = "map";
