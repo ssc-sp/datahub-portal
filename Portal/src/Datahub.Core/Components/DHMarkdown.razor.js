@@ -1,10 +1,30 @@
 export function styleCodeblocks(element) {
-    if(hljs && element && element.querySelectorAll){
-        element.querySelectorAll('pre code:not(.copy-icon-added)')
-            .forEach(el => {
-                hljs.highlightElement(el);
-                appendCopyIcon(el);
-            });
+    try {
+        if (hljs && element && element.querySelectorAll) {
+            element.querySelectorAll('pre code:not(.copy-icon-added)')
+                .forEach(el => {
+                    hljs.highlightElement(el);
+                    appendCopyIcon(el);
+                });
+        }
+    } catch (error) {
+        console.error(error);
+    }
+
+    try {
+        if (mermaid && element && element.querySelectorAll) {
+            mermaid.mermaidAPI.initialize({});
+            element.querySelectorAll('code.language-mermaid')
+                .forEach(el => {
+                    const id = "mermaid-".concat(window.crypto.randomUUID());
+                    const cb = function (svgGraph) {
+                        el.parentElement.innerHTML = svgGraph
+                    };
+                    mermaid.mermaidAPI.render(id, el.textContent, cb);
+                })
+        }
+    } catch (error) {
+        console.error(error);
     }
 }
 
