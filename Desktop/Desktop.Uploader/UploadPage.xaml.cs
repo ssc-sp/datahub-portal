@@ -2,19 +2,27 @@
 using Microsoft.Maui.Platform;
 using Datahub.Maui.Uploader;
 using Foundatio.Storage;
+using Datahub.Core.DataTransfers;
+using Microsoft.Extensions.Localization;
+using Datahub.Maui.Uploader.Models;
 
 namespace Datahub.Maui.Uploader
 {
     public partial class UploadPage : ContentPage
     {
 
-        public UploadPage()
+        public UploadPage(IStringLocalizer<App> localizer, DataHubModel dataHubModel)
         {
             InitializeComponent();
+            this.localizer = localizer;
+            this.dataHubModel = dataHubModel;
         }
 
         private Dictionary<string,string> fileList = new();
         private bool uploadInProgress;
+        private UploadCredentials credentials;
+        private readonly IStringLocalizer<App> localizer;
+        private readonly DataHubModel dataHubModel;
 
         private void ContentPage_Loaded(object? sender, EventArgs e)
         {
@@ -77,7 +85,7 @@ namespace Datahub.Maui.Uploader
         {
             try
             {
-                Uri uri = new Uri("https://federal-science-datahub.canada.ca/w/DW1/filelist");
+                Uri uri = new Uri($"https://federal-science-datahub.canada.ca/w/{credentials.WorkspaceCode}/filelist");
                 await Browser.Default.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
             }
             catch (Exception ex)
@@ -90,7 +98,7 @@ namespace Datahub.Maui.Uploader
         public BlobContainerClient GetBlobServiceClient()
         {
             BlobContainerClient client = new(
-                new Uri($"key"),
+                new Uri($"{dataHubModel.Credentials.SASToken}"),
                 null);
 
             return client;
@@ -98,7 +106,7 @@ namespace Datahub.Maui.Uploader
 
         public IFileStorage GetFileStorage()
         {
-            return new AzureFileStorage( b => b.ConnectionString($"key"));
+            return new AzureFileStorage( b => b.ConnectionString($"{dataHubModel.Credentials.SASToken}"));
         }
 
         private async void UploadBtn_Clicked(object sender, EventArgs e)

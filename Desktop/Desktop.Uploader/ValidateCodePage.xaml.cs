@@ -1,10 +1,19 @@
-﻿namespace Datahub.Maui.Uploader
+﻿using Datahub.Core.DataTransfers;
+using Datahub.Maui.Uploader.Models;
+using Microsoft.Extensions.Localization;
+
+namespace Datahub.Maui.Uploader
 {
-    public partial class UploadCodePage : ContentPage
+    public partial class ValidateCodePage : ContentPage
     {
-        public UploadCodePage()
+        private readonly IStringLocalizer<App> localizer;
+        private readonly DataHubModel model;
+
+        public ValidateCodePage(IStringLocalizer<App> localizer, DataHubModel model)
         {
             InitializeComponent();
+            this.localizer = localizer;
+            this.model = model;
         }
 
 
@@ -43,7 +52,19 @@
 
         private async void Clipboard_ClipboardContentChanged(object sender, EventArgs e)
         {
-            await Shell.Current.GoToAsync("//SpeedTest");
+            if (Clipboard.Default.HasText)
+            {
+                var content = await Clipboard.Default.GetTextAsync();
+                if (!string.IsNullOrEmpty(content))
+                {
+                    var decoded = CredentialEncoder.DecodeCredentials(content);
+                    if (decoded != null)
+                    {
+                        model.Credentials = decoded;
+                        await Shell.Current.GoToAsync("//SpeedTest");
+                    }
+                }
+            }
         }
     }
 }
