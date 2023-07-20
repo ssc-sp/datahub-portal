@@ -46,8 +46,8 @@
 
 
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet"
-          href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/googlecode.min.css">
+    @*link rel="stylesheet"
+          href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/googlecode.min.css">*@
 
     @* CSS styling from DATAHUB_HOMEPAGE *@
     @* <link rel="stylesheet" href="~/_content/Datahub.Core/css/third-party/layout.css" type="text/css"/> *@
@@ -66,13 +66,13 @@
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet"/>
     <link href="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.css" rel="stylesheet"/>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css" />
+    <link rel="stylesheet" href="_content/PSC.Blazor.Components.MarkdownEditor/css/easymde.min.css" />
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
     <script src="~/js/powerbi-client/dist/powerbi.min.js"></script>
     <script src="~/js/pbi-integration.js"></script>
 
-    <script src="~/js/third-party/highlight.min.js"></script>
+    @*<script src="~/js/third-party/highlight.min.js"></script>*@
     
     <script src="~/js/markdown-editor.js"></script>
 
@@ -85,7 +85,9 @@
     <script defer src="_content/AElemental.Blazor/js/aebundle.js"></script>
     <script defer src="~/js/custom-navigation.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+    <script src="~/_content/PSC.Blazor.Components.MarkdownEditor/js/easymde.min.js"></script>
+    <script src="~/_content/PSC.Blazor.Components.MarkdownEditor/js/markdownEditor.js"></script>
+    <script src="/_content/PSC.Blazor.Components.MarkdownEditor/js/mermaid.min.js"></script>
 
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered"/><title></title>
 </head>

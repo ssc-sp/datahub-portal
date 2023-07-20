@@ -22,9 +22,14 @@
 
 @code {
 
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string redirectUri { get; set; }
+
     private void HandleLogin()
     {
-        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={_navigationManager.BaseUri}&scope=user.read%20openid%20offline_access%20profile&loginHint=&domainHint=&claims=&policy=";
+        //See https://stackoverflow.com/questions/64853618/oidc-authentication-in-server-side-blazor for an alternative
+        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint=&domainHint=&claims=&policy=";
         _navigationManager.NavigateTo(url, true);
     }
 

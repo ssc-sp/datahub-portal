@@ -128,7 +128,8 @@ else
 
         if (!user.Identity?.IsAuthenticated ?? true)
         {
-            _navigationManager.NavigateTo("/login");
+            var returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+            _navigationManager.NavigateTo($"/login?redirectUri={returnUrl}", forceLoad:true);
             return;
         }
 
