@@ -26,7 +26,7 @@
 
             <TableView Intent="Data" x:Name="FileListTbView" IsVisible="False">
                 <TableRoot>
-                    <TableSection x:Name="FileListSection" Title="Files to upload">
+                    <TableSection x:Name="FileListSection" Title="Items to upload">
                     </TableSection>
                 </TableRoot>
             </TableView>
@@ -43,6 +43,7 @@
                 <Button
                 x:Name="AddfolderBtn"
                 Text="Add folder"
+                    Clicked="AddfolderBtn_Clicked"
                 SemanticProperties.Hint="Counts the number of times you click"                
                 HorizontalOptions="Center" />
 

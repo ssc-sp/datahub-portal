@@ -1,28 +1,50 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.Maui.Platform;
 using Datahub.Maui.Uploader;
-using Foundatio.Storage;
 using Datahub.Core.DataTransfers;
 using Microsoft.Extensions.Localization;
 using Datahub.Maui.Uploader.Models;
+using Datahub.Maui.Uploader.IO;
+using System.Threading;
+using Windows.Storage.Pickers;
+using CommunityToolkit.Maui.Storage;
 
 namespace Datahub.Maui.Uploader
 {
+
+    public class LocalItemInfo
+    {
+        public LocalItemInfo(string name, bool isDirectory, long? bytes, string status) {
+            this.name = name;
+            this.isDirectory = isDirectory;
+            this.bytes = bytes;
+            this.status = status;
+        }
+        public string name { get; set; }
+        public bool isDirectory { get; set; }
+        public long? bytes { get; set; }
+        public string status { get; set; }
+    }
     public partial class UploadPage : ContentPage
     {
 
-        public UploadPage(IStringLocalizer<App> localizer, DataHubModel dataHubModel)
+        public UploadPage(IStringLocalizer<App> localizer, DataHubModel dataHubModel,
+            FileUtils fileUtils, IFolderPicker folderPicker)
         {
             InitializeComponent();
             this.localizer = localizer;
             this.dataHubModel = dataHubModel;
+            this.fileUtils = fileUtils;
+            this.folderPicker = folderPicker;
         }
 
-        private Dictionary<string,string> fileList = new();
+        private List<LocalItemInfo> uploadList = new();
         private bool uploadInProgress;
         private UploadCredentials credentials;
         private readonly IStringLocalizer<App> localizer;
         private readonly DataHubModel dataHubModel;
+        private readonly FileUtils fileUtils;
+        private readonly IFolderPicker folderPicker;
 
         private void ContentPage_Loaded(object? sender, EventArgs e)
         {
@@ -31,9 +53,9 @@ namespace Datahub.Maui.Uploader
                 var uiElement = this.ToPlatform(Handler.MauiContext);
                 DragDropHelper.RegisterDragDrop(uiElement, async fname =>
                 {
-                    if (!fileList.ContainsKey(fname))
+                    if (!uploadList.Any(item => item.name == fname))
                     {
-                        fileList.Add(fname, "Ready...");
+                        uploadList.Add(new (fname, Directory.Exists(fname), null, DEFAULT_STATUS));
                     }
                     await UpdateFileLayout();
                     //await mainPageViewModel.OpenFile(stream, CancellationToken.None);
@@ -43,13 +65,13 @@ namespace Datahub.Maui.Uploader
 
         private async Task UpdateFileLayout()
         {
-            if (fileList.Count > 0)
+            if (uploadList.Count > 0)
             {
                 
                 FileListSection.Clear();
-                foreach (var item in fileList)
+                foreach (var item in uploadList)
                 {
-                    FileListSection.Add(new TextCell() { Text = item.Key, Detail = item.Value });
+                    FileListSection.Add(new TextCell() { Text = item.name, Detail = item.status });
                 }
                 LbUpload1.IsVisible = false;
                 FileListTbView.IsVisible = true;
@@ -62,19 +84,20 @@ namespace Datahub.Maui.Uploader
             }
         }
 
+        public const string DEFAULT_STATUS = "Ready...";
+
         private async void AddfileBtn_Clicked(object sender, EventArgs e)
         {
             PickOptions options = new()
             {
-                PickerTitle = "Please select a file to upload",
-                
+                PickerTitle = "Please select a file to upload",                                
             };
             var result = await FilePicker.Default.PickMultipleAsync(options);
             if (result != null)
             {
                 foreach (var file in result)
                 {
-                    fileList.Add(file.FullPath,"Ready...");
+                    uploadList.Add(new(file.FullPath, false, null, DEFAULT_STATUS));                    
                 }
                 await UpdateFileLayout();
             }
@@ -104,50 +127,56 @@ namespace Datahub.Maui.Uploader
             return client;
         }
 
-        public IFileStorage GetFileStorage()
-        {
-            return new AzureFileStorage( b => b.ConnectionString($"{dataHubModel.Credentials.SASToken}"));
-        }
-
-        private async void UploadBtn_Clicked(object sender, EventArgs e)
-        {
-            var client = GetFileStorage();
-            uploadInProgress = true;
-            UploadBtn.IsEnabled = false;
-            UploadProgressBar.IsVisible = true;
-            foreach (var item in fileList)
-            {
-                fileList[item.Key] = "In Progress";
-                await UpdateFileLayout();
-                await client.CopyFileAsync(item.Key, Path.GetFileName(item.Key));
-                    //Uploader.UploadBlocksAsync(client, item.Key, 4096, async p => { UploadProgressBar.Progress = p; });
-                fileList[item.Key] = "Completed";
-                await UpdateFileLayout();
-            }
-            UploadBtn.IsEnabled = true;
-            UploadProgressBar.IsVisible = false;
-            uploadInProgress = true;
-
-        }
-
         private async void UploadBtn_Clicked_AzNative(object sender, EventArgs e)
         {
             var client = GetBlobServiceClient();
             uploadInProgress = true;
             UploadBtn.IsEnabled = false;
             UploadProgressBar.IsVisible = true;
-            foreach (var item in fileList)
+            
+            //calculate file size
+            foreach (var item in uploadList.Where(u => u.isDirectory))
             {
-                fileList[item.Key] = "In Progress";
+                item.status = "Determining directory size...";
+            }
+            foreach (var item in uploadList.Where(u => !u.isDirectory))
+            {
+                item.status = "Determining file size...";
+            }
+            await UpdateFileLayout();
+            foreach (var item in uploadList.Where(u => u.isDirectory))
+            {
+                item.bytes = fileUtils.GetDirectorySize(item.name);
+            }
+            foreach (var item in uploadList.Where(u => !u.isDirectory))
+            {
+                item.bytes = new FileInfo(item.name).Length;
+            }
+            foreach (var item in uploadList)
+            {
+                item.status = "In Progress";
                 await UpdateFileLayout();
-                await Uploader.UploadBlocksAsync(client, item.Key, 4096, async p => { UploadProgressBar.Progress = p; });
-                fileList[item.Key] = "Completed";
+                await Uploader.UploadBlocksAsync(client, item.name, 4096*10, async p => { UploadProgressBar.Progress = p; });
+                item.status = "Completed";
                 await UpdateFileLayout();
             }
             UploadBtn.IsEnabled = true;
             UploadProgressBar.IsVisible = false;
             uploadInProgress = true;
 
+        }
+
+        private async void AddfolderBtn_Clicked(object sender, EventArgs e)
+        {
+            var result = await folderPicker.PickAsync(CancellationToken.None);
+            if (result.IsSuccessful)
+            {
+                await Toast.Make($"The folder was picked: Name - {result.Folder.Name}, Path - {result.Folder.Path}", ToastDuration.Long).Show(cancellationToken);
+            }
+            else
+            {
+                await Toast.Make($"The folder was not picked with error: {result.Exception.Message}").Show(cancellationToken);
+            }
         }
     }
 }
