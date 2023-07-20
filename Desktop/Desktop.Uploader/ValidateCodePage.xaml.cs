@@ -36,7 +36,7 @@ namespace Datahub.Maui.Uploader
         {
             try
             {
-                Uri uri = new Uri("https://federal-science-datahub.canada.ca/w/DW1/filelist");
+                Uri uri = new Uri($"https://federal-science-datahub.canada.ca/w/{model.Credentials.WorkspaceCode}/filelist");
                 await Browser.Default.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
             }
             catch (Exception ex)
