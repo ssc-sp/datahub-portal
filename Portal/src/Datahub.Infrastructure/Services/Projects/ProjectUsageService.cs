@@ -54,6 +54,9 @@ public class ProjectUsageService
         // save changes
         await ctx.SaveChangesAsync(ct);
 
+        // wait 5 seconds before trying next update
+        await Task.Delay(5000);
+
         // update project avg capacity
         await UpdateProjectAverageStoreCapacity(ctx, session, projectId, resourceGroups, ct);
 

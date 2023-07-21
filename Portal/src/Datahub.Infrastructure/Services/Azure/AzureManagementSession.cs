@@ -63,8 +63,15 @@ public class AzureManagementSession
 
     public async Task<double> GetTotalAverageStorageCapacity(params string[] resourceGroups)
     {
+        var accounts = await ListResourceGroupStorage(resourceGroups).ToListAsync();
+        if (accounts.Count < resourceGroups.Length)
+        {
+            var rgs = string.Join(", ", resourceGroups);
+            throw new Exception($"Could not read all storageAcounts from the resource groups '{rgs}'");
+        }            
+
         double capacity = 0.0;
-        await foreach (var account in ListResourceGroupStorage(resourceGroups))
+        foreach (var account in accounts)
         {
             var accCapacity = await GetStorageAverageCapacity(account.ResourceGroup, account.StorageAccountName);
             capacity += accCapacity;
