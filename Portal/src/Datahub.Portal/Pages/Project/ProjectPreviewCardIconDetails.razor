@@ -1,0 +1,39 @@
+<MudStack Row Spacing="0">
+    <MudTooltip Text="@Localizer["Number of users in the workspace"]" Arrow>
+        <MudChip Size="Size.Small" Variant="Variant.Outlined" Label="true">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <MudIcon Icon="fa-light fa-users" Style="font-size: 0.75rem;"/>
+                @NumberOfUsers
+            </MudStack>
+        </MudChip>
+    </MudTooltip>
+    <MudTooltip Text="@Localizer["Number of shared repositories"]" Arrow>
+        <MudChip Size="Size.Small" Variant="Variant.Outlined" Label="true">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <MudIcon Icon="fa-light fa-code-branch" Style="font-size: 0.75rem;"/>
+                @NumberOfRepositories
+            </MudStack>
+        </MudChip>
+    </MudTooltip>
+    <MudTooltip Text="@Localizer["Number of shared files"]" Arrow>
+        <MudChip Size="Size.Small" Variant="Variant.Outlined" Label="true">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <MudIcon Icon="fa-light fa-files" Style="font-size: 0.75rem;"/>
+                @NumberOfFiles
+            </MudStack>
+        </MudChip>
+    </MudTooltip>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public int NumberOfUsers { get; set; }
+
+    [Parameter]
+    public int NumberOfRepositories { get; set; }
+
+    [Parameter]
+    public int NumberOfFiles { get; set; }
+
+}
