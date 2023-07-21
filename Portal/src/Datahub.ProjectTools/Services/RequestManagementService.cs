@@ -180,6 +180,7 @@ public class RequestManagementService : IRequestManagementService
 
         var project = await ctx.Projects
             .Include(p => p.Users)
+                .ThenInclude(u => u.PortalUser)
             .FirstAsync(p => p.Project_ID == projectId);
 
         var adminEmails = ServiceAuthManager.ExtractEmails(project.Project_Admin ?? string.Empty);
@@ -232,18 +233,27 @@ public class RequestManagementService : IRequestManagementService
 
     public static string GetTerraformServiceType(string templateName) => $"terraform:{templateName}";
 
-    public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate)
+    public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project datahubProject, string terraformTemplate)
     {
         using var scope = new TransactionScope(
             TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
         try
         {
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
-            ctx.Attach(project);
-            await ctx.Entry(project).Collection(p => p.Users).LoadAsync();
+            var project = await ctx.Projects
+                .Include(p => p.Users)
+                    .ThenInclude(u => u.PortalUser)
+                .FirstOrDefaultAsync(p => p.Project_ID == datahubProject.Project_ID);
+            if(project == null)
+            {
+                return false;
+            }
+            
             var userId = await _userInformationService.GetUserIdString();
             var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-            var users = project.Users.Select(u => new TerraformUser()
+            var users = project.Users
+                .Where(u => u.PortalUser != null)
+                .Select(u => new TerraformUser()
                 {
                     ObjectId = u.PortalUser.GraphGuid, 
                     Email = u.PortalUser.Email, 
@@ -279,7 +289,7 @@ public class RequestManagementService : IRequestManagementService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error creating resource {terraformTemplate} for {project.Project_Acronym_CD}");
+            _logger.LogError(ex, "Error creating resource {TerraformTemplate} for {DatahubProjectProjectAcronymCd}", terraformTemplate, datahubProject.Project_Acronym_CD);
             return false;
         }
     }
