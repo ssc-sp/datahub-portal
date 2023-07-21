@@ -5,7 +5,6 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Portal.Pages.Project
 
-
 @inject IUserInformationService _userInformationService
 @inject IConfiguration _configuration
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -75,26 +74,6 @@
             .Include(u => u.PortalUser)
             .Where(u => u.PortalUser.GraphGuid == userId)
             .ToListAsync();
-    }
-
-    private Color RoleColor(Datahub_Project_User projectUser)
-    {
-        if (projectUser.Role.IsAtLeastAdmin)
-        {
-            return Color.Primary;
-        }
-
-        return projectUser.Role.Id == (int)Project_Role.RoleNames.Collaborator ? Color.Secondary : Color.Default;
-    }
-
-    private string RoleLabel(Datahub_Project_User projectUser)
-    {
-        if (projectUser.Role.IsAtLeastAdmin)
-        {
-            return "Admin";
-        }
-
-        return projectUser.Role.Id == (int)Project_Role.RoleNames.Collaborator ? "Collaborator" : "Guest";
     }
 
     private async Task ShowProjectDialog()
