@@ -60,6 +60,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Tewr.Blazor.FileReader;
+using Yarp.ReverseProxy.Transforms;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -218,11 +219,22 @@ public class Startup
 
         if (ReverseProxyEnabled())
         {
-            services.AddReverseProxy();
+            services.AddReverseProxy()
+                    .AddTransforms(builderContext =>
+                    {
+                        builderContext.AddRequestTransform(async transformContext =>
+                        {
+                            // passing the logged user to the proxied app
+                            var loggedUser = transformContext.HttpContext?.User?.Identity?.Name ?? "";
+                            transformContext.ProxyRequest.Headers.Add(GetUserHeaderName(), loggedUser);
+                            await Task.CompletedTask;
+                        });
+                    });
         }
     }
 
     private bool ReverseProxyEnabled() => Configuration.GetValue<bool>("ReverseProxy:Enabled");
+    private string GetUserHeaderName() => Configuration.GetValue<string>("ReverseProxy:UserHeaderName") ?? "dh-user";
 
     static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
     {
