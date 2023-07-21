@@ -19,7 +19,7 @@ public static class TerraformVariables
 
     public const string DatabricksProjectLeadUsers = "databricks_project_lead_users";
     public const string DatabricksAdminUsers = "databricks_admin_users";
-    public const string DatabricksProjectUsers = "project_guest_users";
+    public const string DatabricksProjectUsers = "databricks_project_users";
     public const string DatabricksProjectGuests = "databricks_project_guests";
     public const string StorageContributorUsers = "storage_contributor_users";
     public const string StorageGuestUsers = "storage_reader_users";
@@ -34,7 +34,8 @@ public static class TerraformVariables
     public const string ProjectAcronym = "project_cd";
     public const string BudgetAmount = "budget_amount";
     public const string StorageSizeLimitInTb = "storage_size_limit_tb";
-    public const string AzureDatabricksEnterpriseOid = "azure_databricks_enterprise_oid";
+    public const string AzureDatabricksEnterpriseOid = "azure_databricks_enterprise_oid"; 
+    public const string AzureLogWorkspaceId = "log_workspace_id"; 
 
     
     public const string MapType = "map";

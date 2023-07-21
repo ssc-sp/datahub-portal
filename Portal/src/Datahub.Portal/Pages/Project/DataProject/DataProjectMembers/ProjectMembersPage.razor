@@ -1,17 +1,5 @@
 @page "/w/{ProjectAcronymParam}/members"
 
-@using Datahub.Core.Services.Achievements
-@using Datahub.Core.Model.Achievements
-@using Datahub.Core.Model.Projects
-
-@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject IUserInformationService _userInformationService
-@inject ServiceAuthManager _serviceAuthManager
-@inject IPortalUserTelemetryService _telemetryService
-@inject IDatahubAuditingService _auditingService
-@inject ILogger<DataProjectPage> logger
-@inject NavigationManager NavigationManager
-
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronymParam">
     <CascadingValue Value=@ProjectAcronymParam Name="ProjectAcronym">
         <ProjectInfo ProjectAcronym="@ProjectAcronymParam"/>
@@ -23,72 +11,4 @@
 
     [Parameter]
     public string ProjectAcronymParam { get; set; }
-
-    private Datahub_Project _project;
-    private Microsoft.Graph.User _user;
-    private string _userId;
-    private string _projectName;
-    private int _projectId;
-    private bool _isDatahubAdmin;
-    private bool _isProjectAdmin;
-    private bool _showCosts;
-
-    private string ProjectAdminRole => $"{ProjectAcronymParam}{RoleConstants.ADMIN_SUFFIX}";
-
-    private string AdminRoles => $"{ProjectAdminRole}, {RoleConstants.DATAHUB_ROLE_ADMIN}";
-
-    protected override async Task OnInitializedAsync()
-    {
-        var authUser = await _userInformationService.GetAuthenticatedUser();
-        _userId = await _userInformationService.GetUserIdString();
-        _isDatahubAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
-        _isProjectAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(ProjectAdminRole);
-        if (!_isDatahubAdmin && !_isProjectAdmin)
-        {
-            NavigationManager.NavigateTo($"/w/{ProjectAcronymParam}");
-            return;
-        }
-
-        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-
-        _project = await projectContext.Projects
-            .Include(p => p.ServiceRequests)
-            .Include(p => p.Pipelines)
-            .AsSingleQuery()
-            .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
-            .FirstOrDefaultAsync();
-
-        _projectName = _project?.ProjectName;
-        _projectId = _project?.Project_ID ?? 0;
-
-        if (_userId is null) logger.LogError("UserId is null");
-
-        _user = await _userInformationService.GetCurrentGraphUserAsync();
-
-        var isMemberOfProject = projectContext.Project_Users
-            .Any(p => p.User_ID == _userId && p.Project.Project_Acronym_CD == ProjectAcronymParam);
-
-        if (!isMemberOfProject)
-        {
-            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewProjectNotMemberOf);
-        }
-        await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-
-        if (firstRender)
-        {
-    // refresh auth due to server pre-rendering
-            StateHasChanged();
-        }
-    }
-
-    private void HandleToggleCosts()
-    {
-        _showCosts = !_showCosts;
-    }
-
 }
