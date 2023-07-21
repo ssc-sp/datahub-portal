@@ -1078,5 +1078,12 @@
     "ErrorUpdatingCosts": "Error updating costs: {0}",
     "ReturnToAdmin": "Return to Administration"
   },
-  "Most Popular": "Most Popular"
+  "Most Popular": "Most Popular",
+  "Number of users in the workspace": "Number of users in the workspace",
+  "Number of shared repositories": "Number of shared repositories",
+  "Number of shared files": "Number of shared files",
+  "Create a new Workspace": "Create a new Workspace",
+  "You can create a new workspace to start working on your project": "You can create a new workspace to start working on your project",
+  "Featured Workspaces": "Featured Workspaces",
+  "Featured workspaces are a selection of workspaces that are currently being promoted by the Datahub team. You can view these projects\u0027 shared content to see what they are working on.": "Featured workspaces are a selection of workspaces that are currently being promoted by the Datahub team. You can view these projects\u0027 shared content to see what they are working on."
 }
