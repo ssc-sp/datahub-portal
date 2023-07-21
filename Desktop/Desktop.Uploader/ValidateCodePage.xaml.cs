@@ -60,6 +60,7 @@ namespace Datahub.Maui.Uploader
                     var decoded = CredentialEncoder.DecodeCredentials(content);
                     if (decoded != null)
                     {
+                        await Clipboard.Default.SetTextAsync(null);
                         model.Credentials = decoded;
                         await Shell.Current.GoToAsync("//SpeedTest");
                     }

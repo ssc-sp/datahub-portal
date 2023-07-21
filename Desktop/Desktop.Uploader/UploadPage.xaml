@@ -26,14 +26,20 @@
 
             <TableView Intent="Data" x:Name="FileListTbView" IsVisible="False">
                 <TableRoot>
-                    <TableSection x:Name="FileListSection" Title="Items to upload">
+                    <TableSection x:Name="FileListSection">
                     </TableSection>
                 </TableRoot>
             </TableView>
 
+            <Label
+                x:Name="LbUploadStatus"
+                IsVisible="False"
+                Text="Starting upload"
+                FontSize="14"
+                HorizontalOptions="Start" />
             <ProgressBar x:Name="UploadProgressBar" Progress="0" />
 
-            <HorizontalStackLayout HorizontalOptions="Center">
+            <HorizontalStackLayout HorizontalOptions="Center" x:Name="AddfilesSection">
             <Button
                 x:Name="AddfileBtn"
                 Text="Add file(s)"
@@ -52,16 +58,22 @@
                 <Button
                 x:Name="UploadBtn"
                 Text="Start Upload"
-                IsEnabled="False"
                 Clicked="UploadBtn_Clicked"
-                SemanticProperties.Hint="Counts the number of times you click"
+                    IsEnabled="False"
+                SemanticProperties.Hint="Start the upload process"
                 HorizontalOptions="Center" />
-
+                <Button
+                x:Name="CancelBtn"
+                Text="Cancel Upload"
+                IsVisible="False"
+                Clicked="CancelBtn_Clicked"
+                SemanticProperties.Hint="Cancel the upload process"
+                HorizontalOptions="Center" />
             <Button
                 x:Name="OpenWSBtn"
                 Text="Open DataHub Storage" 
                 Clicked="OpenWSBtn_Clicked"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="Open DataHub workspace storage"
                 HorizontalOptions="Center" />
             </HorizontalStackLayout>
         </VerticalStackLayout>

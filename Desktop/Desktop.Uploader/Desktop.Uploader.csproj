@@ -48,6 +48,20 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="i18n\localization.fr.json" />
+	  <None Remove="i18n\localization.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="i18n\localization.fr.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="i18n\localization.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="4.0.1" />
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.16.0" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="5.2.0" />
@@ -75,10 +89,6 @@
 	  <MauiXaml Update="ValidateCodePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="i18n\" />
 	</ItemGroup>
 
 	<Import Project="..\Desktop.SharedCode\Desktop.SharedCode.projitems" Label="Shared" />
