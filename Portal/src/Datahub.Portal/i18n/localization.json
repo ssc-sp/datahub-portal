@@ -1054,7 +1054,7 @@
       "Registrations": "Registrations",
       "SharingAPIs": "DataHub Sharing APIs",
       "Metadata": "Metadata Management",
-      "MonthlyCost": "Monthly Cost",
+      "MonthlyCost": "Monthly Cost"
     },
     "CARD_DESCRIPTIONS": {
       "ExternalSharing": "Manage external sharing for files and Power BI reports",
@@ -1077,6 +1077,15 @@
     },
     "ErrorUpdatingCosts": "Error updating costs: {0}",
     "ReturnToAdmin": "Return to Administration"
-  }
-
+  },
+  "Most Popular": "Most Popular",
+  "Identifying the pathogen": "Identifying the pathogen",
+  "Federal Science DataHub Resources": "Federal Science DataHub Resources",
+  "Welcome to the Federal Science Datahub resources and documentation section. Below you will find a short list of some recommended resources to help you get started with the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar.": "Welcome to the Federal Science Datahub resources and documentation section. Below you will find a short list of some recommended resources to help you get started with the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar.",
+  "Administration": "Administration",
+  "Error(s)": "Error(s)",
+  "Refresh": "Refresh",
+  "Most Popular Resources": "Most Popular Resources",
+  "Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar.": "Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar.",
+  "On This Page": "On This Page"
 }

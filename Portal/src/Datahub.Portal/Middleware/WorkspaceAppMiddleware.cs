@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using Datahub.Core.Data;
+using System.Security.Claims;
 
 namespace Datahub.Portal.Middleware;
 
@@ -50,17 +51,12 @@ public class WorkspaceAppMiddleware
 
     private bool ClaimsContainAcronymRole(HttpContext context, string acronym)
     {
-        if (context.User is null)
+        if (context.User is null || string.IsNullOrEmpty(acronym))
             return false;
 
-        var adminAcronym = $"{acronym}-admin";
+        var wsAppRole = $"{acronym}{RoleConstants.WEBAPP_SUFFIX}";
 
-        return context.User.Claims.Any(c => c.Type == ClaimTypes.Role && MatchRole(c.Value, acronym, adminAcronym));
-    }
-
-    static bool MatchRole(string claimValue, string role, string adminRole)
-    {
-        return claimValue.Equals(role, StringComparison.OrdinalIgnoreCase) || claimValue.Equals(adminRole, StringComparison.OrdinalIgnoreCase);
+        return context.User.Claims.Any(c => c.Type == ClaimTypes.Role && wsAppRole.Equals(c.Value, StringComparison.OrdinalIgnoreCase));
     }
 
     static string GetFullUrl(HttpRequest request)

@@ -41,6 +41,8 @@ public class DatahubPortalConfiguration
 
     public string SupportFormUrl { get; set; } =
         "https://forms.office.com/pages/responsepage.aspx?id=lMFb0L-U1kquLh2w8uOPXhksOXzZ73RCp9fVTz4vTU5UNTc1U00yNVUxWVg4SkJGMFVHN1RCTTdQRS4u";
+
+    public ReverseProxy ReverseProxy { get; set; } = new(); 
 }
 
 public class Achievements
@@ -166,6 +168,7 @@ public class Graph
 public class Hosting
 {
     public string Profile { get; set; } = "ssc";
+    public string EnvironmentName { get; set; } = "dev";
 }
 
 public class KeyVault
@@ -197,4 +200,11 @@ public class PublicFileSharing
 public record DesktopFileUploader
 {
     public bool DisplayDesktopUploaderTab { get; set; } = false;
+}
+
+public class ReverseProxy
+{
+    public bool Enabled { get; set; }
+    public string BasePath { get; set; } = "wsapp";
+    public string UserHeader { get; set; } = "dh-user";
 }

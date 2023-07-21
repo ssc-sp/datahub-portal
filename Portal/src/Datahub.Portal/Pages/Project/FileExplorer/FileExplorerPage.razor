@@ -45,18 +45,20 @@
                             <MudTabPanel Text="@((_containers.Count == 1) ? _containers[0] : Localizer["File Explorer"])" Icon="fas fa-hdd">
                                 <FileExplorer ProjectId=@_projectId ContainerName="@SelectedContainer"/>
                             </MudTabPanel>
-                            <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
-                                <AzCopy Container="@SelectedContainer"/>
-                            </MudTabPanel>
-                            <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
-                                <Databricks Container="@SelectedContainer"/>
-                            </MudTabPanel>
-                            @if (_datahubPortalConfiguration.DesktopFileUploader.DisplayDesktopUploaderTab)
-                            {
-                                <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
-                                    <UploaderCode Container="@SelectedContainer"/>
+                            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronymParam">
+                                <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
+                                    <AzCopy Container="@SelectedContainer"/>
                                 </MudTabPanel>
-                            }
+                                <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
+                                    <Databricks Container="@SelectedContainer"/>
+                                </MudTabPanel>
+                                @if (_datahubPortalConfiguration.DesktopFileUploader.DisplayDesktopUploaderTab)
+                                {
+                                    <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
+                                        <UploaderCode Container="@SelectedContainer"/>
+                                    </MudTabPanel>
+                                }
+                            </DatahubAuthView>
                         </MudTabs>
                     }
                 </MudPaper>

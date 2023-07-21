@@ -13,7 +13,7 @@
 @inject IDatahubAuditingService _auditingService
 @inject UserLocationManagerService _userLocationManagerService
 @inject ILogger<DataProjectPage> _logger
-@inject IConfiguration _configuration
+@inject DatahubPortalConfiguration Configuration
 
 
 <DHPageAlert
@@ -41,10 +41,57 @@
                 <ProjectUserCardList ProjectAcronym="@ProjectAcronymParam"/>
             </MudItem>
 
-            @if (_showAppLink)
+            @if (ReverseProxyEnabled)
             {
-                <MudItem>
-                    <MudLink Href=@GetAppUrl() Target=@ProjectAcronymParam>@Localizer["Visit App"]</MudLink>
+                <MudItem sm="12">
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderAvatar>
+                                <MudIcon Icon="@Icons.Material.Filled.Web" />
+                            </CardHeaderAvatar>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h5">@Localizer["Web Application"]</MudText>
+                            </CardHeaderContent>                            
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
+                                <MudStack>
+                                    <MudSwitch T="bool"
+                                               CheckedChanged="HandleCheckedChanged"
+                                               Checked="WebAppEnabled"
+                                               Label="Enabled"
+                                               Color="Color.Info" />
+                                    <MudTextField @bind-Value="@_project.WebApp_URL" 
+                                                  T="string" 
+                                                  Label="URL" 
+                                                  HelperText=@Localizer["Note: It takes up to 5 minutes for the reverse proxy to take your changes."]
+                                                  Variant="Variant.Outlined" />
+                                </MudStack>
+                            </DatahubAuthView>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
+                                <MudButton Variant="Variant.Text"
+                                           Color="Color.Primary"
+                                           Size="Size.Small"
+                                           EndIcon="@Icons.Material.Filled.Save"
+                                           Disabled="WebAppSaveDisabled"
+                                           OnClick=@HandleSaveChanges>
+                                    @Localizer["Save"]
+                                </MudButton>
+                            </DatahubAuthView>
+                            <MudButton Href=@GetAppUrl() 
+                                       Target=@ProjectAcronymParam 
+                                       Variant="Variant.Text" 
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       Class="ml-4"
+                                       EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight"
+                                       Disabled="!WebAppEnabled">
+                                @Localizer["Visit"]
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
                 </MudItem>
             }
         </CascadingValue>
@@ -60,8 +107,10 @@
     private string _userId;
     private string _projectName;
     private bool _isFrench;
-    private bool _showAppLink;
+    private string _wsAppBase;
     private List<Client_Engagement> _clientEngagements = new();
+
+    private bool ReverseProxyEnabled => Configuration.ReverseProxy.Enabled;
 
     protected override async Task OnInitializedAsync()
     {
@@ -74,6 +123,9 @@
             .Include(p => p.Whitelist)
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
             .FirstOrDefaultAsync();
+
+        if (_project is null)
+            return;
 
         _isFrench = Thread.CurrentThread.CurrentCulture.Name.Equals("fr-ca", StringComparison.OrdinalIgnoreCase);
         _projectName = _project?.ProjectName;
@@ -99,8 +151,15 @@
         // record recent link
         await RecordRecentLink();
 
-        _showAppLink = _configuration.GetValue<bool>("ReverseProxy:Enabled");
+        // initialize the shiny web app url
+        if (_project.WebAppEnabled != true && string.IsNullOrWhiteSpace(_project.WebApp_URL))
+        {
+            _project.WebApp_URL = GetDefaultAppUrl();
+        }        
     }
+
+    private bool WebAppEnabled => ReverseProxyEnabled && _project?.WebAppEnabled == true;
+    private bool WebAppSaveDisabled => WebAppEnabled && string.IsNullOrWhiteSpace(_project?.WebApp_URL);
 
     private async Task RecordRecentLink()
     {
@@ -117,5 +176,32 @@
         await _userLocationManagerService.RegisterNavigation(userRecentLink);
     }
 
-    private string GetAppUrl() => $"/wsapp/{ProjectAcronymParam}/";
+    private async Task HandleSaveChanges()
+    {
+        await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
+
+        var project = await ctx.Projects
+            .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
+            .FirstOrDefaultAsync();
+
+        project.WebAppEnabled = _project.WebAppEnabled;
+        project.WebApp_URL = _project.WebApp_URL;
+
+        await ctx.SaveChangesAsync();
+    }
+
+    private async Task HandleCheckedChanged(bool value)
+    {
+        _project.WebApp_URL ??= GetDefaultAppUrl();
+        _project.WebAppEnabled = value;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private string GetAppUrl() => $"/{Configuration.ReverseProxy.BasePath}/{ProjectAcronymParam}/";
+
+    private string GetDefaultAppUrl()
+    {
+        var appId = $"fsdh-proj-{_project.Project_Acronym_CD}-shiny-{Configuration.Hosting.EnvironmentName}".ToLower();
+        return $"https://{appId}.azurewebsites.net";
+    }
 }

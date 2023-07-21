@@ -7,8 +7,26 @@
 @inject UserLocationManagerService UserLocationManagerService
 <MudGrid Spacing="3">
     <MudItem xs="_headings.Any() ? 9 : 0">
-        <MudPaper Class="px-8 py-6">
-            
+        @if (ShowPaper)
+        {
+            <MudPaper Class="px-6 py-4" Elevation="0" Outlined>
+                <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+                    <MudButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
+                               OnClick="@HandleRemoveFromCache"
+                               Color="@Color.Primary"
+                               Variant="@Variant.Filled"
+                               StartIcon="@Icons.Material.Filled.Launch"
+                               Target="_blank">
+                        @Localizer["BUTTONS.Edit"]
+                    </MudButton>
+                </AuthorizeView>
+                <DHMarkdown Content="@_markdownContent"
+                            LinkRewriter="@RewriteLink"
+                            Substitutions="@Substitutions"/>
+            </MudPaper>
+        }
+        else
+        {
             <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
                 <MudButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
                            OnClick="@HandleRemoveFromCache"
@@ -19,11 +37,11 @@
                     @Localizer["BUTTONS.Edit"]
                 </MudButton>
             </AuthorizeView>
-                <DHMarkdown Content="@_markdownContent"
-                            LinkRewriter="@RewriteLink"
-                            Substitutions="@Substitutions"/>
-        </MudPaper>
-    </MudItem>   
+            <DHMarkdown Content="@_markdownContent"
+                        LinkRewriter="@RewriteLink"
+                        Substitutions="@Substitutions"/>
+        }
+    </MudItem>
     @if (_headings?.Any() ?? false)
     {
         <MudItem xs="3">
@@ -31,7 +49,6 @@
         </MudItem>
     }
 </MudGrid>
-
 
 
 @code {
@@ -42,8 +59,11 @@
     [Parameter]
     public List<(string, string)> Substitutions { get; set; }
 
+    [Parameter]
+    public bool ShowPaper { get; set; } = true;
+
     private string _markdownContent;
-    private List<(bool isChild, string text)> _headings;
+    private List<string> _headings = new();
     private string _editButtonStyle = "float: right;";
 
     protected override async Task OnParametersSetAsync()
@@ -57,7 +77,6 @@
             ResourceArticleId = DocumentItem.Id,
             ResourceArticleTitle = DocumentItem.Title,
             accessedTime = DateTimeOffset.Now,
-
         };
         await UserLocationManagerService.RegisterNavigation(userRecentLink);
     }
@@ -66,7 +85,7 @@
     {
         if (link.StartsWith("http") || link.StartsWith("/api"))
             return link;
-        //if link has an image extension
+    //if link has an image extension
         var linkLc = link.ToLower();
         if (linkLc.EndsWith(".png") || linkLc.EndsWith(".jpg") || linkLc.EndsWith(".jpeg") || linkLc.EndsWith(".gif"))
         {
@@ -74,7 +93,7 @@
                 return _docService.BuildAbsoluteURL(link);
             var baseAddress = new Uri(_docService.BuildAbsoluteURL(DocumentItem.MarkdownPage));
             Uri directory = new Uri(baseAddress, "."); // "." == current dir, like MS-DOS
-            var imgLink = new Uri(directory,link).AbsoluteUri;
+            var imgLink = new Uri(directory, link).AbsoluteUri;
             return imgLink;
         }
         return ResourcesPage.BaseUrl + "/" + System.Web.HttpUtility.UrlEncode(link);
@@ -84,17 +103,17 @@
     {
         _docService.RemoveFromCache(DocumentItem);
     }
-    
-    private List<(bool isChild, string text)> GetHeadings(string markdownContent)
+
+    private List<string> GetHeadings(string markdownContent)
     {
         if (string.IsNullOrEmpty(markdownContent))
-            return new List<(bool, string)>();
-    // Pattern for second (##) and third (###) headings only.
-        const string pattern = @"(^(#{2,3}).*?$)";
+            return new List<string>();
+    // Pattern for second (##) headings only.
+        const string pattern = @"^#{2}.*$";
 
         var matches = Regex.Matches(markdownContent, pattern, RegexOptions.Multiline);
 
-        var headings = new List<(bool,string)>();
+        var headings = new List<string>();
         foreach (Match match in matches)
         {
     // Remove the leading hash characters and whitespace to only keep the text of the heading.
@@ -103,15 +122,14 @@
             const string linkPattern = @"\[(.*?)\]\((.*?)\)";
 
             headingText = Regex.Replace(headingText, linkPattern, "$1"); // Replace the link with its text only
-            // Remove any styling characters
+    // Remove any styling characters
             const string stylingPattern = @"(\*\*|__|\*|_|\~\~)";
             headingText = Regex.Replace(headingText, stylingPattern, "");
 
-            var numberOfHashes = match.Groups[2].Value.Length;
-            
-            headings.Add((numberOfHashes>2,headingText));
+            headings.Add(headingText);
         }
 
         return headings;
     }
+
 }

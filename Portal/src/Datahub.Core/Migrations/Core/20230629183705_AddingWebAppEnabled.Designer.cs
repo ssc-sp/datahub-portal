@@ -4,20 +4,23 @@ using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230629183705_AddingWebAppEnabled")]
+    partial class AddingWebAppEnabled
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.9")
+                .HasAnnotation("ProductVersion", "7.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -992,23 +995,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Fields");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Documentation.DocumentationResource", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Hits")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("DocumentationResources", (string)null);
-                });
-
             modelBuilder.Entity("Datahub.Core.Model.MiscStoredObject", b =>
                 {
                     b.Property<Guid>("GeneratedId")
@@ -1266,10 +1252,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<bool?>("WebAppEnabled")
                         .HasColumnType("bit");
-
-                    b.Property<string>("WebApp_URL")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("WebForms_URL")
                         .HasMaxLength(400)
@@ -1678,34 +1660,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                             Description = "Able to view the workspace and its contents but not able to contribute or modify anything",
                             Name = "Guest"
                         });
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Storage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<double>("AverageCapacity")
-                        .HasColumnType("float");
-
-                    b.Property<string>("CloudProvider")
-                        .HasMaxLength(16)
-                        .HasColumnType("nvarchar(16)");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectId", "Date");
-
-                    b.ToTable("Project_Storage_Avgs", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Whitelist", b =>
