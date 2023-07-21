@@ -53,7 +53,19 @@
                 @Localizer["No recent data"]
             </MudChip>
         }
-    </DatahubAuthView>
+        @if (_projectStorage != null)
+        {
+            <MudChip Label="true"
+                     Icon="@Icons.Material.Filled.Storage"
+                     IconColor="@GetCostChipColor()"
+                     Variant="@Variant.Text"
+                     Color="@GetCostChipColor()"
+                     Disabled="true">
+                @($"{FormattedAverageCapacity()} GiB")
+            </MudChip>
+        }
+    </DatahubAuthView>    
+
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
         @{
             var color = _project?.MetadataAdded ?? false ? Color.Default : Color.Warning;
@@ -110,6 +122,8 @@
     private Project_Credits _projectCredits = default;
     private decimal CurrentCredits => Convert.ToDecimal(_projectCredits.Current);
 
+    private Project_Storage _projectStorage = default;
+
     private bool CreditsDataExists => _projectCredits is not null && _projectCredits.ProjectId != 0;
 
     private decimal _projectBudget;
@@ -117,7 +131,7 @@
     private FieldValueContainer _projectMetadata;
 
     private string _projectIcon => $"fas fa-{_project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
-    
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -135,12 +149,19 @@
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Project_Acronym_CD == ProjectAcronym);
 
-        _projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(e => e.ProjectId == _project.Project_ID) ?? new Project_Credits();
-
+        _projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(e => e.ProjectId == _project.Project_ID) ?? new();
         _projectBudget = _project.Project_Budget ?? 0;
         _projectMetadata = await _metadataBrokerService.GetObjectMetadataValues(ProjectAcronym);
+        _projectStorage = await GetProjectStorage(ctx);
+
         _loading = false;
         StateHasChanged();
+    }
+
+    private async Task<Project_Storage> GetProjectStorage(DatahubProjectDBContext ctx)
+    {
+        var date = DateTime.Now.Date;
+        return await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(e => e.ProjectId == _project.Project_ID && e.Date == date); // cloud
     }
 
     private Color GetCostChipColor()
@@ -171,7 +192,7 @@
             "PROTECTED C" => Color.Secondary,
         "PROTECTED A" => Color.Error,
         _ => Color.Dark
-        };
+    };
 
     private string GetProjectDataSensitivity()
     {
@@ -194,4 +215,9 @@
         return description ?? _project.ProjectDescription;
     }
 
+    private string FormattedAverageCapacity()
+    {
+        var gibs = _projectStorage.AverageCapacity / (1024 * 1024 * 1024);
+        return gibs.ToString("0.00");
+    }
 }
