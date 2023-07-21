@@ -18,13 +18,13 @@
         <Button                
                 x:Name="StartSpeedTestBtn"
                 Text="Start Speed Test"                
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="Start speed test to estimate connection speed"
                 Clicked="StartSpeedTestBtn_Clicked"
                 HorizontalOptions="Center" />
         <Button                
                 x:Name="SkipBtn"
-                Text="Continue"                
-                SemanticProperties.Hint="Counts the number of times you click"
+                Text="Skip"                
+                SemanticProperties.Hint="Skip the speed test"
                 Clicked="SkipBtn_Clicked"
                 HorizontalOptions="Center" />
         </HorizontalStackLayout>
