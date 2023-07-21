@@ -45,10 +45,7 @@
                                 <ChildContent>
                                     @if (_isSessionEnabled == true)
                                     {
-                                        <MudContainer Class="mt-8 px-16" MaxWidth="MaxWidth.Large">
-                                            <DHBreadcrumbs/>
-                                            @Body
-                                        </MudContainer>
+                                        @Body
                                     }
                                     @if (_isSessionEnabled == false)
                                     {
@@ -131,7 +128,8 @@ else
 
         if (!user.Identity?.IsAuthenticated ?? true)
         {
-            _navigationManager.NavigateTo("/login");
+            var returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+            _navigationManager.NavigateTo($"/login?redirectUri={returnUrl}", forceLoad:true);
             return;
         }
 

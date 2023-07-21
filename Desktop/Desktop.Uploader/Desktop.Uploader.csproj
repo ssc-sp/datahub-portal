@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net7.0-maccatalyst</TargetFrameworks>
+		<TargetFramework>net7.0-maccatalyst</TargetFramework>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>Datahub.Maui.Uploader</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -49,6 +49,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.16.0" />
+		<PackageReference Include="Foundatio.AzureStorage" Version="10.6.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
 		<PackageReference Include="SuchByte.SpeedTestSharp" Version="1.0.2" />
 	</ItemGroup>

@@ -59,9 +59,7 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.Json;
 using Tewr.Blazor.FileReader;
-using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
@@ -221,67 +219,29 @@ public class Startup
 
         if (ReverseProxyEnabled())
         {
-            ConfigureReverseProxy(services, Configuration);
-        }                    
+            services.AddReverseProxy()
+                    .AddTransforms(builderContext =>
+                    {
+                        builderContext.AddRequestTransform(async transformContext =>
+                        {
+                            // passing the logged user to the proxied app
+                            var loggedUser = transformContext.HttpContext?.User?.Identity?.Name ?? "";
+                            transformContext.ProxyRequest.Headers.Add(GetUserHeaderName(), loggedUser);
+                            await Task.CompletedTask;
+                        });
+                    });
+        }
     }
 
     private bool ReverseProxyEnabled() => Configuration.GetValue<bool>("ReverseProxy:Enabled");
-
-    record ReverseProxyConfig(List<RouteConfig> Routes, List<ClusterConfig> Clusters);
-
-    static void ConfigureReverseProxy(IServiceCollection services, IConfiguration configuration)
-    {
-        var configPath = "./reverseproxy.json";
-        if (!System.IO.File.Exists(configPath))
-            return;
-
-        var json = System.IO.File.ReadAllText(configPath);
-        var proxyConfig = JsonSerializer.Deserialize<ReverseProxyConfig>(json);
-
-        if (proxyConfig?.Routes is null || proxyConfig?.Clusters is null)
-            return;
-
-        var dhUserHeader = configuration.GetValue<string>("UserHeader") ?? "dh-user";
-
-        services.AddReverseProxy()
-                .LoadFromMemory(proxyConfig.Routes, proxyConfig.Clusters)
-                .AddTransforms(builderContext =>
-                {
-                    builderContext.AddRequestTransform(async transformContext =>
-                    {
-                        // passing the logged user to the proxied app
-                        var loggedUser = transformContext.HttpContext?.User?.Identity?.Name ?? "";
-                        transformContext.ProxyRequest.Headers.Add(dhUserHeader, loggedUser);
-                        await Task.CompletedTask;
-                    });
-
-                    foreach (var prefix in GetPrefixes(proxyConfig.Routes))
-                    {
-                        builderContext.AddPathRemovePrefix(prefix);
-                    }
-                });
-
-        static IEnumerable<string> GetPrefixes(List<RouteConfig> routes)
-        {
-            foreach (var route in routes)
-            {
-                var path = (route.Match?.Path ?? "");
-                var index = path.IndexOf("/{");
-                if (index >= 0)
-                {
-                    yield return path[..index];
-                }
-            }
-        }
-    }
+    private string GetUserHeaderName() => Configuration.GetValue<string>("ReverseProxy:UserHeaderName") ?? "dh-user";
 
     static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
     {
         return HttpPolicyExtensions
             .HandleTransientHttpError()
             .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
-            .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2,
-                retryAttempt)));
+            .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
     }
 
     private void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> dbContextFactory, bool migrate = true)

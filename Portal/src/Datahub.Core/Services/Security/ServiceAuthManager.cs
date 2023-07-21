@@ -210,6 +210,7 @@ public class ServiceAuthManager
             .ToListAsync();
 
         usersAuthorization = usersRoles
+            .Where(u => u.PortalUser is not null)
             .GroupBy(u => u.PortalUser.GraphGuid)
             .ToDictionary(u => u.Key, u => 
                 u.Select(a => (a.Role, a.Project))

@@ -1,6 +1,7 @@
 ﻿using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Announcements;
+using Datahub.Core.Model.Documentation;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Repositories;
@@ -43,9 +44,10 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<SystemNotification> SystemNotifications { get; set; }
 
     public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
-        
     public DbSet<Project_Credits> Project_Credits { get; set; }
     public DbSet<Project_Whitelist> Project_Whitelists { get; set; }
+
+    public DbSet<Project_Storage> Project_Storage_Avgs { get; set; }
 
     public DbSet<MiscStoredObject> MiscStoredObjects { get; set; }
 
@@ -73,6 +75,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<ProjectRepository> ProjectRepositories { get; set; }
     
     public DbSet<Project_Role> Project_Roles { get; set; }
+
+    public DbSet<DocumentationResource> DocumentationResources { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {

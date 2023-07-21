@@ -33,9 +33,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     [AeFormIgnore]
     [Key]
-
     public int Project_ID { get; set; }
-
 
     [AeFormIgnore]
     public int? SectorId { get; set; }
@@ -229,6 +227,13 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     [AeFormIgnore]
     public bool? MetadataAdded { get; set; }
+
+    [AeFormIgnore]
+    public bool? WebAppEnabled { get; set; }
+
+    [AeFormIgnore]
+    [StringLength(128)]
+    public string WebApp_URL { get; set; }
 
     [AeFormIgnore]
     [NotMapped]

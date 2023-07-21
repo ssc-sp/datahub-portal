@@ -32,20 +32,27 @@ public class RoleClaimTransformer : IClaimsTransformation
             }
             else
             {
+                var claims = ((ClaimsIdentity)principal.Identity);
+                if (claims is null)
+                    return principal;
+
                 var authorizedProjects = await serviceAuthManager.GetUserAuthorizations(userId);
-                ((ClaimsIdentity)principal.Identity)?.AddClaim(new Claim(ClaimTypes.Role, "default"));
-                ((ClaimsIdentity)principal.Identity)?.AddClaim(new Claim(ClaimTypes.Role, userId));
+                claims.AddClaim(new Claim(ClaimTypes.Role, "default"));
+                claims.AddClaim(new Claim(ClaimTypes.Role, userId));
 
                 foreach (var (role, project) in authorizedProjects)
                 {
                     if (project.Project_Acronym_CD == RoleConstants.DATAHUB_ADMIN_PROJECT && serviceAuthManager.GetViewingAsGuest(userId))
                     {
-                        ((ClaimsIdentity)principal.Identity)?.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST));
+                        claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST));
                     }
                     else
                     {
-                        ((ClaimsIdentity)principal.Identity)?.AddClaim(new Claim(ClaimTypes.Role,
-                            $"{project.Project_Acronym_CD}{RoleConstants.GetRoleConstants(role)}"));
+                        claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{RoleConstants.GetRoleConstants(role)}"));
+                    }
+                    if (project.WebAppEnabled == true)
+                    {
+                        claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{RoleConstants.WEBAPP_SUFFIX}"));
                     }
                 }
             }

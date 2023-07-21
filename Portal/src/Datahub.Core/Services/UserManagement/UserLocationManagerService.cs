@@ -94,11 +94,19 @@ public class UserLocationManagerService
     public async Task<ICollection<UserRecentLink>> GetRecentLinks(string userId, int maxRecentLinks)
     {
         await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
+
+        var allowedLinks = new HashSet<DatahubLinkType>() 
+        {
+            DatahubLinkType.DataProject,
+            DatahubLinkType.Storage,
+            DatahubLinkType.Databricks,
+            DatahubLinkType.ResourceArticle
+        };
+
         return efCoreDatahubContext.UserRecentLinks
             .AsNoTracking()
             .Include(l => l.User)
-            .Where(l => l.User.GraphGuid == userId && (l.DataProject != null || l.ResourceArticleId != null))
-            .Where(l => l.LinkType != DatahubLinkType.Repository)
+            .Where(l => l.User.GraphGuid == userId && (l.DataProject != null || l.ResourceArticleId != null) && allowedLinks.Contains(l.LinkType))
             .OrderByDescending(l => l.accessedTime)
             .Take(maxRecentLinks)
             .ToList();
