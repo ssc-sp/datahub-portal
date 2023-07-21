@@ -27,8 +27,13 @@ public class ProjectUsageService
         // create if it does exists
         projectCredits ??= new() { ProjectId = projectId };
 
+        // create session
+        var session = await _azureManagementService.GetSession(ct);
+        if (session is null)
+            return false;
+
         // update usage
-        var (succeeded, yesterdayCosts) = await UpdateUsage(projectCredits, resourceGroups, ct);
+        var (succeeded, yesterdayCosts) = await UpdateUsage(session, projectCredits, resourceGroups, ct);
         if (!succeeded)
             return false;
 
@@ -48,6 +53,12 @@ public class ProjectUsageService
 
         // save changes
         await ctx.SaveChangesAsync(ct);
+
+        // wait 5 seconds before trying next update
+        await Task.Delay(5000);
+
+        // update project avg capacity
+        await UpdateProjectAverageStoreCapacity(ctx, session, projectId, resourceGroups, ct);
 
         return true;
     }
@@ -80,11 +91,9 @@ public class ProjectUsageService
         return date.HasValue && DateTime.UtcNow.AddMinutes(-minutes) < date;
     }
 
-    private async Task<(bool Succeeded, List<AzureServiceCost>? yesterdayCosts)> UpdateUsage(Project_Credits projectCredits, 
-        string[] resourceGroups, CancellationToken ct)
+    private async Task<(bool Succeeded, List<AzureServiceCost>? yesterdayCosts)> UpdateUsage(AzureManagementSession session, 
+        Project_Credits projectCredits, string[] resourceGroups, CancellationToken ct)
     {
-        var session = await _azureManagementService.GetSession(ct);
-
         // monthy by service
         var costByService = await session.GetResourceGroupYearCostByService(resourceGroups);
         if (costByService is not null)
@@ -126,6 +135,36 @@ public class ProjectUsageService
         projectCredits.LastUpdate = DateTime.UtcNow;
 
         return (true, yesterdayCostByService);
+    }
+
+    private async Task<bool> UpdateProjectAverageStoreCapacity(DatahubProjectDBContext ctx, AzureManagementSession session, 
+        int projectId, string[] resourceGroups, CancellationToken ct)
+    {
+        try
+        {
+            var date = DateTime.Now.Date;
+
+            var entity = await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(e => e.ProjectId == projectId && e.Date == date);
+            entity ??= new() { ProjectId = projectId, Date = date };
+
+            entity.AverageCapacity = await session.GetTotalAverageStorageCapacity(resourceGroups);
+
+            if (entity.Id == 0)
+            {
+                ctx.Project_Storage_Avgs.Add(entity);
+            }
+            else
+            {
+                ctx.Project_Storage_Avgs.Update(entity);
+            }
+            await ctx.SaveChangesAsync(ct);
+
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 }
 
