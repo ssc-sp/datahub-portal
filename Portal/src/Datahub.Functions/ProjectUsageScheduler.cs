@@ -53,7 +53,10 @@ public class ProjectUsageScheduler
 
             var message = TryDeserializeMessage(resource, timeout);
             if (message is null)
+            {
+                _logger.LogWarning($"Invalid resource json found in project {resource.ProjectId}:\n{resource.JsonContent}");
                 continue;
+            }
 
             timeout += 10; // add 10 seconds
 
