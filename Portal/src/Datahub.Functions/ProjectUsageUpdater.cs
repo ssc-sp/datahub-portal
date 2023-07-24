@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Azure.Storage.Queues.Models;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Projects;
@@ -31,13 +32,8 @@ public class ProjectUsageUpdater
         // deserialize message
         var message = DeserializeQueueMessage(queueItem);
 
-        // verify message 
-        if (message is null || message.ProjectId <= 0 || string.IsNullOrEmpty(message.ResourceGroup))
-        {
-            throw new Exception($"Invalid queue message:\n{queueItem}");
-        }
-
-        var resourceGroups = GetResourceGroups(message.ResourceGroup).ToArray();
+        // get resource groups
+        var resourceGroups = EnumerateResourceGroups(message).ToArray();
 
         // update the usage
         if (!await _usageService.UpdateProjectUsage(message.ProjectId, resourceGroups, cancellationToken))
@@ -47,19 +43,48 @@ public class ProjectUsageUpdater
         await _mediator.Send(new ProjectUsageNotificationMessage(message.ProjectId), cancellationToken);
     }
 
-    static ProjectUsageUpdateMessage? DeserializeQueueMessage(string message)
+    [Function("ProjectCapacityUsageUpdater")]
+    public async Task UpdateProjectCapacity([QueueTrigger("%QueueProjectCapacityUpdate%", Connection = "DatahubStorageConnectionString")] string queueItem,
+    CancellationToken cancellationToken)
     {
-        return JsonSerializer.Deserialize<ProjectUsageUpdateMessage>(message);
+        // test for ping
+        if (await _pongService.Pong(queueItem))
+            return;
+
+        // deserialize message
+        var message = DeserializeQueueMessage(queueItem);
+
+        // get resource groups
+        var resourceGroups = EnumerateResourceGroups(message).ToArray();
+
+        // update the usage
+        await _usageService.UpdateProjectCapacity(message.ProjectId, resourceGroups, cancellationToken);
+    }
+
+    static ProjectUsageUpdateMessage DeserializeQueueMessage(string text)
+    {
+        var message = JsonSerializer.Deserialize<ProjectUsageUpdateMessage>(text);
+        
+        // verify message 
+        if (message is null || message.ProjectId <= 0 || string.IsNullOrEmpty(message.ResourceGroup))
+        {
+            throw new Exception($"Invalid queue message:\n{text}");
+        }
+
+        return message;
     }
 
     /// <summary>
     /// Given: fsdh_proj_die1_dev_rg
     /// </summary>
     /// <returns>[fsdh_proj_die1_dev_rg, fsdh-dbk-die1-dev-rg]</returns>
-    static IEnumerable<string> GetResourceGroups(string name)
+    static IEnumerable<string> EnumerateResourceGroups(ProjectUsageUpdateMessageBase message)
     {
-        yield return name;
-        var parts = name.Split('_').Select((s, idx) => idx == 1 ? "dbk" : s);
-        yield return string.Join("-", parts);
+        yield return message.ResourceGroup;
+        if (message.Databricks)
+        {
+            var parts = message.ResourceGroup.Split('_').Select((s, idx) => idx == 1 ? "dbk" : s);
+            yield return string.Join("-", parts);
+        }
     }
 }
