@@ -1,6 +1,8 @@
 ﻿using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.ProjectTools.Services;
+using Datahub.Shared.Entities;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -97,14 +99,18 @@ public class ProjectUsageScheduler
     private async Task<List<ProjectResourceData>> GetProjectResources(DatahubProjectDBContext ctx)
     {
         var databrickProjects = new HashSet<int>();
+
+        var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
+        var storageBlobType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
+
         var projects = new List<Project_Resources2>();
         await foreach (var res in ctx.Project_Resources2.AsAsyncEnumerable())
         {
-            if (res.ResourceType == "terraform:azure-databricks")
+            if (res.ResourceType == terraformServiceType)
             {
                 databrickProjects.Add(res.ProjectId);
             }
-            if (res.ResourceType == "terraform:azure-storage-blob")
+            if (res.ResourceType == storageBlobType)
             {
                 projects.Add(res);
             }
