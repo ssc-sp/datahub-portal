@@ -2,7 +2,7 @@
 
 @inject NavigationManager _navigationManager
 @inject IUserInformationService _userInformationService
-@inject IConfiguration _configuration
+@inject DatahubPortalConfiguration _portalConfiguration
 
 <PageTitle>@Localizer["DataHub | Login"]</PageTitle>
 
@@ -42,7 +42,7 @@
         {
             _navigationManager.NavigateTo("/");
         }
-        else if (_configuration.GetValue<bool>("ShowLoginPage") != true)
+        else if (!_portalConfiguration.ShowLoginPage)
         {
             HandleLogin();
         }
