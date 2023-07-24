@@ -54,8 +54,17 @@ public class ProjectUsageService
         // save changes
         await ctx.SaveChangesAsync(ct);
 
-        // wait 5 seconds before trying next update
-        await Task.Delay(5000);
+        return true;
+    }
+
+    public async Task<bool> UpdateProjectCapacity(int projectId, string[] resourceGroups, CancellationToken ct)
+    {
+        using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
+
+        // create session
+        var session = await _azureManagementService.GetSession(ct);
+        if (session is null)
+            return false;
 
         // update project avg capacity
         await UpdateProjectAverageStoreCapacity(ctx, session, projectId, resourceGroups, ct);
@@ -137,34 +146,30 @@ public class ProjectUsageService
         return (true, yesterdayCostByService);
     }
 
-    private async Task<bool> UpdateProjectAverageStoreCapacity(DatahubProjectDBContext ctx, AzureManagementSession session, 
+    private async Task UpdateProjectAverageStoreCapacity(DatahubProjectDBContext ctx, AzureManagementSession session, 
         int projectId, string[] resourceGroups, CancellationToken ct)
     {
-        try
+        var date = DateTime.UtcNow.Date;
+
+        var entity = await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(e => e.ProjectId == projectId && e.Date == date);
+        entity ??= new() { ProjectId = projectId, Date = date };
+
+        var capacity = await session.GetTotalAverageStorageCapacity(resourceGroups);
+        if (capacity == 0)
+            return;
+
+        entity.AverageCapacity = capacity;
+
+        if (entity.Id == 0)
         {
-            var date = DateTime.Now.Date;
-
-            var entity = await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(e => e.ProjectId == projectId && e.Date == date);
-            entity ??= new() { ProjectId = projectId, Date = date };
-
-            entity.AverageCapacity = await session.GetTotalAverageStorageCapacity(resourceGroups);
-
-            if (entity.Id == 0)
-            {
-                ctx.Project_Storage_Avgs.Add(entity);
-            }
-            else
-            {
-                ctx.Project_Storage_Avgs.Update(entity);
-            }
-            await ctx.SaveChangesAsync(ct);
-
-            return true;
+            ctx.Project_Storage_Avgs.Add(entity);
         }
-        catch (Exception)
+        else
         {
-            return false;
+            ctx.Project_Storage_Avgs.Update(entity);
         }
+
+        await ctx.SaveChangesAsync(ct);
     }
 }
 
