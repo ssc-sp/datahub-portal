@@ -149,7 +149,7 @@ public class ProjectUsageService
     private async Task UpdateProjectAverageStoreCapacity(DatahubProjectDBContext ctx, AzureManagementSession session, 
         int projectId, string[] resourceGroups, CancellationToken ct)
     {
-        var date = DateTime.Now.Date;
+        var date = DateTime.UtcNow.Date;
 
         var entity = await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(e => e.ProjectId == projectId && e.Date == date);
         entity ??= new() { ProjectId = projectId, Date = date };

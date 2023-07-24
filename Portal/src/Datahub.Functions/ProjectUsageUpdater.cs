@@ -33,7 +33,7 @@ public class ProjectUsageUpdater
         var message = DeserializeQueueMessage(queueItem);
 
         // get resource groups
-        var resourceGroups = GetResourceGroups(message.ResourceGroup).ToArray();
+        var resourceGroups = EnumerateResourceGroups(message).ToArray();
 
         // update the usage
         if (!await _usageService.UpdateProjectUsage(message.ProjectId, resourceGroups, cancellationToken))
@@ -55,7 +55,7 @@ public class ProjectUsageUpdater
         var message = DeserializeQueueMessage(queueItem);
 
         // get resource groups
-        var resourceGroups = GetResourceGroups(message.ResourceGroup).ToArray();
+        var resourceGroups = EnumerateResourceGroups(message).ToArray();
 
         // update the usage
         await _usageService.UpdateProjectCapacity(message.ProjectId, resourceGroups, cancellationToken);
@@ -78,10 +78,13 @@ public class ProjectUsageUpdater
     /// Given: fsdh_proj_die1_dev_rg
     /// </summary>
     /// <returns>[fsdh_proj_die1_dev_rg, fsdh-dbk-die1-dev-rg]</returns>
-    static IEnumerable<string> GetResourceGroups(string name)
+    static IEnumerable<string> EnumerateResourceGroups(ProjectUsageUpdateMessageBase message)
     {
-        yield return name;
-        var parts = name.Split('_').Select((s, idx) => idx == 1 ? "dbk" : s);
-        yield return string.Join("-", parts);
+        yield return message.ResourceGroup;
+        if (message.Databricks)
+        {
+            var parts = message.ResourceGroup.Split('_').Select((s, idx) => idx == 1 ? "dbk" : s);
+            yield return string.Join("-", parts);
+        }
     }
 }

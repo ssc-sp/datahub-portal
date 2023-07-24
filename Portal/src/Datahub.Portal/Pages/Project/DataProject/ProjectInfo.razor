@@ -160,20 +160,6 @@
         StateHasChanged();
     }
 
-    //private async Task<Project_Storage> GetProjectStorage(DatahubProjectDBContext ctx)
-    //{
-    //    try
-    //    {
-    //        var session = await _azureManagementService.GetSession(default);
-    //        var capacity = await session.GetTotalAverageStorageCapacity(GetProjectResourceGroups());
-    //        return new() { AverageCapacity = capacity };
-    //    }
-    //    catch (Exception)
-    //    {
-    //        return default;
-    //    }
-    //}
-
     private async Task<Project_Storage> GetProjectStorage(DatahubProjectDBContext ctx)
     {
         return await ctx.Project_Storage_Avgs
