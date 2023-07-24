@@ -3,9 +3,9 @@ using MediatR;
 
 namespace Datahub.Infrastructure.Queues.Messages;
 
-public class ProjectUsageUpdateMessage : IRequest, IMessageTimeout
+ public class ProjectUsageUpdateMessageBase
 {
-    public ProjectUsageUpdateMessage(int projectId, string resourceGroup, int timeout)
+    public ProjectUsageUpdateMessageBase(int projectId, string resourceGroup, int timeout)
     {
         ProjectId = projectId;
         ResourceGroup = resourceGroup;
@@ -17,3 +17,16 @@ public class ProjectUsageUpdateMessage : IRequest, IMessageTimeout
     public int Timeout { get; }
 }
 
+public class ProjectUsageUpdateMessage : ProjectUsageUpdateMessageBase, IRequest, IMessageTimeout
+{
+    public ProjectUsageUpdateMessage(int projectId, string resourceGroup, int timeout) : base(projectId, resourceGroup, timeout)
+    {
+    }
+}
+
+public class ProjectCapacityUpdateMessage : ProjectUsageUpdateMessageBase, IRequest, IMessageTimeout
+{
+    public ProjectCapacityUpdateMessage(int projectId, string resourceGroup, int timeout) : base(projectId, resourceGroup, timeout)
+    {
+    }
+}

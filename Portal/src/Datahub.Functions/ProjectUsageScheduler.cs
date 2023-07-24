@@ -47,6 +47,13 @@ public class ProjectUsageScheduler
 
             // send/post the message
             await _mediator.Send(message);
+
+            timeout += 5;
+
+            var capacityMessage = ConvertToCapacityUpdateMessage(message, timeout);
+
+            // send/post the message
+            await _mediator.Send(capacityMessage);
         }
 
         _logger.LogInformation($"{scheduled.Count} projects scheduled!");
@@ -70,5 +77,10 @@ public class ProjectUsageScheduler
             return default;
         }
     }    
+
+    static ProjectCapacityUpdateMessage ConvertToCapacityUpdateMessage(ProjectUsageUpdateMessage message, int timeout)
+    {
+        return new(message.ProjectId, message.ResourceGroup, timeout);
+    }
 }
 
