@@ -5,17 +5,20 @@ using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Projects;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
 
 namespace Datahub.Functions;
 
 public class ProjectUsageUpdater
 {
+    private readonly ILogger<ProjectUsageUpdater> _logger;
     private readonly ProjectUsageService _usageService;
     private readonly IMediator _mediator;
     private readonly QueuePongService _pongService;
 
-    public ProjectUsageUpdater(ProjectUsageService usageService, IMediator mediator, QueuePongService pongService)
+    public ProjectUsageUpdater(ILoggerFactory loggerFactory, ProjectUsageService usageService, IMediator mediator, QueuePongService pongService)
     {
+        _logger = loggerFactory.CreateLogger<ProjectUsageUpdater>();
         _usageService = usageService;
         _mediator = mediator;
         _pongService = pongService;
@@ -58,7 +61,14 @@ public class ProjectUsageUpdater
         var resourceGroups = EnumerateResourceGroups(message).ToArray();
 
         // update the usage
-        await _usageService.UpdateProjectCapacity(message.ProjectId, resourceGroups, cancellationToken);
+        var capacityUsed = await _usageService.UpdateProjectCapacity(message.ProjectId, resourceGroups, cancellationToken);
+
+        // warn about zero capacity
+        if (capacityUsed <= 0.0)
+        {
+            var groups = string.Join(", ", resourceGroups);
+            _logger.LogWarning($"Used storage capacity for: {groups} is {capacityUsed}!");
+        }
     }
 
     static ProjectUsageUpdateMessage DeserializeQueueMessage(string text)
