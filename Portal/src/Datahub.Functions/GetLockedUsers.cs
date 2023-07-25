@@ -9,13 +9,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Datahub.Functions
 {
-    public class GetUsersStatus
+    public class GetLockedUsers
     {
         private readonly ILogger _logger;
         private readonly AzureConfig _configuration;
         private readonly IMediator _mediator;
         
-        public GetUsersStatus(ILoggerFactory loggerFactory, AzureConfig configuration, IMediator mediator)
+        public GetLockedUsers(ILoggerFactory loggerFactory, AzureConfig configuration, IMediator mediator)
         {
             _logger = loggerFactory.CreateLogger<CreateGraphUser>();
             _configuration = configuration;
@@ -37,7 +37,7 @@ namespace Datahub.Functions
             return new(clientSecretCredential, scopes);
         }
         
-        [Function("GetUsersStatus")]
+        [Function("GetLockedUsers")]
         public async Task<HttpResponseData> GetUsersDetails(
             [HttpTrigger(AuthorizationLevel.Function, "get")]
             HttpRequestData request)
@@ -46,11 +46,11 @@ namespace Datahub.Functions
             var graphClient = GetAuthenticatedGraphClient();
             var graphResult = await graphClient.Users
                 .Request()
-                //.Filter("accountEnabled eq false")
+                .Filter("accountEnabled eq false")
+                .Select("displayName,mail,id")
                 .GetAsync();
             var response = request.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(graphResult);
-            _logger.LogInformation(graphResult.Count.ToString());
             return response;
         }
     }
