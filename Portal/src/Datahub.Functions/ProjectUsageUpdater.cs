@@ -65,7 +65,7 @@ public class ProjectUsageUpdater
 
         // log capacity found
         var groups = string.Join(", ", resourceGroups);
-        _logger.LogWarning($"Used storage capacity for: '{groups}' is {capacityUsed}.");
+        _logger.LogInformation($"Used storage capacity for: '{groups}' is {capacityUsed}.");
     }
 
     static ProjectUsageUpdateMessage DeserializeQueueMessage(string text)
