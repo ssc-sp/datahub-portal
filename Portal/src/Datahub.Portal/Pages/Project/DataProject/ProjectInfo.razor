@@ -61,7 +61,8 @@
                      Icon="@Icons.Material.Filled.Storage"
                      IconColor="@GetCostChipColor()"
                      Variant="@Variant.Text"
-                     Color="@GetCostChipColor()">
+                     Color="@GetCostChipColor()"
+                     OnClick=@HandleShowStorageReport>
                 @($"{FormattedAverageCapacity()}")
             </MudChip>
         }
@@ -211,6 +212,11 @@
     private void HandleShowCosts(MouseEventArgs args)
     {
         _navigationManager.NavigateTo($"/w/{_project.Project_Acronym_CD}/costs");
+    }
+
+    private void HandleShowStorageReport(MouseEventArgs args)
+    {
+        _navigationManager.NavigateTo($"/w/{_project.Project_Acronym_CD}/storage");
     }
 
     private string GetProjectDescription()
