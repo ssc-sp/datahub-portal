@@ -35,7 +35,7 @@
                 <MudItem xs="6" sm="@SmSize">
                     <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="999"/>
                 </MudItem>
-
+            
             </Authorized>
             <NotAuthorized>
                 @if (_numberOfRemainingWorkspaces > 0)
@@ -59,10 +59,6 @@
 
     [Parameter]
     public string UserId { get; set; }
-
-        private const string UserWorkspaceOpenIcon = Icons.Material.Filled.KeyboardDoubleArrowRight;
-        private const string UserWorkspaceCreateIcon = "fa-duotone fa-layer-plus";
-        private const string WorkspaceCreationDialogTitle = "Create a Workspace";
 
         private const int MaxWorkspaceCount = 3;
 
@@ -96,7 +92,7 @@
     private async Task ShowProjectDialog()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await DialogService.ShowAsync<CreateProjectDialog>(Localizer[WorkspaceCreationDialogTitle], options);
+        var dialog = await DialogService.ShowAsync<CreateProjectDialog>(Localizer["Create a new Workspace"], options);
         var dialogResult = await dialog.Result;
         if (!dialogResult.Canceled)
         {
