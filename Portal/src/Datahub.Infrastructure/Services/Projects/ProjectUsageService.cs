@@ -66,11 +66,11 @@ public class ProjectUsageService
         var entity = await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(e => e.ProjectId == projectId && e.Date == date);
         entity ??= new() { ProjectId = projectId, Date = date };
 
-#if !DEBUG
+//#if !DEBUG
         // check if already got today's capacity
         if (entity.AverageCapacity > 0)
             return entity.AverageCapacity;
-#endif
+//#endif
 
         // create azure session
         var session = await _azureManagementService.GetSession(ct);

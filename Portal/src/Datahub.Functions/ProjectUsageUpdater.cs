@@ -63,12 +63,9 @@ public class ProjectUsageUpdater
         // update the usage
         var capacityUsed = await _usageService.UpdateProjectCapacity(message.ProjectId, resourceGroups, cancellationToken);
 
-        // warn about zero capacity
-        if (capacityUsed <= 0.0)
-        {
-            var groups = string.Join(", ", resourceGroups);
-            _logger.LogWarning($"Used storage capacity for: {groups} is {capacityUsed}!");
-        }
+        // log capacity found
+        var groups = string.Join(", ", resourceGroups);
+        _logger.LogInformation($"Used storage capacity for: '{groups}' is {capacityUsed}.");
     }
 
     static ProjectUsageUpdateMessage DeserializeQueueMessage(string text)
