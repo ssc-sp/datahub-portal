@@ -37,6 +37,7 @@ public class DatahubPortalConfiguration
     public string AllowedHosts { get; set; } = null!;
     public DatahubStorageQueue DatahubStorageQueue { get; set; } = new();
     public string DatahubGraphInviteFunctionUrl { get; set; } = null!;
+    public string DatahubGraphLockedUsersUrl { get; set; } = null!;
     public TermsAndConditionsUrl TermsAndConditionsUrl { get; set; } = new();
 
     public string SupportFormUrl { get; set; } =
