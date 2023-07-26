@@ -77,11 +77,11 @@
         //     throw new InvalidOperationException($"Unable to fetch locked users from {url}");
         // }
         // var resultJson = JsonNode.Parse(resultString);
-        var exString = "[{\"email\":\"iperez@apption.com\"}, {\"email\":\"matteo.gisondi@ssc-spc.gc.ca\"}]";
+        var exString = "[{\"mail\":\"iperez@apption.com\"}, {\"mail\":\"matteo.gisondi@ssc-spc.gc.ca\"}]";
         var resultJson = JsonNode.Parse(exString).AsArray();
         foreach (var user in resultJson)
         {
-            lockedUsers.Add(user["email"].ToString());
+            lockedUsers.Add(user["mail"].ToString());
         }
     }
 
