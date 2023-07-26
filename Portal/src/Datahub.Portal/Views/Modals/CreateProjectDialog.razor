@@ -3,28 +3,44 @@
 
 <MudDialog>
     <DialogContent>
-        <MudForm Class="my-4" @bind-IsValid="@_success">
-            <MudTextField T="string" 
-                          @bind-Value="_projectTitle" 
+        <MudText>
+            @Localizer["Please complete the following information to create a new workspace"]
+        </MudText>
+        <MudForm Class="mb-4" @bind-IsValid="@_success">
+            <MudTextField T="string"
+                          @bind-Value="_projectTitle"
                           Label="@Localizer["Workspace Title"]" Required
-                          RequiredError="@Localizer["Workspace Title is required"]" 
+                          RequiredError="@Localizer["Workspace Title is required"]"
                           HelperText="@Localizer["Enter a descriptive title for the workspace"]"
-                          DebounceInterval="500" 
+                          DebounceInterval="500"
                           OnDebounceIntervalElapsed="UpdateProjectAcronym"/>
-            
-            <MudTextField T="string" 
-                          @bind-Value="_projectAcronym" 
-                          Label="@Localizer["Workspace Acronym"]" 
+
+            <MudTextField T="string"
+                          @bind-Value="_projectAcronym"
+                          Label="@Localizer["Workspace Acronym"]"
                           AdornmentIcon="fa-light fa-arrows-rotate"
-                          HelperText="@Localizer["A unique alphanumeric acronym to identify the workspace"]" 
-                          Adornment="Adornment.End" 
+                          HelperText="@Localizer["A unique alphanumeric acronym to identify the workspace"]"
+                          Adornment="Adornment.End"
                           OnAdornmentClick="GenerateAcronym"
-                          RequiredError="@Localizer["Workspace Acronym is required"]" 
-                          Converter="_converter" 
-                          @ref="_acronymField" 
+                          RequiredError="@Localizer["Workspace Acronym is required"]"
+                          Converter="_converter"
+                          @ref="_acronymField"
                           Required
                           Validation="@(new Func<string, Task<string>>(ValidateAcronym))"/>
-            
+
+            <MudSelect T="string"
+                       Label="@Localizer["(Optional) Which features are of interest to you?"]"
+                       MultiSelection="true"
+                       HelperText="@Localizer["Please select all that apply"]"
+                       AnchorOrigin="Origin.BottomLeft"
+                       TransformOrigin="Origin.TopLeft"
+                       @bind-Value="@_projectGoals">
+                <MudSelectItem T="string" Value="@("Storage")">@Localizer["Storage"]</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Analytics")">@Localizer["Analytics"]</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Collaboration")">@Localizer["Collaboration"]</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Other")">@Localizer["Other"]</MudSelectItem>
+            </MudSelect>
+
             @if (_errorMessage is not null)
             {
                 <MudAlert Severity="Severity.Error" Dense="true" Class="my-2" ShowCloseIcon CloseIconClicked="CloseAlert">
@@ -34,17 +50,20 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        @if (ShowCancel)
-        {
-            <MudButton Variant="Variant.Text" OnClick="CloseDialog">@Localizer["Cancel"]</MudButton>
-        }
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_success" OnClick="CreateProject">
-            @if (_isCreating)
+        <MudElement Class="px-4 pb-4">
+            @if (ShowCancel)
             {
-                <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true"/>
+                <MudButton Variant="Variant.Text" OnClick="CloseDialog">@Localizer["Cancel"]</MudButton>
             }
-            @Localizer["Create Workspace"]
-        </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_success" OnClick="CreateProject" Class="ml-2">
+                @if (_isCreating)
+                {
+                    <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true"/>
+                }
+                @Localizer["Create Workspace"]
+            </MudButton>
+        </MudElement>
+
     </DialogActions>
 </MudDialog>
 
@@ -57,14 +76,15 @@
     public bool ShowCancel { get; set; } = true;
 
 #nullable enable
+        private const int MaxAcronymLength = 7;
     private string? _errorMessage;
     private string _projectTitle = string.Empty;
     private string _projectAcronym = string.Empty;
+    private string _projectGoals;
     private MudTextField<string>? _acronymField;
 
     private bool _success;
     private bool _isCreating;
-        private const int MaxAcronymLength = 7;
 
 
     private async Task GenerateAcronym()
@@ -116,10 +136,10 @@
             if (_isCreating)
                 return;
             _isCreating = true;
-            //update Button
+    //update Button
             StateHasChanged();
             await Task.Delay(1);
-            // TODO: Get Organization name?
+    // TODO: Get Organization name?
             var isAdded = await ProjectCreationService.CreateProjectAsync(_projectTitle, _projectAcronym, "Unspecified");
             _isCreating = false;
             if (isAdded)

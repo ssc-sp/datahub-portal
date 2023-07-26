@@ -34,8 +34,8 @@ else
             </MudStack>
             <MudStack Spacing="1">
                 <ProjectPreviewCardIconDetails
-                    NumberOfUsers="0"
-                    NumberOfRepositories="0"
+                    NumberOfUsers="Project?.Users?.Count ?? 0"
+                    NumberOfRepositories="Project?.Repositories?.Count ?? 0"
                     NumberOfFiles="0"/>
                 <MudElement>
                     <MudButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary"
