@@ -138,7 +138,14 @@ public class AzureManagementSession
 
     private string GetStorageCapacityRequestUrl(string resourceGroupName, string storageAccountName) 
     {
-        return $"{AzureManagementUrls.ManagementUrl}/subscriptions/{_configuration.SubscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{storageAccountName}/providers/microsoft.insights/metrics?api-version=2021-05-01&metricnames=UsedCapacity";
+        var version = "2019-07-01";
+
+        var today = DateTime.Now.Date;
+        var dateFormat = "yyyy-MM-ddTHH:00:00.000Z";
+        var fromDate = today.AddDays(-1).ToString(dateFormat);
+        var toDate = today.ToString(dateFormat);
+
+        return $"{AzureManagementUrls.ManagementUrl}subscriptions/{_configuration.SubscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{storageAccountName}/providers/microsoft.Insights/metrics?timespan={fromDate}/{toDate}&interval=FULL&metricnames=UsedCapacity&aggregation=average&metricNamespace=microsoft.storage%2Fstorageaccounts&validatedimensions=false&api-version={version}";
     }
 
     private string GetStorageAccountNamesRequestUrl(string resourceGroupName)
