@@ -162,20 +162,10 @@
 
     private async Task<Project_Storage> GetProjectStorage(DatahubProjectDBContext ctx)
     {
-        try
-        {
-            var session = await _azureManagementService.GetSession(default);
-            var capacity = await session.GetTotalAverageStorageCapacity(GetProjectResourceGroups());
-            //return await ctx.Project_Storage_Avgs
-            //    .Where(e => e.ProjectId == _project.Project_ID)
-            //    .OrderByDescending(e => e.Date)
-            //    .FirstOrDefaultAsync();
-            return new() { AverageCapacity = capacity };
-        }
-        catch (Exception)
-        {
-            return default;
-        }
+        return await ctx.Project_Storage_Avgs
+            .Where(e => e.ProjectId == _project.Project_ID)
+            .OrderByDescending(e => e.Date)
+            .FirstOrDefaultAsync();
     }
 
     private Color GetCostChipColor()
