@@ -22,11 +22,12 @@
                               Label=@Localizer["Government of Canada Email"]
                                   @bind-Value="_email"
                               Required
+                              Variant="Variant.Outlined"
                               RequiredError=@Localizer["Government of Canada Email is required"]
                               Validation=@(new Func<string, string>(EmailValidation))/>
 
                 <MudTextField T="string"
-                              Label=@Localizer["How did you hear about us and what are you hoping to achieve?"]
+                              Label=@Localizer["(Optional) How did you hear about the Federal Science DataHub?"]
                               Variant="Variant.Outlined"
                               Lines="5"
                               @bind-Value="@_comment"/>
@@ -34,7 +35,7 @@
                 <MudCheckBox T="bool"
                              Required
                              RequiredError=@Localizer["Agreement with the Terms and conditions is required"]
-                             Class="mt-16">
+                             Class="mt-8">
 
                     <MudText Typo="Typo.body2">
                         @Localizer["I agree to the "]
@@ -48,14 +49,14 @@
 
                 @if (_isRegistering)
                 {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mr-auto">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mx-auto mt-4">
                         @Localizer["Registering"]
                         <MudProgressCircular Class="ml-4" Color="Color.Default" Size="Size.Small" Indeterminate="true"/>
                     </MudButton>
                 }
                 else
                 {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mr-auto" OnClick="HandleValidSubmit">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mx-auto mt-4" OnClick="HandleValidSubmit">
                         @Localizer["Register"]
                     </MudButton>
                 }
@@ -87,11 +88,11 @@
     {
         _isRegistering = true;
         StateHasChanged();
-        _logger.LogInformation("Attempting to register user with email: {Email}", _email);
-        await _userEnrollmentService.SaveRegistrationDetails(_email, _comment);
 
-        return;
+        _logger.LogInformation("Saving registration details for user with email: {Email}", _email);
+        await _userEnrollmentService.SaveRegistrationDetails(_email, _comment);
         
+        _logger.LogInformation("Attempting to register user with email: {Email}", _email);
         var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(_email, default);
 
         if (!string.IsNullOrWhiteSpace(userId))
