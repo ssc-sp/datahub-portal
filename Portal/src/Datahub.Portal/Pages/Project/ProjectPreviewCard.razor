@@ -2,6 +2,7 @@
 @using MudBlazor.Utilities
 
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
 @if (_showCreate)
 {
@@ -13,9 +14,7 @@
             </MudStack>
             <MudStack Spacing="1">
                 <ProjectPreviewCardIconDetails
-                    NumberOfUsers="0"
-                    NumberOfRepositories="0"
-                    NumberOfFiles="0"/>
+                    NumberOfWorkspacesRemaining="@NumberOfRemainingWorkspaces"/>
                 <MudElement>
                     <MudButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary" OnClick="OnCreateWorkspace">
                         @Localizer["Create Workspace"]
@@ -35,8 +34,8 @@ else
             </MudStack>
             <MudStack Spacing="1">
                 <ProjectPreviewCardIconDetails
-                    NumberOfUsers="Project?.Users?.Count ?? 0"
-                    NumberOfRepositories="Project?.Repositories?.Count ?? 0"
+                    NumberOfUsers="0"
+                    NumberOfRepositories="0"
                     NumberOfFiles="0"/>
                 <MudElement>
                     <MudButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary"
@@ -57,6 +56,9 @@ else
     [Parameter]
     public EventCallback OnCreateWorkspace { get; set; }
 
+    [Parameter]
+    public int NumberOfRemainingWorkspaces { get; set; } = -1;
+
     private bool _showCreate => OnCreateWorkspace.HasDelegate;
 
     private static string _descriptionTextStyle = new StyleBuilder()
@@ -74,4 +76,3 @@ else
         .Build();
 
 }
-
