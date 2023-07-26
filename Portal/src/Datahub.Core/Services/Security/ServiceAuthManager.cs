@@ -191,9 +191,10 @@ public class ServiceAuthManager
 
     public async Task<ImmutableList<(Project_Role, Datahub_Project)>> GetUserAuthorizations(string userGraphId)
     {
-        if (serviceAuthCache.TryGetValue(AUTH_KEY, out Dictionary<string, List<(Project_Role, Datahub_Project)>> usersAuthorization))
+        if (serviceAuthCache.TryGetValue(AUTH_KEY,
+                out Dictionary<string, List<(Project_Role, Datahub_Project)>> usersAuthorization))
         {
-            if(usersAuthorization.TryGetValue(userGraphId, out var userAuths))
+            if (usersAuthorization.TryGetValue(userGraphId, out var userAuths))
             {
                 return userAuths
                     .ToImmutableList();
@@ -212,11 +213,17 @@ public class ServiceAuthManager
         usersAuthorization = usersRoles
             .Where(u => u.PortalUser is not null)
             .GroupBy(u => u.PortalUser.GraphGuid)
-            .ToDictionary(u => u.Key, u => 
+            .ToDictionary(u => u.Key, u =>
                 u.Select(a => (a.Role, a.Project))
                     .ToList());
 
         serviceAuthCache.Set(AUTH_KEY, usersAuthorization, TimeSpan.FromMinutes(5));
+
+        // if the user is not in the dictionary, return an empty list
+        if (!usersAuthorization.ContainsKey(userGraphId))
+        {
+            return ImmutableList<(Project_Role, Datahub_Project)>.Empty;
+        }
 
         return usersAuthorization[userGraphId]
             .ToImmutableList();
