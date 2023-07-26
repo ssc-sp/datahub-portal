@@ -31,9 +31,20 @@
             </MudItem>
         }
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
-            <MudItem xs="6" sm="@SmSize">
-                <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" />
-            </MudItem>
+            <Authorized>
+                <MudItem xs="6" sm="@SmSize">
+                    <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="999"/>
+                </MudItem>
+
+            </Authorized>
+            <NotAuthorized>
+                @if (_numberOfRemainingWorkspaces > 0)
+                {
+                    <MudItem xs="6" sm="@SmSize">
+                        <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="@_numberOfRemainingWorkspaces"/>
+                    </MudItem>
+                }
+            </NotAuthorized>
         </DatahubAuthView>
     </MudGrid>
 </MudStack>
@@ -42,7 +53,7 @@
 
     [Parameter]
     public bool ShowTitle { get; set; } = true;
-    
+
     [Parameter]
     public int SmSize { get; set; } = 4;
 
@@ -51,9 +62,13 @@
 
         private const string UserWorkspaceOpenIcon = Icons.Material.Filled.KeyboardDoubleArrowRight;
         private const string UserWorkspaceCreateIcon = "fa-duotone fa-layer-plus";
+        private const string WorkspaceCreationDialogTitle = "Create a Workspace";
+
+        private const int MaxWorkspaceCount = 3;
+
     private List<Datahub_Project_User> _userRoles;
     private string _chipStyle;
-        private const string WorkspaceCreationDialogTitle = "Create a Workspace";
+    private int _numberOfRemainingWorkspaces;
 
     protected override async Task OnInitializedAsync()
     {
@@ -74,6 +89,8 @@
             .Include(u => u.PortalUser)
             .Where(u => u.PortalUser.GraphGuid == userId)
             .ToListAsync();
+
+        _numberOfRemainingWorkspaces = MaxWorkspaceCount - _userRoles.Count(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead);
     }
 
     private async Task ShowProjectDialog()
