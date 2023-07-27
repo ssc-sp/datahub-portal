@@ -1,5 +1,5 @@
 @using Datahub.Application.Services
-@inject IProjectCreationService ProjectCreationService
+@inject IProjectCreationService _projectCreationService
 
 <MudDialog>
     <DialogContent>
@@ -94,7 +94,7 @@
             _errorMessage = Localizer["Workspace Title is required to generate an acronym"];
             return;
         }
-        _projectAcronym = await ProjectCreationService.GenerateProjectAcronymAsync(_projectTitle);
+        _projectAcronym = await _projectCreationService.GenerateProjectAcronymAsync(_projectTitle);
         _success = true;
         _acronymField?.ResetValidation();
     }
@@ -111,7 +111,7 @@
 
     private async Task<string?> ValidateAcronym(string acronym)
     {
-        if (await ProjectCreationService.AcronymExists(acronym))
+        if (await _projectCreationService.AcronymExists(acronym))
             return Localizer["Workspace Acronym already exists"];
 
         return (acronym.Length > MaxAcronymLength ? Localizer["Acronym must be {0} characters or less", MaxAcronymLength] : null)!;
@@ -126,7 +126,7 @@
     private async Task UpdateProjectAcronym()
     {
         if (string.IsNullOrWhiteSpace(_projectTitle)) return;
-        _projectAcronym = await ProjectCreationService.GenerateProjectAcronymAsync(_projectTitle);
+        _projectAcronym = await _projectCreationService.GenerateProjectAcronymAsync(_projectTitle);
     }
 
     private async Task CreateProject()
@@ -140,10 +140,12 @@
             StateHasChanged();
             await Task.Delay(1);
     // TODO: Get Organization name?
-            var isAdded = await ProjectCreationService.CreateProjectAsync(_projectTitle, _projectAcronym, "Unspecified");
+            
+            var isAdded = await _projectCreationService.CreateProjectAsync(_projectTitle, _projectAcronym, "Unspecified");
             _isCreating = false;
             if (isAdded)
             {
+                await _projectCreationService.SaveProjectCreationDetailsAsync(_projectAcronym, _projectGoals);
                 MudDialog.Close(DialogResult.Ok(_projectAcronym));
             }
             else

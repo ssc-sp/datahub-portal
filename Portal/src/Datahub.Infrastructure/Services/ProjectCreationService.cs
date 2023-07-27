@@ -5,6 +5,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Security;
@@ -76,7 +77,31 @@ public class ProjectCreationService : IProjectCreationService
         var acronym = await GenerateProjectAcronymAsync(projectName);
         return await CreateProjectAsync(projectName, acronym, organization);
     }
-    
+
+    public async Task SaveProjectCreationDetailsAsync(string projectAcronym, string interestedFeatures)
+    {
+        await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
+        var project = await context.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+
+        if (project is null)
+        {
+            _logger.LogError("Project with acronym {ProjectAcronym} not found", projectAcronym);
+        }
+        else
+        {
+            var user = await _userInformationService.GetCurrentPortalUserAsync();
+            var newProjectCreationDetails = new ProjectCreationDetails
+            {
+                ProjectId = project.Project_ID,
+                CreatedById = user.Id,
+                InterestedFeatures = interestedFeatures
+            };
+            
+            await context.ProjectCreationDetails.AddAsync(newProjectCreationDetails);
+            await context.TrackSaveChangesAsync(_auditingService);
+        }
+    }
+
     public async Task<bool> CreateProjectAsync(string projectName, string? acronym, string organization)
     {
         using (var scope = new TransactionScope(

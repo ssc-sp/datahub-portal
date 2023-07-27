@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Services.Notification;
 using Datahub.Shared.Entities;
