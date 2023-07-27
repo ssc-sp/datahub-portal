@@ -79,9 +79,14 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<DocumentationResource> DocumentationResources { get; set; }
     
     /// <summary>
-    /// Table for storing any additional details when user's go through the self registration process
+    /// Table for storing any additional details when users go through the self registration process
     /// </summary>
     public DbSet<SelfRegistrationDetails> SelfRegistrationDetails { get; set; }
+    
+    /// <summary>
+    /// Table for storing any additional details when users go through the project creation process
+    /// </summary>
+    public DbSet<ProjectCreationDetails> ProjectCreationDetails { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
