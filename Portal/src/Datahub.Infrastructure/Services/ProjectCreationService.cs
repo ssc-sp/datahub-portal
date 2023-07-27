@@ -171,7 +171,7 @@ public class ProjectCreationService : IProjectCreationService
 
     private decimal GetDefaultBudget()
     {
-        var value = _configuration.GetValue<int>("DefaultProjectBudget", 400);
+        var value = _configuration.GetValue<int>("DefaultProjectBudget", 100);
         return Convert.ToDecimal(value);
     }
 }
