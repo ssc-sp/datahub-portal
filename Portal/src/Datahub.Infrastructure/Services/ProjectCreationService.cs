@@ -94,7 +94,8 @@ public class ProjectCreationService : IProjectCreationService
             {
                 ProjectId = project.Project_ID,
                 CreatedById = user.Id,
-                InterestedFeatures = interestedFeatures
+                InterestedFeatures = interestedFeatures,
+                CreatedAt = DateTime.UtcNow
             };
             
             await context.ProjectCreationDetails.AddAsync(newProjectCreationDetails);
@@ -157,11 +158,11 @@ public class ProjectCreationService : IProjectCreationService
             
         var projectUser = new Datahub_Project_User()
         {
-            PortalUser = portalUser,
+            PortalUserId = portalUser.Id,
             Approved_DT = DateTime.Now,
-            ApprovedPortalUser = portalUser,
+            ApprovedPortalUserId = portalUser.Id,
             Project = project,
-            Role = role
+            RoleId = role.Id
         };
         await db.Project_Users.AddAsync(projectUser);
         await db.TrackSaveChangesAsync(_auditingService);
