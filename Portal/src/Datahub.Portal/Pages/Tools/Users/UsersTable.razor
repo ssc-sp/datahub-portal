@@ -1,6 +1,9 @@
 @using MudBlazor.Utilities
 @using System.Text.Json.Nodes;
-@using AngleSharp.Text
+@using Microsoft.Extensions.Logging;
+@using Microsoft.Extensions.Logging.Abstractions
+@using Microsoft.IdentityModel.Tokens
+@using Newtonsoft.Json
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IHttpClientFactory _httpClientFactory
 
@@ -16,14 +19,32 @@
             </MudTableSortLabel>
         </MudTh>
         <MudTh>
+            <MudTableSortLabel SortBy="new Func<UserWorkspaces, object>(x => lockedUsers.Contains(x.User.Email))">
+                @Localizer["Status"]
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>
             @Localizer["Workspaces"]
         </MudTh>
             
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="User">
-            <MudText Typo="Typo.h6">@string.Concat(@context.User.DisplayName, lockedUsers.Contains(@context.User.Email) ? "🔒" : "")</MudText>
+            <MudText Typo="Typo.h6">@context.User.DisplayName</MudText>
             <MudText Typo="Typo.body2">@context.User.Email</MudText>
+        </MudTd>
+        <MudTd DataLabel="Status">
+            @switch(GetUserStatus(@context.User.Email))
+            {
+                case "locked":
+                    <MudIcon Icon="@Icons.Material.Filled.Lock" Title="Account locked"/>
+                    break;
+                case "missing":
+                    <MudIcon Icon="@Icons.Material.Filled.QuestionMark" Title="Account missing from MSGraph"/>
+                    break;
+                case "":
+                    break;                        
+            }
         </MudTd>
         <MudTd DataLabel="Workspaces">
             <ul style="list-style: outside;">
@@ -54,35 +75,46 @@
 
     public List<string> lockedUsers = new List<string>();
 
-    protected override async Task OnInitializedAsync() 
+    public List<string> allUsers = new List<string>();
+
+    protected override async Task OnInitializedAsync()
     {
-        // var url = _datahubPortalConfiguration.DatahubGraphLockedUsersUrl;
-        //
-        // var numberOfRetries = 0;
-        // const int maxNumberOfRetries = 5;
-        // string resultString;
-        //
-        // do
-        // {
-        //     using var client = _httpClientFactory.CreateClient();
-        //     var result = await client.GetAsync(url);
-        //
-        //     resultString = await result.Content.ReadAsStringAsync();
-        //
-        //     
-        // } while (string.IsNullOrWhiteSpace(resultString) && numberOfRetries++ < maxNumberOfRetries);
-        //
-        // if (string.IsNullOrWhiteSpace(resultString))
-        // {
-        //     throw new InvalidOperationException($"Unable to fetch locked users from {url}");
-        // }
-        // var resultJson = JsonNode.Parse(resultString);
-        var exString = "[{\"mail\":\"iperez@apption.com\"}, {\"mail\":\"matteo.gisondi@ssc-spc.gc.ca\"}]";
-        var resultJson = JsonNode.Parse(exString).AsArray();
-        foreach (var user in resultJson)
+        var url = _datahubPortalConfiguration.DatahubGraphLockedUsersUrl;
+            
+        var numberOfRetries = 0;
+        const int maxNumberOfRetries = 5;
+        string resultString;
+            
+        do
         {
-            lockedUsers.Add(user["mail"].ToString());
+            using var client = _httpClientFactory.CreateClient();
+            var result = await client.GetAsync(url);
+            
+            resultString = await result.Content.ReadAsStringAsync();
+            
+                
+        } while (string.IsNullOrWhiteSpace(resultString) && numberOfRetries++ < maxNumberOfRetries);
+            
+        if (string.IsNullOrWhiteSpace(resultString))
+        {
+            throw new InvalidOperationException($"Unable to fetch locked users from {url}");
         }
+        var resultDict = JsonConvert.DeserializeObject<Dictionary<string,List<string>>>(resultString);
+        allUsers = resultDict["all"];
+        lockedUsers = resultDict["locked"];
+    }
+
+    private string GetUserStatus(string email)
+    {
+        var status = "";
+        if (lockedUsers.Contains(email) && !lockedUsers.IsNullOrEmpty())
+        {
+            status = "locked";
+        } else if (!allUsers.Contains(email) && !allUsers.IsNullOrEmpty())
+        {
+            status = "missing";
+        }
+        return status;
     }
 
     private bool FilterUserWorkspaces(UserWorkspaces userWorkspaces)
