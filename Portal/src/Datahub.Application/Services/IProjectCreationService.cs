@@ -9,4 +9,6 @@ public interface IProjectCreationService
     //(handling exception causes force refresh through navigation manager)
     public Task<bool> CreateProjectAsync(string projectName, string acronym, string organization); 
     public Task<bool> CreateProjectAsync(string projectName, string organization);
+    
+    public Task SaveProjectCreationDetailsAsync(string projectAcronym, string interestedFeatures);
 }
