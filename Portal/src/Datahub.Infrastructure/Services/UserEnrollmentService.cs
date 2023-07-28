@@ -3,6 +3,9 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Onboarding;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Datahub.Infrastructure.Services;
@@ -12,6 +15,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
     private readonly ILogger<UserEnrollmentService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
+    private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
 
     [GeneratedRegex("^([\\w\\.\\-]+)@([\\w\\-]+)(\\.gc\\.ca)$")]
     private static partial Regex GC_CA_Regex();
@@ -19,12 +23,16 @@ public partial class UserEnrollmentService : IUserEnrollmentService
     [GeneratedRegex("^([\\w\\.\\-]+)@(canada\\.ca)$")]
     private static partial Regex Canada_CA_Regex();
     
-    public UserEnrollmentService(ILogger<UserEnrollmentService> logger, IHttpClientFactory httpClientFactory,
-        DatahubPortalConfiguration datahubPortalConfiguration) 
+    public UserEnrollmentService(
+        ILogger<UserEnrollmentService> logger, 
+        IHttpClientFactory httpClientFactory,
+        DatahubPortalConfiguration datahubPortalConfiguration,
+        IDbContextFactory<DatahubProjectDBContext> contextFactory) 
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _datahubPortalConfiguration = datahubPortalConfiguration;
+        _contextFactory = contextFactory;
     }
 
     public bool IsValidGcEmail(string? email)
@@ -85,5 +93,20 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         
         _logger.LogInformation("Invite sent to {Email} and received id {Id}", registrationRequestEmail, id);
         return id;
+    }
+
+    public async Task SaveRegistrationDetails(string? registrationRequestEmail, string? comment)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        
+        var selfRegistrationDetails = new SelfRegistrationDetails
+        {
+            Email = registrationRequestEmail,
+            Comment = comment,
+            CreatedAt = DateTime.UtcNow
+        };
+        
+        context.SelfRegistrationDetails.Add(selfRegistrationDetails);
+        await context.SaveChangesAsync();
     }
 }

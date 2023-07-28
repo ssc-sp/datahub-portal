@@ -1781,5 +1781,11 @@
   "On This Page": "Sur cette page",
   "View Members": "Voir les membres",
   "Cost per service": "Coût par service",
+  "Number of workspaces remaining": "Nombre d'espaces de travail restants",
+  "Please complete the following information to create a new workspace": "Veuillez remplir les informations suivantes pour créer un nouvel espace de travail",
+  "(Optional) Which features are of interest to you?": "(Optionnel) Quelles fonctionnalités vous intéressent?",
+  "Please select all that apply": "Veuillez sélectionner toutes les options qui s'appliquent",
+  "Analytics": "Analytique",
+  "Collaboration": "Collaboration"
   "Storage daily average (over last 30 days)": "Moyenne quotidienne de stockage (sur les 30 derniers jours)"
 }

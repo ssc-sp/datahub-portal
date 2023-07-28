@@ -16,7 +16,9 @@
   "Agreement with the Terms and conditions is required": "L'accord avec les termes et conditions est requis",
   "Register for the Federal Science DataHub": "Inscrivez-vous pour le Federal Science DataHub",
   "Register": "S'inscrire",
+  "Registering": "Inscription en cours",
   "I agree to the ": "Je suis d'accord avec les ",
   " of use for the FSDH Proof-of-Concept Phase 2": " d'utilisation pour la phase 2 de la démonstration de concept de la DHSF",
-  "Terms and conditions": "modalités et conditions"
+  "Terms and conditions": "modalités et conditions",
+  "(Optional) How did you hear about the Federal Science DataHub?" : "(Optionnel) Comment avez-vous entendu parler du Federal Science DataHub?"
 }
