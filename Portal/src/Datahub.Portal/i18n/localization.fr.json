@@ -1781,5 +1781,11 @@
   "Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar.": "Vous trouverez ci-dessous une liste complète des ressources les plus populaires sur le Datahub. Si vous recherchez quelque chose de spécifique, vous pouvez également parcourir la liste complète des ressources dans la navigation.",
   "On This Page": "Sur cette page",
   "View Members": "Voir les membres",
-  "Cost per service": "Coût par service"
+  "Cost per service": "Coût par service",
+  "Number of workspaces remaining": "Nombre d'espaces de travail restants",
+  "Please complete the following information to create a new workspace": "Veuillez remplir les informations suivantes pour créer un nouvel espace de travail",
+  "(Optional) Which features are of interest to you?": "(Optionnel) Quelles fonctionnalités vous intéressent?",
+  "Please select all that apply": "Veuillez sélectionner toutes les options qui s'appliquent",
+  "Analytics": "Analytique",
+  "Collaboration": "Collaboration"
 }
