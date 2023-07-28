@@ -9,7 +9,7 @@ namespace Datahub.Portal.Services
     {
         public async Task<Dictionary<string, List<string>>> GetUsersStatus(IHttpClientFactory _httpClientFactory, DatahubPortalConfiguration _datahubPortalConfiguration)
         {
-            var url = _datahubPortalConfiguration.DatahubGraphLockedUsersUrl;
+            var url = _datahubPortalConfiguration.DatahubGraphUsersStatusUrl;
             
             var numberOfRetries = 0;
             const int maxNumberOfRetries = 5;
