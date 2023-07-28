@@ -1,24 +1,29 @@
 @page "/tools/users"
+@using Microsoft.IdentityModel.Tokens
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IJSRuntime _jsRuntime
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
-  <MudText Typo="Typo.h1" Class="mb-12">
-      @Localizer["Users"]
-  </MudText>
+    <MudText Typo="Typo.h1" Class="mb-12">
+        @Localizer["Users"]
+    </MudText>
+    <MudButton Color="Color.Primary" OnClick="@CopyLockedUsersToClipboard">@_copyButton</MudButton>
   @if (_userWorkspaces == null)
   {
       <MudSkeleton Height="600px" Width="100%"/>
   }
   else
   {
-      <UsersTable UserWorkspaces="_userWorkspaces"/>
+      <UsersTable UserWorkspaces="_userWorkspaces" @ref="_usersTable"/>
   }
 </DatahubAuthView>
 
 
 
 @code {
+    private UsersTable _usersTable;
+    private string _copyButton = "Copy locked users to clipboard";
     
     private List<UserWorkspaces> _userWorkspaces;
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -40,4 +45,33 @@
 
     }
 
+    [JSInvokable]
+    private async Task CopyLockedUsersToClipboard()
+    {
+        if (_usersTable != null && !_usersTable.lockedUsers.IsNullOrEmpty())
+        {
+            var tempstr = "";
+            string lastEmail = _usersTable.lockedUsers.Last();
+            foreach (var email in _usersTable.lockedUsers)
+            {
+                if (email.Equals(lastEmail))
+                {
+                    tempstr += email;
+                }
+                else
+                {
+                    tempstr += email;
+                    tempstr += ",\n";
+                }
+            }
+            await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", tempstr);
+            _copyButton = "Copied!";
+        }
+        else
+        {
+            _copyButton = "Could not copy";
+        }
+    }
+
+    
 }
