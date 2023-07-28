@@ -25,7 +25,7 @@
 
     private List<ChartSeries> DailySeries => new()
     {
-        new() { Name = Localizer["Average (MB)"], Data = _averages.Select(e => e.Average / (1024 * 1024 * 1024)).ToArray() }
+        new() { Name = Localizer["Average (GB)"], Data = _averages.Select(e => e.Average / (1024 * 1024 * 1024)).ToArray() }
     };
 
     private string[] XAxisDailyLabels => _averages.Select(e => FormatDay(e.Day)).ToArray();
