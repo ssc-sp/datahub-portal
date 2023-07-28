@@ -34,7 +34,7 @@
                        HelperText="@Localizer["Please select all that apply"]"
                        AnchorOrigin="Origin.BottomLeft"
                        TransformOrigin="Origin.TopLeft"
-                       @bind-Value="@_projectGoals">
+                       @bind-Value="@_interestedFeatures">
                 <MudSelectItem T="string" Value="@("Storage")">@Localizer["Storage"]</MudSelectItem>
                 <MudSelectItem T="string" Value="@("Analytics")">@Localizer["Analytics"]</MudSelectItem>
                 <MudSelectItem T="string" Value="@("Collaboration")">@Localizer["Collaboration"]</MudSelectItem>
@@ -80,7 +80,7 @@
     private string? _errorMessage;
     private string _projectTitle = string.Empty;
     private string _projectAcronym = string.Empty;
-    private string _projectGoals;
+    private string _interestedFeatures = string.Empty;
     private MudTextField<string>? _acronymField;
 
     private bool _success;
@@ -145,7 +145,7 @@
             _isCreating = false;
             if (isAdded)
             {
-                await _projectCreationService.SaveProjectCreationDetailsAsync(_projectAcronym, _projectGoals);
+                await _projectCreationService.SaveProjectCreationDetailsAsync(_projectAcronym, _interestedFeatures);
                 MudDialog.Close(DialogResult.Ok(_projectAcronym));
             }
             else
