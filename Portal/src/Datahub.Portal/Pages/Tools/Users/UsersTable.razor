@@ -21,7 +21,7 @@
             </MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<UserWorkspaces, object>(x => lockedUsers.Contains(x.User.Email))">
+            <MudTableSortLabel SortBy="new Func<UserWorkspaces, object>(x => GetUserStatus(x.User.Email))">
                 @Localizer["Status"]
             </MudTableSortLabel>
         </MudTh>
