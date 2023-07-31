@@ -1102,5 +1102,7 @@
   "(Optional) Which features are of interest to you?": "(Optional) Which features are of interest to you?",
   "Please select all that apply": "Please select all that apply",
   "Analytics": "Analytics",
-  "Collaboration": "Collaboration"
+  "Collaboration": "Collaboration",
+  "Configuring Azure": "Configuring Azure",
+  "Resource is being provisioned": "Resource is being provisioned"
 }
