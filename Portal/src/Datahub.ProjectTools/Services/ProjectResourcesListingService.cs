@@ -61,6 +61,7 @@ public class ProjectResourcesListingService
         var project = await ctx.Projects
             .Include(p => p.ServiceRequests)
             .Include(p => p.Resources)
+            .Include(p => p.Whitelist)
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
 
         if (project == null)

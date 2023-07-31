@@ -148,7 +148,11 @@
 
         var allResources = await ProjectResourcesListingService.GetResourcesForProject(ProjectAcronym);
         _activeResources = allResources.SelectMany(a => a.GetActiveResources()).ToList();
-        _inactiveResources = allResources.Select(a => a.GetInactiveResource()).Where(a => a != null).Select(a => a.Value).ToList();
+        _inactiveResources = allResources
+            .Select(a => a.GetInactiveResource())
+            .Where(a => a != null)
+            .Select(a => a.Value)
+            .ToList();
         _isLoading = false;
     }
 
