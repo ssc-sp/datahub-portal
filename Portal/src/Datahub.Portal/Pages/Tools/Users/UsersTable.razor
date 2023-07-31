@@ -41,10 +41,10 @@
             @switch(GetUserStatus(@context.User.Email))
             {
                 case "locked":
-                    <MudIcon Icon="@Icons.Material.Filled.Lock" Title="Account locked"/>
+                    <MudIcon Icon="@Icons.Material.Filled.Lock" Title=@Localizer["Account locked"]/>
                     break;
                 case "missing":
-                    <MudIcon Icon="@Icons.Material.Filled.QuestionMark" Title="Account missing from MSGraph"/>
+                    <MudIcon Icon="@Icons.Material.Filled.QuestionMark" Title=@Localizer["Account missing from MSGraph"]/>
                     break;
                 case "":
                     break;                        
@@ -77,9 +77,9 @@
     private string AcronymStyle => new StyleBuilder()
         .Build();
 
-    public List<string> lockedUsers = new List<string>();
+    public List<string> lockedUsers = new ();
 
-    public List<string> allUsers = new List<string>();
+    public List<string> allUsers = new ();
 
     public bool loadStatus = false;
 

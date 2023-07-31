@@ -11,12 +11,12 @@
     </MudText>
     @if (_hasLoaded)
     {   
-        <MudTooltip Text="Copy the emails of all users in the current environment. Excludes gmail, ssc-spc and apption emails.">
+        <MudTooltip Text=@Localizer["Copy the emails of all users in the current environment. Excludes gmail, ssc-spc and apption emails."]>
             <MudButton Color="Color.Primary" OnClick="@CopyAllUsersToClipboard">
                 @_allButton
             </MudButton>
         </MudTooltip>
-        <MudTooltip Text="Copy the emails of locked users in the tenant.">
+        <MudTooltip Text=@Localizer["Copy the emails of locked users in the tenant."]>
             <MudButton Color="Color.Primary" OnClick="@CopyLockedUsersToClipboard">
                 @_lockedButton
             </MudButton>
@@ -43,6 +43,13 @@
     private bool _hasLoaded = false;
     private string _lockedButton = null;
     private string _allButton = null;
+ 
+    private List<string> EXCLUDED_EMAILS = new List<string>(
+        new string[] {
+        "@gmail",
+        "@apption",
+        "@ssc-spc"
+    });
 
     private List<UserWorkspaces> _userWorkspaces;
     private List<PortalUser> _portalUsers;
@@ -52,8 +59,8 @@
         if (!firstRender && !_hasLoaded)
         {
             _hasLoaded = _usersTable.loadStatus;
-            _lockedButton = "Copy locked users to clipboard";
-            _allButton = "Copy all users to clipboard";
+            _lockedButton = @Localizer["Copy locked users to clipboard"];
+            _allButton = @Localizer["Copy all users to clipboard"];
         };
         
         await using var context = await _dbContextFactory.CreateDbContextAsync();
@@ -72,45 +79,23 @@
 
     private async Task CopyAllUsersToClipboard()
     {
-        var allEmails = new List<string>();
-        foreach (var user in _portalUsers)
-        {
-            var email = user.Email;
-            if (!email.Contains("@gmail") && !email.Contains("@apption") && !email.Contains("@ssc-spc"))
-            {
-                allEmails.Add(email);
-            }
-        }
-        var result = await CopyToClipboard(allEmails, _allButton);
-        _allButton = result ? "Copied!" : "Failed to copy";
+        var allEmails = _portalUsers.Select(user => user.Email)
+            .Where(email => !EXCLUDED_EMAILS.Any(excluded => email.Contains(excluded)))
+            .ToList();
+        _allButton = await CopyToClipboard(allEmails, _allButton) ? Localizer["Copied!"] : Localizer["Failed to copy"];
     }
 
     private async Task CopyLockedUsersToClipboard()
     {
-        var result = await CopyToClipboard(_usersTable.lockedUsers, _lockedButton);
-        _lockedButton = result ? "Copied!" : "Failed to copy";
+        _lockedButton = await CopyToClipboard(_usersTable.lockedUsers, _lockedButton) ? Localizer["Copied!"] : Localizer["Failed to copy"];
     }
     
-    [JSInvokable]
     private async Task<bool> CopyToClipboard(List<string> emailList, string buttonText)
     {
         var result = false;
         if (!emailList.IsNullOrEmpty())
         {
-            var tempstr = "";
-            string lastEmail = emailList.Last();
-            foreach (var email in emailList)
-            {
-                if (email.Equals(lastEmail))
-                {
-                    tempstr += email;
-                }
-                else
-                {
-                    tempstr += email;
-                    tempstr += ",\n";
-                }
-            }
+            var tempstr = String.Join(",\n", emailList);
             await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", tempstr);
             result = true;
         }

@@ -7,6 +7,8 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Polly;
+using Polly.Contrib.WaitAndRetry;
 
 namespace Datahub.Functions
 {
@@ -15,6 +17,7 @@ namespace Datahub.Functions
         private readonly ILogger _logger;
         private readonly AzureConfig _configuration;
         private readonly IMediator _mediator;
+        
         
         public GetUsersStatus(ILoggerFactory loggerFactory, AzureConfig configuration, IMediator mediator)
         {
@@ -53,26 +56,9 @@ namespace Datahub.Functions
                 .Filter("accountEnabled eq false")
                 .Select("displayName,mail,id")
                 .GetAsync();
-            List<string> lockedUsers = new List<string>();
-            foreach (var User in lockedGraphResult.ToArray())
-            {
-                lockedUsers.Add(User.Mail);
-            }
+            var lockedUsers = lockedGraphResult.Select(x => x.Mail).ToList();
             _logger.LogInformation("Processed locked users");
-            
-            //////////////// Getting all MSGraph users
-            _logger.LogInformation("Fetching all MSGraph users...");
-            var allGraphResult = await graphClient.Users
-                .Request()
-                .Select("displayName,mail,id")
-                .GetAsync();
-            List<string> allUsers = new List<string>();
-            foreach (var User in allGraphResult.ToArray())
-            {
-                allUsers.Add(User.Mail);
-            }
-            _logger.LogInformation("Processed all MSGraph users");
-            
+
             //////////////// Getting Service Principal group members
             _logger.LogInformation("Fetching all SP group members...");
             var groupGraphResult = await graphClient.Groups[$"{_configuration.ServicePrincipalGroupID}"]
@@ -81,17 +67,13 @@ namespace Datahub.Functions
                 .Select("mail")
                 .GetAsync();
             var groupArray = JArray.Parse(JsonConvert.SerializeObject(groupGraphResult));
-            var groupUsers = new List<string>();
-            foreach (var User in groupArray)
-            {
-                groupUsers.Add(User["Mail"].ToString());
-            }
+            var groupUsers = groupArray.Select(x => x["Mail"].ToString()).ToList();
             _logger.LogInformation("Processed SP group members");
             
             //////////////// Building response, intersect with group users because we only care about members of that group
             var dict = new Dictionary<string, List<string>>()
             {
-                { "all", allUsers },
+                { "all", groupUsers },
                 { "locked", lockedUsers.Intersect(groupUsers).ToList() }
             };
             

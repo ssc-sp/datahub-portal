@@ -1,7 +1,9 @@
-﻿using Datahub.Application.Configuration;
+﻿using System.Net;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Polly;
 
 namespace Datahub.Infrastructure.Services
 {
@@ -10,7 +12,14 @@ namespace Datahub.Infrastructure.Services
         private readonly ILogger<UsersStatusService> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
-        
+        static readonly IAsyncPolicy<HttpResponseMessage> _retryPolicy =
+            Policy<HttpResponseMessage>
+                .Handle<HttpRequestException>()
+                .OrResult(x => x.StatusCode == HttpStatusCode.Conflict)
+                .WaitAndRetryAsync(5, i => 
+            TimeSpan.FromSeconds(1)
+        );
+
         public UsersStatusService(ILogger<UsersStatusService> logger, IHttpClientFactory httpClientFactory,
             DatahubPortalConfiguration datahubPortalConfiguration)
         {
@@ -27,18 +36,10 @@ namespace Datahub.Infrastructure.Services
             const int maxNumberOfRetries = 5;
             string resultString;
             
-            do
-            {
-                using var client = _httpClientFactory.CreateClient();
-                var result = await client.GetAsync(url);
-                resultString = await result.Content.ReadAsStringAsync();
+            var client = _httpClientFactory.CreateClient();
+            var result = await _retryPolicy.ExecuteAsync(() => client.GetAsync(url));
+            resultString = await result.Content.ReadAsStringAsync();
             
-            } while (string.IsNullOrWhiteSpace(resultString) && numberOfRetries++ < maxNumberOfRetries);
-            
-            if (string.IsNullOrWhiteSpace(resultString))
-            {
-                throw new InvalidOperationException($"Unable to fetch locked users from {url}");
-            }
             var resultDict = JsonConvert.DeserializeObject<Dictionary<string,List<string>>>(resultString);
             return resultDict;
         }
