@@ -1,5 +1,6 @@
 @page "/tools/users"
 @using Microsoft.IdentityModel.Tokens
+@using Datahub.Core.Model.Achievements
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IJSRuntime _jsRuntime
@@ -8,33 +9,57 @@
     <MudText Typo="Typo.h1" Class="mb-12">
         @Localizer["Users"]
     </MudText>
-    <MudButton Color="Color.Primary" OnClick="@CopyLockedUsersToClipboard">@_copyButton</MudButton>
-  @if (_userWorkspaces == null)
-  {
+    @if (_hasLoaded)
+    {   
+        <MudTooltip Text="Copy the emails of all users in the current environment. Excludes gmail, ssc-spc and apption emails.">
+            <MudButton Color="Color.Primary" OnClick="@CopyAllUsersToClipboard">
+                @_allButton
+            </MudButton>
+        </MudTooltip>
+        <MudTooltip Text="Copy the emails of locked users in the tenant.">
+            <MudButton Color="Color.Primary" OnClick="@CopyLockedUsersToClipboard">
+                @_lockedButton
+            </MudButton>
+        </MudTooltip>
+    }
+    else
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary"/>
+    }
+    @if (_userWorkspaces == null)
+    {
       <MudSkeleton Height="600px" Width="100%"/>
-  }
-  else
-  {
+    }
+    else
+    {
       <UsersTable UserWorkspaces="_userWorkspaces" @ref="_usersTable"/>
-  }
+    }
 </DatahubAuthView>
 
 
 
 @code {
     private UsersTable _usersTable;
-    private string _copyButton = "Copy locked users to clipboard";
-    
+    private bool _hasLoaded = false;
+    private string _lockedButton = null;
+    private string _allButton = null;
+
     private List<UserWorkspaces> _userWorkspaces;
+    private List<PortalUser> _portalUsers;
+    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender) return;
+        if (!firstRender && !_hasLoaded)
+        {
+            _hasLoaded = _usersTable.loadStatus;
+            _lockedButton = "Copy locked users to clipboard";
+            _allButton = "Copy all users to clipboard";
+        };
         
         await using var context = await _dbContextFactory.CreateDbContextAsync();
+        _portalUsers = await context.PortalUsers.ToListAsync();
         
-        var users = await context.PortalUsers.ToListAsync();
-        
-        _userWorkspaces = users.Select(u => new UserWorkspaces
+        _userWorkspaces = _portalUsers.Select(u => new UserWorkspaces
         {
             User = u,
             Workspaces = context.Project_Users.Include(pu => pu.Project)
@@ -45,14 +70,36 @@
 
     }
 
-    [JSInvokable]
+    private async Task CopyAllUsersToClipboard()
+    {
+        var allEmails = new List<string>();
+        foreach (var user in _portalUsers)
+        {
+            var email = user.Email;
+            if (!email.Contains("@gmail") && !email.Contains("@apption") && !email.Contains("@ssc-spc"))
+            {
+                allEmails.Add(email);
+            }
+        }
+        var result = await CopyToClipboard(allEmails, _allButton);
+        _allButton = result ? "Copied!" : "Failed to copy";
+    }
+
     private async Task CopyLockedUsersToClipboard()
     {
-        if (_usersTable != null && !_usersTable.lockedUsers.IsNullOrEmpty())
+        var result = await CopyToClipboard(_usersTable.lockedUsers, _lockedButton);
+        _lockedButton = result ? "Copied!" : "Failed to copy";
+    }
+    
+    [JSInvokable]
+    private async Task<bool> CopyToClipboard(List<string> emailList, string buttonText)
+    {
+        var result = false;
+        if (!emailList.IsNullOrEmpty())
         {
             var tempstr = "";
-            string lastEmail = _usersTable.lockedUsers.Last();
-            foreach (var email in _usersTable.lockedUsers)
+            string lastEmail = emailList.Last();
+            foreach (var email in emailList)
             {
                 if (email.Equals(lastEmail))
                 {
@@ -65,12 +112,9 @@
                 }
             }
             await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", tempstr);
-            _copyButton = "Copied!";
+            result = true;
         }
-        else
-        {
-            _copyButton = "Could not copy";
-        }
+        return result;
     }
 
     

@@ -1,13 +1,25 @@
 ﻿using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-
-namespace Datahub.Portal.Services
+namespace Datahub.Infrastructure.Services
 {
-    public class UsersStatusService : IUsersStatusService
+    public partial class UsersStatusService : IUsersStatusService
     {
-        public async Task<Dictionary<string, List<string>>> GetUsersStatus(IHttpClientFactory _httpClientFactory, DatahubPortalConfiguration _datahubPortalConfiguration)
+        private readonly ILogger<UsersStatusService> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
+        
+        public UsersStatusService(ILogger<UsersStatusService> logger, IHttpClientFactory httpClientFactory,
+            DatahubPortalConfiguration datahubPortalConfiguration)
+        {
+            _logger = logger;
+            _httpClientFactory = httpClientFactory;
+            _datahubPortalConfiguration = datahubPortalConfiguration;
+        }
+        
+        public async Task<Dictionary<string, List<string>>> GetUsersStatus()
         {
             var url = _datahubPortalConfiguration.DatahubGraphUsersStatusFunctionUrl;
             

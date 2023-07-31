@@ -1,11 +1,13 @@
 @using MudBlazor.Utilities
 @using System.Text.Json.Nodes;
+@using Datahub.Application.Services
+@using Datahub.Infrastructure.Services
 @using Microsoft.Extensions.Logging;
 @using Microsoft.Extensions.Logging.Abstractions
 @using Microsoft.IdentityModel.Tokens
 @using Newtonsoft.Json
 
-@inject UsersStatusService _userStatusService;
+@inject IUsersStatusService _userStatusService;
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IHttpClientFactory _httpClientFactory
 
@@ -79,11 +81,14 @@
 
     public List<string> allUsers = new List<string>();
 
+    public bool loadStatus = false;
+
     protected override async Task OnInitializedAsync()
     {
-        var resultDict = await _userStatusService.GetUsersStatus(_httpClientFactory, _datahubPortalConfiguration);
+        var resultDict = await _userStatusService.GetUsersStatus();
         allUsers = resultDict["all"];
         lockedUsers = resultDict["locked"];
+        loadStatus = true;
     }
 
     private string GetUserStatus(string email)
