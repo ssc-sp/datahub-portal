@@ -359,7 +359,7 @@ public class DocumentationService
     private const string LAST_COMMIT_TS = "LAST_COMMIT_TS";
     public const string COMMIT_API_URL = "https://api.github.com/repos/ssc-sp/datahub-docs/commits";
 
-    public async Task<DateTime?> GetLastCommit(bool useCache = true)
+    public async Task<DateTime?> GetLastRepoCommitTS(bool useCache = true)
     {
         if (_cache.TryGetValue(LAST_COMMIT_TS, out DateTime? lastTS) && useCache)
             if (lastTS.HasValue) return lastTS.Value;
