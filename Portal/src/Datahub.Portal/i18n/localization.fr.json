@@ -1786,5 +1786,7 @@
   "Analytics": "Analytique",
   "Collaboration": "Collaboration",
   "Storage daily average (over last 30 days)": "Moyenne quotidienne de stockage (sur les 30 derniers jours)",
-  "Average (GB)": "Moyenne (Go)"
+  "Average (GB)": "Moyenne (Go)",
+  "Configuring Azure": "Configuration d'Azure",
+  "Resource is being provisioned": "En cours de provisionnement"
 }
