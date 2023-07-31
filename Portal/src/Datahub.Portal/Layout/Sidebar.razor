@@ -13,11 +13,11 @@
 @inject ILogger<Sidebar> logger
 
 <MudNavMenu Bordered>
-    @foreach (var (href, icon, label,_, showToast) in GetLinks().Where(t => t.enabled))
+    @foreach (var (href, icon, label,_, showDotBadge) in GetLinks().Where(t => t.enabled))
     {
         <div class="mud-nav-item">
             <NavLink class="mud-nav-link mud-ripple px-0 py-4 justify-center" style="@GetNavStyle(icon)" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
-                <MudBadge Dot=true Color="@Color.Primary" Visible="@(showToast())">
+                <MudBadge Dot=true Color="@Color.Primary" Visible="@(showDotBadge())">
                     <MudStack AlignItems="AlignItems.Center" Spacing="1">
                         <MudIcon Icon="@icon.Name"/>
                         <MudText Typo="Typo.body2" Style="@_navTextStyle">
@@ -91,7 +91,7 @@
         }
     }
 
-    private List<(string Href, Icon Icon, string Label, bool enabled, Func<bool> showToast)> GetLinks()
+    private List<(string Href, Icon Icon, string Label, bool enabled, Func<bool> showDotBadge)> GetLinks()
     {
         return new()
         {
