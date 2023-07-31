@@ -28,8 +28,7 @@ public static class ConfigureServices
         services.AddScoped<IAnnouncementService, AnnouncementService>();
         services.AddScoped<IDatahubEmailService, DatahubEmailService>();
         services.AddScoped<IDatabricksApiService, DatabricksApiService>();
-        services.AddTransient<IReverseProxyConfigService, ReverseProxyConfigService>();
-        services.AddSingleton<IProxyConfigProvider, ProxyConfigProvider>();
+        services.AddScoped<IUsersStatusService,UsersStatusService>();
         services.AddMediatR(typeof(QueueMessageSender<>));
         return services;
     }
