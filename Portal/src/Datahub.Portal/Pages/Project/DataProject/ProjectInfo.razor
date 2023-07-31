@@ -14,6 +14,8 @@
 @inject IMetadataBrokerService _metadataBrokerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject AzureManagementService _azureManagementService
+@inject DatahubPortalConfiguration _configuration
 
 @if (_loading)
 {
@@ -60,8 +62,8 @@
                      IconColor="@GetCostChipColor()"
                      Variant="@Variant.Text"
                      Color="@GetCostChipColor()"
-                     Disabled="true">
-                @($"{FormattedAverageCapacity()} GiB")
+                     OnClick=@HandleShowStorageReport>
+                @($"{FormattedAverageCapacity()}")
             </MudChip>
         }
     </DatahubAuthView>    
@@ -152,6 +154,7 @@
         _projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(e => e.ProjectId == _project.Project_ID) ?? new();
         _projectBudget = _project.Project_Budget ?? 0;
         _projectMetadata = await _metadataBrokerService.GetObjectMetadataValues(ProjectAcronym);
+
         _projectStorage = await GetProjectStorage(ctx);
 
         _loading = false;
@@ -160,8 +163,10 @@
 
     private async Task<Project_Storage> GetProjectStorage(DatahubProjectDBContext ctx)
     {
-        var date = DateTime.Now.Date;
-        return await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(e => e.ProjectId == _project.Project_ID && e.Date == date); // cloud
+        return await ctx.Project_Storage_Avgs
+            .Where(e => e.ProjectId == _project.Project_ID)
+            .OrderByDescending(e => e.Date)
+            .FirstOrDefaultAsync();
     }
 
     private Color GetCostChipColor()
@@ -209,6 +214,11 @@
         _navigationManager.NavigateTo($"/w/{_project.Project_Acronym_CD}/costs");
     }
 
+    private void HandleShowStorageReport(MouseEventArgs args)
+    {
+        _navigationManager.NavigateTo($"/w/{_project.Project_Acronym_CD}/storage");
+    }
+
     private string GetProjectDescription()
     {
         var description = _projectMetadata.GetValue($"description_{CultureService.Culture}", null);
@@ -217,7 +227,26 @@
 
     private string FormattedAverageCapacity()
     {
-        var gibs = _projectStorage.AverageCapacity / (1024 * 1024 * 1024);
-        return gibs.ToString("0.00");
+        var tbs = _projectStorage.AverageCapacity / (1024.0 * 1024.0 * 1024.0 * 1024.0);
+        if (tbs >= 1.0)
+            return $"{tbs.ToString("0.00")} TB";
+
+        var gbs = _projectStorage.AverageCapacity / (1024 * 1024 * 1024);
+        if (gbs >= 1.0)
+            return $"{gbs.ToString("0.00")} GB";
+
+        var mbs = _projectStorage.AverageCapacity / (1024 * 1024);
+        if (mbs >= 1.0)
+            return $"{mbs.ToString("0.00")} MB";
+
+        var kbs = _projectStorage.AverageCapacity / 1024;
+        return $"{kbs.ToString("0.00")} KB";
+    }
+
+    private string[] GetProjectResourceGroups()
+    {
+        var rg1 = $"{_configuration.ResourcePrefix}-dbk-{ProjectAcronym}-{_configuration.Hosting.EnvironmentName}-rg".ToLower();
+        var rg2 = $"{_configuration.ResourcePrefix}_proj_{ProjectAcronym}_{_configuration.Hosting.EnvironmentName}_rg".ToLower();
+        return new string[] { rg1, rg2 };
     }
 }
