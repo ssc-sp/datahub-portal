@@ -363,7 +363,7 @@ public class DocumentationService
     {
         if (_cache.TryGetValue(LAST_COMMIT_TS, out DateTime? lastTS) && useCache)
             if (lastTS.HasValue) return lastTS.Value;
-        var node = await ReadURL(new Dictionary<string, string>() { { "path", "UserGuide/" }, { "sha", "main" }, });
+        var node = await ReadURL(new Dictionary<string, string>() { { "path", "UserGuide/_sidebar.md" }, { "sha", "main" }, });
         var lastCommit = (DateTime?)node?[0]?["commit"]?["author"]?["date"];
         if (lastCommit.HasValue)
         {
