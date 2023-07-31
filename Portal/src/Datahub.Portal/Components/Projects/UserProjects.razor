@@ -3,6 +3,8 @@
 @using Datahub.Core.Model.Datahub
 @using Datahub.Application.Configuration
 @using Datahub.Core.Model.Projects
+@using Datahub.Portal.Pages.Project
+
 @inject IUserInformationService _userInformationService
 @inject IConfiguration _configuration
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -12,26 +14,7 @@
 
 @if (_userRoles is null)
 {
-    <MudStack>
-        @if (ShowTitle)
-        {
-            <MudText Typo="Typo.h1">@Localizer["Workspaces"]</MudText>
-        }
-        <MudGrid>
-            <MudItem xs="6">
-                <MudCard Outlined Class="pa-2">
-                    <MudCardContent>
-                        <Skeleton Width="120px" Height="32px"/>
-                        <Skeleton Width="250px" Height="42px"/>
-                    </MudCardContent>
-                    <MudCardActions>
-                        <Skeleton style="margin-left: 8px" Width="200px" Height="48px"/>
-                    </MudCardActions>
-                </MudCard>
-            </MudItem>
-        </MudGrid>
-    </MudStack>
-
+    <DHLoadingInitializer/>
     return;
 }
 
@@ -41,39 +24,28 @@
         <MudText Typo="Typo.h1" Class="mb-4">@Localizer["Workspaces"]</MudText>
     }
     <MudGrid>
-        @foreach (var userRole in _userRoles)
+        @foreach (var project in _userRoles.Select(userRole => userRole.Project))
         {
-            var project = userRole.Project;
-            <MudItem xs="6" md="4">
-                <MudCard Outlined Class="pa-2">
-                    <MudCardContent>
-                        <MudChip Style="@_chipStyle" Label Size="Size.Small" Color="@RoleColor(userRole)">@Localizer[RoleLabel(userRole)]</MudChip>
-                        <MudText>@project.ProjectName</MudText>
-                    </MudCardContent>
-                    <MudCardActions>
-                        <MudButton EndIcon="@UserWorkspaceOpenIcon" Variant="Variant.Text" Color="Color.Primary"
-                                   Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{project.Project_Acronym_CD}")">
-                            @Localizer["Open Workspace"]
-                        </MudButton>
-                    </MudCardActions>
-                </MudCard>
+            <MudItem xs="6" sm="@SmSize">
+                <ProjectPreviewCard Project="@project"/>
             </MudItem>
         }
-        <DHAdminActions>            
-            <MudItem xs="6" md="4">
-                <MudCard Outlined Class="pa-2">
-                    <MudCardContent>
-                        <MudChip Style="@_chipStyle" Label Size="Size.Small" Color="Color.Default">@Localizer["Create"]</MudChip>
-                        <MudText>@Localizer["Create Workspace"]</MudText>
-                    </MudCardContent>
-                    <MudCardActions>
-                        <MudButton EndIcon="@UserWorkspaceCreateIcon" Variant="Variant.Text" Color="Color.Primary" OnClick="ShowProjectDialog">
-                            @Localizer["Create Workspace"]
-                        </MudButton>
-                    </MudCardActions>
-                </MudCard>
-            </MudItem>
-        </DHAdminActions>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+            <Authorized>
+                <MudItem xs="6" sm="@SmSize">
+                    <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="999"/>
+                </MudItem>
+            
+            </Authorized>
+            <NotAuthorized>
+                @if (_numberOfRemainingWorkspaces > 0)
+                {
+                    <MudItem xs="6" sm="@SmSize">
+                        <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="@_numberOfRemainingWorkspaces"/>
+                    </MudItem>
+                }
+            </NotAuthorized>
+        </DatahubAuthView>
     </MudGrid>
 </MudStack>
 
@@ -83,17 +55,20 @@
     public bool ShowTitle { get; set; } = true;
 
     [Parameter]
+    public int SmSize { get; set; } = 4;
+
+    [Parameter]
     public string UserId { get; set; }
 
-    private const string UserWorkspaceOpenIcon = Icons.Material.Filled.KeyboardDoubleArrowRight;
-    private const string UserWorkspaceCreateIcon = "fa-duotone fa-layer-plus";
+        private const int MaxWorkspaceCount = 3;
+
     private List<Datahub_Project_User> _userRoles;
     private string _chipStyle;
-    private const string WorkspaceCreationDialogTitle = "Create a Workspace";
+    private int _numberOfRemainingWorkspaces;
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
-        await base.OnParametersSetAsync();
+        await base.OnInitializedAsync();
 
         _chipStyle = new StyleBuilder()
             .AddStyle("margin-left", "0")
@@ -106,39 +81,22 @@
         _userRoles = await dbContext.Project_Users
             .Include(u => u.Role)
             .Include(u => u.Project)
+            .ThenInclude(p => p.Users)
             .Include(u => u.PortalUser)
-            .Where(u =>  u.PortalUser.GraphGuid == userId)
+            .Where(u => u.PortalUser.GraphGuid == userId)
             .ToListAsync();
-    }
 
-    private Color RoleColor(Datahub_Project_User projectUser)
-    {
-        if (projectUser.Role.IsAtLeastAdmin)
-        {
-            return Color.Primary;
-        }
-
-        return projectUser.Role.Id == (int) Project_Role.RoleNames.Collaborator ? Color.Secondary : Color.Default;
-    }
-
-    private string RoleLabel(Datahub_Project_User projectUser)
-    {
-        if (projectUser.Role.IsAtLeastAdmin)
-        {
-            return "Admin";
-        }
-
-        return projectUser.Role.Id == (int) Project_Role.RoleNames.Collaborator ? "Collaborator" : "Guest";
+        _numberOfRemainingWorkspaces = MaxWorkspaceCount - _userRoles.Count(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead);
     }
 
     private async Task ShowProjectDialog()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await DialogService.ShowAsync<CreateProjectDialog>(Localizer[WorkspaceCreationDialogTitle], options);
+        var dialog = await DialogService.ShowAsync<CreateProjectDialog>(Localizer["Create a new Workspace"], options);
         var dialogResult = await dialog.Result;
         if (!dialogResult.Canceled)
         {
-            NavigationManager.NavigateTo($"{_datahubPortalConfiguration.ProjectUrlSegment}/{dialogResult.Data}",true);
+            NavigationManager.NavigateTo($"{_datahubPortalConfiguration.ProjectUrlSegment}/{dialogResult.Data}", true);
         }
     }
 

@@ -18,7 +18,8 @@ namespace Datahub.Infrastructure;
 
 public static class ConfigureServices
 {
-    public static IServiceCollection AddDatahubInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddDatahubInfrastructureServices(this IServiceCollection services,
+        IConfiguration configuration)
     {
         services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
         services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
@@ -30,6 +31,12 @@ public static class ConfigureServices
         services.AddScoped<IDatabricksApiService, DatabricksApiService>();
         services.AddScoped<IUsersStatusService,UsersStatusService>();
         services.AddMediatR(typeof(QueueMessageSender<>));
+
+        if (configuration.GetValue<bool>("ReverseProxy:Enabled"))
+        {
+            services.AddTransient<IReverseProxyConfigService, ReverseProxyConfigService>();
+            services.AddSingleton<IProxyConfigProvider, ProxyConfigProvider>();
+        }
         return services;
     }
 }

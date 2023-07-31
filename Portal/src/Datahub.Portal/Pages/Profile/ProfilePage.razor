@@ -7,7 +7,6 @@
 
 @using Datahub.Portal.Pages.Profile.Settings
 @using Datahub.Core.Model.Achievements
-@using Datahub.Core.Extensions
 @using Datahub.Core.Services.Achievements
 
 @if (_viewedPortalUser is null)
@@ -50,7 +49,7 @@
                 <MudText Typo="Typo.caption" Class="ml-2">@_viewedPortalUser?.Email</MudText>
             </MudStack>
         </MudStack>
-        <UserProjects UserId="@_viewedPortalUser?.GraphGuid"/>
+        <UserProjects UserId="@_viewedPortalUser?.GraphGuid" SmSize="6"/>
     </MudItem>
     @if (!_viewedPortalUser.HideAchievements)
     {
