@@ -5,17 +5,18 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject CultureService _cultureService
 @inject NavigationManager _navManager
+@inject DocumentationService documentationService
+@inject ILocalStorageService localStorage
+@inject ILogger<ResourcesPage> logger 
 
 @page "/resources/"
 @page "/resources/{PageName}"
 
 <!--suppress CssUnresolvedCustomProperty -->
-
-
 @if (PageIsLoading)
 {
-<MudContainer MaxWidth="MaxWidth.Small">
-        <DHLoadingInitializer Message="@Localizer["Initializing Resources..."]"/>
+    <MudContainer MaxWidth="MaxWidth.Small">
+        <DHLoadingInitializer Message="@Localizer["Initializing Resources..."]" />
     </MudContainer>
 }
 else
@@ -28,24 +29,24 @@ else
             </MudText>
             <MudGrid Class="my-3">
                 <MudItem xs="4">
-                    <ResourcesPreviewCard ShortVersion DocumentItem="@_userGuideDoc"/>
-                </MudItem>
-                <MudItem xs="4">
-                    <ResourcesPreviewCard ShortVersion DocumentItem="@_faqGuideDoc"/>
-                </MudItem>
-                <MudItem xs="4">
-                    <ResourcesPreviewCard ShortVersion DocumentItem="@_supportGuideDoc"/>
-                </MudItem>
-            </MudGrid>
-        </MudStack>
-        <MudGrid>
-            <MudItem xs="3" >
-                <MudNavMenu Dense Color=@Color.Primary Style="position: sticky; top: calc(var(--mud-appbar-height) + 1rem); max-height:  calc(95vh - (var(--mud-appbar-height) + 1rem)); overflow: auto;">
-                    <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All">
-                        @Localizer["Overview"]
-                    </MudNavLink>
-                    <MudDivider Class="my-3"/>
-                    @foreach (var cat in _resourceRoot.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)))
+                    <ResourcesPreviewCard ShortVersion DocumentItem="@_userGuideDoc" />
+                 </MudItem>
+                 <MudItem xs="4">
+                     <ResourcesPreviewCard ShortVersion DocumentItem="@_faqGuideDoc" />
+                 </MudItem>
+                 <MudItem xs="4">
+                     <ResourcesPreviewCard ShortVersion DocumentItem="@_supportGuideDoc" />
+                 </MudItem>
+             </MudGrid>
+         </MudStack>
+         <MudGrid>
+             <MudItem xs="3">
+                 <MudNavMenu Dense Color=@Color.Primary Style="position: sticky; top: calc(var(--mud-appbar-height) + 1rem); max-height:  calc(95vh - (var(--mud-appbar-height) + 1rem)); overflow: auto;">
+                     <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All">
+                         @Localizer["Overview"]
+                     </MudNavLink>
+                     <MudDivider Class="my-3" />
+                     @foreach (var cat in _resourceRoot.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)))
                     {
                         var isDoc = cat.Children.Count == 0;
 
@@ -75,7 +76,7 @@ else
                     @if (_docIsLoading || _currentDoc is null)
                     {
                         <MudContainer MaxWidth="MaxWidth.Small">
-                            <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]"/>
+                            <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]" />
                         </MudContainer>
                     }
                     else if (_currentDoc.IsRoot)
@@ -86,23 +87,23 @@ else
                                 @Localizer["Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
                             </MudText>
                         </MudStack>
-                        <ResourcesListView DocumentItems="@_mostPopularDocs"/>
+                        <ResourcesListView DocumentItems="@_mostPopularDocs" />
                     }
                     else
                     {
                         <MudText Typo="Typo.h2" Class="mb-3">@_currentDoc.Title</MudText>
-                        <ResourcesListView DocumentItems="@_currentDoc.Children"/>
+                        <ResourcesListView DocumentItems="@_currentDoc.Children" />
                     }
                 }
                 else
                 {
-                    <ResourcesMarkdown DocumentItem="@_currentDoc"/>
+                    <ResourcesMarkdown DocumentItem="@_currentDoc" />
                 }
             </MudItem>
         </MudGrid>
     </MudStack>
 
-    <ResourcesAdminView/>
+    <ResourcesAdminView />
 }
 
 @code {
@@ -113,11 +114,11 @@ else
     [Parameter]
     public List<(string, string)> Substitutions { get; set; }
 
-        const string MostPopularId = "6B9B9B8D-B071-44F7-B264-A7670192F446";
-        const string UserGuideId = "b594e16c-56e9-aae5-880f-487afca9aa38";
-        const string FaqGuideId = "ff5ba5b8-08cb-326a-5761-9f54e6401e8f";
-        const string SupportGuideId = "28c2b9f2-0ce7-b902-7708-aa6ec404c406";
-        const string ReleaseNotesId = "753af81a-d8e2-3e29-e017-80e87b7f4fc0";
+    const string MostPopularId = "6B9B9B8D-B071-44F7-B264-A7670192F446";
+    const string UserGuideId = "b594e16c-56e9-aae5-880f-487afca9aa38";
+    const string FaqGuideId = "ff5ba5b8-08cb-326a-5761-9f54e6401e8f";
+    const string SupportGuideId = "28c2b9f2-0ce7-b902-7708-aa6ec404c406";
+    const string ReleaseNotesId = "753af81a-d8e2-3e29-e017-80e87b7f4fc0";
 
     private readonly List<string> _hiddenNavGroups = new() { MostPopularId, UserGuideId, FaqGuideId, SupportGuideId, ReleaseNotesId };
 
@@ -133,7 +134,7 @@ else
     private bool ShowPreviewCards => _currentDoc?.MarkdownPage is null;
     private bool _docIsLoading;
 
-        public const string BaseUrl = "/resources";
+    public const string BaseUrl = "/resources";
 
     public static string BuildResourceLink(DocItem res) => $"{BaseUrl}/{res?.Id}";
 
@@ -148,7 +149,21 @@ else
     protected override async Task OnInitializedAsync()
     {
         _resourceRoot = await _docService.GetLanguageRoot(DocumentationGuide.UserGuide, _cultureService.Culture);
+        await ClearResourcesBadge();
         await CreateMostPopularFolder();
+    }
+
+    private async Task ClearResourcesBadge()
+    {
+        try
+        {
+            var lastCommitGit = await documentationService.GetLastCommit();
+            await localStorage.SetItemAsync(DocumentationService.COMMIT_API_URL, lastCommitGit);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning($"Error checking resource badge", ex);
+        }
     }
 
     protected override async Task OnParametersSetAsync()
@@ -178,7 +193,7 @@ else
         }
     }
 
-        const int MaxPopularDocuments = 10;
+    const int MaxPopularDocuments = 10;
 
     private async Task CreateMostPopularFolder()
     {
