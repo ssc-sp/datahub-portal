@@ -39,6 +39,14 @@ namespace Datahub.Tests.Docs
         }
 
         [Fact]
+        public async void TestReadLastCommitTS()
+        {
+            var lastCommit = await _service.GetLastCommit();
+            Assert.NotNull(lastCommit);
+        }
+
+
+        [Fact]
         public void TestCompareCultureStrings()
         {
             Assert.True(DocumentationService.CompareCulture("en-us", "en"));

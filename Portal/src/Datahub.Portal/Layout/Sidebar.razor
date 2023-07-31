@@ -1,5 +1,6 @@
 @*Sidebar.razor*@
 @using Datahub.Core.Data
+@using Datahub.Core.Services.Docs;
 @using Datahub.Core.Services.Security;
 @using Datahub.Core.Utils
 @using MudBlazor.Utilities
@@ -7,19 +8,23 @@
 @inject ServiceAuthManager ServiceAuthManager
 @inject IUserInformationService _userInformationService
 @inject IConfiguration Configuration
-
+@inject DocumentationService documentationService
+@inject ILocalStorageService localStorage
+@inject ILogger<Sidebar> logger
 
 <MudNavMenu Bordered>
-    @foreach (var (href, icon, label,_) in GetLinks().Where(t => t.enabled))
+    @foreach (var (href, icon, label,_, showToast) in GetLinks().Where(t => t.enabled))
     {
         <div class="mud-nav-item">
             <NavLink class="mud-nav-link mud-ripple px-0 py-4 justify-center" style="@GetNavStyle(icon)" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
-                <MudStack AlignItems="AlignItems.Center" Spacing="1">
-                    <MudIcon Icon="@icon.Name"/>
-                    <MudText Typo="Typo.body2" Style="@_navTextStyle">
-                        @Localizer[label]
-                    </MudText>
-                </MudStack>
+                <MudBadge Dot=true Color="@Color.Primary" Visible="@(showToast())">
+                    <MudStack AlignItems="AlignItems.Center" Spacing="1">
+                        <MudIcon Icon="@icon.Name"/>
+                        <MudText Typo="Typo.body2" Style="@_navTextStyle">
+                            @Localizer[label]
+                        </MudText>
+                    </MudStack>
+                </MudBadge>
             </NavLink>
         </div>
     }
@@ -45,16 +50,17 @@
     private bool _userHasInitiatives;
     private bool _isDatahubAdmin;
     private string _navTextStyle;
+    private bool _resourceBadge;
 
     private List<(string Href, Icon Icon, string Label, List<string> Roles)> _authorizedLinks = new();
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        
+
         var user = await _userInformationService.GetCurrentGraphUserAsync();
         _authorizedLinks = GetAuthorizedLinks(user.Id);
-        
+        _resourceBadge = await ShowResourcesBadge();
         _userHasInitiatives = !(await _userInformationService.IsUserWithoutInitiatives());
         _isDatahubAdmin = await _userInformationService.IsUserDatahubAdmin();
 
@@ -71,20 +77,34 @@
             .Build();
     }
 
-    private List<(string Href, Icon Icon, string Label, bool enabled)> GetLinks()
+    private async Task<bool> ShowResourcesBadge()
+    {
+        try {
+            var lastCommitGit = await documentationService.GetLastCommit();
+            var lastCommitUser = await localStorage.GetItemAsync<DateTime?>(DocumentationService.COMMIT_API_URL) ?? DateTime.MinValue;
+            //await localStorage.SetItemAsync(DocumentationService.COMMIT_API_URL, lastCommitGit);
+            return lastCommitGit.HasValue && lastCommitGit.Value > lastCommitUser;
+        } catch (Exception ex)
+        {
+            logger.LogWarning($"Error checking resource badge", ex);
+            return false;
+        }
+    }
+
+    private List<(string Href, Icon Icon, string Label, bool enabled, Func<bool> showToast)> GetLinks()
     {
         return new()
         {
-            ("/home", Icon.HOME, "SIDEBAR.Home", true),
-            ("/news", Icon.NEWS, "News", true),
-            ("/w", Icon.PROJECT, "SIDEBAR.Workspaces", true), 
-            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources", true),
-            ("/tools", Icon.TOOLS, "SIDEBAR.Tools", _isDatahubAdmin),
-            ("/discovery", Icon.CATALOG, "SIDEBAR.Catalog", (IsFeatureEnabled("DataCatalog") && _userHasInitiatives)),
-            ("/profile", Icon.PROFILE, "My Profile", true),
+            ("/home", Icon.HOME, "SIDEBAR.Home", true, () => false),
+            ("/news", Icon.NEWS, "News", true, () => false),
+            ("/w", Icon.PROJECT, "SIDEBAR.Workspaces", true, () => false),
+            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources", true, () => _resourceBadge),
+            ("/tools", Icon.TOOLS, "SIDEBAR.Tools", _isDatahubAdmin, () => false),
+            ("/discovery", Icon.CATALOG, "SIDEBAR.Catalog", (IsFeatureEnabled("DataCatalog") && _userHasInitiatives), () => false),
+            ("/profile", Icon.PROFILE, "My Profile", true, () => false),
             //("/data", Icon.STORAGE, "SIDEBAR.Storage"),
             //("/datasets", Icon.DATASETS, "SIDEBAR.Datasets"),
-            //("/powerbi", Icon.POWERBI, "SIDEBAR.PowerBI"),      
+            //("/powerbi", Icon.POWERBI, "SIDEBAR.PowerBI"),
         };
     }
 
