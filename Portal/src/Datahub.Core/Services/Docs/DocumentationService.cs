@@ -6,13 +6,17 @@ using Markdig.Syntax.Inlines;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Polly.Extensions.Http;
+using Polly;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using static System.Net.WebRequestMethods;
 
 namespace Datahub.Core.Services.Docs;
 
@@ -352,6 +356,66 @@ public class DocumentationService
         return await LoadDocs(BuildURL(guide, locale??string.Empty, name), useCache);
     }
 
+    private const string LAST_COMMIT_TS = "LAST_COMMIT_TS";
+    public const string COMMIT_API_URL = "https://api.github.com/repos/ssc-sp/datahub-docs/commits";
+
+    public async Task<DateTime?> GetLastRepoCommitTS(bool useCache = true)
+    {
+        if (_cache.TryGetValue(LAST_COMMIT_TS, out DateTime? lastTS) && useCache)
+            if (lastTS.HasValue) return lastTS.Value;
+        var node = await ReadURL(new Dictionary<string, string>() { { "path", "UserGuide/_sidebar.md" }, { "sha", "main" }, });
+        var lastCommit = (DateTime?)node?[0]?["commit"]?["author"]?["date"];
+        if (lastCommit.HasValue)
+        {
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                // Keep in cache for this time, reset time if accessed.
+                .SetAbsoluteExpiration(DateTime.Now.AddHours(1));
+
+            // Save data in cache.
+            _cache.Set(LAST_COMMIT_TS, lastCommit.Value, cacheEntryOptions);
+            return lastCommit.Value;
+        }
+        _logger.LogWarning($"Cannot load last commit timestamp for user docs");
+        return null;
+    }
+
+    static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+    {
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
+            .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2,
+                                                                        retryAttempt)));
+    }
+
+    public async Task<JsonNode?> ReadURL(Dictionary<string, string>? parameters = null)
+    {
+        var client = _httpClientFactory.CreateClient();
+
+        var builder = new UriBuilder(new Uri(COMMIT_API_URL));
+        if (parameters != null)
+            builder.Query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
+
+
+        var res = await GetRetryPolicy().ExecuteAsync(async () => {
+            //builder.Query = "search=usa";
+            var request = new HttpRequestMessage() { RequestUri = builder.Uri, Method = HttpMethod.Get };
+            //public const string USER_AGENT = ;
+            client.DefaultRequestHeaders.Add("User-Agent", "DataHub");
+            return await client.SendAsync(request);
+        });
+
+        if (res.StatusCode != System.Net.HttpStatusCode.OK)
+        {
+            throw new InvalidOperationException($"Received status code {res.StatusCode}");
+        }
+
+        return JsonNode.Parse(await res.Content.ReadAsStreamAsync());
+
+    }
+
+
+
     private async Task<string?> LoadDocs(string url, bool useCache = true, bool skipFrontMatter = true)
     {
         if (_cache.TryGetValue(url, out var docContent) && useCache)
@@ -365,7 +429,6 @@ public class DocumentationService
             {                 
                 content = MarkdownHelper.RemoveFrontMatter(content);
             }
-            var key = _cache.CreateEntry(url);
             // Set cache options.
             var cacheEntryOptions = new MemoryCacheEntryOptions()
                 // Keep in cache for this time, reset time if accessed.

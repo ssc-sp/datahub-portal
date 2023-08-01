@@ -29,6 +29,7 @@ public static class ConfigureServices
         services.AddScoped<IAnnouncementService, AnnouncementService>();
         services.AddScoped<IDatahubEmailService, DatahubEmailService>();
         services.AddScoped<IDatabricksApiService, DatabricksApiService>();
+        services.AddScoped<IUsersStatusService,UsersStatusService>();
         services.AddMediatR(typeof(QueueMessageSender<>));
 
         if (configuration.GetValue<bool>("ReverseProxy:Enabled"))
