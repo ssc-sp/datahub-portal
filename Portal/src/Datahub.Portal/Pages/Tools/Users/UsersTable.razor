@@ -1,5 +1,15 @@
 @using MudBlazor.Utilities
+@using System.Text.Json.Nodes;
+@using Datahub.Application.Services
+@using Datahub.Infrastructure.Services
+@using Microsoft.Extensions.Logging;
+@using Microsoft.Extensions.Logging.Abstractions
+@using Microsoft.IdentityModel.Tokens
+@using Newtonsoft.Json
+
+@inject IUsersStatusService _userStatusService;
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject IHttpClientFactory _httpClientFactory
 
 <MudTable Striped Items="@UserWorkspaces" Filter="new Func<UserWorkspaces,bool>(FilterUserWorkspaces)">
 <ToolBarContent>
@@ -13,6 +23,11 @@
             </MudTableSortLabel>
         </MudTh>
         <MudTh>
+            <MudTableSortLabel SortBy="new Func<UserWorkspaces, object>(x => GetUserStatus(x.User.Email))">
+                @Localizer["Status"]
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>
             @Localizer["Workspaces"]
         </MudTh>
             
@@ -21,6 +36,19 @@
         <MudTd DataLabel="User">
             <MudText Typo="Typo.h6">@context.User.DisplayName</MudText>
             <MudText Typo="Typo.body2">@context.User.Email</MudText>
+        </MudTd>
+        <MudTd DataLabel="Status">
+            @switch(GetUserStatus(@context.User.Email))
+            {
+                case "locked":
+                    <MudIcon Icon="@Icons.Material.Filled.Lock" Title=@Localizer["Account locked"]/>
+                    break;
+                case "missing":
+                    <MudIcon Icon="@Icons.Material.Filled.QuestionMark" Title=@Localizer["Account missing from MSGraph"]/>
+                    break;
+                case "":
+                    break;                        
+            }
         </MudTd>
         <MudTd DataLabel="Workspaces">
             <ul style="list-style: outside;">
@@ -48,6 +76,33 @@
 
     private string AcronymStyle => new StyleBuilder()
         .Build();
+
+    public List<string> lockedUsers = new ();
+
+    public List<string> allUsers = new ();
+
+    public bool loadStatus = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var resultDict = await _userStatusService.GetUsersStatus();
+        allUsers = resultDict["all"];
+        lockedUsers = resultDict["locked"];
+        loadStatus = true;
+    }
+
+    private string GetUserStatus(string email)
+    {
+        var status = "";
+        if (lockedUsers.Contains(email) && !lockedUsers.IsNullOrEmpty())
+        {
+            status = "locked";
+        } else if (!allUsers.Contains(email) && !allUsers.IsNullOrEmpty())
+        {
+            status = "missing";
+        }
+        return status;
+    }
 
     private bool FilterUserWorkspaces(UserWorkspaces userWorkspaces)
     {
