@@ -1790,5 +1790,7 @@
   "Copy the emails of locked users in the tenant.": "Copiez les e-mails des utilisateurs verrouillés dans le locataire.",
   "Copied!": "Copié!",
   "Configuring Azure": "Configuration d'Azure",
-  "Resource is being provisioned": "En cours de provisionnement"
+  "Resource is being provisioned": "En cours de provisionnement",
+  "Resource request has been successfully submitted": "La demande de ressource a été soumise avec succès",
+  "Resource request has failed, please contact an administrator": "La demande de ressource a échoué, veuillez contacter un administrateur"
 }
