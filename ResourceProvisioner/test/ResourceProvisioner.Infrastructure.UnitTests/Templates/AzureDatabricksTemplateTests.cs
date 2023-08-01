@@ -180,23 +180,6 @@ public class AzureDatabricksTemplateTests
         }
     }
 
-    private static IEnumerable<JsonObject> GenerateOmniUsers()
-    {
-        return new List<JsonObject>
-        {
-            new()
-            {
-                ["email"] = "omni1@email.com",
-                ["oid"] = "00000000-0000-0000-0000-000000000001"
-            },
-            new()
-            {
-                ["email"] = "omni2@email.com",
-                ["oid"] = "00000000-0000-0000-0000-000000000002"
-            },
-        };
-    }
-
     private static JsonObject GenerateExpectedVariables(TerraformWorkspace workspace, bool withUsers = true)
     {
         if (!withUsers)
@@ -204,11 +187,14 @@ public class AzureDatabricksTemplateTests
             return new JsonObject
             {
                 [TerraformVariables.DatabricksProjectLeadUsers] = new JsonArray(),
-                [TerraformVariables.DatabricksAdminUsers] = new JsonArray(GenerateOmniUsers().ToArray<JsonNode>()),
+                [TerraformVariables.DatabricksAdminUsers] = new JsonArray(),
                 [TerraformVariables.DatabricksProjectUsers] = new JsonArray(),
+                [TerraformVariables.DatabricksProjectGuests] = new JsonArray(),
                 [TerraformVariables.AzureDatabricksEnterpriseOid] = _resourceProvisionerConfiguration.Terraform
                     .Variables
-                    .azure_databricks_enterprise_oid
+                    .azure_databricks_enterprise_oid,
+                [TerraformVariables.AzureLogWorkspaceId] =
+                    _resourceProvisionerConfiguration.Terraform.Variables.log_workspace_id,
             };
         }
 
@@ -225,15 +211,14 @@ public class AzureDatabricksTemplateTests
                 .ToArray<JsonNode>()
             ),
             [TerraformVariables.DatabricksAdminUsers] = new JsonArray(
-                GenerateOmniUsers().Concat(
-                        (workspace.Users ?? Array.Empty<TerraformUser>())
-                        .Where(u => u.Role == Role.Admin)
-                        .Select(u => new JsonObject
-                        {
-                            ["email"] = u.Email,
-                            ["oid"] = u.ObjectId,
-                        }))
-                    .ToArray<JsonNode>()
+                (workspace.Users ?? Array.Empty<TerraformUser>())
+                .Where(u => u.Role == Role.Admin)
+                .Select(u => new JsonObject
+                {
+                    ["email"] = u.Email,
+                    ["oid"] = u.ObjectId,
+                })
+                .ToArray<JsonNode>()
             ),
             [TerraformVariables.DatabricksProjectUsers] = new JsonArray(
                 (workspace.Users ?? Array.Empty<TerraformUser>())
@@ -245,8 +230,20 @@ public class AzureDatabricksTemplateTests
                 })
                 .ToArray<JsonNode>()
             ),
+            [TerraformVariables.DatabricksProjectGuests] = new JsonArray(
+                (workspace.Users ?? Array.Empty<TerraformUser>())
+                .Where(u => u.Role == Role.Guest)
+                .Select(u => new JsonObject
+                {
+                    ["email"] = u.Email,
+                    ["oid"] = u.ObjectId,
+                })
+                .ToArray<JsonNode>()
+            ),
             [TerraformVariables.AzureDatabricksEnterpriseOid] =
-                _resourceProvisionerConfiguration.Terraform.Variables.azure_databricks_enterprise_oid
+                _resourceProvisionerConfiguration.Terraform.Variables.azure_databricks_enterprise_oid,
+            [TerraformVariables.AzureLogWorkspaceId] =
+                _resourceProvisionerConfiguration.Terraform.Variables.log_workspace_id,
         };
     }
 }

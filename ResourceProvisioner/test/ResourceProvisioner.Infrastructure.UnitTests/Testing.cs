@@ -141,6 +141,7 @@ public class Testing
         const int numberOfOwners = 2;
         const int numberOfAdmins = 3;
         const int numberOfUsers = 10;
+        const int numberOfGuests = 5;
 
         users.AddRange(Enumerable.Range(0, numberOfOwners)
             .Select(i => new TerraformUser
@@ -165,7 +166,14 @@ public class Testing
                 ObjectId = Guid.NewGuid().ToString(),
                 Role = Role.User
             }));
-
+        
+        users.AddRange(Enumerable.Range(0, numberOfGuests)
+            .Select(i => new TerraformUser
+            {
+                Email = $"guest{i}@email.com",
+                ObjectId = Guid.NewGuid().ToString(),
+                Role = Role.Guest
+            }));
 
         return new TerraformWorkspace
         {
