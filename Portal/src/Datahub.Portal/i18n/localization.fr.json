@@ -1788,7 +1788,7 @@
   "Account missing from MSGraph": "Compte manquant dans MSGraph",
   "Copy the emails of all users in the current environment. Excludes gmail, ssc-spc and apption emails.": "Copiez les emails de tous les utilisateurs de l'environnement actuel. Exclut les emails gmail, ssc-spc et apption.",
   "Copy the emails of locked users in the tenant.": "Copiez les e-mails des utilisateurs verrouillés dans le locataire.",
-  "Copied!": "Copié!"
+  "Copied!": "Copié!",
   "Configuring Azure": "Configuration d'Azure",
   "Resource is being provisioned": "En cours de provisionnement"
 }
