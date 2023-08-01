@@ -165,6 +165,16 @@ public class ProjectCreationService : IProjectCreationService
             RoleId = role.Id
         };
         await db.Project_Users.AddAsync(projectUser);
+        
+        var projectWhiteList = new Project_Whitelist()
+        {
+            Project = project, 
+            LastUpdated = DateTime.UtcNow,
+            AllowStorage = true,
+            AllowDatabricks = true
+        };
+        await db.Project_Whitelists.AddAsync(projectWhiteList);
+        
         await db.TrackSaveChangesAsync(_auditingService);
         serviceAuthManager.InvalidateAuthCache();
     }
