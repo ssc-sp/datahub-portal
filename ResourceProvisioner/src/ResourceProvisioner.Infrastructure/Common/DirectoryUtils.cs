@@ -22,15 +22,7 @@ public static class DirectoryUtils
         {
             // wait for one second and try again
             Thread.Sleep(1000);
-            try
-            {
-                dir.Delete(true);
-            }
-            catch (IOException)
-            {
-                Thread.Sleep(1000);
-                dir.Delete(true);
-            }
+            dir.Delete(true);
         }
     }
 
@@ -61,9 +53,9 @@ public static class DirectoryUtils
     public static string GetTemplatePath(ResourceProvisionerConfiguration resourceProvisionerConfiguration,
         string? templateName)
     {
-        if(templateName == null)
+        if (templateName == null)
             throw new ArgumentNullException(nameof(templateName));
-        
+
         return Path.Join(GetModuleRepositoryPath(resourceProvisionerConfiguration),
             resourceProvisionerConfiguration.ModuleRepository.TemplatePathPrefix, templateName);
     }
@@ -73,7 +65,7 @@ public static class DirectoryUtils
     {
         if (workspaceAcronym == null)
             throw new ArgumentNullException(nameof(workspaceAcronym));
-        
+
         return Path.Join(GetInfrastructureRepositoryPath(resourceProvisionerConfiguration),
             resourceProvisionerConfiguration.InfrastructureRepository.ProjectPathPrefix, workspaceAcronym);
     }
