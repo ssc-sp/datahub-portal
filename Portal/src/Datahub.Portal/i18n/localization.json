@@ -1093,7 +1093,7 @@
   "Account missing from MSGraph": "Account missing from MSGraph",
   "Copy the emails of all users in the current environment. Excludes gmail, ssc-spc and apption emails.": "Copy the emails of all users in the current environment. Excludes gmail, ssc-spc and apption emails.",
   "Copy the emails of locked users in the tenant.": "Copy the emails of locked users in the tenant.",
-  "Copied!": "Copied!"
+  "Copied!": "Copied!",
   "Configuring Azure": "Configuring Azure",
   "Resource is being provisioned": "Resource is being provisioned"
 }
