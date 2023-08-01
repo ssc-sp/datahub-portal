@@ -27,8 +27,13 @@ public class ProjectUsageService
         // create if it does exists
         projectCredits ??= new() { ProjectId = projectId };
 
+        // create session
+        var session = await _azureManagementService.GetSession(ct);
+        if (session is null)
+            return false;
+
         // update usage
-        var (succeeded, yesterdayCosts) = await UpdateUsage(projectCredits, resourceGroups, ct);
+        var (succeeded, yesterdayCosts) = await UpdateUsage(session, projectCredits, resourceGroups, ct);
         if (!succeeded)
             return false;
 
@@ -50,6 +55,47 @@ public class ProjectUsageService
         await ctx.SaveChangesAsync(ct);
 
         return true;
+    }
+
+    public async Task<double> UpdateProjectCapacity(int projectId, string[] resourceGroups, CancellationToken ct)
+    {
+        using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
+
+        var date = DateTime.UtcNow.Date;
+
+        var entity = await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(e => e.ProjectId == projectId && e.Date == date);
+        entity ??= new() { ProjectId = projectId, Date = date };
+
+//#if !DEBUG
+        // check if already got today's capacity
+        if (entity.AverageCapacity > 0)
+            return entity.AverageCapacity;
+//#endif
+
+        // create azure session
+        var session = await _azureManagementService.GetSession(ct);
+        if (session is null)
+            return -1.0;
+
+        // get new capacity
+        var capacity = await session.GetTotalAverageStorageCapacity(resourceGroups);
+        if (capacity == 0)
+            return capacity;
+
+        entity.AverageCapacity = capacity;
+
+        if (entity.Id == 0)
+        {
+            ctx.Project_Storage_Avgs.Add(entity);
+        }
+        else
+        {
+            ctx.Project_Storage_Avgs.Update(entity);
+        }
+
+        await ctx.SaveChangesAsync(ct);
+
+        return capacity;
     }
 
     private async Task UpdateYesterdayStats(DatahubProjectDBContext ctx, int projectId, List<AzureServiceCost> yesterdayCosts)
@@ -80,11 +126,9 @@ public class ProjectUsageService
         return date.HasValue && DateTime.UtcNow.AddMinutes(-minutes) < date;
     }
 
-    private async Task<(bool Succeeded, List<AzureServiceCost>? yesterdayCosts)> UpdateUsage(Project_Credits projectCredits, 
-        string[] resourceGroups, CancellationToken ct)
+    private async Task<(bool Succeeded, List<AzureServiceCost>? yesterdayCosts)> UpdateUsage(AzureManagementSession session, 
+        Project_Credits projectCredits, string[] resourceGroups, CancellationToken ct)
     {
-        var session = await _azureManagementService.GetSession(ct);
-
         // monthy by service
         var costByService = await session.GetResourceGroupYearCostByService(resourceGroups);
         if (costByService is not null)

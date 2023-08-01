@@ -1119,6 +1119,60 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("OnboardingApps");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Onboarding.ProjectCreationDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("InterestedFeatures")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("ProjectCreationDetails", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Onboarding.SelfRegistrationDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SelfRegistrationDetails", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project", b =>
                 {
                     b.Property<int>("Project_ID")
@@ -1680,6 +1734,34 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         });
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Storage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("AverageCapacity")
+                        .HasColumnType("float");
+
+                    b.Property<string>("CloudProvider")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId", "Date");
+
+                    b.ToTable("Project_Storage_Avgs", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Whitelist", b =>
                 {
                     b.Property<int>("Id")
@@ -2000,6 +2082,25 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .IsRequired();
 
                     b.Navigation("WebForm");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Onboarding.ProjectCreationDetails", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project", b =>

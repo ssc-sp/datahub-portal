@@ -1,0 +1,44 @@
+@*Markdown.razor*@
+
+<MarkdownEditor Value="@MarkdownValue" ValueChanged="OnMarkdownValueChanged" ValueHTML="@MarkdownHtml" ValueHTMLChanged="OnMarkdownValueHTMLChanged" @ref="_elementRef"/>
+
+@code {
+    [Parameter]
+    public string InitialValue { get; set; }
+    
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    private MarkdownEditor _elementRef;
+    private DotNetObjectReference<DHMarkdownEditor> _dotNetObjectRef;
+    public string MarkdownValue { get; set; }
+    public string MarkdownHtml { get; set; }
+    
+    // Sets the initial value of what the markdown editor should contain
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        MarkdownValue = InitialValue;
+    }
+    
+    // Whenever the markdown text is updated, we update our internal value and call the provided method
+    public async Task OnMarkdownValueChanged(string value)
+    {
+        MarkdownValue = value;
+        await ValueChanged.InvokeAsync(value);
+    }
+    
+    // Whenever the markdown html is changed, we update our internal value
+    public Task OnMarkdownValueHTMLChanged(string value)
+    {
+        MarkdownHtml = value;
+        return Task.CompletedTask;
+    }
+
+    public async void Dispose()
+    {
+        _elementRef?.Dispose();
+        _dotNetObjectRef?.Dispose();
+    }
+    
+}

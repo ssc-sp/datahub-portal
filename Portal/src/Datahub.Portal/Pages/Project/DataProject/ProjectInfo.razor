@@ -14,6 +14,8 @@
 @inject IMetadataBrokerService _metadataBrokerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject AzureManagementService _azureManagementService
+@inject DatahubPortalConfiguration _configuration
 
 @if (_loading)
 {
@@ -53,7 +55,19 @@
                 @Localizer["No recent data"]
             </MudChip>
         }
-    </DatahubAuthView>
+        @if (_projectStorage != null)
+        {
+            <MudChip Label="true"
+                     Icon="@Icons.Material.Filled.Storage"
+                     IconColor="@GetCostChipColor()"
+                     Variant="@Variant.Text"
+                     Color="@GetCostChipColor()"
+                     OnClick=@HandleShowStorageReport>
+                @($"{FormattedAverageCapacity()}")
+            </MudChip>
+        }
+    </DatahubAuthView>    
+
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
         @{
             var color = _project?.MetadataAdded ?? false ? Color.Default : Color.Warning;
@@ -110,6 +124,8 @@
     private Project_Credits _projectCredits = default;
     private decimal CurrentCredits => Convert.ToDecimal(_projectCredits.Current);
 
+    private Project_Storage _projectStorage = default;
+
     private bool CreditsDataExists => _projectCredits is not null && _projectCredits.ProjectId != 0;
 
     private decimal _projectBudget;
@@ -117,7 +133,7 @@
     private FieldValueContainer _projectMetadata;
 
     private string _projectIcon => $"fas fa-{_project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
-    
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -135,12 +151,22 @@
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Project_Acronym_CD == ProjectAcronym);
 
-        _projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(e => e.ProjectId == _project.Project_ID) ?? new Project_Credits();
-
+        _projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(e => e.ProjectId == _project.Project_ID) ?? new();
         _projectBudget = _project.Project_Budget ?? 0;
         _projectMetadata = await _metadataBrokerService.GetObjectMetadataValues(ProjectAcronym);
+
+        _projectStorage = await GetProjectStorage(ctx);
+
         _loading = false;
         StateHasChanged();
+    }
+
+    private async Task<Project_Storage> GetProjectStorage(DatahubProjectDBContext ctx)
+    {
+        return await ctx.Project_Storage_Avgs
+            .Where(e => e.ProjectId == _project.Project_ID)
+            .OrderByDescending(e => e.Date)
+            .FirstOrDefaultAsync();
     }
 
     private Color GetCostChipColor()
@@ -171,7 +197,7 @@
             "PROTECTED C" => Color.Secondary,
         "PROTECTED A" => Color.Error,
         _ => Color.Dark
-        };
+    };
 
     private string GetProjectDataSensitivity()
     {
@@ -188,10 +214,39 @@
         _navigationManager.NavigateTo($"/w/{_project.Project_Acronym_CD}/costs");
     }
 
+    private void HandleShowStorageReport(MouseEventArgs args)
+    {
+        _navigationManager.NavigateTo($"/w/{_project.Project_Acronym_CD}/storage");
+    }
+
     private string GetProjectDescription()
     {
         var description = _projectMetadata.GetValue($"description_{CultureService.Culture}", null);
         return description ?? _project.ProjectDescription;
     }
 
+    private string FormattedAverageCapacity()
+    {
+        var tbs = _projectStorage.AverageCapacity / (1024.0 * 1024.0 * 1024.0 * 1024.0);
+        if (tbs >= 1.0)
+            return $"{tbs.ToString("0.00")} TB";
+
+        var gbs = _projectStorage.AverageCapacity / (1024 * 1024 * 1024);
+        if (gbs >= 1.0)
+            return $"{gbs.ToString("0.00")} GB";
+
+        var mbs = _projectStorage.AverageCapacity / (1024 * 1024);
+        if (mbs >= 1.0)
+            return $"{mbs.ToString("0.00")} MB";
+
+        var kbs = _projectStorage.AverageCapacity / 1024;
+        return $"{kbs.ToString("0.00")} KB";
+    }
+
+    private string[] GetProjectResourceGroups()
+    {
+        var rg1 = $"{_configuration.ResourcePrefix}-dbk-{ProjectAcronym}-{_configuration.Hosting.EnvironmentName}-rg".ToLower();
+        var rg2 = $"{_configuration.ResourcePrefix}_proj_{ProjectAcronym}_{_configuration.Hosting.EnvironmentName}_rg".ToLower();
+        return new string[] { rg1, rg2 };
+    }
 }

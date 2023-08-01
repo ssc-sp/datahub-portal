@@ -249,7 +249,6 @@
   "HideStorageDetails": "Hide Storage Details",
   "Viewer": "Viewer",
   "Viewers": "Viewers",
-
   "Next_Meeting_DT": "Next Meeting Date",
   "Last_Contact_DT": "Last Contact Date",
   "Comments_NT": "Comments",
@@ -346,7 +345,6 @@
   "Collecting_Data": "Are you collecting data on this program",
   "Disaggregated_Data": "Is data collected against this program being disaggregated",
   "Disaggregated_Data_Information": "What type of information are you collecting from your disaggregated data? Please describe",
-
   "Can_Report_On_Indicator": "Can you report on this indicator?",
   "Cannot_Report_On_Indicator": "If No, why not?",
   "DRF_Indicator_No": "DRF Indicator Number",
@@ -404,11 +402,9 @@
   "Ongoing_Monitoring_Activities_TXT": "Ongoing monitoring activities",
   "Ongoing_Monitoring_Activities_TXT2": "Ongoing monitoring activities 2",
   "Ongoing_Monitoring_Activities_TXT3": "Ongoing monitoring activities 3",
-
   "Ongoing_Monitoring_Timeframe_TXT": "Ongoing monitoring timeframe ",
   "Ongoing_Monitoring_Timeframe2_TXT": "Ongoing monitoring timeframe 2",
   "Ongoing_Monitoring_Timeframe3_TXT": "Ongoing monitoring timeframe 3",
-
   "Future_Mitigation_Activities_TXT": "Mitigation strategies",
   "Future_Mitigation_Activities_TXT2": "Mitigation strategies 2",
   "Future_Mitigation_Activities_TXT3": "Mitigation strategies 3",
@@ -432,13 +428,11 @@
   "InherentLevel1": "Inherent Risk Level",
   "InherentLevel2": "Residual Risk Level",
   "InherentLevel3": "Target Risk Level",
-
   "Sector_TXT": "Sector",
   "Branch_TXT": "Branch",
   "Branch_Budget_NUM": "Branch Budget",
   "Allocated_Budget_NUM": "Allocated Budget",
   "Unallocated_Budget_NUM": "Unallocated Budget",
-
   "Division_NUM": "Division",
   "SubLevel_TXT": "Sub-Level",
   "Departmental_Priorities_TXT": "Departmental Priorities",
@@ -498,7 +492,6 @@
   "Clickout_Measurement": "Clickout Measurement",
   "Clickout_URL": "Clickout URL",
   "HTTP_Status": "HTTP Status",
-
   "APPROVAL-FORM": {
     "Dataset_Title_TXT": "Title of Dataset(s) or Information Resource(s)",
     "Type_Of_Data_TXT": "Type of data",
@@ -530,7 +523,6 @@
     "Cancel": "Clear",
     "Submit": "Submit"
   },
-
   "METADATA-EDIT": {
     "FIELD-DEFINITIONS": {
       "Sort_Order_NUM": "Field Order",
@@ -545,7 +537,6 @@
       "Choices_TXT": "Choices"
     }
   },
-
   "METADATA-PAGE": {
     "ShowMore": "Show optional fields",
     "ShowLess": "Hide optional fields",
@@ -553,7 +544,6 @@
     "TranslationNote": "Clicking the auto-translate icon will use a third party tool to translate and <b>is only a suggested translation.</b>  It is the responsibility of the user to validate the translation before submitting the metadata.",
     "KeywordHint": "Click to add"
   },
-
   "SHARING-STATUS": {
     "OpenData": {
       "EnterMetadata": {
@@ -633,7 +623,6 @@
       }
     }
   },
-
   "FGP-WIZARD": {
     "Page_Title": "Share FGP Dataset",
     "Title": "Title",
@@ -674,7 +663,6 @@
       "TempWithNoExpiry": "Expiration date must be specified when temporary sharing is enabled."
     }
   },
-
   "Client_Sector": "Client Sector",
   "Client_Branch": "Client Branch",
   "Client_Division": "Client Division",
@@ -702,11 +690,6 @@
   "Client_Information": "Client Information",
   "Product Information": "Information",
   "Product_Name": "Initiative Name",
-
-
-
-
-
   "GCdocs_Hyperlink_URL": "GCdocs Hyperlink",
   "Expected_Lifespan_DT": "Expected lifespan or retirement date for the Team",
   "Name_of_Team": "Name of Team",
@@ -1079,6 +1062,13 @@
     "ReturnToAdmin": "Return to Administration"
   },
   "Most Popular": "Most Popular",
+  "Number of users in the workspace": "Number of users in the workspace",
+  "Number of shared repositories": "Number of shared repositories",
+  "Number of shared files": "Number of shared files",
+  "Create a new Workspace": "Create a new Workspace",
+  "You can create a new workspace to start working on your project": "You can create a new workspace to start working on your project",
+  "Featured Workspaces": "Featured Workspaces",
+  "Featured workspaces are a selection of workspaces that are currently being promoted by the Datahub team. You can view these projects' shared content to see what they are working on.": "Featured workspaces are a selection of workspaces that are currently being promoted by the Datahub team. You can view these projects\u0027 shared content to see what they are working on.",
   "Identifying the pathogen": "Identifying the pathogen",
   "Federal Science DataHub Resources": "Federal Science DataHub Resources",
   "Welcome to the Federal Science Datahub resources and documentation section. Below you will find a short list of some recommended resources to help you get started with the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar.": "Welcome to the Federal Science Datahub resources and documentation section. Below you will find a short list of some recommended resources to help you get started with the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar.",
@@ -1088,5 +1078,22 @@
   "Most Popular Resources": "Most Popular Resources",
   "Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar.": "Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar.",
   "On This Page": "On This Page",
-  "View Members": "View Members"
+  "View Members": "View Members",
+  "Registering": "Registering",
+  "Number of workspaces remaining": "Number of workspaces remaining",
+  "Please complete the following information to create a new workspace": "Please complete the following information to create a new workspace",
+  "(Optional) Which features are of interest to you?": "(Optional) Which features are of interest to you?",
+  "Please select all that apply": "Please select all that apply",
+  "Analytics": "Analytics",
+  "Collaboration": "Collaboration",
+  "Status": "Status",
+  "Copy locked users to clipboard": "Copy locked users to clipboard",
+  "Copy all users to clipboard": "Copy all users to clipboard",
+  "Account locked": "Account locked",
+  "Account missing from MSGraph": "Account missing from MSGraph",
+  "Copy the emails of all users in the current environment. Excludes gmail, ssc-spc and apption emails.": "Copy the emails of all users in the current environment. Excludes gmail, ssc-spc and apption emails.",
+  "Copy the emails of locked users in the tenant.": "Copy the emails of locked users in the tenant.",
+  "Copied!": "Copied!"
+  "Configuring Azure": "Configuring Azure",
+  "Resource is being provisioned": "Resource is being provisioned"
 }

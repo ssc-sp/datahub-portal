@@ -5,6 +5,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Security;
@@ -76,7 +77,32 @@ public class ProjectCreationService : IProjectCreationService
         var acronym = await GenerateProjectAcronymAsync(projectName);
         return await CreateProjectAsync(projectName, acronym, organization);
     }
-    
+
+    public async Task SaveProjectCreationDetailsAsync(string projectAcronym, string interestedFeatures)
+    {
+        await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
+        var project = await context.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+
+        if (project is null)
+        {
+            _logger.LogError("Project with acronym {ProjectAcronym} not found", projectAcronym);
+        }
+        else
+        {
+            var user = await _userInformationService.GetCurrentPortalUserAsync();
+            var newProjectCreationDetails = new ProjectCreationDetails
+            {
+                ProjectId = project.Project_ID,
+                CreatedById = user.Id,
+                InterestedFeatures = interestedFeatures,
+                CreatedAt = DateTime.UtcNow
+            };
+            
+            await context.ProjectCreationDetails.AddAsync(newProjectCreationDetails);
+            await context.TrackSaveChangesAsync(_auditingService);
+        }
+    }
+
     public async Task<bool> CreateProjectAsync(string projectName, string? acronym, string organization)
     {
         using (var scope = new TransactionScope(
@@ -132,20 +158,30 @@ public class ProjectCreationService : IProjectCreationService
             
         var projectUser = new Datahub_Project_User()
         {
-            PortalUser = portalUser,
+            PortalUserId = portalUser.Id,
             Approved_DT = DateTime.Now,
-            ApprovedPortalUser = portalUser,
+            ApprovedPortalUserId = portalUser.Id,
             Project = project,
-            Role = role
+            RoleId = role.Id
         };
         await db.Project_Users.AddAsync(projectUser);
+        
+        var projectWhiteList = new Project_Whitelist()
+        {
+            Project = project, 
+            LastUpdated = DateTime.UtcNow,
+            AllowStorage = true,
+            AllowDatabricks = true
+        };
+        await db.Project_Whitelists.AddAsync(projectWhiteList);
+        
         await db.TrackSaveChangesAsync(_auditingService);
         serviceAuthManager.InvalidateAuthCache();
     }
 
     private decimal GetDefaultBudget()
     {
-        var value = _configuration.GetValue<int>("DefaultProjectBudget", 400);
+        var value = _configuration.GetValue<int>("DefaultProjectBudget", 100);
         return Convert.ToDecimal(value);
     }
 }
