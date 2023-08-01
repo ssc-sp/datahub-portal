@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Datahub.Shared;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Enums;
 using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
@@ -24,11 +26,8 @@ public class AzureStorageBlobTemplateTests
     [Test]
     public async Task ShouldThrowExceptionIfProjectNotInitialized()
     {
-        const string workspaceAcronym = "ShouldThrowExceptionIfProjectNotInitialized";
-        var workspace = new TerraformWorkspace
-        {
-            Acronym = workspaceAcronym
-        };
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        var workspace =  GenerateTestTerraformWorkspace(workspaceAcronym);
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
 
         var module = new TerraformTemplate
@@ -46,15 +45,11 @@ public class AzureStorageBlobTemplateTests
     [Test]
     public async Task ShouldCopyAzureStorageBlobTemplate()
     {
-        const string workspaceAcronym = "ShouldCopyAzureStorageBlobTemplate";
+        var workspaceAcronym = GenerateWorkspaceAcronym();
 
         // Setup new project template
         var newProjectTemplateExpectedFileCount = await SetupNewProjectTemplate(workspaceAcronym);
-
-        var workspace = new TerraformWorkspace
-        {
-            Acronym = workspaceAcronym
-        };
+        var workspace =  GenerateTestTerraformWorkspace(workspaceAcronym);
 
         var module = new TerraformTemplate
         {
@@ -92,54 +87,12 @@ public class AzureStorageBlobTemplateTests
     [Test]
     public async Task ShouldExtractAzureStorageBlobTemplateVariables()
     {
-        const string workspaceAcronym = "ShouldExtractAzureStorageBlobTemplateVariables";
+        var workspaceAcronym = GenerateWorkspaceAcronym();
         // Setup new project template
         await SetupNewProjectTemplate(workspaceAcronym);
 
-        var workspace = new TerraformWorkspace
-        {
-            Acronym = workspaceAcronym,
-            Users = new List<TerraformUser>
-            {
-                new()
-                {
-                    Email = "1@email.com",
-                    ObjectId = "00000000-0000-0000-0000-000000000001"
-                },
-                new()
-                {
-                    Email = "2@email.com",
-                    ObjectId = "00000000-0000-0000-0000-000000000002"
-                },
-                new()
-                {
-                    Email = "3@email.com",
-                    ObjectId = "00000000-0000-0000-0000-000000000003"
-                }
-            }
-        };
-
-        var expectedVariables = new JsonObject
-        {
-            ["storage_contributor_users"] = new JsonArray
-            {
-                new JsonObject
-                {
-                    ["email"] = "1@email.com",
-                    ["oid"] = "00000000-0000-0000-0000-000000000001"
-                },
-                new JsonObject
-                {
-                    ["email"] = "2@email.com",
-                    ["oid"] = "00000000-0000-0000-0000-000000000002"
-                },
-                new JsonObject
-                {
-                    ["email"] = "3@email.com",
-                    ["oid"] = "00000000-0000-0000-0000-000000000003"
-                },
-            },
-        };
+        var workspace =  GenerateTestTerraformWorkspace(workspaceAcronym);
+        var expectedVariables = GenerateExpectedVariables(workspace);
 
         var module = new TerraformTemplate
         {
@@ -171,20 +124,13 @@ public class AzureStorageBlobTemplateTests
     [Test]
     public async Task ShouldExtractAzureStorageBlobTemplateVariablesWithNoUsers()
     {
-        const string workspaceAcronym = "ShouldExtractAzureStorageBlobTemplateVariablesWithNoUsers";
+        var workspaceAcronym = GenerateWorkspaceAcronym();
         // Setup new project template
         await SetupNewProjectTemplate(workspaceAcronym);
 
 
-        var workspace = new TerraformWorkspace
-        {
-            Acronym = workspaceAcronym,
-        };
-
-        var expectedVariables = new JsonObject
-        {
-            ["storage_contributor_users"] = new JsonArray()
-        };
+        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
+        var expectedVariables = GenerateExpectedVariables(workspace, false);
 
         var module = new TerraformTemplate
         {
@@ -216,54 +162,12 @@ public class AzureStorageBlobTemplateTests
      [Test]
      public async Task ShouldExtractNewProjectTemplateVariablesWithoutDuplicates()
      {
-         const string workspaceAcronym = "ShouldExtractNewProjectTemplateVariablesWithoutDuplicates";
+         var workspaceAcronym = GenerateWorkspaceAcronym();
          // Setup new project template
          await SetupNewProjectTemplate(workspaceAcronym);
 
-         var workspace = new TerraformWorkspace
-         {
-             Acronym = workspaceAcronym,
-             Users = new List<TerraformUser>
-             {
-                 new()
-                 {
-                     Email = "1@email.com",
-                     ObjectId = "00000000-0000-0000-0000-000000000001"
-                 },
-                 new()
-                 {
-                     Email = "2@email.com",
-                     ObjectId = "00000000-0000-0000-0000-000000000002"
-                 },
-                 new()
-                 {
-                     Email = "3@email.com",
-                     ObjectId = "00000000-0000-0000-0000-000000000003"
-                 }
-             }
-         };
-
-         var expectedVariables = new JsonObject
-         {
-             ["storage_contributor_users"] = new JsonArray
-             {
-                 new JsonObject
-                 {
-                     ["email"] = "1@email.com",
-                     ["oid"] = "00000000-0000-0000-0000-000000000001"
-                 },
-                 new JsonObject
-                 {
-                     ["email"] = "2@email.com",
-                     ["oid"] = "00000000-0000-0000-0000-000000000002"
-                 },
-                 new JsonObject
-                 {
-                     ["email"] = "3@email.com",
-                     ["oid"] = "00000000-0000-0000-0000-000000000003"
-                 },
-             },
-         };
+         var workspace =  GenerateTestTerraformWorkspace(workspaceAcronym);
+         var expectedVariables = GenerateExpectedVariables(workspace);
 
          var module = new TerraformTemplate()
          {
@@ -295,4 +199,40 @@ public class AzureStorageBlobTemplateTests
              });
          }
      }
+
+     private static JsonObject GenerateExpectedVariables(TerraformWorkspace workspace, bool withUsers = true)
+    {
+        if (!withUsers)
+        {
+            return new JsonObject
+            {
+                [TerraformVariables.StorageContributorUsers] = new JsonArray(),
+                [TerraformVariables.StorageGuestUsers] = new JsonArray(),
+            };
+        }
+
+        return new JsonObject
+        {
+            [TerraformVariables.StorageContributorUsers] = new JsonArray(
+                (workspace.Users ?? Array.Empty<TerraformUser>())
+                .Where(u => u.Role is Role.Owner or Role.Admin or Role.User)
+                .Select(u => new JsonObject
+                {
+                    ["email"] = u.Email,
+                    ["oid"] = u.ObjectId,
+                })
+                .ToArray<JsonNode>()
+            ),
+            [TerraformVariables.StorageGuestUsers] = new JsonArray(
+                (workspace.Users ?? Array.Empty<TerraformUser>())
+                .Where(u => u.Role == Role.Guest)
+                .Select(u => new JsonObject
+                {
+                    ["email"] = u.Email,
+                    ["oid"] = u.ObjectId,
+                })
+                .ToArray<JsonNode>()
+            )
+        };
+    }
 }

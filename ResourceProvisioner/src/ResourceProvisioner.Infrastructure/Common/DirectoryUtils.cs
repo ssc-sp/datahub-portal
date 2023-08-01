@@ -22,7 +22,15 @@ public static class DirectoryUtils
         {
             // wait for one second and try again
             Thread.Sleep(1000);
-            dir.Delete(true);
+            try
+            {
+                dir.Delete(true);
+            }
+            catch (IOException)
+            {
+                Thread.Sleep(1000);
+                dir.Delete(true);
+            }
         }
     }
 
