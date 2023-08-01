@@ -36,6 +36,11 @@ public static class TerraformVariables
     public const string StorageSizeLimitInTb = "storage_size_limit_tb";
     public const string AzureDatabricksEnterpriseOid = "azure_databricks_enterprise_oid"; 
     public const string AzureLogWorkspaceId = "log_workspace_id"; 
+    
+    /// <summary>
+    /// Default outbound IP address for the Datahub Portal
+    /// </summary>
+    public const string AllowSourceIp = "allow_source_ip"; 
 
     
     public const string MapType = "map";

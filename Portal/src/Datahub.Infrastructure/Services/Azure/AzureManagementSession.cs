@@ -61,6 +61,61 @@ public class AzureManagementSession
         return GetServiceCosts(response, nameIndex: 1);
     }
 
+    public async Task<double> GetTotalAverageStorageCapacity(params string[] resourceGroups)
+    {
+        var accounts = await ListResourceGroupStorage(resourceGroups).ToListAsync();
+        if (accounts.Count < resourceGroups.Length)
+        {
+            var rgs = string.Join(", ", resourceGroups);
+            throw new Exception($"Could not read all storageAcounts from the resource groups '{rgs}'");
+        }            
+
+        double capacity = 0.0;
+        foreach (var account in accounts)
+        {
+            var accCapacity = await GetStorageAverageCapacity(account.ResourceGroup, account.StorageAccountName);
+            capacity += accCapacity;
+        }
+        return capacity;
+    }
+
+    private async Task<double> GetStorageAverageCapacity(string resourceGroupName, string storageAccountName)
+    {
+        var requestUrl = GetStorageCapacityRequestUrl(resourceGroupName, storageAccountName);
+        var response = await _httpClient.GetAsync<StorageCapacityResponse>(requestUrl, _accessToken, null, _cancellationToken);
+        
+        if (response is null)
+            throw new Exception($"Cannot read Storage Capacity of {resourceGroupName}/{storageAccountName}");
+
+        return response.value[0].timeseries[0].data[0].average;
+    }
+
+    record ResourceGroupStorage(string ResourceGroup, string StorageAccountName);
+
+    private async IAsyncEnumerable<ResourceGroupStorage> ListResourceGroupStorage(string[] resourceGroups)
+    {
+        foreach (var rg in resourceGroups)
+        {
+            var accountNames = await GetStorageAccountNames(rg);
+            foreach (var name in accountNames)
+            {
+                yield return new(rg, name);
+            }
+        }
+    }
+
+    private async Task<List<string>> GetStorageAccountNames(string resourceGroupName)
+    {
+        var requestUrl = GetStorageAccountNamesRequestUrl(resourceGroupName);
+        var response = await _httpClient.GetAsync<GetStorageAccountsResponse>(requestUrl, _accessToken, null, _cancellationToken);
+
+        var accounts = response?.value;
+        if (accounts is null)
+            return new();
+
+        return accounts.Select(acc => acc.name).ToList();
+    }
+
     static StringContent GetStringContent(object content)
     {
         var jsonContent = JsonSerializer.Serialize(content, GetJsonSerializerOptions());
@@ -79,6 +134,23 @@ public class AzureManagementSession
     private string GetCostManagementRequestUrl()
     {
         return $"{AzureManagementUrls.ManagementUrl}/subscriptions/{_configuration.SubscriptionId}/providers/Microsoft.CostManagement/query?api-version=2021-10-01&$top=5000";
+    }
+
+    private string GetStorageCapacityRequestUrl(string resourceGroupName, string storageAccountName) 
+    {
+        var version = "2019-07-01";
+
+        var today = DateTime.Now.Date;
+        var dateFormat = "yyyy-MM-ddTHH:00:00.000Z";
+        var fromDate = today.AddDays(-1).ToString(dateFormat);
+        var toDate = today.ToString(dateFormat);
+
+        return $"{AzureManagementUrls.ManagementUrl}subscriptions/{_configuration.SubscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{storageAccountName}/providers/microsoft.Insights/metrics?timespan={fromDate}/{toDate}&interval=FULL&metricnames=UsedCapacity&aggregation=average&metricNamespace=microsoft.storage%2Fstorageaccounts&validatedimensions=false&api-version={version}";
+    }
+
+    private string GetStorageAccountNamesRequestUrl(string resourceGroupName)
+    {
+        return $"{AzureManagementUrls.ManagementUrl}/subscriptions/{_configuration.SubscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts?api-version=2021-05-01";
     }
 
     static CostManagementRequest GetYearCostRequest(string[] resourceGroups)

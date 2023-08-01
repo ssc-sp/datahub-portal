@@ -44,9 +44,10 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<SystemNotification> SystemNotifications { get; set; }
 
     public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
-        
     public DbSet<Project_Credits> Project_Credits { get; set; }
     public DbSet<Project_Whitelist> Project_Whitelists { get; set; }
+
+    public DbSet<Project_Storage> Project_Storage_Avgs { get; set; }
 
     public DbSet<MiscStoredObject> MiscStoredObjects { get; set; }
 
@@ -76,6 +77,16 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<Project_Role> Project_Roles { get; set; }
 
     public DbSet<DocumentationResource> DocumentationResources { get; set; }
+    
+    /// <summary>
+    /// Table for storing any additional details when users go through the self registration process
+    /// </summary>
+    public DbSet<SelfRegistrationDetails> SelfRegistrationDetails { get; set; }
+    
+    /// <summary>
+    /// Table for storing any additional details when users go through the project creation process
+    /// </summary>
+    public DbSet<ProjectCreationDetails> ProjectCreationDetails { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {

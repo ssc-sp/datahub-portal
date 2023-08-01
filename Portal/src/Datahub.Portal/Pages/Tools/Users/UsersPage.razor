@@ -1,35 +1,72 @@
 @page "/tools/users"
+@using Microsoft.IdentityModel.Tokens
+@using Datahub.Core.Model.Achievements
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IJSRuntime _jsRuntime
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
-  <MudText Typo="Typo.h1" Class="mb-12">
-      @Localizer["Users"]
-  </MudText>
-  @if (_userWorkspaces == null)
-  {
+    <MudText Typo="Typo.h1" Class="mb-12">
+        @Localizer["Users"]
+    </MudText>
+    @if (_hasLoaded)
+    {   
+        <MudTooltip Text=@Localizer["Copy the emails of all users in the current environment. Excludes gmail, ssc-spc and apption emails."]>
+            <MudButton Color="Color.Primary" OnClick="@CopyAllUsersToClipboard">
+                @_allButton
+            </MudButton>
+        </MudTooltip>
+        <MudTooltip Text=@Localizer["Copy the emails of locked users in the tenant."]>
+            <MudButton Color="Color.Primary" OnClick="@CopyLockedUsersToClipboard">
+                @_lockedButton
+            </MudButton>
+        </MudTooltip>
+    }
+    else
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary"/>
+    }
+    @if (_userWorkspaces == null)
+    {
       <MudSkeleton Height="600px" Width="100%"/>
-  }
-  else
-  {
-      <UsersTable UserWorkspaces="_userWorkspaces"/>
-  }
+    }
+    else
+    {
+      <UsersTable UserWorkspaces="_userWorkspaces" @ref="_usersTable"/>
+    }
 </DatahubAuthView>
 
 
 
 @code {
-    
+    private UsersTable _usersTable;
+    private bool _hasLoaded = false;
+    private string _lockedButton = null;
+    private string _allButton = null;
+ 
+    private List<string> EXCLUDED_EMAILS = new List<string>(
+        new string[] {
+        "@gmail",
+        "@apption",
+        "@ssc-spc"
+    });
+
     private List<UserWorkspaces> _userWorkspaces;
+    private List<PortalUser> _portalUsers;
+    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender) return;
+        if (!firstRender && !_hasLoaded)
+        {
+            _hasLoaded = _usersTable.loadStatus;
+            _lockedButton = @Localizer["Copy locked users to clipboard"];
+            _allButton = @Localizer["Copy all users to clipboard"];
+        };
         
         await using var context = await _dbContextFactory.CreateDbContextAsync();
+        _portalUsers = await context.PortalUsers.ToListAsync();
         
-        var users = await context.PortalUsers.ToListAsync();
-        
-        _userWorkspaces = users.Select(u => new UserWorkspaces
+        _userWorkspaces = _portalUsers.Select(u => new UserWorkspaces
         {
             User = u,
             Workspaces = context.Project_Users.Include(pu => pu.Project)
@@ -40,4 +77,30 @@
 
     }
 
+    private async Task CopyAllUsersToClipboard()
+    {
+        var allEmails = _portalUsers.Select(user => user.Email)
+            .Where(email => !EXCLUDED_EMAILS.Any(excluded => email.Contains(excluded)))
+            .ToList();
+        _allButton = await CopyToClipboard(allEmails, _allButton) ? Localizer["Copied!"] : Localizer["Failed to copy"];
+    }
+
+    private async Task CopyLockedUsersToClipboard()
+    {
+        _lockedButton = await CopyToClipboard(_usersTable.lockedUsers, _lockedButton) ? Localizer["Copied!"] : Localizer["Failed to copy"];
+    }
+    
+    private async Task<bool> CopyToClipboard(List<string> emailList, string buttonText)
+    {
+        var result = false;
+        if (!emailList.IsNullOrEmpty())
+        {
+            var tempstr = String.Join(",\n", emailList);
+            await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", tempstr);
+            result = true;
+        }
+        return result;
+    }
+
+    
 }
