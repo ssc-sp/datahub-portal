@@ -140,7 +140,6 @@
     "Title": "Gérer l'accès",
     "FolderNotExist": "L'utilisateur n'a pas de dossier racine défini, la propriété ne peut pas être transférée."
   },
-
   "TAC-PAGE": {
     "AcceptTerms": "Accepté les termes et conditions",
     "AgreeToTAC": "J'accepte les termes et conditions",
@@ -865,7 +864,6 @@
   "Additional Information": "Informations compl\u00E9mentaires",
   "Add New": "Ajouter un nouveau",
   "Onboarding_Timeline": "Calendrier d'intégration",
-
   "Data_Set_Security_Level_Classified": "Sécurité des ensembles de données classifié",
   "Data_Set_Security_Level_ProtectedA": "Sécurité des ensembles de données protégé A",
   "Data_Set_Security_Level_ProtectedB": "Sécurité des ensembles de données protégé B",
@@ -879,14 +877,11 @@
   "[Firstname.Lastname@nrcan-rncan.gc.ca]": "[Prénom.Nom@nrcan-rncan.gc.ca]",
   "[Provide a brief description of the objective(s) you would like to accomplish with DataHub]": "[Fournissez une brève description de l'objectif ou des objectifs que vous souhaitez atteindre avec DataHub]",
   "[Provide any anticipated timelines or deadlines for onboarding to DataHub]": "[Indiquez tout calendrier ou délai prévu pour l'intégration à DataHub.]",
-
   "[Enter any additional information/comments regarding your product or questions for the DataHub team]": "[Saisissez toute information/commentaire suppl\u00E9mentaire concernant votre produit ou toute question destin\u00E9e \u00E0 l\u0027\u00E9quipe de DataHub].",
   "[Enter the name of your product]": "[Entrez le nom de votre produit]",
   "[Provide a brief summary/description of your product]": "[Fournissez un bref r\u00E9sum\u00E9/description de votre produit].",
   "Product Information": "Informations",
-
   "To continue to use the Federal Science DataHub, you must read and agree to the": "Pour continuer à utiliser le DataHub de la science fédérale, vous devez lire et accepter les",
-
   "AA": "AA",
   "AAA": "AAA",
   "AATI": "AACI",
@@ -1689,7 +1684,6 @@
       "Metadata": "Gestion des métadonnées",
       "MonthlyCost": "Coûts mensuels",
       "WhitelistProjectResources": "Gérer les ressources auxquelles l'espace de travail a accès"
-
     },
     "CARD_DESCRIPTIONS": {
       "ExternalSharing": "Gérer le partage externe des fichiers et des rapports Power BI",
@@ -1787,6 +1781,14 @@
   "Collaboration": "Collaboration",
   "Storage daily average (over last 30 days)": "Moyenne quotidienne de stockage (sur les 30 derniers jours)",
   "Average (GB)": "Moyenne (Go)",
+  "Status": "Statut",
+  "Copy locked users to clipboard": "Copier les utilisateurs verrouillés dans le presse-papiers",
+  "Copy all users to clipboard": "Copier tous les utilisateurs dans le presse-papiers",
+  "Account locked": "Compte verouillé",
+  "Account missing from MSGraph": "Compte manquant dans MSGraph",
+  "Copy the emails of all users in the current environment. Excludes gmail, ssc-spc and apption emails.": "Copiez les emails de tous les utilisateurs de l'environnement actuel. Exclut les emails gmail, ssc-spc et apption.",
+  "Copy the emails of locked users in the tenant.": "Copiez les e-mails des utilisateurs verrouillés dans le locataire.",
+  "Copied!": "Copié!"
   "Configuring Azure": "Configuration d'Azure",
   "Resource is being provisioned": "En cours de provisionnement"
 }
