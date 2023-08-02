@@ -44,7 +44,7 @@
     private string _lockedButton = null;
     private string _allButton = null;
  
-    private List<string> EXCLUDED_EMAILS = new List<string>(
+    private List<string> EXCLUDED_EMAILS = new (
         new string[] {
         "@gmail",
         "@apption",
@@ -58,7 +58,7 @@
     {
         if (!firstRender && !_hasLoaded)
         {
-            _hasLoaded = _usersTable.loadStatus;
+            _hasLoaded = _usersTable.LoadStatus;
             _lockedButton = @Localizer["Copy locked users to clipboard"];
             _allButton = @Localizer["Copy all users to clipboard"];
         };
@@ -82,15 +82,15 @@
         var allEmails = _portalUsers.Select(user => user.Email)
             .Where(email => !EXCLUDED_EMAILS.Any(excluded => email.Contains(excluded)))
             .ToList();
-        _allButton = await CopyToClipboard(allEmails, _allButton) ? Localizer["Copied!"] : Localizer["Failed to copy"];
+        _allButton = await CopyToClipboard(allEmails) ? Localizer["Copied!"] : Localizer["Failed to copy"];
     }
 
     private async Task CopyLockedUsersToClipboard()
     {
-        _lockedButton = await CopyToClipboard(_usersTable.lockedUsers, _lockedButton) ? Localizer["Copied!"] : Localizer["Failed to copy"];
+        _lockedButton = await CopyToClipboard(_usersTable.LockedUsers) ? Localizer["Copied!"] : Localizer["Failed to copy"];
     }
     
-    private async Task<bool> CopyToClipboard(List<string> emailList, string buttonText)
+    private async Task<bool> CopyToClipboard(List<string> emailList)
     {
         var result = false;
         if (!emailList.IsNullOrEmpty())
