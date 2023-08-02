@@ -1,0 +1,122 @@
+﻿@inject IDialogService DialogService
+@inject IUserInformationService _userInformationService
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+@inject UIControlsService _uiControlsService
+@inject NavigationManager _navigationManager
+
+@using MudBlazor
+@using Microsoft.Identity.Web
+@using Datahub.Core.Components.Common
+@using Datahub.Core.Model.Achievements
+@using Datahub.Portal.Components.User
+
+<MudPaper Elevation="2" Class="pa-5 mt-3">
+    <MudForm @ref="form">
+        <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
+        @if (_currentStep == 0)
+        {
+            <MudText Typo="Typo.body2" Class="py-3">@Localizer["To report an issue or request assistance please use the FSDH Support Request Form"]</MudText>
+        }
+        else if (_currentStep == 1)
+        {
+            <MudText Typo="Typo.body2" Class="py-3">@Localizer["What are you having trouble with?"]</MudText>
+            <MudRadioGroup @bind-SelectedOption="_ticketTopic" Required="true">
+                <MudRadio Option="@("Workspace")" Color="Color.Primary">@Localizer["Workspace"]</MudRadio>
+                <MudRadio Option="@("Databricks")" Color="Color.Primary">@Localizer["Databricks"]</MudRadio>
+                <MudRadio Option="@("Storage")" Color="Color.Primary">@Localizer["Storage"]</MudRadio>
+            </MudRadioGroup>
+        }
+        else if (_currentStep == 2)
+        {
+            <MudText Typo="Typo.body2" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
+            <MudTextField T="string" @bind-Value="_ticketWorkspace" Label=@Localizer["In which workspace do you encounter this issue?"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Workspaces" Variant="Variant.Text" />        
+            <MudTextField T="string" @bind-Value="_ticketIssue" Label=@Localizer["Issue"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ReportProblem" Variant="Variant.Text" />
+            <MudTextField T="string" @bind-Value="_ticketDescription" Label=@Localizer["Detailed description"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Description" Variant="Variant.Text" Lines="5" />
+        }
+        else if (_currentStep == 3)
+        {
+            <MudText Typo="Typo.body2" Class="py-3">@Localizer["Please provide your contact information so we can follow-up with you, if needed."]</MudText>
+            <MudTextField T="string" @bind-Value="_ticketName" Label=@Localizer["Your name"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountCircle" Variant="Variant.Text" />
+            <MudTextField T="string" @bind-Value="_ticketEmail" Label=@Localizer["Your email"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" Variant="Variant.Text" />
+        }
+        <MudGrid>
+            <MudItem xs="6" Align="Align.Start" Class="py-6">
+		        @if (_currentStep > 0)
+		        {
+                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" OnClick="PreviousStep">Previous</MudButton>
+                }
+                else
+                {
+                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" OnClick="NextStep" Class="align-end">Get Started</MudButton>
+                }
+            </MudItem>
+            <MudItem xs="6" Align="Align.End" Class="py-6">
+                @if (_currentStep < 3 && _currentStep > 0)
+                {
+                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" OnClick="NextStep" Class="align-end">Next</MudButton>
+                }
+                else if (_currentStep >= 3)
+                {
+                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitForm">Submit</MudButton>
+                }
+            </MudItem>
+        </MudGrid>
+    </MudForm>
+</MudPaper>
+
+@code {
+    [Parameter]
+    public EventCallback ToggleHelp { get; set; }
+
+    private PortalUser _viewedUser;
+    private MudForm form;
+    private String _ticketName = new String("");
+    private String _ticketEmail = new String("");
+    private String _ticketIssue = new String("");
+    private String _ticketDescription = new String("");
+    private String _ticketTopic = new String("Workspace");
+    private String _ticketWorkspace = new String("");
+    private int _currentStep = 0;
+
+    private async void SubmitForm()
+    {
+        form.Validate();
+        if (form.IsValid)
+        {
+            await DialogService.ShowMessageBox("Success", "Your support ticket has been created. Thank you!", yesText: "OK");
+            if (ToggleHelp.HasDelegate)
+            {
+                await ToggleHelp.InvokeAsync();
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+            _ticketName = _viewedUser.DisplayName;
+            _ticketEmail = _viewedUser.Email;
+        }
+        catch (Exception ex)
+        {
+            _consentHandler.HandleException(ex);
+        }
+    }
+
+    private void NextStep()
+    {
+        form.Validate();
+        if (form.IsValid)
+        {
+            _currentStep++;            
+        }
+    }
+
+    private void PreviousStep()
+    {
+        _currentStep--;
+    }
+
+}
