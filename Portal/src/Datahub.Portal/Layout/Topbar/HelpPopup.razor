@@ -34,8 +34,17 @@
                 <MudStack>
                     <MudText>@Localizer["Need a hand? We've got you covered."]</MudText>
                     <MudText Typo="Typo.body2">@Localizer["Our Resources page has many resources that could be helpful for you. Additional support is available using the FSDH Support Request Form."]</MudText>
-                    <MudLink Href="/resources" OnClick="ToggleHelp">Resources</MudLink>
+                    <MudItem xs="6" Class="py-3">
+                            <MudButton Href="/resources"
+                                       Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="fat fa-sitemap"
+                                       OnClick="ToggleHelp">
+                                Resources
+                            </MudButton>
+                    </MudItem>
                 </MudStack>
+                <MudDivider />
                 <HelpDialog ToggleHelp="@ToggleHelp" />
             </MudCardContent>
         </MudCard>
