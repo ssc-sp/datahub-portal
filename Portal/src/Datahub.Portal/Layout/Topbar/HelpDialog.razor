@@ -10,27 +10,34 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Portal.Components.User
 
-<MudPaper Elevation="2" Class="pa-5 mt-3">
-    <MudForm @ref="form">
+@using System;
+@using System.Net.Http;
+@using System.Net.Http.Headers;
+@using System.Text;
+@using System.Threading.Tasks;
+@using Newtonsoft.Json;
+@using Microsoft.JSInterop;
+
+
+<MudForm @ref="form">
         <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
         @if (_currentStep == 0)
         {
-            <MudText Typo="Typo.body2" Class="py-3">@Localizer["To report an issue or request assistance please use the FSDH Support Request Form"]</MudText>
+            <MudText Typo="Typo.body2" Class="py-3">@Localizer["To report an issue or request assistance, please use the FSDH Support Request Form"]</MudText>
         }
         else if (_currentStep == 1)
         {
-            <MudText Typo="Typo.body2" Class="py-3">@Localizer["What are you having trouble with?"]</MudText>
-            <MudRadioGroup @bind-SelectedOption="_ticketTopic" Required="true">
-                <MudRadio Option="@("Workspace")" Color="Color.Primary">@Localizer["Workspace"]</MudRadio>
-                <MudRadio Option="@("Databricks")" Color="Color.Primary">@Localizer["Databricks"]</MudRadio>
-                <MudRadio Option="@("Storage")" Color="Color.Primary">@Localizer["Storage"]</MudRadio>
-            </MudRadioGroup>
+            <MudText Typo="Typo.body2" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
+            @foreach (var topic in _ticketTopics)
+            {
+                <MudCheckBox @bind-Checked="@_ticketTopics[topic.Key]" Label="@topic.Key" Color="Color.Primary"></MudCheckBox>
+            }
         }
         else if (_currentStep == 2)
         {
             <MudText Typo="Typo.body2" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
             <MudTextField T="string" @bind-Value="_ticketWorkspace" Label=@Localizer["In which workspace do you encounter this issue?"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Workspaces" Variant="Variant.Text" />        
-            <MudTextField T="string" @bind-Value="_ticketIssue" Label=@Localizer["Issue"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ReportProblem" Variant="Variant.Text" />
+            <MudTextField T="string" @bind-Value="_ticketIssue" Label=@Localizer["Issue Title"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ReportProblem" Variant="Variant.Text" />
             <MudTextField T="string" @bind-Value="_ticketDescription" Label=@Localizer["Detailed description"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Description" Variant="Variant.Text" Lines="5" />
         }
         else if (_currentStep == 3)
@@ -43,47 +50,71 @@
             <MudItem xs="6" Align="Align.Start" Class="py-6">
 		        @if (_currentStep > 0)
 		        {
-                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" OnClick="PreviousStep">Previous</MudButton>
+                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="PreviousStep">Previous</MudButton>
                 }
                 else
                 {
-                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" OnClick="NextStep" Class="align-end">Get Started</MudButton>
+                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="NextStep">Get Started</MudButton>
                 }
             </MudItem>
             <MudItem xs="6" Align="Align.End" Class="py-6">
                 @if (_currentStep < 3 && _currentStep > 0)
                 {
-                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" OnClick="NextStep" Class="align-end">Next</MudButton>
+                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="NextStep">Next</MudButton>
                 }
                 else if (_currentStep >= 3)
                 {
-                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitForm">Submit</MudButton>
+                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="SubmitForm">Submit</MudButton>
                 }
             </MudItem>
         </MudGrid>
     </MudForm>
-</MudPaper>
 
 @code {
     [Parameter]
     public EventCallback ToggleHelp { get; set; }
 
-    private PortalUser _viewedUser;
+    private PortalUser _viewedUser; // To retrieve the user's name/email for the form
     private MudForm form;
+
+    // Variables used for the form that can be passed in the bug report.
     private String _ticketName = new String("");
     private String _ticketEmail = new String("");
     private String _ticketIssue = new String("");
     private String _ticketDescription = new String("");
-    private String _ticketTopic = new String("Workspace");
     private String _ticketWorkspace = new String("");
-    private int _currentStep = 0;
+
+    // This dictionary is used to generate checkboxes in the help request
+    Dictionary<string, bool> _ticketTopics = new Dictionary<string, bool>
+    {
+        {"Workspace", false},
+        {"Databricks", false},
+        {"Storage", false},
+        {"User Management", false},
+        {"Documentation", false},
+        {"Tool Requesting", false},
+        {"Other", false},
+    };
+
+    private int _currentStep = 0; // Indicates what part of the form to show
 
     private async void SubmitForm()
     {
         form.Validate();
         if (form.IsValid)
         {
-            await DialogService.ShowMessageBox("Success", "Your support ticket has been created. Thank you!", yesText: "OK");
+            var url = _navigationManager.Uri; // Retrieve the active URL
+
+            // We retrieve the selected checkboxes that indicate the issue topics
+            var matchingTopics = _ticketTopics.Where(kvp => kvp.Value == true).Select(kvp => kvp.Key);
+            var _ticketTopic = String.Join(", ", matchingTopics);
+
+            String description = $"Issue submitted by: {_ticketName}<br />Contact email: {_ticketEmail}<br /><br />Topics: {_ticketTopic}<br />Workspace: {_ticketWorkspace}<br />Active URL: {url}<br /><br />Description: {_ticketDescription}";
+            
+            // TODO: Find proper solution for storing the access key
+            CreateIssue(_ticketIssue, description, "science-program", "DataHub SSC", "PERSONAL ACCESS TOKEN HERE");
+
+            // After the issue is created, we close the Help page.
             if (ToggleHelp.HasDelegate)
             {
                 await ToggleHelp.InvokeAsync();
@@ -93,6 +124,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Retrieving the user's email and name to autofill the form.
         try
         {
             _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
@@ -118,5 +150,40 @@
     {
         _currentStep--;
     }
+
+    // Code to generate an issue in DevOps.
+
+    private static readonly HttpClient client = new HttpClient();
+    private const string devOpsUrl = "https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${workItemTypeName}?api-version=6.0";
+
+    public async Task CreateIssue(string title, string description, string organization, string project, string personalAccessToken)
+    {
+        var url = devOpsUrl.Replace("{organization}", organization).Replace("{project}", project).Replace("{workItemTypeName}", "Issue");
+
+        title = "[TEST ISSUE - PLEASE IGNORE] " + title ;
+        description = "[TEST ISSUE - PLEASE IGNORE]<br /><br />" + description;
+
+        var body = new object[]
+        {
+            new { op = "add", path = "/fields/System.Title", value = title },
+            new { op = "add", path = "/fields/System.Description", value = description }
+        };
+
+        var jsonContent = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json-patch+json");
+        string credentials = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes($":{personalAccessToken}"));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+
+        var response = await client.PostAsync(url, jsonContent);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception($"Error creating issue: {response.StatusCode} {response.ReasonPhrase}");
+        }
+        else
+        {
+            await DialogService.ShowMessageBox("Success", "Your support ticket has been created. Thank you!", yesText: "OK");
+        }
+    }
+
 
 }
