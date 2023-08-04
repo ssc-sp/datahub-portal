@@ -293,15 +293,6 @@ public class RepositoryServiceTests
         Assert.That(result, Is.All.InstanceOf<Version>());
     }
 
-    // [Test]
-    // public async Task ShouldBeAbleToMatchLatestAgainstHighestVersion()
-    // {
-    //     var workspaceAcronym = GenerateWorkspaceAcronym();
-    //     var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
-    //
-    //     await _terraformService.CopyTemplateAsync(module, workspace);
-    // }
-
     private static StringContent ExpectedPullRequestResponse(int fakePullRequestId)
     {
         var data = new JsonObject
