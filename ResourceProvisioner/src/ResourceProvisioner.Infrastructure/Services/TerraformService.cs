@@ -14,6 +14,9 @@ namespace ResourceProvisioner.Infrastructure.Services;
 
 public class TerraformService : ITerraformService
 {
+    public const string TerraformVersionToken = "{{version}}";
+    public const string TerraformBranchToken = "{{branch}}";
+    
     private readonly ILogger<TerraformService> _logger;
     internal static readonly List<string> EXCLUDED_FILE_EXTENSIONS = new(new[] { ".md" });
     private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
@@ -74,7 +77,11 @@ public class TerraformService : ITerraformService
         {
             var sourceFilename = Path.GetFileName(file);
             var destinationFilename = Path.Combine(projectPath, sourceFilename);
-            File.Copy(file, destinationFilename, true);
+
+            var fileContent = File.ReadAllText(file);
+            fileContent = fileContent.Replace(TerraformVersionToken, terraformWorkspace.Version);
+            fileContent = fileContent.Replace(TerraformBranchToken, string.Empty);
+            File.WriteAllText(destinationFilename, fileContent);
         }
 
         return Task.CompletedTask;

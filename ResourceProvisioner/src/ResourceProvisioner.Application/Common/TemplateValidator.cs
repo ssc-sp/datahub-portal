@@ -11,8 +11,6 @@ public class TerraformTemplateValidator : AbstractValidator<TerraformTemplate>
             .NotEmpty()
             .MaximumLength(200);
         
-        RuleFor(x => x.Version)
-            .NotEmpty()
-            .MaximumLength(100);
+
     }
 }

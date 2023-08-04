@@ -35,7 +35,6 @@ public class Testing
     internal static readonly TerraformTemplate TestTemplate = new()
     {
         Name = "TestModule",
-        Version = "1.0.0",
     };
 
     [OneTimeSetUp]
@@ -110,7 +109,6 @@ public class Testing
         var module = new TerraformTemplate
         {
             Name = TerraformTemplate.NewProjectTemplate,
-            Version = "latest"
         };
 
         await _terraformService.CopyTemplateAsync(module, workspace);
@@ -187,7 +185,6 @@ public class Testing
         return new TerraformTemplate
         {
             Name = template,
-            Version = "latest"
         };
     }
 }

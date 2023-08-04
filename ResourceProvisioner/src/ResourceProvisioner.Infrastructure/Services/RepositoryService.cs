@@ -211,11 +211,11 @@ public class RepositoryService : IRepositoryService
 
         var author = new Signature(username, username, DateTimeOffset.Now);
         _logger.LogInformation(
-            "Committing all files in {LocalPath} for module [{ModuleVersion}]{ModuleName} as {Author}", repositoryPath,
-            template.Version, template.Name, author);
+            "Committing all files in {LocalPath} for module {ModuleName} as {Author}", repositoryPath,
+            template.Name, author);
         try
         {
-            repository.Commit($"Committing [{template.Version}]{template.Name} changes", author, author);
+            repository.Commit($"Committing {template.Name} changes", author, author);
             _logger.LogInformation("Changes committed in {LocalPath}", repositoryPath);
         }
         catch (EmptyCommitException e)
@@ -390,7 +390,7 @@ public class RepositoryService : IRepositoryService
             return new RepositoryUpdateEvent()
             {
                 Message =
-                    $"Successfully created resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
+                    $"Successfully created resource run for [{terraformWorkspace.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.Success
             };
         }
@@ -398,7 +398,7 @@ public class RepositoryService : IRepositoryService
         {
             return new RepositoryUpdateEvent()
             {
-                Message = $"No changes detected after resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
+                Message = $"No changes detected after resource run for [{terraformWorkspace.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.NoChangesDetected
             };
         }
@@ -406,11 +406,11 @@ public class RepositoryService : IRepositoryService
         {
             _logger.LogError(e,
                 "Error while creating resource run for [{ModuleVersion}]{ModuleName} in {WorkspaceAcronym}",
-                template.Version, template.Name, terraformWorkspace.Acronym);
+                terraformWorkspace.Version, template.Name, terraformWorkspace.Acronym);
 
             return new RepositoryUpdateEvent()
             {
-                Message = $"Error creating resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
+                Message = $"Error creating resource run for [{terraformWorkspace.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.Error
             };
         }
