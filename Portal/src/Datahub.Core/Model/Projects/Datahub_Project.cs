@@ -236,6 +236,10 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public string WebApp_URL { get; set; }
 
     [AeFormIgnore]
+    [StringLength(150)]
+    public string GitRepo_URL { get; set; }
+
+    [AeFormIgnore]
     [NotMapped]
     public string ProjectName
     {

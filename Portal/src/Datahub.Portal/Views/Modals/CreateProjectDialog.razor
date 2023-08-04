@@ -1,5 +1,7 @@
 @using Datahub.Application.Services
 @inject IProjectCreationService _projectCreationService
+@inject NavigationManager navigationManager
+@inject DatahubPortalConfiguration portalConfiguration
 
 <MudDialog>
     <DialogContent>
@@ -41,6 +43,26 @@
                 <MudSelectItem T="string" Value="@("Other")">@Localizer["Other"]</MudSelectItem>
             </MudSelect>
 
+            <MudStack Row Class="mt-4">
+                <MudButton Href="https://github.com/apps/datahub-workspaces"
+                           OnClick="HandleIntegrateWithGit"
+                           Target="_blank"
+                           Variant="Variant.Filled"
+                           EndIcon="@Icons.Custom.Brands.GitHub"
+                           Color="Color.Primary">
+                    @Localizer["Link GitHub"]
+                </MudButton>
+                <MudCheckBox Checked=@_createRepository 
+                             CheckedChanged=@ToggleCreateRepo 
+                             Disabled="!_githubIntegration"
+                             T="bool" 
+                             Label=@Localizer["Create Repository"] />
+            </MudStack>
+
+            @*<div>
+                <a href="https://github.com/login/oauth/authorize?scope=repo&client_id=Iv1.ff019d6e5370d543&state=DIE1">Login with GitHub</a>
+            </div>*@
+
             @if (_errorMessage is not null)
             {
                 <MudAlert Severity="Severity.Error" Dense="true" Class="my-2" ShowCloseIcon CloseIconClicked="CloseAlert">
@@ -76,7 +98,7 @@
     public bool ShowCancel { get; set; } = true;
 
 #nullable enable
-        private const int MaxAcronymLength = 7;
+    private const int MaxAcronymLength = 7;
     private string? _errorMessage;
     private string _projectTitle = string.Empty;
     private string _projectAcronym = string.Empty;
@@ -86,6 +108,8 @@
     private bool _success;
     private bool _isCreating;
 
+    private bool _githubIntegration;
+    private bool _createRepository;
 
     private async Task GenerateAcronym()
     {
@@ -136,17 +160,23 @@
             if (_isCreating)
                 return;
             _isCreating = true;
-    //update Button
+            //update Button
             StateHasChanged();
             await Task.Delay(1);
-    // TODO: Get Organization name?
-            
+            // TODO: Get Organization name?
+
             var isAdded = await _projectCreationService.CreateProjectAsync(_projectTitle, _projectAcronym, "Unspecified");
             _isCreating = false;
             if (isAdded)
             {
                 await _projectCreationService.SaveProjectCreationDetailsAsync(_projectAcronym, _interestedFeatures);
                 MudDialog.Close(DialogResult.Ok(_projectAcronym));
+
+                if (_createRepository)
+                {
+                    var url = $"https://github.com/login/oauth/authorize?scope=repo&client_id={portalConfiguration.Github.ClientId}&state={_projectAcronym}";
+                    navigationManager.NavigateTo(url);
+                }                
             }
             else
             {
@@ -155,5 +185,17 @@
             }
         }
     }
+
+    private void HandleIntegrateWithGit()
+    {
+        _githubIntegration = true;
+    }
+
+    private void ToggleCreateRepo(bool value)
+    {
+        _createRepository = value;
+    }
+
+
 #nullable disable
 }
