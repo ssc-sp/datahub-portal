@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using Version = System.Version;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Services;
 
@@ -281,6 +282,25 @@ public class RepositoryServiceTests
         Assert.That(result.Url.Split('/').Last(), Is.EqualTo(fakePullRequestId.ToString()));
         Assert.That(result.WorkspaceAcronym, Is.EqualTo(ProjectAcronym));
     }
+
+    [Test]
+    public async Task ShouldBeAbleToGetModuleVersions()
+    {
+        var result = await _repositoryService.GetModuleVersions();
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Is.Not.Empty);
+        Assert.That(result, Is.All.InstanceOf<Version>());
+    }
+
+    // [Test]
+    // public async Task ShouldBeAbleToMatchLatestAgainstHighestVersion()
+    // {
+    //     var workspaceAcronym = GenerateWorkspaceAcronym();
+    //     var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
+    //
+    //     await _terraformService.CopyTemplateAsync(module, workspace);
+    // }
 
     private static StringContent ExpectedPullRequestResponse(int fakePullRequestId)
     {
