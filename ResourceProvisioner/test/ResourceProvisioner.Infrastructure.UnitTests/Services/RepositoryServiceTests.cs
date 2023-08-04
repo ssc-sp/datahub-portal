@@ -157,7 +157,7 @@ public class RepositoryServiceTests
         {
             Assert.That(result.StatusCode, Is.EqualTo(MessageStatusCode.Success));
             Assert.That(result.Message, Contains.Substring(TestTemplate.Name));
-            Assert.That(result.Message, Contains.Substring(TestTemplate.Version));
+            Assert.That(result.Message, Contains.Substring(TestingWorkspace.Version));
             Assert.That(result.Message, Contains.Substring(ProjectAcronym));
         });
     }
@@ -182,7 +182,7 @@ public class RepositoryServiceTests
         {
             Assert.That(result.StatusCode, Is.EqualTo(MessageStatusCode.NoChangesDetected));
             Assert.That(result.Message, Contains.Substring(TestTemplate.Name));
-            Assert.That(result.Message, Contains.Substring(TestTemplate.Version));
+            Assert.That(result.Message, Contains.Substring(TestingWorkspace.Version));
             Assert.That(result.Message, Contains.Substring(ProjectAcronym));
         });
     }
@@ -220,7 +220,7 @@ public class RepositoryServiceTests
                 Assert.That(repositoryUpdateEvent.StatusCode, Is.EqualTo(MessageStatusCode.Success),
                     repositoryUpdateEvent.Message);
                 Assert.That(repositoryUpdateEvent.Message, Contains.Substring(TestTemplate.Name));
-                Assert.That(repositoryUpdateEvent.Message, Contains.Substring(TestTemplate.Version));
+                Assert.That(repositoryUpdateEvent.Message, Contains.Substring(TestingWorkspace.Version));
                 Assert.That(repositoryUpdateEvent.Message, Contains.Substring(ProjectAcronym));
             }
         });

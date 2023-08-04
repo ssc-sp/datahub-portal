@@ -33,7 +33,6 @@ public class NewProjectTemplateTests
         var module = new TerraformTemplate()
         {
             Name = TerraformTemplate.NewProjectTemplate,
-            Version = "latest"
         };
 
         await _terraformService.CopyTemplateAsync(module, workspace);
@@ -56,9 +55,13 @@ public class NewProjectTemplateTests
         foreach (var file in expectedFiles)
         {
             var sourceFileContent = await File.ReadAllTextAsync(file);
+            var expectedContent = sourceFileContent
+                .Replace(TerraformService.TerraformVersionToken, workspace.Version)
+                .Replace(TerraformService.TerraformBranchToken, string.Empty);
+            
             var destinationFileContent =
                 await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
-            Assert.That(sourceFileContent, Is.EqualTo(destinationFileContent));
+            Assert.That(destinationFileContent, Is.EqualTo(expectedContent));
         }
     }
 
@@ -95,7 +98,6 @@ public class NewProjectTemplateTests
         var module = new TerraformTemplate()
         {
             Name = TerraformTemplate.NewProjectTemplate,
-            Version = "latest"
         };
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
@@ -155,7 +157,6 @@ public class NewProjectTemplateTests
         var module = new TerraformTemplate()
         {
             Name = TerraformTemplate.NewProjectTemplate,
-            Version = "latest"
         };
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
@@ -202,7 +203,6 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
         var module = new TerraformTemplate()
         {
             Name = TerraformTemplate.NewProjectTemplate,
-            Version = "latest"
         };
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
@@ -222,13 +222,13 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
         const string workspaceAcronym = "ShouldSkipExtractBackendConfigurationIfExists";
         var workspace = new TerraformWorkspace
         {
-            Acronym = workspaceAcronym
+            Acronym = workspaceAcronym,
+            Version = "latest"
         };
 
         var module = new TerraformTemplate()
         {
             Name = TerraformTemplate.NewProjectTemplate,
-            Version = "latest"
         };
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
@@ -246,5 +246,36 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
 
         Assert.That(File.Exists(expectedConfigurationFilename), Is.True);
         Assert.That(await File.ReadAllTextAsync(expectedConfigurationFilename), Is.EqualTo(existingConfiguration));
+    }
+
+    [Test]
+    public async Task ShouldCheckoutVersionCorrectly()
+    {
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        var version = "v2.8.0";
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym,
+            Version = version
+        };
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+    
+        var module = new TerraformTemplate()
+        {
+            Name = TerraformTemplate.NewProjectTemplate,
+        };
+    
+        await _terraformService.CopyTemplateAsync(module, workspace);
+    
+        var moduleSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.NewProjectTemplate);
+        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
+        
+        
+        // verify that the file main.tf does not contain "{{version}}" or "{{branch}}"
+        var mainTfPath = Path.Join(moduleDestinationPath, "main.tf");
+        var mainTfContent = await File.ReadAllTextAsync(mainTfPath);
+        Assert.That(mainTfContent, Does.Not.Contain(TerraformService.TerraformVersionToken));
+        Assert.That(mainTfContent, Does.Not.Contain(TerraformService.TerraformBranchToken));
+        Assert.That(mainTfContent, Does.Contain(version));
     }
 }

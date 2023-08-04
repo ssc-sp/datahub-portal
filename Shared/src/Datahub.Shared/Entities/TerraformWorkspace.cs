@@ -14,6 +14,8 @@ public class TerraformWorkspace
     public string? Name { get; set; }
     public string? Acronym { get; set; }
     public double BudgetAmount { get; set; } = 2400;
+    
+    public string Version { get; set; } = "latest";
 
     // TODO: Move this into the storage module
     public int StorageSizeLimitInTB { get; set; } = 5;

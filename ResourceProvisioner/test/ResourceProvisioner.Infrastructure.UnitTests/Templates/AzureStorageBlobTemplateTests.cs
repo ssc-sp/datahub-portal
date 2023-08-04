@@ -33,7 +33,6 @@ public class AzureStorageBlobTemplateTests
         var module = new TerraformTemplate
         {
             Name = TerraformTemplate.AzureStorageBlob,
-            Version = "latest"
         };
 
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
@@ -54,7 +53,6 @@ public class AzureStorageBlobTemplateTests
         var module = new TerraformTemplate
         {
             Name = TerraformTemplate.AzureStorageBlob,
-            Version = "latest"
         };
 
         await _terraformService.CopyTemplateAsync(module, workspace);
@@ -78,9 +76,13 @@ public class AzureStorageBlobTemplateTests
         foreach (var file in expectedFiles)
         {
             var sourceFileContent = await File.ReadAllTextAsync(file);
+            var expectedContent = sourceFileContent
+                .Replace(TerraformService.TerraformVersionToken, workspace.Version)
+                .Replace(TerraformService.TerraformBranchToken, string.Empty);
+            
             var destinationFileContent =
                 await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
-            Assert.That(sourceFileContent, Is.EqualTo(destinationFileContent));
+            Assert.That(destinationFileContent, Is.EqualTo(expectedContent));
         }
     }
 
@@ -97,7 +99,6 @@ public class AzureStorageBlobTemplateTests
         var module = new TerraformTemplate
         {
             Name = TerraformTemplate.AzureStorageBlob,
-            Version = "latest"
         };
 
         await _terraformService.CopyTemplateAsync(module, workspace);
@@ -135,7 +136,6 @@ public class AzureStorageBlobTemplateTests
         var module = new TerraformTemplate
         {
             Name = TerraformTemplate.AzureStorageBlob,
-            Version = "latest"
         };
 
         await _terraformService.CopyTemplateAsync(module, workspace);
@@ -172,7 +172,6 @@ public class AzureStorageBlobTemplateTests
          var module = new TerraformTemplate()
          {
              Name = TerraformTemplate.AzureStorageBlob,
-             Version = "latest"
          };
 
          await _terraformService.CopyTemplateAsync(module, workspace);

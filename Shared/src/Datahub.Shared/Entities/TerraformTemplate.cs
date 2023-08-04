@@ -13,8 +13,6 @@ public class TerraformTemplate
     public const string ContactUs = "contact-us";
 
     public string Name { get; set; }
-    public string Version { get; set; }
-
     public static TerraformTemplate Default => LatestFromName(NewProjectTemplate);
 
     public static TerraformTemplate LatestFromName(string name)
@@ -22,7 +20,6 @@ public class TerraformTemplate
         return new TerraformTemplate()
         {
             Name = name,
-            Version = "latest",
         };
     }
     
