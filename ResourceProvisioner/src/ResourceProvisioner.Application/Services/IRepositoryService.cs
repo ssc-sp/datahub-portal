@@ -19,4 +19,5 @@ public interface IRepositoryService
     public Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate templates, TerraformWorkspace terraformWorkspace, string requestingUsername);
 
     public Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command);
+    public Task<List<Version>> GetModuleVersions();
 }
