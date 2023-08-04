@@ -1095,5 +1095,7 @@
   "Copy the emails of locked users in the tenant.": "Copy the emails of locked users in the tenant.",
   "Copied!": "Copied!",
   "Configuring Azure": "Configuring Azure",
-  "Resource is being provisioned": "Resource is being provisioned"
+  "Resource is being provisioned": "Resource is being provisioned",
+  "Resource request has been successfully submitted": "Resource request has been successfully submitted",
+  "Resource request has failed, please contact an administrator": "Resource request has failed, please contact an administrator"
 }
