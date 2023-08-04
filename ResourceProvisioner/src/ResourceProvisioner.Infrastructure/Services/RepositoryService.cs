@@ -13,6 +13,7 @@ using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Infrastructure.Common;
+using Version = System.Version;
 
 namespace ResourceProvisioner.Infrastructure.Services;
 
@@ -77,6 +78,29 @@ public class RepositoryService : IRepositoryService
         return pullRequestMessage;
     }
 
+    public async Task<List<Version>> GetModuleVersions()
+    {
+        var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
+        var modulePath = Path.Combine(repositoryPath, _resourceProvisionerConfiguration.ModuleRepository.ModulePathPrefix);
+        
+        // check if module path exists
+        if(!Directory.Exists(modulePath))
+        {
+            _logger.LogInformation("Module path {ModulePath} does not exist, fetching module repository", modulePath);
+            await FetchModuleRepository();
+        }
+        
+        var versions = Directory.GetDirectories(modulePath)
+            .Select(x => 
+                new Version(x
+                    .Replace('/', Path.DirectorySeparatorChar)
+                    .Split(Path.DirectorySeparatorChar)
+                    .Last()[1..] // remove the v prefix
+                ))
+            .ToList();
+        return versions;
+    }
+
     public Task FetchModuleRepository()
     {
         var repositoryUrl = _resourceProvisionerConfiguration.ModuleRepository.Url;
@@ -88,6 +112,18 @@ public class RepositoryService : IRepositoryService
 
         _logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
         Repository.Clone(repositoryUrl, repositoryPath);
+
+        if (_resourceProvisionerConfiguration.ModuleRepository.Branch != ModuleRepositoryConfiguration.DefaultBranch)
+        {
+            using var repo = new Repository(repositoryPath);
+            var branch = repo.Branches[_resourceProvisionerConfiguration.ModuleRepository.Branch];
+            if (branch == null)
+            {
+                _logger.LogInformation("Branch {Branch} does not exist, checking out default branch", _resourceProvisionerConfiguration.ModuleRepository.Branch);
+                branch = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
+            }
+            Commands.Checkout(repo, branch);
+        }
 
         _logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, repositoryPath);
         return Task.CompletedTask;
