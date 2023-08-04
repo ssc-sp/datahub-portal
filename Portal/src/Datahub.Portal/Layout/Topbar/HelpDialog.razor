@@ -1,14 +1,22 @@
-﻿@inject IDialogService DialogService
-@inject IUserInformationService _userInformationService
+﻿@inject IUserInformationService _userInformationService
+@inject IKeyVaultService _keyVaultService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IDialogService DialogService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject UIControlsService _uiControlsService
 @inject NavigationManager _navigationManager
+@inject DatahubPortalConfiguration _portalConfiguration
+@inject IJSRuntime _jsRuntime
+@inject Blazored.LocalStorage.ILocalStorageService _localStorage
 
 @using MudBlazor
-@using Microsoft.Identity.Web
 @using Datahub.Core.Components.Common
 @using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Datahub
+@using Datahub.Core.Model.Projects;
+@using Datahub.Application.Configuration
 @using Datahub.Portal.Components.User
+@using Datahub.Portal.Pages.Project
 
 @using System;
 @using System.Net.Http;
@@ -16,6 +24,7 @@
 @using System.Text;
 @using System.Threading.Tasks;
 @using Newtonsoft.Json;
+@using Microsoft.Identity.Web
 @using Microsoft.JSInterop;
 
 
@@ -30,41 +39,41 @@
             <MudText Typo="Typo.body2" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
             @foreach (var topic in _ticketTopics)
             {
-                <MudCheckBox @bind-Checked="@_ticketTopics[topic.Key]" Label="@topic.Key" Color="Color.Primary"></MudCheckBox>
+                <MudCheckBox @bind-Checked="@_ticketTopics[topic.Key]" Label="@Localizer[topic.Key]" Color="Color.Primary"></MudCheckBox>
             }
         }
         else if (_currentStep == 2)
         {
             <MudText Typo="Typo.body2" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
-            <MudTextField T="string" @bind-Value="_ticketWorkspace" Label=@Localizer["In which workspace do you encounter this issue?"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Workspaces" Variant="Variant.Text" />        
-            <MudTextField T="string" @bind-Value="_ticketIssue" Label=@Localizer["Issue Title"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ReportProblem" Variant="Variant.Text" />
-            <MudTextField T="string" @bind-Value="_ticketDescription" Label=@Localizer["Detailed description"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Description" Variant="Variant.Text" Lines="5" />
-        }
-        else if (_currentStep == 3)
-        {
-            <MudText Typo="Typo.body2" Class="py-3">@Localizer["Please provide your contact information so we can follow-up with you, if needed."]</MudText>
-            <MudTextField T="string" @bind-Value="_ticketName" Label=@Localizer["Your name"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountCircle" Variant="Variant.Text" />
-            <MudTextField T="string" @bind-Value="_ticketEmail" Label=@Localizer["Your email"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" Variant="Variant.Text" />
+            <MudTextField T="string" @bind-Value="_ticketDescription" Label=@Localizer["Detailed description"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Description" Variant="Variant.Outlined" Lines="5" />
+            @if (_ticketTopics["Workspace"] || _ticketTopics["Databricks"] || _ticketTopics["Storage"] || _ticketTopics["User Management"] || _ticketTopics["Tool Requesting"])
+            {
+                <MudText Typo="Typo.body2" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>
+                @foreach (var workspace in _ticketWorkspaces)
+                {
+                    <MudCheckBox @bind-Checked="@_ticketWorkspaces[workspace.Key]" Label="@Localizer[workspace.Key]" Color="Color.Primary"></MudCheckBox>
+                }
+            }
         }
         <MudGrid>
             <MudItem xs="6" Align="Align.Start" Class="py-6">
 		        @if (_currentStep > 0)
 		        {
-                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="PreviousStep">Previous</MudButton>
+                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="PreviousStep">@Localizer["Previous"]</MudButton>
                 }
                 else
                 {
-                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="NextStep">Get Started</MudButton>
+                <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="NextStep">@Localizer["Get Started"]</MudButton>
                 }
             </MudItem>
             <MudItem xs="6" Align="Align.End" Class="py-6">
-                @if (_currentStep < 3 && _currentStep > 0)
+                @if (_currentStep < 2 && _currentStep > 0)
                 {
-                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="NextStep">Next</MudButton>
+                <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="NextStep">@Localizer["Next"]</MudButton>
                 }
-                else if (_currentStep >= 3)
+                else if (_currentStep >= 2)
                 {
-                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="SubmitForm">Submit</MudButton>
+                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="SubmitForm">@Localizer["Submit"]</MudButton>
                 }
             </MudItem>
         </MudGrid>
@@ -80,9 +89,10 @@
     // Variables used for the form that can be passed in the bug report.
     private String _ticketName = new String("");
     private String _ticketEmail = new String("");
-    private String _ticketIssue = new String("");
+    private String _ticketPreferredLanguage = new string("");
     private String _ticketDescription = new String("");
-    private String _ticketWorkspace = new String("");
+    private List<Datahub_Project_User> _userRoles;
+    private IJSObjectReference _module;
 
     // This dictionary is used to generate checkboxes in the help request
     Dictionary<string, bool> _ticketTopics = new Dictionary<string, bool>
@@ -96,6 +106,9 @@
         {"Other", false},
     };
 
+    // This dictionary is used to generate Workspace checkboxes in the help request
+    Dictionary<string, bool> _ticketWorkspaces = new Dictionary<string, bool> { };
+
     private int _currentStep = 0; // Indicates what part of the form to show
 
     private async void SubmitForm()
@@ -104,15 +117,42 @@
         if (form.IsValid)
         {
             var url = _navigationManager.Uri; // Retrieve the active URL
+            var useragent = await _module.InvokeAsync<string>("retrieveUserAgent"); // Call our JS functions for user agent + resolution
+            var resolution = await _module.InvokeAsync<string>("retrieveResolution");
+
+            // Retrieve all local storage data
+            var allKeys = await _localStorage.KeysAsync();
+            var dataDict = new Dictionary<string, string>();
+
+            foreach (var key in allKeys)
+            {
+                var value = await _localStorage.GetItemAsStringAsync(key);
+                dataDict.Add(key, value);
+            }
+
+            var localStorageData = Newtonsoft.Json.JsonConvert.SerializeObject(dataDict);
 
             // We retrieve the selected checkboxes that indicate the issue topics
             var matchingTopics = _ticketTopics.Where(kvp => kvp.Value == true).Select(kvp => kvp.Key);
-            var _ticketTopic = String.Join(", ", matchingTopics);
+            var matchingWorkspaces = _ticketWorkspaces.Where(kvp => kvp.Value == true).Select(kvp => kvp.Key);
+            var topics = String.Join(", ", matchingTopics);
+            var workspaces = String.Join(", ", matchingWorkspaces);
+            if (topics.Length == 0)
+            {
+                topics = "Issue";
+            }
+            if (workspaces.Length == 0)
+            {
+                workspaces = "N/A";
+            }
 
-            String description = $"Issue submitted by: {_ticketName}<br />Contact email: {_ticketEmail}<br /><br />Topics: {_ticketTopic}<br />Workspace: {_ticketWorkspace}<br />Active URL: {url}<br /><br />Description: {_ticketDescription}";
-            
-            // TODO: Find proper solution for storing the access key
-            CreateIssue(_ticketIssue, description, "science-program", "DataHub SSC", "PERSONAL ACCESS TOKEN HERE");
+            // We set up the title and description to be submitted in the issue.
+            String title = $"{topics} submitted by {_ticketName}";
+            String description = $"Issue submitted by: {_ticketName}<br />Contact email: {_ticketEmail}<br /><br />Topics: {topics}<br />Workspace: {workspaces}<br />Description: {_ticketDescription}<br /><br />Language: {_ticketPreferredLanguage}<br />Active URL: {url}<br />User Agent: {useragent}<br />Resolution: {resolution}<br />Local Storage:<br />{localStorageData}";
+
+            // Retrieve key and call CreateIssue function
+            var creds = await _keyVaultService.GetSecret(_portalConfiguration.AdoServiceUser.PatSecretName);
+            await CreateIssue(title, description, "science-program", "DataHub SSC", creds);
 
             // After the issue is created, we close the Help page.
             if (ToggleHelp.HasDelegate)
@@ -124,12 +164,29 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Retrieving the user's email and name to autofill the form.
         try
         {
+            // Retrieve general info, such as the user submitting the issue.
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Layout/Topbar/HelpDialog.razor.js");
             _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
             _ticketName = _viewedUser.DisplayName;
             _ticketEmail = _viewedUser.Email;
+            _ticketPreferredLanguage = _viewedUser.Language;
+
+            // Retrieve the list of workspaces
+            await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+            _userRoles = await dbContext.Project_Users
+                .Include(u => u.Role)
+                .Include(u => u.Project)
+                .ThenInclude(p => p.Users)
+                .Include(u => u.PortalUser)
+                .Where(u => u.PortalUser.GraphGuid == _viewedUser.GraphGuid)
+                .ToListAsync();
+
+            foreach (var project in _userRoles.Select(userRole => userRole.Project))
+            {
+                _ticketWorkspaces.Add(project.Project_Name, false);
+            }
         }
         catch (Exception ex)
         {
@@ -160,13 +217,12 @@
     {
         var url = devOpsUrl.Replace("{organization}", organization).Replace("{project}", project).Replace("{workItemTypeName}", "Issue");
 
-        title = "[TEST ISSUE - PLEASE IGNORE] " + title ;
-        description = "[TEST ISSUE - PLEASE IGNORE]<br /><br />" + description;
-
+        // Content of the issue. Possible additions: New tags (topics?), AssignedTo, State, Reason.
         var body = new object[]
         {
             new { op = "add", path = "/fields/System.Title", value = title },
-            new { op = "add", path = "/fields/System.Description", value = description }
+            new { op = "add", path = "/fields/System.Description", value = description },
+            new { op = "add", path = "/fields/System.Tags", value = "UserSubmitted"} // Separate tags by ;
         };
 
         var jsonContent = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json-patch+json");
@@ -181,7 +237,7 @@
         }
         else
         {
-            await DialogService.ShowMessageBox("Success", "Your support ticket has been created. Thank you!", yesText: "OK");
+            await DialogService.ShowMessageBox(Localizer["Success"], Localizer["Your support ticket has been created. Thank you!"], yesText: "OK");
         }
     }
 
