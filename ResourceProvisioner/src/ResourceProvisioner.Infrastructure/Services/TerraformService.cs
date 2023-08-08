@@ -40,11 +40,11 @@ public class TerraformService : ITerraformService
         _configuration = configuration;
     }
 
-    public Task CopyTemplateAsync(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
+    public async Task CopyTemplateAsync(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
     {
         if (template.Name is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         var templateSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, template.Name);
@@ -78,13 +78,11 @@ public class TerraformService : ITerraformService
             var sourceFilename = Path.GetFileName(file);
             var destinationFilename = Path.Combine(projectPath, sourceFilename);
 
-            var fileContent = File.ReadAllText(file);
+            var fileContent = await File.ReadAllTextAsync(file);
             fileContent = fileContent.Replace(TerraformVersionToken, terraformWorkspace.Version);
             fileContent = fileContent.Replace(TerraformBranchToken, string.Empty);
-            File.WriteAllText(destinationFilename, fileContent);
+            await File.WriteAllTextAsync(destinationFilename, fileContent);
         }
-
-        return Task.CompletedTask;
     }
 
     public async Task ExtractVariables(TerraformTemplate template, TerraformWorkspace terraformWorkspace)

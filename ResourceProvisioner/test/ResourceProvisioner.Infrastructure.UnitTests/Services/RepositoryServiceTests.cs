@@ -193,25 +193,27 @@ public class RepositoryServiceTests
         InitializeTestInfrastructureRepository();
         var mockTerraformService = SetupMockTerraformService();
 
-        var modules = new List<TerraformTemplate>
-        {
-            TestTemplate,
-            TestTemplate,
-            TestTemplate
-        };
-
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
         
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration, mockTerraformService);
+        
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        var command = GenerateTestCreateResourceRunCommand(
+            workspaceAcronym, new List<string>()
+            {
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate
+            });
 
         var result =
-            await repositoryService.ExecuteResourceRuns(modules, TestingWorkspace, RequestingUser);
+            await repositoryService.ExecuteResourceRuns(command.Templates, command.Workspace, RequestingUser);
 
 
         Assert.That(result, Is.TypeOf<List<RepositoryUpdateEvent>>());
-        Assert.That(result, Has.Count.EqualTo(modules.Count));
+        Assert.That(result, Has.Count.EqualTo(command.Templates.Count));
 
         Assert.Multiple(() =>
         {
@@ -219,9 +221,9 @@ public class RepositoryServiceTests
             {
                 Assert.That(repositoryUpdateEvent.StatusCode, Is.EqualTo(MessageStatusCode.Success),
                     repositoryUpdateEvent.Message);
-                Assert.That(repositoryUpdateEvent.Message, Contains.Substring(TestTemplate.Name));
-                Assert.That(repositoryUpdateEvent.Message, Contains.Substring(TestingWorkspace.Version));
-                Assert.That(repositoryUpdateEvent.Message, Contains.Substring(ProjectAcronym));
+                Assert.That(repositoryUpdateEvent.Message, Contains.Substring(TerraformTemplate.NewProjectTemplate));
+                Assert.That(repositoryUpdateEvent.Message, Contains.Substring(command.Workspace.Version));
+                Assert.That(repositoryUpdateEvent.Message, Contains.Substring(workspaceAcronym));
             }
         });
     }
