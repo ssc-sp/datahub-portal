@@ -249,27 +249,18 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
     }
 
     [Test]
-    public async Task ShouldCheckoutVersionCorrectly()
+    [TestCase("v2.7.0")]
+    [TestCase("v2.8.0")]
+    public async Task ShouldCheckoutVersionCorrectly(string version)
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
-        var version = "v2.8.0";
-        var workspace = new TerraformWorkspace
-        {
-            Acronym = workspaceAcronym,
-            Version = version
-        };
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-    
-        var module = new TerraformTemplate()
-        {
-            Name = TerraformTemplate.NewProjectTemplate,
-        };
-    
-        await _terraformService.CopyTemplateAsync(module, workspace);
-    
-        var moduleSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.NewProjectTemplate);
-        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
+        var command = GenerateTestCreateResourceRunCommand(
+            workspaceAcronym, new List<string>() { TerraformTemplate.NewProjectTemplate }, true, version);
         
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        await _repositoryService.ExecuteResourceRuns(command.Templates, command.Workspace, command.RequestingUserEmail);
+    
+        var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
         
         // verify that the file main.tf does not contain "{{version}}" or "{{branch}}"
         var mainTfPath = Path.Join(moduleDestinationPath, "main.tf");

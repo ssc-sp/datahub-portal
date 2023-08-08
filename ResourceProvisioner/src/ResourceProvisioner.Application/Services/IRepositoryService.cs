@@ -20,4 +20,11 @@ public interface IRepositoryService
 
     public Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command);
     public Task<List<Version>> GetModuleVersions();
+    
+    /// <summary>
+    /// Takes a workspace and validates that the version is valid for the workspace. This will update the workspace version if it is marked as latest.
+    /// </summary>
+    /// <param name="terraformWorkspace"></param>
+    /// <returns></returns>
+    public Task ValidateWorkspaceVersion(TerraformWorkspace terraformWorkspace);
 }

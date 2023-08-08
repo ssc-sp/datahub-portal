@@ -359,6 +359,8 @@ public class RepositoryService : IRepositoryService
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
+        await ValidateWorkspaceVersion(terraformWorkspace);
+
         foreach (var module in modules)
         {
             var result = await ExecuteResourceRun(module, terraformWorkspace, requestingUsername);
@@ -366,6 +368,16 @@ public class RepositoryService : IRepositoryService
         }
 
         return repositoryUpdateEvents;
+    }
+
+    public async Task ValidateWorkspaceVersion(TerraformWorkspace terraformWorkspace)
+    {
+        if (terraformWorkspace.Version == TerraformWorkspace.LatestVersionString)
+        {
+            var versions = await GetModuleVersions();
+            var latestVersion = versions.Max();
+            terraformWorkspace.Version = $"v{latestVersion!.ToString()}";
+        }
     }
 
     public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate template, TerraformWorkspace terraformWorkspace,
