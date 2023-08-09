@@ -10,10 +10,12 @@ namespace Datahub.Portal.Controllers;
 public class MediaController : Controller
 {
     private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
+    private readonly ILogger<MediaController> _logger;
 
-    public MediaController(DatahubPortalConfiguration datahubPortalConfiguration)
+    public MediaController(DatahubPortalConfiguration datahubPortalConfiguration, ILogger<MediaController> logger)
     {
         _datahubPortalConfiguration = datahubPortalConfiguration;
+        _logger = logger;
     }
     
     /// <summary>
@@ -39,5 +41,27 @@ public class MediaController : Controller
         
         var sasUrl = blobReference.Uri + sasToken;
         return Redirect(sasUrl);
+    }
+
+    [HttpPost("api/media/upload")]
+    [Authorize]
+    public async Task<IActionResult> PostMedia()
+    {
+        var file = Request.Form.Files[0];
+        var filePath = "/uploads/" + Guid.NewGuid();
+        var blobReference = CloudStorageAccount.Parse(_datahubPortalConfiguration.Media.StorageConnectionString)
+            .CreateCloudBlobClient()
+            .GetContainerReference("media")
+            .GetBlockBlobReference(filePath);
+        await blobReference.UploadFromStreamAsync(file.OpenReadStream());
+        
+        var sasToken = blobReference
+            .GetSharedAccessSignature(new SharedAccessBlobPolicy
+            {
+                Permissions = SharedAccessBlobPermissions.Read,
+                SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-5),
+                SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(5)
+            });
+        return Ok(blobReference.Uri+ sasToken);
     }
 }
