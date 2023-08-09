@@ -135,7 +135,7 @@
             // We retrieve the selected checkboxes that indicate the issue topics
             var matchingTopics = _ticketTopics.Where(kvp => kvp.Value == true).Select(kvp => kvp.Key);
             var matchingWorkspaces = _ticketWorkspaces.Where(kvp => kvp.Value == true).Select(kvp => kvp.Key);
-            var topics = String.Join(", ", matchingTopics);
+            var topics = String.Join("; ", matchingTopics);
             var workspaces = String.Join(", ", matchingWorkspaces);
             if (topics.Length == 0)
             {
@@ -148,11 +148,11 @@
 
             // We set up the title and description to be submitted in the issue.
             String title = $"{topics} submitted by {_ticketName}";
-            String description = $"Issue submitted by: {_ticketName}<br />Contact email: {_ticketEmail}<br /><br />Topics: {topics}<br />Workspace: {workspaces}<br />Description: {_ticketDescription}<br /><br />Language: {_ticketPreferredLanguage}<br />Active URL: {url}<br />User Agent: {useragent}<br />Resolution: {resolution}<br />Local Storage:<br />{localStorageData}";
+            String description = $"<b>Issue submitted by:</b> {_ticketName}<br /><b>Contact email:</b> {_ticketEmail}<br /><br /><b>Topics:</b> {topics}<br /><b>Workspace:</b> {workspaces}<br /><b>Description:</b> {_ticketDescription}<br /><br /><b>Language:</b> {_ticketPreferredLanguage}<br /><b>Active URL:</b> {url}<br /><b>User Agent:</b> {useragent}<br /><b>Resolution:</b> {resolution}<br /><b>Local Storage:</b><br />{localStorageData}";
 
             // Retrieve key and call CreateIssue function
             var creds = await _keyVaultService.GetSecret(_portalConfiguration.AdoServiceUser.PatSecretName);
-            await CreateIssue(title, description, "science-program", "DataHub SSC", creds);
+            await CreateIssue(title, description, topics, "science-program", "DataHub SSC", creds);
 
             // After the issue is created, we close the Help page.
             if (ToggleHelp.HasDelegate)
@@ -213,7 +213,7 @@
     private static readonly HttpClient client = new HttpClient();
     private const string devOpsUrl = "https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${workItemTypeName}?api-version=6.0";
 
-    public async Task CreateIssue(string title, string description, string organization, string project, string personalAccessToken)
+    public async Task CreateIssue(string title, string description, string topics, string organization, string project, string personalAccessToken)
     {
         var url = devOpsUrl.Replace("{organization}", organization).Replace("{project}", project).Replace("{workItemTypeName}", "Issue");
 
@@ -222,7 +222,7 @@
         {
             new { op = "add", path = "/fields/System.Title", value = title },
             new { op = "add", path = "/fields/System.Description", value = description },
-            new { op = "add", path = "/fields/System.Tags", value = "UserSubmitted"} // Separate tags by ;
+            new { op = "add", path = "/fields/System.Tags", value = $"UserSubmitted; {topics}"} // Separate tags by ;
         };
 
         var jsonContent = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json-patch+json");
@@ -233,6 +233,7 @@
 
         if (!response.IsSuccessStatusCode)
         {
+            await DialogService.ShowMessageBox(Localizer["Error"], $"Error {response.StatusCode} - {response.ReasonPhrase}. Please contact / Veuillez contacter DataSolutions-SolutionsDeDonnees@ssc-spc.gc.ca", yesText: "OK");
             throw new Exception($"Error creating issue: {response.StatusCode} {response.ReasonPhrase}");
         }
         else
