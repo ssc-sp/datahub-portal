@@ -43,7 +43,9 @@ public class DatahubPortalConfiguration
     public string SupportFormUrl { get; set; } =
         "https://forms.office.com/pages/responsepage.aspx?id=lMFb0L-U1kquLh2w8uOPXhksOXzZ73RCp9fVTz4vTU5UNTc1U00yNVUxWVg4SkJGMFVHN1RCTTdQRS4u";
 
-    public ReverseProxy ReverseProxy { get; set; } = new(); 
+    public ReverseProxy ReverseProxy { get; set; } = new();
+
+    public GithubConfig Github { get; set; } = new();
 }
 
 public class Achievements
@@ -208,4 +210,13 @@ public class ReverseProxy
     public bool Enabled { get; set; }
     public string BasePath { get; set; } = "wsapp";
     public string UserHeader { get; set; } = "dh-user";
+}
+
+public class GithubConfig
+{
+    public string AppName { get; set; } = "datahub-integration";
+    public string CallbackUrl { get; set; } = "https://localhost:5001/git/callback";
+    public string ClientId { get; set; } = "";
+    public string ClientSecret { get; set; } = "";
+    public string RepoPrefix { get; set; } = "fsdh-";
 }
