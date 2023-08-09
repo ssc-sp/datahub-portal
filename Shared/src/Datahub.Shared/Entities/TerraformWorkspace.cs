@@ -7,6 +7,9 @@ using System.Text.Json.Nodes;
 using System.Collections.Generic;
 using Datahub.Shared.Enums;
 
+// This is needed, even if your IDE says it isn't
+using System.Linq;
+
 namespace Datahub.Shared.Entities;
 
 public class TerraformWorkspace
