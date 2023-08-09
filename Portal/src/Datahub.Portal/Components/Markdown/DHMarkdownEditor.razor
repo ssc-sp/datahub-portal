@@ -1,6 +1,16 @@
 @*Markdown.razor*@
 
-<MarkdownEditor Value="@MarkdownValue" ValueChanged="OnMarkdownValueChanged" ValueHTML="@MarkdownHtml" ValueHTMLChanged="OnMarkdownValueHTMLChanged" @ref="_elementRef"/>
+<MarkdownEditor Value="@MarkdownValue"
+                ValueChanged="OnMarkdownValueChanged"
+                ValueHTML="@MarkdownHtml"
+                ValueHTMLChanged="OnMarkdownValueHTMLChanged"
+                ImageUploadEndpoint="https://localhost:5001/api/media/upload"
+                UploadImage="true"
+                ImageUploadChanged="@OnImageUploadChanged"
+                ImageUploadStarted="@OnImageUploadStarted"
+                ImageUploadProgressed="@OnImageUploadProgressed"
+                ImageUploadEnded="@OnImageUploadEnded"
+                />
 
 @code {
     [Parameter]
@@ -20,7 +30,7 @@
         await base.OnInitializedAsync();
         MarkdownValue = InitialValue;
     }
-    
+
     // Whenever the markdown text is updated, we update our internal value and call the provided method
     public async Task OnMarkdownValueChanged(string value)
     {
@@ -32,6 +42,29 @@
     public Task OnMarkdownValueHTMLChanged(string value)
     {
         MarkdownHtml = value;
+        return Task.CompletedTask;
+    }
+    
+    async Task OnImageUploadChanged(FileChangedEventArgs e)
+    {
+        this.StateHasChanged();
+    }
+
+    Task OnImageUploadStarted(FileStartedEventArgs e)
+    {
+        Console.WriteLine($"Started Image: {e.File.Name}");
+        return Task.CompletedTask;
+    }
+
+    Task OnImageUploadProgressed(FileProgressedEventArgs e)
+    {
+        Console.WriteLine($"Image: {e.File.Name} Progress: {(int)e.Percentage}");
+        return Task.CompletedTask;
+    }
+
+    Task OnImageUploadEnded(FileEndedEventArgs e)
+    {
+        Console.WriteLine($"Finished Image: {e.File.Name}, Success: {e.Success}");
         return Task.CompletedTask;
     }
 
