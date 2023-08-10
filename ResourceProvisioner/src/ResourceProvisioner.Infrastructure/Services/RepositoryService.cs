@@ -372,7 +372,7 @@ public class RepositoryService : IRepositoryService
 
     public async Task ValidateWorkspaceVersion(TerraformWorkspace terraformWorkspace)
     {
-        if (terraformWorkspace.Version == TerraformWorkspace.LatestVersionString)
+        if (terraformWorkspace.Version == TerraformWorkspace.DefaultVersion)
         {
             var versions = await GetModuleVersions();
             var latestVersion = versions.Max();

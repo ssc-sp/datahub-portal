@@ -237,7 +237,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     
     [AeFormIgnore]
     [StringLength(16)]
-    public string Version { get; set; }
+    public string Version { get; set; } = TerraformWorkspace.DefaultVersion;
 
     [AeFormIgnore]
     [NotMapped]

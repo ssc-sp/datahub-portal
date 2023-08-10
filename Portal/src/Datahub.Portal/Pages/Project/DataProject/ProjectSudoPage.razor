@@ -1,0 +1,27 @@
+@page "/w/{ProjectAcronymParam}/sudo"
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+    <Authorized>
+        <MudStack>
+            <MudText Typo="Typo.h1">
+                @Localizer["Super User Page"]
+            </MudText>
+        </MudStack>
+    </Authorized>
+    <NotAuthorized>
+        <MudStack AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h1">
+                @Localizer["Not Authorized"]
+            </MudText>
+            <MudText Typo="Typo.body1">
+                @Localizer["You are not authorized to view this page."]
+            </MudText>
+        </MudStack>
+    </NotAuthorized>
+</DatahubAuthView>
+
+
+@code {
+    [Parameter]
+    public string ProjectAcronymParam { get; set; }
+}
