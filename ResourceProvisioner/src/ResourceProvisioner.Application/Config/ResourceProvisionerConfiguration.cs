@@ -30,7 +30,7 @@ public class InfrastructureRepositoryConfiguration
 
 public class ModuleRepositoryConfiguration
 {
-    public const string DefaultBranch = "refs/remotes/origin/main";
+    public const string DefaultBranch = "main";
     public string Url { get; set; }
     public string LocalPath { get; set; }
     public string TemplatePathPrefix { get; set; }

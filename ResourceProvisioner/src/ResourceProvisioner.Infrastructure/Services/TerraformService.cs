@@ -80,7 +80,7 @@ public class TerraformService : ITerraformService
 
             var fileContent = await File.ReadAllTextAsync(file);
             fileContent = fileContent.Replace(TerraformVersionToken, terraformWorkspace.Version);
-            fileContent = fileContent.Replace(TerraformBranchToken, string.Empty);
+            fileContent = fileContent.Replace(TerraformBranchToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}");
             await File.WriteAllTextAsync(destinationFilename, fileContent);
         }
     }

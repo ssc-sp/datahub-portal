@@ -116,7 +116,7 @@ public class RepositoryService : IRepositoryService
         if (_resourceProvisionerConfiguration.ModuleRepository.Branch != ModuleRepositoryConfiguration.DefaultBranch)
         {
             using var repo = new Repository(repositoryPath);
-            var branch = repo.Branches[_resourceProvisionerConfiguration.ModuleRepository.Branch];
+            var branch = repo.Branches[$"refs/remotes/origin/{_resourceProvisionerConfiguration.ModuleRepository.Branch}"];
             if (branch == null)
             {
                 _logger.LogInformation("Branch {Branch} does not exist, checking out default branch", _resourceProvisionerConfiguration.ModuleRepository.Branch);
