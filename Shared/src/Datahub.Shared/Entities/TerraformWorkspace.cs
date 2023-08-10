@@ -14,12 +14,12 @@ namespace Datahub.Shared.Entities;
 
 public class TerraformWorkspace
 {
-    public const string LatestVersionString = "latest";
+    public const string DefaultVersion = "latest";
     public string? Name { get; set; }
     public string? Acronym { get; set; }
     public double BudgetAmount { get; set; } = 2400;
     
-    public string Version { get; set; } = LatestVersionString;
+    public string Version { get; set; } = DefaultVersion;
 
     // TODO: Move this into the storage module
     public int StorageSizeLimitInTB { get; set; } = 5;
