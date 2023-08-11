@@ -25,7 +25,13 @@ public class TerraformTemplate
     
     public static TerraformTemplate GetTemplateByName(string name)
     {
-        return name switch
+        var templateName = name.ToLower();
+        if (templateName.StartsWith("terraform:"))
+        {
+            templateName = templateName.Replace("terraform:", "");
+        }
+        
+        return templateName switch
         {
             NewProjectTemplate => LatestFromName(NewProjectTemplate),
             AzureStorageBlob => LatestFromName(AzureStorageBlob),
