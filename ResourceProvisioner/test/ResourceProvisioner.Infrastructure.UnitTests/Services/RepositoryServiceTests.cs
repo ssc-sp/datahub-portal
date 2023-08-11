@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using Version = System.Version;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Services;
 
@@ -156,7 +157,7 @@ public class RepositoryServiceTests
         {
             Assert.That(result.StatusCode, Is.EqualTo(MessageStatusCode.Success));
             Assert.That(result.Message, Contains.Substring(TestTemplate.Name));
-            Assert.That(result.Message, Contains.Substring(TestTemplate.Version));
+            Assert.That(result.Message, Contains.Substring(TestingWorkspace.Version));
             Assert.That(result.Message, Contains.Substring(ProjectAcronym));
         });
     }
@@ -181,7 +182,7 @@ public class RepositoryServiceTests
         {
             Assert.That(result.StatusCode, Is.EqualTo(MessageStatusCode.NoChangesDetected));
             Assert.That(result.Message, Contains.Substring(TestTemplate.Name));
-            Assert.That(result.Message, Contains.Substring(TestTemplate.Version));
+            Assert.That(result.Message, Contains.Substring(TestingWorkspace.Version));
             Assert.That(result.Message, Contains.Substring(ProjectAcronym));
         });
     }
@@ -192,25 +193,27 @@ public class RepositoryServiceTests
         InitializeTestInfrastructureRepository();
         var mockTerraformService = SetupMockTerraformService();
 
-        var modules = new List<TerraformTemplate>
-        {
-            TestTemplate,
-            TestTemplate,
-            TestTemplate
-        };
-
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
         
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration, mockTerraformService);
+        
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        var command = GenerateTestCreateResourceRunCommand(
+            workspaceAcronym, new List<string>()
+            {
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate
+            });
 
         var result =
-            await repositoryService.ExecuteResourceRuns(modules, TestingWorkspace, RequestingUser);
+            await repositoryService.ExecuteResourceRuns(command.Templates, command.Workspace, RequestingUser);
 
 
         Assert.That(result, Is.TypeOf<List<RepositoryUpdateEvent>>());
-        Assert.That(result, Has.Count.EqualTo(modules.Count));
+        Assert.That(result, Has.Count.EqualTo(command.Templates.Count));
 
         Assert.Multiple(() =>
         {
@@ -218,9 +221,9 @@ public class RepositoryServiceTests
             {
                 Assert.That(repositoryUpdateEvent.StatusCode, Is.EqualTo(MessageStatusCode.Success),
                     repositoryUpdateEvent.Message);
-                Assert.That(repositoryUpdateEvent.Message, Contains.Substring(TestTemplate.Name));
-                Assert.That(repositoryUpdateEvent.Message, Contains.Substring(TestTemplate.Version));
-                Assert.That(repositoryUpdateEvent.Message, Contains.Substring(ProjectAcronym));
+                Assert.That(repositoryUpdateEvent.Message, Contains.Substring(TerraformTemplate.NewProjectTemplate));
+                Assert.That(repositoryUpdateEvent.Message, Contains.Substring(command.Workspace.Version));
+                Assert.That(repositoryUpdateEvent.Message, Contains.Substring(workspaceAcronym));
             }
         });
     }
@@ -280,6 +283,16 @@ public class RepositoryServiceTests
         Assert.That(result.Url, Is.EqualTo($"{_configuration["InfrastructureRepository:PullRequestBrowserUrl"]}/{fakePullRequestId}"));
         Assert.That(result.Url.Split('/').Last(), Is.EqualTo(fakePullRequestId.ToString()));
         Assert.That(result.WorkspaceAcronym, Is.EqualTo(ProjectAcronym));
+    }
+
+    [Test]
+    public async Task ShouldBeAbleToGetModuleVersions()
+    {
+        var result = await _repositoryService.GetModuleVersions();
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Is.Not.Empty);
+        Assert.That(result, Is.All.InstanceOf<Version>());
     }
 
     private static StringContent ExpectedPullRequestResponse(int fakePullRequestId)
