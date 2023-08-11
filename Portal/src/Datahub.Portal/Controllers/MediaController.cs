@@ -1,8 +1,11 @@
+using Azure.Storage.Blobs;
+using Azure.Storage.Sas;
 using Datahub.Application.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
+
 
 namespace Datahub.Portal.Controllers;
 
@@ -44,24 +47,23 @@ public class MediaController : Controller
     }
 
     [HttpPost("api/media/upload")]
-    [Authorize]
+    //[Authorize]
     public async Task<IActionResult> PostMedia()
     {
+        Console.WriteLine(Request.Headers.Authorization);
         var file = Request.Form.Files[0];
-        var filePath = "/uploads/" + Guid.NewGuid();
-        var blobReference = CloudStorageAccount.Parse(_datahubPortalConfiguration.Media.StorageConnectionString)
-            .CreateCloudBlobClient()
-            .GetContainerReference("media")
-            .GetBlockBlobReference(filePath);
-        await blobReference.UploadFromStreamAsync(file.OpenReadStream());
-        
-        var sasToken = blobReference
-            .GetSharedAccessSignature(new SharedAccessBlobPolicy
-            {
-                Permissions = SharedAccessBlobPermissions.Read,
-                SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-5),
-                SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(5)
-            });
-        return Ok(blobReference.Uri+ sasToken);
+        var filePath = "/uploads/upload-" + Guid.NewGuid()+Path.GetExtension(file.FileName);
+        try
+        {
+            var blobServiceClient = new BlobServiceClient(_datahubPortalConfiguration.Media.StorageConnectionString);
+            var containerClient = blobServiceClient.GetBlobContainerClient("media");
+            var blobClient = containerClient.GetBlobClient(filePath);
+            await blobClient.UploadAsync(file.OpenReadStream());
+            return Ok("/api/media/" + filePath);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 }
