@@ -3,9 +3,12 @@ using Datahub.Shared.Enums;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using Moq;
 using ResourceProvisioner.Application.Config;
+using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Infrastructure.Common;
 
 // ReSharper disable InconsistentNaming
@@ -30,12 +33,12 @@ public class Testing
     };
 
     internal const string RequestingUser = "Unit Test User";
+    internal const string RequestingUserEmail = "unittest@user.com";
     internal const string RequestingAdminUser = "Unit Test Admin User";
 
     internal static readonly TerraformTemplate TestTemplate = new()
     {
         Name = "TestModule",
-        Version = "1.0.0",
     };
 
     [OneTimeSetUp]
@@ -47,14 +50,28 @@ public class Testing
 
         _resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
         _configuration.Bind(_resourceProvisionerConfiguration);
-
-        _terraformService = new TerraformService(Mock.Of<ILogger<TerraformService>>(),
-            _resourceProvisionerConfiguration, _configuration);
-
+        
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
-        _repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration, _terraformService);
+        
+        
+        var services = new ServiceCollection();
+        services.AddLogging(configure => configure.AddConsole());
+        services.AddSingleton<ITerraformService, TerraformService>();
+        services.AddSingleton<IRepositoryService, RepositoryService>();
+        services.AddSingleton(httpClientFactory.Object);
+        services.AddSingleton(_configuration);
+        services.AddSingleton(_resourceProvisionerConfiguration);
+        var serviceProvider = services.BuildServiceProvider();
+        
+        _terraformService = serviceProvider.GetRequiredService<ITerraformService>();
+        _repositoryService = serviceProvider.GetRequiredService<IRepositoryService>();
+
+        // _terraformService = new TerraformService(Mock.Of<ILogger<TerraformService>>(),
+            // _resourceProvisionerConfiguration, _configuration, _repositoryService);
+
+        // _repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
+        //     _resourceProvisionerConfiguration, _terraformService);
     }
 
     [OneTimeTearDown]
@@ -110,7 +127,6 @@ public class Testing
         var module = new TerraformTemplate
         {
             Name = TerraformTemplate.NewProjectTemplate,
-            Version = "latest"
         };
 
         await _terraformService.CopyTemplateAsync(module, workspace);
@@ -126,14 +142,27 @@ public class Testing
     {
         return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
     }
+    
+    internal static CreateResourceRunCommand GenerateTestCreateResourceRunCommand(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true, string version = "latest")
+    {
+        return new CreateResourceRunCommand
+        {
+            Templates = terraformTemplates
+                .Select(s => new TerraformTemplate { Name = s })
+                .ToList(),
+            Workspace = GenerateTestTerraformWorkspace(workspaceAcronym, withUsers, version),
+            RequestingUserEmail = RequestingUser,
+        };
+    }
 
-    internal static TerraformWorkspace GenerateTestTerraformWorkspace(string workspaceAcronym, bool withUsers = true)
+    internal static TerraformWorkspace GenerateTestTerraformWorkspace(string workspaceAcronym, bool withUsers = true, string version = "latest")
     {
         if (!withUsers)
         {
             return new TerraformWorkspace
             {
                 Acronym = workspaceAcronym,
+                Version = version
             };
         }
 
@@ -141,6 +170,7 @@ public class Testing
         const int numberOfOwners = 2;
         const int numberOfAdmins = 3;
         const int numberOfUsers = 10;
+        const int numberOfGuests = 5;
 
         users.AddRange(Enumerable.Range(0, numberOfOwners)
             .Select(i => new TerraformUser
@@ -165,12 +195,20 @@ public class Testing
                 ObjectId = Guid.NewGuid().ToString(),
                 Role = Role.User
             }));
-
+        
+        users.AddRange(Enumerable.Range(0, numberOfGuests)
+            .Select(i => new TerraformUser
+            {
+                Email = $"guest{i}@email.com",
+                ObjectId = Guid.NewGuid().ToString(),
+                Role = Role.Guest
+            }));
 
         return new TerraformWorkspace
         {
             Acronym = workspaceAcronym,
-            Users = users
+            Users = users,
+            Version = version
         };
     }
 
@@ -179,7 +217,6 @@ public class Testing
         return new TerraformTemplate
         {
             Name = template,
-            Version = "latest"
         };
     }
 }

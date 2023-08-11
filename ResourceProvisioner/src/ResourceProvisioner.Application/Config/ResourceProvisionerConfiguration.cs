@@ -30,10 +30,13 @@ public class InfrastructureRepositoryConfiguration
 
 public class ModuleRepositoryConfiguration
 {
+    public const string DefaultBranch = "main";
     public string Url { get; set; }
     public string LocalPath { get; set; }
     public string TemplatePathPrefix { get; set; }
     public string ModulePathPrefix { get; set; }
+
+    public string Branch { get; set; } = DefaultBranch;
 }
 
 public class ResourceProvisionerConfiguration
@@ -48,29 +51,6 @@ public class TerraformConfiguration
     public Backend Backend { get; set; }
     public Variables Variables { get; set; }
 
-    public Modules Modules { get; set; } = new();
-}
-
-public class AzureDatabricks
-{
-    public List<OmniUser> OmniUsers { get; set; } = new()
-    {
-        new OmniUser()
-        {
-            email = "yrobert@apption.com",
-            oid = "e828f0bf-a85e-42c3-b13e-08e267b05e0c"
-        },
-        new OmniUser()
-        {
-            email = "simon.wang@ssc-spc.gc.ca",
-            oid = "f484762f-d494-4d6b-8d15-fd7233ae8d52"
-        }
-    };
-}
-
-public class Modules
-{
-    public AzureDatabricks AzureDatabricks { get; set; } = new();
 }
 
 public class OmniUser
@@ -100,6 +80,7 @@ public class Variables
     public string resource_prefix { get; set; }
     public string datahub_app_sp_oid { get; set; }
     public string azure_databricks_enterprise_oid { get; set; }
+    public string log_workspace_id { get; set; }
     public string aad_admin_group_oid { get; set; }
     public CommonTags common_tags { get; set; }
 }
