@@ -152,7 +152,9 @@
 
             // Retrieve key and call CreateIssue function
             var creds = await _keyVaultService.GetSecret(_portalConfiguration.AdoServiceUser.PatSecretName);
-            await CreateIssue(title, description, topics, "science-program", "DataHub SSC", creds);
+            var org = _portalConfiguration.AdoOrg.OrgName;
+            var project = _portalConfiguration.AdoOrg.ProjectName;
+            await CreateIssue(title, description, topics, org, project, creds);
 
             // After the issue is created, we close the Help page.
             if (ToggleHelp.HasDelegate)
@@ -234,7 +236,6 @@
         if (!response.IsSuccessStatusCode)
         {
             await DialogService.ShowMessageBox(Localizer["Error"], $"Error {response.StatusCode} - {response.ReasonPhrase}. Please contact / Veuillez contacter DataSolutions-SolutionsDeDonnees@ssc-spc.gc.ca", yesText: "OK");
-            throw new Exception($"Error creating issue: {response.StatusCode} {response.ReasonPhrase}");
         }
         else
         {
