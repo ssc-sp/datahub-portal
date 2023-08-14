@@ -1,0 +1,246 @@
+﻿@inject IUserInformationService _userInformationService
+@inject IKeyVaultService _keyVaultService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IDialogService DialogService
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+@inject UIControlsService _uiControlsService
+@inject NavigationManager _navigationManager
+@inject DatahubPortalConfiguration _portalConfiguration
+@inject IJSRuntime _jsRuntime
+@inject Blazored.LocalStorage.ILocalStorageService _localStorage
+
+@using MudBlazor
+@using Datahub.Core.Components.Common
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Datahub
+@using Datahub.Core.Model.Projects;
+@using Datahub.Application.Configuration
+@using Datahub.Portal.Components.User
+@using Datahub.Portal.Pages.Project
+
+@using System;
+@using System.Net.Http;
+@using System.Net.Http.Headers;
+@using System.Text;
+@using System.Threading.Tasks;
+@using Newtonsoft.Json;
+@using Microsoft.Identity.Web
+@using Microsoft.JSInterop;
+
+
+<MudForm @ref="form">
+        <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
+        @if (_currentStep == 0)
+        {
+            <MudText Typo="Typo.body2" Class="py-3">@Localizer["To report an issue or request assistance, please use the FSDH Support Request Form"]</MudText>
+        }
+        else if (_currentStep == 1)
+        {
+            <MudText Typo="Typo.body2" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
+            @foreach (var topic in _ticketTopics)
+            {
+                <MudCheckBox @bind-Checked="@_ticketTopics[topic.Key]" Label="@Localizer[topic.Key]" Color="Color.Primary"></MudCheckBox>
+            }
+        }
+        else if (_currentStep == 2)
+        {
+            <MudText Typo="Typo.body2" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
+            <MudTextField T="string" @bind-Value="_ticketDescription" Label=@Localizer["Detailed description"] Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Description" Variant="Variant.Outlined" Lines="5" />
+            @if (_ticketTopics["Workspace"] || _ticketTopics["Databricks"] || _ticketTopics["Storage"] || _ticketTopics["User Management"] || _ticketTopics["Tool Requesting"])
+            {
+                <MudText Typo="Typo.body2" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>
+                @foreach (var workspace in _ticketWorkspaces)
+                {
+                    <MudCheckBox @bind-Checked="@_ticketWorkspaces[workspace.Key]" Label="@Localizer[workspace.Key]" Color="Color.Primary"></MudCheckBox>
+                }
+            }
+        }
+        <MudGrid>
+            <MudItem xs="6" Align="Align.Start" Class="py-6">
+		        @if (_currentStep > 0)
+		        {
+                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="PreviousStep">@Localizer["Previous"]</MudButton>
+                }
+                else
+                {
+                <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="NextStep">@Localizer["Get Started"]</MudButton>
+                }
+            </MudItem>
+            <MudItem xs="6" Align="Align.End" Class="py-6">
+                @if (_currentStep < 2 && _currentStep > 0)
+                {
+                <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="NextStep">@Localizer["Next"]</MudButton>
+                }
+                else if (_currentStep >= 2)
+                {
+                    <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="SubmitForm">@Localizer["Submit"]</MudButton>
+                }
+            </MudItem>
+        </MudGrid>
+    </MudForm>
+
+@code {
+    [Parameter]
+    public EventCallback ToggleHelp { get; set; }
+
+    private PortalUser _viewedUser; // To retrieve the user's name/email for the form
+    private MudForm form;
+
+    // Variables used for the form that can be passed in the bug report.
+    private String _ticketName = new String("");
+    private String _ticketEmail = new String("");
+    private String _ticketPreferredLanguage = new string("");
+    private String _ticketDescription = new String("");
+    private List<Datahub_Project_User> _userRoles;
+    private IJSObjectReference _module;
+
+    // This dictionary is used to generate checkboxes in the help request
+    Dictionary<string, bool> _ticketTopics = new Dictionary<string, bool>
+    {
+        {"Workspace", false},
+        {"Databricks", false},
+        {"Storage", false},
+        {"User Management", false},
+        {"Documentation", false},
+        {"Tool Requesting", false},
+        {"Other", false},
+    };
+
+    // This dictionary is used to generate Workspace checkboxes in the help request
+    Dictionary<string, bool> _ticketWorkspaces = new Dictionary<string, bool> { };
+
+    private int _currentStep = 0; // Indicates what part of the form to show
+
+    private async void SubmitForm()
+    {
+        form.Validate();
+        if (form.IsValid)
+        {
+            var url = _navigationManager.Uri; // Retrieve the active URL
+            var useragent = await _module.InvokeAsync<string>("retrieveUserAgent"); // Call our JS functions for user agent + resolution
+            var resolution = await _module.InvokeAsync<string>("retrieveResolution");
+
+            // Retrieve all local storage data
+            var allKeys = await _localStorage.KeysAsync();
+            var dataDict = new Dictionary<string, string>();
+
+            foreach (var key in allKeys)
+            {
+                var value = await _localStorage.GetItemAsStringAsync(key);
+                dataDict.Add(key, value);
+            }
+
+            var localStorageData = Newtonsoft.Json.JsonConvert.SerializeObject(dataDict);
+
+            // We retrieve the selected checkboxes that indicate the issue topics
+            var matchingTopics = _ticketTopics.Where(kvp => kvp.Value == true).Select(kvp => kvp.Key);
+            var matchingWorkspaces = _ticketWorkspaces.Where(kvp => kvp.Value == true).Select(kvp => kvp.Key);
+            var topics = String.Join("; ", matchingTopics);
+            var workspaces = String.Join(", ", matchingWorkspaces);
+            if (topics.Length == 0)
+            {
+                topics = "Issue";
+            }
+            if (workspaces.Length == 0)
+            {
+                workspaces = "N/A";
+            }
+
+            // We set up the title and description to be submitted in the issue.
+            String title = $"{topics} submitted by {_ticketName}";
+            String description = $"<b>Issue submitted by:</b> {_ticketName}<br /><b>Contact email:</b> {_ticketEmail}<br /><br /><b>Topics:</b> {topics}<br /><b>Workspace:</b> {workspaces}<br /><b>Description:</b> {_ticketDescription}<br /><br /><b>Language:</b> {_ticketPreferredLanguage}<br /><b>Active URL:</b> {url}<br /><b>User Agent:</b> {useragent}<br /><b>Resolution:</b> {resolution}<br /><b>Local Storage:</b><br />{localStorageData}";
+
+            // Retrieve key and call CreateIssue function
+            var creds = await _keyVaultService.GetSecret(_portalConfiguration.AdoServiceUser.PatSecretName);
+            await CreateIssue(title, description, topics, "science-program", "DataHub SSC", creds);
+
+            // After the issue is created, we close the Help page.
+            if (ToggleHelp.HasDelegate)
+            {
+                await ToggleHelp.InvokeAsync();
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Retrieve general info, such as the user submitting the issue.
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Layout/Topbar/HelpDialog.razor.js");
+            _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+            _ticketName = _viewedUser.DisplayName;
+            _ticketEmail = _viewedUser.Email;
+            _ticketPreferredLanguage = _viewedUser.Language;
+
+            // Retrieve the list of workspaces
+            await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+            _userRoles = await dbContext.Project_Users
+                .Include(u => u.Role)
+                .Include(u => u.Project)
+                .ThenInclude(p => p.Users)
+                .Include(u => u.PortalUser)
+                .Where(u => u.PortalUser.GraphGuid == _viewedUser.GraphGuid)
+                .ToListAsync();
+
+            foreach (var project in _userRoles.Select(userRole => userRole.Project))
+            {
+                _ticketWorkspaces.Add(project.Project_Name, false);
+            }
+        }
+        catch (Exception ex)
+        {
+            _consentHandler.HandleException(ex);
+        }
+    }
+
+    private void NextStep()
+    {
+        form.Validate();
+        if (form.IsValid)
+        {
+            _currentStep++;            
+        }
+    }
+
+    private void PreviousStep()
+    {
+        _currentStep--;
+    }
+
+    // Code to generate an issue in DevOps.
+
+    private static readonly HttpClient client = new HttpClient();
+    private const string devOpsUrl = "https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${workItemTypeName}?api-version=6.0";
+
+    public async Task CreateIssue(string title, string description, string topics, string organization, string project, string personalAccessToken)
+    {
+        var url = devOpsUrl.Replace("{organization}", organization).Replace("{project}", project).Replace("{workItemTypeName}", "Issue");
+
+        // Content of the issue. Possible additions: New tags (topics?), AssignedTo, State, Reason.
+        var body = new object[]
+        {
+            new { op = "add", path = "/fields/System.Title", value = title },
+            new { op = "add", path = "/fields/System.Description", value = description },
+            new { op = "add", path = "/fields/System.Tags", value = $"UserSubmitted; {topics}"} // Separate tags by ;
+        };
+
+        var jsonContent = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json-patch+json");
+        string credentials = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes($":{personalAccessToken}"));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+
+        var response = await client.PostAsync(url, jsonContent);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            await DialogService.ShowMessageBox(Localizer["Error"], $"Error {response.StatusCode} - {response.ReasonPhrase}. Please contact / Veuillez contacter DataSolutions-SolutionsDeDonnees@ssc-spc.gc.ca", yesText: "OK");
+            throw new Exception($"Error creating issue: {response.StatusCode} {response.ReasonPhrase}");
+        }
+        else
+        {
+            await DialogService.ShowMessageBox(Localizer["Success"], Localizer["Your support ticket has been created. Thank you!"], yesText: "OK");
+        }
+    }
+
+
+}
