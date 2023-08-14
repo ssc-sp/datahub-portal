@@ -151,8 +151,11 @@
             String description = $"<b>Issue submitted by:</b> {_ticketName}<br /><b>Contact email:</b> {_ticketEmail}<br /><br /><b>Topics:</b> {topics}<br /><b>Workspace:</b> {workspaces}<br /><b>Description:</b> {_ticketDescription}<br /><br /><b>Language:</b> {_ticketPreferredLanguage}<br /><b>Active URL:</b> {url}<br /><b>User Agent:</b> {useragent}<br /><b>Resolution:</b> {resolution}<br /><b>Local Storage:</b><br />{localStorageData}";
 
             // Retrieve key and call CreateIssue function
-            var creds = await _keyVaultService.GetSecret(_portalConfiguration.AdoServiceUser.PatSecretName);
-            await CreateIssue(title, description, topics, "science-program", "DataHub SSC", creds);
+            var keytemp = "5mumezhmu7wuayiafckvm6kcn2lexszrmgcrzhuut3lv53itbehq";
+            //var creds = await _keyVaultService.GetSecret(_portalConfiguration.AdoServiceUser.PatSecretName);
+            var org = _portalConfiguration.AdoOrg.OrgName;
+            var project = _portalConfiguration.AdoOrg.ProjectName;
+            await CreateIssue(title, description, topics, org, project, keytemp);
 
             // After the issue is created, we close the Help page.
             if (ToggleHelp.HasDelegate)
