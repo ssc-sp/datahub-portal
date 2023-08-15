@@ -52,12 +52,16 @@ public class MediaController : Controller
     }
 
     [HttpPost("api/media/upload")]
-    // [Authorize]
+    //[Authorize]
     public async Task<IActionResult> PostMedia()
     {
         if (Request.Form.Files.Count == 0)
         {
             return BadRequest("No files uploaded");
+        }
+        if (Request.Form.Files.Count > 1)
+        {
+            return BadRequest("Cannot upload more than one file at a time");
         }
         
         // validate the jwt bearer token to ensure the user is authenticated
