@@ -1,19 +1,24 @@
+using System.Security.Cryptography;
 using Azure.Storage.Blobs;
-using Azure.Storage.Sas;
 using Datahub.Application.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 
-
 namespace Datahub.Portal.Controllers;
 
 [ApiController]
 public class MediaController : Controller
 {
+    public static readonly string PostMediaSaltySecret = RandomNumberGenerator
+        .GetBytes(128)
+        .Select(b => b.ToString("X2"))
+        .Aggregate((a, b) => a + b);
+    
     private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
     private readonly ILogger<MediaController> _logger;
+    
 
     public MediaController(DatahubPortalConfiguration datahubPortalConfiguration, ILogger<MediaController> logger)
     {
@@ -47,10 +52,22 @@ public class MediaController : Controller
     }
 
     [HttpPost("api/media/upload")]
-    //[Authorize]
+    // [Authorize]
     public async Task<IActionResult> PostMedia()
     {
-        Console.WriteLine(Request.Headers.Authorization);
+        if (Request.Form.Files.Count == 0)
+        {
+            return BadRequest("No files uploaded");
+        }
+        
+        // validate the jwt bearer token to ensure the user is authenticated
+        var tokenString = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+        if (tokenString != PostMediaSaltySecret)
+        {
+            return Unauthorized();
+        }
+        
         var file = Request.Form.Files[0];
         var filePath = "/uploads/upload-" + Guid.NewGuid()+Path.GetExtension(file.FileName);
         try
