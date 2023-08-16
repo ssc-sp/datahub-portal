@@ -217,14 +217,27 @@
 
     public async Task CreateIssue(string title, string description, string topics, string organization, string project, string personalAccessToken)
     {
-        var url = devOpsUrl.Replace("{organization}", organization).Replace("{project}", project).Replace("{workItemTypeName}", "Issue");
+        var url = devOpsUrl.Replace("{organization}", organization).Replace("{project}", project).Replace("{workItemTypeName}", "Task");
 
         // Content of the issue. Possible additions: New tags (topics?), AssignedTo, State, Reason.
         var body = new object[]
         {
             new { op = "add", path = "/fields/System.Title", value = title },
             new { op = "add", path = "/fields/System.Description", value = description },
-            new { op = "add", path = "/fields/System.Tags", value = $"UserSubmitted; {topics}"} // Separate tags by ;
+            new { op = "add", path = "/fields/System.AreaPath", value = $"{project}\\FSDH Support Team" },
+            new { op = "add", path = "/fields/System.IterationPath", value = $"{project}\\POC 2" },
+            new { op = "add", path = "/fields/System.Tags", value = $"UserSubmitted; {topics}"}, // Separate tags by ;
+            new
+            {
+                op = "add",
+                path = "/relations/-",
+                value = new
+                {
+                    rel = "System.LinkTypes.Hierarchy-Reverse",
+                    url = $"https://dev.azure.com/{organization}/{project}/_apis/wit/workItems/1230",
+                    attributes = new { comment = "Parent work item for user generated issue" }
+                }
+            }
         };
 
         var jsonContent = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json-patch+json");
