@@ -4,13 +4,14 @@
 
 <span>
     <MudTooltip Text="@Localizer[TOOLTIP_TEXT]">
+        <div class="reader-only"><p>@Localizer[TOOLTIP_TEXT]</p></div>
         <MudToggleIconButton
             aria-label="Help toggle"
             ToggledIcon="@Icons.Material.Filled.HelpCenter"
             ToggledChanged="@ToggleHelp"
             Toggled="_showHelp"
             Icon="@Icons.Material.Outlined.HelpCenter"/>
-        </MudTooltip>
+    </MudTooltip>
 
     <MudPopover
         Style="@_style"

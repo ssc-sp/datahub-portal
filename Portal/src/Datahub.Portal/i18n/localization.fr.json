@@ -1790,5 +1790,17 @@
   "Copy the emails of locked users in the tenant.": "Copiez les e-mails des utilisateurs verrouillés dans le locataire.",
   "Copied!": "Copié!",
   "Configuring Azure": "Configuration d'Azure",
-  "Resource is being provisioned": "En cours de provisionnement"
+  "Resource is being provisioned": "En cours de provisionnement",
+  "Skip to main content": "Passer au contenu principal",
+  "Skip to header": "Passer à l'en-tête",
+  "Skip to navigation": "Passer à la navigation",
+  "Skip to breadcrumb": "Passer au fil d'Ariane",
+  "Language selection": "Sélection de la langue",
+  "Header": "En-tête",
+  "Navigation menu": "Menu de navigation",
+  "Main content": "Contenu principal",
+  "Breadcrumb": "Fil d'Ariane",
+  "Home": "Accueil",
+  "Announcements": "Annonces",
+  "Workspaces": "Espaces de travail",
 }

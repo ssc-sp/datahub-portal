@@ -1095,5 +1095,17 @@
   "Copy the emails of locked users in the tenant.": "Copy the emails of locked users in the tenant.",
   "Copied!": "Copied!",
   "Configuring Azure": "Configuring Azure",
-  "Resource is being provisioned": "Resource is being provisioned"
+  "Resource is being provisioned": "Resource is being provisioned",
+  "Skip to main content": "Skip to main content",
+  "Skip to header": "Skip to header",
+  "Skip to navigation": "Skip to navigation",
+  "Skip to breadcrumb": "Skip to breadcrumb",
+  "Language selection": "Language selection",
+  "Header": "Header",
+  "Navigation menu": "Navigation menu",
+  "Main content": "Main content",
+  "Breadcrumb": "Breadcrumb",
+  "Home": "Home",
+  "Announcements": "Announcements",
+  "Workspaces": "Workspaces"
 }
