@@ -4,6 +4,7 @@ public static class TerraformVariables
 {
     public const string OutputProjectAcronym = "project_cd";
     public const string OutputNewProjectTemplate = "new_project_template";
+    public const string OutputWorkspaceVersion = "workspace_version";
 
     public const string AzureStorageType = "blob";
     public const string OutputAzureStorageAccountName = "azure_storage_account_name";

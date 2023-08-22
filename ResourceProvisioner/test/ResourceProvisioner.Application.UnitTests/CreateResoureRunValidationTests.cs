@@ -37,7 +37,6 @@ public class CreateResourceRunValidationTests
                 new()
                 {
                     Name = anyString,
-                    Version = anyString
                 }
             }
         };

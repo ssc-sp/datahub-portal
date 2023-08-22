@@ -14,6 +14,9 @@ namespace ResourceProvisioner.Infrastructure.Services;
 
 public class TerraformService : ITerraformService
 {
+    public const string TerraformVersionToken = "{{version}}";
+    public const string TerraformBranchToken = "{{branch}}";
+    
     private readonly ILogger<TerraformService> _logger;
     internal static readonly List<string> EXCLUDED_FILE_EXTENSIONS = new(new[] { ".md" });
     private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
@@ -37,11 +40,11 @@ public class TerraformService : ITerraformService
         _configuration = configuration;
     }
 
-    public Task CopyTemplateAsync(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
+    public async Task CopyTemplateAsync(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
     {
         if (template.Name is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         var templateSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, template.Name);
@@ -74,10 +77,12 @@ public class TerraformService : ITerraformService
         {
             var sourceFilename = Path.GetFileName(file);
             var destinationFilename = Path.Combine(projectPath, sourceFilename);
-            File.Copy(file, destinationFilename, true);
-        }
 
-        return Task.CompletedTask;
+            var fileContent = await File.ReadAllTextAsync(file);
+            fileContent = fileContent.Replace(TerraformVersionToken, terraformWorkspace.Version);
+            fileContent = fileContent.Replace(TerraformBranchToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}");
+            await File.WriteAllTextAsync(destinationFilename, fileContent);
+        }
     }
 
     public async Task ExtractVariables(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
@@ -244,16 +249,16 @@ public class TerraformService : ITerraformService
 
     private JsonNode ComputeListVariableValue(TerraformWorkspace terraformWorkspace, string variableName)
     {
-        // var omniUsers = _resourceProvisionerConfiguration?.Terraform?.Modules?.AzureDatabricks?.OmniUsers?
-        //     .Select(u => u.ToJsonObject()).ToList() ?? new List<JsonObject>();
-        
         return variableName switch
         {
             TerraformVariables.DatabricksProjectLeadUsers => terraformWorkspace.ToUserList(Role.Owner),
             TerraformVariables.DatabricksAdminUsers => terraformWorkspace.ToUserList(Role.Admin),
             TerraformVariables.DatabricksProjectUsers => terraformWorkspace.ToUserList(Role.User),
             TerraformVariables.DatabricksProjectGuests => terraformWorkspace.ToUserList(Role.Guest),
-            TerraformVariables.StorageContributorUsers => terraformWorkspace.ToUserList(),
+            TerraformVariables.StorageContributorUsers => terraformWorkspace.ToUserList(new List<Role>()
+            {
+                Role.Owner, Role.Admin, Role.User
+            }),
             TerraformVariables.StorageGuestUsers => terraformWorkspace.ToUserList(Role.Guest),
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<{TerraformVariables.ListAnyType}> in configuration")

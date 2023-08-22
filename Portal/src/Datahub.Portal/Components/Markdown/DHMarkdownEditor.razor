@@ -1,17 +1,22 @@
 @using Datahub.Infrastructure.Services.Azure
+@using Datahub.Portal.Controllers
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.Identity.Web
-@inject IHttpContextAccessor _HttpContext
+
+@implements IDisposable
+
+@inject NavigationManager _navigationManager
 @*Markdown.razor*@
 
 
-<MarkdownEditor Value="@MarkdownValue"
+<MarkdownEditor Value="@_markdownValue"
                 ValueChanged="OnMarkdownValueChanged"
-                ValueHTML="@MarkdownHtml"
+                ValueHTML="@_markdownHtml"
                 ValueHTMLChanged="OnMarkdownValueHTMLChanged"
-                ImageUploadEndpoint="https://localhost:5001/api/media/upload"
+                ImageUploadEndpoint="@_imageUploadEndpoint"
                 UploadImage="true"
                 ImageUploadAuthenticationSchema="Bearer"
+                ImageUploadAuthenticationToken="@MediaController.PostMediaSaltySecret"
                 ImageUploadChanged="@OnImageUploadChanged"
                 ImageUploadStarted="@OnImageUploadStarted"
                 ImageUploadProgressed="@OnImageUploadProgressed"
@@ -28,75 +33,54 @@
 
     private MarkdownEditor _elementRef;
     private DotNetObjectReference<DHMarkdownEditor> _dotNetObjectRef;
-    public string MarkdownValue { get; set; }
-    public string MarkdownHtml { get; set; }
-    private bool _isInitialized = false;
+    private string _markdownValue;
+    private string _markdownHtml;
+    private string _imageUploadEndpoint => $"{_navigationManager.BaseUri}api/media/upload";
 
     // Sets the initial value of what the markdown editor should contain
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        MarkdownValue = InitialValue;
+        _markdownValue = InitialValue;
     }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender && !_isInitialized)
-        {
-            _elementRef.ImageUploadAuthenticationToken = await GetAccessToken();
-            _isInitialized = true;
-        }
-    }
-
-    private async Task<string> GetAccessToken()
-    {
-        Console.WriteLine(_HttpContext.HttpContext.Request.Headers["authorization"]);
-        var token = "";
-        return token;
-    }
-
 
     // Whenever the markdown text is updated, we update our internal value and call the provided method
     public async Task OnMarkdownValueChanged(string value)
     {
-        MarkdownValue = value;
+        _markdownValue = value;
         await ValueChanged.InvokeAsync(value);
     }
 
     // Whenever the markdown html is changed, we update our internal value
     public Task OnMarkdownValueHTMLChanged(string value)
     {
-        MarkdownHtml = value;
+        _markdownHtml = value;
         return Task.CompletedTask;
     }
 
-    async Task OnImageUploadChanged(FileChangedEventArgs e)
+    private Task OnImageUploadChanged(FileChangedEventArgs e)
     {
-        this.StateHasChanged();
+        return Task.CompletedTask;;
     }
 
-    Task OnImageUploadStarted(FileStartedEventArgs e)
+    private Task OnImageUploadStarted(FileStartedEventArgs e)
     {
-        Console.WriteLine($"Started Image: {e.File.Name}");
         return Task.CompletedTask;
     }
 
     Task OnImageUploadProgressed(FileProgressedEventArgs e)
     {
-        Console.WriteLine($"Image: {e.File.Name} Progress: {(int)e.Percentage}");
         return Task.CompletedTask;
     }
 
     Task OnImageUploadEnded(FileEndedEventArgs e)
     {
-        Console.WriteLine($"Finished Image: {e.File.Name}, Success: {e.Success}");
         return Task.CompletedTask;
     }
 
-    public async void Dispose()
+    public void Dispose()
     {
         _elementRef?.Dispose();
         _dotNetObjectRef?.Dispose();
     }
-
 }
