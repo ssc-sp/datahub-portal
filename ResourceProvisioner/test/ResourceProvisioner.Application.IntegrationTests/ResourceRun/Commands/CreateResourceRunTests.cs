@@ -31,7 +31,6 @@ public class CreateResourceRunTests
                 new()
                 {
                     Name = "azure-storage-blob",
-                    Version = "latest"
                 }
             },
             Workspace = new TerraformWorkspace

@@ -13,8 +13,6 @@ public class TerraformTemplate
     public const string ContactUs = "contact-us";
 
     public string Name { get; set; }
-    public string Version { get; set; }
-
     public static TerraformTemplate Default => LatestFromName(NewProjectTemplate);
 
     public static TerraformTemplate LatestFromName(string name)
@@ -22,13 +20,18 @@ public class TerraformTemplate
         return new TerraformTemplate()
         {
             Name = name,
-            Version = "latest",
         };
     }
     
     public static TerraformTemplate GetTemplateByName(string name)
     {
-        return name switch
+        var templateName = name.ToLower();
+        if (templateName.StartsWith("terraform:"))
+        {
+            templateName = templateName.Replace("terraform:", "");
+        }
+        
+        return templateName switch
         {
             NewProjectTemplate => LatestFromName(NewProjectTemplate),
             AzureStorageBlob => LatestFromName(AzureStorageBlob),

@@ -13,6 +13,7 @@ using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Infrastructure.Common;
+using Version = System.Version;
 
 namespace ResourceProvisioner.Infrastructure.Services;
 
@@ -77,6 +78,29 @@ public class RepositoryService : IRepositoryService
         return pullRequestMessage;
     }
 
+    public async Task<List<Version>> GetModuleVersions()
+    {
+        var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
+        var modulePath = Path.Combine(repositoryPath, _resourceProvisionerConfiguration.ModuleRepository.ModulePathPrefix);
+        
+        // check if module path exists
+        if(!Directory.Exists(modulePath))
+        {
+            _logger.LogInformation("Module path {ModulePath} does not exist, fetching module repository", modulePath);
+            await FetchModuleRepository();
+        }
+        
+        var versions = Directory.GetDirectories(modulePath)
+            .Select(x => 
+                new Version(x
+                    .Replace('/', Path.DirectorySeparatorChar)
+                    .Split(Path.DirectorySeparatorChar)
+                    .Last()[1..] // remove the v prefix
+                ))
+            .ToList();
+        return versions;
+    }
+
     public Task FetchModuleRepository()
     {
         var repositoryUrl = _resourceProvisionerConfiguration.ModuleRepository.Url;
@@ -88,6 +112,18 @@ public class RepositoryService : IRepositoryService
 
         _logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
         Repository.Clone(repositoryUrl, repositoryPath);
+
+        if (_resourceProvisionerConfiguration.ModuleRepository.Branch != ModuleRepositoryConfiguration.DefaultBranch)
+        {
+            using var repo = new Repository(repositoryPath);
+            var branch = repo.Branches[$"refs/remotes/origin/{_resourceProvisionerConfiguration.ModuleRepository.Branch}"];
+            if (branch == null)
+            {
+                _logger.LogInformation("Branch {Branch} does not exist, checking out default branch", _resourceProvisionerConfiguration.ModuleRepository.Branch);
+                branch = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
+            }
+            Commands.Checkout(repo, branch);
+        }
 
         _logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, repositoryPath);
         return Task.CompletedTask;
@@ -175,11 +211,11 @@ public class RepositoryService : IRepositoryService
 
         var author = new Signature(username, username, DateTimeOffset.Now);
         _logger.LogInformation(
-            "Committing all files in {LocalPath} for module [{ModuleVersion}]{ModuleName} as {Author}", repositoryPath,
-            template.Version, template.Name, author);
+            "Committing all files in {LocalPath} for module {ModuleName} as {Author}", repositoryPath,
+            template.Name, author);
         try
         {
-            repository.Commit($"Committing [{template.Version}]{template.Name} changes", author, author);
+            repository.Commit($"Committing {template.Name} changes", author, author);
             _logger.LogInformation("Changes committed in {LocalPath}", repositoryPath);
         }
         catch (EmptyCommitException e)
@@ -323,6 +359,8 @@ public class RepositoryService : IRepositoryService
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
+        await ValidateWorkspaceVersion(terraformWorkspace);
+
         foreach (var module in modules)
         {
             var result = await ExecuteResourceRun(module, terraformWorkspace, requestingUsername);
@@ -330,6 +368,16 @@ public class RepositoryService : IRepositoryService
         }
 
         return repositoryUpdateEvents;
+    }
+
+    public async Task ValidateWorkspaceVersion(TerraformWorkspace terraformWorkspace)
+    {
+        if (terraformWorkspace.Version == TerraformWorkspace.DefaultVersion)
+        {
+            var versions = await GetModuleVersions();
+            var latestVersion = versions.Max();
+            terraformWorkspace.Version = $"v{latestVersion!.ToString()}";
+        }
     }
 
     public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate template, TerraformWorkspace terraformWorkspace,
@@ -354,7 +402,7 @@ public class RepositoryService : IRepositoryService
             return new RepositoryUpdateEvent()
             {
                 Message =
-                    $"Successfully created resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
+                    $"Successfully created resource run for [{terraformWorkspace.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.Success
             };
         }
@@ -362,7 +410,7 @@ public class RepositoryService : IRepositoryService
         {
             return new RepositoryUpdateEvent()
             {
-                Message = $"No changes detected after resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
+                Message = $"No changes detected after resource run for [{terraformWorkspace.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.NoChangesDetected
             };
         }
@@ -370,11 +418,11 @@ public class RepositoryService : IRepositoryService
         {
             _logger.LogError(e,
                 "Error while creating resource run for [{ModuleVersion}]{ModuleName} in {WorkspaceAcronym}",
-                template.Version, template.Name, terraformWorkspace.Acronym);
+                terraformWorkspace.Version, template.Name, terraformWorkspace.Acronym);
 
             return new RepositoryUpdateEvent()
             {
-                Message = $"Error creating resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
+                Message = $"Error creating resource run for [{terraformWorkspace.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.Error
             };
         }

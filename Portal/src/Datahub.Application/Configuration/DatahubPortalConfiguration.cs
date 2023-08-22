@@ -18,6 +18,8 @@ public class DatahubPortalConfiguration
 
     public ConnectionStrings ConnectionStrings { get; set; } = new();
     public AzureAd AzureAd { get; set; } = new();
+    public AdoServiceUser AdoServiceUser { get; set; } = new();
+    public AdoOrg AdoOrg { get; set; } = new();
     public Graph Graph { get; set; } = new();
     public APITargets APITargets { get; set; } = new();
     public ApplicationInsights ApplicationInsights { get; set; } = new();
@@ -43,7 +45,9 @@ public class DatahubPortalConfiguration
     public string SupportFormUrl { get; set; } =
         "https://forms.office.com/pages/responsepage.aspx?id=lMFb0L-U1kquLh2w8uOPXhksOXzZ73RCp9fVTz4vTU5UNTc1U00yNVUxWVg4SkJGMFVHN1RCTTdQRS4u";
 
-    public ReverseProxy ReverseProxy { get; set; } = new(); 
+    public ReverseProxy ReverseProxy { get; set; } = new();
+
+    public GithubConfig Github { get; set; } = new();
 }
 
 public class Achievements
@@ -123,6 +127,18 @@ public class AzureAd
     public string SignedOutCallbackPath { get; set; } = "/signout-callback-oidc";
 
     public string AppIDURL { get; set; } = null!;
+}
+
+public class AdoServiceUser
+{
+    public string OidSecretName { get; set; } = "ado-service-user-oid";
+    public string PatSecretName { get; set; } = "ado-service-user-pat";
+}
+
+public class AdoOrg
+{
+    public string OrgName { get; set; } = "DataSolutionsDonnees";
+    public string ProjectName { get; set; } = "FSDH SSC";
 }
 
 public class ConnectionStrings
@@ -208,4 +224,13 @@ public class ReverseProxy
     public bool Enabled { get; set; }
     public string BasePath { get; set; } = "wsapp";
     public string UserHeader { get; set; } = "dh-user";
+}
+
+public class GithubConfig
+{
+    public string AppName { get; set; } = "datahub-integration";
+    public string CallbackUrl { get; set; } = "https://localhost:5001/git/callback";
+    public string ClientId { get; set; } = "";
+    public string ClientSecret { get; set; } = "";
+    public string RepoPrefix { get; set; } = "fsdh-";
 }

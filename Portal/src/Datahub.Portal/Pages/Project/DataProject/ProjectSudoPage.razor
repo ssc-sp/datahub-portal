@@ -1,0 +1,66 @@
+@using Datahub.Core.Services.Projects
+@using System.Text.Json
+@using Datahub.Application.Services
+
+@inject IRequestManagementService _requestManagementService
+@inject IProjectCreationService _projectCreationService
+
+@page "/w/{ProjectAcronymParam}/sudo"
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+    <Authorized>
+        <MudStack>
+            <MudText Typo="Typo.h1">
+                @Localizer["Super User Page"]
+            </MudText>
+
+            <MudStack>
+                <MudText Typo="Typo.h2">
+                    @Localizer["Workspace Definition"]
+                </MudText>
+                <DHMarkdown Content="@_workspaceDefinitionMarkdown" LinkRewriter="RewriteLink"/>
+            </MudStack>
+        </MudStack>
+    </Authorized>
+    <NotAuthorized>
+        <MudStack AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h1">
+                @Localizer["Not Authorized"]
+            </MudText>
+            <MudText Typo="Typo.body1">
+                @Localizer["You are not authorized to view this page."]
+            </MudText>
+        </MudStack>
+    </NotAuthorized>
+</DatahubAuthView>
+
+
+@code {
+    private string _workspaceDefinitionMarkdown;
+
+    [Parameter]
+    public string ProjectAcronymParam { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await _projectCreationService.CreateNewTemplateProjectResourceAsync(ProjectAcronymParam);
+
+        var workspaceDefinition = await _requestManagementService.GetWorkspaceDefinition(ProjectAcronymParam);
+        
+        var workspaceDefinitionJsonString = JsonSerializer.Serialize(workspaceDefinition, 
+            new JsonSerializerOptions
+            {
+                WriteIndented = true,
+            });
+        
+        _workspaceDefinitionMarkdown = $"```json\n{workspaceDefinitionJsonString}\n```";
+    }
+    
+    private static string RewriteLink(string link)
+    {
+        return link;
+    }
+
+}

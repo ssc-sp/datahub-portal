@@ -9,6 +9,8 @@ using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Security;
+using Datahub.ProjectTools.Services;
+using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -118,6 +120,7 @@ public class ProjectCreationService : IProjectCreationService
                     return false;
 
                 await AddProjectToDb(user, projectName, acronym, organization);
+                await CreateNewTemplateProjectResourceAsync(acronym);
 
                 var project = CreateResourceData.NewProjectTemplate(projectName, acronym, sectorName, organization, 
                     user.Mail, Convert.ToDouble(GetDefaultBudget()));
@@ -132,6 +135,47 @@ public class ProjectCreationService : IProjectCreationService
                 return false;
             }
         }
+    }
+
+    public async Task CreateNewTemplateProjectResourceAsync(string projectAcronym)
+    {
+        await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
+        var project = await context.Projects
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+        
+        if (project is null)
+        {
+            _logger.LogError("Project with acronym {ProjectAcronym} not found", projectAcronym);
+        }
+        else
+        {
+            await CreateNewTemplateProjectResourceAsync(project.Project_ID);
+        }
+    }
+    public async Task CreateNewTemplateProjectResourceAsync(int projectId)
+    {
+        await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
+        
+        var exists = context.Project_Resources2
+            .Any(r => r.ProjectId == projectId
+                      && r.ResourceType == RequestManagementService.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
+        
+        if (exists) return;
+
+        var newResource = new Project_Resources2()
+        {
+            ResourceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
+            ClassName = nameof(ProjectResource_Blank),
+            JsonContent = "{}",
+            ProjectId = projectId,
+            TimeCreated = DateTime.UtcNow,
+            TimeRequested = DateTime.UtcNow,
+            InputJsonContent = "{}",
+        };
+        
+        await context.Project_Resources2.AddAsync(newResource);
+        await context.TrackSaveChangesAsync(_auditingService);
     }
     
     private async Task AddProjectToDb(User user, string projectName, string acronym, string organization) 

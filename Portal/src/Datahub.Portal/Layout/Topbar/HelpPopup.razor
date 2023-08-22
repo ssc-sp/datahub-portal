@@ -7,15 +7,16 @@
         <div class="reader-only"><p>@Localizer[TOOLTIP_TEXT]</p></div>
         <MudToggleIconButton
             aria-label="Help toggle"
-            ToggledIcon="@Icons.Material.Filled.HelpCenter"
+            ToggledIcon="@Icons.Material.Filled.Help"
             ToggledChanged="@ToggleHelp"
             Toggled="_showHelp"
-            Icon="@Icons.Material.Outlined.HelpCenter"/>
-    </MudTooltip>
+            Icon="@Icons.Material.Outlined.HelpOutline"/>
+        </MudTooltip>
 
     <MudPopover
         Style="@_style"
         Open="@_showHelp"
+                Class="overflow-scroll "
         AnchorOrigin="Origin.BottomRight"
         TransformOrigin="Origin.TopRight">
         <MudCard Elevation="0" Class="py-4 px-6">
@@ -34,25 +35,20 @@
             <MudCardContent>
                 <MudStack>
                     <MudText>@Localizer["Need a hand? We've got you covered."]</MudText>
-                    <MudText Typo="Typo.body2">@Localizer["To report an issue or request assistance please use the FSDH Support Request Form"]</MudText>
-                    <MudStack Row Justify="Justify.Center">
-                        <MudButton
-                            Class="my-4"
-                            Variant="Variant.Filled"
-                            EndIcon="@Icons.Material.Filled.Mail"
-                            Color="Color.Primary"
-                            Target="_blank"
-                            Href="@SupportFormUrl">
-                            @Localizer["Request Form"]
-                        </MudButton>
-                    </MudStack>
+                    <MudText Typo="Typo.body2">@Localizer["Our Resources page has many resources that could be helpful for you. Additional support is available using the FSDH Support Request Form."]</MudText>
+                    <MudItem xs="6" Class="py-3">
+                            <MudButton Href="/resources"
+                                       Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="fat fa-sitemap"
+                                       OnClick="ToggleHelp">
+                                @Localizer["Resources"]
+                            </MudButton>
+                    </MudItem>
                 </MudStack>
+                <MudDivider />
+                <HelpDialog ToggleHelp="@ToggleHelp" />
             </MudCardContent>
-            <MudCardActions>
-                <MudStack Row Justify="Justify.SpaceAround" Class="flex-grow-1">
-                    <MudButton Href="terms-and-conditions" Variant="Variant.Text" Color="Color.Primary">@Localizer["Terms and Conditions"]</MudButton>
-                </MudStack>
-            </MudCardActions>
         </MudCard>
     </MudPopover>
 </span>
@@ -72,7 +68,7 @@
         _datahubEmail = Configuration.GetValue<string>("EmailNotification:DatahubEmail") ?? "datahub@nrcan-rncan.gc.ca";
 
         _style = new StyleBuilder()
-            .AddStyle("width", "550px")
+            .AddStyle("width", "550px").AddStyle("overflow-y", "auto").AddStyle("max-height", "90vh")
             .Build();
     }
 
