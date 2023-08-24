@@ -2,9 +2,11 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Application.Services.Notebooks;
+using Datahub.Core.Data;
 using Datahub.Core.Data.Databricks;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Repositories;
+using Datahub.Core.Services.CatalogSearch;
 using Datahub.ProjectTools.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -16,15 +18,18 @@ public class DatabricksApiService : IDatabricksApiService
     private readonly ILogger<DatabricksApiService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
+    private readonly IDatahubCatalogSearch _datahubCatalogSearch;
 
     public DatabricksApiService(
         ILogger<DatabricksApiService> logger,
         IHttpClientFactory httpClientFactory,
-        IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+        IDatahubCatalogSearch datahubCatalogSearch)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _dbContextFactory = dbContextFactory;
+        _datahubCatalogSearch = datahubCatalogSearch;
     }
 
 
@@ -113,6 +118,18 @@ public class DatabricksApiService : IDatabricksApiService
         projectRepository.Path = repositoryInfoDto.Path;
         
         await dbContext.SaveChangesAsync();
+
+        var catalogObject = new Core.Model.Catalog.CatalogObject()
+        {
+            ObjectType = Core.Model.Catalog.CatalogObjectType.Repository,
+            ObjectId = project.Project_Acronym_CD,
+            Name_English = project.Project_Name,
+            Name_French = project.Project_Name_Fr,
+            Desc_English = project.Project_Summary_Desc,
+            Desc_French = project.Project_Summary_Desc_Fr
+        };
+
+        await _datahubCatalogSearch.AddCatalogObject(catalogObject);
 
         return true;
     }

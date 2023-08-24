@@ -1,0 +1,79 @@
+﻿@using Datahub.Core.Extensions;
+@using Datahub.Core.Model.Catalog;
+@using MudBlazor.Utilities;
+
+@foreach (var result in Results)
+{
+     <MudStack Row Class="mb-2">
+         <MudIcon Icon=@GetIcon(result)></MudIcon>
+         <MudStack Spacing="0">
+             <MudText Typo="Typo.h6" Color="Color.Success">
+                <MudLink Href=@GetLink(result) Underline="Underline.None" Target=@GetTarget(result) OnClick=@OnClickLink>
+                    @GetName(result)
+                </MudLink>
+             </MudText>
+             
+             <MudText Typo="Typo.body1" Color="Color.Dark">
+                @GetType(result)
+             </MudText>
+
+             <MudText Typo="Typo.body2" Color="Color.Default" Style="_style">
+                 @GetDescription(result)
+             </MudText>
+         </MudStack>
+     </MudStack>
+}
+
+
+@code {
+
+    [Parameter]
+    public bool French { get; set; }
+
+    [Parameter]
+    public List<CatalogObject> Results { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClickLink { get; set; }
+
+    private string _style;
+
+    protected override void OnInitialized()
+    {
+        _style = new StyleBuilder().AddStyle("max-width", "550px").Build();
+    }
+
+    private string GetIcon(CatalogObject obj) => obj.ObjectType switch
+    {
+        CatalogObjectType.Workspace => Icons.Material.Filled.Share,
+        CatalogObjectType.User => Icons.Material.Sharp.Person,
+        CatalogObjectType.Repository => Icons.Custom.Brands.GitHub,
+        _ => Icons.Material.Filled.Share
+    };
+
+    private string GetName(CatalogObject obj) => (French ? obj.Name_French : obj.Name_English) ?? obj.Name_English;
+
+    private string GetDescription(CatalogObject obj) => (French ? obj.Desc_French : obj.Desc_English) ?? obj.Desc_English;
+
+    private string GetType(CatalogObject obj) => obj.ObjectType switch
+    {
+        CatalogObjectType.Workspace => Localizer["Workspace"],
+        CatalogObjectType.User => Localizer["User"],
+        CatalogObjectType.Repository => Localizer["Repository"],
+        _ => string.Empty
+    };
+
+    private string GetLink(CatalogObject obj) => obj.ObjectType switch
+    {
+        CatalogObjectType.Workspace => $"/w/{obj.ObjectId}",
+        CatalogObjectType.User => $"/profile?u={obj.ObjectId.Base64Encode()}",
+        CatalogObjectType.Repository => obj.Location ?? "#",
+        _ => "#"
+    };
+
+    private string GetTarget(CatalogObject obj) => obj.ObjectType switch
+    {
+        CatalogObjectType.Repository => "_new",
+        _ => default
+    };
+}
