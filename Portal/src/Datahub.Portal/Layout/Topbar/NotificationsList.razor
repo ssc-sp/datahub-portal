@@ -47,11 +47,21 @@
 
         @if (_notifications == null || _isLoading)
         {
-            @for (var i = 0; i < 3; i++)
+            @for (var i = 0; i < 1; i++)
             {
                 <MudSkeleton/>
                 <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="300px" Height="110px"/>
             }
+        }
+        else if (_notifications.Count == 0)
+        {
+            <MudCard>
+                <MudCardContent>
+                    <MudText>
+                        @Localizer["You have no notifications."]
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
         }
         else
         {
@@ -90,15 +100,15 @@
                     </MudExpansionPanel>
                 }
             </MudExpansionPanels>
+            <MudStack Row>
+                <MudCheckBox Checked=@_unreadOnly CheckedChanged=@ToggleUnreadOnly T="bool" Label=@Localizer[$"{LocalizationPrefix}.ShowUnreadOnly"] />
+                <MudPagination
+                    Color="Color.Primary"
+                    Count="_totalNotificationCount"
+                    Selected="@_currentPage"
+                    SelectedChanged="PageChanged"/>
+            </MudStack>
         }
-        <MudStack Row>
-            <MudCheckBox Checked=@_unreadOnly CheckedChanged=@ToggleUnreadOnly T="bool" Label=@Localizer[$"{LocalizationPrefix}.ShowUnreadOnly"] />
-            <MudPagination
-                Color="Color.Primary"
-                Count="_totalNotificationCount"
-                Selected="@_currentPage"
-                SelectedChanged="PageChanged"/>
-        </MudStack>
         
     </MudPopover>
 </span>
