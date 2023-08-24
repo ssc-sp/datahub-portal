@@ -18,6 +18,8 @@ public class DatahubPortalConfiguration
 
     public ConnectionStrings ConnectionStrings { get; set; } = new();
     public AzureAd AzureAd { get; set; } = new();
+    public AdoServiceUser AdoServiceUser { get; set; } = new();
+    public AdoOrg AdoOrg { get; set; } = new();
     public Graph Graph { get; set; } = new();
     public APITargets APITargets { get; set; } = new();
     public ApplicationInsights ApplicationInsights { get; set; } = new();
@@ -125,6 +127,18 @@ public class AzureAd
     public string SignedOutCallbackPath { get; set; } = "/signout-callback-oidc";
 
     public string AppIDURL { get; set; } = null!;
+}
+
+public class AdoServiceUser
+{
+    public string OidSecretName { get; set; } = "ado-service-user-oid";
+    public string PatSecretName { get; set; } = "ado-service-user-pat";
+}
+
+public class AdoOrg
+{
+    public string OrgName { get; set; } = "DataSolutionsDonnees";
+    public string ProjectName { get; set; } = "FSDH SSC";
 }
 
 public class ConnectionStrings
