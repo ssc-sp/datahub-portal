@@ -227,6 +227,8 @@ public class Startup
                             // passing the logged user to the proxied app
                             var loggedUser = transformContext.HttpContext?.User?.Identity?.Name ?? "";
                             transformContext.ProxyRequest.Headers.Add(GetUserHeaderName(), loggedUser);
+                            // add the role
+                            transformContext.ProxyRequest.Headers.Add("role", transformContext.HttpContext.GetWorkspaceRole());
                             await Task.CompletedTask;
                         });
                     });

@@ -64,3 +64,33 @@ public class WorkspaceAppMiddleware
         return $"{request.Scheme}://{request.Host}{request.Path}";
     }
 }
+
+public static class WorkspaceHttpContextEx
+{
+    public static string GetWorkspaceRole(this HttpContext context)
+    {
+        var urlPath = context.Request.Path.ToString();
+        var columns = urlPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        
+        if (columns.Length < 2)
+            return string.Empty;
+
+        var acronym = columns[1];
+        var claims = context.User.Claims.Where(c => c.Type == ClaimTypes.Role);
+
+        var roles = claims.Where(c => c.Value.StartsWith(acronym, StringComparison.OrdinalIgnoreCase))
+                          .Select(c => c.Value[acronym.Length..])
+                          .ToHashSet();
+
+        if (roles.Contains(RoleConstants.ADMIN_SUFFIX))
+            return "admin";
+
+        if (roles.Contains(RoleConstants.WORKSPACE_LEAD_SUFFIX))
+            return "lead";
+
+        if (roles.Contains(RoleConstants.GUEST_SUFFIX))
+            return "guest";
+
+        return string.Empty;
+    }
+}
