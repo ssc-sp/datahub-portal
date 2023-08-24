@@ -1,6 +1,7 @@
 ﻿using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Announcements;
+using Datahub.Core.Model.Catalog;
 using Datahub.Core.Model.Documentation;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
@@ -87,6 +88,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// Table for storing any additional details when users go through the project creation process
     /// </summary>
     public DbSet<ProjectCreationDetails> ProjectCreationDetails { get; set; }
+
+    /// <summary>
+    /// Cataloged objects 
+    /// </summary>
+    public DbSet<CatalogObject> CatalogObjects { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {

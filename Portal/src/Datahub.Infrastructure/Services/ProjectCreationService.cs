@@ -8,6 +8,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
+using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Services.Security;
 using Datahub.ProjectTools.Services;
 using Datahub.Shared.Entities;
@@ -23,22 +24,24 @@ public class ProjectCreationService : IProjectCreationService
     private readonly IConfiguration _configuration;
     private readonly IDbContextFactory<DatahubProjectDBContext> _datahubProjectDbFactory;
     private readonly ILogger<ProjectCreationService> _logger;
-    private readonly ServiceAuthManager serviceAuthManager;
+    private readonly ServiceAuthManager _serviceAuthManager;
     private readonly IUserInformationService _userInformationService;
     private readonly IResourceRequestService _resourceRequestService;
     private readonly IDatahubAuditingService _auditingService;
+    private readonly IDatahubCatalogSearch _datahubCatalogSearch;
 
     public ProjectCreationService(IConfiguration configuration, IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        ILogger<ProjectCreationService> logger, ServiceAuthManager serviceAuthManager, IUserInformationService userInformationService, 
-        IResourceRequestService resourceRequestService, IDatahubAuditingService auditingService)
+        ILogger<ProjectCreationService> logger, ServiceAuthManager serviceAuthManager, IUserInformationService userInformationService,
+        IResourceRequestService resourceRequestService, IDatahubAuditingService auditingService, IDatahubCatalogSearch datahubCatalogSearch)
     {
         _configuration = configuration;
         _datahubProjectDbFactory = datahubProjectDbFactory;
         _logger = logger;
-        this.serviceAuthManager = serviceAuthManager;
+        _serviceAuthManager = serviceAuthManager;
         _userInformationService = userInformationService;
         _resourceRequestService = resourceRequestService;
         _auditingService = auditingService;
+        _datahubCatalogSearch = datahubCatalogSearch;
     }
 
     public async Task<bool> AcronymExists(string acronym)
@@ -46,6 +49,7 @@ public class ProjectCreationService : IProjectCreationService
         await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
         return await db.Projects.AnyAsync(p => p.Project_Acronym_CD == acronym);
     }
+
     public async Task<string> GenerateProjectAcronymAsync(string projectName)
     {
         await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
@@ -220,7 +224,19 @@ public class ProjectCreationService : IProjectCreationService
         await db.Project_Whitelists.AddAsync(projectWhiteList);
         
         await db.TrackSaveChangesAsync(_auditingService);
-        serviceAuthManager.InvalidateAuthCache();
+        _serviceAuthManager.InvalidateAuthCache();
+
+        var catalogObject = new Core.Model.Catalog.CatalogObject()
+        {
+            ObjectType = Core.Model.Catalog.CatalogObjectType.Workspace,
+            ObjectId = acronym,
+            Name_English = projectName,
+            Name_French = projectName,
+            Desc_English = organization,
+            Desc_French = organization
+        };
+
+        await _datahubCatalogSearch.AddCatalogObject(catalogObject);
     }
 
     private decimal GetDefaultBudget()
