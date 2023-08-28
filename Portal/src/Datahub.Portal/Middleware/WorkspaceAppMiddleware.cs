@@ -88,6 +88,9 @@ public static class WorkspaceHttpContextEx
         if (roles.Contains(RoleConstants.WORKSPACE_LEAD_SUFFIX))
             return "lead";
 
+        if (roles.Contains(RoleConstants.COLLABORATOR_SUFFIX))
+            return "collaborator";
+
         if (roles.Contains(RoleConstants.GUEST_SUFFIX))
             return "guest";
 
