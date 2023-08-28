@@ -94,6 +94,6 @@ public static class WorkspaceHttpContextEx
         if (roles.Contains(RoleConstants.GUEST_SUFFIX))
             return "guest";
 
-        return string.Empty;
+        return "authenticated";
     }
 }
