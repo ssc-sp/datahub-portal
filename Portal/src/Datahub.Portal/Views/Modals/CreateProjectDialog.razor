@@ -59,10 +59,6 @@
                              Label=@Localizer["Create Repository"] />
             </MudStack>
 
-            @*<div>
-                <a href="https://github.com/login/oauth/authorize?scope=repo&client_id=Iv1.ff019d6e5370d543&state=DIE1">Login with GitHub</a>
-            </div>*@
-
             @if (_errorMessage is not null)
             {
                 <MudAlert Severity="Severity.Error" Dense="true" Class="my-2" ShowCloseIcon CloseIconClicked="CloseAlert">

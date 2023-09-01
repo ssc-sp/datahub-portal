@@ -1,0 +1,130 @@
+﻿@using Datahub.Core.Services.CatalogSearch;
+@using MudBlazor.Utilities
+@using Datahub.Core.Model.Catalog;
+@inject IDatahubCatalogSearch datahubCatalogSearch
+@inject CultureService cultureService
+
+<MudItem>
+    <MudFocusTrap DefaultFocus="DefaultFocus.FirstChild">
+        <MudTextField T="string"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Placeholder="@Localizer["Search"]"
+                      DebounceInterval="500"
+                      @bind-Value="SearchText"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      FullWidth="false"
+                      Clearable="true">
+        </MudTextField>
+    </MudFocusTrap>
+
+    <MudPopover Open="@ShowSearchResults"
+                Class="pa-8"
+                Style="_style"
+                AnchorOrigin="Origin.BottomRight"
+                TransformOrigin="Origin.TopRight">
+                
+        <MudTabs Elevation="0" PanelClass="pa-6" @key="_results">
+            <MudTabPanel Disabled=@AllDisabled>
+                <ChildContent>
+                    <SearchResultTab Results="_results" French="cultureService.IsFrench" OnClickLink=@HandleClickLink />
+                </ChildContent>
+                <TabContent>
+                    <MudText Typo="Typo.h6">@Localizer["All"]</MudText>
+                </TabContent>
+            </MudTabPanel>
+
+            <MudTabPanel Disabled=@WorkspacesDisabled>
+                <ChildContent>
+                    <SearchResultTab Results="_workspaces" French="cultureService.IsFrench" OnClickLink=@HandleClickLink />
+                </ChildContent>
+                <TabContent>
+                    <MudText Typo="Typo.h6">@Localizer["Workspaces"]</MudText>
+                </TabContent>
+            </MudTabPanel>
+
+            <MudTabPanel Disabled=@UsersDisabled>
+                <ChildContent>
+                    <SearchResultTab Results="_users" French="cultureService.IsFrench" OnClickLink=@HandleClickLink />
+                </ChildContent>
+                <TabContent>
+                    <MudText Typo="Typo.h6">@Localizer["Users"]</MudText>
+                </TabContent>
+            </MudTabPanel>
+
+            <MudTabPanel Disabled=@RepositoriesDisabled>
+                <ChildContent>
+                    <SearchResultTab Results="_repositories" French="cultureService.IsFrench" OnClickLink=@HandleClickLink />
+                </ChildContent>
+                <TabContent>
+                    <MudText Typo="Typo.h6">@Localizer["Shared Repositories"]</MudText>
+                </TabContent>
+            </MudTabPanel>
+        </MudTabs>
+    </MudPopover>
+</MudItem>
+
+@code {
+
+    private string _style;
+    private string _searchFilter = "";
+    private List<CatalogObject> _results = new();
+    private List<CatalogObject> _users = new();
+    private List<CatalogObject> _workspaces = new();
+    private List<CatalogObject> _repositories = new();
+
+    protected override void OnInitialized()
+    {
+        _style = new StyleBuilder().AddStyle("width", "550px").Build();
+    }
+
+    private string SearchText
+    {
+        get => _searchFilter;
+        set
+        {
+            if (!string.Equals(value, _searchFilter, StringComparison.InvariantCultureIgnoreCase))
+            {
+                _searchFilter = value;
+                _ = SearchCatalog(value);
+            }
+        }
+    }
+
+    private bool ShowSearchResults => _results.Count > 0;
+    private bool AllDisabled => _results.Count == 0;
+    private bool WorkspacesDisabled => _workspaces.Count == 0;
+    private bool UsersDisabled => _users.Count == 0;
+    private bool RepositoriesDisabled => _repositories.Count == 0;
+
+    private async Task SearchCatalog(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            _results = new();
+        }
+        else
+        {
+            _results = await datahubCatalogSearch.SearchCatalog(new(text, false));
+        }
+
+        UpdateTabs();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleClickLink()
+    {
+        _searchFilter = string.Empty;
+        _results = new();
+        UpdateTabs();
+    }
+
+    private void UpdateTabs()
+    {
+        _users = _results.Where(r => r.ObjectType == CatalogObjectType.User).ToList();
+        _workspaces = _results.Where(r => r.ObjectType == CatalogObjectType.Workspace).ToList();
+        _repositories = _results.Where(r => r.ObjectType == CatalogObjectType.Repository).ToList();
+    }
+}
