@@ -662,7 +662,7 @@
 		{
 			var searchText = text.ToLower();
 			List<string> results = new() { searchText };
-			var searchEngine = _isFrench ? CatalogSearchEngine.GetFrenchSearchEngine() : CatalogSearchEngine.GetEnglishSearchEngine();
+			var searchEngine = _isFrench ? CatalogSearchEngine.GetMetadataFrenchSearchEngine() : CatalogSearchEngine.GetMetadataEnglishSearchEngine();
 			results.AddRange(searchEngine.GetAutocompleteSuggestions(searchText, 10));
 			return await Task.FromResult(results);
 		}
