@@ -175,5 +175,10 @@
   "Get Started": "Get Started",
   "User Management": "User Management",
   "Documentation": "Documentation",
-  "Tool Requesting": "Tool Requesting"
+  "Tool Requesting": "Tool Requesting",
+  "Please indicate which language you would like to be contacted in.": "Please indicate which language you would like to be contacted in.",
+  "English": "English",
+  "French": "French",
+  "Success": "Success",
+  "Your support ticket has been created. Thank you!": "Your support ticket has been created. Thank you!"
 }

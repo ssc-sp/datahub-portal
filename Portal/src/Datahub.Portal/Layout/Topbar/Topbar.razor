@@ -14,8 +14,8 @@
 <SearchPopover />
 
 <MudSpacer />
-<NotificationsList/>
-<HelpPopup SupportFormUrl="@SupportFormUrl"/>
+<NotificationsList IsNotificationsListOpen="@IsNotificationsListOpen" ToggleNotificationsList="ToggleNotificationsList" />
+<HelpPopup IsHelpPopupOpen="@IsHelpPopupOpen" ToggleHelp="ToggleHelp"/>
 <TopBarProfileButton />
 
 @code {
@@ -24,6 +24,21 @@
     public string SupportFormUrl { get; set; }
     
     private string _titleStyle;
+
+    private bool IsNotificationsListOpen { get; set; }
+    private bool IsHelpPopupOpen { get; set; }
+
+    private void ToggleNotificationsList()
+    {
+        IsNotificationsListOpen = !IsNotificationsListOpen;
+        IsHelpPopupOpen = false;
+    }
+
+    private void ToggleHelp()
+    {
+        IsNotificationsListOpen = false;
+        IsHelpPopupOpen = !IsHelpPopupOpen;
+    }
 
     protected override void OnInitialized()
     {
