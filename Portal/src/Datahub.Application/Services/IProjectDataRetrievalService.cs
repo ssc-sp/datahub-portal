@@ -4,6 +4,9 @@ namespace Datahub.Application.Services;
 
 public interface IProjectDataRetrievalService
 {
+    Task<string> GetProjectStorageAccountKey(string projectAcronym);
+    string GetProjectStorageAccountName(string projectAcronym);
+
     Task<List<string>> GetContainersAsync(string projectAcronym);
     Task<Uri> GenerateSasTokenAsync(string projectAcronym, string containerName, int days);
 

@@ -57,7 +57,7 @@ public class UserEnrollmentServiceTests
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
         
         
-        var userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), httpClientFactory.Object, _datahubPortalConfiguration);
+        var userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), httpClientFactory.Object, _datahubPortalConfiguration, null);
         var result = await userEnrollmentService.SendUserDatahubPortalInvite(TestUserEmail, default);
         
         Assert.That(result, Is.Not.Null.Or.Empty);
