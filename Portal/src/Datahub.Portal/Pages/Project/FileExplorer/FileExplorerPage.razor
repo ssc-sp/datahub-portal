@@ -4,8 +4,11 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @page "/w/{ProjectAcronymParam}/filelist"
 @using Datahub.Core.Components.PageBanner
+@using Datahub.Core.Model.CloudStorage;
 @using Datahub.Core.Services.Storage
+@using Datahub.Infrastructure.Services.Storage;
 @using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
+@using Datahub.Portal.Pages.Project.FileExplorer.Storage;
 @using Microsoft.Graph
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
@@ -26,36 +29,39 @@
         <CascadingValue Value="@_project" Name="Project">
             <CascadingValue Value="_user" Name="GraphUser">
                     
-                @if (_containers.Count > 1)
+                @if (MultiContainer)
                 {
                 <MudStack Style="border-bottom: 1px solid var(--mud-palette-lines-default);" Class="my-6">
                     <MudText Typo="Typo.h2">@Localizer["Current Container"]</MudText>
-                    <MudRadioGroup T="string" @bind-SelectedOption="SelectedContainer" Dense>
-                        @foreach (var container in _containers)
-                        {
-                            <MudRadio Option="@container" Color="Color.Primary" Size="Size.Medium">@container</MudRadio>
-                        }
-                    </MudRadioGroup>
+                    <MudStack Row Justify="Justify.SpaceBetween">
+                        <MudRadioGroup T="CloudStorageContainer" @bind-SelectedOption="SelectedContainer" Dense>
+                            @foreach (var container in _cloudContainers)
+                            {
+                                <MudRadio Option="@container" Color="Color.Primary" Size="Size.Medium">@container.Name</MudRadio>
+                            }
+                        </MudRadioGroup>
+                        <MudIconButton Icon="@Icons.Material.Outlined.Settings"></MudIconButton>
+                    </MudStack>
                 </MudStack>
                 }
                 <MudPaper Elevation="0" Class="file-explorer-layout-wrapper py-4 px-6">
                     @if (SelectedContainer != null)
                     {
-                        <MudTabs Elevation="0">
-                            <MudTabPanel Text="@((_containers.Count == 1) ? _containers[0] : Localizer["File Explorer"])" Icon="fas fa-hdd">
-                                <FileExplorer ProjectId=@_projectId ContainerName="@SelectedContainer"/>
+                        <MudTabs Elevation="0" @key="@SelectedContainer.Name">
+                            <MudTabPanel Text="@(!MultiContainer ? SelectedContainer.Name : Localizer["File Explorer"])" Icon="fas fa-hdd">
+                                <FileExplorer ProjectId=@_projectId Container="@_selectedContainer" />
                             </MudTabPanel>
                             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronymParam">
                                 <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
-                                    <AzCopy Container="@SelectedContainer"/>
+                                    <AzCopy Container="@SelectedContainer.Name"/>
                                 </MudTabPanel>
                                 <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
-                                    <Databricks Container="@SelectedContainer"/>
+                                    <Databricks Container="@SelectedContainer.Name" />
                                 </MudTabPanel>
                                 @if (_datahubPortalConfiguration.DesktopFileUploader.DisplayDesktopUploaderTab)
                                 {
                                     <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
-                                        <UploaderCode Container="@SelectedContainer"/>
+                                        <UploaderCode Container="@SelectedContainer.Name" />
                                     </MudTabPanel>
                                 }
                             </DatahubAuthView>
@@ -75,10 +81,9 @@
     private Datahub_Project _project;
     private int? _projectId;
     private string _projectName;
-    private List<string> _containers = new();
 
-
-    //private string _selectedContainer;
+    private List<CloudStorageContainer> _cloudContainers = new();
+    private CloudStorageContainer _selectedContainer;
 
     private List<(string Icon, string LabelText, RenderFragment Content)> _tabs = new();
     private User _user;
@@ -98,26 +103,59 @@
         _projectName = _project?.ProjectName;
         _projectId = _project?.Project_ID;
 
-        _containers = await _projectDataRetrievalService.GetContainersAsync(ProjectAcronymParam);
-        SelectedContainer = _containers.FirstOrDefault();
-
+        await LoadContainersAsync();
     }
 
-
-    private string selectedContainer;
-
-    public string SelectedContainer
+    private async Task LoadContainersAsync()
     {
-        get { return selectedContainer; }
-        set { selectedContainer = value; StateHasChanged(); }
-    }
-    
+        _cloudContainers = new();
 
-    // private void HandleTabChanged(int index)
-    // {
-    //     if (index >= 0 && index < _containers.Count)
-    //     {
-    //         _selectedContainer = _containers[index];
-    //     }
-    // }
+        // pick the project storage containers
+        var accountName = _projectDataRetrievalService.GetProjectStorageAccountName(ProjectAcronymParam);
+        var accountKey = await _projectDataRetrievalService.GetProjectStorageAccountKey(ProjectAcronymParam);
+
+        var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
+        var containerNames = await projectStorageManager.GetContainersAsync();
+
+        _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(c, projectStorageManager)));
+
+        var dbStorage = await GetCloudStorages();
+        foreach (var stg in dbStorage)
+        {
+            if (stg.Provider != "Azure")
+                continue;
+
+            var variables = stg.ConnectionData.Split('|');
+            if (variables.Length != 2)
+                continue;
+
+            var storageManager = new AzureCloudStorageManager(variables[0], variables[1]);
+            containerNames = await storageManager.GetContainersAsync();
+
+            _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(c, storageManager)));
+        }
+
+        _selectedContainer = _cloudContainers.FirstOrDefault();
+    }
+
+    public CloudStorageContainer SelectedContainer
+    {
+        get 
+        { 
+            return _selectedContainer; 
+        }
+        set 
+        { 
+            _selectedContainer = value; 
+            StateHasChanged(); 
+        }
+    }
+
+    private bool MultiContainer => _cloudContainers?.Count > 1;
+
+    private async Task<List<ProjectCloudStorage>> GetCloudStorages()
+    {
+        await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
+        return await ctx.ProjectCloudStorages.Where(e => e.ProjectId == _project.Project_ID).ToListAsync();
+    }
 }
