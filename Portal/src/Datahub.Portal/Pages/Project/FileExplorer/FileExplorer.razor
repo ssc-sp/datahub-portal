@@ -10,121 +10,122 @@
 @inject IJSRuntime _jsRuntime
 @inject IPortalUserTelemetryService _telemetryService
 
+<CascadingValue Value="@StorageAccountMetadata" Name="StorageAccountMetadata">
+    <div class="file-explorer-layout">
+        <Heading
+            CurrentFolder="@_currentFolder"
+            SelectedItems="@_selectedItems"
+            Files="@_files"
+            Folders="@_folders"
+            MetadataSignature=@_metadataSignature
+            OnNewFolder="HandleNewFolder"
+            SetCurrentFolder="SetCurrentFolder"
+            OnFileDelete="HandleFileDelete"
+            OnFileDownload="HandleFileDownload"
+            OnFileRename="HandleFileRename"
+            OnDeleteFolder="HandleDeleteFolder" />
 
-<div class="file-explorer-layout">
-    <Heading
-        CurrentFolder="@_currentFolder"
-        SelectedItems="@_selectedItems"
-        Files="@_files"
-        Folders="@_folders"
-        MetadataSignature=@_metadataSignature
-        OnNewFolder="HandleNewFolder"
-        SetCurrentFolder="SetCurrentFolder"
-        OnFileDelete="HandleFileDelete"
-        OnFileDownload="HandleFileDownload"
-        OnFileRename="HandleFileRename"
-        OnDeleteFolder="HandleDeleteFolder" />
+        <div class="file-list">
+            <div class="file-list-header">
+                <div></div>
+                <AeTypography>
+                    @Localizer["Name"]
+                    @* <AeSearchInput *@
+                    @*     SearchIconFAClass="fas fa-search" *@
+                    @*     OnInputChangeWithLastKey="HandleSearch" *@
+                    @*     style="margin: 0 1rem;"/> *@
+                </AeTypography>
+                <AeTypography>@Localizer["Size"]</AeTypography>
+                <AeTypography>@Localizer["Last Modified"]</AeTypography>
+                <i class="fas fa-sort-alpha-down"></i>
+            </div>
 
-    <div class="file-list">
-        <div class="file-list-header">
-            <div></div>
-            <AeTypography>
-                @Localizer["Name"]
-                @* <AeSearchInput *@
-                @*     SearchIconFAClass="fas fa-search" *@
-                @*     OnInputChangeWithLastKey="HandleSearch" *@
-                @*     style="margin: 0 1rem;"/> *@
-            </AeTypography>
-            <AeTypography>@Localizer["Size"]</AeTypography>
-            <AeTypography>@Localizer["Last Modified"]</AeTypography>
-            <i class="fas fa-sort-alpha-down"></i>
+            @if (_loading)
+            {
+                <LoadingFileList/>
+            }
+            else
+            {
+                <UploadSnackbar UploadingFiles="_uploadingFiles">
+                    <DropZone MaxHeight OnFilesDrop="UploadFiles">
+                        @if (_currentFolder != _root)
+                        {
+                            var parentFolder = GetDirectoryName(_currentFolder);
+                            <DropZone
+                                OnFilesDrop="async (e) => await UploadFiles(e, parentFolder)"
+                                OnFileItemDrop="async filename => await HandleFileItemDrop(parentFolder, filename)">
+                                <FileItem
+                                    Name="[..]"
+                                    Folder
+                                    @onclick="@(() => _selectedItems = new HashSet<string> { parentFolder })"
+                                    @ondblclick="async () => await SetCurrentFolder(parentFolder)">
+                                    <Icon>
+                                        <i class="fas fa-folder"></i>
+                                    </Icon>
+                                </FileItem>
+                            </DropZone>
+                        }
+                        @foreach (var folderName in _folders
+                            .Where(f => f?.Contains(_filterValue) ?? false)
+                            .OrderBy(f => f.ToLower()))
+                        {
+                            <DropZone
+                                OnFilesDrop="async (e) => await UploadFiles(e, folderName)"
+                                OnFileItemDrop="async filename => await HandleFileItemDrop(folderName, filename)">
+                                <FileItem
+                                    Name="@GetFileName(folderName)"
+                                    Highlighted="_selectedItems.Contains(folderName)"
+                                    Folder
+                                    @onclick="@(() => _selectedItems = new HashSet<string> { folderName })"
+                                    @ondblclick="async () => await SetCurrentFolder(folderName)">
+                                    <Icon>
+                                        <i class="fas fa-folder"></i>
+                                    </Icon>
+                                </FileItem>
+                            </DropZone>
+                        }
+                        @foreach (var file in _files
+                            .Where(f => f?.name?.Contains(_filterValue) ?? false)
+                            .OrderBy(f => f.name.ToLower()))
+                        {
+                            <FileItem
+                                Name="@GetFileName(file.name)"
+                                Modified="@file.Modified"
+                                Size="@file.filesize"
+                                @onclick="@(() => _selectedItems = new HashSet<string> {file.name})"
+                                OnSelectionClick="() => HandleFileSelectionClick(file.name)"
+                                Highlighted="_selectedItems.Contains(file.name)">
+                                <Icon>
+                                    <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
+                                </Icon>
+                            </FileItem>
+                        }
+                    </DropZone>
+                </UploadSnackbar>
+            }
         </div>
-
-        @if (_loading)
-        {
-            <LoadingFileList/>
-        }
-        else
-        {
-            <UploadSnackbar UploadingFiles="_uploadingFiles">
-                <DropZone MaxHeight OnFilesDrop="UploadFiles">
-                    @if (_currentFolder != _root)
+        <div class="item-details">
+            <div class="details-sticky">
+                <div class="details-container">
+                    @if (_loading || _folders.Contains(_selectedItem) || _currentFolder == _selectedItem)
                     {
-                        var parentFolder = GetDirectoryName(_currentFolder);
-                        <DropZone
-                            OnFilesDrop="async (e) => await UploadFiles(e, parentFolder)"
-                            OnFileItemDrop="async filename => await HandleFileItemDrop(parentFolder, filename)">
-                            <FileItem
-                                Name="[..]"
-                                Folder
-                                @onclick="@(() => _selectedItems = new HashSet<string> { parentFolder })"
-                                @ondblclick="async () => await SetCurrentFolder(parentFolder)">
-                                <Icon>
-                                    <i class="fas fa-folder"></i>
-                                </Icon>
-                            </FileItem>
-                        </DropZone>
+                        <StorageProperties DisplayName="@GetFileName(_selectedItem)" ContainerName="@ContainerName" />
                     }
-                    @foreach (var folderName in _folders
-                        .Where(f => f?.Contains(_filterValue) ?? false)
-                        .OrderBy(f => f.ToLower()))
+                    else
                     {
-                        <DropZone
-                            OnFilesDrop="async (e) => await UploadFiles(e, folderName)"
-                            OnFileItemDrop="async filename => await HandleFileItemDrop(folderName, filename)">
-                            <FileItem
-                                Name="@GetFileName(folderName)"
-                                Highlighted="_selectedItems.Contains(folderName)"
-                                Folder
-                                @onclick="@(() => _selectedItems = new HashSet<string> { folderName })"
-                                @ondblclick="async () => await SetCurrentFolder(folderName)">
-                                <Icon>
-                                    <i class="fas fa-folder"></i>
-                                </Icon>
-                            </FileItem>
-                        </DropZone>
+                        var file = _files.FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
+                        <FileProperties 
+                            ProjectId=@ProjectId 
+                            File=@file 
+                            Readonly="!OwnsFile(file)" 
+                            OnMetadataChanged=@HandleMetadataChanged />
                     }
-                    @foreach (var file in _files
-                        .Where(f => f?.name?.Contains(_filterValue) ?? false)
-                        .OrderBy(f => f.name.ToLower()))
-                    {
-                        <FileItem
-                            Name="@GetFileName(file.name)"
-                            Modified="@file.Modified"
-                            Size="@file.filesize"
-                            @onclick="@(() => _selectedItems = new HashSet<string> {file.name})"
-                            OnSelectionClick="() => HandleFileSelectionClick(file.name)"
-                            Highlighted="_selectedItems.Contains(file.name)">
-                            <Icon>
-                                <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
-                            </Icon>
-                        </FileItem>
-                    }
-                </DropZone>
-            </UploadSnackbar>
-        }
-    </div>
-    <div class="item-details">
-        <div class="details-sticky">
-            <div class="details-container">
-                @if (_loading || _folders.Contains(_selectedItem) || _currentFolder == _selectedItem)
-                {
-                    <StorageProperties DisplayName="@GetFileName(_selectedItem)" ContainerName="@ContainerName" />
-                }
-                else
-                {
-                    var file = _files.FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
-                    <FileProperties 
-                        ProjectId=@ProjectId 
-                        File=@file 
-                        Readonly="!OwnsFile(file)" 
-                        OnMetadataChanged=@HandleMetadataChanged />
-                }
+                </div>
             </div>
         </div>
-    </div>
 
-</div>
+    </div>
+</CascadingValue>
 
 @code {
 
@@ -140,6 +141,9 @@
     [Parameter]
     public string ContainerName { get; set; }
 
+    
+    public StorageMetadata StorageAccountMetadata { get; set; }
+    
     private string _userId;
 
     private bool _loading = true;
@@ -158,6 +162,8 @@
 
     private IJSObjectReference _module;
 
+    
+    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
@@ -166,6 +172,7 @@
         {
             _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
                 "./Pages/Project/FileExplorer/FileExplorer.razor.js");
+            StorageAccountMetadata = await _projectDataRetrievalService.GetStorageMetadataAsync(ProjectAcronym, ContainerName);
         }
     }
 
