@@ -1,5 +1,6 @@
 ﻿@*ProjectObjectMetadata.razor*@
 
+@using Datahub.Core.Services.CatalogSearch;
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Model
 @using Datahub.Core
@@ -10,6 +11,7 @@
 @inject IOrganizationLevelsService OrganizationLevelsService
 @inject ILogger<ProjectObjectMetadata> Logger
 @inject ISnackbar _snackbar
+@inject IDatahubCatalogSearch _datahubCatalogSearch
 
 @if (_project is not null)
 {
@@ -171,6 +173,17 @@
             ctx.Attach(_project);
             ctx.Projects.Update(_project);
             await ctx.SaveChangesAsync();
+
+            var catalogObject = new Core.Model.Catalog.CatalogObject()
+            {
+                ObjectType = Core.Model.Catalog.CatalogObjectType.Workspace,
+                ObjectId = _project.Project_Acronym_CD,
+                Name_English = _project.Project_Name,
+                Name_French = _project.Project_Name_Fr,
+                Desc_English = _project.Project_Summary_Desc,
+                Desc_French = _project.Project_Summary_Desc_Fr
+            };
+            await _datahubCatalogSearch.AddCatalogObject(catalogObject);
 
             _snackbar.Add(Localizer["Successfully saved project metadata."], Severity.Success);
             HandleNavigateToProject();

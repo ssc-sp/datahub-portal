@@ -352,7 +352,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         List<long> hits = new();
         if (containsKeywords)
         {
-            var kwSearch = request.IsFrench ? _catalogSearchEngine.GetFrenchSearchEngine() : _catalogSearchEngine.GetEnglishSearchEngine();
+            var kwSearch = request.IsFrench ? _catalogSearchEngine.GetMetadataFrenchSearchEngine() : _catalogSearchEngine.GetMetadataEnglishSearchEngine();
 
             hits = kwSearch.SearchDocuments(string.Join(" ", request.Keywords.Select(s => s.ToLower())), MaxKeywordResults)
                            .Select(long.Parse)
@@ -928,7 +928,7 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     private void UpdateCatalogIndex(string docId, string title, string content, bool isFrench)
     {
-        var catalogSearch = isFrench ? _catalogSearchEngine.GetFrenchSearchEngine() : _catalogSearchEngine.GetEnglishSearchEngine();
+        var catalogSearch = isFrench ? _catalogSearchEngine.GetMetadataFrenchSearchEngine() : _catalogSearchEngine.GetMetadataEnglishSearchEngine();
         catalogSearch.AddDocument(docId, (title ?? "").ToLower(), (content ?? "").ToLower());
         catalogSearch.FlushIndexes();
     }

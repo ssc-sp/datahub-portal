@@ -1,6 +1,7 @@
 ﻿using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Announcements;
+using Datahub.Core.Model.Catalog;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Model.Documentation;
 using Datahub.Core.Model.Onboarding;
@@ -88,6 +89,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// Table for storing any additional details when users go through the project creation process
     /// </summary>
     public DbSet<ProjectCreationDetails> ProjectCreationDetails { get; set; }
+
+    /// <summary>
+    /// Cataloged objects 
+    /// </summary>
+    public DbSet<CatalogObject> CatalogObjects { get; set; }
 
     /// <summary>
     /// Table for storing the cloud storage associcated to a project
