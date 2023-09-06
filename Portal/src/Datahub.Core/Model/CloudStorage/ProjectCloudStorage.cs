@@ -10,4 +10,5 @@ public class ProjectCloudStorage
     public string Provider { get; set; }
     public string Name { get; set; }
     public string ConnectionData { get; set; }
+    public bool Enabled { get; set; }
 }
