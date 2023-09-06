@@ -2,6 +2,8 @@
 
 public interface ICatalogSearchEngine
 {
-    ILanguageCatalogSearch GetEnglishSearchEngine();
-    ILanguageCatalogSearch GetFrenchSearchEngine();
+    ILanguageCatalogSearch GetMetadataEnglishSearchEngine();
+    ILanguageCatalogSearch GetMetadataFrenchSearchEngine();
+    ILanguageCatalogSearch GetDatahubEnglishSearchEngine(Func<IEnumerable<CatalogDocument>> englishDataReader);
+    ILanguageCatalogSearch GetDatahubFrenchSearchEngine(Func<IEnumerable<CatalogDocument>> frenchDataReader);
 }

@@ -3,9 +3,11 @@ using Datahub.Application.Services.Announcements;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Notifications;
 using Datahub.Application.Services.ReverseProxy;
+using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Queues.MessageHandlers;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
+using Datahub.Infrastructure.Services.CatalogSearch;
 using Datahub.Infrastructure.Services.Notebooks;
 using Datahub.Infrastructure.Services.Notifications;
 using Datahub.Infrastructure.Services.ReverseProxy;
@@ -31,6 +33,7 @@ public static class ConfigureServices
         services.AddScoped<IDatabricksApiService, DatabricksApiService>();
         services.AddScoped<IUsersStatusService,UsersStatusService>();
         services.AddMediatR(typeof(QueueMessageSender<>));
+        services.AddSingleton<IDatahubCatalogSearch, DatahubCatalogSearch>();
 
         if (configuration.GetValue<bool>("ReverseProxy:Enabled"))
         {

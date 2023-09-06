@@ -8,13 +8,13 @@
             aria-label="Help toggle"
             ToggledIcon="@Icons.Material.Filled.Help"
             ToggledChanged="@ToggleHelp"
-            Toggled="_showHelp"
+            Toggled="IsHelpPopupOpen"
             Icon="@Icons.Material.Outlined.HelpOutline"/>
         </MudTooltip>
 
     <MudPopover
         Style="@_style"
-        Open="@_showHelp"
+                Open="@IsHelpPopupOpen"
                 Class="overflow-scroll "
         AnchorOrigin="Origin.BottomRight"
         TransformOrigin="Origin.TopRight">
@@ -54,9 +54,13 @@
 
 @code {
     [Parameter]
-    public string SupportFormUrl { get; set; }
-    private string _style;
+    public bool IsHelpPopupOpen { get; set; }
+
+    [Parameter]
+    public Action ToggleHelp { get; set; }
+
     private bool _showHelp;
+    private string _style;
     private string _datahubEmail;
     private const string TOOLTIP_TEXT = "Help";
 
@@ -70,10 +74,4 @@
             .AddStyle("width", "550px").AddStyle("overflow-y", "auto").AddStyle("max-height", "90vh")
             .Build();
     }
-
-    private void ToggleHelp()
-    {
-        _showHelp = !_showHelp;
-    }
-
 }

@@ -8,8 +8,11 @@ public class CatalogSearchEngine : ICatalogSearchEngine
     readonly object _lock;
     readonly IDbContextFactory<MetadataDbContext> _contextFactory;
 
-    private ILanguageCatalogSearch? _englishSearchEngine;
-    private ILanguageCatalogSearch? _frenchSearchEngine;
+    private ILanguageCatalogSearch? _englishMetadataSearchEngine;
+    private ILanguageCatalogSearch? _frenchMetadataSearchEngine;
+
+    private ILanguageCatalogSearch? _englishDatahubSearchEngine;
+    private ILanguageCatalogSearch? _frenchDatahubSearchEngine;
 
     public CatalogSearchEngine(IDbContextFactory<MetadataDbContext> contextFactory)
     {
@@ -17,29 +20,46 @@ public class CatalogSearchEngine : ICatalogSearchEngine
         _contextFactory = contextFactory;
     }
 
-    public ILanguageCatalogSearch GetEnglishSearchEngine()
+    public ILanguageCatalogSearch GetMetadataEnglishSearchEngine()
     {
         lock (_lock)
         {
-            _englishSearchEngine ??= GetLanguageCatalogSearch("en", GetEnglishDocuments);
-            return _englishSearchEngine;
+            _englishMetadataSearchEngine ??= GetLanguageCatalogSearch("en", GetEnglishDocuments);
+            return _englishMetadataSearchEngine;
         }
     }
 
-    public ILanguageCatalogSearch GetFrenchSearchEngine()
+    public ILanguageCatalogSearch GetMetadataFrenchSearchEngine()
     {
         lock (_lock)
         {
-            _frenchSearchEngine ??= GetLanguageCatalogSearch("fr", GetFrenchDocuments);
-            return _frenchSearchEngine!;
+            _frenchMetadataSearchEngine ??= GetLanguageCatalogSearch("fr", GetFrenchDocuments);
+            return _frenchMetadataSearchEngine!;
         }
     }
 
-    private ILanguageCatalogSearch GetLanguageCatalogSearch(string language, Func<MetadataDbContext, IEnumerable<CatalogDocument>> dataReader)
+    public ILanguageCatalogSearch GetDatahubEnglishSearchEngine(Func<IEnumerable<CatalogDocument>> englishDataReader)
     {
-        using var ctx = _contextFactory.CreateDbContext();
+        lock (_lock)
+        {
+            _englishDatahubSearchEngine ??= GetLanguageCatalogSearch("en", englishDataReader);
+            return _englishDatahubSearchEngine!;
+        }
+    }
+
+    public ILanguageCatalogSearch GetDatahubFrenchSearchEngine(Func<IEnumerable<CatalogDocument>> frenchDataReader)
+    {
+        lock (_lock)
+        {
+            _frenchDatahubSearchEngine ??= GetLanguageCatalogSearch("fr", frenchDataReader);
+            return _frenchDatahubSearchEngine!;
+        }
+    }
+
+    private ILanguageCatalogSearch GetLanguageCatalogSearch(string language, Func<IEnumerable<CatalogDocument>> dataReader)
+    {
         var catalogSearch = new LanguageCatalogSearch(language);
-        foreach (var document in dataReader(ctx))
+        foreach (var document in dataReader.Invoke())
         {
             var lowerTitle = (document.Title ?? "").ToLower();
             var lowerContent = (document.Content ?? "").ToLower();
@@ -52,15 +72,17 @@ public class CatalogSearchEngine : ICatalogSearchEngine
         return catalogSearch;
     }
 
-    private IEnumerable<CatalogDocument> GetEnglishDocuments(MetadataDbContext ctx)
+    private IEnumerable<CatalogDocument> GetEnglishDocuments()
     {
+        using var ctx = _contextFactory.CreateDbContext();
         return ctx.CatalogObjects.Select(e => new CatalogDocument(e.CatalogObjectId.ToString(), e.Name_TXT, e.Search_English_TXT));
     }
 
-    private IEnumerable<CatalogDocument> GetFrenchDocuments(MetadataDbContext ctx)
+    private IEnumerable<CatalogDocument> GetFrenchDocuments()
     {
+        using var ctx = _contextFactory.CreateDbContext();
         return ctx.CatalogObjects.Select(e => new CatalogDocument(e.CatalogObjectId.ToString(), e.Name_French_TXT, e.Search_French_TXT));
     }
 }
 
-record CatalogDocument(string Id, string Title, string Content);
+public record CatalogDocument(string Id, string Title, string Content);

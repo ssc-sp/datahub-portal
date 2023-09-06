@@ -19,8 +19,8 @@
                 <MudToggleIconButton
                     aria-label="Notifications toggle"
                     ToggledIcon="@Icons.Material.Filled.Notifications"
-                    ToggledChanged="@ToggleNotifications"
-                    Toggled="_showNotifications"
+                    ToggledChanged="@ToggleNotificationsList"
+                    Toggled="IsNotificationsListOpen"
                     Icon="@Icons.Material.Outlined.Notifications"/>
             </MudTooltip>
         </MudBadge>
@@ -31,8 +31,8 @@
             <MudToggleIconButton
                 aria-label="Notifications toggle"
                 ToggledIcon="@Icons.Material.Filled.Notifications"
-                ToggledChanged="@ToggleNotifications"
-                Toggled="_showNotifications"
+                ToggledChanged="@ToggleNotificationsList"
+                Toggled="IsNotificationsListOpen"
                 Icon="@Icons.Material.Outlined.Notifications"/>
         </MudTooltip>
     }
@@ -40,18 +40,28 @@
     <MudPopover
         Style="@_style"
         Class="pa-8"
-        Open="@_showNotifications"
+        Open="@IsNotificationsListOpen"
         AnchorOrigin="Origin.BottomRight"
         TransformOrigin="Origin.TopRight">
 
 
         @if (_notifications == null || _isLoading)
         {
-            @for (var i = 0; i < 3; i++)
+            @for (var i = 0; i < 1; i++)
             {
                 <MudSkeleton/>
                 <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="300px" Height="110px"/>
             }
+        }
+        else if (_notifications.Count == 0)
+        {
+            <MudCard>
+                <MudCardContent>
+                    <MudText>
+                        @Localizer["You have no notifications."]
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
         }
         else
         {
@@ -90,21 +100,27 @@
                     </MudExpansionPanel>
                 }
             </MudExpansionPanels>
+            <MudStack Row>
+                <MudCheckBox Checked=@_unreadOnly CheckedChanged=@ToggleUnreadOnly T="bool" Label=@Localizer[$"{LocalizationPrefix}.ShowUnreadOnly"] />
+                <MudPagination
+                    Color="Color.Primary"
+                    Count="_totalNotificationCount"
+                    Selected="@_currentPage"
+                    SelectedChanged="PageChanged"/>
+            </MudStack>
         }
-        <MudStack Row>
-            <MudCheckBox Checked=@_unreadOnly CheckedChanged=@ToggleUnreadOnly T="bool" Label=@Localizer[$"{LocalizationPrefix}.ShowUnreadOnly"] />
-            <MudPagination
-                Color="Color.Primary"
-                Count="_totalNotificationCount"
-                Selected="@_currentPage"
-                SelectedChanged="PageChanged"/>
-        </MudStack>
         
     </MudPopover>
 </span>
 
 
 @code {
+    [Parameter]
+    public bool IsNotificationsListOpen { get; set; }
+
+    [Parameter]
+    public Action ToggleNotificationsList { get; set; }
+
     private string _currentUserId;
 
     private static readonly string LocalizationPrefix = "SYSTEM-NOTIFICATION";
@@ -123,7 +139,6 @@
     private string _style;
     private string _notificationsStyle;
     private bool _showNotifications;
-    private void ToggleNotifications() => _showNotifications = !_showNotifications;
     private int _notificationBadge;
     private bool _showNotificationBadge => _unreadNotificationCount > 0;
     private string _notificationIcon => _showNotificationBadge ? Icons.Material.Filled.Notifications : Icons.Material.Outlined.Notifications;
