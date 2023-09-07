@@ -1,7 +1,7 @@
 ﻿@* FileExplorerPage.razor *@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
-@inject IProjectDataRetrievalService _projectDataRetrievalService
+@inject IProjectStorageConfigurationService _projectStorageConfigService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDialogService _dialogService
 @page "/w/{ProjectAcronymParam}/filelist"
@@ -115,8 +115,8 @@
         _cloudContainers = new();
 
         // pick the project storage containers
-        var accountName = _projectDataRetrievalService.GetProjectStorageAccountName(ProjectAcronymParam);
-        var accountKey = await _projectDataRetrievalService.GetProjectStorageAccountKey(ProjectAcronymParam);
+        var accountName = _projectStorageConfigService.GetProjectStorageAccountName(ProjectAcronymParam);
+        var accountKey = await _projectStorageConfigService.GetProjectStorageAccountKey(ProjectAcronymParam);
 
         var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
         var containerNames = await projectStorageManager.GetContainersAsync();
@@ -151,7 +151,6 @@
         set 
         { 
             _selectedContainer = value; 
-            //StateHasChanged(); 
         }
     }
 
@@ -166,7 +165,11 @@
     private async Task HandleStorageSettings()
     {
         var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        var dialog = await _dialogService.ShowAsync<ConfigureProjectStorage>(Localizer["Configure Storage"], new(), dialogOptions);
+        var dialogParams = new DialogParameters()
+        {
+            { "ConnectionData", "TODO: Paste here..." }
+        };
+        var dialog = await _dialogService.ShowAsync<ConfigureProjectStorage>(Localizer["Configure Storage"], dialogParams, dialogOptions);
         var result = await dialog.Result;
         if (!result.Canceled)
         {
