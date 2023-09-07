@@ -26,7 +26,7 @@ public static class ConfigureServices
         services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
         services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
         services.AddSingleton<IResourceRequestService, ResourceRequestService>();
-        services.AddScoped<IProjectDataRetrievalService, ProjectDataRetrievalService>();
+        services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
         services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
         services.AddScoped<IAnnouncementService, AnnouncementService>();
         services.AddScoped<IDatahubEmailService, DatahubEmailService>();

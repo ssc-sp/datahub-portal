@@ -1,12 +1,10 @@
 @*SASTokenButton.razor*@
-
 @using Datahub.Application.Services;
 @using Datahub.Core.DataTransfers;
 @using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
 @using Datahub.Core.Services.Storage
 @using Datahub.Portal.Pages.Project.FileExplorer.Storage;
 @inject IJSRuntime _jsRuntime
-@inject IProjectDataRetrievalService _dataRetrievalService
 
 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleSasButtonClick">
     <MudText>
@@ -61,7 +59,6 @@
     {
         if (string.IsNullOrWhiteSpace(_token))
         {
-            //var uri = await _dataRetrievalService.GenerateSasTokenAsync(ProjectAcronym, Container, ExpiryDays);
             var uri = await Container.StorageManager.GenerateSasTokenAsync(Container.Name, ExpiryDays);
             if (UseUploadCode)
             {

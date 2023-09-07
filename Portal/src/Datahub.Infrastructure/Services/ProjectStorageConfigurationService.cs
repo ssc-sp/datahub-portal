@@ -3,15 +3,14 @@ using Datahub.Application.Services;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
-using Microsoft.Extensions.Logging;
 
 namespace Datahub.Infrastructure.Services;
 
-public class ProjectDataRetrievalService : AzureBlobDataRetrievalService, IProjectDataRetrievalService
+public class ProjectStorageConfigurationService : IProjectStorageConfigurationService
 {
     private readonly DatahubPortalConfiguration _portalConfiguration;
 
-    public ProjectDataRetrievalService(ILogger<ProjectDataRetrievalService> logger, DatahubPortalConfiguration portalConfiguration) : base(logger)
+    public ProjectStorageConfigurationService(DatahubPortalConfiguration portalConfiguration)
     {
         _portalConfiguration = portalConfiguration;
     }
@@ -26,19 +25,6 @@ public class ProjectDataRetrievalService : AzureBlobDataRetrievalService, IProje
     {
         var accountKey = await GetProjectStorageAccountKeyAsync(projectAcronym);
         return accountKey.Value;
-    }
-
-    protected override async Task<StorageConnectionString> MapConnectionStringAsync(string projectAcronym)
-    {
-        var accountKey = await GetProjectStorageAccountKeyAsync(projectAcronym);
-        var storageAccountName = GetProjectStorageAccountName(projectAcronym);
-        var connectionString = @$"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={accountKey.Value};EndpointSuffix=core.windows.net";
-        return new StorageConnectionString(connectionString);
-    }
-
-    private string BuildDfsUriFromStorageAccountName(string accountName)
-    {
-        return $"https://{accountName}.dfs.core.windows.net";
     }
 
     private async Task<SecretBundle> GetProjectStorageAccountKeyAsync(string projectAcronym)
@@ -80,14 +66,13 @@ public class ProjectDataRetrievalService : AzureBlobDataRetrievalService, IProje
     private KeyVaultClient GetKeyVaultClient()
     {
         AzureServiceTokenProvider azureServiceTokenProvider;
+
         if (_portalConfiguration.PortalRunAsManagedIdentity.Equals("enabled", StringComparison.InvariantCultureIgnoreCase))
         {
-            _logger.LogInformation("Building key vault with Managed Identity");
             azureServiceTokenProvider = new AzureServiceTokenProvider("RunAs=App");
         }
         else
         {
-            _logger.LogInformation("Building key vault with Service Principal");
             var tenantId = _portalConfiguration.AzureAd.TenantId;
             var clientId = _portalConfiguration.AzureAd.ClientId;
             var clientSecret = _portalConfiguration.AzureAd.ClientSecret;
