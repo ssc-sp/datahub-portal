@@ -1,8 +1,9 @@
+@* StorageProperties.razor *@
 @using Datahub.Application.Services;
 @using Datahub.Core.Components.Skeleton
 @using Datahub.Core.Components.Code
 @using Datahub.Core.Services.Storage
-@inject IProjectDataRetrievalService _projectDataRetrievalService
+@using Datahub.Portal.Pages.Project.FileExplorer.Storage;
 
 @if (_loading)
 {
@@ -54,36 +55,41 @@ else
     </div>
 }
 
-
 @code {
 
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
 
     [Parameter]
-    public string ContainerName { get; set; } = "datahub";
+    public string DisplayName { get; set; }
 
     [Parameter]
-    public string DisplayName { get; set; }
+    public CloudStorageContainer Container { get; set; }
 
     private bool _loading = true;
     private string _root = "/";
     private Dictionary<string, (string, RenderFragment)> _properties;
+    private CloudStorageContainer _lastContainer = default;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        var storageMetadata = await _projectDataRetrievalService.GetStorageMetadataAsync(ProjectAcronym, ContainerName);
-        _properties = new Dictionary<string, (string, RenderFragment)>();
-        TryAdd(_properties, Localizer["Container Name"], storageMetadata.Container);
-        TryAdd(_properties, Localizer["AccountName"], storageMetadata.AccountName);
-        TryAdd(_properties, Localizer["Account Kind"], storageMetadata.StorageAccountType);
-        TryAdd(_properties, Localizer["Replication"], storageMetadata.GeoRedundancy);
-        TryAdd(_properties, Localizer["Versioning"], storageMetadata.Versioning);
-        TryAdd(_properties, Localizer["Url"], (storageMetadata.Url, @<InlineCodeWithCopy>@storageMetadata.Url</InlineCodeWithCopy>));
+        if (_lastContainer != Container)
+        {
+            _lastContainer = Container;
 
-        _loading = false;
+            var storageMetadata = await Container.StorageManager.GetStorageMetadataAsync(Container.Name);
+            _properties = new Dictionary<string, (string, RenderFragment)>();
+            TryAdd(_properties, Localizer["Container Name"], storageMetadata.Container);
+            TryAdd(_properties, Localizer["AccountName"], storageMetadata.AccountName);
+            TryAdd(_properties, Localizer["Account Kind"], storageMetadata.StorageAccountType);
+            TryAdd(_properties, Localizer["Replication"], storageMetadata.GeoRedundancy);
+            TryAdd(_properties, Localizer["Versioning"], storageMetadata.Versioning);
+            TryAdd(_properties, Localizer["Url"], (storageMetadata.Url, @<InlineCodeWithCopy>@storageMetadata.Url</InlineCodeWithCopy>));
+
+            _loading = false;
+        }
     }
-    
+
     private void TryAdd(Dictionary<string, (string, RenderFragment)> dict, string prop, string value)
     {
         if (!string.IsNullOrEmpty(value))
@@ -95,5 +101,4 @@ else
         if (!string.IsNullOrEmpty(value.Label))
             dict[prop] = value;
     }
-
 }
