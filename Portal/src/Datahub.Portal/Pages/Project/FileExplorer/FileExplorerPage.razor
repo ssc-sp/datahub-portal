@@ -1,7 +1,9 @@
-﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+﻿@* FileExplorerPage.razor *@
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
 @inject IProjectDataRetrievalService _projectDataRetrievalService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject IDialogService _dialogService
 @page "/w/{ProjectAcronymParam}/filelist"
 @using Datahub.Core.Components.PageBanner
 @using Datahub.Core.Model.CloudStorage;
@@ -13,7 +15,6 @@
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
 
-
 <!--suppress CssUnresolvedCustomProperty -->
 <DHPageTitle PageTitleKey="@_projectName"/>
 
@@ -24,25 +25,28 @@
     WikiLinkFR="/fr/Banners/Stockage-de-l-espace-de-travail" />
 
 <MudStack>
-    <MudText Typo="Typo.h1">@Localizer["{0} Storage Explorer", ProjectAcronymParam]</MudText>
+    <MudStack Row Justify="Justify.SpaceBetween">
+        <MudText Typo="Typo.h1">@Localizer["{0} Storage Explorer", ProjectAcronymParam]</MudText>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
+            <MudIconButton Icon="@Icons.Material.Outlined.Settings" OnClick="HandleStorageSettings"></MudIconButton>
+        </DatahubAuthView>
+    </MudStack>
     <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
         <CascadingValue Value="@_project" Name="Project">
             <CascadingValue Value="_user" Name="GraphUser">
-                    
                 @if (MultiContainer)
                 {
-                <MudStack Style="border-bottom: 1px solid var(--mud-palette-lines-default);" Class="my-6">
-                    <MudText Typo="Typo.h2">@Localizer["Current Container"]</MudText>
-                    <MudStack Row Justify="Justify.SpaceBetween">
-                        <MudRadioGroup T="CloudStorageContainer" @bind-SelectedOption="SelectedContainer" Dense>
-                            @foreach (var container in _cloudContainers)
-                            {
-                                <MudRadio Option="@container" Color="Color.Primary" Size="Size.Medium">@container.Name</MudRadio>
-                            }
-                        </MudRadioGroup>
-                        <MudIconButton Icon="@Icons.Material.Outlined.Settings"></MudIconButton>
+                    <MudStack Style="border-bottom: 1px solid var(--mud-palette-lines-default);" Class="my-6">
+                        <MudText Typo="Typo.h2">@Localizer["Current Container"]</MudText>
+                        <MudStack Row Justify="Justify.SpaceBetween">
+                            <MudRadioGroup T="CloudStorageContainer" @bind-SelectedOption="SelectedContainer" Dense>
+                                @foreach (var container in _cloudContainers)
+                                {
+                                    <MudRadio Option="@container" Color="Color.Primary" Size="Size.Medium">@container.Name</MudRadio>
+                                }
+                            </MudRadioGroup>
+                        </MudStack>
                     </MudStack>
-                </MudStack>
                 }
                 <MudPaper Elevation="0" Class="file-explorer-layout-wrapper py-4 px-6">
                     @if (SelectedContainer != null)
@@ -53,7 +57,7 @@
                             </MudTabPanel>
                             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronymParam">
                                 <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
-                                    <AzCopy Container="@SelectedContainer.Name"/>
+                                    <AzCopy Container=@SelectedContainer />
                                 </MudTabPanel>
                                 <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
                                     <Databricks Container="@SelectedContainer.Name" />
@@ -61,7 +65,7 @@
                                 @if (_datahubPortalConfiguration.DesktopFileUploader.DisplayDesktopUploaderTab)
                                 {
                                     <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
-                                        <UploaderCode Container="@SelectedContainer.Name" />
+                                        <UploaderCode Container=@SelectedContainer />
                                     </MudTabPanel>
                                 }
                             </DatahubAuthView>
@@ -147,7 +151,7 @@
         set 
         { 
             _selectedContainer = value; 
-            StateHasChanged(); 
+            //StateHasChanged(); 
         }
     }
 
@@ -157,5 +161,62 @@
     {
         await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
         return await ctx.ProjectCloudStorages.Where(e => e.ProjectId == _project.Project_ID).ToListAsync();
+    }
+
+    private async Task HandleStorageSettings()
+    {
+        var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await _dialogService.ShowAsync<ConfigureProjectStorage>(Localizer["Configure Storage"], new(), dialogOptions);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            if (result.Data is string connectionData)
+            {
+                var (accountName, accountKey) = ParseConnectionString(connectionData);
+                await UpdateProjectAzureStorage($"{accountName}|{accountKey}");
+                await LoadContainersAsync();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    private async Task UpdateProjectAzureStorage(string connectionData)
+    {
+        await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
+        var projectStorage = await ctx.ProjectCloudStorages.Where(e => e.ProjectId == _project.Project_ID).FirstOrDefaultAsync();
+
+        if (projectStorage is null)
+        {
+            projectStorage = new()
+            {
+                ProjectId = _project.Project_ID,
+                Provider = "Azure",
+            };
+        }
+
+        projectStorage.ConnectionData = connectionData;
+
+        if (projectStorage.Id == 0)
+        {
+            ctx.ProjectCloudStorages.Add(projectStorage);
+        }
+        else
+        {
+            ctx.ProjectCloudStorages.Update(projectStorage);
+        }
+
+        await ctx.SaveChangesAsync();
+    }
+
+    static (string AccountName, string AccountKey) ParseConnectionString(string text)
+    {
+        string FindValue(string[] valuePairs, string varName)
+        {
+            return valuePairs.Where(p => p.StartsWith(varName)).Select(p => p[varName.Length..]).FirstOrDefault();
+        }
+
+        var valuePairs = (text ?? "").Split(";", StringSplitOptions.RemoveEmptyEntries);
+
+        return (FindValue(valuePairs, "AccountName="), FindValue(valuePairs, "AccountKey="));
     }
 }

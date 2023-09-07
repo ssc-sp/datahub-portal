@@ -185,17 +185,6 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return response is not null;
     }
 
-    //private (string? AccountName, string? AccountKey) ParseConnectionString(string value)
-    //{
-    //    var valuePairs = (value ?? "").Split(";", StringSplitOptions.RemoveEmptyEntries);
-    //    return (FindValue(valuePairs, "AccountName="), FindValue(valuePairs, "AccountKey="));
-    //}
-
-    //static string? FindValue(string[] valuePairs, string varName)
-    //{
-    //    return valuePairs.Where(p => p.StartsWith(varName)).Select(p => p[varName.Length..]).FirstOrDefault();
-    //}
-
     static void ValidateContainerName(string container)
     {
         if (string.IsNullOrWhiteSpace(container))
@@ -309,7 +298,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
             BlobContainerName = container,
             BlobName = fileName,
             Resource = "b",
-            StartsOn = DateTimeOffset.UtcNow,
+            StartsOn = DateTimeOffset.UtcNow.AddDays(-1),
             ExpiresOn = DateTimeOffset.UtcNow.AddDays(days)
         };
 
