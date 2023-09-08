@@ -165,10 +165,7 @@
     private async Task HandleStorageSettings()
     {
         var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        var dialogParams = new DialogParameters()
-        {
-            { "ConnectionData", "TODO: Paste here..." }
-        };
+        var dialogParams = new DialogParameters();
         var dialog = await _dialogService.ShowAsync<ConfigureProjectStorage>(Localizer["Configure Storage"], dialogParams, dialogOptions);
         var result = await dialog.Result;
         if (!result.Canceled)
