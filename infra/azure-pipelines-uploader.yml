@@ -20,3 +20,8 @@ steps:
     projects: Desktop\Desktop.Uploader\Desktop.Uploader.csproj
     arguments: '--output $(Build.ArtifactStagingDirectory)'
     zipAfterPublish: True
+    
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)' 
+    artifactName: 'fsdh-desktop-uploader'
