@@ -20,6 +20,14 @@ steps:
   displayName: 'FSDH - Building Desktop Uploader'
 
 - task: DotNetCoreCLI@2
+  displayName: dotnet workload restore
+  inputs:
+    command: custom
+    custom: workload restore
+    projects: "**/Desktop.Uploader.csproj"
+    workingDirectory: $(Build.SourcesDirectory)
+
+- task: DotNetCoreCLI@2
   displayName: dotnet restore
   inputs:
     command: restore
