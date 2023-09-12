@@ -26,7 +26,7 @@ steps:
     script: |
       dotnet --version
       dotnet nuget locals all --clear 
-      dotnet workload install maui wasm-tools --source https://aka.ms/dotnet6/nuget/index.json --source https://api.nuget.org/v3/index.json
+      dotnet workload install maui wasm-tools --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
 
 - task: DotNetCoreCLI@2
   displayName: dotnet restore
