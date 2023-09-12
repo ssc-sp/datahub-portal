@@ -6,6 +6,11 @@
 trigger:
 - develop
 
+variables:
+  target_os: win-x64
+  version.MajorMinor: 2.0
+  version.Revision: $[counter(variables['version.MajorMinor'], 0)]
+
 pool:
   vmImage: ubuntu-latest
 
@@ -13,12 +18,29 @@ steps:
 - script: echo FSDH - Building Desktop Uploader
   displayName: 'FSDH - Building Desktop Uploader'
 
+- checkout: self
+  clean: true
+  lfs: true
+  fetchTags: false
+
+- task: DotNetCoreCLI@2
+  displayName: dotnet restore
+  inputs:
+    command: restore
+    projects: Desktop\Desktop.Uploader\Desktop.Uploader.csproj
+
+- task: DotNetCoreCLI@2
+  displayName: dotnet build
+  inputs:
+    projects: Desktop\Desktop.Uploader\Desktop.Uploader.csproj
+    arguments: --configuration $(BuildConfiguration)
+
 - task: DotNetCoreCLI@2
   inputs:
     command: publish
     publishWebProjects: True
     projects: Desktop\Desktop.Uploader\Desktop.Uploader.csproj
-    arguments: '--output $(Build.ArtifactStagingDirectory)'
+    arguments: --output $(Build.ArtifactStagingDirectory) -r $(target_os) --self-contained true
     zipAfterPublish: True
     
 - task: PublishPipelineArtifact@1
