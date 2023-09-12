@@ -8,6 +8,8 @@ trigger:
 
 variables:
   target_os: win-x64
+  version.MajorMinor: 2.0
+  version.Revision: $[counter(variables['version.MajorMinor'], 0)]
 
 pool:
   vmImage: ubuntu-latest
@@ -25,7 +27,7 @@ steps:
   displayName: dotnet restore
   inputs:
     command: restore
-    projects: Desktop\Desktop.Uploader\Desktop.Uploader.csproj
+    projects: Desktop\Desktop.Uploader\*.csproj
 
 - task: DotNetCoreCLI@2
   displayName: dotnet build
