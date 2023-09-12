@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<!--<TargetFramework>net7.0-maccatalyst</TargetFramework>-->
-		<TargetFramework>net7.0-windows</TargetFramework>
+		<TargetFramework>net7.0-windows10.0.22621</TargetFramework>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>Datahub.Maui.Uploader</RootNamespace>
 		<UseMaui>true</UseMaui>
