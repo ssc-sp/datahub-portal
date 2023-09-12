@@ -32,7 +32,7 @@ steps:
   inputs:
     command: custom
     custom: workload restore
-    projects: "**/Desktop.Uploader.csproj"
+    projects: Desktop\Desktop.Uploader\Desktop.Uploader.csproj
     workingDirectory: $(Build.SourcesDirectory)
 
 - task: DotNetCoreCLI@2
