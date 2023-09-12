@@ -10,6 +10,7 @@ variables:
   target_os: win-x64
   version.MajorMinor: 2.0
   version.Revision: $[counter(variables['version.MajorMinor'], 0)]
+  system.debug: true.
 
 pool:
   vmImage: ubuntu-latest
