@@ -21,11 +21,14 @@ public class DatahubCatalogSearch : IDatahubCatalogSearch
     {
         var searchEngine = GetSearchEngine(query.French);
         
-        var results = searchEngine.SearchDocuments(query.Text, query.MaxResults).Select(int.Parse).ToHashSet();
+        var results = searchEngine
+            .SearchDocuments(query.Text, query.MaxResults)
+            .Select(int.Parse)
+            .ToHashSet();
         if (results.Count == 0)
             return new List<CatalogObject>();
 
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
 
         var catalogHits = await ctx.CatalogObjects.Where(e => results.Contains(e.Id)).ToListAsync();
 
