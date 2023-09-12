@@ -25,7 +25,7 @@ steps:
     targetType: 'inline'
     script: |
       dotnet nuget locals all --clear 
-      dotnet workload install maui wasm-tools --source https://aka.ms/dotnet6/nuget/index.json --source https://api.nuget.org/v3/index.json
+      dotnet workload install maui wasm-tools maccatalyst --source https://aka.ms/dotnet6/nuget/index.json --source https://api.nuget.org/v3/index.json
 
 - task: DotNetCoreCLI@2
   displayName: dotnet restore
