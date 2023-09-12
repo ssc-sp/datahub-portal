@@ -13,6 +13,9 @@
 @inject ILogger<Sidebar> logger
 
 <MudNavMenu Bordered>
+    <div class="reader-only" id="nav">
+        <h3>@Localizer["Navigation menu"]</h3>
+    </div>
     @foreach (var (href, icon, label,_, showDotBadge) in GetLinks().Where(t => t.enabled))
     {
         <div class="mud-nav-item">

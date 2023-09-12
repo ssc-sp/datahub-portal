@@ -14,11 +14,12 @@
     return;
 }
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+    <div class="reader-only"><p>@Localizer["Your profile"]</p></div>
     <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" FullWidth>
         <ActivatorContent>
             <MudButton Class="ml-2">
                 <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Medium"/>
-                <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
+                <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="@Size.Medium"/>
             </MudButton>
         </ActivatorContent>
         <ChildContent>

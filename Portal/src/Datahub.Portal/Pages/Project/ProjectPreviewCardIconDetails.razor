@@ -5,6 +5,7 @@
             <MudChip Size="Size.Small" Variant="Variant.Outlined" Label="true">
                 <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
                     <MudIcon Icon="fa-light fa-layer-plus" Style="font-size: 0.75rem;"/>
+                    <div class="reader-only"><p>@Localizer["Number of workspaces remaining"]</p></div>
                     @NumberOfWorkspacesRemaining
                 </MudStack>
             </MudChip>
@@ -16,6 +17,7 @@
             <MudChip Size="Size.Small" Variant="Variant.Outlined" Label="true">
                 <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
                     <MudIcon Icon="fa-light fa-users" Style="font-size: 0.75rem;"/>
+                    <div class="reader-only"><p>@Localizer["Number of users in the workspace"]</p></div>
                     @NumberOfUsers
                 </MudStack>
             </MudChip>
@@ -27,6 +29,7 @@
             <MudChip Size="Size.Small" Variant="Variant.Outlined" Label="true">
                 <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
                     <MudIcon Icon="fa-light fa-code-branch" Style="font-size: 0.75rem;"/>
+                    <div class="reader-only"><p>@Localizer["Number of shared repositories"]</p></div>
                     @NumberOfRepositories
                 </MudStack>
             </MudChip>
@@ -38,6 +41,7 @@
             <MudChip Size="Size.Small" Variant="Variant.Outlined" Label="true">
                 <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
                     <MudIcon Icon="fa-light fa-files" Style="font-size: 0.75rem;"/>
+                    <div class="reader-only"><p>@Localizer["Number of shared files"]</p></div>
                     @NumberOfFiles
                 </MudStack>
             </MudChip>
