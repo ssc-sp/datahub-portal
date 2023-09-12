@@ -10,7 +10,7 @@
                       Variant="Variant.Outlined"
                       Margin="Margin.Dense"
                       Placeholder="@Localizer["Search"]"
-                      DebounceInterval="500"
+                      DebounceInterval="250"
                       @bind-Value="SearchText"
                       Adornment="Adornment.Start"
                       AdornmentIcon="@Icons.Material.Filled.Search"
@@ -21,7 +21,7 @@
 
     <MudPopover Open="@ShowSearchResults"
                 Class="pa-8"
-                Style="_style"
+                Style="@_style"
                 AnchorOrigin="Origin.BottomRight"
                 TransformOrigin="Origin.TopRight">
                 
@@ -76,7 +76,9 @@
 
     protected override void OnInitialized()
     {
-        _style = new StyleBuilder().AddStyle("width", "550px").Build();
+        _style = new StyleBuilder()
+            .AddStyle("width", "550px")
+            .Build();
     }
 
     private string SearchText
@@ -102,7 +104,7 @@
     {
         if (string.IsNullOrEmpty(text))
         {
-            _results = new();
+            _results = new List<CatalogObject>();
         }
         else
         {
