@@ -26,36 +26,36 @@
                 TransformOrigin="Origin.TopRight">
                 
         <MudTabs Elevation="0" PanelClass="pa-6" @key="_results">
-            <MudTabPanel Disabled=@AllDisabled>
+            <MudTabPanel Disabled="@AllDisabled">
                 <ChildContent>
-                    <SearchResultTab Results="_results" French="cultureService.IsFrench" OnClickLink=@HandleClickLink />
+                    <SearchResultTab Results="_results" French="cultureService.IsFrench" OnClickLink="@HandleClickLink" />
                 </ChildContent>
                 <TabContent>
                     <MudText Typo="Typo.h6">@Localizer["All"]</MudText>
                 </TabContent>
             </MudTabPanel>
 
-            <MudTabPanel Disabled=@WorkspacesDisabled>
+            <MudTabPanel Disabled="@WorkspacesDisabled">
                 <ChildContent>
-                    <SearchResultTab Results="_workspaces" French="cultureService.IsFrench" OnClickLink=@HandleClickLink />
+                    <SearchResultTab Results="_workspaces" French="cultureService.IsFrench" OnClickLink="@HandleClickLink" />
                 </ChildContent>
                 <TabContent>
                     <MudText Typo="Typo.h6">@Localizer["Workspaces"]</MudText>
                 </TabContent>
             </MudTabPanel>
 
-            <MudTabPanel Disabled=@UsersDisabled>
+            <MudTabPanel Disabled="@UsersDisabled">
                 <ChildContent>
-                    <SearchResultTab Results="_users" French="cultureService.IsFrench" OnClickLink=@HandleClickLink />
+                    <SearchResultTab Results="_users" French="cultureService.IsFrench" OnClickLink="@HandleClickLink" />
                 </ChildContent>
                 <TabContent>
                     <MudText Typo="Typo.h6">@Localizer["Users"]</MudText>
                 </TabContent>
             </MudTabPanel>
 
-            <MudTabPanel Disabled=@RepositoriesDisabled>
+            <MudTabPanel Disabled="@RepositoriesDisabled">
                 <ChildContent>
-                    <SearchResultTab Results="_repositories" French="cultureService.IsFrench" OnClickLink=@HandleClickLink />
+                    <SearchResultTab Results="_repositories" French="cultureService.IsFrench" OnClickLink="@HandleClickLink" />
                 </ChildContent>
                 <TabContent>
                     <MudText Typo="Typo.h6">@Localizer["Shared Repositories"]</MudText>
