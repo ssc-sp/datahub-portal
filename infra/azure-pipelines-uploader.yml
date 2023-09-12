@@ -13,7 +13,7 @@ variables:
   system.debug: true.
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: windows-latest
 
 steps:
 - script: echo FSDH - Building Desktop Uploader
