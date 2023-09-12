@@ -23,12 +23,14 @@ steps:
   inputs:
     command: restore
     projects: Desktop\Desktop.Uploader\*.csproj
+    workingDirectory: $(Build.SourcesDirectory)
 
 - task: DotNetCoreCLI@2
   displayName: dotnet build
   inputs:
-    projects: Desktop\Desktop.Uploader\Desktop.Uploader.csproj
+    projects: Desktop\Desktop.Uploader\*.csproj
     arguments: --configuration $(BuildConfiguration)
+    workingDirectory: $(Build.SourcesDirectory)
 
 - task: DotNetCoreCLI@2
   inputs:
