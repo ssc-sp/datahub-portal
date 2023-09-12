@@ -23,7 +23,7 @@ steps:
   displayName: dotnet restore
   inputs:
     command: restore
-    projects: Desktop\Desktop.Uploader\*.csproj
+    projects: "**/Desktop.Uploader.csproj"
     workingDirectory: $(Build.SourcesDirectory)
 
 - task: DotNetCoreCLI@2
