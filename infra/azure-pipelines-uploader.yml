@@ -38,6 +38,8 @@ steps:
 - task: DotNetCoreCLI@2
   displayName: dotnet build
   inputs:
+    command: build
+    majorVersion: 7
     projects: Desktop\Desktop.Uploader\*.csproj
     arguments: --configuration $(BuildConfiguration)
     workingDirectory: $(Build.SourcesDirectory)
