@@ -18,11 +18,6 @@ steps:
 - script: echo FSDH - Building Desktop Uploader
   displayName: 'FSDH - Building Desktop Uploader'
 
-- checkout: self
-  clean: true
-  lfs: true
-  fetchTags: false
-
 - task: DotNetCoreCLI@2
   displayName: dotnet restore
   inputs:
