@@ -72,8 +72,8 @@ public class LanguageCatalogSearch : ILanguageCatalogSearch
         var searcher = new IndexSearcher(reader);
 
         var query = new BooleanQuery();
-        var titleQuery = _titleParser.Parse(text);
-        var contentQuery = _contentParser.Parse(text);
+        var titleQuery = _titleParser.Parse(text + "*");
+        var contentQuery = _contentParser.Parse(text + "*");
         query.Add(titleQuery, Occur.SHOULD);
         query.Add(contentQuery, Occur.SHOULD);
 
