@@ -28,7 +28,7 @@ steps:
   displayName: 'MSIX build and package'
   inputs:
     outputPath: '$(Build.ArtifactStagingDirectory)\fsdh-uploader.msix'    
-    inputDirectory: Desktop\Desktop.Uploader\
+    inputDirectory: Desktop\Desktop.Uploader
     buildPlatform: x64
     updateAppVersion: true
     appVersion: 2.0.0.0
