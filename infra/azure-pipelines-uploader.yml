@@ -22,6 +22,7 @@ steps:
 - task: UseDotNet@2
   inputs:
     version: 8.x
+    includePreviewVersions: true
 
 - task: Bash@3
   displayName: Install .NET MAUI
