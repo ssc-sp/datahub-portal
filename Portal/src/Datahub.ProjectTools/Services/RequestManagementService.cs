@@ -75,7 +75,7 @@ public class RequestManagementService : IRequestManagementService
             await ctx.TrackSaveChangesAsync(_datahubAuditingService);
         }
 
-        await NotifyProjectAdminsOfServiceRequest(request);
+        // await NotifyProjectAdminsOfServiceRequest(request);
     }
 
     public static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectServiceRequests request,
@@ -325,6 +325,8 @@ public class RequestManagementService : IRequestManagementService
                 }
             }
 
+            
+            
             var request = CreateResourceData.ResourceRunTemplate(workspace, templates, graphUser.Mail);
             await _resourceRequestService.AddProjectToStorageQueue(request);
             scope.Complete();
