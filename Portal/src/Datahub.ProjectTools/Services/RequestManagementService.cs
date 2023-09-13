@@ -75,7 +75,7 @@ public class RequestManagementService : IRequestManagementService
             await ctx.TrackSaveChangesAsync(_datahubAuditingService);
         }
 
-        await NotifyProjectAdminsOfServiceRequest(request);
+        // await NotifyProjectAdminsOfServiceRequest(request);
     }
 
     public static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectServiceRequests request,
@@ -285,7 +285,7 @@ public class RequestManagementService : IRequestManagementService
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects
                 .Include(p => p.Users)
-                    .ThenInclude(u => u.PortalUser)
+                .ThenInclude(u => u.PortalUser).Include(datahubProject => datahubProject.Resources)
                 .FirstOrDefaultAsync(p => p.Project_ID == datahubProject.Project_ID);
             if(project == null)
             {
@@ -305,11 +305,11 @@ public class RequestManagementService : IRequestManagementService
                 .ToList();
 
             var workspace = project.ToResourceWorkspace(users);
-            var templates = TerraformTemplate.LatestFromNameWithDependencies(terraformTemplate);
+            var newTemplates = TerraformTemplate.LatestFromNameWithDependencies(terraformTemplate);
 
             if (terraformTemplate != TerraformTemplate.VariableUpdate)
             {
-                foreach (var template in templates)
+                foreach (var template in newTemplates)
                 {
                     var serviceRequest = new Datahub_ProjectServiceRequests()
                     {
@@ -325,7 +325,16 @@ public class RequestManagementService : IRequestManagementService
                 }
             }
 
-            var request = CreateResourceData.ResourceRunTemplate(workspace, templates, graphUser.Mail);
+            var allTemplates = project.Resources
+                .Select(r => r.ResourceType)
+                .Select(s => s.Replace("terraform:", ""))
+                .Select(TerraformTemplate.LatestFromNameWithDependencies)
+                .SelectMany(t => t)
+                .Concat(newTemplates)
+                .DistinctBy(t => t.Name)
+                .ToList();
+            
+            var request = CreateResourceData.ResourceRunTemplate(workspace, allTemplates, graphUser.Mail);
             await _resourceRequestService.AddProjectToStorageQueue(request);
             scope.Complete();
             return true;
