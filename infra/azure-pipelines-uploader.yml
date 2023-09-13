@@ -10,7 +10,7 @@ variables:
   target_os: win-x64
   version.MajorMinor: 2.0
   version.Revision: $[counter(variables['version.MajorMinor'], 0)]
-  system.debug: True
+  system.debug: False
 
 pool:
   vmImage: windows-latest
@@ -33,7 +33,7 @@ steps:
         dotnet --version
         dotnet nuget locals all --clear 
         dotnet workload install maui --source https://aka.ms/dotnet6/nuget/index.json --source https://api.nuget.org/v3/index.json
-        dotnet workload install android ios maccatalyst tvos macos maui wasm-tools --source https://aka.ms/dotnet6/nuget/index.json --source https://api.nuget.org/v3/index.json
+        dotnet workload install android ios maccatalyst tvos macos maui wasm-tools wasm-tools-net6 --source https://aka.ms/dotnet6/nuget/index.json --source https://api.nuget.org/v3/index.json
 - task: DotNetCoreCLI@2
   displayName: dotnet restore
   inputs:
