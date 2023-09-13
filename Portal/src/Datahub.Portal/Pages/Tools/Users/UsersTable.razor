@@ -77,27 +77,30 @@
     private string AcronymStyle => new StyleBuilder()
         .Build();
 
-    public List<string> lockedUsers = new ();
+    public List<string> LockedUsers = new ();
 
-    public List<string> allUsers = new ();
+    public List<string> AllUsers = new ();
 
-    public bool loadStatus = false;
+    public bool LoadStatus = false;
 
     protected override async Task OnInitializedAsync()
     {
         var resultDict = await _userStatusService.GetUsersStatus();
-        allUsers = resultDict["all"];
-        lockedUsers = resultDict["locked"];
-        loadStatus = true;
+        if (resultDict != null)
+        {
+            AllUsers = resultDict["all"];
+            LockedUsers = resultDict["locked"];
+            LoadStatus = true;
+        }
     }
 
     private string GetUserStatus(string email)
     {
         var status = "";
-        if (lockedUsers.Contains(email) && !lockedUsers.IsNullOrEmpty())
+        if (LockedUsers.Contains(email) && !LockedUsers.IsNullOrEmpty())
         {
             status = "locked";
-        } else if (!allUsers.Contains(email) && !allUsers.IsNullOrEmpty())
+        } else if (!AllUsers.Contains(email) && !AllUsers.IsNullOrEmpty())
         {
             status = "missing";
         }
