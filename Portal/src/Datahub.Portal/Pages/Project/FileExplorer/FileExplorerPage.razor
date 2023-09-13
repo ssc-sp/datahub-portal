@@ -28,7 +28,19 @@
     <MudStack Row Justify="Justify.SpaceBetween">
         <MudText Typo="Typo.h1">@Localizer["{0} Storage Explorer", ProjectAcronymParam]</MudText>
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
-            <MudIconButton Icon="@Icons.Material.Outlined.Settings" OnClick="HandleStorageSettings"></MudIconButton>
+            @* <MudIconButton Icon="@Icons.Material.Outlined.Settings" OnClick="HandleStorageSettings"></MudIconButton> *@
+
+            <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" FullWidth>
+                <ActivatorContent>
+                    <MudButton Class="ml-2">
+                        <MudIcon Icon="@Icons.Material.Outlined.Settings" />
+                    </MudButton>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem OnClick="HandleAzureStorageSettings">@Localizer["Azure"]</MudMenuItem>
+                    <MudMenuItem OnClick="HandleAWSStorageSettings">@Localizer["AWS"]</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
         </DatahubAuthView>
     </MudStack>
     <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
@@ -56,13 +68,19 @@
                                 <FileExplorer ProjectId=@_projectId Container="@_selectedContainer" />
                             </MudTabPanel>
                             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronymParam">
-                                <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
-                                    <AzCopy Container=@SelectedContainer />
-                                </MudTabPanel>
-                                <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
-                                    <Databricks Container="@SelectedContainer.Name" />
-                                </MudTabPanel>
-                                @if (_datahubPortalConfiguration.DesktopFileUploader.DisplayDesktopUploaderTab)
+                                @if (SelectedContainer.StorageManager.AzCopyEnabled)
+                                {
+                                    <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
+                                        <AzCopy Container=@SelectedContainer />
+                                    </MudTabPanel>
+                                }
+                                @if (SelectedContainer.StorageManager.DatabrickEnabled)
+                                {
+                                    <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
+                                        <Databricks Container="@SelectedContainer.Name" />
+                                    </MudTabPanel>
+                                }
+                                @if (SelectedContainer.StorageManager.AzCopyEnabled && _datahubPortalConfiguration.DesktopFileUploader.DisplayDesktopUploaderTab)
                                 {
                                     <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
                                         <UploaderCode Container=@SelectedContainer />
@@ -126,17 +144,25 @@
         var dbStorage = await GetCloudStorages();
         foreach (var stg in dbStorage)
         {
-            if (stg.Provider != "Azure")
-                continue;
-
             var variables = stg.ConnectionData.Split('|');
-            if (variables.Length != 2)
-                continue;
+            if (stg.Provider == "Azure")
+            {
+                if (variables.Length != 2)
+                    continue;
 
-            var storageManager = new AzureCloudStorageManager(variables[0], variables[1]);
-            containerNames = await storageManager.GetContainersAsync();
+                var storageManager = new AzureCloudStorageManager(variables[0], variables[1]);
+                containerNames = await storageManager.GetContainersAsync();
+                _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(c, storageManager)));
+            }
+            else if (stg.Provider == "AWS")
+            {
+                if (variables.Length != 4)
+                    continue;
 
-            _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(c, storageManager)));
+                var storageManager = new AWSCloudStorageManager("AWS", variables[0], variables[1], variables[2], variables[3]);
+                containerNames = await storageManager.GetContainersAsync();
+                _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(c, storageManager)));
+            }
         }
 
         _selectedContainer = _cloudContainers.FirstOrDefault();
@@ -162,35 +188,54 @@
         return await ctx.ProjectCloudStorages.Where(e => e.ProjectId == _project.Project_ID).ToListAsync();
     }
 
-    private async Task HandleStorageSettings()
+    private async Task HandleAzureStorageSettings()
     {
         var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
         var dialogParams = new DialogParameters();
-        var dialog = await _dialogService.ShowAsync<ConfigureProjectStorage>(Localizer["Configure Storage"], dialogParams, dialogOptions);
+        var dialog = await _dialogService.ShowAsync<ConfigureAzureProjectStorage>(Localizer["Configure Azure Storage"], dialogParams, dialogOptions);
         var result = await dialog.Result;
         if (!result.Canceled)
         {
             if (result.Data is string connectionData)
             {
-                var (accountName, accountKey) = ParseConnectionString(connectionData);
-                await UpdateProjectAzureStorage($"{accountName}|{accountKey}");
+                await UpdateProjectAzureStorage(connectionData, "Azure");
                 await LoadContainersAsync();
                 await InvokeAsync(StateHasChanged);
             }
         }
     }
 
-    private async Task UpdateProjectAzureStorage(string connectionData)
+    private async Task HandleAWSStorageSettings()
+    {
+        var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialogParams = new DialogParameters();
+        var dialog = await _dialogService.ShowAsync<ConfigureAWSProjectStorage>(Localizer["Configure AWS Storage"], dialogParams, dialogOptions);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            if (result.Data is string connectionData)
+            {
+                await UpdateProjectAzureStorage(connectionData, "AWS");
+                await LoadContainersAsync();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    private async Task UpdateProjectAzureStorage(string connectionData, string provider)
     {
         await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
-        var projectStorage = await ctx.ProjectCloudStorages.Where(e => e.ProjectId == _project.Project_ID).FirstOrDefaultAsync();
+
+        var projectStorage = await ctx.ProjectCloudStorages
+            .Where(e => e.ProjectId == _project.Project_ID && e.Provider == provider)
+            .FirstOrDefaultAsync();
 
         if (projectStorage is null)
         {
             projectStorage = new()
             {
                 ProjectId = _project.Project_ID,
-                Provider = "Azure",
+                Provider = provider,
             };
         }
 
@@ -206,17 +251,5 @@
         }
 
         await ctx.SaveChangesAsync();
-    }
-
-    static (string AccountName, string AccountKey) ParseConnectionString(string text)
-    {
-        string FindValue(string[] valuePairs, string varName)
-        {
-            return valuePairs.Where(p => p.StartsWith(varName)).Select(p => p[varName.Length..]).FirstOrDefault();
-        }
-
-        var valuePairs = (text ?? "").Split(";", StringSplitOptions.RemoveEmptyEntries);
-
-        return (FindValue(valuePairs, "AccountName="), FindValue(valuePairs, "AccountKey="));
     }
 }

@@ -185,6 +185,9 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return response is not null;
     }
 
+    public bool AzCopyEnabled => true;
+    public bool DatabrickEnabled => true;
+
     static void ValidateContainerName(string container)
     {
         if (string.IsNullOrWhiteSpace(container))

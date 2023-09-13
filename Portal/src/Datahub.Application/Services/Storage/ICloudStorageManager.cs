@@ -23,6 +23,9 @@ public interface ICloudStorageManager
     Task<bool> CreateFolderAsync(string container, string currentWorkingDirectory, string folderName);
 
     Task<StorageMetadata> GetStorageMetadataAsync(string container);
+
+    bool AzCopyEnabled { get; }
+    bool DatabrickEnabled { get; }
 }
 
 public record DfsPage(List<string> Folders, List<FileMetaData> Files, string ContinuationToken);
