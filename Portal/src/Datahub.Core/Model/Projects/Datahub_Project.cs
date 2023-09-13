@@ -319,6 +319,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
             Name = Project_Name,
             Acronym = Project_Acronym_CD,
             BudgetAmount = Convert.ToDouble(Project_Budget),
+            Version = Version ?? TerraformWorkspace.DefaultVersion,
             TerraformOrganization = new TerraformOrganization()
             {
                 Name = Branch_Name ?? "TODO",
