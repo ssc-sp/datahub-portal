@@ -28,17 +28,13 @@ namespace Datahub.Infrastructure.Services
             _datahubPortalConfiguration = datahubPortalConfiguration;
         }
         
-        public async Task<Dictionary<string, List<string>>> GetUsersStatus()
+        public async Task<Dictionary<string, List<string>>?> GetUsersStatus()
         {
             var url = _datahubPortalConfiguration.DatahubGraphUsersStatusFunctionUrl;
             
-            var numberOfRetries = 0;
-            const int maxNumberOfRetries = 5;
-            string resultString;
-            
             var client = _httpClientFactory.CreateClient();
             var result = await _retryPolicy.ExecuteAsync(() => client.GetAsync(url));
-            resultString = await result.Content.ReadAsStringAsync();
+            var resultString = await result.Content.ReadAsStringAsync();
             
             var resultDict = JsonConvert.DeserializeObject<Dictionary<string,List<string>>>(resultString);
             return resultDict;
