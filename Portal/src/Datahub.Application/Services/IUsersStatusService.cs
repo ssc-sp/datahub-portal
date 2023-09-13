@@ -2,6 +2,6 @@
 {
     public interface IUsersStatusService
     {
-        public Task<Dictionary<string, List<string>>> GetUsersStatus();
+        public Task<Dictionary<string, List<string>>?> GetUsersStatus();
     }
 }
