@@ -47,9 +47,9 @@ steps:
   inputs:
     command: publish
     publishWebProjects: True
-    projects: Desktop\Desktop.Uploader\Desktop.Uploader.csproj
+    projects: Desktop\Desktop.Uploader\*.csproj
     arguments: -f net7.0-windows10.0.22621 -c Release -p:BuildIpa=True -o $(Build.ArtifactStagingDirectory)
-    zipAfterPublish: True
+    workingDirectory: $(Build.SourcesDirectory)
     
 - task: PublishPipelineArtifact@1
   inputs:
