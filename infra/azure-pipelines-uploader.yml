@@ -36,12 +36,12 @@ steps:
         dotnet workload install android ios maccatalyst tvos macos maui wasm-tools wasm-tools-net6 --source https://aka.ms/dotnet6/nuget/index.json --source https://api.nuget.org/v3/index.json
         dotnet workload list
 
-# - task: DotNetCoreCLI@2
-#   displayName: dotnet restore
-#   inputs:
-#     command: restore
-#     projects: "**/Desktop.Uploader.csproj"
-#     workingDirectory: $(Build.SourcesDirectory)
+- task: DotNetCoreCLI@2
+  displayName: dotnet restore
+  inputs:
+    command: restore
+    projects: "**/Desktop.Uploader.csproj"
+    workingDirectory: $(Build.SourcesDirectory)
 
 - task: DotNetCoreCLI@2
   inputs:
