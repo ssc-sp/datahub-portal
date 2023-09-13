@@ -1,7 +1,7 @@
 @using Datahub.Application.Services
 @inject IProjectCreationService _projectCreationService
-@inject NavigationManager navigationManager
-@inject DatahubPortalConfiguration portalConfiguration
+@inject NavigationManager _navigationManager
+@inject DatahubPortalConfiguration _portalConfiguration
 
 <MudDialog>
     <DialogContent>
@@ -43,21 +43,24 @@
                 <MudSelectItem T="string" Value="@("Other")">@Localizer["Other"]</MudSelectItem>
             </MudSelect>
 
-            <MudStack Row Class="mt-4">
-                <MudButton Href="https://github.com/apps/datahub-workspaces"
-                           OnClick="HandleIntegrateWithGit"
-                           Target="_blank"
-                           Variant="Variant.Filled"
-                           EndIcon="@Icons.Custom.Brands.GitHub"
-                           Color="Color.Primary">
-                    @Localizer["Link GitHub"]
-                </MudButton>
-                <MudCheckBox Checked=@_createRepository 
-                             CheckedChanged=@ToggleCreateRepo 
-                             Disabled="!_githubIntegration"
-                             T="bool" 
-                             Label=@Localizer["Create Repository"] />
-            </MudStack>
+            @if (_portalConfiguration.Github.Enabled)
+            {
+                <MudStack Row Class="mt-4">
+                    <MudButton Href="https://github.com/apps/datahub-workspaces"
+                               OnClick="HandleIntegrateWithGit"
+                               Target="_blank"
+                               Variant="Variant.Filled"
+                               EndIcon="@Icons.Custom.Brands.GitHub"
+                               Color="Color.Primary">
+                        @Localizer["Link GitHub"]
+                    </MudButton>
+                    <MudCheckBox Checked=@_createRepository
+                                 CheckedChanged=@ToggleCreateRepo
+                                 Disabled="!_githubIntegration"
+                                 T="bool"
+                                 Label=@Localizer["Create Repository"]/>
+                </MudStack>
+            }
 
             @if (_errorMessage is not null)
             {
@@ -94,7 +97,7 @@
     public bool ShowCancel { get; set; } = true;
 
 #nullable enable
-    private const int MaxAcronymLength = 7;
+        private const int MaxAcronymLength = 7;
     private string? _errorMessage;
     private string _projectTitle = string.Empty;
     private string _projectAcronym = string.Empty;
@@ -156,10 +159,10 @@
             if (_isCreating)
                 return;
             _isCreating = true;
-            //update Button
+    //update Button
             StateHasChanged();
             await Task.Delay(1);
-            // TODO: Get Organization name?
+    // TODO: Get Organization name?
 
             var isAdded = await _projectCreationService.CreateProjectAsync(_projectTitle, _projectAcronym, "Unspecified");
             _isCreating = false;
@@ -170,9 +173,9 @@
 
                 if (_createRepository)
                 {
-                    var url = $"https://github.com/login/oauth/authorize?scope=repo&client_id={portalConfiguration.Github.ClientId}&state={_projectAcronym}";
-                    navigationManager.NavigateTo(url);
-                }                
+                    var url = $"https://github.com/login/oauth/authorize?scope=repo&client_id={_portalConfiguration.Github.ClientId}&state={_projectAcronym}";
+                    _navigationManager.NavigateTo(url);
+                }
             }
             else
             {
