@@ -24,6 +24,17 @@ steps:
     version: 8.x
     includePreviewVersions: true
 
+- task: MsixPackaging@1
+  displayName: 'MSIX build and package'
+  inputs:
+    outputPath: '$(Build.ArtifactStagingDirectory)\fsdh-uploader.msix'    
+    inputDirectory: Desktop\Desktop.Uploader\
+    buildPlatform: x64
+    updateAppVersion: true
+    appVersion: 2.0.0.0
+    appPackageDistributionMode: SideloadOnly
+    msbuildArchitecture: x64
+
 - task: Bash@3
   displayName: Install .NET MAUI
   inputs:
