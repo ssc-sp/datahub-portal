@@ -22,28 +22,18 @@ steps:
 - task: UseDotNet@2
   inputs:
     version: 8.x
+    packageType: 'sdk'
     includePreviewVersions: true
-
-- task: MsixPackaging@1
-  displayName: 'MSIX build and package'
-  inputs:
-    outputPath: '$(Build.ArtifactStagingDirectory)\fsdh-uploader.msix'    
-    inputDirectory: Desktop\Desktop.Uploader
-    buildPlatform: x64
-    updateAppVersion: true
-    appVersion: 2.0.0.0
-    appPackageDistributionMode: SideloadOnly
-    msbuildArchitecture: x64
 
 - task: Bash@3
   displayName: Install .NET MAUI
   inputs:
     targetType: 'inline'
     script: |
-      dotnet --version
-      dotnet nuget locals all --clear 
-      dotnet workload install maui wasm-tools --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
-
+        dotnet --version
+        dotnet nuget locals all --clear 
+        dotnet workload install maui --source https://aka.ms/dotnet6/nuget/index.json --source https://api.nuget.org/v3/index.json
+        dotnet workload install android ios maccatalyst tvos macos maui wasm-tools --source https://aka.ms/dotnet6/nuget/index.json --source https://api.nuget.org/v3/index.json
 - task: DotNetCoreCLI@2
   displayName: dotnet restore
   inputs:
@@ -52,19 +42,11 @@ steps:
     workingDirectory: $(Build.SourcesDirectory)
 
 - task: DotNetCoreCLI@2
-  displayName: dotnet build
-  inputs:
-    command: build
-    projects: Desktop\Desktop.Uploader\*.csproj
-    arguments: --configuration $(BuildConfiguration)
-    workingDirectory: $(Build.SourcesDirectory)
-
-- task: DotNetCoreCLI@2
   inputs:
     command: publish
     publishWebProjects: True
     projects: Desktop\Desktop.Uploader\Desktop.Uploader.csproj
-    arguments: --output $(Build.ArtifactStagingDirectory) -r $(target_os) --self-contained true
+    arguments: -f net6.0-maccatalyst -c Release -p:BuildIpa=True -o $(Build.ArtifactStagingDirectory)
     zipAfterPublish: True
     
 - task: PublishPipelineArtifact@1
