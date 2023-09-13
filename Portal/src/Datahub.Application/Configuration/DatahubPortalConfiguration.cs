@@ -228,6 +228,7 @@ public class ReverseProxy
 
 public class GithubConfig
 {
+    public bool Enabled { get; set; } = false;
     public string AppName { get; set; } = "datahub-integration";
     public string CallbackUrl { get; set; } = "https://localhost:5001/git/callback";
     public string ClientId { get; set; } = "";
