@@ -55,7 +55,7 @@ public partial class Testing
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
         
-        _userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), httpClientFactory.Object, _datahubPortalConfiguration);
+        _userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), httpClientFactory.Object, _datahubPortalConfiguration, null);
     }
 
     private static StringContent ExpectedDatahubPortalInviteResponse()

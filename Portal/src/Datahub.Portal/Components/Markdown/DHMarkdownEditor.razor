@@ -1,44 +1,86 @@
+@using Datahub.Infrastructure.Services.Azure
+@using Datahub.Portal.Controllers
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.Identity.Web
+
+@implements IDisposable
+
+@inject NavigationManager _navigationManager
 @*Markdown.razor*@
 
-<MarkdownEditor Value="@MarkdownValue" ValueChanged="OnMarkdownValueChanged" ValueHTML="@MarkdownHtml" ValueHTMLChanged="OnMarkdownValueHTMLChanged" @ref="_elementRef"/>
+
+<MarkdownEditor Value="@_markdownValue"
+                ValueChanged="OnMarkdownValueChanged"
+                ValueHTML="@_markdownHtml"
+                ValueHTMLChanged="OnMarkdownValueHTMLChanged"
+                ImageUploadEndpoint="@_imageUploadEndpoint"
+                UploadImage="true"
+                ImageUploadAuthenticationSchema="Bearer"
+                ImageUploadAuthenticationToken="@MediaController.PostMediaSaltySecret"
+                ImageUploadChanged="@OnImageUploadChanged"
+                ImageUploadStarted="@OnImageUploadStarted"
+                ImageUploadProgressed="@OnImageUploadProgressed"
+                ImageUploadEnded="@OnImageUploadEnded"
+                @ref="_elementRef"/>
 
 @code {
+
     [Parameter]
     public string InitialValue { get; set; }
-    
+
     [Parameter]
     public EventCallback<string> ValueChanged { get; set; }
 
     private MarkdownEditor _elementRef;
     private DotNetObjectReference<DHMarkdownEditor> _dotNetObjectRef;
-    public string MarkdownValue { get; set; }
-    public string MarkdownHtml { get; set; }
-    
+    private string _markdownValue;
+    private string _markdownHtml;
+    private string _imageUploadEndpoint => $"{_navigationManager.BaseUri}api/media/upload";
+
     // Sets the initial value of what the markdown editor should contain
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        MarkdownValue = InitialValue;
+        _markdownValue = InitialValue;
     }
-    
+
     // Whenever the markdown text is updated, we update our internal value and call the provided method
     public async Task OnMarkdownValueChanged(string value)
     {
-        MarkdownValue = value;
+        _markdownValue = value;
         await ValueChanged.InvokeAsync(value);
     }
-    
+
     // Whenever the markdown html is changed, we update our internal value
     public Task OnMarkdownValueHTMLChanged(string value)
     {
-        MarkdownHtml = value;
+        _markdownHtml = value;
         return Task.CompletedTask;
     }
 
-    public async void Dispose()
+    private Task OnImageUploadChanged(FileChangedEventArgs e)
+    {
+        return Task.CompletedTask;;
+    }
+
+    private Task OnImageUploadStarted(FileStartedEventArgs e)
+    {
+        return Task.CompletedTask;
+    }
+
+    Task OnImageUploadProgressed(FileProgressedEventArgs e)
+    {
+        return Task.CompletedTask;
+    }
+
+    Task OnImageUploadEnded(FileEndedEventArgs e)
+    {
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
     {
         _elementRef?.Dispose();
         _dotNetObjectRef?.Dispose();
     }
-    
 }

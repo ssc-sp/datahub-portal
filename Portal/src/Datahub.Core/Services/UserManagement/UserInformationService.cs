@@ -18,6 +18,8 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Services.Security;
 using UserSettings = Datahub.Core.Model.UserTracking.UserSettings;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Services.CatalogSearch;
+using Datahub.Core.Model.Catalog;
 
 namespace Datahub.Core.Services.UserManagement;
 
@@ -34,6 +36,7 @@ public class UserInformationService : IUserInformationService
     private readonly IDbContextFactory<DatahubProjectDBContext> _datahubContextFactory;
 
     private readonly CultureService _cultureService;
+    private readonly IDatahubCatalogSearch _datahubCatalogSearch;
 
     private ClaimsPrincipal _authenticatedUser;
 
@@ -43,7 +46,6 @@ public class UserInformationService : IUserInformationService
 
     private static User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
 
-
     private bool _isViewingAsVisitor;
 
     public UserInformationService(
@@ -52,6 +54,7 @@ public class UserInformationService : IUserInformationService
         NavigationManager navigationManager,
         IConfiguration configureOptions, ServiceAuthManager serviceAuthManager,
         GraphServiceClient graphServiceClient,
+        IDatahubCatalogSearch datahubCatalogSearch,
         IDbContextFactory<DatahubProjectDBContext> datahubContextFactory, CultureService cultureService)
     {
         _logger = logger;
@@ -62,6 +65,7 @@ public class UserInformationService : IUserInformationService
         this._graphServiceClient = graphServiceClient;
         _datahubContextFactory = datahubContextFactory;
         _cultureService = cultureService;
+        _datahubCatalogSearch = datahubCatalogSearch;
     }
 
     public async Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
@@ -470,6 +474,18 @@ public class UserInformationService : IUserInformationService
             ctx.PortalUsers.Add(portalUser);
             await ctx.SaveChangesAsync();
             _logger.LogInformation("Created new Portal User with GraphId: {GraphId}", userGraphId);
+
+            var catalogObject = new Core.Model.Catalog.CatalogObject()
+            {
+                ObjectType = Core.Model.Catalog.CatalogObjectType.User,
+                ObjectId = userGraphId,
+                Name_English = graphUser.DisplayName,
+                Name_French = graphUser.DisplayName,
+                Desc_English = graphUser.Department,
+                Desc_French = graphUser.Department
+            };
+
+            await _datahubCatalogSearch.AddCatalogObject(catalogObject);
         }
         catch (Exception e)
         {

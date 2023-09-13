@@ -11,4 +11,18 @@ public interface IProjectCreationService
     public Task<bool> CreateProjectAsync(string projectName, string organization);
     
     public Task SaveProjectCreationDetailsAsync(string projectAcronym, string interestedFeatures);
+
+    /// <summary>
+    /// This is temporary until all existing workspaces have this configured
+    /// </summary>
+    /// <param name="projectId"></param>
+    /// <returns></returns>
+    public Task CreateNewTemplateProjectResourceAsync(int projectId);
+    
+    /// <summary>
+    /// This is temporary until all existing workspaces have this configured
+    /// </summary>
+    /// <param name="projectAcronym"></param>
+    /// <returns></returns>
+    public Task CreateNewTemplateProjectResourceAsync(string projectAcronym);
 }

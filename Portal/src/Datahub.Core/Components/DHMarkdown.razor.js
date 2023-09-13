@@ -1,6 +1,6 @@
 export function styleCodeblocks(element) {
     try {
-        if (hljs && element && element.querySelectorAll) {
+        if (typeof hljs !== 'undefined' && element && element.querySelectorAll) {
             element.querySelectorAll('pre code:not(.copy-icon-added)')
                 .forEach(el => {
                     hljs.highlightElement(el);
@@ -12,7 +12,7 @@ export function styleCodeblocks(element) {
     }
 
     try {
-        if (mermaid && element && element.querySelectorAll) {
+        if (typeof mermaid !== 'undefined' && element && element.querySelectorAll) {
             mermaid.mermaidAPI.initialize({});
             element.querySelectorAll('code.language-mermaid')
                 .forEach(el => {

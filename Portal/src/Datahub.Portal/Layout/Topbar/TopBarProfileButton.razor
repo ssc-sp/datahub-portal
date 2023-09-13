@@ -14,11 +14,12 @@
     return;
 }
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+    <div class="reader-only"><p>@Localizer["Your profile"]</p></div>
     <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" FullWidth>
         <ActivatorContent>
             <MudButton Class="ml-2">
                 <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Medium"/>
-                <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
+                <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="@Size.Medium"/>
             </MudButton>
         </ActivatorContent>
         <ChildContent>
@@ -41,7 +42,7 @@
             <MudMenuItem>
                 <LanguageToggle/>
             </MudMenuItem>
-            <MudMenuItem Href="https://forms.office.com/pages/responsepage.aspx?id=lMFb0L-U1kquLh2w8uOPXhksOXzZ73RCp9fVTz4vTU5UNTc1U00yNVUxWVg4SkJGMFVHN1RCTTdQRS4u">@Localizer["Help"]</MudMenuItem>
+            <MudMenuItem Href="terms-and-conditions">@Localizer["Terms and Conditions"]</MudMenuItem>
             <MudDivider/>
             <MudMenuItem OnClick="HandleLogOut">
                 @Localizer["Sign Out"]

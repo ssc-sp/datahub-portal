@@ -234,6 +234,14 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeFormIgnore]
     [StringLength(128)]
     public string WebApp_URL { get; set; }
+    
+    [AeFormIgnore]
+    [StringLength(16)]
+    public string Version { get; set; } = TerraformWorkspace.DefaultVersion;
+
+    [AeFormIgnore]
+    [StringLength(150)]
+    public string GitRepo_URL { get; set; }
 
     [AeFormIgnore]
     [NotMapped]

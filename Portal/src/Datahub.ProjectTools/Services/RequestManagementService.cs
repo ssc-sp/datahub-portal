@@ -14,6 +14,7 @@ using Datahub.Application.Services;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Enums;
+using Datahub.Shared.Exceptions;
 
 namespace Datahub.ProjectTools.Services;
 
@@ -137,6 +138,48 @@ public class RequestManagementService : IRequestManagementService
         {
             return false;
         }
+    }
+
+    public async Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym)
+    {
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        var project = await ctx.Projects
+            .AsNoTracking()
+            .Include(p => p.Users)
+            .ThenInclude(u => u.PortalUser)
+            .Include(p => p.Resources)
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+        
+        if(project == null)
+        {
+            throw new ProjectNotFoundException($"Project {projectAcronym} not found.");
+        }
+            
+        var user = await _userInformationService.GetCurrentPortalUserAsync();
+        var users = project.Users
+            .Where(u => u.PortalUser != null)
+            .Select(u => new TerraformUser()
+            {
+                ObjectId = u.PortalUser.GraphGuid, 
+                Email = u.PortalUser.Email, 
+                Role = GetTerraformUserRole(u)
+            })
+            .ToList();
+
+        var workspace = project.ToResourceWorkspace(users);
+        var templates = project.Resources
+            .Where(r => r.ResourceType != TerraformTemplate.VariableUpdate)
+            .Select(r => r.ResourceType)
+            .Select(TerraformTemplate.GetTemplateByName)
+            .ToList();
+        
+
+        return new WorkspaceDefinition()
+        {
+            Workspace = workspace,
+            Templates = templates,
+            RequestingUserEmail = user.Email,
+        };
     }
 
     private string GetResourceInputDefinitionIdentifier(string resourceType) =>

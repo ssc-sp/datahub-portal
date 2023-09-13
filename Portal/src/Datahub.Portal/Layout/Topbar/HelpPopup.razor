@@ -4,17 +4,19 @@
 
 <span>
     <MudTooltip Text="@Localizer[TOOLTIP_TEXT]">
+        <div class="reader-only"><p>@Localizer[TOOLTIP_TEXT]</p></div>
         <MudToggleIconButton
             aria-label="Help toggle"
-            ToggledIcon="@Icons.Material.Filled.HelpCenter"
+            ToggledIcon="@Icons.Material.Filled.Help"
             ToggledChanged="@ToggleHelp"
-            Toggled="_showHelp"
-            Icon="@Icons.Material.Outlined.HelpCenter"/>
-        </MudTooltip>
+            Toggled="IsHelpPopupOpen"
+            Icon="@Icons.Material.Outlined.HelpOutline"/>
+    </MudTooltip>
 
     <MudPopover
         Style="@_style"
-        Open="@_showHelp"
+        Open="@IsHelpPopupOpen"
+        Class="overflow-scroll"
         AnchorOrigin="Origin.BottomRight"
         TransformOrigin="Origin.TopRight">
         <MudCard Elevation="0" Class="py-4 px-6">
@@ -26,43 +28,29 @@
                     @*Tooltip currently does not work here*@
                     @*issue has been reported here: https://github.com/MudBlazor/MudBlazor/issues/5542*@
                     <MudTooltip Text="@(Localizer["Close"])">
-                        <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Default" OnClick="ToggleHelp"/>
+                        <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Default" OnClick="@ToggleHelp"/>
                     </MudTooltip>
                 </CardHeaderActions>
             </MudCardHeader>
             <MudCardContent>
-                <MudStack>
-                    <MudText>@Localizer["Need a hand? We've got you covered."]</MudText>
-                    <MudText Typo="Typo.body2">@Localizer["To report an issue or request assistance please use the FSDH Support Request Form"]</MudText>
-                    <MudStack Row Justify="Justify.Center">
-                        <MudButton
-                            Class="my-4"
-                            Variant="Variant.Filled"
-                            EndIcon="@Icons.Material.Filled.Mail"
-                            Color="Color.Primary"
-                            Target="_blank"
-                            Href="@SupportFormUrl">
-                            @Localizer["Request Form"]
-                        </MudButton>
-                    </MudStack>
-                </MudStack>
+                <HelpDialog ToggleHelp="@ToggleHelp"/>
             </MudCardContent>
-            <MudCardActions>
-                <MudStack Row Justify="Justify.SpaceAround" Class="flex-grow-1">
-                    <MudButton Href="terms-and-conditions" Variant="Variant.Text" Color="Color.Primary">@Localizer["Terms and Conditions"]</MudButton>
-                </MudStack>
-            </MudCardActions>
         </MudCard>
     </MudPopover>
 </span>
 
 @code {
+
     [Parameter]
-    public string SupportFormUrl { get; set; }
-    private string _style;
+    public bool IsHelpPopupOpen { get; set; }
+
+    [Parameter]
+    public Action ToggleHelp { get; set; }
+
     private bool _showHelp;
+    private string _style;
     private string _datahubEmail;
-    private const string TOOLTIP_TEXT = "Help";
+        private const string TOOLTIP_TEXT = "Help";
 
     protected override async Task OnInitializedAsync()
     {
@@ -72,12 +60,9 @@
 
         _style = new StyleBuilder()
             .AddStyle("width", "550px")
+            .AddStyle("overflow-y", "auto")
+            .AddStyle("max-height", "800px")
             .Build();
-    }
-
-    private void ToggleHelp()
-    {
-        _showHelp = !_showHelp;
     }
 
 }
