@@ -42,7 +42,7 @@ public class TerraformService : ITerraformService
 
     public async Task CopyTemplateAsync(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
     {
-        if (template.Name is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
+        if (template.Name is TerraformTemplate.ContactUs)
         {
             return;
         }
