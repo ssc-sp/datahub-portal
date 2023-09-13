@@ -25,7 +25,6 @@ public class TerraformServiceTests
         var module = new TerraformTemplate()
         {
             Name = "azure-storage-blob",
-            Version = "latest"
         };
         
         Assert.That(Directory.Exists(moduleDestinationPath), Is.False);

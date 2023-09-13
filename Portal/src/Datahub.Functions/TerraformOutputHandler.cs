@@ -235,8 +235,14 @@ public class TerraformOutputHandler
         if (project.Project_Phase != outputPhase)
         {
             project.Project_Phase = outputPhase;
-            await _projectDbContext.SaveChangesAsync();
         }
+        
+        var workspaceVersion = outputVariables[TerraformVariables.OutputWorkspaceVersion].Value;
+        if (project.Version != workspaceVersion)
+        {
+            project.Version = workspaceVersion;
+        }
+        await _projectDbContext.SaveChangesAsync();
     }
 
     private static string GetStatusMapping(string value)

@@ -1,18 +1,40 @@
 @using MudBlazor.Utilities
-
+@using Datahub.Core.Components.Common
+<div class="reader-only">
+    <ul>
+        <li>
+            <a href="#maincontent">@Localizer["Skip to main content"]</a>
+        </li>
+        <li>
+            <a href="#header">@Localizer["Skip to header"]</a>
+        </li>
+        <li>
+            <a href="#nav">@Localizer["Skip to navigation"]</a>
+        </li>
+        <li>
+            <a href="#breadcrumb">@Localizer["Skip to breadcrumb"]</a>
+        </li>
+    </ul>
+    <h3>@Localizer["Language selection"]</h3>
+    <ul><li><a><LanguageToggle/></a></li></ul>
+</div>
+<div class="reader-only" id="header"><h3>@Localizer["Header"]</h3></div>
 <MudStack Row AlignItems="AlignItems.Center">
-    <MudImage src="_content/Datahub.Core/img/datahub-logo-v2.png" Alt="datahub logo" Height="30"/>
+    <MudImage src="_content/Datahub.Core/img/datahub-logo-v2.png" Alt="Datahub Logo" Height="30"/>
     <MudText Typo="Typo.h6" Style="@_titleStyle">
         @Localizer["MainTitle"]
     </MudText>
 </MudStack>
 
-<MudSpacer/>
-<HomeSearch />
-<MudSpacer/>
+@*<MudSpacer/>
+<HomeSearch />*@
 
-<NotificationsList/>
-<HelpPopup SupportFormUrl="@SupportFormUrl"/>
+<MudSpacer/>
+<SearchPopover />
+
+<MudSpacer />
+<NotificationsList IsNotificationsListOpen="@IsNotificationsListOpen" ToggleNotificationsList="ToggleNotificationsList" />
+<HelpPopup IsHelpPopupOpen="@IsHelpPopupOpen" ToggleHelp="ToggleHelp"/>
 <TopBarProfileButton />
 
 @code {
@@ -21,6 +43,21 @@
     public string SupportFormUrl { get; set; }
     
     private string _titleStyle;
+
+    private bool IsNotificationsListOpen { get; set; }
+    private bool IsHelpPopupOpen { get; set; }
+
+    private void ToggleNotificationsList()
+    {
+        IsNotificationsListOpen = !IsNotificationsListOpen;
+        IsHelpPopupOpen = false;
+    }
+
+    private void ToggleHelp()
+    {
+        IsNotificationsListOpen = false;
+        IsHelpPopupOpen = !IsHelpPopupOpen;
+    }
 
     protected override void OnInitialized()
     {

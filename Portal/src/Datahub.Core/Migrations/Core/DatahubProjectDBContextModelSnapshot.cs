@@ -17,7 +17,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.9")
+                .HasAnnotation("ProductVersion", "7.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -383,6 +383,43 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasIndex("UpdatedById");
 
                     b.ToTable("Announcements", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Catalog.CatalogObject", b =>
+                {
+                    b.Property<int>("ObjectType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ObjectId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Desc_English")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Desc_French")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name_English")
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<string>("Name_French")
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.HasKey("ObjectType", "ObjectId");
+
+                    b.ToTable("CatalogObjects", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Client_Engagement", b =>
@@ -1226,6 +1263,10 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<string>("GC_Docs_URL")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("GitRepo_URL")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
                     b.Property<DateTime>("Initial_Meeting_DT")
                         .HasColumnType("datetime2");
 
@@ -1317,6 +1358,10 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
+
+                    b.Property<string>("Version")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
 
                     b.Property<bool?>("WebAppEnabled")
                         .HasColumnType("bit");
