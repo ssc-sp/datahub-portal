@@ -22,15 +22,15 @@ steps:
 - task: UseDotNet@2
   inputs:
     version: 7.x
-    
-# - task: Bash@3
-#   displayName: Install .NET MAUI
-#   inputs:
-#     targetType: 'inline'
-#     script: |
-#       dotnet --version
-#       dotnet nuget locals all --clear 
-#       dotnet workload install maui wasm-tools --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
+
+- task: Bash@3
+  displayName: Install .NET MAUI
+  inputs:
+    targetType: 'inline'
+    script: |
+      dotnet --version
+      dotnet nuget locals all --clear 
+      dotnet workload install maui wasm-tools --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
 
 - task: DotNetCoreCLI@2
   displayName: dotnet restore
