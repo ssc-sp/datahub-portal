@@ -56,4 +56,4 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-        & AzureSignTool sign -kvu ${env:kv_url} -kvi $(AzureKeyVaultClientId) -kvs $(AzureKeyVaultClientSecret) -kvc $(AzureKeyVaultName) -tr http://timestamp.digicert.com -v "$(System.DefaultWorkingDirectory)\MyPipeline\MyContosoApp\MyContosoApp.msix"
+        & AzureSignTool sign -kvu ${env:kv_url} -kvc ${env:cert_name} -v "$(Build.ArtifactStagingDirectory)\*.msix"
