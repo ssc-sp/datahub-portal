@@ -30,26 +30,20 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-        dotnet --version
-        dotnet nuget locals all --clear 
-        dotnet workload install maui --source https://aka.ms/dotnet6/nuget/index.json --source https://api.nuget.org/v3/index.json
-        dotnet workload install android ios maccatalyst tvos macos maui wasm-tools wasm-tools-net6 --source https://aka.ms/dotnet6/nuget/index.json --source https://api.nuget.org/v3/index.json
-        dotnet workload list
+        & dotnet --version
+        & dotnet nuget locals all --clear
+        & dotnet workload install maui --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
+        & dotnet workload install android ios maccatalyst tvos macos maui wasm-tools maui-maccatalyst --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
+        & dotnet workload list
 
-- task: DotNetCoreCLI@2
-  displayName: dotnet restore
+# https://docs.microsoft.com/en-us/dotnet/maui/windows/deployment/overview
+- task: PowerShell@2
+  displayName: 'dotnet publish Windows MSIX'
   inputs:
-    command: restore
-    projects: "**/Desktop.Uploader.csproj"
-    workingDirectory: $(Build.SourcesDirectory)
-
-- task: DotNetCoreCLI@2
-  inputs:
-    command: publish
-    publishWebProjects: True
-    projects: "*.csproj"
-    arguments: -f net7.0-windows10.0.22621 -c Release -p:BuildIpa=True -o $(Build.ArtifactStagingDirectory)
-    workingDirectory: $(Build.SourcesDirectory)\Desktop\Desktop.Uploader
+    targetType: 'inline'
+    script: |
+      cd $(Build.SourcesDirectory)/Desktop/Desktop.Uploader
+      dotnet publish -f net7.0-windows10.0.20348 -c Release /p:AssemblyVersion=${{ version.Revisio }} -p:BuildIpa=True -o $(Build.ArtifactStagingDirectory)
     
 - task: PublishPipelineArtifact@1
   inputs:
