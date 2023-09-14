@@ -39,11 +39,6 @@ steps:
       cd $(Build.SourcesDirectory)/Desktop/Desktop.Uploader
       dotnet publish -f net7.0-windows10.0.22621 -c Release -o $(Build.ArtifactStagingDirectory)
     
-- task: PublishPipelineArtifact@1
-  inputs:
-    targetPath: '$(Build.ArtifactStagingDirectory)' 
-    artifactName: 'fsdh-desktop-uploader'
-
 - task: DotNetCoreCLI@2
   displayName: 'Install Azure SignTool'
   inputs:
@@ -56,7 +51,7 @@ steps:
   inputs:
       azureSubscription: $(az_subscription)
       KeyVaultName: $(kv_name)
-      SecretsFilter: 'devops-client-id, devops-client-secret'
+      SecretsFilter: 'devops-client-id,devops-client-secret'
       RunAsPreJob: True
 - task: PowerShell@2
   displayName: 'Sign the package'
@@ -64,3 +59,8 @@ steps:
     targetType: 'inline'
     script: |
         & AzureSignTool sign -kvu ${env:cert_kv_url} -kvc ${env:cert_name} -kvi ${env:devops-client-id} -kvs ${env:devops-client-secret} -v "$(Build.ArtifactStagingDirectory)\*.msix"
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)' 
+    artifactName: 'fsdh-desktop-uploader'
