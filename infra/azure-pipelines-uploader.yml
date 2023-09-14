@@ -37,7 +37,7 @@ steps:
     targetType: 'inline'
     script: |
       cd $(Build.SourcesDirectory)/Desktop/Desktop.Uploader
-      dotnet publish -f net7.0-windows10.0.22261 -c Release -p:BuildIpa=True -o $(Build.ArtifactStagingDirectory)
+      dotnet publish -f net7.0-windows10.0.22621 -c Release -o $(Build.ArtifactStagingDirectory)
     
 - task: PublishPipelineArtifact@1
   inputs:
