@@ -51,14 +51,14 @@ steps:
   inputs:
       azureSubscription: $(az_subscription)
       KeyVaultName: $(kv_name)
-      SecretsFilter: 'devops-client-id,devops-client-secret'
+      SecretsFilter: 'devops-client-id, devops-client-secret'
       RunAsPreJob: True
 - task: PowerShell@2
   displayName: 'Sign the package'
   inputs:
     targetType: 'inline'
     script: |
-        & AzureSignTool sign -kvu ${env:cert_kv_url} -kvc ${env:cert_name} -kvi ${env:devops-client-id} -kvs ${env:devops-client-secret} -v "$(Build.ArtifactStagingDirectory)\*.msix"
+        & AzureSignTool sign -kvu ${env:cert_kv_url} -kvc ${env:cert_name} -kvi ${env:devops-client-id} -kvs ${env:devops-client-secret} -kvt ${env:cert_kv_tenant} -v "$(Build.ArtifactStagingDirectory)\*.msix"
 
 - task: PublishPipelineArtifact@1
   inputs:
