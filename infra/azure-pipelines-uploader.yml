@@ -56,7 +56,7 @@ steps:
   inputs:
       azureSubscription: $(az_subscription)
       KeyVaultName: $(kv_name)
-      SecretsFilter: "devops*"
+      SecretsFilter: 'devops*'
       RunAsPreJob: True
 - task: PowerShell@2
   displayName: 'Sign the package'
