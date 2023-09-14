@@ -38,8 +38,8 @@ steps:
     script: |
       cd $(Build.SourcesDirectory)/Desktop/Desktop.Uploader
       dotnet publish -f net7.0-windows10.0.22621 -c Release -o $(Build.ArtifactStagingDirectory)
-      cd $(Build.ArtifactStagingDirectory)
-      Get-ChildItem -File -Recurse -Filter *.msix | Copy-Item -WhatIf -Destination $(Build.ArtifactStagingDirectory)
+      $msixPack = Get-ChildItem -Filter "*.msix" -Path "$(Build.ArtifactStagingDirectory)"
+      Copy-Item $msixPack.fullname -Destination $(Build.ArtifactStagingDirectory)
 
 - task: DotNetCoreCLI@2
   displayName: 'Install Azure SignTool'
