@@ -50,3 +50,10 @@ steps:
     command: custom
     custom: tool
     arguments: 'install --global AzureSignTool'
+
+- task: PowerShell@2
+  displayName: 'Sign the package'
+  inputs:
+    targetType: 'inline'
+    script: |
+        & AzureSignTool sign -kvu ${env:kv_url} -kvi $(AzureKeyVaultClientId) -kvs $(AzureKeyVaultClientSecret) -kvc $(AzureKeyVaultName) -tr http://timestamp.digicert.com -v "$(System.DefaultWorkingDirectory)\MyPipeline\MyContosoApp\MyContosoApp.msix"
