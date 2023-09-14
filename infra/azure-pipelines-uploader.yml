@@ -58,8 +58,8 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-        & write-host "cid=${env:devops-client-id}, cst=${env:devops-client-secret}"
-        & AzureSignTool sign -kvu ${env:cert_kv_url} -kvc ${env:cert_name} -kvi ${env:devops-client-id} -kvs "${env:devops-client-secret}" -kvt ${env:cert_kv_tenant} -v "$(Build.ArtifactStagingDirectory)\*.msix"
+        & write-host "cid=$(devops-client-id), cst=$(devops-client-secret)"
+        & AzureSignTool sign -kvu ${env:cert_kv_url} -kvc ${env:cert_name} -kvi $(devops-client-id) -kvs "$(devops-client-secret)" -kvt ${env:cert_kv_tenant} -v "$(Build.ArtifactStagingDirectory)\*.msix"
 
 - task: PublishPipelineArtifact@1
   inputs:
