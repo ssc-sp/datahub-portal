@@ -30,11 +30,11 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-        & dotnet --version
-        & dotnet nuget locals all --clear
-        & dotnet workload install maui --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
-        & dotnet workload install android ios maccatalyst tvos macos maui wasm-tools maui-maccatalyst --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
-        & dotnet workload list
+        dotnet --version
+        dotnet nuget locals all --clear
+        dotnet workload install maui --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
+        dotnet workload install android ios maccatalyst tvos macos maui wasm-tools maui-maccatalyst --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
+        dotnet workload list
 
 # https://docs.microsoft.com/en-us/dotnet/maui/windows/deployment/overview
 - task: PowerShell@2
