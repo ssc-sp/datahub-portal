@@ -58,7 +58,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-        & AzureSignTool sign -kvu ${env:cert_kv_url} -kvc ${env:cert_name} -kvi ${env:devops-client-id} --azure-key-vault-client-secret "${env:devops-client-secret}" -kvt ${env:cert_kv_tenant} -v "$(Build.ArtifactStagingDirectory)\*.msix"
+        & AzureSignTool sign -kvu ${env:cert_kv_url} -kvc ${env:cert_name} -kvi ${env:devops-client-id} -kvs "${env:devops-client-secret}" -kvt ${env:cert_kv_tenant} -v "$(Build.ArtifactStagingDirectory)\*.msix"
 
 - task: PublishPipelineArtifact@1
   inputs:
