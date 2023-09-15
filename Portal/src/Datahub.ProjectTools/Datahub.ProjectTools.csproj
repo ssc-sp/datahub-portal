@@ -9,8 +9,8 @@
 		<InternalsVisibleTo Include="Datahub.Tests" />
 	</ItemGroup>
 	<ItemGroup>
-	  <PackageReference Include="Octokit" Version="4.0.3" />
-	  <PackageReference Include="YamlDotNet" Version="12.1.0" />
+		<PackageReference Include="Octokit" Version="7.1.0" />
+		<PackageReference Include="YamlDotNet" Version="12.1.0" />
 	</ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />

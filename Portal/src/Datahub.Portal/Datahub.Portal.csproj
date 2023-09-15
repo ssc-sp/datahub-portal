@@ -70,7 +70,6 @@
     <PackageReference Include="MiniProfiler.AspNetCore.Mvc" Version="4.2.22" />
     <PackageReference Include="MiniProfiler.EntityFrameworkCore" Version="4.2.22" />
 	<PackageReference Include="MediatR" Version="11.1.0" />
-	<PackageReference Include="Octokit" Version="7.1.0" />
 	<PackageReference Include="PSC.Blazor.Components.MarkdownEditor" Version="2.0.11" />
 	<PackageReference Include="Yarp.ReverseProxy" Version="2.0.1" />  
   </ItemGroup>
