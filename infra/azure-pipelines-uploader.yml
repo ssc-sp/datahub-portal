@@ -38,7 +38,13 @@ steps:
     script: |
       cd $(Build.SourcesDirectory)/Desktop/Desktop.Uploader
       dotnet publish -f net7.0-windows10.0.22621 -c Release -o $(Build.ArtifactStagingDirectory)
-      $msixPack = Get-ChildItem -Recurse -Filter "*.msix" -Path "$(Build.ArtifactStagingDirectory)"
+
+- task: PowerShell@2
+  displayName: 'Locate and move MSIX'
+  inputs:
+    targetType: 'inline'
+    script: |
+      $msixPack = Get-ChildItem -Recurse -Include *.msix -Path "$(Build.ArtifactStagingDirectory)"
       Write-Host "Packaged MSIX File: $msixPack"
       Copy-Item $msixPack.fullname -Destination $(Build.ArtifactStagingDirectory)
 
