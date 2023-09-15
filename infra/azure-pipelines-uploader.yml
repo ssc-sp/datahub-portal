@@ -44,10 +44,11 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $msixPack = Get-ChildItem -Recurse -Include *.msix -Path "$(Build.Repository.LocalPath)/*"
+      $msixPack = Get-ChildItem -Recurse -Include Desktop.Uploader*.msix -Path "$(Build.Repository.LocalPath)/*"
       Write-Host "Packaged MSIX File: $msixPack"
       Copy-Item $msixPack -Destination $(Build.ArtifactStagingDirectory)/
-      Get-ChildItem -Recurse -Include *.msix -Path "$(Build.ArtifactStagingDirectory)/*"
+      $msixFinal= Get-ChildItem -Recurse -Include *.msix -Path "$(Build.ArtifactStagingDirectory)/*"
+      Write-Host "##vso[task.setvariable variable=MSIX_FILE;]$msixFinal"
 
 - task: DotNetCoreCLI@2
   displayName: 'Install Azure SignTool'
@@ -68,8 +69,8 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-        & write-host "cid=$(devops-client-id), cst=$(devops-client-secret)"
-        & AzureSignTool sign -kvu ${env:cert_kv_url} -kvc ${env:cert_name} -kvi $(devops-client-id) -kvs "$(devops-client-secret)" -kvt ${env:cert_kv_tenant} -v "$(Build.ArtifactStagingDirectory)\*.msix"
+        & write-host "cid=$(devops-client-id), cst=$(devops-client-secret), file=$(MSIX_FILE)"
+        & AzureSignTool sign -kvu ${env:cert_kv_url} -kvc ${env:cert_name} -kvi $(devops-client-id) -kvs "$(devops-client-secret)" -kvt ${env:cert_kv_tenant} -v "$(MSIX_FILE)"
 
 - task: PublishPipelineArtifact@1
   inputs:
