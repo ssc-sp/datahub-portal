@@ -39,7 +39,7 @@ steps:
       cd $(Build.SourcesDirectory)/Desktop/Desktop.Uploader
       dotnet publish -f net7.0-windows10.0.22621 -c Release -o $(Build.ArtifactStagingDirectory)
       $msixPack = Get-ChildItem -Recurse -Filter "*.msix" -Path "$(Build.ArtifactStagingDirectory)"
-      Write-Host "MSIX File: $msixPack"
+      Write-Host "Packaged MSIX File: $msixPack"
       Copy-Item $msixPack.fullname -Destination $(Build.ArtifactStagingDirectory)
 
 - task: DotNetCoreCLI@2
