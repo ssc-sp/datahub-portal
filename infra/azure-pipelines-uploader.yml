@@ -28,7 +28,7 @@ steps:
 
       [IO.Directory]::SetCurrentDirectory((Convert-Path (Get-Location -PSProvider FileSystem)))
       $filetxt = [IO.File]::ReadAllText(".\Platforms\Windows\Package.appxmanifest") 
-      $filetxt = $filetxt.replace("0\.0\.0\.0","$(version.Revision)")
+      $filetxt = $filetxt.replace('0.0.0.0',"$(version.Revision)")
       $filetxt
       Set-Content -Path ".\Platforms\Windows\Package.appxmanifest" -Value $filetxt
 
