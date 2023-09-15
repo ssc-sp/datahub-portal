@@ -46,7 +46,8 @@ steps:
     script: |
       $msixPack = Get-ChildItem -Recurse -Include *.msix -Path "$(Build.Repository.LocalPath)/*"
       Write-Host "Packaged MSIX File: $msixPack"
-      Copy-Item $msixPack.fullname -Destination $(Build.ArtifactStagingDirectory)/
+      Copy-Item $msixPack -Destination $(Build.ArtifactStagingDirectory)/
+      Get-ChildItem -Recurse -Include *.msix -Path "$(Build.ArtifactStagingDirectory)/*"
 
 - task: DotNetCoreCLI@2
   displayName: 'Install Azure SignTool'
