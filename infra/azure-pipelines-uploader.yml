@@ -32,7 +32,7 @@ steps:
 
 # https://docs.microsoft.com/en-us/dotnet/maui/windows/deployment/overview
 - task: PowerShell@2
-  displayName: 'dotnet publish Windows MSIX'
+  displayName: 'dotnet publish Windows MSIX to $(Build.ArtifactStagingDirectory)'
   inputs:
     targetType: 'inline'
     script: |
@@ -44,9 +44,9 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $msixPack = Get-ChildItem -Recurse -Include *.msix -Path "$(Build.ArtifactStagingDirectory)"
+      $msixPack = Get-ChildItem -Recurse -Include *.msix -Path "$(Build.ArtifactStagingDirectory)/*"
       Write-Host "Packaged MSIX File: $msixPack"
-      Copy-Item $msixPack.fullname -Destination $(Build.ArtifactStagingDirectory)
+    #   Copy-Item $msixPack.fullname -Destination $(Build.ArtifactStagingDirectory)
 
 - task: DotNetCoreCLI@2
   displayName: 'Install Azure SignTool'
