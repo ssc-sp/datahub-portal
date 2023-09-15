@@ -23,6 +23,8 @@ public static class ConfigureServices
     public static IServiceCollection AddDatahubInfrastructureServices(this IServiceCollection services,
         IConfiguration configuration)
     {
+        //services.AddMediatR(typeof(QueueMessageSender<>)); v11 mediatr code
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
         services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
         services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
         services.AddSingleton<IResourceRequestService, ResourceRequestService>();
@@ -32,7 +34,6 @@ public static class ConfigureServices
         services.AddScoped<IDatahubEmailService, DatahubEmailService>();
         services.AddScoped<IDatabricksApiService, DatabricksApiService>();
         services.AddScoped<IUsersStatusService,UsersStatusService>();
-        services.AddMediatR(typeof(QueueMessageSender<>));
         services.AddSingleton<IDatahubCatalogSearch, DatahubCatalogSearch>();
 
         if (configuration.GetValue<bool>("ReverseProxy:Enabled"))

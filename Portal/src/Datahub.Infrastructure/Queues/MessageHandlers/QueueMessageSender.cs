@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace Datahub.Infrastructure.Queues.MessageHandlers;
 
-public abstract class QueueMessageSender<T> : AsyncRequestHandler<T> where T : IRequest
+public abstract class QueueMessageSender<T> : IRequestHandler<T> where T : IRequest
 {
     protected readonly IConfiguration _configuration;
 
@@ -15,7 +15,7 @@ public abstract class QueueMessageSender<T> : AsyncRequestHandler<T> where T : I
         _configuration = configuration;
     }
 
-    protected override async Task Handle(T request, CancellationToken cancellationToken)
+    public async Task Handle(T request, CancellationToken cancellationToken)
     {
         var storageConnectionString = _configuration["DatahubStorageConnectionString"] ?? _configuration["DatahubStorageQueue:ConnectionString"];
         var queueName = _configuration[ConfigPathOrQueueName] ?? ConfigPathOrQueueName;
@@ -37,6 +37,7 @@ public abstract class QueueMessageSender<T> : AsyncRequestHandler<T> where T : I
     protected abstract string ConfigPathOrQueueName { get; }
 
     static string EncodeBase64(string value) => Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+
 }
 
 public interface IMessageTimeout
