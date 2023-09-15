@@ -44,7 +44,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $msixPack = Get-ChildItem -Recurse -Include *.msix -Path "$(Build.ArtifactStagingDirectory)/*"
+      $msixPack = Get-ChildItem -Recurse -Include *.msix -Path "$(Build.Repository.LocalPath)/*"
       Write-Host "Packaged MSIX File: $msixPack"
     #   Copy-Item $msixPack.fullname -Destination $(Build.ArtifactStagingDirectory)
 
