@@ -33,7 +33,7 @@ var host = new HostBuilder()
             services.AddDbContextPool<DatahubProjectDBContext>(options => options.UseSqlServer(connectionString));
         }
 
-        services.AddMediatR(typeof(QueueMessageSender<>));
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
 
         services.AddHttpClient(AzureManagementService.ClientName).AddPolicyHandler(
             Policy<HttpResponseMessage>

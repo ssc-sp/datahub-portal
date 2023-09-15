@@ -4,10 +4,10 @@
 		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	  <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 	</PropertyGroup>
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -40,6 +40,8 @@
 		<PackageReference Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
 		<PackageReference Include="MailKit" Version="3.4.2" />
 		<PackageReference Include="Markdig" Version="0.30.4" />
+
+		
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
 		<PackageReference Include="Microsoft.ApplicationInsights.PerfCounterCollector" Version="2.21.0" />
 		<PackageReference Include="Microsoft.AspNetCore.ApplicationInsights.HostingStartup" Version="2.2.0" />
@@ -66,6 +68,8 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.21.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="7.0.*" />
 		<PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
+		<PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.*" />
+
 		<PackageReference Include="RulesEngine" Version="4.0.0" />
 	</ItemGroup>
 	<ItemGroup>
@@ -92,18 +96,18 @@
 		<GitHookFiles Include="../.githooks/*.*" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Compile Remove="Services\AzureCosting\**" />
-	  <Content Remove="Services\AzureCosting\**" />
-	  <EmbeddedResource Remove="Services\AzureCosting\**" />
-	  <GitHookFiles Remove="Services\AzureCosting\**" />
-	  <None Remove="Services\AzureCosting\**" />
+		<Compile Remove="Services\AzureCosting\**" />
+		<Content Remove="Services\AzureCosting\**" />
+		<EmbeddedResource Remove="Services\AzureCosting\**" />
+		<GitHookFiles Remove="Services\AzureCosting\**" />
+		<None Remove="Services\AzureCosting\**" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Content Remove="Services\DialogModalFrame.razor" />
+		<Content Remove="Services\DialogModalFrame.razor" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
-	  <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
+		<ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
+		<ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
 	</ItemGroup>
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
@@ -111,33 +115,33 @@
 	</Target>
 
 	<ItemGroup>
-	  <UpToDateCheckInput Remove="Services\DialogModalFrame.razor" />
+		<UpToDateCheckInput Remove="Services\DialogModalFrame.razor" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <_ContentIncludedByDefault Remove="Services\DialogModalFrame.razor" />
-	  <_ContentIncludedByDefault Remove="Components\TabControl\TabControl.razor" />
-	  <_ContentIncludedByDefault Remove="Components\TabControl\TabPage.razor" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-brands-400.ttf" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-brands-400.woff2" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-duotone-900.ttf" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-duotone-900.woff2" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-light-300.ttf" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-light-300.woff2" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-regular-400.ttf" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-regular-400.woff2" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-sharp-solid-900.ttf" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-sharp-solid-900.woff2" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-solid-900.ttf" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-solid-900.woff2" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-thin-100.ttf" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-thin-100.woff2" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.ttf" />
-	  <_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.woff2" />
+		<_ContentIncludedByDefault Remove="Services\DialogModalFrame.razor" />
+		<_ContentIncludedByDefault Remove="Components\TabControl\TabControl.razor" />
+		<_ContentIncludedByDefault Remove="Components\TabControl\TabPage.razor" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-brands-400.ttf" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-brands-400.woff2" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-duotone-900.ttf" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-duotone-900.woff2" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-light-300.ttf" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-light-300.woff2" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-regular-400.ttf" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-regular-400.woff2" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-sharp-solid-900.ttf" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-sharp-solid-900.woff2" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-solid-900.ttf" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-solid-900.woff2" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-thin-100.ttf" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-thin-100.woff2" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.ttf" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.woff2" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <AdditionalFiles Include="Components\AuthViews\DatahubAuthView.razor" />
+		<AdditionalFiles Include="Components\AuthViews\DatahubAuthView.razor" />
 	</ItemGroup>
 
 	<Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
