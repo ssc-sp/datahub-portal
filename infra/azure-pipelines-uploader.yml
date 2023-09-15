@@ -10,7 +10,7 @@ variables:
   target_os: win-x64
   version.MajorMinor: 2.0
   version.Revision: $[counter(variables['version.MajorMinor'], 0)]
-  system.debug: true.
+  system.debug: False
 
 pool:
   vmImage: windows-latest
@@ -24,34 +24,54 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      dotnet --version
-      dotnet nuget locals all --clear 
-      dotnet workload install maui wasm-tools --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
+        dotnet --version
+        dotnet nuget locals all --clear
+        dotnet workload install maui --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
+        dotnet workload install android ios maccatalyst tvos macos maui wasm-tools maui-maccatalyst --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
+        dotnet workload list
+
+# https://docs.microsoft.com/en-us/dotnet/maui/windows/deployment/overview
+- task: PowerShell@2
+  displayName: 'dotnet publish Windows MSIX to $(Build.ArtifactStagingDirectory)'
+  inputs:
+    targetType: 'inline'
+    script: |
+      cd $(Build.SourcesDirectory)/Desktop/Desktop.Uploader
+      dotnet publish -f net7.0-windows10.0.22621 -c Release -o $(Build.ArtifactStagingDirectory)
+
+- task: PowerShell@2
+  displayName: 'Locate and move MSIX'
+  inputs:
+    targetType: 'inline'
+    script: |
+      $msixPack = Get-ChildItem -Recurse -Include Desktop.Uploader*.msix -Path "$(Build.Repository.LocalPath)/*"
+      Write-Host "Packaged MSIX File: $msixPack"
+      Copy-Item $msixPack -Destination $(Build.ArtifactStagingDirectory)/
+      $msixFinal= Get-ChildItem -Recurse -Include *.msix -Path "$(Build.ArtifactStagingDirectory)/*"
+      Write-Host "##vso[task.setvariable variable=MSIX_FILE;]$msixFinal"
 
 - task: DotNetCoreCLI@2
-  displayName: dotnet restore
+  displayName: 'Install Azure SignTool'
   inputs:
-    command: restore
-    projects: "**/Desktop.Uploader.csproj"
-    workingDirectory: $(Build.SourcesDirectory)
+    command: custom
+    custom: tool
+    arguments: 'install --global AzureSignTool'
 
-- task: DotNetCoreCLI@2
-  displayName: dotnet build
+- task: AzureKeyVault@2
+  displayName: "Get devops client ID and secret"
   inputs:
-    command: build
-    majorVersion: 7
-    projects: Desktop\Desktop.Uploader\*.csproj
-    arguments: --configuration $(BuildConfiguration)
-    workingDirectory: $(Build.SourcesDirectory)
+      azureSubscription: $(az_subscription)
+      KeyVaultName: $(kv_name)
+      SecretsFilter: 'devops-client-id, devops-client-secret'
+      RunAsPreJob: True
+- task: PowerShell@2
+  displayName: 'Sign the package'
+  inputs:
+    targetType: 'inline'
+    script: |
+        & write-host "cid=$(devops-client-id), cst=$(devops-client-secret), file=$(MSIX_FILE)"
+        & AzureSignTool sign -kvu ${env:cert_kv_url} -kvc ${env:cert_name} -kvi $(devops-client-id) -kvs "$(devops-client-secret)" -kvt ${env:cert_kv_tenant} -v "$(MSIX_FILE)"
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: publish
-    publishWebProjects: True
-    projects: Desktop\Desktop.Uploader\Desktop.Uploader.csproj
-    arguments: --output $(Build.ArtifactStagingDirectory) -r $(target_os) --self-contained true
-    zipAfterPublish: True
-    
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)' 
