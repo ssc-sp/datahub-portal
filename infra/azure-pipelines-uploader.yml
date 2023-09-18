@@ -91,20 +91,3 @@ steps:
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)' 
     artifactName: 'fsdh-desktop-uploader'
-
-- task: PowerShell@2
-  displayName: 'Create Github tag'
-  inputs:
-    targetType: 'inline'
-    script: |
-      git tag $(releaseTag)
-      git push origin $(releaseTag)
-- task: GitHubRelease@1
-  displayName: 'Upload to Github Release'
-  inputs:
-    gitHubConnection: "github-ssc-sp"
-    repositoryName: '$(Build.Repository.Name)'
-    tagSource: gitTag
-    tagPattern: uploader-v1-*
-    assets: '$(Build.ArtifactStagingDirectory)/*.msix'
-    isPreRelease: true
