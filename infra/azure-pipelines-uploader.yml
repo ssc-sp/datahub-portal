@@ -23,7 +23,6 @@ jobs:
   - script: |
         echo FSDH - Building Desktop Uploader
         echo "System token: $(System.AccessToken)"
-        displayName: 'FSDH - Building Desktop Uploader'
 
   - task: PowerShell@2
     displayName: 'Modify manifest'
