@@ -89,3 +89,11 @@ steps:
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)' 
     artifactName: 'fsdh-desktop-uploader'
+
+
+- task: GitHubRelease@1
+  displayName: 'Upload to Github Release'
+  inputs:
+    gitHubConnection: "github-ssc-sp"
+    repositoryName: '$(Build.Repository.Name)'
+    assets: '$(Build.ArtifactStagingDirectory)/*.msix'
