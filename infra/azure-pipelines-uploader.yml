@@ -24,6 +24,11 @@ jobs:
         echo FSDH - Building Desktop Uploader
         echo "System token: $(System.AccessToken)"
 
+  - checkout: self
+    clean: true
+    lfs: true
+    fetchTags: false
+    persistCredentials: True
   - task: PowerShell@2
     displayName: 'Modify manifest'
     inputs:
@@ -96,19 +101,6 @@ jobs:
         targetPath: '$(Build.ArtifactStagingDirectory)' 
         artifactName: 'fsdh-desktop-uploader'
 
-
-- job: job_tag_github
-  displayName: Agent job - post-build
-  dependsOn:
-  - job_package_msix
-  pool:
-    vmImage: ubuntu-latest
-  steps:
-  - checkout: self
-    clean: true
-    lfs: true
-    fetchTags: false
-    persistCredentials: True
   - task: PowerShell@2
     displayName: 'Create Github tag'
     env:
@@ -119,7 +111,14 @@ jobs:
             git config --global user.name "AzureDevOps Agent"
             git tag $(releaseTag) --force
             git push origin $(releaseTag) --force
-  
+
+- job: job_github_release
+  displayName: Agent job - post-build
+  dependsOn:
+  - job_package_msix
+  pool:
+    vmImage: ubuntu-latest
+  steps:  
   - task: GitHubRelease@1
     displayName: 'Upload to Github Release'
     inputs:
