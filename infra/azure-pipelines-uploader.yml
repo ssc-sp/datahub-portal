@@ -111,6 +111,7 @@ jobs:
             git config --global user.name "AzureDevOps Agent"
             git tag $(releaseTag) --force
             git push origin $(releaseTag) --force
+            Get-ChildItem $(Build.ArtifactStagingDirectory)/*.msix
 
   - task: GitHubRelease@1
     displayName: 'Upload to Github Release'
@@ -118,6 +119,6 @@ jobs:
         gitHubConnection: "github-ssc-sp"
         repositoryName: '$(Build.Repository.Name)'
         tagSource: gitTag
-        tagPattern: fsdh-uploader-r2-*
+        tagPattern: '$(releaseTag)'
         assets: '$(Build.ArtifactStagingDirectory)/*.msix'
         isPreRelease: true
