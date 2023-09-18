@@ -34,9 +34,9 @@ public class ModuleRepositoryConfiguration
     public string Url { get; set; }
     public string LocalPath { get; set; }
     public string TemplatePathPrefix { get; set; }
-    public string ModulePathPrefix { get; set; }
+    public string ModulePathPrefix { get; set; } = "modules/";
 
-    public string Branch { get; set; } = DefaultBranch;
+    public string Branch { get; set; } = "versioning";
 }
 
 public class ResourceProvisionerConfiguration

@@ -78,7 +78,7 @@ public class AzureStorageBlobTemplateTests
             var sourceFileContent = await File.ReadAllTextAsync(file);
             var expectedContent = sourceFileContent
                 .Replace(TerraformService.TerraformVersionToken, workspace.Version)
-                .Replace(TerraformService.TerraformBranchToken, string.Empty);
+                .Replace(TerraformService.TerraformBranchToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}");
             
             var destinationFileContent =
                 await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));

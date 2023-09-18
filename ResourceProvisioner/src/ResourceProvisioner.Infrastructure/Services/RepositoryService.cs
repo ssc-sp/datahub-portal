@@ -44,7 +44,8 @@ public class RepositoryService : IRepositoryService
         _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
         await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym!);
 
-        _logger.LogInformation("Executing resource runs for user {User}", user);
+        _logger.LogInformation("Executing the following resource runs in workspace {WorkspaceAcronym} for user {User}: [{ResourceRuns}]",
+            command.Workspace.Acronym, user, string.Join(", ", command.Templates.Select(x => x.Name)));
         var repositoryUpdateEvents =
             await ExecuteResourceRuns(command.Templates, command.Workspace, user);
 
