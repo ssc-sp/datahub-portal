@@ -28,7 +28,6 @@
 
 	<PropertyGroup>
 	  <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net7.0-windows10.0.18362.0</TargetFrameworks>
-	  <TargetFrameworks />
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -50,7 +49,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Azure.Storage.Blobs" Version="12.16.0" />
+		<PackageReference Include="Azure.Storage.Blobs" Version="12.*.*" />
 		<PackageReference Include="Foundatio.AzureStorage" Version="10.6.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.*" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.*" />
