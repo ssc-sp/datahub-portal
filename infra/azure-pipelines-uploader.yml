@@ -11,7 +11,7 @@ variables:
   version.MajorMinor: 2.0
   version.Revision: $[counter(variables['version.MajorMinor'], 0)]
   releaseVersion: $(version.MajorMinor).$(version.Revision).0
-  releaseTag: uploader-$(releaseVersion)
+  releaseTag: fsdh-uploader-r2-$(releaseVersion)
   system.debug: False
 
 jobs:
@@ -112,19 +112,12 @@ jobs:
             git tag $(releaseTag) --force
             git push origin $(releaseTag) --force
 
-- job: job_github_release
-  displayName: Agent job - post-build
-  dependsOn:
-  - job_package_msix
-  pool:
-    vmImage: ubuntu-latest
-  steps:  
   - task: GitHubRelease@1
     displayName: 'Upload to Github Release'
     inputs:
         gitHubConnection: "github-ssc-sp"
         repositoryName: '$(Build.Repository.Name)'
         tagSource: gitTag
-        tagPattern: uploader-v1-*
+        tagPattern: fsdh-uploader-r2-*
         assets: '$(Build.ArtifactStagingDirectory)/*.msix'
         isPreRelease: true
