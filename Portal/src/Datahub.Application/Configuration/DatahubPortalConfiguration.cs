@@ -81,10 +81,10 @@ public class TermsAndConditionsUrl
 public class PreRegistrationDocumentationUrl
 {
     public string En { get; set; } =
-        "https://raw.githubusercontent.com/ssc-sp/datahub-docs/main/UserGuide/Preregistration.md";
+        "/UserGuide/Preregistration/Preregistration.md";
 
     public string Fr { get; set; } =
-        "https://raw.githubusercontent.com/ssc-sp/datahub-docs/main/fr/UserGuide/Préinscription.md";
+        "/fr/UserGuide/Préinscription/Préinscription.md";
 }
 
 public class CultureSettings

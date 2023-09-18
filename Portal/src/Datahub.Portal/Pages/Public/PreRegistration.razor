@@ -1,11 +1,8 @@
 @using Datahub.Core.Components.Common
 
-@inject CultureService _cultureService
-@inject ILogger<TermsAndConditionsPage> _logger
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
-@inject IHttpClientFactory _httpClientFactory
 
-@page "/self-service"
+@page "/preregistration"
 
 <MudButton Style="position: absolute; top: 2rem; right:  2rem;" Variant="Variant.Filled" Color="Color.Primary">
     <LanguageToggle />
@@ -16,41 +13,14 @@
     <MudText Typo="Typo.h1" Class="mb-8" Align="Align.Center">
         @Localizer["Registration and Login"]
     </MudText>
-    <DHMarkdown Content="@_markdownContent" LinkRewriter="@RewriteLink"/>
+    <EmbeddedWiki PageNameEn="@_datahubPortalConfiguration.PreRegistrationDocumentationUrl.En"
+                      PageNameFr="@_datahubPortalConfiguration.PreRegistrationDocumentationUrl.Fr"
+                      Substitutions="_substitutions"/>
 </MudContainer>
 
 
 @code {
-    
-    private string _markdownContent = string.Empty;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        
-        _markdownContent = await GetPreregistrationMarkdownContent();
-    }
-
-    private async Task<string> GetPreregistrationMarkdownContent()
-    {
-
-        var fullUrl = _cultureService.IsEnglish ? _datahubPortalConfiguration.PreRegistrationDocumentationUrl.En : _datahubPortalConfiguration.PreRegistrationDocumentationUrl.Fr;
-
-        var client = _httpClientFactory.CreateClient();
-        try
-        {
-            var output = await client.GetStringAsync(fullUrl);
-            return Core.Services.Docs.MarkdownHelper.RemoveFrontMatter(output);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Cannot load pre-registration from documentation website", fullUrl);
-            return null;
-        }
-    }
-    
-    private static string RewriteLink(string link)
-    {
-        return link;
-    }
+    private readonly List<(string, string)> _substitutions = new();
+ 
 }
