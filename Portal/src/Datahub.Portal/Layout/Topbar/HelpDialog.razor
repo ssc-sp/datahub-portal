@@ -83,6 +83,11 @@
             <MudRadio Option="2" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["French"]</MudRadio>
         </MudRadioGroup>
     }
+    else if (_currentStep == Steps.Submit)
+    {
+        <MudText Typo="@Typo.body2" Class="py-3">@Localizer["Click Submit to submit this issue to the DataHub team."]</MudText>
+        <MudText Typo="@Typo.body2" Class="py-3">@Localizer["You can make additional changes to your support request using the Previous button."]</MudText>
+    }
     <MudGrid>
         <MudItem xs="6" Align="Align.Start" Class="py-6">
             @if (_currentStep == Steps.Start)
@@ -213,7 +218,7 @@
         {
             org = email.Split("@")[1].Split('.')[0];
         }
-        catch (Exception e)
+        catch
         {
             org = "unknown";
         }
@@ -230,7 +235,7 @@
             _ticketName = _viewedUser.DisplayName;
             _ticketEmail = _viewedUser.Email;
             _ticketOrg = GetOrg(_ticketEmail);
-            _ticketPortalLanguage = _viewedUser.Language;
+            _ticketPortalLanguage = await _userInformationService.GetUserLanguage();
 
     // Retrieve the list of workspaces
             await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
@@ -274,7 +279,6 @@
 
     public async Task CreateIssue(string title, string description, string topics, string organization, string project, string personalAccessToken, string name, string email, string workspaces, string orgname, string languagePref, string timezone)
     {
-        title = "TEST ISSUE " + title;
         var url = devOpsUrl.Replace("{organization}", organization).Replace("{project}", project).Replace("{workItemTypeName}", "Issue");
 
     // Content of the issue. Possible additions: New tags (topics?), AssignedTo, State, Reason.
