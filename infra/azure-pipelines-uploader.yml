@@ -16,7 +16,7 @@ variables:
 
 jobs:
 - job: job_package_msix
-  displayName: 'Agent job: prepare'
+  displayName: 'Agent job: MSIX Package'
   pool:
     vmImage: windows-latest
   steps:
