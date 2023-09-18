@@ -180,5 +180,7 @@
   "English": "Anglais",
   "French": "Français",
   "Success": "Succès",
-  "Your support ticket has been created. Thank you!": "Votre ticket d'assistance a été créé. Merci!"
+  "Your support ticket has been created. Thank you!": "Votre ticket d'assistance a été créé. Merci!",
+  "Click Submit to submit this issue to the DataHub team.": "Cliquez sur Soumettre pour soumettre ce problème à l'équipe DataHub.",
+  "You can make additional changes to your support request using the Previous button.": "Vous pouvez modifier votre demande d'assistance en cliquant sur le bouton Précédent"
 }
