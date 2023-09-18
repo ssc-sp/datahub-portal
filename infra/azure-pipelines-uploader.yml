@@ -10,6 +10,8 @@ variables:
   target_os: win-x64
   version.MajorMinor: 2.0
   version.Revision: $[counter(variables['version.MajorMinor'], 0)]
+  releaseVersion: $(version.MajorMinor).$(version.Revision).0
+  releaseTag: uploader-$(releaseVersion)
   system.debug: False
 
 pool:
@@ -28,7 +30,7 @@ steps:
 
       [IO.Directory]::SetCurrentDirectory((Convert-Path (Get-Location -PSProvider FileSystem)))
       $filetxt = [IO.File]::ReadAllText(".\Platforms\Windows\Package.appxmanifest") 
-      $filetxt = $filetxt.replace('0.0.0.0',"$(version.MajorMinor).$(version.Revision).0")
+      $filetxt = $filetxt.replace('0.0.0.0',"$(releaseVersion)")
       $filetxt
       Set-Content -Path ".\Platforms\Windows\Package.appxmanifest" -Value $filetxt
 
@@ -90,10 +92,19 @@ steps:
     targetPath: '$(Build.ArtifactStagingDirectory)' 
     artifactName: 'fsdh-desktop-uploader'
 
-
+- task: PowerShell@2
+  displayName: 'Create Github tag'
+  inputs:
+    targetType: 'inline'
+    script: |
+      git tag $(releaseTag)
+      git push origin $(releaseTag)
 - task: GitHubRelease@1
   displayName: 'Upload to Github Release'
   inputs:
     gitHubConnection: "github-ssc-sp"
     repositoryName: '$(Build.Repository.Name)'
+    tagSource: gitTag
+    tagPattern: uploader-v1-*
     assets: '$(Build.ArtifactStagingDirectory)/*.msix'
+    isPreRelease: true
