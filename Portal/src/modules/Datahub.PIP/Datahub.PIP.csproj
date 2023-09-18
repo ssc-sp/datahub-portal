@@ -18,12 +18,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<SupportedPlatform Include="browser" />
+		<SupportedPlatform Include="browser"></SupportedPlatform>
 	</ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
-	</ItemGroup>
+	
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Datahub.Core\Datahub.Core.csproj" />

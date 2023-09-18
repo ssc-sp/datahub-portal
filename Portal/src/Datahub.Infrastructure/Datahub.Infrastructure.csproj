@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
@@ -9,7 +9,7 @@
     <ItemGroup>
       <PackageReference Include="MediatR" Version="12.1.*" />
 	  <!--<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.*" />-->
-	  <PackageReference Include="Azure.Storage.Common" Version="12.13.*" />
+	  
 	  <PackageReference Include="Azure.Storage.Queues" Version="12.12.*" />		
 	</ItemGroup>
 
