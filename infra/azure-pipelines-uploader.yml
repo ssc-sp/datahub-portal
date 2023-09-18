@@ -14,102 +14,119 @@ variables:
   releaseTag: uploader-$(releaseVersion)
   system.debug: False
 
-pool:
-  vmImage: windows-latest
+jobs:
+- job: job_package_msix
+  displayName: 'Agent job: prepare'
+  pool:
+    vmImage: windows-latest
+  steps:
+  - script: |
+        echo FSDH - Building Desktop Uploader
+        echo "System token: $(System.AccessToken)"
+        displayName: 'FSDH - Building Desktop Uploader'
 
-steps:
-- script: |
-    echo FSDH - Building Desktop Uploader
-    echo "System token: $(System.AccessToken)"
-  displayName: 'FSDH - Building Desktop Uploader'
+  - task: PowerShell@2
+    displayName: 'Modify manifest'
+    inputs:
+        targetType: 'inline'
+        script: |
+            cd Desktop/Desktop.Uploader
 
-- task: PowerShell@2
-  displayName: 'Modify manifest'
-  inputs:
-    targetType: 'inline'
-    script: |
-      cd Desktop/Desktop.Uploader
+            [IO.Directory]::SetCurrentDirectory((Convert-Path (Get-Location -PSProvider FileSystem)))
+            $filetxt = [IO.File]::ReadAllText(".\Platforms\Windows\Package.appxmanifest") 
+            $filetxt = $filetxt.replace('0.0.0.0',"$(releaseVersion)")
+            $filetxt
+            Set-Content -Path ".\Platforms\Windows\Package.appxmanifest" -Value $filetxt
 
-      [IO.Directory]::SetCurrentDirectory((Convert-Path (Get-Location -PSProvider FileSystem)))
-      $filetxt = [IO.File]::ReadAllText(".\Platforms\Windows\Package.appxmanifest") 
-      $filetxt = $filetxt.replace('0.0.0.0',"$(releaseVersion)")
-      $filetxt
-      Set-Content -Path ".\Platforms\Windows\Package.appxmanifest" -Value $filetxt
+  - task: Bash@3
+    displayName: Install .NET MAUI
+    inputs:
+        targetType: 'inline'
+        script: |
+            dotnet --version
+            dotnet nuget locals all --clear
+            dotnet workload install maui --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
+            dotnet workload install android ios maccatalyst tvos macos maui wasm-tools maui-maccatalyst --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
+            dotnet workload list
 
-- task: Bash@3
-  displayName: Install .NET MAUI
-  inputs:
-    targetType: 'inline'
-    script: |
-        dotnet --version
-        dotnet nuget locals all --clear
-        dotnet workload install maui --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
-        dotnet workload install android ios maccatalyst tvos macos maui wasm-tools maui-maccatalyst --source https://aka.ms/dotnet7/nuget/index.json --source https://api.nuget.org/v3/index.json
-        dotnet workload list
+    # https://docs.microsoft.com/en-us/dotnet/maui/windows/deployment/overview
+  - task: PowerShell@2
+    displayName: 'dotnet publish Windows MSIX to $(Build.ArtifactStagingDirectory)'
+    inputs:
+        targetType: 'inline'
+        script: |
+            cd $(Build.SourcesDirectory)/Desktop/Desktop.Uploader
+            dotnet publish -f net7.0-windows10.0.22621 -c Release -o $(Build.ArtifactStagingDirectory)
 
-# https://docs.microsoft.com/en-us/dotnet/maui/windows/deployment/overview
-- task: PowerShell@2
-  displayName: 'dotnet publish Windows MSIX to $(Build.ArtifactStagingDirectory)'
-  inputs:
-    targetType: 'inline'
-    script: |
-      cd $(Build.SourcesDirectory)/Desktop/Desktop.Uploader
-      dotnet publish -f net7.0-windows10.0.22621 -c Release -o $(Build.ArtifactStagingDirectory)
+  - task: PowerShell@2
+    displayName: 'Locate and move MSIX'
+    inputs:
+        targetType: 'inline'
+        script: |
+            $msixPack = Get-ChildItem -Recurse -Include Desktop.Uploader*.msix -Path "$(Build.Repository.LocalPath)/*"
+            Write-Host "Packaged MSIX File: $msixPack"
+            Copy-Item $msixPack -Destination $(Build.ArtifactStagingDirectory)/
+            $msixFinal= Get-ChildItem -Recurse -Include *.msix -Path "$(Build.ArtifactStagingDirectory)/*"
+            Write-Host "##vso[task.setvariable variable=MSIX_FILE;]$msixFinal"
 
-- task: PowerShell@2
-  displayName: 'Locate and move MSIX'
-  inputs:
-    targetType: 'inline'
-    script: |
-      $msixPack = Get-ChildItem -Recurse -Include Desktop.Uploader*.msix -Path "$(Build.Repository.LocalPath)/*"
-      Write-Host "Packaged MSIX File: $msixPack"
-      Copy-Item $msixPack -Destination $(Build.ArtifactStagingDirectory)/
-      $msixFinal= Get-ChildItem -Recurse -Include *.msix -Path "$(Build.ArtifactStagingDirectory)/*"
-      Write-Host "##vso[task.setvariable variable=MSIX_FILE;]$msixFinal"
+  - task: DotNetCoreCLI@2
+    displayName: 'Install Azure SignTool'
+    inputs:
+        command: custom
+        custom: tool
+        arguments: 'install --global AzureSignTool'
 
-- task: DotNetCoreCLI@2
-  displayName: 'Install Azure SignTool'
-  inputs:
-    command: custom
-    custom: tool
-    arguments: 'install --global AzureSignTool'
+  - task: AzureKeyVault@2
+    displayName: "Get devops client ID and secret"
+    inputs:
+        azureSubscription: $(az_subscription)
+        KeyVaultName: $(kv_name)
+        SecretsFilter: 'devops-client-id, devops-client-secret'
+        RunAsPreJob: True
+  
+  - task: PowerShell@2
+    displayName: 'Sign the package'
+    inputs:
+        targetType: 'inline'
+        script: |
+            & write-host "cid=$(devops-client-id), cst=$(devops-client-secret), file=$(MSIX_FILE)"
+            & AzureSignTool sign -kvu ${env:cert_kv_url} -kvc ${env:cert_name} -kvi $(devops-client-id) -kvs "$(devops-client-secret)" -kvt ${env:cert_kv_tenant} -v "$(MSIX_FILE)"
 
-- task: AzureKeyVault@2
-  displayName: "Get devops client ID and secret"
-  inputs:
-      azureSubscription: $(az_subscription)
-      KeyVaultName: $(kv_name)
-      SecretsFilter: 'devops-client-id, devops-client-secret'
-      RunAsPreJob: True
-- task: PowerShell@2
-  displayName: 'Sign the package'
-  inputs:
-    targetType: 'inline'
-    script: |
-        & write-host "cid=$(devops-client-id), cst=$(devops-client-secret), file=$(MSIX_FILE)"
-        & AzureSignTool sign -kvu ${env:cert_kv_url} -kvc ${env:cert_name} -kvi $(devops-client-id) -kvs "$(devops-client-secret)" -kvt ${env:cert_kv_tenant} -v "$(MSIX_FILE)"
+  - task: PublishPipelineArtifact@1
+    inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)' 
+        artifactName: 'fsdh-desktop-uploader'
 
-- task: PublishPipelineArtifact@1
-  inputs:
-    targetPath: '$(Build.ArtifactStagingDirectory)' 
-    artifactName: 'fsdh-desktop-uploader'
 
-- task: PowerShell@2
-  displayName: 'Create Github tag'
-  env:
-    MY_ACCESS_TOKEN: $(System.AccessToken)
-  inputs:
-    targetType: 'inline'
-    script: |
-        git config --global user.name "AzureDevOps Agent"
-        git tag $(releaseTag) --force
-        git push origin $(releaseTag) --force
-- task: GitHubRelease@1
-  displayName: 'Upload to Github Release'
-  inputs:
-    gitHubConnection: "github-ssc-sp"
-    repositoryName: '$(Build.Repository.Name)'
-    tagSource: gitTag
-    tagPattern: uploader-v1-*
-    assets: '$(Build.ArtifactStagingDirectory)/*.msix'
-    isPreRelease: true
+- job: job_tag_github
+  displayName: Agent job - post-build
+  dependsOn:
+  - job_package_msix
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+    clean: true
+    lfs: true
+    fetchTags: false
+    persistCredentials: True
+  - task: PowerShell@2
+    displayName: 'Create Github tag'
+    env:
+        MY_ACCESS_TOKEN: $(System.AccessToken)
+    inputs:
+        targetType: 'inline'
+        script: |
+            git config --global user.name "AzureDevOps Agent"
+            git tag $(releaseTag) --force
+            git push origin $(releaseTag) --force
+  
+  - task: GitHubRelease@1
+    displayName: 'Upload to Github Release'
+    inputs:
+        gitHubConnection: "github-ssc-sp"
+        repositoryName: '$(Build.Repository.Name)'
+        tagSource: gitTag
+        tagPattern: uploader-v1-*
+        assets: '$(Build.ArtifactStagingDirectory)/*.msix'
+        isPreRelease: true
