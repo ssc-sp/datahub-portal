@@ -15,7 +15,7 @@ using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 
 namespace Datahub.Infrastructure.Services;
 

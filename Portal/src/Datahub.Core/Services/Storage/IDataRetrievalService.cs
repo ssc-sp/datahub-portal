@@ -5,6 +5,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
 using Datahub.Core.Data;
 using Microsoft.Graph;
+using Microsoft.Graph.Models;
 
 namespace Datahub.Core.Services.Storage;
 

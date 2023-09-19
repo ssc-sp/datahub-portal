@@ -12,6 +12,7 @@ using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
+using Microsoft.Graph.Models;
 using System.Security.Claims;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
@@ -20,6 +21,7 @@ using UserSettings = Datahub.Core.Model.UserTracking.UserSettings;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Model.Catalog;
+using Azure.Identity;
 
 namespace Datahub.Core.Services.UserManagement;
 
@@ -154,7 +156,7 @@ public class UserInformationService : IUserInformationService
             }
 
             PrepareAuthenticatedClient();
-            _currentUser = await _graphServiceClient.Users[userId].Request().GetAsync();
+            _currentUser = await _graphServiceClient.Users[userId].GetAsync();
         }
         catch (ServiceException e)
         {
@@ -225,13 +227,18 @@ public class UserInformationService : IUserInformationService
         //if (graphServiceClient != null) return;
         try
         {
-            IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
-                .Create(_configuration.GetSection("AzureAd").GetValue<string>("ClientId"))
-                .WithTenantId(_configuration.GetSection("AzureAd").GetValue<string>("TenantId"))
-                .WithClientSecret(_configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"))
-                .Build();
-            ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
-            _graphServiceClient = new GraphServiceClient(authProvider);
+
+            //see https://learn.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=csharp
+            // using Azure.Identity;
+            var options = new ClientSecretCredentialOptions
+            {
+                AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
+            };
+            var clientCertCredential = new ClientSecretCredential(
+                _configuration.GetSection("AzureAd").GetValue<string>("TenantId"),
+                _configuration.GetSection("AzureAd").GetValue<string>("ClientId"),
+                _configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"), options);
+            _graphServiceClient = new(clientCertCredential);
         }
         catch (Exception e)
         {
@@ -371,7 +378,7 @@ public class UserInformationService : IUserInformationService
         try
         {
             PrepareAuthenticatedClient();
-            _currentUser = await _graphServiceClient.Users[userId].Request().GetAsync();
+            _currentUser = await _graphServiceClient.Users[userId].GetAsync();
 
 
             return _currentUser;
@@ -463,7 +470,7 @@ public class UserInformationService : IUserInformationService
 
         try
         {
-            var graphUser = await _graphServiceClient.Users[userGraphId].Request().GetAsync();
+            var graphUser = await _graphServiceClient.Users[userGraphId].GetAsync();
             var portalUser = new PortalUser
             {
                 GraphGuid = userGraphId,

@@ -48,7 +48,7 @@
 @code
 {
 
-    public Microsoft.Graph.User User { get; set; }
+    public Microsoft.Graph.Models.User User { get; set; }
     [CascadingParameter(Name = "UserLanguage")]
     public (Func<string> currentLanguage, Action<string> setLanguage) UserLanguage { get; set; }
 
