@@ -90,7 +90,7 @@
         <MudIcon Icon="@_projectIcon" Title="@Localizer["Project Icon"]"/>
         @_project.ProjectName
     </MudText>
-    
+
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
         <MudPaper Class="pa-4" Outlined>
             <MudStack>
@@ -110,16 +110,6 @@
     </DatahubAuthView>
 
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
-        @if (_project.Project_Phase == TerraformOutputStatus.PendingApproval)
-        {
-            <MudAlert Severity="Severity.Warning">@Localizer["The workspace is currently being configured in Azure. No resources can be provisioned until this step is completed."]</MudAlert>
-        }
-
-        @if (_project?.MetadataAdded != true)
-        {
-            <MudAlert Severity="Severity.Warning">@Localizer["The workspace metadata is currently incomplete. No resources can be provisioned until the project metadata has been filled"]</MudAlert>
-        }
-
         @if ((_project?.Project_Budget ?? 0) == 0)
         {
             <MudAlert Severity="Severity.Warning">
@@ -127,6 +117,14 @@
                     @Localizer["The project doesn't have a budget assigned. Contact a Datahub Administrator."]
                 </MudLink>
             </MudAlert>
+        }
+        else if (_project?.MetadataAdded != true)
+        {
+            <MudAlert Severity="Severity.Warning">@Localizer["The workspace metadata is currently incomplete. No resources can be provisioned until the project metadata has been filled"]</MudAlert>
+        }
+        else if (_project.Project_Phase == TerraformOutputStatus.PendingApproval)
+        {
+            <MudAlert Severity="Severity.Warning">@Localizer["The workspace is currently being configured in Azure. No resources can be provisioned until this step is completed."]</MudAlert>
         }
     </DatahubAuthView>
     <DHMarkdown class="description" Content="@GetProjectDescription()"/>
