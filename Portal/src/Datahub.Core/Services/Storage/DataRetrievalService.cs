@@ -16,6 +16,7 @@ using Datahub.Core.Services.Security;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using Folder = Datahub.Core.Data.Folder;
 using Version = Datahub.Core.Data.Version;
 

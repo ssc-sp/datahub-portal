@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -6,11 +6,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 	<ItemGroup>
-		<InternalsVisibleTo Include="Datahub.Tests" />
+		<InternalsVisibleTo Include="Datahub.Tests"></InternalsVisibleTo>
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Octokit" Version="7.1.0" />
-		<PackageReference Include="YamlDotNet" Version="12.1.0" />
+		<PackageReference Include="YamlDotNet" Version="13.3.1" />
 	</ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />

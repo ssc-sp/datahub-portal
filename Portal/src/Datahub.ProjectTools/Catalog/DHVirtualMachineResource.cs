@@ -4,7 +4,7 @@ using Datahub.Core.Services.Projects;
 using Datahub.ProjectTools.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 
 namespace Datahub.ProjectTools.Catalog;
 
