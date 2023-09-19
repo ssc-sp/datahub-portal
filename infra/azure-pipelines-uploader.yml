@@ -11,7 +11,7 @@ variables:
   version.MajorMinor: 2.0
   version.Revision: $[counter(variables['version.MajorMinor'], 0)]
   releaseVersion: $(version.MajorMinor).$(version.Revision).0
-  releaseTag: fsdh-uploader-r2-$(releaseVersion)
+  releaseTag: fsdh-uploader-$(releaseVersion)
   system.debug: False
 
 jobs:
