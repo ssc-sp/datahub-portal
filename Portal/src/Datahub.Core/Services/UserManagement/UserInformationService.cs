@@ -55,7 +55,6 @@ public class UserInformationService : IUserInformationService
         AuthenticationStateProvider authenticationStateProvider,
         NavigationManager navigationManager,
         IConfiguration configureOptions, ServiceAuthManager serviceAuthManager,
-        GraphServiceClient graphServiceClient,
         IDatahubCatalogSearch datahubCatalogSearch,
         IDbContextFactory<DatahubProjectDBContext> datahubContextFactory, CultureService cultureService)
     {
@@ -64,7 +63,6 @@ public class UserInformationService : IUserInformationService
         _navigationManager = navigationManager;
         _configuration = configureOptions;
         this._serviceAuthManager = serviceAuthManager;
-        this._graphServiceClient = graphServiceClient;
         _datahubContextFactory = datahubContextFactory;
         _cultureService = cultureService;
         _datahubCatalogSearch = datahubCatalogSearch;
