@@ -27,7 +27,7 @@
             <Editor 
                 x:Name="UploadCodeText"
                 AutoSize="TextChanges"
-                    MaxLength="400"     
+                    MaxLength="1000"     
                 HeightRequest="150"
                 TextChanged="UploadCodeText_TextChanged"
                     Placeholder="Paste your upload code from the DataHub portal in File Explorer"/>
