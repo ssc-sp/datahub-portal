@@ -22,7 +22,7 @@ public class DHDataEntry : ActiveGitModuleResource
     private bool _dataEntryServiceRequested = false;
     private bool _dataEntryServiceCreated = false;
 
-    protected override async Task InitializeAsync(string? userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
+    protected override async Task InitializeAsync(string? userId, Microsoft.Graph.Models.User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
         var serviceRequests = Project.ServiceRequests;
