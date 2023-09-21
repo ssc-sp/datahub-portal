@@ -85,9 +85,35 @@
     }
     else if (_currentStep == Steps.Submit)
     {
-        <MudText Typo="@Typo.body2" Class="py-3">@Localizer["Click Submit to submit this issue to the DataHub team."]</MudText>
-        <MudText Typo="@Typo.body2" Class="py-3">@Localizer["You can make additional changes to your support request using the Previous button."]</MudText>
-    }
+        <MudText Typo="@Typo.body2" Class="py-3">@Localizer["Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket."]</MudText>
+        <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Ticket Topics"]</MudText>
+        @foreach (KeyValuePair<string, bool> topic in _ticketTopics)
+        {
+            @if (topic.Value)
+            {
+                    <MudText Typo="@Typo.body2">@Localizer[@topic.Key]</MudText>
+            }
+        }
+        <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Ticket Description"]</MudText>
+        <MudText Typo="@Typo.body2">@_ticketDescription</MudText>
+        <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Workspaces"]</MudText>
+        @foreach (KeyValuePair<string, bool> workspace in _ticketWorkspaces)
+        {
+            @if (workspace.Value)
+            {
+                <MudText Typo="@Typo.body2">@Localizer[@workspace.Key]</MudText>
+            }
+        }
+        <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Preferred Contact Language"]</MudText>
+        @if (_ticketPreferredLanguage == 1)
+        {
+            <MudText Typo="@Typo.body2">@Localizer["English"]</MudText>
+        }
+        else
+        {
+            <MudText Typo="@Typo.body2">@Localizer["Français"]</MudText>
+        }    
+     }
     <MudGrid>
         <MudItem xs="6" Align="Align.Start" Class="py-6">
             @if (_currentStep == Steps.Start)
