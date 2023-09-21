@@ -54,7 +54,7 @@
     }
     else if (_currentStep == Steps.Topics)
     {
-        <MudText Typo="@Typo.body2" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
+        <MudText Typo="@Typo.body1" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
         @foreach (var topic in _ticketTopics)
         {
             <MudCheckBox @bind-Checked="@_ticketTopics[topic.Key]" Label="@Localizer[topic.Key]" Color="@Color.Primary"></MudCheckBox>
@@ -62,14 +62,14 @@
     }
     else if (_currentStep == Steps.Description)
     {
-        <MudText Typo="@Typo.body2" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
+        <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
         <MudTextField T="string"
                       @bind-Value="@_ticketDescription"
                       Label=@(Localizer["Detailed description"])
                       Required
                       Lines="5"/>
 
-        <MudText Typo="@Typo.body2" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>
+        <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>
         foreach (var workspace in _ticketWorkspaces)
         {
             <MudCheckBox @bind-Checked="@_ticketWorkspaces[workspace.Key]" Label="@Localizer[workspace.Key]" Color="@Color.Primary"></MudCheckBox>
@@ -77,7 +77,7 @@
     }
     else if (_currentStep == Steps.Language)
     {
-        <MudText Typo="@Typo.body2" Class="py-3">@Localizer["Please indicate which language you would like to be contacted in."]</MudText>
+        <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which language you would like to be contacted in."]</MudText>
         <MudRadioGroup T="int" @bind-SelectedOption="_ticketPreferredLanguage">
             <MudRadio Option="1" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["English"]</MudRadio>
             <MudRadio Option="2" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["French"]</MudRadio>
@@ -85,36 +85,38 @@
     }
     else if (_currentStep == Steps.Submit)
     {
-        <MudText Typo="@Typo.body2" Class="py-3">@Localizer["Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket."]</MudText>
-        <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Ticket Topics"]</MudText>
-        @foreach (KeyValuePair<string, bool> topic in _ticketTopics)
-        {
-            @if (topic.Value)
+        <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket."]</MudText>
+        <MudPaper Class="pa-2" Outlined="true">
+            <MudText Typo="@Typo.h6" Class="pb-3">@Localizer["Ticket Topics"]</MudText>
+            @foreach (KeyValuePair<string, bool> topic in _ticketTopics)
             {
-                    <MudText Typo="@Typo.body2">@Localizer[@topic.Key]</MudText>
+                @if (topic.Value)
+                {
+                        <MudText Typo="@Typo.body2">@Localizer[@topic.Key]</MudText>
+                }
             }
-        }
-        <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Ticket Description"]</MudText>
-        <MudText Typo="@Typo.body2">@_ticketDescription</MudText>
-        <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Workspaces"]</MudText>
-        @foreach (KeyValuePair<string, bool> workspace in _ticketWorkspaces)
-        {
-            @if (workspace.Value)
+            <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Workspaces"]</MudText>
+            @foreach (KeyValuePair<string, bool> workspace in _ticketWorkspaces)
             {
-                <MudText Typo="@Typo.body2">@Localizer[@workspace.Key]</MudText>
+                @if (workspace.Value)
+                {
+                    <MudText Typo="@Typo.body2">@Localizer[@workspace.Key]</MudText>
+                }
             }
-        }
-        <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Preferred Contact Language"]</MudText>
-        @if (_ticketPreferredLanguage == 1)
-        {
-            <MudText Typo="@Typo.body2">@Localizer["English"]</MudText>
-        }
-        else
-        {
-            <MudText Typo="@Typo.body2">@Localizer["Français"]</MudText>
-        }    
+            <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Ticket Description"]</MudText>
+            <MudText Typo="@Typo.body2">@_ticketDescription</MudText>
+            <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Preferred Contact Language"]</MudText>
+            @if (_ticketPreferredLanguage == 1)
+            {
+                <MudText Typo="@Typo.body2">@Localizer["English"]</MudText>
+            }
+            else
+            {
+                <MudText Typo="@Typo.body2">@Localizer["Français"]</MudText>
+            }
+        </MudPaper>
      }
-    <MudGrid>
+    <MudGrid Class="pt-3">
         <MudItem xs="6" Align="Align.Start" Class="py-6">
             @if (_currentStep == Steps.Start)
             {
