@@ -93,16 +93,6 @@
 		<GitHookFiles Include="../.githooks/*.*"></GitHookFiles>
 	</ItemGroup>
 	<ItemGroup>
-		<Compile Remove="Services\AzureCosting\**" />
-		<Content Remove="Services\AzureCosting\**" />
-		<EmbeddedResource Remove="Services\AzureCosting\**" />
-		<GitHookFiles Remove="Services\AzureCosting\**"></GitHookFiles>
-		<None Remove="Services\AzureCosting\**" />
-	</ItemGroup>
-	<ItemGroup>
-		<Content Remove="Services\DialogModalFrame.razor" />
-	</ItemGroup>
-	<ItemGroup>
 		<ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
 		<ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
 	</ItemGroup>
@@ -110,36 +100,6 @@
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
 		<Copy SourceFiles="@(GitHookFiles)" DestinationFolder="../.git/hooks/" SkipUnchangedFiles="true" />
 	</Target>
-
-	<ItemGroup>
-		<UpToDateCheckInput Remove="Services\DialogModalFrame.razor"></UpToDateCheckInput>
-	</ItemGroup>
-
-	<ItemGroup>
-		<_ContentIncludedByDefault Remove="Services\DialogModalFrame.razor" />
-		<_ContentIncludedByDefault Remove="Components\TabControl\TabControl.razor" />
-		<_ContentIncludedByDefault Remove="Components\TabControl\TabPage.razor" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-brands-400.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-brands-400.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-duotone-900.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-duotone-900.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-light-300.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-light-300.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-regular-400.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-regular-400.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-sharp-solid-900.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-sharp-solid-900.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-solid-900.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-solid-900.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-thin-100.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-thin-100.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.woff2" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<AdditionalFiles Include="Components\AuthViews\DatahubAuthView.razor" />
-	</ItemGroup>
 
 	<Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
 
