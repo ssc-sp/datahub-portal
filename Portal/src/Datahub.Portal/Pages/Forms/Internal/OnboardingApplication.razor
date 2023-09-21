@@ -63,7 +63,7 @@
     private OnboardingApp _onboardingApplication;
     private DatahubProjectDBContext Context;
     private List<string> MarkDownContent = new();
-    private Microsoft.Graph.User _user;
+    private Microsoft.Graph.Models.User _user;
     private List<Func<OnboardingApp, string>> AccessorFunctions = new List<Func<OnboardingApp, string>>();
     private bool _isLoaded;
     private string _addButton = "Create";

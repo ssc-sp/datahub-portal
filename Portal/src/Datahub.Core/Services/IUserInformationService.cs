@@ -4,6 +4,7 @@ using Microsoft.Graph;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Datahub.Core.Services.UserManagement;
+using Microsoft.Graph.Models;
 
 namespace Datahub.Core.Services;
 

@@ -1,6 +1,6 @@
 ﻿using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 
 namespace Datahub.ProjectTools;
 #nullable enable

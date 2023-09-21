@@ -38,7 +38,7 @@
     private Dictionary<string, Func<Client_Engagement, string>> _sortAccessors = new();
     private DatahubProjectDBContext Context;
     private Datahub_Project _project;
-    private Microsoft.Graph.User _user = null!;
+    private Microsoft.Graph.Models.User _user = null!;
     private ClaimsPrincipal _claimsUser = null;
     private string _searchFilter = string.Empty;
 

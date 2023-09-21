@@ -141,7 +141,7 @@ else
     public string UserId { get; set; }
 
     [CascadingParameter(Name = "GraphUser")]
-    public Microsoft.Graph.User GraphUser { get; set; }
+    public Microsoft.Graph.Models.User GraphUser { get; set; }
 
     [Parameter]
     public Guid? ResourceID { get; set; } = null;
