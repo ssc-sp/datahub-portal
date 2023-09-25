@@ -138,6 +138,6 @@ jobs:
         tagSource: gitTag
         tagPattern: '$(releaseTag)'
         assets: |
-          '$(Build.ArtifactStagingDirectory)/*.msix'
-          '$(Build.ArtifactStagingDirectory)/*.appinstaller'
+          $(Build.ArtifactStagingDirectory)/*.msix
+          $(Build.ArtifactStagingDirectory)/*.appinstaller
         isPreRelease: true
