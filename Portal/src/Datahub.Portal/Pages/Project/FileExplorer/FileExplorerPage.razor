@@ -49,14 +49,9 @@
                 @if (MultiContainer)
                 {
                     <MudStack Style="border-bottom: 1px solid var(--mud-palette-lines-default);" Class="my-6">
-                        <MudText Typo="Typo.h2">@Localizer["Current Container"]</MudText>
-                        <MudStack Row Justify="Justify.SpaceBetween">
-                            <MudRadioGroup T="CloudStorageContainer" @bind-SelectedOption="SelectedContainer" Dense>
-                                @foreach (var container in _cloudContainers)
-                                {
-                                    <MudRadio Option="@container" Color="Color.Primary" Size="Size.Medium">@container.Name</MudRadio>
-                                }
-                            </MudRadioGroup>
+                        <MudStack Row Justify=@Justify.FlexStart AlignItems=@AlignItems.Center >
+                            <MudText Typo="Typo.h2">@Localizer["Current Container"]</MudText>
+                            <StorageContainerSelector @bind-SelectedContainer=@SelectedContainer CloudContainers=_cloudContainers />
                         </MudStack>
                     </MudStack>
                 }
@@ -139,7 +134,7 @@
         var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
         var containerNames = await projectStorageManager.GetContainersAsync();
 
-        _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(c, projectStorageManager)));
+        _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(accountName, c, CloudStorageProviderType.Azure, projectStorageManager)));
 
         var dbStorage = await GetCloudStorages();
         foreach (var stg in dbStorage)
@@ -150,9 +145,10 @@
                 if (variables.Length != 2)
                     continue;
 
-                var storageManager = new AzureCloudStorageManager(variables[0], variables[1]);
+                var azAccountName = variables[0];
+                var storageManager = new AzureCloudStorageManager(azAccountName, variables[1]);
                 containerNames = await storageManager.GetContainersAsync();
-                _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(c, storageManager)));
+                _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(azAccountName, c, CloudStorageProviderType.Azure, storageManager)));
             }
             else if (stg.Provider == "AWS")
             {
@@ -161,7 +157,7 @@
 
                 var storageManager = new AWSCloudStorageManager("AWS", variables[0], variables[1], variables[2], variables[3]);
                 containerNames = await storageManager.GetContainersAsync();
-                _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(c, storageManager)));
+                _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer("AWS", c, CloudStorageProviderType.AWS, storageManager)));
             }
         }
 
