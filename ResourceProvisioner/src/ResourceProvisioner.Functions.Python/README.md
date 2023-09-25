@@ -12,19 +12,40 @@ This function is triggered by a message in the Storage Queue. The message contai
 
 ```mermaid
 flowchart
-    Start --> Clean[Clean the users in the workspace. Any users without an external ID in the databricks workspace will be removed as they no longer exist in MS Graph.]
-    Clean --> Verify[Verify that the users in the definition file exist within the workspace.]
-    Verify -->|for each user| Exists[Check if the ObjectId matches the external ID.]
-    Exists-->|user exists| ExistsT[Verify that the group assignment is correct.]
-    Exists-->|user doesn't exist| Add[Add the user to the workspace.]
+    Start --> Clean["`
+    **remove_deleted_users_in_workspace**
+    *Clean the users in the workspace. Any users without an external ID in the databricks workspace will be removed as they no longer exist in MS Graph.*
+    `"]
 
-    ExistsT--> GroupCheck[Check the existing group assignments.]
-    GroupCheck -->|group assignment is correct| CorrectGroup[Do nothing.]
-    CorrectGroup --> End
-    GroupCheck -->|no groups assigned| AddGroup[Add to group based on the role.]
+    Clean --> Sync["`
+    **synchronize_workspace_users**
+    *Synchronizes the workspace users with the users defined in the definition file.*
+    `"]
+    Sync -->|for each user| Exists["`
+    Check user is in workspace.
+    *if user['ObjectId'] == workspace_user.external_id:*
+    `"]
+    
+    Exists-->|user exists| SetGroup["`
+    **set_user_group_in_workspace**
+    *Set the user's group in the workspace based on the role.*
+    `"]
+    Exists-->|user doesn't exist| Add["`
+    **create_new_user_in_workspace**
+    *Create a new user in the workspace with the correct group assignment.*
+    `"]
+
+    SetGroup --> |user has no groups| AddGroup["`
+    **add_user_to_group_in_workspace**
+    *Add the user to the group in the workspace based on the role.*
+    `"]
+    SetGroup --> |user has groups| UpdateGroups["`
+    **update_user_group_in_workspace**
+    *Set the user's group in the workspace based on the role.*
+    `"]
+
     AddGroup --> End
+    UpdateGroups --> End
 
-    Add --> AddComplete[Create a new user in the workspace with the correct group assignment.]
-    AddComplete --> End
-
+    Add --> End
 ```
