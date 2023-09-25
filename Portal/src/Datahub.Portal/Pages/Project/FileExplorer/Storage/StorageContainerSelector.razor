@@ -1,0 +1,80 @@
+﻿
+@if (SelectedContainer != null)
+{
+    <MudMenu AnchorOrigin=@Origin.BottomRight TransformOrigin=@Origin.TopRight @ref=@_rootMenu>
+        <ActivatorContent>
+            <MudButton>
+                <MudStack Row>
+                    <MudIcon Icon=@GetCloudProviderIcon(SelectedContainer) Size=@Size.Large />
+                    <MudText Typo=@Typo.h2>@SelectedContainer.AccountName - @SelectedContainer.ContainerName</MudText>
+                    <MudIcon Icon=@Icons.Filled.ArrowDropDown Size=@Size.Large />
+                </MudStack>
+            </MudButton>
+        </ActivatorContent>
+        <ChildContent>
+            @foreach(var accountContainer in CloudContainers.DistinctBy(c => c.AccountName))
+            {
+                <MudMenuItem>
+                    <MudContainer Fixed>
+                        <MudMenu ActivationEvent=@MouseEvent.MouseOver AnchorOrigin=@Origin.TopRight TransformOrigin=@Origin.TopLeft >
+                            <ActivatorContent>
+                                <MudStack Row>
+                                    <MudIcon Icon=@GetCloudProviderIcon(accountContainer) />
+                                    <MudText>@accountContainer.AccountName</MudText>
+                                    <MudSpacer />
+                                    <MudIcon Icon=@Icons.Filled.ChevronRight />
+                                </MudStack>
+                            </ActivatorContent>
+                            <ChildContent>
+                                @foreach (var container in CloudContainers.Where(c => c.AccountName == accountContainer.AccountName))
+                                {
+                                    <MudMenuItem OnClick=@(() => SelectedContainerInternal = container)>
+                                        <MudText>@container.ContainerName</MudText>
+                                    </MudMenuItem>
+                                }
+                            </ChildContent>
+                        </MudMenu>
+                    </MudContainer>
+                </MudMenuItem>
+            }
+        </ChildContent>
+    </MudMenu>
+}
+
+
+
+@code {
+
+    [Parameter]
+    public IEnumerable<CloudStorageContainer> CloudContainers { get; set; }
+
+    [Parameter]
+    public CloudStorageContainer SelectedContainer { get; set; }
+
+    [Parameter]
+    public EventCallback<CloudStorageContainer> SelectedContainerChanged { get; set; }
+
+    private CloudStorageContainer SelectedContainerInternal
+    {
+        get { return SelectedContainer; }
+        set
+        {
+            SelectedContainer = value;
+            if (SelectedContainerChanged.HasDelegate)
+            {
+                SelectedContainerChanged.InvokeAsync(value);
+            }
+            _rootMenu.CloseMenu();
+        }
+    }
+
+    private MudMenu _rootMenu;
+
+    private string GetCloudProviderIcon(CloudStorageContainer container) => container.CloudStorageProvider switch
+    {
+        CloudStorageProviderType.Azure => Icons.Custom.Brands.MicrosoftAzure,
+        CloudStorageProviderType.AWS => Icons.Filled.Cloud, // TODO replace with actual AWS icon when available
+        _ => Icons.Filled.Cloud
+    };
+
+}
