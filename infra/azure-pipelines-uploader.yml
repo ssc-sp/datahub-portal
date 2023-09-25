@@ -130,8 +130,6 @@ jobs:
           </AppInstaller>"
           New-Item "$(appName).appinstaller" -ItemType File
           Set-Content "$(appName).appinstaller" -Value $installer
-
-          fsdh-uploader-2.0.104.0/Desktop.Uploader_2.0.104.0_x64.msix
   - task: GitHubRelease@1
     displayName: 'Upload to Github Release'
     inputs:
