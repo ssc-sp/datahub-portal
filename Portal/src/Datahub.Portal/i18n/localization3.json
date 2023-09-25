@@ -180,5 +180,9 @@
   "English": "English",
   "French": "French",
   "Success": "Success",
-  "Your support ticket has been created. Thank you!": "Your support ticket has been created. Thank you!"
+  "Your support ticket has been created. Thank you!": "Your support ticket has been created. Thank you!",
+  "Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket.": "Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket.",
+  "Ticket Topics": "Ticket Topics",
+  "Ticket Description": "Ticket Description",
+  "Preferred Contact Language": "Preferred Contact Language"
 }
