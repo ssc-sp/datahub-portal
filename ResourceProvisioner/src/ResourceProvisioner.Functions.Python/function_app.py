@@ -1,6 +1,5 @@
 import azure.functions as func
 import os
-import pprint as pprint
 
 from lib.databricks_utils import get_workspace_client, remove_deleted_users_in_workspace, synchronize_workspace_users
 
@@ -8,7 +7,17 @@ app = func.FunctionApp()
 
 @app.function_name(name="SynchronizeWorkspaceUsers")
 @app.route(route="sync-workspace-users") # HTTP Trigger
-def test_function(req: func.HttpRequest) -> func.HttpResponse:
+def sync_workspace_users_function(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Synchronizes the users in the Databricks workspace with the users in the definition file.
+
+    Args:
+        req (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The HTTP response object.
+
+    """
 
     workspace_definition = req.get_json()
 
