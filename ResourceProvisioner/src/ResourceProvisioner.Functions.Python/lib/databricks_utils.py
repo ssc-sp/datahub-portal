@@ -1,6 +1,8 @@
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.iam import ComplexValue
 
+import os
+
 
 def get_definition_role_lookup():
     """
@@ -13,25 +15,27 @@ def get_definition_role_lookup():
         'Owner': 'project_lead',
         'Admin': 'admins',
         'User': 'project_users',
-        'Guest': 'project_guest'
+        'Guest': 'project_users'
     }
     return definition_role_lookup
 
-def get_workspace_client(databricksHost, databricksToken):
+def get_workspace_client(databricksHost):
     """
     Returns a WorkspaceClient object for the given databricks host and token.
 
     Args:
         databricksHost (str): The databricks host url.
-        databricksToken (str): The databricks PAT token.
 
     Returns:
         WorkspaceClient: The databricks workspace client.
     """
 
     w = WorkspaceClient(
-        host = databricksHost,
-        token= databricksToken
+        host=databricksHost,
+        azure_client_secret = os.environ["AzureClientSecret"],
+        azure_client_id = os.environ["AzureClientId"],
+        azure_tenant_id = os.environ["AzureTenantId"],
+        auth_type='azure-client-secret'
     )
     return w
 
