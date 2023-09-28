@@ -33,6 +33,7 @@ public class AzureConfig : IAzureServicePrincipalConfig
 
     public string StorageQueueConnection => _config["DatahubStorageConnectionString"] ?? "";
     public string MaxStorageCapacity => _config["MAX_STORAGE_CAPACITY"] ?? "180000000000"; //"2000000000000";
+    public string UserRunRequestQueueName => _config["UserRunRequestQueueName"] ?? "user-run-request";
     
     #endregion
 

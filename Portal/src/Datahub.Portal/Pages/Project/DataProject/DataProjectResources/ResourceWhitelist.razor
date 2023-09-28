@@ -10,7 +10,7 @@
 @inject IUserInformationService _userInformationService
 @inject IProjectResourceWhitelistService _projectResourceWhitelistService
 @inject ISnackbar _snackbar
-@inject IResourceRequestService _resourceRequestService
+@inject IResourceMessagingService ResourceMessagingService
 @inject IRequestManagementService _requestManagementService
 
 @if (_isLoaded)
@@ -125,7 +125,7 @@
         {
             case Resource.ResourceGroup:
                 var project = CreateResourceData.NewProjectTemplate(Project.Project_Name, Project.Project_Acronym_CD, Project.Sector_Name, Project.Sector_Name, user.Mail, _budget ?? 2400);
-                await _resourceRequestService.AddProjectToStorageQueue(project);
+                await ResourceMessagingService.SendToTerraformQueue(project);
                 success = true;
                 break;
             case Resource.Storage:

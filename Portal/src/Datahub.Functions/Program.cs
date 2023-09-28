@@ -1,10 +1,8 @@
 using Datahub.Core.Model.Datahub;
 using Datahub.Functions;
-using Datahub.Infrastructure.Queues.MessageHandlers;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Azure;
 using Datahub.Infrastructure.Services.Projects;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +10,8 @@ using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 using System.Net;
+using Datahub.Application.Configuration;
+using Datahub.Application.Services;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -46,6 +46,9 @@ var host = new HostBuilder()
         services.AddSingleton<AzureManagementService>();
         services.AddScoped<ProjectUsageService>();
         services.AddScoped<QueuePongService>();
+        services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
+        services.AddSingleton<DatahubPortalConfiguration>();
+
     })
     .Build();
 
