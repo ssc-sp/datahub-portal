@@ -1,8 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Transactions;
+using Datahub.Application.Services;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Services.Projects;
 using Datahub.Infrastructure.Services;
 using Datahub.ProjectTools.Services;
 using Datahub.Shared;
@@ -18,12 +20,18 @@ public class TerraformOutputHandler
     private readonly DatahubProjectDBContext _projectDbContext;
     private readonly ILogger _logger;
     private readonly QueuePongService _pongService;
+    private readonly IResourceMessagingService _resourceMessagingService;
+    private readonly AzureConfig _config;
+    private const string TerraformOutputHandlerName = "terraform-output-handler";
 
-    public TerraformOutputHandler(ILoggerFactory loggerFactory, DatahubProjectDBContext projectDbContext, QueuePongService pongService)
+    public TerraformOutputHandler(ILoggerFactory loggerFactory, DatahubProjectDBContext projectDbContext,
+        QueuePongService pongService, IResourceMessagingService resourceMessagingService, AzureConfig config)
     {
         _projectDbContext = projectDbContext;
         _logger = loggerFactory.CreateLogger("TerraformOutputHandler");
         _pongService = pongService;
+        _resourceMessagingService = resourceMessagingService;
+        _config = config;
     }
 
     [Function("TerraformOutputHandler")]
@@ -64,7 +72,56 @@ public class TerraformOutputHandler
             throw;
         }
 
+        await ProcessPostTerraformTriggers(output);
+
+
         _logger.LogInformation("C# Queue trigger function finished");
+    }
+
+    private async Task ProcessPostTerraformTriggers(IReadOnlyDictionary<string, TerraformOutputVariable> output)
+    {
+        _logger.LogInformation("Terraform processing complete, triggering post terraform triggers");
+
+        // check if there's a workspace version variable
+        if (!output.ContainsKey(TerraformVariables.OutputWorkspaceVersion) ||
+            string.IsNullOrWhiteSpace(output[TerraformVariables.OutputWorkspaceVersion].Value))
+        {
+            _logger.LogInformation("Project version is null or empty, skipping post terraform triggers");
+            return;
+        }
+        var projectVersionString = output[TerraformVariables.OutputWorkspaceVersion].Value;
+
+        // exclude the first character, which is a v
+        var projectVersion = new Version(projectVersionString[1..]);
+
+        // double check it's above version 2.13.0
+        if (projectVersion < new Version(2, 13, 0))
+        {
+            _logger.LogInformation("Project version is below 2.13.0, skipping post terraform triggers");
+            return;
+        }
+
+        // handle external user permissions
+        var projectAcronym = output[TerraformVariables.OutputProjectAcronym];
+        var project = await _projectDbContext.Projects
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
+
+        if (project is null)
+        {
+            _logger.LogError("Project not found for acronym {ProjectId}", projectAcronym.Value);
+            throw new Exception($"Project not found for acronym {projectAcronym.Value}");
+        }
+
+        _logger.LogInformation("Processing user updates to external permissions for project {ProjectAcronym}",
+            projectAcronym.Value);
+        var workspaceDefinition =
+            await _resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
+                TerraformOutputHandlerName);
+        await _resourceMessagingService.SendToUserQueue(workspaceDefinition,
+            _config.StorageQueueConnection, _config.UserRunRequestQueueName);
+        _logger.LogInformation(
+            "Processing complete for user updates to external permissions for project {ProjectAcronym}",
+            projectAcronym.Value);
     }
 
     private async Task ProcessTerraformOutputVariables(
@@ -72,7 +129,8 @@ public class TerraformOutputHandler
     {
         try
         {
-            using var transactionScope = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
+            using var transactionScope =
+                new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
             await ProcessProjectStatus(outputVariables);
             await ProcessAzureStorageBlob(outputVariables);
             await ProcessAzureDatabricks(outputVariables);
@@ -85,7 +143,7 @@ public class TerraformOutputHandler
         }
     }
 
-    private async Task ProcessAzureDatabricks(IReadOnlyDictionary<string,TerraformOutputVariable> outputVariables)
+    private async Task ProcessAzureDatabricks(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
         var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
         var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
@@ -98,10 +156,12 @@ public class TerraformOutputHandler
 
         if (projectRequest is null)
         {
-            _logger.LogInformation("Project request not found for project acronym {ProjectAcronymValue} and service type {TerraformServiceType}", projectAcronym.Value, terraformServiceType);
+            _logger.LogInformation(
+                "Project request not found for project acronym {ProjectAcronymValue} and service type {TerraformServiceType}",
+                projectAcronym.Value, terraformServiceType);
             return;
         }
-        
+
         var databricksStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureDatabricksStatus].Value);
         if (databricksStatus == TerraformOutputStatus.Completed)
         {
@@ -111,24 +171,24 @@ public class TerraformOutputHandler
         {
             _logger.LogInformation("Azure Databricks status is not completed. Status: {Status}", databricksStatus);
         }
-        
+
         var projectResource = _projectDbContext.Project_Resources2
             .Where(x => x.ProjectId == projectRequest.Project.Project_ID)
             .FirstOrDefault(x => x.ResourceType == terraformServiceType);
-        
+
         if (projectResource is null)
         {
             var inputParameters = new Dictionary<string, string>();
             projectResource = RequestManagementService.CreateEmptyProjectResource(projectRequest, inputParameters);
             _projectDbContext.Project_Resources2.Add(projectResource);
         }
-        
+
         if (!projectResource.TimeCreated.HasValue)
         {
             var workspaceId = outputVariables[TerraformVariables.OutputAzureDatabricksWorkspaceId];
             var workspaceUrl = outputVariables[TerraformVariables.OutputAzureDatabricksWorkspaceUrl];
             var workspaceName = outputVariables[TerraformVariables.OutputAzureDatabricksWorkspaceName];
-            
+
             var jsonContent = new JsonObject
             {
                 ["workspace_id"] = workspaceId.Value,
@@ -137,14 +197,16 @@ public class TerraformOutputHandler
             };
 
             var inputJsonContent = new JsonObject();
-            
+
             projectResource.TimeCreated = DateTime.Now;
             projectResource.JsonContent = jsonContent.ToString();
             projectResource.InputJsonContent = inputJsonContent.ToString();
         }
         else
         {
-            _logger.LogInformation("Project resource already exists for project {ProjectAcronym} and service type {ServiceType}", projectAcronym.Value, terraformServiceType);
+            _logger.LogInformation(
+                "Project resource already exists for project {ProjectAcronym} and service type {ServiceType}",
+                projectAcronym.Value, terraformServiceType);
         }
 
         await _projectDbContext.SaveChangesAsync();
@@ -163,11 +225,14 @@ public class TerraformOutputHandler
 
         if (projectRequest is null)
         {
-            _logger.LogInformation("Project request not found for project acronym {ProjectAcronymValue} and service type {TerraformServiceType}", projectAcronym.Value, terraformServiceType);
+            _logger.LogInformation(
+                "Project request not found for project acronym {ProjectAcronymValue} and service type {TerraformServiceType}",
+                projectAcronym.Value, terraformServiceType);
             return;
         }
 
-        var storageBlobStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
+        var storageBlobStatus =
+            GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
         if (storageBlobStatus == TerraformOutputStatus.Completed)
         {
             projectRequest.Is_Completed = DateTime.Now;
@@ -176,19 +241,19 @@ public class TerraformOutputHandler
         {
             _logger.LogInformation("Azure storage blob status is not completed. Status: {Status}", storageBlobStatus);
         }
-        
-        
+
+
         var projectResource = _projectDbContext.Project_Resources2
             .Where(x => x.ProjectId == projectRequest.Project.Project_ID)
             .FirstOrDefault(x => x.ResourceType == terraformServiceType);
-        
+
         if (projectResource is null)
         {
             var inputParameters = new Dictionary<string, string>();
             projectResource = RequestManagementService.CreateEmptyProjectResource(projectRequest, inputParameters);
             _projectDbContext.Project_Resources2.Add(projectResource);
         }
-        
+
         if (!projectResource.TimeCreated.HasValue)
         {
             var accountName = outputVariables[TerraformVariables.OutputAzureStorageAccountName];
@@ -206,14 +271,16 @@ public class TerraformOutputHandler
             {
                 ["storage_type"] = TerraformVariables.AzureStorageType
             };
-            
+
             projectResource.TimeCreated = DateTime.Now;
             projectResource.JsonContent = jsonContent.ToString();
             projectResource.InputJsonContent = inputJsonContent.ToString();
         }
         else
         {
-            _logger.LogInformation("Project resource already exists for project {ProjectAcronym} and service type {ServiceType}", projectAcronym.Value, terraformServiceType);
+            _logger.LogInformation(
+                "Project resource already exists for project {ProjectAcronym} and service type {ServiceType}",
+                projectAcronym.Value, terraformServiceType);
         }
 
         await _projectDbContext.SaveChangesAsync();
@@ -236,12 +303,21 @@ public class TerraformOutputHandler
         {
             project.Project_Phase = outputPhase;
         }
-        
-        var workspaceVersion = outputVariables[TerraformVariables.OutputWorkspaceVersion].Value;
-        if (project.Version != workspaceVersion)
+
+        // check if there's a workspace version variable
+        if (outputVariables.ContainsKey(TerraformVariables.OutputWorkspaceVersion))
         {
-            project.Version = workspaceVersion;
+            var workspaceVersion = outputVariables[TerraformVariables.OutputWorkspaceVersion].Value;
+            if (project.Version != workspaceVersion)
+            {
+                project.Version = workspaceVersion;
+            }
         }
+        else
+        {
+            _logger.LogInformation("Workspace version not found in output variables");
+        }
+
         await _projectDbContext.SaveChangesAsync();
     }
 

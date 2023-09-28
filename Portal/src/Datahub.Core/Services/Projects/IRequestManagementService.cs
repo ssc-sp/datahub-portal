@@ -40,5 +40,4 @@ public interface IRequestManagementService
     Task RequestServiceWithDefaults(Datahub_ProjectServiceRequests request);
     Task SaveResourceInputDefinitionJson(string resourceType, string jsonContent);
     Task<bool> UpdateResourceInputParameters(Guid resourceId, Dictionary<string, string> inputParams);
-    Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym);
 }
