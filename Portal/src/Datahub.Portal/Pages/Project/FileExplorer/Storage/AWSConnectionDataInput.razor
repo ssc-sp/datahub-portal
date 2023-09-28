@@ -1,0 +1,116 @@
+﻿@* AWSConnectionDataInput.razor *@
+
+<MudTextField @bind-Value="AccessKeyId"
+              Label="Access Key Id"
+              Variant="Variant.Text"
+              InputType="InputType.Password"
+              Adornment=@Adornment.End
+              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
+<MudTextField @bind-Value="AccessKeySecret"
+              Label="Access Key Secret"
+              InputType="InputType.Password"
+              Variant="Variant.Text"
+              Adornment=@Adornment.End
+              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
+<MudTextField @bind-Value="Region"
+              Label="Region"
+              Variant="Variant.Text"
+              Adornment=@Adornment.End
+              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
+<MudTextField @bind-Value="BucketName"
+              Label="Bucket Name"
+              Variant="Variant.Text"
+              Adornment=@Adornment.End
+              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
+
+
+
+@code {
+    private const string DEFAULT_REGION = "ca-central-1";
+
+    [Parameter]
+    public string ConnectionData { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ConnectionDataChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnValidationChanged { get; set; }
+
+    private AWSConnectionData _awsConnectionData = new()
+        {
+            AccessKeyId = string.Empty,
+            AccessKeySecret = string.Empty,
+            Region = DEFAULT_REGION,
+            BucketName = string.Empty
+        };
+
+    private bool IsValid => !(string.IsNullOrEmpty(AccessKeyId) || string.IsNullOrEmpty(AccessKeySecret) || string.IsNullOrEmpty(Region) || string.IsNullOrEmpty(BucketName));
+
+    private string AccessKeyId
+    {
+        get => _awsConnectionData.AccessKeyId;
+        set
+        {
+            _awsConnectionData.AccessKeyId = value;
+            Validate();
+        }
+    }
+
+    private string AccessKeySecret
+    {
+        get => _awsConnectionData.AccessKeySecret;
+        set
+        {
+            _awsConnectionData.AccessKeySecret = value;
+            Validate();
+        }
+    }
+
+    private string Region
+    {
+        get => _awsConnectionData.Region;
+        set
+        {
+            _awsConnectionData.Region = value;
+            Validate();
+        }
+    }
+
+    private string BucketName
+    {
+        get => _awsConnectionData.BucketName;
+        set
+        {
+            _awsConnectionData.BucketName = value;
+            Validate();
+        }
+    }
+
+    private void Validate()
+    {
+        if (OnValidationChanged.HasDelegate)
+        {
+            OnValidationChanged.InvokeAsync(IsValid);
+        }
+
+        if (ConnectionDataChanged.HasDelegate)
+        {
+            ConnectionDataChanged.InvokeAsync(_awsConnectionData.ConnectionData);
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        var awsData = CloudStorageConnectionDataDecoder.DecodeAWS(ConnectionData);
+        if (awsData is not null)
+        {
+            _awsConnectionData = awsData;
+        }
+
+        Validate();
+
+        base.OnInitialized();
+    }
+
+}

@@ -37,8 +37,8 @@
                     </MudButton>
                 </ActivatorContent>
                 <ChildContent>
-                    <MudMenuItem OnClick="HandleAzureStorageSettings">@Localizer["Azure"]</MudMenuItem>
-                    <MudMenuItem OnClick="HandleAWSStorageSettings">@Localizer["AWS"]</MudMenuItem>
+                    <MudMenuItem OnClick=@(() => ShowStorageSettingsDialog(CloudStorageProviderType.Azure))>Azure</MudMenuItem>
+                    <MudMenuItem OnClick=@(() => ShowStorageSettingsDialog(CloudStorageProviderType.AWS))>AWS</MudMenuItem>
                 </ChildContent>
             </MudMenu>
         </DatahubAuthView>
@@ -137,25 +137,33 @@
         _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(accountName, c, CloudStorageProviderType.Azure, projectStorageManager)));
 
         var dbStorage = await GetCloudStorages();
-        foreach (var stg in dbStorage)
+        foreach (var stg in dbStorage.Where(s => s.Enabled))
         {
             var variables = stg.ConnectionData.Split('|');
             if (stg.Provider == "Azure")
             {
-                if (variables.Length != 2)
+                var azConnectionData = CloudStorageConnectionDataDecoder.DecodeAzure(stg.ConnectionData);
+                if (azConnectionData is null)
+                {
                     continue;
+                }
 
-                var azAccountName = variables[0];
-                var storageManager = new AzureCloudStorageManager(azAccountName, variables[1]);
+                var storageManager = new AzureCloudStorageManager(azConnectionData.AccountName, azConnectionData.AccountKey);
                 containerNames = await storageManager.GetContainersAsync();
-                _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(azAccountName, c, CloudStorageProviderType.Azure, storageManager)));
+                _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(azConnectionData.AccountName, c, CloudStorageProviderType.Azure, storageManager)));
             }
             else if (stg.Provider == "AWS")
             {
-                if (variables.Length != 4)
+                var awsConnectionData = CloudStorageConnectionDataDecoder.DecodeAWS(stg.ConnectionData);
+                if (awsConnectionData is null)
+                {
                     continue;
+                }
 
-                var storageManager = new AWSCloudStorageManager("AWS", variables[0], variables[1], variables[2], variables[3]);
+                var containerName = stg.Name ?? "AWS";
+
+                var storageManager = new AWSCloudStorageManager(containerName, awsConnectionData.AccessKeyId, awsConnectionData.AccessKeySecret, 
+                    awsConnectionData.Region, awsConnectionData.BucketName);
                 containerNames = await storageManager.GetContainersAsync();
                 _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer("AWS", c, CloudStorageProviderType.AWS, storageManager)));
             }
@@ -181,49 +189,59 @@
     private async Task<List<ProjectCloudStorage>> GetCloudStorages()
     {
         await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
-        return await ctx.ProjectCloudStorages.Where(e => e.ProjectId == _project.Project_ID).ToListAsync();
+        return await ctx.ProjectCloudStorages.AsNoTracking().Where(e => e.ProjectId == _project.Project_ID).ToListAsync();
     }
 
-    private async Task HandleAzureStorageSettings()
+    private async Task ShowStorageSettingsDialog(CloudStorageProviderType cloudStorageProvider)
     {
         var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
         var dialogParams = new DialogParameters();
-        var dialog = await _dialogService.ShowAsync<ConfigureAzureProjectStorage>(Localizer["Configure Azure Storage"], dialogParams, dialogOptions);
+        dialogParams.Add(nameof(StorageConfigurationDialog.CloudProvider), cloudStorageProvider);
+
+        var cloudProvider = await FetchOrCreateReadonlyCloudStorage(cloudStorageProvider);
+        var cloudProviderSettings = new CloudStorageSettings(cloudProvider);
+
+        dialogParams.Add(nameof(StorageConfigurationDialog.CloudStorageSettings), cloudProviderSettings);
+
+        var dialogTitle = cloudStorageProvider switch
+        {
+            CloudStorageProviderType.Azure => Localizer["Configure Azure Storage"],
+            CloudStorageProviderType.AWS => Localizer["Configure AWS Storage"],
+            _ => "Configure Storage"
+        };
+
+        var dialog = await _dialogService.ShowAsync<StorageConfigurationDialog>(dialogTitle, dialogParams, dialogOptions);
+
         var result = await dialog.Result;
+
         if (!result.Canceled)
         {
-            if (result.Data is string connectionData)
+            if (result.Data is CloudStorageSettings storageSettings)
             {
-                await UpdateProjectAzureStorage(connectionData, "Azure");
+                await UpdateCloudStorage(cloudStorageProvider, storageSettings);
                 await LoadContainersAsync();
                 await InvokeAsync(StateHasChanged);
             }
         }
     }
 
-    private async Task HandleAWSStorageSettings()
-    {
-        var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        var dialogParams = new DialogParameters();
-        var dialog = await _dialogService.ShowAsync<ConfigureAWSProjectStorage>(Localizer["Configure AWS Storage"], dialogParams, dialogOptions);
-        var result = await dialog.Result;
-        if (!result.Canceled)
-        {
-            if (result.Data is string connectionData)
-            {
-                await UpdateProjectAzureStorage(connectionData, "AWS");
-                await LoadContainersAsync();
-                await InvokeAsync(StateHasChanged);
-            }
-        }
-    }
-
-    private async Task UpdateProjectAzureStorage(string connectionData, string provider)
+    private async Task<ProjectCloudStorage> FetchOrCreateReadonlyCloudStorage(CloudStorageProviderType cloudStorageProvider)
     {
         await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
+        return await FetchOrCreateProjectCloudStorageInternal(ctx, cloudStorageProvider, true);
+    }
 
-        var projectStorage = await ctx.ProjectCloudStorages
-            .Where(e => e.ProjectId == _project.Project_ID && e.Provider == provider)
+    private async Task<ProjectCloudStorage> FetchOrCreateProjectCloudStorageInternal(DatahubProjectDBContext ctx, CloudStorageProviderType cloudStorageProvider, bool readOnly)
+    {
+        var projectStorageQuery = (IQueryable<ProjectCloudStorage>) ctx.ProjectCloudStorages;
+        if (readOnly)
+        {
+            projectStorageQuery = projectStorageQuery.AsNoTracking();
+        }
+
+        var projectStorage = await projectStorageQuery
+            .Where(e => e.ProjectId == _project.Project_ID && e.Provider == cloudStorageProvider.ToString())
             .FirstOrDefaultAsync();
 
         if (projectStorage is null)
@@ -231,21 +249,26 @@
             projectStorage = new()
             {
                 ProjectId = _project.Project_ID,
-                Provider = provider,
+                Provider = cloudStorageProvider.ToString()
             };
+
+            if (!readOnly)
+            {
+                await ctx.ProjectCloudStorages.AddAsync(projectStorage);
+            }
         }
 
-        projectStorage.ConnectionData = connectionData;
+        return await Task.FromResult(projectStorage);
+    }
 
-        if (projectStorage.Id == 0)
-        {
-            ctx.ProjectCloudStorages.Add(projectStorage);
-        }
-        else
-        {
-            ctx.ProjectCloudStorages.Update(projectStorage);
-        }
+    private async Task UpdateCloudStorage(CloudStorageProviderType cloudStorageProvider, CloudStorageSettings settings)
+    {
+        await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
+        var projectStorage = await FetchOrCreateProjectCloudStorageInternal(ctx, cloudStorageProvider, false);
+
+        settings.ApplyTo(projectStorage);
 
         await ctx.SaveChangesAsync();
     }
+
 }
