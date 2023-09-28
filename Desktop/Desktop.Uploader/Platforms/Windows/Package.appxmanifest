@@ -11,7 +11,7 @@
   <mp:PhoneIdentity PhoneProductId="50CD089C-B2EB-44E9-9B12-E18CAC9C27D2" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>$placeholder$</DisplayName>
+    <DisplayName>fsdh-uploader</DisplayName>
     <PublisherDisplayName>User Name</PublisherDisplayName>
     <Logo>$placeholder$.png</Logo>
   </Properties>
