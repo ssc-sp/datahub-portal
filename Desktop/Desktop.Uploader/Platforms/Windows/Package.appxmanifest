@@ -6,12 +6,12 @@
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
   IgnorableNamespaces="uap rescap">
 
-  <Identity Name="maui-package-name-placeholder" Publisher="CN=Shared Services Canada, O=Shared Services Canada, L=Ottawa, S=Ontario, C=CA" Version="0.0.0.0" />
+  <Identity Name="fsdh-uploader" Publisher="CN=Shared Services Canada, O=Shared Services Canada, L=Ottawa, S=Ontario, C=CA" Version="0.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="50CD089C-B2EB-44E9-9B12-E18CAC9C27D2" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>fsdh-uploader</DisplayName>
+    <DisplayName>$placeholder$</DisplayName>
     <PublisherDisplayName>User Name</PublisherDisplayName>
     <Logo>$placeholder$.png</Logo>
   </Properties>
