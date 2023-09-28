@@ -4,8 +4,13 @@
 # https://aka.ms/yaml
 
 trigger:
-- develop
-
+  branches:
+    include:
+    - develop
+  paths:
+    include:
+    - Desktop/Desktop.Uploader
+      
 variables:
   target_os: win-x64
   version.MajorMinor: 2.0
