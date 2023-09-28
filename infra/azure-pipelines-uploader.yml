@@ -11,7 +11,8 @@ variables:
   version.MajorMinor: 2.0
   version.Revision: $[counter(variables['version.MajorMinor'], 0)]
   releaseVersion: $(version.MajorMinor).$(version.Revision).0
-  releaseTag: fsdh-uploader-$(releaseVersion)
+  appName: fsdh-uploader
+  releaseTag: $(appName)-$(releaseVersion)
   system.debug: False
 
 jobs:
@@ -113,6 +114,18 @@ jobs:
             git push origin $(releaseTag) --force
             Get-ChildItem $(Build.ArtifactStagingDirectory)/*.msix
 
+  - task: PowerShell@2
+    displayName: 'Create .appinstaller'
+    inputs:
+        targetType: 'inline'
+        script: |
+          cd $(Build.ArtifactStagingDirectory)/
+          $installer = "<?xml version=""1.0"" encoding=""utf-8""?>
+          <AppInstaller xmlns=""http://schemas.microsoft.com/appx/appinstaller/2018"" Version=""$(releaseVersion)"" Uri=""$(appinstaller_uri)"" >
+              <MainPackage Name=""$(appName)"" Publisher=""CN=Shared Services Canada, O=Shared Services Canada, L=Ottawa, S=Ontario, C=CA"" Version=""$(releaseVersion)"" ProcessorArchitecture=""x64"" Uri=""https://github.com/ssc-sp/datahub-portal/releases/download/$(releaseTag)/Desktop.Uploader_$(releaseVersion)_x64.msix"" />
+          </AppInstaller>"
+          New-Item "$(appName).appinstaller" -ItemType File
+          Set-Content "$(appName).appinstaller" -Value $installer
   - task: GitHubRelease@1
     displayName: 'Upload to Github Release'
     inputs:
@@ -120,5 +133,17 @@ jobs:
         repositoryName: '$(Build.Repository.Name)'
         tagSource: gitTag
         tagPattern: '$(releaseTag)'
-        assets: '$(Build.ArtifactStagingDirectory)/*.msix'
+        assets: |
+          $(Build.ArtifactStagingDirectory)/*.msix
+          $(Build.ArtifactStagingDirectory)/*.appinstaller
         isPreRelease: true
+
+  - task: AzureFileCopy@4
+    inputs:
+      SourcePath: '$(Build.ArtifactStagingDirectory)/*.appinstaller'
+      azureSubscription: $(az_subscription)
+      Destination: 'AzureBlob'
+      storage: $(appinstaller_az_storage)
+      ContainerName: 'datahub-dist'
+      BlobPrefix: ''
+    name: AzureFileCopy
