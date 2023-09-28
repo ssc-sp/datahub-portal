@@ -1,6 +1,5 @@
 import azure.functions as func
-import os
-from databricks.sdk import WorkspaceClient
+import logging
 
 from lib.databricks_utils import get_workspace_client, remove_deleted_users_in_workspace, synchronize_workspace_users
 
@@ -41,9 +40,11 @@ def queue_sync_workspace_users_function(msg: func.QueueMessage) -> None:
 
     """
     workspace_definition = msg.get_json()
+    logging.info("Synchronizing workspace users.")
+    
     sync_workspace_users_function(workspace_definition)
 
-    print("Successfully synchronized workspace users.")
+    logging.info("Successfully synchronized workspace users.")
     return None
 
 
