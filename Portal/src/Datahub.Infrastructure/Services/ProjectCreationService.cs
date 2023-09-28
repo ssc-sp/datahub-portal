@@ -26,20 +26,20 @@ public class ProjectCreationService : IProjectCreationService
     private readonly ILogger<ProjectCreationService> _logger;
     private readonly ServiceAuthManager _serviceAuthManager;
     private readonly IUserInformationService _userInformationService;
-    private readonly IResourceRequestService _resourceRequestService;
+    private readonly IResourceMessagingService _resourceMessagingService;
     private readonly IDatahubAuditingService _auditingService;
     private readonly IDatahubCatalogSearch _datahubCatalogSearch;
 
     public ProjectCreationService(IConfiguration configuration, IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
         ILogger<ProjectCreationService> logger, ServiceAuthManager serviceAuthManager, IUserInformationService userInformationService,
-        IResourceRequestService resourceRequestService, IDatahubAuditingService auditingService, IDatahubCatalogSearch datahubCatalogSearch)
+        IResourceMessagingService resourceMessagingService, IDatahubAuditingService auditingService, IDatahubCatalogSearch datahubCatalogSearch)
     {
         _configuration = configuration;
         _datahubProjectDbFactory = datahubProjectDbFactory;
         _logger = logger;
         _serviceAuthManager = serviceAuthManager;
         _userInformationService = userInformationService;
-        _resourceRequestService = resourceRequestService;
+        _resourceMessagingService = resourceMessagingService;
         _auditingService = auditingService;
         _datahubCatalogSearch = datahubCatalogSearch;
     }
@@ -129,7 +129,7 @@ public class ProjectCreationService : IProjectCreationService
                 var project = CreateResourceData.NewProjectTemplate(projectName, acronym, sectorName, organization, 
                     user.Mail, Convert.ToDouble(GetDefaultBudget()));
 
-                await _resourceRequestService.AddProjectToStorageQueue(project);
+                await _resourceMessagingService.SendToTerraformQueue(project);
                 scope.Complete();
                 return true;
             }

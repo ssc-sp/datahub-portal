@@ -26,7 +26,7 @@ public class RequestManagementServiceTest
         var systemNotificationMock = new Mock<ISystemNotificationService>();
         var userInformationMock = new Mock<IUserInformationService>();
         var auditingMock = new Mock<IDatahubAuditingService>();
-        var resourceRequestServiceMock = new Mock<IResourceRequestService>();
+        var resourceRequestServiceMock = new Mock<IResourceMessagingService>();
         var miscStorageMock = new Mock<IMiscStorageService>();
         
         

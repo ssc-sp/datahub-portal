@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using System.Transactions;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Projects;
+using Datahub.ProjectTools.Utils;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Enums;
 using Datahub.Shared.Exceptions;
@@ -26,7 +27,7 @@ public class RequestManagementService : IRequestManagementService
     private readonly ISystemNotificationService _systemNotificationService;
     private readonly IUserInformationService _userInformationService;
     private readonly IDatahubAuditingService _datahubAuditingService;
-    private readonly IResourceRequestService _resourceRequestService;
+    private readonly IResourceMessagingService _resourceMessagingService;
     private readonly IMiscStorageService _miscStorageService;
 
     private const string RESOURCE_REQUEST_INPUT_JSON_PREFIX = "ResourceInput";
@@ -38,7 +39,7 @@ public class RequestManagementService : IRequestManagementService
         ISystemNotificationService systemNotificationService,
         IUserInformationService userInformationService,
         IDatahubAuditingService datahubAuditingService,
-        IResourceRequestService resourceRequestService,
+        IResourceMessagingService resourceMessagingService,
         IMiscStorageService miscStorageService)
     {
         _logger = logger;
@@ -47,10 +48,16 @@ public class RequestManagementService : IRequestManagementService
         _systemNotificationService = systemNotificationService;
         _userInformationService = userInformationService;
         _datahubAuditingService = datahubAuditingService;
-        _resourceRequestService = resourceRequestService;
+        _resourceMessagingService = resourceMessagingService;
         _miscStorageService = miscStorageService;
     }
 
+
+    public async Task HandleUserUpdatesToExternalPermissions(Datahub_Project project)
+    {
+        var workspaceDefinition = await GetWorkspaceDefinition(project.Project_Acronym_CD);
+        await _resourceMessagingService.SendToUserQueue(workspaceDefinition);
+    }
 
     // TODO: Remove unused parameter "inputParams"
     public async Task RequestService(Datahub_ProjectServiceRequests request,
@@ -81,7 +88,7 @@ public class RequestManagementService : IRequestManagementService
     public static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectServiceRequests request,
         Dictionary<string, string> inputParams)
     {
-        var resource = new Project_Resources2()
+        var resource = new Project_Resources2
         {
             Project = request.Project,
             ResourceType = request.ServiceType,
@@ -158,7 +165,7 @@ public class RequestManagementService : IRequestManagementService
         var user = await _userInformationService.GetCurrentPortalUserAsync();
         var users = project.Users
             .Where(u => u.PortalUser != null)
-            .Select(u => new TerraformUser()
+            .Select(u => new TerraformUser
             {
                 ObjectId = u.PortalUser.GraphGuid, 
                 Email = u.PortalUser.Email, 
@@ -172,12 +179,15 @@ public class RequestManagementService : IRequestManagementService
             .Select(r => r.ResourceType)
             .Select(TerraformTemplate.GetTemplateByName)
             .ToList();
-        
 
-        return new WorkspaceDefinition()
+        return new WorkspaceDefinition
         {
             Workspace = workspace,
             Templates = templates,
+            AppData = new WorkspaceAppData
+            {
+                DatabricksHostUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project)
+            },
             RequestingUserEmail = user.Email,
         };
     }
@@ -261,7 +271,7 @@ public class RequestManagementService : IRequestManagementService
     {
         var userId = await _userInformationService.GetUserIdString();
         var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-        var serviceRequest = new Datahub_ProjectServiceRequests()
+        var serviceRequest = new Datahub_ProjectServiceRequests
         {
             ServiceType = serviceType,
             ServiceRequests_Date_DT = DateTime.Now,
@@ -296,7 +306,7 @@ public class RequestManagementService : IRequestManagementService
             var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
             var users = project.Users
                 .Where(u => u.PortalUser != null)
-                .Select(u => new TerraformUser()
+                .Select(u => new TerraformUser
                 {
                     ObjectId = u.PortalUser.GraphGuid, 
                     Email = u.PortalUser.Email, 
@@ -311,7 +321,7 @@ public class RequestManagementService : IRequestManagementService
             {
                 foreach (var template in newTemplates)
                 {
-                    var serviceRequest = new Datahub_ProjectServiceRequests()
+                    var serviceRequest = new Datahub_ProjectServiceRequests
                     {
                         ServiceType = GetTerraformServiceType(template.Name),
                         ServiceRequests_Date_DT = DateTime.Now,
@@ -335,7 +345,7 @@ public class RequestManagementService : IRequestManagementService
                 .ToList();
             
             var request = CreateResourceData.ResourceRunTemplate(workspace, allTemplates, graphUser.Mail);
-            await _resourceRequestService.AddProjectToStorageQueue(request);
+            await _resourceMessagingService.SendToTerraformQueue(request);
             scope.Complete();
             return true;
         }
@@ -368,7 +378,7 @@ public class RequestManagementService : IRequestManagementService
 
         var vals = fieldDefinitions.Fields.Select(f =>
         {
-            var val = new ObjectFieldValue()
+            var val = new ObjectFieldValue
             {
                 FieldDefinition = f,
                 FieldDefinitionId = f.FieldDefinitionId
@@ -392,7 +402,7 @@ public class RequestManagementService : IRequestManagementService
 
         foreach (dynamic field in fields)
         {
-            var def = new FieldDefinition()
+            var def = new FieldDefinition
             {
                 Field_Name_TXT = field.field_name,
                 Name_English_TXT = field.name_en,
@@ -406,7 +416,7 @@ public class RequestManagementService : IRequestManagementService
             {
                 foreach (dynamic choice in field.choices)
                 {
-                    var fc = new FieldChoice()
+                    var fc = new FieldChoice
                     {
                         FieldChoiceId = nextId++,
                         Value_TXT = choice.value,
@@ -431,7 +441,7 @@ public class RequestManagementService : IRequestManagementService
         var profileSections = new List<MetadataSection>();
         var nextId = 1;
 
-        var profile = new MetadataProfile()
+        var profile = new MetadataProfile
         {
             Name = profileDyn.name,
             Sections = profileSections,
@@ -440,7 +450,7 @@ public class RequestManagementService : IRequestManagementService
 
         foreach (var secDyn in profileDyn.sections)
         {
-            var section = new MetadataSection()
+            var section = new MetadataSection
             {
                 SectionId = nextId++,
                 Name_English_TXT = secDyn.label_en,
@@ -453,7 +463,7 @@ public class RequestManagementService : IRequestManagementService
             foreach (string fieldName in secDyn.fields)
             {
                 var fd = defs.Get(fieldName);
-                var sf = new SectionField()
+                var sf = new SectionField
                 {
                     FieldDefinition = fd,
                     FieldDefinitionId = fd.FieldDefinitionId,
