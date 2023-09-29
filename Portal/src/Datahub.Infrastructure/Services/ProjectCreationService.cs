@@ -124,12 +124,13 @@ public class ProjectCreationService : IProjectCreationService
                     return false;
 
                 await AddProjectToDb(user, projectName, acronym, organization);
+                
                 await CreateNewTemplateProjectResourceAsync(acronym);
-
-                var project = CreateResourceData.NewProjectTemplate(projectName, acronym, sectorName, organization, 
-                    user.Mail, Convert.ToDouble(GetDefaultBudget()));
-
-                await _resourceMessagingService.SendToTerraformQueue(project);
+                
+                var currentPortalUser = await _userInformationService.GetCurrentPortalUserAsync();
+                var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
+                
+                await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
                 scope.Complete();
                 return true;
             }

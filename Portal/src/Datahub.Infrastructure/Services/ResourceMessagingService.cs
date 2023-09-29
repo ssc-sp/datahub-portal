@@ -22,9 +22,9 @@ public class ResourceMessagingService : IResourceMessagingService
         _datahubPortalConfiguration = datahubPortalConfiguration;
         _dbContextFactory = dbContextFactory;
     }
-    public async Task SendToTerraformQueue(CreateResourceData project)
+    public async Task SendToTerraformQueue(WorkspaceDefinition project)
     {
-        using IQueue<CreateResourceData> queue = new AzureStorageQueue<CreateResourceData>(new AzureStorageQueueOptions<CreateResourceData>()
+        using IQueue<WorkspaceDefinition> queue = new AzureStorageQueue<WorkspaceDefinition>(new AzureStorageQueueOptions<WorkspaceDefinition>()
         {
             ConnectionString = _datahubPortalConfiguration.DatahubStorageQueue.ConnectionString,
             Name = _datahubPortalConfiguration.DatahubStorageQueue.QueueNames.ResourceRunRequest,
