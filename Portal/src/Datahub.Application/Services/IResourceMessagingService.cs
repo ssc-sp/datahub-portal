@@ -5,7 +5,7 @@ namespace Datahub.Application.Services;
 
 public interface IResourceMessagingService
 {
-    public Task SendToTerraformQueue(CreateResourceData project);
+    public Task SendToTerraformQueue(WorkspaceDefinition project);
     
     public Task SendToUserQueue(WorkspaceDefinition workspaceDefinition, string? connectionString = null, string? queueName = null);
     
