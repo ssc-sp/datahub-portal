@@ -125,7 +125,7 @@ public class ProjectCreationService : IProjectCreationService
 
                 await AddProjectToDb(user, projectName, acronym, organization);
                 
-                await CreateNewTemplateProjectResourceAsync(acronym);
+                await CreateNewTemplateProjectResourceAsync(acronym); 
                 
                 var currentPortalUser = await _userInformationService.GetCurrentPortalUserAsync();
                 var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
