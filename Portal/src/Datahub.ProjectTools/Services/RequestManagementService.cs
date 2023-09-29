@@ -260,17 +260,8 @@ public class RequestManagementService : IRequestManagementService
             
             var userId = await _userInformationService.GetUserIdString();
             var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-            var users = project.Users
-                .Where(u => u.PortalUser != null)
-                .Select(u => new TerraformUser
-                {
-                    ObjectId = u.PortalUser.GraphGuid, 
-                    Email = u.PortalUser.Email, 
-                    Role = GetTerraformUserRole(u)
-                })
-                .ToList();
+            var currentPortalUser = await _userInformationService.GetCurrentPortalUserAsync();
 
-            var workspace = project.ToResourceWorkspace(users);
             var newTemplates = TerraformTemplate.LatestFromNameWithDependencies(terraformTemplate);
 
             if (terraformTemplate != TerraformTemplate.VariableUpdate)
@@ -300,8 +291,10 @@ public class RequestManagementService : IRequestManagementService
                 .DistinctBy(t => t.Name)
                 .ToList();
             
-            var request = CreateResourceData.ResourceRunTemplate(workspace, allTemplates, graphUser.Mail);
-            await _resourceMessagingService.SendToTerraformQueue(request);
+            var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD, currentPortalUser.Email);
+            workspaceDefinition.Templates = allTemplates;
+            
+            await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             scope.Complete();
             return true;
         }
