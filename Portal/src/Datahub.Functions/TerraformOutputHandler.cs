@@ -100,6 +100,13 @@ public class TerraformOutputHandler
             _logger.LogInformation("Project version is below 2.13.0, skipping post terraform triggers");
             return;
         }
+        
+        if(!output.ContainsKey(TerraformVariables.OutputAzureDatabricksWorkspaceUrl) 
+           || string.IsNullOrWhiteSpace(output[TerraformVariables.OutputAzureDatabricksWorkspaceUrl].Value))
+        {
+           _logger.LogInformation("Azure Databricks workspace url is null or empty, skipping post terraform triggers");
+           return;
+        }
 
         // handle external user permissions
         var projectAcronym = output[TerraformVariables.OutputProjectAcronym];
