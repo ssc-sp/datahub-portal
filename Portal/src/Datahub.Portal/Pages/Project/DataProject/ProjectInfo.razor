@@ -127,10 +127,10 @@
                 </MudLink>
             </MudAlert>
         }
-        else if (_project.Project_Phase == TerraformOutputStatus.PendingApproval)
-        {
-            <MudAlert Severity="Severity.Warning">@Localizer["The workspace is currently being configured in Azure. No resources can be provisioned until this step is completed."]</MudAlert>
-        }
+        @* else if (_project.Project_Phase == TerraformOutputStatus.PendingApproval) *@
+        @* { *@
+        @*     <MudAlert Severity="Severity.Warning">@Localizer["The workspace is currently being configured in Azure. No resources can be provisioned until this step is completed."]</MudAlert> *@
+        @* } *@
     </DatahubAuthView>
     <DHMarkdown class="description" Content="@GetProjectDescription()"/>
 </MudStack>
