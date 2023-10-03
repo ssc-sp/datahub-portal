@@ -67,7 +67,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 await UpdateProjectUsersAsync(projectUserUpdateCommands);
             }
 
-            await ProcessTerraformUpdates(projectUserUpdateCommands, projectUserAddUserCommands);
+            await PropagateUserUpdatesToExternalPermissions(projectUserUpdateCommands, projectUserAddUserCommands);
             return true;
         }
         catch (Exception e)
@@ -77,7 +77,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         }
     }
 
-    private async Task ProcessTerraformUpdates(IEnumerable<ProjectUserUpdateCommand> projectUserUpdateCommands,
+    private async Task PropagateUserUpdatesToExternalPermissions(IEnumerable<ProjectUserUpdateCommand> projectUserUpdateCommands,
         IEnumerable<ProjectUserAddUserCommand> projectUserAddUserCommands)
     {
         // get all the distinct projects that have been modified
@@ -89,7 +89,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 .Distinct())
             .ToList();
 
-        // update the terraform template
+        // update each project
         foreach (var projectAcronym in projectAcronyms)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
@@ -99,8 +99,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 .ThenInclude(u => u.PortalUser)
                 .FirstAsync(p => p.Project_Acronym_CD == projectAcronym);
 
-            await _requestManagementService.HandleTerraformRequestServiceAsync(project,
-                TerraformTemplate.VariableUpdate);
+            await _requestManagementService.HandleUserUpdatesToExternalPermissions(project);
         }
     }
 

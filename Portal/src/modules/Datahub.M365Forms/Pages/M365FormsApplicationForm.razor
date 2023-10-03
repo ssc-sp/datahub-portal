@@ -65,7 +65,7 @@
     private M365FormsApplication? m365FormApplication;
     private M365FormsDBContext Context = null!;
     private List<string> MarkDownContent = new();
-    private Microsoft.Graph.User _user = null!;
+    private Microsoft.Graph.Models.User _user = null!;
     private List<Func<M365FormsApplication, string>> AccessorFunctions = new List<Func<M365FormsApplication, string>>();
     private bool _isLoaded;
     private bool _isUserAdmin;
@@ -188,7 +188,7 @@
                 m365FormApplication = Context.M365FormsApplications.Add(m365FormApplication).Entity;
             }
             m365FormApplication.Last_Updated_DT = DateTime.Now;
-            m365FormApplication.Last_Updated_UserId = _user.Id;
+            m365FormApplication.Last_Updated_UserId = _user.Id??throw new InvalidDataException($"no user found");
             if (string.IsNullOrEmpty(m365FormApplication.M365FormStatus))
             {
                 m365FormApplication.M365FormStatus = "Team Requested";

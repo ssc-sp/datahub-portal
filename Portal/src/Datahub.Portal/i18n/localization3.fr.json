@@ -180,5 +180,9 @@
   "English": "Anglais",
   "French": "Français",
   "Success": "Succès",
-  "Your support ticket has been created. Thank you!": "Votre ticket d'assistance a été créé. Merci!"
+  "Your support ticket has been created. Thank you!": "Votre ticket d'assistance a été créé. Merci!",
+  "Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket.": "Veuillez confirmer le contenu suivant. Si vous voyez des erreurs, utilisez le bouton Précédent pour les modifier. Sinon, cliquez sur Soumettre pour soumettre votre demande.",
+  "Ticket Topics": "Sujets",
+  "Ticket Description": "Description",
+  "Preferred Contact Language": "Langue de contact préférée"
 }

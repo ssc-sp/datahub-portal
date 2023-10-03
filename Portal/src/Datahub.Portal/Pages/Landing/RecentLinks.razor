@@ -49,7 +49,7 @@
 @code {
 
     [CascadingParameter(Name = "GraphUser")]
-    public Microsoft.Graph.User User { get; set; }
+    public Microsoft.Graph.Models.User User { get; set; }
 
     private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
     private ushort _maxRecentLinks = 6;

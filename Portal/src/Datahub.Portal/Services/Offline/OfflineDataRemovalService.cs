@@ -1,6 +1,7 @@
 ﻿using Microsoft.Graph;
 using Datahub.Core.Data;
 using Datahub.Core.Services.Storage;
+using Microsoft.Graph.Models;
 
 namespace Datahub.Portal.Services.Offline;
 

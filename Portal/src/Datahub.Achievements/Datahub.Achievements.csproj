@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
@@ -13,12 +13,12 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MudBlazor" Version="6.1.8" />
-    	<PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.*" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.*" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.*" />
-		<PackageReference Include="RulesEngine" Version="4.0.0" />
+      <PackageReference Include="MudBlazor" Version="6.10.0" />
+    	<PackageReference Include="Blazored.LocalStorage" Version="4.4.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.11" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.11" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
+		<PackageReference Include="RulesEngine" Version="5.0.2" />
 	</ItemGroup>
 
     <ItemGroup>

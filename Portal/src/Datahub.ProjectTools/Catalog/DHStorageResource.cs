@@ -23,7 +23,7 @@ public class DHStorageResource: ActiveGitModuleResource
     private bool _azStorageServiceRequested = false;
     private bool _azStorageServiceCreated = false;
 
-    protected override async Task InitializeAsync(string? userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
+    protected override async Task InitializeAsync(string? userId, Microsoft.Graph.Models.User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
         var serviceRequests = Project.ServiceRequests.Where(r => r.ServiceType == IRequestManagementService.STORAGE).ToList();

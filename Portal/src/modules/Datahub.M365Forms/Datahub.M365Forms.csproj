@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -18,9 +18,7 @@
     <ProjectReference Include="..\..\Datahub.Core\Datahub.Core.csproj" />
   </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
-	</ItemGroup>
+	
 
 	<ItemGroup>
 	  <None Update="Pages\FormFooter.md">

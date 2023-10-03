@@ -27,7 +27,7 @@ public class DataRemovalService : BaseService, IDataRemovalService
         _dataRetrievalService = dataRetrievalService;
     }
 
-    public async Task<bool> Delete(Folder folder, Microsoft.Graph.User currentUser)
+    public async Task<bool> Delete(Folder folder, Microsoft.Graph.Models.User currentUser)
     {
         try
         {
@@ -47,7 +47,7 @@ public class DataRemovalService : BaseService, IDataRemovalService
         }
     }
 
-    public async Task<bool> Delete(FileMetaData file, Microsoft.Graph.User currentUser)
+    public async Task<bool> Delete(FileMetaData file, Microsoft.Graph.Models.User currentUser)
     {
         try
         {
@@ -68,7 +68,7 @@ public class DataRemovalService : BaseService, IDataRemovalService
         }
     }
 
-    protected async Task<DataLakeDirectoryClient> DeleteAllFilesUnderneath(Folder folder, Microsoft.Graph.User currentUser)
+    protected async Task<DataLakeDirectoryClient> DeleteAllFilesUnderneath(Folder folder, Microsoft.Graph.Models.User currentUser)
     {
         try
         {
@@ -91,7 +91,7 @@ public class DataRemovalService : BaseService, IDataRemovalService
         }
     }
 
-    protected async Task MarkChildFilesForDeletion(DataLakeFileSystemClient fileSystemClient, Folder folder, Microsoft.Graph.User currentUser)
+    protected async Task MarkChildFilesForDeletion(DataLakeFileSystemClient fileSystemClient, Folder folder, Microsoft.Graph.Models.User currentUser)
     {
         if (folder != null)
         {
@@ -118,7 +118,7 @@ public class DataRemovalService : BaseService, IDataRemovalService
         }
     }
 
-    protected void MarkFileForDeletion(DataLakeFileClient fileClient, FileMetaData file, Microsoft.Graph.User currentUser)
+    protected void MarkFileForDeletion(DataLakeFileClient fileClient, FileMetaData file, Microsoft.Graph.Models.User currentUser)
     {
         try
         {
@@ -136,7 +136,7 @@ public class DataRemovalService : BaseService, IDataRemovalService
         }
     }
 
-    protected async Task<bool> DeleteFileClient(DataLakeFileClient fileClient, FileMetaData file, Microsoft.Graph.User currentUser)
+    protected async Task<bool> DeleteFileClient(DataLakeFileClient fileClient, FileMetaData file, Microsoft.Graph.Models.User currentUser)
     {
         try
         {
@@ -161,7 +161,7 @@ public class DataRemovalService : BaseService, IDataRemovalService
         }
     }
 
-    public async Task<bool> DeleteStorageBlob(FileMetaData file, string project, string containerName, Microsoft.Graph.User currentUser)
+    public async Task<bool> DeleteStorageBlob(FileMetaData file, string project, string containerName, Microsoft.Graph.Models.User currentUser)
     {
         try
         {

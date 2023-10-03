@@ -40,9 +40,9 @@ public class QueryThrottlerTest
             await Task.FromResult(0);
         });
 
-        _ = Task.Run(() =>
+        _ = Task.Run(async () =>
         {
-            target.SetQuery("dummy").Wait();
+            await target.SetQuery("dummy");
         });
             
 

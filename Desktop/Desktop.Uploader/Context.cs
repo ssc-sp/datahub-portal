@@ -1,4 +1,5 @@
 ﻿
+using Datahub.Core.DataTransfers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,5 +12,6 @@ namespace Datahub.Maui.Uploader
     {
         public double UploadSpeedMpbs { get; internal set; }
         public double DownloadSpeedMpbs { get; internal set; }
+        public UploadCredentials Credentials { get; internal set; }
     }
 }

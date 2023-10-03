@@ -11,6 +11,9 @@ using Datahub.Core.Data;
 using System.Threading;
 using System.Linq;
 using Datahub.Core.Services.Security;
+using Microsoft.Graph.Models;
+using Lucene.Net.Search;
+using Azure.Identity;
 
 namespace Datahub.Core.Services.UserManagement;
 
@@ -70,33 +73,28 @@ public class MSGraphService : IMSGraphService
         Dictionary<string, GraphUser> users = new();
         PrepareAuthenticatedClient();
 
-        var options = new List<Option>();
-        options.Add(new QueryOption("$filter", $"startswith(mail,'{filterText}')"));
-        options.Add(new HeaderOption("ConsistencyLevel", "eventual"));
-        options.Add(new QueryOption("$count", "true"));
+        var usersPage = await _graphServiceClient.Users.GetAsync(
+            requestConfiguration =>
+            {
+                requestConfiguration.QueryParameters.Filter = $"startswith(mail,'{filterText}')";
+                requestConfiguration.QueryParameters.Count = true;
+                requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");                
+            },token
+            );
 
-
-        var usersPage = await _graphServiceClient.Users.Request(options).GetAsync(token);
-
-        if (usersPage?.CurrentPage.Count > 0)
-        {
-            foreach (User user in usersPage)
+        var pageIterator = PageIterator<User, UserCollectionResponse>.CreatePageIterator(
+            _graphServiceClient,
+            usersPage,
+            // Callback executed for each item in
+            // the collection
+            (user) =>
             {
                 var newUser = GraphUser.Create(user);
                 users.Add(newUser.Id, newUser);
-            }
-        }
+                return true;
+            });
 
-        // Fetch each page and add those results to the list
-        while (usersPage.NextPageRequest != null)
-        {
-            usersPage = await usersPage.NextPageRequest.GetAsync();
-            foreach (User user in usersPage)
-            {
-                var newUser = GraphUser.Create(user);
-                users.Add(newUser.Id, newUser);
-            }
-        }
+        await pageIterator.IterateAsync();
 
         return users;
     }
@@ -107,17 +105,19 @@ public class MSGraphService : IMSGraphService
         {
             try
             {
-                IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
-                    .Create(_configuration.GetSection("AzureAd").GetValue<string>("ClientId"))
-                    .WithTenantId(_configuration.GetSection("AzureAd").GetValue<string>("TenantId"))
-                    .WithClientSecret(_configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"))
-                    .Build();
-                ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
-
+                //see https://learn.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=csharp
+                // using Azure.Identity;
+                var options = new ClientSecretCredentialOptions
+                {
+                    AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
+                };
+                var clientCertCredential = new ClientSecretCredential(
+                    _configuration.GetSection("AzureAd").GetValue<string>("TenantId"),
+                    _configuration.GetSection("AzureAd").GetValue<string>("ClientId"), 
+                    _configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"), options);
                 var httpClient = _httpClientFactory.CreateClient();
-                _graphServiceClient = new(httpClient);
+                _graphServiceClient = new(httpClient, clientCertCredential);
 
-                _graphServiceClient.AuthenticationProvider = authProvider;
 
             }
             catch (Exception e)
@@ -133,8 +133,15 @@ public class MSGraphService : IMSGraphService
         PrepareAuthenticatedClient();
         try
         {
-            var user = await _graphServiceClient.Users.Request().Filter(filter).GetAsync(token);
-            return user == null ? null : GraphUser.Create(user[0]);
+            var user = await _graphServiceClient.Users.GetAsync(
+                requestConfiguration =>
+                {
+                    requestConfiguration.QueryParameters.Filter = filter;
+                }, token
+            );
+            
+            
+            return user.Value == null ? null : GraphUser.Create(user.Value[0]);
         }
         catch (Exception ex)
         {
@@ -148,17 +155,17 @@ public class MSGraphService : IMSGraphService
         PrepareAuthenticatedClient();
         try
         {
-            var queryOptions = new List<Option>()
-            {
-                new QueryOption("$search", $"\"onPremisesSamAccountName:{userName}\""),
-                new QueryOption("$select", "mail,department"),
-                new HeaderOption("ConsistencyLevel", "eventual")
-            };
+            var user = await _graphServiceClient.Users.GetAsync(
+                requestConfiguration =>
+                {
+                    requestConfiguration.QueryParameters.Search = $"\"onPremisesSamAccountName:{userName}\"";
+                    requestConfiguration.QueryParameters.Select = new[] { "mail", "department" };
+                    requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");
+                }, token
+            );
 
-            var users = await _graphServiceClient.Users.Request(queryOptions).GetAsync(token);
-            var foundUser = users.FirstOrDefault();
 
-            return foundUser is null ? null : GraphUser.Create(foundUser);
+            return user.Value == null ? null : GraphUser.Create(user.Value[0]);
         }
         catch (Exception ex)
         {

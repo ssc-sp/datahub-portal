@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using MimeKit;
 using Datahub.Core.Data;
+using Microsoft.Graph.Models;
 
 namespace Datahub.Portal.Services.Notification;
 

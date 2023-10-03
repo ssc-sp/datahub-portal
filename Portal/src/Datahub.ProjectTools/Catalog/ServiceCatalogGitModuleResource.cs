@@ -6,7 +6,7 @@ using Datahub.ProjectTools.Catalog.ResourceCards;
 using Datahub.ProjectTools.Services;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 
 namespace Datahub.ProjectTools.Catalog;
 
