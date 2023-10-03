@@ -79,8 +79,8 @@ internal class MarkdownDocumentationService
         var isSidebar = Path.GetFileName(outputFilePath) == "_sidebar.md";
         if (!File.Exists(outputFilePath) || CheckIfDraft(outputFilePath) || isSidebar)
         {
-            Console.WriteLine($"+ {outputFilePath}");
-            await _translationService.TranslateMarkupFile(path, outputFilePath, isSidebar);
+            var outputFile = await _translationService.TranslateMarkupFile(path, outputFilePath, isSidebar);
+            Console.WriteLine($"+ {(outputFile is null ? ("no client available for " + outputFilePath):(Path.GetFullPath(outputFile)))}");
         }
     }
 

@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using System.Text;
+using Azure.Identity;
 using CatalogIngestTool;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
@@ -12,7 +13,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
 using Microsoft.Graph.Auth;
+using Microsoft.Graph.Models;
 using Microsoft.Identity.Client;
 using Newtonsoft.Json;
 using GraphServiceClient = Microsoft.Graph.GraphServiceClient;
@@ -57,7 +60,7 @@ var metadataBroker = serviceProvider.GetService<IMetadataBrokerService>();
 
 if (metadataCtx is not null && projectCtx is not null && InputFileExists(args))
 {
-    Dictionary<string, Microsoft.Graph.User> userCache = new();
+    Dictionary<string, User> userCache = new();
 
     Console.WriteLine($"Loading file '{args[0]}'...");
 
@@ -144,41 +147,42 @@ static bool ObjectMetadataExists(MetadataDbContext ctx, string id)
 
 static Microsoft.Graph.GraphServiceClient PrepareAuthenticatedClient(string tenantId, string clientId, string clientSecret)
 {
-    IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
-                    .Create(clientId)
-                    .WithTenantId(tenantId)
-                    .WithClientSecret(clientSecret)
-                    .Build();
 
-    var authProvider = new ClientCredentialProvider(confidentialClientApplication);
+    //see https://learn.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=csharp
+    // using Azure.Identity;
+    var options = new ClientSecretCredentialOptions
+    {
+        AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
+    };
+    var clientCertCredential = new ClientSecretCredential(
+        tenantId,
+        clientId,
+        clientSecret, options);
 
-    GraphServiceClient graphServiceClient = new(new HttpClient());
-    graphServiceClient.AuthenticationProvider = authProvider;
+    GraphServiceClient graphServiceClient = new(clientCertCredential);
 
     return graphServiceClient;
 }
 
-static async Task<Microsoft.Graph.User?> GetGraphUser(GraphServiceClient graphClient, string userName, Dictionary<string, Microsoft.Graph.User> userCache)
+static async Task<User?> GetGraphUser(GraphServiceClient graphClient, string userName, Dictionary<string, Microsoft.Graph.Models.User> userCache)
 {
     if (userCache.ContainsKey(userName))
         return userCache[userName];
 
-    var queryOptions = new List<Microsoft.Graph.Option>()
-    {
-        new Microsoft.Graph.QueryOption("$search", $"\"onPremisesSamAccountName:{userName}\""),
-        new Microsoft.Graph.QueryOption("$select", "mail,department"),
-        new Microsoft.Graph.HeaderOption("ConsistencyLevel", "eventual")
-    };
+    var users = await graphClient.Users.GetAsync(
+        requestConfiguration =>
+        {
+            requestConfiguration.QueryParameters.Search = $"\"onPremisesSamAccountName:{userName}\"";
+            requestConfiguration.QueryParameters.Select = new[] { "mail","department"};
+            requestConfiguration.QueryParameters.Count = true;
+            requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");
+        });
 
-    var users = await graphClient.Users
-        .Request(queryOptions)
-        .GetAsync();
+    var found = users?.Value?.FirstOrDefault();
+    if (found is not null)
+        userCache[userName] = found!;
 
-    var foundUser = users.FirstOrDefault();
-    if (foundUser is not null)
-        userCache[userName] = foundUser;
-
-    return foundUser;
+    return found;
 }
 
 static async Task<Sector> GetSector(DatahubProjectDBContext ctx, string? department)

@@ -19,6 +19,7 @@ const string NAVBAR = "_navbar.md";
 var builder = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("config.json", optional: false)
+    .AddJsonFile("config.deepl.json", optional: false)
     .AddUserSecrets<Program>();
 
 var config = builder.Build();
@@ -33,7 +34,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
     {
         // pick the deepL key
         var deeplKey = options.DeeplKey ?? config.GetSection("DeepL")?.GetValue<string>("Key") ?? Environment.GetEnvironmentVariable("DEEPL_KEY") ?? string.Empty;
-
+        var freeAPI = config.GetSection("DeepL")?.GetValue<bool>("UseFreeAPI") ?? options.UseFreeAPI;
         // file name cache
         var fileNameCache = new DictionaryCache(Path.Combine(options.Path, configParams.Target, "filenamecache.json"));
         // file name cache
@@ -44,10 +45,9 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
 
         // delete unnecessary files
         fileMappingService.CleanUpMappings();
-
+        if (string.IsNullOrWhiteSpace(deeplKey)) throw new InvalidOperationException($"Deepl Key is missing");
         // translation service
-        var translationService = new TranslationService(options.Path, deeplKey, options.UseFreeAPI, translationCache, GetGlossary(options.Path).ToList());
-
+        var translationService = new TranslationService(options.Path, deeplKey, freeAPI, translationCache, GetGlossary(options.Path).ToList());
         // replication service
         var markdownService = new MarkdownDocumentationService(configParams, options.Path, translationService, fileNameCache, fileMappingService);
 

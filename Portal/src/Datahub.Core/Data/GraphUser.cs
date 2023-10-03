@@ -1,5 +1,6 @@
 using System.Net.Mail;
 using Microsoft.Graph;
+using Microsoft.Graph.Models;
 
 namespace Datahub.Core.Data;
 

@@ -41,6 +41,7 @@ public class DatahubPortalConfiguration
     public string DatahubGraphInviteFunctionUrl { get; set; } = null!;
     public string DatahubGraphUsersStatusFunctionUrl { get; set; } = null!;
     public TermsAndConditionsUrl TermsAndConditionsUrl { get; set; } = new();
+    public PreRegistrationDocumentationUrl PreRegistrationDocumentationUrl  { get; set; } = new();
 
     public string SupportFormUrl { get; set; } =
         "https://forms.office.com/pages/responsepage.aspx?id=lMFb0L-U1kquLh2w8uOPXhksOXzZ73RCp9fVTz4vTU5UNTc1U00yNVUxWVg4SkJGMFVHN1RCTTdQRS4u";
@@ -75,6 +76,15 @@ public class TermsAndConditionsUrl
 
     public string Fr { get; set; } =
         "https://raw.githubusercontent.com/ssc-sp/datahub-docs/main/fr/UserGuide/Conditions-g%C3%A9n%C3%A9rales-de-POC.md";
+}
+
+public class PreRegistrationDocumentationUrl
+{
+    public string En { get; set; } =
+        "/UserGuide/Preregistration/Preregistration.md";
+
+    public string Fr { get; set; } =
+        "/fr/UserGuide/Préinscription/Préinscription.md";
 }
 
 public class CultureSettings
@@ -202,6 +212,7 @@ public class DatahubStorageQueue
 public class QueueNames
 {
     public string ResourceRunRequest { get; set; } = "resource-run-request";
+    public string UserRunRequest { get; set; } = "user-run-request";
     public string EmailNotification { get; set; } = "email-notifications";
     public string StorageCapacity { get; set; } = "storage-capacity";
     public string TerraformOutput { get; set; } = "terraform-output";

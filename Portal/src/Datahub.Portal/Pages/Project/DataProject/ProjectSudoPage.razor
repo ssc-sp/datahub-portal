@@ -2,8 +2,9 @@
 @using System.Text.Json
 @using Datahub.Application.Services
 
-@inject IRequestManagementService _requestManagementService
+@inject IResourceMessagingService _resourceMessagingService
 @inject IProjectCreationService _projectCreationService
+@inject IUserInformationService _userInformationService
 
 @page "/w/{ProjectAcronymParam}/sudo"
 
@@ -47,7 +48,8 @@
 
         await _projectCreationService.CreateNewTemplateProjectResourceAsync(ProjectAcronymParam);
 
-        var workspaceDefinition = await _requestManagementService.GetWorkspaceDefinition(ProjectAcronymParam);
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(ProjectAcronymParam, currentUser.Email);
         
         var workspaceDefinitionJsonString = JsonSerializer.Serialize(workspaceDefinition, 
             new JsonSerializerOptions

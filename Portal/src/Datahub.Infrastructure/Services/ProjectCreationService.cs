@@ -15,7 +15,7 @@ using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 
 namespace Datahub.Infrastructure.Services;
 
@@ -26,20 +26,20 @@ public class ProjectCreationService : IProjectCreationService
     private readonly ILogger<ProjectCreationService> _logger;
     private readonly ServiceAuthManager _serviceAuthManager;
     private readonly IUserInformationService _userInformationService;
-    private readonly IResourceRequestService _resourceRequestService;
+    private readonly IResourceMessagingService _resourceMessagingService;
     private readonly IDatahubAuditingService _auditingService;
     private readonly IDatahubCatalogSearch _datahubCatalogSearch;
 
     public ProjectCreationService(IConfiguration configuration, IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
         ILogger<ProjectCreationService> logger, ServiceAuthManager serviceAuthManager, IUserInformationService userInformationService,
-        IResourceRequestService resourceRequestService, IDatahubAuditingService auditingService, IDatahubCatalogSearch datahubCatalogSearch)
+        IResourceMessagingService resourceMessagingService, IDatahubAuditingService auditingService, IDatahubCatalogSearch datahubCatalogSearch)
     {
         _configuration = configuration;
         _datahubProjectDbFactory = datahubProjectDbFactory;
         _logger = logger;
         _serviceAuthManager = serviceAuthManager;
         _userInformationService = userInformationService;
-        _resourceRequestService = resourceRequestService;
+        _resourceMessagingService = resourceMessagingService;
         _auditingService = auditingService;
         _datahubCatalogSearch = datahubCatalogSearch;
     }
@@ -124,12 +124,13 @@ public class ProjectCreationService : IProjectCreationService
                     return false;
 
                 await AddProjectToDb(user, projectName, acronym, organization);
-                await CreateNewTemplateProjectResourceAsync(acronym);
-
-                var project = CreateResourceData.NewProjectTemplate(projectName, acronym, sectorName, organization, 
-                    user.Mail, Convert.ToDouble(GetDefaultBudget()));
-
-                await _resourceRequestService.AddProjectToStorageQueue(project);
+                
+                await CreateNewTemplateProjectResourceAsync(acronym); 
+                
+                var currentPortalUser = await _userInformationService.GetCurrentPortalUserAsync();
+                var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
+                
+                await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
                 scope.Complete();
                 return true;
             }

@@ -28,7 +28,7 @@ public class DHPublicSharing : IProjectResource
 
     private Dictionary<string, object> parameters = new Dictionary<string, object>();
 
-    public async Task<bool> InitializeAsync(Datahub_Project project, string? userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
+    public async Task<bool> InitializeAsync(Datahub_Project project, string? userId, Microsoft.Graph.Models.User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
         isDataApprover = await projectDbContext.Project_Users

@@ -23,7 +23,7 @@ public class DHDatabricksResource : ActiveGitModuleResource
         IsServiceConfigured = configuration.Value.Databricks;
     }
 
-    protected override async Task InitializeAsync(string? userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
+    protected override async Task InitializeAsync(string? userId, Microsoft.Graph.Models.User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
         var serviceRequests = Project.ServiceRequests;
