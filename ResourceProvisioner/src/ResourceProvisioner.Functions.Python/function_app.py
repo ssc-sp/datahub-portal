@@ -77,7 +77,7 @@ def sync_workspace_users_function(workspace_definition):
 
 
 
-@app.function_name(name="SynchronizeWorkspaceUsersQueueTrigger")
+@app.function_name(name="TempIntSynchronizeWorkspaceUsersQueueTrigger")
 @app.queue_trigger(arg_name="msg", queue_name="user-run-request", 
                    connection="TempIntConnectionString") # Queue Trigger
 
@@ -100,7 +100,7 @@ def queue_sync_workspace_users_function(msg: func.QueueMessage) -> None:
     logging.info("Successfully synchronized workspace users.")
     return None
 
-@app.function_name(name="SynchronizeWorkspaceUsersQueueTrigger")
+@app.function_name(name="TempPocSynchronizeWorkspaceUsersQueueTrigger")
 @app.queue_trigger(arg_name="msg", queue_name="user-run-request", 
                    connection="TempPocConnectionString") # Queue Trigger
 
