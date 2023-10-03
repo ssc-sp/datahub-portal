@@ -7,10 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="MediatR" Version="10.0.1" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.9" />
-        <PackageReference Include="Microsoft.Identity.Web" Version="1.25.3" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+        
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.11" />
+        <PackageReference Include="Microsoft.Identity.Web" Version="2.13.4" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="ResourceProvisioner.Application.IntegrationTests" />
+        <InternalsVisibleTo Include="ResourceProvisioner.Application.IntegrationTests"></InternalsVisibleTo>
     </ItemGroup>
 
 </Project>

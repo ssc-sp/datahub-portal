@@ -111,6 +111,11 @@ public class ProjectUserManagementServiceTests
             new ServiceAuthManager(mockMemoryCache.Object, _mockFactory.Object, _mockIMSGraphService.Object);
     }
 
+    [TearDown]
+    public void TearDown()
+    {
+        _dbContext.Dispose();
+    }
 
     [Test]
     public async Task ShouldProcessEmptyProjectUserCommandsTest()

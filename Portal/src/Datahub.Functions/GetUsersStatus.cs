@@ -51,21 +51,26 @@ namespace Datahub.Functions
             
             //////////////// Getting locked users
             _logger.LogInformation("Fetching locked users...");
-            var lockedGraphResult = await graphClient.Users
-                .Request()
-                .Filter("accountEnabled eq false")
-                .Select("displayName,mail,id")
-                .GetAsync();
-            var lockedUsers = lockedGraphResult.Select(x => x.Mail).ToList();
+
+            var lockedGraphResult = await graphClient.Users.GetAsync(
+                requestConfiguration =>
+                {
+                    requestConfiguration.QueryParameters.Filter = "accountEnabled eq false";
+                    requestConfiguration.QueryParameters.Select = new[] { "displayName","mail","id" };
+                });
+
+
+            var lockedUsers = lockedGraphResult?.Value?.Select(x => x.Mail).ToList();
             _logger.LogInformation("Processed locked users");
 
             //////////////// Getting Service Principal group members
             _logger.LogInformation("Fetching all SP group members...");
             var groupGraphResult = await graphClient.Groups[$"{_configuration.ServicePrincipalGroupID}"]
                 .Members
-                .Request()
-                .Select("mail")
-                .GetAsync();
+                .GetAsync(requestConfiguration =>
+                {
+                    requestConfiguration.QueryParameters.Select = new[] { "mail" };
+                });
             var groupArray = JArray.Parse(JsonConvert.SerializeObject(groupGraphResult));
             var groupUsers = groupArray.Select(x => x["Mail"].ToString()).ToList();
             _logger.LogInformation("Processed SP group members");

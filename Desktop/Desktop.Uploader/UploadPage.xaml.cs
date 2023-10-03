@@ -1,7 +1,6 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.Maui.Platform;
 using Datahub.Maui.Uploader;
-using Foundatio.Storage;
 
 namespace Datahub.Maui.Uploader
 {
@@ -77,7 +76,8 @@ namespace Datahub.Maui.Uploader
         {
             try
             {
-                Uri uri = new Uri("https://federal-science-datahub.canada.ca/w/DW1/filelist");
+                var credentials = (Application.Current as App).Context.Credentials;
+                Uri uri = new Uri($"https://federal-science-datahub.canada.ca/w/{credentials.WorkspaceCode}/filelist");
                 await Browser.Default.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
             }
             catch (Exception ex)
@@ -89,40 +89,16 @@ namespace Datahub.Maui.Uploader
 
         public BlobContainerClient GetBlobServiceClient()
         {
+            var credentials = (Application.Current as App).Context.Credentials;
+            if (credentials is null) throw new InvalidNavigationException("No credentials available");
             BlobContainerClient client = new(
-                new Uri($"key"),
+                new Uri(credentials.SASToken),
                 null);
 
             return client;
         }
 
-        public IFileStorage GetFileStorage()
-        {
-            return new AzureFileStorage( b => b.ConnectionString($"key"));
-        }
-
         private async void UploadBtn_Clicked(object sender, EventArgs e)
-        {
-            var client = GetFileStorage();
-            uploadInProgress = true;
-            UploadBtn.IsEnabled = false;
-            UploadProgressBar.IsVisible = true;
-            foreach (var item in fileList)
-            {
-                fileList[item.Key] = "In Progress";
-                await UpdateFileLayout();
-                await client.CopyFileAsync(item.Key, Path.GetFileName(item.Key));
-                    //Uploader.UploadBlocksAsync(client, item.Key, 4096, async p => { UploadProgressBar.Progress = p; });
-                fileList[item.Key] = "Completed";
-                await UpdateFileLayout();
-            }
-            UploadBtn.IsEnabled = true;
-            UploadProgressBar.IsVisible = false;
-            uploadInProgress = true;
-
-        }
-
-        private async void UploadBtn_Clicked_AzNative(object sender, EventArgs e)
         {
             var client = GetBlobServiceClient();
             uploadInProgress = true;

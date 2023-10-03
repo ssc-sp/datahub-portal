@@ -6,6 +6,7 @@
 # Local History for Visual Studio Code
 .history/
 .vs/
+.vscode/
 bin/
 obj/
 *.user
@@ -46,3 +47,4 @@ DatahubTest/testsettings.json
 /Portal/src/Datahub.Functions/appsettings.json
 /Portal/src/Datahub.Portal/output-fr.json
 /Portal/src/Datahub.Achievements/MissingTranslations.json
+/Portal/utils/SyncDocs/config.deepl.json
