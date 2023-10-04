@@ -1,11 +1,14 @@
 ﻿using Datahub.Core.DataTransfers;
+using Datahub.Maui.Uploader.Resources;
 
 namespace Datahub.Maui.Uploader
 {
-    public partial class UploadCodePage : ContentPage
+    public partial class ValidateCodePage : ContentPage
     {
-        public UploadCodePage()
+
+        public ValidateCodePage()
         {
+            
             InitializeComponent();
         }
 
@@ -15,12 +18,12 @@ namespace Datahub.Maui.Uploader
             if (CredentialEncoder.IsValid(UploadCodeText.Text))
             {
                 ValidateCodeButton.IsEnabled = true;
-                ValidateCodeButton.Text = "Continue";
+                ValidateCodeButton.Text = AppResources.Continue;
                 await ContinueFlowWithUploadCode(UploadCodeText.Text);
             } else
             {
                 ValidateCodeButton.IsEnabled = false;
-                ValidateCodeButton.Text = "Please Enter Valid Code";
+                ValidateCodeButton.Text = AppResources.EnterValidCode;
             }
         }
 

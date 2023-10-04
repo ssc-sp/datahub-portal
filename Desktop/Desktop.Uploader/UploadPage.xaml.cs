@@ -1,6 +1,7 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.Maui.Platform;
 using Datahub.Maui.Uploader;
+using Datahub.Maui.Uploader.Resources;
 
 namespace Datahub.Maui.Uploader
 {
@@ -24,7 +25,7 @@ namespace Datahub.Maui.Uploader
                 {
                     if (!fileList.ContainsKey(fname))
                     {
-                        fileList.Add(fname, "Ready...");
+                        fileList.Add(fname, AppResources.ReadyTxt);
                     }
                     await UpdateFileLayout();
                     //await mainPageViewModel.OpenFile(stream, CancellationToken.None);
@@ -57,7 +58,7 @@ namespace Datahub.Maui.Uploader
         {
             PickOptions options = new()
             {
-                PickerTitle = "Please select a file to upload",
+                PickerTitle = AppResources.SelectFilePicker,
                 
             };
             var result = await FilePicker.Default.PickMultipleAsync(options);
@@ -65,7 +66,7 @@ namespace Datahub.Maui.Uploader
             {
                 foreach (var file in result)
                 {
-                    fileList.Add(file.FullPath,"Ready...");
+                    fileList.Add(file.FullPath, AppResources.ReadyTxt);
                 }
                 await UpdateFileLayout();
             }
@@ -106,10 +107,10 @@ namespace Datahub.Maui.Uploader
             UploadProgressBar.IsVisible = true;
             foreach (var item in fileList)
             {
-                fileList[item.Key] = "In Progress";
+                fileList[item.Key] = AppResources.InProgress;
                 await UpdateFileLayout();
                 await Uploader.UploadBlocksAsync(client, item.Key, 4096, async p => { UploadProgressBar.Progress = p; });
-                fileList[item.Key] = "Completed";
+                fileList[item.Key] = AppResources.Completed;
                 await UpdateFileLayout();
             }
             UploadBtn.IsEnabled = true;
