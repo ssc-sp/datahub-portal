@@ -38,7 +38,7 @@ public interface IUserInformationService
     Task SetViewingAsVisitor(bool isVisitor);
     Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false);
     Task<bool> IsUserProjectAdmin(string projectAcronym);
-
+    Task<bool> IsUserProjectWorkspaceLead(string projectAcronym);
     Task<bool> IsUserProjectMember(string projectAcronym);
 
     Task<bool> IsUserDatahubAdmin();

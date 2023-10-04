@@ -4,6 +4,13 @@ namespace Datahub.Portal.Pages.Project.FileExplorer.Storage
 {
     public class CloudStorageSettings
     {
+        public CloudStorageSettings()
+        {
+            Name = string.Empty;
+            Enabled = false;
+            ConnectionData = string.Empty;
+        }
+
         public CloudStorageSettings(ProjectCloudStorage projectCloudStorage)
         {
             Name = projectCloudStorage.Name;
