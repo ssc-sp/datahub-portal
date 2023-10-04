@@ -37,19 +37,6 @@ namespace Datahub.Maui.Uploader
 
         }
 
-        private async void GetUploadCodeBtn_Clicked(object sender, EventArgs e)
-        {
-            try
-            {
-                Uri uri = new Uri("https://federal-science-datahub.canada.ca/resources/126b3f7a-e320-dc44-3707-e748b998b094");
-                await Browser.Default.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
-            }
-            catch (Exception ex)
-            {
-                // An unexpected error occurred. No browser may be installed on the device.
-            }
-        }
-
         private void ContentPage_Loaded(object sender, EventArgs e)
         {
             Clipboard.Default.ClipboardContentChanged += Clipboard_ClipboardContentChanged;

@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:strings="clr-namespace:Datahub.Maui.Uploader.Resources"
              Loaded="ContentPage_Loaded"
+              xmlns:local="clr-namespace:Datahub.Maui.Uploader.Components"
              x:Class="Datahub.Maui.Uploader.ValidateCodePage">
 
     <ScrollView>
@@ -18,12 +19,20 @@
                 FontSize="18"
                 HorizontalOptions="Center" />
 
-            <Button                
+            <local:HyperlinkLabel
+                 SemanticProperties.Description="{x:Static strings:AppResources.UploadCodeDesc}"
+                HorizontalOptions="Center"
+                Text="{x:Static strings:AppResources.UploadCode}"
+                Url="https://federal-science-datahub.canada.ca/resources/126b3f7a-e320-dc44-3707-e748b998b094" 
+                />
+
+
+            <!--<Button                
                 x:Name="GetUploadCodeBtn"
                 Text="{x:Static strings:AppResources.UploadCode}"                
                 SemanticProperties.Hint="{x:Static strings:AppResources.UploadCodeDesc}"
                 Clicked="GetUploadCodeBtn_Clicked"
-                HorizontalOptions="Center" />
+                HorizontalOptions="Center" />-->
 
             <Editor 
                 x:Name="UploadCodeText"
