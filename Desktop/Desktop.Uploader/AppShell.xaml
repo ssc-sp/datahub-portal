@@ -4,20 +4,21 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:Datahub.Maui.Uploader"
+    xmlns:strings="clr-namespace:Datahub.Maui.Uploader.Resources"
     Shell.FlyoutBehavior="Disabled">
 
     <ShellContent
-        Title="DataHub Uploader"
-        ContentTemplate="{DataTemplate local:UploadCodePage}"
+        Title="{x:Static strings:AppResources.DatahubUploader}"
+        ContentTemplate="{DataTemplate local:ValidateCodePage}"
         Route="ValidateCodePage" />
 
     <ShellContent
-        Title="DataHub Uploader"
+        Title="{x:Static strings:AppResources.DatahubUploader}"
         ContentTemplate="{DataTemplate local:UploadPage}"
         Route="Upload" />
 
     <ShellContent
-        Title="DataHub Uploader"
+        Title="{x:Static strings:AppResources.DatahubUploader}"
         ContentTemplate="{DataTemplate local:SpeedTestPage}"
         Route="SpeedTest" />
 
