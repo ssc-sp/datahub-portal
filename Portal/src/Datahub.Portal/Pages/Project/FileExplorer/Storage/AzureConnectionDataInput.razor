@@ -1,13 +1,13 @@
 ﻿@* AzureConnectionDataInput.razor *@
 
 <MudTextField @bind-Value="AccountName"
-              Label="Storage Account Name"
+              Label=@Localizer["Storage Account Name"]
               Variant="Variant.Text"
               Adornment=@Adornment.End
               AdornmentIcon=@Icons.Material.Filled.ContentPaste />
 
 <MudTextField @bind-Value="AccountKey"
-              Label="Account Key"
+              Label=@Localizer["Account Key"]
               Variant="Variant.Text"
               InputType="InputType.Password"
               Adornment=@Adornment.End

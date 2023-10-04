@@ -1,24 +1,24 @@
 ﻿@* AWSConnectionDataInput.razor *@
 
 <MudTextField @bind-Value="AccessKeyId"
-              Label="Access Key Id"
+              Label=@Localizer["Access Key ID"]
               Variant="Variant.Text"
               InputType="InputType.Password"
               Adornment=@Adornment.End
               AdornmentIcon=@Icons.Material.Filled.ContentPaste />
 <MudTextField @bind-Value="AccessKeySecret"
-              Label="Access Key Secret"
+              Label=@Localizer["Access Key Secret"]
               InputType="InputType.Password"
               Variant="Variant.Text"
               Adornment=@Adornment.End
               AdornmentIcon=@Icons.Material.Filled.ContentPaste />
 <MudTextField @bind-Value="Region"
-              Label="Region"
+              Label=@Localizer["Region"]
               Variant="Variant.Text"
               Adornment=@Adornment.End
               AdornmentIcon=@Icons.Material.Filled.ContentPaste />
 <MudTextField @bind-Value="BucketName"
-              Label="Bucket Name"
+              Label=@Localizer["Bucket Name"]
               Variant="Variant.Text"
               Adornment=@Adornment.End
               AdornmentIcon=@Icons.Material.Filled.ContentPaste />
