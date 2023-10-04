@@ -65,3 +65,22 @@ function toggleClassList(el, classes = []){
         el.classList.toggle(name);
     })
 }
+
+let ruleAdded = false;
+
+export function addStyleSheetRule(rule) {
+    if (!ruleAdded) {
+        var stylesheet = document.createElement("style");
+        stylesheet.type = "text/css";
+        document.head.appendChild(stylesheet);
+
+        if (stylesheet.sheet) {
+            if (stylesheet.sheet.insertRule) {
+                stylesheet.sheet.insertRule(rule, 0);
+            } else if (stylesheet.sheet.addRule) {
+                stylesheet.sheet.addRule(rule.split("{")[0].trim(), rule.split("{")[1].trim(), 0);
+            }
+        }
+    }
+    ruleAdded = true;
+}

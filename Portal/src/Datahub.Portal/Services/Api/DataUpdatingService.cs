@@ -38,7 +38,7 @@ public class DataUpdatingService : BaseService
         _dataRetrievalService = dataRetrievalService;
     }
 
-    public async Task<bool> RenameFolder(Folder folder, string newFolderName, Microsoft.Graph.User currentUser)
+    public async Task<bool> RenameFolder(Folder folder, string newFolderName, Microsoft.Graph.Models.User currentUser)
     {
         try
         {
@@ -92,7 +92,7 @@ public class DataUpdatingService : BaseService
         await source.DeleteAsync();
     }
 
-    public async Task<bool> RenameFile(FileMetaData file, string newFileName, Microsoft.Graph.User currentUser)
+    public async Task<bool> RenameFile(FileMetaData file, string newFileName, Microsoft.Graph.Models.User currentUser)
     {
         var oldFile = $"{file.folderpath}/{file.filename}";
         try
@@ -107,7 +107,7 @@ public class DataUpdatingService : BaseService
         }
     }
 
-    public async Task<bool> MoveFile(FileMetaData file, string newParentFolder, Microsoft.Graph.User currentUser)
+    public async Task<bool> MoveFile(FileMetaData file, string newParentFolder, Microsoft.Graph.Models.User currentUser)
     {
         var oldFile = $"{file.folderpath}/{file.filename}";
         try
@@ -122,7 +122,7 @@ public class DataUpdatingService : BaseService
         }
     }
 
-    protected async Task UpdateFilesWithNewFolderPath(DataLakeFileSystemClient fileSystemClient, Folder folder, Microsoft.Graph.User currentUser)
+    protected async Task UpdateFilesWithNewFolderPath(DataLakeFileSystemClient fileSystemClient, Folder folder, Microsoft.Graph.Models.User currentUser)
     {
         if (folder != null)
         {
@@ -153,7 +153,7 @@ public class DataUpdatingService : BaseService
         }
     }
 
-    private void UpdateFileFolderPath(DataLakeFileClient fileClient, FileMetaData file, Microsoft.Graph.User currentUser)
+    private void UpdateFileFolderPath(DataLakeFileClient fileClient, FileMetaData file, Microsoft.Graph.Models.User currentUser)
     {
         var oldFolderpath = file.folderpath;
 
@@ -176,7 +176,7 @@ public class DataUpdatingService : BaseService
         }
     }
 
-    protected async Task<bool> RenameDataLakeFile(FileMetaData file, string newFolderPath, string newFileName, Microsoft.Graph.User currentUser)
+    protected async Task<bool> RenameDataLakeFile(FileMetaData file, string newFolderPath, string newFileName, Microsoft.Graph.Models.User currentUser)
     {
         try
         {

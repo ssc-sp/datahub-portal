@@ -54,10 +54,10 @@ internal class TranslationService
         return sw.ToString();
     }
 
-    public async Task TranslateMarkupFile(string sourcePath, string outputPath, bool isSidebar)
+    public async Task<string?> TranslateMarkupFile(string sourcePath, string outputPath, bool isSidebar)
     {
         if (_client is null)
-            return;
+            return null;
 
         var sourceFileUrl = GetSourceFilePathUrl(sourcePath);
         var metadata = $"remarks: Automatically translated with DeepL\nsource: {sourceFileUrl}\ndraft: true\n";
@@ -92,6 +92,7 @@ internal class TranslationService
             var translated = isSidebar ? await TranslateSidebar(line, "/fr") : await Translate(line);
             writer.WriteLine(translated);
         }
+        return outputPath;
     }
 
     private async Task<string> TranslateSidebar(string text, string relPath)

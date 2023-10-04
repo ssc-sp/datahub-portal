@@ -3,7 +3,7 @@ using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using Moq;
 namespace Datahub.Infrastructure.UnitTests.Services;
 using static Testing;

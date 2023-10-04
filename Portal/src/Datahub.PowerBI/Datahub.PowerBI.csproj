@@ -8,7 +8,7 @@
 
  
     <ItemGroup>
-	    <PackageReference Include="Microsoft.PowerBI.Api" Version="4.11.0" />
+	    <PackageReference Include="Microsoft.PowerBI.Api" Version="4.16.0" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />

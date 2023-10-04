@@ -23,7 +23,7 @@ public class DataCreatorService : BaseService, IDataCreatorService
         _dataLakeClientService = dataLakeClientService;
     }
 
-    public async Task<bool> CreateFolder(Folder folder, Folder parent, Microsoft.Graph.User user)
+    public async Task<bool> CreateFolder(Folder folder, Folder parent, Microsoft.Graph.Models.User user)
     {
         var folderName = $"{parent.fullPathFromRoot}/{folder.id}";
 
