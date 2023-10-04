@@ -202,7 +202,7 @@
     <value>Upload:</value>
   </data>
   <data name="UploadCode" xml:space="preserve">
-    <value>Get DataHub Storage Upload Code</value>
+    <value>How to get a DataHub Storage Upload Code</value>
   </data>
   <data name="UploadCodeDesc" xml:space="preserve">
     <value>Open a web page to obtain a DataHub Upload Code</value>
