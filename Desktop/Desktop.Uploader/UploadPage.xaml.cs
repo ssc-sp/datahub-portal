@@ -11,6 +11,8 @@ namespace Datahub.Maui.Uploader
         public UploadPage()
         {
             InitializeComponent();
+            var credentials = (Application.Current as App).Context.Credentials;
+            StorageURL = $"https://federal-science-datahub.canada.ca/w/{credentials.WorkspaceCode}/filelist";
         }
 
         private Dictionary<string,string> fileList = new();
@@ -73,20 +75,20 @@ namespace Datahub.Maui.Uploader
 
         }
 
-        private async void OpenWSBtn_Clicked(object sender, EventArgs e)
-        {
-            try
-            {
-                var credentials = (Application.Current as App).Context.Credentials;
-                Uri uri = new Uri($"https://federal-science-datahub.canada.ca/w/{credentials.WorkspaceCode}/filelist");
-                await Browser.Default.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
-            }
-            catch (Exception ex)
-            {
-                // An unexpected error occurred. No browser may be installed on the device.
-            }
+        public string StorageURL { get; init; }
 
-        }
+        //private async void OpenWSBtn_Clicked(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        await Browser.Default.OpenAsync(new Uri(StorageURL), BrowserLaunchMode.SystemPreferred);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // An unexpected error occurred. No browser may be installed on the device.
+        //    }
+
+        //}
 
         public BlobContainerClient GetBlobServiceClient()
         {

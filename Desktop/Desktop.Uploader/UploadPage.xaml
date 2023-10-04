@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:strings="clr-namespace:Datahub.Maui.Uploader.Resources"
+             xmlns:local="clr-namespace:Datahub.Maui.Uploader.Components"
              x:Class="Datahub.Maui.Uploader.UploadPage"
              Loaded="ContentPage_Loaded">
 
@@ -57,12 +58,19 @@
                 SemanticProperties.Hint="{x:Static strings:AppResources.StartUploadDesc}"
                 HorizontalOptions="Center" />
 
-            <Button
+
+                <local:HyperlinkLabel
+                 SemanticProperties.Description="{x:Static strings:AppResources.DataHubStoragePageDesc}"
+                HorizontalOptions="Center"
+                Text="{x:Static strings:AppResources.DataHubStoragePage}"
+                Url="{Binding StorageURL}" 
+                />
+                <!--<Button
                 x:Name="OpenWSBtn"
                 Text="{x:Static strings:AppResources.DataHubStoragePage}" 
                 Clicked="OpenWSBtn_Clicked"
                 SemanticProperties.Hint="{x:Static strings:AppResources.DataHubStoragePageDesc}"
-                HorizontalOptions="Center" />
+                HorizontalOptions="Center" />-->
             </HorizontalStackLayout>
         </VerticalStackLayout>
     </ScrollView>
