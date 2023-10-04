@@ -202,7 +202,7 @@
     <value>Télécharger:</value>
   </data>
   <data name="UploadCode" xml:space="preserve">
-    <value>Obtenir le code de téléchargement du stockage DataHub</value>
+    <value>Comment obtenir un code de téléchargement du stockage DataHub</value>
   </data>
   <data name="UploadCodeDesc" xml:space="preserve">
     <value>Ouvrez une page Web pour obtenir un code de téléchargement DataHub</value>

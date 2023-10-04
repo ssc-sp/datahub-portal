@@ -313,7 +313,7 @@ namespace Datahub.Maui.Uploader.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Get DataHub Storage Upload Code.
+        ///   Looks up a localized string similar to How to get a DataHub Storage Upload Code.
         /// </summary>
         internal static string UploadCode {
             get {
