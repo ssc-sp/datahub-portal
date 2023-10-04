@@ -37,12 +37,12 @@ else if (ResourceRequested)
         @Localizer["Resource is being provisioned"]
     </MudButton>
 }
-else if (Project?.Project_Phase == TerraformOutputStatus.PendingApproval)
-{
-    <MudButton Size="Size.Small" Variant="Variant.Filled" Disabled EndIcon="@Icons.Custom.Brands.MicrosoftAzure">
-        @Localizer["Configuring Azure"]
-    </MudButton>
-}
+@* else if (Project?.Project_Phase == TerraformOutputStatus.PendingApproval) *@
+@* { *@
+@*     <MudButton Size="Size.Small" Variant="Variant.Filled" Disabled EndIcon="@Icons.Custom.Brands.MicrosoftAzure"> *@
+@*         @Localizer["Configuring Azure"] *@
+@*     </MudButton> *@
+@* } *@
 else
 {
     <MudButton Size="Size.Small" OnClick="@OnRequestService" Variant="Variant.Filled" EndIcon="fas fa-layer-plus" Color="Color.Primary">

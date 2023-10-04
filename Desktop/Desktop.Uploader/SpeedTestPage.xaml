@@ -23,7 +23,7 @@
                 HorizontalOptions="Center" />
         <Button                
                 x:Name="SkipBtn"
-                Text="Continue"                
+                Text="Skip Speed Test"                
                 SemanticProperties.Hint="Counts the number of times you click"
                 Clicked="SkipBtn_Clicked"
                 HorizontalOptions="Center" />

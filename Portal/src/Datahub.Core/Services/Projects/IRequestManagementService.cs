@@ -24,10 +24,20 @@ public interface IRequestManagementService
     Task<string> GetResourceInputDefinitionJson(string resourceType);
     Task<List<Project_Resources2>> GetResourcesByRequest(Datahub_ProjectServiceRequests request);
     Task HandleRequestService(Datahub_Project project, string serviceType);
+    
+    /// <summary>
+    /// This method is used to handle the terraform request service, it takes in the project and the terraform template to run
+    /// </summary>
+    /// <param name="project"></param>
+    /// <param name="terraformTemplate"></param>
+    /// <returns>
+    /// Returns true if the terraform request service was handled successfully, false otherwise
+    /// </returns>
     Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate);
+    
+    Task HandleUserUpdatesToExternalPermissions(Datahub_Project project);
     Task RequestService(Datahub_ProjectServiceRequests request, Dictionary<string, string> inputParams = null);
     Task RequestServiceWithDefaults(Datahub_ProjectServiceRequests request);
     Task SaveResourceInputDefinitionJson(string resourceType, string jsonContent);
     Task<bool> UpdateResourceInputParameters(Guid resourceId, Dictionary<string, string> inputParams);
-    Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym);
 }

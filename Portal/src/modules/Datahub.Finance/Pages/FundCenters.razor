@@ -33,7 +33,7 @@
     //private List<Sector> _sectorLookup;
     private Dictionary<string, Func<FundCenter, string>> _sortAccessors = new();
     private FinanceDBContext Context;
-    private Microsoft.Graph.User _user = null!;
+    private Microsoft.Graph.Models.User _user = null!;
     private ClaimsPrincipal _claimsUser = null;
     private bool _isUserAdmin;
     private List<HierarchyLevel> _sectors = new();

@@ -60,7 +60,8 @@ namespace Datahub.Core.DataTransfers
             }
             try
             {
-                var utf8bytes = Convert.FromBase64String(base64);
+                var trimmed = base64.Trim();
+                var utf8bytes = Convert.FromBase64String(trimmed);
                 var utf8string = Encoding.UTF8.GetString(Decompress(utf8bytes));
                 return JsonSerializer.Deserialize<UploadCredentials>(utf8string);
             } catch (Exception)

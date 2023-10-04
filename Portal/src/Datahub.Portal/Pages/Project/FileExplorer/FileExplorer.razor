@@ -136,7 +136,7 @@
     public string ProjectAcronym { get; set; }
 
     [CascadingParameter(Name = "GraphUser")]
-    public Microsoft.Graph.User GraphUser { get; set; }
+    public Microsoft.Graph.Models.User GraphUser { get; set; }
 
     [Parameter]
     public int? ProjectId { get; set; }

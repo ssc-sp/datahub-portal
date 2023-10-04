@@ -5,6 +5,7 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Services.UserManagement;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
+using Microsoft.Graph.Models;
 
 namespace Datahub.Core.Services.Offline;
 

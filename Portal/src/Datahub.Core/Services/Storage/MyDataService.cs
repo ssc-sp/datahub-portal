@@ -17,6 +17,7 @@ using Datahub.Core.Services.Security;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Graph.Models;
 using Microsoft.Graph;
 using Microsoft.JSInterop;
 using Folder = Datahub.Core.Data.Folder;
@@ -140,7 +141,7 @@ public class MyDataService
         }
     }
 
-    public async Task<Folder> SearchIndex(dynamic folder, string filter, Microsoft.Graph.User user)
+    public async Task<Folder> SearchIndex(dynamic folder, string filter, User user)
     {
         try
         {
@@ -434,7 +435,7 @@ public class MyDataService
         }
     }
 
-    public async Task<long> GetUserUsedDataTotal(Microsoft.Graph.User user)
+    public async Task<long> GetUserUsedDataTotal(User user)
     {
             
 

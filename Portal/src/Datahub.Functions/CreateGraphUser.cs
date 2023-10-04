@@ -6,6 +6,8 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
+using Microsoft.Graph.Models;
+using Microsoft.Kiota.Abstractions;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -115,26 +117,32 @@ public class CreateGraphUser
 
     private async Task AddToGroup(string userId, string groupId, GraphServiceClient graphClient, ILogger log)
     {
-        var userDirectoryObject = new DirectoryObject
-        {
-            Id = userId
-        };
-
-        var exists = graphClient.Groups[groupId].Members.Request().GetAsync().Result.Any(m => m.Id == userId);
+        var group = await graphClient.Groups[groupId].Members.GetAsync();        
+        var exists = group?.Value?.Any(m => m.Id == userId)??false;
         if (!exists)
         {
-            await graphClient.Groups[groupId].Members.References
-                .Request()
-                .AddAsync(userDirectoryObject);
+            var requestBody = new Microsoft.Graph.Models.ReferenceCreate
+            {
+                OdataId = $"https://graph.microsoft.com/v1.0/directoryObjects/{userId}",
+            };
+            await graphClient.Groups[$"{groupId}"].Members.Ref.PostAsync(requestBody);
             log.LogInformation("Added user {UserID} to group {GroupID}", userId, groupId);
         }
         else
         {
             log.LogInformation("User {UserID} already exists in group {GroupID}", userId, groupId);
         }
+
+
+        var userDirectoryObject = new DirectoryObject
+        {
+            Id = userId
+        };
+
+
     }
 
-    private async Task<Invitation> SendInvitation(string userEmail, GraphServiceClient graphClient)
+    private async Task<Invitation?> SendInvitation(string userEmail, GraphServiceClient graphClient)
     {
         var invitation = new Invitation
         {
@@ -144,8 +152,7 @@ public class CreateGraphUser
         };
 
         var result = await graphClient.Invitations
-            .Request()
-            .AddAsync(invitation);
+            .PostAsync(invitation);
         return result;
     }
 

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
@@ -20,14 +20,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<SupportedPlatform Include="browser" />
+		<SupportedPlatform Include="browser"></SupportedPlatform>
 	</ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22329.4-beta" />
-		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
-		<PackageReference Include="MudBlazor" Version="6.1.8" />
-	</ItemGroup>
+	
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Datahub.Core\Datahub.Core.csproj" />

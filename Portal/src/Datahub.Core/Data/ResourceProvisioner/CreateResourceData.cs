@@ -9,7 +9,6 @@ public record CreateResourceData
     // ReSharper disable once MemberCanBePrivate.Global
     public List<TerraformTemplate> Templates { get; init; }
 
-
     public TerraformWorkspace Workspace { get; init; }
 
     public string RequestingUserEmail { get; init; }

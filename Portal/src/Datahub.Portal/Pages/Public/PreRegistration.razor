@@ -1,0 +1,27 @@
+@using Datahub.Core.Components.Common
+
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+
+@page "/preregistration"
+@page "/account-setup"
+
+<MudButton Style="position: absolute; top: 2rem; right:  2rem;" Variant="Variant.Filled" Color="Color.Primary">
+    <LanguageToggle />
+</MudButton>
+
+<MudContainer Class="my-16" MaxWidth="MaxWidth.Medium">
+
+    <MudText Typo="Typo.h1" Class="mb-8" Align="Align.Center">
+        @Localizer["Registration and Login"]
+    </MudText>
+    <EmbeddedWiki PageNameEn="@_datahubPortalConfiguration.PreRegistrationDocumentationUrl.En"
+                      PageNameFr="@_datahubPortalConfiguration.PreRegistrationDocumentationUrl.Fr"
+                      Substitutions="_substitutions"/>
+</MudContainer>
+
+
+@code {
+
+    private readonly List<(string, string)> _substitutions = new();
+ 
+}
