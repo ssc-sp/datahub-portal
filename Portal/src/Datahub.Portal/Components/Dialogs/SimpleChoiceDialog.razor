@@ -1,0 +1,41 @@
+﻿@* SimpleChoiceDialog *@
+
+<MudDialog>
+    <DialogContent>
+        <MudText>@PromptText</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick=@Cancel Color=@CancelColor>@CancelText</MudButton>
+        <MudButton OnClick=@Confirm Color=@ConfirmColour Variant=@Variant.Filled>@ConfirmText</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public string PromptText { get; set; }
+
+    [Parameter]
+    public string ConfirmText { get; set; }
+
+    [Parameter]
+    public string CancelText { get; set; }
+
+    [Parameter]
+    public Color ConfirmColour { get; set; } = Color.Primary;
+
+    [Parameter]
+    public Color CancelColor { get; set; } = Color.Default;
+
+    protected override void OnInitialized()
+    {
+        ConfirmText = string.IsNullOrEmpty(ConfirmText) ? Localizer["BUTTONS.Confirm"] : ConfirmText;
+        CancelText = string.IsNullOrEmpty(CancelText) ? Localizer["BUTTONS.Cancel"] : CancelText;
+    }
+
+    private void Confirm() => MudDialog.Close(DialogResult.Ok(true));
+    private void Cancel() => MudDialog.Cancel();
+}
