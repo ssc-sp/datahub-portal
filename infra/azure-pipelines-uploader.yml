@@ -4,14 +4,20 @@
 # https://aka.ms/yaml
 
 trigger:
-- develop
-
+  branches:
+    include:
+    - develop
+  paths:
+    include:
+    - Desktop/Desktop.Uploader
+      
 variables:
   target_os: win-x64
   version.MajorMinor: 2.0
   version.Revision: $[counter(variables['version.MajorMinor'], 0)]
   releaseVersion: $(version.MajorMinor).$(version.Revision).0
-  releaseTag: fsdh-uploader-$(releaseVersion)
+  appName: fsdh-uploader
+  releaseTag: $(appName)-$(releaseVersion)
   system.debug: False
 
 jobs:
@@ -60,7 +66,7 @@ jobs:
         targetType: 'inline'
         script: |
             cd $(Build.SourcesDirectory)/Desktop/Desktop.Uploader
-            dotnet publish -f net7.0-windows10.0.22621 -c Release -o $(Build.ArtifactStagingDirectory)
+            dotnet publish -c Release -o $(Build.ArtifactStagingDirectory)
 
   - task: PowerShell@2
     displayName: 'Locate and move MSIX'
@@ -113,6 +119,18 @@ jobs:
             git push origin $(releaseTag) --force
             Get-ChildItem $(Build.ArtifactStagingDirectory)/*.msix
 
+  - task: PowerShell@2
+    displayName: 'Create .appinstaller'
+    inputs:
+        targetType: 'inline'
+        script: |
+          cd $(Build.ArtifactStagingDirectory)/
+          $installer = "<?xml version=""1.0"" encoding=""utf-8""?>
+          <AppInstaller xmlns=""http://schemas.microsoft.com/appx/appinstaller/2018"" Version=""$(releaseVersion)"" Uri=""$(appinstaller_uri)"" >
+              <MainPackage Name=""$(appName)"" Publisher=""CN=Shared Services Canada, O=Shared Services Canada, L=Ottawa, S=Ontario, C=CA"" Version=""$(releaseVersion)"" ProcessorArchitecture=""x64"" Uri=""https://github.com/ssc-sp/datahub-portal/releases/download/$(releaseTag)/Desktop.Uploader_$(releaseVersion)_x64.msix"" />
+          </AppInstaller>"
+          New-Item "$(appName).appinstaller" -ItemType File
+          Set-Content "$(appName).appinstaller" -Value $installer
   - task: GitHubRelease@1
     displayName: 'Upload to Github Release'
     inputs:
@@ -120,5 +138,17 @@ jobs:
         repositoryName: '$(Build.Repository.Name)'
         tagSource: gitTag
         tagPattern: '$(releaseTag)'
-        assets: '$(Build.ArtifactStagingDirectory)/*.msix'
+        assets: |
+          $(Build.ArtifactStagingDirectory)/*.msix
+          $(Build.ArtifactStagingDirectory)/*.appinstaller
         isPreRelease: true
+
+  - task: AzureFileCopy@4
+    inputs:
+      SourcePath: '$(Build.ArtifactStagingDirectory)/*.appinstaller'
+      azureSubscription: $(az_subscription)
+      Destination: 'AzureBlob'
+      storage: $(appinstaller_az_storage)
+      ContainerName: 'datahub-dist'
+      BlobPrefix: ''
+    name: AzureFileCopy
