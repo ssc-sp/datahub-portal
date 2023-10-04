@@ -10,7 +10,7 @@
 @inject IUserInformationService _userInformationService
 @inject IProjectResourceWhitelistService _projectResourceWhitelistService
 @inject ISnackbar _snackbar
-@inject IResourceRequestService _resourceRequestService
+@inject IResourceMessagingService ResourceMessagingService
 @inject IRequestManagementService _requestManagementService
 
 @if (_isLoaded)
@@ -118,39 +118,40 @@
 
     private async Task AddResourceToQueue(Resource resource)
     {
-        var user = await _userInformationService.GetCurrentGraphUserAsync();
+        // var user = await _userInformationService.GetCurrentGraphUserAsync();
         bool success;
-
-        switch (resource)
-        {
-            case Resource.ResourceGroup:
-                var project = CreateResourceData.NewProjectTemplate(Project.Project_Name, Project.Project_Acronym_CD, Project.Sector_Name, Project.Sector_Name, user.Mail, _budget ?? 2400);
-                await _resourceRequestService.AddProjectToStorageQueue(project);
-                success = true;
-                break;
-            case Resource.Storage:
-                success = await _requestManagementService.HandleTerraformRequestServiceAsync(Project, TerraformTemplate.AzureStorageBlob);
-
-                break;
-            case Resource.Databricks:
-                success = await _requestManagementService.HandleTerraformRequestServiceAsync(Project, TerraformTemplate.AzureDatabricks);
-                break;
-            case Resource.VMs:
-                _snackbar.Add(Localizer["Resource {0} is not yet supported", resource], Severity.Error);
-                success = false;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(resource), resource, null);
-        }
-
-        if (success)
-        {
-            _snackbar.Add(Localizer["Resource {0} added to queue", resource], Severity.Success);
-        }
-        else
-        {
-            _snackbar.Add(Localizer["Resource {0} failed to add to queue", resource], Severity.Error);
-        }
+        _snackbar.Add(Localizer["Temporarily disabled {0} during refactor.", resource], Severity.Error);
+        return;
+        //
+        // switch (resource)
+        // {
+        //     case Resource.ResourceGroup:
+        //         await _requestManagementService.HandleTerraformRequestServiceAsync(Project, TerraformTemplate.NewProjectTemplate);
+        //         success = true;
+        //         break;
+        //     case Resource.Storage:
+        //         success = await _requestManagementService.HandleTerraformRequestServiceAsync(Project, TerraformTemplate.AzureStorageBlob);
+        //
+        //         break;
+        //     case Resource.Databricks:
+        //         success = await _requestManagementService.HandleTerraformRequestServiceAsync(Project, TerraformTemplate.AzureDatabricks);
+        //         break;
+        //     case Resource.VMs:
+        //         _snackbar.Add(Localizer["Resource {0} is not yet supported", resource], Severity.Error);
+        //         success = false;
+        //         break;
+        //     default:
+        //         throw new ArgumentOutOfRangeException(nameof(resource), resource, null);
+        // }
+        //
+        // if (success)
+        // {
+        //     _snackbar.Add(Localizer["Resource {0} added to queue", resource], Severity.Success);
+        // }
+        // else
+        // {
+        //     _snackbar.Add(Localizer["Resource {0} failed to add to queue", resource], Severity.Error);
+        // }
     }
 
     private string GetResourceName(Resource resource)

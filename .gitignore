@@ -6,6 +6,7 @@
 # Local History for Visual Studio Code
 .history/
 .vs/
+.vscode/
 bin/
 obj/
 *.user
