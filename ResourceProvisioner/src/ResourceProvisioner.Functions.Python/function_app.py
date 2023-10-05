@@ -66,3 +66,59 @@ def sync_workspace_users_function(workspace_definition):
     # Cleanup users in workspace that aren't in AAD Graph
     remove_deleted_users_in_workspace(workspace_client)
     synchronize_workspace_users(workspace_definition, workspace_client)
+
+
+
+
+
+####################################################################################
+# Temporary function to run the sync function in INT and POC environments 
+####################################################################################
+
+
+
+@app.function_name(name="TempIntSynchronizeWorkspaceUsersQueueTrigger")
+@app.queue_trigger(arg_name="msg", queue_name="user-run-request", 
+                   connection="TempIntConnectionString") # Queue Trigger
+
+def queue_sync_workspace_users_function(msg: func.QueueMessage) -> None:
+    """
+    Synchronizes the users in the Databricks workspace with the users in the definition file.
+
+    Args:
+        workspace_definition (QueueMessage): The workspace definition file.
+
+    Returns:
+        None
+
+    """
+    workspace_definition = msg.get_json()
+    logging.info("Synchronizing workspace users.")
+    
+    sync_workspace_users_function(workspace_definition)
+
+    logging.info("Successfully synchronized workspace users.")
+    return None
+
+@app.function_name(name="TempPocSynchronizeWorkspaceUsersQueueTrigger")
+@app.queue_trigger(arg_name="msg", queue_name="user-run-request", 
+                   connection="TempPocConnectionString") # Queue Trigger
+
+def queue_sync_workspace_users_function(msg: func.QueueMessage) -> None:
+    """
+    Synchronizes the users in the Databricks workspace with the users in the definition file.
+
+    Args:
+        workspace_definition (QueueMessage): The workspace definition file.
+
+    Returns:
+        None
+
+    """
+    workspace_definition = msg.get_json()
+    logging.info("Synchronizing workspace users.")
+    
+    sync_workspace_users_function(workspace_definition)
+
+    logging.info("Successfully synchronized workspace users.")
+    return None

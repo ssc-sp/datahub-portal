@@ -15,14 +15,17 @@
 
     private static string Language => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "en-CA" : "fr-CA";
     private static string LanguageDisplay => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "English" : "Français";
+    
+    private static List<string> UnauthenticatedPages = new() { "/login", "/register", "/terms-and-conditions", "account-setup" };
 
     private async void ChangeLanguage(string language)
     {
-        // if in register page, user still needs to be able to translate languages
+        // if in an unauthenticated page, user still needs to be able to translate languages
         var currentPage = NavManager.Uri;
-        if (currentPage.Contains(@"/register") || currentPage.Contains(@"/terms-and-conditions")){
-            _userInformationService.SetLanguage(language);
+        if (UnauthenticatedPages.Any(x => currentPage.Contains(x)))
+        {
             await _localStorage.SetItemAsStringAsync("language", language);
+            _userInformationService.SetLanguage(language);
         } else {
             await _userInformationService.RegisterUserLanguage(language);
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
