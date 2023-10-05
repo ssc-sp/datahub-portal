@@ -229,5 +229,6 @@
   "Configure Azure Storage": "Configure Azure Storage",
   "Configure AWS Storage": "Configure AWS Storage",
   "Configure Storage": "Configure Storage",
-  "Name": "Name"
+  "Name": "Name",
+  "UnclassifiedDataConfirmation": "By checking this box, I affirm that any data contained in this storage account is unclassified."
 }
