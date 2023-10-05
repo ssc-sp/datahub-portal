@@ -14,10 +14,6 @@
     <MudStack>
         <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
             <MudStack>
-                <MudText>
-                    @Localizer["Register for the Federal Science DataHub"]
-                </MudText>
-
                 <MudTextField T="string"
                               Label=@Localizer["Government of Canada Email"]
                                   @bind-Value="_email"
@@ -42,7 +38,7 @@
                         <MudLink Href="/terms-and-conditions" Typo="Typo.body2">
                             @Localizer["Terms and conditions"]
                         </MudLink>
-                        @Localizer[" of use for the FSDH Proof-of-Concept Phase 2"]
+                        @Localizer[" of use for the FSDH Trial"]
                     </MudText>
 
                 </MudCheckBox>
@@ -66,6 +62,10 @@
             @Localizer["Already registered?"]
             <MudLink Typo="Typo.body2" Href="/login">@Localizer["Login instead"]</MudLink>
         </MudText>
+         <MudText Typo="Typo.body2" Align="Align.Center">
+                    <MudLink Typo="Typo.body2" Target="_blank" Href="/account-setup">@Localizer["Click here for detailed instructions"]</MudLink>
+                    @Localizer["on setting up your account."]
+                </MudText>
     </MudStack>
 </PublicLandingDescription>
 
