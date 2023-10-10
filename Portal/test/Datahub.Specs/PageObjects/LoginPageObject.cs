@@ -21,8 +21,8 @@ public class LoginPageObject : BasePageObject
             return;
 
         // click the new Login button
-        //await Page.GetByRole(AriaRole.Button, new() { Name = "Login" }).ClickAsync();
-        //await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Login" }).ClickAsync();
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
         // Enter username
         await Page.FillAsync("input[name='loginfmt']", GetUserName());
