@@ -18,6 +18,7 @@ using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using static System.Net.WebRequestMethods;
 using Microsoft.Graph.Models;
+using static MudBlazor.CategoryTypes;
 
 namespace Datahub.Core.Services.Docs;
 
@@ -30,7 +31,9 @@ public enum DocumentationGuideRootSection
     [StringValue("DeveloperGuide")]
     DevGuide,
     [StringValue("")]
-    RootFolder
+    RootFolder,
+    [StringValue("Hidden")]
+    Hidden,
 }
 
 #nullable enable
@@ -48,6 +51,7 @@ public class DocumentationService
     private IList<TimeStampedStatus> _statusMessages;
     private DocItem? enOutline;
     private DocItem? frOutline;
+    private DocItem cachedDocs;
     private readonly IMemoryCache _cache;
 
     public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger, 
@@ -60,6 +64,7 @@ public class DocumentationService
         _httpClientFactory = httpClientFactory;
         _statusMessages = new List<TimeStampedStatus>();
         _cache = docCache;
+        cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
     }
 
     public async Task<bool> InvalidateCache()
@@ -274,7 +279,7 @@ public class DocumentationService
         frOutline = ParseSidebar(guide, await LoadDocsPage(guide, $"{SIDEBAR}", LOCALE_FR, useCache), _docFileMappings.GetFrenchDocumentId);
         if (frOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
-        
+        cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden,"Cached");
         AddStatusMessage("Finished loading sidebars");
 
     }
@@ -295,10 +300,13 @@ public class DocumentationService
         var inCachePage = searchRoot.LocatePath(path);
         if (inCachePage is null)
         {
-            var itemId = isFrench? _docFileMappings?.GetFrenchDocumentId(path): _docFileMappings?.GetEnglishDocumentId(path);
-            var docItem = DocItem.GetItem(searchRoot.RootSection, GetIDFromString(path), searchRoot.Level + 1, path, path);
+            inCachePage = cachedDocs.LocatePath(path);
+            if (inCachePage != null)
+                return inCachePage;
+            var itemId = (isFrench? _docFileMappings?.GetFrenchDocumentId(path): _docFileMappings?.GetEnglishDocumentId(path))?? GetIDFromString(path);
+            var docItem = DocItem.GetItem(DocumentationGuideRootSection.Hidden, itemId, searchRoot.Level + 1, path, path);
 
-            searchRoot.Children.Add(docItem);
+            cachedDocs.Children.Add(docItem);
             await BuildDocAndPreviews(docItem);
             return docItem;
         }
