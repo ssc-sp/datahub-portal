@@ -67,7 +67,7 @@
                                         <Databricks Container="@SelectedContainer.Name" />
                                     </MudTabPanel>
                                 }
-                                @if (SelectedContainer.StorageManager.AzCopyEnabled && _datahubPortalConfiguration.DesktopFileUploader.DisplayDesktopUploaderTab)
+                                @if (SelectedContainer.StorageManager.AzCopyEnabled)
                                 {
                                     <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
                                         <UploaderCode Container=@SelectedContainer />
