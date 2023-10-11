@@ -53,6 +53,7 @@ namespace Datahub.Maui.Uploader
             currentBlockSize = EstimateBlockSize();
             StorageURL = $"https://federal-science-datahub.canada.ca/w/{dataHubModel.Credentials.WorkspaceCode}/filelist";
             _cancellationTokenSource = new CancellationTokenSource();
+            this.BindingContext = this;
         }
 
         private List<LocalItemInfo> uploadList = new();
