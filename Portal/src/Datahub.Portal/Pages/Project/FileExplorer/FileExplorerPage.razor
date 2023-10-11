@@ -52,12 +52,10 @@
                                 <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
                                     <Databricks Container="@SelectedContainer"/>
                                 </MudTabPanel>
-                                @if (_datahubPortalConfiguration.DesktopFileUploader.DisplayDesktopUploaderTab)
-                                {
-                                    <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
-                                        <UploaderCode Container="@SelectedContainer"/>
-                                    </MudTabPanel>
-                                }
+                                <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
+                                    <UploaderCode Container="@SelectedContainer"/>
+                                </MudTabPanel>
+                                
                             </DatahubAuthView>
                         </MudTabs>
                     }

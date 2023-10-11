@@ -2,17 +2,22 @@
 using Microsoft.Maui.Platform;
 using Datahub.Maui.Uploader;
 using Datahub.Maui.Uploader.Resources;
+using CommunityToolkit.Maui.Storage;
+using CommunityToolkit.Maui.Alerts;
 
 namespace Datahub.Maui.Uploader
 {
     public partial class UploadPage : ContentPage
     {
 
+        private CancellationTokenSource _cancellationTokenSource;
+
         public UploadPage()
         {
             InitializeComponent();
             var credentials = (Application.Current as App).Context.Credentials;
             StorageURL = $"https://federal-science-datahub.canada.ca/w/{credentials.WorkspaceCode}/filelist";
+            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         private Dictionary<string,string> fileList = new();
@@ -119,6 +124,20 @@ namespace Datahub.Maui.Uploader
             UploadProgressBar.IsVisible = false;
             uploadInProgress = true;
 
+        }
+
+        private async void AddfolderBtn_Clicked(object sender, EventArgs e)
+        {
+            var result = await FolderPicker.Default.PickAsync(_cancellationTokenSource.Token);
+            if (result.IsSuccessful)
+            {
+                //await Toast.Make($"The folder was picked: Name - {result.Folder.Name}, Path - {result.Folder.Path}", ToastDuration.Long).Show(cancellationToken);
+
+            }
+            else
+            {
+                await Toast.Make($"The folder was not picked with error: {result.Exception.Message}").Show(_cancellationTokenSource.Token);
+            }
         }
     }
 }
