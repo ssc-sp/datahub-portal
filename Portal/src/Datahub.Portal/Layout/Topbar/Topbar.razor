@@ -34,7 +34,7 @@
 
 <MudSpacer />
 <NotificationsList IsNotificationsListOpen="@IsNotificationsListOpen" ToggleNotificationsList="ToggleNotificationsList" />
-<HelpPopup IsHelpPopupOpen="@IsHelpPopupOpen" ToggleHelp="ToggleHelp"/>
+<HelpPopup />
 <TopBarProfileButton />
 
 @code {
@@ -45,18 +45,15 @@
     private string _titleStyle;
 
     private bool IsNotificationsListOpen { get; set; }
-    private bool IsHelpPopupOpen { get; set; }
 
     private void ToggleNotificationsList()
     {
         IsNotificationsListOpen = !IsNotificationsListOpen;
-        IsHelpPopupOpen = false;
     }
 
     private void ToggleHelp()
     {
         IsNotificationsListOpen = false;
-        IsHelpPopupOpen = !IsHelpPopupOpen;
     }
 
     protected override void OnInitialized()
