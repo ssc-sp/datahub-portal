@@ -2,6 +2,7 @@
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Announcements;
 using Datahub.Core.Model.Catalog;
+using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Model.Documentation;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
@@ -93,6 +94,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// Cataloged objects 
     /// </summary>
     public DbSet<CatalogObject> CatalogObjects { get; set; }
+
+    /// <summary>
+    /// Table for storing the cloud storage associcated to a project
+    /// </summary>
+    public DbSet<ProjectCloudStorage> ProjectCloudStorages { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
