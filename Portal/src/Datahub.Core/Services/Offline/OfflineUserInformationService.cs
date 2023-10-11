@@ -175,6 +175,11 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult(false);
     }
 
+    public Task<bool> IsUserProjectWorkspaceLead(string projectAcronym)
+    {
+        return Task.FromResult(false);
+    }
+
     public Task<bool> IsUserDatahubAdmin()
     {
         return Task.FromResult(false);
