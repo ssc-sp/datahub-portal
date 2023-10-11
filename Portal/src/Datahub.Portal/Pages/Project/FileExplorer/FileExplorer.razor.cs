@@ -10,23 +10,27 @@ public partial class FileExplorer
 {
     private async Task RefreshStoragePageAsync()
     {
+        _lastContainer = Container;
         _loading = true;
         StateHasChanged();
 
-        var (folders, files, continuationToken) = await _projectDataRetrievalService.GetDfsPagesAsync(ProjectAcronym, 
-            ContainerName, _currentFolder, _continuationToken);
+        var dfsPage = await StorageManager.GetDfsPagesAsync(Container.Name, _currentFolder, _continuationToken);
 
-        _continuationToken = continuationToken;
-        _files = files;
-        _folders = folders;
+        _continuationToken = dfsPage.ContinuationToken;
+        _files = dfsPage.Files;
+        _folders = dfsPage.Folders;
 
-        _loading = false;
+        _loading = false;       
+
         StateHasChanged();
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        await RefreshStoragePageAsync();
+        if (_lastContainer != Container)
+        {
+            await RefreshStoragePageAsync();
+        }            
     }
 
     private async Task HandleNewFolder(string folderName)
@@ -36,7 +40,7 @@ public partial class FileExplorer
         if (_folders.Contains(newFolderPath))
             return;
 
-        if (!await _projectDataRetrievalService.CreateFolderAsync(ProjectAcronym, ContainerName, _currentFolder, newFolderName))
+        if (!await StorageManager.CreateFolderAsync(ContainerName, _currentFolder, newFolderName))
             return;
 
         _folders.Add(newFolderPath);
@@ -50,7 +54,7 @@ public partial class FileExplorer
         if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
             return;
 
-        if (!await _projectDataRetrievalService.DeleteFileAsync(ProjectAcronym, ContainerName, JoinPath(_currentFolder, fileName)))
+        if (!await StorageManager.DeleteFileAsync(ContainerName, JoinPath(_currentFolder, fileName)))
             return;
 
         _files?.RemoveAll(f => f.name.Equals(fileName, StringComparison.OrdinalIgnoreCase));
@@ -71,7 +75,7 @@ public partial class FileExplorer
         if (!allowOverride)
             return;
 
-        if (!await _projectDataRetrievalService.RenameFileAsync(ProjectAcronym, ContainerName, oldFileName, newFileName))
+        if (!await StorageManager.RenameFileAsync(ContainerName, oldFileName, newFileName))
             return;
         
         _files.RemoveAll(f => f.name == fileName);
@@ -91,7 +95,7 @@ public partial class FileExplorer
         if (!allowOverride)
             return;
 
-        if (!await _projectDataRetrievalService.RenameFileAsync(ProjectAcronym, ContainerName, oldFileName, newFileName))
+        if (!await StorageManager.RenameFileAsync(ContainerName, oldFileName, newFileName))
             return;
 
         if (fileExists)
@@ -110,7 +114,7 @@ public partial class FileExplorer
         if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
             return;
 
-        if (!await _projectDataRetrievalService.DeleteFolderAsync(ProjectAcronym, ContainerName, _currentFolder))
+        if (!await StorageManager.DeleteFolderAsync(ContainerName, _currentFolder))
             return;
 
         await SetCurrentFolder(GetDirectoryName(_currentFolder));
@@ -118,7 +122,7 @@ public partial class FileExplorer
 
     private async Task<(bool FileExists, bool AllowOverride)> VerifyOverwrite(string filePath)
     {
-        if (!await _projectDataRetrievalService.FileExistsAsync(ProjectAcronym, ContainerName, filePath))
+        if (!await StorageManager.FileExistsAsync(ContainerName, filePath))
             return (false, true);
 
         var allowOverride = await _jsRuntime.InvokeAsync<bool>("confirm",
@@ -166,7 +170,7 @@ public partial class FileExplorer
 
         _ = InvokeAsync(async () =>
         {
-            var succeeded = await _projectDataRetrievalService.UploadFileAsync(ProjectAcronym.ToLower(), ContainerName, fileMetadata, uploadedBytes =>
+            var succeeded = await StorageManager.UploadFileAsync(ContainerName, fileMetadata, uploadedBytes =>
             {
                 fileMetadata.uploadedBytes = uploadedBytes;
                 _ = InvokeAsync(StateHasChanged);
@@ -199,7 +203,7 @@ public partial class FileExplorer
 
     private async Task HandleFileDownload(string filename)
     {   
-        var uri = await _projectDataRetrievalService.DownloadFileAsync(ProjectAcronym, ContainerName, JoinPath(_currentFolder, filename));
+        var uri = await StorageManager.DownloadFileAsync(ContainerName, JoinPath(_currentFolder, filename));
         await _module.InvokeVoidAsync("downloadFile", uri.ToString());
     }
     

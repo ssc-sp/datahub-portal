@@ -1,5 +1,5 @@
 @using ByteSizeLib
-
+@implements IAsyncDisposable
 @inject IJSRuntime _jsRuntime
 
 <div
@@ -42,7 +42,7 @@
     </span>
 </div>
 
-@code {
+    @code {
 
     [CascadingParameter(Name = "FilterValue")]
     public string FilterValue { get; set; }
@@ -67,7 +67,7 @@
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
-    
+
     [Parameter]
     public EventCallback<MouseEventArgs> OnSelectionClick { get; set; }
 
@@ -81,13 +81,30 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
-
         if (firstRender)
         {
-            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
-                "./Pages/Project/FileExplorer/FileItem.razor.js");
+            try
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Project/FileExplorer/FileItem.razor.js");
+                await _module.InvokeAsync<IJSObjectReference>("initializeDraggable", _fileItemElement);
+            }
+            catch
+            {
+            }
+        }
+    }
 
-            await _module.InvokeAsync<IJSObjectReference>("initializeDraggable", _fileItemElement);
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (_module != null)
+            {
+                await _module.DisposeAsync();
+            }
+        }
+        catch
+        {
         }
     }
 }

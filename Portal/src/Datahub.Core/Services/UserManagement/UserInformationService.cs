@@ -432,7 +432,18 @@ public class UserInformationService : IUserInformationService
 
         if (await IsUserInDataHubAdminRole())
             return true;
-        return (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}-admin");
+        return (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}{RoleConstants.ADMIN_SUFFIX}");
+    }
+
+    public async Task<bool> IsUserProjectWorkspaceLead(string projectAcronym)
+    {
+        if (string.IsNullOrWhiteSpace(projectAcronym))
+            throw new ArgumentException("projectAcronym expected");
+
+        if (await IsUserInDataHubAdminRole())
+            return true;
+        return (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}{RoleConstants.WORKSPACE_LEAD_SUFFIX}");
+
     }
 
     public async Task<bool> IsUserDatahubAdmin()

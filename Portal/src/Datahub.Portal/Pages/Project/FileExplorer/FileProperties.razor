@@ -8,7 +8,6 @@
 @inject DataRetrievalService _dataRetrievalService
 @inject CommonAzureServices _commonAzureServices;
 @inject UIControlsService _uiControlService;
-@inject IProjectDataRetrievalService _projectDataRetrievalService
 
 @if (File != null)
 {
@@ -56,7 +55,7 @@
 
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
-    
+
     [CascadingParameter(Name = "StorageAccountMetadata")]
     public StorageMetadata StorageAccountMetadata { get; set; }
 
@@ -65,7 +64,7 @@
 
     [Parameter]
     public FileMetaData File { get; set; }
-    
+
     [Parameter]
     public string ContainerName { get; set; } = "datahub";
 
@@ -78,27 +77,31 @@
     private List<(string, string)> _properties;
     private string _powerBiPasteText;
     private string _fileLinkUrl;
-    
+
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
-    
+
         if (File == null)
             return;
-    
+
         _properties = File.GetMetadataProperties()
             .Where(p => p.isVisible)
             .Select(p => (p.key, Value: File.GetMetadataPropertyValue(p.key)))
             .ToList();
-        
-        var accountName = StorageAccountMetadata.Url.Split('.')[0].Replace("https://", "");
-        _fileLinkUrl = $"{StorageAccountMetadata.Url}/{File.folderpath}{File.filename}";
-        _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{accountName}.dfs.core.windows.net/{File.folderpath}{File.filename}";
+
+        if (!string.IsNullOrEmpty(StorageAccountMetadata?.Url))
+        {
+            var accountName = StorageAccountMetadata.Url.Split('.')[0].Replace("https://", "");
+            _fileLinkUrl = $"{StorageAccountMetadata.Url}/{File.folderpath}{File.filename}";
+            _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{accountName}.dfs.core.windows.net/{File.folderpath}{File.filename}";
+        }
     }
 
     private void ShowMetadataEditor()
     {
-        RenderFragment metadataEditor = @<ObjectMetadataEditor 
+        RenderFragment metadataEditor = 
+    @<ObjectMetadataEditor 
                 @key=@File.fileid 
                 ObjectId=@File.fileid 
                 DefaultMetadataId=@ProjectAcronym
