@@ -55,10 +55,6 @@
         {
             _helpPopup = await _module.InvokeAsync<IJSObjectReference>("initialize", _dotNetHelper);
         }
-        else
-        {
-            // await _module.InvokeVoidAsync("destroy");
-        }
         StateHasChanged();
     }
 
