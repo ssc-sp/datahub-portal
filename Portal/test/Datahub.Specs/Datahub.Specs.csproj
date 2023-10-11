@@ -68,6 +68,9 @@
       <Compile Update="Features\Workspace.feature.cs">
         <DependentUpon>Workspace.feature</DependentUpon>
       </Compile>
+      <Compile Update="Features\Login.feature.cs">
+        <DependentUpon>Login.feature</DependentUpon>
+      </Compile>
     </ItemGroup>
 
     <ItemGroup>
@@ -110,5 +113,7 @@
     <ItemGroup>
       <ProjectReference Include="..\..\src\Datahub.Application\Datahub.Application.csproj" />
     </ItemGroup>
+
+
 
 </Project>
