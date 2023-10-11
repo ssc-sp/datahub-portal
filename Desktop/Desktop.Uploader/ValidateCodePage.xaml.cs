@@ -84,9 +84,6 @@ namespace Datahub.Maui.Uploader
 
         private async Task ContinueFlowWithUploadCode(string uploadCode)
         {
-            //if (Clipboard.Default.HasText)
-            //{
-            //    var content = await Clipboard.Default.GetTextAsync();
             if (!string.IsNullOrEmpty(uploadCode))
             {
                 var decoded = CredentialEncoder.DecodeCredentials(uploadCode);
@@ -97,7 +94,6 @@ namespace Datahub.Maui.Uploader
                     await Shell.Current.GoToAsync("//SpeedTest");
                 }
             }
-            //}
         }
     }
 }
