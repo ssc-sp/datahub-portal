@@ -151,7 +151,7 @@
     <value>Open the web page for DataHub Storage</value>
   </data>
   <data name="DatahubUploader" xml:space="preserve">
-    <value>SP DataHub Uploader</value>
+    <value>FSDH DataHub Uploader</value>
   </data>
   <data name="Download" xml:space="preserve">
     <value>Download:</value>
@@ -173,6 +173,9 @@
   </data>
   <data name="EnterValidCodeDesc" xml:space="preserve">
     <value>Moves to next page if the upload code is valid</value>
+  </data>
+  <data name="ExpiredCode" xml:space="preserve">
+    <value>Your upload code has expired</value>
   </data>
   <data name="FileList" xml:space="preserve">
     <value>Files to upload</value>
