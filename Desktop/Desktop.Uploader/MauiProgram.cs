@@ -23,11 +23,15 @@ namespace Datahub.Maui.Uploader
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                })
+                .ConfigureEssentials(essentials =>
+                {
+                    essentials.UseVersionTracking();
                 });
             builder.Services.AddSingleton<DataHubModel>();
             builder.Services.AddSingleton<SpeedTestResults>();
             builder.Services.AddSingleton<FileUtils>();
-            builder.Services.AddSingleton<IFolderPicker>(FolderPicker.Default);            
+            builder.Services.AddSingleton<IFolderPicker>(FolderPicker.Default);
             //Routing.RegisterRoute("ValidateCodePage", typeof(ValidateCodePage));
 #if DEBUG
             builder.Logging.AddDebug();
