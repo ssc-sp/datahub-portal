@@ -1,5 +1,5 @@
 ﻿using Azure.Storage.Blobs;
-using Microsoft.Extensions.Localization;
+using Datahub.Maui.Uploader.Resources;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,11 +11,9 @@ namespace Datahub.Maui.Uploader.IO
 {
     public class FileUtils
     {
-        private readonly IStringLocalizer<App> localizer;
 
-        public FileUtils(IStringLocalizer<App> localizer)
+        public FileUtils()
         {
-            this.localizer = localizer;
         }
 
         public string ToFriendlyFormat(TimeSpan timespan)
@@ -103,7 +101,7 @@ namespace Datahub.Maui.Uploader.IO
 
         public string GetFriendlyFileSize(long fileSizeBytes)
         {
-            string[] sizeSuffixes = { localizer["B"], localizer["KB"], localizer["MB"], localizer["GB"], localizer["TB"] };
+            string[] sizeSuffixes = { AppResources._byte, AppResources.kiloByte, AppResources.megaByte, AppResources.gigaByte, AppResources.teraByte };
             int suffixIndex = 0;
             double size = fileSizeBytes;
 

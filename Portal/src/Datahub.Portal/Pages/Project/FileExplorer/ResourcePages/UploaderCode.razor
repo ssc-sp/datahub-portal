@@ -1,6 +1,9 @@
 ﻿<MudStack>
     <MudElement>
-        <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container="@Container" UseUploadCode=true />
+        <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container="@Container"
+            UseUploadCode=true GenerateAndCopy=true
+            TokenName="Desktop Uploader Code"
+            />
     </MudElement>
     <EmbeddedWiki PageNameEn="/UserGuide/Storage/Desktop-Uploader.md"
                   PageNameFr="/fr/UserGuide/Storage/Chargeur-de-bureau.md"

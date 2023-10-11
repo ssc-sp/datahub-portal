@@ -61,6 +61,15 @@ namespace Datahub.Maui.Uploader.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to b.
+        /// </summary>
+        internal static string _byte {
+            get {
+                return ResourceManager.GetString("byte", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add file(s).
         /// </summary>
         internal static string AddFiles {
@@ -214,11 +223,38 @@ namespace Datahub.Maui.Uploader.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to gb.
+        /// </summary>
+        internal static string gigaByte {
+            get {
+                return ResourceManager.GetString("gigaByte", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to In Progress.
         /// </summary>
         internal static string InProgress {
             get {
                 return ResourceManager.GetString("InProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to kb.
+        /// </summary>
+        internal static string kiloByte {
+            get {
+                return ResourceManager.GetString("kiloByte", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to mb.
+        /// </summary>
+        internal static string megaByte {
+            get {
+                return ResourceManager.GetString("megaByte", resourceCulture);
             }
         }
         
@@ -300,6 +336,15 @@ namespace Datahub.Maui.Uploader.Resources {
         internal static string StartUploadDesc {
             get {
                 return ResourceManager.GetString("StartUploadDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to tb.
+        /// </summary>
+        internal static string teraByte {
+            get {
+                return ResourceManager.GetString("teraByte", resourceCulture);
             }
         }
         

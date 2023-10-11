@@ -129,6 +129,9 @@
   <data name="AddFolderDesc" xml:space="preserve">
     <value>Button to open a folder dialog selector</value>
   </data>
+  <data name="byte" xml:space="preserve">
+    <value>b</value>
+  </data>
   <data name="Completed" xml:space="preserve">
     <value>Completed</value>
   </data>
@@ -168,8 +171,17 @@
   <data name="FileList" xml:space="preserve">
     <value>Files to upload</value>
   </data>
+  <data name="gigaByte" xml:space="preserve">
+    <value>gb</value>
+  </data>
   <data name="InProgress" xml:space="preserve">
     <value>In Progress</value>
+  </data>
+  <data name="kiloByte" xml:space="preserve">
+    <value>kb</value>
+  </data>
+  <data name="megaByte" xml:space="preserve">
+    <value>mb</value>
   </data>
   <data name="PasteUploadCode" xml:space="preserve">
     <value>Paste your upload code from the DataHub portal in File Explorer</value>
@@ -197,6 +209,9 @@
   </data>
   <data name="StartUploadDesc" xml:space="preserve">
     <value>Button to start the upload process</value>
+  </data>
+  <data name="teraByte" xml:space="preserve">
+    <value>tb</value>
   </data>
   <data name="Upload" xml:space="preserve">
     <value>Upload:</value>

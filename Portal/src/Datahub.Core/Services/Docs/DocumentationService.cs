@@ -116,7 +116,7 @@ public class DocumentationService
 
         var doc = Markdown.Parse(inputMarkdown);
 
-        var root = DocItem.MakeRoot(guide, GetPageCode("root"));
+        var root = DocItem.MakeRoot(guide, GetIDFromString("root"));
 
         ProcessBlock(doc, 0, null, root, mapId);
         return root;
@@ -128,7 +128,7 @@ public class DocumentationService
         {
             case LiteralInline literalInline:
                 var title = literalInline.ToString();
-                var id = GetPageCode(title ?? "");
+                var id = GetIDFromString(title ?? "");
                 if (currentItem is null)
                 {
                     var docItem1 = DocItem.GetItem(parent.RootSection, id, level, title, null);
@@ -296,7 +296,7 @@ public class DocumentationService
         if (inCachePage is null)
         {
             var itemId = isFrench? _docFileMappings?.GetFrenchDocumentId(path): _docFileMappings?.GetEnglishDocumentId(path);
-            var docItem = DocItem.GetItem(parent.DocumentationGuide, itemId, level, path, path);
+            var docItem = DocItem.GetItem(searchRoot.RootSection, GetIDFromString(path), searchRoot.Level + 1, path, path);
 
             searchRoot.Children.Add(docItem);
             await BuildDocAndPreviews(docItem);
@@ -477,7 +477,7 @@ public class DocumentationService
         }
     }
 
-    public static string GetPageCode(string url)
+    public static string GetIDFromString(string url)
     {
         return GetStableHashCode(url).ToString("X").ToLowerInvariant();
     }
