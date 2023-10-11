@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:strings="clr-namespace:Datahub.Maui.Uploader.Resources"
              xmlns:local="clr-namespace:Datahub.Maui.Uploader.Components"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="Datahub.Maui.Uploader.UploadPage"
              Loaded="ContentPage_Loaded">
 
@@ -26,6 +27,13 @@
                 FontSize="18"
                 HorizontalOptions="Center" />
 
+            <local:HyperlinkLabel
+                SemanticProperties.Description="{x:Static strings:AppResources.DataHubStoragePageDesc}"
+                HorizontalOptions="Center"
+                Text="{x:Static strings:AppResources.DataHubStoragePage}"
+                Url="{Binding StorageURL}" 
+                />
+
             <TableView Intent="Data" x:Name="FileListTbView" IsVisible="False">
                 <TableRoot>
                     <TableSection x:Name="FileListSection" Title="{x:Static strings:AppResources.FileList}">
@@ -36,7 +44,7 @@
             <ProgressBar x:Name="UploadProgressBar" Progress="0" />
 
             <HorizontalStackLayout HorizontalOptions="Center">
-            <Button
+                <Button
                 x:Name="AddfileBtn"
                 Text="{x:Static strings:AppResources.AddFiles}"
                 SemanticProperties.Hint="{x:Static strings:AppResources.AddFilesDesc}"
@@ -44,6 +52,7 @@
                 HorizontalOptions="Center" />
                 <Button
                 x:Name="AddfolderBtn"
+                Clicked="AddfolderBtn_Clicked"                    
                 Text="{x:Static strings:AppResources.AddFolder}"
                 SemanticProperties.Hint="{x:Static strings:AppResources.AddFolderDesc}"                
                 HorizontalOptions="Center" />
@@ -59,12 +68,7 @@
                 HorizontalOptions="Center" />
 
 
-                <local:HyperlinkLabel
-                 SemanticProperties.Description="{x:Static strings:AppResources.DataHubStoragePageDesc}"
-                HorizontalOptions="Center"
-                Text="{x:Static strings:AppResources.DataHubStoragePage}"
-                Url="{Binding StorageURL}" 
-                />
+
                 <!--<Button
                 x:Name="OpenWSBtn"
                 Text="{x:Static strings:AppResources.DataHubStoragePage}" 

@@ -2,6 +2,7 @@
 using Datahub.Maui.Uploader;
 using System.Text;
 using System.Globalization;
+using CommunityToolkit.Maui;
 
 namespace Datahub.Maui.Uploader
 {
@@ -12,6 +13,8 @@ namespace Datahub.Maui.Uploader
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+            // Initialize the .NET MAUI Community Toolkit by adding the below line of code
+            .UseMauiCommunityToolkit()
                 .RegisterPages()
                 .ConfigureFonts(fonts =>
                 {
