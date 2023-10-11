@@ -1,15 +1,25 @@
 ﻿using Datahub.Core.DataTransfers;
 using Datahub.Maui.Uploader.Resources;
 
+using Datahub.Core.DataTransfers;
+using Datahub.Maui.Uploader.Models;
+using Microsoft.Extensions.Localization;
+
 namespace Datahub.Maui.Uploader
 {
     public partial class ValidateCodePage : ContentPage
     {
 
         public ValidateCodePage()
+        private readonly IStringLocalizer<App> localizer;
+        private readonly DataHubModel model;
+
+        public ValidateCodePage(IStringLocalizer<App> localizer, DataHubModel model)
         {
             
             InitializeComponent();
+            this.localizer = localizer;
+            this.model = model;
         }
 
 
@@ -46,18 +56,36 @@ namespace Datahub.Maui.Uploader
         {
             if (Clipboard.Default.HasText)
             {
-                var clipboard = await Clipboard.Default.GetTextAsync();
-                if (CredentialEncoder.IsValid(clipboard))
-                {
-                    await ContinueFlowWithUploadCode(clipboard);
-                }
+                Uri uri = new Uri($"https://federal-science-datahub.canada.ca/w/{model.Credentials.WorkspaceCode}/filelist");
+                await Browser.Default.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
             }
+            catch (Exception ex)
+            {
+                // An unexpected error occurred. No browser may be installed on the device.
+            }
+        }
+
+        private void ContentPage_Loaded(object sender, EventArgs e)
+        {
+            Clipboard.Default.ClipboardContentChanged += Clipboard_ClipboardContentChanged;
         }
 
         private static async Task ContinueFlowWithUploadCode(string uploadCode)
         {
-            (Application.Current as App).Context.Credentials = CredentialEncoder.DecodeCredentials(uploadCode);
-            await Shell.Current.GoToAsync("//SpeedTest");            
+            if (Clipboard.Default.HasText)
+            {
+                var content = await Clipboard.Default.GetTextAsync();
+                if (!string.IsNullOrEmpty(content))
+                {
+                    var decoded = CredentialEncoder.DecodeCredentials(content);
+                    if (decoded != null)
+                    {
+                        await Clipboard.Default.SetTextAsync(null);
+                        model.Credentials = decoded;
+                        await Shell.Current.GoToAsync("//SpeedTest");
+                    }
+                }
+            }
         }
     }
 }
