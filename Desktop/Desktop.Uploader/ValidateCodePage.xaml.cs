@@ -1,24 +1,18 @@
 ﻿using Datahub.Core.DataTransfers;
 using Datahub.Maui.Uploader.Resources;
-
 using Datahub.Core.DataTransfers;
 using Datahub.Maui.Uploader.Models;
-using Microsoft.Extensions.Localization;
 
 namespace Datahub.Maui.Uploader
 {
     public partial class ValidateCodePage : ContentPage
     {
 
-        public ValidateCodePage()
-        private readonly IStringLocalizer<App> localizer;
         private readonly DataHubModel model;
 
-        public ValidateCodePage(IStringLocalizer<App> localizer, DataHubModel model)
+        public ValidateCodePage(DataHubModel model)
         {
-            
             InitializeComponent();
-            this.localizer = localizer;
             this.model = model;
         }
 
@@ -54,10 +48,13 @@ namespace Datahub.Maui.Uploader
 
         private async void Clipboard_ClipboardContentChanged(object sender, EventArgs e)
         {
-            if (Clipboard.Default.HasText)
+            try
             {
-                Uri uri = new Uri($"https://federal-science-datahub.canada.ca/w/{model.Credentials.WorkspaceCode}/filelist");
-                await Browser.Default.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
+                if (Clipboard.Default.HasText)
+                {
+                    Uri uri = new Uri($"https://federal-science-datahub.canada.ca/w/{model.Credentials.WorkspaceCode}/filelist");
+                    await Browser.Default.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
+                }
             }
             catch (Exception ex)
             {
@@ -65,12 +62,7 @@ namespace Datahub.Maui.Uploader
             }
         }
 
-        private void ContentPage_Loaded(object sender, EventArgs e)
-        {
-            Clipboard.Default.ClipboardContentChanged += Clipboard_ClipboardContentChanged;
-        }
-
-        private static async Task ContinueFlowWithUploadCode(string uploadCode)
+        private async Task ContinueFlowWithUploadCode(string uploadCode)
         {
             if (Clipboard.Default.HasText)
             {

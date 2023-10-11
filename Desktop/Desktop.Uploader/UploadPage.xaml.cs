@@ -2,7 +2,6 @@
 using Microsoft.Maui.Platform;
 using Datahub.Maui.Uploader;
 using Datahub.Core.DataTransfers;
-using Microsoft.Extensions.Localization;
 using Datahub.Maui.Uploader.Models;
 using Datahub.Maui.Uploader.IO;
 using System.Threading;
@@ -42,24 +41,21 @@ namespace Datahub.Maui.Uploader
 
         private CancellationTokenSource _cancellationTokenSource;
 
-        public UploadPage(IStringLocalizer<App> localizer, DataHubModel dataHubModel, SpeedTestResults speedTestResults,
+        public UploadPage(DataHubModel dataHubModel, SpeedTestResults speedTestResults,
             FileUtils fileUtils, IFolderPicker folderPicker)
         {
             InitializeComponent();
-            this.localizer = localizer;
             this.dataHubModel = dataHubModel;
             this.speedTestResults = speedTestResults;
             this.fileUtils = fileUtils;
             this.folderPicker = folderPicker;
             currentSpeedMbps = speedTestResults.UploadSpeedMbps ?? 0;
             currentBlockSize = EstimateBlockSize();
-            var credentials = (Application.Current as App).Context.Credentials;
-            StorageURL = $"https://federal-science-datahub.canada.ca/w/{credentials.WorkspaceCode}/filelist";
+            StorageURL = $"https://federal-science-datahub.canada.ca/w/{dataHubModel.Credentials.WorkspaceCode}/filelist";
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
         private List<LocalItemInfo> uploadList = new();
-        private readonly IStringLocalizer<App> localizer;
         private readonly DataHubModel dataHubModel;
         private readonly SpeedTestResults speedTestResults;
         private readonly FileUtils fileUtils;
@@ -141,6 +137,7 @@ namespace Datahub.Maui.Uploader
             {
                 // An unexpected error occurred. No browser may be installed on the device.
             }
+        }
         public string StorageURL { get; init; }
 
         //private async void OpenWSBtn_Clicked(object sender, EventArgs e)
@@ -158,8 +155,7 @@ namespace Datahub.Maui.Uploader
 
         public BlobContainerClient GetBlobServiceClient()
         {
-            var credentials = (Application.Current as App).Context.Credentials;
-            if (credentials is null) throw new InvalidNavigationException("No credentials available");
+            if (dataHubModel?.Credentials is null) throw new InvalidNavigationException("No credentials available");
             BlobContainerClient client = new(
                 new Uri($"{dataHubModel.Credentials.SASToken}"),
                 null);

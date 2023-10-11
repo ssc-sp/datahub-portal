@@ -129,6 +129,9 @@
   <data name="AddFolderDesc" xml:space="preserve">
     <value>Bouton pour ouvrir un sélecteur de boîte de dialogue de dossier</value>
   </data>
+  <data name="byte" xml:space="preserve">
+    <value>o</value>
+  </data>
   <data name="Completed" xml:space="preserve">
     <value>Complété</value>
   </data>
@@ -168,8 +171,17 @@
   <data name="FileList" xml:space="preserve">
     <value>Fichiers à télécharger</value>
   </data>
+  <data name="gigaByte" xml:space="preserve">
+    <value>go</value>
+  </data>
   <data name="InProgress" xml:space="preserve">
     <value>En cours</value>
+  </data>
+  <data name="kiloByte" xml:space="preserve">
+    <value>ko</value>
+  </data>
+  <data name="megaByte" xml:space="preserve">
+    <value>mo</value>
   </data>
   <data name="PasteUploadCode" xml:space="preserve">
     <value>Collez votre code de téléchargement depuis le portail DataHub dans l'explorateur de fichiers</value>
@@ -197,6 +209,9 @@
   </data>
   <data name="StartUploadDesc" xml:space="preserve">
     <value>Bouton pour démarrer le processus de téléchargement</value>
+  </data>
+  <data name="teraByte" xml:space="preserve">
+    <value>to</value>
   </data>
   <data name="Upload" xml:space="preserve">
     <value>Télécharger:</value>

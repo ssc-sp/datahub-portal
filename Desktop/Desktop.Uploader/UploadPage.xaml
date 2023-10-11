@@ -71,8 +71,6 @@
                 IsEnabled="False"
                 Clicked="UploadBtn_Clicked"
                 SemanticProperties.Hint="{x:Static strings:AppResources.StartUploadDesc}"
-                Clicked="UploadBtn_Clicked"
-                    IsEnabled="False"
                 HorizontalOptions="Center" />
                 <Button
                 x:Name="CancelBtn"
