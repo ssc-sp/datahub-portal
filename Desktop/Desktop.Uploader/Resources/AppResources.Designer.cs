@@ -106,6 +106,24 @@ namespace Datahub.Maui.Uploader.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cancel Upload.
+        /// </summary>
+        internal static string CancelUpload {
+            get {
+                return ResourceManager.GetString("CancelUpload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel the upload process.
+        /// </summary>
+        internal static string CancelUploadDesc {
+            get {
+                return ResourceManager.GetString("CancelUploadDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Completed.
         /// </summary>
         internal static string Completed {

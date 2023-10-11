@@ -132,6 +132,12 @@
   <data name="byte" xml:space="preserve">
     <value>o</value>
   </data>
+  <data name="CancelUpload" xml:space="preserve">
+    <value>Annuler le téléchargement</value>
+  </data>
+  <data name="CancelUploadDesc" xml:space="preserve">
+    <value>Annuler le processus de téléchargement</value>
+  </data>
   <data name="Completed" xml:space="preserve">
     <value>Complété</value>
   </data>
