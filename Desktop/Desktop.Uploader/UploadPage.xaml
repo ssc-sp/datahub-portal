@@ -74,10 +74,10 @@
                 HorizontalOptions="Center" />
                 <Button
                 x:Name="CancelBtn"
-                Text="Cancel Upload"
+                Text="{x:Static strings:AppResources.CancelUpload}"
                 IsVisible="False"
                 Clicked="CancelBtn_Clicked"
-                SemanticProperties.Hint="Cancel the upload process"
+                SemanticProperties.Hint="{x:Static strings:AppResources.CancelUploadDesc}"
                 HorizontalOptions="Center" />
 
 

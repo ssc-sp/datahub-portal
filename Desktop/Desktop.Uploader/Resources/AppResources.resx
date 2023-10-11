@@ -132,6 +132,12 @@
   <data name="byte" xml:space="preserve">
     <value>b</value>
   </data>
+  <data name="CancelUpload" xml:space="preserve">
+    <value>Cancel Upload</value>
+  </data>
+  <data name="CancelUploadDesc" xml:space="preserve">
+    <value>Cancel the upload process</value>
+  </data>
   <data name="Completed" xml:space="preserve">
     <value>Completed</value>
   </data>
