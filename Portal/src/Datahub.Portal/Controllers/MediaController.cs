@@ -34,6 +34,8 @@ public class MediaController : Controller
     [Authorize]
     public IActionResult GetMedia(string filePath)
     {
+        if (_datahubPortalConfiguration?.Media?.StorageConnectionString is null)
+            return Unauthorized("No token available");
         var blobReference = CloudStorageAccount.Parse(_datahubPortalConfiguration.Media.StorageConnectionString)
             .CreateCloudBlobClient()
             .GetContainerReference("media")

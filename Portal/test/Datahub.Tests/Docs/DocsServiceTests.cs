@@ -58,7 +58,7 @@ namespace Datahub.Tests.Docs
         [Fact]
         public async Task Test1LoadEnglishSidebar()
         {
-            var root = await _service.GetLanguageRoot(DocumentationGuide.UserGuide,"en");
+            var root = await _service.GetLanguageRoot(DocumentationGuideRootSection.UserGuide,"en");
             Assert.NotNull(root);
             Assert.True(root.Children.Count > 10);
         }
@@ -66,7 +66,7 @@ namespace Datahub.Tests.Docs
         [Fact]
         public async Task TestLoadPage()
         {
-            var root = await _service.GetLanguageRoot(DocumentationGuide.UserGuide, "en");
+            var root = await _service.GetLanguageRoot(DocumentationGuideRootSection.UserGuide, "en");
             Assert.NotNull(root);
             Assert.True(root.Children.Count > 10);
             var pageId = root.Children[9].Id!;
