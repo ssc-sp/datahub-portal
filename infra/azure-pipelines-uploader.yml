@@ -149,6 +149,7 @@ jobs:
       azureSubscription: $(az_subscription)
       Destination: 'AzureBlob'
       storage: $(appinstaller_az_storage)
+      AdditionalArgumentsForBlobCopy: '--content-type "application/appinstaller"'
       ContainerName: 'datahub-dist'
       BlobPrefix: ''
     name: AzureFileCopy
