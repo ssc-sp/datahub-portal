@@ -16,18 +16,36 @@ namespace Datahub.Maui.Uploader
             this.model = model;
         }
 
+        private string? ReturnErrorIfNotValid(string code)
+        {
+            var decoded = CredentialEncoder.DecodeCredentials(code);
+            if (decoded != null)
+            {
+                // check if code is still valid
+                if (decoded.SASTokenExpiry > DateTimeOffset.Now)
+                {
+                    return AppResources.ExpiredCode;
+                }
+                return null;
+            }
+            else
+                return AppResources.EnterValidCode;
+        }
 
         private async void UploadCodeText_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (CredentialEncoder.IsValid(UploadCodeText.Text))
+
+            var errorCode = ReturnErrorIfNotValid(UploadCodeText.Text);
+            if (errorCode is null)
             {
                 ValidateCodeButton.IsEnabled = true;
                 ValidateCodeButton.Text = AppResources.Continue;
                 await ContinueFlowWithUploadCode(UploadCodeText.Text);
-            } else
+            }
+            else
             {
                 ValidateCodeButton.IsEnabled = false;
-                ValidateCodeButton.Text = AppResources.EnterValidCode;
+                ValidateCodeButton.Text = errorCode;
             }
         }
 
@@ -52,8 +70,10 @@ namespace Datahub.Maui.Uploader
             {
                 if (Clipboard.Default.HasText)
                 {
-                    Uri uri = new Uri($"https://federal-science-datahub.canada.ca/w/{model.Credentials.WorkspaceCode}/filelist");
-                    await Browser.Default.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
+                    var content = await Clipboard.Default.GetTextAsync();
+                    await ContinueFlowWithUploadCode(content);
+                    //Uri uri = new Uri($"https://federal-science-datahub.canada.ca/w/{model.Credentials.WorkspaceCode}/filelist");
+                    //await Browser.Default.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
                 }
             }
             catch (Exception ex)
@@ -64,20 +84,20 @@ namespace Datahub.Maui.Uploader
 
         private async Task ContinueFlowWithUploadCode(string uploadCode)
         {
-            if (Clipboard.Default.HasText)
+            //if (Clipboard.Default.HasText)
+            //{
+            //    var content = await Clipboard.Default.GetTextAsync();
+            if (!string.IsNullOrEmpty(uploadCode))
             {
-                var content = await Clipboard.Default.GetTextAsync();
-                if (!string.IsNullOrEmpty(content))
+                var decoded = CredentialEncoder.DecodeCredentials(uploadCode);
+                if (decoded != null && decoded.SASTokenExpiry > DateTimeOffset.Now)
                 {
-                    var decoded = CredentialEncoder.DecodeCredentials(content);
-                    if (decoded != null)
-                    {
-                        await Clipboard.Default.SetTextAsync(null);
-                        model.Credentials = decoded;
-                        await Shell.Current.GoToAsync("//SpeedTest");
-                    }
+                    await Clipboard.Default.SetTextAsync(null);
+                    model.Credentials = decoded;
+                    await Shell.Current.GoToAsync("//SpeedTest");
                 }
             }
+            //}
         }
     }
 }

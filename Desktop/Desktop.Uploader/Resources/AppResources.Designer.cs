@@ -160,7 +160,7 @@ namespace Datahub.Maui.Uploader.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SP DataHub Uploader.
+        ///   Looks up a localized string similar to FSDH DataHub Uploader.
         /// </summary>
         internal static string DatahubUploader {
             get {
@@ -228,6 +228,15 @@ namespace Datahub.Maui.Uploader.Resources {
         internal static string EnterValidCodeDesc {
             get {
                 return ResourceManager.GetString("EnterValidCodeDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your upload code has expired.
+        /// </summary>
+        internal static string ExpiredCode {
+            get {
+                return ResourceManager.GetString("ExpiredCode", resourceCulture);
             }
         }
         

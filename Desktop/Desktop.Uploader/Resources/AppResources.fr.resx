@@ -151,7 +151,7 @@
     <value>Ouvrez la page Web pour le stockage DataHub</value>
   </data>
   <data name="DatahubUploader" xml:space="preserve">
-    <value>Téléchargeur SP DataHub</value>
+    <value>Téléchargeur DHSF DataHub</value>
   </data>
   <data name="Download" xml:space="preserve">
     <value>Télécharger:</value>
@@ -173,6 +173,9 @@
   </data>
   <data name="EnterValidCodeDesc" xml:space="preserve">
     <value>Passer à la page suivante si le code de téléchargement est valide</value>
+  </data>
+  <data name="ExpiredCode" xml:space="preserve">
+    <value>Votre code de téléchargement a expiré</value>
   </data>
   <data name="FileList" xml:space="preserve">
     <value>Fichiers à télécharger</value>
