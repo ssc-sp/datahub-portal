@@ -6,6 +6,7 @@
 @using Datahub.Core.Services.Storage
 @inject IJSRuntime _jsRuntime
 @inject IProjectDataRetrievalService _dataRetrievalService
+@inject NavigationManager NavigationManager
 
 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleSasButtonClick">
     <MudText>
@@ -66,7 +67,13 @@
             var uri = await _dataRetrievalService.GenerateSasTokenAsync(ProjectAcronym, Container, ExpiryDays);
             if (UseUploadCode)
             {
-                _token = CredentialEncoder.EncodeCredentials(new UploadCredentials() { SASToken = uri.ToString(), SASTokenExpiry = DateTimeOffset.Now.AddDays(ExpiryDays), WorkspaceCode = ProjectAcronym });
+                _token = CredentialEncoder.EncodeCredentials(new UploadCredentials()
+                    {
+                        SASToken = uri.ToString(),
+                        SASTokenExpiry = DateTimeOffset.Now.AddDays(ExpiryDays),
+                        WorkspaceCode = ProjectAcronym,
+                        DataHubEnvironment = NavigationManager.BaseUri
+                    });
                 await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> { (ResourceSubstitutions.DesktopCode, _token) });
             }
             else
