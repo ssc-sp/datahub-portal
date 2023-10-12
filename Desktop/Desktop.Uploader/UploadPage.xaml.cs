@@ -129,6 +129,11 @@ namespace Datahub.Maui.Uploader
 
         private async void OpenWSBtn_Clicked(object sender, EventArgs e)
         {
+            await OpenBrowserStorage();
+        }
+
+        private async Task OpenBrowserStorage()
+        {
             try
             {
                 Uri uri = new Uri($"https://federal-science-datahub.canada.ca/w/{dataHubModel.Credentials.WorkspaceCode}/filelist");
@@ -139,6 +144,7 @@ namespace Datahub.Maui.Uploader
                 // An unexpected error occurred. No browser may be installed on the device.
             }
         }
+
         public string StorageURL { get; init; }
 
         //private async void OpenWSBtn_Clicked(object sender, EventArgs e)
@@ -196,6 +202,7 @@ namespace Datahub.Maui.Uploader
                     item.Status = "Failed";
                 await UpdateFileLayout();
             }
+            await OpenBrowserStorage();
             UploadBtn.IsVisible = true;
             UploadProgressBar.IsVisible = false;
             LbUploadStatus.IsVisible = false;
