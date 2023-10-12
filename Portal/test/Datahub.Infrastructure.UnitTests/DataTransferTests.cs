@@ -13,7 +13,7 @@ namespace Datahub.Core.DataTransfers.UnitTests
         public void EncodeDecodeCredentials()
         {
             var exp = DateTimeOffset.UtcNow;
-            var creds = new UploadCredentials() {  SASToken = "tk1", SASTokenExpiry = exp , WorkspaceCode = "test1", DataHubEnvironment = DataHubEnvironment.Local };
+            var creds = new UploadCredentials() {  SASToken = "tk1", SASTokenExpiry = exp , WorkspaceCode = "test1", DataHubEnvironment = "https://localhost:5001" };
             var encoded = CredentialEncoder.EncodeCredentials(creds);
             var decoded = CredentialEncoder.DecodeCredentials(encoded);
             Assert.That(decoded.SASToken, Is.EqualTo(creds.SASToken));
@@ -26,7 +26,7 @@ namespace Datahub.Core.DataTransfers.UnitTests
         public void ValidateCredentials()
         {
             var exp = DateTimeOffset.UtcNow;
-            var creds = new UploadCredentials() { SASToken = "tk1", SASTokenExpiry = exp, WorkspaceCode = "test1", DataHubEnvironment = DataHubEnvironment.Local };
+            var creds = new UploadCredentials() { SASToken = "tk1", SASTokenExpiry = exp, WorkspaceCode = "test1", DataHubEnvironment = "https://localhost:5001" };
             var encoded = CredentialEncoder.EncodeCredentials(creds);
             var bad = encoded + "asdasdasd";
             Assert.That(CredentialEncoder.IsValid(bad), Is.False);
