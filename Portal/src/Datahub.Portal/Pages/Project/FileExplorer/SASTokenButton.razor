@@ -1,9 +1,9 @@
 @*SASTokenButton.razor*@
-
 @using Datahub.Application.Services;
 @using Datahub.Core.DataTransfers;
 @using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
 @using Datahub.Core.Services.Storage
+@using Datahub.Portal.Pages.Project.FileExplorer.Storage;
 @inject IJSRuntime _jsRuntime
 @inject IProjectDataRetrievalService _dataRetrievalService
 @inject NavigationManager NavigationManager
@@ -23,13 +23,16 @@
     public EventCallback<List<(string, string)>> OnSubstitutionsChanged { get; set; }
 
     [Parameter]
+    public CloudStorageContainer Container { get; set; }
+
+    [Parameter]
     public int ExpiryDays { get; set; } = 5;
 
     [Parameter]
     public bool UseUploadCode { get; set; } = false;
 
-    [Parameter]
-    public string Container { get; set; } = "datahub";
+    // [Parameter]
+    // public string Container { get; set; } = "datahub";
 
     [Parameter]
     public bool GenerateAndCopy { get; set; } = false;
@@ -64,7 +67,7 @@
     {
         if (string.IsNullOrWhiteSpace(_token))
         {
-            var uri = await _dataRetrievalService.GenerateSasTokenAsync(ProjectAcronym, Container, ExpiryDays);
+            var uri = await Container.StorageManager.GenerateSasTokenAsync(Container.Name, ExpiryDays);
             if (UseUploadCode)
             {
                 _token = CredentialEncoder.EncodeCredentials(new UploadCredentials()
