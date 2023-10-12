@@ -7,12 +7,13 @@
             <MudCheckBox @bind-Checked=@CloudStorageSettings.Enabled >@Localizer["Enabled"]</MudCheckBox>
             @if (CloudProvider == CloudStorageProviderType.AWS)
             {
-                <AWSConnectionDataInput @bind-ConnectionData=@CloudStorageSettings.ConnectionData OnValidationChanged=@HandleConnectionValidationChange />
+                <AWSConnectionDataInput @bind-ConnectionData=@ConnectionDataInternal OnValidationChanged=@HandleConnectionValidationChange />
             }
             else if (CloudProvider == CloudStorageProviderType.Azure)
             {
-                <AzureConnectionDataInput @bind-ConnectionData=@CloudStorageSettings.ConnectionData OnValidationChanged=@HandleConnectionValidationChange />
+                <AzureConnectionDataInput @bind-ConnectionData=@ConnectionDataInternal OnValidationChanged=@HandleConnectionValidationChange />
             }
+            <MudCheckBox @bind-Checked=@_isUnclassified>@Localizer["UnclassifiedDataConfirmation"]</MudCheckBox>
         </MudStack>
     </DialogContent>
     <DialogActions>
@@ -35,9 +36,25 @@
     [Parameter]
     public CloudStorageSettings CloudStorageSettings { get; set; }
 
-    private bool _isConnectionValid = false;
+    private string _initialConnectionData = string.Empty;
+    private bool ConnectionDataChanged => !_initialConnectionData.Equals(ConnectionDataInternal);
+    private string ConnectionDataInternal
+    {
+        get => CloudStorageSettings.ConnectionData;
+        set
+        {
+            CloudStorageSettings.ConnectionData = value;
+            if (ConnectionDataChanged)
+            {
+                _isUnclassified = false;
+            }
+        }
+    }
 
-    private bool SaveDisabled => !_isConnectionValid;
+    private bool _isConnectionValid = false;
+    private bool _isUnclassified = false;
+
+    private bool SaveDisabled => !(_isConnectionValid && _isUnclassified);
 
     private void HandleConnectionValidationChange(bool isValid)
     {
@@ -49,5 +66,11 @@
     private void HandleSave()
     {
         MudDialog.Close(DialogResult.Ok(CloudStorageSettings));
+    }
+
+    protected override void OnInitialized()
+    {
+        _initialConnectionData = CloudStorageSettings?.ConnectionData ?? string.Empty;
+        _isUnclassified = !string.IsNullOrEmpty(_initialConnectionData);
     }
 }
