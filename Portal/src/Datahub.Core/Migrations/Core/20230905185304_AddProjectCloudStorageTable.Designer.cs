@@ -4,16 +4,19 @@ using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230905185304_AddProjectCloudStorageTable")]
+    partial class AddProjectCloudStorageTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -385,43 +388,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Announcements", (string)null);
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Catalog.CatalogObject", b =>
-                {
-                    b.Property<int>("ObjectType")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ObjectId")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("Desc_English")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Desc_French")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Location")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name_English")
-                        .HasMaxLength(160)
-                        .HasColumnType("nvarchar(160)");
-
-                    b.Property<string>("Name_French")
-                        .HasMaxLength(160)
-                        .HasColumnType("nvarchar(160)");
-
-                    b.HasKey("ObjectType", "ObjectId");
-
-                    b.ToTable("CatalogObjects", (string)null);
-                });
-
             modelBuilder.Entity("Datahub.Core.Model.CloudStorage.ProjectCloudStorage", b =>
                 {
                     b.Property<int>("Id")
@@ -433,9 +399,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<string>("ConnectionData")
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
-
-                    b.Property<bool>("Enabled")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .HasMaxLength(16)

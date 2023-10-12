@@ -212,5 +212,22 @@
   "Responsible for contributing to the overall project objectives and deliverables to ensure success": "Responsible for contributing to the overall project objectives and deliverables to ensure success",
   "Remove User": "Remove User",
   "Revoke the user\u0027s access to the project\u0027s private resources": "Revoke the user\u0027s access to the project\u0027s private resources",
-  "You are not authorized to view this page.": "You are not authorized to view this page."
+  "You are not authorized to view this page.": "You are not authorized to view this page.",
+  "Access Key ID": "Access Key ID",
+  "Access Key Secret": "Access Key Secret",
+  "Region": "Region",
+  "Bucket Name": "Bucket Name",
+  "Storage Account Name": "Storage Account Name",
+  "Account Key": "Account Key",
+  "Enabled": "Enabled",
+  "AWS": "AWS",
+  "Azure": "Azure",
+  "Remove": "Remove",
+  "Add Account": "Add Account",
+  "Remove Storage Account": "Remove Storage Account",
+  "RemoveStorageNamePrompt": "Are you sure you want to remove cloud storage account {0} from this workspace? To restore it, you will need to add and configure its settings again.",
+  "Configure Azure Storage": "Configure Azure Storage",
+  "Configure AWS Storage": "Configure AWS Storage",
+  "Configure Storage": "Configure Storage",
+  "Name": "Name"
 }
