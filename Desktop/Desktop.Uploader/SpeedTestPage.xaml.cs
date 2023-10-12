@@ -38,8 +38,11 @@ public partial class SpeedTestPage : ContentPage
             speedTestResults.DownloadSpeedMpbs = result.DownloadSpeed;
             Preferences.Set(nameof(result.UploadSpeed), result.UploadSpeed);
             Preferences.Set(nameof(result.DownloadSpeed), result.DownloadSpeed);
+            //SpeedTestResultLb.Text = $"{AppResources.Download} {result.DownloadSpeed:0.#} {result.SpeedUnit} / {AppResources.Upload} {result.UploadSpeed:0.#} {result.SpeedUnit}";
+            SpeedTestResultLb.Text = $"{AppResources.Upload} {result.UploadSpeed:0.#} {result.SpeedUnit}";
+
+
             //SpeedTestResultLb.Text = $"Download: {result.DownloadSpeed:0.#} {result.SpeedUnit} / Upload: {result.UploadSpeed:0.#} {result.SpeedUnit}";
-            SpeedTestResultLb.Text = $"{AppResources.Download} {result.DownloadSpeed:0.#} {result.SpeedUnit} / {AppResources.Upload} {result.UploadSpeed:0.#} {result.SpeedUnit}";
             //SpeedTestResultLb.Text = $"Upload: {result.UploadSpeed:0.#} {result.SpeedUnit}";
             //var result = await speedTestClient.TestSpeedAsync(SpeedUnit.Mbps);
             //(Application.Current as App).Context.UploadSpeedMpbs = result.UploadSpeed;
