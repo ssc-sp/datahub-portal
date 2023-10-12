@@ -128,6 +128,9 @@ jobs:
           $installer = "<?xml version=""1.0"" encoding=""utf-8""?>
           <AppInstaller xmlns=""http://schemas.microsoft.com/appx/appinstaller/2018"" Version=""$(releaseVersion)"" Uri=""$(appinstaller_uri)"" >
               <MainPackage Name=""$(appName)"" Publisher=""CN=Shared Services Canada, O=Shared Services Canada, L=Ottawa, S=Ontario, C=CA"" Version=""$(releaseVersion)"" ProcessorArchitecture=""x64"" Uri=""https://github.com/ssc-sp/datahub-portal/releases/download/$(releaseTag)/Desktop.Uploader_$(releaseVersion)_x64.msix"" />
+              <UpdateSettings>
+                <OnLaunch HoursBetweenUpdateChecks=""0""/>
+              </UpdateSettings>              
           </AppInstaller>"
           New-Item "$(appName).appinstaller" -ItemType File
           Set-Content "$(appName).appinstaller" -Value $installer
