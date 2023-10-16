@@ -13,6 +13,10 @@
             {
                 <AzureConnectionDataInput @bind-ConnectionData=@CloudStorageSettings.ConnectionData OnValidationChanged=@HandleConnectionValidationChange />
             }
+            else if (CloudProvider == CloudStorageProviderType.GCP)
+            {
+                <GCPConnectionDataInput @bind-ConnectionData=@CloudStorageSettings.ConnectionData OnValidationChanged=@HandleConnectionValidationChange />
+            }
         </MudStack>
     </DialogContent>
     <DialogActions>
