@@ -4,6 +4,8 @@ using Datahub.Core.Model.Health;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Datahub.Functions;
 
@@ -19,17 +21,21 @@ public class CheckInfrastructureStatus
     }
 
     [Function("CheckInfrastructureStatus")]
-    public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req)
+    public async Task<IActionResult> Run(
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post")]
+        HttpRequestData req)
     {
-        var defaultComponent = InfrastructureHealthResourceType.AzureSqlDatabase;
+        _logger.LogInformation("C# HTTP trigger function processed a request");
 
-        switch (defaultComponent)
+        var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+        var request = JsonSerializer.Deserialize<InfrastructureHealthCheckRequest>(requestBody);
+
+        switch (request?.type)
         {
             case InfrastructureHealthResourceType.AzureSqlDatabase:
-                return await CheckAzureSqlDatabase(req);
+                return new OkObjectResult(await CheckAzureSqlDatabase(request));
             case InfrastructureHealthResourceType.AzureStorageAccount:
-                break;
+                return new OkObjectResult(await CheckAzureStorageAccount(request));
             case InfrastructureHealthResourceType.AzureKeyVault:
                 break;
             case InfrastructureHealthResourceType.AzureDatabricks:
@@ -39,37 +45,57 @@ public class CheckInfrastructureStatus
             case InfrastructureHealthResourceType.AzureWebApp:
                 break;
             default:
-                throw new ArgumentOutOfRangeException();
+                return new BadRequestObjectResult("Please pass a valid request body");
         }
-
-        // return bad request if no component is found
-        var response = req.CreateResponse(HttpStatusCode.BadRequest);
-        await response.WriteStringAsync($"{nameof(InfrastructureHealthResourceType)} not found: {defaultComponent.ToString()}");
-        return response;
+        return new BadRequestObjectResult("Please pass a valid request body");
     }
 
-    private async Task<HttpResponseData> CheckAzureSqlDatabase(HttpRequestData req)
+    private async Task<InfrastructureHealthCheckResponse> CheckAzureKeyVault(InfrastructureHealthCheckRequest data)
     {
-        HttpResponseData response;
-        bool connectable = _projectDbContext.Database.CanConnect();
+        throw new NotImplementedException();
+    }
+
+    private async Task<InfrastructureHealthCheckResponse> CheckAzureStorageAccount(
+        InfrastructureHealthCheckRequest data)
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
+        InfrastructureHealthCheckRequest request)
+    {
+        var errors = new List<string>();
+        var check = new InfrastructureHealthCheck()
+        {
+            Group = request.group,
+            Name = request.group,
+            ResourceType = request.type,
+            Status = InfrastructureHealthStatus.Unhealthy,
+            HealthCheckTimeUtc = DateTime.UtcNow
+        };
+        
+        bool connectable = await _projectDbContext.Database.CanConnectAsync();
         if (!connectable)
         {
-            response = req.CreateResponse(HttpStatusCode.InternalServerError);
-            response.WriteString("Cannot connect to database.");
+            errors.Add("Cannot connect to the database.");
         }
 
         var test = _projectDbContext.Projects.First();
         if (test == null)
         {
-            response = req.CreateResponse(HttpStatusCode.InternalServerError);
-            response.WriteString("Cannot retrieve from the database.");
-        }
-        else
-        {
-            response = req.CreateResponse(HttpStatusCode.OK);
-            response.WriteString("Successfully connected and checked database.");
+            errors.Add("Cannot retrieve from the database.");
         }
 
-        return response;
+        if (!errors.Any())
+        {
+            check.Status = InfrastructureHealthStatus.Healthy;
+        }
+
+        return new InfrastructureHealthCheckResponse(request, check, errors);
     }
+
+    record InfrastructureHealthCheckRequest(InfrastructureHealthResourceType type, string group);
+
+    record InfrastructureHealthCheckResponse(InfrastructureHealthCheckRequest request, InfrastructureHealthCheck check,
+        List<string>? errors);
 }
