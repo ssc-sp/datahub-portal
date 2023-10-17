@@ -56,8 +56,19 @@ public class CheckInfrastructureStatus
     }
 
     private async Task<InfrastructureHealthCheckResponse> CheckAzureStorageAccount(
-        InfrastructureHealthCheckRequest data)
+        InfrastructureHealthCheckRequest request)
     {
+        var errors = new List<string>();
+        var check = new InfrastructureHealthCheck()
+        {
+            Group = request.group,
+            Name = request.group,
+            ResourceType = request.type,
+            Status = InfrastructureHealthStatus.Unhealthy,
+            HealthCheckTimeUtc = DateTime.UtcNow
+        };
+        
+        // check and see if the storage account exists
         throw new NotImplementedException();
     }
 
@@ -91,11 +102,10 @@ public class CheckInfrastructureStatus
             check.Status = InfrastructureHealthStatus.Healthy;
         }
 
-        return new InfrastructureHealthCheckResponse(request, check, errors);
+        return new InfrastructureHealthCheckResponse(check, errors);
     }
 
     record InfrastructureHealthCheckRequest(InfrastructureHealthResourceType type, string group);
 
-    record InfrastructureHealthCheckResponse(InfrastructureHealthCheckRequest request, InfrastructureHealthCheck check,
-        List<string>? errors);
+    record InfrastructureHealthCheckResponse(InfrastructureHealthCheck check, List<string>? errors);
 }
