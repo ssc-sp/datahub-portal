@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:strings="clr-namespace:Datahub.Maui.Uploader.Resources"
+             xmlns:local="clr-namespace:Datahub.Maui.Uploader.Components"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="Datahub.Maui.Uploader.UploadPage"
              Loaded="ContentPage_Loaded">
 
@@ -12,56 +15,79 @@
 
             <Image
                 Source="dotnet_bot.png"
-                SemanticProperties.Description="Cute dot net bot waving hi to you!"
+                SemanticProperties.Description="{x:Static strings:AppResources.UploadImgDesc}"
                 HeightRequest="50"
                 HorizontalOptions="Center" />
 
             <Label
                 x:Name="LbUpload1"
-                Text="Drop your files here to upload them to DataHub"
+                Text="{x:Static strings:AppResources.DropZone}"
                 SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I"
+                SemanticProperties.Description="{x:Static strings:AppResources.DropZoneDesc}"
                 FontSize="18"
                 HorizontalOptions="Center" />
 
+            <local:HyperlinkLabel
+                SemanticProperties.Description="{x:Static strings:AppResources.DataHubStoragePageDesc}"
+                HorizontalOptions="Center"
+                Text="{x:Static strings:AppResources.DataHubStoragePage}"
+                Url="{Binding StorageURL}" 
+                />
+
             <TableView Intent="Data" x:Name="FileListTbView" IsVisible="False">
                 <TableRoot>
-                    <TableSection x:Name="FileListSection" Title="Files to upload">
+                    <TableSection x:Name="FileListSection" Title="{x:Static strings:AppResources.FileList}">
                     </TableSection>
                 </TableRoot>
             </TableView>
 
+            <Label
+                x:Name="LbUploadStatus"
+                IsVisible="False"
+                Text="Starting upload"
+                FontSize="14"
+                HorizontalOptions="Start" />
             <ProgressBar x:Name="UploadProgressBar" Progress="0" />
 
-            <HorizontalStackLayout HorizontalOptions="Center">
+            <HorizontalStackLayout HorizontalOptions="Center" x:Name="AddfilesSection">
             <Button
                 x:Name="AddfileBtn"
-                Text="Add file(s)"
-                SemanticProperties.Hint="Counts the number of times you click"
+                Text="{x:Static strings:AppResources.AddFiles}"
+                SemanticProperties.Hint="{x:Static strings:AppResources.AddFilesDesc}"
                 Clicked="AddfileBtn_Clicked"
                 HorizontalOptions="Center" />
                 <Button
                 x:Name="AddfolderBtn"
-                Text="Add folder"
-                SemanticProperties.Hint="Counts the number of times you click"                
+                Clicked="AddfolderBtn_Clicked"                    
+                Text="{x:Static strings:AppResources.AddFolder}"
+                SemanticProperties.Hint="{x:Static strings:AppResources.AddFolderDesc}"                
                 HorizontalOptions="Center" />
 
             </HorizontalStackLayout>
             <HorizontalStackLayout HorizontalOptions="Center">
                 <Button
                 x:Name="UploadBtn"
-                Text="Start Upload"
+                Text="{x:Static strings:AppResources.StartUpload}"
                 IsEnabled="False"
                 Clicked="UploadBtn_Clicked"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="{x:Static strings:AppResources.StartUploadDesc}"
+                HorizontalOptions="Center" />
+                <Button
+                x:Name="CancelBtn"
+                Text="{x:Static strings:AppResources.CancelUpload}"
+                IsVisible="False"
+                Clicked="CancelBtn_Clicked"
+                SemanticProperties.Hint="{x:Static strings:AppResources.CancelUploadDesc}"
                 HorizontalOptions="Center" />
 
-            <Button
+
+
+                <!--<Button
                 x:Name="OpenWSBtn"
-                Text="Open DataHub Storage" 
+                Text="{x:Static strings:AppResources.DataHubStoragePage}" 
                 Clicked="OpenWSBtn_Clicked"
-                SemanticProperties.Hint="Counts the number of times you click"
-                HorizontalOptions="Center" />
+                SemanticProperties.Hint="{x:Static strings:AppResources.DataHubStoragePageDesc}"
+                HorizontalOptions="Center" />-->
             </HorizontalStackLayout>
         </VerticalStackLayout>
     </ScrollView>

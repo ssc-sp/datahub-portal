@@ -250,5 +250,6 @@
   "Configure Azure Storage": "Configuration du stockage Azure",
   "Configure AWS Storage": "Configuration du stockage AWS",
   "Configure Storage": "Configuration du stockage",
-  "Name": "Nom"
+  "Name": "Nom",
+  "UnclassifiedDataConfirmation": "En cochant cette case, j'affirme que toutes les données contenues dans ce compte de stockage ne sont pas classifiées."
 }

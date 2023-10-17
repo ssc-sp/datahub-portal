@@ -7,24 +7,24 @@ namespace Datahub.Core.Services.Docs;
 
 public class DocItem
 {
-    public static DocItem MakeRoot(DocumentationGuide guide, string id)
+    public static DocItem MakeRoot(DocumentationGuideRootSection guide, string id)
     {
         return new DocItem(guide, id, 0, true, null, null);
     }
     
-    public static DocItem GetItem(DocumentationGuide guide, string id, int level, string? title, string? markdownPage)
+    public static DocItem GetItem(DocumentationGuideRootSection guide, string id, int level, string? title, string? markdownPage)
     {
         return new DocItem(guide, id, level, false, title, markdownPage);
     }
 
-    public static DocItem GetFolderItem(DocumentationGuide guide, string id, int level, string? title, IEnumerable<DocItem> children)
+    public static DocItem GetFolderItem(DocumentationGuideRootSection guide, string id, int level, string? title, IEnumerable<DocItem> children)
     {
         var item = new DocItem(guide, id, level, false, title, null, true);
         item.Children.AddRange(children);
         return item;
     }
 
-    private DocItem(DocumentationGuide guide, string id, int level, bool root, string? title, string? markdownPage, bool isFolder = false)
+    private DocItem(DocumentationGuideRootSection guide, string id, int level, bool root, string? title, string? markdownPage, bool isFolder = false)
     {
         Id = id;
         Level = level;
@@ -32,7 +32,7 @@ public class DocItem
         Title = title;
         MarkdownPage = markdownPage;
         Children = new List<DocItem>();
-        DocumentationGuide = guide;
+        RootSection = guide;
         IsFolder = isFolder;
     }
 
@@ -46,9 +46,9 @@ public class DocItem
     public string? Preview { get; set; }
     public string? ContentTitle { get; set; }
     public string? Content { get; set; }
-    public string? MarkdownPage { get; set; }
+    public string? MarkdownPage { get; init; }
 
-    public DocumentationGuide DocumentationGuide { get; set; } 
+    public DocumentationGuideRootSection RootSection { get; set; } 
 
     public string GetDescription() => $"Card '{Title}' - '{MarkdownPage}'";
     public string? GetMarkdownFileName() => MarkdownPage;// ?? "README.md"
