@@ -30,7 +30,7 @@ public class CheckInfrastructureStatus
         var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
         var request = JsonSerializer.Deserialize<InfrastructureHealthCheckRequest>(requestBody);
 
-        switch (request?.type)
+        switch (request?.Type)
         {
             case InfrastructureHealthResourceType.AzureSqlDatabase:
                 return new OkObjectResult(await CheckAzureSqlDatabase(request));
@@ -61,9 +61,9 @@ public class CheckInfrastructureStatus
         var errors = new List<string>();
         var check = new InfrastructureHealthCheck()
         {
-            Group = request.group,
-            Name = request.group,
-            ResourceType = request.type,
+            Group = request.Group,
+            Name = request.Group,
+            ResourceType = request.Type,
             Status = InfrastructureHealthStatus.Unhealthy,
             HealthCheckTimeUtc = DateTime.UtcNow
         };
@@ -78,9 +78,9 @@ public class CheckInfrastructureStatus
         var errors = new List<string>();
         var check = new InfrastructureHealthCheck()
         {
-            Group = request.group,
-            Name = request.group,
-            ResourceType = request.type,
+            Group = request.Group,
+            Name = request.Group,
+            ResourceType = request.Type,
             Status = InfrastructureHealthStatus.Unhealthy,
             HealthCheckTimeUtc = DateTime.UtcNow
         };
@@ -105,7 +105,7 @@ public class CheckInfrastructureStatus
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
-    record InfrastructureHealthCheckRequest(InfrastructureHealthResourceType type, string group);
+    record InfrastructureHealthCheckRequest(InfrastructureHealthResourceType Type, string Group);
 
-    record InfrastructureHealthCheckResponse(InfrastructureHealthCheck check, List<string>? errors);
+    record InfrastructureHealthCheckResponse(InfrastructureHealthCheck Check, List<string>? Errors);
 }
