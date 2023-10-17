@@ -1,23 +1,12 @@
 ﻿@* GCPConnectionDataInput.razor *@
 
-@*TODO: add Google Cloud fields*@
-
-@*<MudTextField @bind-Value="AccountName"
-              Label=@Localizer["Storage Account Name"]
-              Variant="Variant.Text"
+<MudTextField @bind-Value=@GCPConnectionJson
+              Label=@Localizer["Service Account Credentials (JSON)"]
+              Variant=@Variant.Outlined
+              Lines=10
+              Immediate
               Adornment=@Adornment.End
               AdornmentIcon=@Icons.Material.Filled.ContentPaste />
-
-<MudTextField @bind-Value="AccountKey"
-              Label=@Localizer["Account Key"]
-              Variant="Variant.Text"
-              InputType="InputType.Password"
-              Adornment=@Adornment.End
-              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
-*@
-
-
-
 
 @code {
 
@@ -30,26 +19,16 @@
     [Parameter]
     public EventCallback<bool> OnValidationChanged { get; set; }
 
-    private AzureConnectionData _azConnectionData = new();
+    private GCPConnectionData _gcpConnectionData = new();
 
-    private bool IsValid => true;//!(string.IsNullOrEmpty(AccountName) || string.IsNullOrEmpty(AccountKey));
+    private bool IsValid => _gcpConnectionData.IsValid;
 
-    private string AccountName
+    private string GCPConnectionJson
     {
-        get => _azConnectionData.AccountName;
+        get => _gcpConnectionData.ConnectionData;
         set
         {
-            _azConnectionData.AccountName = value;
-            Validate();
-        }
-    }
-
-    private string AccountKey
-    {
-        get => _azConnectionData.AccountKey;
-        set
-        {
-            _azConnectionData.AccountKey = value;
+            _gcpConnectionData.ConnectionData = value;
             Validate();
         }
     }
@@ -63,16 +42,16 @@
 
         if (ConnectionDataChanged.HasDelegate)
         {
-            ConnectionDataChanged.InvokeAsync(_azConnectionData.ConnectionData);
+            ConnectionDataChanged.InvokeAsync(_gcpConnectionData.ConnectionData);
         }
     }
 
     protected override void OnInitialized()
     {
-        var azData = CloudStorageConnectionDataDecoder.DecodeAzure(ConnectionData);
-        if (azData is not null)
+        var gcpData = CloudStorageConnectionDataDecoder.DecodeGCP(ConnectionData);
+        if (gcpData is not null)
         {
-            _azConnectionData = azData;
+            _gcpConnectionData = gcpData;
         }
 
         Validate();

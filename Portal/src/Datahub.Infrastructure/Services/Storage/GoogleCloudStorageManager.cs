@@ -29,18 +29,18 @@ namespace Datahub.Infrastructure.Services.Storage
         private readonly ILogger<GoogleCloudStorageManager> _logger;
 
         private readonly string _projectId;
+        private readonly string _jsonCredentials;
 
-        public GoogleCloudStorageManager(ILoggerFactory loggerFactory)
+        public GoogleCloudStorageManager(ILoggerFactory loggerFactory, string projectId, string jsonCredentials)
         {
             _logger = loggerFactory.CreateLogger<GoogleCloudStorageManager>();
-            _projectId = "***"; // TODO replace with passed in settings
+            _projectId = projectId;
+            _jsonCredentials = jsonCredentials;
         }
 
         private GoogleCredential GetCredential()
         {
-            var jsonCreds = "***"; //TODO generate from passed in settings
-
-            var creds = GoogleCredential.FromJson(jsonCreds);
+            var creds = GoogleCredential.FromJson(_jsonCredentials);
 
             return creds;
         }

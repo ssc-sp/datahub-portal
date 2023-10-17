@@ -168,8 +168,14 @@
             }
             else if (stg.Provider == CloudStorageProviderType.GCP.ToString())
             {
-                var storageManager = new GoogleCloudStorageManager(_logFactory);
-                var stAccountName = string.IsNullOrEmpty(stg.Name) ? "Google" : stg.Name;
+                var gcpConnectionData = CloudStorageConnectionDataDecoder.DecodeGCP(stg.ConnectionData);
+                if (gcpConnectionData is null || !gcpConnectionData.IsValid)
+                {
+                    continue;
+                }
+
+                var storageManager = new GoogleCloudStorageManager(_logFactory, gcpConnectionData.ProjectId, gcpConnectionData.ConnectionData);
+                var stAccountName = string.IsNullOrEmpty(stg.Name) ? gcpConnectionData.ProjectId : stg.Name;
                 containerNames = await storageManager.GetContainersAsync();
                 _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.GCP, 
                     storageManager, stg.Id, stg.Enabled)));
