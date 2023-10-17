@@ -26,23 +26,22 @@
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@ProjectAcronym">
     <Authorized>
+        @if (_isLoading)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        }
+        else
+        {
         @if (_activeResources?.Count > 0)
         {
             <MudStack Class="my-12">
                 <MudText Class="mb-4" Typo="Typo.h2">@Localizer["Your Workspace Tools"]</MudText>
-                @if (_isLoading)
-                {
-                    <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
-                }
-                else
-                {
                     <MudElement HtmlTag="div" class="@_toolContainerClass">
                         @foreach (var active in _activeResources)
                         {
                             <DynamicComponent Parameters="active.parameters" Type="active.type"/>
                         }
-                    </MudElement>
-                }
+                    </MudElement>                
             </MudStack>
         }
 
@@ -74,6 +73,7 @@
                     </MudElement>
                 }
             </MudStack>
+        }
         }
     </Authorized>
     <NotAuthorized>

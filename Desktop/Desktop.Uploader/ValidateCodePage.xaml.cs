@@ -1,26 +1,51 @@
 ﻿using Datahub.Core.DataTransfers;
+using Datahub.Maui.Uploader.Resources;
+using Datahub.Core.DataTransfers;
+using Datahub.Maui.Uploader.Models;
 
 namespace Datahub.Maui.Uploader
 {
-    public partial class UploadCodePage : ContentPage
+    public partial class ValidateCodePage : ContentPage
     {
-        public UploadCodePage()
+
+        private readonly DataHubModel model;
+
+        public ValidateCodePage(DataHubModel model)
         {
             InitializeComponent();
+            this.model = model;
         }
 
+        private string? ReturnErrorIfNotValid(string code)
+        {
+            var decoded = CredentialEncoder.DecodeCredentials(code);
+            if (decoded != null)
+            {
+                // check if code is still valid
+                if (decoded.SASTokenExpiry > DateTimeOffset.Now)
+                {
+                    return AppResources.ExpiredCode;
+                }
+                return null;
+            }
+            else
+                return AppResources.EnterValidCode;
+        }
 
         private async void UploadCodeText_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (CredentialEncoder.IsValid(UploadCodeText.Text))
+
+            var errorCode = ReturnErrorIfNotValid(UploadCodeText.Text);
+            if (errorCode is null)
             {
                 ValidateCodeButton.IsEnabled = true;
-                ValidateCodeButton.Text = "Continue";
+                ValidateCodeButton.Text = AppResources.Continue;
                 await ContinueFlowWithUploadCode(UploadCodeText.Text);
-            } else
+            }
+            else
             {
                 ValidateCodeButton.IsEnabled = false;
-                ValidateCodeButton.Text = "Please Enter Valid Code";
+                ValidateCodeButton.Text = errorCode;
             }
         }
 
@@ -34,19 +59,6 @@ namespace Datahub.Maui.Uploader
 
         }
 
-        private async void GetUploadCodeBtn_Clicked(object sender, EventArgs e)
-        {
-            try
-            {
-                Uri uri = new Uri("https://federal-science-datahub.canada.ca/resources/126b3f7a-e320-dc44-3707-e748b998b094");
-                await Browser.Default.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
-            }
-            catch (Exception ex)
-            {
-                // An unexpected error occurred. No browser may be installed on the device.
-            }
-        }
-
         private void ContentPage_Loaded(object sender, EventArgs e)
         {
             Clipboard.Default.ClipboardContentChanged += Clipboard_ClipboardContentChanged;
@@ -54,20 +66,34 @@ namespace Datahub.Maui.Uploader
 
         private async void Clipboard_ClipboardContentChanged(object sender, EventArgs e)
         {
-            if (Clipboard.Default.HasText)
+            try
             {
-                var clipboard = await Clipboard.Default.GetTextAsync();
-                if (CredentialEncoder.IsValid(clipboard))
+                if (Clipboard.Default.HasText)
                 {
-                    await ContinueFlowWithUploadCode(clipboard);
+                    var content = await Clipboard.Default.GetTextAsync();
+                    await ContinueFlowWithUploadCode(content);
+                    //Uri uri = new Uri($"https://federal-science-datahub.canada.ca/w/{model.Credentials.WorkspaceCode}/filelist");
+                    //await Browser.Default.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
                 }
+            }
+            catch (Exception ex)
+            {
+                // An unexpected error occurred. No browser may be installed on the device.
             }
         }
 
-        private static async Task ContinueFlowWithUploadCode(string uploadCode)
+        private async Task ContinueFlowWithUploadCode(string uploadCode)
         {
-            (Application.Current as App).Context.Credentials = CredentialEncoder.DecodeCredentials(uploadCode);
-            await Shell.Current.GoToAsync("//SpeedTest");            
+            if (!string.IsNullOrEmpty(uploadCode))
+            {
+                var decoded = CredentialEncoder.DecodeCredentials(uploadCode);
+                if (decoded != null && decoded.SASTokenExpiry > DateTimeOffset.Now)
+                {
+                    await Clipboard.Default.SetTextAsync(null);
+                    model.Credentials = decoded;
+                    await Shell.Current.GoToAsync("//SpeedTest");
+                }
+            }
         }
     }
 }
