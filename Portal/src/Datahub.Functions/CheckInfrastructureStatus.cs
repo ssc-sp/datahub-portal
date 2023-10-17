@@ -6,6 +6,10 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Identity;
+using Datahub.Application.Configuration;
+using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace Datahub.Functions;
 
@@ -13,11 +17,15 @@ public class CheckInfrastructureStatus
 {
     private readonly ILogger _logger;
     private readonly DatahubProjectDBContext _projectDbContext;
+    private readonly AzureConfig _azureConfig;
 
-    public CheckInfrastructureStatus(ILoggerFactory loggerFactory, DatahubProjectDBContext projectDbContext)
+    private const string workspaceKeyCheck = "project-cmk";
+
+    public CheckInfrastructureStatus(ILoggerFactory loggerFactory, DatahubProjectDBContext projectDbContext, AzureConfig azureConfig)
     {
         _logger = loggerFactory.CreateLogger<CheckInfrastructureStatus>();
         _projectDbContext = projectDbContext;
+        _azureConfig = azureConfig;
     }
 
     [Function("CheckInfrastructureStatus")]
@@ -37,7 +45,7 @@ public class CheckInfrastructureStatus
             case InfrastructureHealthResourceType.AzureStorageAccount:
                 return new OkObjectResult(await CheckAzureStorageAccount(request));
             case InfrastructureHealthResourceType.AzureKeyVault:
-                break;
+                return new OkObjectResult(await CheckAzureKeyVault(request));
             case InfrastructureHealthResourceType.AzureDatabricks:
                 break;
             case InfrastructureHealthResourceType.AzureStorageQueue:
@@ -50,9 +58,49 @@ public class CheckInfrastructureStatus
         return new BadRequestObjectResult("Please pass a valid request body");
     }
 
-    private async Task<InfrastructureHealthCheckResponse> CheckAzureKeyVault(InfrastructureHealthCheckRequest data)
+    private Uri GetAzureKeyVaultUrl(InfrastructureHealthCheckRequest request)
     {
-        throw new NotImplementedException();
+        if (request.Group != "core")
+        {
+            return new Uri($"https://fsdh-proj-{request.Name}-dev-kv.vault.azure.net/");
+        }
+
+        return new Uri($"https://{request.Name}.vault.azure.net/");
+    }
+
+    private async Task<InfrastructureHealthCheckResponse> CheckAzureKeyVault(InfrastructureHealthCheckRequest request)
+    {
+        var errors = new List<string>();
+        var check = new InfrastructureHealthCheck()
+        {
+            Group = request.Group,
+            Name = request.Name,
+            ResourceType = request.Type,
+            Status = InfrastructureHealthStatus.Unhealthy,
+            HealthCheckTimeUtc = DateTime.UtcNow
+        };
+
+        Environment.SetEnvironmentVariable("AZURE_TENANT_ID", _azureConfig.TenantId);
+        Environment.SetEnvironmentVariable("AZURE_CLIENT_ID", _azureConfig.ClientId);
+        Environment.SetEnvironmentVariable("AZURE_CLIENT_SECRET", _azureConfig.ClientSecret);
+
+        _logger.LogInformation($"URI: {GetAzureKeyVaultUrl(request)}");
+        var client = new SecretClient(GetAzureKeyVaultUrl(request), new DefaultAzureCredential()); // Authenticates with Azure AD and creates a SecretClient object for the specified key vault
+        
+        try { 
+            KeyVaultSecret secret = await client.GetSecretAsync(workspaceKeyCheck); // Replace with the name of the secret you are trying to access
+        } 
+        catch
+        { 
+            errors.Add("Unable to connect and retrieve a secret.");
+        }
+
+        if (!errors.Any())
+        {
+            check.Status = InfrastructureHealthStatus.Healthy;
+        }
+
+        return new InfrastructureHealthCheckResponse(check, errors);
     }
 
     private async Task<InfrastructureHealthCheckResponse> CheckAzureStorageAccount(
@@ -105,7 +153,7 @@ public class CheckInfrastructureStatus
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
-    record InfrastructureHealthCheckRequest(InfrastructureHealthResourceType Type, string Group);
+    record InfrastructureHealthCheckRequest(InfrastructureHealthResourceType Type, string Group, string Name);
 
     record InfrastructureHealthCheckResponse(InfrastructureHealthCheck Check, List<string>? Errors);
 }
