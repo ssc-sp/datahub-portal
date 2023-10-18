@@ -4,7 +4,7 @@ namespace Datahub.Portal.Pages.Project.FileExplorer.Storage
 {
     public class GCPConnectionData
     {
-        private string _rawConnectionData;
+        private string _rawConnectionData = string.Empty;
         
         public string ConnectionData
         {
