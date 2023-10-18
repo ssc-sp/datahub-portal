@@ -9,7 +9,7 @@
                     <MudIcon Icon=@GetCloudProviderIcon(SelectedContainer) 
                         ViewBox=@GetCloudProviderIconViewBox(SelectedContainer) 
                         Size=@Size.Large />
-                    <MudText Typo=@Typo.h2>@SelectedContainer.AccountName - @SelectedContainer.ContainerName</MudText>
+                    <MudText Typo=@Typo.h2>@Localizer[SelectedContainer.CloudStorageProvider.ToString()] - @SelectedContainer.AccountName - @SelectedContainer.ContainerName</MudText>
                     <MudIcon Icon=@Icons.Material.Filled.ArrowDropDown Size=@Size.Large />
                 </MudStack>
             </MudButton>
@@ -22,7 +22,7 @@
                         <ActivatorContent>
                             <MudStack Row>
                                 <MudIcon Icon=@GetCloudProviderIcon(accountContainer) ViewBox=@GetCloudProviderIconViewBox(accountContainer) />
-                                <MudText>@accountContainer.AccountName</MudText>
+                                <MudText>@Localizer[accountContainer.CloudStorageProvider.ToString()] - @accountContainer.AccountName</MudText>
                                 <MudSpacer />
                                 <MudIcon Icon=@Icons.Material.Filled.ChevronRight />
                             </MudStack>

@@ -41,7 +41,6 @@ namespace Datahub.Infrastructure.Services.Storage
         private GoogleCredential GetCredential()
         {
             var creds = GoogleCredential.FromJson(_jsonCredentials);
-
             return creds;
         }
 
@@ -67,13 +66,12 @@ namespace Datahub.Infrastructure.Services.Storage
             {
                 using var stream = new MemoryStream();
                 var result = await client.UploadObjectAsync(container, targetObjectName, EMPTY_FOLDER_CONTENT_TYPE, stream, options);
+                return await Task.FromResult(result != null);
             }
             catch
             {
                 return await Task.FromResult(false);
             }
-
-            return await Task.FromResult(true);
         }
 
         private async Task<bool> DeleteObjectAsync(string container, string filePath)
@@ -83,14 +81,13 @@ namespace Datahub.Infrastructure.Services.Storage
 
             try
             {
-                await client.DeleteObjectAsync(container, filePath);
+                await client.DeleteObjectAsync(container, filePath, options);
+                return await Task.FromResult(true);
             }
             catch
             {
                 return await Task.FromResult(false);
             }
-
-            return await Task.FromResult(true);
         }
 
         public async Task<bool> DeleteFileAsync(string container, string filePath)
@@ -119,6 +116,7 @@ namespace Datahub.Infrastructure.Services.Storage
             try
             {
                 var obj = await client.GetObjectAsync(container, filePath, options);
+                return await Task.FromResult(obj != null);
             }
             catch (GoogleApiException ex)
             {
@@ -132,8 +130,6 @@ namespace Datahub.Infrastructure.Services.Storage
                     throw;
                 }
             }
-
-            return await Task.FromResult(true);
         }
 
         public Task<Uri> GenerateSasTokenAsync(string container, int days)
@@ -259,6 +255,7 @@ namespace Datahub.Infrastructure.Services.Storage
                 // note: since dest is a newly created copy, it will have creation/last update timestamp when it was renamed
                 // changing these is not possible; the operation appears to succeed, but only updates the last update timestamp (i.e. doesn't back-date it)
                 await client.DeleteObjectAsync(container, oldFilePath);
+                return await Task.FromResult(true);
             }
             catch
             {
@@ -269,8 +266,6 @@ namespace Datahub.Infrastructure.Services.Storage
                 }
                 return await Task.FromResult(false);
             }
-
-            return await Task.FromResult(true);
         }
 
         public async Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess)
@@ -286,13 +281,12 @@ namespace Datahub.Infrastructure.Services.Storage
                 using var stream = file.BrowserFile.OpenReadStream(MAX_FILE_SIZE);
                 var progressHandler = new GoogleUploadProgressHandler(progess);
                 var createdObj = await client.UploadObjectAsync(container, destinationFilePath, contentType, stream, options, default, progressHandler);
+                return await Task.FromResult(createdObj != null);
             }
             catch
             {
                 return await Task.FromResult(false);
             }
-
-            return await Task.FromResult(true);
         }
     }
 }
