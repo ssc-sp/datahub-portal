@@ -115,8 +115,10 @@
 
         _projectName = _project?.ProjectName;
         _projectId = _project?.Project_ID;
-
+        containersLoaded = false;
         await LoadContainersAsync();
+        containersLoaded = true;
+        StateHasChanged();
     }
 
     private async Task LoadContainersAsync()
@@ -130,11 +132,9 @@
         var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
         var containerNames = await projectStorageManager.GetContainersAsync();
 
-        _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(accountName, c, CloudStorageProviderType.Azure, projectStorageManager)));
-
+        _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(accountName, c, CloudStorageProviderType.Azure, projectStorageManager)));        
         var dbStorage = await GetCloudStorages();
-        var failedStorages = new List<ProjectCloudStorage>();
-        foreach (var stg in dbStorage.Where(s => s.Enabled || _isUserProjectAdmin))
+        foreach (var stg in dbStorage.Where(s => s.Enabled))
         {
             try
             {
@@ -151,6 +151,7 @@
 
                     var storageManager = new AzureCloudStorageManager(azConnectionData.AccountName, azConnectionData.AccountKey);
                     containerNames = await storageManager.GetContainersAsync();
+                    var providerType = CloudStorageProviderType.Azure;
                     _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.Azure, 
                         storageManager, stg.Id, stg.Enabled)));
                 }
@@ -167,13 +168,24 @@
                     var storageManager = new AWSCloudStorageManager(stAccountName, awsConnectionData.AccessKeyId, awsConnectionData.AccessKeySecret, 
                         awsConnectionData.Region, awsConnectionData.BucketName);
                     containerNames = await storageManager.GetContainersAsync();
-                    _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.AWS, 
+                    var providerType = CloudStorageProviderType.AWS;
+                    _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.AWS,
                         storageManager, stg.Id, stg.Enabled)));
                 }
             } catch (Exception ex)
             {
-                failedStorages.Add(stg);
                 _logger.LogCritical(ex, $"cannot access containers from {stg.Name} (ID:{stg.Id})");
+                try
+                {
+                    await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
+                    ctx.Attach(stg);
+                    stg.Enabled = false;
+                    await ctx.SaveChangesAsync();
+                } catch (Exception ex2)
+                {
+                    _logger.LogCritical(ex2, $"error disabling containers from {stg.Name} (ID:{stg.Id})");                    
+                }
+
             }
         }
 
@@ -194,12 +206,13 @@
 
     private bool MultiContainer => _cloudContainers?.Count > 1;
     private bool _isUserProjectAdmin = false;
-    private bool ShouldShowContainerDropdown => MultiContainer || _isUserProjectAdmin;
+    private bool containersLoaded = false;
+    private bool ShouldShowContainerDropdown => containersLoaded && (MultiContainer || _isUserProjectAdmin);
 
     private async Task<List<ProjectCloudStorage>> GetCloudStorages()
     {
         await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
-        return await ctx.ProjectCloudStorages.AsNoTracking().Where(e => e.ProjectId == _project.Project_ID).ToListAsync();
+        return await ctx.ProjectCloudStorages.AsNoTracking().Where(e => e.ProjectId == _project.Project_ID && e.Enabled).ToListAsync();
     }
 
     private async Task<DialogResult> ShowCloudStorageDialog(CloudStorageProviderType cloudStorageProvider, CloudStorageSettings settings)
