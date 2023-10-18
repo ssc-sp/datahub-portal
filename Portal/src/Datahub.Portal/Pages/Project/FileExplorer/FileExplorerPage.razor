@@ -4,6 +4,7 @@
 @inject IProjectStorageConfigurationService _projectStorageConfigService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDialogService _dialogService
+@inject ILogger<FileExplorerPage> _logger
 @page "/w/{ProjectAcronymParam}/filelist"
 @using Datahub.Core.Components.PageBanner
 @using Datahub.Core.Model.CloudStorage;
@@ -16,6 +17,7 @@
 @using Microsoft.Graph.Models
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
+
 
 <!--suppress CssUnresolvedCustomProperty -->
 <DHPageTitle PageTitleKey="@_projectName"/>
@@ -131,39 +133,47 @@
         _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(accountName, c, CloudStorageProviderType.Azure, projectStorageManager)));
 
         var dbStorage = await GetCloudStorages();
+        var failedStorages = new List<ProjectCloudStorage>();
         foreach (var stg in dbStorage.Where(s => s.Enabled || _isUserProjectAdmin))
         {
-            var variables = stg.ConnectionData.Split('|');
-            if (stg.Provider == "Azure")
+            try
             {
-                var azConnectionData = CloudStorageConnectionDataDecoder.DecodeAzure(stg.ConnectionData);
-                if (azConnectionData is null)
+                var variables = stg.ConnectionData.Split('|');
+                if (stg.Provider == "Azure")
                 {
-                    continue;
+                    var azConnectionData = CloudStorageConnectionDataDecoder.DecodeAzure(stg.ConnectionData);
+                    if (azConnectionData is null)
+                    {
+                        continue;
+                    }
+
+                    var stAccountName = string.IsNullOrEmpty(stg.Name) ? azConnectionData.AccountName : stg.Name;
+
+                    var storageManager = new AzureCloudStorageManager(azConnectionData.AccountName, azConnectionData.AccountKey);
+                    containerNames = await storageManager.GetContainersAsync();
+                    _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.Azure, 
+                        storageManager, stg.Id, stg.Enabled)));
                 }
+                else if (stg.Provider == "AWS")
+                {
+                    var awsConnectionData = CloudStorageConnectionDataDecoder.DecodeAWS(stg.ConnectionData);
+                    if (awsConnectionData is null)
+                    {
+                        continue;
+                    }
 
-                var stAccountName = string.IsNullOrEmpty(stg.Name) ? azConnectionData.AccountName : stg.Name;
+                    var stAccountName = string.IsNullOrEmpty(stg.Name) ? awsConnectionData.BucketName : stg.Name;
 
-                var storageManager = new AzureCloudStorageManager(azConnectionData.AccountName, azConnectionData.AccountKey);
-                containerNames = await storageManager.GetContainersAsync();
-                _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.Azure, 
-                    storageManager, stg.Id, stg.Enabled)));
-            }
-            else if (stg.Provider == "AWS")
+                    var storageManager = new AWSCloudStorageManager(stAccountName, awsConnectionData.AccessKeyId, awsConnectionData.AccessKeySecret, 
+                        awsConnectionData.Region, awsConnectionData.BucketName);
+                    containerNames = await storageManager.GetContainersAsync();
+                    _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.AWS, 
+                        storageManager, stg.Id, stg.Enabled)));
+                }
+            } catch (Exception ex)
             {
-                var awsConnectionData = CloudStorageConnectionDataDecoder.DecodeAWS(stg.ConnectionData);
-                if (awsConnectionData is null)
-                {
-                    continue;
-                }
-
-                var stAccountName = string.IsNullOrEmpty(stg.Name) ? awsConnectionData.BucketName : stg.Name;
-
-                var storageManager = new AWSCloudStorageManager(stAccountName, awsConnectionData.AccessKeyId, awsConnectionData.AccessKeySecret, 
-                    awsConnectionData.Region, awsConnectionData.BucketName);
-                containerNames = await storageManager.GetContainersAsync();
-                _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.AWS, 
-                    storageManager, stg.Id, stg.Enabled)));
+                failedStorages.Add(stg);
+                _logger.LogCritical(ex, $"cannot access containers from {stg.Name} (ID:{stg.Id})");
             }
         }
 
