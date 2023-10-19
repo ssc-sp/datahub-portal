@@ -20,6 +20,7 @@ public class CheckInfrastructureStatus
     private readonly AzureConfig _azureConfig;
 
     private const string workspaceKeyCheck = "project-cmk";
+    private const string coreKeyCheck = "datahubportal-client-id";
 
     public CheckInfrastructureStatus(ILoggerFactory loggerFactory, DatahubProjectDBContext projectDbContext, AzureConfig azureConfig)
     {
@@ -87,12 +88,20 @@ public class CheckInfrastructureStatus
         _logger.LogInformation($"URI: {GetAzureKeyVaultUrl(request)}");
         var client = new SecretClient(GetAzureKeyVaultUrl(request), new DefaultAzureCredential()); // Authenticates with Azure AD and creates a SecretClient object for the specified key vault
         
-        try { 
-            KeyVaultSecret secret = await client.GetSecretAsync(workspaceKeyCheck); // Replace with the name of the secret you are trying to access
+        try {
+            KeyVaultSecret secret;
+            if (request.Group == "core") // Key check for core
+            {
+                secret = await client.GetSecretAsync(coreKeyCheck);
+            }
+            else // Key check for workspaces (to verify)
+            {
+                secret = await client.GetSecretAsync(workspaceKeyCheck);
+            }
         } 
-        catch
+        catch (Exception ex)
         { 
-            errors.Add("Unable to connect and retrieve a secret.");
+            errors.Add("Unable to connect and retrieve a secret. " + ex.GetType().ToString());
         }
 
         if (!errors.Any())
