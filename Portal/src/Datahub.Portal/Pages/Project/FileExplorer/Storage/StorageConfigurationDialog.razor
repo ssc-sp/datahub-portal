@@ -3,7 +3,7 @@
 <MudDialog>
     <DialogContent>
         <MudStack>
-            <MudTextField @bind-Value=@CloudStorageSettings.Name Label=@Localizer["Name"] Variant=@Variant.Text />
+            <MudTextField @bind-Value=@CloudStorageSettings.Name Label=@Localizer["Friendly Name"] Variant=@Variant.Text />
             <MudCheckBox @bind-Checked=@CloudStorageSettings.Enabled >@Localizer["Enabled"]</MudCheckBox>
             @if (CloudProvider == CloudStorageProviderType.AWS)
             {
@@ -12,6 +12,10 @@
             else if (CloudProvider == CloudStorageProviderType.Azure)
             {
                 <AzureConnectionDataInput @bind-ConnectionData=@ConnectionDataInternal OnValidationChanged=@HandleConnectionValidationChange />
+            }
+            else if (CloudProvider == CloudStorageProviderType.GCP)
+            {
+                <GCPConnectionDataInput @bind-ConnectionData=@CloudStorageSettings.ConnectionData OnValidationChanged=@HandleConnectionValidationChange />
             }
             <MudCheckBox @bind-Checked=@_isUnclassified>@Localizer["UnclassifiedDataConfirmation"]</MudCheckBox>
         </MudStack>
