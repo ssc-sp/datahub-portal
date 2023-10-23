@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Datahub.Core.Services.Docs;
+namespace Datahub.Markdown.Model;
 
 #nullable enable
 
@@ -11,7 +11,7 @@ public class DocItem
     {
         return new DocItem(guide, id, 0, true, null, null);
     }
-    
+
     public static DocItem GetItem(DocumentationGuideRootSection guide, string id, int level, string? title, string? markdownPage)
     {
         return new DocItem(guide, id, level, false, title, markdownPage);
@@ -36,7 +36,7 @@ public class DocItem
         IsFolder = isFolder;
     }
 
-    public int Level { get; } 
+    public int Level { get; }
     public bool IsRoot { get; }
 
     public bool IsFolder { get; }
@@ -48,14 +48,14 @@ public class DocItem
     public string? Content { get; set; }
     public string? MarkdownPage { get; init; }
 
-    public DocumentationGuideRootSection RootSection { get; set; } 
+    public DocumentationGuideRootSection RootSection { get; set; }
 
     public string GetDescription() => $"Card '{Title}' - '{MarkdownPage}'";
     public string? GetMarkdownFileName() => MarkdownPage;// ?? "README.md"
 
     public DocItem? LocateID(string id)
     {
-        if (string.Equals(id, this.Id, StringComparison.InvariantCultureIgnoreCase)) 
+        if (string.Equals(id, Id, StringComparison.InvariantCultureIgnoreCase))
             return this;
 
         foreach (var item in Children)
@@ -70,7 +70,7 @@ public class DocItem
 
     public DocItem? LocatePath(string path)
     {
-        if (string.Equals(path, this.MarkdownPage, StringComparison.InvariantCultureIgnoreCase))
+        if (string.Equals(path, MarkdownPage, StringComparison.InvariantCultureIgnoreCase))
             return this;
 
         foreach (var item in Children)
@@ -90,12 +90,12 @@ public class DocItem
 
     public DocItem Clone()
     {
-        var cloned = this.MemberwiseClone() as DocItem;
+        var cloned = MemberwiseClone() as DocItem;
         cloned!.Id = Guid.NewGuid().ToString();
         return cloned;
     }
 
-    public override string ToString() => GetDescription(); 
+    public override string ToString() => GetDescription();
 }
 
 #nullable disable

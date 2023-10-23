@@ -137,6 +137,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desktop.Uploader", "Desktop
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Desktop.SharedCode", "Desktop\Desktop.SharedCode\Desktop.SharedCode.shproj", "{C694124A-399C-4FD6-B795-D9ACE5EBECDC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Markdown", "Shared\src\Datahub.Markdown\Datahub.Markdown.csproj", "{819408C3-1962-4642-9971-51A1BCCE61FF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -300,6 +302,10 @@ Global
 		{99E69964-BB4A-4830-9C4D-6E1608356EC4}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{99E69964-BB4A-4830-9C4D-6E1608356EC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99E69964-BB4A-4830-9C4D-6E1608356EC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{819408C3-1962-4642-9971-51A1BCCE61FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{819408C3-1962-4642-9971-51A1BCCE61FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{819408C3-1962-4642-9971-51A1BCCE61FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{819408C3-1962-4642-9971-51A1BCCE61FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -353,11 +359,12 @@ Global
 		{5FB450AC-5E50-46A8-B454-EAD8ACD24FC6} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{99E69964-BB4A-4830-9C4D-6E1608356EC4} = {8B889747-F089-4150-AC80-FCAE5FA33571}
 		{C694124A-399C-4FD6-B795-D9ACE5EBECDC} = {8B889747-F089-4150-AC80-FCAE5FA33571}
+		{819408C3-1962-4642-9971-51A1BCCE61FF} = {839AFC95-740D-4C44-8F05-254250306841}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
