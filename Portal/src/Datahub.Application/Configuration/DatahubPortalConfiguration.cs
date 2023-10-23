@@ -27,7 +27,6 @@ public class DatahubPortalConfiguration
     public Hosting Hosting { get; set; } = new();
     public EmailNotification EmailNotification { get; set; } = new();
     public PublicFileSharing PublicFileSharing { get; set; } = new();
-    public DesktopFileUploader DesktopFileUploader { get; set; } = new();
     public string PortalRunAsManagedIdentity { get; set; } = "disabled";
     public string ResourcePrefix { get; set; } = "fsdh";
     public bool CentralizedProjectSecrets { get; set; } = false;
@@ -224,12 +223,6 @@ public class PublicFileSharing
     public string OpenDataApprovalPdfFormIdParam { get; set; } = null!;
     public string PublicFileSharingDomain { get; set; } = null!;
 }
-
-public record DesktopFileUploader
-{
-    public bool DisplayDesktopUploaderTab { get; set; } = false;
-}
-
 public class ReverseProxy
 {
     public bool Enabled { get; set; }

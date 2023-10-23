@@ -27,8 +27,8 @@ public static class ConfigureServices
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
         services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
         services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
+        services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
         services.AddSingleton<IResourceMessagingService, ResourceMessagingService>();
-        services.AddScoped<IProjectDataRetrievalService, ProjectDataRetrievalService>();
         services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
         services.AddScoped<IAnnouncementService, AnnouncementService>();
         services.AddScoped<IDatahubEmailService, DatahubEmailService>();

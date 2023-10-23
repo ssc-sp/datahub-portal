@@ -120,11 +120,11 @@
         <MudItem xs="6" Align="Align.Start" Class="py-6">
             @if (_currentStep == Steps.Start)
             {
-                <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Get Started"]</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Get Started"]</MudButton>
             }
             else
             {
-                <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@PreviousStep">@Localizer["Previous"]</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@PreviousStep">@Localizer["Previous"]</MudButton>
             }
         </MudItem>
         <MudItem xs="6" Align="Align.End" Class="py-6">

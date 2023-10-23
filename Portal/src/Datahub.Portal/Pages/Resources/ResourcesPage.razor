@@ -148,7 +148,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _resourceRoot = await _docService.GetLanguageRoot(DocumentationGuide.UserGuide, _cultureService.Culture);
+        _resourceRoot = await _docService.GetLanguageRoot(DocumentationGuideRootSection.UserGuide, _cultureService.Culture);
         await ClearResourcesBadge();
         await CreateMostPopularFolder();
     }
@@ -210,7 +210,7 @@ else
         if (popularDocs.Count == 0)
             popularDocs = GetFakePopularDocumentIds();
 
-        var item = DocItem.GetFolderItem(DocumentationGuide.UserGuide, MostPopularId, 1, Localizer["Most Popular"], popularDocs.Take(MaxPopularDocuments));
+        var item = DocItem.GetFolderItem(DocumentationGuideRootSection.UserGuide, MostPopularId, 1, Localizer["Most Popular"], popularDocs.Take(MaxPopularDocuments));
 
         _resourceRoot.AddFirstChild(item);
     }
