@@ -35,4 +35,8 @@
     <PackageReference Include="YamlDotNet" Version="13.3.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\src\Datahub.Markdown\Datahub.Markdown.csproj" />
+  </ItemGroup>
+
 </Project>

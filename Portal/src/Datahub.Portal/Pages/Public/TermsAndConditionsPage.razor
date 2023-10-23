@@ -1,4 +1,5 @@
 @using Datahub.Core.Components.Common
+@using Datahub.Markdown
 
 @inject CultureService _cultureService
 @inject ILogger<TermsAndConditionsPage> _logger
@@ -40,7 +41,7 @@
         try
         {
             var output = await client.GetStringAsync(fullUrl);
-            return Core.Services.Docs.MarkdownHelper.RemoveFrontMatter(output);
+            return MarkdownHelper.RemoveFrontMatter(output);
         }
         catch (Exception ex)
         {
