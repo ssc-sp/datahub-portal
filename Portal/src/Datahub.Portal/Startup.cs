@@ -452,9 +452,9 @@ public class Startup
 
     private void ConfigureDbContexts(IServiceCollection services)
     {
-        ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
-        ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics", Configuration.GetDriver());
-        ConfigureDbContext<MetadataDbContext>(services, "datahub-mssql-metadata", Configuration.GetDriver());
+        ConfigureDbContext<DatahubProjectDBContext>(services, "DatahubMsSqlProject", Configuration.GetDriver());
+        ConfigureDbContext<WebAnalyticsContext>(services, "DatahubMsSqlWebAnalytics", Configuration.GetDriver());
+        ConfigureDbContext<MetadataDbContext>(services, "DatahubMsSqlMetadata", Configuration.GetDriver());
     }
 
     private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName, DbDriver dbDriver)

@@ -152,7 +152,7 @@ public class AdoOrg
 
 public class ConnectionStrings
 {
-    [JsonProperty("datahub-mssql-project")]
+    [JsonProperty("DatahubMsSqlProject")]
     public string? DatahubMsSqlProject { get; set; }
 
     [JsonProperty("datahub-mssql-pip")] public string? DatahubMsSqlPip { get; set; }
@@ -162,16 +162,17 @@ public class ConnectionStrings
     [JsonProperty("datahub-mssql-finance")]
     public string? DatahubMsSqlFinance { get; set; }
 
-    [JsonProperty("datahub-mssql-webanalytics")]
+    [JsonProperty("DatahubMsSqlWebAnalytics")]
     public string? DatahubMsSqlWebAnalytics { get; set; }
 
-    [JsonProperty("datahub-mssql-metadata")]
+    [JsonProperty("DatahubMsSqlMetadata")]
     public string? DatahubMsSqlMetadata { get; set; }
 
     [JsonProperty("DATAHUB-MSSQL-LANGUAGETRAINING")]
     public string? DatahubMsSqlLanguageTraining { get; set; }
 
-    [JsonProperty("datahub-cosmosdb")] public string? DatahubCosmosDb { get; set; }
+    [JsonProperty("DatahubCosmosDb")] 
+    public string? DatahubCosmosDb { get; set; }
 }
 
 public class EmailNotification
