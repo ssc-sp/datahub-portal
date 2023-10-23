@@ -1,4 +1,6 @@
 ﻿using Datahub.Core.Services.Docs;
+using Datahub.Markdown;
+using Datahub.Markdown.Model;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,10 +51,10 @@ namespace Datahub.Tests.Docs
         [Fact]
         public void TestCompareCultureStrings()
         {
-            Assert.True(DocumentationService.CompareCulture("en-us", "en"));
-            Assert.True(DocumentationService.CompareCulture("en-ca", "EN"));
-            Assert.True(DocumentationService.CompareCulture("fr-ca", "FR"));
-            Assert.False(DocumentationService.CompareCulture("fr-ca", "en"));
+            Assert.True(MarkdownTools.CompareCulture("en-us", "en"));
+            Assert.True(MarkdownTools.CompareCulture("en-ca", "EN"));
+            Assert.True(MarkdownTools.CompareCulture("fr-ca", "FR"));
+            Assert.False(MarkdownTools.CompareCulture("fr-ca", "en"));
         }
 
         [Fact]

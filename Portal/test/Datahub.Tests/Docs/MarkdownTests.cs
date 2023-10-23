@@ -1,4 +1,5 @@
 ﻿using Datahub.Core.Services.Docs;
+using Datahub.Markdown;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
