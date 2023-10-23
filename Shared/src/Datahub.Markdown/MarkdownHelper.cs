@@ -4,7 +4,7 @@ using Markdig.Renderers.Roundtrip;
 using Markdig.Syntax;
 using System.IO;
 
-namespace Datahub.Core.Services.Docs
+namespace Datahub.Markdown
 {
     public static class MarkdownHelper
     {
@@ -13,7 +13,7 @@ namespace Datahub.Core.Services.Docs
 
         public static string RemoveFrontMatter(string input)
         {
-            var document = Markdown.Parse(input, pipeline);
+            var document = Markdig.Markdown.Parse(input, pipeline);
             var sw = new StringWriter();
             var renderer = new RoundtripRenderer(sw);
             // extract the front matter from markdown document

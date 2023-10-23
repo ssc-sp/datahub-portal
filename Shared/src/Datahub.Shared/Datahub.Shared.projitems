@@ -10,7 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Annotations\AnnotationTools.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Annotations\StringValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformOrganization.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformOutputVariable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformUser.cs" />
