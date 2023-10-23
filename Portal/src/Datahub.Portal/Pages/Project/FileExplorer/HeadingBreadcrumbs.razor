@@ -30,7 +30,8 @@
         _items.Clear();
         _items.Add(new BreadcrumbItem("", "#", true));
         _items.Add(new BreadcrumbItem("mnt", "#", true));
-        _items.Add(new BreadcrumbItem("fsdh-dbk-main-mount", "/"));
+        //_items.Add(new BreadcrumbItem("fsdh-dbk-main-mount", "/"));
+        _items.Add(new BreadcrumbItem("root", "/"));
         
         var folders = CurrentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
         _items.AddRange(folders.Select(folder => new BreadcrumbItem(folder, folder)));

@@ -1,71 +1,72 @@
 ﻿@using Datahub.Core.Services.CatalogSearch;
 @using MudBlazor.Utilities
 @using Datahub.Core.Model.Catalog;
-@inject IDatahubCatalogSearch datahubCatalogSearch
-@inject CultureService cultureService
 
-<MudElement
-            Style="@($"max-width: {_maxWidth}; flex-grow: 1;")"
-    >
-    
-<MudTextField T="string"
-              Variant="Variant.Outlined"
-              Margin="Margin.Dense"
-              Placeholder="@Localizer["Search"]"
-              DebounceInterval="250"
-              @bind-Value="SearchText"
-              Adornment="Adornment.Start"
-              AdornmentIcon="@Icons.Material.Filled.Search"
-              FullWidth
-              Clearable>
-</MudTextField>
+@inject IDatahubCatalogSearch _datahubCatalogSearch
+@inject CultureService _cultureService
+@inject IJSRuntime _jsRuntime
 
-<MudPopover Open="@ShowSearchResults"
-            Class="pa-4"
-            AnchorOrigin="Origin.BottomCenter"
-            TransformOrigin="Origin.TopCenter"
-            MaxHeight="800"
-            RelativeWidth="true"
-            >
+<MudElement Style="@($"max-width: {_maxWidth}; flex-grow: 1;")">
+    <MudTextField T="string"
+                  id="search-input"
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense"
+                  Placeholder="@Localizer["Search"]"
+                  DebounceInterval="250"
+                  @bind-Value="SearchText"
+                  @onfocus="HandleOnFocus"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  FullWidth
+                  Clearable>
+    </MudTextField>
 
-    <MudTabs Elevation="0" PanelClass="pa-6" @key="_results">
-        <MudTabPanel Disabled="@AllDisabled">
-            <ChildContent>
-                <SearchResultTab Results="_results" French="cultureService.IsFrench" OnClickLink="@HandleClickLink"/>
-            </ChildContent>
-            <TabContent>
-                <MudText Typo="Typo.h6">@Localizer["All"]</MudText>
-            </TabContent>
-        </MudTabPanel>
+    <MudPopover Open="@_showSearchPopover"
+                Class="pa-4"
+                AnchorOrigin="Origin.BottomCenter"
+                TransformOrigin="Origin.TopCenter"
+                MaxHeight="800"
+                RelativeWidth="true">
+        <span id="search-popup">
+            <MudTabs Elevation="0" PanelClass="pa-6" @key="_results">
+                <MudTabPanel Disabled="@AllDisabled">
+                    <ChildContent>
+                        <SearchResultTab Results="_results" French="_cultureService.IsFrench" OnClickLink="@HandleClickLink"/>
+                    </ChildContent>
+                    <TabContent>
+                        <MudText Typo="Typo.h6">@Localizer["All"]</MudText>
+                    </TabContent>
+                </MudTabPanel>
 
-        <MudTabPanel Disabled="@WorkspacesDisabled">
-            <ChildContent>
-                <SearchResultTab Results="_workspaces" French="cultureService.IsFrench" OnClickLink="@HandleClickLink"/>
-            </ChildContent>
-            <TabContent>
-                <MudText Typo="Typo.h6">@Localizer["Workspaces"]</MudText>
-            </TabContent>
-        </MudTabPanel>
+                <MudTabPanel Disabled="@WorkspacesDisabled">
+                    <ChildContent>
+                        <SearchResultTab Results="_workspaces" French="_cultureService.IsFrench" OnClickLink="@HandleClickLink"/>
+                    </ChildContent>
+                    <TabContent>
+                        <MudText Typo="Typo.h6">@Localizer["Workspaces"]</MudText>
+                    </TabContent>
+                </MudTabPanel>
 
-        <MudTabPanel Disabled="@UsersDisabled">
-            <ChildContent>
-                <SearchResultTab Results="_users" French="cultureService.IsFrench" OnClickLink="@HandleClickLink"/>
-            </ChildContent>
-            <TabContent>
-                <MudText Typo="Typo.h6">@Localizer["Users"]</MudText>
-            </TabContent>
-        </MudTabPanel>
+                <MudTabPanel Disabled="@UsersDisabled">
+                    <ChildContent>
+                        <SearchResultTab Results="_users" French="_cultureService.IsFrench" OnClickLink="@HandleClickLink"/>
+                    </ChildContent>
+                    <TabContent>
+                        <MudText Typo="Typo.h6">@Localizer["Users"]</MudText>
+                    </TabContent>
+                </MudTabPanel>
 
-        <MudTabPanel Disabled="@RepositoriesDisabled">
-            <ChildContent>
-                <SearchResultTab Results="_repositories" French="cultureService.IsFrench" OnClickLink="@HandleClickLink"/>
-            </ChildContent>
-            <TabContent>
-                <MudText Typo="Typo.h6">@Localizer["Shared Repositories"]</MudText>
-            </TabContent>
-        </MudTabPanel>
-    </MudTabs>
-</MudPopover>
+                <MudTabPanel Disabled="@RepositoriesDisabled">
+                    <ChildContent>
+                        <SearchResultTab Results="_repositories" French="_cultureService.IsFrench" OnClickLink="@HandleClickLink"/>
+                    </ChildContent>
+                    <TabContent>
+                        <MudText Typo="Typo.h6">@Localizer["Shared Repositories"]</MudText>
+                    </TabContent>
+                </MudTabPanel>
+            </MudTabs>
+        </span>
+    </MudPopover>
 </MudElement>
 
 @code {
@@ -90,11 +91,59 @@
         }
     }
 
-    private bool ShowSearchResults => _results.Count > 0;
+    private bool _showSearchPopover = false;
     private bool AllDisabled => _results.Count == 0;
     private bool WorkspacesDisabled => _workspaces.Count == 0;
     private bool UsersDisabled => _users.Count == 0;
     private bool RepositoriesDisabled => _repositories.Count == 0;
+
+    private IJSObjectReference _module;
+    private IJSObjectReference _searchPopup;
+    private DotNetObjectReference<SearchPopover> _dotNetHelper;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
+                "./Layout/Topbar/SearchPopover.razor.js");
+
+            _dotNetHelper = DotNetObjectReference.Create(this);
+        }
+    }
+
+    private async Task TogglePopover()
+    {
+        _showSearchPopover = !_showSearchPopover && _results.Any();
+        if (_showSearchPopover)
+        {
+            await OpenSearchPopup();
+        }
+        StateHasChanged();
+    }
+    
+    private async Task HandleOnFocus()
+    {
+        if (_results.Any() && !_showSearchPopover)
+        {
+            await OpenSearchPopup();
+        }
+    }
+
+    private async Task OpenSearchPopup()
+    {
+        _showSearchPopover = _results.Any();
+        if (_showSearchPopover)
+        {
+            _searchPopup = await _module.InvokeAsync<IJSObjectReference>("initialize", _dotNetHelper);
+        }
+    }
+
+    [JSInvokable]
+    public async Task CloseSearchPopup()
+    {
+        await TogglePopover();
+    }
 
     private async Task SearchCatalog(string text)
     {
@@ -104,11 +153,12 @@
         }
         else
         {
-            _results = await datahubCatalogSearch.SearchCatalog(new(text, false));
+            _results = await _datahubCatalogSearch.SearchCatalog(new(text, false));
         }
 
         UpdateTabs();
-
+        await OpenSearchPopup();
+        
         await InvokeAsync(StateHasChanged);
     }
 
@@ -124,6 +174,12 @@
         _users = _results.Where(r => r.ObjectType == CatalogObjectType.User).ToList();
         _workspaces = _results.Where(r => r.ObjectType == CatalogObjectType.Workspace).ToList();
         _repositories = _results.Where(r => r.ObjectType == CatalogObjectType.Repository).ToList();
+    }
+
+    public void Dispose()
+    {
+        _dotNetHelper?.Dispose();
+        _searchPopup?.DisposeAsync();
     }
 
 }
