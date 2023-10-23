@@ -227,11 +227,24 @@ public class TranslateOptions
     [Option('P', "path", Required = false)]
     public string Path { get; set; } = ".";
 
+    [Option('v', "validate", Required = false)]
+    public bool Validate { get; set; } = true;
+
     [Option("deepl", Required = false)]
     public string? DeeplKey { get; set; } = null;
 
     [Option('f',"FreeAPI", Required = false)]
     public bool UseFreeAPI { get; set; } = false;
+
+    [Option('p', "profile", Required = true)]
+    public string Profile { get; set; } = "ssc";
+}
+
+[Verb("validate", HelpText = "Validate the documentation")]
+public class ValidateOptions
+{
+    [Option('P', "path", Required = false)]
+    public string Path { get; set; } = ".";
 
     [Option('p', "profile", Required = true)]
     public string Profile { get; set; } = "ssc";
