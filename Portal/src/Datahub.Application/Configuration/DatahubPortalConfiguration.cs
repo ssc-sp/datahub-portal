@@ -152,26 +152,26 @@ public class AdoOrg
 
 public class ConnectionStrings
 {
-    [JsonProperty("DatahubMsSqlProject")]
+    [JsonProperty("datahub_mssql_project")]
     public string? DatahubMsSqlProject { get; set; }
 
-    [JsonProperty("datahub-mssql-pip")] public string? DatahubMsSqlPip { get; set; }
+    [JsonProperty("datahub_mssql_pip")] public string? DatahubMsSqlPip { get; set; }
 
-    [JsonProperty("datahub-mssql-etldb")] public string? DatahubMsSqlEtldb { get; set; }
+    [JsonProperty("datahub_mssql_etldb")] public string? DatahubMsSqlEtldb { get; set; }
 
-    [JsonProperty("datahub-mssql-finance")]
+    [JsonProperty("datahub_mssql_finance")]
     public string? DatahubMsSqlFinance { get; set; }
 
-    [JsonProperty("DatahubMsSqlWebAnalytics")]
+    [JsonProperty("datahub_mssql_webAnalytics")]
     public string? DatahubMsSqlWebAnalytics { get; set; }
 
-    [JsonProperty("DatahubMsSqlMetadata")]
+    [JsonProperty("datahub_mssql_metadata")]
     public string? DatahubMsSqlMetadata { get; set; }
 
-    [JsonProperty("DATAHUB-MSSQL-LANGUAGETRAINING")]
+    [JsonProperty("DATAHUB_MSSQL_LANGUAGETRAINING")]
     public string? DatahubMsSqlLanguageTraining { get; set; }
 
-    [JsonProperty("DatahubCosmosDb")] 
+    [JsonProperty("datahub_cosmosdb")] 
     public string? DatahubCosmosDb { get; set; }
 }
 
