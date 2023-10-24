@@ -48,3 +48,5 @@ DatahubTest/testsettings.json
 /Portal/src/Datahub.Portal/output-fr.json
 /Portal/src/Datahub.Achievements/MissingTranslations.json
 /Portal/utils/SyncDocs/config.deepl.json
+/Portal/src/Datahub.Portal/Properties/spdatahub-portal-app-sand.PublishSettings
+
