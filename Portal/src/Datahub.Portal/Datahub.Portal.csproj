@@ -13,10 +13,6 @@
 		<Content Remove="package.json" />
 	</ItemGroup>
 	<ItemGroup>
-		<None Remove="Controllers\OpenDataApprovalForm.docx" />
-		<None Remove="i18n\achievements.fr.json.bad" />
-	</ItemGroup>
-	<ItemGroup>
 		<EmbeddedResource Include="Controllers\OpenDataApprovalForm.docx" />
 	</ItemGroup>
 	<ItemGroup>
