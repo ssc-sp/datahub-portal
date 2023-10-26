@@ -367,6 +367,7 @@ Global
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{57703cec-08b9-40b8-b5e2-064a196b1587}*SharedItemsImports = 5
 		Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{79da8e04-5655-493a-80e4-37a07fbec90e}*SharedItemsImports = 13

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Datahub.Markdown.Model;
+using Markdig.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,6 +11,23 @@ namespace Datahub.Markdown
 {
     public static class MarkdownTools
     {
+        public static (string Title,string Preview)? GetTitleAndPreview(string content)
+        {
+            var cardDoc = Markdig.Markdown.Parse(content);
+            var cardDocFlattened = cardDoc.Descendants();
+
+            var firstHeading = cardDocFlattened.FirstOrDefault(e => e is HeadingBlock) as HeadingBlock;
+            var firstPara = cardDocFlattened.FirstOrDefault(e => e is ParagraphBlock) as ParagraphBlock;
+            if (firstHeading?.Inline?.FirstChild is null || firstPara?.Inline?.FirstChild is null)
+            {
+                return null;
+            }
+
+            var title = firstHeading.Inline.FirstChild.ToString();
+            var preview = firstPara.Inline.FirstChild.ToString();
+            return (title!, preview!);
+        }
+
         public static string GetIDFromString(string url)
         {
             return GetStableHashCode(url).ToString("X").ToLowerInvariant();

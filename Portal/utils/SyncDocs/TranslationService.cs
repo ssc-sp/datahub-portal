@@ -4,6 +4,7 @@ using Markdig.Renderers.Roundtrip;
 using Markdig;
 using Markdig.Syntax;
 using static System.Net.Mime.MediaTypeNames;
+using System.Text.RegularExpressions;
 
 namespace SyncDocs;
 
@@ -125,10 +126,20 @@ internal class TranslationService
         return !relPath.StartsWith('/') ? $"/{relPath}" : relPath;
     }
 
+    private static readonly Regex MS_LEARN_URL = new Regex(@"(.*)https://learn.microsoft.com/(.+)/(.*)", RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace);
+
     private async Task<string> Translate(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
             return string.Empty;
+
+        var match = MS_LEARN_URL.Match(text);
+        if (match.Success)
+        {
+            //handle URL
+            var lang = match.Groups[1];
+            var url = match.Groups[2];
+        }
 
         var output = _translationCache.GetFrenchTranslation(text);
         if (output != null)

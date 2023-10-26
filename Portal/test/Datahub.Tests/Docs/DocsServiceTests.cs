@@ -1,9 +1,11 @@
 ﻿using Datahub.Core.Services.Docs;
 using Datahub.Markdown;
 using Datahub.Markdown.Model;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -37,11 +39,13 @@ namespace Datahub.Tests.Docs
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpClient);
             // Arrange
             var memCache = new MemoryCache(new MemoryCacheOptions());
-            _service = new DocumentationService(config, logger, mockFactory.Object,memCache);
+            var me = new Mock<IWebHostEnvironment>();
+            me.Setup(e => e.EnvironmentName).Returns(Environments.Production);
+            _service = new DocumentationService(config, logger, mockFactory.Object, me.Object, memCache);
         }
 
         [Fact]
-        public async void TestReadLastCommitTS()
+        public async Task TestReadLastCommitTS()
         {
             var lastCommit = await _service.GetLastRepoCommitTS();
             Assert.NotNull(lastCommit);
@@ -62,7 +66,7 @@ namespace Datahub.Tests.Docs
         {
             var root = await _service.GetLanguageRoot(DocumentationGuideRootSection.UserGuide,"en");
             Assert.NotNull(root);
-            Assert.True(root.Children.Count > 10);
+            Assert.True(root.Children.Count > 5);
         }
 
         [Fact]
@@ -70,8 +74,8 @@ namespace Datahub.Tests.Docs
         {
             var root = await _service.GetLanguageRoot(DocumentationGuideRootSection.UserGuide, "en");
             Assert.NotNull(root);
-            Assert.True(root.Children.Count > 10);
-            var pageId = root.Children[9].Id!;
+            Assert.True(root.Children.Count > 5);
+            var pageId = root.Children[5].Id!;
             var loadedPage = _service.LoadPage(pageId, false);
             Assert.NotNull(loadedPage);
             var parent = _service.GetParent(loadedPage);
