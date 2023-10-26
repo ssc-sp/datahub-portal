@@ -1,6 +1,15 @@
 ﻿@* StorageConfigurationDialog.razor *@
 
+@inject Datahub.Core.Services.Docs.DocumentationService DocService
+
 <MudDialog>
+    <TitleContent>
+        <MudStack Row AlignItems=@AlignItems.Baseline >
+            <MudText Typo=@Typo.h6>@MudDialog.Title</MudText>
+            <MudSpacer />
+            <MudIconButton Icon=@Icons.Material.Filled.HelpOutline Disabled=@HideHelpIcon Href=@HelpUrl Title=@Localizer["Help"]  />
+        </MudStack>
+    </TitleContent>
     <DialogContent>
         <MudStack>
             <MudTextField @bind-Value=@CloudStorageSettings.Name Label=@Localizer["Friendly Name"] Variant=@Variant.Text />
@@ -55,6 +64,18 @@
         }
     }
 
+    private string _helpUrl = string.Empty;
+    private string HelpUrl
+    {
+        get => _helpUrl;
+        set
+        {
+            _helpUrl = value;
+            InvokeAsync(MudDialog.StateHasChanged);
+        }
+    }
+    private bool HideHelpIcon => string.IsNullOrEmpty(HelpUrl);
+
     private bool _isConnectionValid = false;
     private bool _isUnclassified = false;
 
@@ -72,9 +93,30 @@
         MudDialog.Close(DialogResult.Ok(CloudStorageSettings));
     }
 
-    protected override void OnInitialized()
+    private async Task PopulateHelpUrl()
+    {
+        // Use the English help URLs and document root to find the guid - the resource link will show up in the user's selected language
+        var helpResourceUrl = CloudProvider switch
+        {
+            CloudStorageProviderType.GCP => "/UserGuide/Storage/Import-GCP-Storage.md",
+            CloudStorageProviderType.Azure => "/UserGuide/Storage/Import-Azure-Storage.md",
+            CloudStorageProviderType.AWS => "/UserGuide/Storage/Import-AWS-Storage.md",
+            _ => "/UserGuide/Storage/Import-Storage.md"
+        };
+
+        var docRoot = await DocService.GetLanguageRoot(Core.Services.Docs.DocumentationGuideRootSection.UserGuide, "en");
+        var id = docRoot?.LocatePath(helpResourceUrl)?.Id;
+        if (id is not null)
+        {
+            HelpUrl = $"/resources/{id}";
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
     {
         _initialConnectionData = CloudStorageSettings?.ConnectionData ?? string.Empty;
         _isUnclassified = !string.IsNullOrEmpty(_initialConnectionData);
+        await PopulateHelpUrl();
     }
+
 }
