@@ -26,5 +26,6 @@ public class CloudStorageContainer
 public enum CloudStorageProviderType
 {
     Azure,
-    AWS
+    AWS,
+    GCP
 }

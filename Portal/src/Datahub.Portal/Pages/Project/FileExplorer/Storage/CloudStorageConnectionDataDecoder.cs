@@ -39,5 +39,17 @@
                 return null;
             }
         }
+
+        public static GCPConnectionData DecodeGCP(string connectionData)
+        {
+            if (string.IsNullOrEmpty(connectionData))
+            {
+                return null;
+            }
+            else
+            {
+                return new GCPConnectionData() { ConnectionData = connectionData };
+            }
+        }
     }
 }
