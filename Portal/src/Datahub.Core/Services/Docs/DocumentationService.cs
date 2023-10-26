@@ -21,6 +21,8 @@ using Microsoft.Graph.Models;
 using static MudBlazor.CategoryTypes;
 using Datahub.Markdown;
 using Datahub.Markdown.Model;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace Datahub.Core.Services.Docs;
 
@@ -43,11 +45,14 @@ public class DocumentationService
     private readonly IMemoryCache _cache;
 
     public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger, 
-        IHttpClientFactory httpClientFactory,
+        IHttpClientFactory httpClientFactory, IWebHostEnvironment environment,
         IMemoryCache docCache)
     {
-        _docsRoot = config.GetValue(DOCS_ROOT_CONFIG_KEY, "https://raw.githubusercontent.com/ssc-sp/datahub-docs/main/")!;
-        _docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, "https://github.com/ssc-sp/datahub-docs/edit/main/")!;
+        //!ctx.HostingEnvironment.IsDevelopment()
+        
+        var branch = environment.IsProduction()? "main": "next";
+        _docsRoot = config.GetValue(DOCS_ROOT_CONFIG_KEY, $"https://raw.githubusercontent.com/ssc-sp/datahub-docs/{branch}/")!;
+        _docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, "https://github.com/ssc-sp/datahub-docs/edit/{branch}/")!;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _statusMessages = new List<TimeStampedStatus>();
@@ -151,24 +156,19 @@ public class DocumentationService
             doc.Preview = String.Join(", ", doc.Children.Select(d => d.Title));
             return;
         }
-        var cardDoc = Markdig.Markdown.Parse(doc.Content);
-        var cardDocFlattened = cardDoc.Descendants();
 
-        var firstHeading = cardDocFlattened.FirstOrDefault(e => e is HeadingBlock) as HeadingBlock;
-        var firstPara = cardDocFlattened.FirstOrDefault(e => e is ParagraphBlock) as ParagraphBlock;
-        if (firstHeading?.Inline?.FirstChild is null || firstPara?.Inline?.FirstChild is null)
+        var cardContent = MarkdownTools.GetTitleAndPreview(doc.Content);
+        if (cardContent is null)
         {
-            AddStatusMessage($"Invalid card {doc.GetDescription()} - first Header or first Paragraph missing");
             doc.ContentTitle = null;
-            doc.Preview = String.Join(" ,",doc.Children.Select(d => d.Title));
-            return;
+            doc.Preview = String.Join(" ,", doc.Children.Select(d => d.Title));
+            AddStatusMessage($"Invalid card {doc.GetDescription()} - first Header or first Paragraph missing");
         }
-
-        var title = firstHeading.Inline.FirstChild.ToString();
-        var preview = firstPara.Inline.FirstChild.ToString();
-
-        doc.ContentTitle = title;
-        doc.Preview = preview;
+        else
+        {
+            doc.ContentTitle = cardContent.Value.Title;
+            doc.Preview = cardContent.Value.Preview;
+        }
     }
 
     public const string LOCALE_EN = "";

@@ -1,15 +1,19 @@
-﻿using Markdig;
+﻿using Datahub.Markdown;
+using Datahub.Markdown.Model;
+using Markdig;
 using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-
+using Datahub.Shared.Annotations;
+using static System.Collections.Specialized.BitVector32;
 namespace SyncDocs;
 
-internal class MarkdownDocumentationService
+internal class MarkdownProcessor
 {
 	private readonly ConfigParams _config;
 	private readonly string _sourcePath;
@@ -17,7 +21,7 @@ internal class MarkdownDocumentationService
     private readonly DictionaryCache _fileNameCache;
     private readonly FileMappingService _mappingService;
 
-    public MarkdownDocumentationService(ConfigParams config, string sourcePath, TranslationService translationService, 
+    public MarkdownProcessor(ConfigParams config, string sourcePath, TranslationService translationService, 
         DictionaryCache fileNameCache, FileMappingService mappingService)
 	{
 		_config = config;
@@ -27,7 +31,7 @@ internal class MarkdownDocumentationService
         _mappingService = mappingService;
     }
 
-	public Task AddFolder(string relative, string path) 
+	public Task CreateTranslatedFolder(string relative, string path) 
 	{
         var outputFolder = GetTargetPath(path);
         if (!Directory.Exists(outputFolder))
@@ -57,8 +61,39 @@ internal class MarkdownDocumentationService
             .Normalize(NormalizationForm.FormC);
     }
 
+    public IDictionary<string, string> ValidationErrors { get; set; } = new ConcurrentDictionary<string,string>();
 
-    public async Task AddFile(string relative, string path)
+    private static DocumentationGuideRootSection? GetSection(string relPath)
+    {
+        var currentSection = relPath.Split("/", StringSplitOptions.RemoveEmptyEntries)[1];
+        var sections = Enum.GetValues<DocumentationGuideRootSection>().Select(v => (section:v,path: v.GetStringValue())).ToList();
+        if (!sections.Any(s => s.path == currentSection))
+            return null;
+        return sections.First(s => s.path == currentSection).section;
+    }
+
+    public async Task ValidateFile(string relative, string path)
+    {
+        var sourceFileName = Path.GetFileName(path);
+
+        var section = GetSection(relative);
+        var isSidebar = Path.GetFileName(path) == "_sidebar.md";
+        if (!isSidebar && section == DocumentationGuideRootSection.UserGuide)
+        {
+            var content = await File.ReadAllTextAsync(path);
+            if (!ExternalPageMarkdown.IsExternalMarkdown(content))
+            {
+                var card = MarkdownTools.GetTitleAndPreview(content);
+                if (card is null)
+                {
+                    ValidationErrors.TryAdd(Path.GetFullPath(path), $"Invalid markdown structure: first Header or first Paragraph missing for card preview");
+                }
+            }
+        }
+    }
+
+
+    public async Task TranslateFile(string relative, string path)
     {
         var sourceFileName = Path.GetFileName(path);
 

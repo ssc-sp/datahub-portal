@@ -49,17 +49,34 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
         // translation service
         var translationService = new TranslationService(options.Path, deeplKey, freeAPI, translationCache, GetGlossary(options.Path).ToList());
         // replication service
-        var markdownService = new MarkdownDocumentationService(configParams, options.Path, translationService, fileNameCache, fileMappingService);
+        var markdownProcessor = new MarkdownProcessor(configParams, options.Path, translationService, fileNameCache, fileMappingService);
 
-        await CleanupTargetDirectory(configParams, options.Path);
-        // iterate the provided source folder
-        await IteratePath(options.Path, BuildExcluder(configParams), markdownService.AddFolder, markdownService.AddFile);
+        if (options.Validate)
+        {
+            await IteratePath(options.Path, BuildExcluder(configParams), async (_,_) => { }, markdownProcessor.ValidateFile);
+        }
 
-        // save translation cache
-        fileNameCache.SaveChanges();
+        if (options.Validate && markdownProcessor.ValidationErrors.Count > 0)
+        {
+            Console.Error.WriteLine("Please correct the following markdown documents:");
+            foreach (var item in markdownProcessor.ValidationErrors.OrderBy(tp => tp.Key))
+            {
+                Console.Error.WriteLine($"{item.Key}: {item.Value}");
+            }
+        }
+        else
+        {
 
-        // save the file mappings
-        fileMappingService.SaveMappings();
+            await CleanupTargetDirectory(configParams, options.Path);
+            // iterate the provided source folder
+            await IteratePath(options.Path, BuildExcluder(configParams), markdownProcessor.CreateTranslatedFolder, markdownProcessor.TranslateFile);
+
+            // save translation cache
+            fileNameCache.SaveChanges();
+
+            // save the file mappings
+            fileMappingService.SaveMappings();
+        }
     }
     catch (Exception ex)
     {
@@ -82,7 +99,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
         var metadata = "autogenerate: true\n";
         var topSidebarPath = Path.Combine(options.Path, SIDEBAR);
         var topSidebarPathMeta = Path.Combine(options.Path, SIDEBAR_META);
-        if (MarkdownDocumentationService.CheckIfAutogenerateYaml(topSidebarPathMeta))
+        if (MarkdownProcessor.CheckIfAutogenerateYaml(topSidebarPathMeta))
         {
             await File.WriteAllTextAsync(topSidebarPath, topSidebar);
             await File.WriteAllTextAsync(topSidebarPathMeta, metadata);
@@ -100,7 +117,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
             var sidebar = gen.GenerateSidebar(new DirectoryInfo(folder).Name, folder, files, folders, options.Profile);
             var sidebarPath = Path.Combine(folder, SIDEBAR);
             var sidebarPathMeta = Path.Combine(folder, SIDEBAR_META);
-            if (MarkdownDocumentationService.CheckIfAutogenerateYaml(sidebarPathMeta))
+            if (MarkdownProcessor.CheckIfAutogenerateYaml(sidebarPathMeta))
             {
                 await File.WriteAllTextAsync(sidebarPath, sidebar);
                 await File.WriteAllTextAsync(sidebarPathMeta, metadata);
@@ -162,7 +179,7 @@ static async Task CleanupTargetDirectory(ConfigParams configParams, string path)
     await IteratePath(Path.Combine(path, configParams.Target), s => false, (_,f) => { folders.Add(f); return Task.CompletedTask; }, (_,f) => { files.Add(f); return Task.CompletedTask; });
     foreach (var item in files.Where(f => Path.GetExtension(f) == ".md"))
     {   
-        if (MarkdownDocumentationService.CheckIfDraft(item) && !string.Equals(Path.GetFileName(item), NAVBAR, StringComparison.InvariantCultureIgnoreCase))
+        if (MarkdownProcessor.CheckIfDraft(item) && !string.Equals(Path.GetFileName(item), NAVBAR, StringComparison.InvariantCultureIgnoreCase))
         {
             Console.WriteLine($"Deleting draft file {item}");
             File.Delete(item);

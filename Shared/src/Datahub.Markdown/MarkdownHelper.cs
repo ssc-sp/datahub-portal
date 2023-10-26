@@ -8,7 +8,7 @@ namespace Datahub.Markdown
 {
     public static class MarkdownHelper
     {
-        private static readonly MarkdownPipeline pipeline = new MarkdownPipelineBuilder()
+        internal static readonly MarkdownPipeline pipeline = new MarkdownPipelineBuilder()
             .UseYamlFrontMatter().EnableTrackTrivia().Build();
 
         public static string RemoveFrontMatter(string input)
