@@ -1,6 +1,7 @@
 ﻿@*WelcomeBanner.razor*@
 
 @using Datahub.Application.Services.Announcements
+@using Microsoft.JSInterop
 
 @inject TimeZoneService _timeZoneService
 @inject IConfiguration _configuration
@@ -8,6 +9,7 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IAnnouncementService _announcementService
 @inject CultureService _cultureService
+@inject IJSRuntime _jsRuntime
 
 @if (_isLoading)
 {
@@ -16,7 +18,7 @@
 else if (_previews.Count == 0)
 {
     <MudPaper Class="welcome-banner" Style="@_personalBackgroundStyle" >
-        <MudText Typo="Typo.h1" class="greeting">@GetGreeting()</MudText>
+        <MudText Typo="Typo.h1" class="greeting">@_greeting</MudText>
     </MudPaper>
 }
 else
@@ -28,26 +30,21 @@ else
 @code {
 
     private string _userBackgroundUrl;
+    private string _greeting;
     private List<AnnouncementPreview> _previews = new();
     private bool _isLoading = true;
-    private DateTimeOffset _now = DateTimeOffset.Now;
+    private IJSObjectReference _module;
     private string _personalBackgroundStyle => $"background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{GetBackground()}') no-repeat;background-size: cover; height: {AnnouncementCarousel.CarouselHeight}px;";
 
     protected override async Task OnInitializedAsync()
     {
         var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
+        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Landing/WelcomeBanner.razor.js");
         _userBackgroundUrl = _datahubPortalConfiguration.Media.GetAchievementImageUrl(portalUser.BannerPictureUrl);
         _previews = await _announcementService.GetActivePreviews(_cultureService.IsFrench);
         _isLoading = false;
+        _greeting = await GetGreeting();
         StateHasChanged();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            _now = await _timeZoneService.GetLocalDateTime(DateTimeOffset.UtcNow);
-        }
     }
 
     private string GetBackground()
@@ -65,15 +62,21 @@ else
         return $"/img/{folder}/landing{randomId:00}_1800x400.jpg";
     }
 
-    private string GetGreeting()
+    private async Task<string> GetGreeting()
     {
-        var hour = _now.Hour;
-        if (hour < 12)
-            return Localizer["Good Morning"];
+        string hour_res = await _module.InvokeAsync<string>("retrieveHour");
 
-        if (hour < 16)
-            return Localizer["Good Afternoon"];
+        if (int.TryParse(hour_res, out int hour))
+        {
+            if (hour < 12)
+                return Localizer["Good Morning"];
 
-        return Localizer["Good Evening"];
+            if (hour < 16)
+                return Localizer["Good Afternoon"];
+
+            return Localizer["Good Evening"];
+        }
+
+        return Localizer["Welcome"];
     }
 }
