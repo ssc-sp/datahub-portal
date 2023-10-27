@@ -56,8 +56,8 @@ namespace Datahub.Functions
             // get threshold
             var threshold = GetThreshold(message.LastLogin);
 
-            // check if the threshold is not the last days in the list
-            if ((threshold is not null) && (threshold != _notificationDays[-1]))
+            // check if the threshold is not the last days in the list and send email unless the workspace is whitelisted
+            if ((threshold is not null) && (threshold != _notificationDays[-1]) && !message.Whitelisted)
             {
                 using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
                 (var contacts, var acronym) = await GetProjectDetails(ctx, message.ProjectId, ct);
@@ -76,7 +76,8 @@ namespace Datahub.Functions
                 await _inactivityService.SetProjectThresholdNotified(message.ProjectId, nthreshold, ct);
                 await _inactivityService.SetProjectDateLastNotified(message.ProjectId, today, ct);
             }
-            else if ((threshold is not null) && (threshold != _notificationDays[-1]))
+            // if its the last day of the list and the workspace is not whitelisted or if the workspace is whitelisted and today is the retirement date
+            else if (((threshold is not null) && (threshold != _notificationDays[-1]) && !message.Whitelisted) || (message.Whitelisted && message.RetirementDate == DateTime.Today))
             {
                 // last threshold
                 var nthreshold = threshold ?? 0;
