@@ -2,6 +2,7 @@
 
 @using Datahub.Application.Services.Announcements
 @using Microsoft.JSInterop
+@implements IAsyncDisposable
 
 @inject TimeZoneService _timeZoneService
 @inject IConfiguration _configuration
@@ -54,8 +55,6 @@ else
 
     private string GetDefaultBackground()
     {
-        //earth-background.jpg
-        //LandingBgFolder
         var folder = _configuration["LandingBgFolder"] ?? "nrcan";
         var imgCount = (_configuration.GetSection("LandingBgImgCount").Get<int?>() ?? 12)-1;
         var randomId = (int)Math.Round(new Random().NextDouble() * imgCount);
@@ -78,5 +77,13 @@ else
         }
 
         return Localizer["Welcome"];
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (_module is not null)
+        {
+            await _module.DisposeAsync();
+        }
     }
 }
