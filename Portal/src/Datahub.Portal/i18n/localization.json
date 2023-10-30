@@ -1,6 +1,7 @@
 {
   "404-Page-error": "Not Found",
   "DogImageAltText": "Dog digging in the sand",
+  "CatImageAltText": "Cat hiding under blanket",
   "ADD-DATA-PAGE": {
     "AddData": "Add Data",
     "CustomFields-Label": "Custom Fields",
