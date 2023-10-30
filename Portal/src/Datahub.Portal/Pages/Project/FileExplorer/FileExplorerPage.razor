@@ -4,6 +4,7 @@
 @inject IProjectStorageConfigurationService _projectStorageConfigService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDialogService _dialogService
+@inject ILoggerFactory _logFactory
 @inject ILogger<FileExplorerPage> _logger
 @page "/w/{ProjectAcronymParam}/filelist"
 @using Datahub.Core.Components.PageBanner
@@ -136,9 +137,9 @@
         var dbStorage = await GetCloudStorages();
         foreach (var stg in dbStorage.Where(s => s.Enabled || _isUserProjectAdmin))
         {
-            try
+            try 
             {
-                if (stg.Provider == "Azure")
+                if (stg.Provider == CloudStorageProviderType.Azure.ToString())
                 {
                     var azConnectionData = CloudStorageConnectionDataDecoder.DecodeAzure(stg.ConnectionData);
                     if (azConnectionData is null)
@@ -156,7 +157,7 @@
                     _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.Azure, 
                         storageManager, stg.Id, stg.Enabled)));
                 }
-                else if (stg.Provider == "AWS")
+                else if (stg.Provider == CloudStorageProviderType.AWS.ToString())
                 {
                     var awsConnectionData = CloudStorageConnectionDataDecoder.DecodeAWS(stg.ConnectionData);
                     if (awsConnectionData is null)
@@ -175,7 +176,24 @@
                     _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.AWS,
                         storageManager, stg.Id, stg.Enabled)));
                 }
-            } 
+                else if (stg.Provider == CloudStorageProviderType.GCP.ToString())
+                {
+                    var gcpConnectionData = CloudStorageConnectionDataDecoder.DecodeGCP(stg.ConnectionData);
+                    if (gcpConnectionData is null || !gcpConnectionData.IsValid)
+                    {
+                        continue;
+                    }
+
+                    Datahub.Application.Services.Storage.ICloudStorageManager storageManager = stg.Enabled ?
+                        new GoogleCloudStorageManager(_logFactory, gcpConnectionData.ProjectId, gcpConnectionData.ConnectionData) :
+                        new DisabledCloudStorageManager(Localizer["Disabled"]);
+
+                    var stAccountName = string.IsNullOrEmpty(stg.Name) ? gcpConnectionData.ProjectId : stg.Name;
+                    containerNames = await storageManager.GetContainersAsync();
+                    _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.GCP, 
+                        storageManager, stg.Id, stg.Enabled)));
+                }
+            }
             catch (Exception ex)
             {
                 _logger.LogCritical(ex, $"cannot access containers from {stg.Name} (ID:{stg.Id})");
@@ -232,6 +250,7 @@
         {
             CloudStorageProviderType.Azure => Localizer["Configure Azure Storage"],
             CloudStorageProviderType.AWS => Localizer["Configure AWS Storage"],
+            CloudStorageProviderType.GCP => Localizer["Configure GCP Storage"],
             _ => Localizer["Configure Storage"]
         };
 
