@@ -1109,6 +1109,18 @@
   "Announcements": "Announcements",
   "Workspaces": "Workspaces",
   "Resource request has been successfully submitted": "Resource request has been successfully submitted",
-  "Resource request has failed, please contact an administrator": "Resource request has failed, please contact an administrator"
-
+  "Resource request has failed, please contact an administrator": "Resource request has failed, please contact an administrator",
+  "DataHub | Login": "DataHub | Login",
+  "Welcome to the Government of Canada\u0027s digital hub for science data solutions.": "Welcome to the Government of Canada\u0027s digital hub for science data solutions.",
+  "Hosted by SSC (Proof-of-Concept Phase 2)": "Hosted by SSC (Proof-of-Concept Phase 2)",
+  "Register here to escape the silos. On the Federal Science DataHub you can:": "Register here to escape the silos. On the Federal Science DataHub you can:",
+  "Access fit-for-purpose, scalable storage for GC science Data": "Access fit-for-purpose, scalable storage for GC science Data",
+  "Easily share your data with your GC colleagues": "Easily share your data with your GC colleagues",
+  "Perform analytics and collaborate with your GC science partners in an interactive environment": "Perform analytics and collaborate with your GC science partners in an interactive environment",
+  "Welcome to DataHub": "Welcome to DataHub",
+  "Please login to continue": "Please login to continue",
+  "Don\u0027t have an account?": "Don\u0027t have an account?",
+  "Register instead": "Register instead",
+  "Login": "Login",
+  "Federal Science DataHub": "Federal Science DataHub"
 }
