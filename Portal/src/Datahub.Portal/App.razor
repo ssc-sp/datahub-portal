@@ -19,10 +19,22 @@
     <NotFound>
         <CascadingAuthenticationState>
             <LayoutView Layout="@typeof(PortalLayout)">
-                <h1>@Localizer["404-Page-error"]</h1>
                 <!-- https://www.flickr.com/photos/rumpleproofskin/2288512261/ -->
-                <img src="img/errors/dogs/2288512261_31eedc8b0d_b.jpg" alt="@Localizer["DogImageAltText"]" />
-                <p id="datahub-error-page" style="display: none">Page not found!</p>
+                <!-- <img src="img/errors/dogs/2288512261_31eedc8b0d_b.jpg" alt="@Localizer["DogImageAltText"]" /> -->
+                <MudText Typo="Typo.h1" Class="py-3">@Localizer["404-Page-error"]</MudText>
+                <MudText Typo="Typo.body1" Class="py-3">@Localizer["If you believe this is an error, please fill out a Support Request Form and we'll get right on it."]</MudText>
+                <MudText Typo="Typo.body1" Class="py-3">@Localizer["Otherwise, you can click the button below to return to the main page of DataHub."]</MudText>
+                <MudText Typo="Typo.body1" Class="py-3">@Localizer["We apologize for any inconvenience."]</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/home" Class="py-3">@Localizer["Back to DataHub"]</MudButton>
+                <br />
+                @if (random.Next(0,2) == 0)
+                {
+                    <MudImage Src="img/errors/dogs/2288512261_31eedc8b0d_b.jpg" Alt="@Localizer["DogImageAltText"]" Elevation="25" Width="400" Class="rounded-lg my-5" />
+                }
+                else
+                {
+                    <MudImage Src="img/errors/dogs/2288512261_31eedc8b0d_b.jpg" Alt="@Localizer["DogImageAltText"]" Elevation="25" Width="400" Class="rounded-lg my-5" />
+                }
             </LayoutView>
         </CascadingAuthenticationState>
     </NotFound>
@@ -41,6 +53,7 @@
 
     };
 
-        private const string InternalPublicPageNamespace = "Datahub.Portal.Pages.InternalPublic";
-        private const string PublicPageNamespace = "Datahub.Portal.Pages.Public";
+    private const string InternalPublicPageNamespace = "Datahub.Portal.Pages.InternalPublic";
+    private const string PublicPageNamespace = "Datahub.Portal.Pages.Public";
+    Random random = new Random();
 }
