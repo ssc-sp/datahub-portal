@@ -24,6 +24,10 @@
 	<ItemGroup>
 		<PackageReference Include="DocumentFormat.OpenXml" Version="2.20.0" />
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.11">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 		<PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="2.13.4" />
 		<PackageReference Include="Microsoft.PowerBI.JavaScript" Version="2.22.4" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
@@ -31,6 +35,10 @@
 		<PackageReference Include="MiniProfiler.EntityFrameworkCore" Version="4.3.8" />
 		<PackageReference Include="PSC.Blazor.Components.MarkdownEditor" Version="2.0.11" />
 		<PackageReference Include="MudBlazor" Version="6.10.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.11">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
 	</ItemGroup>
 	<ItemGroup>
 		<Content Update="Pages\Project\FileExplorer\ResourcePages\UploaderCode.razor">
