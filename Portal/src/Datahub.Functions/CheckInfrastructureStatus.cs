@@ -18,15 +18,17 @@ public class CheckInfrastructureStatus
     private readonly ILogger _logger;
     private readonly DatahubProjectDBContext _projectDbContext;
     private readonly AzureConfig _azureConfig;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     private const string workspaceKeyCheck = "project-cmk";
     private const string coreKeyCheck = "datahubportal-client-id";
 
-    public CheckInfrastructureStatus(ILoggerFactory loggerFactory, DatahubProjectDBContext projectDbContext, AzureConfig azureConfig)
+    public CheckInfrastructureStatus(ILoggerFactory loggerFactory, DatahubProjectDBContext projectDbContext, AzureConfig azureConfig, IHttpClientFactory httpClientFactory)
     {
         _logger = loggerFactory.CreateLogger<CheckInfrastructureStatus>();
         _projectDbContext = projectDbContext;
         _azureConfig = azureConfig;
+        _httpClientFactory = httpClientFactory;
     }
 
     [Function("CheckInfrastructureStatus")]
@@ -53,6 +55,8 @@ public class CheckInfrastructureStatus
                 break;
             case InfrastructureHealthResourceType.AzureWebApp:
                 break;
+            case InfrastructureHealthResourceType.AzureFunction:
+                return new OkObjectResult(await CheckAzureFunctions(request));
             default:
                 return new BadRequestObjectResult("Please pass a valid request body");
         }
@@ -154,6 +158,47 @@ public class CheckInfrastructureStatus
             errors.Add("Cannot retrieve from the database.");
         }
 
+        if (!errors.Any())
+        {
+            check.Status = InfrastructureHealthStatus.Healthy;
+        }
+
+        return new InfrastructureHealthCheckResponse(check, errors);
+    }
+
+    private async Task<InfrastructureHealthCheckResponse> CheckAzureFunctions(InfrastructureHealthCheckRequest request)
+    {
+        string azureFunctionUrl = $"http://{request.Name}/api/FunctionsHealthCheck";
+        var errors = new List<string>();
+        var check = new InfrastructureHealthCheck()
+        {
+            Group = request.Group,
+            Name = request.Group,
+            ResourceType = request.Type,
+            Status = InfrastructureHealthStatus.Unhealthy,
+            HealthCheckTimeUtc = DateTime.UtcNow
+        };
+
+        try
+        {
+            using var httpClient = _httpClientFactory.CreateClient();
+            var response = await httpClient.GetAsync(azureFunctionUrl);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                errors.Add($"Azure Function returned an unhealthy status code: {response.StatusCode}.");
+            }
+            else
+            {
+                var content = await response.Content.ReadAsStringAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"Error while checking Azure Function health: {ex.Message}");
+        }
+
+        // check and see if the function app exists
         if (!errors.Any())
         {
             check.Status = InfrastructureHealthStatus.Healthy;
