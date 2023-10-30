@@ -46,14 +46,23 @@ public class TerraformServiceTests
     ""location"": {
       ""type"": ""string"",
       ""default"": ""canadacentral""
+    },
+    ""no_default"": {
+      ""type"": ""string""
     }
   }
 }
 ";
         var variables = TerraformService.ParseVariableDefinitions(variableJson);
         
-        Assert.That(variables["datahub_rg_name"], Is.EqualTo("string"));
-        Assert.That(variables["location"], Is.EqualTo("string"));
+        Assert.That(variables["datahub_rg_name"].Item1, Is.EqualTo("string"));
+        Assert.That(variables["datahub_rg_name"].Item2, Is.False);
+        
+        Assert.That(variables["location"].Item1, Is.EqualTo("string"));
+        Assert.That(variables["location"].Item2, Is.False);
+        
+        Assert.That(variables["no_default"].Item1, Is.EqualTo("string"));
+        Assert.That(variables["no_default"].Item2, Is.True);
     }
 
 }
