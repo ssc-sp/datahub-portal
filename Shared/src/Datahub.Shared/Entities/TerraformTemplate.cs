@@ -11,6 +11,7 @@ public class TerraformTemplate
     public const string AzureStorageBlob = "azure-storage-blob";
     public const string AzureDatabricks = "azure-databricks";
     public const string AzureVirtualMachine = "azure-virtual-machine";
+    public const string AzureAppService = "azure-app-service";
     public const string ContactUs = "contact-us";
 
     public string Name { get; set; }
