@@ -22,16 +22,6 @@ public class TerraformService : ITerraformService
     private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
     private readonly IConfiguration _configuration;
 
-    private readonly List<string> _alwaysOverwriteVariables = new()
-    {
-        TerraformVariables.DatabricksProjectLeadUsers,
-        TerraformVariables.DatabricksAdminUsers,
-        TerraformVariables.DatabricksProjectUsers,
-        TerraformVariables.StorageContributorUsers,
-        TerraformVariables.BudgetAmount,
-        TerraformVariables.StorageSizeLimitInTb
-    };
-
     public TerraformService(ILogger<TerraformService> logger,
         ResourceProvisionerConfiguration resourceProvisionerConfiguration, IConfiguration configuration)
     {
@@ -198,12 +188,12 @@ public class TerraformService : ITerraformService
                     await File.ReadAllTextAsync(variablesFilePath)) ?? new JsonObject();
             foreach (var (key, (value, isRequired)) in missingVariables)
             {
-                if (_alwaysOverwriteVariables.Contains(key))
+                preExistingVariables.Remove(key);
+                var variableValue = ComputeVariableValue(terraformWorkspace, key, value, isRequired);
+                if (variableValue != null)
                 {
-                    preExistingVariables.Remove(key);
+                    preExistingVariables.TryAdd(key, variableValue);
                 }
-
-                preExistingVariables.TryAdd(key, ComputeVariableValue(terraformWorkspace, key, value));
             }
 
             await File.WriteAllTextAsync(variablesFilePath, JsonSerializer.Serialize(preExistingVariables));
@@ -221,6 +211,8 @@ public class TerraformService : ITerraformService
         }
     }
 
+    // ReSharper disable once ReturnTypeCanBeNotNullable
+    // This can return null if the variable is not required
     private JsonNode? ComputeVariableValue(TerraformWorkspace terraformWorkspace, string variableName,
         string variableType, bool isRequired = false)
     {
@@ -332,7 +324,7 @@ public class TerraformService : ITerraformService
             .AsObject()
             .ToDictionary(
                 property => property.Key,
-                property => (property.Value?["type"]?.ToString() ?? "", property.Value?["default"]?.ToString() != null)
+                property => (property.Value?["type"]?.ToString() ?? "", property.Value?["default"]?.ToString() == null)
             ) ?? new Dictionary<string, (string, bool)>();
     }
 }
