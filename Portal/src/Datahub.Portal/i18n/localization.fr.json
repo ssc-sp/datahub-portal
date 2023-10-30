@@ -1,6 +1,7 @@
 ﻿{
   "404-Page-error": "Non Trouvé",
   "DogImageAltText": "Chien en train de creuser dans le sable",
+  "CatImageAltText": "Chat se cachant sous une couverture",
   "ADD-DATA-PAGE": {
     "AddData": "Ajouter des données",
     "Custom Fields": "Champs personnalisés",
