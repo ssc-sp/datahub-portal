@@ -180,6 +180,10 @@ public class AWSCloudStorageManager : ICloudStorageManager
     public bool AzCopyEnabled => false;
     public bool DatabrickEnabled => false;
 
+    public CloudStorageProviderType ProviderType => CloudStorageProviderType.AWS;
+
+    public string DisplayName => _containerName;
+
     private const long MaxFileSize = 10 * 1024 * 1024 * 1024L; // 10GB
 
     public async Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess)
