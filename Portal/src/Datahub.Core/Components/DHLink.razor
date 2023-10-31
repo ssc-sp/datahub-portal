@@ -41,6 +41,9 @@
 
     [Parameter]
     public string WebFormsURL { get; set; }
+    
+    [Parameter]
+    public string AzureWebAppUrl { get; set; }
 
     [Parameter]
     public string DataProject { get; set; }
@@ -91,6 +94,8 @@
                     LinkType = DatahubLinkType.DataProject;
                 else if(ExternalUrl != null)
                     LinkType = DatahubLinkType.ExternalUrl;
+                else if(AzureWebAppUrl != null)
+                    LinkType = DatahubLinkType.AzureWebApp;
                 else if (ResourceArticleId != null)
                     LinkType = DatahubLinkType.ResourceArticle;
             }
@@ -100,6 +105,7 @@
             link.PBIWorkspaceId = PBIWorkspaceId;
             link.Variant = Variant;
             link.DatabricksURL = DatabricksURL;
+            link.AzureWebAppUrl = AzureWebAppUrl;
             link.ExternalUrl = ExternalUrl;
             link.WebFormsURL = WebFormsURL;
             link.DataProject = DataProject;
@@ -124,6 +130,10 @@
             case DatahubLinkType.Databricks:
                 await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserOpenDatabricks);
                 await _jsRuntime.InvokeVoidAsync("open", link?.DatabricksURL, "_blank");
+                break;
+            case DatahubLinkType.AzureWebApp:
+                await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserOpenAzureWebApp);
+                await _jsRuntime.InvokeVoidAsync("open", link?.AzureWebAppUrl, "_blank");
                 break;
             case DatahubLinkType.ExternalUrl:
                 await _jsRuntime.InvokeVoidAsync("open", link?.ExternalUrl, "_blank");

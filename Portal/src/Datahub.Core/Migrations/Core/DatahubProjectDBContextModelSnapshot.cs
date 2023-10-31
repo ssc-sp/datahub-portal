@@ -1971,6 +1971,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AzureWebAppUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("DataProject")
                         .HasColumnType("nvarchar(max)");
 

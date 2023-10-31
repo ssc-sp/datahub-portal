@@ -28,59 +28,63 @@
     <Authorized>
         @if (_isLoading)
         {
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
         }
         else
         {
-        @if (_activeResources?.Count > 0)
-        {
-            <MudStack Class="my-12">
-                <MudText Class="mb-4" Typo="Typo.h2">@Localizer["Your Workspace Tools"]</MudText>
-                    <MudElement HtmlTag="div" class="@_toolContainerClass">
+            @if (_activeResources?.Count > 0)
+            {
+                <MudStack Class="my-12">
+                    <MudText Class="mb-4" Typo="Typo.h2">@Localizer["Your Workspace Tools"]</MudText>
+                    @if (_datahubPortalConfiguration.ReverseProxy.Enabled && !string.IsNullOrWhiteSpace(_project?.WebApp_URL))
+                    {
+                        <AzureWebAppCard ProjectAcronym="@ProjectAcronym"/>
+                    }
+                    <MudElement Class="mt-4" HtmlTag="div" class="@_toolContainerClass">
                         @foreach (var active in _activeResources)
                         {
                             <DynamicComponent Parameters="active.parameters" Type="active.type"/>
                         }
-                    </MudElement>                
-            </MudStack>
-        }
-
-        @if (_inactiveResources?.Count > 0)
-        {
-            <MudStack Class="my-12">
-                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                    <MudText Class="mb-4" Typo="Typo.h2">@Localizer["Tools Catalogue"]</MudText>
-                    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
-                        <MudTooltip Text="@ResourceWhitelistButtonTooltip" RootClass="mx-4" Placement="Placement.Bottom"
-                                    Arrow="true">
-                            <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-2" Href="@WhitelistUrl">
-                                @Localizer[ResourceWhitelistButtonText]
-                            </MudButton>
-                        </MudTooltip>
-                    </DatahubAuthView>
-                </MudStack>
-                @if (_isLoading)
-                {
-                    <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
-                }
-                else
-                {
-                    <MudElement HtmlTag="div" class="@_toolContainerClass">
-                        @foreach (var resource in _inactiveResources)
-                        {
-                            <DynamicComponent Parameters="resource.parameters" Type="resource.type"/>
-                        }
                     </MudElement>
-                }
-            </MudStack>
-        }
+                </MudStack>
+            }
+
+            @if (_inactiveResources?.Count > 0)
+            {
+                <MudStack Class="my-12">
+                    <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                        <MudText Class="mb-4" Typo="Typo.h2">@Localizer["Tools Catalogue"]</MudText>
+                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+                            <MudTooltip Text="@ResourceWhitelistButtonTooltip" RootClass="mx-4" Placement="Placement.Bottom"
+                                        Arrow="true">
+                                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-2" Href="@WhitelistUrl">
+                                    @Localizer[ResourceWhitelistButtonText]
+                                </MudButton>
+                            </MudTooltip>
+                        </DatahubAuthView>
+                    </MudStack>
+                    @if (_isLoading)
+                    {
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+                    }
+                    else
+                    {
+                        <MudElement HtmlTag="div" class="@_toolContainerClass">
+                            @foreach (var resource in _inactiveResources)
+                            {
+                                <DynamicComponent Parameters="resource.parameters" Type="resource.type"/>
+                            }
+                        </MudElement>
+                    }
+                </MudStack>
+            }
         }
     </Authorized>
     <NotAuthorized>
         <MudStack>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
                 <MudStack>
-                        <MudText Class="mt-2 mb-6" Typo="Typo.h2">@Localizer["Shared Content"]</MudText>
+                    <MudText Class="mt-2 mb-6" Typo="Typo.h2">@Localizer["Shared Content"]</MudText>
                     @if (_projectRepositories != null && _projectRepositories.Any())
                     {
                         @foreach (var projectRepository in _projectRepositories)
@@ -107,6 +111,7 @@
     private bool _isLoading = true;
     private string WhitelistUrl => $"{_datahubPortalConfiguration.ProjectUrlSegment}/{ProjectAcronym}/whitelist";
 
+    private Datahub_Project _project;
     private List<Project_Resources2> _projectDatabaseResources = new();
     private List<ProjectRepository> _projectRepositories = new();
 
@@ -153,6 +158,10 @@
             .Where(a => a != null)
             .Select(a => a.Value)
             .ToList();
+        
+        _project = await projectDbContext.Projects
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        
         _isLoading = false;
     }
 
