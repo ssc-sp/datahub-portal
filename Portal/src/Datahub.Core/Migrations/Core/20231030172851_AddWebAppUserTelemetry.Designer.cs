@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    [Migration("20230818013941_AddCatalogObjectLocation")]
-    partial class AddCatalogObjectLocation
+    [Migration("20231030172851_AddWebAppUserTelemetry")]
+    partial class AddWebAppUserTelemetry
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -423,6 +423,41 @@ namespace Datahub.Core.Migrations.Core
                     b.HasKey("ObjectType", "ObjectId");
 
                     b.ToTable("CatalogObjects", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.CloudStorage.ProjectCloudStorage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ConnectionData")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)")
+                        .HasDefaultValue("Azure");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Project_Cloud_Storages", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Client_Engagement", b =>
@@ -1047,6 +1082,44 @@ namespace Datahub.Core.Migrations.Core
                     b.HasKey("Id");
 
                     b.ToTable("DocumentationResources", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Health.InfrastructureHealthCheck", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Group")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("HealthCheckTimeUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("ResourceType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Url")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("InfrastructureHealthChecks", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.MiscStoredObject", b =>
@@ -1901,6 +1974,9 @@ namespace Datahub.Core.Migrations.Core
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AzureWebAppUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("DataProject")
                         .HasColumnType("nvarchar(max)");
 
@@ -2046,6 +2122,17 @@ namespace Datahub.Core.Migrations.Core
                     b.Navigation("CreatedBy");
 
                     b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.CloudStorage.ProjectCloudStorage", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany("CloudStorages")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Client_Engagement", b =>
@@ -2349,6 +2436,8 @@ namespace Datahub.Core.Migrations.Core
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project", b =>
                 {
                     b.Navigation("Client_Engagements");
+
+                    b.Navigation("CloudStorages");
 
                     b.Navigation("Comments");
 
