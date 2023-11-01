@@ -20,10 +20,13 @@ namespace Datahub.Infrastructure.Services.Storage
         private readonly ILogger<CloudStorageManagerFactory> _logger;
         private readonly ILoggerFactory _logFactory;
 
-        public ICloudStorageManager CreateCloudStorageManager(ProjectCloudStorage stg) => 
+        public ICloudStorageManager? CreateCloudStorageManager(ProjectCloudStorage stg) => 
             CreateCloudStorageManager(stg.Id, stg.Provider, stg.Name, stg.ConnectionData, stg.Enabled);
 
-        public ICloudStorageManager CreateCloudStorageManager(int id, string provider, string name, string connectionData, bool enabled)
+        public ICloudStorageManager? CreateTestCloudStorageManager(CloudStorageProviderType providerType, string connectionData) =>
+            CreateCloudStorageManager(default, providerType.ToString(), "test", connectionData, true);
+
+        private ICloudStorageManager? CreateCloudStorageManager(int id, string provider, string name, string connectionData, bool enabled)
         {
             if (provider == CloudStorageProviderType.Azure.ToString())
             {
