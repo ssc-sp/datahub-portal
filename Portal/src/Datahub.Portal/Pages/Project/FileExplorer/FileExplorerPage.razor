@@ -4,6 +4,7 @@
 @inject IProjectStorageConfigurationService _projectStorageConfigService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDialogService _dialogService
+@inject ILoggerFactory _logFactory
 @inject ILogger<FileExplorerPage> _logger
 @page "/w/{ProjectAcronymParam}/filelist"
 @using Datahub.Core.Components.PageBanner
@@ -134,12 +135,11 @@
 
         _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(accountName, c, CloudStorageProviderType.Azure, projectStorageManager)));        
         var dbStorage = await GetCloudStorages();
-        foreach (var stg in dbStorage.Where(s => s.Enabled))
+        foreach (var stg in dbStorage.Where(s => s.Enabled || _isUserProjectAdmin))
         {
-            try
+            try 
             {
-                var variables = stg.ConnectionData.Split('|');
-                if (stg.Provider == "Azure")
+                if (stg.Provider == CloudStorageProviderType.Azure.ToString())
                 {
                     var azConnectionData = CloudStorageConnectionDataDecoder.DecodeAzure(stg.ConnectionData);
                     if (azConnectionData is null)
@@ -149,13 +149,15 @@
 
                     var stAccountName = string.IsNullOrEmpty(stg.Name) ? azConnectionData.AccountName : stg.Name;
 
-                    var storageManager = new AzureCloudStorageManager(azConnectionData.AccountName, azConnectionData.AccountKey);
+                    Datahub.Application.Services.Storage.ICloudStorageManager storageManager = stg.Enabled ?
+                        new AzureCloudStorageManager(azConnectionData.AccountName, azConnectionData.AccountKey) :
+                        new DisabledCloudStorageManager(Localizer["Disabled"]);
+
                     containerNames = await storageManager.GetContainersAsync();
-                    var providerType = CloudStorageProviderType.Azure;
                     _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.Azure, 
                         storageManager, stg.Id, stg.Enabled)));
                 }
-                else if (stg.Provider == "AWS")
+                else if (stg.Provider == CloudStorageProviderType.AWS.ToString())
                 {
                     var awsConnectionData = CloudStorageConnectionDataDecoder.DecodeAWS(stg.ConnectionData);
                     if (awsConnectionData is null)
@@ -165,14 +167,34 @@
 
                     var stAccountName = string.IsNullOrEmpty(stg.Name) ? awsConnectionData.BucketName : stg.Name;
 
-                    var storageManager = new AWSCloudStorageManager(stAccountName, awsConnectionData.AccessKeyId, awsConnectionData.AccessKeySecret, 
-                        awsConnectionData.Region, awsConnectionData.BucketName);
+                    Datahub.Application.Services.Storage.ICloudStorageManager storageManager = stg.Enabled ?
+                        new AWSCloudStorageManager(stAccountName, awsConnectionData.AccessKeyId, awsConnectionData.AccessKeySecret,
+                            awsConnectionData.Region, awsConnectionData.BucketName) :
+                        new DisabledCloudStorageManager(Localizer["Disabled"]);
+
                     containerNames = await storageManager.GetContainersAsync();
-                    var providerType = CloudStorageProviderType.AWS;
                     _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.AWS,
                         storageManager, stg.Id, stg.Enabled)));
                 }
-            } catch (Exception ex)
+                else if (stg.Provider == CloudStorageProviderType.GCP.ToString())
+                {
+                    var gcpConnectionData = CloudStorageConnectionDataDecoder.DecodeGCP(stg.ConnectionData);
+                    if (gcpConnectionData is null || !gcpConnectionData.IsValid)
+                    {
+                        continue;
+                    }
+
+                    Datahub.Application.Services.Storage.ICloudStorageManager storageManager = stg.Enabled ?
+                        new GoogleCloudStorageManager(_logFactory, gcpConnectionData.ProjectId, gcpConnectionData.ConnectionData) :
+                        new DisabledCloudStorageManager(Localizer["Disabled"]);
+
+                    var stAccountName = string.IsNullOrEmpty(stg.Name) ? gcpConnectionData.ProjectId : stg.Name;
+                    containerNames = await storageManager.GetContainersAsync();
+                    _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.GCP, 
+                        storageManager, stg.Id, stg.Enabled)));
+                }
+            }
+            catch (Exception ex)
             {
                 _logger.LogCritical(ex, $"cannot access containers from {stg.Name} (ID:{stg.Id})");
                 try
@@ -181,7 +203,8 @@
                     ctx.Attach(stg);
                     stg.Enabled = false;
                     await ctx.SaveChangesAsync();
-                } catch (Exception ex2)
+                } 
+                catch (Exception ex2)
                 {
                     _logger.LogCritical(ex2, $"error disabling containers from {stg.Name} (ID:{stg.Id})");                    
                 }
@@ -212,7 +235,7 @@
     private async Task<List<ProjectCloudStorage>> GetCloudStorages()
     {
         await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
-        return await ctx.ProjectCloudStorages.AsNoTracking().Where(e => e.ProjectId == _project.Project_ID && e.Enabled).ToListAsync();
+        return await ctx.ProjectCloudStorages.AsNoTracking().Where(e => e.ProjectId == _project.Project_ID).ToListAsync();
     }
 
     private async Task<DialogResult> ShowCloudStorageDialog(CloudStorageProviderType cloudStorageProvider, CloudStorageSettings settings)
@@ -227,6 +250,7 @@
         {
             CloudStorageProviderType.Azure => Localizer["Configure Azure Storage"],
             CloudStorageProviderType.AWS => Localizer["Configure AWS Storage"],
+            CloudStorageProviderType.GCP => Localizer["Configure GCP Storage"],
             _ => Localizer["Configure Storage"]
         };
 
