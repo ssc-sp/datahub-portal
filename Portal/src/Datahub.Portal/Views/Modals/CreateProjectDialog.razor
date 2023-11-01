@@ -136,6 +136,10 @@
     {
         if (await _projectCreationService.AcronymExists(acronym))
             return Localizer["Workspace Acronym already exists"];
+        
+        // check it is alphanumeric
+        if (!acronym.All(char.IsLetterOrDigit))
+            return Localizer["Acronym must be alphanumeric"];
 
         return (acronym.Length > MaxAcronymLength ? Localizer["Acronym must be {0} characters or less", MaxAcronymLength] : null)!;
     }
