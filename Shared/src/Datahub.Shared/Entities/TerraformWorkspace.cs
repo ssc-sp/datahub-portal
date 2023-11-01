@@ -25,7 +25,7 @@ public class TerraformWorkspace
     public int StorageSizeLimitInTB { get; set; } = 5;
     public TerraformOrganization? TerraformOrganization { get; set; }
     public IEnumerable<TerraformUser>? Users { get; set; }
-
+    
     public JsonNode ToUserList()
     {
         var users = new JsonArray();
