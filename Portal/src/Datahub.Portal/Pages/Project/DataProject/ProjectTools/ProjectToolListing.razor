@@ -40,7 +40,7 @@
                     {
                         <AzureWebAppCard ProjectAcronym="@ProjectAcronym"/>
                     }
-                    <MudElement Class="mt-4" HtmlTag="div" class="@_toolContainerClass">
+                    <MudElement HtmlTag="div" class="@_toolContainerClass">
                         @foreach (var active in _activeResources)
                         {
                             <DynamicComponent Parameters="active.parameters" Type="active.type"/>
@@ -133,6 +133,7 @@
 
         _toolContainerClass = new CssBuilder()
             .AddClass("d-flex")
+            .AddClass("mt-4")
             .AddClass("flex-wrap")
             .AddClass("gap-4")
             .Build();
