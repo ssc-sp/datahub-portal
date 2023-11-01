@@ -1,7 +1,11 @@
 ﻿@* StorageConfigurationDialog.razor *@
 @using Datahub.Application.Services.Storage;
+@using Datahub.Infrastructure.Services.Storage;
 
 @inject Datahub.Core.Services.Docs.DocumentationService DocService
+@inject CloudStorageManagerFactory _cloudStorageManagerFactory
+@inject ILogger<StorageConfigurationDialog> _logger
+@inject IDialogService _dialogService
 
 <MudDialog>
     <TitleContent>
@@ -33,7 +37,7 @@
     <DialogActions>
         <MudButton OnClick=@HandleCancel Class="px-4">@Localizer["Cancel"]</MudButton>
         @if (_isConnectionVerified) {
-            <MudButton Color="Color.Primary" OnClick="HandleSave" Disabled=@SaveDisabled Variant="Variant.Filled">
+            <MudButton Color=@Color.Success OnClick=@HandleSave Disabled=@SaveDisabled Variant=@Variant.Filled>
                 @Localizer["Save"]
             </MudButton>
         }
@@ -137,9 +141,37 @@
     {
         _testingConnection = true;
         await InvokeAsync(MudDialog.StateHasChanged);
-        await Task.Delay(2000);
-        _isConnectionVerified = true; //TODO
+
+        var storageManager = _cloudStorageManagerFactory.CreateTestCloudStorageManager(CloudProvider, ConnectionDataInternal);
+        if (storageManager is null)
+        {
+            await FailConnectionTest();
+        }
+        else
+        {
+            try
+            {
+                var containerNames = await storageManager.GetContainersAsync();
+                _isConnectionVerified = true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error connecting to cloud storage connection");
+                await FailConnectionTest();
+            }
+        }
+
         _testingConnection = false;
+    }
+
+    private async Task FailConnectionTest()
+    {
+        _isConnectionVerified = false;
+        CloudStorageSettings.Enabled = false;
+        await _dialogService.ShowMessageBox(
+            Localizer["Connection Failed"], 
+            Localizer["DataHub was unable to successfully connect to the storage provider. Please verify that your connection credentials " +
+            "are correct and all necessary permissions are properly set on the storage account."]);
     }
 
     protected override async Task OnInitializedAsync()
