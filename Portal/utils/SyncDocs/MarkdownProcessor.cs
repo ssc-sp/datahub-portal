@@ -17,11 +17,11 @@ internal class MarkdownProcessor
 {
 	private readonly ConfigParams _config;
 	private readonly string _sourcePath;
-	private readonly TranslationService _translationService;
+	private readonly DocTranslationService _translationService;
     private readonly DictionaryCache _fileNameCache;
     private readonly FileMappingService _mappingService;
 
-    public MarkdownProcessor(ConfigParams config, string sourcePath, TranslationService translationService, 
+    public MarkdownProcessor(ConfigParams config, string sourcePath, DocTranslationService translationService, 
         DictionaryCache fileNameCache, FileMappingService mappingService)
 	{
 		_config = config;

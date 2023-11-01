@@ -53,5 +53,6 @@
 		<ProjectReference Include="..\..\src\Datahub.Core\Datahub.Core.csproj" />
 		<ProjectReference Include="..\..\src\Datahub.Metadata\Datahub.Metadata.csproj" />
 		<ProjectReference Include="..\..\src\Datahub.Portal\Datahub.Portal.csproj" />
+		<ProjectReference Include="..\..\utils\SyncDocs\SyncDocs.csproj" />
 	</ItemGroup>
 </Project>

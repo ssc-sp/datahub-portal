@@ -47,7 +47,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
         fileMappingService.CleanUpMappings();
         if (string.IsNullOrWhiteSpace(deeplKey)) throw new InvalidOperationException($"Deepl Key is missing");
         // translation service
-        var translationService = new TranslationService(options.Path, deeplKey, freeAPI, translationCache, GetGlossary(options.Path).ToList());
+        var translationService = new DocTranslationService(options.Path, deeplKey, freeAPI, translationCache, GetGlossary(options.Path).ToList());
         // replication service
         var markdownProcessor = new MarkdownProcessor(configParams, options.Path, translationService, fileNameCache, fileMappingService);
 

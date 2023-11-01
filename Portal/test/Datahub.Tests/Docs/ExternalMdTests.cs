@@ -1,4 +1,6 @@
-﻿using Datahub.Markdown;
+﻿using Datahub.Core.Services;
+using Datahub.Markdown;
+using SyncDocs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +30,17 @@ namespace Datahub.Tests.Docs
             Assert.False(ExternalPageMarkdown.IsExternalMarkdown(MD_LINK1));
             //var lastCommit = await _service.GetLastRepoCommitTS();
             //Assert.NotNull(lastCommit);
+        }
+
+        [Fact]
+        public async Task GivenStatCanURL_ConvertToFrench()
+        {
+            Assert.Equal("https://www.statcan.gc.ca/fr/afc/cours-en-ligne/qgis/2020020",
+                DocTranslationService.TranslateURLs("https://www.statcan.gc.ca/en/wtc/online-lectures/qgis/2020020"));
+
+            Assert.Equal("  - [QGIS](https://www.statcan.gc.ca/fr/afc/cours-en-ligne/qgis/2020020)",
+                DocTranslationService.TranslateURLs("  - [QGIS](https://www.statcan.gc.ca/en/wtc/online-lectures/qgis/2020020)"));
+
         }
     }
 }

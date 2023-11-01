@@ -5,17 +5,18 @@ using Markdig;
 using Markdig.Syntax;
 using static System.Net.Mime.MediaTypeNames;
 using System.Text.RegularExpressions;
+using System.ComponentModel.DataAnnotations;
 
 namespace SyncDocs;
 
-internal class TranslationService
+internal class DocTranslationService
 {
     private readonly Translator? _client;
     private readonly string _sourcePath;
     private readonly DictionaryCache _translationCache;
     private readonly List<GlossaryTerm> _glossaryTerms;
 
-    public TranslationService(string sourcePath, string deeplKey, bool useFreeAPI, 
+    public DocTranslationService(string sourcePath, string deeplKey, bool useFreeAPI, 
         DictionaryCache translationCache, List<GlossaryTerm> glossaryTerms)
     {
         _sourcePath = sourcePath;
@@ -126,32 +127,39 @@ internal class TranslationService
         return !relPath.StartsWith('/') ? $"/{relPath}" : relPath;
     }
 
-    private static readonly Regex MS_LEARN_URL = new Regex(@"(.*)https://learn.microsoft.com/(.+)/(.*)", RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace);
 
     private async Task<string> Translate(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
             return string.Empty;
 
-        var match = MS_LEARN_URL.Match(text);
-        if (match.Success)
-        {
-            //handle URL
-            var lang = match.Groups[1];
-            var url = match.Groups[2];
-        }
+        string replaced = TranslateURLs(text);
 
-        var output = _translationCache.GetFrenchTranslation(text);
+        if (replaced != text)
+            Console.Write("a");
+
+        var output = _translationCache.GetFrenchTranslation(replaced);
         if (output != null)
             return ApplyGlossary(output);
 
-        var translateResult = await _client!.TranslateTextAsync(text, LanguageCode.English, LanguageCode.French);
-        var result = ApplyGlossary(translateResult?.Text ?? text);
+        var translateResult = await _client!.TranslateTextAsync(replaced, LanguageCode.English, LanguageCode.French);
+        var result = ApplyGlossary(translateResult?.Text ?? replaced);
 
-        _translationCache.SaveFrenchTranslation(text, result);
+        _translationCache.SaveFrenchTranslation(replaced, result);
         _translationCache.SaveChanges();
 
         return result;
+    }
+
+
+    private static readonly Regex MS_LEARN_URL = new Regex(@"https://learn\.microsoft\.com/(\w\w)-(\w\w)(/[^/]+)(.*)", RegexOptions.Compiled);
+    private static readonly Regex STATSCAN_LECTURES = new Regex(@"https://www\.statcan\.gc\.ca/en/wtc/online-lectures/(.*)", RegexOptions.Compiled);
+    //https://www.statcan.gc.ca/en/wtc/online-lectures/qgis/2020020
+    //https://www.statcan.gc.ca/fr/afc/cours-en-ligne/qgis/2020020
+    internal static string TranslateURLs(string text)
+    {
+        var statsCan = STATSCAN_LECTURES.Replace(text, $"https://www.statcan.gc.ca/fr/afc/cours-en-ligne/$1");
+        return MS_LEARN_URL.Replace(statsCan, $"https://learn.microsoft.com/fr-ca$3$4");
     }
 
     private string ApplyGlossary(string text)
