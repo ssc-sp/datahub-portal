@@ -24,9 +24,21 @@ public class AWSCloudStorageManager : ICloudStorageManager
         _bucketName = bucketName;
     }
 
-    public Task<List<string>> GetContainersAsync()
+    private async Task TestConnection()
     {
-        return Task.FromResult(new List<string>() { _containerName });
+        using var s3Client = GetClient();
+        var request = new ListObjectsV2Request()
+        {
+            BucketName = _bucketName,
+            MaxKeys = 1
+        };
+        await s3Client.ListObjectsV2Async(request);
+    }
+
+    public async Task<List<string>> GetContainersAsync()
+    {
+        await TestConnection();
+        return await Task.FromResult(new List<string>() { _containerName });
     }
 
     public async Task<DfsPage> GetDfsPagesAsync(string container, string folderPath, string? continuationToken = null)
