@@ -32,6 +32,16 @@ public class ResourceMessagingService : IResourceMessagingService
         await queue.EnqueueAsync(project);
     }
 
+    public async Task SendToTerraformDeleteQueue(WorkspaceDefinition project)
+    {
+        using IQueue<WorkspaceDefinition> queue = new AzureStorageQueue<WorkspaceDefinition>(new AzureStorageQueueOptions<WorkspaceDefinition>()
+        {
+            ConnectionString = _datahubPortalConfiguration.DatahubStorageQueue.ConnectionString,
+            Name = _datahubPortalConfiguration.DatahubStorageQueue.QueueNames.DeleteRunRequest,
+        });
+        await queue.EnqueueAsync(project);
+    }
+
     public async Task SendToUserQueue(WorkspaceDefinition workspaceDefinition, string? connectionString = null, string? queueName = null)
     {
         using IQueue<WorkspaceDefinition> queue = new AzureStorageQueue<WorkspaceDefinition>(
