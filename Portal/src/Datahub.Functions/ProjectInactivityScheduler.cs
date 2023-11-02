@@ -55,9 +55,9 @@ namespace Datahub.Functions
             return ctx.Projects.Select(x => x.Project_ID).Distinct().ToList();
         }
 
-        private ProjectInactivityUpdateMessage DeserializeMessage(int projectId)
+        private ProjectInactivityNotificationMessage DeserializeMessage(int projectId)
         {
-            return new ProjectInactivityUpdateMessage(projectId);
+            return new ProjectInactivityNotificationMessage(projectId);
         }
     }
     

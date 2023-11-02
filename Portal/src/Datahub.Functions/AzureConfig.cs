@@ -21,6 +21,8 @@ public class AzureConfig : IAzureServicePrincipalConfig
     public string? NotificationPercents => _config["ProjectUsageNotificationPercents"];
     
     public string? ProjectInactivityNotificationDays => _config["ProjectInactivityNotificationDays"];
+    
+    public string? ProjectInactivityDeletionDays => _config["ProjectInactivityDeletionDays"];
 
     #region Azure SP
 
