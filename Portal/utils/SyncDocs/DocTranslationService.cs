@@ -135,9 +135,6 @@ internal class DocTranslationService
 
         string replaced = TranslateURLs(text);
 
-        if (replaced != text)
-            Console.Write("a");
-
         var output = _translationCache.GetFrenchTranslation(replaced);
         if (output != null)
             return ApplyGlossary(output);

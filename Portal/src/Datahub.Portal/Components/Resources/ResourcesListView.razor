@@ -6,7 +6,7 @@
     @foreach (var documentItem in DocumentItems)
     {
         <MudItem xs="6">
-            <ResourcesPreviewCard DocumentItem="@documentItem"/>
+            <ResourcesPreviewCard ShortVersion="@_showShort" DocumentItem="@documentItem" />
         </MudItem>
     }
 </MudGrid>
@@ -16,12 +16,16 @@
     [Parameter]
     public List<DocItem> DocumentItems { get; set; } = new();
     private string _containerStyle;
+    private bool _showShort = false;
 
+    protected override void OnParametersSet()
+    {
+        _showShort = DocumentItems?.Count > 9;
+    }
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        
         _containerStyle = new StyleBuilder()
             .AddStyle("display", "flex")
             .AddStyle("flex-wrap", "wrap")

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -46,5 +47,14 @@ Le DataHub est une plateforme d'entreprise permettant de stocker, de travailler 
 
         }
 
-       }
+
+
+
+        [Fact]
+        public void GivenSidebarLine_ExtractIcon()
+        {
+            var line = "- Learn [](Icon:LibraryBooks)";
+            Assert.Equal("LibraryBooks", MarkdownHelper.ExtractIconFromComments(line));
+        }
+    }
 }
