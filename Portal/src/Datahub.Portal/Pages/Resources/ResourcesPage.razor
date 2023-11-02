@@ -2,6 +2,7 @@
 @using Datahub.Markdown.Model
 @using MudBlazor.Utilities
 @using System.Text.RegularExpressions
+@using Datahub.Portal.Components.Resources
 @inject DocumentationService _docService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject CultureService _cultureService
@@ -40,14 +41,14 @@ else
                  </MudItem>
              </MudGrid>
          </MudStack>
-         <MudTabs Elevation="4" Rounded="true" Centered="true" Color="@Color.Primary">
+         <MudTabs Elevation="2" Rounded="true" Centered="false" ApplyEffectsToContainer="true" PanelClass="pa-6">
              @foreach (var cat in _resourceRoot.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)))
             {
                 var isDoc = cat.Children.Count == 0;
 
                 if (!isDoc)
                 {
-                    <MudTabPanel Text="@cat.Title">
+                    <MudTabPanel Text="@cat.Title" OnClick="() => ActivateCategory(cat)" Icon="@(cat.GetMudblazorMaterialIcon("Outlined"))">
                         <MudGrid>
                             <MudItem xs="3">
                                 <MudNavMenu Dense Color=@Color.Primary Style="position: sticky; top: calc(var(--mud-appbar-height) + 1rem); max-height:  calc(95vh - (var(--mud-appbar-height) + 1rem)); overflow: auto;">
@@ -55,24 +56,33 @@ else
                                          @Localizer["Overview"]
                                     </MudNavLink>
                                     <MudDivider Class="my-3" />
-                                    @foreach (var cat in _resourceRoot.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)))
+                                    @foreach (var cat in _currentCategory.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)))
                                     {
                                         var isDoc = cat.Children.Count == 0;
 
                                         if (isDoc)
                                         {
-                                            <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat)>
+                                            <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat) Icon="@(cat.GetSidebarIcon())" >
                                                 @cat.Title
                                             </MudNavLink>
                                         }
                                         else
                                         {
-                                            <MudNavGroup Title="@cat.Title" ExpandedChanged=@(isExpanding => UpdateCategory(cat, isExpanding))>
+                                            <MudNavGroup Title="@cat.Title" ExpandedChanged=@(isExpanding => UpdateCategory(cat, isExpanding)) Icon="@(cat.GetSidebarIcon())">
                                                 @foreach (var article in cat.Children)
                                                 {
-                                                    <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article)>
-                                                        @article.Title
-                                                    </MudNavLink>
+                                                    if (article.DocType == DocItemType.External)
+                                                    {
+                                                        <MudNavLink Match="NavLinkMatch.All" Target="_blank" Href=@BuildResourceLink(article) Icon="@(article.GetSidebarIcon())">
+                                                            @article.Title
+                                                        </MudNavLink>
+                                                    }
+                                                    else
+                                                    {
+                                                        <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article) Icon="@(article.GetSidebarIcon())">
+                                                            @article.Title
+                                                        </MudNavLink>
+                                                    }
                                                 }
                                             </MudNavGroup>
                                         }
@@ -135,6 +145,8 @@ else
 
     private readonly List<string> _hiddenNavGroups = new() { MostPopularId, UserGuideId, FaqGuideId, SupportGuideId, ReleaseNotesId };
 
+    private DocItem _currentCategory;
+
     private DocItem _resourceRoot;
     private DocItem _currentMarkdownCategory;
     private DocItem _currentDoc;
@@ -149,7 +161,17 @@ else
 
     public const string BaseUrl = "/resources";
 
-    public static string BuildResourceLink(DocItem res) => $"{BaseUrl}/{res?.Id}";
+    public static string BuildResourceLink(DocItem res)
+    {
+        if (res?.DocType == DocItemType.External)
+                return res.MarkdownPage;
+        return $"{BaseUrl}/{res?.Id}";  
+    } 
+
+    public async Task ActivateCategory(DocItem docItem)
+    {
+        _currentCategory = docItem;
+    }
 
     private void UpdateCategory(DocItem cat, bool isExpanding)
     {
@@ -161,7 +183,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _resourceRoot = await _docService.GetLanguageRoot(DocumentationGuideRootSection.UserGuide, _cultureService.Culture);
+        _resourceRoot = await _docService.LoadResourceTree(DocumentationGuideRootSection.UserGuide, _cultureService.Culture);
+        _currentCategory = _resourceRoot.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)).First();
         await ClearResourcesBadge();
         await CreateMostPopularFolder();
     }

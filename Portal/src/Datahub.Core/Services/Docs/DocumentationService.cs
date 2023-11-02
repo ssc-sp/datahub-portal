@@ -133,15 +133,26 @@ public class DocumentationService
 
     public async Task BuildDocAndPreviews(DocItem doc)
     {
-        if (doc.Title is not null)
+        if (doc.DocType == DocItemType.External)
         {
-            doc.Content = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, doc.GetMarkdownFileName());
-            BuildPreview(doc);
-        } else
-        {
-            //top level node
             doc.Content = null;
-            doc.Preview = String.Join(" ,", doc.Children.Select(d => d.Title));
+            doc.Preview = "External Web Link";
+        }
+        else
+        {
+            if (doc.Title is not null)
+            {
+
+                doc.Content = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, doc.GetMarkdownFileName());
+                BuildPreview(doc);
+
+            }
+            else
+            {
+                //top level node
+                doc.Content = null;
+                doc.Preview = String.Join(" ,", doc.Children.Select(d => d.Title));
+            }
         }
         foreach (var item in doc.Children)
         {
@@ -377,7 +388,7 @@ public class DocumentationService
         }
     }
     
-    public async Task<DocItem?> GetLanguageRoot(DocumentationGuideRootSection guide, string locale, bool useCache = true)
+    public async Task<DocItem?> LoadResourceTree(DocumentationGuideRootSection guide, string locale, bool useCache = true)
     {
         if (enOutline == null || frOutline == null)
         {

@@ -105,7 +105,7 @@
             _ => "/UserGuide/Storage/Import-Storage.md"
         };
 
-        var docRoot = await DocService.GetLanguageRoot(DocumentationGuideRootSection.UserGuide, "en");
+        var docRoot = await DocService.LoadResourceTree(DocumentationGuideRootSection.UserGuide, "en");
         var id = docRoot?.LocatePath(helpResourceUrl)?.Id;
         if (id is not null)
         {

@@ -1,6 +1,7 @@
 ﻿using Datahub.Core.Services.Docs;
 using Datahub.Markdown;
 using Datahub.Markdown.Model;
+using Datahub.Portal.Components.Resources;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -40,7 +41,7 @@ namespace Datahub.Tests.Docs
             // Arrange
             var memCache = new MemoryCache(new MemoryCacheOptions());
             var me = new Mock<IWebHostEnvironment>();
-            me.Setup(e => e.EnvironmentName).Returns(Environments.Production);
+            me.Setup(e => e.EnvironmentName).Returns(Environments.Development);
             _service = new DocumentationService(config, logger, mockFactory.Object, me.Object, memCache);
         }
 
@@ -49,6 +50,13 @@ namespace Datahub.Tests.Docs
         {
             var lastCommit = await _service.GetLastRepoCommitTS();
             Assert.NotNull(lastCommit);
+        }
+
+        [Fact]
+        public void GivenIcon_ReadMudblazorIcon()
+        {
+            var iconData = DocItemHelper.GetMudblazorMaterialIcon("Outlined", "Workspaces");
+            Assert.NotNull(iconData);
         }
 
 
@@ -64,7 +72,7 @@ namespace Datahub.Tests.Docs
         [Fact]
         public async Task Test1LoadEnglishSidebar()
         {
-            var root = await _service.GetLanguageRoot(DocumentationGuideRootSection.UserGuide,"en");
+            var root = await _service.LoadResourceTree(DocumentationGuideRootSection.UserGuide,"en");
             Assert.NotNull(root);
             Assert.True(root.Children.Count > 5);
         }
@@ -72,7 +80,7 @@ namespace Datahub.Tests.Docs
         [Fact]
         public async Task TestLoadPage()
         {
-            var root = await _service.GetLanguageRoot(DocumentationGuideRootSection.UserGuide, "en");
+            var root = await _service.LoadResourceTree(DocumentationGuideRootSection.UserGuide, "en");
             Assert.NotNull(root);
             Assert.True(root.Children.Count > 5);
             var pageId = root.Children[5].Id!;
