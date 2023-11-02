@@ -1,3 +1,4 @@
+using System.Linq.Dynamic.Core;
 using System.Transactions;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
@@ -47,7 +48,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
     }
 
     public async Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands,
-        List<ProjectUserAddUserCommand> projectUserAddUserCommands)
+        List<ProjectUserAddUserCommand> projectUserAddUserCommands, string requesterUserId)
     {
         // if there are no commands, return true
         if (!projectUserUpdateCommands.Any() && !projectUserAddUserCommands.Any())
@@ -67,7 +68,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 await UpdateProjectUsersAsync(projectUserUpdateCommands);
             }
 
-            await PropagateUserUpdatesToExternalPermissions(projectUserUpdateCommands, projectUserAddUserCommands);
+            await PropagateUserUpdatesToExternalPermissions(projectUserUpdateCommands, projectUserAddUserCommands, requesterUserId);
             return true;
         }
         catch (Exception e)
@@ -78,7 +79,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
     }
 
     private async Task PropagateUserUpdatesToExternalPermissions(IEnumerable<ProjectUserUpdateCommand> projectUserUpdateCommands,
-        IEnumerable<ProjectUserAddUserCommand> projectUserAddUserCommands)
+        IEnumerable<ProjectUserAddUserCommand> projectUserAddUserCommands, string requesterUserId)
     {
         // get all the distinct projects that have been modified
         var projectAcronyms = projectUserUpdateCommands
@@ -93,11 +94,16 @@ public class ProjectUserManagementService : IProjectUserManagementService
         foreach (var projectAcronym in projectAcronyms)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
+            
             var project = await context.Projects
-                .AsNoTracking()
                 .Include(p => p.Users)
                 .ThenInclude(u => u.PortalUser)
                 .FirstAsync(p => p.Project_Acronym_CD == projectAcronym);
+            
+            project.Last_Updated_DT = DateTime.Now;
+            project.Last_Updated_UserId = requesterUserId;
+            context.Projects.Update(project);
+            await context.SaveChangesAsync();
 
             await _requestManagementService.HandleUserUpdatesToExternalPermissions(project);
         }

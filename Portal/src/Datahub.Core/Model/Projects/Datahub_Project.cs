@@ -233,6 +233,18 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public bool? WebAppEnabled { get; set; }
 
     [AeFormIgnore]
+    public DateTime? LastLoginDate
+    {
+        get
+        {
+            return Users.Select(x => x.PortalUser.LastLoginDateTime).Max();
+        }
+    }
+    
+    [AeFormIgnore]
+    public DateTime? ExpiryDate { get; set; }
+
+    [AeFormIgnore]
     [StringLength(128)]
     public string WebApp_URL { get; set; }
     

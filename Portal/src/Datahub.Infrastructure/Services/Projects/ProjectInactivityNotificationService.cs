@@ -1,0 +1,32 @@
+﻿using Datahub.Application.Services.Projects;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Octokit;
+
+namespace Datahub.Infrastructure.Services.Projects
+{
+    public class ProjectInactivityNotificationService : IProjectInactivityNotificationService
+    {
+        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
+
+        public ProjectInactivityNotificationService(IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+        {
+            _dbContextFactory = dbContextFactory;
+        }
+
+        public async Task<EntityEntry<Project_Inactivity_Notifications>> AddInactivityNotification(int projectId, DateTime notificationDate, int daysBeforeDeletion, string sentTo, CancellationToken ct)
+        {
+            using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
+            var notification = new Project_Inactivity_Notifications
+            {
+                Project_ID = projectId,
+                NotificationDate = notificationDate,
+                DaysBeforeDeletion = daysBeforeDeletion,
+                SentTo = sentTo
+            };
+            return ctx.Project_Inactivity_Notifications.Add(notification);
+        }
+    }
+}

@@ -48,11 +48,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
     public DbSet<Project_Credits> Project_Credits { get; set; }
     public DbSet<Project_Whitelist> Project_Whitelists { get; set; }
-    
-    /// <summary>
-    /// Table for storing project inactivity details
-    /// </summary>
-    public DbSet<Project_Inactivity> Project_Inactivity { get; set; }
 
     public DbSet<Project_Storage> Project_Storage_Avgs { get; set; }
 
@@ -83,6 +78,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     
     public DbSet<Project_Role> Project_Roles { get; set; }
 
+    public DbSet<Project_Inactivity_Notifications> Project_Inactivity_Notifications { get; set; }
+    
     public DbSet<DocumentationResource> DocumentationResources { get; set; }
     
     /// <summary>
@@ -216,6 +213,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .WithMany(p => p.Divisions)
             .HasForeignKey(f => f.DivisionId)
             .OnDelete(DeleteBehavior.NoAction);
+        
 
         modelBuilder.Entity<Project_Whitelist>(entity =>
         {
@@ -223,11 +221,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             entity.HasOne(e => e.Project)
                 .WithOne(e => e.Whitelist)
                 .OnDelete(DeleteBehavior.NoAction);
-        });
-        
-        modelBuilder.Entity<Project_Inactivity>(entity =>
-        {
-            entity.HasIndex(e => e.ProjectId);
         });
 
         modelBuilder.Entity<Datahub_Project_Costs>(entity =>
