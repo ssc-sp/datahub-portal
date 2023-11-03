@@ -11,6 +11,7 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Repositories
 @using Datahub.Portal.Pages.Project.Repositories
+@using Datahub.Shared.Entities
 
 @inject ServiceAuthManager _serviceAuthManager
 @inject IUserInformationService _userInformationService
@@ -23,6 +24,9 @@
 @inject NavigationManager NavigationManager
 @inject IDatahubAuditingService _auditingService
 @inject IDatabricksApiService _databricksApiService
+@inject IRequestManagementService _requestManagementService
+@inject ISnackbar _snackbar
+@inject ILogger<ProjectToolListing> _logger
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@ProjectAcronym">
     <Authorized>
@@ -39,6 +43,16 @@
                     @if (_datahubPortalConfiguration.ReverseProxy.Enabled && !string.IsNullOrWhiteSpace(_project?.WebApp_URL))
                     {
                         <AzureWebAppCard ProjectAcronym="@ProjectAcronym"/>
+                    }
+                    else
+                    {
+                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin" ProjectAcronym="@ProjectAcronym">
+                            <MudStack Row>
+                                <MudButton Variant="Variant.Filled" EndIcon="fa-solid fa-layer-plus" Color="Color.Primary" Size="Size.Small" OnClick="@RequestWebAppService">
+                                    @Localizer["Request Web App"]
+                                </MudButton>
+                            </MudStack>
+                        </DatahubAuthView>
                     }
                     <MudElement HtmlTag="div" class="@_toolContainerClass">
                         @foreach (var active in _activeResources)
@@ -164,6 +178,22 @@
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
         
         _isLoading = false;
+    }
+
+    private async Task RequestWebAppService()
+    {
+        var context = await _dbFactoryProject.CreateDbContextAsync();
+        var project = await context.Projects
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
+        if (project is null)
+        {
+            _logger.LogError("Project with acronym {ProjectAcronym} not found while requesting web app service", ProjectAcronym);
+            return;
+        }
+        
+        await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.AzureAppService);
     }
 
 }

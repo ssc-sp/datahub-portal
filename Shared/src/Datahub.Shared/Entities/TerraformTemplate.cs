@@ -38,6 +38,7 @@ public class TerraformTemplate
             NewProjectTemplate => LatestFromName(NewProjectTemplate),
             AzureStorageBlob => LatestFromName(AzureStorageBlob),
             AzureDatabricks => LatestFromName(AzureDatabricks),
+            AzureAppService => LatestFromName(AzureDatabricks),
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }
@@ -58,6 +59,11 @@ public class TerraformTemplate
             {
                 LatestFromName(AzureStorageBlob),
                 LatestFromName(AzureDatabricks),
+            },
+            AzureAppService => new List<TerraformTemplate>()
+            {
+                LatestFromName(AzureStorageBlob),
+                LatestFromName(AzureAppService),
             },
             VariableUpdate => new List<TerraformTemplate>()
             {
