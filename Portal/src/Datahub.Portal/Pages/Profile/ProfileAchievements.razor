@@ -9,17 +9,10 @@
 {
     <MudStack>
         <MudText Typo="Typo.h3" GutterBottom>@Title</MudText>
-        <MudAvatarGroup Style="flex-wrap: wrap" MaxColor="Color.Primary">
+        <MudAvatarGroup Max="12" Spacing="6" MaxColor="Color.Dark">
             @foreach (var userAchievement in GetUserAchievements())
             {
-                <MudTooltip Arrow Placement="Placement.Top">
-                    <ChildContent>
-                        <MudAvatar Image="@(_portalConfiguration.Media.GetAchievementThumbnailUrl(userAchievement.Achievement.Id))"/>
-                    </ChildContent>
-                    <TooltipContent>
-                        <AchievementCard Achievement="@userAchievement.Achievement"/>
-                    </TooltipContent>
-                </MudTooltip>
+                <MudAvatar Image="@(_portalConfiguration.Media.GetAchievementThumbnailUrl(userAchievement.Achievement.Id))" />
             }
         </MudAvatarGroup>
     </MudStack>
@@ -30,15 +23,11 @@
     [Parameter]
     public PortalUser ViewedUser { get; set; }
 
-    [Parameter]
-    public bool TrophyCase { get; set; }
-
-    private string Title => TrophyCase ? Localizer["Trophy Achievements"] : Localizer["Achievements"];
+    private string Title => Localizer["Achievements"];
 
     private IEnumerable<UserAchievement> GetUserAchievements()
     {
         return ViewedUser?.GetUserAchievements()
-            .Where(a => a.Achievement.IsTrophy() == TrophyCase)
             .OrderBy(a => a.Achievement.Id)
             .ThenBy(a => a.UnlockedAt)
             .ToList()
