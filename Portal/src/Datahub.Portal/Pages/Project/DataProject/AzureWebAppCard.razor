@@ -11,8 +11,8 @@
                     <MudIcon Icon="fa-light fa-display-code" Color="Color.Secondary"/>
                     <MudText Class="mb-3" Typo="Typo.h5">@Localizer["Web App Service"]</MudText>
                     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin" ProjectAcronym="@ProjectAcronym">
-                        <MudSpacer />
-                        <MudSwitch T="bool?" Checked="_webAppEnabled" Color="Color.Primary" Label="@Localizer["Enable Web Application"]" CheckedChanged="@HandleToggle" />
+                        <MudSpacer/>
+                        <MudSwitch T="bool?" Checked="_webAppEnabled" Color="Color.Primary" Label="@Localizer["Enable Web Application"]" CheckedChanged="@HandleToggle"/>
                     </DatahubAuthView>
                 </MudStack>
                 <MudElement Class="mb-2">
@@ -51,7 +51,7 @@
     private string _cardContentStyle;
     private string _cardCss;
     private string _cardStyle;
-    
+
     private bool _webAppEnabled = false;
 
     protected override async Task OnInitializedAsync()
@@ -73,9 +73,9 @@
             .Build();
 
         _cardStyle = new StyleBuilder()
-            // .AddStyle("flex-basis", "400px")
+    // .AddStyle("flex-basis", "400px")
             .AddStyle("flex-grow", "1")
-            // .AddStyle("max-width", "calc(50% - 8px)")
+    // .AddStyle("max-width", "calc(50% - 8px)")
             .Build();
 
         _descriptionStyle = new StyleBuilder()
@@ -89,13 +89,14 @@
     private async Task HandleToggle(bool? toggleValue)
     {
         _webAppEnabled = !_webAppEnabled;
-        
+
         await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
         var project = await ctx.Projects
             .Where(p => p.Project_Acronym_CD == ProjectAcronym)
             .FirstOrDefaultAsync();
-        
+
         project.WebAppEnabled = _webAppEnabled;
         await ctx.SaveChangesAsync();
     }
+
 }
