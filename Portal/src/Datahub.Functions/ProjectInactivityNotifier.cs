@@ -1,16 +1,14 @@
-﻿using System;
-using System.Text.RegularExpressions;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Projects;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.Projects;
+using Datahub.Functions.Providers;
+using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
-using Datahub.Infrastructure.Services.Projects;
+using Datahub.Shared.Entities;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.KeyVault.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -19,41 +17,46 @@ namespace Datahub.Functions
     public class ProjectInactivityNotifier
     {
         private readonly IMediator _mediator;
-        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-        private readonly int[] _notificationDays;
-        private readonly int _deletionDay;
         private readonly ILogger<ProjectUsageNotifier> _logger;
-        private readonly AzureConfig _config;
-        private readonly QueuePongService _pongService;
-        private readonly IProjectInactivityNotificationService _projectInactivityNotificationService;
+        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
         private readonly IResourceMessagingService _resourceMessagingService;
+        private readonly IProjectInactivityNotificationService _projectInactivityNotificationService;
+        private readonly IDateProvider _dateProvider;
+        private readonly AzureConfig _config;
 
-        public ProjectInactivityNotifier(ILoggerFactory loggerFactory, AzureConfig config, IMediator mediator, 
-            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, QueuePongService pongService, ProjectInactivityNotificationService projectInactivityNotificationService, IResourceMessagingService resourceMessagingService)
+        private readonly QueuePongService _pongService;
+        private readonly EmailValidator _emailValidator;
+
+        public ProjectInactivityNotifier(ILoggerFactory loggerFactory, IMediator mediator,
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, QueuePongService pongService,
+            IProjectInactivityNotificationService projectInactivityNotificationService,
+            IResourceMessagingService resourceMessagingService, EmailValidator emailValidator,
+            IDateProvider dateProvider, AzureConfig config)
         {
             _logger = loggerFactory.CreateLogger<ProjectUsageNotifier>();
             _mediator = mediator;
             _dbContextFactory = dbContextFactory;
-            _notificationDays =
-                ParseProjectInactivityNotificationDays(config.ProjectInactivityNotificationDays ?? "7,2");
-            _deletionDay = ParseProjectInactivityDeletionDay(config.ProjectInactivityDeletionDays ?? "30");
             _pongService = pongService;
             _projectInactivityNotificationService = projectInactivityNotificationService;
             _resourceMessagingService = resourceMessagingService;
+            _emailValidator = emailValidator;
+            _dateProvider = dateProvider;
             _config = config;
         }
 
         [Function("ProjectInactivityNotifier")]
-        public async Task Run([QueueTrigger("%QueueProjectInactivityNotification%", Connection = "DatahubStorageConnectionString")] string queueItem,
+        public async Task Run(
+            [QueueTrigger("%QueueProjectInactivityNotification%", Connection = "DatahubStorageConnectionString")]
+            string queueItem,
             CancellationToken ct)
         {
             // test for ping
             if (await _pongService.Pong(queueItem))
                 return;
-            
+
             // deserialize message
             var message = DeserializeQueueMessage(queueItem);
-            
+
             // verify message 
             if (message is null)
             {
@@ -61,56 +64,76 @@ namespace Datahub.Functions
             }
 
             using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
-            
+
             // get project
             var project = await ctx.Projects.Where(x => x.Project_ID == message.ProjectId).FirstOrDefaultAsync(ct);
-            
-            // check if project exists and if we are past expiry date
-            if (project != null  && project.ExpiryDate < DateTime.Today)
+
+            // get project info
+            var lastLoginDate = project.LastLoginDate ?? project.Last_Updated_DT;
+            var daysSinceLastLogin = (_dateProvider.Today - lastLoginDate).Days;
+            var daysUntilDeletion = _dateProvider.DeletionDay() - daysSinceLastLogin;
+            var operationalWindow = project.OperationalWindow;
+            var hasCostRecovery = project.HasCostRecovery;
+            (var contacts, var acronym) = await GetProjectDetails(message.ProjectId, ct);
+
+            // check if project to be notified
+            var email = await CheckIfProjectToBeNotified(daysUntilDeletion, daysSinceLastLogin, operationalWindow,
+                hasCostRecovery, acronym, contacts);
+
+            // if email is not null, send email
+            if (email != null)
             {
-                var lastLoginDate = project.LastLoginDate ?? project.Last_Updated_DT;
-                var daysSinceLastLogin = (DateTime.Today - lastLoginDate).Days;
-                var daysUntilDeletion = _deletionDay - daysSinceLastLogin;
-                (var contacts, var acronym) = await GetProjectDetails(message.ProjectId, ct);
+                await _mediator.Send(email, ct);
 
-                // check if today is a threshold day
-                if (_notificationDays.Contains(daysUntilDeletion))
-                {
-                
-                    // get email object
-                    var email = GetEmailRequestMessage(daysUntilDeletion, daysSinceLastLogin, acronym, contacts);
-                
-                    // send email
-                    await _mediator.Send(email, ct);
+                // add notification to db
+                var sentTo = string.Join(",", contacts);
+                await _projectInactivityNotificationService.AddInactivityNotification(message.ProjectId,
+                    _dateProvider.Today, daysUntilDeletion, sentTo, ct);
+            }
 
-                    // add notification to db
-                    var sentTo = string.Join(",", contacts);
-                    await _projectInactivityNotificationService.AddInactivityNotification(message.ProjectId, DateTime.Today, daysUntilDeletion, sentTo, ct);
-                }
-                // if its the last day of the list and the workspace is not whitelisted or if the workspace is whitelisted and today is the retirement date
-                else if (daysSinceLastLogin >= _deletionDay && project.ExpiryDate < DateTime.Today)
-                {
-                    // send to terraform delete queue
-                    var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(acronym);
-                    await _resourceMessagingService.SendToTerraformDeleteQueue(workspaceDefinition);
-                }
+            // check if project to be deleted
+            var workspaceDefinition = await CheckIfProjectToBeDeleted(daysSinceLastLogin, operationalWindow,
+                hasCostRecovery, acronym);
+
+            // if project to be deleted, send to terraform delete queue
+            if (workspaceDefinition != null)
+            {
+                await _resourceMessagingService.SendToTerraformDeleteQueue(workspaceDefinition);
             }
         }
 
-        private int[] ParseProjectInactivityNotificationDays(string days)
+        public async Task<EmailRequestMessage?> CheckIfProjectToBeNotified(int daysUntilDeletion,
+            int daysSinceLastLogin, DateTime? operationalWindow, bool hasCostRecovery, string acronym,
+            List<string> contacts)
         {
-            return days.Split(",").Select(int.Parse).ToArray();
+            // check if we are past operational window or that it is null and that the project has no cost recovery and that
+            if ((operationalWindow == null || operationalWindow < _dateProvider.Today) && !hasCostRecovery &&
+                _dateProvider.NotificationDays().Contains(daysUntilDeletion))
+            {
+                return GetEmailRequestMessage(daysUntilDeletion, daysSinceLastLogin, acronym, contacts);
+            }
+
+            return null;
         }
-        
-        private int ParseProjectInactivityDeletionDay(string deletionDay)
+
+        public async Task<WorkspaceDefinition?> CheckIfProjectToBeDeleted(int daysSinceLastLogin,
+            DateTime? operationalWindow, bool hasCostRecovery, string acronym)
         {
-            return int.Parse(deletionDay);
+            // check if we are past operational window or that it is null and that the project has no cost recovery and that we are at or are past the deletion day
+            if ((operationalWindow == null || operationalWindow < _dateProvider.Today) &&
+                daysSinceLastLogin >= _dateProvider.DeletionDay() &&
+                !hasCostRecovery)
+            {
+                return await _resourceMessagingService.GetWorkspaceDefinition(acronym);
+            }
+
+            return null;
         }
-        
-        private async Task<(List<string>,string)> GetProjectDetails( int projectId, CancellationToken cancellationToken)
+
+        private async Task<(List<string>, string)> GetProjectDetails(int projectId, CancellationToken cancellationToken)
         {
             var ctx = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-            
+
             var project = await ctx.Projects
                 .Where(e => e.Project_ID == projectId)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -120,16 +143,17 @@ namespace Datahub.Functions
 
             var contacts = project.Users
                 .Select(u => u.PortalUser.Email)
-                .Where(IsValidEmail)
+                .Where(_emailValidator.IsValidEmail)
                 .ToList();
 
             return (contacts, project.Project_Acronym_CD);
         }
 
-        private EmailRequestMessage GetEmailRequestMessage(int daysUntilDeletion, int daysSinceLastLogin, string acronym, List<string> contacts)
+        private EmailRequestMessage GetEmailRequestMessage(int daysUntilDeletion, int daysSinceLastLogin,
+            string acronym, List<string> contacts)
         {
             var (subjectTemplate, bodyTemplate) = TemplateUtils.GetEmailTemplate("project_inactive_alert.html");
-            
+
             if (subjectTemplate is null || bodyTemplate is null)
                 _logger.LogWarning("Email template file missing!");
 
@@ -146,24 +170,19 @@ namespace Datahub.Functions
 
             List<string> bcc = new() { GetNotificationCCAddress() };
 
-            EmailRequestMessage notificationEmail = new() 
-            { 
-                To = contacts, 
+            EmailRequestMessage notificationEmail = new()
+            {
+                To = contacts,
                 BccTo = bcc,
-                Subject = subject, 
-                Body = body 
+                Subject = subject,
+                Body = body
             };
             return notificationEmail;
         }
-        
+
         private string GetNotificationCCAddress()
         {
             return _config.Email?.NotificationsCCAddress ?? "fsdh-notifications-dhsf-notifications@ssc-spc.gc.ca";
-        }
-        
-        static bool IsValidEmail(string email)
-        {
-            return !string.IsNullOrEmpty(email) && Regex.IsMatch(email, @"^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$");
         }
 
         static ProjectInactivityNotificationMessage? DeserializeQueueMessage(string message)
