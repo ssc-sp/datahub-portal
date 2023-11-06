@@ -11,6 +11,7 @@ using Datahub.Infrastructure.Services.CatalogSearch;
 using Datahub.Infrastructure.Services.Notebooks;
 using Datahub.Infrastructure.Services.Notifications;
 using Datahub.Infrastructure.Services.ReverseProxy;
+using Datahub.Infrastructure.Services.Storage;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,7 @@ public static class ConfigureServices
         services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
         services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
         services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
+        services.AddScoped<CloudStorageManagerFactory>();
         services.AddSingleton<IResourceMessagingService, ResourceMessagingService>();
         services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
         services.AddScoped<IAnnouncementService, AnnouncementService>();
