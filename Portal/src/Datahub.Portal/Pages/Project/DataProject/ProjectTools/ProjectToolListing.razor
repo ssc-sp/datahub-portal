@@ -11,6 +11,7 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Repositories
 @using Datahub.Portal.Pages.Project.Repositories
+@using Datahub.Shared.Entities
 
 @inject ServiceAuthManager _serviceAuthManager
 @inject IUserInformationService _userInformationService
@@ -23,6 +24,9 @@
 @inject NavigationManager NavigationManager
 @inject IDatahubAuditingService _auditingService
 @inject IDatabricksApiService _databricksApiService
+@inject IRequestManagementService _requestManagementService
+@inject ISnackbar _snackbar
+@inject ILogger<ProjectToolListing> _logger
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@ProjectAcronym">
     <Authorized>
@@ -39,6 +43,19 @@
                     @if (_datahubPortalConfiguration.ReverseProxy.Enabled && !string.IsNullOrWhiteSpace(_project?.WebApp_URL))
                     {
                         <AzureWebAppCard ProjectAcronym="@ProjectAcronym"/>
+                    }
+                    else
+                    {
+                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin" ProjectAcronym="@ProjectAcronym">
+                            <MudStack Row>
+                                <MudButton Variant="Variant.Filled" EndIcon="fa-solid fa-layer-plus" Color="Color.Primary" Size="Size.Small" OnClick="@RequestAzureAppService">
+                                    @Localizer["Request Web App"]
+                                </MudButton>
+                                <MudButton Variant="Variant.Filled" EndIcon="fa-solid fa-layer-plus" Color="Color.Primary" Size="Size.Small" OnClick="@RequestAzurePostgres">
+                                    @Localizer["Request Postgres"]
+                                </MudButton>
+                            </MudStack>
+                        </DatahubAuthView>
                     }
                     <MudElement HtmlTag="div" class="@_toolContainerClass">
                         @foreach (var active in _activeResources)
@@ -159,11 +176,47 @@
             .Where(a => a != null)
             .Select(a => a.Value)
             .ToList();
-        
+
         _project = await projectDbContext.Projects
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-        
+
         _isLoading = false;
+    }
+
+    private async Task RequestAzureAppService()
+    {
+        await RequestResourceRun(TerraformTemplate.AzureAppService);
+    }
+    private async Task RequestAzurePostgres()
+    {
+        await RequestResourceRun(TerraformTemplate.AzurePostgres);
+    }
+    
+    private async Task RequestResourceRun(string templateName)
+    {
+        var context = await _dbFactoryProject.CreateDbContextAsync();
+        var project = await context.Projects
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        
+        _snackbar.Add(Localizer["Requesting resource..."]);
+
+        if (project is null)
+        {
+            _logger.LogError("Project with acronym {ProjectAcronym} not found while requesting web app service", ProjectAcronym);
+            return;
+        }
+
+        try
+        {
+            await _requestManagementService.HandleTerraformRequestServiceAsync(project, templateName);
+            _snackbar.Add(Localizer["Successfully requested resource."], Severity.Success);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error while requesting web app service for project {ProjectAcronym}", ProjectAcronym);
+            _snackbar.Add(Localizer["Error while requesting resource."], Severity.Error);
+        }
     }
 
 }
