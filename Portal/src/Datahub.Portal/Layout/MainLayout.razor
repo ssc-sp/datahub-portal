@@ -1,7 +1,6 @@
 ﻿@inherits LayoutComponentBase
 
 @using Microsoft.Identity.Web
-@using Datahub.Core.Theme
 @using MudBlazor.Utilities
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Services.Achievements
@@ -16,7 +15,7 @@
 @inject IPortalUserTelemetryService _telemetryService
 @inject ITokenAcquisition _tokenAcquisition
 
-<MudThemeProvider Theme="@DatahubTheme.DEFAULT_THEME"/>
+<MudThemeProvider Theme="@DatahubTheme.DefaultTheme"/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
@@ -24,7 +23,7 @@
 
 @if (_isLoaded)
 {
-    <CascadingValue Value="@DatahubTheme.DEFAULT_THEME">
+    <CascadingValue Value="@DatahubTheme.DefaultTheme">
         <AuthorizeView>
             <Authorized>
                 <DatahubAchievementProvider/>

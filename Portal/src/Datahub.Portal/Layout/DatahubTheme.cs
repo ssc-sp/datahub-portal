@@ -1,10 +1,10 @@
 using MudBlazor;
 
-namespace Datahub.Core.Theme;
+namespace Datahub.Portal.Layout;
 
 public abstract class DatahubTheme
 {
-    public static readonly MudTheme DEFAULT_THEME = new()
+    public static readonly MudTheme DefaultTheme = new()
     {
         Typography =
         {
