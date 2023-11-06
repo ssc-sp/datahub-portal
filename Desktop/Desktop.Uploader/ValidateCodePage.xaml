@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:strings="clr-namespace:Datahub.Maui.Uploader.Resources"
              Loaded="ContentPage_Loaded"
-             x:Class="Datahub.Maui.Uploader.UploadCodePage">
+              xmlns:local="clr-namespace:Datahub.Maui.Uploader.Components"
+             x:Class="Datahub.Maui.Uploader.ValidateCodePage">
 
     <ScrollView>
         <VerticalStackLayout
@@ -11,18 +13,26 @@
             VerticalOptions="Center">
 
             <Label
-                Text="Enter your DataHub upload code"
+                Text="{x:Static strings:AppResources.EnterUploadCode}"
                 SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I"
+                SemanticProperties.Description="{x:Static strings:AppResources.EnterUploadCodeDesc}"
                 FontSize="18"
                 HorizontalOptions="Center" />
 
-            <Button                
+            <local:HyperlinkLabel
+                 SemanticProperties.Description="{x:Static strings:AppResources.UploadCodeDesc}"
+                HorizontalOptions="Center"
+                Text="{x:Static strings:AppResources.UploadCode}"
+                Url="https://federal-science-datahub.canada.ca/resources/126b3f7a-e320-dc44-3707-e748b998b094" 
+                />
+
+
+            <!--<Button                
                 x:Name="GetUploadCodeBtn"
-                Text="Get DataHub Storage Upload Code"                
-                SemanticProperties.Hint="Counts the number of times you click"
+                Text="{x:Static strings:AppResources.UploadCode}"                
+                SemanticProperties.Hint="{x:Static strings:AppResources.UploadCodeDesc}"
                 Clicked="GetUploadCodeBtn_Clicked"
-                HorizontalOptions="Center" />
+                HorizontalOptions="Center" />-->
 
             <Editor 
                 x:Name="UploadCodeText"
@@ -30,12 +40,13 @@
                     MaxLength="1000"     
                 HeightRequest="150"
                 TextChanged="UploadCodeText_TextChanged"
-                    Placeholder="Paste your upload code from the DataHub portal in File Explorer"/>
+                SemanticProperties.Hint="{x:Static strings:AppResources.PasteUploadCode}"
+                    Placeholder="{x:Static strings:AppResources.PasteUploadCode}"/>
             <Button
                 x:Name="ValidateCodeButton"
-                Text="Please Enter Valid Code"
+                Text="{x:Static strings:AppResources.EnterValidCode}"
                 IsEnabled="False"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="{x:Static strings:AppResources.EnterValidCodeDesc}"
                 Clicked="ValidateCodeButton_Clicked"
                 HorizontalOptions="Center" />
 

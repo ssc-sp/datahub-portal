@@ -17,10 +17,12 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using static System.Net.WebRequestMethods;
+using Microsoft.Graph.Models;
+using static MudBlazor.CategoryTypes;
 
 namespace Datahub.Core.Services.Docs;
 
-public enum DocumentationGuide
+public enum DocumentationGuideRootSection
 {
     [StringValue("UserGuide")]
     UserGuide,
@@ -29,7 +31,9 @@ public enum DocumentationGuide
     [StringValue("DeveloperGuide")]
     DevGuide,
     [StringValue("")]
-    RootFolder
+    RootFolder,
+    [StringValue("Hidden")]
+    Hidden,
 }
 
 #nullable enable
@@ -43,10 +47,11 @@ public class DocumentationService
 
     private const string DOCS_ROOT_CONFIG_KEY = "docsURL";
     private const string DOCS_EDIT_URL_CONFIG_KEY = "EditdocsURLPrefix";
-
+    private DocumentationFileMapper _docFileMappings = null!;
     private IList<TimeStampedStatus> _statusMessages;
     private DocItem? enOutline;
     private DocItem? frOutline;
+    private DocItem cachedDocs;
     private readonly IMemoryCache _cache;
 
     public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger, 
@@ -59,6 +64,7 @@ public class DocumentationService
         _httpClientFactory = httpClientFactory;
         _statusMessages = new List<TimeStampedStatus>();
         _cache = docCache;
+        cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
     }
 
     public async Task<bool> InvalidateCache()
@@ -73,7 +79,7 @@ public class DocumentationService
                 var percentage = 1.0;//100%
                 cache.Compact(percentage);
 
-                await LoadResourceTree(DocumentationGuide.UserGuide);
+                await LoadResourceTree(DocumentationGuideRootSection.UserGuide);
 
                 _logger.LogInformation("Document cache has been cleared");
                 return true;
@@ -106,7 +112,7 @@ public class DocumentationService
         return new Uri(_docsRoot + relLink).AbsoluteUri;
     }
 
-    private static DocItem? ParseSidebar(DocumentationGuide guide, string? inputMarkdown, Func<string, string> mapId)
+    private static DocItem? ParseSidebar(DocumentationGuideRootSection guide, string? inputMarkdown, Func<string, string> mapId)
     {
         if (string.IsNullOrEmpty(inputMarkdown))
         {
@@ -115,7 +121,7 @@ public class DocumentationService
 
         var doc = Markdown.Parse(inputMarkdown);
 
-        var root = DocItem.MakeRoot(guide, GetPageCode("root"));
+        var root = DocItem.MakeRoot(guide, GetIDFromString("root"));
 
         ProcessBlock(doc, 0, null, root, mapId);
         return root;
@@ -127,10 +133,10 @@ public class DocumentationService
         {
             case LiteralInline literalInline:
                 var title = literalInline.ToString();
-                var id = GetPageCode(title ?? "");
+                var id = GetIDFromString(title ?? "");
                 if (currentItem is null)
                 {
-                    var docItem1 = DocItem.GetItem(parent.DocumentationGuide, id, level, title, null);
+                    var docItem1 = DocItem.GetItem(parent.RootSection, id, level, title, null);
                     parent?.Children.Add(docItem1);
                     return docItem1;
                 }
@@ -144,7 +150,7 @@ public class DocumentationService
                 //[Microservice_Architecture](/Architecture/Microservice_Architecture.md)
 
                 var itemId = mapId.Invoke(linkInline.Url ?? "");
-                var docItem = DocItem.GetItem(parent.DocumentationGuide, itemId, level, linkInline.Title, linkInline.Url);
+                var docItem = DocItem.GetItem(parent.RootSection, itemId, level, linkInline.Title, linkInline.Url);
                 parent.Children.Add(docItem);
 
                 foreach (var child in linkInline)
@@ -213,7 +219,7 @@ public class DocumentationService
     {
         if (doc.Title is not null)
         {
-            doc.Content = await LoadDocsPage(DocumentationGuide.RootFolder, doc.GetMarkdownFileName());
+            doc.Content = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, doc.GetMarkdownFileName());
             BuildPreview(doc);
         } else
         {
@@ -257,23 +263,23 @@ public class DocumentationService
     public const string LOCALE_EN = "";
     public const string LOCALE_FR = "fr";
 
-    private async Task LoadResourceTree(DocumentationGuide guide, bool useCache = true)
+    private async Task LoadResourceTree(DocumentationGuideRootSection guide, bool useCache = true)
     {
-        var fileMappings = await LoadDocsPage(DocumentationGuide.RootFolder, FILE_MAPPINGS, null,useCache);
-        var docFileMappings = new DocumentationFileMapper(fileMappings);
+        var fileMappings = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, FILE_MAPPINGS, null,useCache);
+        _docFileMappings = new DocumentationFileMapper(fileMappings);
 
         _statusMessages = new List<TimeStampedStatus>();
 
         AddStatusMessage("Loading resources");
 
-        enOutline = ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_EN, useCache), docFileMappings.GetEnglishDocumentId);
+        enOutline = ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_EN, useCache), _docFileMappings.GetEnglishDocumentId);
         if (enOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
 
-        frOutline = ParseSidebar(guide, await LoadDocsPage(guide, $"{SIDEBAR}", LOCALE_FR, useCache), docFileMappings.GetFrenchDocumentId);
+        frOutline = ParseSidebar(guide, await LoadDocsPage(guide, $"{SIDEBAR}", LOCALE_FR, useCache), _docFileMappings.GetFrenchDocumentId);
         if (frOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
-        
+        cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden,"Cached");
         AddStatusMessage("Finished loading sidebars");
 
     }
@@ -286,12 +292,25 @@ public class DocumentationService
         return searchRoot.LocateID(id);
     }
 
-    public DocItem? LoadPageFromPath(string path, bool isFrench)
+    public async Task<DocItem?> LoadPageFromPath(string path, bool isFrench)
     {
         var searchRoot = isFrench ? frOutline : enOutline;
         if (searchRoot is null)
             throw new InvalidOperationException("sidebar not loaded");
-        return searchRoot.LocatePath(path);
+        var inCachePage = searchRoot.LocatePath(path);
+        if (inCachePage is null)
+        {
+            inCachePage = cachedDocs.LocatePath(path);
+            if (inCachePage != null)
+                return inCachePage;
+            var itemId = (isFrench? _docFileMappings?.GetFrenchDocumentId(path): _docFileMappings?.GetEnglishDocumentId(path))?? GetIDFromString(path);
+            var docItem = DocItem.GetItem(DocumentationGuideRootSection.Hidden, itemId, searchRoot.Level + 1, path, path);
+
+            cachedDocs.Children.Add(docItem);
+            await BuildDocAndPreviews(docItem);
+            return docItem;
+        }
+        return inCachePage;
     }
 
     public DocItem? GetParent(DocItem docItem, DocItem? currentNode = null)
@@ -318,7 +337,7 @@ public class DocumentationService
     public const string SIDEBAR = "_sidebar.md";
     public const string FILE_MAPPINGS = "filemappings.json";
 
-    private string BuildURL(DocumentationGuide guide, string? locale, string name, IList<string>? folders = null)
+    private string BuildURL(DocumentationGuideRootSection guide, string? locale, string name, IList<string>? folders = null)
     {
         var allFolders = new List<string>();
         //sb.Append($"{(string.IsNullOrEmpty(locale) ? string.Empty : (locale + '/'))}{guide.GetStringValue()}/");
@@ -350,7 +369,7 @@ public class DocumentationService
     /// <param name="locale">Leave empty for "en", "fr" has its own folder</param>
     /// <param name="useCache"></param>
     /// <returns></returns>
-    private async Task<string?> LoadDocsPage(DocumentationGuide guide, string? name, string? locale = "", bool useCache = true)
+    private async Task<string?> LoadDocsPage(DocumentationGuideRootSection guide, string? name, string? locale = "", bool useCache = true)
     {
         if (name is null) return null;
         return await LoadDocs(BuildURL(guide, locale??string.Empty, name), useCache);
@@ -466,7 +485,7 @@ public class DocumentationService
         }
     }
 
-    public static string GetPageCode(string url)
+    public static string GetIDFromString(string url)
     {
         return GetStableHashCode(url).ToString("X").ToLowerInvariant();
     }
@@ -478,7 +497,7 @@ public class DocumentationService
         return ci1.Equals(ci2) || ci1.Parent.Equals(ci2) || ci2.Parent.Equals(ci1);
     }
 
-    public async Task<DocItem?> GetLanguageRoot(DocumentationGuide guide, string locale, bool useCache = true)
+    public async Task<DocItem?> GetLanguageRoot(DocumentationGuideRootSection guide, string locale, bool useCache = true)
     {
         if (enOutline == null || frOutline == null)
         {
@@ -491,7 +510,7 @@ public class DocumentationService
 
     public async Task<string?> LoadResourcePage(DocItem card)
     {
-        return await LoadDocsPage(DocumentationGuide.RootFolder, card.GetMarkdownFileName());
+        return await LoadDocsPage(DocumentationGuideRootSection.RootFolder, card.GetMarkdownFileName());
     }
 
     public string GetEditUrl(DocItem card) => $"{_docsEditPrefix}{card.GetMarkdownFileName()}";
@@ -500,7 +519,7 @@ public class DocumentationService
     {
         if (item.GetMarkdownFileName != null)
         {
-            var path = BuildURL(item.DocumentationGuide, null, item.GetMarkdownFileName()!);
+            var path = BuildURL(item.RootSection, null, item.GetMarkdownFileName()!);
             _cache.Remove(path);
         }
     }

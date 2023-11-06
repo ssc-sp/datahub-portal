@@ -1,4 +1,5 @@
 using BoDi;
+using System;
 using Datahub.Specs.PageObjects;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Playwright;
@@ -16,6 +17,13 @@ public class Hooks
             .AddJsonFile("appsettings.secret.json")
             .AddUserSecrets<Hooks>()
             .Build();
+        string? scriptRun = Environment.GetEnvironmentVariable("SCRIPT_RUN");
+        if (scriptRun != null)
+        {
+            _config["BaseUrl"] = Environment.GetEnvironmentVariable("TEST_URL");
+            _config["Headless"] = Environment.GetEnvironmentVariable("HEADLESS");
+            _config["SlowMo"] = Environment.GetEnvironmentVariable("SLOWMO");
+        }
     }
 
     public bool Headless => _config["Headless"] != "false";

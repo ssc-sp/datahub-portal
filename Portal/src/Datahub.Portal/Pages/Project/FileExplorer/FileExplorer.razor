@@ -1,14 +1,17 @@
+@* FileExplorer.razor *@
+@using Datahub.Application.Services.Storage;
 @using Datahub.Core.Components.FileUpload
 @using Datahub.Core.Services.Achievements;
 @using Datahub.Core.Services.Storage;
 @using Datahub.Application.Services
+@using Datahub.Portal.Pages.Project.FileExplorer.Storage;
 
 @inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject IProjectDataRetrievalService _projectDataRetrievalService
-@inject IDataRemovalService _dataRemovalService
 @inject IJSRuntime _jsRuntime
 @inject IPortalUserTelemetryService _telemetryService
+
+@implements IAsyncDisposable
 
 <CascadingValue Value="@StorageAccountMetadata" Name="StorageAccountMetadata">
     <div class="file-explorer-layout">
@@ -109,16 +112,16 @@
                 <div class="details-container">
                     @if (_loading || _folders.Contains(_selectedItem) || _currentFolder == _selectedItem)
                     {
-                        <StorageProperties DisplayName="@GetFileName(_selectedItem)" ContainerName="@ContainerName" />
+                        <StorageProperties DisplayName="@GetFileName(_selectedItem)" Container=@Container />
                     }
                     else
                     {
                         var file = _files.FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
-                        <FileProperties 
-                            ProjectId=@ProjectId 
-                            File=@file 
-                            Readonly="!OwnsFile(file)" 
-                            OnMetadataChanged=@HandleMetadataChanged />
+                        <FileProperties @key=@_selectedItem
+                                        ProjectId=@ProjectId 
+                                        File=@file 
+                                        Readonly="!OwnsFile(file)" 
+                                        OnMetadataChanged=@HandleMetadataChanged />
                     }
                 </div>
             </div>
@@ -139,11 +142,16 @@
     public int? ProjectId { get; set; }
 
     [Parameter]
-    public string ContainerName { get; set; }
+    public CloudStorageContainer Container { get; set; }
 
-    
     public StorageMetadata StorageAccountMetadata { get; set; }
-    
+
+    private CloudStorageContainer _lastContainer = default;
+
+    private string ContainerName => Container?.Name;
+
+    private ICloudStorageManager StorageManager => Container?.StorageManager;
+
     private string _userId;
 
     private bool _loading = true;
@@ -162,17 +170,16 @@
 
     private IJSObjectReference _module;
 
-    
-    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
-
         if (firstRender)
         {
-            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
-                "./Pages/Project/FileExplorer/FileExplorer.razor.js");
-            StorageAccountMetadata = await _projectDataRetrievalService.GetStorageMetadataAsync(ProjectAcronym, ContainerName);
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Project/FileExplorer/FileExplorer.razor.js");
+            if (StorageManager != null)
+            {
+                StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(ContainerName);
+            }
         }
     }
 
@@ -185,8 +192,6 @@
         _userId = await _userInformationService.GetUserIdString();
 
         _uploadingFiles = new List<FileMetaData>();
-
-        //await RefreshStoragePageAsync();
     }
 
     private bool OwnsFile(FileMetaData file) => (file?.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
@@ -196,5 +201,19 @@
     private void HandleMetadataChanged()
     {
         _metadataSignature = Guid.NewGuid();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (_module != null)
+            {
+                await _module.DisposeAsync();
+            }
+        }
+        catch (Exception)
+        {
+        }
     }
 }

@@ -25,7 +25,7 @@ var host = new HostBuilder()
     {
         var config = hostContext.Configuration;
         
-        var connectionString = config["datahub-mssql-project"];
+        var connectionString = config["datahub_mssql_project"];
         if (connectionString is not null)
         {
             services.AddPooledDbContextFactory<DatahubProjectDBContext>(options =>

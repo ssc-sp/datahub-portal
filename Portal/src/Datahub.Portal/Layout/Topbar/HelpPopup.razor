@@ -1,67 +1,102 @@
 @using MudBlazor.Utilities
-@inject IConfiguration Configuration
 
+@implements IDisposable
+@inject IJSRuntime _jsRuntime
 
 <span>
-    <MudTooltip Text="@Localizer[TOOLTIP_TEXT]">
-        <div class="reader-only"><p>@Localizer[TOOLTIP_TEXT]</p></div>
+    <MudTooltip Text="@Localizer["Help"]">
+        <div class="reader-only">
+            <p>@Localizer["Help"]</p>
+        </div>
         <MudToggleIconButton
             aria-label="Help toggle"
             ToggledIcon="@Icons.Material.Filled.Help"
             ToggledChanged="@ToggleHelp"
-            Toggled="IsHelpPopupOpen"
+            Toggled="_isHelpPopupOpen"
             Icon="@Icons.Material.Outlined.HelpOutline"/>
     </MudTooltip>
 
     <MudPopover
         Style="@_style"
-        Open="@IsHelpPopupOpen"
-        Class="overflow-scroll"
+        Open="@_isHelpPopupOpen"
         AnchorOrigin="Origin.BottomRight"
         TransformOrigin="Origin.TopRight">
-        <MudCard Elevation="0" Class="py-4 px-6">
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h2">@Localizer["Troubleshooting"]</MudText>
-                </CardHeaderContent>
-                <CardHeaderActions>
-                    @*Tooltip currently does not work here*@
-                    @*issue has been reported here: https://github.com/MudBlazor/MudBlazor/issues/5542*@
-                    <MudTooltip Text="@(Localizer["Close"])">
-                        <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Default" OnClick="@ToggleHelp"/>
-                    </MudTooltip>
-                </CardHeaderActions>
-            </MudCardHeader>
-            <MudCardContent>
-                <HelpDialog ToggleHelp="@ToggleHelp"/>
-            </MudCardContent>
-        </MudCard>
+        <span id="help-popup">
+            <MudCard Elevation="0" Class="py-4 px-6">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h2">@Localizer["Troubleshooting"]</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        @*Tooltip currently does not work here*@
+                        @*issue has been reported here: https://github.com/MudBlazor/MudBlazor/issues/5542*@
+                        <MudTooltip Text="@(Localizer["Close"])">
+                            <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Default" OnClick="@ToggleHelp"/>
+                        </MudTooltip>
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    <HelpDialog ToggleHelp="@ToggleHelp"/>
+                </MudCardContent>
+            </MudCard>
+        </span>
+
     </MudPopover>
 </span>
 
+
 @code {
 
-    [Parameter]
-    public bool IsHelpPopupOpen { get; set; }
 
-    [Parameter]
-    public Action ToggleHelp { get; set; }
-
-    private string _style;
-    private string _datahubEmail;
-        private const string TOOLTIP_TEXT = "Help";
-
-    protected override async Task OnInitializedAsync()
+    private async Task ToggleHelp()
     {
-        await base.OnInitializedAsync();
-
-        _datahubEmail = Configuration.GetValue<string>("EmailNotification:DatahubEmail") ?? "datahub@nrcan-rncan.gc.ca";
-
-        _style = new StyleBuilder()
-            .AddStyle("width", "550px")
-            .AddStyle("overflow-y", "auto")
-            .AddStyle("max-height", "800px")
-            .Build();
+        _isHelpPopupOpen = !_isHelpPopupOpen;
+        if (_isHelpPopupOpen)
+        {
+            _helpPopup = await _module.InvokeAsync<IJSObjectReference>("initialize", _dotNetHelper);
+        }
+        StateHasChanged();
     }
+
+    private bool _isHelpPopupOpen = false;
+    private IJSObjectReference _module;
+    private IJSObjectReference _helpPopup;
+    private DotNetObjectReference<HelpPopup> _dotNetHelper;
+
+    private string _style = new StyleBuilder()
+        .AddStyle("width", "550px")
+        .AddStyle("overflow-y", "auto")
+        .AddStyle("max-height", "800px")
+        .Build();
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
+                "./Layout/Topbar/HelpPopup.razor.js");
+
+            _dotNetHelper = DotNetObjectReference.Create(this);
+            
+        }
+    }
+
+
+    [JSInvokable]
+    public async Task CloseHelpPopup()
+    {
+        await ToggleHelp();
+    }
+    
+
+    public void Dispose()
+    {
+        _dotNetHelper?.Dispose();
+        _helpPopup?.DisposeAsync();
+    }
+
 
 }
