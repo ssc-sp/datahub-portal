@@ -17,7 +17,7 @@ public class TerraformWorkspace
     public const string DefaultVersion = "latest";
     public string? Name { get; set; }
     public string? Acronym { get; set; }
-    public double BudgetAmount { get; set; } = 2400;
+    public double BudgetAmount { get; set; } = 100;
     
     public string Version { get; set; } = DefaultVersion;
 
