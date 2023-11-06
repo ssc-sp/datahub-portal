@@ -10,7 +10,7 @@ public class LanguageTrainingModule : IDatahubModule
 {
     public void ConfigureDatabases(IServiceCollection serviceProvider, IConfiguration configuration)
     {
-        serviceProvider.ConfigureDbContext<LanguageTrainingDBContext>(configuration, "datahub-mssql-languagetraining", configuration.GetDriver());
+        serviceProvider.ConfigureDbContext<LanguageTrainingDBContext>(configuration, "datahub_mssql_languagetraining", configuration.GetDriver());
     }
 
     public void InitializeDatabases(DatahubModuleContext ctx, IConfiguration configuration)

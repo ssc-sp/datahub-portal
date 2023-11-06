@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading;
 using Datahub.Core.Data;
+using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Services.Notification;
@@ -242,6 +243,8 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeFormIgnore]
     [StringLength(150)]
     public string GitRepo_URL { get; set; }
+    
+    public List<ProjectCloudStorage> CloudStorages { get; set; }
 
     [AeFormIgnore]
     [NotMapped]

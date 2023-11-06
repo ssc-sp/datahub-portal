@@ -1,11 +1,11 @@
 @*SASTokenButton.razor*@
-
 @using Datahub.Application.Services;
 @using Datahub.Core.DataTransfers;
 @using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
 @using Datahub.Core.Services.Storage
+@using Datahub.Portal.Pages.Project.FileExplorer.Storage;
 @inject IJSRuntime _jsRuntime
-@inject IProjectDataRetrievalService _dataRetrievalService
+@inject NavigationManager NavigationManager
 
 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleSasButtonClick">
     <MudText>
@@ -22,13 +22,22 @@
     public EventCallback<List<(string, string)>> OnSubstitutionsChanged { get; set; }
 
     [Parameter]
+    public CloudStorageContainer Container { get; set; }
+
+    [Parameter]
     public int ExpiryDays { get; set; } = 5;
 
     [Parameter]
     public bool UseUploadCode { get; set; } = false;
 
+    // [Parameter]
+    // public string Container { get; set; } = "datahub";
+
     [Parameter]
-    public string Container { get; set; } = "datahub";
+    public bool GenerateAndCopy { get; set; } = false;
+
+    [Parameter]
+    public string TokenName { get; set; } = "Container Token";
 
     private bool _showingCopiedForSasButton;
     private string _token;
@@ -45,22 +54,28 @@
     private string GetButtonText()
     {
         if (string.IsNullOrWhiteSpace(_token))
-            return Localizer["Generate Container Token"];
+            return Localizer[$"Generate {TokenName}"];
 
         if (_showingCopiedForSasButton)
-            return Localizer["Copied!"];
+            return Localizer[$"Copied {TokenName}"];
 
-        return Localizer["Copy Container Token"];
+        return Localizer[$"Copy {TokenName}"];
     }
 
     private async Task HandleSasButtonClick()
     {
         if (string.IsNullOrWhiteSpace(_token))
         {
-            var uri = await _dataRetrievalService.GenerateSasTokenAsync(ProjectAcronym, Container, ExpiryDays);
+            var uri = await Container.StorageManager.GenerateSasTokenAsync(Container.Name, ExpiryDays);
             if (UseUploadCode)
             {
-                _token = CredentialEncoder.EncodeCredentials(new UploadCredentials() { SASToken = uri.ToString(), SASTokenExpiry = DateTimeOffset.Now.AddDays(ExpiryDays), WorkspaceCode = ProjectAcronym });
+                _token = CredentialEncoder.EncodeCredentials(new UploadCredentials()
+                    {
+                        SASToken = uri.ToString(),
+                        SASTokenExpiry = DateTimeOffset.Now.AddDays(ExpiryDays),
+                        WorkspaceCode = ProjectAcronym,
+                        DataHubEnvironment = NavigationManager.BaseUri
+                    });
                 await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> { (ResourceSubstitutions.DesktopCode, _token) });
             }
             else
@@ -70,7 +85,7 @@
             }
 
         }
-        else
+        if (!string.IsNullOrWhiteSpace(_token) || GenerateAndCopy)
         {
             _showingCopiedForSasButton = true;
             await _module.InvokeVoidAsync("copyTextToClipboard", _token);

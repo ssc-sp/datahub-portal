@@ -15,6 +15,10 @@ public static class TerraformVariables
     public const string OutputAzureDatabricksStatus = "azure_databricks_module_status";
     public const string OutputAzureDatabricksWorkspaceId = "azure_databricks_workspace_id";
     public const string OutputAzureDatabricksWorkspaceName = "azure_databricks_workspace_name";
+    
+    public const string OutputAzureAppServiceStatus = "azure_app_service_module_status";
+    public const string OutputAzureAppServiceId = "azure_app_service_id";
+    public const string OutputAzureAppServiceHostName = "azure_app_service_hostname";
 
     public const string OutputAzureResourceGroupName = "azure_resource_group_name";
 

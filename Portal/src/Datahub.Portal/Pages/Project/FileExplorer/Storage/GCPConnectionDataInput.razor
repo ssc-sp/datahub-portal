@@ -1,0 +1,63 @@
+﻿@* GCPConnectionDataInput.razor *@
+@using Datahub.Infrastructure.Services.Storage;
+
+<MudTextField @bind-Value=@GCPConnectionJson
+              Label=@Localizer["Service Account Credentials (JSON)"]
+              Variant=@Variant.Outlined
+              Lines=10
+              Immediate
+              Adornment=@Adornment.End
+              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
+
+@code {
+
+    [Parameter]
+    public string ConnectionData { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ConnectionDataChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnValidationChanged { get; set; }
+
+    private GCPConnectionData _gcpConnectionData = new();
+
+    private bool IsValid => _gcpConnectionData.IsValid;
+
+    private string GCPConnectionJson
+    {
+        get => _gcpConnectionData.ConnectionData;
+        set
+        {
+            _gcpConnectionData.ConnectionData = value;
+            Validate();
+        }
+    }
+
+    private void Validate()
+    {
+        if (OnValidationChanged.HasDelegate)
+        {
+            OnValidationChanged.InvokeAsync(IsValid);
+        }
+
+        if (ConnectionDataChanged.HasDelegate)
+        {
+            ConnectionDataChanged.InvokeAsync(_gcpConnectionData.ConnectionData);
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        var gcpData = CloudStorageConnectionDataDecoder.DecodeGCP(ConnectionData);
+        if (gcpData is not null)
+        {
+            _gcpConnectionData = gcpData;
+        }
+
+        Validate();
+
+        base.OnInitialized();
+    }
+
+}
