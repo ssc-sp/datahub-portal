@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Azure.Storage.Queues.Models;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
+using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using MediatR;
@@ -22,15 +23,17 @@ namespace Datahub.Functions
         private readonly ILogger<ProjectUsageNotifier> _logger;
         private readonly AzureConfig _config;
         private readonly QueuePongService _pongService;
+        private readonly EmailValidator _emailValidator;
 
         public ProjectUsageNotifier(ILoggerFactory loggerFactory, AzureConfig config, IMediator mediator, 
-            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, QueuePongService pongService)
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, QueuePongService pongService, EmailValidator emailValidator)
         {
             _logger = loggerFactory.CreateLogger<ProjectUsageNotifier>();
             _mediator = mediator;
             _dbContextFactory = dbContextFactory;
             _notificationPercents = ParseNotificationPercents(config.NotificationPercents ?? "25,50,80,100");
             _pongService = pongService;
+            _emailValidator = emailValidator;
             _config = config;
         }
 
@@ -117,7 +120,7 @@ namespace Datahub.Functions
 
             var contacts = project.Users
                 .Select(u => u.User_Name)
-                .Where(IsValidEmail)
+                .Where(_emailValidator.IsValidEmail)
                 .ToList();
 
             var budget = Convert.ToDouble(project.Project_Budget);
@@ -171,10 +174,7 @@ namespace Datahub.Functions
                            .ToArray();
         }
 
-        static bool IsValidEmail(string email)
-        {
-            return !string.IsNullOrEmpty(email) && Regex.IsMatch(email, @"^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$");
-        }
+        
 
         static ProjectUsageNotificationMessage? DeserializeQueueMessage(string message)
         {

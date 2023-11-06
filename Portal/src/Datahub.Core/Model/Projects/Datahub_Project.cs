@@ -11,6 +11,7 @@ using Datahub.Core.Model.Repositories;
 using Datahub.Core.Services.Notification;
 using Datahub.Shared.Entities;
 using Elemental.Components;
+using Microsoft.Graph.Models;
 using MudBlazor.Forms;
 using AeFormCategoryAttribute = MudBlazor.Forms.AeFormCategoryAttribute;
 using AeFormIgnoreAttribute = MudBlazor.Forms.AeFormIgnoreAttribute;
@@ -242,7 +243,21 @@ public class Datahub_Project : IComparable<Datahub_Project>
     }
     
     [AeFormIgnore]
-    public DateTime? ExpiryDate { get; set; }
+    public DateTime? OperationalWindow { get; set; }
+
+    private bool _hasCostRecovery = false;
+    [AeFormIgnore]
+    public bool HasCostRecovery
+    {
+        get
+        {
+            return _hasCostRecovery || (Project_ID <= 42);
+        }
+        set
+        {
+            _hasCostRecovery = value;
+        }
+    }
 
     [AeFormIgnore]
     [StringLength(128)]
