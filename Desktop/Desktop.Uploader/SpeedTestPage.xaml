@@ -1,30 +1,31 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:strings="clr-namespace:Datahub.Maui.Uploader.Resources"
              x:Class="Datahub.Maui.Uploader.SpeedTestPage"
-             Title="Speed Test">
+             Title="{x:Static strings:AppResources.SpeedTest}">
     <VerticalStackLayout
             Spacing="25"
             Padding="30,0"
             VerticalOptions="Center">
         <Label x:Name="SpeedTestResultLb" 
-               Text="Calculate your internet speed to estimate the duration of file uploads"
+               Text="{x:Static strings:AppResources.SpeedTest}"
                 SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I"
+                SemanticProperties.Description="{x:Static strings:AppResources.SpeedTest}"
                 FontSize="18"
                 HorizontalOptions="Center" />
         <ActivityIndicator x:Name="SpeedTestActivity" IsVisible="false"/>
         <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
         <Button                
                 x:Name="StartSpeedTestBtn"
-                Text="Start Speed Test"                
-                SemanticProperties.Hint="Counts the number of times you click"
+                Text="{x:Static strings:AppResources.StartSpeedTest}"                
+                SemanticProperties.Hint="{x:Static strings:AppResources.StartSpeedTest}"
                 Clicked="StartSpeedTestBtn_Clicked"
                 HorizontalOptions="Center" />
         <Button                
                 x:Name="SkipBtn"
-                Text="Skip Speed Test"                
-                SemanticProperties.Hint="Counts the number of times you click"
+                Text="{x:Static strings:AppResources.SkipSpeedTest}"                
+                SemanticProperties.Hint="{x:Static strings:AppResources.SkipSpeedTest}"
                 Clicked="SkipBtn_Clicked"
                 HorizontalOptions="Center" />
         </HorizontalStackLayout>

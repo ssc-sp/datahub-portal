@@ -36,8 +36,8 @@ else
         _loading = true;
         try
         {
-            var resourceRoot = await _docService.GetLanguageRoot(DocumentationGuide.UserGuide, _cultureService.Culture);
-            _currentDocument = string.IsNullOrEmpty(PagePath) ? resourceRoot : _docService.LoadPageFromPath(PagePath, _cultureService.IsFrench);
+            var resourceRoot = await _docService.GetLanguageRoot(DocumentationGuideRootSection.UserGuide, _cultureService.Culture);
+            _currentDocument = string.IsNullOrEmpty(PagePath) ? resourceRoot : (await _docService.LoadPageFromPath(PagePath, _cultureService.IsFrench));
             if (_currentDocument is null)
             {
                 _docService.LogNotFoundError(PagePath, resourceRoot.Title);

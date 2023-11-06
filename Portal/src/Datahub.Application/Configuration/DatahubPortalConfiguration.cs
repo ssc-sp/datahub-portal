@@ -27,7 +27,6 @@ public class DatahubPortalConfiguration
     public Hosting Hosting { get; set; } = new();
     public EmailNotification EmailNotification { get; set; } = new();
     public PublicFileSharing PublicFileSharing { get; set; } = new();
-    public DesktopFileUploader DesktopFileUploader { get; set; } = new();
     public string PortalRunAsManagedIdentity { get; set; } = "disabled";
     public string ResourcePrefix { get; set; } = "fsdh";
     public bool CentralizedProjectSecrets { get; set; } = false;
@@ -153,26 +152,27 @@ public class AdoOrg
 
 public class ConnectionStrings
 {
-    [JsonProperty("datahub-mssql-project")]
+    [JsonProperty("datahub_mssql_project")]
     public string? DatahubMsSqlProject { get; set; }
 
-    [JsonProperty("datahub-mssql-pip")] public string? DatahubMsSqlPip { get; set; }
+    [JsonProperty("datahub_mssql_pip")] public string? DatahubMsSqlPip { get; set; }
 
-    [JsonProperty("datahub-mssql-etldb")] public string? DatahubMsSqlEtldb { get; set; }
+    [JsonProperty("datahub_mssql_etldb")] public string? DatahubMsSqlEtldb { get; set; }
 
-    [JsonProperty("datahub-mssql-finance")]
+    [JsonProperty("datahub_mssql_finance")]
     public string? DatahubMsSqlFinance { get; set; }
 
-    [JsonProperty("datahub-mssql-webanalytics")]
+    [JsonProperty("datahub_mssql_webAnalytics")]
     public string? DatahubMsSqlWebAnalytics { get; set; }
 
-    [JsonProperty("datahub-mssql-metadata")]
+    [JsonProperty("datahub_mssql_metadata")]
     public string? DatahubMsSqlMetadata { get; set; }
 
-    [JsonProperty("DATAHUB-MSSQL-LANGUAGETRAINING")]
+    [JsonProperty("DATAHUB_MSSQL_LANGUAGETRAINING")]
     public string? DatahubMsSqlLanguageTraining { get; set; }
 
-    [JsonProperty("datahub-cosmosdb")] public string? DatahubCosmosDb { get; set; }
+    [JsonProperty("datahub_cosmosdb")] 
+    public string? DatahubCosmosDb { get; set; }
 }
 
 public class EmailNotification
@@ -224,12 +224,6 @@ public class PublicFileSharing
     public string OpenDataApprovalPdfFormIdParam { get; set; } = null!;
     public string PublicFileSharingDomain { get; set; } = null!;
 }
-
-public record DesktopFileUploader
-{
-    public bool DisplayDesktopUploaderTab { get; set; } = false;
-}
-
 public class ReverseProxy
 {
     public bool Enabled { get; set; }
