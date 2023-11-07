@@ -78,7 +78,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     
     public DbSet<Project_Role> Project_Roles { get; set; }
 
-    public DbSet<Project_Inactivity_Notifications> Project_Inactivity_Notifications { get; set; }
+    public DbSet<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
     
     public DbSet<DocumentationResource> DocumentationResources { get; set; }
     
@@ -213,7 +213,12 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .WithMany(p => p.Divisions)
             .HasForeignKey(f => f.DivisionId)
             .OnDelete(DeleteBehavior.NoAction);
-        
+
+        modelBuilder.Entity<Datahub_Project>()
+            .HasMany(w => w.ProjectInactivityNotifications)
+            .WithOne(p => p.Project)
+            .HasForeignKey(p => p.Project_ID)
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Project_Whitelist>(entity =>
         {

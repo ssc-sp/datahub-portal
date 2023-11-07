@@ -5,6 +5,6 @@ namespace Datahub.Application.Services.Projects
 {
     public interface IProjectInactivityNotificationService
     {
-        public Task<EntityEntry<Project_Inactivity_Notifications>> AddInactivityNotification(int projectId, DateTime notificationDate, int daysBeforeDeletion, string sentTo, CancellationToken ct);
+        public Task<EntityEntry<ProjectInactivityNotifications>> AddInactivityNotification(int projectId, DateTime notificationDate, int daysBeforeDeletion, string sentTo, CancellationToken ct);
     }
 }

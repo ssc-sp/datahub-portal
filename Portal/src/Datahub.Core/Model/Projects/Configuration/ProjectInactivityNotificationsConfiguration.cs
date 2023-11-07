@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace Datahub.Core.Model.Projects.Configuration
 {
     public class
-        ProjectInactivityNotificationsConfiguration : IEntityTypeConfiguration<Project_Inactivity_Notifications>
+        ProjectInactivityNotificationsConfiguration : IEntityTypeConfiguration<ProjectInactivityNotifications>
     {
-        public void Configure(EntityTypeBuilder<Project_Inactivity_Notifications> builder)
+        public void Configure(EntityTypeBuilder<ProjectInactivityNotifications> builder)
         {
-            builder.ToTable("Project_Inactivity_Notifications");
+            builder.ToTable("ProjectInactivityNotifications");
 
             builder.HasKey(e => e.Project_ID);
 
