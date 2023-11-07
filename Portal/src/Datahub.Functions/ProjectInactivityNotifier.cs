@@ -66,7 +66,7 @@ namespace Datahub.Functions
             using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
 
             // get project
-            var project = await ctx.Projects.Where(x => x.Project_ID == message.ProjectId).FirstOrDefaultAsync(ct);
+            var project = await ctx.Projects.AsNoTracking().Where(x => x.Project_ID == message.ProjectId).FirstOrDefaultAsync(ct);
 
             // get project info
             var lastLoginDate = project.LastLoginDate ?? project.Last_Updated_DT;
@@ -98,7 +98,7 @@ namespace Datahub.Functions
             // if project to be deleted, send to terraform delete queue
             if (workspaceDefinition != null)
             {
-                await _resourceMessagingService.SendToTerraformDeleteQueue(workspaceDefinition);
+                await _resourceMessagingService.SendToTerraformDeleteQueue(workspaceDefinition, project.Project_ID);
             }
         }
 
@@ -135,6 +135,7 @@ namespace Datahub.Functions
             var ctx = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
             var project = await ctx.Projects
+                .AsNoTracking()
                 .Where(e => e.Project_ID == projectId)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -149,7 +150,7 @@ namespace Datahub.Functions
             return (contacts, project.Project_Acronym_CD);
         }
 
-        private EmailRequestMessage GetEmailRequestMessage(int daysUntilDeletion, int daysSinceLastLogin,
+        public EmailRequestMessage GetEmailRequestMessage(int daysUntilDeletion, int daysSinceLastLogin,
             string acronym, List<string> contacts)
         {
             var (subjectTemplate, bodyTemplate) = TemplateUtils.GetEmailTemplate("project_inactive_alert.html");
@@ -157,8 +158,8 @@ namespace Datahub.Functions
             if (subjectTemplate is null || bodyTemplate is null)
                 _logger.LogWarning("Email template file missing!");
 
-            subjectTemplate ??= "Inactive workspace ({ws})";
-            bodyTemplate ??= "<p>Your workspace ({ws}) has been inactive for {days} days.</p>";
+            subjectTemplate ??= "FSDH - Inactive workspace ({ws})";
+            bodyTemplate ??= "<p>Your workspace ({ws}) has been inactive for {inactive} days.</p>";
 
             var subject = subjectTemplate
                 .Replace("{ws}", acronym);

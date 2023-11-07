@@ -226,19 +226,16 @@
         {
             try
             {
-                var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(ProjectAcronymParam);
-                await _resourceMessagingService.SendToTerraformDeleteQueue(workspaceDefinition);
+                var userEmail = await _userInformationService.GetUserEmail();
+                var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(ProjectAcronymParam, requestingUserEmail: userEmail);
+                await _resourceMessagingService.SendToTerraformDeleteQueue(workspaceDefinition, _project.Project_ID);
+                _snackbar.Add("Workspace succesfully queued for deletion", Severity.Success);
             }
             catch (Exception e)
             {
                 _logger.LogError(e.Message);
                 _snackbar.Add("Error deleting workspace", Severity.Error);
             }
-            finally
-            {
-                _snackbar.Add("Workspace succesfully queued for deletion", Severity.Success);
-            }
-            
         }
     }
 
