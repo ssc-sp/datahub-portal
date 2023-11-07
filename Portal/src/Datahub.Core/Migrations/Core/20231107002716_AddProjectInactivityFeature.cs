@@ -6,13 +6,20 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Datahub.Core.Migrations.Core
 {
     /// <inheritdoc />
-    public partial class AddProjectInactivityNotifications : Migration
+    public partial class AddProjectInactivityFeature : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<bool>(
+                name: "HasCostRecovery",
+                table: "Projects",
+                type: "bit",
+                nullable: false,
+                defaultValue: false);
+
             migrationBuilder.AddColumn<DateTime>(
-                name: "ExpiryDate",
+                name: "OperationalWindow",
                 table: "Projects",
                 type: "datetime2",
                 nullable: true);
@@ -40,7 +47,11 @@ namespace Datahub.Core.Migrations.Core
                 name: "Project_Inactivity_Notifications");
 
             migrationBuilder.DropColumn(
-                name: "ExpiryDate",
+                name: "HasCostRecovery",
+                table: "Projects");
+
+            migrationBuilder.DropColumn(
+                name: "OperationalWindow",
                 table: "Projects");
         }
     }

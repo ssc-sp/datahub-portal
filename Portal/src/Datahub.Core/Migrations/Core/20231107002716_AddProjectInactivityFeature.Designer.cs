@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    [Migration("20231103152134_AddProjectInactivityNotifications")]
-    partial class AddProjectInactivityNotifications
+    [Migration("20231107002716_AddProjectInactivityFeature")]
+    partial class AddProjectInactivityFeature
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1299,15 +1299,15 @@ namespace Datahub.Core.Migrations.Core
                     b.Property<string>("Division_Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("ExpiryDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("GC_Docs_URL")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("GitRepo_URL")
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
+
+                    b.Property<bool>("HasCostRecovery")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("Initial_Meeting_DT")
                         .HasColumnType("datetime2");
@@ -1338,6 +1338,9 @@ namespace Datahub.Core.Migrations.Core
 
                     b.Property<int>("OnboardingApplicationId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("OperationalWindow")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("PowerBI_URL")
                         .HasMaxLength(400)
