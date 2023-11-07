@@ -5,15 +5,14 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDialogService _dialogService
 @inject ILogger<FileExplorerPage> _logger
+@inject CloudStorageManagerFactory _cloudStorageManagerFactory
 @page "/w/{ProjectAcronymParam}/filelist"
+@using Datahub.Application.Services.Storage;
 @using Datahub.Core.Components.PageBanner
 @using Datahub.Core.Model.CloudStorage;
-@using Datahub.Core.Services.Storage
 @using Datahub.Infrastructure.Services.Storage;
 @using Datahub.Portal.Components.Dialogs;
-@using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages;
 @using Datahub.Portal.Pages.Project.FileExplorer.Storage;
-@using Microsoft.Graph
 @using Microsoft.Graph.Models
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
@@ -115,8 +114,10 @@
 
         _projectName = _project?.ProjectName;
         _projectId = _project?.Project_ID;
-
+        containersLoaded = false;
         await LoadContainersAsync();
+        containersLoaded = true;
+        StateHasChanged();
     }
 
     private async Task LoadContainersAsync()
@@ -130,50 +131,36 @@
         var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
         var containerNames = await projectStorageManager.GetContainersAsync();
 
-        _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(accountName, c, CloudStorageProviderType.Azure, projectStorageManager)));
-
+        _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(accountName, c, CloudStorageProviderType.Azure, projectStorageManager)));        
         var dbStorage = await GetCloudStorages();
-        var failedStorages = new List<ProjectCloudStorage>();
         foreach (var stg in dbStorage.Where(s => s.Enabled || _isUserProjectAdmin))
         {
-            try
+            try 
             {
-                var variables = stg.ConnectionData.Split('|');
-                if (stg.Provider == "Azure")
+                var storageManager = _cloudStorageManagerFactory.CreateCloudStorageManager(stg);
+                if (storageManager is null)
                 {
-                    var azConnectionData = CloudStorageConnectionDataDecoder.DecodeAzure(stg.ConnectionData);
-                    if (azConnectionData is null)
-                    {
-                        continue;
-                    }
-
-                    var stAccountName = string.IsNullOrEmpty(stg.Name) ? azConnectionData.AccountName : stg.Name;
-
-                    var storageManager = new AzureCloudStorageManager(azConnectionData.AccountName, azConnectionData.AccountKey);
-                    containerNames = await storageManager.GetContainersAsync();
-                    _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.Azure, 
-                        storageManager, stg.Id, stg.Enabled)));
+                    continue;
                 }
-                else if (stg.Provider == "AWS")
-                {
-                    var awsConnectionData = CloudStorageConnectionDataDecoder.DecodeAWS(stg.ConnectionData);
-                    if (awsConnectionData is null)
-                    {
-                        continue;
-                    }
 
-                    var stAccountName = string.IsNullOrEmpty(stg.Name) ? awsConnectionData.BucketName : stg.Name;
-
-                    var storageManager = new AWSCloudStorageManager(stAccountName, awsConnectionData.AccessKeyId, awsConnectionData.AccessKeySecret, 
-                        awsConnectionData.Region, awsConnectionData.BucketName);
-                    containerNames = await storageManager.GetContainersAsync();
-                    _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(stAccountName, c, CloudStorageProviderType.AWS, 
-                        storageManager, stg.Id, stg.Enabled)));
-                }
-            } catch (Exception ex)
+                containerNames = await storageManager.GetContainersAsync();
+                _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(storageManager, c, stg.Id, stg.Enabled)));
+            }
+            catch (Exception ex)
             {
-                failedStorages.Add(stg);
                 _logger.LogCritical(ex, $"cannot access containers from {stg.Name} (ID:{stg.Id})");
+                try
+                {
+                    await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
+                    ctx.Attach(stg);
+                    stg.Enabled = false;
+                    await ctx.SaveChangesAsync();
+                } 
+                catch (Exception ex2)
+                {
+                    _logger.LogCritical(ex2, $"error disabling containers from {stg.Name} (ID:{stg.Id})");                    
+                }
+
             }
         }
 
@@ -194,7 +181,8 @@
 
     private bool MultiContainer => _cloudContainers?.Count > 1;
     private bool _isUserProjectAdmin = false;
-    private bool ShouldShowContainerDropdown => MultiContainer || _isUserProjectAdmin;
+    private bool containersLoaded = false;
+    private bool ShouldShowContainerDropdown => containersLoaded && (MultiContainer || _isUserProjectAdmin);
 
     private async Task<List<ProjectCloudStorage>> GetCloudStorages()
     {
@@ -214,6 +202,7 @@
         {
             CloudStorageProviderType.Azure => Localizer["Configure Azure Storage"],
             CloudStorageProviderType.AWS => Localizer["Configure AWS Storage"],
+            CloudStorageProviderType.GCP => Localizer["Configure GCP Storage"],
             _ => Localizer["Configure Storage"]
         };
 

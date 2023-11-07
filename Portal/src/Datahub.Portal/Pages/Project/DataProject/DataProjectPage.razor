@@ -39,65 +39,15 @@
                     <ProjectEngagements/>
                 }
                 <ProjectCatalog IsFrench="@_isFrench"/>
+
                 <ProjectToolListing/>
+
+
             </MudItem>
             <MudItem sm="12" md="5" lg="4">
                 <ProjectUserCardList ProjectAcronym="@ProjectAcronymParam"/>
-            </MudItem>
 
-            @if (ReverseProxyEnabled)
-            {
-                <MudItem sm="12">
-                    <MudCard>
-                        <MudCardHeader>
-                            <CardHeaderAvatar>
-                                <MudIcon Icon="@Icons.Material.Filled.Web" />
-                            </CardHeaderAvatar>
-                            <CardHeaderContent>
-                                <MudText Typo="Typo.h5">@Localizer["Web Application"]</MudText>
-                            </CardHeaderContent>                            
-                        </MudCardHeader>
-                        <MudCardContent>
-                            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
-                                <MudStack>
-                                    <MudSwitch T="bool"
-                                               CheckedChanged="HandleCheckedChanged"
-                                               Checked="WebAppEnabled"
-                                               Label="Enabled"
-                                               Color="Color.Info" />
-                                    <MudTextField @bind-Value="@_project.WebApp_URL" 
-                                                  T="string" 
-                                                  Label="URL" 
-                                                  HelperText=@Localizer["Note: It takes up to 5 minutes for the reverse proxy to take your changes."]
-                                                  Variant="Variant.Outlined" />
-                                </MudStack>
-                            </DatahubAuthView>
-                        </MudCardContent>
-                        <MudCardActions>
-                            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
-                                <MudButton Variant="Variant.Text"
-                                           Color="Color.Primary"
-                                           Size="Size.Small"
-                                           EndIcon="@Icons.Material.Filled.Save"
-                                           Disabled="WebAppSaveDisabled"
-                                           OnClick=@HandleSaveChanges>
-                                    @Localizer["Save"]
-                                </MudButton>
-                            </DatahubAuthView>
-                            <MudButton Href=@GetAppUrl() 
-                                       Target=@ProjectAcronymParam 
-                                       Variant="Variant.Text" 
-                                       Color="Color.Primary"
-                                       Size="Size.Small"
-                                       Class="ml-4"
-                                       EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight"
-                                       Disabled="!WebAppEnabled">
-                                @Localizer["Visit"]
-                            </MudButton>
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
-            }
+            </MudItem>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead">
                 <MudButton Variant="Variant.Text"
                            Color="Color.Error"
@@ -160,14 +110,8 @@
         _clientEngagements = await projectContext.Client_Engagements.Where(ce => ce.Project == _project && ce.Is_Engagement_Active).ToListAsync();
         await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
 
-        // record recent link
+    // record recent link
         await RecordRecentLink();
-
-        // initialize the shiny web app url
-        if (_project.WebAppEnabled != true && string.IsNullOrWhiteSpace(_project.WebApp_URL))
-        {
-            _project.WebApp_URL = GetDefaultAppUrl();
-        }        
     }
 
     private bool WebAppEnabled => ReverseProxyEnabled && _project?.WebAppEnabled == true;
@@ -186,27 +130,6 @@
         };
 
         await _userLocationManagerService.RegisterNavigation(userRecentLink);
-    }
-
-    private async Task HandleSaveChanges()
-    {
-        await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
-
-        var project = await ctx.Projects
-            .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
-            .FirstOrDefaultAsync();
-
-        project.WebAppEnabled = _project.WebAppEnabled;
-        project.WebApp_URL = _project.WebApp_URL;
-
-        await ctx.SaveChangesAsync();
-    }
-
-    private async Task HandleCheckedChanged(bool value)
-    {
-        _project.WebApp_URL ??= GetDefaultAppUrl();
-        _project.WebAppEnabled = value;
-        await InvokeAsync(StateHasChanged);
     }
     
     private async Task OpenDeletionDialog()
@@ -237,13 +160,5 @@
                 _snackbar.Add("Error deleting workspace", Severity.Error);
             }
         }
-    }
-
-    private string GetAppUrl() => $"/{Configuration.ReverseProxy.BasePath}/{ProjectAcronymParam}/";
-
-    private string GetDefaultAppUrl()
-    {
-        var appId = $"fsdh-proj-{_project.Project_Acronym_CD}-shiny-{Configuration.Hosting.EnvironmentName}".ToLower();
-        return $"https://{appId}.azurewebsites.net";
     }
 }
