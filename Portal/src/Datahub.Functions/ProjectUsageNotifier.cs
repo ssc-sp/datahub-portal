@@ -78,7 +78,7 @@ namespace Datahub.Functions
             // get the matching notification %
             var notificationPerc = GetNotificationPercent(currentPercent);
                         
-            // check if notification is not needed
+            // check if notification is not needed 
             if (notificationPerc == 0 || details.Credits.PercNotified == notificationPerc)
             {
                 return;
