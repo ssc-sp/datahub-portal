@@ -11,6 +11,8 @@ public class TerraformTemplate
     public const string AzureStorageBlob = "azure-storage-blob";
     public const string AzureDatabricks = "azure-databricks";
     public const string AzureVirtualMachine = "azure-virtual-machine";
+    public const string AzureAppService = "azure-app-service";
+    public const string AzurePostgres = "azure-postgres";
     public const string ContactUs = "contact-us";
 
     public string Name { get; set; }
@@ -37,6 +39,8 @@ public class TerraformTemplate
             NewProjectTemplate => LatestFromName(NewProjectTemplate),
             AzureStorageBlob => LatestFromName(AzureStorageBlob),
             AzureDatabricks => LatestFromName(AzureDatabricks),
+            AzureAppService => LatestFromName(AzureDatabricks),
+            AzurePostgres => LatestFromName(AzurePostgres),
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }
@@ -57,6 +61,15 @@ public class TerraformTemplate
             {
                 LatestFromName(AzureStorageBlob),
                 LatestFromName(AzureDatabricks),
+            },
+            AzureAppService => new List<TerraformTemplate>()
+            {
+                LatestFromName(AzureStorageBlob),
+                LatestFromName(AzureAppService),
+            },
+            AzurePostgres => new List<TerraformTemplate>()
+            {
+                LatestFromName(AzurePostgres),
             },
             VariableUpdate => new List<TerraformTemplate>()
             {
