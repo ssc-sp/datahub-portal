@@ -52,7 +52,7 @@ namespace Datahub.Functions
 
         private List<int> GetProjects(DatahubProjectDBContext ctx)
         {
-            return ctx.Projects.Select(x => x.Project_ID).Distinct().ToList();
+            return ctx.Projects.AsNoTracking().Select(x => x.Project_ID).Distinct().ToList();
         }
 
         private ProjectInactivityNotificationMessage DeserializeMessage(int projectId)
