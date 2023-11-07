@@ -110,16 +110,9 @@ public class Testing
 
     internal static async Task<int> SetupNewProjectTemplate(string workspaceAcronym)
     {
-        var versions = await _repositoryService.GetModuleVersions();
-        var latestVersion = versions.Max();
-        
-        if(latestVersion == null)
-            throw new Exception("No versions found for module repository");
-        
         var workspace = new TerraformWorkspace
         {
-            Acronym = workspaceAcronym,
-            Version = $"v{latestVersion.ToString()}",
+            Acronym = workspaceAcronym
         };
         try
         {

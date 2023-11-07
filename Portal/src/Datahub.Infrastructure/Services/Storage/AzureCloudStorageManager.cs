@@ -13,13 +13,11 @@ public class AzureCloudStorageManager : ICloudStorageManager
     private readonly string _accountName;
     private readonly string _accountKey;
     private readonly string _connectionString;
-    private readonly string _displayName;
 
-    public AzureCloudStorageManager(string accountName, string accountKey, string? displayName = default)
+    public AzureCloudStorageManager(string accountName, string accountKey)
     {
         _accountName = accountName;
         _accountKey = accountKey;
-        _displayName = displayName ?? _accountName;
         _connectionString = @$"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
     }
 
@@ -189,10 +187,6 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     public bool AzCopyEnabled => true;
     public bool DatabrickEnabled => true;
-
-    public CloudStorageProviderType ProviderType => CloudStorageProviderType.Azure;
-
-    public string DisplayName => _displayName;
 
     static void ValidateContainerName(string container)
     {

@@ -21,7 +21,6 @@ public struct TelemetryEvents
     public const string UserLoginMultipleDays = "user_daily_login";
     public const string UserViewFileExplorer = "user_view_file_explorer";
     public const string UserOpenDatabricks = "user_click_databricks_link";
-    public const string UserOpenAzureWebApp = "user_click_azure_web_app_link";
     public const string UserVisitResources = "user_visit_resources";
     public const string UserViewProject = "user_view_project";
     public const string UserViewProjectNotMemberOf = "user_view_project_not_member_of";

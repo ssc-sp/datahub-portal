@@ -26,15 +26,6 @@ public interface ICloudStorageManager
 
     bool AzCopyEnabled { get; }
     bool DatabrickEnabled { get; }
-    CloudStorageProviderType ProviderType { get; }
-    string DisplayName { get; }
 }
 
 public record DfsPage(List<string> Folders, List<FileMetaData> Files, string ContinuationToken);
-
-public enum CloudStorageProviderType
-{
-    Azure,
-    AWS,
-    GCP
-}

@@ -141,7 +141,6 @@ public class TerraformOutputHandler
             await ProcessProjectStatus(outputVariables);
             await ProcessAzureStorageBlob(outputVariables);
             await ProcessAzureDatabricks(outputVariables);
-            await ProcessAzureWebApp(outputVariables);
             transactionScope.Complete();
         }
         catch (Exception e)
@@ -149,82 +148,6 @@ public class TerraformOutputHandler
             _logger.LogError(e, "Error processing output variables");
             throw;
         }
-    }
-
-    private async Task ProcessAzureWebApp(IReadOnlyDictionary<string,TerraformOutputVariable> outputVariables)
-    {
-        var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
-        var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureAppService);
-
-        var projectRequest = _projectDbContext.Project_Requests
-            .Include(x => x.Project)
-            .Where(x => x.Project.Project_Acronym_CD == projectAcronym.Value)
-            .Where(x => !x.Is_Completed.HasValue)
-            .FirstOrDefault(x => x.ServiceType == terraformServiceType);
-
-        if (projectRequest is null)
-        {
-            _logger.LogInformation(
-                "Project request not found for project acronym {ProjectAcronymValue} and service type {TerraformServiceType}",
-                projectAcronym.Value, terraformServiceType);
-            return;
-        }
-
-        var azureAppServiceStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureAppServiceStatus].Value);
-        if (azureAppServiceStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
-        {
-            projectRequest.Is_Completed = DateTime.Now;
-        }
-        else
-        {
-            _logger.LogInformation("Azure App Service status is not completed. Status: {Status}", azureAppServiceStatus);
-        }
-
-        var projectResource = _projectDbContext.Project_Resources2
-            .Where(x => x.ProjectId == projectRequest.Project.Project_ID)
-            .FirstOrDefault(x => x.ResourceType == terraformServiceType);
-
-        if (projectResource is null)
-        {
-            var inputParameters = new Dictionary<string, string>();
-            projectResource = RequestManagementService.CreateEmptyProjectResource(projectRequest, inputParameters);
-            _projectDbContext.Project_Resources2.Add(projectResource);
-        }
-
-        if (!projectResource.TimeCreated.HasValue)
-        {
-            var appServiceId = outputVariables[TerraformVariables.OutputAzureAppServiceId];
-            var appServiceHostName = outputVariables[TerraformVariables.OutputAzureAppServiceHostName];
-
-            var jsonContent = new JsonObject
-            {
-                ["app_service_id"] = appServiceId.Value,
-                ["app_service_hostname"] = appServiceHostName.Value,
-            };
-
-            var inputJsonContent = new JsonObject();
-
-            projectResource.TimeCreated = DateTime.Now;
-            projectResource.JsonContent = jsonContent.ToString();
-            projectResource.InputJsonContent = inputJsonContent.ToString();
-            
-            var project = await _projectDbContext.Projects
-                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
-
-            if (project != null)
-            {
-                project.WebApp_URL = appServiceHostName.Value;
-                project.WebAppEnabled = true;
-            }
-        }
-        else
-        {
-            _logger.LogInformation(
-                "Project resource already exists for project {ProjectAcronym} and service type {ServiceType}",
-                projectAcronym.Value, terraformServiceType);
-        }
-
-        await _projectDbContext.SaveChangesAsync();
     }
 
     private async Task ProcessAzureDatabricks(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
@@ -247,7 +170,7 @@ public class TerraformOutputHandler
         }
 
         var databricksStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureDatabricksStatus].Value);
-        if (databricksStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
+        if (databricksStatus == TerraformOutputStatus.Completed)
         {
             projectRequest.Is_Completed = DateTime.Now;
         }
@@ -317,7 +240,7 @@ public class TerraformOutputHandler
 
         var storageBlobStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
-        if (storageBlobStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
+        if (storageBlobStatus == TerraformOutputStatus.Completed)
         {
             projectRequest.Is_Completed = DateTime.Now;
         }

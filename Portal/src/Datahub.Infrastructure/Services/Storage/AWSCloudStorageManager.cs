@@ -24,21 +24,9 @@ public class AWSCloudStorageManager : ICloudStorageManager
         _bucketName = bucketName;
     }
 
-    private async Task TestConnection()
+    public Task<List<string>> GetContainersAsync()
     {
-        using var s3Client = GetClient();
-        var request = new ListObjectsV2Request()
-        {
-            BucketName = _bucketName,
-            MaxKeys = 1
-        };
-        await s3Client.ListObjectsV2Async(request);
-    }
-
-    public async Task<List<string>> GetContainersAsync()
-    {
-        await TestConnection();
-        return await Task.FromResult(new List<string>() { _containerName });
+        return Task.FromResult(new List<string>() { _containerName });
     }
 
     public async Task<DfsPage> GetDfsPagesAsync(string container, string folderPath, string? continuationToken = null)
@@ -191,10 +179,6 @@ public class AWSCloudStorageManager : ICloudStorageManager
 
     public bool AzCopyEnabled => false;
     public bool DatabrickEnabled => false;
-
-    public CloudStorageProviderType ProviderType => CloudStorageProviderType.AWS;
-
-    public string DisplayName => _containerName;
 
     private const long MaxFileSize = 10 * 1024 * 1024 * 1024L; // 10GB
 

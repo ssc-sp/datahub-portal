@@ -1,4 +1,4 @@
-﻿namespace Datahub.Infrastructure.Services.Storage
+﻿namespace Datahub.Portal.Pages.Project.FileExplorer.Storage
 {
     public static class CloudStorageConnectionDataDecoder
     {
@@ -37,18 +37,6 @@
             else
             {
                 return null;
-            }
-        }
-
-        public static GCPConnectionData DecodeGCP(string connectionData)
-        {
-            if (string.IsNullOrEmpty(connectionData))
-            {
-                return null;
-            }
-            else
-            {
-                return new GCPConnectionData() { ConnectionData = connectionData };
             }
         }
     }

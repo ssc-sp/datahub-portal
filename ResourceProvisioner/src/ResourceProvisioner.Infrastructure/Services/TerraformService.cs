@@ -22,6 +22,16 @@ public class TerraformService : ITerraformService
     private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
     private readonly IConfiguration _configuration;
 
+    private readonly List<string> _alwaysOverwriteVariables = new()
+    {
+        TerraformVariables.DatabricksProjectLeadUsers,
+        TerraformVariables.DatabricksAdminUsers,
+        TerraformVariables.DatabricksProjectUsers,
+        TerraformVariables.StorageContributorUsers,
+        TerraformVariables.BudgetAmount,
+        TerraformVariables.StorageSizeLimitInTb
+    };
+
     public TerraformService(ILogger<TerraformService> logger,
         ResourceProvisionerConfiguration resourceProvisionerConfiguration, IConfiguration configuration)
     {
@@ -151,7 +161,7 @@ public class TerraformService : ITerraformService
         }
     }
 
-    private Dictionary<string, (string, bool)> FindMissingVariables(TerraformTemplate template,
+    private Dictionary<string, string> FindMissingVariables(TerraformTemplate template,
         TerraformWorkspace terraformWorkspace)
     {
         var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
@@ -166,17 +176,17 @@ public class TerraformService : ITerraformService
         return missingVariables;
     }
 
-    private static Dictionary<string, (string, bool)> FindExistingVariables(string projectPath)
+    private static Dictionary<string, string> FindExistingVariables(string projectPath)
     {
         var files = Directory.GetFiles(projectPath, "*.auto.tfvars.json", SearchOption.TopDirectoryOnly);
         var existingVariables = files.Select(file => JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(file)))
             .SelectMany(jsonNode => jsonNode.EnumerateObject())
-            .ToDictionary(jsonProperty => jsonProperty.Name, jsonProperty => (jsonProperty.Value.ValueKind.ToString(), true));
+            .ToDictionary(jsonProperty => jsonProperty.Name, jsonProperty => jsonProperty.Value.ValueKind.ToString());
         return existingVariables;
     }
 
     private async Task WriteVariablesFile(TerraformTemplate template, TerraformWorkspace terraformWorkspace,
-        Dictionary<string, (string Value, bool isRequired)> missingVariables)
+        Dictionary<string, string> missingVariables)
     {
         var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
         var variablesFilePath = Path.Join(projectPath, $"{template.Name}.auto.tfvars.json");
@@ -186,14 +196,14 @@ public class TerraformService : ITerraformService
             var preExistingVariables =
                 JsonSerializer.Deserialize<JsonObject>(
                     await File.ReadAllTextAsync(variablesFilePath)) ?? new JsonObject();
-            foreach (var (key, (value, isRequired)) in missingVariables)
+            foreach (var (key, value) in missingVariables)
             {
-                preExistingVariables.Remove(key);
-                var variableValue = ComputeVariableValue(terraformWorkspace, key, value, isRequired);
-                if (variableValue != null)
+                if (_alwaysOverwriteVariables.Contains(key))
                 {
-                    preExistingVariables.TryAdd(key, variableValue);
+                    preExistingVariables.Remove(key);
                 }
+
+                preExistingVariables.TryAdd(key, ComputeVariableValue(terraformWorkspace, key, value));
             }
 
             await File.WriteAllTextAsync(variablesFilePath, JsonSerializer.Serialize(preExistingVariables));
@@ -201,20 +211,13 @@ public class TerraformService : ITerraformService
         else
         {
             await File.WriteAllTextAsync(variablesFilePath,
-                JsonSerializer.Serialize(missingVariables
-                    .Select(missingVariable => (
-                        missingVariable.Key, 
-                        ComputeVariableValue(terraformWorkspace, missingVariable.Key, missingVariable.Value.Value, missingVariable.Value.isRequired)))
-                    .Where(mv => mv.Item2 != null)
-                    .ToDictionary(mv => mv.Key, mv => mv.Item2))
-                );
+                JsonSerializer.Serialize(missingVariables.ToDictionary(mv => mv.Key,
+                    mv => ComputeVariableValue(terraformWorkspace, mv.Key, mv.Value))));
         }
     }
 
-    // ReSharper disable once ReturnTypeCanBeNotNullable
-    // This can return null if the variable is not required
-    private JsonNode? ComputeVariableValue(TerraformWorkspace terraformWorkspace, string variableName,
-        string variableType, bool isRequired = false)
+    private JsonNode ComputeVariableValue(TerraformWorkspace terraformWorkspace, string variableName,
+        string variableType)
     {
         if (variableType.StartsWith(TerraformVariables.MapType, StringComparison.InvariantCultureIgnoreCase))
         {
@@ -239,10 +242,8 @@ public class TerraformService : ITerraformService
             // optional variables
             TerraformVariables.AzureLogWorkspaceId => string.Empty,
             TerraformVariables.AllowSourceIp => string.Empty,
-            _ => isRequired 
-                ? throw new MissingTerraformVariableException(
+            _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<{variableType}> in configuration")
-                : null
         })!;
     }
 
@@ -301,9 +302,9 @@ public class TerraformService : ITerraformService
         });
     }
 
-    private Dictionary<string, (string, bool)> GetRequiredTemplateVariables(string templatePath)
+    private Dictionary<string, string> GetRequiredTemplateVariables(string templatePath)
     {
-        var requiredVariables = new Dictionary<string, (string, bool)>();
+        var requiredVariables = new Dictionary<string, string>();
 
         Directory.GetFiles(templatePath, "*.variables.tf.json", SearchOption.TopDirectoryOnly)
             .Select(file => ParseVariableDefinitions(File.ReadAllText(file)))
@@ -316,15 +317,13 @@ public class TerraformService : ITerraformService
     }
 
 
-    public static Dictionary<string, (string, bool)> ParseVariableDefinitions(string variableJson)
+    public static Dictionary<string, string> ParseVariableDefinitions(string variableJson)
     {
         var propertiesJson = JsonSerializer.Deserialize<JsonObject>(variableJson);
 
-        return propertiesJson?["variable"]?
-            .AsObject()
-            .ToDictionary(
-                property => property.Key,
-                property => (property.Value?["type"]?.ToString() ?? "", property.Value?["default"]?.ToString() == null)
-            ) ?? new Dictionary<string, (string, bool)>();
+        return propertiesJson?["variable"]?.AsObject().ToDictionary(
+            property => property.Key,
+            property => property.Value?["type"]?.ToString() ?? ""
+        ) ?? new Dictionary<string, string>();
     }
 }

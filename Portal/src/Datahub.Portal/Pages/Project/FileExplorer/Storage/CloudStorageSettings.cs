@@ -7,7 +7,7 @@ namespace Datahub.Portal.Pages.Project.FileExplorer.Storage
         public CloudStorageSettings()
         {
             Name = string.Empty;
-            Enabled = true;
+            Enabled = false;
             ConnectionData = string.Empty;
         }
 

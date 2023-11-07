@@ -1,4 +1,4 @@
-﻿namespace Datahub.Infrastructure.Services.Storage
+﻿namespace Datahub.Portal.Pages.Project.FileExplorer.Storage
 {
     public class AzureConnectionData
     {

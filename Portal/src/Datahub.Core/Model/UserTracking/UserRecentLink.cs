@@ -17,7 +17,6 @@ namespace Datahub.Core.Model.UserTracking
         public string Variant { get; set; }
 
         public string DatabricksURL { get; set; }
-        public string AzureWebAppUrl { get; set; }
 
         public string WebFormsURL { get; set; }
 

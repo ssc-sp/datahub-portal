@@ -17,7 +17,7 @@ public class TerraformWorkspace
     public const string DefaultVersion = "latest";
     public string? Name { get; set; }
     public string? Acronym { get; set; }
-    public double BudgetAmount { get; set; } = 100;
+    public double BudgetAmount { get; set; } = 2400;
     
     public string Version { get; set; } = DefaultVersion;
 
@@ -25,7 +25,7 @@ public class TerraformWorkspace
     public int StorageSizeLimitInTB { get; set; } = 5;
     public TerraformOrganization? TerraformOrganization { get; set; }
     public IEnumerable<TerraformUser>? Users { get; set; }
-    
+
     public JsonNode ToUserList()
     {
         var users = new JsonArray();

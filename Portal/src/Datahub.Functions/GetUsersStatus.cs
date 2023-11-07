@@ -1,10 +1,14 @@
 ﻿using System.Net;
 using Microsoft.Graph;
 using Azure.Identity;
+using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Polly;
+using Polly.Contrib.WaitAndRetry;
 
 namespace Datahub.Functions
 {
@@ -12,12 +16,14 @@ namespace Datahub.Functions
     {
         private readonly ILogger _logger;
         private readonly AzureConfig _configuration;
+        private readonly IMediator _mediator;
         
         
-        public GetUsersStatus(ILoggerFactory loggerFactory, AzureConfig configuration)
+        public GetUsersStatus(ILoggerFactory loggerFactory, AzureConfig configuration, IMediator mediator)
         {
             _logger = loggerFactory.CreateLogger<CreateGraphUser>();
             _configuration = configuration;
+            _mediator = mediator;
         }
         
         private GraphServiceClient GetAuthenticatedGraphClient()
@@ -65,16 +71,15 @@ namespace Datahub.Functions
                 {
                     requestConfiguration.QueryParameters.Select = new[] { "mail" };
                 });
-            
-            var groupUsers = groupGraphResult?.Value?.OfType<User>().Select(x => x.Mail).ToList();
+            var groupArray = JArray.Parse(JsonConvert.SerializeObject(groupGraphResult));
+            var groupUsers = groupArray.Select(x => x["Mail"].ToString()).ToList();
             _logger.LogInformation("Processed SP group members");
-
+            
             //////////////// Building response, intersect with group users because we only care about members of that group
-            var lockedGroupUsers = (lockedUsers != null) ? lockedUsers.Intersect(groupUsers ?? new List<string>()).ToList()! : new List<string>();
             var dict = new Dictionary<string, List<string>>()
             {
-                { "all", groupUsers ?? new List<string>() },
-                { "locked",  lockedGroupUsers}
+                { "all", groupUsers },
+                { "locked", lockedUsers.Intersect(groupUsers).ToList() }
             };
             
             var response = request.CreateResponse(HttpStatusCode.OK);

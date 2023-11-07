@@ -5,12 +5,12 @@
     <LanguageToggle />
 </MudButton>
 <MudGrid Style="@_backgroundStyle" Spacing="0">
-    <MudItem xs="0" sm="2" md="4" lg="5" xl="7"/>
-    <MudItem xs="12" sm="10" md="8" lg="7" xl="5" Style="display: flex;">
+    <MudItem xs="7"/>
+    <MudItem xs="5" Style="display: flex;">
         <MudPaper Class="py-16 px-16" Square>
             <MudStack Justify="Justify.SpaceBetween" Style="height: 100%;">
                 <MudStack>
-                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center">
+                    <MudStack Row AlignItems="AlignItems.Baseline">
                         <MudImage Src="/_content/Datahub.Core/img/datahub-logo-v2.png" Height="32" Width="32"></MudImage>
                         <MudText Typo="Typo.h1">
                             @Localizer["Federal Science DataHub"]
@@ -27,7 +27,7 @@
                     <MudText>@Localizer["Register here to escape the silos. On the Federal Science DataHub you can:"]</MudText>
                     <MudElement HtmlTag="ul" Style="list-style: circle; margin-left: 32px;">
                         <MudElement HtmlTag="li">
-                            <MudText Typo="Typo.body2">@Localizer["Access fit-for-purpose, scalable storage for GC science data"]</MudText>
+                            <MudText Typo="Typo.body2">@Localizer["Access fit-for-purpose, scalable storage for GC science Data"]</MudText>
                         </MudElement>
                         <MudElement HtmlTag="li">
                             <MudText Typo="Typo.body2">@Localizer["Easily share your data with your GC colleagues"]</MudText>
@@ -37,7 +37,7 @@
                         </MudElement>
                     </MudElement>
                 </MudStack>
-                <MudGrid Spacing="0" Justify="Justify.Center">
+                <MudGrid Spacing="0">
                     <MudItem xs="12" md="10">
                         @ChildContent
                     </MudItem>

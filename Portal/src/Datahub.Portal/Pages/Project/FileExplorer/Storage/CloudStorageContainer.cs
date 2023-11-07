@@ -4,9 +4,6 @@ namespace Datahub.Portal.Pages.Project.FileExplorer.Storage;
 
 public class CloudStorageContainer
 {
-    public CloudStorageContainer(ICloudStorageManager storageManager, string containerName, int? id = null, bool enabled = true)
-        : this(storageManager.DisplayName, containerName, storageManager.ProviderType, storageManager, id, enabled) { }
-
     public CloudStorageContainer(string accountName, string containerName, CloudStorageProviderType provider, ICloudStorageManager storageManager, int? id = null, bool enabled = true)
     {
         ContainerName = containerName;
@@ -24,4 +21,10 @@ public class CloudStorageContainer
     public string AccountName { get; }
     public CloudStorageProviderType CloudStorageProvider { get; }
     public ICloudStorageManager StorageManager { get; }
+}
+
+public enum CloudStorageProviderType
+{
+    Azure,
+    AWS
 }

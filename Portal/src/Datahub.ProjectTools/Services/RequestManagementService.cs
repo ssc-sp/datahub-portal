@@ -64,15 +64,6 @@ public class RequestManagementService : IRequestManagementService
     public async Task RequestService(Datahub_ProjectServiceRequests request,
         Dictionary<string, string> inputParams = null!)
     {
-        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        ctx.Projects.Attach(request.Project);
-            
-        // load any ServiceRequests that may have been added since the project was loaded
-        
-        await ctx.Entry(request.Project)
-            .Collection(p => p.ServiceRequests)
-            .LoadAsync();
-
         if (request.Project.ServiceRequests?.Any(a => a.ServiceType == request.ServiceType) ?? false)
         {
             _logger.LogInformation(
@@ -80,12 +71,17 @@ public class RequestManagementService : IRequestManagementService
                 request.Project.Project_Acronym_CD, request.ServiceType);
             return;
         }
-        
-        await ctx.Project_Requests.AddAsync(request);
-        // var projectResource = CreateEmptyProjectResource(request, inputParams);
-        // await ctx.Project_Resources2.AddAsync(projectResource);
 
-        await ctx.TrackSaveChangesAsync(_datahubAuditingService);
+        await using (var ctx = await _dbContextFactory.CreateDbContextAsync())
+        {
+            ctx.Projects.Attach(request.Project);
+
+            await ctx.Project_Requests.AddAsync(request);
+            // var projectResource = CreateEmptyProjectResource(request, inputParams);
+            // await ctx.Project_Resources2.AddAsync(projectResource);
+
+            await ctx.TrackSaveChangesAsync(_datahubAuditingService);
+        }
 
         // await NotifyProjectAdminsOfServiceRequest(request);
     }
