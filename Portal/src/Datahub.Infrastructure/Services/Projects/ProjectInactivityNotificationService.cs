@@ -16,17 +16,17 @@ namespace Datahub.Infrastructure.Services.Projects
             _dbContextFactory = dbContextFactory;
         }
 
-        public async Task<EntityEntry<Project_Inactivity_Notifications>> AddInactivityNotification(int projectId, DateTime notificationDate, int daysBeforeDeletion, string sentTo, CancellationToken ct)
+        public async Task<EntityEntry<ProjectInactivityNotifications>> AddInactivityNotification(int projectId, DateTime notificationDate, int daysBeforeDeletion, string sentTo, CancellationToken ct)
         {
             using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
-            var notification = new Project_Inactivity_Notifications
+            var notification = new ProjectInactivityNotifications
             {
                 Project_ID = projectId,
                 NotificationDate = notificationDate,
                 DaysBeforeDeletion = daysBeforeDeletion,
                 SentTo = sentTo
             };
-            return ctx.Project_Inactivity_Notifications.Add(notification);
+            return ctx.ProjectInactivityNotifications.Add(notification);
         }
     }
 }

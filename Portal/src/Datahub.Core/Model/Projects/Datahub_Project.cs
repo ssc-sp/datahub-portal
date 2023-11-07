@@ -163,10 +163,12 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     [AeFormIgnore]
     public string Last_Updated_UserId { get; set; }
-
-
+    
     [AeFormIgnore]
     public DateTime? Deleted_DT { get; set; }
+    
+    [AeFormIgnore]
+    public bool IsDeleted => Deleted_DT != null && Deleted_DT < DateTime.UtcNow;
 
     public List<Datahub_ProjectComment> Comments { get; set; }
 
@@ -179,6 +181,8 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public Project_Credits Credits { get; set; }
     
     public Project_Whitelist Whitelist { get; set; }
+    
+    public List<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
 
     [StringLength(400)]
     [AeFormCategory("Initiative Connections")]
@@ -245,7 +249,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeFormIgnore]
     public DateTime? OperationalWindow { get; set; }
 
-    private bool _hasCostRecovery = false;
+    private bool _hasCostRecovery;
     [AeFormIgnore]
     public bool HasCostRecovery
     {

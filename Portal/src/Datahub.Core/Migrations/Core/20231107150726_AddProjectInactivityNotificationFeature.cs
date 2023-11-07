@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Datahub.Core.Migrations.Core
 {
     /// <inheritdoc />
-    public partial class AddProjectInactivityFeature : Migration
+    public partial class AddProjectInactivityNotificationFeature : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -25,18 +25,22 @@ namespace Datahub.Core.Migrations.Core
                 nullable: true);
 
             migrationBuilder.CreateTable(
-                name: "Project_Inactivity_Notifications",
+                name: "ProjectInactivityNotifications",
                 columns: table => new
                 {
-                    Project_ID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Project_ID = table.Column<int>(type: "int", nullable: false),
                     NotificationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DaysBeforeDeletion = table.Column<int>(type: "int", nullable: false),
                     SentTo = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Project_Inactivity_Notifications", x => x.Project_ID);
+                    table.PrimaryKey("PK_ProjectInactivityNotifications", x => x.Project_ID);
+                    table.ForeignKey(
+                        name: "FK_ProjectInactivityNotifications_Projects_Project_ID",
+                        column: x => x.Project_ID,
+                        principalTable: "Projects",
+                        principalColumn: "Project_ID");
                 });
         }
 
@@ -44,7 +48,7 @@ namespace Datahub.Core.Migrations.Core
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Project_Inactivity_Notifications");
+                name: "ProjectInactivityNotifications");
 
             migrationBuilder.DropColumn(
                 name: "HasCostRecovery",
