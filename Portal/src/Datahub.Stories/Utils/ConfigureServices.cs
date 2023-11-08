@@ -1,9 +1,13 @@
 using Datahub.Application;
 using Datahub.Application.Configuration;
 using Datahub.Infrastructure;
+using Datahub.Infrastructure.Offline;
 
 namespace Datahub.Stories.Utils;
 
+/// <summary>
+/// This class is used to add the services required by the Blazing Story application.
+/// </summary>
 public static class ConfigureServices
 {
     /// <summary>
@@ -15,7 +19,7 @@ public static class ConfigureServices
     public static IServiceCollection AddDatahubBlazingStoryServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDatahubApplicationServices(configuration);
-        services.AddDatahubInfrastructureServices(configuration);
+        services.AddDatahubOfflineInfrastructureServices(configuration);
 
         return services;
     }
