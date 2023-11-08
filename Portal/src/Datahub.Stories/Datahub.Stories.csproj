@@ -15,6 +15,7 @@
 
 
     <ItemGroup>
+      <ProjectReference Include="..\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj" />
       <ProjectReference Include="..\Datahub.Portal\Datahub.Portal.csproj" />
     </ItemGroup>
 </Project>
