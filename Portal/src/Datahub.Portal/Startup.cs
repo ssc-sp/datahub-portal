@@ -59,6 +59,7 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Datahub.Application.Configuration;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Transforms;
 
@@ -235,7 +236,14 @@ public class Startup
         }
     }
 
-    private bool ReverseProxyEnabled() => Configuration.GetValue<bool>("ReverseProxy:Enabled");
+    private bool ReverseProxyEnabled()
+    {
+        var datahubConfiguration = new DatahubPortalConfiguration();
+        Configuration.Bind(datahubConfiguration);
+        
+        return datahubConfiguration.ReverseProxy.Enabled;
+    }
+
     private string GetUserHeaderName() => Configuration.GetValue<string>("ReverseProxy:UserHeaderName") ?? "dh-user";
 
     static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
