@@ -452,9 +452,11 @@ public class Startup
 
     private void ConfigureDbContexts(IServiceCollection services)
     {
-        ConfigureDbContext<DatahubProjectDBContext>(services, "datahub_mssql_project", Configuration.GetDriver());
-        ConfigureDbContext<WebAnalyticsContext>(services, "datahub_mssql_webanalytics", Configuration.GetDriver());
-        ConfigureDbContext<MetadataDbContext>(services, "datahub_mssql_metadata", Configuration.GetDriver());
+        var projectsDatabaseConnectionString = Configuration.GetConnectionString("datahub_mssql_project");
+        var useSqlite = projectsDatabaseConnectionString?.StartsWith("Data Source=") ?? false;
+        
+        ConfigureDbContext<DatahubProjectDBContext>(services, "datahub_mssql_project", useSqlite ? DbDriver.Sqlite : DbDriver.Azure);
+        ConfigureDbContext<MetadataDbContext>(services, "datahub_mssql_metadata", DbDriver.Azure);
     }
 
     private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName, DbDriver dbDriver)
