@@ -244,10 +244,10 @@
     }
 
     private string GetProjectDescription()
-    {
-        var description = _projectMetadata.GetValue($"description_{CultureService.Culture}", null);
-        return description ?? _project.ProjectDescription;
-    }
+         {
+             var description = _projectMetadata.GetValue($"description_{CultureService.Culture}", null);
+             return description ?? _project.ProjectDescription;
+         }
 
     private string FormattedAverageCapacity()
     {

@@ -1,0 +1,45 @@
+@using Datahub.Core.Model.Projects
+@using Datahub.Metadata.DTO
+@using Datahub.Portal.Pages.Workspace
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject IMetadataBrokerService _metadataBrokerService
+
+
+<MudStack>
+    <MudText Typo="Typo.h1">
+        <MudIcon Icon="fa-light fa-flask-vial" Title="@Localizer["Workspace Icon"]" Size="Size.Large" Class="mr-2"/>
+        @_project.ProjectName
+    </MudText>
+    <DHMarkdown class="description" Content="@GetProjectDescription()"/>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    private Datahub_Project _project;
+    private FieldValueContainer _projectMetadata;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var db = await _dbFactoryProject.CreateDbContextAsync();
+        _project = await db.Projects
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        _projectMetadata = await _metadataBrokerService.GetObjectMetadataValues(WorkspaceAcronym);
+    }
+
+    private string GetProjectDescription()
+    {
+        var description = _projectMetadata.GetValue($"description_{CultureService.Culture}", null) ?? _project.ProjectDescription;
+        
+        return string.IsNullOrWhiteSpace(description) 
+            ? Localizer["No description available, please contact the workspace lead for details."] 
+            : description;
+    }
+
+}

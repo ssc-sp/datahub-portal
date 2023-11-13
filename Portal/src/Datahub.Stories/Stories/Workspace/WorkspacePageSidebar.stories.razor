@@ -1,0 +1,24 @@
+@using Datahub.Portal.Pages.Workspace
+
+@attribute [Stories("Workspace/Sidebar")]
+
+@inject NavigationManager _navigationManager
+
+<Stories TComponent="WorkspacePageSidebar">
+    <Story Name="Default">
+        <Template>
+            <MudContainer MaxWidth="MaxWidth.Large">
+                <MudGrid>
+                    <MudItem xs="3">
+                        <WorkspacePageSidebar />
+                    </MudItem>
+                </MudGrid>
+            </MudContainer>
+        </Template>
+    </Story>
+</Stories>
+
+@code {
+
+
+}

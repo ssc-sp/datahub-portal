@@ -1,0 +1,20 @@
+@using Datahub.Portal.Pages.Workspace
+
+@inherits WorkspaceBaseStory
+
+@attribute [Stories("Workspace/Page")]
+
+<Stories TComponent="WorkspacePage">
+
+    <Story Name="Default">
+        <Template>
+            <WorkspacePage ProjectAcronymParam="@_project.Project_Acronym_CD"/>
+        </Template>
+    </Story>
+
+</Stories>
+
+@code {
+   
+
+}
