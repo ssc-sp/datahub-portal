@@ -16,8 +16,9 @@
         <MudItem xs="12" sm="4">
             <WorkspaceAdminInfo WorkspaceAcronym="@ProjectAcronymParam"/>
         </MudItem>
+        <MudDivider />
         <MudItem xs="3">
-            <WorkspacePageSidebar />
+            <WorkspacePageSidebar WorkspaceAcronym="@ProjectAcronymParam" />
         </MudItem>
     </MudGrid>
 </MudContainer>
@@ -33,6 +34,7 @@
         await base.OnInitializedAsync();
 
         await using var db = await _dbFactoryProject.CreateDbContextAsync();
+
     }
 
 }
