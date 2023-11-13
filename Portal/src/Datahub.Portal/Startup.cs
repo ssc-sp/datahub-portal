@@ -59,6 +59,7 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Datahub.Infrastructure.Offline;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Transforms;
 

@@ -1,4 +1,5 @@
 
+
 <MudNavMenu Bordered Dense>
     <MudNavLink Icon="@Icons.Material.Outlined.Dashboard" Href="@($"{_path}/{SectionViews.Dashboard}")">
         @Localizer[CultureInfo.CurrentCulture.TextInfo.ToTitleCase(SectionViews.Dashboard)]
@@ -9,16 +10,15 @@
     <MudNavLink Icon="@Icons.Material.Outlined.BarChart" Href="@($"{_path}/{SectionViews.Reports}")">
         @Localizer[CultureInfo.CurrentCulture.TextInfo.ToTitleCase(SectionViews.Reports)]
     </MudNavLink>
-    <MudNavLink Icon="@Icons.Material.Outlined.Settings" Href="@($"{_path}/{SectionViews.Settings}")">
-        @Localizer[CultureInfo.CurrentCulture.TextInfo.ToTitleCase(SectionViews.Settings)]
+    <MudNavLink Icon="@Icons.Material.Outlined.ShoppingCart" Href="@($"{_path}/{SectionViews.Marketplace}")">
+        @Localizer[CultureInfo.CurrentCulture.TextInfo.ToTitleCase(SectionViews.Marketplace)]
     </MudNavLink>
     <MudNavLink Icon="@Icons.Material.Outlined.FolderShared" Href="@($"{_path}/{SectionViews.Metadata}")">
         @Localizer[CultureInfo.CurrentCulture.TextInfo.ToTitleCase(SectionViews.Metadata)]
     </MudNavLink>
-    <MudNavLink Icon="@Icons.Material.Outlined.ShoppingCart" Href="@($"{_path}/{SectionViews.Marketplace}")">
-        @Localizer[CultureInfo.CurrentCulture.TextInfo.ToTitleCase(SectionViews.Marketplace)]
+    <MudNavLink Icon="@Icons.Material.Outlined.Settings" Href="@($"{_path}/{SectionViews.Settings}")">
+        @Localizer[CultureInfo.CurrentCulture.TextInfo.ToTitleCase(SectionViews.Settings)]
     </MudNavLink>
-
 </MudNavMenu>
 
 @code {
