@@ -1,0 +1,38 @@
+@using Datahub.Core.Model.Projects
+@using Datahub.Metadata.DTO
+@using Datahub.Portal.Pages.Workspace
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject IMetadataBrokerService _metadataBrokerService
+
+@page "/w/{ProjectAcronymParam}"
+
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudGrid>
+        <MudItem xs="12" sm="8">
+            <WorkspaceInfo WorkspaceAcronym="@ProjectAcronymParam"/>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <WorkspaceAdminInfo WorkspaceAcronym="@ProjectAcronymParam"/>
+        </MudItem>
+        <MudItem xs="3">
+            <WorkspacePageSidebar />
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronymParam { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var db = await _dbFactoryProject.CreateDbContextAsync();
+    }
+
+}

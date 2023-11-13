@@ -36,6 +36,7 @@ public class PlaceholderService
         var randomProjectIndex = Random.Shared.Next(0, numberOfProjects);
         
         var project = await dbContext.Projects
+            .AsNoTracking()
             .Skip(randomProjectIndex)
             .Take(1)
             .FirstAsync();

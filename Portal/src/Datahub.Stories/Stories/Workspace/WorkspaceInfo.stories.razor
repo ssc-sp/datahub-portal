@@ -1,0 +1,20 @@
+@using Datahub.Portal.Pages.Workspace
+
+@inherits WorkspaceBaseStory
+@attribute [Stories("Workspace/Info")]
+
+
+<Stories TComponent="WorkspacePageSidebar">
+    <Story Name="Default">
+        <Template>
+            <MudContainer MaxWidth="MaxWidth.Large">
+                <WorkspaceInfo WorkspaceAcronym="@_project.Project_Acronym_CD"/>
+            </MudContainer>
+        </Template>
+    </Story>
+</Stories>
+
+@code {
+
+
+}

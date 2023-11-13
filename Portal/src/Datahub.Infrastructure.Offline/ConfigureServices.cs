@@ -1,6 +1,10 @@
 using System.Globalization;
 using System.Text;
 using Askmethat.Aspnet.JsonLocalizer.Extensions;
+using Datahub.CatalogSearch;
+using Datahub.Core.Services;
+using Datahub.Core.Services.Metadata;
+using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.UserManagement;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Localization;
@@ -18,6 +22,10 @@ public static class ConfigureServices
         
         services.AddSingleton<CultureService>();
         services.AddDatahubLocalization();
+        
+        services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
+        services.AddScoped<IDatahubAuditingService, OfflineDatahubTelemetryAuditingService>();
+        services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
         
         return services;
     }
