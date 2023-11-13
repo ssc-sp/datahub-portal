@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Datahub.Core.Data.CostEstimators;
+﻿using Datahub.Core.Data.CostEstimators;
+using Datahub.Core.Services;
 
-namespace Datahub.Core.Services.Offline;
+namespace Datahub.Infrastructure.Offline;
 
 public class OfflineAzurePriceListService : IAzurePriceListService
 {
