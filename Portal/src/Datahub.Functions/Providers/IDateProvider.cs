@@ -6,8 +6,14 @@
         public DateTime Now => DateTime.Now;
         public DateTime Today => DateTime.Today;
 
-        public int[] NotificationDays();
+        public int[] ProjectNotificationDays();
         
-        public int DeletionDay();
+        public int ProjectDeletionDay();
+
+        public int[] UserInactivityNotificationDays();
+
+        public int UserInactivityLockedDay();
+
+        public int UserInactivityDeletionDay();
     }
 }

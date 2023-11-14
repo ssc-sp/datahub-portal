@@ -39,5 +39,9 @@ public class PortalUserConfiguration : IEntityTypeConfiguration<PortalUser>
             .WithOne(l => l.User)
             .HasForeignKey(l => l.UserId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasMany(e => e.InactivityNotifications)
+            .WithOne(e => e.User)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }
