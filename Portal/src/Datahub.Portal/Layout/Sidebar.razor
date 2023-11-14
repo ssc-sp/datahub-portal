@@ -99,11 +99,10 @@
         return new()
         {
             ("/home", Icon.HOME, "SIDEBAR.Home", true, () => false),
+            ("/resources", Icon.RESOURCES, "SIDEBAR.Learn", true, () => _resourceBadge),
             ("/news", Icon.NEWS, "News", true, () => false),
-            ("/w", Icon.PROJECT, "SIDEBAR.Workspaces", true, () => false),
-            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources", true, () => _resourceBadge),
+            ("/w", Icon.PROJECT, "SIDEBAR.Explore", true, () => false),
             ("/tools", Icon.TOOLS, "SIDEBAR.Tools", _isDatahubAdmin, () => false),
-            ("/discovery", Icon.CATALOG, "SIDEBAR.Catalog", (IsFeatureEnabled("DataCatalog") && _userHasInitiatives), () => false),
             ("/profile", Icon.PROFILE, "My Profile", true, () => false),
             //("/data", Icon.STORAGE, "SIDEBAR.Storage"),
             //("/datasets", Icon.DATASETS, "SIDEBAR.Datasets"),
