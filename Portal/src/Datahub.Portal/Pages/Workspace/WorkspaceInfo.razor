@@ -11,7 +11,7 @@
         <MudIcon Icon="fa-light fa-flask-vial" Title="@Localizer["Workspace Icon"]" Size="Size.Large" Class="mr-2"/>
         @_project.ProjectName
     </MudText>
-    <DHMarkdown class="description" Content="@GetProjectDescription()"/>
+    <DHMarkdown class="description" Content="@_projectDescription"/>
 </MudStack>
 
 @code {
@@ -21,6 +21,7 @@
 
     private Datahub_Project _project;
     private FieldValueContainer _projectMetadata;
+    private string _projectDescription;
 
     protected override async Task OnInitializedAsync()
     {
@@ -31,6 +32,7 @@
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
         _projectMetadata = await _metadataBrokerService.GetObjectMetadataValues(WorkspaceAcronym);
+        _projectDescription = GetProjectDescription();
     }
 
     private string GetProjectDescription()
