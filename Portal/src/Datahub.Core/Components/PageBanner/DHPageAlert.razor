@@ -5,13 +5,7 @@
 @inject ILogger<DHPageAlert> _logger
 @inject IConfiguration _configuration
 @inject IHttpClientFactory _httpClientFactory
-
-@if (_contentFound)
-{
-    <PageAlert Title="@Localizer[Title]" Key=@Key>
-        <DHMarkdown Content="@_markdownContent" LinkRewriter="@RewriteLink"/>
-    </PageAlert>
-}
+@inject IDialogService _dialogService
 
 @code {
 
@@ -27,7 +21,7 @@
     [Parameter]
     public string WikiLinkFR { get; set; }
 
-    private const string DefaultPage = "Home";
+        private const string DefaultPage = "Home";
     private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
     private bool _contentFound = false;
@@ -48,7 +42,13 @@
             var content = await LoadPage(link ?? DefaultPage);
             _markdownContent = content ?? Localizer[$"{link} cannot be found"];
             _contentFound = content != null;
-        } else
+            if (_contentFound)
+            {
+                await OpenDialog();
+            }
+            
+        }
+        else
         {
             _contentFound = false;
         }
@@ -56,7 +56,7 @@
 
     private async Task<string> LoadPage(string name)
     {
-        if (name.StartsWith("/")) 
+        if (name.StartsWith("/"))
             name = name[1..];
 
         var wikiRoot = _configuration["WikiURL"];
@@ -74,4 +74,26 @@
             return null;
         }
     }
+
+    private async Task OpenDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            { "Title", Title },
+            { "Key", Key },
+            { "Content", _markdownContent },
+            { "RewriteLink", (string s) => RewriteLink(s) }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        }; 
+
+        var dialog = await _dialogService.ShowAsync<DHPageAlertDialog>(Localizer["Page alert"], parameters, options);
+        var result = await dialog.Result;
+    }
+
 }
