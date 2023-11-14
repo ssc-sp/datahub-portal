@@ -1,11 +1,12 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Metadata.DTO
 @using Datahub.Portal.Pages.Workspace
+@using Datahub.Portal.Pages.Workspace.Subpages
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IMetadataBrokerService _metadataBrokerService
 
-@page "/w/{ProjectAcronymParam}"
+@page "/w/{ProjectAcronymParam}/{Section?}"
 
 
 <MudContainer MaxWidth="MaxWidth.Large">
@@ -16,9 +17,35 @@
         <MudItem xs="12" sm="4">
             <WorkspaceAdminInfo WorkspaceAcronym="@ProjectAcronymParam"/>
         </MudItem>
-        <MudDivider />
+        <MudDivider/>
         <MudItem xs="3">
-            <WorkspacePageSidebar WorkspaceAcronym="@ProjectAcronymParam" />
+            <WorkspacePageSidebar WorkspaceAcronym="@ProjectAcronymParam"/>
+        </MudItem>
+        <MudItem xs="9">
+            @switch (Section)
+            {
+                case WorkspacePageSidebar.SectionViews.Users:
+                    <WorkspaceUsers WorkspaceAcronym="@ProjectAcronymParam"/>
+                    break;
+                case WorkspacePageSidebar.SectionViews.Metadata:
+                    <WorkspaceMetadata WorkspaceAcronym="@ProjectAcronymParam"/>
+                    break;
+                case WorkspacePageSidebar.SectionViews.Marketplace:
+                    <WorkspaceMarketplace WorkspaceAcronym="@ProjectAcronymParam"/>
+                    break;
+                case WorkspacePageSidebar.SectionViews.Reports:
+                    <WorkspaceReports WorkspaceAcronym="@ProjectAcronymParam"/>
+                    break;
+                case WorkspacePageSidebar.SectionViews.Settings:
+                    <WorkspaceSettings WorkspaceAcronym="@ProjectAcronymParam"/>
+                    break;
+                
+                // The dashboard is the default view, commented out for clarity
+                // case WorkspacePageSidebar.SectionViews.Dashboard:
+                default:
+                    <WorkspaceDashboard WorkspaceAcronym="@ProjectAcronymParam"/>
+                    break;
+            }
         </MudItem>
     </MudGrid>
 </MudContainer>
@@ -29,12 +56,14 @@
     [Parameter]
     public string ProjectAcronymParam { get; set; }
 
+    [Parameter]
+    public string Section { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
         await using var db = await _dbFactoryProject.CreateDbContextAsync();
-
     }
 
 }
