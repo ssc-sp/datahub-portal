@@ -1,7 +1,7 @@
 
 
 <MudNavMenu Bordered Dense>
-    <MudNavLink Icon="@Icons.Material.Outlined.Dashboard" Href="@($"{_path}/{SectionViews.Dashboard}")">
+    <MudNavLink Icon="@Icons.Material.Outlined.Dashboard" Href="@($"{_path}/")" Match="NavLinkMatch.All">
         @Localizer[CultureInfo.CurrentCulture.TextInfo.ToTitleCase(SectionViews.Dashboard)]
     </MudNavLink>
     <MudNavLink Icon="@Icons.Material.Outlined.People" Href="@($"{_path}/{SectionViews.Users}")">
