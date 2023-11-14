@@ -1,25 +1,27 @@
-﻿using System;
-using System.Security.Claims;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Services;
 using Datahub.Core.Services.UserManagement;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
 using Microsoft.Graph.Models;
 
-namespace Datahub.Core.Services.Offline;
+namespace Datahub.Infrastructure.Offline;
 
 public class OfflineUserInformationService : IUserInformationService
 {
     private static readonly Guid UserGuid = new Guid(); 
 
     readonly ILogger<IUserInformationService> _logger;
-
+    private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
+    
     private User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
 
-    public OfflineUserInformationService(ILogger<IUserInformationService> logger)
+    public OfflineUserInformationService(ILogger<IUserInformationService> logger, IDbContextFactory<DatahubProjectDBContext> contextFactory)
     {
         _logger = logger;
+        _contextFactory = contextFactory;
     }
 
 
@@ -57,6 +59,11 @@ public class OfflineUserInformationService : IUserInformationService
     public Task<string> GetUserEmailPrefix()
     {
         return Task.FromResult("");
+    }
+
+    public Task<User> GetAnonymousGraphUserAsync()
+    {
+        return Task.FromResult(AnonymousUser);
     }
 
     public Task<string> GetUserIdString()
@@ -104,16 +111,6 @@ public class OfflineUserInformationService : IUserInformationService
         throw new NotImplementedException();
     }
 
-    public Task<User> GetAnonymousGraphUserAsync()
-    {
-        return Task.FromResult(AnonymousUser);
-    }
-
-    public Task<string> GetAzureUserID()
-    {
-        return Task.FromResult(UserGuid.ToString());
-    }
-
     public Task<User> GetGraphUserAsync(string userId)
     {
         return Task.FromResult(new User
@@ -124,19 +121,40 @@ public class OfflineUserInformationService : IUserInformationService
         });
     }
 
-    public Task<PortalUser> GetCurrentPortalUserAsync()
+    public async Task<PortalUser> GetCurrentPortalUserAsync()
     {
-        throw new NotImplementedException();
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        
+        // get total number of users
+        var totalUsers = await context.PortalUsers.CountAsync();
+        
+        // return a random one
+        var randomUser = await context.PortalUsers.Skip(new Random().Next(0, totalUsers)).FirstOrDefaultAsync();
+        
+        return randomUser!;
     }
 
-    public Task<PortalUser> GetPortalUserAsync(string userGraphId)
+    public async Task<PortalUser> GetPortalUserAsync(string userGraphId)
     {
-        throw new NotImplementedException();
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        
+        return (await context.PortalUsers.FirstOrDefaultAsync(u => u.GraphGuid == userGraphId))!;
     }
 
-    public Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync()
+    public async Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync()
     {
-        throw new NotImplementedException();
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        
+        // get total number of users
+        var totalUsers = await context.PortalUsers.CountAsync();
+        
+        // return a random one
+        var randomUser = await context.PortalUsers
+            .Include(u => u.Achievements)
+            .Skip(new Random().Next(0, totalUsers))
+            .FirstOrDefaultAsync();
+        
+        return randomUser!;
     }
 
     public Task<bool> IsUserWithoutInitiatives()

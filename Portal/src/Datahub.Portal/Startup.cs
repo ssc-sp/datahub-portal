@@ -422,7 +422,6 @@ public class Startup
         services.AddSingleton<GitHubToolsService>();
 
         services.AddScoped<NotificationsService>();
-        services.AddScoped<UIControlsService>();
         services.AddScoped<NotifierService>();
 
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();

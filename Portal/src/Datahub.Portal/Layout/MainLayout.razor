@@ -2,8 +2,6 @@
 
 @using Microsoft.Identity.Web
 @using MudBlazor.Utilities
-@using Datahub.Core.Model.Achievements
-@using Datahub.Core.Services.Achievements
 
 @inject NavigationManager _navigationManager
 @inject IDatahubAuditingService _auditingService
@@ -12,8 +10,6 @@
 @inject DatahubPortalConfiguration _portalConfiguration
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
-@inject IPortalUserTelemetryService _telemetryService
-@inject ITokenAcquisition _tokenAcquisition
 
 <MudThemeProvider Theme="@DatahubTheme.DefaultTheme"/>
 <MudDialogProvider/>
@@ -67,8 +63,6 @@
                                 </ErrorContent>
                             </ErrorBoundary>
                         </div>
-                        <RightSidebar/>
-                        <Modal/>
                     </MudMainContent>
                 </MudLayout>
             </Authorized>

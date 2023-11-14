@@ -18,9 +18,8 @@ public class DataRemovalService : BaseService, IDataRemovalService
     public DataRemovalService(ILogger<DataRemovalService> logger,
         DataLakeClientService dataLakeClientService,
         DataRetrievalService dataRetrievalService,
-        NavigationManager navigationManager,
-        UIControlsService uiService)
-        : base(navigationManager, uiService)
+        NavigationManager navigationManager)
+        : base(navigationManager)
     {
         _logger = logger;
         _dataLakeClientService = dataLakeClientService;

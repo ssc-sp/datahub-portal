@@ -1,7 +1,6 @@
-﻿using System.Threading.Tasks;
-using Datahub.Core.Services.Security;
+﻿using Datahub.Core.Services.Security;
 
-namespace Datahub.Core.Services.Offline;
+namespace Datahub.Infrastructure.Offline;
 
 public class OfflineKeyVaultService : IKeyVaultService
 {
