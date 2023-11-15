@@ -52,4 +52,5 @@ DatahubTest/testsettings.json
 **/*/*.PublishSettings
 
 ResourceProvisioner/venv/**
+**/__pycache__/**
 
