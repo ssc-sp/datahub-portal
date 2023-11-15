@@ -24,7 +24,7 @@
 else
 {
     <MudStack>
-        <MudStack Class="my-6">
+@*         <MudStack Class="my-6">
             <MudText Typo="Typo.h1">@Localizer["Federal Science DataHub Resources"]</MudText>
                 <MudText Typo="Typo.body2">
                     @Localizer["Welcome to the Federal Science Datahub resources and documentation section. Below you will find a short list of some recommended resources to help you get started with the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
@@ -40,7 +40,7 @@ else
                      <ResourcesPreviewCard ShortVersion DocumentItem="@_supportGuideDoc" />
                  </MudItem>
              </MudGrid>
-         </MudStack>
+         </MudStack> *@
          <MudTabs @bind-ActivePanelIndex="_tabIndex"
                   Elevation="2" Rounded="true" Centered="false" ApplyEffectsToContainer="true" PanelClass="pa-6">
              @foreach (var cat in _tabList)
@@ -184,6 +184,8 @@ else
         _currentCategory = docItem;
         var idx = _tabList.IndexOf(docItem);
         await CreateMostPopularFolder();
+        var uriBuilder = new UriBuilder(_navManager.Uri);
+        var q = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);        
         //var page = routeData.
         //_navManager.NavigateTo("");
     }
