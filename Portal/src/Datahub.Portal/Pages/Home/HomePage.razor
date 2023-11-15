@@ -9,6 +9,7 @@
 @inject ILocalStorageService _localStorage
 
 @using Datahub.Application.Services.Announcements
+@using Datahub.Portal.Pages.Landing
 @using Datahub.Portal.Pages.Profile.Settings
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Services.Achievements
@@ -31,28 +32,15 @@
 </DatahubAuthView>
 <MudGrid>
     <MudItem xs="12">
-        <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
+@*         <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
                   Alt="@Localizer["User's background image"]"
                   Class="rounded-lg mud-elevation-4"
                   Style="width: 100%"
                   ObjectFit="ObjectFit.Cover"
                   Height="320"
-                  ObjectPosition="ObjectPosition.Center"/>
+                  ObjectPosition="ObjectPosition.Center"/> *@
 
-        @if (_isLoading)
-        {
-            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="@(AnnouncementCarousel.CarouselHeight + "px")" />
-        }
-        else if (_previews.Count == 0)
-        {
-            <MudPaper Class="welcome-banner" Style="@_personalBackgroundStyle">
-                <MudText Typo="Typo.h1" class="greeting">@_greeting</MudText>
-                </MudPaper>
-        }
-        else
-        {
-            <AnnouncementCarousel Previews="_previews" BackgroundUrl="@_userBackgroundUrl" />
-        }
+<WelcomeBanner/>
     </MudItem>
     <MudItem xs="12">
         <UserProjects UserId="@_viewedPortalUser?.GraphGuid" SmSize="6"/>
