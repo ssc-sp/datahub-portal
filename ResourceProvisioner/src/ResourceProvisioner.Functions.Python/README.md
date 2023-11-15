@@ -33,7 +33,7 @@ flowchart
     **synchronize_workspace_users**
     *Synchronizes the workspace users with the users defined in the definition file.*
     `"]
-    Sync -->|for each user| Exists["`
+    Sync -->|for each user in definition| Exists["`
     Check user is in workspace.
     *if user['ObjectId'] == workspace_user.external_id:*
     `"]
@@ -56,8 +56,20 @@ flowchart
     *Set the user's group in the workspace based on the role.*
     `"]
 
-    AddGroup --> End
-    UpdateGroups --> End
+    AddGroup --> Empty["`*Synchronize the Databricks workspace for removed users.*`"]
+    UpdateGroups --> Empty
+    Add --> Empty
 
-    Add --> End
+    Empty --> |for each user in workspace| CheckDef["`
+    Check user is in definition file.
+    *if workspace_user.external_id not in definition_users_object_ids:*
+    `"]
+
+    CheckDef -->|user not in definition| Remove["`
+    **remove_user_from_workspace**
+    *Remove the user from the workspace as they are not in the definition file.*
+    `"]
+
+    CheckDef -->|user in definition| End
+    Remove --> End
 ```
