@@ -18,7 +18,7 @@ internal class ProjectCloudStorageConfiguration : IEntityTypeConfiguration<Proje
                .IsRequired();
 
         builder.Property(e => e.Name)
-               .HasMaxLength(16);
+               .HasMaxLength(100);
 
         builder.HasOne(e => e.Project)
                .WithMany(e => e.CloudStorages)
