@@ -47,6 +47,7 @@
                 }
                 _needsRefresh = false;
             }
+            if (string.IsNullOrWhiteSpace(_finalContent)) return "Nothing to display";
 
             return _finalContent;
         }
