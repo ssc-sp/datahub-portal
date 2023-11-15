@@ -41,8 +41,9 @@ else
                  </MudItem>
              </MudGrid>
          </MudStack>
-         <MudTabs Elevation="2" Rounded="true" Centered="false" ApplyEffectsToContainer="true" PanelClass="pa-6">
-             @foreach (var cat in _resourceRoot.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)))
+         <MudTabs @bind-ActivePanelIndex="_tabIndex"
+                  Elevation="2" Rounded="true" Centered="false" ApplyEffectsToContainer="true" PanelClass="pa-6">
+             @foreach (var cat in _tabList)
             {
                 var isDoc = cat.Children.Count == 0;
 
@@ -53,7 +54,7 @@ else
                             <MudItem xs="3">
                                 <MudNavMenu Dense Color=@Color.Primary Style="position: sticky; top: calc(var(--mud-appbar-height) + 1rem); max-height:  calc(95vh - (var(--mud-appbar-height) + 1rem)); overflow: auto;">
                                      <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All">
-                                         @Localizer["Overview"]
+                                         @Localizer["Frequent Documents"]
                                     </MudNavLink>
                                     <MudDivider Class="my-3" />
                                     @foreach (var cat in _currentCategory.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)))
@@ -62,7 +63,7 @@ else
 
                                         if (isDoc)
                                         {
-                                            <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat) Icon="@(cat.GetSidebarIcon())" >
+                                            <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat) Icon="@(cat.GetSidebarIcon())">
                                                 @cat.Title
                                             </MudNavLink>
                                         }
@@ -137,6 +138,13 @@ else
     [Parameter]
     public List<(string, string)> Substitutions { get; set; }
 
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "t")]
+    public int? TabIndex { get; set; }
+
+    [CascadingParameter] public RouteData routeData { get; set; }
+
     const string MostPopularId = "6B9B9B8D-B071-44F7-B264-A7670192F446";
     const string UserGuideId = "b594e16c-56e9-aae5-880f-487afca9aa38";
     const string FaqGuideId = "ff5ba5b8-08cb-326a-5761-9f54e6401e8f";
@@ -155,22 +163,29 @@ else
     private DocItem _supportGuideDoc => _resourceRoot?.Children.FirstOrDefault(c => c.Id!.Equals(SupportGuideId, StringComparison.InvariantCultureIgnoreCase));
     private List<DocItem> _mostPopularDocs => _resourceRoot?.Children.FirstOrDefault(c => c.Id!.Equals(MostPopularId, StringComparison.InvariantCultureIgnoreCase))?.Children ?? new List<DocItem>();
 
+    private int _tabIndex;
+
     private bool PageIsLoading => _resourceRoot is null;
     private bool ShowPreviewCards => _currentDoc?.MarkdownPage is null;
     private bool _docIsLoading;
+    private List<DocItem> _tabList;
 
     public const string BaseUrl = "/resources";
 
     public static string BuildResourceLink(DocItem res)
     {
         if (res?.DocType == DocItemType.External)
-                return res.MarkdownPage;
-        return $"{BaseUrl}/{res?.Id}";  
-    } 
+            return res.MarkdownPage;
+        return $"{BaseUrl}/{res?.Id}";
+    }
 
     public async Task ActivateCategory(DocItem docItem)
     {
         _currentCategory = docItem;
+        var idx = _tabList.IndexOf(docItem);
+        await CreateMostPopularFolder();
+        //var page = routeData.
+        //_navManager.NavigateTo("");
     }
 
     private void UpdateCategory(DocItem cat, bool isExpanding)
@@ -185,8 +200,11 @@ else
     {
         _resourceRoot = await _docService.LoadResourceTree(DocumentationGuideRootSection.UserGuide, _cultureService.Culture);
         _currentCategory = _resourceRoot.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)).First();
+        _tabList = _resourceRoot.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)).ToList();
+        _tabIndex = Math.Min(_tabList.Count, TabIndex ?? 0);
+        await ActivateCategory(_tabList[_tabIndex]);
         await ClearResourcesBadge();
-        await CreateMostPopularFolder();
+
     }
 
     private async Task ClearResourcesBadge()
@@ -231,10 +249,14 @@ else
 
     const int MaxPopularDocuments = 10;
 
+    private DocItem popularItem;
+
     private async Task CreateMostPopularFolder()
     {
         if (_resourceRoot.LocateID(MostPopularId) is not null)
-            return;
+        {
+            _resourceRoot.Children.Remove(popularItem);
+        }
 
         var ids = await GetPopularDocumentIds();
 
@@ -243,12 +265,18 @@ else
             .Where(doc => doc != null)
             .ToList();
 
+        var currentCategoryDocs = _currentCategory.Children
+            .SelectMany(c => c.Children)
+            .Where(c => !c.Children.Any())
+            .ToList();
+
+        popularDocs = popularDocs.Intersect(currentCategoryDocs).ToList();
+
         if (popularDocs.Count == 0)
             popularDocs = GetFakePopularDocumentIds();
-
-        var item = DocItem.GetFolderItem(DocumentationGuideRootSection.UserGuide, MostPopularId, 1, Localizer["Most Popular"], popularDocs.Take(MaxPopularDocuments));
-
-        _resourceRoot.AddFirstChild(item);
+        
+        popularItem = DocItem.GetFolderItem(DocumentationGuideRootSection.UserGuide, MostPopularId, 1, Localizer["Most Popular"], popularDocs.Take(MaxPopularDocuments));
+        _resourceRoot.AddFirstChild(popularItem);
     }
 
     private async Task<List<string>> GetPopularDocumentIds()
@@ -263,7 +291,7 @@ else
     private List<DocItem> GetFakePopularDocumentIds()
     {
         // pick random ids from the root's grandchildren that have no children
-        return _resourceRoot.Children
+        return _currentCategory.Children
             .SelectMany(c => c.Children)
             .Where(c => !c.Children.Any())
             .Take(MaxPopularDocuments)
