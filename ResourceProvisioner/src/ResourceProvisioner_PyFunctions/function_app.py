@@ -18,7 +18,6 @@ def http_sync_workspace_users_function(req: func.HttpRequest) -> func.HttpRespon
         HttpResponse: The HTTP response object.
 
     """
-
     workspace_definition = req.get_json()
     sync_workspace_users_function(workspace_definition)
 
