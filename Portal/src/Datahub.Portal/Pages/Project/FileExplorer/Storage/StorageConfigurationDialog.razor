@@ -1,4 +1,5 @@
-﻿@* StorageConfigurationDialog.razor *@
+﻿@using Datahub.Markdown.Model
+@* StorageConfigurationDialog.razor *@
 @using Datahub.Application.Services.Storage;
 @using Datahub.Infrastructure.Services.Storage;
 
@@ -129,7 +130,7 @@
             _ => "/UserGuide/Storage/Import-Storage.md"
         };
 
-        var docRoot = await DocService.GetLanguageRoot(Core.Services.Docs.DocumentationGuideRootSection.UserGuide, "en");
+        var docRoot = await DocService.LoadResourceTree(DocumentationGuideRootSection.UserGuide, "en");
         var id = docRoot?.LocatePath(helpResourceUrl)?.Id;
         if (id is not null)
         {

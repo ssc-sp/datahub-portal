@@ -1,13 +1,15 @@
 ﻿@using Datahub.Core.Services.Docs
+@using Datahub.Markdown.Model
 @using MudBlazor.Utilities
 @using System.Text.RegularExpressions
+@using Datahub.Portal.Components.Resources
 @inject DocumentationService _docService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject CultureService _cultureService
 @inject NavigationManager _navManager
 @inject DocumentationService documentationService
 @inject ILocalStorageService localStorage
-@inject ILogger<ResourcesPage> logger 
+@inject ILogger<ResourcesPage> logger
 
 @page "/resources/"
 @page "/resources/{PageName}"
@@ -24,8 +26,8 @@ else
     <MudStack>
         <MudStack Class="my-6">
             <MudText Typo="Typo.h1">@Localizer["Federal Science DataHub Resources"]</MudText>
-            <MudText Typo="Typo.body2">
-                @Localizer["Welcome to the Federal Science Datahub resources and documentation section. Below you will find a short list of some recommended resources to help you get started with the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
+                <MudText Typo="Typo.body2">
+                    @Localizer["Welcome to the Federal Science Datahub resources and documentation section. Below you will find a short list of some recommended resources to help you get started with the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
             </MudText>
             <MudGrid Class="my-3">
                 <MudItem xs="4">
@@ -39,68 +41,89 @@ else
                  </MudItem>
              </MudGrid>
          </MudStack>
-         <MudGrid>
-             <MudItem xs="3">
-                 <MudNavMenu Dense Color=@Color.Primary Style="position: sticky; top: calc(var(--mud-appbar-height) + 1rem); max-height:  calc(95vh - (var(--mud-appbar-height) + 1rem)); overflow: auto;">
-                     <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All">
-                         @Localizer["Overview"]
-                     </MudNavLink>
-                     <MudDivider Class="my-3" />
-                     @foreach (var cat in _resourceRoot.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)))
-                    {
-                        var isDoc = cat.Children.Count == 0;
+         <MudTabs Elevation="2" Rounded="true" Centered="false" ApplyEffectsToContainer="true" PanelClass="pa-6">
+             @foreach (var cat in _resourceRoot.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)))
+            {
+                var isDoc = cat.Children.Count == 0;
 
-                        if (isDoc)
-                        {
-                            <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat)>
-                                @cat.Title
-                            </MudNavLink>
-                        }
-                        else
-                        {
-                            <MudNavGroup Title="@cat.Title" ExpandedChanged=@(isExpanding => UpdateCategory(cat, isExpanding))>
-                                @foreach (var article in cat.Children)
-                                {
-                                    <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article)>
-                                        @article.Title
+                if (!isDoc)
+                {
+                    <MudTabPanel Text="@cat.Title" OnClick="() => ActivateCategory(cat)" Icon="@(cat.GetMudblazorMaterialIcon("Outlined"))">
+                        <MudGrid>
+                            <MudItem xs="3">
+                                <MudNavMenu Dense Color=@Color.Primary Style="position: sticky; top: calc(var(--mud-appbar-height) + 1rem); max-height:  calc(95vh - (var(--mud-appbar-height) + 1rem)); overflow: auto;">
+                                     <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All">
+                                         @Localizer["Overview"]
                                     </MudNavLink>
+                                    <MudDivider Class="my-3" />
+                                    @foreach (var cat in _currentCategory.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)))
+                                    {
+                                        var isDoc = cat.Children.Count == 0;
+
+                                        if (isDoc)
+                                        {
+                                            <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat) Icon="@(cat.GetSidebarIcon())" >
+                                                @cat.Title
+                                            </MudNavLink>
+                                        }
+                                        else
+                                        {
+                                            <MudNavGroup Title="@cat.Title" ExpandedChanged=@(isExpanding => UpdateCategory(cat, isExpanding)) Icon="@(cat.GetSidebarIcon())">
+                                                @foreach (var article in cat.Children)
+                                                {
+                                                    if (article.DocType == DocItemType.External)
+                                                    {
+                                                        <MudNavLink Match="NavLinkMatch.All" Target="_blank" Href=@BuildResourceLink(article) Icon="@(article.GetSidebarIcon())">
+                                                            @article.Title
+                                                        </MudNavLink>
+                                                    }
+                                                    else
+                                                    {
+                                                        <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article) Icon="@(article.GetSidebarIcon())">
+                                                            @article.Title
+                                                        </MudNavLink>
+                                                    }
+                                                }
+                                            </MudNavGroup>
+                                        }
+                                    }
+                                </MudNavMenu>
+                            </MudItem>
+                            <MudItem xs="9">
+                                @if (ShowPreviewCards)
+                                {
+                                    @if (_docIsLoading || _currentDoc is null)
+                                    {
+                                        <MudContainer MaxWidth="MaxWidth.Small">
+                                            <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]" />
+                                        </MudContainer>
+                                    }
+                                    else if (_currentDoc.IsRoot)
+                                    {
+                                        <MudStack Class="mb-6">
+                                            <MudText Typo="Typo.h2">@Localizer["Most Popular Resources"]</MudText>
+                                                <MudText Typo="Typo.body2">
+                                                    @Localizer["Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
+                                            </MudText>
+                                        </MudStack>
+                                        <ResourcesListView DocumentItems="@_mostPopularDocs" />
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.h2" Class="mb-3">@_currentDoc.Title</MudText>
+                                        <ResourcesListView DocumentItems="@_currentDoc.Children" />
+                                    }
                                 }
-                            </MudNavGroup>
-                        }
-                    }
-                </MudNavMenu>
-            </MudItem>
-            <MudItem xs="9">
-                @if (ShowPreviewCards)
-                {
-                    @if (_docIsLoading || _currentDoc is null)
-                    {
-                        <MudContainer MaxWidth="MaxWidth.Small">
-                            <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]" />
-                        </MudContainer>
-                    }
-                    else if (_currentDoc.IsRoot)
-                    {
-                        <MudStack Class="mb-6">
-                            <MudText Typo="Typo.h2">@Localizer["Most Popular Resources"]</MudText>
-                            <MudText Typo="Typo.body2">
-                                @Localizer["Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
-                            </MudText>
-                        </MudStack>
-                        <ResourcesListView DocumentItems="@_mostPopularDocs" />
-                    }
-                    else
-                    {
-                        <MudText Typo="Typo.h2" Class="mb-3">@_currentDoc.Title</MudText>
-                        <ResourcesListView DocumentItems="@_currentDoc.Children" />
-                    }
+                                else
+                                {
+                                    <ResourcesMarkdown DocumentItem="@_currentDoc" />
+                                }
+                            </MudItem>
+                        </MudGrid>
+                    </MudTabPanel>
                 }
-                else
-                {
-                    <ResourcesMarkdown DocumentItem="@_currentDoc" />
-                }
-            </MudItem>
-        </MudGrid>
+            }
+        </MudTabs>
     </MudStack>
 
     <ResourcesAdminView />
@@ -122,6 +145,8 @@ else
 
     private readonly List<string> _hiddenNavGroups = new() { MostPopularId, UserGuideId, FaqGuideId, SupportGuideId, ReleaseNotesId };
 
+    private DocItem _currentCategory;
+
     private DocItem _resourceRoot;
     private DocItem _currentMarkdownCategory;
     private DocItem _currentDoc;
@@ -136,7 +161,17 @@ else
 
     public const string BaseUrl = "/resources";
 
-    public static string BuildResourceLink(DocItem res) => $"{BaseUrl}/{res?.Id}";
+    public static string BuildResourceLink(DocItem res)
+    {
+        if (res?.DocType == DocItemType.External)
+                return res.MarkdownPage;
+        return $"{BaseUrl}/{res?.Id}";  
+    } 
+
+    public async Task ActivateCategory(DocItem docItem)
+    {
+        _currentCategory = docItem;
+    }
 
     private void UpdateCategory(DocItem cat, bool isExpanding)
     {
@@ -148,7 +183,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _resourceRoot = await _docService.GetLanguageRoot(DocumentationGuideRootSection.UserGuide, _cultureService.Culture);
+        _resourceRoot = await _docService.LoadResourceTree(DocumentationGuideRootSection.UserGuide, _cultureService.Culture);
+        _currentCategory = _resourceRoot.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)).First();
         await ClearResourcesBadge();
         await CreateMostPopularFolder();
     }
