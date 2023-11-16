@@ -125,6 +125,10 @@ public class OfflineUserInformationService : IUserInformationService
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
         
+        // get yan
+        var yan = await context.PortalUsers.FirstOrDefaultAsync(u => u.DisplayName == "Yannick Robert");
+        return yan;
+        
         // get total number of users
         var totalUsers = await context.PortalUsers.CountAsync();
         

@@ -63,8 +63,6 @@
     {
         _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
         _isViewAsAdmin = !(await _userInformationService.IsViewingAsGuest());
-
-        var authState = await AuthenticationStateTask;
     }
 
     private async Task ToggleAdminMode(bool newValue)

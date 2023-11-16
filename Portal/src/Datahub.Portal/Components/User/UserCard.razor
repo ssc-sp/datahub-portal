@@ -16,7 +16,10 @@
     <UserAvatar ViewedUser="@_viewedUser" Size="@Size"/>
     <MudStack Spacing="0" AlignItems="AlignItems.Start">
         <MudText Typo="Typo.h6" Class="px-4">@_viewedUser?.DisplayName</MudText>
-        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">@_viewedUser?.Email</MudText>
+        @if (ShowEmail)
+        {
+            <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">@_viewedUser?.Email</MudText>
+        }
     </MudStack>
     <MudSpacer/>
     @if (ShowProfileLink)
@@ -38,6 +41,9 @@
 
     [Parameter]
     public bool ShowProfileLink { get; set; } = false;
+    
+    [Parameter]
+    public bool ShowEmail { get; set; } = true;
 
     private PortalUser _viewedUser;
 

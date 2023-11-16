@@ -2,7 +2,6 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Datahub.Core.Model.Datahub;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
