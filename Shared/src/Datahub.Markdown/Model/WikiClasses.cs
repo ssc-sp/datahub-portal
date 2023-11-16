@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Datahub.Core.Services.Docs;
+namespace Datahub.Markdown.Model;
 
 public abstract class AbstractMarkdownPage
 {

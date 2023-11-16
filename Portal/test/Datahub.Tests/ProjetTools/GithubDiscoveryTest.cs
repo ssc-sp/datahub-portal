@@ -97,7 +97,7 @@ public class GithubDiscoveryTest
             return null;
         }
         var readmeContent = await contentClient.GetRawContentByRef(GitHubOwner, GitHubRepo, readme.Path, GitHubBranchName);
-        var readmeDoc = Markdown.Parse(Encoding.UTF8.GetString(readmeContent!));
+        var readmeDoc = Markdig.Markdown.Parse(Encoding.UTF8.GetString(readmeContent!));
         var readmeDocFlattened = readmeDoc.Descendants().ToList();
         var english = GetSubSections(readmeDocFlattened, "English", 1);
         var descriptors = ExtractSubSections(english, 2);

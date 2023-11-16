@@ -1,6 +1,8 @@
 ﻿@*EmbeddedWiki.razor*@
 
 @using Datahub.Core.Services.Docs
+@using Datahub.Markdown.Model
+@using Datahub.Portal.Components.Resources
 @using Datahub.Portal.Pages.Resources
 @inject DocumentationService _docService
 @inject CultureService _cultureService
@@ -36,7 +38,7 @@ else
         _loading = true;
         try
         {
-            var resourceRoot = await _docService.GetLanguageRoot(DocumentationGuideRootSection.UserGuide, _cultureService.Culture);
+            var resourceRoot = await _docService.LoadResourceTree(DocumentationGuideRootSection.UserGuide, _cultureService.Culture);
             _currentDocument = string.IsNullOrEmpty(PagePath) ? resourceRoot : (await _docService.LoadPageFromPath(PagePath, _cultureService.IsFrench));
             if (_currentDocument is null)
             {
