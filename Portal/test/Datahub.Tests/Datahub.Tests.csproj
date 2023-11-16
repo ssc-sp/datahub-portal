@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<IsPackable>false</IsPackable>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
@@ -33,7 +33,7 @@
 	<ItemGroup>
 		<PackageReference Include="Divergic.Logging.Xunit" Version="4.2.0" />
 		<PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" Version="1.38.1" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.11" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.*" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
 		<PackageReference Include="Moq" Version="4.20.69" />
 		<PackageReference Include="Xunit.DependencyInjection" Version="8.8.2" />

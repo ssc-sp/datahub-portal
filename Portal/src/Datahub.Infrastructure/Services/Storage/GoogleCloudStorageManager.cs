@@ -26,16 +26,22 @@ namespace Datahub.Infrastructure.Services.Storage
 
         public bool DatabrickEnabled => false;
 
+        public CloudStorageProviderType ProviderType => CloudStorageProviderType.GCP;
+
+        public string DisplayName => _displayName;
+
         private readonly ILogger<GoogleCloudStorageManager> _logger;
 
         private readonly string _projectId;
         private readonly string _jsonCredentials;
+        private readonly string _displayName;
 
-        public GoogleCloudStorageManager(ILoggerFactory loggerFactory, string projectId, string jsonCredentials)
+        public GoogleCloudStorageManager(ILoggerFactory loggerFactory, string projectId, string jsonCredentials, string displayName)
         {
             _logger = loggerFactory.CreateLogger<GoogleCloudStorageManager>();
             _projectId = projectId;
             _jsonCredentials = jsonCredentials;
+            _displayName = displayName;
         }
 
         private GoogleCredential GetCredential()

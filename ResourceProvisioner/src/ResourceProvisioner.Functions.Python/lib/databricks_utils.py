@@ -84,7 +84,7 @@ def synchronize_workspace_users(definition_json, workspace_client):
     Returns:
         None
     """
-    workspace_users = workspace_client.users.list()
+    workspace_users = workspace_client.users.list() # List of users in the Databricks workspace
 
     # Iterate over each user in the definition file
     for user in definition_json['Workspace']['Users']:
@@ -106,6 +106,27 @@ def synchronize_workspace_users(definition_json, workspace_client):
         if not user_found:
             print(f"User {user['Email']} does not exist in workspace")
             create_new_user_in_workspace(workspace_client, user)
+
+    # Iterate over each user in the workspace to find users that have been deleted from the definition file
+    definition_users = [user['ObjectId'] for user in definition_json['Workspace']['Users']] # List of users in the definition file (DataHub)
+
+    for workspace_user in workspace_users:
+        if workspace_user.external_id not in definition_users:
+            print(f"User {workspace_user.user_name} with external ID {workspace_user.external_id} does not exist in definition file, removing from workspace")
+            remove_user_from_workspace(workspace_client, workspace_user)
+
+def remove_user_from_workspace(workspace_client, user):
+    """
+    Removes a user from the workspace.
+
+    Args:
+        workspace_client (WorkspaceClient): The databricks workspace client.
+        user (User): The workspace user to remove.
+
+    Returns:
+        None
+    """
+    workspace_client.users.delete(user.id)
 
 def create_new_user_in_workspace(workspace_client, user):
     """

@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Datahub.Portal.Pages.Project.FileExplorer.Storage
+namespace Datahub.Infrastructure.Services.Storage
 {
     public class GCPConnectionData
     {
