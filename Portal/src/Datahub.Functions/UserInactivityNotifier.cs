@@ -29,7 +29,7 @@ namespace Datahub.Functions
 
         public UserInactivityNotifier(IMediator mediator, ILoggerFactory loggerFactory,
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IDateProvider dateProvider, AzureConfig config,
-            QueuePongService pongService, EmailValidator emailValidator)
+            QueuePongService pongService, EmailValidator emailValidator, IUserInactivityNotificationService userInactivityNotificationService)
         {
             _mediator = mediator;
             _logger = loggerFactory.CreateLogger<UserInactivityNotifier>();
@@ -38,6 +38,7 @@ namespace Datahub.Functions
             _config = config;
             _pongService = pongService;
             _emailValidator = emailValidator;
+            _userInactivityNotificationService = userInactivityNotificationService;
         }
 
         [Function("UserInactivityNotifier")]
