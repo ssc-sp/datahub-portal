@@ -1,8 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>		
+		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -14,17 +15,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	  <None Remove="Schema\DatasetShema.json" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<SupportedPlatform Include="browser"></SupportedPlatform>
+	  <EmbeddedResource Include="Schema\DatasetShema.json" />
 	</ItemGroup>
 
-	
-
 	<ItemGroup>
-		<ProjectReference Include="..\..\Datahub.Core\Datahub.Core.csproj" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.15" />
 	</ItemGroup>
 
 </Project>
