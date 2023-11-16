@@ -10,21 +10,28 @@ namespace Datahub.Infrastructure.Services.Storage
 {
     public class DisabledCloudStorageManager : ICloudStorageManager
     {
-        private readonly string _disabledText;
+        private const string DISABLED_TEXT = "---";
+        private readonly CloudStorageProviderType _provider;
+        private readonly string _displayName;
 
-        public DisabledCloudStorageManager(string disabledText)
+        public DisabledCloudStorageManager(CloudStorageProviderType provider, string displayName)
         {
-            _disabledText = disabledText;
+            _provider = provider;
+            _displayName = displayName;
         }
-        
+
         public Task<List<string>> GetContainersAsync()
         {
-            return Task.FromResult(new List<string>() { _disabledText });
+            return Task.FromResult(new List<string>() { DISABLED_TEXT });
         }
 
         public bool AzCopyEnabled => throw new NotImplementedException();
 
         public bool DatabrickEnabled => throw new NotImplementedException();
+
+        public CloudStorageProviderType ProviderType => _provider;
+
+        public string DisplayName => _displayName;
 
         public Task<bool> CreateFolderAsync(string container, string currentWorkingDirectory, string folderName)
         {

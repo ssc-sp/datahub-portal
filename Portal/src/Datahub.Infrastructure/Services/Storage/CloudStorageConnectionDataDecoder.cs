@@ -1,4 +1,4 @@
-﻿namespace Datahub.Portal.Pages.Project.FileExplorer.Storage
+﻿namespace Datahub.Infrastructure.Services.Storage
 {
     public static class CloudStorageConnectionDataDecoder
     {
