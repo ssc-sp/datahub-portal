@@ -1,0 +1,164 @@
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.UserTracking
+@using Datahub.Portal.Components.User
+@using MudBlazor.Utilities
+
+@inject IUserInformationService _userInformationService
+@inject UserLocationManagerService _userLocationManagerService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+
+
+<MudStack Class="px-4 mt-6">
+    <MudStack Class="ml-2">
+        <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"/>
+    </MudStack>
+    <MudStack Spacing="0">
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.body2" Class="ml-2">
+                <b>
+                    @Localizer["My workspaces"]
+                </b>
+            </MudText>
+            <MudSpacer/>
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small">
+                <MudIcon Icon="fa-light fa-layer-plus" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;"/>
+                @Localizer["New"]
+            </MudButton>
+        </MudStack>
+        @* @if (_numberOfRemainingWorkspaces > 0) *@
+        @* { *@
+        @*     <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2"> *@
+        @*         <MudIcon Icon="fa-light fa-layer-plus" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;"/> *@
+        @*         @Localizer["Create new"] *@
+        @*         <MudSpacer /> *@
+        @*     </MudButton> *@
+        @* } *@
+        <MudList Clickable Dense>
+            @foreach (var userRole in GetWorkspaces())
+            {
+                <MudListItem Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudIcon Icon="fa-light fa-display-code" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                        <MudText Typo="Typo.body2" Style="@_workspaceLinkStyle">
+                            @userRole.Project.ProjectName
+                        </MudText>
+                    </MudStack>
+                </MudListItem>
+            }
+            @if (_showAllWorkspaces == false && _userRoles.Count > _maxWorkspaces)
+            {
+                <MudLink OnClick="@(() => _showAllWorkspaces = true)" Typo="Typo.body2" Color="Color.Default" Class="ml-4" Style="font-size: 0.75rem;">
+                    @Localizer["Show more"]
+                </MudLink>
+            }
+        </MudList>
+    </MudStack>
+
+    <MudStack Spacing="0">
+        <MudText Typo="Typo.body2" Class="ml-2">
+            <b>
+                @Localizer["Recent activity"]
+            </b>
+        </MudText>
+        <MudList Clickable Dense>
+            <MudListItem>
+                <MudStack Row>
+                    <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
+                    <MudText Typo="Typo.body2">Demo Workspace 1</MudText>
+                </MudStack>
+            </MudListItem>
+            <MudListItem>
+                <MudStack Row>
+                    <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
+                    <MudText Typo="Typo.body2">Demo Workspace 2</MudText>
+                </MudStack>
+            </MudListItem>
+            <MudListItem>
+                <MudStack Row>
+                    <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
+                    <MudText Typo="Typo.body2">Demo Workspace 1</MudText>
+                </MudStack>
+            </MudListItem>
+            <MudListItem>
+                <MudStack Row>
+                    <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
+                    <MudText Typo="Typo.body2">Demo Workspace 2</MudText>
+                </MudStack>
+            </MudListItem>
+            <MudListItem>
+                <MudStack Row>
+                    <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
+                    <MudText Typo="Typo.body2">Demo Workspace 1</MudText>
+                </MudStack>
+            </MudListItem>
+        </MudList>
+    </MudStack>
+</MudStack>
+
+@code {
+
+    private PortalUser _viewedUser;
+    private bool _isViewAsAdmin;
+    private List<Datahub_Project_User> _userRoles;
+    private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
+
+    private ushort _maxRecentLinks = 5;
+    private ushort _maxWorkspaces = 5;
+    private ushort _numberOfRemainingWorkspaces = 10;
+
+    private bool _showAllRecentLinks = false;
+    private bool _showAllWorkspaces = false;
+
+        private const ushort MaxWorkspaceCount = 3;
+
+
+    private readonly string _workspaceLinkStyle = new StyleBuilder()
+        .AddStyle("white-space", "nowrap")
+        .AddStyle("overflow", "hidden")
+        .AddStyle("text-overflow", "ellipsis")
+        .Build();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+        _isViewAsAdmin = !(await _userInformationService.IsViewingAsGuest());
+
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        _userRoles = await dbContext.Project_Users
+            .Include(u => u.Role)
+            .Include(u => u.Project)
+    // .ThenInclude(p => p.Users)
+            .Include(u => u.PortalUser)
+            .Where(u => u.PortalUser.Id == _viewedUser.Id)
+            .ToListAsync();
+
+        var userRecent = await _userLocationManagerService.GetRecentLinks(_viewedUser.GraphGuid, _maxRecentLinks);
+
+        _recentLinks = userRecent?
+            .Select(l => (l, project:GetProject(dbContext, l)))
+            .ToList() ?? new List<(UserRecentLink l, Datahub_Project project)>();
+
+    // _numberOfRemainingWorkspaces = (ushort)(MaxWorkspaceCount - _userRoles.Count(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead));
+    }
+
+    private List<Datahub_Project_User> GetWorkspaces()
+    {
+        return _showAllWorkspaces
+            ? _userRoles
+            : _userRoles
+                .Take(_maxWorkspaces)
+                .ToList();
+    }
+
+
+    private Datahub_Project GetProject(DatahubProjectDBContext dbContext, UserRecentLink link)
+    {
+        if (link.DataProject is null) return null;
+        return dbContext.Projects
+            .AsNoTracking()
+            .FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject.Trim());
+    }
+
+}

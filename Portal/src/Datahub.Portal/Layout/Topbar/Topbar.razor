@@ -27,20 +27,21 @@
 <div class="reader-only" id="header">
     <h3>@Localizer["Header"]</h3>
 </div>
-<MudLink Href="/">
-    <MudStack Row AlignItems="AlignItems.Center">
-        <MudImage src="_content/Datahub.Core/img/datahub-logo-v2.png" Alt="Datahub Logo" Height="30"/>
-        <MudText Typo="Typo.h6" Style="@_titleStyle">
-            @Localizer["MainTitle"]
-        </MudText>
-    </MudStack>
-</MudLink>
+<MudStack Row AlignItems="AlignItems.Center">
+    <MudImage src="_content/Datahub.Core/img/datahub-logo-v2.png" Alt="Datahub Logo" Height="30"/>
+    <MudText Typo="Typo.h6" Style="@_titleStyle">
+        @Localizer["MainTitle"]
+    </MudText>
+</MudStack>
 
 @*<MudSpacer/>
 <HomeSearch />*@
 
 <MudSpacer/>
 <MudStack Row>
+    <MudButton Variant="Variant.Text">
+        @Localizer["Home"]
+    </MudButton>
     <MudButton Variant="Variant.Text">
         @Localizer["News"]
     </MudButton>

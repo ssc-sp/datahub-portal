@@ -76,7 +76,7 @@
 
     private void ConvertCosts()
     {
-        if (!string.IsNullOrEmpty(_projectCredits.CurrentPerService))
+        if (!string.IsNullOrEmpty(_projectCredits?.CurrentPerService))
         {
             _currentServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.CurrentPerService);
         }
