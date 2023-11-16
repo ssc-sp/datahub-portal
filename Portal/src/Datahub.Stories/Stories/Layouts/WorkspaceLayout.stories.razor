@@ -1,0 +1,16 @@
+@using Datahub.Portal.Layout
+@using Datahub.Portal.Pages.Workspace
+
+@attribute [Stories("Layout/Workspace Page")]
+
+    <Stories TComponent="WorkspaceLayout">
+        <Story Name="Default" Layout="typeof(WorkspaceLayout)">
+            <Template>
+                <WorkspacePage ProjectAcronymParam="DW1"/>
+            </Template>
+        </Story>
+    </Stories>
+
+@code {
+
+}

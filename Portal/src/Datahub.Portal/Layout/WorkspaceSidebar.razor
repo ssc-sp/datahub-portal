@@ -1,0 +1,166 @@
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.UserTracking
+@using Datahub.Portal.Components.User
+@using MudBlazor.Utilities
+
+@inject IUserInformationService _userInformationService
+@inject UserLocationManagerService _userLocationManagerService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+
+
+<MudStack Class="px-4 mt-6">
+    <MudStack Class="ml-2">
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudAvatar Size="Size.Small">
+                <MudImage Src="https://cdn.autonomous.ai/static/upload/images/common/upload/20210610/workspace-at-home410853fc3fb.jpg"></MudImage>
+            </MudAvatar>
+            @* <MudIcon Icon="fa-light fa-display-code" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/> *@
+            <MudText Typo="Typo.h6" Style="@_workspaceTitleStyle">
+                @_project?.ProjectName
+            </MudText>
+        </MudStack>
+    </MudStack>
+    <MudStack Spacing="0">
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.body2" Class="ml-2">
+                <b>
+                    @Localizer["Workspace Tools"]
+                </b>
+            </MudText>
+        </MudStack>
+        <MudList Clickable Dense>
+            <MudListItem>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fa-light fa-table-layout" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                    <MudText Typo="Typo.body2" Style="@_workspaceTitleStyle">
+                        @Localizer["Dashboard"]
+                    </MudText>
+                </MudStack>
+            </MudListItem>
+            <MudListItem>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@_databricksIcon" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                    <MudText Typo="Typo.body2" Style="@_workspaceTitleStyle">
+                        @Localizer["Databricks"]
+                    </MudText>
+                </MudStack>
+            </MudListItem>
+            <MudListItem>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fa-light fa-hard-drive" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                    <MudText Typo="Typo.body2" Style="@_workspaceTitleStyle">
+                        @Localizer["Storage"]
+                    </MudText>
+                </MudStack>
+            </MudListItem>
+            <MudListItem>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fa-light fa-browser" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                    <MudText Typo="Typo.body2" Style="@_workspaceTitleStyle">
+                        @Localizer["Web App"]
+                    </MudText>
+                </MudStack>
+            </MudListItem>
+            <MudListItem>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fa-light fa-database" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                    <MudText Typo="Typo.body2" Style="@_workspaceTitleStyle">
+                        @Localizer["SQL Database"]
+                    </MudText>
+                </MudStack>
+            </MudListItem>
+            <MudListItem>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@_arcgisIcon" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                    <MudText Typo="Typo.body2" Style="@_workspaceTitleStyle">
+                        @Localizer["ArcGIS"]
+                    </MudText>
+                </MudStack>
+            </MudListItem>
+        </MudList>
+    </MudStack>
+
+    <MudStack Spacing="0">
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.body2" Class="ml-2">
+                <b>
+                    @Localizer["Administration"]
+                </b>
+            </MudText>
+        </MudStack>
+        <MudList Clickable Dense>
+            <MudListItem>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fa-light fa-shop" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                    <MudText Typo="Typo.body2" Style="@_workspaceTitleStyle">
+                        @Localizer["Marketplace"]
+                    </MudText>
+                </MudStack>
+            </MudListItem>
+            <MudListItem>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fa-light fa-users" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                    <MudText Typo="Typo.body2" Style="@_workspaceTitleStyle">
+                        @Localizer["Users"]
+                    </MudText>
+                </MudStack>
+            </MudListItem>
+            <MudListItem>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fa-light fa-tags" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                    <MudText Typo="Typo.body2" Style="@_workspaceTitleStyle">
+                        @Localizer["Metadata"]
+                    </MudText>
+                </MudStack>
+            </MudListItem>
+            <MudListItem>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fa-light fa-chart-mixed" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                    <MudText Typo="Typo.body2" Style="@_workspaceTitleStyle">
+                        @Localizer["Reports"]
+                    </MudText>
+                </MudStack>
+            </MudListItem>
+            <MudListItem>
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fa-light fa-face-hand-over-mouth" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                    <MudText Typo="Typo.body2" Style="@_workspaceTitleStyle">
+                        @Localizer["Sudo"]
+                    </MudText>
+                </MudStack>
+            </MudListItem>
+        </MudList>
+    </MudStack>
+
+
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+
+    private Datahub_Project _project;
+
+
+    private string _databricksIcon = @"<svg fill=""#000000"" viewBox=""0 0 24 24"" role=""img"" xmlns=""http://www.w3.org/2000/svg""><path d=""M.95 14.184 12 20.403l9.919-5.55v2.21L12 22.662l-10.484-5.96-.565.308v.77L12 24l11.05-6.218v-4.317l-.515-.309L12 19.118l-9.867-5.653v-2.21L12 16.805l11.05-6.218V6.32l-.515-.308L12 11.974 2.647 6.681 12 1.388l7.76 4.368.668-.411v-.566L12 0 .95 6.27v.72L12 13.207l9.919-5.55v2.26L12 15.52 1.516 9.56l-.565.308z""/></svg>";
+    private string _arcgisIcon = @"<svg viewBox=""0 0 24 24"" xmlns=""http://www.w3.org/2000/svg""><path d=""M24 12a4.99 4.99 0 0 1-2.15 4.101l-.85-.495v-.163a3.974 3.974 0 0 0-1.377-7.377l-.79-.124-.052-.798a5.293 5.293 0 0 0-10.214-1.57L8.17 6.59l-.977-.483A2.277 2.277 0 0 0 6.19 5.87a2.18 2.18 0 0 0-1.167.339 2.206 2.206 0 0 0-.98 1.395l-.113.505-.476.2A4 4 0 0 0 5 16h2v1H5a5 5 0 0 1-1.934-9.611 3.21 3.21 0 0 1 1.422-2.025 3.17 3.17 0 0 1 1.702-.493 3.269 3.269 0 0 1 1.446.34 6.293 6.293 0 0 1 12.143 1.867A4.988 4.988 0 0 1 24 12zm-5.437 7.5l-4.016 2.342-4.015-2.342.587-.342-.993-.579-1.578.92 6 3.501 6-3.5-1.579-.92-.992.578zm1.985-3l-1.579-.92-.992.578.586.342-4.016 2.342-4.015-2.342.587-.342-.993-.579-1.578.921 6 3.5zm-12-3l6-3.5 6 3.5-6 3.5zm6 2.342l4.015-2.342-4.016-2.343-4.015 2.343z""/><path fill=""none"" d=""M0 0h24v24H0z""/></svg>";
+
+    private readonly string _workspaceTitleStyle = new StyleBuilder()
+        .AddStyle("white-space", "nowrap")
+        .AddStyle("overflow", "hidden")
+        .AddStyle("text-overflow", "ellipsis")
+        .Build();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        _project = dbContext.Projects
+            .AsNoTracking()
+            .FirstOrDefault(p => p.Project_Acronym_CD == "DW1");
+    }
+
+}

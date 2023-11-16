@@ -14,6 +14,9 @@
         <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"/>
     </MudStack>
     <MudStack Spacing="0">
+        @{
+            var userRoles = GetWorkspaces();
+        }
         <MudStack Row AlignItems="AlignItems.Center">
             <MudText Typo="Typo.body2" Class="ml-2">
                 <b>
@@ -21,38 +24,44 @@
                 </b>
             </MudText>
             <MudSpacer/>
-            <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small">
-                <MudIcon Icon="fa-light fa-layer-plus" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;"/>
-                @Localizer["New"]
-            </MudButton>
+            @if(userRoles.Any()){
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small">
+                    <MudIcon Icon="fa-light fa-layer-plus" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;"/>
+                    @Localizer["New"]
+                </MudButton>
+            }
         </MudStack>
-        @* @if (_numberOfRemainingWorkspaces > 0) *@
-        @* { *@
-        @*     <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2"> *@
-        @*         <MudIcon Icon="fa-light fa-layer-plus" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;"/> *@
-        @*         @Localizer["Create new"] *@
-        @*         <MudSpacer /> *@
-        @*     </MudButton> *@
-        @* } *@
-        <MudList Clickable Dense>
-            @foreach (var userRole in GetWorkspaces())
-            {
-                <MudListItem Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
-                    <MudStack Row AlignItems="AlignItems.Center">
-                        <MudIcon Icon="fa-light fa-display-code" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                        <MudText Typo="Typo.body2" Style="@_workspaceLinkStyle">
-                            @userRole.Project.ProjectName
-                        </MudText>
-                    </MudStack>
-                </MudListItem>
-            }
-            @if (_showAllWorkspaces == false && _userRoles.Count > _maxWorkspaces)
-            {
-                <MudLink OnClick="@(() => _showAllWorkspaces = true)" Typo="Typo.body2" Color="Color.Default" Class="ml-4" Style="font-size: 0.75rem;">
-                    @Localizer["Show more"]
-                </MudLink>
-            }
-        </MudList>
+
+        @if (userRoles.Any())
+        {
+            <MudList Clickable Dense>
+                @foreach (var userRole in userRoles)
+                {
+                    <MudListItem Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudIcon Icon="fa-light fa-display-code" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                            <MudText Typo="Typo.body2" Style="@_workspaceLinkStyle">
+                                @userRole.Project.ProjectName
+                            </MudText>
+                        </MudStack>
+                    </MudListItem>
+                }
+                @if (_showAllWorkspaces == false && _userRoles.Count > _maxWorkspaces)
+                {
+                    <MudLink OnClick="@(() => _showAllWorkspaces = true)" Typo="Typo.body2" Color="Color.Default" Class="ml-4" Style="font-size: 0.75rem;">
+                        @Localizer["Show more"]
+                    </MudLink>
+                }
+            </MudList>
+        }
+        else
+        {
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4">
+                <MudIcon Icon="fa-light fa-layer-plus" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;"/>
+                @Localizer["Create new"]
+                <MudSpacer/>
+            </MudButton>
+        }
     </MudStack>
 
     <MudStack Spacing="0">
