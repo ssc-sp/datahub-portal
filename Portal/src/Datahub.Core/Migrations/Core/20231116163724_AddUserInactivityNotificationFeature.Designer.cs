@@ -4,16 +4,19 @@ using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20231116163724_AddUserInactivityNotificationFeature")]
+    partial class AddUserInactivityNotificationFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1340,6 +1343,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<bool>("HasCostRecovery")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("Initial_Meeting_DT")
                         .HasColumnType("datetime2");
 
@@ -1369,6 +1375,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<int>("OnboardingApplicationId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("OperationalWindow")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("PowerBI_URL")
                         .HasMaxLength(400)
@@ -1716,6 +1725,26 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Project_Users_Requests");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Projects.ProjectInactivityNotifications", b =>
+                {
+                    b.Property<int>("Project_ID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DaysBeforeDeletion")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("NotificationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SentTo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Project_ID");
+
+                    b.ToTable("ProjectInactivityNotifications", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Credits", b =>
                 {
                     b.Property<int>("Id")
@@ -1961,6 +1990,33 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasIndex("ProjectId");
 
                     b.ToTable("Project_Repositories", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserInactivityNotifications", b =>
+                {
+                    b.Property<int>("User_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("User_ID"));
+
+                    b.Property<int>("DaysBeforeDeleted")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DaysBeforeLocked")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("NotificationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("User_ID");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserInactivityNotifications", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserRecentLink", b =>
@@ -2326,6 +2382,17 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Projects.ProjectInactivityNotifications", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany("ProjectInactivityNotifications")
+                        .HasForeignKey("Project_ID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Credits", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
@@ -2370,6 +2437,16 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserInactivityNotifications", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "User")
+                        .WithMany("InactivityNotifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserRecentLink", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "User")
@@ -2398,6 +2475,8 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
             modelBuilder.Entity("Datahub.Core.Model.Achievements.PortalUser", b =>
                 {
                     b.Navigation("Achievements");
+
+                    b.Navigation("InactivityNotifications");
 
                     b.Navigation("RecentLinks");
 
@@ -2445,6 +2524,8 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Pipelines");
 
                     b.Navigation("PowerBi_Workspaces");
+
+                    b.Navigation("ProjectInactivityNotifications");
 
                     b.Navigation("Repositories");
 
