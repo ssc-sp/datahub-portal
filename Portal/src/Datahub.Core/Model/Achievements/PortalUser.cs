@@ -31,7 +31,7 @@ public class PortalUser
     public IEnumerable<UserAchievement> GetUserAchievements()
     {
         return Achievements?
-                   .OrderBy(a => a.Achievement.Id)
+                   .OrderBy(a => a.Achievement?.Id)
                    .ThenBy(a => a.UnlockedAt)
                    .ToList()
                ?? new List<UserAchievement>();

@@ -1,16 +1,26 @@
 @using Datahub.Portal.Layout
 @using Datahub.Portal.Pages.Workspace
+@using Datahub.Core.Model.Projects
 
 @attribute [Stories("Layout/Workspace Page")]
 
     <Stories TComponent="WorkspaceLayout">
-        <Story Name="Default" Layout="typeof(WorkspaceLayout)">
+        <Story Name="Default" Layout="typeof(PortalLayout)">
             <Template>
-                <WorkspacePage ProjectAcronymParam="DW1"/>
+                <WorkspacePage ProjectAcronymParam="@_project.Project_Acronym_CD"/>
             </Template>
         </Story>
     </Stories>
 
 @code {
 
+    private Datahub_Project _project;
+
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        _project = await _placeholderService.GetRandomProjectAsync();
+    }
 }

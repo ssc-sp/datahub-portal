@@ -1,11 +1,13 @@
 @using Datahub.Portal.Layout
 @using Datahub.Portal.Layout.Topbar
+@using Datahub.Portal.Pages.Profile
 
 @attribute [Stories("Layout/Home Page")]
 
-<Stories TComponent="HomeLayout">
-    <Story Name="Default" Layout="typeof(HomeLayout)">
+<Stories TComponent="ProfilePage">
+    <Story Name="Default" Layout="typeof(PortalLayout)">
         <Template>
+            <ProfilePage />
         </Template>
     </Story>
 </Stories>

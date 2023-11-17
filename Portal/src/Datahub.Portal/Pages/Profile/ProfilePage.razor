@@ -9,6 +9,10 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Services.Achievements
 
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar />
+</SectionContent>
+
 @if (_viewedPortalUser is null)
 {
     <MudContainer MaxWidth="MaxWidth.Small">

@@ -9,6 +9,10 @@
 @page "/w/{ProjectAcronymParam}/{Section?}"
 
 
+<SectionContent SectionName="side-bar">
+    <WorkspaceSidebar WorkspaceAcronym="@ProjectAcronymParam" />
+</SectionContent>
+
 <MudContainer MaxWidth="MaxWidth.Large">
     <MudGrid>
         <MudItem xs="12" sm="8">
@@ -18,25 +22,22 @@
             <WorkspaceAdminInfo WorkspaceAcronym="@ProjectAcronymParam"/>
         </MudItem>
         <MudDivider/>
-        <MudItem xs="3">
-            <WorkspacePageSidebar WorkspaceAcronym="@ProjectAcronymParam"/>
-        </MudItem>
-        <MudItem xs="9">
+        <MudItem xs="12">
             @switch (Section)
             {
-                case WorkspacePageSidebar.SectionViews.Users:
+                case WorkspaceSidebar.SectionViews.Users:
                     <WorkspaceUsers WorkspaceAcronym="@ProjectAcronymParam"/>
                     break;
-                case WorkspacePageSidebar.SectionViews.Metadata:
+                case WorkspaceSidebar.SectionViews.Metadata:
                     <WorkspaceMetadata WorkspaceAcronym="@ProjectAcronymParam"/>
                     break;
-                case WorkspacePageSidebar.SectionViews.Marketplace:
+                case WorkspaceSidebar.SectionViews.Marketplace:
                     <WorkspaceMarketplace WorkspaceAcronym="@ProjectAcronymParam"/>
                     break;
-                case WorkspacePageSidebar.SectionViews.Reports:
+                case WorkspaceSidebar.SectionViews.Reports:
                     <WorkspaceReports WorkspaceAcronym="@ProjectAcronymParam"/>
                     break;
-                case WorkspacePageSidebar.SectionViews.Settings:
+                case WorkspaceSidebar.SectionViews.Settings:
                     <WorkspaceSettings WorkspaceAcronym="@ProjectAcronymParam"/>
                     break;
                 
@@ -65,5 +66,4 @@
 
         await using var db = await _dbFactoryProject.CreateDbContextAsync();
     }
-
 }
