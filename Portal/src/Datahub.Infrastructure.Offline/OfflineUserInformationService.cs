@@ -126,8 +126,8 @@ public class OfflineUserInformationService : IUserInformationService
         await using var context = await _contextFactory.CreateDbContextAsync();
         
         // get yan
-        var yan = await context.PortalUsers.FirstOrDefaultAsync(u => u.DisplayName == "Yannick Robert");
-        return yan;
+        // var yan = await context.PortalUsers.FirstOrDefaultAsync(u => u.DisplayName == "Yannick Robert");
+        // return yan;
         
         // get total number of users
         var totalUsers = await context.PortalUsers.CountAsync();
@@ -155,6 +155,7 @@ public class OfflineUserInformationService : IUserInformationService
         // return a random one
         var randomUser = await context.PortalUsers
             .Include(u => u.Achievements)
+                .ThenInclude(a => a.Achievement)
             .Skip(new Random().Next(0, totalUsers))
             .FirstOrDefaultAsync();
         

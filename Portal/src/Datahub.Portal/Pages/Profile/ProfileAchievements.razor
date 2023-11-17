@@ -27,7 +27,7 @@
 
     private IEnumerable<UserAchievement> GetUserAchievements()
     {
-        return ViewedUser?.GetUserAchievements()
+        return ViewedUser?.GetUserAchievements()?
             .OrderBy(a => a.Achievement.Id)
             .ThenBy(a => a.UnlockedAt)
             .ToList()

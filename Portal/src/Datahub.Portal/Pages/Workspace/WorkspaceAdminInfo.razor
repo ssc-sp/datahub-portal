@@ -81,12 +81,12 @@
             _currentServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.CurrentPerService);
         }
 
-        if (!string.IsNullOrEmpty(_projectCredits.YesterdayPerService))
+        if (!string.IsNullOrEmpty(_projectCredits?.YesterdayPerService))
         {
             _yesterdayServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.YesterdayPerService);
         }
 
-        if (!string.IsNullOrEmpty(_projectCredits.CurrentPerDay))
+        if (!string.IsNullOrEmpty(_projectCredits?.CurrentPerDay))
         {
             _currentDailyCosts = JsonSerializer.Deserialize<List<AzureDailyCost>>(_projectCredits.CurrentPerDay);
         }
