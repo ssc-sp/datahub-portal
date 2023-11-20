@@ -8,8 +8,11 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Identity;
+using Datahub.Core.Model.Projects;
+using Datahub.Infrastructure.Services;
 using Datahub.Application.Configuration;
-using static System.Runtime.CompilerServices.RuntimeHelpers;
+using Datahub.Infrastructure.Services.Storage;
+using Microsoft.Azure.Cosmos.Linq;
 
 namespace Datahub.Functions;
 
@@ -19,16 +22,23 @@ public class CheckInfrastructureStatus
     private readonly DatahubProjectDBContext _projectDbContext;
     private readonly AzureConfig _azureConfig;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ProjectStorageConfigurationService _projectStorageConfigurationService;
 
     private const string workspaceKeyCheck = "project-cmk";
     private const string coreKeyCheck = "datahubportal-client-id";
 
-    public CheckInfrastructureStatus(ILoggerFactory loggerFactory, DatahubProjectDBContext projectDbContext, AzureConfig azureConfig, IHttpClientFactory httpClientFactory)
+    public CheckInfrastructureStatus(
+        ILoggerFactory loggerFactory, 
+        DatahubProjectDBContext projectDbContext, 
+        AzureConfig azureConfig, 
+        IHttpClientFactory httpClientFactory,
+        DatahubPortalConfiguration portalConfiguration)
     {
         _logger = loggerFactory.CreateLogger<CheckInfrastructureStatus>();
         _projectDbContext = projectDbContext;
         _azureConfig = azureConfig;
         _httpClientFactory = httpClientFactory;
+        _projectStorageConfigurationService = new ProjectStorageConfigurationService(portalConfiguration);
     }
 
     [Function("CheckInfrastructureStatus")]
@@ -45,9 +55,9 @@ public class CheckInfrastructureStatus
         {
             case InfrastructureHealthResourceType.AzureSqlDatabase:
                 return new OkObjectResult(await CheckAzureSqlDatabase(request));
-            case InfrastructureHealthResourceType.AzureStorageAccount:
+            case InfrastructureHealthResourceType.AzureStorageAccount: // Name is the project ID to check for
                 return new OkObjectResult(await CheckAzureStorageAccount(request));
-            case InfrastructureHealthResourceType.AzureKeyVault:
+            case InfrastructureHealthResourceType.AzureKeyVault: // Group is which key vault to check
                 return new OkObjectResult(await CheckAzureKeyVault(request));
             case InfrastructureHealthResourceType.AzureDatabricks:
                 break;
@@ -55,7 +65,7 @@ public class CheckInfrastructureStatus
                 break;
             case InfrastructureHealthResourceType.AzureWebApp:
                 break;
-            case InfrastructureHealthResourceType.AzureFunction:
+            case InfrastructureHealthResourceType.AzureFunction: // Name is the Azure Function location
                 return new OkObjectResult(await CheckAzureFunctions(request));
             default:
                 return new BadRequestObjectResult("Please pass a valid request body");
@@ -128,9 +138,32 @@ public class CheckInfrastructureStatus
             Status = InfrastructureHealthStatus.Unhealthy,
             HealthCheckTimeUtc = DateTime.UtcNow
         };
-        
+
+        // Get the projects that match the request.Name
+        try
+        {
+            string accountName = _projectStorageConfigurationService.GetProjectStorageAccountName(request.Name);
+            string accountKey = await _projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name); // causes an ArgumentException
+
+            var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
+
+            if (projectStorageManager.IsNull())
+            {
+                errors.Add("Unable to find the data container.");
+            }
+        }
+        catch (Exception ex)
+        {
+            errors.Add("Unable to retrieve project. " + ex.GetType().ToString());
+        }
+
+        if (!errors.Any())
+        {
+            check.Status = InfrastructureHealthStatus.Healthy;
+        }
+
         // check and see if the storage account exists
-        throw new NotImplementedException();
+        return new InfrastructureHealthCheckResponse(check, errors);
     }
 
     private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
