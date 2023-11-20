@@ -32,7 +32,6 @@ jobs:
   - task: NodeTool@0
     inputs:
       versionSource: fromFile
-      versionSpec: 15.11.0
       versionFilePath: /app/node/.nvmrc
     displayName: Install Node.js      
   - task: PowerShell@2
