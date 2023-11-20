@@ -29,11 +29,6 @@ jobs:
       version: 7.0.x
       includePreviewVersions: true
       performMultiLevelLookup: true
-  - task: NodeTool@0
-    inputs:
-      versionSource: fromFile
-      versionFilePath: /app/node/.nvmrc
-    displayName: Install Node.js      
   - task: PowerShell@2
     displayName: 'PowerShell Script: Set build number'
     inputs:
