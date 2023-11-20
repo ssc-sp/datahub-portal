@@ -1,0 +1,32 @@
+﻿<MudDialog>
+    <TitleContent>
+        <div class="d-flex gap-4">
+            <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Primary"/>
+            <MudText Typo="Typo.h4">@Localizer[Title]</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <PageAlert Key=@Key>
+            <DHMarkdown Content="@Content" LinkRewriter="@RewriteLink"/>
+        </PageAlert>
+    </DialogContent>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string Key { get; set; }
+
+    [Parameter]
+    public string Content { get; set; }
+
+    [Parameter]
+    public Func<string, string> RewriteLink { get; set; }
+
+}
