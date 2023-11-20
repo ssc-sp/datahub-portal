@@ -16,33 +16,23 @@
 </SectionContent>
 
 <MudContainer MaxWidth="MaxWidth.Large">
-    <MudGrid>
-        <MudItem xs="12" sm="8">
-            <WorkspaceInfo WorkspaceAcronym="@ProjectAcronymParam"/>
-        </MudItem>
-        <MudItem xs="12" sm="4">
-            <WorkspaceAdminInfo WorkspaceAcronym="@ProjectAcronymParam"/>
-        </MudItem>
-        <MudItem xs="12">
-            @{
-                var containsKey = _sectionComponents.ContainsKey(Section);
-                var parameters = new Dictionary<string, object>
-                {
-                    { "WorkspaceAcronym", ProjectAcronymParam }
-                };
-                
-                if (containsKey)
-                {
-                    <DynamicComponent Type="@_sectionComponents[Section]" Parameters="@parameters"/>
-                }
-                else
-                {
-                    _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
-                    <WorkspaceDashboard WorkspaceAcronym="@ProjectAcronymParam"/>
-                }
-            }
-        </MudItem>
-    </MudGrid>
+    @{
+        var containsKey = _sectionComponents.ContainsKey(Section);
+        var parameters = new Dictionary<string, object>
+        {
+            { "WorkspaceAcronym", ProjectAcronymParam }
+        };
+
+        if (containsKey)
+        {
+            <DynamicComponent Type="@_sectionComponents[Section]" Parameters="@parameters"/>
+        }
+        else
+        {
+            _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
+            <WorkspaceDashboard WorkspaceAcronym="@ProjectAcronymParam"/>
+        }
+    }
 </MudContainer>
 
 
@@ -63,4 +53,5 @@
         { WorkspaceSidebar.SectionViews.Settings, typeof(WorkspaceSettings) },
         { WorkspaceSidebar.SectionViews.Dashboard, typeof(WorkspaceDashboard) }
     };
+
 }
