@@ -4,6 +4,7 @@ variables:
   target_os: linux-x64
   version.MajorMinor: 2.0
   version.Revision: $[counter(variables['version.MajorMinor'], 0)]
+  System.Debug: true
   
 trigger:
   branches:
@@ -29,6 +30,10 @@ jobs:
       version: 7.0.x
       includePreviewVersions: true
       performMultiLevelLookup: true
+  - task: NodeTool@0
+    displayName: Use Node 15.11.0
+    inputs:
+      versionSpec: 15.11.0
   - task: PowerShell@2
     displayName: 'PowerShell Script: Set build number'
     inputs:
