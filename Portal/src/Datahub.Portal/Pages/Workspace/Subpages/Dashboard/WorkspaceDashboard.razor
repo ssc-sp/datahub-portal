@@ -1,0 +1,82 @@
+@using Datahub.Core.Model.Projects
+@using Datahub.Shared.Entities
+@using Datahub.Portal.Pages.Project.DataProject
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ILogger<WorkspaceDashboard> _logger
+
+
+<MudGrid>
+    <MudItem xs="12" sm="8">
+        <MudGrid>
+            
+            @foreach (var resource in _resources)
+            {
+                var found = _cardComponents.ContainsKey(resource.ResourceType);
+                if (found)
+                {
+                    var parameters = new Dictionary<string, object>
+                    {
+                        { "ProjectResource", resource },
+                        { "WorkspaceAcronym", WorkspaceAcronym }
+                    };
+                    <MudItem>
+                        <DynamicComponent Type="@_cardComponents[resource.ResourceType]" Parameters="@parameters" />
+                    </MudItem>
+                }
+                else
+                {
+                    _logger.LogError("Unknown resource type: {ResourceResourceType}", resource.ResourceType);
+                }
+            }
+        </MudGrid>
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <ProjectUserCardList ProjectAcronym="@WorkspaceAcronym"/>
+    </MudItem>
+</MudGrid>
+
+
+
+@code {
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    private Datahub_Project _project;
+    
+    private List<Project_Resources2> _resources;
+    
+    private Dictionary<string, Type> _cardComponents = new()
+    {
+        { "terraform:azure-databricks", typeof(DatabricksCard) },
+        { "terraform:azure-storage-blob", typeof(StorageCard) }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+        _project = await context.Projects
+            .Include(w => w.Resources)
+            .FirstOrDefaultAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
+
+        _resources = _project.Resources
+            .Where(r => r.ResourceType != RequestManagementService.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
+            .OrderBy(r => r.ResourceType)
+            .ToList();
+    }
+    
+    private string ParseResourceType(string resourceType)
+    {
+        // if it starts with "terraform:" then remove it
+        if (resourceType.StartsWith("terraform:"))
+        {
+            resourceType = resourceType["terraform:".Length..];
+        }
+        
+        // if it's in the dictionary, return the type otherwise return null
+        return _cardComponents.ContainsKey(resourceType) ? resourceType : null;
+    }
+}

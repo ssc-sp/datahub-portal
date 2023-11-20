@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using Askmethat.Aspnet.JsonLocalizer.Extensions;
 using Blazored.LocalStorage;
+using Datahub.Application.Services;
 using Datahub.CatalogSearch;
 using Datahub.Core.RoleManagement;
 using Datahub.Core.Services;
@@ -38,8 +39,7 @@ public static class ConfigureServices
         services.AddScoped<IUserInformationService, OfflineUserInformationService>();
         services.AddSingleton<IDatahubCatalogSearch, OfflineDatahubCatalogSearch>();
         services.AddScoped<IKeyVaultService, OfflineKeyVaultService>();
-        
-        
+        services.AddScoped<IProjectUserManagementService, OfflineProjectUserManagementService>();
         
         services.AddBlazoredLocalStorage();
         
@@ -63,7 +63,7 @@ public static class ConfigureServices
             options.UseBaseName = false;
             options.IsAbsolutePath = true;
             options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
-            options.MissingTranslationLogBehavior = MissingTranslationLogBehavior.CollectToJSON;
+            options.MissingTranslationLogBehavior = MissingTranslationLogBehavior.Ignore;
             options.FileEncoding = Encoding.GetEncoding("UTF-8");
             options.SupportedCultureInfos = supportedCultures;
         });

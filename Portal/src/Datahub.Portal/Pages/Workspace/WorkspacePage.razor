@@ -2,15 +2,17 @@
 @using Datahub.Metadata.DTO
 @using Datahub.Portal.Pages.Workspace
 @using Datahub.Portal.Pages.Workspace.Subpages
+@using Datahub.Portal.Pages.Workspace.Subpages.Dashboard
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IMetadataBrokerService _metadataBrokerService
+@inject ILogger<WorkspacePage> _logger
 
 @page "/w/{ProjectAcronymParam}/{Section?}"
 
 
 <SectionContent SectionName="side-bar">
-    <WorkspaceSidebar WorkspaceAcronym="@ProjectAcronymParam" />
+    <WorkspaceSidebar WorkspaceAcronym="@ProjectAcronymParam"/>
 </SectionContent>
 
 <MudContainer MaxWidth="MaxWidth.Large">
@@ -21,31 +23,23 @@
         <MudItem xs="12" sm="4">
             <WorkspaceAdminInfo WorkspaceAcronym="@ProjectAcronymParam"/>
         </MudItem>
-        <MudDivider/>
         <MudItem xs="12">
-            @switch (Section)
-            {
-                case WorkspaceSidebar.SectionViews.Users:
-                    <WorkspaceUsers WorkspaceAcronym="@ProjectAcronymParam"/>
-                    break;
-                case WorkspaceSidebar.SectionViews.Metadata:
-                    <WorkspaceMetadata WorkspaceAcronym="@ProjectAcronymParam"/>
-                    break;
-                case WorkspaceSidebar.SectionViews.Marketplace:
-                    <WorkspaceMarketplace WorkspaceAcronym="@ProjectAcronymParam"/>
-                    break;
-                case WorkspaceSidebar.SectionViews.Reports:
-                    <WorkspaceReports WorkspaceAcronym="@ProjectAcronymParam"/>
-                    break;
-                case WorkspaceSidebar.SectionViews.Settings:
-                    <WorkspaceSettings WorkspaceAcronym="@ProjectAcronymParam"/>
-                    break;
+            @{
+                var containsKey = _sectionComponents.ContainsKey(Section);
+                var parameters = new Dictionary<string, object>
+                {
+                    { "WorkspaceAcronym", ProjectAcronymParam }
+                };
                 
-                // The dashboard is the default view, commented out for clarity
-                // case WorkspacePageSidebar.SectionViews.Dashboard:
-                default:
+                if (containsKey)
+                {
+                    <DynamicComponent Type="@_sectionComponents[Section]" Parameters="@parameters"/>
+                }
+                else
+                {
+                    _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
                     <WorkspaceDashboard WorkspaceAcronym="@ProjectAcronymParam"/>
-                    break;
+                }
             }
         </MudItem>
     </MudGrid>
@@ -58,12 +52,15 @@
     public string ProjectAcronymParam { get; set; }
 
     [Parameter]
-    public string Section { get; set; }
+    public string Section { get; set; } = WorkspaceSidebar.SectionViews.Dashboard;
 
-    protected override async Task OnInitializedAsync()
+    private Dictionary<string, Type> _sectionComponents = new()
     {
-        await base.OnInitializedAsync();
-
-        await using var db = await _dbFactoryProject.CreateDbContextAsync();
-    }
+        { WorkspaceSidebar.SectionViews.Users, typeof(WorkspaceUsers) },
+        { WorkspaceSidebar.SectionViews.Metadata, typeof(WorkspaceMetadata) },
+        { WorkspaceSidebar.SectionViews.Marketplace, typeof(WorkspaceMarketplace) },
+        { WorkspaceSidebar.SectionViews.Reports, typeof(WorkspaceReports) },
+        { WorkspaceSidebar.SectionViews.Settings, typeof(WorkspaceSettings) },
+        { WorkspaceSidebar.SectionViews.Dashboard, typeof(WorkspaceDashboard) }
+    };
 }

@@ -18,7 +18,7 @@
             var userRoles = GetWorkspaces();
         }
         <MudStack Row AlignItems="AlignItems.Center">
-            <MudText Typo="Typo.body2" Class="ml-2">
+            <MudText Class="ml-2">
                 <b>
                     @Localizer["My workspaces"]
                 </b>
@@ -40,7 +40,7 @@
                     <MudListItem Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
                         <MudStack Row AlignItems="AlignItems.Center">
                             <MudIcon Icon="fa-light fa-display-code" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                            <MudText Typo="Typo.body2" Style="@_workspaceLinkStyle">
+                            <MudText Style="@_workspaceLinkStyle">
                                 @userRole.Project.ProjectName
                             </MudText>
                         </MudStack>
@@ -65,7 +65,7 @@
     </MudStack>
 
     <MudStack Spacing="0">
-        <MudText Typo="Typo.body2" Class="ml-2">
+        <MudText Class="ml-2">
             <b>
                 @Localizer["Recent activity"]
             </b>
@@ -74,31 +74,31 @@
             <MudListItem>
                 <MudStack Row>
                     <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
-                    <MudText Typo="Typo.body2">Demo Workspace 1</MudText>
+                    <MudText>Demo Workspace 1</MudText>
                 </MudStack>
             </MudListItem>
             <MudListItem>
                 <MudStack Row>
                     <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
-                    <MudText Typo="Typo.body2">Demo Workspace 2</MudText>
+                    <MudText>Demo Workspace 2</MudText>
                 </MudStack>
             </MudListItem>
             <MudListItem>
                 <MudStack Row>
                     <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
-                    <MudText Typo="Typo.body2">Demo Workspace 1</MudText>
+                    <MudText>Demo Workspace 1</MudText>
                 </MudStack>
             </MudListItem>
             <MudListItem>
                 <MudStack Row>
                     <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
-                    <MudText Typo="Typo.body2">Demo Workspace 2</MudText>
+                    <MudText>Demo Workspace 2</MudText>
                 </MudStack>
             </MudListItem>
             <MudListItem>
                 <MudStack Row>
                     <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
-                    <MudText Typo="Typo.body2">Demo Workspace 1</MudText>
+                    <MudText>Demo Workspace 1</MudText>
                 </MudStack>
             </MudListItem>
         </MudList>
