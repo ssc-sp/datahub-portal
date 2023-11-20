@@ -1,4 +1,5 @@
 @using Datahub.Portal.Pages.Workspace
+@using Datahub.Portal.Layout
 
 @inherits WorkspaceBaseStory
 
@@ -6,15 +7,21 @@
 
 <Stories TComponent="WorkspacePage">
 
-    <Story Name="Default">
+    <Story Name="Dashboard">
         <Template>
-            <WorkspacePage ProjectAcronymParam="@_project.Project_Acronym_CD"/>
+            <WorkspacePage ProjectAcronymParam="@_project.Project_Acronym_CD" Section="@WorkspaceSidebar.SectionViews.Dashboard"/>
+        </Template>
+    </Story>
+
+    <Story Name="Storage">
+        <Template>
+            <WorkspacePage ProjectAcronymParam="@_project.Project_Acronym_CD" Section="@WorkspaceSidebar.SectionViews.Dashboard"/>
         </Template>
     </Story>
 
 </Stories>
 
 @code {
-   
+
 
 }

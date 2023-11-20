@@ -1,0 +1,36 @@
+@using Datahub.Core.Model.Projects
+
+
+<MudPaper Outlined Class="pa-4">
+    <MudStack>
+        <MudStack Row AlignItems="AlignItems.Baseline">
+            <MudIcon Icon="fa-light fa-hard-drive" Size="Size.Medium" Class="mr-2"/>
+            <MudText Typo="Typo.h3">@Localizer["Workspace Storage"]</MudText>
+        </MudStack>
+
+        <MudText>
+            @Localizer["Access the storage accounts for the workspace to upload, download and share datasets with all workspace members."]
+        </MudText>
+        <MudElement HtmlTag="div">
+            <MudButton
+                Href="@($"/{WorkspaceAcronym}/storage")"
+                Color="Color.Primary"
+                Variant="@Variant.Text"
+                EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
+                @Localizer["View Storage"]
+            </MudButton>
+        </MudElement>
+    </MudStack>
+</MudPaper>
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public Project_Resources2 ProjectResource { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public string WorkspaceAcronym { get; set; }
+
+}

@@ -50,6 +50,17 @@ public abstract class DatahubTheme
                 FontSize = "1rem",
                 FontWeight = 600,
             },
+            Body1 =
+            {
+                FontSize = "0.875rem",
+                LineHeight = 1.43,
+                LetterSpacing = ".01071em",
+            },
+            Body2 =
+            {
+                FontSize = "0.775rem",
+                LineHeight = 1.36,
+            }
         },
         Palette =
         {
