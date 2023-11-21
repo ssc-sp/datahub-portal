@@ -4,7 +4,6 @@ variables:
   target_os: linux-x64
   version.MajorMinor: 2.0
   version.Revision: $[counter(variables['version.MajorMinor'], 0)]
-  System.Debug: true
   
 trigger:
   branches:
