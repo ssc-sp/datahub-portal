@@ -9,6 +9,11 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
 
+@if (!_isLoaded)
+{
+    return;
+}
+
 <MudStack Class="px-4 mt-6">
     <MudStack Class="ml-2">
         <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"/>
@@ -119,6 +124,8 @@
     private bool _showAllRecentLinks = false;
     private bool _showAllWorkspaces = false;
 
+    private bool _isLoaded = false;
+
         private const ushort MaxWorkspaceCount = 3;
 
 
@@ -150,6 +157,8 @@
             .ToList() ?? new List<(UserRecentLink l, Datahub_Project project)>();
 
     // _numberOfRemainingWorkspaces = (ushort)(MaxWorkspaceCount - _userRoles.Count(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead));
+        
+        _isLoaded = true;
     }
 
     private List<Datahub_Project_User> GetWorkspaces()

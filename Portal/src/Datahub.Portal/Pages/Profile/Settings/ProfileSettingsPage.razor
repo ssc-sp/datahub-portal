@@ -8,10 +8,16 @@
 
 @page "/profile/settings/{Section?}"
 
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar />
+</SectionContent>
+
 @if (_viewedPortalUser is null)
 {
     return;
 }
+
+
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Personal" UserGraphId="@_viewedPortalUser.GraphGuid">
     <Authorized>
 

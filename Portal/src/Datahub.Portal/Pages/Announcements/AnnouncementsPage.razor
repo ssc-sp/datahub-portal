@@ -6,6 +6,10 @@
 @inject IAnnouncementService _announcementService
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+    <SectionContent SectionName="side-bar">
+        <PersonalSidebar />
+    </SectionContent>
+    
     <MudStack Spacing="6">
         <MudStack Row>
             <MudText Typo="Typo.h1">@Localizer["DataHub News"]</MudText>

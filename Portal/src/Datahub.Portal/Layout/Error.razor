@@ -1,6 +1,7 @@
 ﻿@using Datahub.Core.Services.Notification
 @inject IJSRuntime JSRuntime
 @inject IEmailNotificationService EmailNotificationService
+@inject IUserInformationService _userInformationService
 
 <p id="datahub-error-page" style="display: none">An error has occured!</p>
 
@@ -81,7 +82,9 @@
             _emailSent = true;
             await InvokeAsync(StateHasChanged);
 
-            await EmailNotificationService.EmailErrorToDatahub($"Datahub App Error - {CorrelationId}", User, "",
+            var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
+            
+            await EmailNotificationService.EmailErrorToDatahub($"Datahub App Error - {CorrelationId}", portalUser.Email, "",
                 AppInsightsQuery, Exception?.StackTrace);
         }
         catch (Exception)

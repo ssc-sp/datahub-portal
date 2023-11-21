@@ -1,7 +1,112 @@
-﻿@inherits LayoutComponentBase
-@layout WorkspaceLayout
+﻿@using MudBlazor.Utilities
+@using Microsoft.Identity.Web
+@using Datahub.Core.Model.Achievements
 
-<MudContainer Class="mt-8" MaxWidth="MaxWidth.Large">
-    <div class="reader-only" id="maincontent"><h3>@Localizer["Main content"]</h3></div>
-    @Body
-</MudContainer>
+
+@inherits MainLayout
+
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject IDatahubAuditingService _auditingService
+
+<MudThemeProvider Theme="@DatahubTheme.DefaultTheme"/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+
+<MudLayout>
+    <MudAppBar Elevation="0" Style="@_topBorderStyle">
+        <Topbar SupportFormUrl="@_datahubPortalConfiguration.SupportFormUrl"/>/>
+    </MudAppBar>
+    <MudDrawer
+        Width="320px"
+        Open
+        DisableOverlay
+        Style="@_sideBorderStyle"
+        Elevation="0"
+        ClipMode="DrawerClipMode.Always">
+        <MudDrawerContainer>
+            <SectionOutlet SectionName="side-bar" />
+        </MudDrawerContainer>
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer Class="mt-8" MaxWidth="MaxWidth.Large">
+            <div class="reader-only" id="maincontent">
+                <h3>@Localizer["Main content"]</h3>
+            </div>
+            <ErrorBoundary @ref="_errorBoundary">
+                <ChildContent>
+                    @Body
+                </ChildContent>
+                <ErrorContent Context="ex">
+                    @if (HandleException(@ex))
+                    {
+                        <Error CorrelationId=@_correlationId Exception=@ex/>
+                    }
+                    else
+                    {
+                        @Body
+                    }
+                </ErrorContent>
+            </ErrorBoundary>
+        </MudContainer>
+    </MudMainContent>
+
+</MudLayout>
+
+@code {
+
+    private readonly string _topBorderStyle = new StyleBuilder()
+        .AddStyle("border-color", "var(--mud-palette-divider)")
+        .AddStyle("border-width", "1px")
+        .AddStyle("border-style", "none none solid none")
+        .Build();
+
+    private readonly string _sideBorderStyle = new StyleBuilder()
+        .AddStyle("border-color", "var(--mud-palette-divider)")
+        .AddStyle("border-width", "1px")
+        .AddStyle("border-style", "none solid none none")
+        .Build();
+
+
+    private PortalUser _portalUser;
+    private string _correlationId;
+    private ErrorBoundary _errorBoundary;
+    private Exception _lastException;
+
+    protected override void OnParametersSet()
+    {
+        _errorBoundary?.Recover();
+    }
+
+    private bool HandleException(Exception ex)
+    {
+        if (IsIgnoredException(ex))
+            return false;
+        if (ex != _lastException)
+        {
+            _lastException = ex;
+            _ = AuditExceptionAsync(ex);
+        }
+        return true;
+    }
+
+    private bool IsIgnoredException(Exception ex)
+    {
+        return ex is ObjectDisposedException or MicrosoftIdentityWebChallengeUserException;
+    }
+
+    private async Task AuditExceptionAsync(Exception ex)
+    {
+        try
+        {
+            var correlationId = Guid.NewGuid().ToString();
+            await _auditingService.TrackException(ex, (nameof(correlationId), correlationId));
+            _correlationId = correlationId;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception)
+        {
+    // ignored
+        }
+    }
+
+}

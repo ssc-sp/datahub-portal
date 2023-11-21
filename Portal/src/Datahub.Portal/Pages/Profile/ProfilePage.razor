@@ -1,4 +1,4 @@
-@page "/profile"
+@page "/home"
 
 @inherits ViewUserBase<ProfilePage>
 
@@ -9,9 +9,6 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Services.Achievements
 
-<SectionContent SectionName="side-bar">
-    <PersonalSidebar />
-</SectionContent>
 
 @if (_viewedPortalUser is null)
 {
@@ -20,6 +17,10 @@
     </MudContainer>
     return;
 }
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar />
+</SectionContent>
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Personal" UserGraphId="@_viewedPortalUser.GraphGuid">
     <MudStack Row Justify="Justify.FlexEnd" Class="mb-8" Style="margin-top: -80px;">
