@@ -1,4 +1,4 @@
-namespace Datahub.Portal.Pages.Project.FileExplorer.ResourcePages;
+namespace Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
 
 public static class ResourceSubstitutions 
 {

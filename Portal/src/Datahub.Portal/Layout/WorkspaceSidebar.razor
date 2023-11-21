@@ -2,6 +2,7 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.UserTracking
 @using Datahub.Portal.Components.User
+@using Datahub.ProjectTools.Utils
 @using MudBlazor.Utilities
 
 @inject IUserInformationService _userInformationService
@@ -30,62 +31,20 @@
             </MudText>
         </MudStack>
         <MudList Clickable Dense>
-            <MudListItem>
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="fa-light fa-table-layout" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceTitleStyle">
-                        @Localizer["Dashboard"]
-                    </MudText>
-                </MudStack>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="@SvgIcons.Databricks" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceTitleStyle">
-                        @Localizer["Databricks"]
-                    </MudText>
-                </MudStack>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="fa-light fa-hard-drive" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceTitleStyle">
-                        @Localizer["Storage"]
-                    </MudText>
-                </MudStack>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="fa-light fa-browser" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceTitleStyle">
-                        @Localizer["Web App"]
-                    </MudText>
-                </MudStack>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="fa-light fa-database" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceTitleStyle">
-                        @Localizer["SQL Database"]
-                    </MudText>
-                </MudStack>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="fa-light fa-book-bookmark" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceTitleStyle">
-                        @Localizer["Repositories"]
-                    </MudText>
-                </MudStack>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="@SvgIcons.ArcGis" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceTitleStyle">
-                        @Localizer["ArcGIS"]
-                    </MudText>
-                </MudStack>
-            </MudListItem>
+            @foreach (var toolSection in _workspaceTools)
+            {
+                <MudListItem>
+                    <MudLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Underline="Underline.None" Color="Color.Default">
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                            <MudText Style="@_workspaceTitleStyle">
+                                @GetLabel(toolSection)
+                            </MudText>
+                        </MudStack>
+                    </MudLink>
+                </MudListItem>
+            }
+           
         </MudList>
     </MudStack>
 
@@ -99,12 +58,14 @@
         </MudStack>
         <MudList Clickable Dense>
             <MudListItem>
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="fa-light fa-shop" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceTitleStyle">
-                        @Localizer["Marketplace"]
-                    </MudText>
-                </MudStack>
+                <MudLink Href="@GetSectionViewUrl(SectionViews.SqlDatabase)" Underline="Underline.None" Color="Color.Default">
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudIcon Icon="fa-light fa-shop" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                        <MudText Style="@_workspaceTitleStyle">
+                            @Localizer["Marketplace"]
+                        </MudText>
+                    </MudStack>
+                </MudLink>
             </MudListItem>
             <MudListItem>
                 <MudStack Row AlignItems="AlignItems.Center">
@@ -165,12 +126,14 @@
         .AddStyle("text-overflow", "ellipsis")
         .Build();
 
+
     protected override async Task OnInitializedAsync()
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         _project = dbContext.Projects
             .AsNoTracking()
+            .Include(p => p.Resources)
             .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
     }
 
@@ -193,5 +156,80 @@
         public const string Sudo = "sudo";
         public const string Settings = "settings";
     }
+
+    private List<string> _workspaceTools = new()
+    {
+        SectionViews.Dashboard,
+        SectionViews.Databricks,
+        SectionViews.Storage,
+        SectionViews.WebApp,
+        SectionViews.SqlDatabase,
+        SectionViews.Repositories,
+        SectionViews.ArcGIS
+    };
+
+    private string GetSectionViewUrl(string sectionView)
+    {
+        return sectionView switch
+        {
+            SectionViews.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(_project),
+            SectionViews.WebApp => _project.WebApp_URL,
+            _ => $"{_path}/{sectionView}"
+            };
+    }
+    
+    private string GetTarget(string sectionView)
+    {
+        return sectionView switch
+        {
+            SectionViews.Databricks => "_blank",
+            SectionViews.WebApp => "_blank",
+            _ => "_self"
+        };
+    }
+    
+    private string GetIcon(string sectionView)
+    {
+        return sectionView switch
+        {
+            SectionViews.Dashboard => "fa-light fa-table-layout",
+            SectionViews.Databricks => "fa-light fa-display-code",
+            SectionViews.Storage => "fa-light fa-hard-drive",
+            SectionViews.WebApp => "fa-light fa-browser",
+            SectionViews.SqlDatabase => "fa-light fa-database",
+            SectionViews.Repositories => "fa-light fa-book-bookmark",
+            SectionViews.ArcGIS => "fa-light fa-map",
+            SectionViews.Marketplace => "fa-light fa-shop",
+            SectionViews.Users => "fa-light fa-users",
+            SectionViews.Metadata => "fa-light fa-tags",
+            SectionViews.Reports => "fa-light fa-chart-mixed",
+            SectionViews.Sudo => "fa-light fa-face-hand-over-mouth",
+            SectionViews.Settings => "fa-light fa-gear",
+            _ => "fa-light fa-table-layout"
+        };
+    }
+
+    private string GetLabel(string sectionView)
+    {
+        return sectionView switch
+        {
+            SectionViews.Dashboard => Localizer["Dashboard"],
+            SectionViews.Databricks => Localizer["Databricks"],
+            SectionViews.Storage => Localizer["Storage"],
+            SectionViews.WebApp => Localizer["Web App"],
+            SectionViews.SqlDatabase => Localizer["SQL Database"],
+            SectionViews.Repositories => Localizer["Repositories"],
+            SectionViews.ArcGIS => Localizer["ArcGIS"],
+            SectionViews.Marketplace => Localizer["Marketplace"],
+            SectionViews.Users => Localizer["Users"],
+            SectionViews.Metadata => Localizer["Metadata"],
+            SectionViews.Reports => Localizer["Reports"],
+            SectionViews.Sudo => Localizer["Sudo"],
+            SectionViews.Settings => Localizer["Settings"],
+            _ => Localizer["Dashboard"]
+        };
+    }
+    
+    
 
 }

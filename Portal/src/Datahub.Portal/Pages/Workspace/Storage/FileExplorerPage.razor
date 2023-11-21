@@ -14,10 +14,10 @@
 @using Datahub.Core.Model.CloudStorage;
 @using Datahub.Infrastructure.Services.Storage;
 @using Datahub.Portal.Components.Dialogs;
-@using Datahub.Portal.Pages.Project.FileExplorer.Storage;
 @using Microsoft.Graph.Models
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
+@using Datahub.Portal.Pages.Workspace.Storage.Container
 
 @* @page "/w/{ProjectAcronymParam}/filelist" *@
 
@@ -32,9 +32,9 @@
 
 <MudStack>
     <MudStack Row Justify="Justify.SpaceBetween">
-        <MudText Typo="Typo.h1">@Localizer["{0} Storage Explorer", ProjectAcronymParam]</MudText>
+        <MudText Typo="Typo.h1">@Localizer["{0} Storage Explorer", WorkspaceAcronym]</MudText>
     </MudStack>
-    <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
+    <CascadingValue Value="@WorkspaceAcronym" Name="ProjectAcronym">
         <CascadingValue Value="@_project" Name="Project">
             <CascadingValue Value="_user" Name="GraphUser">
                 @if (ShouldShowContainerDropdown)
@@ -58,7 +58,7 @@
                             <MudTabPanel Text="@(!MultiContainer ? SelectedContainer.Name : Localizer["File Explorer"])" Icon="fas fa-hdd">
                                 <FileExplorer ProjectId=@_projectId Container="@_selectedContainer" />
                             </MudTabPanel>
-                            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronymParam">
+                            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
                                 @if (SelectedContainer.StorageManager.AzCopyEnabled)
                                 {
                                     <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
@@ -89,7 +89,7 @@
 @code {
 
     [Parameter]
-    public string ProjectAcronymParam { get; set; }
+    public string WorkspaceAcronym { get; set; }
 
     private Datahub_Project _project;
     private int? _projectId;
@@ -106,13 +106,13 @@
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _user = await _userInformationService.GetCurrentGraphUserAsync();
-        _isUserProjectAdmin = await _userInformationService.IsUserProjectAdmin(ProjectAcronymParam) ||
-            await _userInformationService.IsUserProjectWorkspaceLead(ProjectAcronymParam);
+        _isUserProjectAdmin = await _userInformationService.IsUserProjectAdmin(WorkspaceAcronym) ||
+            await _userInformationService.IsUserProjectWorkspaceLead(WorkspaceAcronym);
 
         _project = await projectContext.Projects
             .Include(p => p.Users)
             .AsSingleQuery()
-            .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
+            .Where(p => p.Project_Acronym_CD == WorkspaceAcronym)
             .FirstOrDefaultAsync();
 
         _projectName = _project?.ProjectName;
@@ -128,8 +128,8 @@
         _cloudContainers = new();
 
         // pick the project storage containers
-        var accountName = _projectStorageConfigService.GetProjectStorageAccountName(ProjectAcronymParam);
-        var accountKey = await _projectStorageConfigService.GetProjectStorageAccountKey(ProjectAcronymParam);
+        var accountName = _projectStorageConfigService.GetProjectStorageAccountName(WorkspaceAcronym);
+        var accountKey = await _projectStorageConfigService.GetProjectStorageAccountKey(WorkspaceAcronym);
 
         var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
         var containerNames = await projectStorageManager.GetContainersAsync();

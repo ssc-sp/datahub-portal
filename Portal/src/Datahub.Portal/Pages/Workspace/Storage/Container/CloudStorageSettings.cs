@@ -1,6 +1,6 @@
 ﻿using Datahub.Core.Model.CloudStorage;
 
-namespace Datahub.Portal.Pages.Project.FileExplorer.Storage
+namespace Datahub.Portal.Pages.Workspace.Storage.Container
 {
     public class CloudStorageSettings
     {

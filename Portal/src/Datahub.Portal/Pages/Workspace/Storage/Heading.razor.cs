@@ -2,7 +2,7 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Services.Storage;
 using Microsoft.JSInterop;
 
-namespace Datahub.Portal.Pages.Project.FileExplorer;
+namespace Datahub.Portal.Pages.Workspace.Storage;
 
 public partial class Heading
 {

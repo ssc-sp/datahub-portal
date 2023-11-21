@@ -85,7 +85,7 @@
         {
             try
             {
-                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Project/FileExplorer/FileItem.razor.js");
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Workspace/Storage/FileItem.razor.js");
                 await _module.InvokeAsync<IJSObjectReference>("initializeDraggable", _fileItemElement);
             }
             catch
