@@ -1,4 +1,4 @@
-@page "/home"
+@* @page "/home" *@
 
 @inherits ViewUserBase<HomePage>
 
@@ -14,6 +14,10 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Services.Achievements
 @using Datahub.Portal.Views.Dialogs
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar/>
+</SectionContent>
 
 @if (_viewedPortalUser is null)
 {
@@ -32,7 +36,7 @@
 </DatahubAuthView>
 <MudGrid>
     <MudItem xs="12">
-@*         <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
+        @*         <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
                   Alt="@Localizer["User's background image"]"
                   Class="rounded-lg mud-elevation-4"
                   Style="width: 100%"
@@ -40,7 +44,7 @@
                   Height="320"
                   ObjectPosition="ObjectPosition.Center"/> *@
 
-<WelcomeBanner/>
+        <WelcomeBanner/>
     </MudItem>
     <MudItem xs="12">
         <UserProjects UserId="@_viewedPortalUser?.GraphGuid" SmSize="6"/>
@@ -54,7 +58,7 @@
     private string _manageSettingsUrl => $"/profile/settings/{ProfileSettingsPage.SectionViews.Public}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
     private string _achievementsUrl => $"/profile/achievements{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
     private bool _isUserValid = true;
-    public const string LogoutUrl = "/signout-oidc";
+        public const string LogoutUrl = "/signout-oidc";
     private List<AnnouncementPreview> _previews = new();
     private bool _isLoading = false;
 
@@ -64,7 +68,7 @@
         await base.OnInitializedAsync();
         _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
-        //_user = await _userInformationService.GetCurrentGraphUserAsync();
+    //_user = await _userInformationService.GetCurrentGraphUserAsync();
 
         _isUserValid = await _userInformationService.HasUserAcceptedTAC();
         if (_isUserValid)
@@ -109,10 +113,10 @@
     private async Task PromptForTermsAndConditions()
     {
         var options = new DialogOptions
-            {
-                CloseOnEscapeKey = false,
-                DisableBackdropClick = true,
-            };
+        {
+            CloseOnEscapeKey = false,
+            DisableBackdropClick = true,
+        };
 
         var tocDialog = await _dialogService.ShowAsync<UserTermsAndConditionsDialog>(Localizer["TermsAndConditions"], options);
         var tocDialogResult = await tocDialog.Result;
@@ -131,10 +135,10 @@
     private async Task PromptForLanguage()
     {
         var options = new DialogOptions
-            {
-                CloseOnEscapeKey = false,
-                DisableBackdropClick = true,
-            };
+        {
+            CloseOnEscapeKey = false,
+            DisableBackdropClick = true,
+        };
 
         var languageDialog = await _dialogService.ShowAsync<UserSelectLanguageDialog>(Localizer["LanguagePreferencePrompt"], options);
         var languageDialogResult = await languageDialog.Result;

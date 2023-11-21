@@ -8,7 +8,7 @@
 @using Datahub.Portal.Pages.Profile.Settings
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Services.Achievements
-
+@using Datahub.Portal.Pages.Landing
 
 @if (_viewedPortalUser is null)
 {
@@ -31,13 +31,14 @@
 </DatahubAuthView>
 <MudGrid>
     <MudItem xs="12">
-        <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
-                  Alt="@Localizer["User's background image"]"
-                  Class="rounded-lg mud-elevation-4"
-                  Style="width: 100%"
-                  ObjectFit="ObjectFit.Cover"
-                  Height="320"
-                  ObjectPosition="ObjectPosition.Center"/>
+        @* <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)" *@
+        @*           Alt="@Localizer["User's background image"]" *@
+        @*           Class="rounded-lg mud-elevation-4" *@
+        @*           Style="width: 100%" *@
+        @*           ObjectFit="ObjectFit.Cover" *@
+        @*           Height="320" *@
+        @*           ObjectPosition="ObjectPosition.Center"/> *@
+        <WelcomeBanner/>
     </MudItem>
     <MudItem xs="12">
         <MudGrid>

@@ -48,7 +48,7 @@
         await base.OnAfterRenderAsync(firstRender);
 
         _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
-            "./Pages/Project/FileExplorer/FileExplorerPage.razor.js");
+            "./Pages/Workspace/Storage/FileExplorerPage.razor.js");
     }
 
     private string GetButtonText()
