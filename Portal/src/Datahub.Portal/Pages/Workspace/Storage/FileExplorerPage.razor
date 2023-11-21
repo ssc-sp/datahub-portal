@@ -1,4 +1,16 @@
 ﻿@* FileExplorerPage.razor *@
+
+@using Datahub.Application.Services.Storage;
+@using Datahub.Core.Components.PageBanner
+@using Datahub.Core.Model.CloudStorage;
+@using Datahub.Infrastructure.Services.Storage;
+@using Datahub.Portal.Components.Dialogs;
+@using Datahub.Portal.Pages.Workspace.Storage.Container
+@using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
+@using Microsoft.Graph.Models
+@using Datahub.Application.Services
+@using Datahub.Core.Model.Projects
+
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
 @inject IProjectStorageConfigurationService _projectStorageConfigService
@@ -6,20 +18,6 @@
 @inject IDialogService _dialogService
 @inject ILogger<FileExplorerPage> _logger
 @inject CloudStorageManagerFactory _cloudStorageManagerFactory
-
-
-
-@using Datahub.Application.Services.Storage;
-@using Datahub.Core.Components.PageBanner
-@using Datahub.Core.Model.CloudStorage;
-@using Datahub.Infrastructure.Services.Storage;
-@using Datahub.Portal.Components.Dialogs;
-@using Datahub.Portal.Pages.Project.FileExplorer.Storage;
-@using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages;
-@using Microsoft.Graph.Models
-@using Datahub.Application.Services
-@using Datahub.Core.Model.Projects
-@using Datahub.Portal.Pages.Workspace.Storage.Container
 
 @* @page "/w/{ProjectAcronymParam}/filelist" *@
 
