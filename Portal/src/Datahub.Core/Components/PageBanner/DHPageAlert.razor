@@ -1,6 +1,7 @@
 ﻿@*DHPageAlert.razor*@
 @using System.Web
 @using Datahub.Core.Services.UserManagement;
+@using Datahub.Markdown
 @inject CultureService _cultureService
 @inject ILogger<DHPageAlert> _logger
 @inject IConfiguration _configuration
@@ -66,7 +67,7 @@
         try
         {
             var output = await client.GetStringAsync(fullUrl);
-            return Datahub.Core.Services.Docs.MarkdownHelper.RemoveFrontMatter(output);
+            return MarkdownHelper.RemoveFrontMatter(output);
         }
         catch (Exception ex)
         {

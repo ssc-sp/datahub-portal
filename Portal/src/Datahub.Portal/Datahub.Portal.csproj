@@ -10,6 +10,12 @@
 		<UserSecretsId>b1e84dc3-b45f-428e-bf71-7eec3434b232</UserSecretsId>
 	</PropertyGroup>
 	<ItemGroup>
+	  <Compile Remove="Pages\NewFolder\**" />
+	  <Content Remove="Pages\NewFolder\**" />
+	  <EmbeddedResource Remove="Pages\NewFolder\**" />
+	  <None Remove="Pages\NewFolder\**" />
+	</ItemGroup>
+	<ItemGroup>
 		<Content Remove="package.json" />
 	</ItemGroup>
 	<ItemGroup>

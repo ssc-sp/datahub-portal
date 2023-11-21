@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Reflection;
 
 namespace Datahub.Shared.Annotations;
@@ -21,10 +22,10 @@ public static class AnnotationTools
         FieldInfo fieldInfo = type.GetField(value.ToString());
 
         // Get the stringvalue attributes
-        StringValueAttribute[] attribs = fieldInfo.GetCustomAttributes(
-            typeof(StringValueAttribute), false) as StringValueAttribute[];
+        DescriptionAttribute[] attribs = fieldInfo.GetCustomAttributes(
+            typeof(DescriptionAttribute), false) as DescriptionAttribute[];
 
         // Return the first if there was a match.
-        return attribs.Length > 0 ? attribs[0].StringValue : null;
+        return attribs.Length > 0 ? attribs[0].Description : null;
     }
 }
