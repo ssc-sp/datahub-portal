@@ -1,7 +1,6 @@
 ﻿@inherits LayoutComponentBase
 
 @using Microsoft.Identity.Web
-@using MudBlazor.Utilities
 
 @inject NavigationManager _navigationManager
 @inject IDatahubAuditingService _auditingService
@@ -9,11 +8,8 @@
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject DatahubPortalConfiguration _portalConfiguration
 @inject IUserInformationService _userInformationService
-@inject DatahubPortalConfiguration _datahubPortalConfiguration
 
-<MudThemeProvider Theme="@DatahubTheme.DefaultTheme"/>
-<MudDialogProvider/>
-<MudSnackbarProvider/>
+
 
 <PageTitle>@Localizer[_portalConfiguration.Title]</PageTitle>
 
@@ -23,48 +19,14 @@
         <AuthorizeView>
             <Authorized>
                 <DatahubAchievementProvider/>
-                <MudLayout Style="@_style">
-                    <MudAppBar Elevation="0">
-                        <Topbar SupportFormUrl="@_datahubPortalConfiguration.SupportFormUrl"/>
-                    </MudAppBar>
-                    <MudDrawer
-                        Open
-                        DisableOverlay
-                        Elevation="0"
-                        ClipMode="DrawerClipMode.Always">
-                        <Sidebar/>
-                    </MudDrawer>
-                    <MudMainContent>
-                        <div class="ui-control">
-                            <ErrorBoundary @ref="_errorBoundary">
-                                <ChildContent>
-                                    @if (_isSessionEnabled == true)
-                                    {
-                                        @Body
-                                    }
-                                    @if (_isSessionEnabled == false)
-                                    {
-                                        <TooManyTabs/>
-                                    }
-                                </ChildContent>
-                                <ErrorContent Context="ex">
-                                    @if (HandleException(@ex))
-                                    {
-                                        <Error User=@_userName CorrelationId=@_correlationId Exception=@ex/>
-                                    }
-                                    else
-                                    {
-                                        <MudContainer Class="mt-8 px-16" MaxWidth="MaxWidth.Large">
-                                            <DHBreadcrumbs/>
-                                            @Body
-                                        </MudContainer>
-                                    }
-
-                                </ErrorContent>
-                            </ErrorBoundary>
-                        </div>
-                    </MudMainContent>
-                </MudLayout>
+                @if (_isSessionEnabled == true)
+                {
+                    @Body
+                }
+                @if (_isSessionEnabled == false)
+                {
+                    <TooManyTabs/>
+                }
             </Authorized>
             <NotAuthorized>
                 <div>@Localizer["ERROR-PAGE.ConnectionLost-Label"]</div>
@@ -83,11 +45,8 @@ else
 
 @code
 {
-    private string _userName;
-    private ErrorBoundary _errorBoundary;
-    private string _correlationId;
-    private Exception _lastException;
     private bool? _isSessionEnabled;
+    private bool _isLoaded = false;    
 
     private static readonly string[] LOAD_MESSAGES = new[] { "Recomputing DNA sequence", "Identifying the pathogen", "Recalculating fungal genome", "Predicting soil mapping", "Analyzing forest coverage" };
 
@@ -96,43 +55,19 @@ else
         return LOAD_MESSAGES[new Random().Next(LOAD_MESSAGES.Length)];
     }
 
-    private string _style;
-
-    private bool _isLoaded;
-
-    protected override void OnParametersSet()
-    {
-        _errorBoundary?.Recover();
-    }
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-
-        _style = new StyleBuilder()
-            .AddStyle("--mud-drawer-width-left", "80px")
-            .Build();
-    }
-
     protected override async Task OnInitializedAsync()
     {
         var user = await _userInformationService.GetAuthenticatedUser(true);
-        _userName = user.Identity?.Name ?? "?";
 
         if (!user.Identity?.IsAuthenticated ?? true)
         {
             var returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
-            _navigationManager.NavigateTo($"/login?redirectUri={returnUrl}", forceLoad:true);
+            _navigationManager.NavigateTo($"/login?redirectUri={returnUrl}", forceLoad: true);
             return;
         }
 
         try
         {
-    //         var scopes = new string[] {
-    // //"https://management.azure.com/.default"
-    //             "https://management.azure.com/user_impersonation"
-    //         };
-    // var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes);
             _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
             await _auditingService.TrackEvent("Login");
         }
@@ -143,39 +78,7 @@ else
 
     // register and or update authenticated portal user
         await _userInformationService.RegisterAuthenticatedPortalUser();
-
+        
         _isLoaded = true;
-    }
-
-    private bool IsIgnoredException(Exception ex)
-    {
-        return ex is ObjectDisposedException or MicrosoftIdentityWebChallengeUserException;
-    }
-
-    private bool HandleException(Exception ex)
-    {
-        if (IsIgnoredException(ex))
-            return false;
-        if (ex != _lastException)
-        {
-            _lastException = ex;
-            _ = AuditExceptionAsync(ex);
-        }
-        return true;
-    }
-
-    private async Task AuditExceptionAsync(Exception ex)
-    {
-        try
-        {
-            var correlationId = Guid.NewGuid().ToString();
-            await _auditingService.TrackException(ex, (nameof(correlationId), correlationId));
-            _correlationId = correlationId;
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception)
-        {
-    // ignored
-        }
     }
 }

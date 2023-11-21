@@ -6,7 +6,9 @@
 @inject IDialogService _dialogService
 @inject ILogger<FileExplorerPage> _logger
 @inject CloudStorageManagerFactory _cloudStorageManagerFactory
-@page "/w/{ProjectAcronymParam}/filelist"
+
+
+
 @using Datahub.Application.Services.Storage;
 @using Datahub.Core.Components.PageBanner
 @using Datahub.Core.Model.CloudStorage;
@@ -17,6 +19,7 @@
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
 
+@* @page "/w/{ProjectAcronymParam}/filelist" *@
 
 <!--suppress CssUnresolvedCustomProperty -->
 <DHPageTitle PageTitleKey="@_projectName"/>

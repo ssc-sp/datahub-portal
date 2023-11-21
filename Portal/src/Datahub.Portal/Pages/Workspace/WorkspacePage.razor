@@ -8,7 +8,8 @@
 @inject IMetadataBrokerService _metadataBrokerService
 @inject ILogger<WorkspacePage> _logger
 
-@page "/w/{ProjectAcronymParam}/{Section?}"
+@page "/w/{ProjectAcronymParam}"
+@page "/w/{ProjectAcronymParam}/{Section}"
 
 
 <SectionContent SectionName="side-bar">
@@ -17,7 +18,8 @@
 
 <MudContainer MaxWidth="MaxWidth.Large">
     @{
-        var containsKey = _sectionComponents.ContainsKey(Section);
+        var containsKey = !string.IsNullOrWhiteSpace(Section) 
+                          && _sectionComponents.ContainsKey(Section);
         var parameters = new Dictionary<string, object>
         {
             { "WorkspaceAcronym", ProjectAcronymParam }

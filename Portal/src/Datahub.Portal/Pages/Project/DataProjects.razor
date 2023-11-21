@@ -1,10 +1,14 @@
-@page "/w"
+@page "/explore"
 
 @using Datahub.Core.Model.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IMetadataBrokerService _metadataBrokerService
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar/>
+</SectionContent>
 
 @if (!_allProjects.Any())
 {

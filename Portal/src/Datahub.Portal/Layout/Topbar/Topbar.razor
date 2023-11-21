@@ -11,9 +11,6 @@
         <li>
             <a href="#nav">@Localizer["Skip to navigation"]</a>
         </li>
-        <li>
-            <a href="#breadcrumb">@Localizer["Skip to breadcrumb"]</a>
-        </li>
     </ul>
     <h3>@Localizer["Language selection"]</h3>
     <ul>
@@ -39,16 +36,16 @@
 
 <MudSpacer/>
 <MudStack Row>
-    <MudButton Variant="Variant.Text">
+    <MudButton Variant="Variant.Text" Href="/home">
         @Localizer["Home"]
     </MudButton>
-    <MudButton Variant="Variant.Text">
+    <MudButton Variant="Variant.Text" Href="/news">
         @Localizer["News"]
     </MudButton>
-    <MudButton Variant="Variant.Text">
+    <MudButton Variant="Variant.Text" Href="/explore">
         @Localizer["Explore"]
     </MudButton>
-    <MudButton Variant="Variant.Text">
+    <MudButton Variant="Variant.Text" Href="/resources">
         @Localizer["Learn"]
     </MudButton>
 </MudStack>
