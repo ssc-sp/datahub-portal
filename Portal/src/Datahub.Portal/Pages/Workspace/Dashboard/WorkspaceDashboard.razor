@@ -5,6 +5,11 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject ILogger<WorkspaceDashboard> _logger
 
+@if (_project is null)
+{
+    <DHLoadingInitializer />
+    return;
+}
 
 <MudGrid>
     <MudItem xs="12" sm="8">

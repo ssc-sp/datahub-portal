@@ -24,6 +24,12 @@
 <!--suppress CssUnresolvedCustomProperty -->
 <DHPageTitle PageTitleKey="@_projectName"/>
 
+@if (!containersLoaded)
+{
+    <DHLoadingInitializer />
+    return;
+}
+
 <DHPageAlert 
     Title=@Localizer["How to use Project Storage"] 
     Key="@PageAlert.Storage"

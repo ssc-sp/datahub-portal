@@ -8,6 +8,9 @@
 @inject IUserInformationService _userInformationService
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject NavigationManager _navigationManager
+
+@implements IDisposable
 
 
 <MudStack Class="px-4 mt-6">
@@ -34,7 +37,7 @@
             @foreach (var toolSection in _workspaceTools)
             {
                 <MudListItem>
-                    <MudLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Underline="Underline.None" Color="Color.Default">
+                    <MudLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Underline="Underline.None" Color="@GetColor(toolSection)">
                         <MudStack Row AlignItems="AlignItems.Center">
                             <MudIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
                             <MudText Style="@_workspaceTitleStyle">
@@ -44,7 +47,6 @@
                     </MudLink>
                 </MudListItem>
             }
-           
         </MudList>
     </MudStack>
 
@@ -57,56 +59,19 @@
             </MudText>
         </MudStack>
         <MudList Clickable Dense>
-            <MudListItem>
-                <MudLink Href="@GetSectionViewUrl(SectionViews.SqlDatabase)" Underline="Underline.None" Color="Color.Default">
-                    <MudStack Row AlignItems="AlignItems.Center">
-                        <MudIcon Icon="fa-light fa-shop" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                        <MudText Style="@_workspaceTitleStyle">
-                            @Localizer["Marketplace"]
-                        </MudText>
-                    </MudStack>
-                </MudLink>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="fa-light fa-users" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceTitleStyle">
-                        @Localizer["Users"]
-                    </MudText>
-                </MudStack>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="fa-light fa-tags" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceTitleStyle">
-                        @Localizer["Metadata"]
-                    </MudText>
-                </MudStack>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="fa-light fa-chart-mixed" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceTitleStyle">
-                        @Localizer["Reports"]
-                    </MudText>
-                </MudStack>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="fa-light fa-face-hand-over-mouth" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceTitleStyle">
-                        @Localizer["Sudo"]
-                    </MudText>
-                </MudStack>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="fa-light fa-gear" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceTitleStyle">
-                        @Localizer["Settings"]
-                    </MudText>
-                </MudStack>
-            </MudListItem>
+            @foreach (var toolSection in _workspaceAdministration)
+            {
+                <MudListItem>
+                    <MudLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Underline="Underline.None" Color="@GetColor(toolSection)">
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                            <MudText Style="@_workspaceTitleStyle">
+                                @GetLabel(toolSection)
+                            </MudText>
+                        </MudStack>
+                    </MudLink>
+                </MudListItem>
+            }
         </MudList>
     </MudStack>
 
@@ -135,7 +100,19 @@
             .AsNoTracking()
             .Include(p => p.Resources)
             .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        _navigationManager.LocationChanged += OnLocationChanged;
     }
+
+    private void OnLocationChanged(object sender, LocationChangedEventArgs e)
+    {
+    // if the path starts with the workspace path, then we are in the workspace
+        if (e.Location.Contains(_path))
+        {
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
 
     private string _path => $"w/{WorkspaceAcronym}";
 
@@ -168,6 +145,16 @@
         SectionViews.ArcGIS
     };
 
+    private List<string> _workspaceAdministration = new()
+    {
+        SectionViews.Marketplace,
+        SectionViews.Users,
+        SectionViews.Metadata,
+        SectionViews.Reports,
+        SectionViews.Sudo,
+        SectionViews.Settings
+    };
+
     private string GetSectionViewUrl(string sectionView)
     {
         return sectionView switch
@@ -177,7 +164,7 @@
             _ => $"{_path}/{sectionView}"
             };
     }
-    
+
     private string GetTarget(string sectionView)
     {
         return sectionView switch
@@ -185,9 +172,9 @@
             SectionViews.Databricks => "_blank",
             SectionViews.WebApp => "_blank",
             _ => "_self"
-        };
+            };
     }
-    
+
     private string GetIcon(string sectionView)
     {
         return sectionView switch
@@ -206,7 +193,7 @@
             SectionViews.Sudo => "fa-light fa-face-hand-over-mouth",
             SectionViews.Settings => "fa-light fa-gear",
             _ => "fa-light fa-table-layout"
-        };
+            };
     }
 
     private string GetLabel(string sectionView)
@@ -227,9 +214,27 @@
             SectionViews.Sudo => Localizer["Sudo"],
             SectionViews.Settings => Localizer["Settings"],
             _ => Localizer["Dashboard"]
-        };
+            };
     }
-    
-    
+
+    private Color GetColor(string sectionView)
+    {
+        if (_navigationManager.Uri.EndsWith(sectionView))
+        {
+            return Color.Primary;
+        }
+
+        if (_navigationManager.Uri.EndsWith(_path) && sectionView == SectionViews.Dashboard)
+        {
+            return Color.Primary;
+        }
+
+        return Color.Default;
+    }
+
+    public void Dispose()
+    {
+        _navigationManager.LocationChanged -= OnLocationChanged;
+    }
 
 }
