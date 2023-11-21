@@ -1,4 +1,5 @@
-﻿using Markdig;
+﻿using Datahub.Markdown.Model;
+using Markdig;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using Microsoft.Extensions.Configuration;
@@ -78,7 +79,7 @@ public class WikiService : IWikiService
             return default;
         }
 
-        var doc = Markdown.Parse(inputMarkdown);
+        var doc = Markdig.Markdown.Parse(inputMarkdown);
         var listBlock = doc.FirstOrDefault(e => e is ListBlock);
         return listBlock?.Descendants()
             .Where(e => e is LinkInline)
@@ -121,7 +122,7 @@ public class WikiService : IWikiService
             return await Task.FromResult(default(MarkdownCard));
         }
 
-        var cardDoc = Markdown.Parse(content);
+        var cardDoc = Markdig.Markdown.Parse(content);
         var cardDocFlattened = cardDoc.Descendants();
 
         var firstHeading = cardDocFlattened.FirstOrDefault(e => e is HeadingBlock) as HeadingBlock;

@@ -63,6 +63,7 @@ using Datahub.Infrastructure.Offline;
 using Datahub.Application.Configuration;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Transforms;
+using Yarp.ReverseProxy.Configuration;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -315,10 +316,15 @@ public class Startup
             endpoints.MapControllers();
             endpoints.MapFallbackToPage("/_Host");
             // reverse proxy
-            if (ReverseProxyEnabled())
+            var provider = endpoints.ServiceProvider.GetService<IProxyConfigProvider>();
+            if (ReverseProxyEnabled() && provider != null)
             {
                 endpoints.MapReverseProxy();
-            }            
+            }  
+            else
+            {
+                logger.LogWarning($"Invalid Reverse Proxy configuration - No provider available");
+            }
         });       
     }
 
