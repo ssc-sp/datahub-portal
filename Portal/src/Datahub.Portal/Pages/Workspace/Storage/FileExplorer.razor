@@ -4,7 +4,7 @@
 @using Datahub.Core.Services.Achievements;
 @using Datahub.Core.Services.Storage;
 @using Datahub.Application.Services
-@using Datahub.Portal.Pages.Project.FileExplorer.Storage;
+@using Datahub.Portal.Pages.Workspace.Storage.Container
 
 @inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
@@ -112,7 +112,7 @@
                 <div class="details-container">
                     @if (_loading || _folders.Contains(_selectedItem) || _currentFolder == _selectedItem)
                     {
-                        <StorageProperties DisplayName="@GetFileName(_selectedItem)" Container=@Container />
+                        <StorageProperties DisplayName="@GetFileName(_selectedItem)" Container="@Container" />
                     }
                     else
                     {
@@ -175,7 +175,7 @@
         await base.OnAfterRenderAsync(firstRender);
         if (firstRender)
         {
-            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Project/FileExplorer/FileExplorer.razor.js");
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Workspace/Storage/FileExplorer.razor.js");
             if (StorageManager != null)
             {
                 StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(ContainerName);
@@ -214,6 +214,7 @@
         }
         catch (Exception)
         {
+            // ignored
         }
     }
 }

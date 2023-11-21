@@ -1,10 +1,9 @@
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
-namespace Datahub.Portal.Pages.Project.FileExplorer;
+namespace Datahub.Portal.Pages.Workspace.Storage;
 
 public partial class FileExplorer
 {
@@ -71,7 +70,7 @@ public partial class FileExplorer
         var oldFileName = JoinPath(_currentFolder, fileName);
         var newFileName = JoinPath(folder, fileName);
 
-        var (fileExists, allowOverride) = await VerifyOverwrite(newFileName);
+        var (_, allowOverride) = await VerifyOverwrite(newFileName);
         if (!allowOverride)
             return;
 

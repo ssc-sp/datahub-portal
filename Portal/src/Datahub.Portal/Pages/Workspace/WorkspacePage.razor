@@ -1,19 +1,19 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Metadata.DTO
 @using Datahub.Portal.Pages.Workspace
+@using Datahub.Portal.Pages.Workspace.Dashboard
+@using Datahub.Portal.Pages.Workspace.Storage
 @using Datahub.Portal.Pages.Workspace.Subpages
-@using Datahub.Portal.Pages.Workspace.Subpages.Dashboard
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IMetadataBrokerService _metadataBrokerService
 @inject ILogger<WorkspacePage> _logger
 
-@page "/w/{ProjectAcronymParam}"
-@page "/w/{ProjectAcronymParam}/{Section}"
-
+@attribute [Route(PageRoutes.WorkspaceDefault)]
+@attribute [Route(PageRoutes.Workspace)]
 
 <SectionContent SectionName="side-bar">
-    <WorkspaceSidebar WorkspaceAcronym="@ProjectAcronymParam"/>
+    <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam"/>
 </SectionContent>
 
 <MudContainer MaxWidth="MaxWidth.Large">
@@ -22,7 +22,7 @@
                           && _sectionComponents.ContainsKey(Section);
         var parameters = new Dictionary<string, object>
         {
-            { "WorkspaceAcronym", ProjectAcronymParam }
+            { "WorkspaceAcronym", WorkspaceAcronymParam }
         };
 
         if (containsKey)
@@ -32,7 +32,7 @@
         else
         {
             _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
-            <WorkspaceDashboard WorkspaceAcronym="@ProjectAcronymParam"/>
+            <WorkspaceDashboard WorkspaceAcronym="@WorkspaceAcronymParam"/>
         }
     }
 </MudContainer>
@@ -41,13 +41,16 @@
 @code {
 
     [Parameter]
-    public string ProjectAcronymParam { get; set; }
+    public string WorkspaceAcronymParam { get; set; }
 
     [Parameter]
     public string Section { get; set; } = WorkspaceSidebar.SectionViews.Dashboard;
 
     private Dictionary<string, Type> _sectionComponents = new()
     {
+        
+        { WorkspaceSidebar.SectionViews.Storage, typeof(FileExplorerPage) },
+        
         { WorkspaceSidebar.SectionViews.Users, typeof(WorkspaceUsers) },
         { WorkspaceSidebar.SectionViews.Metadata, typeof(WorkspaceMetadata) },
         { WorkspaceSidebar.SectionViews.Marketplace, typeof(WorkspaceMarketplace) },
