@@ -5,33 +5,36 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IAzurePriceListService _azurePriceListService
 
-<MudGrid>
-    <MudItem xs="12">
-        <MudText Typo="Typo.h2">@Localizer["Administrative Summary"]</MudText>
-    </MudItem>
-    <MudItem xs="12" sm="6">
-        <MudChart ChartType="ChartType.Donut"
-                  ChartOptions="@_chartOptions"
-                  Width="150px"
-                  Height="150px"
-                  InputData="@(new[] { (double)(_remainingBudget / _projectBudget), (double)(1 - (_remainingBudget / _projectBudget)) })">
-            <CustomGraphics>
-                <text class="donut-inner-text" x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">@Localizer["remaining credits"]</text>
-                <text class="donut-inner-text" x="50%" y="47.5%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="4">@($"{_remainingBudget:C}")</text>
-                <text class="donut-inner-text" x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">@Localizer["of {0}", $"{_projectBudget:C}"]</text>
-            </CustomGraphics>
-        </MudChart>
-    </MudItem>
-    <MudItem xs="12" sm="6">
-        <MudStack>
-            <MudText>@Localizer["{0} credits consumed yesterday", $"{_yesterdayCost:C}"]</MudText>
-            <MudText>@Localizer["{0} credits consumed on average (daily)", $"{_averageDailyCost:C}"]</MudText>
-            <MudButton Variant="Variant.Text">
-                @Localizer["View Reports"]
-            </MudButton>
-        </MudStack>
-    </MudItem>
-</MudGrid>
+@if (_projectBudget != 0)
+{
+    <MudGrid>
+        <MudItem xs="12">
+            <MudText Typo="Typo.h2">@Localizer["Administrative Summary"]</MudText>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudChart ChartType="ChartType.Donut"
+                      ChartOptions="@_chartOptions"
+                      Width="150px"
+                      Height="150px"
+                      InputData="@(new[] { (double)(_remainingBudget / _projectBudget), (double)(1 - (_remainingBudget / _projectBudget)) })">
+                <CustomGraphics>
+                    <text class="donut-inner-text" x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">@Localizer["remaining credits"]</text>
+                    <text class="donut-inner-text" x="50%" y="47.5%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="4">@($"{_remainingBudget:C}")</text>
+                    <text class="donut-inner-text" x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">@Localizer["of {0}", $"{_projectBudget:C}"]</text>
+                </CustomGraphics>
+            </MudChart>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudStack>
+                <MudText>@Localizer["{0} credits consumed yesterday", $"{_yesterdayCost:C}"]</MudText>
+                <MudText>@Localizer["{0} credits consumed on average (daily)", $"{_averageDailyCost:C}"]</MudText>
+                <MudButton Variant="Variant.Text">
+                    @Localizer["View Reports"]
+                </MudButton>
+            </MudStack>
+        </MudItem>
+    </MudGrid>
+}
 
 @code {
 
@@ -93,3 +96,4 @@
     }
 
 }
+

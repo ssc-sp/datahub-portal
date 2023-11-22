@@ -59,7 +59,7 @@
         <MudNavMenu Color="Color.Primary">
             @foreach (var toolSection in _workspaceAdministration)
             {
-                <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)">
+                <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
                     <MudStack Row AlignItems="AlignItems.Center">
                         <MudIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                         <MudText Style="@_workspaceTitleStyle">

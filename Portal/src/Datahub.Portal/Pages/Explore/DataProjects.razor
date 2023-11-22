@@ -1,10 +1,11 @@
-@page "/explore"
 
 @using Datahub.Core.Model.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IMetadataBrokerService _metadataBrokerService
+
+@attribute [Route(PageRoutes.Explore)]
 
 <SectionContent SectionName="side-bar">
     <PersonalSidebar/>

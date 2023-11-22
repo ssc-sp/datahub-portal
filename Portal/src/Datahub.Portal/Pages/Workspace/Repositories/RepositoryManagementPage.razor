@@ -11,7 +11,6 @@
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
     <MudStack>
-        <ProjectInfo ProjectAcronym="@WorkspaceAcronym"/>
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
             <Authorized>
                 <MudAlert Severity="Severity.Info">
@@ -24,7 +23,8 @@
                 </MudAlert>
             </NotAuthorized>
         </DatahubAuthView>
-        <MudText Class="mt-2 mb-4" Typo="Typo.h2">@Localizer["Workspace Repositories"]</MudText>
+        
+        <MudText Typo="Typo.h2">@Localizer["Workspace Repositories"]</MudText>
         <MudText>@Localizer["This section lets you share inside Datahub your Git repositories that have been linked inside Databricks."]</MudText>
         <MudText>
             @Localizer["If you wish to learn more about Databricks and Git integration, "]
