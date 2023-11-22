@@ -1,0 +1,105 @@
+@using Datahub.Portal.Components.User
+@using Datahub.Core.Model.Achievements
+@using Datahub.Portal.Pages.Settings.Views
+
+@inherits ViewUserBase<SettingsPage>
+
+@inject ISnackbar _snackbar
+
+@attribute [Route(PageRoutes.Settings)]
+@attribute [Route(PageRoutes.SettingsDefault)]
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar/>
+</SectionContent>
+
+@if (_viewedPortalUser is null)
+{
+    return;
+}
+
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Personal" UserGraphId="@_viewedPortalUser.GraphGuid">
+    <Authorized>
+
+        <MudGrid>
+            <MudItem xs="12">
+                <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
+            </MudItem>
+            <MudItem xs="12" sm="8">
+
+                @if (_viewedPortalUser is null)
+                {
+                    <DHLoadingInitializer Message="@Localizer["Loading Settings"]"/>
+                }
+                else
+                {
+                    @switch (Section)
+                    {
+                        case SectionViews.Appearance:
+                            <SettingsAppearanceView ViewedUser="@_viewedPortalUser" OnViewedUserChanged="HandleViewedUserChanged"/>
+                            break;
+                        case SectionViews.Notifications:
+                            <SettingsNotificationsView ViewedUser="@_viewedPortalUser"/>
+                            break;
+                        case SectionViews.Public:
+                            <SettingsPublicProfileView ViewedUser="@_viewedPortalUser" OnViewedUserChanged="HandleViewedUserChanged"/>
+                            break;
+                        default:
+                            <SettingsPublicProfileView ViewedUser="@_viewedPortalUser" OnViewedUserChanged="HandleViewedUserChanged"/> // redundant, but just in case
+                            break;
+                    }
+                }
+            </MudItem>
+        </MudGrid>
+    </Authorized>
+    <NotAuthorized>
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="12" sm="9">
+                <MudStack Spacing="6">
+                    <MudText Typo="Typo.h2">@Localizer["These are not the settings you're looking for..."]</MudText>
+                    <MudLink Href="/settings" Typo="Typo.body1">@Localizer["Click here to return to your settings"]</MudLink>
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+    </NotAuthorized>
+</DatahubAuthView>
+
+@code {
+
+    [Parameter]
+    public string Section { get; set; }
+
+    private PortalUser _viewedPortalUser;
+
+    public struct SectionViews
+    {
+        public const string Public = "public";
+        public const string Appearance = "appearance";
+        public const string Notifications = "notifications";
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
+    }
+
+    private async Task HandleViewedUserChanged(PortalUser updatedUser)
+    {
+        _viewedPortalUser = updatedUser;
+        var success = await _userInformationService.UpdatePortalUserAsync(updatedUser);
+        if (success)
+        {
+            _snackbar.Add(Localizer["User information updated"], Severity.Success);
+        }
+        else
+        {
+            _snackbar.Add(Localizer["Failed to update user information"], Severity.Error);
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+}
