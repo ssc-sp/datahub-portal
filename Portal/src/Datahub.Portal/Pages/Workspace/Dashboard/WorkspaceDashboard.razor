@@ -7,7 +7,7 @@
 
 @if (_project is null)
 {
-    <DHLoadingInitializer />
+    <DHLoadingInitializer/>
     return;
 }
 
@@ -79,12 +79,6 @@
 
     private string ParseResourceType(string resourceType)
     {
-    // if it starts with "terraform:" then remove it
-        if (resourceType.StartsWith("terraform:"))
-        {
-            resourceType = resourceType["terraform:".Length..];
-        }
-
     // if it's in the dictionary, return the type otherwise return null
         return _cardComponents.ContainsKey(resourceType) ? resourceType : null;
     }

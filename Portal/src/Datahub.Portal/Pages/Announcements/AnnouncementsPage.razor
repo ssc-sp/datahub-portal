@@ -1,14 +1,15 @@
 ﻿@using Datahub.Core.Model.Announcements
 @using Datahub.Application.Services.Announcements
 
-@page "/news"
 
 @inject IAnnouncementService _announcementService
 
+@attribute [Route(PageRoutes.News)]
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar />
+</SectionContent>
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-    <SectionContent SectionName="side-bar">
-        <PersonalSidebar />
-    </SectionContent>
     
     <MudStack Spacing="6">
         <MudStack Row>

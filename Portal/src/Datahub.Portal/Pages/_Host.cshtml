@@ -91,7 +91,7 @@
     <script src="/_content/PSC.Blazor.Components.MarkdownEditor/js/markdownEditor.js"></script>
     <script src="/_content/PSC.Blazor.Components.MarkdownEditor/js/mermaid.min.js"></script>
 
-    <component type="typeof(HeadOutlet)" render-mode="Server"/>
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered"/>
     
 </head>
 
@@ -198,7 +198,7 @@
 @* End of Custom Reconnect Message *@
 
 <app>
-    @(await Html.RenderComponentAsync<App>(Microsoft.AspNetCore.Mvc.Rendering.RenderMode.Server))
+    @(await Html.RenderComponentAsync<App>(Microsoft.AspNetCore.Mvc.Rendering.RenderMode.ServerPrerendered))
 </app>
 
 <div id="browserNotSupported" style="display: none;">
