@@ -1,0 +1,29 @@
+{
+    "Templates": [
+      {
+        "Name": "new-project-template"
+      }
+    ],
+    "Workspace": {
+      "Name": "Alex Test 3",
+      "Acronym": "AT3",
+      "BudgetAmount": 100,
+      "Version": "latest",
+      "StorageSizeLimitInTB": 5,
+      "TerraformOrganization": {
+        "Name": "TODO",
+        "Code": "TODO"
+      },
+      "Users": [
+        {
+          "ObjectId": "281a25c6-b603-4a23-8f22-662b459e79be",
+          "Email": "testuser2@ssc-spc.gc.ca",
+          "Role": "Owner"
+        }
+      ]
+    },
+    "AppData": {
+      "DatabricksHostUrl": null
+    },
+    "RequestingUserEmail": "testuser2@ssc-spc.gc.ca"
+  }
