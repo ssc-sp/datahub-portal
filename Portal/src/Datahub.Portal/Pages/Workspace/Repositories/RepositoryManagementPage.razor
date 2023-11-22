@@ -9,12 +9,10 @@
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 
 
-@* @page "/w/{ProjectAcronymParam}/repository" *@
-
-<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronymParam">
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
     <MudStack>
-        <ProjectInfo ProjectAcronym="@ProjectAcronymParam"/>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
+        <ProjectInfo ProjectAcronym="@WorkspaceAcronym"/>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
             <Authorized>
                 <MudAlert Severity="Severity.Info">
                     <MudText>@Localizer["You are an administrator and can view all the repositories linked to your instance of Databricks. Collaborators can only view their own linked repositories."]</MudText>
@@ -38,7 +36,7 @@
             {
                 @foreach (var repositoryInfo in _repositoryInfos)
                 {
-                    <RepositoryGridItem RepositoryInfoDto="@repositoryInfo" ProjectAcronym="@ProjectAcronymParam"/>
+                    <RepositoryGridItem RepositoryInfoDto="@repositoryInfo" ProjectAcronym="@WorkspaceAcronym"/>
                 }
             }
             else
@@ -61,7 +59,7 @@
 @code {
 
     [Parameter]
-    public string ProjectAcronymParam { get; set; }
+    public string WorkspaceAcronym { get; set; }
 
     private List<RepositoryInfoDto> _repositoryInfos = new();
 
@@ -77,7 +75,7 @@
         try
         {
             var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(DatabricksScopes);
-            _repositoryInfos = await _databricksApiService.ListWorkspaceRepositoriesAsync(ProjectAcronymParam, accessToken);
+            _repositoryInfos = await _databricksApiService.ListWorkspaceRepositoriesAsync(WorkspaceAcronym, accessToken);
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
         {

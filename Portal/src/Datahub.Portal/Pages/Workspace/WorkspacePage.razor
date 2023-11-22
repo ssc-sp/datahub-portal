@@ -2,8 +2,10 @@
 @using Datahub.Metadata.DTO
 @using Datahub.Portal.Pages.Workspace
 @using Datahub.Portal.Pages.Workspace.Dashboard
+@using Datahub.Portal.Pages.Workspace.Repositories
 @using Datahub.Portal.Pages.Workspace.Storage
 @using Datahub.Portal.Pages.Workspace.Subpages
+@using Datahub.Portal.Pages.Workspace.Sudo
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IMetadataBrokerService _metadataBrokerService
@@ -49,14 +51,16 @@
     private Dictionary<string, Type> _sectionComponents = new()
     {
         
+        { WorkspaceSidebar.SectionViews.Dashboard, typeof(WorkspaceDashboard) },
         { WorkspaceSidebar.SectionViews.Storage, typeof(FileExplorerPage) },
+        { WorkspaceSidebar.SectionViews.Repositories, typeof(RepositoryManagementPage)},
         
         { WorkspaceSidebar.SectionViews.Users, typeof(WorkspaceUsers) },
         { WorkspaceSidebar.SectionViews.Metadata, typeof(WorkspaceMetadata) },
         { WorkspaceSidebar.SectionViews.Marketplace, typeof(WorkspaceMarketplace) },
         { WorkspaceSidebar.SectionViews.Reports, typeof(WorkspaceReports) },
-        { WorkspaceSidebar.SectionViews.Settings, typeof(WorkspaceSettings) },
-        { WorkspaceSidebar.SectionViews.Dashboard, typeof(WorkspaceDashboard) }
+        { WorkspaceSidebar.SectionViews.Sudo, typeof(WorkspaceSudoPage) },
+        { WorkspaceSidebar.SectionViews.Settings, typeof(WorkspaceSettings) }
     };
 
 }
