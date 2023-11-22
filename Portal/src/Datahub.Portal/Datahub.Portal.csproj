@@ -99,6 +99,19 @@
 		<ProjectReference Include="..\modules\Datahub.PIP\Datahub.PIP.csproj" />
 	</ItemGroup>
 	<ItemGroup>
+	  <AdditionalFiles Include="Pages\Achievements\AchievementCard.razor" />
+	  <AdditionalFiles Include="Pages\Achievements\AchievementListItem.razor" />
+	  <AdditionalFiles Include="Pages\Achievements\AchievementsPage.razor" />
+	  <AdditionalFiles Include="Pages\Achievements\AchievementToast.razor" />
+	  <AdditionalFiles Include="Pages\Settings\ChangePictureDialog.razor" />
+	  <AdditionalFiles Include="Pages\Settings\DialogImageItem.razor" />
+	  <AdditionalFiles Include="Pages\Settings\ImageSelectionView.razor" />
+	  <AdditionalFiles Include="Pages\Settings\ProfileSettingsPage.razor" />
+	  <AdditionalFiles Include="Pages\Settings\ProfileSettingsSidebar.razor" />
+	  <AdditionalFiles Include="Pages\Settings\SettingsField.razor" />
+	  <AdditionalFiles Include="Pages\Settings\Views\SettingsAppearanceView.razor" />
+	  <AdditionalFiles Include="Pages\Settings\Views\SettingsNotificationsView.razor" />
+	  <AdditionalFiles Include="Pages\Settings\Views\SettingsPublicProfileView.razor" />
 	  <AdditionalFiles Include="Pages\Workspace\Dashboard\WorkspaceDashboard.razor" />
 	  <AdditionalFiles Include="Pages\Workspace\Storage\ResourcePages\AzCopy.razor" />
 	  <AdditionalFiles Include="Pages\Workspace\Storage\ResourcePages\Databricks.razor" />
@@ -109,8 +122,5 @@
 	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\GCPConnectionDataInput.razor" />
 	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\StorageConfigurationDialog.razor" />
 	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\StorageContainerSelector.razor" />
-	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Pages\Project\FileExplorer\" />
 	</ItemGroup>
 </Project>

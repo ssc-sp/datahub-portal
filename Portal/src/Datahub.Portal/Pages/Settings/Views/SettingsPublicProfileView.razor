@@ -16,15 +16,15 @@
         <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.Email"/>
     </SettingsField>
     <SettingsField Label="@Localizer["Profile Picture"]" Description="@Localizer["Your profile picture will be displayed beside your name around DataHub. You can it at any time and unlock more variations from completing achievements."]">
-        <ImageSelectionView 
+        <ImageSelectionView
             ViewedUser="@ViewedUser"
-            IsProfilePictureDialog="@true" 
+            IsProfilePictureDialog="@true"
             OnImageSelected="@(code => HandleImageSelected(code, true))"/>
     </SettingsField>
     <SettingsField Label="@Localizer["Profile Background"]" Description="@Localizer["Your profile background will be displayed on your profile page. You can unlock more variations from completing achievements and change it at any time."]">
-        <ImageSelectionView 
-            ViewedUser="@ViewedUser" 
-            IsProfilePictureDialog="@false" 
+        <ImageSelectionView
+            ViewedUser="@ViewedUser"
+            IsProfilePictureDialog="@false"
             OnImageSelected="@(code => HandleImageSelected(code, false))"/>
     </SettingsField>
     <MudDivider/>
