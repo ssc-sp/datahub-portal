@@ -5,7 +5,7 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Services;
 using Microsoft.AspNetCore.Components;
 
-namespace Datahub.Portal.Pages.Profile;
+namespace Datahub.Portal.Pages;
 
 public class ViewUserBase<T> : ComponentBase
 {
