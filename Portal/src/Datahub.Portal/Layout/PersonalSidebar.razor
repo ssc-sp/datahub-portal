@@ -18,7 +18,7 @@
     <MudStack Class="ml-2">
         <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"/>
     </MudStack>
-    <MudStack Spacing="0">
+    <MudStack Spacing="2">
         @{
             var userRoles = GetWorkspaces();
         }
@@ -29,7 +29,8 @@
                 </b>
             </MudText>
             <MudSpacer/>
-            @if(userRoles.Any()){
+            @if (userRoles.Any())
+            {
                 <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small">
                     <MudIcon Icon="fa-light fa-layer-plus" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;"/>
                     @Localizer["New"]
@@ -39,17 +40,17 @@
 
         @if (userRoles.Any())
         {
-            <MudList Clickable Dense>
+            <MudNavMenu Color="Color.Primary">
                 @foreach (var userRole in userRoles)
                 {
-                    <MudListItem Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
+                    <MudNavLink Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
                         <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon Icon="fa-light fa-display-code" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
+                            <MudIcon Icon="fa-light fa-display-code" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                             <MudText Style="@_workspaceLinkStyle">
                                 @userRole.Project.ProjectName
                             </MudText>
                         </MudStack>
-                    </MudListItem>
+                    </MudNavLink>
                 }
                 @if (_showAllWorkspaces == false && _userRoles.Count > _maxWorkspaces)
                 {
@@ -57,7 +58,7 @@
                         @Localizer["Show more"]
                     </MudLink>
                 }
-            </MudList>
+            </MudNavMenu>
         }
         else
         {
@@ -69,44 +70,59 @@
         }
     </MudStack>
 
-    <MudStack Spacing="0">
+    <MudStack Spacing="2">
         <MudText Class="ml-2">
             <b>
                 @Localizer["Recent activity"]
             </b>
         </MudText>
-        <MudList Clickable Dense>
-            <MudListItem>
-                <MudStack Row>
-                    <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
-                    <MudText>Demo Workspace 1</MudText>
+        <MudNavMenu Color="Color.Primary">
+            @foreach (var recentActivity in _recentLinks)
+            {
+                <MudNavLink Href="/garbage">
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudIcon Icon="fa-light fa-display-code" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                        <MudText Style="@_workspaceLinkStyle">
+                            Demo Workspace 1
+                        </MudText>
+                    </MudStack>
+                </MudNavLink>
+            }
+        </MudNavMenu>
+    </MudStack>
+
+    <MudStack Spacing="2">
+        <MudText Class="ml-2">
+            <b>
+                @Localizer["Account Settings"]
+            </b>
+        </MudText>
+        <MudNavMenu Color="Color.Primary">
+            <MudNavLink Href="/settings/profile">
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fa-light fa-user" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                    <MudText Style="@_workspaceLinkStyle">
+                        @Localizer["Profile"]
+                    </MudText>
                 </MudStack>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row>
-                    <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
-                    <MudText>Demo Workspace 2</MudText>
+            </MudNavLink>
+            <MudNavLink Href="/settings/appearance">
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fa-light fa-palette" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                    <MudText Style="@_workspaceLinkStyle">
+                        @Localizer["Appearance"]
+                    </MudText>
                 </MudStack>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row>
-                    <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
-                    <MudText>Demo Workspace 1</MudText>
+            </MudNavLink>
+            <MudNavLink Href="/settings/notifications">
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fa-light fa-mailbox" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                    <MudText Style="@_workspaceLinkStyle">
+                        @Localizer["Notifications"]
+                    </MudText>
                 </MudStack>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row>
-                    <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
-                    <MudText>Demo Workspace 2</MudText>
-                </MudStack>
-            </MudListItem>
-            <MudListItem>
-                <MudStack Row>
-                    <MudIcon Icon="fa-light fa-display-code" Size="Size.Small"/>
-                    <MudText>Demo Workspace 1</MudText>
-                </MudStack>
-            </MudListItem>
-        </MudList>
+            </MudNavLink>
+        </MudNavMenu>
     </MudStack>
 </MudStack>
 
@@ -157,7 +173,7 @@
             .ToList() ?? new List<(UserRecentLink l, Datahub_Project project)>();
 
     // _numberOfRemainingWorkspaces = (ushort)(MaxWorkspaceCount - _userRoles.Count(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead));
-        
+
         _isLoaded = true;
     }
 
