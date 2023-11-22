@@ -10,7 +10,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IUserInformationService _userInformationService
 @inject IProjectUserManagementService _projectUserManagementService
-@inject ILogger<DataProjectPage> _logger
+@inject ILogger<WorkspaceUsers> _logger
 @inject IDialogService _dialogService
 @inject ISnackbar _snackbar
 
@@ -19,11 +19,11 @@
     <DHLoadingInitializer/>
 }
 
-<DatahubAuthView AuthLevel="@DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
+<DatahubAuthView AuthLevel="@DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
     <Authorized>
         <MudStack>
 
-            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
                 <MudStack>
                     @if (_usersToAdd.Any() || _usersToUpdate.Any())
                     {
@@ -64,7 +64,7 @@
                                                 {
                                                     <UserAvatar ViewedUser="@userToBeAdded.PortalUser" Size="@Size.Medium"/>
                                                 }
-                                                <MudText Typo="Typo.body2">
+                                                <MudText>
                                                     @if (userToBeAdded.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID)
                                                     {
                                                         @userToBeAdded.Email
@@ -95,10 +95,10 @@
             </DatahubAuthView>
             <MudStack Row Class="mt-6 mb-4">
                 <MudText Typo="Typo.h2">
-                    @Localizer["Workspace Members"]
+                    @Localizer["Workspace Users"]
                 </MudText>
                 <MudSpacer/>
-                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
+                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
                         @Localizer["Invite New User"]
                     </MudButton>
@@ -168,7 +168,7 @@
                     <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                         <MudStack Row AlignItems="AlignItems.Center">
                             <UserAvatar ViewedUser="@rowContext.PortalUser" Size="@Size.Medium"/>
-                            <MudText Typo="Typo.body2">
+                            <MudText>
                                 @rowContext.PortalUser?.DisplayName
                             </MudText>
                         </MudStack>
@@ -177,7 +177,7 @@
                         @rowContext.PortalUser.Email
                     </MudTd>
                     <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
-                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
+                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
                             <Authorized>
                                 @{
                                     var updateCommand = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.Id == rowContext.PortalUser.Id);
@@ -216,8 +216,8 @@
 
 @code {
 
-    [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
 
     private string _filterString = null;
     private string _tabStyle;
@@ -268,7 +268,7 @@
 
     private async Task InitializedProjectMembers()
     {
-        _projectUsers = await _projectUserManagementService.GetProjectUsersAsync(ProjectAcronym);
+        _projectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
         ProjectMemberRoleFilter();
     }
 
@@ -335,7 +335,7 @@
         var dialogParameters = new DialogParameters
         {
             { "CurrentProjectUsers", _projectUsers.Where(x => x.Role.Id != (int)Project_Role.RoleNames.Remove).ToList() },
-            { "ProjectAcronym", ProjectAcronym },
+            { "ProjectAcronym", WorkspaceAcronym },
             { "Inviter", currentUser }
         };
         var dialog = await _dialogService.ShowAsync<AddNewUsersToProjectDialog>(Localizer["Invite New Users"], dialogParameters, dialogOptions);
