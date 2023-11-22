@@ -1,11 +1,11 @@
-@inherits ViewUserBase<ProfileAchievementsPage>
-
 @using Datahub.Portal.Components.User
 @using Datahub.Core.Model.Achievements
 
+@inherits ViewUserBase<AchievementsPage>
+
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory;
 
-@page "/profile/achievements"
+@attribute [Route(PageRoutes.Achievements)]
 
 <SectionContent SectionName="side-bar">
     <PersonalSidebar />

@@ -5,13 +5,13 @@
 @inject NavigationManager _navigationManager
 
 <MudNavMenu Bordered Dense>
-    <MudNavLink Icon="@Icons.Material.Filled.Person" Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.Public}{_query}")">
+    <MudNavLink Icon="@Icons.Material.Filled.Person" Href="@($"/profile/settings/{SettingsPage.SectionViews.Public}{_query}")">
         @Localizer["Profile"]
     </MudNavLink>
-    <MudNavLink Icon="@Icons.Material.Filled.Brush" Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.Appearance}{_query}")">
+    <MudNavLink Icon="@Icons.Material.Filled.Brush" Href="@($"/profile/settings/{SettingsPage.SectionViews.Appearance}{_query}")">
         @Localizer["Appearance"]
     </MudNavLink>
-    <MudNavLink Icon="@Icons.Material.Filled.Mail" Href="@($"/profile/settings/{ProfileSettingsPage.SectionViews.Notifications}{_query}")">
+    <MudNavLink Icon="@Icons.Material.Filled.Mail" Href="@($"/profile/settings/{SettingsPage.SectionViews.Notifications}{_query}")">
         @Localizer["Notifications"]
     </MudNavLink>
 </MudNavMenu>

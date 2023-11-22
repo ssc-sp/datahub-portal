@@ -1,23 +1,13 @@
-@* @page "/home" *@
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Services.Achievements
+@using Datahub.Portal.Pages.Landing
 
 @inherits ViewUserBase<HomePage>
 
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IPortalUserTelemetryService _telemetryService
-@inject NavigationManager _navigationManager
-@inject IDialogService _dialogService
-@inject ILocalStorageService _localStorage
 
-@using Datahub.Application.Services.Announcements
-@using Datahub.Portal.Pages.Landing
-@using Datahub.Portal.Pages.Profile.Settings
-@using Datahub.Core.Model.Achievements
-@using Datahub.Core.Services.Achievements
-@using Datahub.Portal.Views.Dialogs
-
-<SectionContent SectionName="side-bar">
-    <PersonalSidebar/>
-</SectionContent>
+@attribute [Route(PageRoutes.Home)]
 
 @if (_viewedPortalUser is null)
 {
@@ -27,55 +17,56 @@
     return;
 }
 
-<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Personal" UserGraphId="@_viewedPortalUser.GraphGuid">
-    <MudStack Row Justify="Justify.FlexEnd" Class="mb-8" Style="margin-top: -80px;">
-        <MudButton Href="@_manageSettingsUrl" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Settings">
-            @Localizer["Manage Settings"]
-        </MudButton>
-    </MudStack>
-</DatahubAuthView>
-<MudGrid>
-    <MudItem xs="12">
-        @*         <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
-                  Alt="@Localizer["User's background image"]"
-                  Class="rounded-lg mud-elevation-4"
-                  Style="width: 100%"
-                  ObjectFit="ObjectFit.Cover"
-                  Height="320"
-                  ObjectPosition="ObjectPosition.Center"/> *@
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar/>
+</SectionContent>
 
-        <WelcomeBanner/>
-    </MudItem>
-    <MudItem xs="12">
-        <UserProjects UserId="@_viewedPortalUser?.GraphGuid" SmSize="6"/>
-    </MudItem>
-</MudGrid>
+<MudStack>
+    <WelcomeBanner/>
+    <MudGrid>
+        <MudItem xs="12" md="@(_viewedPortalUser.HideAchievements ? 12 : 8)">
+            <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
+                <MudAvatar Style="width:120px; height: 120px">
+                    <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementPortraitUrl(_viewedPortalUser?.ProfilePictureUrl)"
+                              Alt="@Localizer["User's profile picture"]"
+                              Height="120"
+                              Width="120"/>
+                </MudAvatar>
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.h1">
+                        <strong>@_viewedPortalUser?.DisplayName</strong>
+                    </MudText>
+                    <MudText Typo="Typo.caption" Class="ml-2">@_viewedPortalUser?.Email</MudText>
+                </MudStack>
+            </MudStack>
+        </MudItem>
+        @if (!_viewedPortalUser.HideAchievements)
+        {
+            <MudItem xs="12" md="4">
+                <MudStack>
+                    <MudStack Spacing="6">
+                        <ProfileAchievements ViewedUser="@_viewedPortalUser"/>
+                    </MudStack>
+                    <MudLink Href="@_achievementsUrl">
+                        @Localizer["View All Achievements"]
+                    </MudLink>
+                </MudStack>
+            </MudItem>
+        }
+    </MudGrid>
+    <UserProjects UserId="@_viewedPortalUser?.GraphGuid" SmSize="6"/>
+</MudStack>
 
 @code {
 
     private PortalUser _currentUser;
     private PortalUser _viewedPortalUser;
-    private string _manageSettingsUrl => $"/profile/settings/{ProfileSettingsPage.SectionViews.Public}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
-    private string _achievementsUrl => $"/profile/achievements{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
-    private bool _isUserValid = true;
-        public const string LogoutUrl = "/signout-oidc";
-    private List<AnnouncementPreview> _previews = new();
-    private bool _isLoading = false;
+    private string _achievementsUrl => $"{PageRoutes.Achievements}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
 
     protected override async Task OnInitializedAsync()
     {
-        _isLoading = true;
         await base.OnInitializedAsync();
         _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-
-    //_user = await _userInformationService.GetCurrentGraphUserAsync();
-
-        _isUserValid = await _userInformationService.HasUserAcceptedTAC();
-        if (_isUserValid)
-        {
-            await AdjustLanguage();
-        }
-        _isLoading = false;
     }
 
     protected override async Task OnParametersSetAsync()
@@ -89,85 +80,5 @@
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
         }
     }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-
-        if (firstRender)
-        {
-            var language = await _userInformationService.GetUserLanguage();
-            if (string.IsNullOrWhiteSpace(language))
-            {
-                await PromptForLanguage();
-            }
-
-            var userAcceptedTac = await _userInformationService.HasUserAcceptedTAC();
-            if (!userAcceptedTac)
-            {
-                await PromptForTermsAndConditions();
-            }
-        }
-    }
-
-    private async Task PromptForTermsAndConditions()
-    {
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = false,
-            DisableBackdropClick = true,
-        };
-
-        var tocDialog = await _dialogService.ShowAsync<UserTermsAndConditionsDialog>(Localizer["TermsAndConditions"], options);
-        var tocDialogResult = await tocDialog.Result;
-        if (!tocDialogResult.Canceled)
-        {
-            await _userInformationService.RegisterUserTAC();
-            await AdjustLanguage();
-            _isUserValid = true;
-        }
-        else
-        {
-            _navigationManager.NavigateTo(LogoutUrl, forceLoad: true);
-        }
-    }
-
-    private async Task PromptForLanguage()
-    {
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = false,
-            DisableBackdropClick = true,
-        };
-
-        var languageDialog = await _dialogService.ShowAsync<UserSelectLanguageDialog>(Localizer["LanguagePreferencePrompt"], options);
-        var languageDialogResult = await languageDialog.Result;
-        if (!languageDialogResult.Canceled)
-        {
-            var selectedLanguage = languageDialogResult.Data.ToString();
-            var language = selectedLanguage?.Equals("english", StringComparison.InvariantCultureIgnoreCase) ?? true ? "en-CA" : "fr-CA";
-            await _userInformationService.RegisterUserLanguage(language);
-            _userInformationService.SetLanguage(language);
-        }
-    }
-
-    private async Task AdjustLanguage(bool afterRender = false)
-    {
-        var language = string.Empty;
-        if (afterRender)
-        {
-            language = await _localStorage.GetItemAsStringAsync("language");
-        }
-        if (string.IsNullOrWhiteSpace(language))
-        {
-            language = await _userInformationService.GetUserLanguage();
-            if (afterRender)
-            {
-                await _localStorage.SetItemAsStringAsync("language", language);
-            }
-            _userInformationService.SetLanguage(language);
-        }
-    }
-
 
 }
