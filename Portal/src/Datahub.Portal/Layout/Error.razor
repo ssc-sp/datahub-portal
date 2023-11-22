@@ -5,6 +5,10 @@
 
 <p id="datahub-error-page" style="display: none">An error has occured!</p>
 
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar/>
+</SectionContent>
+
 <MudCard Class="pa-4">
     <MudCardHeader>
         <CardHeaderContent>
@@ -71,7 +75,7 @@
     {
         var template = Localizer["ERROR-PAGE.ErrorExplanation-Text"].ToString();
         return new MarkupString(string.Format(template, $"<strong>{CorrelationId}</strong>"));
-    }    
+    }
 
     private string AppInsightsQuery => $"exceptions\n| where customDimensions.correlationId == '{CorrelationId}'";
 
@@ -83,7 +87,7 @@
             await InvokeAsync(StateHasChanged);
 
             var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
-            
+
             await EmailNotificationService.EmailErrorToDatahub($"Datahub App Error - {CorrelationId}", portalUser.Email, "",
                 AppInsightsQuery, Exception?.StackTrace);
         }
@@ -92,4 +96,5 @@
             _emailSent = false;
         }
     }
+
 }
