@@ -80,6 +80,9 @@
 		<_ContentIncludedByDefault Remove="Pages\Project\FileExplorer\Storage\GCPConnectionDataInput.razor" />
 		<_ContentIncludedByDefault Remove="Pages\Project\FileExplorer\Storage\StorageConfigurationDialog.razor" />
 		<_ContentIncludedByDefault Remove="Pages\Project\FileExplorer\Storage\StorageContainerSelector.razor" />
+		<_ContentIncludedByDefault Remove="Pages\Project\Repositories\RepositoryCard.razor" />
+		<_ContentIncludedByDefault Remove="Pages\Project\Repositories\RepositoryGridItem.razor" />
+		<_ContentIncludedByDefault Remove="Pages\Project\Repositories\RepositoryManagementPage.razor" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />
@@ -113,6 +116,9 @@
 	  <AdditionalFiles Include="Pages\Settings\Views\SettingsNotificationsView.razor" />
 	  <AdditionalFiles Include="Pages\Settings\Views\SettingsPublicProfileView.razor" />
 	  <AdditionalFiles Include="Pages\Workspace\Dashboard\WorkspaceDashboard.razor" />
+	  <AdditionalFiles Include="Pages\Workspace\Repositories\RepositoryCard.razor" />
+	  <AdditionalFiles Include="Pages\Workspace\Repositories\RepositoryGridItem.razor" />
+	  <AdditionalFiles Include="Pages\Workspace\Repositories\RepositoryManagementPage.razor" />
 	  <AdditionalFiles Include="Pages\Workspace\Storage\ResourcePages\AzCopy.razor" />
 	  <AdditionalFiles Include="Pages\Workspace\Storage\ResourcePages\Databricks.razor" />
 	  <AdditionalFiles Include="Pages\Workspace\Storage\ResourcePages\ResourcePageRenderer.razor" />

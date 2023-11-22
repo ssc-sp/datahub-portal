@@ -9,7 +9,6 @@
 @using Datahub.Infrastructure.Services.Projects;
 @using Datahub.Infrastructure.Services.Azure
 
-@inject UIControlsService _uiControlService
 @inject NavigationManager _navigationManager
 @inject IMetadataBrokerService _metadataBrokerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -90,24 +89,6 @@
         <MudIcon Icon="@_projectIcon" Title="@Localizer["Project Icon"]"/>
         @_project.ProjectName
     </MudText>
-
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
-        <MudPaper Class="pa-4" Outlined>
-            <MudStack>
-                <MudText>
-                    @Localizer["Super User Commands"]
-                </MudText>
-                <MudText Typo="Typo.body2" Style="font-size: 0.7rem; font-family: Consolas,sans-serif;">
-                    Project ID: @_project.Project_ID [@(_project.Version ?? Localizer["v0.0.0"])]
-                </MudText>
-                <MudElement HtmlTag="div">
-                    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" Href="@SuperUserUrl">
-                        @Localizer["View Commands"]
-                    </MudButton>
-                </MudElement>
-            </MudStack>
-        </MudPaper>
-    </DatahubAuthView>
 
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
         @if ((_project?.Project_Budget ?? 0) == 0)
