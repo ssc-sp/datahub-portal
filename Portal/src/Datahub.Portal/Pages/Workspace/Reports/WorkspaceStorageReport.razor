@@ -6,7 +6,8 @@
 
 @if (_averages != null)
 {
-    <MudText Typo="Typo.h4">@Localizer["Storage daily average (over last 30 days)"]</MudText>
+    <MudDivider Class="my-6" />
+    <MudText Typo="Typo.h3">@Localizer["Storage daily average (over last 30 days)"]</MudText>
     <div>
         <MudChart ChartType="ChartType.Bar"
                   ChartSeries="@DailySeries"
@@ -19,7 +20,7 @@
 @code {
 
     [Parameter]
-    public string ProjectAcronym { get; set; }
+    public string WorkspaceAcronym { get; set; }
 
     private List<DayAverage> _averages = default;
 
@@ -42,7 +43,7 @@
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var averages = await ctx.Projects
-            .Where(e => e.Project_Acronym_CD == ProjectAcronym)
+            .Where(e => e.Project_Acronym_CD == WorkspaceAcronym)
             .Join(ctx.Project_Storage_Avgs, p => p.Project_ID, s => s.ProjectId, (p, s) => s)
             .Where(e => e.Date >= minDate)
             .Select(e => new DayAverage(e.Date.Day, e.AverageCapacity))

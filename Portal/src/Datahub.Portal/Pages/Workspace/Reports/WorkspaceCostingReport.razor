@@ -7,103 +7,109 @@
 @using System.Text.Json;
 @using Datahub.Core.Model.Projects
 
-@inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
-@inject IAzurePriceListService AzurePriceListService
-@inject NavigationManager NavigationManager
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IAzurePriceListService _azurePriceListService
+@inject NavigationManager _navigationManager
 
-<MudPaper Class="py-4 px-6 mb-4">
-    <MudStack>
-        <MudText Class="mb-6" Typo="Typo.h2">@Localizer["Workspace"] @ProjectAcronym @Localizer["cost analysis"]</MudText>
+@if (_loading)
+{
+    <DHLoadingInitializer/>
+    return;
+}
 
-        @if (_currentServiceCosts?.Count > 0)
-        {
-            <MudText Typo="Typo.h4">@Localizer["Cost per service"]</MudText>
-            <MudStack Row>
-                <MudChip Label="true" 
-                         Icon="@Icons.Material.Filled.AttachMoney"
-                         Color="@MonthChipColor"
-                         Variant="@Variant.Text"
-                         OnClick="@HandleShowMonth">
-                    @($"{CurrentCost:C} {Localizer["Total"]}")
-                </MudChip>
-                <MudChip Label="true"
-                         Icon="@Icons.Material.Filled.AttachMoney"
-                         Color="@YesterdayChipColor"
-                         Variant="@Variant.Text"
-                         OnClick="@HandleShowYesterday">
-                        @($"{YesterdayCost:C} {Localizer["Yesterday"]}")
-                </MudChip>
-            </MudStack>
-            <div>
-                <MudChart ChartType="ChartType.Donut"
+<MudStack>
+    @if (_currentServiceCosts?.Count > 0)
+    {
+        <MudText Typo="Typo.h3">@Localizer["Cost Analysis"]</MudText>
+        <MudStack Row>
+            <MudChip Label="true"
+                     Icon="@Icons.Material.Filled.AttachMoney"
+                     Color="@MonthChipColor"
+                     Variant="@Variant.Text"
+                     OnClick="@HandleShowMonth">
+                @($"{CurrentCost:C} {Localizer["Total"]}")
+            </MudChip>
+            <MudChip Label="true"
+                     Icon="@Icons.Material.Filled.AttachMoney"
+                     Color="@YesterdayChipColor"
+                     Variant="@Variant.Text"
+                     OnClick="@HandleShowYesterday">
+                @($"{YesterdayCost:C} {Localizer["Yesterday"]}")
+            </MudChip>
+        </MudStack>
+        <div>
+            <MudChart ChartType="ChartType.Donut"
                       Width="300px"
                       Height="300px"
                       LegendPosition="Position.Right"
                       InputData="@ServiceCosts"
                       InputLabels="@ServiceLabels">
-                    <CustomGraphics>
-                        <text class="donut-inner-text" x="47%" y="35%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">@SelectedTotalLabel</text>
-                        <text class="donut-inner-text" x="47%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="4">@($"{SelectedTotalCost:C}")</text>
-                    </CustomGraphics>
-                </MudChart>
-            </div>
-        }
+                <CustomGraphics>
+                    <text class="donut-inner-text" x="47%" y="35%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">@SelectedTotalLabel</text>
+                    <text class="donut-inner-text" x="47%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="4">@($"{SelectedTotalCost:C}")</text>
+                </CustomGraphics>
+            </MudChart>
+        </div>
+    }
 
-        @if (_currentDailyCosts?.Count > 1 && _currentDailyCosts.Any(c => c.Cost > 1))
-        {
-            <MudText Typo="Typo.h4">@Localizer["Daily cost (over last 30 days)"]</MudText>
-            <div>
-                <MudChart ChartType="ChartType.Bar"
-                          ChartSeries="@DailySeries"
-                          XAxisLabels="@XAxisDailyLabels"
-                          Width="100%"
-                          Height="350px" />
-            </div>
-        }    
+    @if (_currentDailyCosts?.Count > 1 && _currentDailyCosts.Any(c => c.Cost > 0))
+    {
+        <MudDivider Class="my-6" />
+        <MudText Typo="Typo.h3">@Localizer["Daily cost (over last 30 days)"]</MudText>
+        <div>
+            <MudChart ChartType="ChartType.Bar"
+                      ChartSeries="@DailySeries"
+                      XAxisLabels="@XAxisDailyLabels"
+                      Width="100%"
+                      Height="350px"/>
+        </div>
+    }
 
-        @if (_remainingBudget > 0 && _spendingEstimation != null)
-        {
-            <MudText Class="mb-4">
-                <b>@Localizer["Project_Remaining_Credit_label"]</b> @(string.Format(Localizer["Project_Remaining_Credit_text"], _remainingBudget, _projectBudget))
-            </MudText>
+    @if (_remainingBudget > 0 && _spendingEstimation != null)
+    {
+        <MudDivider Class="my-6" />
+        <MudStack>
+            <MudText Typo="Typo.h3">@Localizer["Daily cost (over last 30 days)"]</MudText>
+            <MudStack>
+                <MudText>
+                    <b>@Localizer["Project_Remaining_Credit_label"]</b> @(string.Format(Localizer["Project_Remaining_Credit_text"], _remainingBudget, _projectBudget))
+                </MudText>
 
-            <MudText Class="mb-4">
-                <b>@Localizer["Storage Equivalent:"]</b> @(string.Format(Localizer["Project_Remaining_Credit_Storage"], _remainingBudget, _storageEquivalentFormatted))
-            </MudText>
+                <MudText >
+                    <b>@Localizer["Storage Equivalent:"]</b> @(string.Format(Localizer["Project_Remaining_Credit_Storage"], _remainingBudget, _storageEquivalentFormatted))
+                </MudText>
 
-            <MudStack Row>
-                <MudStack>
-                    <MudText>
-                        <b>@Localizer["Compute Equivalent:"]</b> @(string.Format(Localizer["Project_Remaining_Credit_Compute"], _remainingBudget))
-                    </MudText>
-                </MudStack>
-                <MudStack>
-                    <MudText>
-                        @(string.Format(Localizer["Project_Remaining_Credit_Compute_Small"], _spendingEstimation.ComputeSmall))
-                    </MudText>
-                    <MudText>
-                        @(string.Format(Localizer["Project_Remaining_Credit_Compute_Medium"], _spendingEstimation.ComputeMedium))
-                    </MudText>
-                    <MudText>
-                        @(string.Format(Localizer["Project_Remaining_Credit_Compute_Large"], _spendingEstimation.ComputeLarge))
-                    </MudText>
+                <MudStack Row>
+                    <MudStack>
+                        <MudText>
+                            <b>@Localizer["Compute Equivalent:"]</b> @(string.Format(Localizer["Project_Remaining_Credit_Compute"], _remainingBudget))
+                        </MudText>
+                    </MudStack>
+                    <MudStack>
+                        <MudText>
+                            @(string.Format(Localizer["Project_Remaining_Credit_Compute_Small"], _spendingEstimation.ComputeSmall))
+                        </MudText>
+                        <MudText>
+                            @(string.Format(Localizer["Project_Remaining_Credit_Compute_Medium"], _spendingEstimation.ComputeMedium))
+                        </MudText>
+                        <MudText>
+                            @(string.Format(Localizer["Project_Remaining_Credit_Compute_Large"], _spendingEstimation.ComputeLarge))
+                        </MudText>
+                    </MudStack>
                 </MudStack>
             </MudStack>
-        }
-        @if (_loading)
-        {
-            <Spinner Small />
-        }
-    </MudStack>
-</MudPaper>
+        </MudStack>
+    }
+
+</MudStack>
 
 @code {
 
     [Parameter]
-    public string ProjectAcronym { get; set; }
+    public string WorkspaceAcronym { get; set; }
 
     public decimal _projectBudget { get; set; }
-    public Project_Credits _projectCredits { get; set; }
+    private Project_Credits _projectCredits { get; set; }
 
     private List<AzureDailyCost> _currentDailyCosts { get; set; } = new();
     private List<AzureServiceCost> _currentServiceCosts { get; set; } = new();
@@ -128,6 +134,7 @@
     {
         new() { Name = Localizer["$CAD"], Data = _currentDailyCosts.Select(dc => dc.Cost).ToArray() }
     };
+
     private string[] XAxisDailyLabels => _currentDailyCosts.Select(dc => FormatDay(dc.Date)).ToArray();
     static string FormatDay(DateTime date) => $"{date.Day.ToString("D2")}";
 
@@ -142,18 +149,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var ctx = await dbContextFactory.CreateDbContextAsync();
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
         var project = await ctx.Projects
             .Include(p => p.Credits)
             .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
-        if (project is null || project.Credits is null)
+        if (project?.Credits is null)
         {
-            NavigationManager.NavigateTo("/");
+            _navigationManager.NavigateTo("/");
             return;
-        }    
+        }
 
         _projectCredits = project.Credits;
         _projectBudget = project.Project_Budget ?? 0;
@@ -172,15 +179,15 @@
 
     private async Task<SpendingEstimation> GetSpendingEstimations(decimal amount)
     {
-        // storage
-        var storageCostGrid = await AzurePriceListService.GetAzureStoragePriceLists();
+    // storage
+        var storageCostGrid = await _azurePriceListService.GetAzureStoragePriceLists();
 
         var searchKey = IAzurePriceListService.GenerateAzureStoragePriceListKey(AccessTierType.Hot, DataRedundancyType.LRS);
         var priceList = storageCostGrid.PriceLists[searchKey];
         var storage = decimal.ToDouble(amount / priceList.Capacity.BasePrice);
 
-        // compute
-        var compCostGrid = await AzurePriceListService.GetAzureComputeCostPrices();
+    // compute
+        var compCostGrid = await _azurePriceListService.GetAzureComputeCostPrices();
 
         var smPerHour = CalculateComputeCost(5, compCostGrid.Ds3VmPrice, compCostGrid.DbuPrice, 0.75M, 1);
         var mdPerHour = CalculateComputeCost(3, compCostGrid.Ds4VmPrice, compCostGrid.DbuPrice, 1.50M, 1);
@@ -236,4 +243,5 @@
     private void HandleShowYesterday() => _showingTotal = false;
 
     record SpendingEstimation(double Storage, double ComputeSmall, double ComputeMedium, double ComputeLarge);
+
 }
