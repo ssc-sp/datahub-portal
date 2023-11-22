@@ -14,6 +14,7 @@ public class TerraformTemplate
     public const string AzureAppService = "azure-app-service";
     public const string AzurePostgres = "azure-postgres";
     public const string ContactUs = "contact-us";
+    public const string AzureArcGis = "azure-arcgis";
 
     public string Name { get; set; }
     public static TerraformTemplate Default => LatestFromName(NewProjectTemplate);
