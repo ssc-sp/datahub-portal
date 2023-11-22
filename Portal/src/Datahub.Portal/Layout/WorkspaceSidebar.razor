@@ -3,15 +3,12 @@
 @using Datahub.Core.Model.UserTracking
 @using Datahub.Portal.Components.User
 @using Datahub.ProjectTools.Utils
+@using Datahub.Shared.Entities
 @using MudBlazor.Utilities
 
 @inject IUserInformationService _userInformationService
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@inject NavigationManager _navigationManager
-
-@implements IDisposable
-
 
 <MudStack Class="px-4 mt-6">
     <MudStack Class="ml-2">
@@ -34,11 +31,11 @@
             </MudText>
         </MudStack>
         <MudNavMenu Color="Color.Primary">
-            @foreach (var toolSection in _workspaceTools)
+            @foreach (var toolSection in _workspaceTools.Where(ShouldToolBeShown))
             {
                 <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)">
-                    <MudStack Row AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                    <MudStack Row AlignItems="@AlignItems.Center">
+                        <MudIcon Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                         <MudText Style="@_workspaceTitleStyle">
                             @GetLabel(toolSection)
                         </MudText>
@@ -87,39 +84,16 @@
         .AddStyle("text-overflow", "ellipsis")
         .Build();
 
-
-    protected override async Task OnInitializedAsync()
-    {
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-
-        _project = dbContext.Projects
-            .AsNoTracking()
-            .Include(p => p.Resources)
-            .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
-
-        _navigationManager.LocationChanged += OnLocationChanged;
-    }
-
-    private void OnLocationChanged(object sender, LocationChangedEventArgs e)
-    {
-    // if the path starts with the workspace path, then we are in the workspace
-        if (e.Location.Contains(_path))
-        {
-            InvokeAsync(StateHasChanged);
-        }
-    }
-
-
     private string _path => $"w/{WorkspaceAcronym}";
 
     public struct SectionViews
     {
         public const string Dashboard = "dashboard";
-        public const string Databricks = "databricks";
         public const string Storage = "storage";
+        public const string Databricks = "databricks";
+        public const string Repositories = "repositories";
         public const string WebApp = "webapp";
         public const string SqlDatabase = "sqldatabase";
-        public const string Repositories = "repositories";
         public const string ArcGis = "arcgis";
 
         public const string Marketplace = "marketplace";
@@ -150,6 +124,20 @@
         SectionViews.Sudo,
         SectionViews.Settings
     };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        _project = dbContext.Projects
+            .AsNoTracking()
+            .Include(p => p.Resources)
+            .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+    // check the resources against what to display in the sidebar
+    }
 
     private string GetSectionViewUrl(string sectionView)
     {
@@ -213,24 +201,19 @@
             };
     }
 
-    private Color GetColor(string sectionView)
+    private bool ShouldToolBeShown(string toolSection)
     {
-        if (_navigationManager.Uri.EndsWith(sectionView))
+        return toolSection switch
         {
-            return Color.Primary;
-        }
-
-        if (_navigationManager.Uri.EndsWith(_path) && sectionView == SectionViews.Dashboard)
-        {
-            return Color.Primary;
-        }
-
-        return Color.Default;
-    }
-
-    public void Dispose()
-    {
-        _navigationManager.LocationChanged -= OnLocationChanged;
+            SectionViews.Dashboard => true,
+            SectionViews.Databricks => _project.Resources.Any(r => r.ResourceType == RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)),
+            SectionViews.Storage => _project.Resources.Any(r => r.ResourceType == RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)),
+            SectionViews.WebApp => !string.IsNullOrEmpty(_project.WebApp_URL),
+            SectionViews.SqlDatabase => _project.Resources.Any(r => r.ResourceType == RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzurePostgres)),
+            SectionViews.Repositories => _project.Resources.Any(r => r.ResourceType == RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)),
+            SectionViews.ArcGis => _project.Resources.Any(r => r.ResourceType == RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureArcGis)),
+            _ => false
+        };
     }
 
 }
