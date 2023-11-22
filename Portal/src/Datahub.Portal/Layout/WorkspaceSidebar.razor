@@ -25,7 +25,7 @@
             </MudText>
         </MudStack>
     </MudStack>
-    <MudStack Spacing="0">
+    <MudStack Spacing="2">
         <MudStack Row AlignItems="AlignItems.Center">
             <MudText Class="ml-2">
                 <b>
@@ -33,24 +33,22 @@
                 </b>
             </MudText>
         </MudStack>
-        <MudList Clickable Dense>
+        <MudNavMenu Color="Color.Primary">
             @foreach (var toolSection in _workspaceTools)
             {
-                <MudListItem>
-                    <MudLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Underline="Underline.None" Color="@GetColor(toolSection)">
-                        <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                            <MudText Style="@_workspaceTitleStyle">
-                                @GetLabel(toolSection)
-                            </MudText>
-                        </MudStack>
-                    </MudLink>
-                </MudListItem>
+                <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)">
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                        <MudText Style="@_workspaceTitleStyle">
+                            @GetLabel(toolSection)
+                        </MudText>
+                    </MudStack>
+                </MudNavLink>
             }
-        </MudList>
+        </MudNavMenu>
     </MudStack>
 
-    <MudStack Spacing="0">
+    <MudStack Spacing="2">
         <MudStack Row AlignItems="AlignItems.Center">
             <MudText Class="ml-2">
                 <b>
@@ -58,21 +56,19 @@
                 </b>
             </MudText>
         </MudStack>
-        <MudList Clickable Dense>
+        <MudNavMenu Color="Color.Primary">
             @foreach (var toolSection in _workspaceAdministration)
             {
-                <MudListItem>
-                    <MudLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Underline="Underline.None" Color="@GetColor(toolSection)">
-                        <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/>
-                            <MudText Style="@_workspaceTitleStyle">
-                                @GetLabel(toolSection)
-                            </MudText>
-                        </MudStack>
-                    </MudLink>
-                </MudListItem>
+                <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)">
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                        <MudText Style="@_workspaceTitleStyle">
+                            @GetLabel(toolSection)
+                        </MudText>
+                    </MudStack>
+                </MudNavLink>
             }
-        </MudList>
+        </MudNavMenu>
     </MudStack>
 
 
@@ -124,7 +120,7 @@
         public const string WebApp = "webapp";
         public const string SqlDatabase = "sqldatabase";
         public const string Repositories = "repositories";
-        public const string ArcGIS = "arcgis";
+        public const string ArcGis = "arcgis";
 
         public const string Marketplace = "marketplace";
         public const string Users = "users";
@@ -142,7 +138,7 @@
         SectionViews.WebApp,
         SectionViews.SqlDatabase,
         SectionViews.Repositories,
-        SectionViews.ArcGIS
+        SectionViews.ArcGis
     };
 
     private List<string> _workspaceAdministration = new()
@@ -180,12 +176,12 @@
         return sectionView switch
         {
             SectionViews.Dashboard => "fa-light fa-table-layout",
-            SectionViews.Databricks => "fa-light fa-display-code",
+            SectionViews.Databricks => SvgIcons.Databricks,
             SectionViews.Storage => "fa-light fa-hard-drive",
             SectionViews.WebApp => "fa-light fa-browser",
             SectionViews.SqlDatabase => "fa-light fa-database",
             SectionViews.Repositories => "fa-light fa-book-bookmark",
-            SectionViews.ArcGIS => "fa-light fa-map",
+            SectionViews.ArcGis => SvgIcons.ArcGis,
             SectionViews.Marketplace => "fa-light fa-shop",
             SectionViews.Users => "fa-light fa-users",
             SectionViews.Metadata => "fa-light fa-tags",
@@ -206,7 +202,7 @@
             SectionViews.WebApp => Localizer["Web App"],
             SectionViews.SqlDatabase => Localizer["SQL Database"],
             SectionViews.Repositories => Localizer["Repositories"],
-            SectionViews.ArcGIS => Localizer["ArcGIS"],
+            SectionViews.ArcGis => Localizer["ArcGIS"],
             SectionViews.Marketplace => Localizer["Marketplace"],
             SectionViews.Users => Localizer["Users"],
             SectionViews.Metadata => Localizer["Metadata"],
