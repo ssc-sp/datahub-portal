@@ -20,24 +20,40 @@
     </MudItem>
     <MudItem xs="12" sm="8">
         <MudGrid>
-            @foreach (var resource in _resources)
+            @if (_resources.Any())
             {
-                var found = _cardComponents.ContainsKey(resource.ResourceType);
-                if (found)
+                @foreach (var resource in _resources)
                 {
-                    var parameters = new Dictionary<string, object>
+                    var found = _cardComponents.ContainsKey(resource.ResourceType);
+                    if (found)
                     {
-                        { "ProjectResource", resource },
-                        { "WorkspaceAcronym", WorkspaceAcronym }
-                    };
-                    <MudItem>
-                        <DynamicComponent Type="@_cardComponents[resource.ResourceType]" Parameters="@parameters"/>
-                    </MudItem>
+                        var parameters = new Dictionary<string, object>
+                        {
+                            { "ProjectResource", resource },
+                            { "WorkspaceAcronym", WorkspaceAcronym }
+                        };
+                        <MudItem>
+                            <DynamicComponent Type="@_cardComponents[resource.ResourceType]" Parameters="@parameters"/>
+                        </MudItem>
+                    }
+                    else
+                    {
+                        _logger.LogError("Unknown resource type: {ResourceResourceType}", resource.ResourceType);
+                    }
                 }
-                else
-                {
-                    _logger.LogError("Unknown resource type: {ResourceResourceType}", resource.ResourceType);
-                }
+            }
+            else
+            {
+                <MudItem>
+                    <MudStack>
+                        <MudText >
+                            @Localizer["It looks like you don't have any workspace tools yet. You can create workspace tools from the 'Marketplace' tab."]
+                        </MudText>
+                        <MudLink Typo="Typo.body2" Href="">
+                            @Localizer["Go to Marketplace"]
+                        </MudLink>
+                    </MudStack>
+                </MudItem>
             }
         </MudGrid>
     </MudItem>
@@ -55,6 +71,7 @@
     private Datahub_Project _project;
 
     private List<Project_Resources2> _resources;
+    private string _marketplaceLink => $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Marketplace}";
 
     private Dictionary<string, Type> _cardComponents = new()
     {

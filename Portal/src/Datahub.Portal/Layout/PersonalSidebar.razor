@@ -94,34 +94,21 @@
     <MudStack Spacing="2">
         <MudText Class="ml-2">
             <b>
-                @Localizer["Account Settings"]
+                @Localizer["My account"]
             </b>
         </MudText>
         <MudNavMenu Color="Color.Primary">
-            <MudNavLink Href="/settings/profile">
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="fa-light fa-user" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceLinkStyle">
-                        @Localizer["Profile"]
-                    </MudText>
-                </MudStack>
-            </MudNavLink>
-            <MudNavLink Href="/settings/appearance">
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="fa-light fa-palette" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceLinkStyle">
-                        @Localizer["Appearance"]
-                    </MudText>
-                </MudStack>
-            </MudNavLink>
-            <MudNavLink Href="/settings/notifications">
-                <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon Icon="fa-light fa-mailbox" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                    <MudText Style="@_workspaceLinkStyle">
-                        @Localizer["Notifications"]
-                    </MudText>
-                </MudStack>
-            </MudNavLink>
+            @foreach (var sectionView in _accountItems)
+            {
+                <MudNavLink Href="@GetSectionViewUrl(sectionView)" Match="NavLinkMatch.All">
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                        <MudText Style="@_workspaceLinkStyle">
+                            @GetLabel(sectionView)
+                        </MudText>
+                    </MudStack>
+                </MudNavLink>
+            }
         </MudNavMenu>
     </MudStack>
 </MudStack>
@@ -143,6 +130,23 @@
     private bool _isLoaded = false;
 
         private const ushort MaxWorkspaceCount = 3;
+
+
+    public struct SectionViews
+    {
+        public const string PublicProfile = "public";
+        public const string Appearance = "appearance";
+        public const string Notifications = "notifications";
+        public const string Achievements = "achievements";
+    }
+
+    private List<string> _accountItems = new()
+    {
+        SectionViews.PublicProfile,
+        SectionViews.Appearance,
+        SectionViews.Notifications,
+        SectionViews.Achievements
+    };
 
 
     private readonly string _workspaceLinkStyle = new StyleBuilder()
@@ -193,6 +197,35 @@
         return dbContext.Projects
             .AsNoTracking()
             .FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject.Trim());
+    }
+
+    private string GetSectionViewUrl(string sectionView)
+    {
+        return $"/{PageRoutes.AccountPrefix}/{sectionView}";
+    }
+
+    private string GetIcon(string sectionView)
+    {
+        return sectionView switch
+        {
+            SectionViews.PublicProfile => "fa-light fa-user",
+            SectionViews.Appearance => "fa-light fa-palette",
+            SectionViews.Notifications => "fa-light fa-mailbox",
+            SectionViews.Achievements => "fa-light fa-trophy",
+            _ => "fa-light fa-user"
+            };
+    }
+
+    private string GetLabel(string sectionView)
+    {
+        return sectionView switch
+        {
+            SectionViews.PublicProfile => Localizer["Public Profile"],
+            SectionViews.Appearance => Localizer["Appearance"],
+            SectionViews.Notifications => Localizer["Notifications"],
+            SectionViews.Achievements => Localizer["Achievements"],
+            _ => Localizer["Public Profile"]
+            };
     }
 
 }

@@ -61,7 +61,7 @@
 
     private PortalUser _currentUser;
     private PortalUser _viewedPortalUser;
-    private string _achievementsUrl => $"{PageRoutes.Achievements}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
+    private string _achievementsUrl => $"{PageRoutes.AccountPrefix}/{PersonalSidebar.SectionViews.Achievements}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
 
     protected override async Task OnInitializedAsync()
     {
