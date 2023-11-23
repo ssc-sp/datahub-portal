@@ -2,6 +2,7 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.UserTracking
 @using Datahub.Portal.Components.User
+@using Datahub.ProjectTools.Utils
 @using MudBlazor.Utilities
 
 @inject IUserInformationService _userInformationService
@@ -32,8 +33,8 @@
             <MudSpacer/>
             @if (userRoles.Any())
             {
-                <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="@ShowProjectDialog">
-                    <MudIcon Icon="fa-light fa-layer-plus" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;"/>
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="@ShowProjectDialog" Disabled="@_canNotCreateWorkspace">
+                    <MudIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;"/>
                     @Localizer["New"]
                 </MudButton>
             }
@@ -46,16 +47,16 @@
                 {
                     <MudNavLink Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
                         <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon Icon="fa-light fa-display-code" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                            <MudIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                             <MudText Style="@_workspaceLinkStyle">
                                 @userRole.Project.ProjectName
                             </MudText>
                         </MudStack>
                     </MudNavLink>
                 }
-                @if (_showAllWorkspaces == false && _userRoles.Count > _maxWorkspaces)
+                @if (_showAllWorkspaces == false && _userRoles.Count > _maxWorkspacesToShow)
                 {
-                    <MudLink OnClick="@(() => _showAllWorkspaces = true)" Typo="Typo.body2" Color="Color.Default" Class="ml-4" Style="font-size: 0.75rem;">
+                    <MudLink OnClick="@(() => _showAllWorkspaces = true)" Typo="Typo.body2" Color="Color.Default" Class="ml-4" Style="font-size: 0.75rem;" Disabled="@_canNotCreateWorkspace">
                         @Localizer["Show more"]
                     </MudLink>
                 }
@@ -64,7 +65,7 @@
         else
         {
             <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" OnClick="@ShowProjectDialog">
-                <MudIcon Icon="fa-light fa-layer-plus" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;"/>
+                <MudIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;"/>
                 @Localizer["Create new"]
                 <MudSpacer/>
             </MudButton>
@@ -80,11 +81,11 @@
         <MudNavMenu Color="Color.Primary">
             @foreach (var recentActivity in _recentLinks)
             {
-                <MudNavLink Href="/garbage">
+                <MudNavLink Href="@GetSectionViewUrl(recentActivity)">
                     <MudStack Row AlignItems="AlignItems.Center">
-                        <MudIcon Icon="fa-light fa-display-code" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                        <MudIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                         <MudText Style="@_workspaceLinkStyle">
-                            Demo Workspace 1
+                            @GetLabel(recentActivity)
                         </MudText>
                     </MudStack>
                 </MudNavLink>
@@ -122,8 +123,9 @@
     private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
 
     private ushort _maxRecentLinks = 5;
-    private ushort _maxWorkspaces = 5;
-    private ushort _numberOfRemainingWorkspaces = 10;
+    private ushort _maxWorkspacesToShow = 5;
+    private ushort _numberOfRemainingWorkspaces = 3;
+    private bool _canNotCreateWorkspace => _numberOfRemainingWorkspaces <= 0;
 
     private bool _showAllRecentLinks = false;
     private bool _showAllWorkspaces = false;
@@ -168,7 +170,7 @@
         _userRoles = await dbContext.Project_Users
             .Include(u => u.Role)
             .Include(u => u.Project)
-    // .ThenInclude(p => p.Users)
+            // .ThenInclude(p => p.Users)
             .Include(u => u.PortalUser)
             .Where(u => u.PortalUser.Id == _viewedUser.Id)
             .ToListAsync();
@@ -179,7 +181,7 @@
             .Select(l => (l, project:GetProject(dbContext, l)))
             .ToList() ?? new List<(UserRecentLink l, Datahub_Project project)>();
 
-    // _numberOfRemainingWorkspaces = (ushort)(MaxWorkspaceCount - _userRoles.Count(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead));
+        _numberOfRemainingWorkspaces = (ushort)(MaxWorkspaceCount - _userRoles.Count(u => u.RoleId is (int)Project_Role.RoleNames.WorkspaceLead or (int)Project_Role.RoleNames.Admin));
 
         _isLoaded = true;
     }
@@ -189,7 +191,7 @@
         return _showAllWorkspaces
             ? _userRoles
             : _userRoles
-                .Take(_maxWorkspaces)
+                .Take(_maxWorkspacesToShow)
                 .ToList();
     }
 
@@ -199,6 +201,7 @@
         if (link.DataProject is null) return null;
         return dbContext.Projects
             .AsNoTracking()
+            .Include(p => p.Resources)
             .FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject.Trim());
     }
 
@@ -211,12 +214,12 @@
     {
         return sectionView switch
         {
-            SectionViews.Profile => "fa-light fa-user",
-            SectionViews.Customization => "fa-light fa-palette",
-            SectionViews.Appearance => "fa-light fa-brush",
-            SectionViews.Notifications => "fa-light fa-mailbox",
-            SectionViews.Achievements => "fa-light fa-trophy",
-            _ => "fa-light fa-user"
+            SectionViews.Profile => SidebarIcons.Profile,
+            SectionViews.Customization => SidebarIcons.Customization,
+            SectionViews.Appearance => SidebarIcons.Appearance,
+            SectionViews.Notifications => SidebarIcons.Notifications,
+            SectionViews.Achievements => SidebarIcons.Achievements,
+            _ => SidebarIcons.Profile
             };
     }
 
@@ -242,6 +245,46 @@
         {
             _navigationManager.NavigateTo($"{PageRoutes.WorkspacePrefix}/{dialogResult.Data}", true);
         }
+    }
+
+    private string GetSectionViewUrl((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
+    {
+        return recentActivity.userRecentLink.LinkType switch
+        {
+            DatahubLinkType.DataProject => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}",
+            DatahubLinkType.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(recentActivity.datahubProject),
+            DatahubLinkType.Repository => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Repositories}",
+            DatahubLinkType.Storage => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Storage}",
+            DatahubLinkType.ResourceArticle => $"{PageRoutes.ResourcePrefix}/{recentActivity.userRecentLink.ResourceArticleId}",
+            _ => "/"
+            };
+    }
+
+
+    private string GetIcon((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
+    {
+        return recentActivity.userRecentLink.LinkType switch
+        {
+            DatahubLinkType.DataProject => SidebarIcons.Workspace,
+            DatahubLinkType.Databricks => SidebarIcons.Databricks,
+            DatahubLinkType.Repository => SidebarIcons.Repositories,
+            DatahubLinkType.Storage => SidebarIcons.Storage,
+            DatahubLinkType.ResourceArticle => SidebarIcons.Resources,
+            _ => SidebarIcons.Workspace
+            };
+    }
+
+    private string GetLabel((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
+    {
+        return recentActivity.userRecentLink.LinkType switch
+        {
+            DatahubLinkType.DataProject => recentActivity.datahubProject.ProjectName,
+            DatahubLinkType.Databricks => $"{Localizer["Databricks"]} - {recentActivity.datahubProject.ProjectName}",
+            DatahubLinkType.Repository => $"{Localizer["Repositories"]} - {recentActivity.datahubProject.ProjectName}",
+            DatahubLinkType.Storage => $"{Localizer["Storage"]} - {recentActivity.datahubProject.ProjectName}",
+            DatahubLinkType.ResourceArticle => recentActivity.userRecentLink.ResourceArticleTitle,
+            _ => recentActivity.datahubProject.ProjectName
+            };
     }
 
 }
