@@ -8,9 +8,11 @@ public static class PageRoutes
     
     public const string Achievements = "/achievements";
     
-    public const string WorkspaceDefault = "/w/{WorkspaceAcronymParam}";
-    public const string Workspace = "/w/{WorkspaceAcronymParam}/{Section}";
+    public const string WorkspacePrefix = "w";
+    public const string WorkspaceDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}";
+    public const string Workspace = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{{Section}}";
     
-    public const string SettingsDefault = "/settings/";
-    public const string Settings = "/settings/{Section}";
+    public const string AccountPrefix = "account";
+    public const string AccountDefault = $"/{AccountPrefix}/";
+    public const string Account = $"/{AccountPrefix}/{{Section}}";
 }

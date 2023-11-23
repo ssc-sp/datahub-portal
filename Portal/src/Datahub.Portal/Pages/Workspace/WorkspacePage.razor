@@ -20,26 +20,24 @@
     <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam"/>
 </SectionContent>
 
-<MudContainer MaxWidth="MaxWidth.Large">
-    @{
-        var containsKey = !string.IsNullOrWhiteSpace(Section) 
-                          && _sectionComponents.ContainsKey(Section);
-        var parameters = new Dictionary<string, object>
-        {
-            { "WorkspaceAcronym", WorkspaceAcronymParam }
-        };
+@{
+    var containsKey = !string.IsNullOrWhiteSpace(Section)
+                      && _sectionComponents.ContainsKey(Section);
+    var parameters = new Dictionary<string, object>
+    {
+        { "WorkspaceAcronym", WorkspaceAcronymParam }
+    };
 
-        if (containsKey)
-        {
-            <DynamicComponent Type="@_sectionComponents[Section]" Parameters="@parameters"/>
-        }
-        else
-        {
-            _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
-            <WorkspaceDashboard WorkspaceAcronym="@WorkspaceAcronymParam"/>
-        }
+    if (containsKey)
+    {
+        <DynamicComponent Type="@_sectionComponents[Section]" Parameters="@parameters"/>
     }
-</MudContainer>
+    else
+    {
+        _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
+        <WorkspaceDashboard WorkspaceAcronym="@WorkspaceAcronymParam"/>
+    }
+}
 
 
 @code {
@@ -52,12 +50,10 @@
 
     private Dictionary<string, Type> _sectionComponents = new()
     {
-        
         { WorkspaceSidebar.SectionViews.Dashboard, typeof(WorkspaceDashboard) },
         { WorkspaceSidebar.SectionViews.Storage, typeof(FileExplorerPage) },
-        { WorkspaceSidebar.SectionViews.Repositories, typeof(RepositoryManagementPage)},
-        
-        { WorkspaceSidebar.SectionViews.Users, typeof(WorkspaceUsers) },
+        { WorkspaceSidebar.SectionViews.Repositories, typeof(RepositoryManagementPage) },
+        { WorkspaceSidebar.SectionViews.Users, typeof(WorkspaceUsersPage) },
         { WorkspaceSidebar.SectionViews.Metadata, typeof(WorkspaceMetadata) },
         { WorkspaceSidebar.SectionViews.Marketplace, typeof(WorkspaceMarketplace) },
         { WorkspaceSidebar.SectionViews.Reports, typeof(WorkspaceReports) },

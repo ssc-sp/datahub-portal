@@ -5,10 +5,8 @@
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory;
 
-@attribute [Route(PageRoutes.Achievements)]
-
 <SectionContent SectionName="side-bar">
-    <PersonalSidebar />
+    <PersonalSidebar/>
 </SectionContent>
 
 @if (_viewedPortalUser is null)
@@ -19,33 +17,36 @@
     return;
 }
 
-<MudContainer MaxWidth="MaxWidth.Large">
-    <MudStack Spacing="6">
-        <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
-        <MudStack>
-            <MudText Typo="Typo.h3" Class="mb-4">
-                @Localizer["Achievements"]
-            </MudText>
+<MudStack Spacing="6">
+    <MudStack>
+        <MudText Typo="Typo.h3" Class="mb-4">
+            @Localizer["Achievements"]
+        </MudText>
 
-            @foreach (var userAchievement in GetUserAchievements())
-            {
-                var rarity = GetRarity(userAchievement);
-                <AchievementListItem UserAchievement="@userAchievement" Rarity="@rarity"/>
-                <MudDivider/>
-            }
+        @foreach (var userAchievement in GetUserAchievements())
+        {
+            var rarity = GetRarity(userAchievement);
+            <AchievementListItem UserAchievement="@userAchievement" Rarity="@rarity"/>
+            <MudDivider/>
+        }
 
-            @foreach (var achievement in GetUnEaredUserAchievements())
-            {
-                var rarity = GetRarity(achievement);
-                var completion = GetCompletion(achievement);
-                <AchievementListItem Achievement="@achievement" Rarity="@rarity" Completion="@completion"/>
-                <MudDivider/>
-            }
-        </MudStack>
+        @foreach (var achievement in GetUnEaredUserAchievements())
+        {
+            var rarity = GetRarity(achievement);
+            var completion = GetCompletion(achievement);
+            <AchievementListItem Achievement="@achievement" Rarity="@rarity" Completion="@completion"/>
+            <MudDivider/>
+        }
     </MudStack>
-</MudContainer>
+</MudStack>
 
 @code {
+
+    [Parameter]
+    public PortalUser ViewedUser { get; set; }
+
+    [Parameter]
+    public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
 
     private PortalUser _viewedPortalUser;
     private Dictionary<string, int> _achievementRarityDictionary;
@@ -53,7 +54,7 @@
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
-        
+
         _achievementRarityDictionary = await FetchAchievementRarities();
         _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
     }
