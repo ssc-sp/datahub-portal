@@ -31,7 +31,7 @@
 
     [Parameter]
     public string ViewedUserGraphId { get; set; }
-    
+
     [Parameter]
     public PortalUser ViewedUser { get; set; }
 
@@ -40,16 +40,21 @@
 
     [Parameter]
     public bool ShowProfileLink { get; set; } = false;
-    
+
     [Parameter]
     public bool ShowEmail { get; set; } = true;
 
     private PortalUser _viewedUser;
 
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        _viewedUser = await _userInformationService.GetPortalUserAsync(ViewedUserGraphId);
+    }
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _viewedUser = await _userInformationService.GetPortalUserAsync(ViewedUserGraphId);
         _userInformationService.PortalUserUpdated += OnViewedUserUpdated;
     }
 

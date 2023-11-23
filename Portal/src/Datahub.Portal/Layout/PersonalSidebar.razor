@@ -134,7 +134,8 @@
 
     public struct SectionViews
     {
-        public const string PublicProfile = "public";
+        public const string Profile = "public";
+        public const string Customization = "customization";
         public const string Appearance = "appearance";
         public const string Notifications = "notifications";
         public const string Achievements = "achievements";
@@ -142,7 +143,8 @@
 
     private List<string> _accountItems = new()
     {
-        SectionViews.PublicProfile,
+        SectionViews.Profile,
+        SectionViews.Customization,
         SectionViews.Appearance,
         SectionViews.Notifications,
         SectionViews.Achievements
@@ -208,8 +210,9 @@
     {
         return sectionView switch
         {
-            SectionViews.PublicProfile => "fa-light fa-user",
-            SectionViews.Appearance => "fa-light fa-palette",
+            SectionViews.Profile => "fa-light fa-user",
+            SectionViews.Customization => "fa-light fa-palette",
+            SectionViews.Appearance => "fa-light fa-brush",
             SectionViews.Notifications => "fa-light fa-mailbox",
             SectionViews.Achievements => "fa-light fa-trophy",
             _ => "fa-light fa-user"
@@ -220,7 +223,8 @@
     {
         return sectionView switch
         {
-            SectionViews.PublicProfile => Localizer["Public Profile"],
+            SectionViews.Profile => Localizer["Profile"],
+            SectionViews.Customization => Localizer["Customization"],
             SectionViews.Appearance => Localizer["Appearance"],
             SectionViews.Notifications => Localizer["Notifications"],
             SectionViews.Achievements => Localizer["Achievements"],

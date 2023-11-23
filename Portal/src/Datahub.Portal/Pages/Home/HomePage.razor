@@ -7,22 +7,29 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IPortalUserTelemetryService _telemetryService
 
-@attribute [Route(PageRoutes.Home)]
+
 
 @if (_viewedPortalUser is null)
 {
-    <MudContainer MaxWidth="MaxWidth.Small">
-        <DHLoadingInitializer Message="@Localizer["Initializing Profile..."]"/>
-    </MudContainer>
+    <DHLoadingInitializer Message="@Localizer["Initializing Profile..."]"/>
     return;
 }
 
-<SectionContent SectionName="side-bar">
-    <PersonalSidebar/>
-</SectionContent>
-
 <MudStack>
-    <WelcomeBanner/>
+    @if (_viewedPortalUser.GraphGuid == _currentUser.GraphGuid)
+    {
+        <WelcomeBanner/>
+    }
+    else
+    {
+        <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
+                  Alt="@Localizer["User's background image"]"
+                  Class="rounded-lg mud-elevation-4"
+                  Style="width: 100%"
+                  ObjectFit="ObjectFit.Cover"
+                  Height="320"
+                  ObjectPosition="ObjectPosition.Center"/>
+    }
     <MudGrid>
         <MudItem xs="12" md="@(_viewedPortalUser.HideAchievements ? 12 : 8)">
             <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
