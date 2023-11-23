@@ -1,0 +1,112 @@
+@using Datahub.Portal.Components.User
+@using Datahub.Core.Model.Achievements
+@using Datahub.Portal.Pages.Account.Appearance
+@using Datahub.Portal.Pages.Account.Notifications
+@using Datahub.Portal.Pages.Account.PublicProfile
+@using Datahub.Portal.Pages.Achievements
+
+@inherits ViewUserBase<AccountPage>
+
+@inject ISnackbar _snackbar
+
+@attribute [Route(PageRoutes.AccountDefault)]
+@attribute [Route(PageRoutes.Account)]
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar/>
+</SectionContent>
+
+@if (_viewedPortalUser is null)
+{
+    return;
+}
+
+
+@* <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Personal" UserGraphId="@_viewedPortalUser.GraphGuid"> *@
+@* <Authorized> *@
+<MudGrid>
+    <MudItem xs="12">
+        <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
+    </MudItem>
+    <MudItem xs="12" sm="8">
+
+        @if (_viewedPortalUser is null)
+        {
+            <DHLoadingInitializer Message="@Localizer["Loading Settings"]"/>
+        }
+        else 
+        {
+            var containsKey = !string.IsNullOrWhiteSpace(Section)
+                              && _sectionComponents.ContainsKey(Section);
+            var parameters = new Dictionary<string, object>
+            {
+                { "OnViewedUserChanged", EventCallback.Factory.Create<PortalUser>(this, HandleViewedUserChanged) },
+                { "ViewedUser", _viewedPortalUser }
+            };
+
+            if (containsKey)
+            {
+                <DynamicComponent Type="@_sectionComponents[Section]" Parameters="@parameters"/>
+            }
+            else
+            {
+                _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
+                <AccountPublicProfileSettings OnViewedUserChanged="@HandleViewedUserChanged"/>
+            }
+        }
+    </MudItem>
+</MudGrid>
+@*     </Authorized> *@
+@*     <NotAuthorized> *@
+@*         <MudGrid Justify="Justify.Center"> *@
+@*             <MudItem xs="12" sm="9"> *@
+@*                 <MudStack Spacing="6"> *@
+@*                     <MudText Typo="Typo.h2">@Localizer["These are not the settings you're looking for..."]</MudText> *@
+@*                     <MudLink Href="/settings" Typo="Typo.body1">@Localizer["Click here to return to your settings"]</MudLink> *@
+@*                 </MudStack> *@
+@*             </MudItem> *@
+
+@*         </MudGrid> *@
+@*     </NotAuthorized> *@
+@* </DatahubAuthView> *@
+
+@code {
+
+    [Parameter]
+    public string Section { get; set; }
+
+    private PortalUser _viewedPortalUser;
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
+    }
+
+    private Dictionary<string, Type> _sectionComponents = new()
+    {
+        { PersonalSidebar.SectionViews.PublicProfile, typeof(AccountPublicProfileSettings) },
+        { PersonalSidebar.SectionViews.Appearance, typeof(AccountAppearanceSettings) },
+        { PersonalSidebar.SectionViews.Notifications, typeof(AccountNotificationSettings) },
+        { PersonalSidebar.SectionViews.Achievements, typeof(AchievementsPage) },
+    };
+
+    private async Task HandleViewedUserChanged(PortalUser updatedUser)
+    {
+        _viewedPortalUser = updatedUser;
+        var success = await _userInformationService.UpdatePortalUserAsync(updatedUser);
+        if (success)
+        {
+            _snackbar.Add(Localizer["User information updated"], Severity.Success);
+        }
+        else
+        {
+            _snackbar.Add(Localizer["Failed to update user information"], Severity.Error);
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+}
