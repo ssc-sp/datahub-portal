@@ -4,11 +4,13 @@
 @using Datahub.Portal.Pages.Account.Notifications
 @using Datahub.Portal.Pages.Account.PublicProfile
 @using Datahub.Portal.Pages.Achievements
+@using Datahub.Portal.Pages.Home
 
 @inherits ViewUserBase<AccountPage>
 
 @inject ISnackbar _snackbar
 
+@attribute [Route(PageRoutes.Home)]
 @attribute [Route(PageRoutes.AccountDefault)]
 @attribute [Route(PageRoutes.Account)]
 
@@ -25,36 +27,36 @@
 @* <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Personal" UserGraphId="@_viewedPortalUser.GraphGuid"> *@
 @* <Authorized> *@
 <MudGrid>
-    <MudItem xs="12">
-        <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
-    </MudItem>
-    <MudItem xs="12" sm="8">
 
-        @if (_viewedPortalUser is null)
+    @if (_viewedPortalUser is null)
+    {
+        <DHLoadingInitializer Message="@Localizer["Loading Settings"]"/>
+    }
+    else
+    {
+        var containsKey = !string.IsNullOrWhiteSpace(Section)
+                          && _sectionComponents.ContainsKey(Section);
+        var parameters = new Dictionary<string, object>
         {
-            <DHLoadingInitializer Message="@Localizer["Loading Settings"]"/>
-        }
-        else 
-        {
-            var containsKey = !string.IsNullOrWhiteSpace(Section)
-                              && _sectionComponents.ContainsKey(Section);
-            var parameters = new Dictionary<string, object>
-            {
-                { "OnViewedUserChanged", EventCallback.Factory.Create<PortalUser>(this, HandleViewedUserChanged) },
-                { "ViewedUser", _viewedPortalUser }
-            };
+            { "OnViewedUserChanged", EventCallback.Factory.Create<PortalUser>(this, HandleViewedUserChanged) },
+            { "ViewedUser", _viewedPortalUser }
+        };
 
-            if (containsKey)
-            {
+        if (containsKey)
+        {
+            <MudItem xs="12">
+                <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
+            </MudItem>
+            <MudItem xs="12" sm="8">
                 <DynamicComponent Type="@_sectionComponents[Section]" Parameters="@parameters"/>
-            }
-            else
-            {
-                _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
-                <AccountPublicProfileSettings OnViewedUserChanged="@HandleViewedUserChanged"/>
-            }
+            </MudItem>
         }
-    </MudItem>
+        else
+        {
+            _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
+            <HomePage/>
+        }
+    }
 </MudGrid>
 @*     </Authorized> *@
 @*     <NotAuthorized> *@
@@ -83,11 +85,12 @@
         await base.OnParametersSetAsync();
 
         _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
+        StateHasChanged();
     }
 
     private Dictionary<string, Type> _sectionComponents = new()
     {
-        { PersonalSidebar.SectionViews.PublicProfile, typeof(AccountPublicProfileSettings) },
+        { PersonalSidebar.SectionViews.Customization, typeof(AccountPublicProfileSettings) },
         { PersonalSidebar.SectionViews.Appearance, typeof(AccountAppearanceSettings) },
         { PersonalSidebar.SectionViews.Notifications, typeof(AccountNotificationSettings) },
         { PersonalSidebar.SectionViews.Achievements, typeof(AchievementsPage) },

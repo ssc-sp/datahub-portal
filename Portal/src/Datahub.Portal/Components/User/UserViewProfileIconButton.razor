@@ -1,12 +1,14 @@
 @using Datahub.Core.Extensions
 
 <MudTooltip Delay="600" Text="@Localizer["View profile"]">
-    <MudIconButton Class="align-self-end" Icon="@Icons.Material.Outlined.Person" aria-label="view profile" Href="@($"/profile?u={ViewedUserGraphId.Base64Encode()}")"/>
+    <MudIconButton Class="align-self-end" Icon="@Icons.Material.Outlined.Person" aria-label="view profile" Href="@_href"/>
 </MudTooltip>
 
 @code {
 
     [Parameter]
     public string ViewedUserGraphId { get; set; }
+    
+    private string _href => $"/{PageRoutes.AccountPrefix}/?u={ViewedUserGraphId.Base64Encode()}";
 
 }
