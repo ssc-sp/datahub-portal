@@ -163,20 +163,20 @@
     {
         return sectionView switch
         {
-            SectionViews.Dashboard => "fa-light fa-table-layout",
-            SectionViews.Databricks => SvgIcons.Databricks,
-            SectionViews.Storage => "fa-light fa-hard-drive",
-            SectionViews.WebApp => "fa-light fa-browser",
-            SectionViews.SqlDatabase => "fa-light fa-database",
-            SectionViews.Repositories => "fa-light fa-book-bookmark",
-            SectionViews.ArcGis => SvgIcons.ArcGis,
-            SectionViews.Marketplace => "fa-light fa-shop",
-            SectionViews.Users => "fa-light fa-users",
-            SectionViews.Metadata => "fa-light fa-tags",
-            SectionViews.Reports => "fa-light fa-chart-mixed",
-            SectionViews.Sudo => "fa-light fa-face-hand-over-mouth",
-            SectionViews.Settings => "fa-light fa-gear",
-            _ => "fa-light fa-table-layout"
+            SectionViews.Dashboard => SidebarIcons.Dashboard,
+            SectionViews.Databricks => SidebarIcons.Databricks,
+            SectionViews.Storage => SidebarIcons.Storage,
+            SectionViews.WebApp => SidebarIcons.WebApp,
+            SectionViews.SqlDatabase => SidebarIcons.SqlDatabase,
+            SectionViews.Repositories => SidebarIcons.Repositories,
+            SectionViews.ArcGis => SidebarIcons.ArcGis,
+            SectionViews.Marketplace => SidebarIcons.Marketplace,
+            SectionViews.Users => SidebarIcons.Users,
+            SectionViews.Metadata => SidebarIcons.Metadata,
+            SectionViews.Reports => SidebarIcons.Reports,
+            SectionViews.Sudo => SidebarIcons.Sudo,
+            SectionViews.Settings => SidebarIcons.Settings,
+            _ => SidebarIcons.Dashboard
             };
     }
 
