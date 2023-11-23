@@ -16,6 +16,10 @@
 @attribute [Route(PageRoutes.WorkspaceDefault)]
 @attribute [Route(PageRoutes.Workspace)]
 
+<PageTitle>
+    @Localizer["SSC Datahub - Workspace - {0}", WorkspaceAcronymParam ?? ""]
+</PageTitle>
+
 <SectionContent SectionName="side-bar">
     <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam"/>
 </SectionContent>
