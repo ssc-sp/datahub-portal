@@ -7,7 +7,8 @@
 @inject IUserInformationService _userInformationService
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-
+@inject IDialogService _dialogService
+@inject NavigationManager _navigationManager
 
 @if (!_isLoaded)
 {
@@ -31,7 +32,7 @@
             <MudSpacer/>
             @if (userRoles.Any())
             {
-                <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small">
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="@ShowProjectDialog">
                     <MudIcon Icon="fa-light fa-layer-plus" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;"/>
                     @Localizer["New"]
                 </MudButton>
@@ -62,7 +63,7 @@
         }
         else
         {
-            <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4">
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" OnClick="@ShowProjectDialog">
                 <MudIcon Icon="fa-light fa-layer-plus" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;"/>
                 @Localizer["Create new"]
                 <MudSpacer/>
@@ -230,6 +231,17 @@
             SectionViews.Achievements => Localizer["Achievements"],
             _ => Localizer["Public Profile"]
             };
+    }
+    
+    private async Task ShowProjectDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await _dialogService.ShowAsync<CreateProjectDialog>(Localizer["Create a new Workspace"], options);
+        var dialogResult = await dialog.Result;
+        if (!dialogResult.Canceled)
+        {
+            _navigationManager.NavigateTo($"{PageRoutes.WorkspacePrefix}/{dialogResult.Data}", true);
+        }
     }
 
 }
