@@ -13,6 +13,9 @@ using Datahub.Infrastructure.Services;
 using Datahub.Application.Configuration;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.Azure.Cosmos.Linq;
+using Datahub.ProjectTools.Utils;
+using AngleSharp.Common;
+using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Functions;
 
@@ -59,8 +62,8 @@ public class CheckInfrastructureStatus
                 return new OkObjectResult(await CheckAzureStorageAccount(request));
             case InfrastructureHealthResourceType.AzureKeyVault: // Group is which key vault to check
                 return new OkObjectResult(await CheckAzureKeyVault(request));
-            case InfrastructureHealthResourceType.AzureDatabricks:
-                break;
+            case InfrastructureHealthResourceType.AzureDatabricks: // Name is project acronym to check
+                return new OkObjectResult(await CheckAzureDatabricks(request));
             case InfrastructureHealthResourceType.AzureStorageQueue:
                 break;
             case InfrastructureHealthResourceType.AzureWebApp:
@@ -71,6 +74,39 @@ public class CheckInfrastructureStatus
                 return new BadRequestObjectResult("Please pass a valid request body");
         }
         return new BadRequestObjectResult("Please pass a valid request body");
+    }
+
+    private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
+        InfrastructureHealthCheckRequest request)
+    {
+        var errors = new List<string>();
+        var check = new InfrastructureHealthCheck()
+        {
+            Group = request.Group,
+            Name = request.Group,
+            ResourceType = request.Type,
+            Status = InfrastructureHealthStatus.Unhealthy,
+            HealthCheckTimeUtc = DateTime.UtcNow
+        };
+
+        bool connectable = await _projectDbContext.Database.CanConnectAsync();
+        if (!connectable)
+        {
+            errors.Add("Cannot connect to the database.");
+        }
+
+        var test = _projectDbContext.Projects.First();
+        if (test == null)
+        {
+            errors.Add("Cannot retrieve from the database.");
+        }
+
+        if (!errors.Any())
+        {
+            check.Status = InfrastructureHealthStatus.Healthy;
+        }
+
+        return new InfrastructureHealthCheckResponse(check, errors);
     }
 
     private Uri GetAzureKeyVaultUrl(InfrastructureHealthCheckRequest request)
@@ -166,8 +202,8 @@ public class CheckInfrastructureStatus
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
-    private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
-        InfrastructureHealthCheckRequest request)
+    private async Task<InfrastructureHealthCheckResponse> CheckAzureDatabricks(
+               InfrastructureHealthCheckRequest request)
     {
         var errors = new List<string>();
         var check = new InfrastructureHealthCheck()
@@ -178,18 +214,44 @@ public class CheckInfrastructureStatus
             Status = InfrastructureHealthStatus.Unhealthy,
             HealthCheckTimeUtc = DateTime.UtcNow
         };
-        
-        bool connectable = await _projectDbContext.Database.CanConnectAsync();
-        if (!connectable)
-        {
-            errors.Add("Cannot connect to the database.");
-        }
 
-        var test = _projectDbContext.Projects.First();
-        if (test == null)
+        var project = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).FirstOrDefault(p => p.Project_Acronym_CD == request.Name);
+
+        if (project == null)
         {
-            errors.Add("Cannot retrieve from the database.");
+            errors.Add("Failed to retrieve project.");
         }
+        else
+        {
+            var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project);
+
+            if (databricksUrl == null)
+            {
+                errors.Add("Failed to retrieve Databricks URL.");
+            }
+            else
+            {
+                try
+                {
+                    using var httpClient = _httpClientFactory.CreateClient();
+                    var response = await httpClient.GetAsync(databricksUrl);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        errors.Add($"Databricks returned an unhealthy status code: {response.StatusCode}.");
+                    }
+                    else
+                    {
+                        var content = await response.Content.ReadAsStringAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    errors.Add($"Error while checking Databricks health: {ex.Message}");
+                }
+            }
+        }
+        
 
         if (!errors.Any())
         {
@@ -198,7 +260,7 @@ public class CheckInfrastructureStatus
 
         return new InfrastructureHealthCheckResponse(check, errors);
     }
-
+    
     private async Task<InfrastructureHealthCheckResponse> CheckAzureFunctions(InfrastructureHealthCheckRequest request)
     {
         string azureFunctionUrl = $"http://{request.Name}/api/FunctionsHealthCheck";
