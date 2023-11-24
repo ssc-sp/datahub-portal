@@ -11,30 +11,28 @@
 
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@inject ILogger<ProjectMetadata> Logger
+@inject ILogger<WorkspaceMetadataPage> Logger
 @inject ServiceAuthManager _serviceAuthManager
 @inject IUserInformationService _userInformationService
 
-<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
-    <MudPaper Class="py-4 px-6">
-        <MudStack>
-            <MudText Class="mb-6" Typo="Typo.h2">@Localizer["Workspace"] @ProjectAcronym @Localizer["Metadata"]</MudText>
-            <ProjectObjectMetadata
-                ProfileName="project"
-                ObjectId="@ProjectAcronym"
-                Location="@ProjectAcronym"
-                ProjectAcronym="@ProjectAcronym"
-                ValidateRequired="false"
-                ObjectType="@MetadataObjectType.DataInitiative"
-                OnMetadataSaved="@HandleMetadataSaved"/>
-        </MudStack>
-    </MudPaper>
-</DatahubAuthView>
+<MudPaper Class="py-4 px-6">
+    <MudStack>
+        <MudText Class="mb-6" Typo="Typo.h2">@Localizer["Workspace"] @WorkspaceAcronym @Localizer["Metadata"]</MudText>
+        <ProjectObjectMetadata
+            ProfileName="project"
+            ObjectId="@WorkspaceAcronym"
+            Location="@WorkspaceAcronym"
+            ProjectAcronym="@WorkspaceAcronym"
+            ValidateRequired="false"
+            ObjectType="@MetadataObjectType.DataInitiative"
+            OnMetadataSaved="@HandleMetadataSaved"/>
+    </MudStack>
+</MudPaper>
 
 @code {
 
     [Parameter]
-    public string ProjectAcronym { get; set; }
+    public string WorkspaceAcronym { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
