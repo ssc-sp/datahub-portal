@@ -1,8 +1,9 @@
 ﻿@*DHPageAlert.razor*@
 @using System.Web
 @using Datahub.Core.Services.UserManagement;
-@using Datahub.Markdown
+@using Datahub.Markdown;
 @inject CultureService _cultureService
+@inject UserSettingsService _userSettingsService
 @inject ILogger<DHPageAlert> _logger
 @inject IConfiguration _configuration
 @inject IHttpClientFactory _httpClientFactory
@@ -36,14 +37,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var pageAlertEnabled = _configuration.GetValue<bool>("PageAlertsEnabled", true);
-        if (pageAlertEnabled)
+        var hideAlerts = await _userSettingsService.GetHideAlerts();
+        if (!hideAlerts)
         {
             var link = _cultureService.IsFrench ? WikiLinkFR : WikiLinkEN;
             var content = await LoadPage(link ?? DefaultPage);
+            var hiddenAlerts = await _userSettingsService.GetHiddenAlerts();
+            
             _markdownContent = content ?? Localizer[$"{link} cannot be found"];
             _contentFound = content != null;
-            if (_contentFound)
+            if (_contentFound && !hiddenAlerts.Contains(Key))
             {
                 await OpenDialog();
             }
@@ -95,6 +98,15 @@
 
         var dialog = await _dialogService.ShowAsync<DHPageAlertDialog>(Localizer["Page alert"], parameters, options);
         var result = await dialog.Result;
+        
+        if (result.Data is string s1 && s1 == "close")
+        {
+            await _userSettingsService.AddHiddenAlert(Key);
+        }
+        if (result.Data is string s2 && s2 == "hide")
+        {
+            await _userSettingsService.SetHideAlerts(true);
+        }
     }
 
 }

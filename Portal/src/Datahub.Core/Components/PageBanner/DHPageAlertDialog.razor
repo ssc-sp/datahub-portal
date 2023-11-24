@@ -10,6 +10,10 @@
             <DHMarkdown Content="@Content" LinkRewriter="@RewriteLink"/>
         </PageAlert>
     </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Hide">@Localizer["Hide alerts"]</MudButton>
+        <MudButton OnClick="Close">@Localizer["Close"]</MudButton>
+    </DialogActions>
 </MudDialog>
 
 @code {
@@ -28,5 +32,9 @@
 
     [Parameter]
     public Func<string, string> RewriteLink { get; set; }
+    
+    public void Close() => MudDialog.Close(DialogResult.Ok("close"));
+
+    public void Hide() => MudDialog.Close(DialogResult.Ok("hide"));
 
 }

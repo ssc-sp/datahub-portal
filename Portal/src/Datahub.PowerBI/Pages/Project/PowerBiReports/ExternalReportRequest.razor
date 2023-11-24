@@ -5,7 +5,7 @@
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Services.Notification
 @inject IPowerBiDataService PowerBiDataService
-@inject IUserInformationService UserInformationService
+@inject IUserSettingsService UserSettingsService
 @inject ServiceAuthManager ServiceAuthManager
 @inject PowerBiEmailService EmailService
 
@@ -109,7 +109,7 @@ else
         _isWorking = true;
 
         externalReport = await PowerBiDataService.GetExternalReportRecord(Report.Report_ID);
-        currentUserIsFrench = await UserInformationService.IsFrench();
+        currentUserIsFrench = await UserSettingsService.IsFrench();
         
         _isWorking = false;
     }

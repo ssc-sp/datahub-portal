@@ -376,6 +376,7 @@ public class Startup
             services.AddScoped<DataLakeClientService>();
 
             services.AddScoped<IUserInformationService, UserInformationService>();
+            services.AddScoped<IUserSettingsService, UserSettingsService>();
             services.AddSingleton<IMSGraphService, MSGraphService>();
 
             services.AddScoped<IProjectDatabaseService, ProjectDatabaseService>();

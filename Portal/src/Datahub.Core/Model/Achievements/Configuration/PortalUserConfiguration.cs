@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Datahub.Core.Model.UserTracking;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Datahub.Core.Model.Achievements.Configuration;
@@ -24,9 +25,6 @@ public class PortalUserConfiguration : IEntityTypeConfiguration<PortalUser>
         builder.Property(e => e.Email)
                .HasMaxLength(64);
 
-        builder.Property(e => e.Language)
-               .HasMaxLength(5);
-
         builder.HasMany(e => e.Achievements)
                .WithOne(e => e.PortalUser)
                .OnDelete(DeleteBehavior.NoAction);
@@ -38,6 +36,11 @@ public class PortalUserConfiguration : IEntityTypeConfiguration<PortalUser>
         builder.HasMany(e => e.RecentLinks)
             .WithOne(l => l.User)
             .HasForeignKey(l => l.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasOne(e => e.UserSettings)
+            .WithOne(l => l.User)
+            .HasForeignKey<UserSettings>(e => e.UserId)
             .OnDelete(DeleteBehavior.NoAction);
     }
 }
