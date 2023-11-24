@@ -85,7 +85,7 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
         // report the new achievements
         if (newAchievements.Any())
         {
-            OnAchievementsEarned?.Invoke(this, new AchievementsEarnedEventArgs(newAchievements, portalUser.HideAchievements));
+            OnAchievementsEarned?.Invoke(this, new AchievementsEarnedEventArgs(newAchievements, portalUser.UserSettings.HideAchievements));
             await _auditingService.TrackEvent("Achivements", ("Codes", string.Join(", ", newAchievements)));
         }        
     }
