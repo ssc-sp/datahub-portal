@@ -2,6 +2,7 @@
 @using Datahub.Metadata.DTO
 @using Datahub.Portal.Pages.Workspace
 @using Datahub.Portal.Pages.Workspace.Dashboard
+@using Datahub.Portal.Pages.Workspace.Metadata
 @using Datahub.Portal.Pages.Workspace.Reports
 @using Datahub.Portal.Pages.Workspace.Repositories
 @using Datahub.Portal.Pages.Workspace.Storage
@@ -58,7 +59,7 @@
         { WorkspaceSidebar.SectionViews.Storage, typeof(FileExplorerPage) },
         { WorkspaceSidebar.SectionViews.Repositories, typeof(RepositoryManagementPage) },
         { WorkspaceSidebar.SectionViews.Users, typeof(WorkspaceUsersPage) },
-        { WorkspaceSidebar.SectionViews.Metadata, typeof(WorkspaceMetadata) },
+        { WorkspaceSidebar.SectionViews.Metadata, typeof(WorkspaceMetadataPage) },
         { WorkspaceSidebar.SectionViews.Marketplace, typeof(WorkspaceMarketplace) },
         { WorkspaceSidebar.SectionViews.Reports, typeof(WorkspaceReports) },
         { WorkspaceSidebar.SectionViews.Sudo, typeof(WorkspaceSudoPage) },

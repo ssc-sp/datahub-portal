@@ -1,9 +1,9 @@
 @using Datahub.Portal.Components.User
 @using Datahub.Core.Model.Achievements
+@using Datahub.Portal.Pages.Account.Achievements
 @using Datahub.Portal.Pages.Account.Appearance
 @using Datahub.Portal.Pages.Account.Notifications
 @using Datahub.Portal.Pages.Account.PublicProfile
-@using Datahub.Portal.Pages.Achievements
 @using Datahub.Portal.Pages.Home
 
 @inherits ViewUserBase<AccountPage>
@@ -62,19 +62,6 @@
         }
     }
 </MudGrid>
-@*     </Authorized> *@
-@*     <NotAuthorized> *@
-@*         <MudGrid Justify="Justify.Center"> *@
-@*             <MudItem xs="12" sm="9"> *@
-@*                 <MudStack Spacing="6"> *@
-@*                     <MudText Typo="Typo.h2">@Localizer["These are not the settings you're looking for..."]</MudText> *@
-@*                     <MudLink Href="/settings" Typo="Typo.body1">@Localizer["Click here to return to your settings"]</MudLink> *@
-@*                 </MudStack> *@
-@*             </MudItem> *@
-
-@*         </MudGrid> *@
-@*     </NotAuthorized> *@
-@* </DatahubAuthView> *@
 
 @code {
 
@@ -92,7 +79,7 @@
         StateHasChanged();
     }
 
-    private Dictionary<string, Type> _sectionComponents = new()
+    private readonly Dictionary<string, Type> _sectionComponents = new()
     {
         { PersonalSidebar.SectionViews.Customization, typeof(AccountPublicProfileSettings) },
         { PersonalSidebar.SectionViews.Appearance, typeof(AccountAppearanceSettings) },
