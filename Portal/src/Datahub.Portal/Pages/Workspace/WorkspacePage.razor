@@ -5,6 +5,7 @@
 @using Datahub.Portal.Pages.Workspace.Metadata
 @using Datahub.Portal.Pages.Workspace.Reports
 @using Datahub.Portal.Pages.Workspace.Repositories
+@using Datahub.Portal.Pages.Workspace.Settings
 @using Datahub.Portal.Pages.Workspace.Storage
 @using Datahub.Portal.Pages.Workspace.Subpages
 @using Datahub.Portal.Pages.Workspace.Sudo
@@ -63,7 +64,7 @@
         { WorkspaceSidebar.SectionViews.Marketplace, typeof(WorkspaceMarketplace) },
         { WorkspaceSidebar.SectionViews.Reports, typeof(WorkspaceReports) },
         { WorkspaceSidebar.SectionViews.Sudo, typeof(WorkspaceSudoPage) },
-        { WorkspaceSidebar.SectionViews.Settings, typeof(WorkspaceSettings) }
+        { WorkspaceSidebar.SectionViews.Settings, typeof(WorkspaceSettingsPage) }
     };
 
 }
