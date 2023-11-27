@@ -7,8 +7,8 @@
 @using Datahub.Portal.Pages.Workspace.Repositories
 @using Datahub.Portal.Pages.Workspace.Settings
 @using Datahub.Portal.Pages.Workspace.Storage
-@using Datahub.Portal.Pages.Workspace.Subpages
 @using Datahub.Portal.Pages.Workspace.Sudo
+@using Datahub.Portal.Pages.Workspace.Toolbox
 @using Datahub.Portal.Pages.Workspace.Users
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
@@ -61,7 +61,7 @@
         { WorkspaceSidebar.SectionViews.Repositories, typeof(RepositoryManagementPage) },
         { WorkspaceSidebar.SectionViews.Users, typeof(WorkspaceUsersPage) },
         { WorkspaceSidebar.SectionViews.Metadata, typeof(WorkspaceMetadataPage) },
-        { WorkspaceSidebar.SectionViews.Marketplace, typeof(WorkspaceMarketplace) },
+        { WorkspaceSidebar.SectionViews.Toolbox, typeof(WorkspaceToolboxPage) },
         { WorkspaceSidebar.SectionViews.Reports, typeof(WorkspaceReports) },
         { WorkspaceSidebar.SectionViews.Sudo, typeof(WorkspaceSudoPage) },
         { WorkspaceSidebar.SectionViews.Settings, typeof(WorkspaceSettingsPage) }

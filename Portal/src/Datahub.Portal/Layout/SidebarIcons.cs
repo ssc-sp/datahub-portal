@@ -21,7 +21,7 @@ public static class SidebarIcons
     public const string ArcGis = SvgIcons.ArcGis;
     
     // Workspace Administration Sidebar Icons
-    public const string Marketplace = "fa-light fa-shop";
+    public const string Toolbox = "fa-light fa-toolbox";
     public const string Users = "fa-light fa-users";
     public const string Metadata = "fa-light fa-tags";
     public const string Reports = "fa-light fa-chart-mixed";
