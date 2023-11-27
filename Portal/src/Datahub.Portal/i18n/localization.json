@@ -545,6 +545,49 @@
     "TranslationNote": "Clicking the auto-translate icon will use a third party tool to translate and <b>is only a suggested translation.</b>  It is the responsibility of the user to validate the translation before submitting the metadata.",
     "KeywordHint": "Click to add"
   },
+  "TbsOpenGovPublishing": {
+    "Status": {
+      "Initial": {
+        "Description": "Please complete the Open Government Publishing Criteria form.",
+        "Title": "Awaiting Publishing Criteria"
+      },
+      "AwaitingFiles": {
+        "Description": "Please select files to include with the publication.",
+        "Title": "Awaiting Files"
+      },
+      "CheckingDataQuality": {
+        "Description": "Please wait while the FSDH performs automated data quality checks.",
+        "Title": "Checking Data Quality"
+      },
+      "Uploading": {
+        "Description": "Please wait while your files are uploaded to the Open Government Registry. They will not be published yet.",
+        "Title": "Uploading Files"
+      },
+      "AwaitingRemoteDqCheck": {
+        "Description": "Please wait while the Open Government Registry performs some checks.",
+        "Title": "Awaiting Remote Data Quality Check"
+      },
+      "AwaitingImsoApproval": {
+        "Description": "Please submit obtain IMSO approval and attach the signed form to the publication",
+        "Title": "Awaiting IMSO Approval"
+      },
+      "Publishing": {
+        "Description": "Please wait while the system completes the publishing process.",
+        "Title": "Publishing"
+      },
+      "Published": {
+        "Description": "Your submission has been published to the Open Government Registry.",
+        "Title": "Published"
+      }
+    },
+    "FileTypes": {
+      "Dataset": "Dataset",
+      "Metadata": "Metadata",
+      "SupportingDoc": "Supporting Documentation",
+      "DataDictionary": "Data Dictionary",
+      "ImsoApproval": "IMSO Approval"
+    }
+  },
   "SHARING-STATUS": {
     "OpenData": {
       "EnterMetadata": {

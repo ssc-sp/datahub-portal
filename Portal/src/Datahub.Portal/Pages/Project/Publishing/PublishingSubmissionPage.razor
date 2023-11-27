@@ -1,0 +1,67 @@
+﻿@* PublishingSubmissionPage.razor *@
+
+@page "/w/{ProjectAcronym}/publishing/{SubmissionIdStr}"
+@using Datahub.Application.Services.Publishing;
+@inject IUserInformationService UserService
+@inject IOpenDataPublishingService PublishingService
+
+@if (IsTbsSubmission)
+{
+    <MudButton OnClick=@TwiddleSubmission>Twiddle</MudButton>
+    <TbsOpenGovPublishPage Submission=@_tbsSubmission OnSubmissionUpdated=@LoadSubmission />
+}
+else if (ValidSubmissionId)
+{
+    <MudProgressCircular Indeterminate Size=@Size.Large />
+}
+else
+{
+    <MudText>Invalid id</MudText>
+}
+
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    [Parameter]
+    public string SubmissionIdStr { get; set; }
+
+    private long? SubmissionId => long.TryParse(SubmissionIdStr, out var result) ? result : default;
+    private bool ValidSubmissionId => SubmissionId.HasValue;
+
+    private OpenDataSubmission _submission;
+    private TbsOpenGovSubmission _tbsSubmission => _submission as TbsOpenGovSubmission;
+
+    private bool IsTbsSubmission => _tbsSubmission != null;
+
+
+
+    private async Task TwiddleSubmission()
+    {
+        var reset = false;
+        if (reset) await LoadSubmission();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadSubmission()
+    {
+        if (!ValidSubmissionId) return;
+
+        _submission = null;
+        await InvokeAsync(StateHasChanged);
+
+        await Task.Delay(1000);
+        _submission = await PublishingService.GetOpenDataSubmissionAsync(SubmissionId.Value);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSubmission();
+
+        await base.OnInitializedAsync();
+    }
+}

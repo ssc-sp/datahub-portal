@@ -1,0 +1,52 @@
+﻿@* DHSteps.razor *@
+@* TODO: implement with Mud components *@
+
+@typeparam T
+
+<AeSteps T=@T
+    StepItems=@StepItems
+    CurrentStepState=@CurrentStepStateFuncInternal
+    StepTitle=@StepTitleFunc
+    StepMessage=@StepMessageFunc
+    Alignment=@AlignmentInternal
+>
+
+    <PassedIcon><MudIcon Icon=@Icons.Material.Filled.Check /></PassedIcon>
+</AeSteps>
+
+@code {
+
+    [Parameter]
+    public List<T> StepItems { get; set; }
+
+    [Parameter]
+    public Func<T, StepState> CurrentStepStateFunc { get; set; }
+
+    [Parameter]
+    public Func<T, string> StepTitleFunc { get; set; }
+
+    [Parameter]
+    public Func<T, string> StepMessageFunc { get; set; }
+
+    [Parameter]
+    public bool Collapsed { get; set; }
+
+    private AeSteps<T>.StepAlignment AlignmentInternal => Collapsed ? AeSteps<T>.StepAlignment.Horizontal : AeSteps<T>.StepAlignment.Vertical;
+
+    private AeSteps<T>.StepState CurrentStepStateFuncInternal(T t) => CurrentStepStateFunc(t) switch
+    {
+        StepState.Queued => AeSteps<T>.StepState.Queued,
+        StepState.Running => AeSteps<T>.StepState.Running,
+        StepState.Passed => AeSteps<T>.StepState.Passed,
+        StepState.Failed => AeSteps<T>.StepState.Failed,
+        _ => AeSteps<T>.StepState.Queued
+    };
+
+    public enum StepState
+    {
+        Queued,
+        Running,
+        Passed,
+        Failed
+    }
+}
