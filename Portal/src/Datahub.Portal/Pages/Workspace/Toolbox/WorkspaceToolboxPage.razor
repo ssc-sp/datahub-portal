@@ -1,0 +1,182 @@
+@using Datahub.Shared.Entities
+
+@inject ILogger<WorkspaceToolboxPage> _logger
+@inject ISnackbar _snackbar
+
+<MudStack>
+    <MudText Typo="Typo.h2">
+        @Localizer["Toolbox Catalogue"]
+    </MudText>
+    <MudText>
+        @Localizer["The Toolbox Catalogue is a collection of tools that can be added to your workspace. You can add tools to your workspace by clicking on the 'Add to Workspace' button."]
+    </MudText>
+
+    <MudDivider Class="my-6"/>
+
+    <MudGrid>
+        @foreach (var tool in _toolList)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Outlined Class="pt-4 px-6 pb-6">
+                    <MudStack Style="height: 280px;">
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@GetIcon(tool)" Class="mr-2"/>
+                            <MudText Typo="Typo.h3">
+                                @GetLabel(tool)
+                            </MudText>
+                        </MudStack>
+                        <MudText>
+                            @GetDescription(tool)
+                        </MudText>
+                        <MudSpacer />
+                        <MudStack Row>
+                            @switch (_toolStatusMap[tool])
+                            {
+                                case ToolStatus.Available:
+                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await AddToolToWorkspace(tool))">
+                                        @Localizer["Add to Workspace"]
+                                        <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                    </MudButton>
+                                    break;
+                                case ToolStatus.SendingRequest:
+                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                        @Localizer["Sending Request..."]
+                                        <MudIcon Icon="fa-light fa-spinner-third fa-spin" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                    </MudButton>
+                                    break;
+                                case ToolStatus.PendingRequest:
+                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                        @Localizer["Tool being provisioned..."]
+                                        <MudIcon Icon="fa-light fa-spinner-third fa-spin" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                    </MudButton>
+                                    break;
+                                case ToolStatus.Exists:
+                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                        @Localizer["Tool has been created"]
+                                        <MudIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                    </MudButton>
+                                    break;
+                                case ToolStatus.Disabled:
+                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                        @Localizer["Not Enabled"]
+                                        <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                    </MudButton>
+                                    break;
+                                case ToolStatus.UnderDevelopment:
+                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                        @Localizer["Under Development"]
+                                        <MudIcon Icon="fa-light fa-space-station-moon-construction" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                    </MudButton>
+                                    break;
+                                default:
+                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                        @Localizer["Unknown"]
+                                        <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                    </MudButton>
+                                    break;
+                            }
+                        </MudStack>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    private readonly List<string> _toolList = new()
+    {
+        TerraformTemplate.AzureDatabricks,
+        TerraformTemplate.AzureStorageBlob,
+        TerraformTemplate.AzureAppService,
+        TerraformTemplate.AzurePostgres,
+        TerraformTemplate.AzureArcGis
+    };
+
+    private enum ToolStatus
+    {
+        Available,
+        SendingRequest,
+        PendingRequest,
+        Disabled,
+        UnderDevelopment,
+        Exists
+    }
+
+    private Dictionary<string, ToolStatus> _toolStatusMap = new()
+    {
+        { TerraformTemplate.AzureDatabricks, ToolStatus.Available },
+        { TerraformTemplate.AzureStorageBlob, ToolStatus.Available },
+        { TerraformTemplate.AzureAppService, ToolStatus.Available },
+        { TerraformTemplate.AzurePostgres, ToolStatus.Disabled },
+        { TerraformTemplate.AzureArcGis, ToolStatus.UnderDevelopment }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    private async Task AddToolToWorkspace(string tool)
+    {
+        _logger.LogInformation("Adding tool {Tool} to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
+        _toolStatusMap[tool] = ToolStatus.SendingRequest;
+        await InvokeAsync(StateHasChanged);
+
+    // wait for 2 seconds
+        await Task.Delay(2000);
+
+
+        _logger.LogInformation("Tool {Tool} successfully added to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
+        _toolStatusMap[tool] = ToolStatus.PendingRequest;
+        _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(tool)], Severity.Success);
+        await InvokeAsync(StateHasChanged);
+        
+    // wait for 2 seconds
+        await Task.Delay(2000);
+        _toolStatusMap[tool] = ToolStatus.Exists;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private string GetLabel(string tool)
+    {
+        return tool switch
+        {
+            TerraformTemplate.AzureDatabricks => Localizer["Azure Databricks"],
+            TerraformTemplate.AzureStorageBlob => Localizer["Azure Storage Blob"],
+            TerraformTemplate.AzureAppService => Localizer["Azure App Service"],
+            TerraformTemplate.AzurePostgres => Localizer["Azure Postgres"],
+            TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
+            _ => tool
+            };
+    }
+
+    private string GetDescription(string tool)
+    {
+        return tool switch
+        {
+            TerraformTemplate.AzureDatabricks => Localizer["Azure Databricks is a fast, easy, and collaborative Apache Spark-based analytics platform. Accelerate big data analytics and artificial intelligence (AI) solutions with Azure Databricks, a fast, easy and collaborative Apache Spark-based analytics service."],
+            TerraformTemplate.AzureStorageBlob => Localizer["Azure Blob storage is Microsoft's object storage solution for the cloud. Blob storage is optimized for storing massive amounts of unstructured data, such as text or binary data."],
+            TerraformTemplate.AzureAppService => Localizer["Azure App Service is a fully managed web hosting service for building web apps, mobile back ends, and RESTful APIs. It offers auto-scaling and high availability, supports both Windows and Linux, and enables automated deployments from GitHub, Azure DevOps, or any Git repo."],
+            TerraformTemplate.AzurePostgres => Localizer["Azure Database for PostgreSQL is a relational database service based on the open-source Postgres database engine. It's a fully managed database-as-a-service offering that can handle mission-critical workloads with predictable performance, security, high availability, and dynamic scalability."],
+            TerraformTemplate.AzureArcGis => Localizer["ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database."],
+            _ => tool
+            };
+    }
+
+    private string GetIcon(string tool)
+    {
+        return tool switch{
+            TerraformTemplate.AzureDatabricks => SidebarIcons.Databricks,
+            TerraformTemplate.AzureStorageBlob => SidebarIcons.Storage,
+            TerraformTemplate.AzureAppService => SidebarIcons.WebApp,
+            TerraformTemplate.AzurePostgres => SidebarIcons.SqlDatabase,
+            TerraformTemplate.AzureArcGis => SidebarIcons.ArcGis,
+            _ => SidebarIcons.Default
+            };
+    }
+}

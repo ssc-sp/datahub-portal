@@ -96,7 +96,7 @@
         public const string SqlDatabase = "sqldatabase";
         public const string ArcGis = "arcgis";
 
-        public const string Marketplace = "marketplace";
+        public const string Toolbox = "toolbox";
         public const string Users = "users";
         public const string Metadata = "metadata";
         public const string Reports = "reports";
@@ -117,7 +117,7 @@
 
     private List<string> _workspaceAdministration = new()
     {
-        SectionViews.Marketplace,
+        SectionViews.Toolbox,
         SectionViews.Users,
         SectionViews.Metadata,
         SectionViews.Reports,
@@ -170,7 +170,7 @@
             SectionViews.SqlDatabase => SidebarIcons.SqlDatabase,
             SectionViews.Repositories => SidebarIcons.Repositories,
             SectionViews.ArcGis => SidebarIcons.ArcGis,
-            SectionViews.Marketplace => SidebarIcons.Marketplace,
+            SectionViews.Toolbox => SidebarIcons.Toolbox,
             SectionViews.Users => SidebarIcons.Users,
             SectionViews.Metadata => SidebarIcons.Metadata,
             SectionViews.Reports => SidebarIcons.Reports,
@@ -191,7 +191,7 @@
             SectionViews.SqlDatabase => Localizer["SQL Database"],
             SectionViews.Repositories => Localizer["Repositories"],
             SectionViews.ArcGis => Localizer["ArcGIS"],
-            SectionViews.Marketplace => Localizer["Marketplace"],
+            SectionViews.Toolbox => Localizer["Toolbox"],
             SectionViews.Users => Localizer["Users"],
             SectionViews.Metadata => Localizer["Metadata"],
             SectionViews.Reports => Localizer["Reports"],
