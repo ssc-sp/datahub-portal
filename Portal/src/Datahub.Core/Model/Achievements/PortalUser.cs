@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Datahub.Core.Model.UserTracking;
 using System.Linq;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Datahub;
 
 namespace Datahub.Core.Model.Achievements;
 
@@ -24,6 +25,8 @@ public class PortalUser
     public ICollection<TelemetryEvent> TelemetryEvents { get; set; }
     
     public ICollection<UserRecentLink> RecentLinks { get; set; }
+
+    public ICollection<OpenDataSubmission> OpenDataSubmissions { get; set; }
     #endregion
     
     #region Utility functions

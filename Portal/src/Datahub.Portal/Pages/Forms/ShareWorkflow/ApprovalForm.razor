@@ -1,4 +1,5 @@
 ﻿@using System.Linq
+@using Datahub.Core.Model.Achievements;
 @using Forms = MudBlazor.Forms
 
 
@@ -41,6 +42,9 @@
     [Parameter]
     public GraphUser User { get; set; }
 
+    [Parameter]
+    public PortalUser PortalUser { get; set; }
+
     private List<OrganizationLevel> _sectors = new(); 
     private List<OrganizationLevel> _branches = new(); 
     private List<OrganizationLevel> _divisions = new();
@@ -77,8 +81,8 @@
             {
                 Department_NAME = "Natural Resources Canada / Ressources Naturelles Canada",
                 Type_Of_Data_TXT = "Data",
-                Name_NAME = User?.DisplayName,
-                Email_EMAIL = User?.Mail,
+                Name_NAME = User?.DisplayName ?? PortalUser?.DisplayName,
+                Email_EMAIL = User?.Mail ?? PortalUser?.Email,
                 Dataset_Title_TXT = DatasetTitle ?? string.Empty
             };
         }

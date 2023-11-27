@@ -8,7 +8,10 @@ using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
+using System;
+using System.Linq;
 
 namespace Datahub.Core.Model.Datahub;
 
@@ -99,6 +102,12 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// Table for storing the cloud storage associcated to a project
     /// </summary>
     public DbSet<ProjectCloudStorage> ProjectCloudStorages { get; set; }
+
+    public DbSet<OpenDataSubmission> OpenDataPublishProcesses { get; set; }
+
+    public DbSet<OpenDataPublishFile> OpenDataPublishFiles { get; set; }
+
+    public DbSet<TbsOpenGovSubmission> TbsOpenGovPublishProcesses { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
@@ -255,5 +264,28 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             
         modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .HasMany<OpenDataPublishFile>(p => p.Files)
+            .WithOne(f => f.Submission)
+            .HasForeignKey(f => f.SubmissionId);
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .HasOne<Datahub_Project>(p => p.Project)
+            .WithMany(p => p.PublishingSubmissions)
+            .HasForeignKey(p => p.ProjectId);
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .HasOne<ProjectCloudStorage>(p => p.Storage)
+            .WithMany(s => s.PublishingSubmissions)
+            .HasForeignKey(p => p.ProjectStorageId);
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .HasOne<PortalUser>(p => p.RequestingUser)
+            .WithMany(p => p.OpenDataSubmissions)
+            .HasForeignKey(p => p.RequestingUserId);
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .UseTptMappingStrategy();
     }
 }

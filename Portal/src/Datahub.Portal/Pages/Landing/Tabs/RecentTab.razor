@@ -54,6 +54,8 @@
                 return Localizer["PowerBI Report"];
             case DatahubLinkType.PowerBIWorkspace:
                 return Localizer["PowerBI Workspace"];
+            case DatahubLinkType.PublishingDashboard:
+                return Localizer["Publishing"];
             default:
                 return string.IsNullOrWhiteSpace(link.Name) ? "Power BI" : Localizer[link.Name];
         }
@@ -101,6 +103,8 @@
                 return Icon.PROJECT;
             case DatahubLinkType.DataSharingDashboard:
                 return Icon.PROJECT;
+            case DatahubLinkType.PublishingDashboard:
+                return Icon.PROJECT;
         }
         return Icon.HOME;
     }
@@ -124,6 +128,8 @@
                 return $"{projectName} >> {Localizer["Form Builder"]}";
             case DatahubLinkType.DataSharingDashboard:
                 return $"{projectName} >> Data Sharing Dashboard";
+            case DatahubLinkType.PublishingDashboard:
+                return $"{projectName} >> Publishing Dashboard";
         }
         return "N/A";
     }

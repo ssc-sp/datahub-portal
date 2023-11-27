@@ -23,6 +23,7 @@ public partial class RecentLinks
             DatahubLinkType.PowerBIReport => Localizer["PowerBI Report"],
             DatahubLinkType.PowerBIWorkspace => Localizer["PowerBI Workspace"],
             DatahubLinkType.ResourceArticle => Localizer["Resources"],
+            DatahubLinkType.PublishingDashboard => Localizer["Publishing"],
             _ => string.IsNullOrWhiteSpace(link.Name) ? "Power BI" : Localizer[link.Name]
         };
     }
@@ -46,6 +47,7 @@ public partial class RecentLinks
             DatahubLinkType.FormBuilder => Icon.PROJECT,
             DatahubLinkType.DataSharingDashboard => Icon.PROJECT,
             DatahubLinkType.ResourceArticle => Icon.RESOURCE_ARTICLE,
+            DatahubLinkType.PublishingDashboard => Icon.PROJECT,
             _ => Icon.HOME
         };
     }
@@ -63,6 +65,7 @@ public partial class RecentLinks
             DatahubLinkType.FormBuilder => $"{projectName} >> {Localizer["Form Builder"]}",
             DatahubLinkType.DataSharingDashboard => $"{projectName} >> {Localizer["Data Sharing Dashboard"]}",
             DatahubLinkType.ResourceArticle => link.ResourceArticleTitle,
+            DatahubLinkType.PublishingDashboard => $"{projectName} >> {Localizer["Publishing Dashboard"]}",
             _ => "N/A"
         };
     }

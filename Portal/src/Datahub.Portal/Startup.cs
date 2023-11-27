@@ -62,6 +62,8 @@ using System.Text;
 using Datahub.Application.Configuration;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Transforms;
+using Datahub.Application.Services.Publishing;
+using Datahub.Infrastructure.Services.Publishing;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -445,6 +447,8 @@ public class Startup
 
         services.AddCKANService();
         services.AddSingleton<IOpenDataService, OpenDataService>();
+        
+        services.AddScoped<IOpenDataPublishingService, OpenDataPublishingService>();
 
         services.AddGeoCoreService();
 
@@ -460,7 +464,12 @@ public class Startup
 
     private void ConfigureDbContexts(IServiceCollection services)
     {
-        ConfigureDbContext<DatahubProjectDBContext>(services, "datahub_mssql_project", Configuration.GetDriver());
+        var projectsDatabaseConnectionString = Configuration.GetConnectionString("datahub_mssql_project");
+        var useSqlite = projectsDatabaseConnectionString?.StartsWith("Data Source=") ?? false;
+
+        ConfigureDbContext<DatahubProjectDBContext>(services, "datahub_mssql_project", useSqlite ? DbDriver.Sqlite : DbDriver.Azure);
+
+        //ConfigureDbContext<DatahubProjectDBContext>(services, "datahub_mssql_project", Configuration.GetDriver());
         ConfigureDbContext<WebAnalyticsContext>(services, "datahub_mssql_webanalytics", Configuration.GetDriver());
         ConfigureDbContext<MetadataDbContext>(services, "datahub_mssql_metadata", Configuration.GetDriver());
     }
