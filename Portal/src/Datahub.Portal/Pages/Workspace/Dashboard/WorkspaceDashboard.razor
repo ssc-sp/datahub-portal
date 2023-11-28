@@ -55,11 +55,11 @@
                         <MudItem>
                             <MudStack>
                                 <MudText >
-                                    @Localizer["It looks like you don't have any workspace tools yet. You can create workspace tools from the 'Marketplace' tab."]
+                                    @Localizer["It looks like you don't have any workspace tools yet. You can request workspace tools from the 'Toolbox' tab."]
                                 </MudText>
-                                <MudLink Typo="Typo.body2" Href="">
-                                    @Localizer["Go to Marketplace"]
-                                </MudLink>
+                                <MudButton Variant="Variant.Filled" Href="@_marketplaceLink">
+                                    @Localizer["Go to Toolbox"]
+                                </MudButton>
                             </MudStack>
                         </MudItem>
                     }
