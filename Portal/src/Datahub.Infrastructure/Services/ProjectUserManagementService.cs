@@ -116,15 +116,15 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 throw new InvalidOperationException("Cannot update a user that is not already a member of the project");
             }
 
-            if (projectUserUpdateCommand.NewRoleId == (int)Project_Role.RoleNames.Remove)
-            {
-                context.Project_Users.Remove(userToUpdate);
-            }
-            else
-            {
+            //if (projectUserUpdateCommand.NewRoleId == (int)Project_Role.RoleNames.Remove)
+            //{
+            //    context.Project_Users.Remove(userToUpdate);
+            //}
+            //else
+            //{
                 userToUpdate.RoleId = projectUserUpdateCommand.NewRoleId;
                 context.Update(userToUpdate);
-            }
+            //}
         }
 
         await context.TrackSaveChangesAsync(_datahubAuditingService);
