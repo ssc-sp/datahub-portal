@@ -47,7 +47,7 @@
         </MudNavMenu>
     </MudStack>
 
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
         <MudStack Spacing="2">
             <MudStack Row AlignItems="AlignItems.Center">
                 <MudText Class="ml-2">
@@ -157,9 +157,9 @@
             SectionViews.Repositories => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.ArcGis => DatahubAuthView.AuthLevels.WorkspaceGuest,
 
-    // Admin
+    // Administration
             SectionViews.Toolbox => DatahubAuthView.AuthLevels.WorkspaceAdmin,
-            SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
             SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Reports => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Sudo => DatahubAuthView.AuthLevels.DatahubAdmin,
