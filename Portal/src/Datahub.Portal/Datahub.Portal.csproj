@@ -121,4 +121,7 @@
 	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\StorageConfigurationDialog.razor" />
 	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\StorageContainerSelector.razor" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Pages\Tools\Debug\" />
+	</ItemGroup>
 </Project>

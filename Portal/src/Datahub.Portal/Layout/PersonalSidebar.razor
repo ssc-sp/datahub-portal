@@ -102,7 +102,7 @@
         <MudNavMenu Color="Color.Primary">
             @foreach (var sectionView in _accountItems)
             {
-                <MudNavLink Href="@GetSectionViewUrl(sectionView)" Match="NavLinkMatch.All">
+                <MudNavLink Href="@GetSectionViewUrl(PageRoutes.AccountPrefix, sectionView)" Match="NavLinkMatch.All">
                     <MudStack Row AlignItems="AlignItems.Center">
                         <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                         <MudText Style="@_workspaceLinkStyle">
@@ -113,6 +113,27 @@
             }
         </MudNavMenu>
     </MudStack>
+    
+     <MudStack Spacing="2">
+            <MudText Class="ml-2">
+                <b>
+                    @Localizer["Datahub Admin"]
+                </b>
+            </MudText>
+            <MudNavMenu Color="Color.Primary">
+                @foreach (var sectionView in _datahubAdminItems)
+                {
+                    <MudNavLink Href="@GetSectionViewUrl(PageRoutes.ToolPrefix, sectionView)" Match="NavLinkMatch.All">
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                            <MudText Style="@_workspaceLinkStyle">
+                                @GetLabel(sectionView)
+                            </MudText>
+                        </MudStack>
+                    </MudNavLink>
+                }
+            </MudNavMenu>
+        </MudStack>
 </MudStack>
 
 @code {
@@ -142,7 +163,15 @@
         public const string Appearance = "appearance";
         public const string Notifications = "notifications";
         public const string Achievements = "achievements";
+        
+        public const string Diagnostics = "diagnostics";
+        public const string Statistics = "statistics";
+        public const string HealthCheck = "healthcheck";
+        public const string Users = "users";
+        public const string Email = "email";
     }
+    
+    
 
     private List<string> _accountItems = new()
     {
@@ -151,6 +180,15 @@
         SectionViews.Appearance,
         SectionViews.Notifications,
         SectionViews.Achievements
+    };
+    
+    private List<string> _datahubAdminItems = new()
+    {
+        SectionViews.Diagnostics,
+        SectionViews.Statistics,
+        SectionViews.HealthCheck,
+        SectionViews.Users,
+        SectionViews.Email
     };
 
 
@@ -205,9 +243,9 @@
             .FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject.Trim());
     }
 
-    private string GetSectionViewUrl(string sectionView)
+    private string GetSectionViewUrl(string prefix, string sectionView)
     {
-        return $"/{PageRoutes.AccountPrefix}/{sectionView}";
+        return $"/{prefix}/{sectionView}";
     }
 
     private string GetIcon(string sectionView)
@@ -219,6 +257,13 @@
             SectionViews.Appearance => SidebarIcons.Appearance,
             SectionViews.Notifications => SidebarIcons.Notifications,
             SectionViews.Achievements => SidebarIcons.Achievements,
+            
+            SectionViews.Diagnostics => SidebarIcons.Diagnostics,
+            SectionViews.Statistics => SidebarIcons.Statistics,
+            SectionViews.HealthCheck => SidebarIcons.HealthCheck,
+            SectionViews.Users => SidebarIcons.Users,
+            SectionViews.Email => SidebarIcons.Email,
+            
             _ => SidebarIcons.Profile
             };
     }
@@ -232,6 +277,13 @@
             SectionViews.Appearance => Localizer["Appearance"],
             SectionViews.Notifications => Localizer["Notifications"],
             SectionViews.Achievements => Localizer["Achievements"],
+            
+            SectionViews.Diagnostics => Localizer["Diagnostics"],
+            SectionViews.Statistics => Localizer["Statistics"],
+            SectionViews.HealthCheck => Localizer["Health Check"],
+            SectionViews.Users => Localizer["Users"],
+            SectionViews.Email => Localizer["Email"],
+            
             _ => Localizer["Public Profile"]
             };
     }

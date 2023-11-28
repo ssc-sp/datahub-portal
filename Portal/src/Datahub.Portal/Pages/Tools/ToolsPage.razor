@@ -1,0 +1,44 @@
+@using Datahub.Portal.Pages.Tools.Diagnostics
+
+@inject ILogger<ToolsPage> _logger
+
+@attribute [Route(PageRoutes.ToolDefault)]
+@attribute [Route(PageRoutes.Tool)]
+
+<PageTitle>
+    @Localizer["SSC Datahub - Admin"]
+</PageTitle>
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar />
+</SectionContent>
+
+@{
+    var containsKey = !string.IsNullOrWhiteSpace(Section)
+                      && _sectionComponents.ContainsKey(Section);
+    var parameters = new Dictionary<string, object>
+    {
+        // { "WorkspaceAcronym", WorkspaceAcronymParam }
+    };
+
+    if (containsKey)
+    {
+        <DynamicComponent Type="@_sectionComponents[Section]" Parameters="@parameters"/>
+    }
+    else
+    {
+        _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
+        <DiagnosticsPage />
+    }
+}
+
+@code {
+    
+    [Parameter]
+    public string Section { get; set; } = PersonalSidebar.SectionViews.Diagnostics;
+    
+    private readonly Dictionary<string, Type> _sectionComponents = new()
+    {
+        { PersonalSidebar.SectionViews.Diagnostics, typeof(DiagnosticsPage) },
+    };
+}
