@@ -181,7 +181,7 @@
                         <ProjectMembersRoleSelect InitialValue="@(updateCommand?.NewRoleId ?? rowContext.RoleId ?? 0)" OnRoleChanged="@(newRoleId => UpdateProjectMemberRole(rowContext, newRoleId))"/>
                     </Authorized>
                     <NotAuthorized>
-                        <MudText Typo="Typo.body2">@Localizer[rowContext.Role.Name]</MudText>
+                        <MudText>@Localizer[rowContext.Role.Name]</MudText>
                     </NotAuthorized>
                 </DatahubAuthView>
             </MudTd>
