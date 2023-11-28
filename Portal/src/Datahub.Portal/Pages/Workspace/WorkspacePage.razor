@@ -36,12 +36,27 @@
 
     if (containsKey)
     {
-        <DynamicComponent Type="@_sectionComponents[Section]" Parameters="@parameters"/>
+        <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(Section)" ProjectAcronym="@WorkspaceAcronymParam">
+            <Authorized>
+                <DynamicComponent Type="@_sectionComponents[Section]" Parameters="@parameters"/>
+            </Authorized>
+            <NotAuthorized>
+                <NotAuthorizedMessage/>
+            </NotAuthorized>
+        </DatahubAuthView>
     }
     else
     {
         _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
-        <WorkspaceDashboard WorkspaceAcronym="@WorkspaceAcronymParam"/>
+        <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(WorkspaceSidebar.SectionViews.Dashboard)"
+                         ProjectAcronym="@WorkspaceAcronymParam">
+            <Authorized>
+                <WorkspaceDashboard WorkspaceAcronym="@WorkspaceAcronymParam"/>
+            </Authorized>
+            <NotAuthorized>
+                <NotAuthorizedMessage/>
+            </NotAuthorized>
+        </DatahubAuthView>
     }
 }
 

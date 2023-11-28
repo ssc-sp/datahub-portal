@@ -1,9 +1,13 @@
 @using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Repositories
 @using Datahub.Shared.Entities
 @using Datahub.Portal.Pages.Project.DataProject
+@using Datahub.Application.Services.Notebooks
+@using Datahub.Portal.Pages.Workspace.Repositories
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject ILogger<WorkspaceDashboard> _logger
+@inject IDatabricksApiService _databricksApiService
 
 @if (_project is null)
 {
@@ -16,46 +20,71 @@
         <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym"/>
     </MudItem>
     <MudItem xs="12" sm="4">
-        <WorkspaceAdminInfo WorkspaceAcronym="@WorkspaceAcronym"/>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
+            <WorkspaceAdminInfo WorkspaceAcronym="@WorkspaceAcronym"/>
+        </DatahubAuthView>
     </MudItem>
     <MudItem xs="12" sm="8">
-        <MudGrid>
-            @if (_resources.Any())
-            {
-                @foreach (var resource in _resources)
-                {
-                    var found = _cardComponents.ContainsKey(resource.ResourceType);
-                    if (found)
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym">
+            <Authorized>
+                <MudGrid>
+                    @if (_resources.Any())
                     {
-                        var parameters = new Dictionary<string, object>
+                        @foreach (var resource in _resources)
                         {
-                            { "ProjectResource", resource },
-                            { "WorkspaceAcronym", WorkspaceAcronym }
-                        };
-                        <MudItem>
-                            <DynamicComponent Type="@_cardComponents[resource.ResourceType]" Parameters="@parameters"/>
-                        </MudItem>
+                            var found = _cardComponents.ContainsKey(resource.ResourceType);
+                            if (found)
+                            {
+                                var parameters = new Dictionary<string, object>
+                                {
+                                    { "ProjectResource", resource },
+                                    { "WorkspaceAcronym", WorkspaceAcronym }
+                                };
+                                <MudItem>
+                                    <DynamicComponent Type="@_cardComponents[resource.ResourceType]" Parameters="@parameters"/>
+                                </MudItem>
+                            }
+                            else
+                            {
+                                _logger.LogError("Unknown resource type: {ResourceResourceType}", resource.ResourceType);
+                            }
+                        }
                     }
                     else
                     {
-                        _logger.LogError("Unknown resource type: {ResourceResourceType}", resource.ResourceType);
+                        <MudItem>
+                            <MudStack>
+                                <MudText >
+                                    @Localizer["It looks like you don't have any workspace tools yet. You can create workspace tools from the 'Marketplace' tab."]
+                                </MudText>
+                                <MudLink Typo="Typo.body2" Href="">
+                                    @Localizer["Go to Marketplace"]
+                                </MudLink>
+                            </MudStack>
+                        </MudItem>
                     }
-                }
-            }
-            else
-            {
-                <MudItem>
+                </MudGrid>
+            </Authorized>
+            <NotAuthorized>
+                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
                     <MudStack>
-                        <MudText >
-                            @Localizer["It looks like you don't have any workspace tools yet. You can create workspace tools from the 'Marketplace' tab."]
-                        </MudText>
-                        <MudLink Typo="Typo.body2" Href="">
-                            @Localizer["Go to Marketplace"]
-                        </MudLink>
+                        <MudText Class="mt-2 mb-6" Typo="Typo.h5">@Localizer["Shared Content"]</MudText>
+                        @if (_projectRepositories != null && _projectRepositories.Any())
+                        {
+                            @foreach (var projectRepository in _projectRepositories)
+                            {
+                                <RepositoryCard ProjectRepository="@projectRepository"/>
+                            }
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body1">@Localizer["No shared content available."]</MudText>
+                            <MudText Typo="Typo.body1">@Localizer["Please contact the workspace administrators for access or to share repositories."]</MudText>
+                        }
                     </MudStack>
-                </MudItem>
-            }
-        </MudGrid>
+                </DatahubAuthView>
+            </NotAuthorized>
+        </DatahubAuthView>
     </MudItem>
     <MudItem xs="12" sm="4">
         <ProjectUserCardList ProjectAcronym="@WorkspaceAcronym"/>
@@ -79,6 +108,8 @@
         { "terraform:azure-storage-blob", typeof(StorageCard) }
     };
 
+    private List<ProjectRepository> _projectRepositories = new();
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -92,6 +123,8 @@
             .Where(r => r.ResourceType != RequestManagementService.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
             .OrderBy(r => r.ResourceType)
             .ToList();
+
+        _projectRepositories = await _databricksApiService.ListDisplayedWorkspaceRepositoriesAsync(WorkspaceAcronym);
     }
 
     private string ParseResourceType(string resourceType)
