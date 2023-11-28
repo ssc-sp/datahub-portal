@@ -51,3 +51,6 @@ DatahubTest/testsettings.json
 
 **/*/*.PublishSettings
 
+/ResourceProvisioner/venv/Lib/site-packages/adal/__pycache__
+/ResourceProvisioner/venv
+/ResourceProvisioner/test/ResourceProvisioner_PyFunctions_Tests/configure_env.ps1
