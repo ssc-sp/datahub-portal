@@ -1,4 +1,8 @@
 @using Datahub.Portal.Pages.Tools.Diagnostics
+@using Datahub.Portal.Pages.Tools.Email
+@using Datahub.Portal.Pages.Tools.Health
+@using Datahub.Portal.Pages.Tools.Statistics
+@using Datahub.Portal.Pages.Tools.Users
 
 @inject ILogger<ToolsPage> _logger
 
@@ -40,5 +44,11 @@
     private readonly Dictionary<string, Type> _sectionComponents = new()
     {
         { PersonalSidebar.SectionViews.Diagnostics, typeof(DiagnosticsPage) },
+        { PersonalSidebar.SectionViews.Statistics, typeof(StatisticsPage) },
+        { PersonalSidebar.SectionViews.HealthCheck, typeof(InfrastructureHealthPage) },
+        { PersonalSidebar.SectionViews.Users, typeof(UsersPage) },
+        { PersonalSidebar.SectionViews.Email, typeof(ComposeEmailPage) },
+        
+        
     };
 }
