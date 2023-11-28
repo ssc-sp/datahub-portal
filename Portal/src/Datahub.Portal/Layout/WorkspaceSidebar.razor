@@ -33,40 +33,46 @@
         <MudNavMenu Color="Color.Primary">
             @foreach (var toolSection in _workspaceTools.Where(ShouldToolBeShown))
             {
-                <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)">
-                    <MudStack Row AlignItems="@AlignItems.Center">
-                        <MudIcon Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                        <MudText Style="@_workspaceTitleStyle">
-                            @GetLabel(toolSection)
-                        </MudText>
-                    </MudStack>
-                </MudNavLink>
+                <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
+                    <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)">
+                        <MudStack Row AlignItems="@AlignItems.Center">
+                            <MudIcon Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                            <MudText Style="@_workspaceTitleStyle">
+                                @GetLabel(toolSection)
+                            </MudText>
+                        </MudStack>
+                    </MudNavLink>
+                </DatahubAuthView>
             }
         </MudNavMenu>
     </MudStack>
 
-    <MudStack Spacing="2">
-        <MudStack Row AlignItems="AlignItems.Center">
-            <MudText Class="ml-2">
-                <b>
-                    @Localizer["Administration"]
-                </b>
-            </MudText>
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
+        <MudStack Spacing="2">
+            <MudStack Row AlignItems="AlignItems.Center">
+                <MudText Class="ml-2">
+                    <b>
+                        @Localizer["Administration"]
+                    </b>
+                </MudText>
+            </MudStack>
+            <MudNavMenu Color="Color.Primary">
+                @foreach (var toolSection in _workspaceAdministration)
+                {
+                    <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
+                        <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                <MudText Style="@_workspaceTitleStyle">
+                                    @GetLabel(toolSection)
+                                </MudText>
+                            </MudStack>
+                        </MudNavLink>
+                    </DatahubAuthView>
+                }
+            </MudNavMenu>
         </MudStack>
-        <MudNavMenu Color="Color.Primary">
-            @foreach (var toolSection in _workspaceAdministration)
-            {
-                <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
-                    <MudStack Row AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                        <MudText Style="@_workspaceTitleStyle">
-                            @GetLabel(toolSection)
-                        </MudText>
-                    </MudStack>
-                </MudNavLink>
-            }
-        </MudNavMenu>
-    </MudStack>
+    </DatahubAuthView>
 
 
 </MudStack>
@@ -137,6 +143,28 @@
             .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
     // check the resources against what to display in the sidebar
+    }
+
+    public static DatahubAuthView.AuthLevels GetAuthLevel(string sectionView)
+    {
+        return sectionView switch
+        {
+            SectionViews.Dashboard => DatahubAuthView.AuthLevels.Authenticated,
+            SectionViews.Databricks => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.Storage => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.WebApp => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.SqlDatabase => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.Repositories => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.ArcGis => DatahubAuthView.AuthLevels.WorkspaceGuest,
+
+    // Admin
+            SectionViews.Toolbox => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Reports => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Sudo => DatahubAuthView.AuthLevels.DatahubAdmin,
+            SectionViews.Settings => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            _ => DatahubAuthView.AuthLevels.Unauthorized};
     }
 
     private string GetSectionViewUrl(string sectionView)
@@ -213,7 +241,7 @@
             SectionViews.Repositories => _project.Resources.Any(r => r.ResourceType == RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)),
             SectionViews.ArcGis => _project.Resources.Any(r => r.ResourceType == RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureArcGis)),
             _ => false
-        };
+            };
     }
 
 }
