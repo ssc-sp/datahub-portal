@@ -54,7 +54,7 @@
     [Parameter]
     public string Section { get; set; } = WorkspaceSidebar.SectionViews.Dashboard;
 
-    private Dictionary<string, Type> _sectionComponents = new()
+    private readonly Dictionary<string, Type> _sectionComponents = new()
     {
         { WorkspaceSidebar.SectionViews.Dashboard, typeof(WorkspaceDashboard) },
         { WorkspaceSidebar.SectionViews.Storage, typeof(FileExplorerPage) },

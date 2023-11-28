@@ -28,6 +28,12 @@ public static class SidebarIcons
     public const string Sudo = "fa-light fa-face-hand-over-mouth";
     public const string Settings = "fa-light fa-gear";
     
+    // Datahub Admin Sidebar Icons
+    public const string Diagnostics = "fa-light fa-bug";
+    public const string Statistics = "fa-light fa-chart-bar";
+    public const string HealthCheck = "fa-light fa-heartbeat";
+    public const string Email = "fa-light fa-mailbox";
+    
     // Default Sidebar Icons
     public const string Default = "fa-light fa-table-layout";
     public const string Workspace = "fa-light fa-display-code";

@@ -17,4 +17,8 @@ public static class PageRoutes
     public const string ResourcePrefix = "resource";
     public const string ResourceDefault = $"/{ResourcePrefix}/";
     public const string Resource = $"/{ResourcePrefix}/{{PageName}}";
+    
+    public const string ToolPrefix = "tool";
+    public const string ToolDefault = $"/{ToolPrefix}/";
+    public const string Tool = $"/{ToolPrefix}/{{Section}}";
 }
