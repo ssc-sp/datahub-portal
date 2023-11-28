@@ -14,7 +14,7 @@
                 <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
             }
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
-                <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@($"/w/{ProjectAcronym}/members")">
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@_viewMembersHref">
                     @Localizer["View Members"]
                 </MudButton>
             </DatahubAuthView>
@@ -58,6 +58,8 @@
 
     private List<Datahub_Project_User> _projectAdmins = new();
     private List<Datahub_Project_User> _projectMembers = new();
+    
+    private string _viewMembersHref => $"{PageRoutes.WorkspacePrefix}/{ProjectAcronym}/{WorkspaceSidebar.SectionViews.Users}";
 
 
     protected override async Task OnParametersSetAsync()

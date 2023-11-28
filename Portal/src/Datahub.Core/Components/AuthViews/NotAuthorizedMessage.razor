@@ -2,7 +2,7 @@
     <MudText Typo="Typo.h1">
         @Localizer["Not Authorized"]
     </MudText>
-    <MudText Typo="Typo.body1">
-        @Localizer["You are not authorized to access this page."]
-    </MudText>
+    <MudAlert Severity="Severity.Error" Elevation="0">
+        @Localizer["You are not authorized to view this page."]
+    </MudAlert>
 </MudStack>
