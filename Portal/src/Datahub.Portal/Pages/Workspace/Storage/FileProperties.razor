@@ -7,7 +7,6 @@
 
 @inject DataRetrievalService _dataRetrievalService
 @inject CommonAzureServices _commonAzureServices;
-@inject UIControlsService _uiControlService;
 
 @if (File != null)
 {
@@ -44,9 +43,6 @@
             <AeTypography class="label">@Localizer["File URL"]</AeTypography>
             <InlineCodeWithCopy>@_fileLinkUrl</InlineCodeWithCopy>
 
-        </div>
-        <div>
-            <AeButton OnClickEvent=@ShowMetadataEditor>@Localizer["Metadata"]</AeButton> 
         </div>
     </div>
 }
@@ -96,40 +92,6 @@
             _fileLinkUrl = $"{StorageAccountMetadata.Url}/{File.folderpath}{File.filename}";
             _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{accountName}.dfs.core.windows.net/{File.folderpath}{File.filename}";
         }
-    }
-
-    private void ShowMetadataEditor()
-    {
-        RenderFragment metadataEditor = 
-    @<ObjectMetadataEditor 
-                @key=@File.fileid 
-                ObjectId=@File.fileid 
-                DefaultMetadataId=@ProjectAcronym
-                Name=@File.filename
-                Location=@ProjectAcronym
-                SecurityClass=@File.securityclass
-                SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"]
-                OnSave=@HandleSaveMetadata
-                OnDiscard=@HandleDiscardMetadata
-                ProfileName="catalog"
-                ObjectType=@MetadataObjectType.File
-                UpdateCatalog=@(!Readonly)
-                ValidateRequired
-                Preview=@Readonly
-                ProjectId=@ProjectId
-            />;
-        _uiControlService.ShowDialog(Localizer["Metadata"], metadataEditor);
-    }
-
-    private async Task HandleSaveMetadata()
-    {
-        _uiControlService.HideDialog();
-        await OnMetadataChanged.InvokeAsync();
-    }
-
-    private void HandleDiscardMetadata()
-    {
-        _uiControlService.HideDialog();
     }
 }
 
