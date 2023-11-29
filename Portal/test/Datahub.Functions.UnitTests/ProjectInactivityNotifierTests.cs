@@ -17,7 +17,7 @@ namespace Datahub.Functions.UnitTests;
 
 public class ProjectInactivityNotifierTests
 {
-    private ProjectInactivityNotifier _fut;
+    private ProjectInactivityNotifier _sut;
 
     private readonly IDateProvider _dateProvider = Substitute.For<IDateProvider>();
     private readonly IMediator _mediator = Substitute.For<IMediator>();
@@ -43,7 +43,7 @@ public class ProjectInactivityNotifierTests
         _azConfig = new AzureConfig(_config);
         _pongService = new QueuePongService(_mediator);
         _emailValidator = new EmailValidator();
-        _fut = new ProjectInactivityNotifier(_loggerFactory, _mediator, _dbContextFactory, _pongService,
+        _sut = new ProjectInactivityNotifier(_loggerFactory, _mediator, _dbContextFactory, _pongService,
             _projectInactivityNotificationService, _resourceMessagingService, _emailValidator, _dateProvider, _azConfig);
     }
 
@@ -56,10 +56,10 @@ public class ProjectInactivityNotifierTests
     {
         // Arrange
         _dateProvider.Today.Returns(new DateTime(2000, 1, 1));
-        _dateProvider.NotificationDays().Returns(notificationDays);
+        _dateProvider.ProjectNotificationDays().Returns(notificationDays);
 
         // Act
-        var result = await _fut.CheckIfProjectToBeNotified(10, daysUntilDeletion, null,
+        var result = await _sut.CheckIfProjectToBeNotified(10, daysUntilDeletion, null,
             false, "", new List<string>());
 
         // Assert
@@ -75,10 +75,10 @@ public class ProjectInactivityNotifierTests
     {
         // Arrange
         _dateProvider.Today.Returns(new DateTime(2000, 1, 1));
-        _dateProvider.NotificationDays().Returns(notificationDays);
+        _dateProvider.ProjectNotificationDays().Returns(notificationDays);
 
         // Act
-        var result = await _fut.CheckIfProjectToBeNotified(daysUntilDeletion, 10, null,
+        var result = await _sut.CheckIfProjectToBeNotified(daysUntilDeletion, 10, null,
             false, "", new List<string>());
 
         // Assert
@@ -92,10 +92,10 @@ public class ProjectInactivityNotifierTests
     {
         // Arrange
         _dateProvider.Today.Returns(today);
-        _dateProvider.NotificationDays().Returns(new[] { 10 });
+        _dateProvider.ProjectNotificationDays().Returns(new[] { 10 });
         
         // Act
-        var result = await _fut.CheckIfProjectToBeNotified(10, 10, operationalWindow,
+        var result = await _sut.CheckIfProjectToBeNotified(10, 10, operationalWindow,
             false, "", new List<string>());
 
         // Assert
@@ -107,10 +107,10 @@ public class ProjectInactivityNotifierTests
     {
         // Arrange
         _dateProvider.Today.Returns(DateTime.Today);
-        _dateProvider.NotificationDays().Returns(new[] { 10 });
+        _dateProvider.ProjectNotificationDays().Returns(new[] { 10 });
         
         // Act
-        var result = await _fut.CheckIfProjectToBeNotified(10, 10, null,
+        var result = await _sut.CheckIfProjectToBeNotified(10, 10, null,
             true, "", new List<string>());
 
         // Assert
@@ -123,12 +123,12 @@ public class ProjectInactivityNotifierTests
     public async Task CheckIfProjectToBeDeleted_IsNotOrPastDeletionDay(int daysSinceLastLogin, int deletionDay)
     {
         // Arrange
-        _dateProvider.DeletionDay().Returns(deletionDay);
+        _dateProvider.ProjectDeletionDay().Returns(deletionDay);
         _dateProvider.Today.Returns(new DateTime(2000, 1, 1));
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
         
         // Act
-        var result = await _fut.CheckIfProjectToBeDeleted(daysSinceLastLogin, null, false, "");
+        var result = await _sut.CheckIfProjectToBeDeleted(daysSinceLastLogin, null, false, "");
         
         // Assert
         result.Should().BeNull();
@@ -141,12 +141,12 @@ public class ProjectInactivityNotifierTests
     public async Task CheckIfProjectToBeDeleted_IsOrPastDeletionDay(int daysSinceLastLogin, int deletionDay)
     {
         // Arrange
-        _dateProvider.DeletionDay().Returns(deletionDay);
+        _dateProvider.ProjectDeletionDay().Returns(deletionDay);
         _dateProvider.Today.Returns(new DateTime(2000, 1, 1));
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
         
         // Act
-        var result = await _fut.CheckIfProjectToBeDeleted(daysSinceLastLogin, null, false, "");
+        var result = await _sut.CheckIfProjectToBeDeleted(daysSinceLastLogin, null, false, "");
         
         // Assert
         result.Should().BeOfType<WorkspaceDefinition>();
@@ -159,11 +159,11 @@ public class ProjectInactivityNotifierTests
     {
         // Arrange
         _dateProvider.Today.Returns(today);
-        _dateProvider.DeletionDay().Returns(10);
+        _dateProvider.ProjectDeletionDay().Returns(10);
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
         
         // Act
-        var result = await _fut.CheckIfProjectToBeDeleted(10, operationalWindow, false, "");
+        var result = await _sut.CheckIfProjectToBeDeleted(10, operationalWindow, false, "");
 
         result.Should().BeNull();
     }
@@ -173,11 +173,11 @@ public class ProjectInactivityNotifierTests
     {
         // Arrange
         _dateProvider.Today.Returns(DateTime.Today);
-        _dateProvider.DeletionDay().Returns(10);
+        _dateProvider.ProjectDeletionDay().Returns(10);
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
         
         // Act
-        var result = await _fut.CheckIfProjectToBeDeleted(10, null, true, "");
+        var result = await _sut.CheckIfProjectToBeDeleted(10, null, true, "");
         
         // Assert
         result.Should().BeNull();
@@ -189,7 +189,7 @@ public class ProjectInactivityNotifierTests
         // Arrange
         
         // Act
-        var result = _fut.GetEmailRequestMessage(10, 20, "TEST", new List<string>());
+        var result = _sut.GetEmailRequestMessage(10, 20, "TEST", new List<string>());
 
         // Assert
         result.Body.Should().Contain("Your workspace <a href=\"https://federal-science-datahub.canada.ca/w/TEST\">TEST</a> has been inactive for 20 days");

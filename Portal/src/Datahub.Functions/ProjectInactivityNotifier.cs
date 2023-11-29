@@ -71,7 +71,7 @@ namespace Datahub.Functions
             // get project info
             var lastLoginDate = project.LastLoginDate ?? project.Last_Updated_DT;
             var daysSinceLastLogin = (_dateProvider.Today - lastLoginDate).Days;
-            var daysUntilDeletion = _dateProvider.DeletionDay() - daysSinceLastLogin;
+            var daysUntilDeletion = _dateProvider.ProjectDeletionDay() - daysSinceLastLogin;
             var operationalWindow = project.OperationalWindow;
             var hasCostRecovery = project.HasCostRecovery;
             (var contacts, var acronym) = await GetProjectDetails(message.ProjectId, ct);
@@ -108,7 +108,7 @@ namespace Datahub.Functions
         {
             // check if we are past operational window or that it is null and that the project has no cost recovery and that
             if ((operationalWindow == null || operationalWindow < _dateProvider.Today) && !hasCostRecovery &&
-                _dateProvider.NotificationDays().Contains(daysUntilDeletion))
+                _dateProvider.ProjectNotificationDays().Contains(daysUntilDeletion))
             {
                 return GetEmailRequestMessage(daysUntilDeletion, daysSinceLastLogin, acronym, contacts);
             }
@@ -121,7 +121,7 @@ namespace Datahub.Functions
         {
             // check if we are past operational window or that it is null and that the project has no cost recovery and that we are at or are past the deletion day
             if ((operationalWindow == null || operationalWindow < _dateProvider.Today) &&
-                daysSinceLastLogin >= _dateProvider.DeletionDay() &&
+                daysSinceLastLogin >= _dateProvider.ProjectDeletionDay() &&
                 !hasCostRecovery)
             {
                 return await _resourceMessagingService.GetWorkspaceDefinition(acronym);

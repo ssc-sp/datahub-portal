@@ -49,6 +49,7 @@ var host = new HostBuilder()
         services.AddScoped<QueuePongService>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
         services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
+        services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddSingleton<DatahubPortalConfiguration>();
 
     })
