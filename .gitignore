@@ -49,3 +49,5 @@ DatahubTest/testsettings.json
 **/*/*.PublishSettings
 ResourceProvisioner/venv/**
 **/__pycache__/**
+/ResourceProvisioner/venv
+/ResourceProvisioner/test/ResourceProvisioner_PyFunctions_Tests/configure_env.ps1
