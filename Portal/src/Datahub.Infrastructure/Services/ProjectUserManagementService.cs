@@ -122,15 +122,15 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 throw new InvalidOperationException("Cannot update a user that is not already a member of the project");
             }
 
-            if (projectUserUpdateCommand.NewRoleId == (int)Project_Role.RoleNames.Remove)
-            {
-                context.Project_Users.Remove(userToUpdate);
-            }
-            else
-            {
+            //if (projectUserUpdateCommand.NewRoleId == (int)Project_Role.RoleNames.Remove)
+            //{
+            //    context.Project_Users.Remove(userToUpdate);
+            //}
+            //else
+            //{
                 userToUpdate.RoleId = projectUserUpdateCommand.NewRoleId;
                 context.Update(userToUpdate);
-            }
+            //}
         }
 
         await context.TrackSaveChangesAsync(_datahubAuditingService);
@@ -175,25 +175,27 @@ public class ProjectUserManagementService : IProjectUserManagementService
             // Double check that the user is not already a member of the project
             if (projectUser is not null)
             {
-                _logger.LogError("User {GraphGuid} is already a member of project {ProjectAcronym}",
+                projectUser.RoleId = projectUserAddUserCommand.RoleId;
+                _logger.LogInformation("Changing role of removed user {GraphGuid} of project {ProjectAcronym}",
                     projectUserAddUserCommand.GraphGuid, projectUserAddUserCommand.ProjectAcronym);
-                throw new InvalidOperationException(
-                    $"User {projectUserAddUserCommand.GraphGuid} is already a member of project {projectUserAddUserCommand.ProjectAcronym}");
             }
-
-            var newProjectUser = new Datahub_Project_User()
+            else
             {
-                Project = project,
-                PortalUser = portalUser,
-                ApprovedPortalUser = currentUser,
-                Approved_DT = DateTime.UtcNow,
-                RoleId = projectUserAddUserCommand.RoleId,
-            };
+
+                var newProjectUser = new Datahub_Project_User()
+                {
+                    Project = project,
+                    PortalUser = portalUser,
+                    ApprovedPortalUser = currentUser,
+                    Approved_DT = DateTime.UtcNow,
+                    RoleId = projectUserAddUserCommand.RoleId,
+                };
+                await context.Project_Users.AddAsync(newProjectUser);
+            }
 
             context.Attach(currentUser);
             context.Attach(portalUser);
 
-            await context.Project_Users.AddAsync(newProjectUser);
             await context.TrackSaveChangesAsync(_datahubAuditingService);
         }
     }

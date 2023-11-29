@@ -8,5 +8,6 @@ public enum Role
     Admin,
     User,
     Owner,
-    Guest
+    Guest,
+    Removed
 }
