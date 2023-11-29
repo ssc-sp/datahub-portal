@@ -2,24 +2,31 @@
 using System.Linq;
 using System.Text.Json;
 
-namespace Datahub.Core.Services.Docs;
+namespace Datahub.Markdown;
 
-internal class DocumentationFileMapper
+public class DocumentationFileMapper
 {
     private readonly FileMapping[] _mappings;
 
-    public DocumentationFileMapper(string content) 
+    public DocumentationFileMapper(string? content) 
     {
-        _mappings = JsonSerializer.Deserialize<FileMapping[]>(content) ?? Array.Empty<FileMapping>(); 
+        if (content is null)
+        {
+            _mappings = Array.Empty<FileMapping>();
+        }
+        else
+        {
+            _mappings = JsonSerializer.Deserialize<FileMapping[]>(content) ?? Array.Empty<FileMapping>();
+        }
     }
 
-    public string GetEnglishDocumentId(string url)
+    public string? GetEnglishDocumentId(string url)
     {
         var mapping = _mappings.FirstOrDefault(m => url.Equals(m.En, StringComparison.OrdinalIgnoreCase));
         return mapping?.Id;
     }
 
-    public string GetFrenchDocumentId(string url)
+    public string? GetFrenchDocumentId(string url)
     {
         var mapping = _mappings.FirstOrDefault(m => url.Equals(m.Fr, StringComparison.OrdinalIgnoreCase));
         return mapping?.Id;
