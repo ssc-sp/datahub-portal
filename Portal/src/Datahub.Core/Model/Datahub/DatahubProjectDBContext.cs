@@ -7,6 +7,7 @@ using Datahub.Core.Model.Documentation;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Repositories;
+using Datahub.Core.Model.UserTracking;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -79,6 +80,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<Project_Role> Project_Roles { get; set; }
 
     public DbSet<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
+    
+    public DbSet<UserInactivityNotifications> UserInactivityNotifications { get; set; }
     
     public DbSet<DocumentationResource> DocumentationResources { get; set; }
     
