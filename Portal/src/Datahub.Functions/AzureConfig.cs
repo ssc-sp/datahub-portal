@@ -19,6 +19,10 @@ public class AzureConfig : IAzureServicePrincipalConfig
     public EmailNotification Email => _emailConfig;
 
     public string? NotificationPercents => _config["ProjectUsageNotificationPercents"];
+    
+    public string? ProjectInactivityNotificationDays => _config["ProjectInactivityNotificationDays"];
+    
+    public string? ProjectInactivityDeletionDays => _config["ProjectInactivityDeletionDays"];
 
     #region Azure SP
 
@@ -52,6 +56,7 @@ public class EmailNotification
     public string? SenderName { get; set; }
     public string? SenderAddress { get; set; }
     public string? NotificationsCCAddress { get; set; }
+    public string? AdminEmail { get; set; }
     public bool IsValid => !string.IsNullOrEmpty(SmtpHost) && 
                            !string.IsNullOrEmpty(SmtpUsername) && 
                            !string.IsNullOrEmpty(SmtpPassword) && 
