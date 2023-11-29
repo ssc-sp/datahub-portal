@@ -52,7 +52,7 @@ def get_workspace_groups(workspace_client):
     workspace_groups = {g.display_name: g for g in workspace_client.groups.list()}
     return workspace_groups
 
-def remove_deleted_users_in_workspace(workspace_client):
+def remove_deleted_users_in_workspace(definition_json, workspace_client):
     """
     Removes all users from the workspace that do not have an external ID.
 
@@ -62,12 +62,21 @@ def remove_deleted_users_in_workspace(workspace_client):
     Returns:
         None
     """
+    # remove users with removed role
+    removedIds = list(user['ObjectId'] for user in definition_json['Workspace']['Users'] if (user['Role'] == 'Removed'))
+    print(f'Users to remove: {removedIds}')
+    toRemove = []
     for user in workspace_client.users.list():
         if user.external_id is None:
             print(f'User {user.user_name} does not have an external ID, removing from workspace')
             workspace_client.users.delete(user.id)
         else:
+            if user.external_id in removedIds:
+                toRemove.append(user)
             print(f'User {user.user_name} with external ID {user.external_id} exists')
+    for user in toRemove:
+        print(f'User {user.user_name} with external ID {user.external_id} is marked for removal')
+        workspace_client.users.delete(user.id)
 
 def synchronize_workspace_users(definition_json, workspace_client):
     """
@@ -87,7 +96,8 @@ def synchronize_workspace_users(definition_json, workspace_client):
     workspace_users = workspace_client.users.list()
 
     # Iterate over each user in the definition file
-    for user in definition_json['Workspace']['Users']:
+    # exclude users that have been removed
+    for user in (user for user in definition_json['Workspace']['Users'] if (user['Role'] != 'Removed')):
 
         # Find the user matching user in the workspace
         user_found = False
