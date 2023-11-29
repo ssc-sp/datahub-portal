@@ -1,4 +1,5 @@
 @using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.UserTracking
 @using Datahub.Metadata.DTO
 @using Datahub.Portal.Pages.Workspace
 @using Datahub.Portal.Pages.Workspace.Dashboard
@@ -12,7 +13,7 @@
 @using Datahub.Portal.Pages.Workspace.Users
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject IMetadataBrokerService _metadataBrokerService
+@inject UserLocationManagerService _userLocationManagerService
 @inject ILogger<WorkspacePage> _logger
 
 @attribute [Route(PageRoutes.WorkspaceDefault)]
@@ -81,5 +82,41 @@
         { WorkspaceSidebar.SectionViews.Sudo, typeof(WorkspaceSudoPage) },
         { WorkspaceSidebar.SectionViews.Settings, typeof(WorkspaceSettingsPage) }
     };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        await RecordRecentLink();
+
+    }
+    
+    private async Task RecordRecentLink()
+    {
+        if (string.IsNullOrEmpty(WorkspaceAcronymParam))
+            return;
+
+        var linkType = GetLinkType();
+
+        var userRecentLink = new UserRecentLink()
+        {
+            LinkType = linkType,
+            DataProject = WorkspaceAcronymParam,
+            accessedTime = DateTimeOffset.Now
+        };
+
+        await _userLocationManagerService.RegisterNavigation(userRecentLink);
+    }
+
+    private DatahubLinkType GetLinkType()
+    {
+        return Section switch
+        {
+            WorkspaceSidebar.SectionViews.Dashboard => DatahubLinkType.DataProject,
+            WorkspaceSidebar.SectionViews.Storage => DatahubLinkType.Storage,
+            WorkspaceSidebar.SectionViews.Repositories => DatahubLinkType.Repository,
+            _ => DatahubLinkType.DataProject
+        };
+    }
 
 }
