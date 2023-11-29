@@ -1,24 +1,12 @@
-from azure.identity import DefaultAzureCredential
-from azure.keyvault.secrets import SecretClient
-from azure.keyvault.administration import KeyVaultAccessControlClient
 from azure.mgmt.keyvault import KeyVaultManagementClient
-from azure.mgmt.authorization import AuthorizationManagementClient
 from azure.identity import ClientSecretCredential
-from azure.core.exceptions import ResourceNotFoundError
-from msgraph import GraphServiceClient
-from msgraph.generated.directory_objects.get_by_ids.get_by_ids_post_request_body import GetByIdsPostRequestBody
+from azure.mgmt.keyvault import KeyVaultManagementClient
+from azure.mgmt.keyvault.models import AccessPolicyEntry, VaultAccessPolicyParameters, SecretPermissions
 import os
-from typing import NamedTuple
-from azure.identity.aio import EnvironmentCredential
 import asyncio
 import requests
 
-class AzClients(NamedTuple):
-    """a docstring"""
-    kv_client: KeyVaultManagementClient
-    graph_client: GraphServiceClient
-
-def get_keyvault_client(subscription_id, tenant_id) -> AzClients:
+def get_keyvault_client(subscription_id, tenant_id) -> KeyVaultManagementClient:
     """
     Retrieves a Key Vault client for the specified environment and workspace definition.
 
@@ -34,18 +22,16 @@ def get_keyvault_client(subscription_id, tenant_id) -> AzClients:
         tenant_id=tenant_id,
         client_id=os.environ["AzureClientId"],
         client_secret=os.environ["AzureClientSecret"])    
-    scopes = ['https://graph.microsoft.com/.default']
-    graph_client = GraphServiceClient(credentials=credential, scopes=scopes)
 
     kv_client = KeyVaultManagementClient(
         credential=credential,
         subscription_id=subscription_id
     )
     
-    return AzClients(kv_client,graph_client)
+    return kv_client
 
 
-def synchronize_access_policies(clients:AzClients, environment_name, workspace_definition):
+def synchronize_access_policies(client:KeyVaultManagementClient, environment_name, workspace_definition, tenant_id):
     rg_name = f"fsdh_proj_{workspace_definition['Workspace']['Acronym']}_{environment_name}_rg"
     vault_name = f"fsdh-proj-{workspace_definition['Workspace']['Acronym']}-{environment_name}-kv"
     print(f"using vault_uri: [{rg_name}].[{vault_name}]")
@@ -54,37 +40,58 @@ def synchronize_access_policies(clients:AzClients, environment_name, workspace_d
     # Create a SecretClient using the default Azure credential from Azure Identity
 
     # Get access policies
-    vault = clients.kv_client.vaults.get(rg_name, vault_name)
+    vault = client.vaults.get(rg_name, vault_name)
 
+    current_policies = vault.properties.access_policies
+    # iterate through workspace_definition['Workspace']['Acronym']
+    for user in (user for user in workspace_definition['Workspace']['Users'] if user['Role'] != 'Removed'):
+        user_id = user['ObjectId']
+        # check if user exists in access policies
+        user_exists = False
+        for policy in vault.properties.access_policies:
+            if policy.object_id == user_id:
+                user_exists = True
+                break
+        # if user does not exist, add user to access policies
+        if not user_exists:
+            print(f"adding user {user_id} to access policies")
+            # add user to access policies                        
+            #vault = clients.kv_client.vaults.get(rg_name, vault_name)
+            #print(f"User {user} has permissions: {policy.permissions}")
+            #print(policy)        
+            # enable secret list,get,delete,set,update permissions for user
+            # Define the access policy
+            permissions = ["list","get"]
+            if user['Role'] == 'Admin':
+                permissions = ["list","get","delete","set"]
+            access_policy = AccessPolicyEntry(tenant_id=tenant_id, object_id=user_id, 
+                                            permissions={'secrets': permissions})
+            current_policies.append(access_policy)
+                            
+        else:
+            print(f"user {user['ObjectId']} already exists in access policies")
     # collect all the object ids
     #object_ids = [policy.object_id for policy in vault.properties.access_policies]
     #output = asyncio.run(collect_ms_graph_properties(clients,object_ids))
     # Print access policies
-    for policy in vault.properties.access_policies:        
-        print(f"User {user} has permissions: {policy.permissions}")
-        print(policy)        
+    removed_users = [user for user in workspace_definition['Workspace']['Users'] if user['Role'] == 'Removed']    
+    for policy in vault.properties.access_policies:
+        if policy.object_id in (user['ObjectId'] for user in removed_users):
+            print(f"removing user {policy.object_id} from access policies")
+            current_policies.remove(policy)
+            #vault = clients.kv_client.vaults.get(rg_name, vault_name)
+            #        
+        # print(f"User {user} has permissions: {policy.permissions}")
+        # print(policy)        
+    # Update the vault with the new policies
+    vault.properties.access_policies = current_policies
+    keyvault_poller = client.vaults.begin_create_or_update(
+        rg_name, vault_name, vault
+    )
 
-async def get_user(graph_client: GraphServiceClient, object_id: str) -> bool:
-    try:
-        user = await graph_client.users.get(object_id)
-        return user is not None
-    except GraphErrorException as e:
-        if e.status_code == 404:
-            return None
-        else:
-            raise
+    return keyvault_poller.result()    
 
-async def collect_ms_graph_properties(clients:AzClients,object_id_list):
-    
-    request_body = GetByIdsPostRequestBody(
-	ids = object_id_list,
-	types = [
-		"user",
-#		"group",
-#		"device",
-	],)
-    results = await clients.graph_client.directory_objects.get_by_ids.post(request_body)
-    print (results)
+
 
     
 
