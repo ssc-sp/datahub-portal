@@ -10,6 +10,12 @@ namespace Datahub.Core.Migrations.Core
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Delete all existing repo entries
+            migrationBuilder.Sql(@"
+                DELETE FROM CatalogObjects
+                WHERE ObjectType = 2");  
+                
+            
             migrationBuilder.Sql(@"  
                 INSERT INTO CatalogObjects(ObjectType, ObjectId, Name_English, Name_French, Desc_English, Desc_French, Location)
                 SELECT 2 as ObjectType, p.Project_Acronym_CD as ObjectId, p.Project_Name as Name_English, p.Project_Name_Fr as Name_French, pr.Provider as Desc_English, pr.Provider as Desc_French, pr.RepositoryUrl as Location
@@ -20,6 +26,9 @@ namespace Datahub.Core.Migrations.Core
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql(@"
+                DELETE FROM CatalogObjects
+                WHERE ObjectType = 2");
         }
     }
 }
