@@ -34,13 +34,17 @@
             @foreach (var toolSection in _workspaceTools.Where(ShouldToolBeShown))
             {
                 <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
+
                     <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)">
-                        <MudStack Row AlignItems="@AlignItems.Center">
-                            <MudIcon Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                            <MudText Style="@_workspaceTitleStyle">
-                                @GetLabel(toolSection)
-                            </MudText>
-                        </MudStack>
+                        <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
+                            <MudStack Row AlignItems="@AlignItems.Center">
+                                <MudIcon Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                <MudText Style="@_workspaceTitleStyle">
+                                    @GetLabel(toolSection)
+                                </MudText>
+                            </MudStack>
+                        </span>
+
                     </MudNavLink>
                 </DatahubAuthView>
             }
@@ -165,6 +169,37 @@
             SectionViews.Sudo => DatahubAuthView.AuthLevels.DatahubAdmin,
             SectionViews.Settings => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             _ => DatahubAuthView.AuthLevels.Unauthorized};
+    }
+
+    private async Task RegisterClickTelemetry(string toolSection)
+    {
+        switch (toolSection)
+        {
+            case SectionViews.Databricks:
+            {
+                var userRecentLink = new UserRecentLink()
+                {
+                    LinkType = DatahubLinkType.Databricks,
+                    DataProject = WorkspaceAcronym,
+                    accessedTime = DateTimeOffset.Now
+                };
+
+                await _userLocationManagerService.RegisterNavigation(userRecentLink);
+                break;
+            }
+            case SectionViews.WebApp:
+            {
+                var userRecentLink = new UserRecentLink()
+                {
+                    LinkType = DatahubLinkType.AzureWebApp,
+                    DataProject = WorkspaceAcronym,
+                    accessedTime = DateTimeOffset.Now
+                };
+
+                await _userLocationManagerService.RegisterNavigation(userRecentLink);
+                break;
+            }
+        }
     }
 
     private string GetSectionViewUrl(string sectionView)
