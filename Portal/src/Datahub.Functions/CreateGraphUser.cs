@@ -54,7 +54,12 @@ public class CreateGraphUser
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error creating user");
+            _logger.LogError(e, $"Error creating user: {e.Message},\n Trace: {e.StackTrace}");
+            if (e.Message.Contains("blocked from signing in"))
+            {
+                await SendFailureEmail(e.Message);
+                throw new Exception(e.Message);
+            }
             return new BadRequestResult();
         }
     }
@@ -189,6 +194,24 @@ public class CreateGraphUser
             Body = body
         };
 
+        await _mediator.Send(notificationEmail);
+    }
+
+    private async Task SendFailureEmail(string message)
+    {
+        var subject = "Datahub invitation failed";
+        var body =  "An error occurred while inviting a user to Datahub.\n " +
+                    "Please check the logs for more details.\n " +
+                    $"Error message: {message}";
+        var contacts = new List<string>() { _configuration.Email.AdminEmail};
+        
+        EmailRequestMessage notificationEmail = new()
+        {
+            To = contacts,
+            Subject = subject,
+            Body = body
+        };
+        
         await _mediator.Send(notificationEmail);
     }
 
