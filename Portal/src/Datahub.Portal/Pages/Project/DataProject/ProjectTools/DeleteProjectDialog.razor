@@ -1,0 +1,21 @@
+﻿<MudDialog>
+    <DialogContent>
+        <p>@Localizer["Are you sure you want to delete the following project?"]</p>
+        <p><b>@ProjectAcronym</b> - <b>@ProjectName</b></p>
+        <p>@Localizer["This action is irreversible. Deletion will remove all resources in this workspace and may take up to an hour to complete."]</p>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Error" OnClick="Submit">Delete</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public string ProjectAcronym { get; set; }
+    [Parameter] public string ProjectName { get; set; }
+    
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    void Cancel() => MudDialog.Cancel();
+}
