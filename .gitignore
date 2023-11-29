@@ -39,8 +39,6 @@ testsettings.json
 DatahubTest/testsettings.json
 DatahubTest/testsettings.json
 /CatalogIngestTool/Data/cfs_catalog.json
-
-
 .idea/
 /Portal/src/Datahub.Portal/appsettings.json
 /Portal/src/Datahub.Portal/MissingTranslations.json
@@ -48,8 +46,9 @@ DatahubTest/testsettings.json
 /Portal/src/Datahub.Portal/output-fr.json
 /Portal/src/Datahub.Achievements/MissingTranslations.json
 /Portal/utils/SyncDocs/config.deepl.json
-
 **/*/*.PublishSettings
 
+ResourceProvisioner/venv/**
+**/__pycache__/**
 /ResourceProvisioner/test/ResourceProvisioner_PyFunctions_Tests/configure_env.ps1
 /ResourceProvisioner/venv
