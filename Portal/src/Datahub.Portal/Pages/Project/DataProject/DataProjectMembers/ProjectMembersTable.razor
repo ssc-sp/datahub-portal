@@ -359,11 +359,12 @@
 
     private async Task SaveChanges()
     {
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
         if (_usersToUpdate.Any() || _usersToAdd.Any())
         {
             _updateInProgress = true;
             StateHasChanged();
-            await _projectUserManagementService.ProcessProjectUserCommandsAsync(_usersToUpdate, _usersToAdd);
+            await _projectUserManagementService.ProcessProjectUserCommandsAsync(_usersToUpdate, _usersToAdd, currentUser.Id.ToString());
             _usersToUpdate.Clear();
             _usersToAdd.Clear();
         }

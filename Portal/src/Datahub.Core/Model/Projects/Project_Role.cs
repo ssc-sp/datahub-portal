@@ -82,6 +82,6 @@ public class Project_Role
         WorkspaceLead = 2,
         Admin = 3,
         Collaborator = 4,
-        Guest = 5
+        Guest = 5        
     }
 }
