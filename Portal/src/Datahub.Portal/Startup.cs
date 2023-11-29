@@ -59,8 +59,10 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Datahub.Application.Configuration;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Transforms;
+using Yarp.ReverseProxy.Configuration;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -235,7 +237,14 @@ public class Startup
         }
     }
 
-    private bool ReverseProxyEnabled() => Configuration.GetValue<bool>("ReverseProxy:Enabled");
+    private bool ReverseProxyEnabled()
+    {
+        var datahubConfiguration = new DatahubPortalConfiguration();
+        Configuration.Bind(datahubConfiguration);
+        
+        return datahubConfiguration.ReverseProxy.Enabled;
+    }
+
     private string GetUserHeaderName() => Configuration.GetValue<string>("ReverseProxy:UserHeaderName") ?? "dh-user";
 
     static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
@@ -306,10 +315,15 @@ public class Startup
             endpoints.MapControllers();
             endpoints.MapFallbackToPage("/_Host");
             // reverse proxy
-            if (ReverseProxyEnabled())
+            var provider = endpoints.ServiceProvider.GetService<IProxyConfigProvider>();
+            if (ReverseProxyEnabled() && provider != null)
             {
                 endpoints.MapReverseProxy();
-            }            
+            }  
+            else
+            {
+                logger.LogWarning($"Invalid Reverse Proxy configuration - No provider available");
+            }
         });       
     }
 

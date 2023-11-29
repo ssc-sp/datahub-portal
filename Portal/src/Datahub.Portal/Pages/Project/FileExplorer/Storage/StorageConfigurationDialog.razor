@@ -1,4 +1,5 @@
-﻿@* StorageConfigurationDialog.razor *@
+﻿@using Datahub.Markdown.Model
+@* StorageConfigurationDialog.razor *@
 @using Datahub.Application.Services.Storage;
 @using Datahub.Infrastructure.Services.Storage;
 
@@ -17,7 +18,7 @@
     </TitleContent>
     <DialogContent>
         <MudStack>
-            <MudTextField @bind-Value=@CloudStorageSettings.Name Label=@Localizer["Friendly Name"] Variant=@Variant.Text />
+            <MudTextField @bind-Value=@CloudStorageSettings.Name Label=@Localizer["Friendly Name"] Variant=@Variant.Text MaxLength="100" />
             <MudCheckBox @bind-Checked=@CloudStorageSettings.Enabled >@Localizer["Enabled"]</MudCheckBox>
             @if (CloudProvider == CloudStorageProviderType.AWS)
             {
@@ -129,7 +130,7 @@
             _ => "/UserGuide/Storage/Import-Storage.md"
         };
 
-        var docRoot = await DocService.GetLanguageRoot(Core.Services.Docs.DocumentationGuideRootSection.UserGuide, "en");
+        var docRoot = await DocService.LoadResourceTree(DocumentationGuideRootSection.UserGuide, "en");
         var id = docRoot?.LocatePath(helpResourceUrl)?.Id;
         if (id is not null)
         {

@@ -14,16 +14,21 @@
   "Selected Government of Canada Department/Agency": "Ministère/organisme sélectionné du gouvernement du Canada",
   "Government of Canada Department/Agency is required.": "Un ministère/agence du gouvernement du Canada est requis.",
   "Agreement with the Terms and conditions is required": "L'accord avec les termes et conditions est requis",
-  "Register for the Federal Science DataHub": "Inscrivez-vous pour le Federal Science DataHub",
+  "Register for the Federal Science DataHub": "Inscrivez-vous pour le Datahub scientifique fédéral",
   "Register": "S'inscrire",
   "Registering": "Inscription en cours",
   "I agree to the ": "Je suis d'accord avec les ",
   " of use for the FSDH Proof-of-Concept Phase 2": " d'utilisation pour la phase 2 de la démonstration de concept de la DHSF",
   "Terms and conditions": "modalités et conditions",
+  "Register here to escape the silos. On the Federal Science DataHub you can:": "Inscrivez-vous ici pour échapper aux silos. Sur le Federal Science DataHub vous pouvez :",
+  "Federal Science DataHub": "Datahub Scientifique Fédéral",
+  "Register here to escape the silos. On the Federal Science DataHub you can:": "Inscrivez-vous ici pour échapper aux silos. Sur le Datahub scientifique fédéral vous pouvez :",
+  "Federal Science DataHub": "Datahub scientifique fédéral",
   "(Optional) How did you hear about the Federal Science DataHub?" : "(Optionnel) Comment avez-vous entendu parler du Datahub Scientifique Fédéral?",
   "Please login to continue": "Veuillez vous connecter pour continuer",
   "Don\u0027t have an account?": "Vous n'avez pas de compte?",
   "Register instead": "Enregistrez-vous plutôt",
   "Login": "Connexion",
-  "Welcome to DataHub": "Bienvenue au DataHub"
+  "Welcome to DataHub": "Bienvenue au DataHub",
+  "(Optional) How did you hear about the Federal Science DataHub?": "(Optionnel) Comment avez-vous entendu parler du Datahub scientifique fédéral?"
 }
