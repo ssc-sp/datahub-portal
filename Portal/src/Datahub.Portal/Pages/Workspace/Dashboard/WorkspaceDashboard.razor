@@ -53,13 +53,18 @@
                     else
                     {
                         <MudItem>
-                            <MudStack>
+                            <MudStack Justify="Justify.Center">
                                 <MudText >
-                                    @Localizer["It looks like you don't have any workspace tools yet. You can request workspace tools from the 'Toolbox' tab."]
+                                    @Localizer["It looks like you don't have any workspace tools yet."]
                                 </MudText>
-                                <MudButton Variant="Variant.Filled" Href="@_marketplaceLink">
-                                    @Localizer["Go to Toolbox"]
-                                </MudButton>
+                                <MudText >
+                                    @Localizer["You can request workspace tools from the 'Toolbox' tab."]
+                                </MudText>
+                                <MudElement HtmlTag="div">
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="@_toolboxLink">
+                                        @Localizer["View Toolbox"]
+                                    </MudButton>
+                                </MudElement>
                             </MudStack>
                         </MudItem>
                     }
@@ -100,7 +105,7 @@
     private Datahub_Project _project;
 
     private List<Project_Resources2> _resources;
-    private string _marketplaceLink => $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Toolbox}";
+    private string _toolboxLink => $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Toolbox}";
 
     private Dictionary<string, Type> _cardComponents = new()
     {
