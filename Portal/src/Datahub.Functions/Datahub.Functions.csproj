@@ -18,6 +18,10 @@
       <Content Include="templates\user_invitation.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
+      <None Remove="templates\project_inactive_alert.html" />
+      <Content Include="templates\project_inactive_alert.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
     <ItemGroup>
         
