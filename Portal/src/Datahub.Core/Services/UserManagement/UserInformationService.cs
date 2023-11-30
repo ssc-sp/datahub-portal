@@ -496,6 +496,7 @@ public class UserInformationService : IUserInformationService
             .AsNoTracking()
             .Include(p => p.Achievements)
             .ThenInclude(a => a.Achievement)
+            .Include(p => p.UserSettings)
             .FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
 
         return portalUser;

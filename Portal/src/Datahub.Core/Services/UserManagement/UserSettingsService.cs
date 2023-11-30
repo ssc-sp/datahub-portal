@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Datahub.Core.Model.Datahub;
@@ -123,6 +122,9 @@ namespace Datahub.Core.Services.UserManagement
                 return new List<string>();
             }
 
+            if (userSetting.HiddenAlerts == null)
+                return new List<string>();
+
             return userSetting.HiddenAlerts;
         }
 
@@ -142,8 +144,12 @@ namespace Datahub.Core.Services.UserManagement
                         currentUser.DisplayName, currentUser.Id);
                     return false;
                 }
-
+                
+                if (userSetting.HiddenAlerts == null)
+                    userSetting.HiddenAlerts = new List<string>();
+                
                 userSetting.HiddenAlerts.Add(alertKey);
+                context.UserSettings.Update(userSetting);
 
                 if (await context.SaveChangesAsync() > 0)
                 {
@@ -198,6 +204,7 @@ namespace Datahub.Core.Services.UserManagement
                 }
 
                 userSetting.HideAlerts = hideAlerts;
+                context.UserSettings.Update(userSetting);
 
                 if (await context.SaveChangesAsync() > 0)
                 {
@@ -269,11 +276,17 @@ namespace Datahub.Core.Services.UserManagement
 
                 if (userSetting == null)
                 {
-                    userSetting = new UserSettings { PortalUserId = currentUser.Id, UserName = currentUser.DisplayName};
+                    userSetting = new UserSettings { PortalUserId = currentUser.Id, UserName = currentUser.DisplayName, Language = language};
                     context.UserSettings.Add(userSetting);
                 }
+                else
+                {
+                    userSetting.Language = language;
+                    context.UserSettings.Update(userSetting);
+                }
                 
-                userSetting.Language = language;
+                
+                
                 if (await context.SaveChangesAsync() > 0)
                     return true;
 
@@ -302,6 +315,7 @@ namespace Datahub.Core.Services.UserManagement
             if (userSetting != null)
             {
                 userSetting.Language = language;
+                context.UserSettings.Update(userSetting);
                 await context.SaveChangesAsync();
             }
 

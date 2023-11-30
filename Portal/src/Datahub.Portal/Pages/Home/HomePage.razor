@@ -70,7 +70,7 @@
         _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
         if (_isUserValid)
         {
-            await AdjustLanguage();
+            //await AdjustLanguage();
         }
         _isLoading = false;
     }
@@ -120,7 +120,7 @@
         if (!tocDialogResult.Canceled)
         {
             await _userSettingsService.RegisterUserTAC();
-            await AdjustLanguage();
+            //await AdjustLanguage();
             _isUserValid = true;
         }
         else

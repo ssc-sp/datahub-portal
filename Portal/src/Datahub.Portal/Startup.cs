@@ -407,6 +407,7 @@ public class Startup
 
             services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
             services.AddScoped<IUserInformationService, OfflineUserInformationService>();
+            services.AddScoped<IUserSettingsService, OfflineUserSettingsService>();
             services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
             services.AddScoped<IPowerBiDataService, OfflinePowerBiDataService>();
 
