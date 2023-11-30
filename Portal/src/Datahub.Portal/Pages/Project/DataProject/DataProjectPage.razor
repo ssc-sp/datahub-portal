@@ -6,6 +6,7 @@
 @using Datahub.Core.Services.Achievements
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Model.Projects
+@using Datahub.Application.Services
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
@@ -14,6 +15,9 @@
 @inject UserLocationManagerService _userLocationManagerService
 @inject ILogger<DataProjectPage> _logger
 @inject DatahubPortalConfiguration Configuration
+@inject IDialogService _dialogService
+@inject IResourceMessagingService _resourceMessagingService
+@inject ISnackbar _snackbar
 
 
 <DHPageAlert
@@ -44,6 +48,14 @@
                 <ProjectUserCardList ProjectAcronym="@ProjectAcronymParam"/>
 
             </MudItem>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead">
+                <MudButton Variant="Variant.Text"
+                           Color="Color.Error"
+                           EndIcon="@Icons.Material.Filled.Delete"
+                           OnClick="OpenDeletionDialog">
+                    @Localizer["Delete Workspace"]
+                </MudButton>
+            </DatahubAuthView>
         </CascadingValue>
     </MudGrid>
 }
@@ -119,6 +131,34 @@
 
         await _userLocationManagerService.RegisterNavigation(userRecentLink);
     }
+    
+    private async Task OpenDeletionDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            { "ProjectAcronym", ProjectAcronymParam },
+            { "ProjectName", _projectName }
+        };
 
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
 
+        var dialog = _dialogService.Show<DeleteProjectDialog>("Delete Workspace", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
+            {
+                var userEmail = await _userInformationService.GetUserEmail();
+                var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(ProjectAcronymParam, requestingUserEmail: userEmail);
+                await _resourceMessagingService.SendToTerraformDeleteQueue(workspaceDefinition, _project.Project_ID);
+                _snackbar.Add("Workspace succesfully queued for deletion", Severity.Success);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                _snackbar.Add("Error deleting workspace", Severity.Error);
+            }
+        }
+    }
 }
