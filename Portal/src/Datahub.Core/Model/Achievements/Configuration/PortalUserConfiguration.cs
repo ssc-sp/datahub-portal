@@ -40,7 +40,7 @@ public class PortalUserConfiguration : IEntityTypeConfiguration<PortalUser>
 
         builder.HasOne(e => e.UserSettings)
             .WithOne(l => l.User)
-            .HasForeignKey<UserSettings>(e => e.UserId)
+            .HasForeignKey<UserSettings>(e => e.PortalUserId)
             .OnDelete(DeleteBehavior.NoAction);
     }
 }

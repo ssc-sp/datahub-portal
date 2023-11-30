@@ -8,7 +8,7 @@ using Datahub.Core.Model.UserTracking;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
+#nullable enable
 namespace Datahub.Core.Services.UserManagement
 {
     public class UserSettingsService : IUserSettingsService
@@ -29,12 +29,13 @@ namespace Datahub.Core.Services.UserManagement
 
         public async Task<bool> HasUserAcceptedTAC()
         {
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
             await using var context = await _datahubContextFactory.CreateDbContextAsync();
-            var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == currentUser.Id);
-
-
-            return userSetting is { AcceptedDate: { } };
+            var userSetting = await GetUserSettingsAsync();
+            if (userSetting != null)
+            {
+                return userSetting.AcceptedDate != null;
+            }
+            return false;
         }
 
         public async Task<bool> RegisterUserTAC()
@@ -45,7 +46,7 @@ namespace Datahub.Core.Services.UserManagement
             try
             {
                 await using var context = await _datahubContextFactory.CreateDbContextAsync();
-                var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == currentUser.Id);
+                var userSetting = await GetUserSettingsAsync();
 
                 if (userSetting == null)
                 {
@@ -53,9 +54,9 @@ namespace Datahub.Core.Services.UserManagement
                         $"User: {currentUser.DisplayName} with user id: {currentUser.Id} is not in DB to register TAC.");
                     return false;
                 }
-
-                userSetting.UserName = currentUser.DisplayName;
+                
                 userSetting.AcceptedDate = DateTime.UtcNow;
+                context.UserSettings.Update(userSetting);
 
                 if (await context.SaveChangesAsync() > 0)
                     return true;
@@ -79,11 +80,11 @@ namespace Datahub.Core.Services.UserManagement
             try
             {
                 await using var context = await _datahubContextFactory.CreateDbContextAsync();
-                var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == currentUser.Id);
+                var userSetting = await GetUserSettingsAsync();
                 if (userSetting == null)
                 {
                     _logger.LogError(
-                        "User: {CurrentUserDisplayName} with user id: {UserId} is not in DB to clear settings",
+                        "User: {CurrentUserDisplayName} with user id: {PortalUserId} is not in DB to clear settings",
                         currentUser.DisplayName, currentUser.Id);
                     return false;
                 }
@@ -113,7 +114,7 @@ namespace Datahub.Core.Services.UserManagement
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
             await using var context = await _datahubContextFactory.CreateDbContextAsync();
-            var userSetting = context.UserSettings.AsNoTracking().FirstOrDefault(u => u.UserId == currentUser.Id);
+            var userSetting = await GetUserSettingsAsync();
             if (userSetting == null)
             {
                 _logger.LogError(
@@ -132,7 +133,7 @@ namespace Datahub.Core.Services.UserManagement
             try
             {
                 await using var context = await _datahubContextFactory.CreateDbContextAsync();
-                var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == currentUser.Id);
+                var userSetting = await GetUserSettingsAsync();
 
                 if (userSetting == null)
                 {
@@ -167,7 +168,7 @@ namespace Datahub.Core.Services.UserManagement
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
             await using var context = await _datahubContextFactory.CreateDbContextAsync();
-            var userSetting = context.UserSettings.AsNoTracking().FirstOrDefault(u => u.UserId == currentUser.Id);
+            var userSetting = await GetUserSettingsAsync();
             if (userSetting == null)
             {
                 _logger.LogError(
@@ -186,7 +187,7 @@ namespace Datahub.Core.Services.UserManagement
             try
             {
                 await using var context = await _datahubContextFactory.CreateDbContextAsync();
-                var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == currentUser.Id);
+                var userSetting = await GetUserSettingsAsync();
 
                 if (userSetting == null)
                 {
@@ -223,7 +224,7 @@ namespace Datahub.Core.Services.UserManagement
             try
             {
                 await using var context = await _datahubContextFactory.CreateDbContextAsync();
-                var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == currentUser.Id);
+                var userSetting = await GetUserSettingsAsync();
 
                 if (userSetting == null)
                 {
@@ -264,15 +265,14 @@ namespace Datahub.Core.Services.UserManagement
             try
             {
                 await using var context = await _datahubContextFactory.CreateDbContextAsync();
-                var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == currentUser.Id);
+                var userSetting = await GetUserSettingsAsync();
 
                 if (userSetting == null)
                 {
-                    userSetting = new UserSettings { UserId = currentUser.Id };
+                    userSetting = new UserSettings { PortalUserId = currentUser.Id, UserName = currentUser.DisplayName};
                     context.UserSettings.Add(userSetting);
                 }
-
-                userSetting.UserName = currentUser.DisplayName;
+                
                 userSetting.Language = language;
                 if (await context.SaveChangesAsync() > 0)
                     return true;
@@ -292,14 +292,12 @@ namespace Datahub.Core.Services.UserManagement
 
         public async Task<bool> SetLanguage(string language)
         {
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            
             if (language == null ||
                 Thread.CurrentThread.CurrentCulture.Name.Equals(language, StringComparison.OrdinalIgnoreCase))
                 return false;
         
             await using var context = await _datahubContextFactory.CreateDbContextAsync();
-            var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == currentUser.Id);
+            var userSetting = await GetUserSettingsAsync();
 
             if (userSetting != null)
             {
@@ -319,9 +317,7 @@ namespace Datahub.Core.Services.UserManagement
 
         public async Task<string> GetUserLanguage()
         {
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            await using var context = await _datahubContextFactory.CreateDbContextAsync();
-            var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == currentUser.Id);
+            var userSetting = await GetUserSettingsAsync();
 
             return userSetting != null ? userSetting.Language : string.Empty;
         }
@@ -330,6 +326,15 @@ namespace Datahub.Core.Services.UserManagement
         {
             var lang = await GetUserLanguage();
             return !lang.ToLower().Contains("en");
+        }
+        
+        private async Task<UserSettings?> GetUserSettingsAsync()
+        {
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            await using var context = await _datahubContextFactory.CreateDbContextAsync();
+            var userSettings = await context.UserSettings.FirstOrDefaultAsync(u => u.PortalUserId == currentUser.Id);
+
+            return userSettings;
         }
     }
 }

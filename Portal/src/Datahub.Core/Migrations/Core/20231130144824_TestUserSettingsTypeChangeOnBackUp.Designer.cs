@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    [Migration("20231123233223_ExpandUserSettings")]
-    partial class ExpandUserSettings
+    [Migration("20231130144824_TestUserSettingsTypeChangeOnBackUp")]
+    partial class TestUserSettingsTypeChangeOnBackUp
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -2053,6 +2053,48 @@ namespace Datahub.Core.Migrations.Core
                     b.ToTable("UserSettings", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserSettingsBackup", b =>
+                {
+                    b.Property<int>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
+
+                    b.Property<DateTime?>("AcceptedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HiddenAlerts")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("HideAchievements")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HideAlerts")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<bool>("NotificationsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("UserId1")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("UserId1");
+
+                    b.ToTable("UserSettingsBackup", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
                 {
                     b.HasBaseType("Datahub.Core.Model.Datahub.SharedDataFile");
@@ -2396,6 +2438,17 @@ namespace Datahub.Core.Migrations.Core
                         .WithOne("UserSettings")
                         .HasForeignKey("Datahub.Core.Model.UserTracking.UserSettings", "UserId")
                         .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserSettingsBackup", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId1")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");

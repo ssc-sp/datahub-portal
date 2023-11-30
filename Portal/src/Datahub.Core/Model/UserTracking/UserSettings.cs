@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Datahub.Core.Model.Achievements;
-
 namespace Datahub.Core.Model.UserTracking;
 
 public class UserSettings
 {
-    public int UserId { get; set; }
+    public int PortalUserId { get; set; }
     public string UserName { get; set; }
     public PortalUser User { get; set; }
     public DateTime? AcceptedDate { get; set; } 
