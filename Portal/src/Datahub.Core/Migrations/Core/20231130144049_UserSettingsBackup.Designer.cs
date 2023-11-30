@@ -4,16 +4,19 @@ using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20231130144049_UserSettingsBackup")]
+    partial class UserSettingsBackup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2018,7 +2021,8 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
             modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserSettings", b =>
                 {
-                    b.Property<int>("PortalUserId")
+                    b.Property<int>("UserId")
+                        .HasMaxLength(64)
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("AcceptedDate")
@@ -2044,9 +2048,48 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
-                    b.HasKey("PortalUserId");
+                    b.HasKey("UserId");
 
                     b.ToTable("UserSettings", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserSettingsBackup", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("AcceptedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HiddenAlerts")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("HideAchievements")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HideAlerts")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<bool>("NotificationsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("UserId1")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("UserId1");
+
+                    b.ToTable("UserSettingsBackup", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
@@ -2390,9 +2433,18 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "User")
                         .WithOne("UserSettings")
-                        .HasForeignKey("Datahub.Core.Model.UserTracking.UserSettings", "PortalUserId")
+                        .HasForeignKey("Datahub.Core.Model.UserTracking.UserSettings", "UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserSettingsBackup", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId1");
 
                     b.Navigation("User");
                 });

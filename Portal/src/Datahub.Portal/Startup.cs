@@ -477,13 +477,4 @@ public class Startup
     {
         services.ConfigureDbContext<T>(Configuration, connectionStringName, dbDriver);
     }
-
-    private void ConfigureCosmosDbContext<T>(IServiceCollection services, string connectionStringName,
-        string catalogName) where T : DbContext
-    {
-        var connectionString = Configuration.GetConnectionString(_currentEnvironment, connectionStringName);
-        services.AddPooledDbContextFactory<T>(options =>
-            options.UseCosmos(connectionString, databaseName: catalogName));
-        services.AddDbContextPool<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
-    }
 }

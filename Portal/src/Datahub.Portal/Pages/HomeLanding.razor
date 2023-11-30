@@ -81,7 +81,7 @@
 
         var tocDialog = await _dialogService.ShowAsync<UserTermsAndConditionsDialog>(Localizer["TermsAndConditions"], options);
         var tocDialogResult = await tocDialog.Result;
-        if (!tocDialogResult.Canceled)
+        if (!tocDialogResult.Canceled && tocDialogResult.Data is true)
         {
             await _userSettingsService.RegisterUserTAC();
             await SetupRootFolder();

@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Core.Migrations.Core
 {
     /// <inheritdoc />
-    public partial class ExpandUserSettings : Migration
+    public partial class UserSettingsBackup : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -63,7 +64,36 @@ namespace Datahub.Core.Migrations.Core
                 table: "UserSettings",
                 type: "bit",
                 nullable: false,
-                defaultValue: true);
+                defaultValue: false);
+
+            migrationBuilder.CreateTable(
+                name: "UserSettingsBackup",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
+                    UserId1 = table.Column<int>(type: "int", nullable: true),
+                    AcceptedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Language = table.Column<string>(type: "nvarchar(5)", maxLength: 5, nullable: true),
+                    NotificationsEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    HideAchievements = table.Column<bool>(type: "bit", nullable: false),
+                    HideAlerts = table.Column<bool>(type: "bit", nullable: false),
+                    HiddenAlerts = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserSettingsBackup", x => x.UserId);
+                    table.ForeignKey(
+                        name: "FK_UserSettingsBackup_PortalUsers_UserId1",
+                        column: x => x.UserId1,
+                        principalTable: "PortalUsers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserSettingsBackup_UserId1",
+                table: "UserSettingsBackup",
+                column: "UserId1");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_UserSettings_PortalUsers_UserId",
@@ -79,6 +109,9 @@ namespace Datahub.Core.Migrations.Core
             migrationBuilder.DropForeignKey(
                 name: "FK_UserSettings_PortalUsers_UserId",
                 table: "UserSettings");
+
+            migrationBuilder.DropTable(
+                name: "UserSettingsBackup");
 
             migrationBuilder.DropColumn(
                 name: "HiddenAlerts",
