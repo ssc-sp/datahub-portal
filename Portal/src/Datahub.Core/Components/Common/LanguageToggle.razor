@@ -27,10 +27,10 @@
             await _localStorage.SetItemAsStringAsync("language", language);
             await _userSettingsService.SetLanguage(language);
         } else {
+            await _localStorage.SetItemAsStringAsync("language", language);
             await _userSettingsService.RegisterUserLanguage(language);
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
             await _userSettingsService.SetLanguage(language);
-            await _localStorage.SetItemAsStringAsync("language", language);
         }
     }
 }
