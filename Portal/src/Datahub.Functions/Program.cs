@@ -12,6 +12,7 @@ using Polly.Contrib.WaitAndRetry;
 using System.Net;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Projects;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -47,6 +48,8 @@ var host = new HostBuilder()
         services.AddScoped<ProjectUsageService>();
         services.AddScoped<QueuePongService>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
+        services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
+        services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddSingleton<DatahubPortalConfiguration>();
 
     })

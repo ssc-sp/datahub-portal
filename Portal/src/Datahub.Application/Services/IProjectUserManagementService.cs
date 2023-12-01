@@ -12,8 +12,9 @@ public interface IProjectUserManagementService
     /// </summary>
     /// <param name="projectUserUpdateCommands"></param>
     /// <param name="projectUserAddUserCommands"></param>
+    /// <param name="requesterUserId"></param>
     /// <returns></returns>
-    Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands, List<ProjectUserAddUserCommand> projectUserAddUserCommands);
+    Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands, List<ProjectUserAddUserCommand> projectUserAddUserCommands, string requesterUserId);
 
     /// <summary>
     /// Gets all users in a project.
