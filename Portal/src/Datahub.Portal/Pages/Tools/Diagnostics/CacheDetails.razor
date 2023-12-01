@@ -1,5 +1,6 @@
+@using Datahub.Application.Services
 @inject ILocalStorageService _localStorage
-@inject IUserInformationService _userInformationService
+@inject IUserSettingsService _userSettingsService
 
 <MudText Typo="Typo.h2" Class="mb-6">
     Cache Details
@@ -30,6 +31,6 @@
     
     private async Task ClearUserSettings()
     {
-        await _userInformationService.ClearUserSettingsAsync();
+        await _userSettingsService.ClearUserSettingsAsync();
     }
 }

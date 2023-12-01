@@ -3,6 +3,7 @@
 
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDialogService _dialogService
+@inject IUserSettingsService _userSettingsService
 
 <MudStack Spacing="8" Class="mb-16">
     <MudStack>
@@ -29,7 +30,7 @@
     </SettingsField>
     <MudDivider/>
     <SettingsField Label="@Localizer["Display Achievements"]" Description="@Localizer["You can choose whether to hide or display your achievements in the DataHub. This will also prevent the achievement notifications from displaying on your screen. You can change it at any time."]">
-        <MudSwitch T="bool" Label="@Localizer["Show Achievements"]" Checked="@(!ViewedUser.HideAchievements)" Color="Color.Primary" UnCheckedColor="Color.Dark" CheckedChanged="HandleCheckChanged"/>
+        <MudSwitch T="bool" Label="@Localizer["Show Achievements"]" Checked="@(!ViewedUser.UserSettings.HideAchievements)" Color="Color.Primary" UnCheckedColor="Color.Dark" CheckedChanged="HandleCheckChanged"/>
     </SettingsField>
 </MudStack>
 
@@ -54,7 +55,7 @@
 
     private async Task HandleCheckChanged()
     {
-        ViewedUser.HideAchievements = !ViewedUser.HideAchievements;
+        await _userSettingsService.SetHideAchievements(!ViewedUser.UserSettings.HideAchievements);
         await OnViewedUserChanged.InvokeAsync(ViewedUser);
     }
 

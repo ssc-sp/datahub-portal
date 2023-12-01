@@ -1,18 +1,13 @@
 ﻿@*DHPageAlert.razor*@
 @using System.Web
 @using Datahub.Core.Services.UserManagement;
-@using Datahub.Markdown
+@using Datahub.Markdown;
 @inject CultureService _cultureService
+@inject IUserSettingsService _userSettingsService
 @inject ILogger<DHPageAlert> _logger
 @inject IConfiguration _configuration
 @inject IHttpClientFactory _httpClientFactory
-
-@if (_contentFound)
-{
-    <PageAlert Title="@Localizer[Title]" Key=@Key>
-        <DHMarkdown Content="@_markdownContent" LinkRewriter="@RewriteLink"/>
-    </PageAlert>
-}
+@inject IDialogService _dialogService
 
 @code {
 
@@ -28,7 +23,7 @@
     [Parameter]
     public string WikiLinkFR { get; set; }
 
-    private const string DefaultPage = "Home";
+        private const string DefaultPage = "Home";
     private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
     private bool _contentFound = false;
@@ -42,14 +37,22 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var pageAlertEnabled = _configuration.GetValue<bool>("PageAlertsEnabled", true);
-        if (pageAlertEnabled)
+        var hideAlerts = await _userSettingsService.GetHideAlerts();
+        if (!hideAlerts)
         {
             var link = _cultureService.IsFrench ? WikiLinkFR : WikiLinkEN;
             var content = await LoadPage(link ?? DefaultPage);
+            var hiddenAlerts = await _userSettingsService.GetHiddenAlerts();
+            
             _markdownContent = content ?? Localizer[$"{link} cannot be found"];
             _contentFound = content != null;
-        } else
+            if (_contentFound && !hiddenAlerts.Contains(Key))
+            {
+                await OpenDialog();
+            }
+            
+        }
+        else
         {
             _contentFound = false;
         }
@@ -57,7 +60,7 @@
 
     private async Task<string> LoadPage(string name)
     {
-        if (name.StartsWith("/")) 
+        if (name.StartsWith("/"))
             name = name[1..];
 
         var wikiRoot = _configuration["WikiURL"];
@@ -75,4 +78,35 @@
             return null;
         }
     }
+
+    private async Task OpenDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            { "Title", Title },
+            { "Key", Key },
+            { "Content", _markdownContent },
+            { "RewriteLink", (string s) => RewriteLink(s) }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        }; 
+
+        var dialog = await _dialogService.ShowAsync<DHPageAlertDialog>(Localizer["Page alert"], parameters, options);
+        var result = await dialog.Result;
+        
+        if (result.Data is string s1 && s1 == "close")
+        {
+            await _userSettingsService.AddHiddenAlert(Key);
+        }
+        if (result.Data is string s2 && s2 == "hide")
+        {
+            await _userSettingsService.SetHideAlerts(true);
+        }
+    }
+
 }

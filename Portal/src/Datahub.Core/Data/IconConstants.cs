@@ -82,7 +82,7 @@ public class Icon
 
     public static readonly Icon PROJECT = new()
     {
-        Name = "fad fa-project-diagram",
+        Name = "fad fa-compass",
         Color = "yellow",
         HexColor = Colors.Green.Darken1,
     };
@@ -97,6 +97,6 @@ public class Icon
     {
         Name = "fad fa-newspaper",
         Color = "grey",
-        HexColor = Colors.Grey.Default,
+        HexColor = Colors.Teal.Default,
     };
 }
