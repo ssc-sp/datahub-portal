@@ -20,6 +20,12 @@ public class OfflineProjectUserManagementService : IProjectUserManagementService
         throw new NotImplementedException();
     }
 
+    public Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands, List<ProjectUserAddUserCommand> projectUserAddUserCommands,
+        string requesterUserId)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<List<Datahub_Project_User>> GetProjectUsersAsync(string projectAcronym)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
