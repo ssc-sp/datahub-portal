@@ -11,14 +11,19 @@
         <li>
             <a href="#nav">@Localizer["Skip to navigation"]</a>
         </li>
-        <li>
-            <a href="#breadcrumb">@Localizer["Skip to breadcrumb"]</a>
-        </li>
     </ul>
     <h3>@Localizer["Language selection"]</h3>
-    <ul><li><a><LanguageToggle/></a></li></ul>
+    <ul>
+        <li>
+            <a>
+                <LanguageToggle/>
+            </a>
+        </li>
+    </ul>
 </div>
-<div class="reader-only" id="header"><h3>@Localizer["Header"]</h3></div>
+<div class="reader-only" id="header">
+    <h3>@Localizer["Header"]</h3>
+</div>
 <MudStack Row AlignItems="AlignItems.Center">
     <MudImage src="_content/Datahub.Core/img/datahub-logo-v2.png" Alt="Datahub Logo" Height="30"/>
     <MudText Typo="Typo.h6" Style="@_titleStyle">
@@ -30,18 +35,33 @@
 <HomeSearch />*@
 
 <MudSpacer/>
-<SearchPopover />
+<MudStack Row>
+    <MudButton Variant="Variant.Text" Href="/home">
+        @Localizer["Home"]
+    </MudButton>
+    <MudButton Variant="Variant.Text" Href="/news">
+        @Localizer["News"]
+    </MudButton>
+    <MudButton Variant="Variant.Text" Href="/explore">
+        @Localizer["Explore"]
+    </MudButton>
+    <MudButton Variant="Variant.Text" Href="/resources">
+        @Localizer["Learn"]
+    </MudButton>
+</MudStack>
+<MudSpacer/>
+<SearchPopover/>
 
-<MudSpacer />
+<MudSpacer/>
 @* <NotificationsList IsNotificationsListOpen="@IsNotificationsListOpen" ToggleNotificationsList="ToggleNotificationsList" /> *@
-<HelpPopup />
-<TopBarProfileButton />
+<HelpPopup/>
+<TopBarProfileButton/>
 
 @code {
 
     [Parameter]
     public string SupportFormUrl { get; set; }
-    
+
     private string _titleStyle;
 
     private bool IsNotificationsListOpen { get; set; }
@@ -64,4 +84,5 @@
             .AddStyle("color", "var(--mud-palette-text-primary)")
             .Build();
     }
+
 }

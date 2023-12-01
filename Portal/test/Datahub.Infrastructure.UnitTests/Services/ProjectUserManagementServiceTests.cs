@@ -108,7 +108,7 @@ public class ProjectUserManagementServiceTests
         var mockMemoryCache = new Mock<IMemoryCache>();
 
         _serviceAuthManager =
-            new ServiceAuthManager(mockMemoryCache.Object, _mockFactory.Object, _mockIMSGraphService.Object);
+            new ServiceAuthManager(mockMemoryCache.Object, _mockFactory.Object);
     }
 
     [TearDown]

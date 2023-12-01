@@ -15,9 +15,8 @@ public class DataSharingService : BaseService, IDataSharingService
     private DataLakeClientService _dataLakeClientService;
     public DataSharingService(ILogger<DataSharingService> logger,
         DataLakeClientService dataLakeClientService,
-        NavigationManager navigationManager,
-        UIControlsService uiService)
-        : base(navigationManager, uiService)
+        NavigationManager navigationManager)
+        : base(navigationManager)
     {
         _logger = logger;
         _dataLakeClientService = dataLakeClientService;
