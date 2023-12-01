@@ -586,7 +586,8 @@
       "SupportingDoc": "Supporting Documentation",
       "DataDictionary": "Data Dictionary",
       "ImsoApproval": "IMSO Approval"
-    }
+    },
+    "TypeName": "TBS Open Government Registry"
   },
   "SHARING-STATUS": {
     "OpenData": {

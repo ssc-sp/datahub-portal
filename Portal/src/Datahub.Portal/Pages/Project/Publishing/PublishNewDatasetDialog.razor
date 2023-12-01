@@ -1,0 +1,115 @@
+﻿@* PublishNewDatasetDialog.razor *@
+
+@using Datahub.Application.Services.Publishing;
+@inject IOpenDataPublishingService _publishingService
+
+<MudDialog>
+    <DialogContent>
+        @if (IsFileExplorerDialog)
+        {
+            @if (HasFiles)
+            {
+                <MudText Typo=@Typo.h3>Files</MudText>
+                <MudList>
+                    @foreach(var f in Files)
+                    {
+                        <MudListItem><MudText>@f.filename</MudText></MudListItem>
+                    }
+                </MudList>
+            }
+            <MudSelect T=@OpenDataSubmission @bind-Value=@SelectedSubmission ToStringFunc=@SelectedSubmissionLabel>
+                <MudSelectItem Value=default(OpenDataSubmission) />
+                @if (AreSubmissionsAvailable)
+                {
+                    <MudDivider />
+                    @foreach (var s in _availableSubmissions)
+                    {
+                        <MudSelectItem Value=@s />
+                    }
+                }
+            </MudSelect>
+        }
+        <MudTextField @bind-Value=@_datasetTitle Label="Dataset Title" Required Disabled=@IsExistingSubmissionSelected />
+        <MudSelect T=@OpenDataPublishProcessType @bind-Value=@_processType ToStringFunc=@ProcessTypeLabel Disabled=@IsExistingSubmissionSelected>
+            @foreach (var t in _availableTypes)
+            {
+                <MudSelectItem Value=@t />
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick=@Cancel>Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick=@Submit>Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public bool IsFileExplorerDialog { get; set; } = false;
+
+    [Parameter]
+    public int? WorkspaceId { get; set; }
+
+    [Parameter]
+    public IEnumerable<FileMetaData> Files { get; set; } = new List<FileMetaData>();
+
+    private bool HasFiles => Files?.Any() ?? false;
+    private bool HasWorkspaceId => WorkspaceId.HasValue;
+    private int WorkspaceIdInternal => HasWorkspaceId ? WorkspaceId.Value : default(int);
+
+    private string _datasetTitle;
+    private OpenDataPublishProcessType _processType = OpenDataPublishProcessType.TbsOpenGovPublishing;
+    private OpenDataSubmission _selectedSubmission = null;
+
+    private OpenDataSubmission SelectedSubmission
+    {
+        get => _selectedSubmission;
+        set
+        {
+            _datasetTitle = value?.DatasetTitle;
+            _processType = value?.ProcessType ?? OpenDataPublishProcessType.TbsOpenGovPublishing;
+            _selectedSubmission = value;
+        }
+    }
+
+    private bool IsExistingSubmissionSelected => SelectedSubmission != null;
+
+    private IEnumerable<OpenDataSubmission> _availableSubmissions = new List<OpenDataSubmission>();
+    private bool AreSubmissionsAvailable => _availableSubmissions?.Any() ?? false;
+
+    private IEnumerable<OpenDataPublishProcessType> _availableTypes => Enum.GetValues<OpenDataPublishProcessType>();
+
+    private string ProcessTypeLabel(OpenDataPublishProcessType processType) => Localizer[$"{processType.ToString()}.TypeName"];
+
+    private string SelectedSubmissionLabel(OpenDataSubmission s) => s?.DatasetTitle ?? Localizer["Create New..."];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsFileExplorerDialog && HasWorkspaceId)
+        {
+            _availableSubmissions = await _publishingService.GetAvailableOpenDataSubmissionsForWorkspaceAsync(WorkspaceIdInternal);
+        }
+
+        await base.OnInitializedAsync();
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit()
+    {
+        if (IsExistingSubmissionSelected)
+        {
+            MudDialog.Close(DialogResult.Ok(SelectedSubmission));
+        }
+        else
+        {
+            var result = new OpenDataSubmissionBasicInfo(_datasetTitle, _processType, WorkspaceIdInternal);
+            MudDialog.Close(DialogResult.Ok(result));
+        }
+    }
+
+}

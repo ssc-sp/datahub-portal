@@ -56,6 +56,20 @@ namespace Datahub.Core.Utils
             _ => OpenDataPublishingUtils.NotStarted(step),
         };
 
+        public static TbsOpenGovSubmission.ProcessSteps GetCurrentStatus(TbsOpenGovSubmission submission)
+        {
+            if (CheckStepStatus(submission, TbsOpenGovSubmission.ProcessSteps.Published).Completed)
+            {
+                return TbsOpenGovSubmission.ProcessSteps.Published;
+            }
+            else
+            {
+                return Enum.GetValues<TbsOpenGovSubmission.ProcessSteps>()
+                    .Select(s => CheckStepStatus(submission, s))
+                    .FirstOrDefault(s => s.Started && !s.Completed).Step;
+            }
+        }
+
         private static OpenDataPublishingStepStatus<TbsOpenGovSubmission.ProcessSteps> DetermineFileUploadStatus(TbsOpenGovSubmission submission)
         {
             var files = submission.Files;

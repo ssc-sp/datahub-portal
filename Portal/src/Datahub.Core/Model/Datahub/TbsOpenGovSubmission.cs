@@ -14,7 +14,7 @@ namespace Datahub.Core.Model.Datahub
         public const string DATA_DICTIONARY_FILE_TYPE = "DataDictionary";
         public const string IMSO_APPROVAL_FILE_TYPE = "ImsoApproval";
 
-        public const string LOCALIZATION_PREFIX = "TbsOpenGovPublishing";
+        public const string LOCALIZATION_PREFIX = nameof(OpenDataPublishProcessType.TbsOpenGovPublishing);
 
         public enum ProcessSteps
         {

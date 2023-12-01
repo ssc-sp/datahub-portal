@@ -7,8 +7,8 @@
 
 @if (IsTbsSubmission)
 {
-    <MudButton OnClick=@TwiddleSubmission>Twiddle</MudButton>
-    <TbsOpenGovPublishPage Submission=@_tbsSubmission OnSubmissionUpdated=@LoadSubmission />
+    @*<MudButton OnClick=@TwiddleSubmission>Twiddle</MudButton>*@
+    <TbsOpenGovPublishPage Submission=@_tbsSubmission OnSubmissionUpdated=@UpdateTbsOpenGovSubmission />
 }
 else if (ValidSubmissionId)
 {
@@ -42,6 +42,12 @@ else
     {
         var reset = false;
         if (reset) await LoadSubmission();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UpdateTbsOpenGovSubmission()
+    {
+        _submission = await PublishingService.UpdateTbsOpenGovSubmission(_tbsSubmission);
         await InvokeAsync(StateHasChanged);
     }
 

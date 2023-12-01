@@ -1,8 +1,11 @@
+using Datahub.Core.Components;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
+using Datahub.Portal.Pages.Project.Publishing;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using MudBlazor;
 
 namespace Datahub.Portal.Pages.Project.FileExplorer;
 
@@ -207,6 +210,29 @@ public partial class FileExplorer
         await _module.InvokeVoidAsync("downloadFile", uri.ToString());
     }
     
+    private async Task HandlePublishFiles(IEnumerable<FileMetaData> files)
+    {
+        var dialogParams = new DialogParameters<PublishNewDatasetDialog>
+        {
+            { x => x.IsFileExplorerDialog, true },
+            { x => x.WorkspaceId, ProjectId },
+            { x => x.Files, files }
+        };
+
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialog = await _dialogService.ShowAsync<PublishNewDatasetDialog>("Add Files To Dataset", dialogParams, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            //TODO
+            _navManager.NavigateTo($"/w/{ProjectAcronym}/publishing/1");
+        }
+
+        await Task.CompletedTask;
+    }
+
     private string GetDirectoryName(string path)
     {
         var lastIndex = path.TrimEnd('/').LastIndexOf("/", StringComparison.Ordinal);

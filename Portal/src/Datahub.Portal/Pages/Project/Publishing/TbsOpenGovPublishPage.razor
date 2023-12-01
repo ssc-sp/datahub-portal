@@ -18,67 +18,94 @@
 @if(SubmissionLoaded)
 {
 
-    <MudButton OnClick=@ToggleTimeline >Collapse</MudButton>
+    <MudText Typo=@Typo.h3>Dataset: @Submission.DatasetTitle</MudText>
 
-    <DHSteps 
-        T=@StatusEnum
-        StepItems=@_steps
-        CurrentStepStateFunc=@GetCurrentStepState
-        StepTitleFunc=@GetStepTitle
-        StepMessageFunc=@GetStepDescription
-        Collapsed=@_timelineCollapsed
-        />
+    <MudStack Spacing="6" >
 
-    @if(ShowFileSelectionPane)
-    {
         <MudCard>
-            <MudList>
-                <MudListItem>
-                    <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
-                        FilePurpose=@TbsOpenGovSubmission.DATASET_FILE_TYPE
-                        Submission=@Submission
-                        Syncer=@Syncer
-                        Required
+            <MudCardHeader>
+                <MudText Typo=@Typo.h3>Timeline</MudText>
+                <MudSpacer />
+                <MudButton OnClick=@ToggleTimeline >@(_timelineCollapsed? "Expand":"Collapse")</MudButton>
+            </MudCardHeader>
+
+            <MudCardContent>
+                <DHSteps 
+                    T=@StatusEnum
+                    StepItems=@_steps
+                    CurrentStepStateFunc=@GetCurrentStepState
+                    StepTitleFunc=@GetStepTitle
+                    StepMessageFunc=@GetStepDescription
+                    Collapsed=@_timelineCollapsed
                     />
-                </MudListItem>
-                <MudListItem>
-                    <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
-                        FilePurpose=@TbsOpenGovSubmission.METADATA_FILE_TYPE
-                        Submission=@Submission
-                        Syncer=@Syncer
-                        Required
-                    />
-                </MudListItem>
-                <MudListItem>
-                    <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
-                        FilePurpose=@TbsOpenGovSubmission.DATA_DICTIONARY_FILE_TYPE
-                        Submission=@Submission
-                        Syncer=@Syncer
-                        Required
-                    />
-                </MudListItem>
-                <MudListItem>
-                    <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector
-                        FilePurpose=@TbsOpenGovSubmission.SUPPORTING_DOC_FILE_TYPE
-                        MultiSelect
-                        Submission=@Submission
-                        Syncer=@Syncer 
-                    />
-                </MudListItem>
-            </MudList>
+
+            </MudCardContent>
         </MudCard>
-    }
 
-    @if (ShowOpenGovCriteriaForm)
-    {
-        <MudCard>
-            <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm ApprovalFormId=@_approvalFormId
+        @if (ShowOpenGovCriteriaForm)
+        {
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo=@Typo.h3>Open Gov Publishing Criteria</MudText>
+                </MudCardHeader>
+
+                <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm ApprovalFormId=@_approvalFormId
                                                                OnSubmitForm=@UpdateApprovalFormId
-                                                               DatasetTitle=@_datasetTitle
+                                                               DatasetTitle=@Submission.DatasetTitle
                                                                PortalUser=@_requestingUser />
-        </MudCard>
-    }
+            </MudCard>
+        }
 
+        @if(ShowFileSelectionPane)
+        {
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo=@Typo.h3>Select Files</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudList>
+                        <MudListItem>
+                            <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
+                                FilePurpose=@TbsOpenGovSubmission.DATASET_FILE_TYPE
+                                Submission=@Submission
+                                Syncer=@Syncer
+                                Required
+                            />
+                        </MudListItem>
+                        <MudListItem>
+                            <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
+                                FilePurpose=@TbsOpenGovSubmission.METADATA_FILE_TYPE
+                                Submission=@Submission
+                                Syncer=@Syncer
+                                Required
+                            />
+                        </MudListItem>
+                        <MudListItem>
+                            <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
+                                FilePurpose=@TbsOpenGovSubmission.DATA_DICTIONARY_FILE_TYPE
+                                Submission=@Submission
+                                Syncer=@Syncer
+                                Required
+                            />
+                        </MudListItem>
+                        <MudListItem>
+                            <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector
+                                FilePurpose=@TbsOpenGovSubmission.SUPPORTING_DOC_FILE_TYPE
+                                MultiSelect
+                                Submission=@Submission
+                                Syncer=@Syncer 
+                            />
+                        </MudListItem>
+                    </MudList>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@UpdateSubmission >Update</MudButton>
+                    <MudButton>Add files</MudButton> 
+                </MudCardActions>
+            </MudCard>
+        }
+
+    </MudStack>
 
 }
 
@@ -134,7 +161,21 @@
 
         _approvalFormId = args.FormId;
 
+        Submission.OpenGovCriteriaMetDate = DateTime.Today;
+
+        await UpdateSubmission();
+
         await Task.CompletedTask;
+    }
+
+    private async Task UpdateSubmission()
+    {
+        SetStatusSteps();
+        await Task.CompletedTask;
+        //if (OnSubmissionUpdated.HasDelegate)
+        //{
+        //    await OnSubmissionUpdated.InvokeAsync();
+        //}
     }
 
     private void SetStatusSteps()

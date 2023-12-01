@@ -276,16 +276,16 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasForeignKey(p => p.ProjectId);
 
         modelBuilder.Entity<OpenDataSubmission>()
-            .HasOne<ProjectCloudStorage>(p => p.Storage)
-            .WithMany(s => s.PublishingSubmissions)
-            .HasForeignKey(p => p.ProjectStorageId);
-
-        modelBuilder.Entity<OpenDataSubmission>()
             .HasOne<PortalUser>(p => p.RequestingUser)
             .WithMany(p => p.OpenDataSubmissions)
             .HasForeignKey(p => p.RequestingUserId);
 
         modelBuilder.Entity<OpenDataSubmission>()
             .UseTptMappingStrategy();
+
+        modelBuilder.Entity<OpenDataPublishFile>()
+            .HasOne<ProjectCloudStorage>(f => f.Storage)
+            .WithMany(s => s.PublishingSubmissionFiles)
+            .HasForeignKey(f => f.ProjectStorageId);
     }
 }
