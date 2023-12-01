@@ -170,9 +170,6 @@ public class ConnectionStrings
 
     [JsonProperty("DATAHUB_MSSQL_LANGUAGETRAINING")]
     public string? DatahubMsSqlLanguageTraining { get; set; }
-
-    [JsonProperty("datahub_cosmosdb")] 
-    public string? DatahubCosmosDb { get; set; }
 }
 
 public class EmailNotification

@@ -99,7 +99,6 @@ public static class EFTools
 
     private static string GetInfo(DatabaseFacade db)
     {
-        if (db.IsCosmos()) return db.GetCosmosClient()?.ToString() ?? "CosmosDB - no client";
         if (db.IsRelational()) return $"{db.GetDbConnection().Database}";
         return "NA";
     }
