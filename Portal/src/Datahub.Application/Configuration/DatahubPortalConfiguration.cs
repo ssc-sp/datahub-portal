@@ -227,7 +227,7 @@ public class PublicFileSharing
 public class ReverseProxy
 {
     public bool Enabled { get; set; } = true;
-    public string BasePath { get; set; } = "wsapp";
+    public string BasePath { get; set; } = "webapp";
     public string UserHeader { get; set; } = "dh-user";
 }
 
