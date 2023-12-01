@@ -1,20 +1,28 @@
 ﻿@using Datahub.Core.Services.Docs
 @using Datahub.Markdown.Model
-@using MudBlazor.Utilities
-@using System.Text.RegularExpressions
 @using Datahub.Portal.Components.Resources
+
 @inject DocumentationService _docService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject CultureService _cultureService
 @inject NavigationManager _navManager
-@inject DocumentationService documentationService
-@inject ILocalStorageService localStorage
-@inject ILogger<ResourcesPage> logger
+@inject DocumentationService _documentationService
+@inject ILocalStorageService _localStorage
+@inject ILogger<ResourcesPage> _logger
 
-@page "/resources/"
-@page "/resources/{PageName}"
+@attribute [Route(PageRoutes.ResourceDefault)]
+@attribute [Route(PageRoutes.Resource)]
+
 
 <!--suppress CssUnresolvedCustomProperty -->
+<PageTitle>
+    @Localizer["SSC Datahub - Resources"]
+</PageTitle>
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar/>
+</SectionContent>
+
 @if (PageIsLoading)
 {
     <MudContainer MaxWidth="MaxWidth.Small">
@@ -213,12 +221,12 @@ else
     {
         try
         {
-            var lastCommitGit = await documentationService.GetLastRepoCommitTS();
-            await localStorage.SetItemAsync(DocumentationService.COMMIT_API_URL, lastCommitGit);
+            var lastCommitGit = await _documentationService.GetLastRepoCommitTS();
+            await _localStorage.SetItemAsync(DocumentationService.COMMIT_API_URL, lastCommitGit);
         }
         catch (Exception ex)
         {
-            logger.LogWarning($"Error checking resource badge", ex);
+            _logger.LogWarning($"Error checking resource badge", ex);
         }
     }
 

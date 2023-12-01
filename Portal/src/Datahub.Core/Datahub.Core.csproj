@@ -63,17 +63,10 @@
 		<PackageReference Include="Microsoft.Identity.Web.UI" Version="2.13.4" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
 		
-		<PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="8.0.*" />
-		
 		<PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
 
 		<PackageReference Include="RulesEngine" Version="5.0.2" />
-        <PackageReference Include="Microsoft.AspNetCore.DataProtection.Abstractions" Version="8.0.*" />
-        <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.*" />
-        <PackageReference Include="Microsoft.Graph" Version="5.*" />
         <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="8.0.*" />
-        <PackageReference Include="System.Drawing.Common" Version="8.0.*" />
-        <PackageReference Include="System.Runtime.Caching" Version="8.0.*" />
 		<PackageReference Include="MudBlazor" Version="6.10.0" />
 		<PackageReference Include="MudBlazor.Markdown" Version="0.1.2" />
 		<PackageReference Include="System.Drawing.Common" Version="8.0.*" />
@@ -87,10 +80,6 @@
 		</Content>
 		<Content Include="Components\DHMarkdown.razor.js" />
 		<Content Include="Components\FileUpload\DropZone.razor.js" />
-	</ItemGroup>
-	<!-- githook deployment to local git -->
-	<ItemGroup>
-		<GitHookFiles Include="../.githooks/*.*"></GitHookFiles>
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Shared\src\Datahub.Markdown\Datahub.Markdown.csproj" />

@@ -1,0 +1,62 @@
+@using Datahub.Portal.Components.User
+@using Datahub.Core.Model.Achievements
+
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject IDialogService _dialogService
+@inject IUserSettingsService _userSettingsService
+
+<MudStack Spacing="8" Class="mb-16">
+    <MudStack>
+        <MudText Typo="Typo.h4">@Localizer["Public Profile"]</MudText>
+        <MudDivider/>
+    </MudStack>
+    <SettingsField Label="@Localizer["Display Name"]" Description="@Localizer["Your display name will be shown around DataHub as your username."]">
+        <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.DisplayName"/>
+    </SettingsField>
+    <SettingsField Label="@Localizer["Email Address"]" Description="@Localizer["Your email address will be used to send you notifications."]">
+        <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.Email"/>
+    </SettingsField>
+    <SettingsField Label="@Localizer["Profile Picture"]" Description="@Localizer["Your profile picture will be displayed beside your name around DataHub. You can it at any time and unlock more variations from completing achievements."]">
+        <ImageSelectionView
+            ViewedUser="@ViewedUser"
+            IsProfilePictureDialog="@true"
+            OnImageSelected="@(code => HandleImageSelected(code, true))"/>
+    </SettingsField>
+    <SettingsField Label="@Localizer["Profile Background"]" Description="@Localizer["Your profile background will be displayed on your profile page. You can unlock more variations from completing achievements and change it at any time."]">
+        <ImageSelectionView
+            ViewedUser="@ViewedUser"
+            IsProfilePictureDialog="@false"
+            OnImageSelected="@(code => HandleImageSelected(code, false))"/>
+    </SettingsField>
+    <MudDivider/>
+    <SettingsField Label="@Localizer["Display Achievements"]" Description="@Localizer["You can choose whether to hide or display your achievements in the DataHub. This will also prevent the achievement notifications from displaying on your screen. You can change it at any time."]">
+        <MudSwitch T="bool" Label="@Localizer["Show Achievements"]" Checked="@(!ViewedUser.UserSettings.HideAchievements)" Color="Color.Primary" UnCheckedColor="Color.Dark" CheckedChanged="HandleCheckChanged"/>
+    </SettingsField>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public PortalUser ViewedUser { get; set; }
+
+    [Parameter]
+    public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
+
+
+    private string BackgroundUrl => _datahubPortalConfiguration?.Media.GetAchievementThumbnailUrl(ViewedUser?.BannerPictureUrl);
+
+    private async Task HandleImageSelected(string code, bool isProfilePicture)
+    {
+        ViewedUser.ProfilePictureUrl = isProfilePicture ? code : ViewedUser.ProfilePictureUrl;
+        ViewedUser.BannerPictureUrl = isProfilePicture ? ViewedUser.BannerPictureUrl : code;
+
+        await OnViewedUserChanged.InvokeAsync(ViewedUser);
+    }
+
+    private async Task HandleCheckChanged()
+    {
+        await _userSettingsService.SetHideAchievements(!ViewedUser.UserSettings.HideAchievements);
+        await OnViewedUserChanged.InvokeAsync(ViewedUser);
+    }
+
+}

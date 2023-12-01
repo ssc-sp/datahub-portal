@@ -1,4 +1,6 @@
-﻿using Datahub.Core.Data;
+﻿using System;
+using System.Linq;
+using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Announcements;
 using Datahub.Core.Model.Catalog;
@@ -9,6 +11,7 @@ using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Model.UserTracking;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Core.Model.Datahub;
@@ -266,5 +269,28 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             
         modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
+        
+        
+        if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+        {
+            // SQLite does not have proper support for DateTimeOffset via Entity Framework Core, see the limitations
+            // here: https://docs.microsoft.com/en-us/ef/core/providers/sqlite/limitations#query-limitations
+            // To work around this, when the Sqlite database provider is used, all model properties of type DateTimeOffset
+            // use the DateTimeOffsetToBinaryConverter
+            // Based on: https://github.com/aspnet/EntityFrameworkCore/issues/10784#issuecomment-415769754
+            // This only supports millisecond precision, but should be sufficient for most use cases.
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                var properties = entityType.ClrType.GetProperties().Where(p => p.PropertyType == typeof(DateTimeOffset)
+                                                                               || p.PropertyType == typeof(DateTimeOffset?));
+                foreach (var property in properties)
+                {
+                    modelBuilder
+                        .Entity(entityType.Name)
+                        .Property(property.Name)
+                        .HasConversion(new DateTimeOffsetToBinaryConverter());
+                }
+            }
+        }
     }
 }

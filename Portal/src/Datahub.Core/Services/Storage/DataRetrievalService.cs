@@ -35,9 +35,8 @@ public class DataRetrievalService : BaseService
     public DataRetrievalService(ILogger<DataRetrievalService> logger,
         IKeyVaultService keyVaultService,
         DataLakeClientService dataLakeClientService,
-        NavigationManager navigationManager,
-        UIControlsService uiService)
-        : base(navigationManager, uiService)
+        NavigationManager navigationManager)
+        : base(navigationManager)
     {
         _logger = logger;
         _dataLakeClientService = dataLakeClientService;

@@ -13,11 +13,11 @@ public class DatahubProjectStatsRow
     
     public List<string> UniqueDepartments => 
         Leads
-            .Select(x => x.Split('@')[1])
+            .Select(x => x?.Split('@')[1] ?? string.Empty)
             .Union(Admins
-                .Select(x => x.Split('@')[1]))
+                .Select(x => x?.Split('@')[1] ?? string.Empty))
             .Union(Collaborators
-                .Select(x => x.Split('@')[1]))
+                .Select(x => x?.Split('@')[1] ?? string.Empty))
             .ToList();
     
     public decimal BudgetLimit { get; set; }

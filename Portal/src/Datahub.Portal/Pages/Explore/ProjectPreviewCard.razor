@@ -1,0 +1,77 @@
+@using Datahub.Core.Model.Projects
+@using MudBlazor.Utilities
+
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+
+@if (_showCreate)
+{
+    <MudPaper Elevation="0" Outlined Class="px-3 py-2">
+        <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;">
+            <MudStack>
+                <MudText Typo="Typo.h3" Style="@_titleTextStyle">@Localizer["Create a new Workspace"]</MudText>
+                <MudText Typo="Typo.body2" Style="@_descriptionTextStyle">@Localizer["You can create a new workspace to start working on your project"]</MudText>
+            </MudStack>
+            <MudStack Spacing="1">
+                <ProjectPreviewCardIconDetails
+                    NumberOfWorkspacesRemaining="@NumberOfRemainingWorkspaces"/>
+                <MudElement>
+                    <MudButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary" OnClick="@OnCreateWorkspace">
+                        @Localizer["Create Workspace"]
+                    </MudButton>
+                </MudElement>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+}
+else
+{
+    <MudPaper Elevation="0" Outlined Class="px-3 py-2">
+        <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;">
+            <MudStack>
+                <MudText Typo="Typo.h3" Style="@_titleTextStyle">@Project.ProjectName</MudText>
+                <MudText Typo="Typo.body2" Style="@_descriptionTextStyle">@Project.ProjectDescription</MudText>
+            </MudStack>
+            <MudStack Spacing="1">
+                <ProjectPreviewCardIconDetails
+                    NumberOfUsers="Project?.Users?.Count ?? 0"
+                    NumberOfRepositories="Project?.Repositories?.Count ?? 0"
+                    NumberOfFiles="0"/>
+                <MudElement>
+                    <MudButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary"
+                               Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{Project?.Project_Acronym_CD}")">
+                        @Localizer["Open Workspace"]
+                    </MudButton>
+                </MudElement>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+}
+
+@code {
+
+    [Parameter]
+    public Datahub_Project Project { get; set; }
+
+    [Parameter]
+    public EventCallback OnCreateWorkspace { get; set; }
+
+    [Parameter]
+    public int NumberOfRemainingWorkspaces { get; set; } = -1;
+
+    private bool _showCreate => OnCreateWorkspace.HasDelegate;
+
+    private static string _descriptionTextStyle = new StyleBuilder()
+        .AddStyle("overflow", "hidden")
+        .AddStyle("-webkit-line-clamp", "2")
+        .AddStyle("-webkit-box-orient", "vertical")
+        .AddStyle("display", "-webkit-box")
+        .Build();
+
+    private static string _titleTextStyle = new StyleBuilder()
+        .AddStyle("overflow", "hidden")
+        .AddStyle("-webkit-line-clamp", "2")
+        .AddStyle("-webkit-box-orient", "vertical")
+        .AddStyle("display", "-webkit-box")
+        .Build();
+
+}
