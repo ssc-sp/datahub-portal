@@ -4,16 +4,19 @@ using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20231107150726_AddProjectInactivityNotificationFeature")]
+    partial class AddProjectInactivityNotificationFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1333,6 +1336,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<bool>("HasCostRecovery")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("Initial_Meeting_DT")
                         .HasColumnType("datetime2");
 
@@ -1362,6 +1368,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<int>("OnboardingApplicationId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("OperationalWindow")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("PowerBI_URL")
                         .HasMaxLength(400)
@@ -1707,6 +1716,26 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasIndex("Project_ID");
 
                     b.ToTable("Project_Users_Requests");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Projects.ProjectInactivityNotifications", b =>
+                {
+                    b.Property<int>("Project_ID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DaysBeforeDeletion")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("NotificationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SentTo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Project_ID");
+
+                    b.ToTable("ProjectInactivityNotifications", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Credits", b =>
@@ -2331,6 +2360,17 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Projects.ProjectInactivityNotifications", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany("ProjectInactivityNotifications")
+                        .HasForeignKey("Project_ID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Credits", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
@@ -2463,6 +2503,8 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Pipelines");
 
                     b.Navigation("PowerBi_Workspaces");
+
+                    b.Navigation("ProjectInactivityNotifications");
 
                     b.Navigation("Repositories");
 
