@@ -13,7 +13,7 @@ public class WorkspaceAppMiddleware
     {
         _next = next;
         _enabled = config.GetValue<bool>("ReverseProxy:Enabled");
-        _matchPath = config.GetValue<string>("ReverseProxy:MatchPath") ?? "/wsapp";
+        _matchPath = config.GetValue<string>("ReverseProxy:MatchPath") ?? "/webapp";
     }
 
     public async Task InvokeAsync(HttpContext context)
