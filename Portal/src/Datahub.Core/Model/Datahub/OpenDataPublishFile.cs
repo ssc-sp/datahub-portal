@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Datahub.Core.Model.CloudStorage;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,7 @@ namespace Datahub.Core.Model.Datahub
         public long Id { get; set; }
         public long SubmissionId { get; set; }
         public string FilePurpose { get; set; }
+        public int? ProjectStorageId { get; set; }
         public string FileName { get; set; }
         public string FolderPath { get; set; }
         public string FileId { get; set; }
@@ -19,6 +21,7 @@ namespace Datahub.Core.Model.Datahub
         public string UploadMessage { get; set; }
 
         public OpenDataSubmission Submission { get; set; }
+        public ProjectCloudStorage Storage { get; set; }
 
         public override int GetHashCode()
         {

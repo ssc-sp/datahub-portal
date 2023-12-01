@@ -14,5 +14,5 @@ public class ProjectCloudStorage
     public string ConnectionData { get; set; }
     public bool Enabled { get; set; }
 
-    public IList<OpenDataSubmission> PublishingSubmissions { get; set; }
+    public IList<OpenDataPublishFile> PublishingSubmissionFiles { get; set; }
 }

@@ -2,7 +2,9 @@
 @using Datahub.Application.Services.Publishing;
 @using Datahub.Core.Model.Projects;
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@inject IOpenDataPublishingService PublishingService
+@inject IOpenDataPublishingService _publishingService
+@inject IDialogService _dialogService;
+@inject NavigationManager _navManager;
 
 @*@inject IPublicDataFileService PublicDataFileService
 @inject IMSGraphService GraphService
@@ -14,21 +16,34 @@
 
 <MudText Typo=@Typo.h2>Publishing Dashboard</MudText>
 
-@if (ShowPublishingProcessTable)
-{
-    <MudList>
-        @foreach(var p in _publishingProcesses)
-        {
-            <MudListItem>
-                <DHLink PublishingSubmissionId=@p.Id DataProject=@ProjectAcronym >id: @p.Id type: @p.ProcessType.ToString() status: @p.Status</DHLink>
-            </MudListItem>
-        }
-    </MudList>
-}
-else
-{
-    <MudText>Relax guy, take a load off</MudText>
-}
+<MudStack Spacing="6">
+
+    <MudButton OnClick=@PublishNewDataset Variant=@Variant.Filled Color=@Color.Primary>Publish New Dataset</MudButton>
+
+    @if (ShowPublishingProcessTable)
+    {
+        <MudTable Items=@_publishingProcesses Striped>
+            <HeaderContent>
+                <MudTh>Dataset</MudTh>
+                <MudTh>Type</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh>Requesting User</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>
+                    <DHLink PublishingSubmissionId=@context.Id DataProject=@ProjectAcronym>@context.DatasetTitle</DHLink>
+                </MudTd>
+                <MudTh>@Localizer[$"{context.LocalizationPrefix}.TypeName"]</MudTh>
+                <MudTh>@Localizer[$"{context.LocalizationPrefix}.Status.{context.Status}.Title"]</MudTh>
+                <MudTh>@context.RequestingUser.DisplayName</MudTh>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudText>Relax guy, take a load off</MudText>
+    }
+</MudStack>
 
 @*<style>
     .table-card {
@@ -126,6 +141,24 @@ else
 
     private bool ShowPublishingProcessTable => _initialized;
 
+    private async Task PublishNewDataset()
+    {
+        var dialogParams = new DialogParameters<PublishNewDatasetDialog>();
+        dialogParams.Add(x => x.IsFileExplorerDialog, false);
+        dialogParams.Add(x => x.WorkspaceId, _project?.Project_ID);
+
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialog = await _dialogService.ShowAsync<PublishNewDatasetDialog>("Publish New Dataset", dialogParams, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            //TODO
+            _navManager.NavigateTo($"/w/{ProjectAcronym}/publishing/1");
+        }
+
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -135,7 +168,7 @@ else
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
-        _publishingProcesses = await PublishingService.GetOpenDataSubmissionsAsync(_project.Project_ID);
+        _publishingProcesses = await _publishingService.GetOpenDataSubmissionsAsync(_project.Project_ID);
 
         _initialized = true;
         await base.OnInitializedAsync();

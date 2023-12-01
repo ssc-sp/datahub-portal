@@ -10,6 +10,8 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IJSRuntime _jsRuntime
 @inject IPortalUserTelemetryService _telemetryService
+@inject IDialogService _dialogService
+@inject NavigationManager _navManager;
 
 @implements IAsyncDisposable
 
@@ -25,6 +27,7 @@
             SetCurrentFolder="SetCurrentFolder"
             OnFileDelete="HandleFileDelete"
             OnFileDownload="HandleFileDownload"
+            OnPublishFiles="HandlePublishFiles"
             OnFileRename="HandleFileRename"
             OnDeleteFolder="HandleDeleteFolder" />
 
