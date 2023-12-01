@@ -10,7 +10,6 @@ namespace Datahub.Core.Services;
 
 public interface IUserInformationService
 {
-    Task<bool> ClearUserSettingsAsync();
     Task<User> GetCurrentGraphUserAsync();
     Task<User> GetGraphUserAsync(string userId);
     Task<PortalUser> GetCurrentPortalUserAsync();
@@ -21,16 +20,10 @@ public interface IUserInformationService
     
     Task<User> GetAnonymousGraphUserAsync();
     Task<string> GetUserIdString();
-    Task<bool> HasUserAcceptedTAC();
-    Task<bool> RegisterUserTAC();
-    Task<bool> RegisterUserLanguage(string language);
-    Task<string> GetUserLanguage();
-    Task<bool> IsFrench();
     Task<string> GetDisplayName();
     Task<string> GetUserEmail();
     Task<string> GetUserEmailDomain();
     Task<string> GetUserEmailPrefix();
-    bool SetLanguage(string language);
     Task<string> GetUserRootFolder();
     Task<bool> IsUserWithoutInitiatives();
     Task<bool> IsViewingAsGuest();
@@ -41,9 +34,7 @@ public interface IUserInformationService
     Task<bool> IsUserProjectAdmin(string projectAcronym);
     Task<bool> IsUserProjectWorkspaceLead(string projectAcronym);
     Task<bool> IsUserProjectMember(string projectAcronym);
-
     Task<bool> IsUserDatahubAdmin();
-
     Task RegisterAuthenticatedPortalUser();
     public Task CreatePortalUserAsync(string userGraphId);
     Task<bool> UpdatePortalUserAsync(PortalUser updatedUser);

@@ -1,6 +1,8 @@
 @using Datahub.Core.Model.Announcements
+@using Datahub.Application.Services
 
 @inject IUserInformationService _userInformationService
+@inject IUserSettingsService _userSettingsService
 
 <MudGrid>
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
@@ -40,7 +42,7 @@
     {
         await base.OnParametersSetAsync();
 
-        _isFrench = await _userInformationService.IsFrench();
+        _isFrench = await _userSettingsService.IsFrench();
         _isAdminView = await _userInformationService.IsUserDatahubAdmin();
     }
 

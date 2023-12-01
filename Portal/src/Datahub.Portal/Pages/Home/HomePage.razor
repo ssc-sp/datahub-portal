@@ -7,6 +7,7 @@
 @inject NavigationManager _navigationManager
 @inject IDialogService _dialogService
 @inject ILocalStorageService _localStorage
+@inject IUserSettingsService _userSettingsService
 
 @using Datahub.Application.Services.Announcements
 @using Datahub.Portal.Pages.Landing
@@ -66,10 +67,10 @@
 
         //_user = await _userInformationService.GetCurrentGraphUserAsync();
 
-        _isUserValid = await _userInformationService.HasUserAcceptedTAC();
+        _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
         if (_isUserValid)
         {
-            await AdjustLanguage();
+            //await AdjustLanguage();
         }
         _isLoading = false;
     }
@@ -92,13 +93,13 @@
 
         if (firstRender)
         {
-            var language = await _userInformationService.GetUserLanguage();
+            var language = await _userSettingsService.GetUserLanguage();
             if (string.IsNullOrWhiteSpace(language))
             {
                 await PromptForLanguage();
             }
 
-            var userAcceptedTac = await _userInformationService.HasUserAcceptedTAC();
+            var userAcceptedTac = await _userSettingsService.HasUserAcceptedTAC();
             if (!userAcceptedTac)
             {
                 await PromptForTermsAndConditions();
@@ -118,8 +119,8 @@
         var tocDialogResult = await tocDialog.Result;
         if (!tocDialogResult.Canceled)
         {
-            await _userInformationService.RegisterUserTAC();
-            await AdjustLanguage();
+            await _userSettingsService.RegisterUserTAC();
+            //await AdjustLanguage();
             _isUserValid = true;
         }
         else
@@ -142,8 +143,8 @@
         {
             var selectedLanguage = languageDialogResult.Data.ToString();
             var language = selectedLanguage?.Equals("english", StringComparison.InvariantCultureIgnoreCase) ?? true ? "en-CA" : "fr-CA";
-            await _userInformationService.RegisterUserLanguage(language);
-            _userInformationService.SetLanguage(language);
+            await _userSettingsService.RegisterUserLanguage(language);
+            await _userSettingsService.SetLanguage(language);
         }
     }
 
@@ -156,12 +157,12 @@
         }
         if (string.IsNullOrWhiteSpace(language))
         {
-            language = await _userInformationService.GetUserLanguage();
+            language = await _userSettingsService.GetUserLanguage();
             if (afterRender)
             {
                 await _localStorage.SetItemAsStringAsync("language", language);
             }
-            _userInformationService.SetLanguage(language);
+            await _userSettingsService.SetLanguage(language);
         }
     }
 

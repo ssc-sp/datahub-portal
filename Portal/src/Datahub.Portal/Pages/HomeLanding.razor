@@ -4,6 +4,7 @@
 @using Microsoft.Graph.Models
 
 @inject IUserInformationService _userInformationService
+@inject IUserSettingsService _userSettingsService
 @inject IDataCreatorService _dataCreatorService
 @inject NavigationManager _navigationManager
 @inject ILocalStorageService _localStorage
@@ -21,7 +22,6 @@
 <WelcomeBanner/>
 <CascadingValue Name="GraphUser" Value="_user">
     <MudStack Spacing="12" Class="mt-12">
-        <RecentLinks/>
         <UserProjects/>
     </MudStack>
 </CascadingValue>
@@ -37,7 +37,7 @@
         await base.OnInitializedAsync();
         _user = await _userInformationService.GetCurrentGraphUserAsync();
 
-        _isUserValid = await _userInformationService.HasUserAcceptedTAC();
+        _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
         if (_isUserValid)
         {
             //TODO: Confirm if this is legacy
@@ -57,13 +57,13 @@
 
         if (firstRender)
         {
-            var language = await _userInformationService.GetUserLanguage();
+            var language = await _userSettingsService.GetUserLanguage();
             if (string.IsNullOrWhiteSpace(language))
             {
                 await PromptForLanguage();
             }
 
-            var userAcceptedTac = await _userInformationService.HasUserAcceptedTAC();
+            var userAcceptedTac = await _userSettingsService.HasUserAcceptedTAC();
             if (!userAcceptedTac)
             {
                 await PromptForTermsAndConditions();
@@ -81,9 +81,9 @@
 
         var tocDialog = await _dialogService.ShowAsync<UserTermsAndConditionsDialog>(Localizer["TermsAndConditions"], options);
         var tocDialogResult = await tocDialog.Result;
-        if (!tocDialogResult.Canceled)
+        if (!tocDialogResult.Canceled && tocDialogResult.Data is true)
         {
-            await _userInformationService.RegisterUserTAC();
+            await _userSettingsService.RegisterUserTAC();
             await SetupRootFolder();
             await AdjustLanguage();
             _isUserValid = true;
@@ -108,8 +108,8 @@
         {
             var selectedLanguage = languageDialogResult.Data.ToString();
             var language = selectedLanguage?.Equals("english", StringComparison.InvariantCultureIgnoreCase) ?? true ? "en-CA" : "fr-CA";
-            await _userInformationService.RegisterUserLanguage(language);
-            _userInformationService.SetLanguage(language);
+            await _userSettingsService.RegisterUserLanguage(language);
+            await _userSettingsService.SetLanguage(language);
         }
     }
 
@@ -128,12 +128,12 @@
         }
         if (string.IsNullOrWhiteSpace(language))
         {
-            language = await _userInformationService.GetUserLanguage();
+            language = await _userSettingsService.GetUserLanguage();
             if (afterRender)
             {
                 await _localStorage.SetItemAsStringAsync("language", language);
             }
-            _userInformationService.SetLanguage(language);
+            await _userSettingsService.SetLanguage(language);
         }
     }
 

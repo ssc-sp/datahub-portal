@@ -23,8 +23,8 @@ public class PortalUser
     #region Navigation props
     public ICollection<UserAchievement> Achievements { get; set; }
     public ICollection<TelemetryEvent> TelemetryEvents { get; set; }
-    
     public ICollection<UserRecentLink> RecentLinks { get; set; }
+    public UserSettings UserSettings { get; set; }
     #endregion
     
     #region Utility functions

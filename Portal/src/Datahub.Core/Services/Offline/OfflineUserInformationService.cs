@@ -22,12 +22,6 @@ public class OfflineUserInformationService : IUserInformationService
         _logger = logger;
     }
 
-
-    public Task<bool> ClearUserSettingsAsync()
-    {
-        throw new NotImplementedException();
-    }
-
     public Task<User> GetCurrentGraphUserAsync()
     {
         return Task.FromResult(new User
@@ -74,19 +68,9 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult("/");
     }
 
-    public Task<bool> HasUserAcceptedTAC()
-    {
-        return Task.FromResult(true);
-    }
-
     public Task<bool> IsFrench()
     {
         return Task.FromResult(false);
-    }
-
-    public Task<bool> RegisterUserTAC()
-    {
-        return Task.FromResult(true);
     }
 
     public Task<bool> RegisterUserLanguage(string language)

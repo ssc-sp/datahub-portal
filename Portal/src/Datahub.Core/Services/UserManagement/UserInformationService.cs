@@ -75,8 +75,6 @@ public class UserInformationService : IUserInformationService
         return _authenticatedUser;
     }
 
-    public string UserLanguage { get; set; }
-
     public async Task<string> GetUserIdString()
     {
         await CheckUser();
@@ -179,40 +177,6 @@ public class UserInformationService : IUserInformationService
                 throw new InvalidOperationException("Cannot access user claims")).Value;
     }
 
-    public async Task<bool> ClearUserSettingsAsync()
-    {
-        var userId = await GetUserIdString();
-
-        try
-        {
-            await using var context = await _datahubContextFactory.CreateDbContextAsync();
-            var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == userId);
-            if (userSetting == null)
-            {
-                _logger.LogError("User: {CurrentUserDisplayName} with user id: {UserId} is not in DB to clear settings",
-                    _currentUser.DisplayName, userId);
-                return false;
-            }
-
-            context.UserSettings.Remove(userSetting);
-
-            if (await context.SaveChangesAsync() > 0)
-            {
-                return true;
-            }
-
-            _logger.LogInformation("User: {CurrentUserDisplayName} has not cleared their settings. Changes NOT saved",
-                _currentUser.DisplayName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "User: {CurrentUserDisplayName} clearing settings has failed",
-                _currentUser.DisplayName);
-        }
-
-        return false;
-    }
-
     public async Task<User> GetCurrentGraphUserAsync()
     {
         await CheckUser();
@@ -244,118 +208,6 @@ public class UserInformationService : IUserInformationService
             Console.WriteLine($"Error preparing authentication client: {e.Message}");
             throw;
         }
-    }
-
-    public async Task<bool> RegisterUserTAC()
-    {
-        var userId = await GetUserIdString();
-        _logger.LogInformation($"User: {_currentUser.DisplayName} has accepted Terms and Conditions.");
-
-        try
-        {
-            await using var context = await _datahubContextFactory.CreateDbContextAsync();
-            var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == userId);
-
-            if (userSetting == null)
-            {
-                _logger.LogError(
-                    $"User: {_currentUser.DisplayName} with user id: {userId} is not in DB to register TAC.");
-                return false;
-            }
-
-            userSetting.UserName = _currentUser.DisplayName;
-            userSetting.AcceptedDate = DateTime.UtcNow;
-
-            if (await context.SaveChangesAsync() > 0)
-                return true;
-
-            _logger.LogInformation(
-                $"User: {_currentUser.DisplayName} has accepted Terms and Conditions. Changes NOT saved");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"User: {_currentUser.DisplayName} registering TAC failed.");
-        }
-
-        return false;
-    }
-
-    public async Task<bool> RegisterUserLanguage(string language)
-    {
-        var userId = await GetUserIdString();
-        _logger.LogInformation(
-            "User: {DisplayName} has selected language: {Language}",
-            _currentUser.DisplayName, language);
-
-        try
-        {
-            await using var context = await _datahubContextFactory.CreateDbContextAsync();
-            var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == userId);
-
-            if (userSetting == null)
-            {
-                userSetting = new UserSettings { UserId = userId };
-                context.UserSettings.Add(userSetting);
-            }
-
-            userSetting.UserName = _currentUser.DisplayName;
-            userSetting.Language = language;
-            if (await context.SaveChangesAsync() > 0)
-                return true;
-
-            _logger.LogInformation(
-                "User: {DisplayName} has selected language: {Language}. Changes NOT saved",
-                _currentUser.DisplayName, language);
-            return false;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "User: {DisplayName} registering language failed", _currentUser.DisplayName);
-        }
-
-        return false;
-    }
-
-    public async Task<string> GetUserLanguage()
-    {
-        var userId = await GetUserIdString();
-        await using var context = await _datahubContextFactory.CreateDbContextAsync();
-        var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == userId);
-
-        return userSetting != null ? userSetting.Language : string.Empty;
-    }
-
-    public bool SetLanguage(string language)
-    {
-        if (language == null ||
-            Thread.CurrentThread.CurrentCulture.Name.Equals(language, StringComparison.OrdinalIgnoreCase))
-            return false;
-
-        var uri = new Uri(_navigationManager.Uri).GetComponents(UriComponents.PathAndQuery,
-            UriFormat.Unescaped);
-        var query = $"?culture={Uri.EscapeDataString(language)}&" +
-                    $"redirectionUri={Uri.EscapeDataString(uri)}";
-        _navigationManager.NavigateTo($"/Culture/SetCulture{query}", forceLoad: true);
-
-        //                Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
-        return true;
-    }
-
-    public async Task<bool> IsFrench()
-    {
-        var lang = await GetUserLanguage();
-        return !lang.ToLower().Contains("en");
-    }
-
-    public async Task<bool> HasUserAcceptedTAC()
-    {
-        var userId = await GetUserIdString();
-        await using var context = await _datahubContextFactory.CreateDbContextAsync();
-        var userSetting = context.UserSettings.FirstOrDefault(u => u.UserId == userId);
-
-
-        return userSetting is { AcceptedDate: { } };
     }
 
     private async Task CheckUser()
@@ -644,6 +496,7 @@ public class UserInformationService : IUserInformationService
             .AsNoTracking()
             .Include(p => p.Achievements)
             .ThenInclude(a => a.Achievement)
+            .Include(p => p.UserSettings)
             .FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
 
         return portalUser;

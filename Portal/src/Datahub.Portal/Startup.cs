@@ -376,6 +376,7 @@ public class Startup
             services.AddScoped<DataLakeClientService>();
 
             services.AddScoped<IUserInformationService, UserInformationService>();
+            services.AddScoped<IUserSettingsService, UserSettingsService>();
             services.AddSingleton<IMSGraphService, MSGraphService>();
 
             services.AddScoped<IProjectDatabaseService, ProjectDatabaseService>();
@@ -406,6 +407,7 @@ public class Startup
 
             services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
             services.AddScoped<IUserInformationService, OfflineUserInformationService>();
+            services.AddScoped<IUserSettingsService, OfflineUserSettingsService>();
             services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
             services.AddScoped<IPowerBiDataService, OfflinePowerBiDataService>();
 
@@ -475,14 +477,5 @@ public class Startup
         where T : DbContext
     {
         services.ConfigureDbContext<T>(Configuration, connectionStringName, dbDriver);
-    }
-
-    private void ConfigureCosmosDbContext<T>(IServiceCollection services, string connectionStringName,
-        string catalogName) where T : DbContext
-    {
-        var connectionString = Configuration.GetConnectionString(_currentEnvironment, connectionStringName);
-        services.AddPooledDbContextFactory<T>(options =>
-            options.UseCosmos(connectionString, databaseName: catalogName));
-        services.AddDbContextPool<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
     }
 }

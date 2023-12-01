@@ -18,7 +18,6 @@ public class DbTests
 {
     private ServiceProvider _serviceProvider;
     private IConfiguration _config;
-    private string _cosmosCxnStr = @"AccountEndpoint=https://dh-portal-cosmosdb-dev.documents.azure.com:443/;AccountKey=QAwclaaNFK2G5foH4g9NqGa2xBJfLS46n53LW3LKOqYMiGxBI4J9H3sOSSAwx9ZI7YHqPQzc5w3QZD29vSZBDg==;";
     private string _userId = "myuserid";
 
 
