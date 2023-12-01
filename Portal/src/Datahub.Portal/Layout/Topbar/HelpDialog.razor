@@ -1,4 +1,5 @@
-﻿@inject IUserInformationService _userInformationService
+﻿@inject IUserSettingsService _userSettingsService
+@inject IUserInformationService _userInformationService
 @inject IKeyVaultService _keyVaultService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IDialogService DialogService
@@ -268,7 +269,7 @@
         _ticketName = _viewedUser.DisplayName;
         _ticketEmail = _viewedUser.Email;
         _ticketOrg = GetOrg(_ticketEmail);
-        _ticketPortalLanguage = await _userInformationService.GetUserLanguage();
+        _ticketPortalLanguage = await _userSettingsService.GetUserLanguage();
 
     // Retrieve the list of workspaces
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();

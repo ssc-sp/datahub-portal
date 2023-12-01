@@ -3,39 +3,21 @@
 
 @if (!_hidePageAlert)
 {
-    <MudCard Class="mb-4">
-        <MudCardHeader>
-            <CardHeaderAvatar>
-                <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Primary" />
-            </CardHeaderAvatar>
-            <CardHeaderContent>
-                <MudText Typo="Typo.h4">@Title</MudText>
-            </CardHeaderContent>
-            <CardHeaderActions>
-                <MudTooltip Text="@Localizer["Close"]">
-                    <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Default" OnClick="HandlePageAlertClose"/>
-                </MudTooltip>
-            </CardHeaderActions>
-        </MudCardHeader>
-        <MudCardContent>
-            @ChildContent
-        </MudCardContent>
-    </MudCard>
+    <MudContainer Class="mb-4">
+        @ChildContent
+    </MudContainer>
 }
 
 @code {
 
     [Parameter]
-    public string Title { get; set; }
-    
-    [Parameter]
     public string Key { get; set; }
-    
+
     [Parameter]
     public RenderFragment ChildContent { get; set; }
 
     private bool _hidePageAlert = true;
-    
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
@@ -45,10 +27,11 @@
             StateHasChanged();
         }
     }
-    
+
     private async Task HandlePageAlertClose()
     {
         _hidePageAlert = true;
         await _localStorage.SetItemAsync(Key, _hidePageAlert);
     }
+
 }
