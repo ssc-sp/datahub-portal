@@ -15,9 +15,8 @@ public class DataCreatorService : BaseService, IDataCreatorService
 
     public DataCreatorService(ILogger<DataCreatorService> logger,
         DataLakeClientService dataLakeClientService,
-        NavigationManager navigationManager,
-        UIControlsService uiService)
-        : base(navigationManager, uiService)
+        NavigationManager navigationManager)
+        : base(navigationManager)
     {
         _logger = logger;
         _dataLakeClientService = dataLakeClientService;

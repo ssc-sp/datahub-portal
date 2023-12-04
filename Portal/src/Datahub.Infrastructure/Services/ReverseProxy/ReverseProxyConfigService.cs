@@ -30,7 +30,7 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
         var routes = data.Select(d => BuildRoute(basePath, d.Acronym)).ToList();
         var clusters = data.Select(d => BuildCluster(d.Acronym, d.Url)).ToList();
         
-        return new(routes, clusters);
+        return new ReverseProxyConfig(routes, clusters);
     }
 
     static RouteConfig BuildRoute(string basePath, string acronym)
