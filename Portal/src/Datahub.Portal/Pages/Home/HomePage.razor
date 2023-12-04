@@ -1,11 +1,19 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Services.Achievements
 @using Datahub.Portal.Pages.Landing
+@using Datahub.Portal.Views.Dialogs
+@using Microsoft.Graph.Models
 
 @inherits ViewUserBase<HomePage>
 
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IPortalUserTelemetryService _telemetryService
+@inject IUserSettingsService _userSettingsService
+@inject IUserInformationService _userInformationService
+@inject IDataCreatorService _dataCreatorService
+@inject IDialogService _dialogService
+@inject ILogger<HomeLanding> _logger
+@inject NavigationManager _navigationManager
 
 
 
@@ -31,7 +39,7 @@
                   ObjectPosition="ObjectPosition.Center"/>
     }
     <MudGrid>
-        <MudItem xs="12" md="@(_viewedPortalUser.HideAchievements ? 12 : 8)">
+        <MudItem xs="12" md="@(_viewedPortalUser.UserSettings?.HideAchievements ?? true ? 12 : 8)">
             <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
                 <MudAvatar Style="width:120px; height: 120px">
                     <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementPortraitUrl(_viewedPortalUser?.ProfilePictureUrl)"
@@ -47,7 +55,7 @@
                 </MudStack>
             </MudStack>
         </MudItem>
-        @if (!_viewedPortalUser.HideAchievements)
+        @if (!(_viewedPortalUser.UserSettings?.HideAchievements ?? true))
         {
             <MudItem xs="12" md="4">
                 <MudStack>
@@ -68,12 +76,17 @@
 
     private PortalUser _currentUser;
     private PortalUser _viewedPortalUser;
+    private User _graphUser;
+    private bool _isUserValid = true;
     private string _achievementsUrl => $"{PageRoutes.AccountPrefix}/{PersonalSidebar.SectionViews.Achievements}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
+    private const string LogoutUrl = PageRoutes.Logout;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        _graphUser = await _userInformationService.GetCurrentGraphUserAsync();
+        _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -86,6 +99,73 @@
         {
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
         }
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            var language = await _userSettingsService.GetUserLanguage();
+            if (string.IsNullOrWhiteSpace(language))
+            {
+                await PromptForLanguage();
+            }
+
+            var userAcceptedTac = await _userSettingsService.HasUserAcceptedTAC();
+            if (!userAcceptedTac)
+            {
+                await PromptForTermsAndConditions();
+            }
+        }
+    }
+
+    private async Task PromptForTermsAndConditions()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = false,
+            DisableBackdropClick = true,
+        };
+
+        var tocDialog = await _dialogService.ShowAsync<UserTermsAndConditionsDialog>(Localizer["TermsAndConditions"], options);
+        var tocDialogResult = await tocDialog.Result;
+        if (!tocDialogResult.Canceled && tocDialogResult.Data is true)
+        {
+            await _userSettingsService.RegisterUserTAC();
+            await SetupRootFolder();
+            _isUserValid = true;
+        }
+        else
+        {
+            _navigationManager.NavigateTo(LogoutUrl, forceLoad: true);
+        }
+    }
+
+    private async Task PromptForLanguage()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = false,
+            DisableBackdropClick = true,
+        };
+
+        var languageDialog = await _dialogService.ShowAsync<UserSelectLanguageDialog>(Localizer["LanguagePreferencePrompt"], options);
+        var languageDialogResult = await languageDialog.Result;
+        if (!languageDialogResult.Canceled)
+        {
+            var selectedLanguage = languageDialogResult.Data.ToString();
+            var language = selectedLanguage?.Equals("english", StringComparison.InvariantCultureIgnoreCase) ?? true ? "en-CA" : "fr-CA";
+            await _userSettingsService.RegisterUserLanguage(language);
+            await _userSettingsService.SetLanguage(language);
+        }
+    }
+    
+    private async Task SetupRootFolder()
+    {
+        var rootFolder = await _userInformationService.GetUserRootFolder();
+        await _dataCreatorService.CreateRootFolderIfNotExist(_graphUser.Id, rootFolder);
     }
 
 }
