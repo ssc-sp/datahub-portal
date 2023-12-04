@@ -25,14 +25,12 @@
 
 @if (PageIsLoading)
 {
-    <MudContainer MaxWidth="MaxWidth.Small">
-        <DHLoadingInitializer Message="@Localizer["Initializing Resources..."]" />
-    </MudContainer>
+    <DHLoadingInitializer Message="@Localizer["Initializing Resources..."]"/>
 }
 else
 {
     <MudStack>
-@*         <MudStack Class="my-6">
+        @*         <MudStack Class="my-6">
             <MudText Typo="Typo.h1">@Localizer["Federal Science DataHub Resources"]</MudText>
                 <MudText Typo="Typo.body2">
                     @Localizer["Welcome to the Federal Science Datahub resources and documentation section. Below you will find a short list of some recommended resources to help you get started with the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
@@ -49,9 +47,9 @@ else
                  </MudItem>
              </MudGrid>
          </MudStack> *@
-         <MudTabs @bind-ActivePanelIndex="_tabIndex"
-                  Elevation="2" Rounded="true" Centered="false" ApplyEffectsToContainer="true" PanelClass="pa-6">
-             @foreach (var cat in _tabList)
+        <MudTabs @bind-ActivePanelIndex="_tabIndex"
+                 Elevation="2" Rounded="true" Centered="false" ApplyEffectsToContainer="true" PanelClass="pa-6">
+            @foreach (var cat in _tabList)
             {
                 var isDoc = cat.Children.Count == 0;
 
@@ -61,10 +59,10 @@ else
                         <MudGrid>
                             <MudItem xs="3">
                                 <MudNavMenu Dense Color=@Color.Primary Style="position: sticky; top: calc(var(--mud-appbar-height) + 1rem); max-height:  calc(95vh - (var(--mud-appbar-height) + 1rem)); overflow: auto;">
-                                     <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All">
-                                         @Localizer["Frequent Documents"]
+                                    <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All">
+                                        @Localizer["Frequent Documents"]
                                     </MudNavLink>
-                                    <MudDivider Class="my-3" />
+                                    <MudDivider Class="my-3"/>
                                     @foreach (var cat in _currentCategory.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)))
                                     {
                                         var isDoc = cat.Children.Count == 0;
@@ -103,29 +101,27 @@ else
                                 {
                                     @if (_docIsLoading || _currentDoc is null)
                                     {
-                                        <MudContainer MaxWidth="MaxWidth.Small">
-                                            <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]" />
-                                        </MudContainer>
+                                        <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]"/>
                                     }
                                     else if (_currentDoc.IsRoot)
                                     {
                                         <MudStack Class="mb-6">
                                             <MudText Typo="Typo.h2">@Localizer["Most Popular Resources"]</MudText>
-                                                <MudText Typo="Typo.body2">
-                                                    @Localizer["Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
+                                            <MudText Typo="Typo.body2">
+                                                @Localizer["Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
                                             </MudText>
                                         </MudStack>
-                                        <ResourcesListView DocumentItems="@_mostPopularDocs" />
+                                        <ResourcesListView DocumentItems="@_mostPopularDocs"/>
                                     }
                                     else
                                     {
                                         <MudText Typo="Typo.h2" Class="mb-3">@_currentDoc.Title</MudText>
-                                        <ResourcesListView DocumentItems="@_currentDoc.Children" />
+                                        <ResourcesListView DocumentItems="@_currentDoc.Children"/>
                                     }
                                 }
                                 else
                                 {
-                                    <ResourcesMarkdown DocumentItem="@_currentDoc" />
+                                    <ResourcesMarkdown DocumentItem="@_currentDoc"/>
                                 }
                             </MudItem>
                         </MudGrid>
@@ -135,7 +131,7 @@ else
         </MudTabs>
     </MudStack>
 
-    <ResourcesAdminView />
+    <ResourcesAdminView/>
 }
 
 @code {
@@ -151,13 +147,14 @@ else
     [SupplyParameterFromQuery(Name = "t")]
     public int? TabIndex { get; set; }
 
-    [CascadingParameter] public RouteData routeData { get; set; }
+    [CascadingParameter]
+    public RouteData routeData { get; set; }
 
-    const string MostPopularId = "6B9B9B8D-B071-44F7-B264-A7670192F446";
-    const string UserGuideId = "b594e16c-56e9-aae5-880f-487afca9aa38";
-    const string FaqGuideId = "ff5ba5b8-08cb-326a-5761-9f54e6401e8f";
-    const string SupportGuideId = "28c2b9f2-0ce7-b902-7708-aa6ec404c406";
-    const string ReleaseNotesId = "753af81a-d8e2-3e29-e017-80e87b7f4fc0";
+        const string MostPopularId = "6B9B9B8D-B071-44F7-B264-A7670192F446";
+        const string UserGuideId = "b594e16c-56e9-aae5-880f-487afca9aa38";
+        const string FaqGuideId = "ff5ba5b8-08cb-326a-5761-9f54e6401e8f";
+        const string SupportGuideId = "28c2b9f2-0ce7-b902-7708-aa6ec404c406";
+        const string ReleaseNotesId = "753af81a-d8e2-3e29-e017-80e87b7f4fc0";
 
     private readonly List<string> _hiddenNavGroups = new() { MostPopularId, UserGuideId, FaqGuideId, SupportGuideId, ReleaseNotesId };
 
@@ -178,7 +175,7 @@ else
     private bool _docIsLoading;
     private List<DocItem> _tabList;
 
-    public const string BaseUrl = "/resources";
+        public const string BaseUrl = "/resources";
 
     public static string BuildResourceLink(DocItem res)
     {
@@ -193,9 +190,9 @@ else
         var idx = _tabList.IndexOf(docItem);
         await CreateMostPopularFolder();
         var uriBuilder = new UriBuilder(_navManager.Uri);
-        var q = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);        
-        //var page = routeData.
-        //_navManager.NavigateTo("");
+        var q = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
+    //var page = routeData.
+    //_navManager.NavigateTo("");
     }
 
     private void UpdateCategory(DocItem cat, bool isExpanding)
@@ -214,7 +211,6 @@ else
         _tabIndex = Math.Min(_tabList.Count, TabIndex ?? 0);
         await ActivateCategory(_tabList[_tabIndex]);
         await ClearResourcesBadge();
-
     }
 
     private async Task ClearResourcesBadge()
@@ -257,7 +253,7 @@ else
         }
     }
 
-    const int MaxPopularDocuments = 10;
+        const int MaxPopularDocuments = 10;
 
     private DocItem popularItem;
 
@@ -284,7 +280,7 @@ else
 
         if (popularDocs.Count == 0)
             popularDocs = GetFakePopularDocumentIds();
-        
+
         popularItem = DocItem.GetFolderItem(DocumentationGuideRootSection.UserGuide, MostPopularId, 1, Localizer["Most Popular"], popularDocs.Take(MaxPopularDocuments));
         _resourceRoot.AddFirstChild(popularItem);
     }
@@ -300,7 +296,7 @@ else
 
     private List<DocItem> GetFakePopularDocumentIds()
     {
-        // pick random ids from the root's grandchildren that have no children
+    // pick random ids from the root's grandchildren that have no children
         return _currentCategory.Children
             .SelectMany(c => c.Children)
             .Where(c => !c.Children.Any())
