@@ -15,6 +15,7 @@
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IOrganizationLevelsService _orgLevelService
 @inject IUserInformationService _userInfoService
+@inject IUserSettingsService _userSettingsService
 @inject ILogger<InternalPublishedPowerBiReportEmbeddedPage> _logger
 
 <MudStack>
@@ -242,7 +243,7 @@
     {
         if (!string.IsNullOrEmpty(Language))
         {
-            _userInfoService.SetLanguage($"{Language}-ca");
+            await _userSettingsService.SetLanguage($"{Language}-ca");
         }
 
         _userLanguagePreferenceOnLoad = DetectCurrentLanguage();
@@ -297,7 +298,7 @@
         * - if IsWrongLanguage is true but no redirect (i.e. the user's language is already the right one) => display report
         * - otherwise, IsWrongLanguage is true and the user gets redirected => redirect causes a reload so everthing will get processed again
         */
-        if (!(IsWrongLanguage(_catalogReport.Language) && RedirectFromGroup(_relatedCatalogItems)))
+        if (!(IsWrongLanguage(_catalogReport.Language) && await RedirectFromGroup(_relatedCatalogItems)))
         {
             _pbiReport = await _pbiApiService.GetReport(_reportId.ToString());
             await ShowEmbeddedReport();
@@ -343,7 +344,7 @@
         _navManager.NavigateTo(url, replace: true);
     }
 
-    private bool RedirectFromGroup(IEnumerable<CatalogItem> catalogObjects)
+    private async Task<bool> RedirectFromGroup(IEnumerable<CatalogItem> catalogObjects)
     {
         var newReport = FindMatchingLanguageReport(catalogObjects);
         if (newReport != null)
@@ -352,7 +353,7 @@
             _reportId = Guid.Parse(newReport.Metadata.ObjectId);
             SilentlyUpdateUrl(_reportId.Value, SelectedLanguage);
             var newLang = SelectedLanguage == LanguageEnum.French ? "fr-ca" : "en-ca";
-            return _userInfoService.SetLanguage(newLang);
+            return await _userSettingsService.SetLanguage(newLang);
         }
         else 
         {

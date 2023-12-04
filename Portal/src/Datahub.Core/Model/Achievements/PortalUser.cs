@@ -19,12 +19,13 @@ public class PortalUser
     public string ProfilePictureUrl { get; set;}
     public bool HideAchievements { get; set; }
     public string Language { get; set; }
+    public List<UserInactivityNotifications> InactivityNotifications  { get; set; }
 
     #region Navigation props
     public ICollection<UserAchievement> Achievements { get; set; }
     public ICollection<TelemetryEvent> TelemetryEvents { get; set; }
-    
     public ICollection<UserRecentLink> RecentLinks { get; set; }
+    public UserSettings UserSettings { get; set; }
 
     public ICollection<OpenDataSubmission> OpenDataSubmissions { get; set; }
     #endregion

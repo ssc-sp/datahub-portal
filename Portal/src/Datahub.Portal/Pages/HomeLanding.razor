@@ -1,0 +1,140 @@
+﻿@using Datahub.Core.Components.PageBanner
+@using Datahub.Portal.Pages.Landing
+@using Datahub.Portal.Views.Dialogs
+@using Microsoft.Graph.Models
+
+@inject IUserInformationService _userInformationService
+@inject IUserSettingsService _userSettingsService
+@inject IDataCreatorService _dataCreatorService
+@inject NavigationManager _navigationManager
+@inject ILocalStorageService _localStorage
+@inject IDialogService _dialogService
+@inject ILogger<HomeLanding> _logger
+
+@page "/oldhome"
+
+<DHPageAlert
+    Title=@Localizer["Welcome To DataHub"]
+    Key="@PageAlert.Home"
+    WikiLinkEN="/Banners/Landing"
+    WikiLinkFR="/fr/Banners/Atterrissage"/>
+
+<WelcomeBanner/>
+<CascadingValue Name="GraphUser" Value="_user">
+    <MudStack Spacing="12" Class="mt-12">
+        <UserProjects/>
+    </MudStack>
+</CascadingValue>
+
+@code {
+
+    private const string LogoutUrl = "/signout-oidc";
+    private bool _isUserValid = true;
+    private User _user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _user = await _userInformationService.GetCurrentGraphUserAsync();
+
+        _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
+        if (_isUserValid)
+        {
+            //TODO: Confirm if this is legacy
+            try {
+                await SetupRootFolder();
+            } catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error setting up root folder");
+            }
+            await AdjustLanguage();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            var language = await _userSettingsService.GetUserLanguage();
+            if (string.IsNullOrWhiteSpace(language))
+            {
+                await PromptForLanguage();
+            }
+
+            var userAcceptedTac = await _userSettingsService.HasUserAcceptedTAC();
+            if (!userAcceptedTac)
+            {
+                await PromptForTermsAndConditions();
+            }
+        }
+    }
+
+    private async Task PromptForTermsAndConditions()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = false,
+            DisableBackdropClick = true,
+        };
+
+        var tocDialog = await _dialogService.ShowAsync<UserTermsAndConditionsDialog>(Localizer["TermsAndConditions"], options);
+        var tocDialogResult = await tocDialog.Result;
+        if (!tocDialogResult.Canceled && tocDialogResult.Data is true)
+        {
+            await _userSettingsService.RegisterUserTAC();
+            await SetupRootFolder();
+            await AdjustLanguage();
+            _isUserValid = true;
+        }
+        else
+        {
+            _navigationManager.NavigateTo(LogoutUrl, forceLoad: true);
+        }
+    }
+
+    private async Task PromptForLanguage()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = false,
+            DisableBackdropClick = true,
+        };
+
+        var languageDialog = await _dialogService.ShowAsync<UserSelectLanguageDialog>(Localizer["LanguagePreferencePrompt"], options);
+        var languageDialogResult = await languageDialog.Result;
+        if (!languageDialogResult.Canceled)
+        {
+            var selectedLanguage = languageDialogResult.Data.ToString();
+            var language = selectedLanguage?.Equals("english", StringComparison.InvariantCultureIgnoreCase) ?? true ? "en-CA" : "fr-CA";
+            await _userSettingsService.RegisterUserLanguage(language);
+            await _userSettingsService.SetLanguage(language);
+        }
+    }
+
+    private async Task SetupRootFolder()
+    {
+        var rootFolder = await _userInformationService.GetUserRootFolder();
+        await _dataCreatorService.CreateRootFolderIfNotExist(_user.Id, rootFolder);
+    }
+
+    private async Task AdjustLanguage(bool afterRender = false)
+    {
+        var language = string.Empty;
+        if (afterRender)
+        {
+            language = await _localStorage.GetItemAsStringAsync("language");
+        }
+        if (string.IsNullOrWhiteSpace(language))
+        {
+            language = await _userSettingsService.GetUserLanguage();
+            if (afterRender)
+            {
+                await _localStorage.SetItemAsStringAsync("language", language);
+            }
+            await _userSettingsService.SetLanguage(language);
+        }
+    }
+
+}
