@@ -1,0 +1,132 @@
+@using Datahub.Portal.Components.User
+@using Datahub.Core.Model.Achievements
+
+@inherits ViewUserBase<AchievementsPage>
+
+@inject IDbContextFactory<DatahubProjectDBContext> _contextFactory;
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar/>
+</SectionContent>
+
+@if (_viewedPortalUser is null)
+{
+    <MudContainer MaxWidth="MaxWidth.Small">
+        <DHLoadingInitializer Message="@Localizer["Loading Achievements"]"/>
+    </MudContainer>
+    return;
+}
+
+<MudStack Spacing="6">
+    <MudStack>
+        <MudText Typo="Typo.h3" Class="mb-4">
+            @Localizer["Achievements"]
+        </MudText>
+
+        @foreach (var userAchievement in GetUserAchievements())
+        {
+            var rarity = GetRarity(userAchievement);
+            <AchievementListItem UserAchievement="@userAchievement" Rarity="@rarity"/>
+            <MudDivider/>
+        }
+
+        @foreach (var achievement in GetUnEaredUserAchievements())
+        {
+            var rarity = GetRarity(achievement);
+            var completion = GetCompletion(achievement);
+            <AchievementListItem Achievement="@achievement" Rarity="@rarity" Completion="@completion"/>
+            <MudDivider/>
+        }
+    </MudStack>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public PortalUser ViewedUser { get; set; }
+
+    [Parameter]
+    public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
+
+    private PortalUser _viewedPortalUser;
+    private Dictionary<string, int> _achievementRarityDictionary;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        _achievementRarityDictionary = await FetchAchievementRarities();
+        _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
+    }
+
+    private async Task<Dictionary<string, int>> FetchAchievementRarities()
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+
+    // get the total number of users
+        var totalUsers = await context.PortalUsers
+            .CountAsync();
+
+    // get the number of users who have each achievement
+        var achievementCounts = await context.UserAchievements
+            .GroupBy(ua => ua.AchievementId)
+            .Select(g => new
+            {
+                AchievementId = g.Key,
+                Count = g.Count()
+            })
+            .ToListAsync();
+
+    // get the number of users who have each achievement to a dictionary
+        var achievementRarityDictionary = achievementCounts
+            .ToDictionary(
+                ac => ac.AchievementId,
+                ac => (int)Math.Round((double)ac.Count / totalUsers * 100)
+            );
+
+        return achievementRarityDictionary;
+    }
+
+    private int GetRarity(UserAchievement userAchievement)
+    {
+        return GetRarity(userAchievement.Achievement);
+    }
+
+    private int GetRarity(Achievement achievement)
+    {
+        return _achievementRarityDictionary.TryGetValue(achievement.Id, out var value) ? value : 0;
+    }
+
+    private (int, int) GetCompletion(Achievement achievement)
+    {
+        if (!achievement.IsTrophy())
+        {
+            return (0, 1);
+        }
+        var maxComplete = achievement.GetRules().Length;
+    // count how many match the first three characters of the id
+        var currentComplete = _viewedPortalUser?.Achievements
+            .Count(ua => ua.AchievementId.StartsWith(achievement.Id[..3])) ?? 0;
+
+        return (currentComplete, maxComplete);
+    }
+
+
+    private IEnumerable<UserAchievement> GetUserAchievements()
+    {
+        return _viewedPortalUser?.Achievements?
+            .OrderBy(a => a.Achievement.Id)
+            .ThenBy(a => a.UnlockedAt)
+            .ToList()
+               ?? new List<UserAchievement>();
+    }
+
+    private IEnumerable<Achievement> GetUnEaredUserAchievements()
+    {
+        return Achievement.GetAll()
+            .Where(a => _viewedPortalUser?.Achievements?.All(ua => ua.Achievement.Id != a.Id) ?? false)
+            .OrderBy(a => a.Id)
+            .ToList();
+    }
+
+}

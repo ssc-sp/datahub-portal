@@ -19,6 +19,7 @@
         <PackageReference Include="NUnit3TestAdapter" Version="4.*"/>
         <PackageReference Include="NUnit.Analyzers" Version="3.*"/>
         <PackageReference Include="coverlet.collector" Version="6.*"/>
+
     </ItemGroup>
 
     <ItemGroup>

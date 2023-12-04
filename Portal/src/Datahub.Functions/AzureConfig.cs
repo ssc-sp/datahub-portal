@@ -20,13 +20,17 @@ public class AzureConfig : IAzureServicePrincipalConfig
 
     public string? NotificationPercents => _config["ProjectUsageNotificationPercents"];
     
-    public string? ProjectInactivityNotificationDays => _config["ProjectInactivityNotificationDays"];
+    #region Inactivity
     
-    public string? ProjectInactivityDeletionDays => _config["ProjectInactivityDeletionDays"];
+    public string? ProjectInactivityNotificationDays => _config["ProjectInactivityNotificationDays"] ?? "7,2";
     
-    public string? UserInactivityNotificationDays => _config["UserInactivityNotificationDays"];
-    public string? UserInactivityLockedDays => _config["UserInactivityLockedDays"];
-    public string? UserInactivityDeletionDays => _config["UserInactivityDeletionDays"];
+    public string? ProjectInactivityDeletionDays => _config["ProjectInactivityDeletionDays"] ?? "180";
+    
+    public string? UserInactivityNotificationDays => _config["UserInactivityNotificationDays"] ?? "7,2";
+    public string? UserInactivityLockedDays => _config["UserInactivityLockedDays"] ?? "30";
+    public string? UserInactivityDeletionDays => _config["UserInactivityDeletionDays"] ?? "90";
+    
+    #endregion
 
     #region Azure SP
 
@@ -60,7 +64,7 @@ public class EmailNotification
     public string? SenderName { get; set; }
     public string? SenderAddress { get; set; }
     public string? NotificationsCCAddress { get; set; }
-    public string? AdminEmail { get; set; }
+    public string? AdminEmail { get; set; } = "datasolutions-solutiondedonnees@ssc-spc.gc.ca";
     public bool IsValid => !string.IsNullOrEmpty(SmtpHost) && 
                            !string.IsNullOrEmpty(SmtpUsername) && 
                            !string.IsNullOrEmpty(SmtpPassword) && 

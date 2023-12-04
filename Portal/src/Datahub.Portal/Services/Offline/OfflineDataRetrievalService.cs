@@ -9,11 +9,10 @@ public class OfflineDataRetrievalService : DataRetrievalService
 {
     public OfflineDataRetrievalService(ILogger<DataRetrievalService> logger,
         IKeyVaultService keyVaultService,                            
-        NavigationManager navigationManager,
-        UIControlsService uiService) : base(logger, keyVaultService,
+        NavigationManager navigationManager) : base(logger, keyVaultService,
         null,
-        navigationManager,
-        uiService)
+        navigationManager
+        )
     {
     }
 

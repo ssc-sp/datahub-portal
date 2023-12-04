@@ -170,9 +170,6 @@ public class ConnectionStrings
 
     [JsonProperty("DATAHUB_MSSQL_LANGUAGETRAINING")]
     public string? DatahubMsSqlLanguageTraining { get; set; }
-
-    [JsonProperty("datahub_cosmosdb")] 
-    public string? DatahubCosmosDb { get; set; }
 }
 
 public class EmailNotification
@@ -229,7 +226,7 @@ public class PublicFileSharing
 public class ReverseProxy
 {
     public bool Enabled { get; set; } = true;
-    public string BasePath { get; set; } = "wsapp";
+    public string BasePath { get; set; } = "webapp";
     public string UserHeader { get; set; } = "dh-user";
 }
 

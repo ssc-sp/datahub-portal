@@ -27,9 +27,8 @@ public class DataUpdatingService : BaseService
         IUserInformationService userInformationService,
         DataLakeClientService dataLakeClientService,
         DataRetrievalService dataRetrievalService,
-        NavigationManager navigationManager,
-        UIControlsService uiService)
-        : base(navigationManager, uiService)
+        NavigationManager navigationManager)
+        : base(navigationManager)
     {
         _logger = logger;
         _httpClient = clientFactory;

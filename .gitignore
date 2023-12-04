@@ -52,3 +52,6 @@ ResourceProvisioner/venv/**
 **/__pycache__/**
 /ResourceProvisioner/test/ResourceProvisioner_PyFunctions_Tests/configure_env.ps1
 /ResourceProvisioner/venv
+
+**/*/MissingTranslations.json
+**/*/fsdh_poc.db

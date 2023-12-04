@@ -255,13 +255,6 @@ namespace Datahub.Core.Migrations.Core
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
-                    b.Property<bool>("HideAchievements")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Language")
-                        .HasMaxLength(5)
-                        .HasColumnType("nvarchar(5)");
-
                     b.Property<DateTime?>("LastLoginDateTime")
                         .HasColumnType("datetime2");
 
@@ -2054,21 +2047,33 @@ namespace Datahub.Core.Migrations.Core
 
             modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserSettings", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                    b.Property<int>("PortalUserId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("AcceptedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("HiddenAlerts")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("HideAchievements")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HideAlerts")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Language")
                         .HasMaxLength(5)
                         .HasColumnType("nvarchar(5)");
 
-                    b.Property<string>("UserName")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("NotificationsEnabled")
+                        .HasColumnType("bit");
 
-                    b.HasKey("UserId");
+                    b.Property<string>("UserName")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("PortalUserId");
 
                     b.ToTable("UserSettings", (string)null);
                 });
@@ -2421,6 +2426,17 @@ namespace Datahub.Core.Migrations.Core
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserSettings", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "User")
+                        .WithOne("UserSettings")
+                        .HasForeignKey("Datahub.Core.Model.UserTracking.UserSettings", "PortalUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Datahub.SharedDataFile", null)
@@ -2442,6 +2458,8 @@ namespace Datahub.Core.Migrations.Core
                     b.Navigation("RecentLinks");
 
                     b.Navigation("TelemetryEvents");
+
+                    b.Navigation("UserSettings");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Organization_Level", b =>
