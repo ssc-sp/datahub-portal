@@ -370,7 +370,7 @@ public class Startup
         // configure online/offline services
         if (!Offline)
         {
-            services.AddSingleton<IKeyVaultService, KeyVaultService>();
+            services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
             services.AddScoped<UserLocationManagerService>();
             services.AddSingleton<CommonAzureServices>();
             services.AddScoped<DataLakeClientService>();
