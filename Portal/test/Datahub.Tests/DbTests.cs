@@ -81,7 +81,7 @@ public class DbTests
             builder.AddConsole();
         });
         serviceCollection.AddScoped<UserLocationManagerService>();
-        serviceCollection.AddSingleton<IKeyVaultService, KeyVaultService>();
+        serviceCollection.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
         serviceCollection.AddScoped<UserLocationManagerService>();
         serviceCollection.AddSingleton<CommonAzureServices>();
         serviceCollection.AddScoped<DataLakeClientService>();
