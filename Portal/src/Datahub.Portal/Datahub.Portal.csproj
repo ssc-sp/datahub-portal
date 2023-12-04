@@ -57,7 +57,6 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
-xs
 	<ItemGroup>
 		<ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />
 		<ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
