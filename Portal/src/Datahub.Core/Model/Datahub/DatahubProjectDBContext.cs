@@ -7,6 +7,7 @@ using Datahub.Core.Model.Documentation;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Repositories;
+using Datahub.Core.Model.UserTracking;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
@@ -81,6 +82,10 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     
     public DbSet<Project_Role> Project_Roles { get; set; }
 
+    public DbSet<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
+    
+    public DbSet<UserInactivityNotifications> UserInactivityNotifications { get; set; }
+    
     public DbSet<DocumentationResource> DocumentationResources { get; set; }
     
     /// <summary>
@@ -219,6 +224,12 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasOne(w => w.Division)
             .WithMany(p => p.Divisions)
             .HasForeignKey(f => f.DivisionId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Datahub_Project>()
+            .HasMany(w => w.ProjectInactivityNotifications)
+            .WithOne(p => p.Project)
+            .HasForeignKey(p => p.Project_ID)
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Project_Whitelist>(entity =>

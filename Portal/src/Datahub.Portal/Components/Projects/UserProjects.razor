@@ -21,7 +21,7 @@
 <MudStack>
     @if (ShowTitle)
     {
-        <MudText Typo="Typo.h1" Class="mb-4">@Localizer["Workspaces"]</MudText>
+        <MudText Typo="Typo.h1" Class="mb-4">@Localizer["My Workspaces"]</MudText>
     }
     <MudGrid>
         @foreach (var project in _userRoles.Select(userRole => userRole.Project))

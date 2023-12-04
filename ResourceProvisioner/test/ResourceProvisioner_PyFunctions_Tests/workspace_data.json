@@ -1,0 +1,55 @@
+{
+    "Templates": [
+      {
+        "Name": "azure-storage-blob"
+      },
+      {
+        "Name": "azure-databricks"
+      },
+      {
+        "Name": "new-project-template"
+      }
+    ],
+    "Workspace": {
+      "Name": "Databricks Interactive Experiment 1",
+      "Acronym": "DIE1",
+      "BudgetAmount": 450,
+      "Version": "latest",
+      "StorageSizeLimitInTB": 5,
+      "TerraformOrganization": {
+        "Name": "TODO",
+        "Code": "TODO"
+      },
+      "Users": [
+        {
+          "ObjectId": "32857a23-0e24-4cec-8946-e83c280c690e",
+          "Email": "testuser5@ssc-spc.gc.ca",
+          "Role": "Admin"
+        },
+        {
+          "ObjectId": "db1a6b8d-0a8c-4070-8284-beb46ac3a5f6",
+          "Email": "testuser4@ssc-spc.gc.ca",
+          "Role": "Admin"
+        },
+        {
+          "ObjectId": "ab16f275-ada6-44b8-8396-2bd207f6aa1e",
+          "Email": "atestuser3@ssc-spc.gc.ca",
+          "Role": "Admin"
+        },
+        {
+          "ObjectId": "b294d1b5-3846-42be-9f84-f067e493b3e5",
+          "Email": "testuser2@ssc-spc.gc.ca",
+          "Role": "Admin"
+        },
+        {
+          "ObjectId": "f3532c50-e55f-47e4-a7ed-240c78c083b5",
+          "Email": "test@ssc-spppp.gc.ca",
+          "Role": "Guest"
+        }
+      ]
+    },
+    "AppData": {
+      "DatabricksHostUrl": "https://adb-3835143545672168.8.azuredatabricks.net"
+    },
+    "RequestingUserEmail": "testuser1@ssc-spc.gc.ca"
+  }

@@ -70,10 +70,10 @@
 
     <link rel="stylesheet" href="_content/PSC.Blazor.Components.MarkdownEditor/css/easymde.min.css" />
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
-    <script src="~/js/powerbi-client/dist/powerbi.min.js"></script>
+@*     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
+   <script src="~/js/powerbi-client/dist/powerbi.min.js"></script>
     <script src="~/js/pbi-integration.js"></script>
-
+    *@
     @*<script src="~/js/third-party/highlight.min.js"></script>*@
     
     <script src="~/js/markdown-editor.js"></script>
@@ -89,7 +89,7 @@
 
     <script src="~/_content/PSC.Blazor.Components.MarkdownEditor/js/easymde.min.js"></script>
     <script src="~/_content/PSC.Blazor.Components.MarkdownEditor/js/markdownEditor.js"></script>
-    <script src="/_content/PSC.Blazor.Components.MarkdownEditor/js/mermaid.min.js"></script>
+    <script src="~/_content/PSC.Blazor.Components.MarkdownEditor/js/mermaid.min.js"></script>
 
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered"/><title></title>
 </head>
@@ -197,7 +197,7 @@
 @* End of Custom Reconnect Message *@
 
 <app>
-    @(await Html.RenderComponentAsync<App>(RenderMode.ServerPrerendered))
+    @(await Html.RenderComponentAsync<App>(Microsoft.AspNetCore.Mvc.Rendering.RenderMode.ServerPrerendered))
 </app>
 
 <div id="browserNotSupported" style="display: none;">

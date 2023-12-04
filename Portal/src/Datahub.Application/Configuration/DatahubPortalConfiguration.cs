@@ -170,9 +170,6 @@ public class ConnectionStrings
 
     [JsonProperty("DATAHUB_MSSQL_LANGUAGETRAINING")]
     public string? DatahubMsSqlLanguageTraining { get; set; }
-
-    [JsonProperty("datahub_cosmosdb")] 
-    public string? DatahubCosmosDb { get; set; }
 }
 
 public class EmailNotification
@@ -212,6 +209,8 @@ public class DatahubStorageQueue
 public class QueueNames
 {
     public string ResourceRunRequest { get; set; } = "resource-run-request";
+
+    public string DeleteRunRequest { get; set; } = "delete-run-request";
     public string UserRunRequest { get; set; } = "user-run-request";
     public string EmailNotification { get; set; } = "email-notifications";
     public string StorageCapacity { get; set; } = "storage-capacity";
