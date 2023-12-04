@@ -57,33 +57,7 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
-
-	<ItemGroup>
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-brands-400.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-brands-400.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-duotone-900.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-duotone-900.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-light-300.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-light-300.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-regular-400.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-regular-400.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-sharp-solid-900.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-sharp-solid-900.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-solid-900.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-solid-900.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-thin-100.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-thin-100.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.woff2" />
-		<_ContentIncludedByDefault Remove="Pages\Project\FileExplorer\Storage\AWSConnectionDataInput.razor" />
-		<_ContentIncludedByDefault Remove="Pages\Project\FileExplorer\Storage\AzureConnectionDataInput.razor" />
-		<_ContentIncludedByDefault Remove="Pages\Project\FileExplorer\Storage\GCPConnectionDataInput.razor" />
-		<_ContentIncludedByDefault Remove="Pages\Project\FileExplorer\Storage\StorageConfigurationDialog.razor" />
-		<_ContentIncludedByDefault Remove="Pages\Project\FileExplorer\Storage\StorageContainerSelector.razor" />
-		<_ContentIncludedByDefault Remove="Pages\Project\Repositories\RepositoryCard.razor" />
-		<_ContentIncludedByDefault Remove="Pages\Project\Repositories\RepositoryGridItem.razor" />
-		<_ContentIncludedByDefault Remove="Pages\Project\Repositories\RepositoryManagementPage.razor" />
-	</ItemGroup>
+xs
 	<ItemGroup>
 		<ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />
 		<ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
