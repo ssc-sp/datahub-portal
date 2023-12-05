@@ -1,0 +1,35 @@
+<MudStack>
+    <MudText Typo="Typo.h1">
+        @Localizer["Workspace Database"]
+    </MudText>
+    
+    <MudText>
+        @Localizer["Here you can manage your workspace database. You can view and test the connectivity of your database"]
+    </MudText>
+    
+    <DHMarkdown Content="@_pythonConnectionInfo" LinkRewriter="@(link => link)"/>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    private string _pythonConnectionInfo;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            _pythonConnectionInfo = @"```python
+    hello = 'world'";
+            
+            StateHasChanged();
+            
+        }
+
+    }
+
+}
