@@ -76,17 +76,13 @@
 
     private PortalUser _currentUser;
     private PortalUser _viewedPortalUser;
-    private User _graphUser;
-    private bool _isUserValid = true;
     private string _achievementsUrl => $"{PageRoutes.AccountPrefix}/{PersonalSidebar.SectionViews.Achievements}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
-    private const string LogoutUrl = PageRoutes.Logout;
+    
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-        _graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-        _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -99,73 +95,6 @@
         {
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
         }
-    }
-    
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-
-        if (firstRender)
-        {
-            var language = await _userSettingsService.GetUserLanguage();
-            if (string.IsNullOrWhiteSpace(language))
-            {
-                await PromptForLanguage();
-            }
-
-            var userAcceptedTac = await _userSettingsService.HasUserAcceptedTAC();
-            if (!userAcceptedTac)
-            {
-                await PromptForTermsAndConditions();
-            }
-        }
-    }
-
-    private async Task PromptForTermsAndConditions()
-    {
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = false,
-            DisableBackdropClick = true,
-        };
-
-        var tocDialog = await _dialogService.ShowAsync<UserTermsAndConditionsDialog>(Localizer["TermsAndConditions"], options);
-        var tocDialogResult = await tocDialog.Result;
-        if (!tocDialogResult.Canceled && tocDialogResult.Data is true)
-        {
-            await _userSettingsService.RegisterUserTAC();
-            await SetupRootFolder();
-            _isUserValid = true;
-        }
-        else
-        {
-            _navigationManager.NavigateTo(LogoutUrl, forceLoad: true);
-        }
-    }
-
-    private async Task PromptForLanguage()
-    {
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = false,
-            DisableBackdropClick = true,
-        };
-
-        var languageDialog = await _dialogService.ShowAsync<UserSelectLanguageDialog>(Localizer["LanguagePreferencePrompt"], options);
-        var languageDialogResult = await languageDialog.Result;
-        if (!languageDialogResult.Canceled)
-        {
-            var selectedLanguage = languageDialogResult.Data.ToString();
-            var language = selectedLanguage?.Equals("english", StringComparison.InvariantCultureIgnoreCase) ?? true ? "en-CA" : "fr-CA";
-            await _userSettingsService.RegisterUserLanguage(language);
-            await _userSettingsService.SetLanguage(language);
-        }
-    }
-    
-    private async Task SetupRootFolder()
-    {
-        var rootFolder = await _userInformationService.GetUserRootFolder();
-        await _dataCreatorService.CreateRootFolderIfNotExist(_graphUser.Id, rootFolder);
     }
 
 }

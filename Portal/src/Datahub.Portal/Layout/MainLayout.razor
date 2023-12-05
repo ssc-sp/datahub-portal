@@ -1,6 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
 @using Microsoft.Identity.Web
+@using Datahub.Portal.Views.Dialogs
 
 @inject NavigationManager _navigationManager
 @inject IDatahubAuditingService _auditingService
@@ -8,6 +9,8 @@
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject DatahubPortalConfiguration _portalConfiguration
 @inject IUserInformationService _userInformationService
+@inject IUserSettingsService _userSettingsService
+@inject IDialogService _dialogService
 
 
 
@@ -45,7 +48,9 @@ else
 @code
 {
     private bool? _isSessionEnabled;
-    private bool _isLoaded = false;    
+    private bool _isLoaded = false;
+    private const string LogoutUrl = PageRoutes.Logout;
+    private bool _isUserValid = true;
 
     private static readonly string[] LOAD_MESSAGES = new[] { "Recomputing DNA sequence", "Identifying the pathogen", "Recalculating fungal genome", "Predicting soil mapping", "Analyzing forest coverage" };
 
@@ -57,6 +62,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         var user = await _userInformationService.GetAuthenticatedUser(true);
+        _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
 
         if (!user.Identity?.IsAuthenticated ?? true)
         {
@@ -79,5 +85,65 @@ else
         await _userInformationService.RegisterAuthenticatedPortalUser();
         
         _isLoaded = true;
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            var language = await _userSettingsService.GetUserLanguage();
+            if (string.IsNullOrWhiteSpace(language))
+            {
+                await PromptForLanguage();
+            }
+
+            var userAcceptedTac = await _userSettingsService.HasUserAcceptedTAC();
+            if (!userAcceptedTac)
+            {
+                await PromptForTermsAndConditions();
+            }
+        }
+    }
+    
+    private async Task PromptForTermsAndConditions()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = false,
+            DisableBackdropClick = true,
+        };
+
+        var tocDialog = await _dialogService.ShowAsync<UserTermsAndConditionsDialog>(Localizer["TermsAndConditions"], options);
+        var tocDialogResult = await tocDialog.Result;
+        if (!tocDialogResult.Canceled && tocDialogResult.Data is true)
+        {
+            await _userSettingsService.RegisterUserTAC();
+            _isUserValid = true;
+        }
+        else
+        {
+            _navigationManager.NavigateTo(LogoutUrl, forceLoad: true);
+        }
+    }
+
+    private async Task PromptForLanguage()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = false,
+            DisableBackdropClick = true,
+        };
+
+        var languageDialog = await _dialogService.ShowAsync<UserSelectLanguageDialog>(Localizer["LanguagePreferencePrompt"], options);
+        var languageDialogResult = await languageDialog.Result;
+        if (!languageDialogResult.Canceled)
+        {
+            var selectedLanguage = languageDialogResult.Data.ToString();
+            var language = selectedLanguage?.Equals("english", StringComparison.InvariantCultureIgnoreCase) ?? true ? "en-CA" : "fr-CA";
+            await _userSettingsService.RegisterUserLanguage(language);
+            await _userSettingsService.SetLanguage(language);
+        }
     }
 }
