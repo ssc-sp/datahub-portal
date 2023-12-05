@@ -8,14 +8,14 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Identity;
-using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Services;
 using Datahub.Application.Configuration;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.Azure.Cosmos.Linq;
 using Datahub.ProjectTools.Utils;
-using AngleSharp.Common;
 using Microsoft.EntityFrameworkCore;
+using Azure.Storage.Queues;
+using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Functions;
 
@@ -26,6 +26,7 @@ public class CheckInfrastructureStatus
     private readonly AzureConfig _azureConfig;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ProjectStorageConfigurationService _projectStorageConfigurationService;
+    private readonly IConfiguration _configuration;
 
     private const string workspaceKeyCheck = "project-cmk";
     private const string coreKeyCheck = "datahubportal-client-id";
@@ -35,13 +36,15 @@ public class CheckInfrastructureStatus
         DatahubProjectDBContext projectDbContext, 
         AzureConfig azureConfig, 
         IHttpClientFactory httpClientFactory,
-        DatahubPortalConfiguration portalConfiguration)
+        DatahubPortalConfiguration portalConfiguration,
+        IConfiguration configuration)
     {
         _logger = loggerFactory.CreateLogger<CheckInfrastructureStatus>();
         _projectDbContext = projectDbContext;
         _azureConfig = azureConfig;
         _httpClientFactory = httpClientFactory;
         _projectStorageConfigurationService = new ProjectStorageConfigurationService(portalConfiguration);
+        _configuration = configuration;
     }
 
     [Function("CheckInfrastructureStatus")]
@@ -64,8 +67,8 @@ public class CheckInfrastructureStatus
                 return new OkObjectResult(await CheckAzureKeyVault(request));
             case InfrastructureHealthResourceType.AzureDatabricks: // Name is project acronym to check
                 return new OkObjectResult(await CheckAzureDatabricks(request));
-            case InfrastructureHealthResourceType.AzureStorageQueue:
-                break;
+            case InfrastructureHealthResourceType.AzureStorageQueue: // Name is the Azure Storage Queue name. Group == 1 for poison
+                return new OkObjectResult(await CheckAzureStorageQueue(request));
             case InfrastructureHealthResourceType.AzureWebApp:
                 break;
             case InfrastructureHealthResourceType.AzureFunction: // Name is the Azure Function location
@@ -294,6 +297,54 @@ public class CheckInfrastructureStatus
         }
 
         // check and see if the function app exists
+        if (!errors.Any())
+        {
+            check.Status = InfrastructureHealthStatus.Healthy;
+        }
+
+        return new InfrastructureHealthCheckResponse(check, errors);
+    }
+
+    private async Task<InfrastructureHealthCheckResponse> CheckAzureStorageQueue(InfrastructureHealthCheckRequest request)
+    {
+        var errors = new List<string>();
+        var check = new InfrastructureHealthCheck()
+        {
+            Group = request.Group,
+            Name = request.Group,
+            ResourceType = request.Type,
+            Status = InfrastructureHealthStatus.Unhealthy,
+            HealthCheckTimeUtc = DateTime.UtcNow
+        };
+
+        var storageConnectionString = _configuration["DatahubStorageQueue:ConnectionString"];
+        string queueName = request.Name;
+
+        if (request.Group == "1")
+        {
+            queueName += "-poison";
+        }
+
+        try
+        {
+            QueueClient queueClient = new QueueClient(storageConnectionString, queueName);
+            
+
+            if (queueClient is null)
+            {
+                errors.Add("Unable to connect to the queue.");
+            }
+            else
+            {
+                bool queueExists = queueClient.Exists();
+                errors.Add("Unable to find the queue.");
+            }
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"Error while checking Azure Storage Queue: {ex.Message}");
+        }
+
         if (!errors.Any())
         {
             check.Status = InfrastructureHealthStatus.Healthy;
