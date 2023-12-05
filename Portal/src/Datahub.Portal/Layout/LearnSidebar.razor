@@ -1,0 +1,74 @@
+﻿@using Datahub.Markdown.Model
+@using Datahub.Portal.Components.Resources
+
+@inject NavigationManager _navManager
+
+<MudStack Class="px-4 mt-6">
+    <MudStack Class="ml-2">
+        <MudStack Row="true" Spacing="3">
+            <MudIcon Icon="@currentCategory.GetMudblazorMaterialIcon("Outlined")"/>
+            <MudText Typo="Typo.h6" >
+                @Localizer[currentCategory.Title.ToUpper()]
+            </MudText>
+        </MudStack>
+        
+        <MudItem >
+            <MudNavMenu Color=@Color.Primary>
+                <MudNavLink Href=@PageRoutes.ResourceDefault Match="NavLinkMatch.All">
+                    @Localizer["Frequent Documents"]
+                </MudNavLink>
+                <MudDivider Class="my-3"/>
+                @foreach (var cat in currentCategory.Children.Where(d => !hiddenNavGroups.Contains(d.Id)))
+                {
+                    var isDoc = cat.Children.Count == 0;
+
+                    if (isDoc)
+                    {
+                        <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat) Icon="@(cat.GetSidebarIcon())">
+                            @cat.Title
+                        </MudNavLink>
+                    }
+                    else
+                    {
+                        <MudNavGroup Title="@cat.Title" ExpandedChanged=@(isExpanding => UpdateCategory(cat, isExpanding)) Icon="@(cat.GetSidebarIcon())">
+                            @foreach (var article in cat.Children)
+                            {
+                                if (article.DocType == DocItemType.External)
+                                {
+                                    <MudNavLink Match="NavLinkMatch.All" Target="_blank" Href=@BuildResourceLink(article) Icon="@(article.GetSidebarIcon())">
+                                        @article.Title
+                                    </MudNavLink>
+                                }
+                                else
+                                {
+                                    <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article) Icon="@(article.GetSidebarIcon())">
+                                        @article.Title
+                                    </MudNavLink>
+                                }
+                            }
+                        </MudNavGroup>
+                    }
+                }
+            </MudNavMenu>
+        </MudItem>
+    </MudStack>
+</MudStack>
+
+@code {
+    
+    [Parameter]
+    public DocItem currentCategory { get; set; }
+    
+    [Parameter]
+    public DocItem currentMarkdownCategory { get; set; }
+    
+    [Parameter]
+    public List<string> hiddenNavGroups { get; set; }
+    
+    [Parameter]
+    public Func<DocItem, string> BuildResourceLink { get; set; }
+    
+    [Parameter]
+    public Action<DocItem, bool> UpdateCategory { get; set; }
+
+}
