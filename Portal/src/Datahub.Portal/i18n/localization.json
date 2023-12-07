@@ -581,7 +581,7 @@
       }
     },
     "FileTypes": {
-      "Dataset": "Dataset",
+      "Dataset": "Data Resource",
       "Metadata": "Metadata",
       "SupportingDoc": "Supporting Documentation",
       "DataDictionary": "Data Dictionary",

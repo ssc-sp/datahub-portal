@@ -65,7 +65,9 @@ namespace Datahub.Infrastructure.Services.Publishing
             existingSubmission.LocalDQCheckPassed = submission.LocalDQCheckPassed;
             existingSubmission.InitialOpenGovSubmissionDate = submission.InitialOpenGovSubmissionDate;
             existingSubmission.OpenGovDQCheckPassed = submission.OpenGovDQCheckPassed;
-            existingSubmission.ImsoApproved = submission.ImsoApproved;
+            existingSubmission.ImsoApprovalRequestDate = submission.ImsoApprovalRequestDate;
+            existingSubmission.ImsoApprovedDate = submission.ImsoApprovedDate;
+            //existingSubmission.ImsoApprovalRequested = submission.ImsoApprovalRequested;
             existingSubmission.OpenGovPublicationDate = submission.OpenGovPublicationDate;
 
             submission.Status = TbsOpenGovPublishingUtils.GetCurrentStatus(submission).ToString();

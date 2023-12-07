@@ -1,0 +1,68 @@
+﻿@* EditFileInformationDialog.razor *@
+
+<MudDialog>
+    <TitleContent>
+        @if (Submission.Files.Any())
+        {
+            <MudSelect 
+                T=@OpenDataPublishFile
+                ToStringFunc=@GetLabelForFile
+                @bind-Value=@_currentFile
+                Label=@MudDialog.Title
+            >
+            @foreach(var f in Submission.Files)
+                {
+                    <MudSelectItem Value=@f />
+                }
+            </MudSelect>
+        }
+        else
+        {
+            <MudText Typo=@Typo.h6>@MudDialog.Title</MudText>
+        }
+    </TitleContent>
+
+    <DialogContent>
+        @if (_currentFile != null)
+        {
+            <MudTextField T=@string Label=@Localizer["Resource Title (English)"] />
+            <MudTextField T=@string Label=@Localizer["Resource Title (French)"] />
+        }
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick=@Cancel>@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick=@Submit>@Localizer["Update"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public OpenDataSubmission Submission { get; set; }
+
+    [Parameter]
+    public OpenDataPublishFile InitialFile { get; set; }
+
+    private OpenDataPublishFile _currentFile;
+
+    private string GetFilePurposeLabel(string filePurpose) => Localizer[$"{Submission.LocalizationPrefix}.FileTypes.{filePurpose}"];
+
+    private string GetLabelForFile(OpenDataPublishFile file) => file == null ? string.Empty : string.IsNullOrEmpty(file.FilePurpose) ?
+        file.FileName :
+        $"{file.FileName} - ({GetFilePurposeLabel(file.FilePurpose)})";
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit() => MudDialog.Close(true);
+
+    protected override Task OnInitializedAsync()
+    {
+        _currentFile = InitialFile ?? Submission.Files.FirstOrDefault();
+
+        return base.OnInitializedAsync();
+    }
+}
