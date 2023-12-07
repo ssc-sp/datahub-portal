@@ -40,16 +40,16 @@ namespace Datahub.Core.Utils
                 OpenDataPublishingUtils.IsDateSetAndPassed(submission.InitialOpenGovSubmissionDate) ?
                     OpenDataPublishingUtils.Incomplete(step) :
                     OpenDataPublishingUtils.NotStarted(step),
-            TbsOpenGovSubmission.ProcessSteps.AwaitingImsoApproval => submission.Files.Any(f => f.FilePurpose == TbsOpenGovSubmission.IMSO_APPROVAL_FILE_TYPE) ?
+            TbsOpenGovSubmission.ProcessSteps.AwaitingImsoApproval => submission.ImsoApproved ?
                 OpenDataPublishingUtils.Complete(step) :
-                CheckStepStatus(submission, TbsOpenGovSubmission.ProcessSteps.AwaitingRemoteDqCheck).Completed ?
+                submission.ImsoApprovalRequested || CheckStepStatus(submission, TbsOpenGovSubmission.ProcessSteps.AwaitingRemoteDqCheck).Completed ?
                     OpenDataPublishingUtils.Incomplete(step) :
                     OpenDataPublishingUtils.NotStarted(step),
             TbsOpenGovSubmission.ProcessSteps.Publishing => OpenDataPublishingUtils.IsDateSetAndPassed(submission.OpenGovPublicationDate) ?
                 OpenDataPublishingUtils.Complete(step) :
                 CheckStepStatus(submission, TbsOpenGovSubmission.ProcessSteps.AwaitingImsoApproval).Completed ?
                     OpenDataPublishingUtils.Incomplete(step) :
-                    OpenDataPublishingUtils.NotStarted(step),// TODO running status when it's the next thing
+                    OpenDataPublishingUtils.NotStarted(step),
             TbsOpenGovSubmission.ProcessSteps.Published => OpenDataPublishingUtils.IsDateSetAndPassed(submission.OpenGovPublicationDate) ?
                 OpenDataPublishingUtils.Complete(step) :
                 OpenDataPublishingUtils.NotStarted(step),

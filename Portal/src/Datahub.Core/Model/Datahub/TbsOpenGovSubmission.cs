@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Datahub.Core.Utils;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -34,8 +36,15 @@ namespace Datahub.Core.Model.Datahub
         public bool LocalDQCheckPassed { get; set; }
         public DateTime? InitialOpenGovSubmissionDate { get; set; }
         public bool OpenGovDQCheckPassed { get; set; }
-        public bool ImsoApproved { get; set; }
+        public DateTime? ImsoApprovalRequestDate { get; set; }
+        public DateTime? ImsoApprovedDate { get; set; }
         public DateTime? OpenGovPublicationDate { get; set; }
+
+        [NotMapped]
+        public bool ImsoApproved => Files?.Any(f => f.FilePurpose == IMSO_APPROVAL_FILE_TYPE) ?? false && 
+            OpenDataPublishingUtils.IsDateSetAndPassed(ImsoApprovedDate);
+        [NotMapped]
+        public bool ImsoApprovalRequested => OpenDataPublishingUtils.IsDateSetAndPassed(ImsoApprovalRequestDate);
 
         public override string LocalizationPrefix => LOCALIZATION_PREFIX;
     }

@@ -3,15 +3,16 @@
 @using Datahub.Application.Services.Publishing;
 @using Datahub.Core.Model.Achievements;
 @using StatusEnum = Datahub.Core.Model.Datahub.TbsOpenGovSubmission.ProcessSteps;
-@inject IUserInformationService UserService
+@inject IUserInformationService _userService
+@inject IDialogService _dialogService
 @*
 @inject IPublicDataFileService PublicDataFileService
 @inject IMSGraphService GraphService
 @inject UIControlsService UI
 @inject NotifierService NotifierService
 @using Datahub.Core.Services.Api
-@implements IDisposable
 *@
+@implements IDisposable
 
 <MudText Typo=@Typo.h2>TBS Open Government Registry</MudText>
 
@@ -42,6 +43,16 @@
             </MudCardContent>
         </MudCard>
 
+        @if (ShowMetadataEntryForm)
+        {
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo=@Typo.h3>Submission Metadata</MudText>
+                </MudCardHeader>
+
+            </MudCard>
+        }
+
         @if (ShowOpenGovCriteriaForm)
         {
             <MudCard>
@@ -64,15 +75,31 @@
                 </MudCardHeader>
                 <MudCardContent>
                     <MudList>
+                    @foreach (var p in SUBMISSION_FILE_PURPOSES) 
+                    {
                         <MudListItem>
-                            <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
-                                FilePurpose=@TbsOpenGovSubmission.DATASET_FILE_TYPE
-                                Submission=@Submission
-                                Syncer=@Syncer
-                                Required
-                            />
+                            <MudStack Row>
+                                <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
+                                    FilePurpose=@p
+                                    Submission=@Submission
+                                    Syncer=@Syncer
+                                    Required=@IsPurposeRequired(p)
+                                    MultiSelect=@IsPurposeMultiSelectable(p)
+                                />
+                                <MudTooltip Text=@Localizer["Edit File Info"]>
+                                     <div class="reader-only">@Localizer["Edit File Info"]</div>
+                                     <MudIconButton 
+                                         Icon=@Icons.Material.Filled.Edit 
+                                         Disabled=@(!HasFileSelectedForPurpose(p))
+                                         OnClick=@(async () => await ShowFileInfoDialog(p))
+                                     />
+                                </MudTooltip>
+                            </MudStack>
+
                         </MudListItem>
-                        <MudListItem>
+
+                    }
+                        @* <MudListItem>
                             <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
                                 FilePurpose=@TbsOpenGovSubmission.METADATA_FILE_TYPE
                                 Submission=@Submission
@@ -95,13 +122,51 @@
                                 Submission=@Submission
                                 Syncer=@Syncer 
                             />
-                        </MudListItem>
+                        </MudListItem> *@
                     </MudList>
                 </MudCardContent>
                 <MudCardActions>
                     <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@UpdateSubmission >Update</MudButton>
+                    <MudSpacer />
                     <MudButton>Add files</MudButton> 
                 </MudCardActions>
+            </MudCard>
+        }
+
+        @if (ShowImsoApprovalPane)
+        {
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo=@Typo.h3>IMSO Approval</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudStack Row>
+                        @* user selector *@
+                        <MudTextField T=@string Label=@Localizer["IMSO Email"] />
+                        @if (Submission.ImsoApprovalRequested)
+                        {
+                            <MudTooltip Text=@Localizer["IMSO Approval request has been sent"]>
+                                <div class="reader-only">@Localizer["IMSO Approval request has been sent"]</div>
+                                <MudIcon Icon=@Icons.Material.Filled.Check Color=@Color.Success Size=@Size.Large />
+                            </MudTooltip>
+                        }
+                        <MudButton OnClick=@SendImsoApprovalRequest>@Localizer["Send approval request"]</MudButton>
+                    </MudStack>
+                    <MudStack Row>
+                        <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
+                            FilePurpose=@TbsOpenGovSubmission.IMSO_APPROVAL_FILE_TYPE
+                            Submission=@Submission
+                            Syncer=@Syncer
+                        />
+                        <MudButton 
+                            Variant=@Variant.Filled 
+                            Color=@Color.Primary 
+                            Disabled=@(!HasFileSelectedForPurpose(TbsOpenGovSubmission.IMSO_APPROVAL_FILE_TYPE))
+                            OnClick=@SubmitImsoApprovalDocument
+                        >@Localizer["Submit"]</MudButton>
+                    </MudStack>
+                </MudCardContent>
+
             </MudCard>
         }
 
@@ -129,8 +194,10 @@
 
     private bool SubmissionLoaded => Submission != null;
 
+    private bool ShowMetadataEntryForm => true; //TODO
     private bool ShowOpenGovCriteriaForm => _stepStates[StatusEnum.Initial] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowFileSelectionPane => _stepStates[StatusEnum.AwaitingFiles] == DHSteps<StatusEnum>.StepState.Running;
+    private bool ShowImsoApprovalPane => true; //TODO
 
     private Dictionary<StatusEnum, DHSteps<StatusEnum>.StepState> _stepStates = new();
     private Dictionary<StatusEnum, (string, string)?> _stepInfo = new();
@@ -155,6 +222,42 @@
     private string _datasetTitle;
     private PortalUser _requestingUser;
 
+    private static readonly string[] SUBMISSION_FILE_PURPOSES = new string[]
+    {
+        TbsOpenGovSubmission.DATASET_FILE_TYPE,
+        TbsOpenGovSubmission.METADATA_FILE_TYPE,
+        TbsOpenGovSubmission.DATA_DICTIONARY_FILE_TYPE,
+        TbsOpenGovSubmission.SUPPORTING_DOC_FILE_TYPE
+    };
+    private static readonly string[] REQUIRED_SUBMISSION_FILE_PURPOSES = new string[]
+    {
+        TbsOpenGovSubmission.DATASET_FILE_TYPE,
+        TbsOpenGovSubmission.DATA_DICTIONARY_FILE_TYPE
+    };
+    private static readonly string[] MULTI_SELECTABLE_FILE_PURPOSES = new string[]
+    {
+        TbsOpenGovSubmission.DATASET_FILE_TYPE,
+        TbsOpenGovSubmission.SUPPORTING_DOC_FILE_TYPE
+    };
+
+    private bool HasFileSelectedForPurpose(string purpose) => Submission?.Files?.Any(f => f.FilePurpose == purpose) ?? false;
+    private OpenDataPublishFile GetFirstFileWithPurpose(string purpose) => Submission?.Files?.FirstOrDefault(f => f.FilePurpose == purpose);
+    private bool IsPurposeRequired(string purpose) => REQUIRED_SUBMISSION_FILE_PURPOSES.Contains(purpose);
+    private bool IsPurposeMultiSelectable(string purpose) => MULTI_SELECTABLE_FILE_PURPOSES.Contains(purpose);
+
+    private async Task ShowFileInfoDialog(string initialFilePurpose)
+    {
+        var file = GetFirstFileWithPurpose(initialFilePurpose);
+
+        var dialogParams = new DialogParameters<EditFileInformationDialog>();
+        dialogParams.Add(x => x.Submission, Submission);
+        dialogParams.Add(x => x.InitialFile, file);
+
+        var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        await _dialogService.ShowAsync<EditFileInformationDialog>(Localizer["Edit File Information"], dialogParams, dialogOptions);
+    }
+
     private async Task UpdateApprovalFormId(Forms.ShareWorkflow.ApprovalFormSubmitArgs args)
     {
         //TODO 
@@ -166,6 +269,20 @@
         await UpdateSubmission();
 
         await Task.CompletedTask;
+    }
+
+    private async Task SendImsoApprovalRequest()
+    {
+        //TODO
+        Submission.ImsoApprovalRequestDate = DateTime.Today;
+        await UpdateSubmission();
+        await Task.CompletedTask;
+    }
+
+    private async Task SubmitImsoApprovalDocument()
+    {
+        Submission.ImsoApprovedDate = DateTime.Today;
+        await UpdateSubmission();
     }
 
     private async Task UpdateSubmission()
@@ -215,8 +332,15 @@
 
         SetStatusSteps();
 
-        _requestingUser = Submission?.RequestingUser ?? await UserService.GetCurrentPortalUserAsync();
+        _requestingUser = Submission?.RequestingUser ?? await _userService.GetCurrentPortalUserAsync();
+
+        if (Syncer != null) Syncer.Notify += StateHasChanged;
 
         await base.OnInitializedAsync();
+    }
+
+    public void Dispose()
+    {
+        if (Syncer != null) Syncer.Notify -= StateHasChanged;
     }
 }
