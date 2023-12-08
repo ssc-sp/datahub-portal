@@ -17,14 +17,10 @@
     [Parameter]
     public string Key { get; set; }
 
-    [Parameter]
-    public string WikiLinkEN { get; set; }
-
-    [Parameter]
-    public string WikiLinkFR { get; set; }
+    private List<PageAlertObject> _alerts = new List<PageAlertObject>();
+    private List<string> _contents = new List<string>();
 
         private const string DefaultPage = "Home";
-    private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
     private bool _contentFound = false;
 
@@ -35,27 +31,38 @@
         return _baseUrl + "/" + HttpUtility.UrlEncode(link);
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         var hideAlerts = await _userSettingsService.GetHideAlerts();
         if (!hideAlerts)
         {
-            var link = _cultureService.IsFrench ? WikiLinkFR : WikiLinkEN;
-            var content = await LoadPage(link ?? DefaultPage);
+            _alerts = DHPageAlert.Alerts[Key];
+            var links = GetLinks(_alerts);
+            _contents = await LoadPages(links);
             var hiddenAlerts = await _userSettingsService.GetHiddenAlerts();
-            
-            _markdownContent = content ?? Localizer[$"{link} cannot be found"];
-            _contentFound = content != null;
+
+            _contentFound = _contents.All(c => !string.IsNullOrEmpty(c));
+
             if (_contentFound && !hiddenAlerts.Contains(Key))
             {
                 await OpenDialog();
             }
-            
         }
         else
         {
             _contentFound = false;
         }
+    }
+
+    private async Task<List<string>> LoadPages(List<string> links)
+    {
+        var pages = new List<string>();
+        foreach (string link in links)
+        {
+            var content = await LoadPage(link ?? DefaultPage);
+            pages.Add(content ?? Localizer[$"{link} cannot be found"]);
+        }
+        return pages;
     }
 
     private async Task<string> LoadPage(string name)
@@ -79,33 +86,40 @@
         }
     }
 
-    private async Task OpenDialog()
+    private List<string> GetLinks(List<PageAlertObject> alerts)
+    {
+        var links = new List<string>();
+        foreach (PageAlertObject alert in alerts)
+        {
+            links.Add(_cultureService.IsFrench ? alert.WikiLinkFR : alert.WikiLinkEN);
+        }
+        return links;
+    }
+
+    public async Task OpenDialog()
     {
         var parameters = new DialogParameters
         {
             { "Title", Title },
-            { "Key", Key },
-            { "Content", _markdownContent },
+            { "Contents", _contents },
             { "RewriteLink", (string s) => RewriteLink(s) }
         };
 
         var options = new DialogOptions
         {
+            MaxWidth = MaxWidth.Large,
             CloseButton = true,
-            MaxWidth = MaxWidth.Medium,
+            DisableBackdropClick = true,
             FullWidth = true
-        }; 
+        };
 
         var dialog = await _dialogService.ShowAsync<DHPageAlertDialog>(Localizer["Page alert"], parameters, options);
         var result = await dialog.Result;
-        
-        if (result.Data is string s1 && s1 == "close")
+
+        if (!result.Canceled && result.Data is bool hideAlerts)
         {
-            await _userSettingsService.AddHiddenAlert(Key);
-        }
-        if (result.Data is string s2 && s2 == "hide")
-        {
-            await _userSettingsService.SetHideAlerts(true);
+           await _userSettingsService.AddHiddenAlert(Key);
+           await _userSettingsService.SetHideAlerts(hideAlerts);
         }
     }
 

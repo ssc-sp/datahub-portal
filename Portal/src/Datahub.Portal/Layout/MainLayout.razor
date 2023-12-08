@@ -2,6 +2,7 @@
 
 @using Microsoft.Identity.Web
 @using Datahub.Portal.Views.Dialogs
+@using Datahub.Core.Components.PageBanner
 
 @inject NavigationManager _navigationManager
 @inject IDatahubAuditingService _auditingService
@@ -23,6 +24,10 @@
             <Authorized>
                 @if (_isSessionEnabled == true)
                 {
+                    @if (_isUserValid)
+                    {
+                        <DHPageAlert Title="@Localizer["Welcome to Datahub"]" Key=@DHPageAlert.Home/>
+                    }
                     @Body
                 }
                 @if (_isSessionEnabled == false)
@@ -50,7 +55,7 @@ else
     private bool? _isSessionEnabled;
     private bool _isLoaded = false;
     private const string LogoutUrl = PageRoutes.Logout;
-    private bool _isUserValid = true;
+    private bool _isUserValid = false;
 
     private static readonly string[] LOAD_MESSAGES = new[] { "Recomputing DNA sequence", "Identifying the pathogen", "Recalculating fungal genome", "Predicting soil mapping", "Analyzing forest coverage" };
 
@@ -62,7 +67,6 @@ else
     protected override async Task OnInitializedAsync()
     {
         var user = await _userInformationService.GetAuthenticatedUser(true);
-        _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
 
         if (!user.Identity?.IsAuthenticated ?? true)
         {
@@ -99,11 +103,12 @@ else
                 await PromptForLanguage();
             }
 
-            var userAcceptedTac = await _userSettingsService.HasUserAcceptedTAC();
-            if (!userAcceptedTac)
+            _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
+            if (!_isUserValid)
             {
                 await PromptForTermsAndConditions();
             }
+            StateHasChanged();
         }
     }
     
