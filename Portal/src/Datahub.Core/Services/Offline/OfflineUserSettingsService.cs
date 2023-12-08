@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Datahub.Core.Model.UserTracking;
 
 namespace Datahub.Core.Services.Offline
 {
@@ -63,6 +65,11 @@ namespace Datahub.Core.Services.Offline
         public Task<bool> IsFrench()
         {
             return Task.FromResult(false);
+        }
+        
+        public Task<UserSettings?> GetUserSettingsAsync()
+        {
+            return Task.FromResult<UserSettings?>(null);
         }
     }
 }

@@ -305,10 +305,6 @@ namespace Datahub.Core.Services.UserManagement
 
         public async Task<bool> SetLanguage(string language)
         {
-            if (language == null ||
-                Thread.CurrentThread.CurrentCulture.Name.Equals(language, StringComparison.OrdinalIgnoreCase))
-                return false;
-        
             await using var context = await _datahubContextFactory.CreateDbContextAsync();
             var userSetting = await GetUserSettingsAsync();
 
@@ -318,7 +314,10 @@ namespace Datahub.Core.Services.UserManagement
                 context.UserSettings.Update(userSetting);
                 await context.SaveChangesAsync();
             }
-
+            
+            if (Thread.CurrentThread.CurrentCulture.Name.Equals(language, StringComparison.OrdinalIgnoreCase))
+                return false;
+            
             var uri = new Uri(_navigationManager.Uri).GetComponents(UriComponents.PathAndQuery,
                 UriFormat.Unescaped);
             var query = $"?culture={Uri.EscapeDataString(language)}&" +
@@ -342,7 +341,7 @@ namespace Datahub.Core.Services.UserManagement
             return !lang.ToLower().Contains("en");
         }
         
-        private async Task<UserSettings?> GetUserSettingsAsync()
+        public async Task<UserSettings?> GetUserSettingsAsync()
         {
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
             await using var context = await _datahubContextFactory.CreateDbContextAsync();
