@@ -61,7 +61,7 @@ public class RequestManagementService : IRequestManagementService
     }
 
     // TODO: Remove unused parameter "inputParams"
-    public async Task RequestService(Datahub_ProjectServiceRequests request,
+    public async Task RequestService(Datahub_ProjectRequestAudit request,
         Dictionary<string, string> inputParams = null!)
     {
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
@@ -73,11 +73,11 @@ public class RequestManagementService : IRequestManagementService
             .Collection(p => p.ServiceRequests)
             .LoadAsync();
 
-        if (request.Project.ServiceRequests?.Any(a => a.ServiceType == request.ServiceType) ?? false)
+        if (request.Project.ServiceRequests?.Any(a => a.RequestType == request.RequestType) ?? false)
         {
             _logger.LogInformation(
                 "Service request already exists for project {Acronym} and service type {ServiceType}",
-                request.Project.Project_Acronym_CD, request.ServiceType);
+                request.Project.Project_Acronym_CD, request.RequestType);
             return;
         }
         
@@ -90,13 +90,13 @@ public class RequestManagementService : IRequestManagementService
         // await NotifyProjectAdminsOfServiceRequest(request);
     }
 
-    public static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectServiceRequests request,
+    public static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectRequestAudit request,
         Dictionary<string, string> inputParams)
     {
         var resource = new Project_Resources2
         {
             Project = request.Project,
-            ResourceType = request.ServiceType,
+            ResourceType = request.RequestType,
             TimeRequested = DateTime.UtcNow
         };
 
@@ -105,7 +105,7 @@ public class RequestManagementService : IRequestManagementService
             resource.SetInputParameters(inputParams);
         }
 
-        switch (request.ServiceType)
+        switch (request.RequestType)
         {
             case IRequestManagementService.POSTGRESQL:
             case IRequestManagementService.SQLSERVER:
@@ -125,12 +125,12 @@ public class RequestManagementService : IRequestManagementService
         return resource;
     }
 
-    public async Task<List<Project_Resources2>> GetResourcesByRequest(Datahub_ProjectServiceRequests request)
+    public async Task<List<Project_Resources2>> GetResourcesByRequest(Datahub_ProjectRequestAudit request)
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
         var resources = await ctx.Project_Resources2
-            .Where(r => r.Project == request.Project && r.ResourceType == request.ServiceType)
+            .Where(r => r.Project == request.Project && r.ResourceType == request.RequestType)
             .ToListAsync();
 
         return resources;
@@ -168,11 +168,11 @@ public class RequestManagementService : IRequestManagementService
         await _miscStorageService.SaveObject(jsonContent, id);
     }
 
-    private async Task NotifyProjectAdminsOfServiceRequest(Datahub_ProjectServiceRequests request)
+    private async Task NotifyProjectAdminsOfServiceRequest(Datahub_ProjectRequestAudit request)
     {
         var admins = await GetProjectAdministratorEmailsAndIds(request.Project.Project_ID);
 
-        await _emailNotificationService.SendServiceCreationRequestNotification(request.User_Name, request.ServiceType,
+        await _emailNotificationService.SendServiceCreationRequestNotification(request.UserEmail, request.RequestType,
             request.Project.ProjectInfo, admins);
 
         var adminUserIds = admins.Where(a => Guid.TryParse(a, out _))
@@ -182,7 +182,7 @@ public class RequestManagementService : IRequestManagementService
         await _systemNotificationService.CreateSystemNotificationsWithLink(adminUserIds, $"/administration",
             "SYSTEM-NOTIFICATION.GoToAdminPage",
             "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreationRequested",
-            user.UserPrincipalName, request.ServiceType,
+            user.UserPrincipalName, request.RequestType,
             new BilingualStringArgument(request.Project.ProjectInfo.ProjectNameEn,
                 request.Project.ProjectInfo.ProjectNameFr));
     }
@@ -213,9 +213,9 @@ public class RequestManagementService : IRequestManagementService
         return GetDefaultValues(formParams);
     }
 
-    public async Task RequestServiceWithDefaults(Datahub_ProjectServiceRequests request)
+    public async Task RequestServiceWithDefaults(Datahub_ProjectRequestAudit request)
     {
-        var defaultValues = await GetDefaultValues(request.ServiceType);
+        var defaultValues = await GetDefaultValues(request.RequestType);
         if (defaultValues?.Count > 0)
         {
             await RequestService(request, defaultValues);
@@ -229,16 +229,13 @@ public class RequestManagementService : IRequestManagementService
 
     public async Task HandleRequestService(Datahub_Project project, string serviceType)
     {
-        var userId = await _userInformationService.GetUserIdString();
-        var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-        var serviceRequest = new Datahub_ProjectServiceRequests
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var serviceRequest = new Datahub_ProjectRequestAudit
         {
-            ServiceType = serviceType,
-            ServiceRequests_Date_DT = DateTime.Now,
-            Is_Completed = null,
+            RequestType = serviceType,
+            RequestedDateTime = DateTime.Now,
             Project = project,
-            User_ID = userId,
-            User_Name = graphUser.UserPrincipalName
+            UserEmail = currentUser.Email
         };
 
         await RequestServiceWithDefaults(serviceRequest);
@@ -261,9 +258,7 @@ public class RequestManagementService : IRequestManagementService
             {
                 return false;
             }
-            
-            var userId = await _userInformationService.GetUserIdString();
-            var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
+
             var currentPortalUser = await _userInformationService.GetCurrentPortalUserAsync();
 
             var newTemplates = TerraformTemplate.LatestFromNameWithDependencies(terraformTemplate);
@@ -272,14 +267,12 @@ public class RequestManagementService : IRequestManagementService
             {
                 foreach (var template in newTemplates)
                 {
-                    var serviceRequest = new Datahub_ProjectServiceRequests
+                    var serviceRequest = new Datahub_ProjectRequestAudit
                     {
-                        ServiceType = GetTerraformServiceType(template.Name),
-                        ServiceRequests_Date_DT = DateTime.Now,
-                        Is_Completed = null,
+                        RequestType = GetTerraformServiceType(template.Name),
+                        RequestedDateTime = DateTime.Now,
                         Project = project,
-                        User_ID = userId,
-                        User_Name = graphUser.UserPrincipalName
+                        UserEmail = currentPortalUser.Email
                     };
 
                     await RequestServiceWithDefaults(serviceRequest);

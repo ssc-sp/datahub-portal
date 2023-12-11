@@ -29,8 +29,8 @@ public class DHDatabricksResource : ActiveGitModuleResource
         var serviceRequests = Project.ServiceRequests;
         var serviceTerraformTemplateName =
             RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
-        _databricksServiceRequested = serviceRequests.Any(r => r.ServiceType == serviceTerraformTemplateName && r.Is_Completed == null);
-        _databricksServiceCreated = serviceRequests.Any(r => r.ServiceType == serviceTerraformTemplateName && r.Is_Completed != null);
+        // _databricksServiceRequested = serviceRequests.Any(r => r.RequestType == serviceTerraformTemplateName && r.Is_Completed == null);
+        // _databricksServiceCreated = serviceRequests.Any(r => r.RequestType == serviceTerraformTemplateName && r.Is_Completed != null);
         
         Parameters.Add(nameof(Databricks.Project), Project);
     }
