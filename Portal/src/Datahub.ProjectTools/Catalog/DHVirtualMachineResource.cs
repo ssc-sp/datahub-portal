@@ -32,8 +32,8 @@ public class DHVirtualMachineResource : ActiveGitModuleResource
         var serviceRequests = Project.ServiceRequests;
         var serviceTerraformTemplateName =
             RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
-        _serviceRequested = serviceRequests.Any(r => r.ServiceType == serviceTerraformTemplateName && r.Is_Completed == null);
-        _serviceCreated = serviceRequests.Any(r => r.ServiceType == serviceTerraformTemplateName && r.Is_Completed != null);
+        // _serviceRequested = serviceRequests.Any(r => r.RequestType == serviceTerraformTemplateName && r.Is_Completed == null);
+        // _serviceCreated = serviceRequests.Any(r => r.RequestType == serviceTerraformTemplateName && r.Is_Completed != null);
     }
 
     protected override Type ComponentType { get; }

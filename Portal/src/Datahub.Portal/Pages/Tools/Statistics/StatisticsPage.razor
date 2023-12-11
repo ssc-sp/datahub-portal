@@ -218,12 +218,12 @@
                     Admins = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Admin).Select(u => u.User_Name).ToList(),
                     Collaborators = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Collaborator).Select(u => u.User_Name).ToList(),
                     StorageStatus = p.ServiceRequests?
-                        .Where(sr => sr.ServiceType.Contains(TerraformTemplate.AzureStorageBlob))
-                        .Select(sr => sr.Is_Completed.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
+                        .Where(sr => sr.RequestType.Contains(TerraformTemplate.AzureStorageBlob))
+                        .Select(sr => sr.CompletedDateTime.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
                         .FirstOrDefault() ?? DatahubProjectStatsRow.ResourceStatus.None,
                     DatabricksStatus = p.ServiceRequests?
-                        .Where(sr => sr.ServiceType.Contains(TerraformTemplate.AzureDatabricks))
-                        .Select(sr => sr.Is_Completed.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
+                        .Where(sr => sr.RequestType.Contains(TerraformTemplate.AzureDatabricks))
+                        .Select(sr => sr.CompletedDateTime.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
                         .FirstOrDefault() ?? DatahubProjectStatsRow.ResourceStatus.None
                 })
                 .ToList();
