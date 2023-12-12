@@ -61,18 +61,19 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var user = await _userInformationService.GetAuthenticatedUser(true);
-        _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
-
-        if (!user.Identity?.IsAuthenticated ?? true)
-        {
-            var returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
-            _navigationManager.NavigateTo($"/login?redirectUri={returnUrl}", forceLoad: true);
-            return;
-        }
 
         try
         {
+            var user = await _userInformationService.GetAuthenticatedUser(true);
+
+            if (!user.Identity?.IsAuthenticated ?? true)
+            {
+                var returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+                _navigationManager.NavigateTo($"/login?redirectUri={returnUrl}", forceLoad: true);
+                return;
+            }
+            
+            _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
             _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
             await _auditingService.TrackEvent("Login");
         }
