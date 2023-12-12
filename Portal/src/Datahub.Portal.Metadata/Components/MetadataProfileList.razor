@@ -5,7 +5,7 @@
 @using Datahub.Metadata.DTO
 
 <div>
-    <AeTable 
+@*     <AeTable 
         Accessors=@_profileAccessorFunctions 
         T=@ProfileSummary
         Dataset=@_profiles
@@ -13,6 +13,24 @@
         Renderers=@_profileRenderFunctions
         GridTemplateColumns="3fr 3fr 1fr"
     />
+
+ *@
+    <MudTable T=@ProfileSummary
+        Items=@_profiles
+        >
+        <HeaderContent>
+            <MudTh>@Localizer["Name"]</MudTh>
+            <MudTh>@Localizer["Sections"]</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd>@GetProfileName(context)</MudTd>
+            <MudTd>@GetProfileSections(context)</MudTd>
+            <MudTd>@GetEditProfileFragment(context)</MudTd>
+        </RowTemplate>
+
+    </MudTable>
     <div style="margin-top: 16px;">
         <AeButton To="/metadata/newprofile">@Localizer["Add Profile"]</AeButton>
     </div>

@@ -13,7 +13,7 @@
         />
     </div>
 
-    <AePaginatedTable 
+    @* <AePaginatedTable 
         @ref=@_table
         Accessors=@_accessorFunctions 
         T=@FieldDefinition
@@ -23,7 +23,30 @@
         Page="@_lastClicked"
         PageSize=@_pageSize
         GridTemplateColumns="1fr 3fr 3fr 3fr 2fr 1fr"
-    />
+    /> *@
+    <MudTable T=@FieldDefinition
+        Items=@_filteredDefinitions
+        >
+        <HeaderContent>
+            <MudTh>@Localizer["Order"]</MudTh>
+            <MudTh>@Localizer["ID"]</MudTh>
+            <MudTh>@Localizer["English Name"]</MudTh>
+            <MudTh>@Localizer["French Name"]</MudTh>
+            <MudTh>@Localizer["Has Choices?"]</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd>@GetOrder(context)</MudTd>
+            <MudTd>@GetName(context)</MudTd>
+            <MudTd>@GetNameEnglish(context)</MudTd>
+            <MudTd>@GetNameFrench(context)</MudTd>
+            <MudTd>@GetHasChoices(context)</MudTd>
+            <MudTd>@GetEditFragment(context)</MudTd>
+        </RowTemplate>
+
+    </MudTable>
+
     @if (_table != null)
     {
         <AePagination 

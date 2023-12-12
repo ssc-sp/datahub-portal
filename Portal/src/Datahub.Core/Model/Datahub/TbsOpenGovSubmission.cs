@@ -16,6 +16,9 @@ namespace Datahub.Core.Model.Datahub
         public const string DATA_DICTIONARY_FILE_TYPE = "DataDictionary";
         public const string IMSO_APPROVAL_FILE_TYPE = "ImsoApproval";
 
+        public const string PUBLICATION_METADATA_PROFILE_NAME = "publication";
+        public const string RESOURCE_METADATA_PROFILE_NAME = "pub_resource";
+
         public const string LOCALIZATION_PREFIX = nameof(OpenDataPublishProcessType.TbsOpenGovPublishing);
 
         public enum ProcessSteps
@@ -45,6 +48,8 @@ namespace Datahub.Core.Model.Datahub
             OpenDataPublishingUtils.IsDateSetAndPassed(ImsoApprovedDate);
         [NotMapped]
         public bool ImsoApprovalRequested => OpenDataPublishingUtils.IsDateSetAndPassed(ImsoApprovalRequestDate);
+        [NotMapped]
+        public string MetadataObjectID => $"OpenGovSubmission{Id}";
 
         public override string LocalizationPrefix => LOCALIZATION_PREFIX;
     }

@@ -1,0 +1,40 @@
+﻿@* TbsOpenGovSubmissionMetadataEditor.razor *@
+
+@using Datahub.Metadata.DTO
+
+<ObjectMetadataEditor @ref=@_editor
+    @key=@ObjectId
+    ObjectId=@ObjectId
+    ObjectType=@Datahub.Metadata.Model.MetadataObjectType.TbsOpenGovSubmission
+    ProfileName=@TbsOpenGovSubmission.PUBLICATION_METADATA_PROFILE_NAME
+    Location=@ProjectAcronym
+    UpdateCatalog=@false
+    SecurityClass=@Core.SecurityClassification.Unclassified
+    SaveButtonLabel=@Localizer["Save"]
+    OnSave=@HandleSave
+    DefaultMetadataId=@Submission.Project.Project_Acronym_CD
+    />
+
+@code {
+    [Parameter]
+    public TbsOpenGovSubmission Submission { get; set; }
+
+
+    private async Task HandleSave(FieldValueContainer values)
+    {
+        //TODO
+
+        await Task.CompletedTask;
+    }
+
+    private ObjectMetadataEditor _editor;
+    private string ObjectId => Submission.MetadataObjectID;
+    private string ProjectAcronym => Submission.Project.Project_Acronym_CD;
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        
+        await base.OnInitializedAsync();
+    }
+}
