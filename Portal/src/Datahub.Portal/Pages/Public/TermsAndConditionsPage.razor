@@ -1,4 +1,5 @@
 @using Datahub.Core.Components.Common
+@using Datahub.Markdown
 
 @inject CultureService _cultureService
 @inject ILogger<TermsAndConditionsPage> _logger
@@ -7,7 +8,10 @@
 
 @page "/terms-and-conditions"
 
-<MudButton Style="position: absolute; top: 2rem; right:  2rem;" Variant="Variant.Filled" Color="Color.Primary">
+<MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/home" Style="position: absolute; top: 2rem; left:  2rem;">
+    @Localizer["Back to DataHub"]
+</MudButton>
+<MudButton Variant="Variant.Filled" Color="Color.Primary" Style="position: absolute; top: 2rem; right:  2rem;">
     <LanguageToggle />
 </MudButton>
 
@@ -40,7 +44,7 @@
         try
         {
             var output = await client.GetStringAsync(fullUrl);
-            return Core.Services.Docs.MarkdownHelper.RemoveFrontMatter(output);
+            return MarkdownHelper.RemoveFrontMatter(output);
         }
         catch (Exception ex)
         {

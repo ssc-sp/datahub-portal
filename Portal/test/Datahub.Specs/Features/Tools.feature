@@ -3,7 +3,7 @@ Feature: Tools
 
 @admintools
 Scenario: Tools page for admins is accessible
-	Given the user is in the tools page
+	Given an admin is in the tools page
 	And the sidebar contains the tools button
 	Then a set of tools are available
 	# Given the admin access is switch off

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>1630f78f-83d6-46aa-8b27-620733e6df2f</UserSecretsId>
@@ -12,6 +12,7 @@
     <None Remove="config.deepl.json" />
     <None Remove="config.deepl.json.sample" />
     <None Remove="config.json" />
+    <None Remove="SyncDocs.csproj.backup" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,10 +31,27 @@
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="DeepL.net" Version="1.7.1" />
     <PackageReference Include="Markdig" Version="0.33.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
-    
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.*" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.*" />
     <PackageReference Include="YamlDotNet" Version="13.3.1" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\src\Datahub.Markdown\Datahub.Markdown.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\src\Datahub.Markdown\Datahub.Markdown.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\src\Datahub.Markdown\Datahub.Markdown.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
 
 </Project>

@@ -23,6 +23,8 @@ public interface IRequestManagementService
     Task<Dictionary<string, string>> GetDefaultValues(string resourceType);
     Task<string> GetResourceInputDefinitionJson(string resourceType);
     Task<List<Project_Resources2>> GetResourcesByRequest(Datahub_ProjectServiceRequests request);
+    
+    [Obsolete("Use HandleTerraformRequestServiceAsync instead")]
     Task HandleRequestService(Datahub_Project project, string serviceType);
     
     /// <summary>

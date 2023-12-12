@@ -1,13 +1,12 @@
 {
   "ConnectionStrings": {
-    "datahub-mssql-project": "",
-    "datahub-mssql-pip": "",
-    "datahub-mssql-etldb": "",
-    "datahub-mssql-finance": "",
-    "datahub-mssql-webanalytics": "",
-    "datahub-cosmosdb": "",
-    "datahub-mssql-metadata-bak": "",
-    "datahub-mssql-metadata": ""
+    "datahub_mssql_project": "",
+    "datahub_mssql_pip": "",
+    "datahub_mssql_etldb": "",
+    "datahub_mssql_finance": "",
+    "datahub_mssql_webanalytics": "",
+    "datahub_mssql_metadata-bak": "",
+    "datahub_mssql_metadata": ""
   },
   "AzureAd": {
     "Instance": "https://login.microsoftonline.com/",

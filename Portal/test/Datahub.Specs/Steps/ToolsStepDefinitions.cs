@@ -14,7 +14,7 @@ public class ToolsStepDefinitions
         _toolsPageObject = toolsPageObject;
     }
 
-    [Given(@"the user is in the tools page")]
+    [Given(@"an admin is in the tools page")]
     public async Task GivenTheUserIsInTheToolsPage()
     {
         await _toolsPageObject.NavigateAsync();

@@ -1,0 +1,141 @@
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Repositories
+@using Datahub.Shared.Entities
+@using Datahub.Portal.Pages.Project.DataProject
+@using Datahub.Application.Services.Notebooks
+@using Datahub.Portal.Pages.Workspace.Repositories
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ILogger<WorkspaceDashboard> _logger
+@inject IDatabricksApiService _databricksApiService
+
+@if (_project is null)
+{
+    <DHLoadingInitializer/>
+    return;
+}
+
+<MudGrid>
+    <MudItem xs="12" sm="8">
+        <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym"/>
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
+            <WorkspaceAdminInfo WorkspaceAcronym="@WorkspaceAcronym"/>
+        </DatahubAuthView>
+    </MudItem>
+    <MudItem xs="12" sm="8">
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym">
+            <Authorized>
+                <MudGrid>
+                    @if (_resources.Any())
+                    {
+                        @foreach (var resource in _resources)
+                        {
+                            var found = _cardComponents.ContainsKey(resource.ResourceType);
+                            if (found)
+                            {
+                                var parameters = new Dictionary<string, object>
+                                {
+                                    { "ProjectResource", resource },
+                                    { "WorkspaceAcronym", WorkspaceAcronym }
+                                };
+                                <MudItem>
+                                    <DynamicComponent Type="@_cardComponents[resource.ResourceType]" Parameters="@parameters"/>
+                                </MudItem>
+                            }
+                            else
+                            {
+                                _logger.LogError("Unknown resource type: {ResourceResourceType}", resource.ResourceType);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <MudItem>
+                            <MudStack Justify="Justify.Center">
+                                <MudText >
+                                    @Localizer["It looks like you don't have any workspace tools yet."]
+                                </MudText>
+                                <MudText >
+                                    @Localizer["You can request workspace tools from the 'Toolbox' tab."]
+                                </MudText>
+                                <MudElement HtmlTag="div">
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="@_toolboxLink">
+                                        @Localizer["View Toolbox"]
+                                    </MudButton>
+                                </MudElement>
+                            </MudStack>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </Authorized>
+            <NotAuthorized>
+                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+                    <MudStack>
+                        <MudText Class="mt-2 mb-6" Typo="Typo.h5">@Localizer["Shared Content"]</MudText>
+                        @if (_projectRepositories != null && _projectRepositories.Any())
+                        {
+                            @foreach (var projectRepository in _projectRepositories)
+                            {
+                                <RepositoryCard ProjectRepository="@projectRepository"/>
+                            }
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body1">@Localizer["No shared content available."]</MudText>
+                            <MudText Typo="Typo.body1">@Localizer["Please contact the workspace administrators for access or to share repositories."]</MudText>
+                        }
+                    </MudStack>
+                </DatahubAuthView>
+            </NotAuthorized>
+        </DatahubAuthView>
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <WorkspaceUserCardList ProjectAcronym="@WorkspaceAcronym"/>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    private Datahub_Project _project;
+
+    private List<Project_Resources2> _resources;
+    private string _toolboxLink => $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Toolbox}";
+
+    private Dictionary<string, Type> _cardComponents = new()
+    {
+        { "terraform:azure-databricks", typeof(DatabricksCard) },
+        { "terraform:azure-storage-blob", typeof(StorageCard) }
+    };
+
+    private List<ProjectRepository> _projectRepositories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+        _project = await context.Projects
+            .Include(w => w.Resources)
+            .FirstOrDefaultAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
+
+        _resources = _project.Resources
+            .Where(r => r.ResourceType != RequestManagementService.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
+            .OrderBy(r => r.ResourceType)
+            .ToList();
+
+        _projectRepositories = await _databricksApiService.ListDisplayedWorkspaceRepositoriesAsync(WorkspaceAcronym);
+    }
+
+    private string ParseResourceType(string resourceType)
+    {
+    // if it's in the dictionary, return the type otherwise return null
+        return _cardComponents.ContainsKey(resourceType) ? resourceType : null;
+    }
+
+}

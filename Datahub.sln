@@ -6,8 +6,10 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B6CC5ED1-A990-4AC7-89C7-B0F62FFEEC26}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		bleach.ps1 = bleach.ps1
 		COPYRIGHT.md = COPYRIGHT.md
 		dh-portal.ps1 = dh-portal.ps1
+		dotnet-upgrade.ps1 = dotnet-upgrade.ps1
 		global.json = global.json
 		LICENSE.md = LICENSE.md
 		nuget.config = nuget.config
@@ -136,6 +138,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desktop.Uploader", "Desktop\Desktop.Uploader\Desktop.Uploader.csproj", "{99E69964-BB4A-4830-9C4D-6E1608356EC4}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Desktop.SharedCode", "Desktop\Desktop.SharedCode\Desktop.SharedCode.shproj", "{C694124A-399C-4FD6-B795-D9ACE5EBECDC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Functions.UnitTests", "Portal\test\Datahub.Functions.UnitTests\Datahub.Functions.UnitTests.csproj", "{0AC4C517-2D60-4E33-B2B7-CDAFB40EF6CF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Markdown", "Shared\src\Datahub.Markdown\Datahub.Markdown.csproj", "{819408C3-1962-4642-9971-51A1BCCE61FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Stories", "Portal\src\Datahub.Stories\Datahub.Stories.csproj", "{9D940C0C-8D3D-4314-8F17-43AF32D3761F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Infrastructure.Offline", "Portal\src\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj", "{E84F619D-E105-4E1A-BD92-DF22DDAE966F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -300,6 +310,22 @@ Global
 		{99E69964-BB4A-4830-9C4D-6E1608356EC4}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{99E69964-BB4A-4830-9C4D-6E1608356EC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99E69964-BB4A-4830-9C4D-6E1608356EC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D940C0C-8D3D-4314-8F17-43AF32D3761F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D940C0C-8D3D-4314-8F17-43AF32D3761F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D940C0C-8D3D-4314-8F17-43AF32D3761F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D940C0C-8D3D-4314-8F17-43AF32D3761F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E84F619D-E105-4E1A-BD92-DF22DDAE966F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E84F619D-E105-4E1A-BD92-DF22DDAE966F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E84F619D-E105-4E1A-BD92-DF22DDAE966F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E84F619D-E105-4E1A-BD92-DF22DDAE966F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AC4C517-2D60-4E33-B2B7-CDAFB40EF6CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AC4C517-2D60-4E33-B2B7-CDAFB40EF6CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AC4C517-2D60-4E33-B2B7-CDAFB40EF6CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AC4C517-2D60-4E33-B2B7-CDAFB40EF6CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{819408C3-1962-4642-9971-51A1BCCE61FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{819408C3-1962-4642-9971-51A1BCCE61FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{819408C3-1962-4642-9971-51A1BCCE61FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{819408C3-1962-4642-9971-51A1BCCE61FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -353,13 +379,18 @@ Global
 		{5FB450AC-5E50-46A8-B454-EAD8ACD24FC6} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{99E69964-BB4A-4830-9C4D-6E1608356EC4} = {8B889747-F089-4150-AC80-FCAE5FA33571}
 		{C694124A-399C-4FD6-B795-D9ACE5EBECDC} = {8B889747-F089-4150-AC80-FCAE5FA33571}
+		{9D940C0C-8D3D-4314-8F17-43AF32D3761F} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
+		{E84F619D-E105-4E1A-BD92-DF22DDAE966F} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
+		{0AC4C517-2D60-4E33-B2B7-CDAFB40EF6CF} = {47D68FB0-47FE-485D-AE94-00C48643721E}
+		{819408C3-1962-4642-9971-51A1BCCE61FF} = {839AFC95-740D-4C44-8F05-254250306841}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{57703cec-08b9-40b8-b5e2-064a196b1587}*SharedItemsImports = 5
 		Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{79da8e04-5655-493a-80e4-37a07fbec90e}*SharedItemsImports = 13

@@ -76,8 +76,14 @@
 
         if (firstRender)
         {
-            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
-                "./Layout/Topbar/HelpPopup.razor.js");
+            try
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import","./Layout/Topbar/HelpPopup.razor.js");
+            }
+            catch (Exception e)
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import","./_content/Datahub.Portal/Layout/Topbar/HelpPopup.razor.js");
+            }
 
             _dotNetHelper = DotNetObjectReference.Create(this);
             

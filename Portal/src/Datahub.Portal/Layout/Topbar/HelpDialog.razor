@@ -1,9 +1,8 @@
-﻿@inject IUserInformationService _userInformationService
+﻿@inject IUserSettingsService _userSettingsService
+@inject IUserInformationService _userInformationService
 @inject IKeyVaultService _keyVaultService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IDialogService DialogService
-@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
-@inject UIControlsService _uiControlsService
 @inject NavigationManager _navigationManager
 @inject DatahubPortalConfiguration _portalConfiguration
 @inject IJSRuntime _jsRuntime
@@ -92,7 +91,7 @@
             {
                 @if (topic.Value)
                 {
-                        <MudText Typo="@Typo.body2">@Localizer[@topic.Key]</MudText>
+                    <MudText Typo="@Typo.body2">@Localizer[@topic.Key]</MudText>
                 }
             }
             <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Workspaces"]</MudText>
@@ -115,7 +114,7 @@
                 <MudText Typo="@Typo.body2">@Localizer["Français"]</MudText>
             }
         </MudPaper>
-     }
+    }
     <MudGrid Class="pt-3">
         <MudItem xs="6" Align="Align.Start" Class="py-6">
             @if (_currentStep == Steps.Start)
@@ -255,34 +254,36 @@
 
     protected override async Task OnInitializedAsync()
     {
+    // Retrieve general info, such as the user submitting the issue.
+
         try
         {
-    // Retrieve general info, such as the user submitting the issue.
             _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Layout/Topbar/HelpDialog.razor.js");
-            _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
-            _ticketName = _viewedUser.DisplayName;
-            _ticketEmail = _viewedUser.Email;
-            _ticketOrg = GetOrg(_ticketEmail);
-            _ticketPortalLanguage = await _userInformationService.GetUserLanguage();
+        }
+        catch (Exception e)
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Layout/Topbar/HelpDialog.razor.js");
+        }
+        
+        _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+        _ticketName = _viewedUser.DisplayName;
+        _ticketEmail = _viewedUser.Email;
+        _ticketOrg = GetOrg(_ticketEmail);
+        _ticketPortalLanguage = await _userSettingsService.GetUserLanguage();
 
     // Retrieve the list of workspaces
-            await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-            _userRoles = await dbContext.Project_Users
-                .Include(u => u.Role)
-                .Include(u => u.Project)
-                .ThenInclude(p => p.Users)
-                .Include(u => u.PortalUser)
-                .Where(u => u.PortalUser.GraphGuid == _viewedUser.GraphGuid)
-                .ToListAsync();
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        _userRoles = await dbContext.Project_Users
+            .Include(u => u.Role)
+            .Include(u => u.Project)
+            .ThenInclude(p => p.Users)
+            .Include(u => u.PortalUser)
+            .Where(u => u.PortalUser.GraphGuid == _viewedUser.GraphGuid)
+            .ToListAsync();
 
-            foreach (var project in _userRoles.Select(userRole => userRole.Project))
-            {
-                _ticketWorkspaces.Add(project.Project_Name, false);
-            }
-        }
-        catch (Exception ex)
+        foreach (var project in _userRoles.Select(userRole => userRole.Project))
         {
-            _consentHandler.HandleException(ex);
+            _ticketWorkspaces.Add(project.Project_Name, false);
         }
     }
 

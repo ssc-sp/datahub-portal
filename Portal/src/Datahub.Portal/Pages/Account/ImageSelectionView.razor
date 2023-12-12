@@ -1,0 +1,71 @@
+@using Datahub.Core.Model.Achievements
+
+<MudGrid Justify="Justify.Center">
+    @foreach (var userAchievement in ViewedUser.GetUserAchievements())
+    {
+        <MudItem>
+            <MudTooltip Arrow Placement="Placement.Top">
+                <ChildContent>
+                    <MudLink OnClick="@(() => SelectImage(userAchievement))">
+                        <DialogImageItem
+                            Large="@(!IsProfilePictureDialog)"
+                            Code="@(userAchievement.AchievementId)"
+                            Selected="@(userAchievement.AchievementId == _selectedCode)"/>
+                    </MudLink>
+                </ChildContent>
+                <TooltipContent>
+                    <AchievementCard Achievement="@userAchievement.Achievement"/>
+                </TooltipContent>
+            </MudTooltip>
+        </MudItem>
+    }
+    @foreach (var achievement in ViewedUser.GetUnEarnedAchievements())
+    {
+        <MudItem>
+            <MudTooltip Arrow Placement="Placement.Top">
+                <ChildContent>
+                    <DialogImageItem
+                        Large="@(!IsProfilePictureDialog)"
+                        Code="@(achievement.Id)"
+                        Selected="@(achievement.Id == _selectedCode)"
+                        Hidden="@true"/>
+                </ChildContent>
+                <TooltipContent>
+                    <AchievementCard Achievement="@achievement"/>
+                </TooltipContent>
+            </MudTooltip>
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+
+    [Parameter]
+    public PortalUser ViewedUser { get; set; }
+
+    [Parameter]
+    public bool IsProfilePictureDialog { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnImageSelected { get; set; }
+
+    private string _selectedCode = "";
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _selectedCode = IsProfilePictureDialog ? ViewedUser.ProfilePictureUrl : ViewedUser.BannerPictureUrl;
+    }
+
+    private void SelectImage(UserAchievement userAchievement)
+    {
+        if (!userAchievement.Earned)
+        {
+            return;
+        }
+        _selectedCode = userAchievement.AchievementId;
+        OnImageSelected.InvokeAsync(_selectedCode);
+        StateHasChanged();
+    }
+
+}
