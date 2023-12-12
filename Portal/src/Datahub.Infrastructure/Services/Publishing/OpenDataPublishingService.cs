@@ -2,6 +2,7 @@
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Utils;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +14,12 @@ namespace Datahub.Infrastructure.Services.Publishing
     public class OpenDataPublishingService : IOpenDataPublishingService
     {
         private readonly IUserInformationService _userService;
+        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 
-        public OpenDataPublishingService(IUserInformationService userService)
+        public OpenDataPublishingService(IUserInformationService userService, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
         {
             _userService = userService;
+            _dbContextFactory = dbContextFactory;
         }
 
         public async Task<List<OpenDataSubmission>> GetAvailableOpenDataSubmissionsForWorkspaceAsync(int workspaceId)
@@ -90,6 +93,8 @@ namespace Datahub.Infrastructure.Services.Publishing
         private async Task<TbsOpenGovSubmission> CreateTestSubmission(long submissionId)
         {
             var currentUser = await _userService.GetCurrentPortalUserAsync();
+            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            var alteProject = ctx.Projects.FirstOrDefault(p => p.Project_Acronym_CD == "ALTE");
 
             var files = new List<OpenDataPublishFile>()
             {
@@ -112,6 +117,8 @@ namespace Datahub.Infrastructure.Services.Publishing
                 OpenGovCriteriaMetDate = DateTime.Today,
                 RequestingUserId = currentUser.Id,
                 RequestingUser = currentUser,
+                Project = alteProject,
+                ProjectId = alteProject?.Project_ID ?? default,
                 Files = files
             };
 

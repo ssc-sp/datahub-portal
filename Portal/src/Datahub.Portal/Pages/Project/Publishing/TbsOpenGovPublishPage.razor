@@ -20,7 +20,7 @@
 {
 
     <MudText Typo=@Typo.h3>Dataset: @Submission.DatasetTitle</MudText>
-
+    
     <MudStack Spacing="6" >
 
         <MudCard>
@@ -49,7 +49,9 @@
                 <MudCardHeader>
                     <MudText Typo=@Typo.h3>Submission Metadata</MudText>
                 </MudCardHeader>
-
+                <MudCardContent>
+                    <TbsOpenGovSubmissionMetadataEditor Submission=@Submission />
+                </MudCardContent>
             </MudCard>
         }
 
