@@ -59,6 +59,7 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Datahub.Infrastructure.Offline;
 using Datahub.Application.Configuration;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Transforms;
@@ -439,7 +440,6 @@ public class Startup
         services.AddSingleton<GitHubToolsService>();
 
         services.AddScoped<NotificationsService>();
-        services.AddScoped<UIControlsService>();
         services.AddScoped<NotifierService>();
 
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
@@ -474,12 +474,9 @@ public class Startup
     {
         var projectsDatabaseConnectionString = Configuration.GetConnectionString("datahub_mssql_project");
         var useSqlite = projectsDatabaseConnectionString?.StartsWith("Data Source=") ?? false;
-
+        
         ConfigureDbContext<DatahubProjectDBContext>(services, "datahub_mssql_project", useSqlite ? DbDriver.Sqlite : DbDriver.Azure);
-
-        //ConfigureDbContext<DatahubProjectDBContext>(services, "datahub_mssql_project", Configuration.GetDriver());
-        ConfigureDbContext<WebAnalyticsContext>(services, "datahub_mssql_webanalytics", Configuration.GetDriver());
-        ConfigureDbContext<MetadataDbContext>(services, "datahub_mssql_metadata", Configuration.GetDriver());
+        ConfigureDbContext<MetadataDbContext>(services, "datahub_mssql_metadata", DbDriver.Azure);
     }
 
     private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName, DbDriver dbDriver)

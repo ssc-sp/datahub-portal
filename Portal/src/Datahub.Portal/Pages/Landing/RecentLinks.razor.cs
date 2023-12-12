@@ -27,6 +27,8 @@ public partial class RecentLinks
             _ => string.IsNullOrWhiteSpace(link.Name) ? "Power BI" : Localizer[link.Name]
         };
     }
+
+
     
     private static string GetIconName(UserRecentLink link, Datahub_Project project)
     {

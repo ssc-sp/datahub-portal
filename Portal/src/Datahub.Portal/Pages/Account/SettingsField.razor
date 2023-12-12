@@ -1,0 +1,26 @@
+<MudStack>
+    <MudText>
+        <strong>
+            @Label
+        </strong>
+    </MudText>
+    <MudText>
+        @Description
+    </MudText>
+    <MudElement>
+        @ChildContent
+    </MudElement>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public string Label { get; set; }
+
+    [Parameter]
+    public string Description { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+}

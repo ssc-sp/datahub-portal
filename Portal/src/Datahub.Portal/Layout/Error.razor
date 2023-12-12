@@ -1,8 +1,13 @@
 ﻿@using Datahub.Core.Services.Notification
 @inject IJSRuntime JSRuntime
 @inject IEmailNotificationService EmailNotificationService
+@inject IUserInformationService _userInformationService
 
 <p id="datahub-error-page" style="display: none">An error has occured!</p>
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar/>
+</SectionContent>
 
 <MudCard Class="pa-4">
     <MudCardHeader>
@@ -70,7 +75,7 @@
     {
         var template = Localizer["ERROR-PAGE.ErrorExplanation-Text"].ToString();
         return new MarkupString(string.Format(template, $"<strong>{CorrelationId}</strong>"));
-    }    
+    }
 
     private string AppInsightsQuery => $"exceptions\n| where customDimensions.correlationId == '{CorrelationId}'";
 
@@ -81,7 +86,9 @@
             _emailSent = true;
             await InvokeAsync(StateHasChanged);
 
-            await EmailNotificationService.EmailErrorToDatahub($"Datahub App Error - {CorrelationId}", User, "",
+            var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
+
+            await EmailNotificationService.EmailErrorToDatahub($"Datahub App Error - {CorrelationId}", portalUser.Email, "",
                 AppInsightsQuery, Exception?.StackTrace);
         }
         catch (Exception)
@@ -89,4 +96,5 @@
             _emailSent = false;
         }
     }
+
 }
