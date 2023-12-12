@@ -18,5 +18,6 @@ public enum DatahubLinkType
     M365Form,
     Undefined,
     ExternalUrl,
-    ResourceArticle
+    ResourceArticle,
+    AzureWebApp,
 }

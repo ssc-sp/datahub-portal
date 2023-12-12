@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>cce3a628-1e77-4f9d-9d6e-247ef30bfaf7</UserSecretsId>
@@ -34,7 +34,7 @@
 
     <ItemGroup>
         
-		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.*" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
         
         <PackageReference Include="Microsoft.Playwright.NUnit" Version="1.37.1" />
@@ -67,6 +67,9 @@
       </Compile>
       <Compile Update="Features\Workspace.feature.cs">
         <DependentUpon>Workspace.feature</DependentUpon>
+      </Compile>
+      <Compile Update="Features\Login.feature.cs">
+        <DependentUpon>Login.feature</DependentUpon>
       </Compile>
     </ItemGroup>
 
@@ -110,5 +113,7 @@
     <ItemGroup>
       <ProjectReference Include="..\..\src\Datahub.Application\Datahub.Application.csproj" />
     </ItemGroup>
+
+
 
 </Project>

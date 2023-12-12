@@ -29,8 +29,7 @@ public class ServiceAuthTests:IDisposable
             .Options);
         mockDbFactory.Setup(f => f.CreateDbContext())
             .Returns(ctx);
-        var mockGraph = new Mock<IMSGraphService>();
-        _authManager = new ServiceAuthManager(serviceAuthCache, mockDbFactory.Object,mockGraph.Object);
+        _authManager = new ServiceAuthManager(serviceAuthCache, mockDbFactory.Object);
     }
 
     public void Dispose()

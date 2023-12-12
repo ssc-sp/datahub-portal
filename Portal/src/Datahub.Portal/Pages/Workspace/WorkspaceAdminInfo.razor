@@ -1,0 +1,99 @@
+@using Datahub.Core.Model.Projects
+@using Datahub.Infrastructure.Services.Azure
+@using Datahub.Core.Data.CostEstimators
+@using System.Text.Json
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IAzurePriceListService _azurePriceListService
+
+@if (_projectBudget != 0)
+{
+    <MudGrid>
+        <MudItem xs="12">
+            <MudText Typo="Typo.h2">@Localizer["Administrative Summary"]</MudText>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudChart ChartType="ChartType.Donut"
+                      ChartOptions="@_chartOptions"
+                      Width="150px"
+                      Height="150px"
+                      InputData="@(new[] { (double)(_remainingBudget / _projectBudget), (double)(1 - (_remainingBudget / _projectBudget)) })">
+                <CustomGraphics>
+                    <text class="donut-inner-text" x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">@Localizer["remaining credits"]</text>
+                    <text class="donut-inner-text" x="50%" y="47.5%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="4">@($"{_remainingBudget:C}")</text>
+                    <text class="donut-inner-text" x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">@Localizer["of {0}", $"{_projectBudget:C}"]</text>
+                </CustomGraphics>
+            </MudChart>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudStack>
+                <MudText>@Localizer["{0} credits consumed yesterday", $"{_yesterdayCost:C}"]</MudText>
+                <MudText>@Localizer["{0} credits consumed on average (daily)", $"{_averageDailyCost:C}"]</MudText>
+                <MudButton Variant="Variant.Text">
+                    @Localizer["View Reports"]
+                </MudButton>
+            </MudStack>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+
+    [Parameter, EditorRequired]
+    public string WorkspaceAcronym { get; set; }
+
+    private decimal _projectBudget { get; set; }
+    private Project_Credits _projectCredits { get; set; }
+
+    private decimal CurrentCost => Convert.ToDecimal(_projectCredits?.Current ?? 0);
+
+    private decimal _remainingBudget;
+    private decimal _yesterdayCost => (decimal)_yesterdayServiceCosts.Sum(s => s.Cost);
+    private decimal _averageDailyCost => _currentDailyCosts.Any() ? (decimal)_currentDailyCosts.Average(d => d.Cost) : 0;
+
+    private List<AzureDailyCost> _currentDailyCosts { get; set; } = new();
+    private List<AzureServiceCost> _currentServiceCosts { get; set; } = new();
+    private List<AzureServiceCost> _yesterdayServiceCosts { get; set; } = new();
+
+    private ChartOptions _chartOptions = new ChartOptions
+    {
+        DisableLegend = true,
+        ChartPalette = new[] { DatahubTheme.DefaultTheme.Palette.Primary.ToString(), DatahubTheme.DefaultTheme.Palette.BackgroundGrey.ToString() },
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+
+        var project = await ctx.Projects
+            .Include(p => p.Credits)
+            .AsSingleQuery()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        _projectCredits = project.Credits;
+        _projectBudget = project.Project_Budget ?? 0;
+
+        _remainingBudget = _projectBudget - CurrentCost;
+
+        ConvertCosts();
+    }
+
+    private void ConvertCosts()
+    {
+        if (!string.IsNullOrEmpty(_projectCredits?.CurrentPerService))
+        {
+            _currentServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.CurrentPerService);
+        }
+
+        if (!string.IsNullOrEmpty(_projectCredits?.YesterdayPerService))
+        {
+            _yesterdayServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.YesterdayPerService);
+        }
+
+        if (!string.IsNullOrEmpty(_projectCredits?.CurrentPerDay))
+        {
+            _currentDailyCosts = JsonSerializer.Deserialize<List<AzureDailyCost>>(_projectCredits.CurrentPerDay);
+        }
+    }
+
+}
+

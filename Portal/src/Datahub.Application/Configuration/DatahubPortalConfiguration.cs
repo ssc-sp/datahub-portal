@@ -152,26 +152,24 @@ public class AdoOrg
 
 public class ConnectionStrings
 {
-    [JsonProperty("datahub-mssql-project")]
+    [JsonProperty("datahub_mssql_project")]
     public string? DatahubMsSqlProject { get; set; }
 
-    [JsonProperty("datahub-mssql-pip")] public string? DatahubMsSqlPip { get; set; }
+    [JsonProperty("datahub_mssql_pip")] public string? DatahubMsSqlPip { get; set; }
 
-    [JsonProperty("datahub-mssql-etldb")] public string? DatahubMsSqlEtldb { get; set; }
+    [JsonProperty("datahub_mssql_etldb")] public string? DatahubMsSqlEtldb { get; set; }
 
-    [JsonProperty("datahub-mssql-finance")]
+    [JsonProperty("datahub_mssql_finance")]
     public string? DatahubMsSqlFinance { get; set; }
 
-    [JsonProperty("datahub-mssql-webanalytics")]
+    [JsonProperty("datahub_mssql_webAnalytics")]
     public string? DatahubMsSqlWebAnalytics { get; set; }
 
-    [JsonProperty("datahub-mssql-metadata")]
+    [JsonProperty("datahub_mssql_metadata")]
     public string? DatahubMsSqlMetadata { get; set; }
 
-    [JsonProperty("DATAHUB-MSSQL-LANGUAGETRAINING")]
+    [JsonProperty("DATAHUB_MSSQL_LANGUAGETRAINING")]
     public string? DatahubMsSqlLanguageTraining { get; set; }
-
-    [JsonProperty("datahub-cosmosdb")] public string? DatahubCosmosDb { get; set; }
 }
 
 public class EmailNotification
@@ -211,6 +209,8 @@ public class DatahubStorageQueue
 public class QueueNames
 {
     public string ResourceRunRequest { get; set; } = "resource-run-request";
+
+    public string DeleteRunRequest { get; set; } = "delete-run-request";
     public string UserRunRequest { get; set; } = "user-run-request";
     public string EmailNotification { get; set; } = "email-notifications";
     public string StorageCapacity { get; set; } = "storage-capacity";
@@ -225,8 +225,8 @@ public class PublicFileSharing
 }
 public class ReverseProxy
 {
-    public bool Enabled { get; set; }
-    public string BasePath { get; set; } = "wsapp";
+    public bool Enabled { get; set; } = true;
+    public string BasePath { get; set; } = "webapp";
     public string UserHeader { get; set; } = "dh-user";
 }
 

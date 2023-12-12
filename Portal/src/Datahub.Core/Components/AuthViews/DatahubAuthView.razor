@@ -1,4 +1,5 @@
 @using Datahub.Core.Data
+
 <AuthorizeView Roles="@GetRoles()">
     <Authorized>
         @(Authorized ?? ChildContent)
@@ -15,16 +16,22 @@
 
     [Parameter]
     public RenderFragment ChildContent { get; set; }
+
     [Parameter]
     public RenderFragment Authorizing { get; set; }
+
     [Parameter]
     public RenderFragment Authorized { get; set; }
+
     [Parameter]
     public RenderFragment NotAuthorized { get; set; }
+
     [Parameter]
     public AuthLevels AuthLevel { get; set; } = AuthLevels.Unauthorized;
+
     [Parameter]
     public string ProjectAcronym { get; set; }
+
     [Parameter]
     public string UserGraphId { get; set; }
 
@@ -54,7 +61,7 @@
         {
             throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
         }
-        
+
         if (string.IsNullOrWhiteSpace(UserGraphId) && AuthLevel is AuthLevels.Personal)
         {
             throw new InvalidOperationException($"'{nameof(UserGraphId)}' is required");
@@ -68,7 +75,7 @@
         var adminRole = $"{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX}";
         var workspaceLeadRole = $"{ProjectAcronym}{RoleConstants.WORKSPACE_LEAD_SUFFIX}";
         const string datahubAdminRole = RoleConstants.DATAHUB_ROLE_ADMIN;
-        
+
         switch (AuthLevel)
         {
             case AuthLevels.Personal:
@@ -88,7 +95,7 @@
             case AuthLevels.Unauthorized:
                 return "🏗️ Unauthorized";
             default:
-                return null;
+                return "default";
         }
     }
 

@@ -11,6 +11,30 @@ using Datahub.ProjectTools.Services;
 
 public static class TerraformVariableExtraction
 {
+    
+    public static string? ExtractDatabricksWorkspaceId(Datahub_Project? project)
+    {
+        var databricksTemplateName = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
+        return ExtractDatabricksWorkspaceId(
+            project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent);
+    }
+
+    private static string? ExtractDatabricksWorkspaceId(string? projectResourceJsonContent)
+    {
+        if(string.IsNullOrWhiteSpace(projectResourceJsonContent))
+            return null;
+        
+        var deserializeOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        var jsonContent =
+            JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);
+        var databricksWorkspaceIdVariable = jsonContent?["workspace_id"];
+        
+        return databricksWorkspaceIdVariable;
+    }
 
     /// <summary>
     /// Extracts the databricks url from a Datahub Project. Be sure to include the project resources in the project object.
@@ -29,7 +53,7 @@ public static class TerraformVariableExtraction
     /// </summary>
     /// <param name="projectResourceJsonContent"></param>
     /// <returns></returns>a
-    private static string? ExtractDatabricksUrl(string? projectResourceJsonContent)
+    public static string? ExtractDatabricksUrl(string? projectResourceJsonContent)
     {
         if(string.IsNullOrWhiteSpace(projectResourceJsonContent))
             return null;

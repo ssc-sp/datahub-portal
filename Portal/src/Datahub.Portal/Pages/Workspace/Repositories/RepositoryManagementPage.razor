@@ -1,0 +1,92 @@
+@using Datahub.Application.Services.Notebooks
+@using Datahub.Core.Data.Databricks
+@using Datahub.Portal.Pages.Project.DataProject
+@using Microsoft.Identity.Web
+@using Microsoft.Rest
+
+@inject IDatabricksApiService _databricksApiService
+@inject ITokenAcquisition _tokenAcquisition
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym">
+    <MudStack>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
+            <Authorized>
+                <MudAlert Severity="Severity.Info">
+                    <MudText>@Localizer["You are an administrator and can view all the repositories linked to your instance of Databricks. Collaborators can only view their own linked repositories."]</MudText>
+                </MudAlert>
+            </Authorized>
+            <NotAuthorized>
+                <MudAlert Severity="Severity.Info">
+                    <MudText>@Localizer["You are not an administrator and you can only see the repositories linked to your own account in Databricks. If you wish to share other repositories, request a workspace administrator to share them."]</MudText>
+                </MudAlert>
+            </NotAuthorized>
+        </DatahubAuthView>
+        
+        <MudText Typo="Typo.h2">@Localizer["Workspace Repositories"]</MudText>
+        <MudText>@Localizer["This section lets you share inside Datahub your Git repositories that have been linked inside Databricks."]</MudText>
+        <MudText>
+            @Localizer["If you wish to learn more about Databricks and Git integration, "]
+            <MudLink Href="/resources" Target="_blank">@Localizer["please refer to the resources page on it."]</MudLink>
+        </MudText>
+
+        <MudGrid Class="mt-6">
+            @if (_repositoryInfos.Any())
+            {
+                @foreach (var repositoryInfo in _repositoryInfos)
+                {
+                    <RepositoryGridItem RepositoryInfoDto="@repositoryInfo" ProjectAcronym="@WorkspaceAcronym"/>
+                }
+            }
+            else
+            {
+                <MudGrid Justify="Justify.Center">
+                    <MudItem xs="12" sm="8">
+                        <MudPaper Elevation="0" Class="border-dashed py-12 px-4" Outlined>
+                            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                                <MudIcon Icon="@Icons.Material.Outlined.Cloud" Size="Size.Large"/>
+                                <MudText Align="Align.Center">@Localizer["No linked repositories found in Databricks workspace"]</MudText>
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
+            }
+        </MudGrid>
+    </MudStack>
+</DatahubAuthView>
+
+@code {
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    private List<RepositoryInfoDto> _repositoryInfos = new();
+
+    private static readonly string[] DatabricksScopes =
+    {
+        "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/user_impersonation"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        try
+        {
+            var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(DatabricksScopes);
+            _repositoryInfos = await _databricksApiService.ListWorkspaceRepositoriesAsync(WorkspaceAcronym, accessToken);
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e)
+        {
+    // token's expired, or consent is needed
+            _consentHandler.HandleException(e);
+        }
+        catch (HttpOperationException)
+        {
+    // something else went wrong
+            throw new UnauthorizedAccessException();
+        }
+    }
+
+}

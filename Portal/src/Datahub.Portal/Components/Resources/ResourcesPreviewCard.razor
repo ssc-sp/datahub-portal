@@ -1,0 +1,82 @@
+@using Datahub.Core.Services.Docs
+@using Datahub.Markdown.Model
+@using MudBlazor.Utilities
+@using Datahub.Portal.Pages.Resources
+
+<MudPaper Elevation="0" Outlined Class="py-2 px-3" Style="@_cardStyle">
+     <MudStack Justify="Justify.SpaceBetween" Style="height: 100%;">
+         <MudStack>
+             <MudStack Row AlignItems="AlignItems.Center">
+                 <MudIcon Icon="@(DocumentItem.GetSidebarIcon())" />
+                 <MudText Typo="Typo.body1" Style="@_titleTextStyle">                     
+                         @DocumentItem?.Title                    
+                </MudText>
+            </MudStack>
+            @if (!ShortVersion)
+            {
+                <MudText Typo="@Typo.body2" Style="@_previewTextStyle">@DocumentItem?.Preview</MudText>
+            }
+        </MudStack>
+        <MudElement>
+            @if (DocumentItem?.DocType == DocItemType.External)
+            {
+                <MudButton Href="@ResourcesPage.BuildResourceLink(DocumentItem)"
+                           Color="@Color.Primary"
+                           Variant="@Variant.Text"
+                           Target="_blank"
+                           EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                    @Localizer["Open link"]
+                </MudButton>
+            }
+            else
+            {
+                <MudButton Href="@ResourcesPage.BuildResourceLink(DocumentItem)"
+                           Color="@Color.Primary"
+                           Variant="@Variant.Text"
+                           EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                    @Localizer["Read more"]
+                </MudButton>
+            }
+        </MudElement>
+    </MudStack>
+</MudPaper>
+
+@code {
+
+    [Parameter]
+    public DocItem DocumentItem { get; set; }
+
+    [Parameter]
+    public bool ShortVersion { get; set; } = false;
+
+    private string _previewTextStyle;
+    private string _titleTextStyle;
+    private string _cardStyle;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        // this is the recommended way to get an ellipsis on multi-line text:
+        // https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-line-clamp
+        _previewTextStyle = new StyleBuilder()
+            .AddStyle("overflow", "hidden")
+            .AddStyle("-webkit-line-clamp", "2")
+            .AddStyle("-webkit-box-orient", "vertical")
+            .AddStyle("display", "-webkit-box")
+            .Build();
+
+        _titleTextStyle = new StyleBuilder()
+            .AddStyle("overflow", "hidden")
+            .AddStyle("-webkit-line-clamp", "1")
+            .AddStyle("-webkit-box-orient", "vertical")
+            .AddStyle("display", "-webkit-box")
+            .Build();
+
+        _cardStyle = new StyleBuilder()
+            .AddStyle("height", "150px", when: !ShortVersion)
+            .AddStyle("height", "90px", when: ShortVersion)
+            .Build();
+    }
+
+}

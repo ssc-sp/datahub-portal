@@ -59,8 +59,11 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Datahub.Infrastructure.Offline;
+using Datahub.Application.Configuration;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Transforms;
+using Yarp.ReverseProxy.Configuration;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -235,7 +238,14 @@ public class Startup
         }
     }
 
-    private bool ReverseProxyEnabled() => Configuration.GetValue<bool>("ReverseProxy:Enabled");
+    private bool ReverseProxyEnabled()
+    {
+        var datahubConfiguration = new DatahubPortalConfiguration();
+        Configuration.Bind(datahubConfiguration);
+        
+        return datahubConfiguration.ReverseProxy.Enabled;
+    }
+
     private string GetUserHeaderName() => Configuration.GetValue<string>("ReverseProxy:UserHeaderName") ?? "dh-user";
 
     static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
@@ -306,10 +316,15 @@ public class Startup
             endpoints.MapControllers();
             endpoints.MapFallbackToPage("/_Host");
             // reverse proxy
-            if (ReverseProxyEnabled())
+            var provider = endpoints.ServiceProvider.GetService<IProxyConfigProvider>();
+            if (ReverseProxyEnabled() && provider != null)
             {
                 endpoints.MapReverseProxy();
-            }            
+            }  
+            else
+            {
+                logger.LogWarning($"Invalid Reverse Proxy configuration - No provider available");
+            }
         });       
     }
 
@@ -362,6 +377,7 @@ public class Startup
             services.AddScoped<DataLakeClientService>();
 
             services.AddScoped<IUserInformationService, UserInformationService>();
+            services.AddScoped<IUserSettingsService, UserSettingsService>();
             services.AddSingleton<IMSGraphService, MSGraphService>();
 
             services.AddScoped<IProjectDatabaseService, ProjectDatabaseService>();
@@ -392,6 +408,7 @@ public class Startup
 
             services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
             services.AddScoped<IUserInformationService, OfflineUserInformationService>();
+            services.AddScoped<IUserSettingsService, OfflineUserSettingsService>();
             services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
             services.AddScoped<IPowerBiDataService, OfflinePowerBiDataService>();
 
@@ -421,7 +438,6 @@ public class Startup
         services.AddSingleton<GitHubToolsService>();
 
         services.AddScoped<NotificationsService>();
-        services.AddScoped<UIControlsService>();
         services.AddScoped<NotifierService>();
 
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
@@ -452,23 +468,16 @@ public class Startup
 
     private void ConfigureDbContexts(IServiceCollection services)
     {
-        ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
-        ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics", Configuration.GetDriver());
-        ConfigureDbContext<MetadataDbContext>(services, "datahub-mssql-metadata", Configuration.GetDriver());
+        var projectsDatabaseConnectionString = Configuration.GetConnectionString("datahub_mssql_project");
+        var useSqlite = projectsDatabaseConnectionString?.StartsWith("Data Source=") ?? false;
+        
+        ConfigureDbContext<DatahubProjectDBContext>(services, "datahub_mssql_project", useSqlite ? DbDriver.Sqlite : DbDriver.Azure);
+        ConfigureDbContext<MetadataDbContext>(services, "datahub_mssql_metadata", DbDriver.Azure);
     }
 
     private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName, DbDriver dbDriver)
         where T : DbContext
     {
         services.ConfigureDbContext<T>(Configuration, connectionStringName, dbDriver);
-    }
-
-    private void ConfigureCosmosDbContext<T>(IServiceCollection services, string connectionStringName,
-        string catalogName) where T : DbContext
-    {
-        var connectionString = Configuration.GetConnectionString(_currentEnvironment, connectionStringName);
-        services.AddPooledDbContextFactory<T>(options =>
-            options.UseCosmos(connectionString, databaseName: catalogName));
-        services.AddDbContextPool<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
     }
 }
