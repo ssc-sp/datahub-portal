@@ -1,0 +1,342 @@
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.UserTracking
+@using Datahub.Portal.Components.User
+@using Datahub.ProjectTools.Utils
+@using MudBlazor.Utilities
+
+@inject IUserInformationService _userInformationService
+@inject UserLocationManagerService _userLocationManagerService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IDialogService _dialogService
+@inject NavigationManager _navigationManager
+
+@if (!_isLoaded)
+{
+    return;
+}
+
+<MudStack Class="px-4 mt-6">
+    <MudStack Class="ml-2">
+        <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"/>
+    </MudStack>
+    <MudStack Spacing="2">
+        @{
+            var userRoles = GetWorkspaces();
+        }
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudText Class="ml-2">
+                <b>
+                    @Localizer["My workspaces"]
+                </b>
+            </MudText>
+            <MudSpacer/>
+            @if (userRoles.Any())
+            {
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="@ShowProjectDialog" Disabled="@_canNotCreateWorkspace">
+                    <MudIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;"/>
+                    @Localizer["New"]
+                </MudButton>
+            }
+        </MudStack>
+
+        @if (userRoles.Any())
+        {
+            <MudNavMenu Color="Color.Primary">
+                @foreach (var userRole in userRoles)
+                {
+                    <MudNavLink Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                            <MudText Style="@_workspaceLinkStyle">
+                                @userRole.Project.ProjectName
+                            </MudText>
+                        </MudStack>
+                    </MudNavLink>
+                }
+                @if (_showAllWorkspaces == false && _userRoles.Count > _maxWorkspacesToShow)
+                {
+                    <MudLink OnClick="@(() => _showAllWorkspaces = true)" Typo="Typo.body2" Color="Color.Default" Class="ml-4" Style="font-size: 0.75rem;" Disabled="@_canNotCreateWorkspace">
+                        @Localizer["Show more"]
+                    </MudLink>
+                }
+            </MudNavMenu>
+        }
+        else
+        {
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" OnClick="@ShowProjectDialog">
+                <MudIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;"/>
+                @Localizer["Create new"]
+                <MudSpacer/>
+            </MudButton>
+        }
+    </MudStack>
+
+    <MudStack Spacing="2">
+        <MudText Class="ml-2">
+            <b>
+                @Localizer["Recent activity"]
+            </b>
+        </MudText>
+        <MudNavMenu Color="Color.Primary">
+            @foreach (var recentActivity in _recentLinks)
+            {
+                <MudNavLink Href="@GetSectionViewUrl(recentActivity)">
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                        <MudText Style="@_workspaceLinkStyle">
+                            @GetLabel(recentActivity)
+                        </MudText>
+                    </MudStack>
+                </MudNavLink>
+            }
+        </MudNavMenu>
+    </MudStack>
+
+    <MudStack Spacing="2">
+        <MudText Class="ml-2">
+            <b>
+                @Localizer["My account"]
+            </b>
+        </MudText>
+        <MudNavMenu Color="Color.Primary">
+            @foreach (var sectionView in _accountItems)
+            {
+                <MudNavLink Href="@GetSectionViewUrl(PageRoutes.AccountPrefix, sectionView)" Match="NavLinkMatch.All">
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                        <MudText Style="@_workspaceLinkStyle">
+                            @GetLabel(sectionView)
+                        </MudText>
+                    </MudStack>
+                </MudNavLink>
+            }
+        </MudNavMenu>
+    </MudStack>
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+        <MudStack Spacing="2">
+            <MudText Class="ml-2">
+                <b>
+                    @Localizer["Datahub Admin"]
+                </b>
+            </MudText>
+            <MudNavMenu Color="Color.Primary">
+                @foreach (var sectionView in _datahubAdminItems)
+                {
+                    <MudNavLink Href="@GetSectionViewUrl(PageRoutes.ToolPrefix, sectionView)" Match="NavLinkMatch.All">
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                            <MudText Style="@_workspaceLinkStyle">
+                                @GetLabel(sectionView)
+                            </MudText>
+                        </MudStack>
+                    </MudNavLink>
+                }
+            </MudNavMenu>
+        </MudStack>
+    </DatahubAuthView>
+</MudStack>
+
+@code {
+
+    private PortalUser _viewedUser;
+    private bool _isViewAsAdmin;
+    private List<Datahub_Project_User> _userRoles;
+    private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
+
+    private ushort _maxRecentLinks = 5;
+    private ushort _maxWorkspacesToShow = 3;
+    private ushort _numberOfRemainingWorkspaces = 3;
+    private bool _canNotCreateWorkspace => _numberOfRemainingWorkspaces <= 0;
+
+    private bool _showAllRecentLinks = false;
+    private bool _showAllWorkspaces = false;
+
+    private bool _isLoaded = false;
+
+        private const ushort MaxWorkspaceCount = 3;
+
+
+    public struct SectionViews
+    {
+        public const string Profile = "public";
+        public const string Customization = "customization";
+        public const string Appearance = "appearance";
+        public const string Notifications = "notifications";
+        public const string Achievements = "achievements";
+
+        public const string Diagnostics = "diagnostics";
+        public const string Statistics = "statistics";
+        public const string HealthCheck = "healthcheck";
+        public const string Users = "users";
+        public const string Email = "email";
+    }
+
+
+    private List<string> _accountItems = new()
+    {
+        SectionViews.Profile,
+        SectionViews.Customization,
+        SectionViews.Appearance,
+        SectionViews.Notifications,
+        SectionViews.Achievements
+    };
+
+    private List<string> _datahubAdminItems = new()
+    {
+        SectionViews.Diagnostics,
+        SectionViews.Statistics,
+        SectionViews.HealthCheck,
+        SectionViews.Users,
+        SectionViews.Email
+    };
+
+
+    private readonly string _workspaceLinkStyle = new StyleBuilder()
+        .AddStyle("white-space", "nowrap")
+        .AddStyle("overflow", "hidden")
+        .AddStyle("text-overflow", "ellipsis")
+        .Build();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+        _isViewAsAdmin = !(await _userInformationService.IsViewingAsGuest());
+
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        _userRoles = await dbContext.Project_Users
+            .Include(u => u.Role)
+            .Include(u => u.Project)
+    // .ThenInclude(p => p.Users)
+            .Include(u => u.PortalUser)
+            .Where(u => u.PortalUser.Id == _viewedUser.Id)
+            .ToListAsync();
+
+        var userRecent = await _userLocationManagerService.GetRecentLinks(_viewedUser.GraphGuid, _maxRecentLinks);
+
+        _recentLinks = userRecent?
+            .Select(l => (l, project:GetProject(dbContext, l)))
+            .ToList() ?? new List<(UserRecentLink l, Datahub_Project project)>();
+
+        _numberOfRemainingWorkspaces = (ushort)(MaxWorkspaceCount - _userRoles.Count(u => u.RoleId is (int)Project_Role.RoleNames.WorkspaceLead or (int)Project_Role.RoleNames.Admin));
+
+        _isLoaded = true;
+    }
+
+    private List<Datahub_Project_User> GetWorkspaces()
+    {
+        return _showAllWorkspaces
+            ? _userRoles
+            : _userRoles
+                .Take(_maxWorkspacesToShow)
+                .ToList();
+    }
+
+
+    private Datahub_Project GetProject(DatahubProjectDBContext dbContext, UserRecentLink link)
+    {
+        if (link.DataProject is null) return null;
+        return dbContext.Projects
+            .AsNoTracking()
+            .Include(p => p.Resources)
+            .FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject.Trim());
+    }
+
+    private string GetSectionViewUrl(string prefix, string sectionView)
+    {
+        return $"/{prefix}/{sectionView}";
+    }
+
+    private string GetIcon(string sectionView)
+    {
+        return sectionView switch
+        {
+            SectionViews.Profile => SidebarIcons.Profile,
+            SectionViews.Customization => SidebarIcons.Customization,
+            SectionViews.Appearance => SidebarIcons.Appearance,
+            SectionViews.Notifications => SidebarIcons.Notifications,
+            SectionViews.Achievements => SidebarIcons.Achievements,
+            
+            SectionViews.Diagnostics => SidebarIcons.Diagnostics,
+            SectionViews.Statistics => SidebarIcons.Statistics,
+            SectionViews.HealthCheck => SidebarIcons.HealthCheck,
+            SectionViews.Users => SidebarIcons.Users,
+            SectionViews.Email => SidebarIcons.Email,
+            
+            _ => SidebarIcons.Profile
+            };
+    }
+
+    private string GetLabel(string sectionView)
+    {
+        return sectionView switch
+        {
+            SectionViews.Profile => Localizer["Profile"],
+            SectionViews.Customization => Localizer["Customization"],
+            SectionViews.Appearance => Localizer["Appearance"],
+            SectionViews.Notifications => Localizer["Notifications"],
+            SectionViews.Achievements => Localizer["Achievements"],
+            
+            SectionViews.Diagnostics => Localizer["Diagnostics"],
+            SectionViews.Statistics => Localizer["Statistics"],
+            SectionViews.HealthCheck => Localizer["Health Check"],
+            SectionViews.Users => Localizer["Users"],
+            SectionViews.Email => Localizer["Email"],
+            
+            _ => Localizer["Public Profile"]
+            };
+    }
+
+    private async Task ShowProjectDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await _dialogService.ShowAsync<CreateProjectDialog>(Localizer["Create a new Workspace"], options);
+        var dialogResult = await dialog.Result;
+        if (!dialogResult.Canceled)
+        {
+            _navigationManager.NavigateTo($"{PageRoutes.WorkspacePrefix}/{dialogResult.Data}", true);
+        }
+    }
+
+    private string GetSectionViewUrl((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
+    {
+        return recentActivity.userRecentLink.LinkType switch
+        {
+            DatahubLinkType.DataProject => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}",
+            DatahubLinkType.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(recentActivity.datahubProject),
+            DatahubLinkType.Repository => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Repositories}",
+            DatahubLinkType.Storage => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Storage}",
+            DatahubLinkType.ResourceArticle => $"{PageRoutes.ResourcePrefix}/{recentActivity.userRecentLink.ResourceArticleId}",
+            _ => "/"
+            };
+    }
+
+
+    private string GetIcon((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
+    {
+        return recentActivity.userRecentLink.LinkType switch
+        {
+            DatahubLinkType.DataProject => SidebarIcons.Workspace,
+            DatahubLinkType.Databricks => SidebarIcons.Databricks,
+            DatahubLinkType.Repository => SidebarIcons.Repositories,
+            DatahubLinkType.Storage => SidebarIcons.Storage,
+            DatahubLinkType.ResourceArticle => SidebarIcons.Resources,
+            _ => SidebarIcons.Workspace
+            };
+    }
+
+    private string GetLabel((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
+    {
+        return recentActivity.userRecentLink.LinkType switch
+        {
+            DatahubLinkType.DataProject => recentActivity.datahubProject.ProjectName,
+            DatahubLinkType.Databricks => $"{Localizer["Databricks"]} - {recentActivity.datahubProject.ProjectName}",
+            DatahubLinkType.Repository => $"{Localizer["Repositories"]} - {recentActivity.datahubProject.ProjectName}",
+            DatahubLinkType.Storage => $"{Localizer["Storage"]} - {recentActivity.datahubProject.ProjectName}",
+            DatahubLinkType.ResourceArticle => recentActivity.userRecentLink.ResourceArticleTitle,
+            _ => recentActivity.datahubProject.ProjectName
+            };
+    }
+
+}

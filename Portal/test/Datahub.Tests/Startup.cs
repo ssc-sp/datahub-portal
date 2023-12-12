@@ -13,6 +13,7 @@ using Tewr.Blazor.FileReader;
 using Datahub.Core.Services.Security;
 using Datahub.Core.Services.Storage;
 using Datahub.Core.Services.UserManagement;
+using Datahub.Infrastructure.Offline;
 using Datahub.Portal.Services.Api;
 
 namespace Datahub.Tests;

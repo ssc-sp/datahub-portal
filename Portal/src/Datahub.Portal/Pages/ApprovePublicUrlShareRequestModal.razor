@@ -109,7 +109,7 @@
     {
         processing = true;
         await PublicFileService.DenyPublicUrlShare(SharedFile.File_ID);
-        await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
+        // await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
         processing = false;
     }
 
@@ -136,7 +136,7 @@
                 };
             await Task.WhenAll(tasks);
             approved = true;
-            await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
+            // await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
             processing = false;
         }
     }

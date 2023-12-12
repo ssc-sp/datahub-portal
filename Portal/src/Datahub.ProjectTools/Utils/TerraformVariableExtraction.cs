@@ -53,7 +53,7 @@ public static class TerraformVariableExtraction
     /// </summary>
     /// <param name="projectResourceJsonContent"></param>
     /// <returns></returns>a
-    private static string? ExtractDatabricksUrl(string? projectResourceJsonContent)
+    public static string? ExtractDatabricksUrl(string? projectResourceJsonContent)
     {
         if(string.IsNullOrWhiteSpace(projectResourceJsonContent))
             return null;

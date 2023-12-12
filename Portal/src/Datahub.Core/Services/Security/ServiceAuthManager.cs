@@ -20,18 +20,16 @@ public class ServiceAuthManager
 {
     private IMemoryCache serviceAuthCache;
     private readonly IDbContextFactory<DatahubProjectDBContext> dbFactory;
-    private readonly IMSGraphService mSGraphService;
     private const int AUTH_KEY = 1;
     private const int PROJECT_ADMIN_KEY = 2;
 
     private ConcurrentDictionary<string, bool> _viewingAsGuest = new();
 
-    public ServiceAuthManager(IMemoryCache serviceAuthCache, IDbContextFactory<DatahubProjectDBContext> dbFactory,
-        IMSGraphService mSGraphService)
+    public ServiceAuthManager(IMemoryCache serviceAuthCache, IDbContextFactory<DatahubProjectDBContext> dbFactory
+        )
     {
         this.serviceAuthCache = serviceAuthCache;
         this.dbFactory = dbFactory;
-        this.mSGraphService = mSGraphService;
     }
 
     internal List<string> GetAllProjects()

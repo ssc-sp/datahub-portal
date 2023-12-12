@@ -1,4 +1,4 @@
-﻿@page "/w/{ProjectAcronymParam}"
+﻿@* @page "/w/{ProjectAcronymParam}" *@
 
 @using Datahub.Core.Model.UserTracking;
 @using Datahub.Portal.Pages.Project.DataProject.ProjectTools
@@ -69,7 +69,6 @@
     private string _userId;
     private string _projectName;
     private bool _isFrench;
-    private string _wsAppBase;
     private List<Client_Engagement> _clientEngagements = new();
 
     private bool ReverseProxyEnabled => Configuration.ReverseProxy.Enabled;

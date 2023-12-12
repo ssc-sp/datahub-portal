@@ -1,6 +1,4 @@
 @inject IUserInformationService _userInformationService
-@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
-@inject UIControlsService _uiControlsService
 @inject NavigationManager _navigationManager
 
 @using Microsoft.Identity.Web
@@ -30,7 +28,7 @@
                         Color="Color.Primary"
                         Checked="@_isViewAsAdmin"
                         Label="@Localizer["Admin Access Enabled"]"
-                        CheckedChanged="ToggleAdminMode"/>
+                        CheckedChanged="@ToggleAdminMode"/>
                 </MudMenuItem>
                 <MudDivider/>
             </DatahubAuthView>
@@ -58,17 +56,14 @@
     private PortalUser _viewedUser;
     private bool _isViewAsAdmin;
 
+    // get auth state
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
-            _isViewAsAdmin = !(await _userInformationService.IsViewingAsGuest());
-        }
-        catch (Exception ex)
-        {
-            _consentHandler.HandleException(ex);
-        }
+        _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+        _isViewAsAdmin = !(await _userInformationService.IsViewingAsGuest());
     }
 
     private async Task ToggleAdminMode(bool newValue)
@@ -76,7 +71,7 @@
         await _userInformationService.SetViewingAsGuest(!newValue);
         _navigationManager.NavigateTo(_navigationManager.Uri, true);
     }
-    
+
     private void HandleLogOut()
     {
         _navigationManager.NavigateTo("MicrosoftIdentity/Account/SignOut", true);

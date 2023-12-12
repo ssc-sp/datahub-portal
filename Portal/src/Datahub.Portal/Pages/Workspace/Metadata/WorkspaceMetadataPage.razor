@@ -1,0 +1,89 @@
+﻿@*ProjectMetadata.razor*@
+
+@* @page "/w/{ProjectAcronym}/metadata" *@
+
+@using Datahub.Core.Services.Projects;
+@using Datahub.Metadata.Model
+@using System.Text.Json
+@using Datahub.Core.Model.Projects
+@using Datahub.Shared
+@using Datahub.Shared.Entities
+
+@inject IMetadataBrokerService MetadataBrokerService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ILogger<WorkspaceMetadataPage> Logger
+@inject ServiceAuthManager _serviceAuthManager
+@inject IUserInformationService _userInformationService
+
+<MudPaper Class="py-4 px-6">
+    <MudStack>
+        <MudText Class="mb-6" Typo="Typo.h2">@Localizer["Workspace"] @WorkspaceAcronym @Localizer["Metadata"]</MudText>
+        <ProjectObjectMetadata
+            ProfileName="project"
+            ObjectId="@WorkspaceAcronym"
+            Location="@WorkspaceAcronym"
+            ProjectAcronym="@WorkspaceAcronym"
+            ValidateRequired="false"
+            ObjectType="@MetadataObjectType.DataInitiative"
+            OnMetadataSaved="@HandleMetadataSaved"/>
+    </MudStack>
+</MudPaper>
+
+@code {
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var user = await _userInformationService.GetCurrentGraphUserAsync();
+    }
+
+    private void HandleMetadataSaved(Datahub_Project project)
+    {
+        try
+        {
+            using var ctx = _dbContextFactory.CreateDbContext();
+            var databricksTemplateName = RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
+            var projectDatabricks = ctx.Project_Resources2
+                .Where(r => r.ProjectId == project.Project_ID)
+                .FirstOrDefault(r => r.ResourceType == databricksTemplateName);
+
+            if (projectDatabricks != null && projectDatabricks.TimeCreated != null)
+            {
+                var deserializeOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                var jsonContent =
+                    JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectDatabricks.JsonContent, deserializeOptions);
+                var databricksUrlVariable = jsonContent[TerraformVariables.OutputAzureDatabricksWorkspaceUrl];
+
+                MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, $"{project.Project_Acronym_CD}-Databricks",
+                    MetadataObjectType.Databricks, databricksUrlVariable.Value, true);
+            }
+
+            foreach (var db in GetDbs(project))
+            {
+                MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, db.ResourceId.ToString(),
+                    MetadataObjectType.Database, project.Project_Acronym_CD, true);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Internal error updating project child metadata");
+        }
+    }
+
+    private IEnumerable<Project_Resources2> GetDbs(Datahub_Project project)
+    {
+        return project.Resources
+            .Where(r => r.ResourceType == IRequestManagementService.POSTGRESQL || r.ResourceType == IRequestManagementService.SQLSERVER)
+            .ToList();
+    }
+
+
+}
