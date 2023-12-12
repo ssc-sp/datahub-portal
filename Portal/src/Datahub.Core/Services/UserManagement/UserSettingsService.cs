@@ -343,11 +343,18 @@ namespace Datahub.Core.Services.UserManagement
         
         public async Task<UserSettings?> GetUserSettingsAsync()
         {
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            await using var context = await _datahubContextFactory.CreateDbContextAsync();
-            var userSettings = await context.UserSettings.FirstOrDefaultAsync(u => u.PortalUserId == currentUser.Id);
-
-            return userSettings;
+            try
+            {
+                var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+                await using var context = await _datahubContextFactory.CreateDbContextAsync();
+                var userSettings = await context.UserSettings.FirstOrDefaultAsync(u => u.PortalUserId == currentUser.Id);
+                return userSettings;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to fetch current user at this time.");
+                return null;
+            }
         }
     }
 }
