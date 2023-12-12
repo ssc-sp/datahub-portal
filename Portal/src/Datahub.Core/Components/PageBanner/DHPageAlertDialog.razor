@@ -29,7 +29,7 @@
     </DialogContent>
     <DialogActions>
         <MudContainer Style="display: flex">
-            <MudCheckBox @bind-Checked="@_hideAllAlerts" T="bool" Style="margin-right: auto" Size="Size.Medium" Label="@Localizer["Hide all alerts"].ToString().ToUpper()"/>
+            <MudCheckBox @bind-Checked="@_hideAllAlerts" T="bool" Style="margin-right: auto" Size="Size.Medium" Label="@Localizer["Don't show alerts anymore"].ToString().ToUpper()"/>
             <MudButton OnClick="Close" Color="Color.Primary" Variant="Variant.Filled">@Localizer["Close"]</MudButton>
         </MudContainer>
     </DialogActions>
