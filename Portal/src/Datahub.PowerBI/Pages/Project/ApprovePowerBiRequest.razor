@@ -453,7 +453,7 @@
         if (powerBiWorkspacesLoaded)
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
-            var request = await ctx.Project_Requests
+            var request = await ctx.ProjectRequestAudits
                 .Include(r => r.Project.Users)
                 .Where(r => r.Project.Project_Acronym_CD == ProjectAcronym && r.RequestType == "powerbi")
                 .FirstOrDefaultAsync();

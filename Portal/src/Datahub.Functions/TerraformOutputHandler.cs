@@ -156,7 +156,7 @@ public class TerraformOutputHandler
         var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
         var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureAppService);
 
-        var projectRequest = _projectDbContext.Project_Requests
+        var projectRequest = _projectDbContext.ProjectRequestAudits
             .Include(x => x.Project)
             .Where(x => x.Project.Project_Acronym_CD == projectAcronym.Value)
             .Where(x => !x.CompletedDateTime.HasValue)
@@ -232,7 +232,7 @@ public class TerraformOutputHandler
         var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
         var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
 
-        var projectRequest = _projectDbContext.Project_Requests
+        var projectRequest = _projectDbContext.ProjectRequestAudits
             .Include(x => x.Project)
             .Where(x => x.Project.Project_Acronym_CD == projectAcronym.Value)
             .Where(x => !x.CompletedDateTime.HasValue)
@@ -301,7 +301,7 @@ public class TerraformOutputHandler
         var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
         var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
 
-        var projectRequest = _projectDbContext.Project_Requests
+        var projectRequest = _projectDbContext.ProjectRequestAudits
             .Include(x => x.Project)
             .Where(x => x.Project.Project_Acronym_CD == projectAcronym.Value)
             .Where(x => !x.CompletedDateTime.HasValue)
