@@ -174,7 +174,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     public List<Datahub_Project_User> Users { get; set; }
 
-    public List<Datahub_ProjectServiceRequests> ServiceRequests { get; set; }
+    public List<Datahub_ProjectRequestAudit> ProjectRequestAudits { get; set; }
 
     public List<Client_Engagement> Client_Engagements { get; set; }
 
