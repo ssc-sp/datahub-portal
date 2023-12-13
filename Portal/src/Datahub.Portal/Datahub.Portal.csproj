@@ -74,24 +74,4 @@
 		<ProjectReference Include="..\modules\Datahub.M365Forms\Datahub.M365Forms.csproj" />
 		<ProjectReference Include="..\modules\Datahub.PIP\Datahub.PIP.csproj" />
 	</ItemGroup>
-	<ItemGroup>
-	  <AdditionalFiles Include="Pages\Account\ChangePictureDialog.razor" />
-	  <AdditionalFiles Include="Pages\Account\DialogImageItem.razor" />
-	  <AdditionalFiles Include="Pages\Account\ImageSelectionView.razor" />
-	  <AdditionalFiles Include="Pages\Account\ProfileSettingsSidebar.razor" />
-	  <AdditionalFiles Include="Pages\Account\SettingsField.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Dashboard\WorkspaceDashboard.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Repositories\RepositoryCard.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Repositories\RepositoryGridItem.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Repositories\RepositoryManagementPage.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\ResourcePages\AzCopy.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\ResourcePages\Databricks.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\ResourcePages\ResourcePageRenderer.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\ResourcePages\UploaderCode.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\AWSConnectionDataInput.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\AzureConnectionDataInput.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\GCPConnectionDataInput.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\StorageConfigurationDialog.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\StorageContainerSelector.razor" />
-	</ItemGroup>
 </Project>
