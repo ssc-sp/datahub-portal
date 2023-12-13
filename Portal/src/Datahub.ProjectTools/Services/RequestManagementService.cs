@@ -70,18 +70,18 @@ public class RequestManagementService : IRequestManagementService
         // load any ServiceRequests that may have been added since the project was loaded
         
         await ctx.Entry(request.Project)
-            .Collection(p => p.ServiceRequests)
+            .Collection(p => p.ProjectRequestAudits)
             .LoadAsync();
 
-        if (request.Project.ServiceRequests?.Any(a => a.RequestType == request.RequestType) ?? false)
+        if (request.Project.ProjectRequestAudits?.Any(a => a.RequestType == request.RequestType) ?? false)
         {
             _logger.LogInformation(
-                "Service request already exists for project {Acronym} and service type {ServiceType}",
+                "Service request audit already exists for project {Acronym} and service type {ServiceType}",
                 request.Project.Project_Acronym_CD, request.RequestType);
             return;
         }
         
-        await ctx.Project_Requests.AddAsync(request);
+        await ctx.ProjectRequestAudits.AddAsync(request);
         // var projectResource = CreateEmptyProjectResource(request, inputParams);
         // await ctx.Project_Resources2.AddAsync(projectResource);
 

@@ -97,7 +97,7 @@ public class ServiceCatalogGitModuleResource : IProjectResource
     {
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
         _project = project;
-        var serviceRequests = project.ServiceRequests;
+        var serviceRequests = project.ProjectRequestAudits;
         // _serviceRequested = serviceRequests.Any(r => r.RequestType == RequestManagementService.GetTerraformServiceType(_currentModule.Name) && r.Is_Completed == null);
         
         // TODO: Check if service is created off a request GUID down the road

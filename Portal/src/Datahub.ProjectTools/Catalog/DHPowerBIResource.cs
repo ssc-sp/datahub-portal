@@ -25,7 +25,7 @@ public class DHPowerBIResource : ActiveGitModuleResource
     protected override async Task InitializeAsync(string? userId, Microsoft.Graph.Models.User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
-        var serviceRequests = Project.ServiceRequests;
+        var serviceRequests = Project.ProjectRequestAudits;
         // _powerBiServiceRequested = serviceRequests.Any(r => r.RequestType == IRequestManagementService.POWERBI && r.Is_Completed == null);
         _powerBiServiceCreated = !string.IsNullOrEmpty(Project.PowerBI_URL);
         Parameters.Add(nameof(PowerBI.Project), Project);            
