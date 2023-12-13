@@ -24,12 +24,14 @@
 <div class="reader-only" id="header">
     <h3>@Localizer["Header"]</h3>
 </div>
-<MudStack Row AlignItems="AlignItems.Center">
-    <MudImage src="_content/Datahub.Core/img/datahub-logo-v2.png" Alt="Datahub Logo" Height="30"/>
-    <MudText Typo="Typo.h6" Style="@_titleStyle">
-        @Localizer["MainTitle"]
-    </MudText>
-</MudStack>
+<MudLink Href="@PageRoutes.Home" Underline="Underline.None">
+    <MudStack Row AlignItems="AlignItems.Center">
+        <MudImage src="_content/Datahub.Core/img/datahub-logo-v2.png" Alt="Datahub Logo" Height="30"/>
+        <MudText Typo="Typo.h6" Style="@_titleStyle">
+            @Localizer["MainTitle"]
+        </MudText>
+    </MudStack>
+</MudLink>
 
 @*<MudSpacer/>
 <HomeSearch />*@
@@ -59,8 +61,7 @@
 
 @code {
 
-    [Parameter]
-    public string SupportFormUrl { get; set; }
+    [Parameter] public string SupportFormUrl { get; set; }
 
     private string _titleStyle;
 
