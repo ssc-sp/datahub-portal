@@ -60,15 +60,11 @@ public class RequestManagementService : IRequestManagementService
         await _resourceMessagingService.SendToUserQueue(workspaceDefinition);
     }
 
-    // TODO: Remove unused parameter "inputParams"
-    public async Task RequestService(Datahub_ProjectRequestAudit request,
-        Dictionary<string, string> inputParams = null!)
+    public async Task SaveRequestToAuditing(Datahub_ProjectRequestAudit request)
     {
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
         ctx.Projects.Attach(request.Project);
             
-        // load any ServiceRequests that may have been added since the project was loaded
-        
         await ctx.Entry(request.Project)
             .Collection(p => p.ProjectRequestAudits)
             .LoadAsync();
@@ -82,12 +78,7 @@ public class RequestManagementService : IRequestManagementService
         }
         
         await ctx.ProjectRequestAudits.AddAsync(request);
-        // var projectResource = CreateEmptyProjectResource(request, inputParams);
-        // await ctx.Project_Resources2.AddAsync(projectResource);
-
         await ctx.TrackSaveChangesAsync(_datahubAuditingService);
-
-        // await NotifyProjectAdminsOfServiceRequest(request);
     }
 
     public static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectRequestAudit request,
@@ -207,38 +198,10 @@ public class RequestManagementService : IRequestManagementService
             .ToList();
     }
 
-    public async Task<Dictionary<string, string>> GetDefaultValues(string resourceType)
+    [Obsolete("Use HandleTerraformRequestServiceAsync instead")]
+    public Task HandleRequestService(Datahub_Project project, string serviceType)
     {
-        var formParams = await CreateResourceInputFormParams(resourceType);
-        return GetDefaultValues(formParams);
-    }
-
-    public async Task RequestServiceWithDefaults(Datahub_ProjectRequestAudit request)
-    {
-        var defaultValues = await GetDefaultValues(request.RequestType);
-        if (defaultValues?.Count > 0)
-        {
-            await RequestService(request, defaultValues);
-        }
-        else
-        {
-            await RequestService(request);
-        }
-    }
-
-
-    public async Task HandleRequestService(Datahub_Project project, string serviceType)
-    {
-        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-        var serviceRequest = new Datahub_ProjectRequestAudit
-        {
-            RequestType = serviceType,
-            RequestedDateTime = DateTime.Now,
-            Project = project,
-            UserEmail = currentUser.Email
-        };
-
-        await RequestServiceWithDefaults(serviceRequest);
+        throw new NotImplementedException("This method is no longer used.");
     }
 
     public static string GetTerraformServiceType(string templateName) => $"terraform:{templateName}";
@@ -251,16 +214,17 @@ public class RequestManagementService : IRequestManagementService
         {
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects
+                .Include(p => p.Resources)
                 .Include(p => p.Users)
-                .ThenInclude(u => u.PortalUser).Include(datahubProject => datahubProject.Resources)
+                    .ThenInclude(u => u.PortalUser)
                 .FirstOrDefaultAsync(p => p.Project_ID == datahubProject.Project_ID);
+            
             if(project == null)
             {
                 return false;
             }
 
             var currentPortalUser = await _userInformationService.GetCurrentPortalUserAsync();
-
             var newTemplates = TerraformTemplate.LatestFromNameWithDependencies(terraformTemplate);
 
             if (terraformTemplate != TerraformTemplate.VariableUpdate)
@@ -275,7 +239,7 @@ public class RequestManagementService : IRequestManagementService
                         UserEmail = currentPortalUser.Email
                     };
 
-                    await RequestServiceWithDefaults(serviceRequest);
+                    await SaveRequestToAuditing(serviceRequest);
                 }
             }
 
