@@ -4,6 +4,7 @@ using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20231212153539_ProjectRequestAudit")]
+    partial class ProjectRequestAudit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1567,7 +1570,7 @@ namespace Datahub.Core.Migrations.Core
 
                     b.HasIndex("Project_ID");
 
-                    b.ToTable("ProjectRequestAudits");
+                    b.ToTable("Project_Requests");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_Costs", b =>
@@ -2323,7 +2326,7 @@ namespace Datahub.Core.Migrations.Core
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_ProjectRequestAudit", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
-                        .WithMany("ProjectRequestAudits")
+                        .WithMany("ServiceRequests")
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
@@ -2536,11 +2539,11 @@ namespace Datahub.Core.Migrations.Core
 
                     b.Navigation("ProjectInactivityNotifications");
 
-                    b.Navigation("ProjectRequestAudits");
-
                     b.Navigation("Repositories");
 
                     b.Navigation("Resources");
+
+                    b.Navigation("ServiceRequests");
 
                     b.Navigation("Users");
 
