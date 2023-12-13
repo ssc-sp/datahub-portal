@@ -20,7 +20,6 @@ public interface IRequestManagementService
     public const string VIRTUAL_MACHINE  = ProjectResourceConstants.SERVICE_TYPE_VIRTUAL_MACHINE;
 
     Task<ProjectResourceFormParams> CreateResourceInputFormParams(string resourceType);
-    Task<Dictionary<string, string>> GetDefaultValues(string resourceType);
     Task<string> GetResourceInputDefinitionJson(string resourceType);
     Task<List<Project_Resources2>> GetResourcesByRequest(Datahub_ProjectRequestAudit request);
     
@@ -38,8 +37,7 @@ public interface IRequestManagementService
     Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate);
     
     Task HandleUserUpdatesToExternalPermissions(Datahub_Project project);
-    Task RequestService(Datahub_ProjectRequestAudit request, Dictionary<string, string> inputParams = null);
-    Task RequestServiceWithDefaults(Datahub_ProjectRequestAudit request);
+    Task SaveRequestToAuditing(Datahub_ProjectRequestAudit request);
     Task SaveResourceInputDefinitionJson(string resourceType, string jsonContent);
     Task<bool> UpdateResourceInputParameters(Guid resourceId, Dictionary<string, string> inputParams);
 }

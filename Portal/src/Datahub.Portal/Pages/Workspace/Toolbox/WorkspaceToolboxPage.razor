@@ -151,7 +151,7 @@
         _workspace = await context.Projects
             .AsNoTracking()
             .Include(w => w.Resources)
-            .Include(w => w.ServiceRequests)
+            .Include(w => w.ProjectRequestAudits)
             .FirstOrDefaultAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
 
         _metadataRequired = _workspace?.MetadataAdded != true;
@@ -180,13 +180,12 @@
         }
         
         var toolResource = _workspace.Resources.FirstOrDefault(r => r.ResourceType.EndsWith(tool));
-        var toolRequest = _workspace.ServiceRequests.FirstOrDefault(r => r.ServiceType.EndsWith(tool));
-        if (toolRequest == null)
+        if (toolResource == null)
         {
             return ToolStatus.Available;
         }
         
-        if(toolRequest.Is_Completed < DateTime.UtcNow && toolResource?.TimeCreated < DateTime.UtcNow)
+        if(toolResource.TimeCreated < DateTime.UtcNow)
         {
             return ToolStatus.Exists;
         }
@@ -194,11 +193,6 @@
         if(toolResource.TimeCreated == null)
         {
             return ToolStatus.PendingRequest;
-        }
-        
-        if(toolResource.TimeCreated < DateTime.UtcNow)
-        {
-            return ToolStatus.Exists;
         }
 
         return ToolStatus.Error;

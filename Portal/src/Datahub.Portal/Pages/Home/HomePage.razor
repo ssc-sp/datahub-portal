@@ -1,6 +1,5 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Services.Achievements
-@using Datahub.Portal.Pages.Landing
 @using Datahub.Portal.Views.Dialogs
 @using Microsoft.Graph.Models
 
@@ -9,10 +8,8 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IPortalUserTelemetryService _telemetryService
 @inject IUserSettingsService _userSettingsService
-@inject IUserInformationService _userInformationService
 @inject IDataCreatorService _dataCreatorService
 @inject IDialogService _dialogService
-@inject ILogger<HomePage> _logger
 @inject NavigationManager _navigationManager
 
 
@@ -69,7 +66,7 @@
             </MudItem>
         }
     </MudGrid>
-    <UserProjects UserId="@_viewedPortalUser?.GraphGuid" SmSize="6"/>
+    <UserProjects UserId="@_viewedPortalUser!.GraphGuid" SmSize="6"/>
 </MudStack>
 
 @code {
