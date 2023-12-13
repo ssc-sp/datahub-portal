@@ -1,4 +1,4 @@
-﻿@page "/w/{ProjectAcronym}/publishing"
+﻿@* @page "/w/{ProjectAcronym}/publishing" *@
 @using Datahub.Application.Services.Publishing;
 @using Datahub.Core.Model.Projects;
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -31,7 +31,7 @@
             </HeaderContent>
             <RowTemplate>
                 <MudTd>
-                    <DHLink PublishingSubmissionId=@context.Id DataProject=@ProjectAcronym>@context.DatasetTitle</DHLink>
+                    <DHLink PublishingSubmissionId=@context.Id DataProject=@WorkspaceAcronym>@context.DatasetTitle</DHLink>
                 </MudTd>
                 <MudTh>@Localizer[$"{context.LocalizationPrefix}.TypeName"]</MudTh>
                 <MudTh>@Localizer[$"{context.LocalizationPrefix}.Status.{context.Status}.Title"]</MudTh>
@@ -133,7 +133,7 @@
 *@
 @code {
     [Parameter]
-    public string ProjectAcronym { get; set; }
+    public string WorkspaceAcronym { get; set; }
 
     private Datahub_Project _project;
     private List<OpenDataSubmission> _publishingProcesses;
@@ -155,7 +155,7 @@
         if (!result.Canceled)
         {
             //TODO
-            _navManager.NavigateTo($"/w/{ProjectAcronym}/publishing/1");
+            _navManager.NavigateTo($"/w/{WorkspaceAcronym}/publishing/1");
         }
 
     }
@@ -166,7 +166,7 @@
 
         _project = await ctx.Projects
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
         _publishingProcesses = await _publishingService.GetOpenDataSubmissionsAsync(_project.Project_ID);
 
