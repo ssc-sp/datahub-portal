@@ -1,6 +1,6 @@
 ﻿@* PublishingSubmissionPage.razor *@
 
-@page "/w/{ProjectAcronym}/publishing/{SubmissionIdStr}"
+@* @page "/w/{ProjectAcronym}/publishing/{SubmissionIdStr}" *@
 @using Datahub.Application.Services.Publishing;
 @inject IUserInformationService UserService
 @inject IOpenDataPublishingService PublishingService
@@ -23,12 +23,12 @@ else
 @code {
 
     [Parameter]
-    public string ProjectAcronym { get; set; }
+    public string WorkspaceAcronym { get; set; }
 
     [Parameter]
-    public string SubmissionIdStr { get; set; }
+    public string SubSection { get; set; }
 
-    private long? SubmissionId => long.TryParse(SubmissionIdStr, out var result) ? result : default;
+    private long? SubmissionId => long.TryParse(SubSection, out var result) ? result : default;
     private bool ValidSubmissionId => SubmissionId.HasValue;
 
     private OpenDataSubmission _submission;

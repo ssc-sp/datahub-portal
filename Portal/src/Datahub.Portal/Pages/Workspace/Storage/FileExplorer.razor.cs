@@ -1,7 +1,7 @@
 using Datahub.Core.Components;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
-using Datahub.Portal.Pages.Project.Publishing;
+using Datahub.Portal.Pages.Workspace.Publishing;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using MudBlazor;

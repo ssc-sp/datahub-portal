@@ -100,6 +100,7 @@
     {
         public const string Dashboard = "dashboard";
         public const string Storage = "storage";
+        public const string Publishing = "publishing";
         public const string Databricks = "databricks";
         public const string Repositories = "repositories";
         public const string WebApp = "webapp";
@@ -119,6 +120,7 @@
         SectionViews.Dashboard,
         SectionViews.Databricks,
         SectionViews.Storage,
+        SectionViews.Publishing,
         SectionViews.WebApp,
         SectionViews.SqlDatabase,
         SectionViews.Repositories,
@@ -156,6 +158,7 @@
             SectionViews.Dashboard => DatahubAuthView.AuthLevels.Authenticated,
             SectionViews.Databricks => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.Storage => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.Publishing => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.WebApp => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.SqlDatabase => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.Repositories => DatahubAuthView.AuthLevels.WorkspaceGuest,
@@ -228,6 +231,7 @@
         {
             SectionViews.Dashboard => SidebarIcons.Dashboard,
             SectionViews.Databricks => SidebarIcons.Databricks,
+            SectionViews.Publishing => SidebarIcons.Publishing,
             SectionViews.Storage => SidebarIcons.Storage,
             SectionViews.WebApp => SidebarIcons.WebApp,
             SectionViews.SqlDatabase => SidebarIcons.SqlDatabase,
@@ -250,6 +254,7 @@
             SectionViews.Dashboard => Localizer["Dashboard"],
             SectionViews.Databricks => Localizer["Databricks"],
             SectionViews.Storage => Localizer["Storage"],
+            SectionViews.Publishing => Localizer["Publishing"],
             SectionViews.WebApp => Localizer["Web App"],
             SectionViews.SqlDatabase => Localizer["SQL Database"],
             SectionViews.Repositories => Localizer["Repositories"],
@@ -271,6 +276,7 @@
             SectionViews.Dashboard => true,
             SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
             SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false,
+            SectionViews.Publishing => _project?.Resources.Any(r => r.ResourceType == RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false,
             SectionViews.WebApp => !string.IsNullOrEmpty(_project?.WebApp_URL),
             SectionViews.SqlDatabase => _project?.Resources.Any(r => r.ResourceType == RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzurePostgres)) ?? false,
             SectionViews.Repositories => _project?.Resources.Any(r => r.ResourceType == RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
