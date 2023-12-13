@@ -21,4 +21,6 @@ public static class PageRoutes
     public const string ToolPrefix = "tool";
     public const string ToolDefault = $"/{ToolPrefix}/";
     public const string Tool = $"/{ToolPrefix}/{{Section}}";
+
+    public const string Logout = "/signout-oidc";
 }
