@@ -22,7 +22,7 @@ public interface IRequestManagementService
     Task<ProjectResourceFormParams> CreateResourceInputFormParams(string resourceType);
     Task<Dictionary<string, string>> GetDefaultValues(string resourceType);
     Task<string> GetResourceInputDefinitionJson(string resourceType);
-    Task<List<Project_Resources2>> GetResourcesByRequest(Datahub_ProjectServiceRequests request);
+    Task<List<Project_Resources2>> GetResourcesByRequest(Datahub_ProjectRequestAudit request);
     
     [Obsolete("Use HandleTerraformRequestServiceAsync instead")]
     Task HandleRequestService(Datahub_Project project, string serviceType);
@@ -38,8 +38,8 @@ public interface IRequestManagementService
     Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate);
     
     Task HandleUserUpdatesToExternalPermissions(Datahub_Project project);
-    Task RequestService(Datahub_ProjectServiceRequests request, Dictionary<string, string> inputParams = null);
-    Task RequestServiceWithDefaults(Datahub_ProjectServiceRequests request);
+    Task RequestService(Datahub_ProjectRequestAudit request, Dictionary<string, string> inputParams = null);
+    Task RequestServiceWithDefaults(Datahub_ProjectRequestAudit request);
     Task SaveResourceInputDefinitionJson(string resourceType, string jsonContent);
     Task<bool> UpdateResourceInputParameters(Guid resourceId, Dictionary<string, string> inputParams);
 }
