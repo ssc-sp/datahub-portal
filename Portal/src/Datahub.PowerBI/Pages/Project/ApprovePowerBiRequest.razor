@@ -182,7 +182,7 @@
     [Parameter]
     public string ProjectAcronym { get; set; }
 
-    private Datahub_ProjectServiceRequests ProjectRequest { get; set; }
+    private Datahub_ProjectRequestAudit ProjectRequest { get; set; }
 
     private string ProjectName { get; set; }
 
@@ -299,108 +299,120 @@
         }
     }
 
-    private async Task SendServiceCreatedNotifications(Datahub_ProjectServiceRequests liveProjectRequest)
+    [Obsolete("This method is obsolete and will be removed in a future version.", false)]
+    private async Task SendServiceCreatedNotifications(Datahub_ProjectRequestAudit liveProjectRequest)
     {
-        var requestingUserId = liveProjectRequest.User_ID;
-        var project = liveProjectRequest.Project;
-        var projectInfo = project.ProjectInfo;
-        var notificationRecipients = (await Task.WhenAll(UsersToAssign.Select(u => _msGraphService.GetUserIdFromEmailAsync(u.UserEmail, CancellationToken.None))))
-            .ToHashSet();
+        // return nothing for now
+        await Task.CompletedTask;
+        
+        // var requestingUserId = liveProjectRequest.User_ID;
+        // var project = liveProjectRequest.Project;
+        // var projectInfo = project.ProjectInfo;
+        // var notificationRecipients = (await Task.WhenAll(UsersToAssign.Select(u => _msGraphService.GetUserIdFromEmailAsync(u.UserEmail, CancellationToken.None))))
+        //     .ToHashSet();
+        //
+        // var notificationTasks = new List<Task>();
+        //
+        // if (!string.IsNullOrEmpty(requestingUserId))
+        // {
+        //     notificationRecipients.Remove(requestingUserId);
+        //     notificationTasks.Add(_emailService.SendServiceCreationRequestApprovedIndividual(liveProjectRequest.RequestType, projectInfo, requestingUserId));
+        //     notificationTasks.Add(_systemNotificationService.CreateSystemNotificationWithLink(requestingUserId, 
+        //         $"/w/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+        //         "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedIndividual",
+        //         liveProjectRequest.RequestType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
+        // }
+        //
+        // notificationTasks.Add(_emailService.SendServiceCreationGroupNotification(liveProjectRequest.RequestType, projectInfo, notificationRecipients.ToList()));
+        // notificationTasks.Add(_systemNotificationService.CreateSystemNotificationsWithLink(notificationRecipients.ToList(), 
+        //     $"/w/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+        //     "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedGroup",
+        //     liveProjectRequest.RequestType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
+        //
+        // await Task.WhenAll(notificationTasks);
+        //
+        // liveProjectRequest.Notification_Sent = DateTime.UtcNow;
+        
+        
 
-        var notificationTasks = new List<Task>();
-
-        if (!string.IsNullOrEmpty(requestingUserId))
-        {
-            notificationRecipients.Remove(requestingUserId);
-            notificationTasks.Add(_emailService.SendServiceCreationRequestApprovedIndividual(liveProjectRequest.ServiceType, projectInfo, requestingUserId));
-            notificationTasks.Add(_systemNotificationService.CreateSystemNotificationWithLink(requestingUserId, 
-                $"/w/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
-                "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedIndividual",
-                liveProjectRequest.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
-        }
-
-        notificationTasks.Add(_emailService.SendServiceCreationGroupNotification(liveProjectRequest.ServiceType, projectInfo, notificationRecipients.ToList()));
-        notificationTasks.Add(_systemNotificationService.CreateSystemNotificationsWithLink(notificationRecipients.ToList(), 
-            $"/w/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
-            "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedGroup",
-            liveProjectRequest.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
-
-        await Task.WhenAll(notificationTasks);
-
-        liveProjectRequest.Notification_Sent = DateTime.UtcNow;
     }
 
+    [Obsolete("This method is obsolete and will be removed in a future version.", false)]
     private async Task ApproveRequest()
     {
-        IsWorking = true;
-        StateHasChanged();
-
-        var projectId = ProjectRequest.Project.Project_ID;
-        var success = true;
-
-        var tempWorkspaceId = Guid.Empty;
-
-        try
-        {
-            if (CreateNewWorkspaces)
-            {
-                var sandboxWsId = await CreateOrReuseWorkspace(SandboxWorkspaceToCreate);
-                tempWorkspaceId = await CreateOrReuseWorkspace(ProdWorkspaceToCreate);
-
-                SandboxUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(sandboxWsId, UsersToAssign);
-                ProdUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(tempWorkspaceId, UsersToAssign);
-
-                if (IsProjectUnclassified)
-                {
-                    var groupAddedToProd = await _powerBiApi.AssignGroupToWorkspace(tempWorkspaceId, _powerBiApi.InternalPublicationGroupId);
-                    if (groupAddedToProd) 
-                    {
-                        _logger.LogInformation($"NRCan-RNCan group access added to workspace {ProdWorkspaceToCreate}");
-                    }
-                }
-
-                var workspacesToCreate = new List<PowerBi_WorkspaceDefinition>
-                {
-                    new(sandboxWsId, SandboxWorkspaceToCreate, true, projectId),
-                    new(tempWorkspaceId, ProdWorkspaceToCreate, false, projectId)
-                };
-
-                success &= await _powerBiDataService.AddOrUpdateCataloguedWorkspaces(workspacesToCreate);
-            }
-
-            if (success)
-            {
-                using var ctx = await _contextFactory.CreateDbContextAsync();
-
-                var liveProjectRequest = await ctx.Project_Requests
-                    .Include(r => r.Project.Users)
-                    .FirstOrDefaultAsync(r => r.ServiceRequests_ID == ProjectRequest.ServiceRequests_ID);
-
-                liveProjectRequest.Is_Completed = DateTime.UtcNow;
-                liveProjectRequest.Project.PowerBI_URL = BuildPowerBIWorkspaceUrl(tempWorkspaceId);
-
-                await SendServiceCreatedNotifications(liveProjectRequest);
-
-                await ctx.SaveChangesAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error enabling PowerBI feature for project {ProjectName}");
-            success = false;
-        }
-
-        if (success)
-        {
-            await _workingInd.SignalSuccess();
-            PowerBiServiceSuccessfullyApproved = true;
-        }
-        else
-        {
-            ErrorDuringApproval = true;
-            await _workingInd.SignalFailure();
-        }
-        StateHasChanged();
+        // return nothing for now
+        await Task.CompletedTask;
+        
+        
+        // IsWorking = true;
+        // StateHasChanged();
+        //
+        // var projectId = ProjectRequest.Project.Project_ID;
+        // var success = true;
+        //
+        // var tempWorkspaceId = Guid.Empty;
+        //
+        // try
+        // {
+        //     if (CreateNewWorkspaces)
+        //     {
+        //         var sandboxWsId = await CreateOrReuseWorkspace(SandboxWorkspaceToCreate);
+        //         tempWorkspaceId = await CreateOrReuseWorkspace(ProdWorkspaceToCreate);
+        //
+        //         SandboxUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(sandboxWsId, UsersToAssign);
+        //         ProdUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(tempWorkspaceId, UsersToAssign);
+        //
+        //         if (IsProjectUnclassified)
+        //         {
+        //             var groupAddedToProd = await _powerBiApi.AssignGroupToWorkspace(tempWorkspaceId, _powerBiApi.InternalPublicationGroupId);
+        //             if (groupAddedToProd) 
+        //             {
+        //                 _logger.LogInformation($"NRCan-RNCan group access added to workspace {ProdWorkspaceToCreate}");
+        //             }
+        //         }
+        //
+        //         var workspacesToCreate = new List<PowerBi_WorkspaceDefinition>
+        //         {
+        //             new(sandboxWsId, SandboxWorkspaceToCreate, true, projectId),
+        //             new(tempWorkspaceId, ProdWorkspaceToCreate, false, projectId)
+        //         };
+        //
+        //         success &= await _powerBiDataService.AddOrUpdateCataloguedWorkspaces(workspacesToCreate);
+        //     }
+        //
+        //     if (success)
+        //     {
+        //         using var ctx = await _contextFactory.CreateDbContextAsync();
+        //
+        //         var liveProjectRequest = await ctx.Project_Requests
+        //             .Include(r => r.Project.Users)
+        //             .FirstOrDefaultAsync(r => r.Id == ProjectRequest.Id);
+        //
+        //         liveProjectRequest.Is_Completed = DateTime.UtcNow;
+        //         liveProjectRequest.Project.PowerBI_URL = BuildPowerBIWorkspaceUrl(tempWorkspaceId);
+        //
+        //         await SendServiceCreatedNotifications(liveProjectRequest);
+        //
+        //         await ctx.SaveChangesAsync();
+        //     }
+        // }
+        // catch (Exception ex)
+        // {
+        //     _logger.LogError(ex, $"Error enabling PowerBI feature for project {ProjectName}");
+        //     success = false;
+        // }
+        //
+        // if (success)
+        // {
+        //     await _workingInd.SignalSuccess();
+        //     PowerBiServiceSuccessfullyApproved = true;
+        // }
+        // else
+        // {
+        //     ErrorDuringApproval = true;
+        //     await _workingInd.SignalFailure();
+        // }
+        // StateHasChanged();
     }
 
     private async Task<bool> LoadPowerBiWorkspaces()
@@ -441,15 +453,15 @@
         if (powerBiWorkspacesLoaded)
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
-            var request = await ctx.Project_Requests
+            var request = await ctx.ProjectRequestAudits
                 .Include(r => r.Project.Users)
-                .Where(r => r.Project.Project_Acronym_CD == ProjectAcronym && r.ServiceType == "powerbi")
+                .Where(r => r.Project.Project_Acronym_CD == ProjectAcronym && r.RequestType == "powerbi")
                 .FirstOrDefaultAsync();
 
             ExistingDbWorkspaces = await _powerBiDataService.GetAllWorkspaces();
 
             PowerBiRequestExists = request != null;
-            PowerBiRequestAlreadyCompleted = PowerBiRequestExists && request.Is_Completed.HasValue;
+            // PowerBiRequestAlreadyCompleted = PowerBiRequestExists && request.Is_Completed.HasValue;
 
             if (PowerBiRequestExists)
             {
