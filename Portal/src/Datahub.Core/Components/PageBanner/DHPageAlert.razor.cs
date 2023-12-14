@@ -8,7 +8,11 @@ namespace Datahub.Core.Components.PageBanner
         private const string Prefix = "tutorials";
         
         public const string Home = $"{Prefix}/home";
-        public static readonly PageAlertObject HomeAlert = new("/Banners/Landing", "/fr/Banners/Atterrissage");
+        public static readonly PageAlertObject WelcomeAlert = new("/Banners/Landing", "/fr/Banners/Atterrissage");
+        public static readonly PageAlertObject LayoutAlert = new("/Banners/Layout", "/fr/Banners/Mise-en-page");
+        public static readonly PageAlertObject TopbarAlert = new("/Banners/Topbar", "/fr/Banners/Barre-supérieure");
+        public static readonly PageAlertObject SidebarAlert = new("/Banners/Sidebar", "/fr/Banners/Encadré");
+        public static readonly PageAlertObject NewWorkspaceAlert = new("/Banners/NewWorkspace", "/fr/Banners/Nouvel-espace-de-travail");
         
         public const string Projects = $"{Prefix}/projects";
         public static readonly PageAlertObject ProjectsAlert = new("/Banners/AWS-storage-Databricks", "/fr/Banners/Stockage-AWS-Databricks");
@@ -18,7 +22,7 @@ namespace Datahub.Core.Components.PageBanner
 
         public static readonly Dictionary<string, dynamic> Alerts = new()
         {
-            {Home, new List<PageAlertObject>() {HomeAlert, ProjectsAlert}},
+            {Home, new List<PageAlertObject>() {WelcomeAlert,LayoutAlert, TopbarAlert, SidebarAlert,  NewWorkspaceAlert}},
         };
     }
     
