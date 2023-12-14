@@ -60,7 +60,7 @@ public class RequestManagementService : IRequestManagementService
         await _resourceMessagingService.SendToUserQueue(workspaceDefinition);
     }
 
-    public async Task SaveRequestToAuditing(Datahub_ProjectRequestAudit request)
+    private async Task ProcessRequest(Datahub_ProjectRequestAudit request)
     {
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
         ctx.Projects.Attach(request.Project);
@@ -74,28 +74,43 @@ public class RequestManagementService : IRequestManagementService
             _logger.LogInformation(
                 "Service request audit already exists for project {Acronym} and service type {ServiceType}",
                 request.Project.Project_Acronym_CD, request.RequestType);
-            return;
+        }
+        else
+        {
+            await ctx.ProjectRequestAudits.AddAsync(request);
+            await ctx.TrackSaveChangesAsync(_datahubAuditingService);
         }
         
-        await ctx.ProjectRequestAudits.AddAsync(request);
-        await ctx.TrackSaveChangesAsync(_datahubAuditingService);
+        // check and add the resource
+        var resource = await ctx.Project_Resources2
+            .FirstOrDefaultAsync(r => r.Project == request.Project && r.ResourceType == request.RequestType);
+        if (resource == null)
+        {
+            resource = CreateEmptyProjectResource(request);
+            await ctx.Project_Resources2.AddAsync(resource);
+            await ctx.TrackSaveChangesAsync(_datahubAuditingService);
+        }
+        else
+        {
+            _logger.LogInformation(
+                "Project resource already exists for project {Acronym} and resource type {ServiceType}",
+                request.Project.Project_Acronym_CD, request.RequestType);
+        }
     }
 
     public static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectRequestAudit request,
-        Dictionary<string, string> inputParams)
+        Dictionary<string, string>? inputParams = null)
     {
         var resource = new Project_Resources2
         {
             Project = request.Project,
             ResourceType = request.RequestType,
-            TimeRequested = DateTime.UtcNow
+            TimeRequested = DateTime.UtcNow,
+            JsonContent =  JsonConvert.SerializeObject(new Dictionary<string, string>()),
+            InputJsonContent = JsonConvert.SerializeObject(inputParams ?? new Dictionary<string, string>()),
         };
 
-        if (inputParams != null)
-        {
-            resource.SetInputParameters(inputParams);
-        }
-
+        // TODO: legacy code, check if we can drop the column
         switch (request.RequestType)
         {
             case IRequestManagementService.POSTGRESQL:
@@ -159,25 +174,6 @@ public class RequestManagementService : IRequestManagementService
         await _miscStorageService.SaveObject(jsonContent, id);
     }
 
-    private async Task NotifyProjectAdminsOfServiceRequest(Datahub_ProjectRequestAudit request)
-    {
-        var admins = await GetProjectAdministratorEmailsAndIds(request.Project.Project_ID);
-
-        await _emailNotificationService.SendServiceCreationRequestNotification(request.UserEmail, request.RequestType,
-            request.Project.ProjectInfo, admins);
-
-        var adminUserIds = admins.Where(a => Guid.TryParse(a, out _))
-            .ToList();
-        var user = await _userInformationService.GetCurrentGraphUserAsync();
-
-        await _systemNotificationService.CreateSystemNotificationsWithLink(adminUserIds, $"/administration",
-            "SYSTEM-NOTIFICATION.GoToAdminPage",
-            "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreationRequested",
-            user.UserPrincipalName, request.RequestType,
-            new BilingualStringArgument(request.Project.ProjectInfo.ProjectNameEn,
-                request.Project.ProjectInfo.ProjectNameFr));
-    }
-
     private async Task<List<string>> GetProjectAdministratorEmailsAndIds(int projectId)
     {
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
@@ -239,7 +235,7 @@ public class RequestManagementService : IRequestManagementService
                         UserEmail = currentPortalUser.Email
                     };
 
-                    await SaveRequestToAuditing(serviceRequest);
+                    await ProcessRequest(serviceRequest);
                 }
             }
 
