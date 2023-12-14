@@ -37,7 +37,6 @@ public interface IRequestManagementService
     Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate);
     
     Task HandleUserUpdatesToExternalPermissions(Datahub_Project project);
-    Task SaveRequestToAuditing(Datahub_ProjectRequestAudit request);
     Task SaveResourceInputDefinitionJson(string resourceType, string jsonContent);
     Task<bool> UpdateResourceInputParameters(Guid resourceId, Dictionary<string, string> inputParams);
 }
