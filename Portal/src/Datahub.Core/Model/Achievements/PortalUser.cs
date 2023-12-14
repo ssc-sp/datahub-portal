@@ -16,8 +16,6 @@ public class PortalUser
     public DateTime? LastLoginDateTime { get; set; }
     public string BannerPictureUrl { get; set; }
     public string ProfilePictureUrl { get; set;}
-    public bool HideAchievements { get; set; }
-    public string Language { get; set; }
     public List<UserInactivityNotifications> InactivityNotifications  { get; set; }
 
     #region Navigation props

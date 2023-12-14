@@ -52,7 +52,7 @@
     private const string LOCALIZATION_PREFIX = "RESOURCE_REQUEST_INFO_PANEL";
 
     [Parameter]
-    public Datahub_ProjectServiceRequests Request { get; set; }
+    public Datahub_ProjectRequestAudit Request { get; set; }
 
     private List<Project_Resources2> _resources = new();
 
@@ -100,8 +100,8 @@
             {
                 _requestInfo = new();
                 _requestInfo.Add("projectName", Request.Project.ProjectName);
-                _requestInfo.Add("serviceType", Localizer[$"RESOURCE-TYPE.{Request.ServiceType}"]);
-                _requestInfo.Add("requestingUser", Request.User_Name);
+                _requestInfo.Add("serviceType", Localizer[$"RESOURCE-TYPE.{Request.RequestType}"]);
+                _requestInfo.Add("requestingUser", Request.UserEmail);
             }
 
             return _requestInfo;
@@ -171,7 +171,7 @@
 
     private async Task LoadResourceFormParams()
     {
-        _formParams = await _requestService.CreateResourceInputFormParams(Request.ServiceType);
+        _formParams = await _requestService.CreateResourceInputFormParams(Request.RequestType);
     }
 
     protected override async Task OnInitializedAsync()
