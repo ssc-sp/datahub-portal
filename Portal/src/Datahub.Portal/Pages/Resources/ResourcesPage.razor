@@ -20,7 +20,11 @@
 </PageTitle>
 
 <SectionContent SectionName="side-bar">
-    <PersonalSidebar/>
+    <LearnSidebar currentCategory="@_currentCategory" 
+                  currentMarkdownCategory="@_currentMarkdownCategory" 
+                  hiddenNavGroups="@_hiddenNavGroups"
+                  BuildResourceLink="@BuildResourceLink"
+                  UpdateCategory="@UpdateCategory"/>
 </SectionContent>
 
 @if (PageIsLoading)
@@ -59,46 +63,7 @@ else
                 {
                     <MudTabPanel Text="@cat.Title" OnClick="() => ActivateCategory(cat)" Icon="@(cat.GetMudblazorMaterialIcon("Outlined"))">
                         <MudGrid>
-                            <MudItem xs="3">
-                                <MudNavMenu Dense Color=@Color.Primary Style="position: sticky; top: calc(var(--mud-appbar-height) + 1rem); max-height:  calc(95vh - (var(--mud-appbar-height) + 1rem)); overflow: auto;">
-                                     <MudNavLink Href="@BaseUrl" Match="NavLinkMatch.All">
-                                         @Localizer["Frequent Documents"]
-                                    </MudNavLink>
-                                    <MudDivider Class="my-3" />
-                                    @foreach (var cat in _currentCategory.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)))
-                                    {
-                                        var isDoc = cat.Children.Count == 0;
-
-                                        if (isDoc)
-                                        {
-                                            <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat) Icon="@(cat.GetSidebarIcon())">
-                                                @cat.Title
-                                            </MudNavLink>
-                                        }
-                                        else
-                                        {
-                                            <MudNavGroup Title="@cat.Title" ExpandedChanged=@(isExpanding => UpdateCategory(cat, isExpanding)) Icon="@(cat.GetSidebarIcon())">
-                                                @foreach (var article in cat.Children)
-                                                {
-                                                    if (article.DocType == DocItemType.External)
-                                                    {
-                                                        <MudNavLink Match="NavLinkMatch.All" Target="_blank" Href=@BuildResourceLink(article) Icon="@(article.GetSidebarIcon())">
-                                                            @article.Title
-                                                        </MudNavLink>
-                                                    }
-                                                    else
-                                                    {
-                                                        <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article) Icon="@(article.GetSidebarIcon())">
-                                                            @article.Title
-                                                        </MudNavLink>
-                                                    }
-                                                }
-                                            </MudNavGroup>
-                                        }
-                                    }
-                                </MudNavMenu>
-                            </MudItem>
-                            <MudItem xs="9">
+                            <MudItem>
                                 @if (ShowPreviewCards)
                                 {
                                     @if (_docIsLoading || _currentDoc is null)
@@ -178,7 +143,7 @@ else
     private bool _docIsLoading;
     private List<DocItem> _tabList;
 
-    public const string BaseUrl = "/resources";
+    public const string BaseUrl = $"/{PageRoutes.ResourcePrefix}";
 
     public static string BuildResourceLink(DocItem res)
     {

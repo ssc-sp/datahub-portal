@@ -203,7 +203,7 @@
             _statsRows = context.Projects
                 .Include(p => p.Credits)
                 .Include(p => p.Users)
-                .Include(p => p.ServiceRequests)
+                .Include(p => p.ProjectRequestAudits)
                 .AsEnumerable()
                 .Select(p => new DatahubProjectStatsRow()
                 {
@@ -217,13 +217,13 @@
                     Leads = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.WorkspaceLead).Select(u => u.User_Name).ToList(),
                     Admins = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Admin).Select(u => u.User_Name).ToList(),
                     Collaborators = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Collaborator).Select(u => u.User_Name).ToList(),
-                    StorageStatus = p.ServiceRequests?
-                        .Where(sr => sr.ServiceType.Contains(TerraformTemplate.AzureStorageBlob))
-                        .Select(sr => sr.Is_Completed.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
+                    StorageStatus = p.ProjectRequestAudits?
+                        .Where(sr => sr.RequestType.Contains(TerraformTemplate.AzureStorageBlob))
+                        .Select(sr => sr.CompletedDateTime.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
                         .FirstOrDefault() ?? DatahubProjectStatsRow.ResourceStatus.None,
-                    DatabricksStatus = p.ServiceRequests?
-                        .Where(sr => sr.ServiceType.Contains(TerraformTemplate.AzureDatabricks))
-                        .Select(sr => sr.Is_Completed.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
+                    DatabricksStatus = p.ProjectRequestAudits?
+                        .Where(sr => sr.RequestType.Contains(TerraformTemplate.AzureDatabricks))
+                        .Select(sr => sr.CompletedDateTime.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
                         .FirstOrDefault() ?? DatahubProjectStatsRow.ResourceStatus.None
                 })
                 .ToList();

@@ -156,11 +156,11 @@ public class TerraformOutputHandler
         var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
         var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureAppService);
 
-        var projectRequest = _projectDbContext.Project_Requests
+        var projectRequest = _projectDbContext.ProjectRequestAudits
             .Include(x => x.Project)
             .Where(x => x.Project.Project_Acronym_CD == projectAcronym.Value)
-            .Where(x => !x.Is_Completed.HasValue)
-            .FirstOrDefault(x => x.ServiceType == terraformServiceType);
+            .Where(x => !x.CompletedDateTime.HasValue)
+            .FirstOrDefault(x => x.RequestType == terraformServiceType);
 
         if (projectRequest is null)
         {
@@ -173,7 +173,7 @@ public class TerraformOutputHandler
         var azureAppServiceStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureAppServiceStatus].Value);
         if (azureAppServiceStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
         {
-            projectRequest.Is_Completed = DateTime.Now;
+            projectRequest.CompletedDateTime = DateTime.Now;
         }
         else
         {
@@ -232,11 +232,11 @@ public class TerraformOutputHandler
         var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
         var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
 
-        var projectRequest = _projectDbContext.Project_Requests
+        var projectRequest = _projectDbContext.ProjectRequestAudits
             .Include(x => x.Project)
             .Where(x => x.Project.Project_Acronym_CD == projectAcronym.Value)
-            .Where(x => !x.Is_Completed.HasValue)
-            .FirstOrDefault(x => x.ServiceType == terraformServiceType);
+            .Where(x => !x.CompletedDateTime.HasValue)
+            .FirstOrDefault(x => x.RequestType == terraformServiceType);
 
         if (projectRequest is null)
         {
@@ -249,7 +249,7 @@ public class TerraformOutputHandler
         var databricksStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureDatabricksStatus].Value);
         if (databricksStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
         {
-            projectRequest.Is_Completed = DateTime.Now;
+            projectRequest.CompletedDateTime = DateTime.Now;
         }
         else
         {
@@ -301,11 +301,11 @@ public class TerraformOutputHandler
         var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
         var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
 
-        var projectRequest = _projectDbContext.Project_Requests
+        var projectRequest = _projectDbContext.ProjectRequestAudits
             .Include(x => x.Project)
             .Where(x => x.Project.Project_Acronym_CD == projectAcronym.Value)
-            .Where(x => !x.Is_Completed.HasValue)
-            .FirstOrDefault(x => x.ServiceType == terraformServiceType);
+            .Where(x => !x.CompletedDateTime.HasValue)
+            .FirstOrDefault(x => x.RequestType == terraformServiceType);
 
         if (projectRequest is null)
         {
@@ -319,7 +319,7 @@ public class TerraformOutputHandler
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
         if (storageBlobStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
         {
-            projectRequest.Is_Completed = DateTime.Now;
+            projectRequest.CompletedDateTime = DateTime.Now;
         }
         else
         {
