@@ -115,7 +115,7 @@
             workspaceId = TerraformVariableExtraction.ExtractDatabricksWorkspaceId(_project);
             workspaceUrl = TerraformVariableExtraction.ExtractDatabricksUrl(_project);
         }
-        if (string.IsNullOrWhiteSpace(_project.WebApp_URL))
+        if (!string.IsNullOrWhiteSpace(_project.WebApp_URL))
         {
             expectedTerraformOutput = string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzureWebAppString());
         }
@@ -194,7 +194,7 @@
 
     private string GetExpectedTerraformOutputResourceGroupString()
     {
-        return @"""  new_project_template"": {
+        return @"  ""new_project_template"": {
     ""sensitive"": false,
     ""type"": ""string"",
     ""value"": ""completed""
