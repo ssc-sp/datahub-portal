@@ -151,7 +151,6 @@
         _workspace = await context.Projects
             .AsNoTracking()
             .Include(w => w.Resources)
-            .Include(w => w.ProjectRequestAudits)
             .FirstOrDefaultAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
 
         _metadataRequired = _workspace?.MetadataAdded != true;
@@ -185,14 +184,14 @@
             return ToolStatus.Available;
         }
         
-        if(toolResource.TimeCreated < DateTime.UtcNow)
-        {
-            return ToolStatus.Exists;
-        }
-        
-        if(toolResource.TimeCreated == null)
+        if(toolResource.CreatedAt == null)
         {
             return ToolStatus.PendingRequest;
+        }
+        
+        if(toolResource.CreatedAt < DateTime.UtcNow)
+        {
+            return ToolStatus.Exists;
         }
 
         return ToolStatus.Error;
