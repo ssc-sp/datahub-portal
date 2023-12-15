@@ -1,5 +1,6 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.UserTracking
+@using Datahub.Core.Components.PageBanner
 @using Datahub.Metadata.DTO
 @using Datahub.Portal.Pages.Workspace
 @using Datahub.Portal.Pages.Workspace.Dashboard
@@ -53,6 +54,7 @@
         <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(WorkspaceSidebar.SectionViews.Dashboard)"
                          ProjectAcronym="@WorkspaceAcronymParam">
             <Authorized>
+                <DHPageAlert Title="@Localizer["Welcome to a workspace"]" Key="@DHPageAlert.Workspace"/>
                 <WorkspaceDashboard WorkspaceAcronym="@WorkspaceAcronymParam"/>
             </Authorized>
             <NotAuthorized>
