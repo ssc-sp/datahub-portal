@@ -423,6 +423,7 @@ public class UserInformationService : IUserInformationService
 
             ctx.PortalUsers.Attach(updatedUser);
             ctx.Entry(updatedUser).State = EntityState.Modified;
+            ctx.Entry(updatedUser.UserSettings).State = EntityState.Modified;
             await ctx.SaveChangesAsync();
             PortalUserUpdated?.Invoke(this, new PortalUserUpdatedEventArgs(updatedUser));
             return true;

@@ -242,6 +242,7 @@ namespace Datahub.Core.Services.UserManagement
                 }
 
                 userSetting.HideAchievements = hideAchievements;
+                context.UserSettings.Update(userSetting);
 
                 if (await context.SaveChangesAsync() > 0)
                 {
