@@ -155,7 +155,7 @@ public class TerraformOutputHandler
         }
     }
 
-    private async Task ProcessAzureWebApp(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
+    internal async Task ProcessAzureWebApp(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
         var azureAppServiceStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureAppServiceStatus].Value);
@@ -178,7 +178,7 @@ public class TerraformOutputHandler
             ["app_service_hostname"] = appServiceHostName.Value,
         };
 
-        projectResource.CreatedAt = DateTime.Now;
+        projectResource.CreatedAt = DateTime.UtcNow;
         projectResource.JsonContent = jsonContent.ToString();
 
         projectResource.Project.WebApp_URL = appServiceHostName.Value;
@@ -187,10 +187,10 @@ public class TerraformOutputHandler
         await _projectDbContext.SaveChangesAsync();
     }
 
-    private async Task ProcessAzureDatabricks(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
+    internal async Task ProcessAzureDatabricks(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
         var databricksStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureDatabricksStatus].Value);
-        if (databricksStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
+        if (!databricksStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
         {
             _logger.LogError("Azure Databricks status is not completed. Status: {Status}", databricksStatus);
             return;
@@ -210,14 +210,14 @@ public class TerraformOutputHandler
             ["workspace_name"] = workspaceName.Value
         };
 
-        projectResource.CreatedAt = DateTime.Now;
+        projectResource.CreatedAt = DateTime.UtcNow;
         projectResource.JsonContent = jsonContent.ToString();
 
         await _projectDbContext.SaveChangesAsync();
     }
 
 
-    public async Task ProcessAzureStorageBlob(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
+    internal async Task ProcessAzureStorageBlob(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
         var storageBlobStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
@@ -246,14 +246,14 @@ public class TerraformOutputHandler
             ["storage_type"] = TerraformVariables.AzureStorageType
         };
 
-        projectResource.CreatedAt = DateTime.Now;
+        projectResource.CreatedAt = DateTime.UtcNow;
         projectResource.JsonContent = jsonContent.ToString();
         projectResource.InputJsonContent = inputJsonContent.ToString();
 
         await _projectDbContext.SaveChangesAsync();
     }
 
-    private async Task ProcessProjectStatus(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
+    internal async Task ProcessProjectStatus(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
         var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
         var project = await _projectDbContext.Projects

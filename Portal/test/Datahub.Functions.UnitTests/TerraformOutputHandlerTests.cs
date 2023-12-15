@@ -48,7 +48,10 @@ public class TerraformOutputHandlerTests
     [Test]
     public async Task ShouldProcessAzureStorageBlobOutputVariables()
     {
-        var project = new Datahub_Project();
+        var project = new Datahub_Project()
+        {
+            Project_Acronym_CD = "STORAGE"
+        };
         _context.Projects.Add(project);
         await _context.SaveChangesAsync();
         
@@ -83,21 +86,91 @@ public class TerraformOutputHandlerTests
         await _terraformOutputHandler.ProcessAzureStorageBlob(outputVariables!);
         
         var processedResource = await _context.Project_Resources2.FirstOrDefaultAsync(r => r.Project == project);
-        var processedResourceJsonContent = JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.JsonContent, deserializeOptions);
         
+        Assert.That(processedResource, Is.Not.Null);
+        Assert.That(processedResource!.CreatedAt, Is.Not.Null);
+        Assert.That(processedResource.CreatedAt, Is.GreaterThanOrEqualTo(DateTime.UtcNow.AddMinutes(-10)));
+        
+        
+        var processedResourceJsonContent = JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.JsonContent, deserializeOptions);
         var accountName = outputVariables![TerraformVariables.OutputAzureStorageAccountName];
         var containerName = outputVariables[TerraformVariables.OutputAzureStorageContainerName];
         var resourceGroupName = outputVariables[TerraformVariables.OutputAzureResourceGroupName];
         
-        Assert.That(processedResource, Is.Not.Null);
-        Assert.That(processedResource.CreatedAt, Is.Not.Null);
-        Assert.That(processedResource.CreatedAt, Is.GreaterThanOrEqualTo(DateTime.UtcNow.AddMinutes(-10)));
-        
         Assert.That(processedResourceJsonContent, Is.Not.Null);
-        Assert.That(processedResourceJsonContent!["storage_account_name"], Is.EqualTo(accountName.Value));
-        Assert.That(processedResourceJsonContent!["container_name"], Is.EqualTo(containerName.Value));
+        Assert.That(processedResourceJsonContent!["storage_account"], Is.EqualTo(accountName.Value));
+        Assert.That(processedResourceJsonContent!["container"], Is.EqualTo(containerName.Value));
         Assert.That(processedResourceJsonContent!["resource_group_name"], Is.EqualTo(resourceGroupName.Value));
         Assert.That(processedResourceJsonContent!["storage_type"], Is.EqualTo(TerraformVariables.AzureStorageType));
+        
+        var processedResourceInputJsonContent = JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.InputJsonContent, deserializeOptions);
+        
+        Assert.That(processedResourceInputJsonContent, Is.Not.Null);
+        Assert.That(processedResourceInputJsonContent!["storage_type"], Is.EqualTo(TerraformVariables.AzureStorageType));
+    }
 
+
+    [Test]
+    public async Task ShouldProcessAzureDatabricksOutputVariables()
+    {
+        var project = new Datahub_Project()
+        {
+            Project_Acronym_CD = "DATABRICKS"
+        };
+        
+        _context.Projects.Add(project);
+        await _context.SaveChangesAsync();
+        
+        var currentPortalUser = new PortalUser
+        {
+            Email = "tst",
+            GraphGuid = Guid.NewGuid().ToString(),
+        };
+        _context.PortalUsers.Add(currentPortalUser);
+        await _context.SaveChangesAsync();
+        
+        var databricksResource = new Project_Resources2
+        {
+            Project = project,
+            RequestedBy = currentPortalUser,
+            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)
+        };
+        _context.Project_Resources2.Add(databricksResource);
+        await _context.SaveChangesAsync();
+        
+        // stub in fake databricks workspace id and url
+        var fakeWorkspaceId = "fake-databricks-workspace-id";
+        var fakeWorkspaceUrl = "fake-databricks-workspace-url";
+        var terraformOutput = TerraformOutputHelper.GetExpectedTerraformOutput(project, fakeWorkspaceId, fakeWorkspaceUrl);
+        var deserializeOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+        
+        var outputVariables = JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(terraformOutput, deserializeOptions);
+        
+        
+        await _terraformOutputHandler.ProcessAzureDatabricks(outputVariables!);
+        
+        var processedResource = await _context.Project_Resources2.FirstOrDefaultAsync(r => r.Project == project);
+        
+        Assert.That(processedResource, Is.Not.Null);
+        Assert.That(processedResource!.CreatedAt, Is.Not.Null);
+        Assert.That(processedResource.CreatedAt, Is.GreaterThanOrEqualTo(DateTime.UtcNow.AddMinutes(-10)));
+
+        var processedResourceJsonContent = JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.JsonContent, deserializeOptions);
+        var workspaceId = outputVariables![TerraformVariables.OutputAzureDatabricksWorkspaceId];
+        var workspaceUrl = outputVariables[TerraformVariables.OutputAzureDatabricksWorkspaceUrl];
+        var workspaceName = outputVariables[TerraformVariables.OutputAzureDatabricksWorkspaceName];
+        
+        Assert.That(processedResourceJsonContent, Is.Not.Null);
+        Assert.That(processedResourceJsonContent!["workspace_id"], Is.EqualTo(workspaceId.Value));
+        Assert.That(processedResourceJsonContent!["workspace_url"], Is.EqualTo(workspaceUrl.Value));
+        Assert.That(processedResourceJsonContent!["workspace_name"], Is.EqualTo(workspaceName.Value));
+        
+        var processedResourceInputJsonContent = JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.InputJsonContent, deserializeOptions);
+
+        Assert.That(processedResourceInputJsonContent, Is.Not.Null);
+        
     }
 }

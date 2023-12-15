@@ -88,7 +88,7 @@
             .Include(p => p.Resources)
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
-        _expectedTerraformOutput = TerraformOutputHelper.GetExpectedTerraformOutput(_project);
+        _expectedTerraformOutput =  $"```json\n{TerraformOutputHelper.GetExpectedTerraformOutput(_project)}\n```";
     }
 
     private static string RewriteLink(string link)
