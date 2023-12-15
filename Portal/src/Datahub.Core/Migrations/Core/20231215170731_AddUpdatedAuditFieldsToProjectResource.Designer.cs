@@ -4,6 +4,7 @@ using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20231215170731_AddUpdatedAuditFieldsToProjectResource")]
+    partial class AddUpdatedAuditFieldsToProjectResource
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1533,6 +1536,43 @@ namespace Datahub.Core.Migrations.Core
                     b.ToTable("Project_Comments");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_ProjectRequestAudit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CompletedDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Project_ID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RequestType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("RequestedDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("UserEmail")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Project_ID");
+
+                    b.ToTable("ProjectRequestAudits");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_Costs", b =>
                 {
                     b.Property<int>("ProjectCosts_ID")
@@ -2296,6 +2336,15 @@ namespace Datahub.Core.Migrations.Core
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_ProjectRequestAudit", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany("ProjectRequestAudits")
+                        .HasForeignKey("Project_ID");
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_Pipeline_Lnk", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
@@ -2516,6 +2565,8 @@ namespace Datahub.Core.Migrations.Core
                     b.Navigation("PowerBi_Workspaces");
 
                     b.Navigation("ProjectInactivityNotifications");
+
+                    b.Navigation("ProjectRequestAudits");
 
                     b.Navigation("Repositories");
 

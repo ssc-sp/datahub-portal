@@ -164,19 +164,19 @@ public class ProjectCreationService : IProjectCreationService
         
         var exists = context.Project_Resources2
             .Any(r => r.ProjectId == projectId
-                      && r.ResourceType == RequestManagementService.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
+                      && r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
         
         if (exists) return;
+        
+        var project = await context.Projects
+            .FirstOrDefaultAsync(p => p.Project_ID == projectId);
+        var currentPortalUser = await _userInformationService.GetCurrentPortalUserAsync();
 
-        var newResource = new Project_Resources2()
+        var newResource = new Project_Resources2
         {
-            ResourceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
-            ClassName = nameof(ProjectResource_Blank),
-            JsonContent = "{}",
-            ProjectId = projectId,
-            TimeCreated = DateTime.UtcNow,
-            TimeRequested = DateTime.UtcNow,
-            InputJsonContent = "{}",
+            Project = project,
+            RequestedBy = currentPortalUser,
+            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)
         };
         
         await context.Project_Resources2.AddAsync(newResource);
