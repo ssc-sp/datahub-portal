@@ -5,11 +5,11 @@ namespace Datahub.Core.Utils;
 
 public static class TerraformOutputHelper
 {
-    public static string GetExpectedTerraformOutput(Datahub_Project project)
+    public static string GetExpectedTerraformOutput(Datahub_Project project, string workspaceId = null, string workspaceUrl = null)
     {
         var expectedTerraformOutput = GetExpectedTerraformOutputResourceGroupString();
-        var workspaceId = "";
-        var workspaceUrl = "";
+        // var workspaceId = "";
+        // var workspaceUrl = "";
 
         if (project.Resources.Any(r => r.ResourceType.Equals("terraform:azure-storage-blob")))
         {
@@ -21,8 +21,8 @@ public static class TerraformOutputHelper
         {
             expectedTerraformOutput = string.Join(",", expectedTerraformOutput,
                 GetExpectedTerraformOutputAzureDatabricksString());
-            workspaceId = TerraformVariableExtraction.ExtractDatabricksWorkspaceId(project);
-            workspaceUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project);
+            workspaceId ??= TerraformVariableExtraction.ExtractDatabricksWorkspaceId(project);
+            workspaceUrl ??= TerraformVariableExtraction.ExtractDatabricksUrl(project);
         }
 
         if (!string.IsNullOrWhiteSpace(project.WebApp_URL))
@@ -38,7 +38,7 @@ public static class TerraformOutputHelper
             .Replace("{{workspace_id}}", workspaceId)
             .Replace("{{workspace_url}}", workspaceUrl);
 
-        return $"```json\n{{\n{content}\n}}\n```";
+        return $"{{\n{content}\n}}";
     }
 
     private static string GetExpectedTerraformOutputAzureWebAppString()
