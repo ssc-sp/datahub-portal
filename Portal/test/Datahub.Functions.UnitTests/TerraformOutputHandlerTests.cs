@@ -173,4 +173,73 @@ public class TerraformOutputHandlerTests
         Assert.That(processedResourceInputJsonContent, Is.Not.Null);
         
     }
+
+    [Test]
+    public async Task ShouldProcessAzureWebAppOutputVariables()
+    {
+        var project = new Datahub_Project()
+        {
+            Project_Acronym_CD = "WEBAPP"
+        };
+        
+        _context.Projects.Add(project);
+        await _context.SaveChangesAsync();
+        
+        var currentPortalUser = new PortalUser
+        {
+            Email = "tst",
+            GraphGuid = Guid.NewGuid().ToString(),
+        };
+        _context.PortalUsers.Add(currentPortalUser);
+        await _context.SaveChangesAsync();
+        
+        var webAppResource = new Project_Resources2
+        {
+            Project = project,
+            RequestedBy = currentPortalUser,
+            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService)
+        };
+        
+        _context.Project_Resources2.Add(webAppResource);
+        await _context.SaveChangesAsync();
+        
+        var terraformOutput = TerraformOutputHelper.GetExpectedTerraformOutput(project);
+        var deserializeOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+        
+        var outputVariables = JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(terraformOutput, deserializeOptions);
+        
+        await _terraformOutputHandler.ProcessAzureWebApp(outputVariables!);
+        
+        var processedResource = await _context.Project_Resources2.FirstOrDefaultAsync(r => r.Project == project);
+        
+        Assert.That(processedResource, Is.Not.Null);
+        Assert.That(processedResource!.CreatedAt, Is.Not.Null);
+        Assert.That(processedResource.CreatedAt, Is.GreaterThanOrEqualTo(DateTime.UtcNow.AddMinutes(-10)));
+        
+        var processedResourceJsonContent = JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.JsonContent, deserializeOptions);
+        var webAppId = outputVariables![TerraformVariables.OutputAzureAppServiceId];
+        var webAppHostname = outputVariables[TerraformVariables.OutputAzureAppServiceHostName];
+        
+        Assert.That(processedResourceJsonContent, Is.Not.Null);
+        Assert.That(processedResourceJsonContent!["app_service_id"], Is.EqualTo(webAppId.Value));
+        Assert.That(processedResourceJsonContent!["app_service_hostname"], Is.EqualTo(webAppHostname.Value));
+        
+        var processedResourceInputJsonContent = JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.InputJsonContent, deserializeOptions);
+        
+        Assert.That(processedResourceInputJsonContent, Is.Not.Null);
+        
+        var updatedProject = await _context.Projects
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == project.Project_Acronym_CD);
+        
+        Assert.That(updatedProject, Is.Not.Null);
+        Assert.That(updatedProject!.WebApp_URL, Is.EqualTo(webAppHostname.Value));
+        Assert.That(updatedProject!.WebAppEnabled, Is.True);
+    }
+    
+    
+    // TODO: then write tests for the database output variables
 }
