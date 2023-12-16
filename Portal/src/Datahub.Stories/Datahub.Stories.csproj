@@ -19,9 +19,4 @@
       <ProjectReference Include="..\Datahub.Portal\Datahub.Portal.csproj" />
     </ItemGroup>
 
-
-    <ItemGroup>
-      <_ContentIncludedByDefault Remove="Stories\Layouts\PersonalLayout.stories.razor" />
-      <_ContentIncludedByDefault Remove="Stories\Layouts\WorkspaceLayout.stories.razor" />
-    </ItemGroup>
 </Project>

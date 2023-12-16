@@ -58,7 +58,7 @@
         _isSaving = true;
         StateHasChanged();
         
-        await _requestService.SaveResourceInputDefinitionJson(_currentResourceType, _currentJson);
+        // await _requestService.SaveResourceInputDefinitionJson(_currentResourceType, _currentJson);
 
         _isSaving = false;
         _isEditing = false;
@@ -77,7 +77,7 @@
 
     private async Task LoadResourceDefinition()
     {
-        _currentJson = await _requestService.GetResourceInputDefinitionJson(_currentResourceType);
+        // _currentJson = await _requestService.GetResourceInputDefinitionJson(_currentResourceType);
     }
 
     protected override async Task OnInitializedAsync()
