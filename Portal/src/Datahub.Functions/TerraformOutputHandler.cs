@@ -142,7 +142,7 @@ public class TerraformOutputHandler
         {
             using var transactionScope =
                 new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
-            await ProcessProjectStatus(outputVariables);
+            await ProcessWorkspaceStatus(outputVariables);
             await ProcessAzureStorageBlob(outputVariables);
             await ProcessAzureDatabricks(outputVariables);
             await ProcessAzureWebApp(outputVariables);
@@ -289,7 +289,7 @@ public class TerraformOutputHandler
         await _projectDbContext.SaveChangesAsync();
     }
 
-    internal async Task ProcessProjectStatus(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
+    internal async Task ProcessWorkspaceStatus(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
         var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
         var project = await _projectDbContext.Projects
