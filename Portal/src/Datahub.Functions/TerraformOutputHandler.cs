@@ -146,6 +146,7 @@ public class TerraformOutputHandler
             await ProcessAzureStorageBlob(outputVariables);
             await ProcessAzureDatabricks(outputVariables);
             await ProcessAzureWebApp(outputVariables);
+            await ProcessAzurePostgres(outputVariables);
             transactionScope.Complete();
         }
         catch (Exception e)
@@ -250,6 +251,41 @@ public class TerraformOutputHandler
         projectResource.JsonContent = jsonContent.ToString();
         projectResource.InputJsonContent = inputJsonContent.ToString();
 
+        await _projectDbContext.SaveChangesAsync();
+    }
+
+    internal async Task ProcessAzurePostgres(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
+    {
+        var postgresStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzurePostgresStatus].Value);
+        if (!postgresStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
+        {
+            _logger.LogError("Azure Postgres status is not completed. Status: {Status}", postgresStatus);
+            return;
+        }
+        
+        var projectResource = await GetProjectResource(outputVariables,
+            TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres));
+        
+        var postgresId = outputVariables[TerraformVariables.OutputAzurePostgresId];
+        var postgresDns = outputVariables[TerraformVariables.OutputAzurePostgresDns];
+        var postgresDbName = outputVariables[TerraformVariables.OutputAzurePostgresDatabaseName];
+        var postgresSecretNameAdmin = outputVariables[TerraformVariables.OutputAzurePostgresSecretNameAdmin];
+        var postgresSecretNamePassword = outputVariables[TerraformVariables.OutputAzurePostgresSecretNamePassword];
+        var postgresServerName = outputVariables[TerraformVariables.OutputAzurePostgresServerName];
+        
+        var jsonContent = new JsonObject
+        {
+            ["postgres_id"] = postgresId.Value,
+            ["postgres_dns"] = postgresDns.Value,
+            ["postgres_db_name"] = postgresDbName.Value,
+            ["postgres_secret_name_admin"] = postgresSecretNameAdmin.Value,
+            ["postgres_secret_name_password"] = postgresSecretNamePassword.Value,
+            ["postgres_server_name"] = postgresServerName.Value
+        };
+        
+        projectResource.CreatedAt = DateTime.UtcNow;
+        projectResource.JsonContent = jsonContent.ToString();
+        
         await _projectDbContext.SaveChangesAsync();
     }
 

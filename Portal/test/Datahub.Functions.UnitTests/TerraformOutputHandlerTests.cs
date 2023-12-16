@@ -239,7 +239,72 @@ public class TerraformOutputHandlerTests
         Assert.That(updatedProject!.WebApp_URL, Is.EqualTo(webAppHostname.Value));
         Assert.That(updatedProject!.WebAppEnabled, Is.True);
     }
+
+    [Test]
+    public async Task ShouldProcessAzurePostgresOutputVariables()
+    {
+        var project = new Datahub_Project()
+        {
+            Project_Acronym_CD = "POSTGRES"
+        };
+        
+        _context.Projects.Add(project);
+        await _context.SaveChangesAsync();
+        
+        var currentPortalUser = new PortalUser
+        {
+            Email = "tst",
+            GraphGuid = Guid.NewGuid().ToString(),
+        };
+        _context.PortalUsers.Add(currentPortalUser);
+        await _context.SaveChangesAsync();
+        
+        var postgresResource = new Project_Resources2
+        {
+            Project = project,
+            RequestedBy = currentPortalUser,
+            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)
+        };
+        
+        _context.Project_Resources2.Add(postgresResource);
+        await _context.SaveChangesAsync();
+        
+        var terraformOutput = TerraformOutputHelper.GetExpectedTerraformOutput(project);
+        var deserializeOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+        
+        var outputVariables = JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(terraformOutput, deserializeOptions);
+        
+        await _terraformOutputHandler.ProcessAzurePostgres(outputVariables!);
+        
+        var processedResource = await _context.Project_Resources2.FirstOrDefaultAsync(r => r.Project == project);
+        
+        Assert.That(processedResource, Is.Not.Null);
+        Assert.That(processedResource!.CreatedAt, Is.Not.Null);
+        Assert.That(processedResource.CreatedAt, Is.GreaterThanOrEqualTo(DateTime.UtcNow.AddMinutes(-10)));
+        
+        var processedResourceJsonContent = JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.JsonContent, deserializeOptions);
+        var postgresDatabaseName = outputVariables![TerraformVariables.OutputAzurePostgresDatabaseName];
+        var postgresDns = outputVariables[TerraformVariables.OutputAzurePostgresDns];
+        var postgresId = outputVariables[TerraformVariables.OutputAzurePostgresId];
+        var postgresSecretNameAdmin = outputVariables[TerraformVariables.OutputAzurePostgresSecretNameAdmin];
+        var postgresSecretNamePassword = outputVariables[TerraformVariables.OutputAzurePostgresSecretNamePassword];
+        var postgresServerName = outputVariables[TerraformVariables.OutputAzurePostgresServerName];
+        
+        Assert.That(processedResourceJsonContent, Is.Not.Null);
+        Assert.That(processedResourceJsonContent!["postgres_id"], Is.EqualTo(postgresId.Value));
+        Assert.That(processedResourceJsonContent!["postgres_dns"], Is.EqualTo(postgresDns.Value));
+        Assert.That(processedResourceJsonContent!["postgres_db_name"], Is.EqualTo(postgresDatabaseName.Value));
+        Assert.That(processedResourceJsonContent!["postgres_secret_name_admin"], Is.EqualTo(postgresSecretNameAdmin.Value));
+        Assert.That(processedResourceJsonContent!["postgres_secret_name_password"], Is.EqualTo(postgresSecretNamePassword.Value));
+        Assert.That(processedResourceJsonContent!["postgres_server_name"], Is.EqualTo(postgresServerName.Value));
+        
+        var processedResourceInputJsonContent = JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.InputJsonContent, deserializeOptions);
+        
+        Assert.That(processedResourceInputJsonContent, Is.Not.Null);
+    }
+    // TODO: the resource group test
     
-    
-    // TODO: then write tests for the database output variables
 }
