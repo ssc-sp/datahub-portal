@@ -1,5 +1,6 @@
 using System.Linq;
 using Datahub.Core.Model.Projects;
+using Datahub.Shared.Entities;
 
 namespace Datahub.Core.Utils;
 
@@ -11,13 +12,13 @@ public static class TerraformOutputHelper
         // var workspaceId = "";
         // var workspaceUrl = "";
 
-        if (project.Resources.Any(r => r.ResourceType.Equals("terraform:azure-storage-blob")))
+        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob))))
         {
             expectedTerraformOutput =
                 string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzureStorageString());
         }
 
-        if (project.Resources.Any(r => r.ResourceType.Equals("terraform:azure-databricks")))
+        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks))))
         {
             expectedTerraformOutput = string.Join(",", expectedTerraformOutput,
                 GetExpectedTerraformOutputAzureDatabricksString());
@@ -25,7 +26,7 @@ public static class TerraformOutputHelper
             workspaceUrl ??= TerraformVariableExtraction.ExtractDatabricksUrl(project);
         }
 
-        if (!string.IsNullOrWhiteSpace(project.WebApp_URL))
+        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService))))
         {
             expectedTerraformOutput =
                 string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzureWebAppString());
