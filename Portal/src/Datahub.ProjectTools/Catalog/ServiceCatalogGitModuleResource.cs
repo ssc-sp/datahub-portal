@@ -32,7 +32,7 @@ public class ServiceCatalogGitModuleResource : IProjectResource
         {
             case TerraformTemplate.AzureStorageBlob:
             {
-                var resourceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
+                var resourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
                 return _project.Resources
                     .Where(r => r.ResourceType == resourceType)
                     .Select(_ => (typeof(StorageResourceCard), GetActiveParameters(TerraformTemplate.AzureStorageBlob)))
@@ -40,7 +40,7 @@ public class ServiceCatalogGitModuleResource : IProjectResource
             }
             case TerraformTemplate.AzureDatabricks:
             {
-                var resourceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
+                var resourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
                 return _project.Resources
                     .Where(r => r.ResourceType == resourceType)
                     .Select(_ => (typeof(DatabricksResourceCard), GetActiveParameters(TerraformTemplate.AzureDatabricks)))
@@ -97,11 +97,11 @@ public class ServiceCatalogGitModuleResource : IProjectResource
     {
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
         _project = project;
-        var serviceRequests = project.ProjectRequestAudits;
-        // _serviceRequested = serviceRequests.Any(r => r.RequestType == RequestManagementService.GetTerraformServiceType(_currentModule.Name) && r.Is_Completed == null);
+        // var serviceRequests = project.ProjectRequestAudits;
+        // _serviceRequested = serviceRequests.Any(r => r.RequestType == TerraformTemplate.GetTerraformServiceType(_currentModule.Name) && r.Is_Completed == null);
         
         // TODO: Check if service is created off a request GUID down the road
-        // _serviceCreated = serviceRequests.Any(r => r.RequestType == RequestManagementService.GetTerraformServiceType(_currentModule.Name) && r.Is_Completed != null);
+        // _serviceCreated = serviceRequests.Any(r => r.RequestType == TerraformTemplate.GetTerraformServiceType(_currentModule.Name) && r.Is_Completed != null);
         return true;
     }
 

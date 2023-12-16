@@ -447,6 +447,7 @@ public class UserInformationService : IUserInformationService
         {
             portalUser = await ctx.PortalUsers
                 .AsNoTracking()
+                .Include(u => u.UserSettings)
                 .FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
 
             if (portalUser is not null)
@@ -494,9 +495,9 @@ public class UserInformationService : IUserInformationService
 
         var portalUser = await ctx.PortalUsers
             .AsNoTracking()
+            .Include(p => p.UserSettings)
             .Include(p => p.Achievements)
             .ThenInclude(a => a.Achievement)
-            .Include(p => p.UserSettings)
             .FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
 
         return portalUser;

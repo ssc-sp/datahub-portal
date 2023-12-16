@@ -1,6 +1,5 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Services.Achievements
-@using Datahub.Portal.Pages.Landing
 @using Datahub.Portal.Views.Dialogs
 @using Microsoft.Graph.Models
 
@@ -9,10 +8,8 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IPortalUserTelemetryService _telemetryService
 @inject IUserSettingsService _userSettingsService
-@inject IUserInformationService _userInformationService
 @inject IDataCreatorService _dataCreatorService
 @inject IDialogService _dialogService
-@inject ILogger<HomeLanding> _logger
 @inject NavigationManager _navigationManager
 
 
@@ -69,7 +66,7 @@
             </MudItem>
         }
     </MudGrid>
-    <UserProjects UserId="@_viewedPortalUser?.GraphGuid" SmSize="6"/>
+    <UserProjects UserId="@_viewedPortalUser!.GraphGuid" SmSize="6"/>
 </MudStack>
 
 @code {
@@ -77,7 +74,6 @@
     private PortalUser _currentUser;
     private PortalUser _viewedPortalUser;
     private string _achievementsUrl => $"{PageRoutes.AccountPrefix}/{PersonalSidebar.SectionViews.Achievements}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
-    
 
     protected override async Task OnInitializedAsync()
     {

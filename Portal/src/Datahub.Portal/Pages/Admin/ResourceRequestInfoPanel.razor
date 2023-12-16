@@ -1,183 +1,183 @@
-﻿@inject IRequestManagementService _requestService;
-@using Datahub.Core.Services.Projects;
-@using Datahub.Metadata.DTO;
-@using Datahub.ProjectTools.Services;
-@using Datahub.Core.Model.Datahub
-@using Datahub.Core.Model.Projects
-
-@* TODO: localize text *@
-
-<AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.RequestInformation"]</AeTypography>
-
-<PropertyList PropertyDict=@RequestInfo Headers=@new() KeyTransformer=@LocalizeInfoKey/>
-
-@if (ShowInputParams && FormParamsLoaded)
-{
-    <AeTypography Variant="h5">@Localizer[$"{LOCALIZATION_PREFIX}.InputParameters"]</AeTypography>
-    @foreach(var r in _editableResources)
-    {
-        <AeCard>
-
-        <div>
-            <MetadataEditor 
-                Definitions=@_formParams.FieldDefinitions
-                FieldValues=@r.FieldValues
-                Profile=@_formParams.Profile
-                ShowAll
-                HideTranslationNote
-                Preview=@(!r.IsEditing)
-                OnFieldChanged=@(async () => await HandleFieldChanged(r))
-            />
-            @if (r.IsEditing)
-            {
-                <div>
-                    <AeButton OnClickEvent=@(async () => await SaveInputParams(r)) Disabled=@_isSaving>@Localizer["BUTTONS.Save"]</AeButton>
-                    <AeButton class="light" OnClickEvent=@(async () => await CancelEditing(r)) Disabled=@_isSaving>@Localizer["BUTTONS.Cancel"]</AeButton>
-                    <SuccessIndicator @bind-IsLoading=@_isSaving @ref=@_savingInd />
-                </div>
-            }
-            else if (!r.IsAlreadyCreated)
-            {
-                <AeButton OnClickEvent=@(() => r.IsEditing = !r.IsEditing) Disabled=@(_isEditingAny)>
-                    <i class="fad fa-pencil"></i>
-                </AeButton>
-            }
-        </div>
-        </AeCard>
-    }
-}
-
-
-@code {
-    private const string LOCALIZATION_PREFIX = "RESOURCE_REQUEST_INFO_PANEL";
-
-    [Parameter]
-    public Datahub_ProjectRequestAudit Request { get; set; }
-
-    private List<Project_Resources2> _resources = new();
-
-    private class EditableResource
-    {
-        public Project_Resources2 ResourceRecord { get; set; }
-        public Dictionary<string, string> SettingsDict { get; set; }
-        public FieldValueContainer FieldValues { get; set; }
-        public bool IsEditing { get; set; }
-        public bool IsAlreadyCreated => ResourceRecord?.TimeCreated != null;
-        private EditableResource(Project_Resources2 res)
-        {
-            ResourceRecord = res;
-            SettingsDict = res.GetInputParamsDictionary();
-            IsEditing = false;
-        }
-        public static EditableResource BuildForResource(Project_Resources2 res, FieldDefinitions fieldDefs)
-        {
-            if (res.HasInputParams && fieldDefs != null)
-            {
-                var result = new EditableResource(res);
-                result.ResetValues(fieldDefs);
-                return result;
-            }
-            else
-            {
-                return default;
-            }
-        }
-        public void ResetValues(FieldDefinitions fieldDefs)
-        {
-            var objectId = FieldValues?.ObjectId;
-            FieldValues = RequestManagementService.BuildFieldValues(fieldDefs, SettingsDict, objectId);
-        }
-    }
-
-    private List<EditableResource> _editableResources = new();
-
-    private Dictionary<string, string> _requestInfo;
-    private Dictionary<string, string> RequestInfo
-    {
-        get
-        {
-            if (_requestInfo == null)
-            {
-                _requestInfo = new();
-                _requestInfo.Add("projectName", Request.Project.ProjectName);
-                _requestInfo.Add("serviceType", Localizer[$"RESOURCE-TYPE.{Request.RequestType}"]);
-                _requestInfo.Add("requestingUser", Request.UserEmail);
-            }
-
-            return _requestInfo;
-        }
-    }
-
-    private string LocalizeInfoKey(string k) => Localizer[$"{LOCALIZATION_PREFIX}.{k}"];
-
-    private bool ShowInputParams => _resources.Count > 0 && _resources.Any(r => r.HasInputParams);
-
-    private ProjectResourceFormParams _formParams;
-
-    private bool FormParamsLoaded => _formParams != null;
-
-    private bool _isEditingAny => _editableResources.Any(r => r.IsEditing);
-
-    private bool _isSaving { get; set; } = false;
-    private SuccessIndicator _savingInd;
-
-    private async Task HandleFieldChanged(EditableResource r)
-    {
-        var fvc = r.FieldValues;
-        foreach (var fd in fvc.Definitions.Fields)
-        {
-            var key = fd.Field_Name_TXT;
-            var value = fvc.GetValue(key);
-            r.SettingsDict[key] = value;
-        }
-
-        await Task.CompletedTask;
-    }
-
-    private async Task CancelEditing(EditableResource r)
-    {
-        r.SettingsDict = r.ResourceRecord.GetInputParamsDictionary();
-        r.ResetValues(_formParams.FieldDefinitions);
-        r.IsEditing = false;
-        await Task.CompletedTask;
-    }
-
-    private async Task SaveInputParams(EditableResource r)
-    {
-        _isSaving = true;
-        StateHasChanged();
-
-        var success = await _requestService.UpdateResourceInputParameters(r.ResourceRecord.ResourceId, r.SettingsDict);
-        if (success)
-        {
-            await _savingInd.SignalSuccess();
-        }
-        else
-        {
-            await _savingInd.SignalFailure();
-        }
-        await LoadResources();
-    }
-
-    private async Task LoadResources()
-    {
-        _resources = await _requestService.GetResourcesByRequest(Request);
-
-        _editableResources = _resources
-            .Select(r => EditableResource.BuildForResource(r, _formParams?.FieldDefinitions))
-            .Where(r => r != null)
-            .ToList();
-    }
-
-    private async Task LoadResourceFormParams()
-    {
-        _formParams = await _requestService.CreateResourceInputFormParams(Request.RequestType);
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadResourceFormParams();
-        await LoadResources();
-    }
-
-}
+﻿@* @inject IRequestManagementService _requestService; *@
+@* @using Datahub.Core.Services.Projects; *@
+@* @using Datahub.Metadata.DTO; *@
+@* @using Datahub.ProjectTools.Services; *@
+@* @using Datahub.Core.Model.Datahub *@
+@* @using Datahub.Core.Model.Projects *@
+@* *@
+@* $1$ TODO: localize text #1# *@
+@* *@
+@* <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.RequestInformation"]</AeTypography> *@
+@* *@
+@* <PropertyList PropertyDict=@RequestInfo Headers=@new() KeyTransformer=@LocalizeInfoKey/> *@
+@* *@
+@* @if (ShowInputParams && FormParamsLoaded) *@
+@* { *@
+@*     <AeTypography Variant="h5">@Localizer[$"{LOCALIZATION_PREFIX}.InputParameters"]</AeTypography> *@
+@*     @foreach(var r in _editableResources) *@
+@*     { *@
+@*         <AeCard> *@
+@* *@
+@*         <div> *@
+@*             <MetadataEditor  *@
+@*                 Definitions=@_formParams.FieldDefinitions *@
+@*                 FieldValues=@r.FieldValues *@
+@*                 Profile=@_formParams.Profile *@
+@*                 ShowAll *@
+@*                 HideTranslationNote *@
+@*                 Preview=@(!r.IsEditing) *@
+@*                 OnFieldChanged=@(async () => await HandleFieldChanged(r)) *@
+@*             /> *@
+@*             @if (r.IsEditing) *@
+@*             { *@
+@*                 <div> *@
+@*                     <AeButton OnClickEvent=@(async () => await SaveInputParams(r)) Disabled=@_isSaving>@Localizer["BUTTONS.Save"]</AeButton> *@
+@*                     <AeButton class="light" OnClickEvent=@(async () => await CancelEditing(r)) Disabled=@_isSaving>@Localizer["BUTTONS.Cancel"]</AeButton> *@
+@*                     <SuccessIndicator @bind-IsLoading=@_isSaving @ref=@_savingInd /> *@
+@*                 </div> *@
+@*             } *@
+@*             else if (!r.IsAlreadyCreated) *@
+@*             { *@
+@*                 <AeButton OnClickEvent=@(() => r.IsEditing = !r.IsEditing) Disabled=@(_isEditingAny)> *@
+@*                     <i class="fad fa-pencil"></i> *@
+@*                 </AeButton> *@
+@*             } *@
+@*         </div> *@
+@*         </AeCard> *@
+@*     } *@
+@* } *@
+@* *@
+@* *@
+@* @code { *@
+@*     private const string LOCALIZATION_PREFIX = "RESOURCE_REQUEST_INFO_PANEL"; *@
+@* *@
+@*     [Parameter] *@
+@*     public Datahub_ProjectRequestAudit Request { get; set; } *@
+@* *@
+@*     private List<Project_Resources2> _resources = new(); *@
+@* *@
+@*     private class EditableResource *@
+@*     { *@
+@*         public Project_Resources2 ResourceRecord { get; set; } *@
+@*         public Dictionary<string, string> SettingsDict { get; set; } *@
+@*         public FieldValueContainer FieldValues { get; set; } *@
+@*         public bool IsEditing { get; set; } *@
+@*         public bool IsAlreadyCreated => ResourceRecord?.CreatedAt != null; *@
+@*         private EditableResource(Project_Resources2 res) *@
+@*         { *@
+@*             ResourceRecord = res; *@
+@*             SettingsDict = res.GetInputParamsDictionary(); *@
+@*             IsEditing = false; *@
+@*         } *@
+@*         public static EditableResource BuildForResource(Project_Resources2 res, FieldDefinitions fieldDefs) *@
+@*         { *@
+@*             if (res.HasInputParams && fieldDefs != null) *@
+@*             { *@
+@*                 var result = new EditableResource(res); *@
+@*                 result.ResetValues(fieldDefs); *@
+@*                 return result; *@
+@*             } *@
+@*             else *@
+@*             { *@
+@*                 return default; *@
+@*             } *@
+@*         } *@
+@*         public void ResetValues(FieldDefinitions fieldDefs) *@
+@*         { *@
+@*             var objectId = FieldValues?.ObjectId; *@
+@*             FieldValues = RequestManagementService.BuildFieldValues(fieldDefs, SettingsDict, objectId); *@
+@*         } *@
+@*     } *@
+@* *@
+@*     private List<EditableResource> _editableResources = new(); *@
+@* *@
+@*     private Dictionary<string, string> _requestInfo; *@
+@*     private Dictionary<string, string> RequestInfo *@
+@*     { *@
+@*         get *@
+@*         { *@
+@*             if (_requestInfo == null) *@
+@*             { *@
+@*                 _requestInfo = new(); *@
+@*                 _requestInfo.Add("projectName", Request.Project.ProjectName); *@
+@*                 _requestInfo.Add("serviceType", Localizer[$"RESOURCE-TYPE.{Request.RequestType}"]); *@
+@*                 _requestInfo.Add("requestingUser", Request.UserEmail); *@
+@*             } *@
+@* *@
+@*             return _requestInfo; *@
+@*         } *@
+@*     } *@
+@* *@
+@*     private string LocalizeInfoKey(string k) => Localizer[$"{LOCALIZATION_PREFIX}.{k}"]; *@
+@* *@
+@*     private bool ShowInputParams => _resources.Count > 0 && _resources.Any(r => r.HasInputParams); *@
+@* *@
+@*     private ProjectResourceFormParams _formParams; *@
+@* *@
+@*     private bool FormParamsLoaded => _formParams != null; *@
+@* *@
+@*     private bool _isEditingAny => _editableResources.Any(r => r.IsEditing); *@
+@* *@
+@*     private bool _isSaving { get; set; } = false; *@
+@*     private SuccessIndicator _savingInd; *@
+@* *@
+@*     private async Task HandleFieldChanged(EditableResource r) *@
+@*     { *@
+@*         var fvc = r.FieldValues; *@
+@*         foreach (var fd in fvc.Definitions.Fields) *@
+@*         { *@
+@*             var key = fd.Field_Name_TXT; *@
+@*             var value = fvc.GetValue(key); *@
+@*             r.SettingsDict[key] = value; *@
+@*         } *@
+@* *@
+@*         await Task.CompletedTask; *@
+@*     } *@
+@* *@
+@*     private async Task CancelEditing(EditableResource r) *@
+@*     { *@
+@*         r.SettingsDict = r.ResourceRecord.GetInputParamsDictionary(); *@
+@*         r.ResetValues(_formParams.FieldDefinitions); *@
+@*         r.IsEditing = false; *@
+@*         await Task.CompletedTask; *@
+@*     } *@
+@* *@
+@*     private async Task SaveInputParams(EditableResource r) *@
+@*     { *@
+@*         _isSaving = true; *@
+@*         StateHasChanged(); *@
+@* *@
+@*         var success = await _requestService.UpdateResourceInputParameters(r.ResourceRecord.ResourceId, r.SettingsDict); *@
+@*         if (success) *@
+@*         { *@
+@*             await _savingInd.SignalSuccess(); *@
+@*         } *@
+@*         else *@
+@*         { *@
+@*             await _savingInd.SignalFailure(); *@
+@*         } *@
+@*         await LoadResources(); *@
+@*     } *@
+@* *@
+@*     private async Task LoadResources() *@
+@*     { *@
+@*         // _resources = await _requestService.GetResourcesByRequest(Request); *@
+@* *@
+@*         _editableResources = _resources *@
+@*             .Select(r => EditableResource.BuildForResource(r, _formParams?.FieldDefinitions)) *@
+@*             .Where(r => r != null) *@
+@*             .ToList(); *@
+@*     } *@
+@* *@
+@*     private async Task LoadResourceFormParams() *@
+@*     { *@
+@*         _formParams = await _requestService.CreateResourceInputFormParams(Request.RequestType); *@
+@*     } *@
+@* *@
+@*     protected override async Task OnInitializedAsync() *@
+@*     { *@
+@*         await LoadResourceFormParams(); *@
+@*         await LoadResources(); *@
+@*     } *@
+@* *@
+@* } *@

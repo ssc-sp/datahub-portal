@@ -15,7 +15,7 @@
 @attribute [Route(PageRoutes.Account)]
 
 <PageTitle>
-    @Localizer["SSC Datahub - Account"]
+    @Localizer["SSC Datahub {0}", _title]
 </PageTitle>
 
 <SectionContent SectionName="side-bar">
@@ -69,6 +69,9 @@
     public string Section { get; set; }
 
     private PortalUser _viewedPortalUser;
+    private string _title => _viewedPortalUser?.DisplayName != null
+        ? $"- {_viewedPortalUser.DisplayName}"
+        : "- Home"; 
 
 
     protected override async Task OnParametersSetAsync()
