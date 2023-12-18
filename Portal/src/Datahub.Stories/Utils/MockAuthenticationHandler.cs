@@ -37,8 +37,8 @@ public class MockAuthenticationHandler : AuthenticationHandler<AuthenticationSch
         
         var claims = new []
         {
-            new Claim(ClaimTypes.Name, randomUser.DisplayName),
-            new Claim(ClaimTypes.Email, randomUser.Email),
+            new Claim(ClaimTypes.Name, randomUser?.DisplayName ?? "Unknown"),
+            new Claim(ClaimTypes.Email, randomUser.Email ?? "Unknown"),
             new Claim("http://schemas.microsoft.com/identity/claims/objectidentifier", randomUser.GraphGuid.ToString()),
         };
         

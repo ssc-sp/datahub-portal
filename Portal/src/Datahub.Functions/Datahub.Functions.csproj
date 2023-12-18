@@ -67,4 +67,8 @@
     <ItemGroup>
         <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <InternalsVisibleTo Include="Datahub.Functions.UnitTests" />
+    </ItemGroup>
 </Project>

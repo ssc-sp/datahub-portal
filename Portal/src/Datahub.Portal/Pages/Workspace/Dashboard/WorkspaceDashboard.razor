@@ -125,7 +125,7 @@
             .FirstOrDefaultAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
 
         _resources = _project.Resources
-            .Where(r => r.ResourceType != RequestManagementService.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
+            .Where(r => r.ResourceType != TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
             .OrderBy(r => r.ResourceType)
             .ToList();
 

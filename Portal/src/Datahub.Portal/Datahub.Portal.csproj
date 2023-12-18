@@ -57,33 +57,6 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
-
-	<ItemGroup>
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-brands-400.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-brands-400.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-duotone-900.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-duotone-900.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-light-300.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-light-300.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-regular-400.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-regular-400.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-sharp-solid-900.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-sharp-solid-900.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-solid-900.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-solid-900.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-thin-100.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-thin-100.woff2" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.ttf" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\webfonts\fa-v4compatibility.woff2" />
-		<_ContentIncludedByDefault Remove="Pages\Project\FileExplorer\Storage\AWSConnectionDataInput.razor" />
-		<_ContentIncludedByDefault Remove="Pages\Project\FileExplorer\Storage\AzureConnectionDataInput.razor" />
-		<_ContentIncludedByDefault Remove="Pages\Project\FileExplorer\Storage\GCPConnectionDataInput.razor" />
-		<_ContentIncludedByDefault Remove="Pages\Project\FileExplorer\Storage\StorageConfigurationDialog.razor" />
-		<_ContentIncludedByDefault Remove="Pages\Project\FileExplorer\Storage\StorageContainerSelector.razor" />
-		<_ContentIncludedByDefault Remove="Pages\Project\Repositories\RepositoryCard.razor" />
-		<_ContentIncludedByDefault Remove="Pages\Project\Repositories\RepositoryGridItem.razor" />
-		<_ContentIncludedByDefault Remove="Pages\Project\Repositories\RepositoryManagementPage.razor" />
-	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />
 		<ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
@@ -100,25 +73,5 @@
 		<ProjectReference Include="..\modules\Datahub.LanguageTraining\Datahub.LanguageTraining.csproj" />
 		<ProjectReference Include="..\modules\Datahub.M365Forms\Datahub.M365Forms.csproj" />
 		<ProjectReference Include="..\modules\Datahub.PIP\Datahub.PIP.csproj" />
-	</ItemGroup>
-	<ItemGroup>
-	  <AdditionalFiles Include="Pages\Account\ChangePictureDialog.razor" />
-	  <AdditionalFiles Include="Pages\Account\DialogImageItem.razor" />
-	  <AdditionalFiles Include="Pages\Account\ImageSelectionView.razor" />
-	  <AdditionalFiles Include="Pages\Account\ProfileSettingsSidebar.razor" />
-	  <AdditionalFiles Include="Pages\Account\SettingsField.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Dashboard\WorkspaceDashboard.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Repositories\RepositoryCard.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Repositories\RepositoryGridItem.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Repositories\RepositoryManagementPage.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\ResourcePages\AzCopy.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\ResourcePages\Databricks.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\ResourcePages\ResourcePageRenderer.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\ResourcePages\UploaderCode.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\AWSConnectionDataInput.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\AzureConnectionDataInput.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\GCPConnectionDataInput.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\StorageConfigurationDialog.razor" />
-	  <AdditionalFiles Include="Pages\Workspace\Storage\Container\StorageContainerSelector.razor" />
 	</ItemGroup>
 </Project>

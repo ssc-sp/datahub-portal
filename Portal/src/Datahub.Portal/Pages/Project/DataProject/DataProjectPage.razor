@@ -79,7 +79,7 @@
 
         _project = await projectContext.Projects
             .AsNoTracking()
-            .Include(p => p.ProjectRequestAudits)
+            // .Include(p => p.ProjectRequestAudits)
             .Include(p => p.Pipelines)
             .Include(p => p.Whitelist)
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
