@@ -25,9 +25,14 @@ namespace Datahub.Core.Utils
     {
         public static OpenDataPublishingStepStatus<TbsOpenGovSubmission.ProcessSteps> CheckStepStatus(TbsOpenGovSubmission submission, TbsOpenGovSubmission.ProcessSteps step) => step switch
         {
-            TbsOpenGovSubmission.ProcessSteps.Initial => OpenDataPublishingUtils.IsDateSetAndPassed(submission.OpenGovCriteriaMetDate) ?
+            TbsOpenGovSubmission.ProcessSteps.AwaitingMetadata => submission.MetadataComplete ?
                 OpenDataPublishingUtils.Complete(step) :
                 OpenDataPublishingUtils.Incomplete(step),
+            TbsOpenGovSubmission.ProcessSteps.AwaitingApprovalCriteria => OpenDataPublishingUtils.IsDateSetAndPassed(submission.OpenGovCriteriaMetDate) ?
+                OpenDataPublishingUtils.Complete(step) :
+                submission.OpenGovCriteriaFormId.HasValue ?
+                    OpenDataPublishingUtils.Incomplete(step) :
+                    OpenDataPublishingUtils.NotStarted(step),
             TbsOpenGovSubmission.ProcessSteps.AwaitingFiles => DetermineAwaitingFilesStatus(submission),
             TbsOpenGovSubmission.ProcessSteps.CheckingDataQuality => submission.LocalDQCheckPassed ?
                 OpenDataPublishingUtils.Complete(step) :
@@ -116,7 +121,7 @@ namespace Datahub.Core.Utils
             if (files == null || files.Count < 1)
             {
                 // no files => not started, unless criteria is met
-                return CheckStepStatus(submission, TbsOpenGovSubmission.ProcessSteps.Initial).Completed ?
+                return CheckStepStatus(submission, TbsOpenGovSubmission.ProcessSteps.AwaitingMetadata).Completed ?
                     OpenDataPublishingUtils.Incomplete(TbsOpenGovSubmission.ProcessSteps.AwaitingFiles) :
                     OpenDataPublishingUtils.NotStarted(TbsOpenGovSubmission.ProcessSteps.AwaitingFiles);
             }

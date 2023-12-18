@@ -108,11 +108,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// </summary>
     public DbSet<ProjectCloudStorage> ProjectCloudStorages { get; set; }
 
-    public DbSet<OpenDataSubmission> OpenDataPublishProcesses { get; set; }
+    public DbSet<OpenDataSubmission> OpenDataSubmissions { get; set; }
 
     public DbSet<OpenDataPublishFile> OpenDataPublishFiles { get; set; }
 
-    public DbSet<TbsOpenGovSubmission> TbsOpenGovPublishProcesses { get; set; }
+    public DbSet<TbsOpenGovSubmission> TbsOpenGovSubmissions { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
@@ -290,6 +290,14 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasOne<PortalUser>(p => p.RequestingUser)
             .WithMany(p => p.OpenDataSubmissions)
             .HasForeignKey(p => p.RequestingUserId);
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .Property(s => s.UniqueId)
+            .IsRequired();
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .HasIndex(s => s.UniqueId)
+            .IsUnique();
 
         modelBuilder.Entity<OpenDataSubmission>()
             .UseTptMappingStrategy();

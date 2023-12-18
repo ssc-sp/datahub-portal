@@ -1,6 +1,8 @@
+using Datahub.Application.Services.Publishing;
 using Datahub.Core.Components;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Datahub;
 using Datahub.Portal.Pages.Workspace.Publishing;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
@@ -225,8 +227,29 @@ public partial class FileExplorer
 
         if (!result.Canceled)
         {
-            //TODO
-            _navManager.NavigateTo($"/w/{ProjectAcronym}/publishing/1");
+            // if adding to an existing submission, result.Data will have that submission
+            var submission = result.Data as OpenDataSubmission;
+            if (submission == null)
+            {
+                // if creating a new one, result.Data will have the basic info to create it
+                var submissionInfo = result.Data as OpenDataSubmissionBasicInfo;
+                if (submissionInfo == null)
+                {
+                    throw new OpenDataPublishingException("Could not get submission information");
+                }
+                
+                submission = await _publishingService.CreateOpenDataSubmission(submissionInfo);
+            }
+
+            // if it's still null here, something has gone wrong
+            if (submission == null)
+            {
+                throw new OpenDataPublishingException("No available submission provided or created");
+            }
+
+            var addedFiles = await _publishingService.AddFilesToSubmission(submission, files, Container.Id);
+
+            _navManager.NavigateTo($"/w/{ProjectAcronym}/publishing/{submission.Id}");
         }
 
         await Task.CompletedTask;
