@@ -197,7 +197,7 @@
     private bool SubmissionLoaded => Submission != null;
 
     private bool ShowMetadataEntryForm => true; //TODO
-    private bool ShowOpenGovCriteriaForm => _stepStates[StatusEnum.Initial] == DHSteps<StatusEnum>.StepState.Running;
+    private bool ShowOpenGovCriteriaForm => _stepStates[StatusEnum.AwaitingApprovalCriteria] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowFileSelectionPane => _stepStates[StatusEnum.AwaitingFiles] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowImsoApprovalPane => true; //TODO
 

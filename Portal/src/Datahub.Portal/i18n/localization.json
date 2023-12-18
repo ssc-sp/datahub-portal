@@ -547,7 +547,11 @@
   },
   "TbsOpenGovPublishing": {
     "Status": {
-      "Initial": {
+      "AwaitingMetadata": {
+        "Description": "Please complete the required metadata for the submission.",
+        "Title": "Awaiting Metadata"
+      },
+      "AwaitingApprovalCriteria": {
         "Description": "Please complete the Open Government Publishing Criteria form.",
         "Title": "Awaiting Publishing Criteria"
       },

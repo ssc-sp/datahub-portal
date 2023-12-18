@@ -20,6 +20,7 @@ namespace Datahub.Core.Model.Datahub
     public abstract class OpenDataSubmission
     {
         public long Id { get; set; }
+        public string UniqueId { get; set; }
         public OpenDataPublishProcessType ProcessType { get; set; }
         public string DatasetTitle { get; set; }
         public string Status { get; set; }

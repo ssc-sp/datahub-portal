@@ -1,4 +1,5 @@
 ﻿using Datahub.Application.Services.Publishing;
+using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Utils;
@@ -11,57 +12,64 @@ using System.Threading.Tasks;
 
 namespace Datahub.Infrastructure.Services.Publishing
 {
-    public class OpenDataPublishingService : IOpenDataPublishingService
+    public class OpenDataPublishingService(IUserInformationService userService, IDbContextFactory<DatahubProjectDBContext> dbContextFactory) : IOpenDataPublishingService
     {
-        private readonly IUserInformationService _userService;
-        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-
-        public OpenDataPublishingService(IUserInformationService userService, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
-        {
-            _userService = userService;
-            _dbContextFactory = dbContextFactory;
-        }
+        private readonly IUserInformationService _userService = userService;
+        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = dbContextFactory;
 
         public async Task<List<OpenDataSubmission>> GetAvailableOpenDataSubmissionsForWorkspaceAsync(int workspaceId)
         {
-            // TODO actial implementation
-            var result = new List<OpenDataSubmission>
-            {
-                await CreateTestSubmission(1)
-            };
+            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
-            return await Task.FromResult(result);
+            var submissions = await ctx.OpenDataSubmissions
+                .Where(s => s.ProjectId == workspaceId && s.OpenForAttachingFiles)
+                .ToListAsync();
+
+            return await Task.FromResult(submissions);
         }
 
         public async Task<OpenDataSubmission> GetOpenDataSubmissionAsync(long submissionId)
         {
-            //TODO actual implementation
-            return await CreateTestSubmission(submissionId);
+            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+
+            var submission = await ctx.OpenDataSubmissions
+                .Include(s => s.Files)
+                .Include(s => s.Project)
+                .FirstOrDefaultAsync(s => s.Id == submissionId);
+
+            if (submission == null)
+            {
+                throw new OpenDataPublishingException($"Submission {submissionId} not found", new FileNotFoundException());
+            }
+
+            return await Task.FromResult(submission);
         }
 
         public async Task<List<OpenDataSubmission>> GetOpenDataSubmissionsAsync(int workspaceId)
         {
-            //TODO actual implementation
+            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
-            var result = new List<OpenDataSubmission>
-            {
-                await CreateTestSubmission(1)
-            };
+            var submissions = await ctx.OpenDataSubmissions
+                .Include(s => s.RequestingUser)
+                .Where(s => s.ProjectId == workspaceId)
+                .ToListAsync();
 
-            return await Task.FromResult(result);
+            return await Task.FromResult(submissions);
         }
 
         public async Task<TbsOpenGovSubmission> UpdateTbsOpenGovSubmission(TbsOpenGovSubmission submission)
         {
-            //TODO load from db
-            var existingSubmission = await CreateTestSubmission(submission.Id) as TbsOpenGovSubmission;
+            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+
+            var existingSubmission = await ctx.TbsOpenGovSubmissions.FirstOrDefaultAsync(s => s.Id == submission.Id);
 
             if (existingSubmission == null)
             {
                 // not found
-                throw new OpenDataPublishingException();
+                throw new OpenDataPublishingException($"Submission {submission.Id} not found", new FileNotFoundException());
             }
 
+            existingSubmission.MetadataComplete = submission.MetadataComplete;
             existingSubmission.OpenGovCriteriaFormId = submission.OpenGovCriteriaFormId;
             existingSubmission.OpenGovCriteriaMetDate = submission.OpenGovCriteriaMetDate;
             existingSubmission.LocalDQCheckStarted = submission.LocalDQCheckStarted;
@@ -70,9 +78,8 @@ namespace Datahub.Infrastructure.Services.Publishing
             existingSubmission.OpenGovDQCheckPassed = submission.OpenGovDQCheckPassed;
             existingSubmission.ImsoApprovalRequestDate = submission.ImsoApprovalRequestDate;
             existingSubmission.ImsoApprovedDate = submission.ImsoApprovedDate;
-            //existingSubmission.ImsoApprovalRequested = submission.ImsoApprovalRequested;
             existingSubmission.OpenGovPublicationDate = submission.OpenGovPublicationDate;
-
+            
             submission.Status = TbsOpenGovPublishingUtils.GetCurrentStatus(submission).ToString();
 
             UpdateGenericSubmissionData(existingSubmission, submission);
@@ -80,51 +87,89 @@ namespace Datahub.Infrastructure.Services.Publishing
             return submission;
         }
 
-        private void UpdateGenericSubmissionData(OpenDataSubmission existing, OpenDataSubmission updated)
+        private static void UpdateGenericSubmissionData(OpenDataSubmission existing, OpenDataSubmission updated)
         {
             existing.DatasetTitle = updated.DatasetTitle;
             existing.Status = updated.Status;
             existing.OpenForAttachingFiles = updated.OpenForAttachingFiles;
         }
 
-
-        #region Dummy Test Data
-
-        private async Task<TbsOpenGovSubmission> CreateTestSubmission(long submissionId)
+        public async Task<OpenDataSubmission> CreateOpenDataSubmission(OpenDataSubmissionBasicInfo openDataSubmissionBasicInfo)
         {
-            var currentUser = await _userService.GetCurrentPortalUserAsync();
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
-            var alteProject = ctx.Projects.FirstOrDefault(p => p.Project_Acronym_CD == "ALTE");
 
-            var files = new List<OpenDataPublishFile>()
+            OpenDataSubmission? submission = openDataSubmissionBasicInfo.ProcessType switch
             {
-                new(){FileName="Dataset.csv",FileId=Guid.NewGuid().ToString(), FilePurpose=TbsOpenGovSubmission.DATASET_FILE_TYPE },
-                new() {FileName="Metadata.xlsx",FileId=Guid.NewGuid().ToString()},
-                new(){FileName="DataDictionary.docx",FileId=Guid.NewGuid().ToString()},
-                new(){FileName="Supportingdoc1.docx" ,FileId=Guid.NewGuid().ToString(), FilePurpose=TbsOpenGovSubmission.SUPPORTING_DOC_FILE_TYPE},
-                new(){FileName="Supportingdoc2.docx" ,FileId=Guid.NewGuid().ToString(), FilePurpose=TbsOpenGovSubmission.SUPPORTING_DOC_FILE_TYPE},
-
-                new() {FileName = "IMSOApproval.pdf",FileId=Guid.NewGuid().ToString()}
+                OpenDataPublishProcessType.TbsOpenGovPublishing => await DoCreateTbsOpenGovSubmission(openDataSubmissionBasicInfo, ctx),
+                _ => null
             };
 
-            var submission = new TbsOpenGovSubmission()
+            if (submission == null)
             {
-                Id = submissionId,
-                ProcessType = OpenDataPublishProcessType.TbsOpenGovPublishing,
-                DatasetTitle = "Test Data",
-                Status = TbsOpenGovSubmission.ProcessSteps.AwaitingFiles.ToString(),
-                RequestDate = DateTime.Today,
-                OpenGovCriteriaMetDate = DateTime.Today,
-                RequestingUserId = currentUser.Id,
-                RequestingUser = currentUser,
-                Project = alteProject,
-                ProjectId = alteProject?.Project_ID ?? default,
-                Files = files
-            };
+                throw new OpenDataPublishingException("Cannot create an open data submission without specifying a process type");
+            }
 
-            return submission;
+            var user = await _userService.GetCurrentPortalUserAsync();
+            submission.RequestingUser = user;
+            submission.RequestDate = DateTime.Today;
+
+
+
+            await ctx.SaveChangesAsync();
+
+            return await Task.FromResult(submission);
         }
 
-        #endregion
+        private async Task<TbsOpenGovSubmission> DoCreateTbsOpenGovSubmission(OpenDataSubmissionBasicInfo openDataSubmissionBasicInfo, DatahubProjectDBContext ctx)
+        {
+            var submission = new TbsOpenGovSubmission()
+            {
+                UniqueId = Guid.NewGuid().ToString(),
+                ProjectId = openDataSubmissionBasicInfo.ProjectId,
+                DatasetTitle = openDataSubmissionBasicInfo.DatasetTitle,
+                ProcessType = openDataSubmissionBasicInfo.ProcessType,
+                OpenForAttachingFiles = true
+            };
+
+            await ctx.TbsOpenGovSubmissions.AddAsync(submission);
+
+            submission.Status = TbsOpenGovPublishingUtils.GetCurrentStatus(submission).ToString();
+
+            return await Task.FromResult(submission);
+        }
+
+        public async Task<int> AddFilesToSubmission(OpenDataSubmission openDataSubmission, IEnumerable<FileMetaData> files, int? containerId)
+        {
+            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+
+            var submission = await ctx.OpenDataSubmissions.FirstOrDefaultAsync(s => s.Id == openDataSubmission.Id);
+
+            if (submission == null)
+            {
+                throw new OpenDataPublishingException($"Submission not found: {openDataSubmission.Id}");
+            }
+
+            var additionalFiles = files.Select(f => new OpenDataPublishFile()
+            {
+                FileId = f.fileid,
+                FileName = f.filename,
+                FolderPath = f.folderpath,
+                ProjectStorageId = containerId,
+                Submission = submission
+            });
+
+            submission.Files ??= new List<OpenDataPublishFile>();
+            var addedFiles = 0;
+            
+            foreach (var file in additionalFiles)
+            {
+                submission.Files.Add(file);
+                addedFiles++;
+            }
+
+            await ctx.SaveChangesAsync();
+
+            return await Task.FromResult(addedFiles);
+        }
     }
 }

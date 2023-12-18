@@ -1,4 +1,5 @@
 @* FileExplorer.razor *@
+@using Datahub.Application.Services.Publishing
 @using Datahub.Application.Services.Storage;
 @using Datahub.Core.Components.FileUpload
 @using Datahub.Core.Services.Achievements;
@@ -11,6 +12,7 @@
 @inject IJSRuntime _jsRuntime
 @inject IPortalUserTelemetryService _telemetryService
 @inject IDialogService _dialogService
+@inject IOpenDataPublishingService _publishingService;
 @inject NavigationManager _navManager;
 
 @implements IAsyncDisposable

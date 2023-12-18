@@ -28,7 +28,7 @@
     }
 
     private ObjectMetadataEditor _editor;
-    private string ObjectId => Submission.MetadataObjectID;
+    private string ObjectId => Submission.UniqueId;
     private string ProjectAcronym => Submission.Project.Project_Acronym_CD;
 
     protected override async Task OnInitializedAsync()

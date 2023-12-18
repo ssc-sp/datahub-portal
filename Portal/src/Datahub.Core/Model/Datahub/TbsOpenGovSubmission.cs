@@ -23,7 +23,8 @@ namespace Datahub.Core.Model.Datahub
 
         public enum ProcessSteps
         {
-            Initial = 1,
+            AwaitingMetadata = 1,
+            AwaitingApprovalCriteria,
             AwaitingFiles,
             CheckingDataQuality,
             Uploading,
@@ -33,6 +34,7 @@ namespace Datahub.Core.Model.Datahub
             Published
         }
 
+        public bool MetadataComplete { get; set; }
         public int? OpenGovCriteriaFormId { get; set; }
         public DateTime? OpenGovCriteriaMetDate { get; set; }
         public bool LocalDQCheckStarted { get; set; }
@@ -48,8 +50,6 @@ namespace Datahub.Core.Model.Datahub
             OpenDataPublishingUtils.IsDateSetAndPassed(ImsoApprovedDate);
         [NotMapped]
         public bool ImsoApprovalRequested => OpenDataPublishingUtils.IsDateSetAndPassed(ImsoApprovalRequestDate);
-        [NotMapped]
-        public string MetadataObjectID => $"OpenGovSubmission{Id}";
 
         public override string LocalizationPrefix => LOCALIZATION_PREFIX;
     }
