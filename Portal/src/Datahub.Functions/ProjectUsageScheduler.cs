@@ -100,8 +100,8 @@ public class ProjectUsageScheduler
     {
         var databrickProjects = new HashSet<int>();
 
-        var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-        var storageBlobType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
+        var terraformServiceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
+        var storageBlobType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
 
         var projects = new List<Project_Resources2>();
         await foreach (var res in ctx.Project_Resources2.AsAsyncEnumerable())

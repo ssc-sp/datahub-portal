@@ -29,9 +29,7 @@
 
 @if (PageIsLoading)
 {
-    <MudContainer MaxWidth="MaxWidth.Small">
-        <DHLoadingInitializer Message="@Localizer["Initializing Resources..."]" />
-    </MudContainer>
+    <DHLoadingInitializer Message="@Localizer["Initializing Resources..."]"/>
 }
 else
 {
@@ -53,9 +51,9 @@ else
                  </MudItem>
              </MudGrid>
          </MudStack> *@
-         <MudTabs @bind-ActivePanelIndex="_tabIndex"
-                  Elevation="2" Rounded="true" Centered="false" ApplyEffectsToContainer="true" PanelClass="pa-6">
-             @foreach (var cat in _tabList)
+        <MudTabs @bind-ActivePanelIndex="_tabIndex"
+                 Elevation="2" Rounded="true" Centered="false" ApplyEffectsToContainer="true" PanelClass="pa-6">
+            @foreach (var cat in _tabList)
             {
                 var isDoc = cat.Children.Count == 0;
 
@@ -68,19 +66,17 @@ else
                                 {
                                     @if (_docIsLoading || _currentDoc is null)
                                     {
-                                        <MudContainer MaxWidth="MaxWidth.Small">
-                                            <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]" />
-                                        </MudContainer>
+                                        <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]"/>
                                     }
                                     else if (_currentDoc.IsRoot)
                                     {
                                         <MudStack Class="mb-6">
                                             <MudText Typo="Typo.h2">@Localizer["Most Popular Resources"]</MudText>
-                                                <MudText Typo="Typo.body2">
-                                                    @Localizer["Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
+                                            <MudText>
+                                                @Localizer["Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
                                             </MudText>
                                         </MudStack>
-                                        <ResourcesListView DocumentItems="@_mostPopularDocs" />
+                                        <ResourcesListView DocumentItems="@_mostPopularDocs"/>
                                     }
                                     else
                                     {
@@ -100,7 +96,7 @@ else
         </MudTabs>
     </MudStack>
 
-    <ResourcesAdminView />
+    <ResourcesAdminView/>
 }
 
 @code {
@@ -116,7 +112,8 @@ else
     [SupplyParameterFromQuery(Name = "t")]
     public int? TabIndex { get; set; }
 
-    [CascadingParameter] public RouteData routeData { get; set; }
+    [CascadingParameter]
+    public RouteData routeData { get; set; }
 
     const string MostPopularId = "6B9B9B8D-B071-44F7-B264-A7670192F446";
     const string UserGuideId = "b594e16c-56e9-aae5-880f-487afca9aa38";
@@ -179,7 +176,6 @@ else
         _tabIndex = Math.Min(_tabList.Count, TabIndex ?? 0);
         await ActivateCategory(_tabList[_tabIndex]);
         await ClearResourcesBadge();
-
     }
 
     private async Task ClearResourcesBadge()

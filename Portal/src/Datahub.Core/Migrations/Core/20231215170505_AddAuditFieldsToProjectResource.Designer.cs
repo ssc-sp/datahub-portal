@@ -4,6 +4,7 @@ using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20231215170505_AddAuditFieldsToProjectResource")]
+    partial class AddAuditFieldsToProjectResource
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -581,94 +584,6 @@ namespace Datahub.Core.Migrations.Core
                     b.HasKey("ExternalPowerBiReport_ID");
 
                     b.ToTable("ExternalPowerBiReports");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataPublishFile", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("FileId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FileName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FilePurpose")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FolderPath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ProjectStorageId")
-                        .HasColumnType("int");
-
-                    b.Property<long>("SubmissionId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("UploadMessage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UploadStatus")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectStorageId");
-
-                    b.HasIndex("SubmissionId");
-
-                    b.ToTable("OpenDataPublishFiles");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSubmission", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("DatasetTitle")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("OpenForAttachingFiles")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("ProcessType")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("RequestDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("RequestingUserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UniqueId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("RequestingUserId");
-
-                    b.HasIndex("UniqueId")
-                        .IsUnique();
-
-                    b.ToTable("OpenDataSubmissions");
-
-                    b.UseTptMappingStrategy();
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Organization_Level", b =>
@@ -1621,6 +1536,43 @@ namespace Datahub.Core.Migrations.Core
                     b.ToTable("Project_Comments");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_ProjectRequestAudit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CompletedDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Project_ID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RequestType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("RequestedDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("UserEmail")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Project_ID");
+
+                    b.ToTable("ProjectRequestAudits");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_Costs", b =>
                 {
                     b.Property<int>("ProjectCosts_ID")
@@ -1849,27 +1801,14 @@ namespace Datahub.Core.Migrations.Core
                     b.Property<DateTime>("RequestedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("RequestedById")
-                        .HasColumnType("int");
-
                     b.Property<string>("ResourceType")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("UpdatedById")
-                        .HasColumnType("int");
-
                     b.HasKey("ResourceId");
 
                     b.HasIndex("ProjectId");
-
-                    b.HasIndex("RequestedById");
-
-                    b.HasIndex("UpdatedById");
 
                     b.ToTable("Project_Resources2");
                 });
@@ -2160,43 +2099,6 @@ namespace Datahub.Core.Migrations.Core
                     b.ToTable("UserSettings", (string)null);
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.TbsOpenGovSubmission", b =>
-                {
-                    b.HasBaseType("Datahub.Core.Model.Datahub.OpenDataSubmission");
-
-                    b.Property<DateTime?>("ImsoApprovalRequestDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ImsoApprovedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("InitialOpenGovSubmissionDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("LocalDQCheckPassed")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("LocalDQCheckStarted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("MetadataComplete")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("OpenGovCriteriaFormId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("OpenGovCriteriaMetDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("OpenGovDQCheckPassed")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("OpenGovPublicationDate")
-                        .HasColumnType("datetime2");
-
-                    b.ToTable("TbsOpenGovSubmissions");
-                });
-
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
                 {
                     b.HasBaseType("Datahub.Core.Model.Datahub.SharedDataFile");
@@ -2292,42 +2194,6 @@ namespace Datahub.Core.Migrations.Core
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataPublishFile", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.CloudStorage.ProjectCloudStorage", "Storage")
-                        .WithMany("PublishingSubmissionFiles")
-                        .HasForeignKey("ProjectStorageId");
-
-                    b.HasOne("Datahub.Core.Model.Datahub.OpenDataSubmission", "Submission")
-                        .WithMany("Files")
-                        .HasForeignKey("SubmissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Storage");
-
-                    b.Navigation("Submission");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSubmission", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
-                        .WithMany("PublishingSubmissions")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "RequestingUser")
-                        .WithMany("OpenDataSubmissions")
-                        .HasForeignKey("RequestingUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Project");
-
-                    b.Navigation("RequestingUser");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.PBI_License_Request", b =>
@@ -2457,6 +2323,15 @@ namespace Datahub.Core.Migrations.Core
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_ProjectRequestAudit", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany("ProjectRequestAudits")
+                        .HasForeignKey("Project_ID");
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_Pipeline_Lnk", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
@@ -2536,21 +2411,7 @@ namespace Datahub.Core.Migrations.Core
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "RequestedBy")
-                        .WithMany()
-                        .HasForeignKey("RequestedById")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "UpdatedBy")
-                        .WithMany()
-                        .HasForeignKey("UpdatedById");
-
                     b.Navigation("Project");
-
-                    b.Navigation("RequestedBy");
-
-                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Whitelist", b =>
@@ -2607,15 +2468,6 @@ namespace Datahub.Core.Migrations.Core
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.TbsOpenGovSubmission", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Datahub.OpenDataSubmission", null)
-                        .WithOne()
-                        .HasForeignKey("Datahub.Core.Model.Datahub.TbsOpenGovSubmission", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Datahub.SharedDataFile", null)
@@ -2636,23 +2488,11 @@ namespace Datahub.Core.Migrations.Core
 
                     b.Navigation("InactivityNotifications");
 
-                    b.Navigation("OpenDataSubmissions");
-
                     b.Navigation("RecentLinks");
 
                     b.Navigation("TelemetryEvents");
 
                     b.Navigation("UserSettings");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.CloudStorage.ProjectCloudStorage", b =>
-                {
-                    b.Navigation("PublishingSubmissionFiles");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSubmission", b =>
-                {
-                    b.Navigation("Files");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.Organization_Level", b =>
@@ -2699,7 +2539,7 @@ namespace Datahub.Core.Migrations.Core
 
                     b.Navigation("ProjectInactivityNotifications");
 
-                    b.Navigation("PublishingSubmissions");
+                    b.Navigation("ProjectRequestAudits");
 
                     b.Navigation("Repositories");
 
