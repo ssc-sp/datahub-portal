@@ -15,8 +15,7 @@ namespace Datahub.Core.Migrations.Core
                 name: "RequestedById",
                 table: "Project_Resources2",
                 type: "int",
-                nullable: false,
-                defaultValue: 0);
+                nullable: true);
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "UpdatedAt",
@@ -45,8 +44,7 @@ namespace Datahub.Core.Migrations.Core
                 table: "Project_Resources2",
                 column: "RequestedById",
                 principalTable: "PortalUsers",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Project_Resources2_PortalUsers_UpdatedById",
