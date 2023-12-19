@@ -80,6 +80,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
                 {
                     id = entry.ETag,
                     name = relativePath,
+                    folderpath = folderPath,
                     lastmodifiedts = entry.LastModified,
                     filesize = entry.Size.ToString()
                 };
