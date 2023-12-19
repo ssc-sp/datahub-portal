@@ -30,9 +30,7 @@ namespace Datahub.Core.Utils
                 OpenDataPublishingUtils.Incomplete(step),
             TbsOpenGovSubmission.ProcessSteps.AwaitingApprovalCriteria => OpenDataPublishingUtils.IsDateSetAndPassed(submission.OpenGovCriteriaMetDate) ?
                 OpenDataPublishingUtils.Complete(step) :
-                submission.OpenGovCriteriaFormId.HasValue ?
-                    OpenDataPublishingUtils.Incomplete(step) :
-                    OpenDataPublishingUtils.NotStarted(step),
+                OpenDataPublishingUtils.Incomplete(step),
             TbsOpenGovSubmission.ProcessSteps.AwaitingFiles => DetermineAwaitingFilesStatus(submission),
             TbsOpenGovSubmission.ProcessSteps.CheckingDataQuality => submission.LocalDQCheckPassed ?
                 OpenDataPublishingUtils.Complete(step) :

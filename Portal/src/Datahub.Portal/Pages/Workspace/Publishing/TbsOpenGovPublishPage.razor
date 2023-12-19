@@ -50,7 +50,7 @@
                     <MudText Typo=@Typo.h3>Submission Metadata</MudText>
                 </MudCardHeader>
                 <MudCardContent>
-                    <TbsOpenGovSubmissionMetadataEditor Submission=@Submission />
+                    <TbsOpenGovSubmissionMetadataEditor Submission=@Submission OnMetadataUpdated=@UpdateSubmission />
                 </MudCardContent>
             </MudCard>
         }
@@ -101,30 +101,6 @@
                         </MudListItem>
 
                     }
-                        @* <MudListItem>
-                            <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
-                                FilePurpose=@TbsOpenGovSubmission.METADATA_FILE_TYPE
-                                Submission=@Submission
-                                Syncer=@Syncer
-                                Required
-                            />
-                        </MudListItem>
-                        <MudListItem>
-                            <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
-                                FilePurpose=@TbsOpenGovSubmission.DATA_DICTIONARY_FILE_TYPE
-                                Submission=@Submission
-                                Syncer=@Syncer
-                                Required
-                            />
-                        </MudListItem>
-                        <MudListItem>
-                            <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector
-                                FilePurpose=@TbsOpenGovSubmission.SUPPORTING_DOC_FILE_TYPE
-                                MultiSelect
-                                Submission=@Submission
-                                Syncer=@Syncer 
-                            />
-                        </MudListItem> *@
                     </MudList>
                 </MudCardContent>
                 <MudCardActions>
@@ -289,12 +265,10 @@
 
     private async Task UpdateSubmission()
     {
-        SetStatusSteps();
-        await Task.CompletedTask;
-        //if (OnSubmissionUpdated.HasDelegate)
-        //{
-        //    await OnSubmissionUpdated.InvokeAsync();
-        //}
+        if (OnSubmissionUpdated.HasDelegate)
+        {
+           await OnSubmissionUpdated.InvokeAsync();
+        }
     }
 
     private void SetStatusSteps()
