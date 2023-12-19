@@ -1,28 +1,75 @@
 ﻿@* TbsOpenGovSubmissionMetadataEditor.razor *@
 
+@using Datahub.Core.Model.Achievements
 @using Datahub.Metadata.DTO
+@using Datahub.Metadata.Utils
+@inject IUserInformationService _userService
 
-<ObjectMetadataEditor @ref=@_editor
-    @key=@ObjectId
-    ObjectId=@ObjectId
-    ObjectType=@Datahub.Metadata.Model.MetadataObjectType.TbsOpenGovSubmission
-    ProfileName=@TbsOpenGovSubmission.PUBLICATION_METADATA_PROFILE_NAME
-    Location=@ProjectAcronym
-    UpdateCatalog=@false
-    SecurityClass=@Core.SecurityClassification.Unclassified
-    SaveButtonLabel=@Localizer["Save"]
-    OnSave=@HandleSave
-    DefaultMetadataId=@Submission.Project.Project_Acronym_CD
-    />
+@if (_initialized)
+{
+    <ObjectMetadataEditor @ref=@_editor
+        @key=@ObjectId
+        ObjectId=@ObjectId
+        ObjectType=@Datahub.Metadata.Model.MetadataObjectType.TbsOpenGovSubmission
+        ProfileName=@TbsOpenGovSubmission.PUBLICATION_METADATA_PROFILE_NAME
+        Location=@ProjectAcronym
+        UpdateCatalog=@false
+        SecurityClass=@Core.SecurityClassification.Unclassified
+        DefaultMetadataId=@Submission.Project.Project_Acronym_CD
+        OnNewMetadataCreated=@OnNewMetadataCreated
+        OnExistingMetadataLoaded=@OnNewMetadataCreated
+        ValidateRequired=@false
+        HideSaveButton
+        />
+
+    <MudButton OnClick=@SaveChanges>@Localizer["Save"]</MudButton>
+}
 
 @code {
     [Parameter]
     public TbsOpenGovSubmission Submission { get; set; }
 
+    [Parameter]
+    public EventCallback OnMetadataUpdated { get; set; }
 
-    private async Task HandleSave(FieldValueContainer values)
+    private PortalUser _reqUser;
+    private bool _initialized = false;
+    private int ding = 0;
+
+    private void OnNewMetadataCreated()
     {
-        //TODO
+        if (string.IsNullOrEmpty(_editor.GetValue(FieldNames.pub_contact_email)))
+        {
+            _editor.SetValue(FieldNames.pub_contact_email, _reqUser.Email);
+        }
+
+        var isFrench = _reqUser.UserSettings.Language?.Contains(CultureService.French) ?? false;
+        var titleField = isFrench ? FieldNames.title_fr : FieldNames.title_en;
+        if (string.IsNullOrEmpty(_editor.GetValue(titleField)))
+        {
+            _editor.SetValue(titleField, Submission.DatasetTitle);
+        }
+    }
+
+    private async Task SaveChanges()
+    {
+        var selectedOrganization = _editor.GetSelectedChoices(FieldNames.organization_name).FirstOrDefault();
+        if (selectedOrganization != null)
+        {
+            var orgNameEn = selectedOrganization.Label_English_TXT;
+            var orgNameFr = selectedOrganization.Label_French_TXT;
+
+            _editor.SetValue(FieldNames.org_name_at_pub_en, orgNameEn);
+            _editor.SetValue(FieldNames.org_name_at_pub_fr, orgNameFr);
+        }
+
+        await _editor.SaveChanges();
+
+        Submission.MetadataComplete = _editor.ValidProfileFields();
+        if (OnMetadataUpdated.HasDelegate)
+        {
+            await OnMetadataUpdated.InvokeAsync();
+        }
 
         await Task.CompletedTask;
     }
@@ -33,8 +80,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        
-        
+        // get requesting user including UserSettings (for language)
+        _reqUser = await _userService.GetPortalUserAsync(Submission.RequestingUser.GraphGuid);
+        _initialized = true;
+
         await base.OnInitializedAsync();
     }
 }

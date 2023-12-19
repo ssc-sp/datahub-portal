@@ -35,6 +35,7 @@ namespace Datahub.Infrastructure.Services.Publishing
             var submission = await ctx.OpenDataSubmissions
                 .Include(s => s.Files)
                 .Include(s => s.Project)
+                .Include(s => s.RequestingUser)
                 .FirstOrDefaultAsync(s => s.Id == submissionId);
 
             if (submission == null)
@@ -83,6 +84,8 @@ namespace Datahub.Infrastructure.Services.Publishing
             submission.Status = TbsOpenGovPublishingUtils.GetCurrentStatus(submission).ToString();
 
             UpdateGenericSubmissionData(existingSubmission, submission);
+
+            await ctx.SaveChangesAsync();
 
             return submission;
         }
