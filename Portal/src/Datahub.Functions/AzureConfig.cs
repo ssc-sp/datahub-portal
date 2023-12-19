@@ -7,16 +7,21 @@ namespace Datahub.Functions;
 public class AzureConfig : IAzureServicePrincipalConfig
 {
     private readonly IConfiguration _config;
-    private readonly EmailNotification _emailConfig; 
+    private readonly EmailNotification _emailConfig;
+    private readonly AdoConfig _adoConfig;
 
     public AzureConfig(IConfiguration config)
     {
         _config = config;
         _emailConfig = new EmailNotification();
+        _adoConfig = new AdoConfig();
         _config.Bind("EmailNotification", _emailConfig);
+        _config.Bind("AdoConfig", _adoConfig);
     }
 
     public EmailNotification Email => _emailConfig;
+    
+    public AdoConfig AdoConfig => _adoConfig;
 
     public string? NotificationPercents => _config["ProjectUsageNotificationPercents"];
     
@@ -70,4 +75,13 @@ public class EmailNotification
                            !string.IsNullOrEmpty(SmtpPassword) && 
                            !string.IsNullOrEmpty(SenderAddress) &&
                            SmtpPort != 0;
+}
+
+public class AdoConfig
+{
+    public string OidSecretName { get; set; } = "ado-service-user-oid";
+    public string PatSecretName { get; set; } = "ado-service-user-pat";
+    public string OrgName { get; set; } = "DataSolutionsDonnees";
+    public string ProjectName { get; set; } = "FSDH SSC";
+    public string URL { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${workItemTypeName}?api-version=6.0";
 }
