@@ -136,9 +136,14 @@ public class CheckInfrastructureStatus
             // TODO: Use the BugReportMessageHandler with the mediator.
         }
 
-        // TODO: Log the result so we can see the history of health checks
+        await StoreResult(request, result);
 
         return new OkObjectResult(result);
+    }
+
+    private async Task StoreResult(InfrastructureHealthCheckRequest request, InfrastructureHealthCheckResponse result)
+    {
+        throw new NotImplementedException();
     }
 
     private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
