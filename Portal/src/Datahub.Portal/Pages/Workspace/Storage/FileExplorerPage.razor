@@ -206,6 +206,7 @@
         var dialogParams = new DialogParameters();
         dialogParams.Add(nameof(StorageConfigurationDialog.CloudProvider), cloudStorageProvider);
         dialogParams.Add(nameof(StorageConfigurationDialog.ProjectCloudStorage), settings);
+        dialogParams.Add(nameof(StorageConfigurationDialog.WorkspaceAcronym), WorkspaceAcronym);
 
         var dialogTitle = cloudStorageProvider switch
         {

@@ -3,11 +3,13 @@ using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Model.Projects;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Web;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using static Datahub.Infrastructure.Services.Storage.CloudStorageHelpers;
 
 namespace Datahub.Infrastructure.Services.Storage
@@ -42,24 +44,43 @@ namespace Datahub.Infrastructure.Services.Storage
         {
             if (acronym is null)
                 acronym = pcs.Project.Project_Acronym_CD;
-            var existingSecrets = await keyVaultUserService.GetAllSecrets(pcs, acronym);
-            if (existingSecrets.Count > 0)
+            if (pcs.Id == 0)
+                return CreateNewStorageProperties();
+            IDictionary<string, string>? existingSecrets = null;
+            try
+            {
+                existingSecrets = await keyVaultUserService.GetAllSecrets(pcs, acronym);
+            }
+            catch (MicrosoftIdentityWebChallengeUserException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,"Could not find connection data for cloud storage provider with id {0}", pcs.Id);
+            }
+            if (existingSecrets?.Count > 0)
             {
                 return existingSecrets;
             }
             else
             {
-                var connectionData = new Dictionary<string, string>();
-                connectionData[AZ_AccountName] = string.Empty;
-                connectionData[AZ_AccountKey] = string.Empty;
-                connectionData[AWS_AccesKeyId] = string.Empty;
-                connectionData[AWS_AccessKeySecret] = string.Empty;
-                connectionData[AWS_Region] = string.Empty;
-                connectionData[AWS_BucketName] = string.Empty;
-                connectionData[GCP_ProjectId] = string.Empty;
-                connectionData[GCP_Json] = string.Empty;
-                return connectionData;
+                return CreateNewStorageProperties();
             }
+        }
+
+        public static IDictionary<string, string> CreateNewStorageProperties()
+        {
+            var connectionData = new Dictionary<string, string>();
+            connectionData[AZ_AccountName] = string.Empty;
+            connectionData[AZ_AccountKey] = string.Empty;
+            connectionData[AWS_AccesKeyId] = string.Empty;
+            connectionData[AWS_AccessKeySecret] = string.Empty;
+            connectionData[AWS_Region] = string.Empty;
+            connectionData[AWS_BucketName] = string.Empty;
+            connectionData[GCP_ProjectId] = string.Empty;
+            connectionData[GCP_Json] = string.Empty;
+            return connectionData;
         }
 
         public ICloudStorageManager? CreateTestCloudStorageManager(CloudStorageProviderType providerType, IDictionary<string, string> connectionData) =>
