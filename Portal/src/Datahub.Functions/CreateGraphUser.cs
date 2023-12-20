@@ -10,6 +10,7 @@ using Microsoft.Graph.Models;
 using Microsoft.Kiota.Abstractions;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Datahub.Functions.Services;
 
 namespace Datahub.Functions;
 
@@ -18,12 +19,14 @@ public class CreateGraphUser
     private readonly ILogger _logger;
     private readonly AzureConfig _configuration;
     private readonly IMediator _mediator;
+    private readonly IEmailService _emailService;
 
-    public CreateGraphUser(ILoggerFactory loggerFactory, AzureConfig configuration, IMediator mediator)
+    public CreateGraphUser(ILoggerFactory loggerFactory, AzureConfig configuration, IMediator mediator, IEmailService emailService)
     {
         _logger = loggerFactory.CreateLogger<CreateGraphUser>();
         _configuration = configuration;
         _mediator = mediator;
+        _emailService = emailService;
     }
     
     [Function("CreateGraphUser")]
@@ -178,23 +181,21 @@ public class CreateGraphUser
 
     private async Task SenInvitationEmail(string userEmail, string inviter)
     {
-        var (subjectTemplate, bodyTemplate) = TemplateUtils.GetEmailTemplate("user_invitation.html");
-        if (subjectTemplate is null || bodyTemplate is null)
-            _logger.LogWarning("user_invitation.html is missing");
-
         var portalLink = _configuration.PortalUrl ?? "";
-        var subject = subjectTemplate ?? "Datahub invitation";
-        var body = (bodyTemplate ?? "").Replace("{{inviter}}", inviter).Replace("{{datahub_link}}", portalLink);
         var contacts = new List<string>() { userEmail };
 
-        EmailRequestMessage notificationEmail = new()
+        Dictionary<string, string> bodyArgs = new()
         {
-            To = contacts,
-            Subject = subject,
-            Body = body
+            { "{{inviter}}", inviter },
+            { "{{datahub_link}}", portalLink }
         };
-
-        await _mediator.Send(notificationEmail);
+        
+        var email = _emailService.BuildEmail("user_invitation.html", contacts, new List<string>(), bodyArgs,
+            new Dictionary<string, string>());
+        if (email is not null)
+        {
+            await _mediator.Send(email);
+        }
     }
 
     private async Task SendFailureEmail(string message)

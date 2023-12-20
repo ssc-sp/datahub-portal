@@ -7,6 +7,7 @@ using Datahub.Infrastructure.Offline;
 using Datahub.Metadata.Model;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using MudBlazor;
 
 namespace Datahub.Stories.Utils;
 
@@ -30,6 +31,7 @@ public static class ConfigureServices
         services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
         services.AddSingleton<ServiceAuthManager>();
         services.AddScoped<UserLocationManagerService>();
+        services.AddMudMarkdownServices();
         
         // Add the EF Core DbContexts
         services.AddDbContextFactory<DatahubProjectDBContext>(options =>

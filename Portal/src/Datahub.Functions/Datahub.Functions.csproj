@@ -8,24 +8,25 @@
         <UserSecretsId>7085b673-23cc-4759-933a-5a22d1004411</UserSecretsId>
     </PropertyGroup>
     <ItemGroup>
-      <None Remove="templates\cost_alert.html" />
-      <None Remove="templates\user_invitation.html" />
-    </ItemGroup>
-    <ItemGroup>
-      <Content Include="templates\cost_alert.html">
+      <Content Include="EmailTemplates\cost_alert.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-      <Content Include="templates\user_invitation.html">
+      <Content Include="EmailTemplates\user_invitation.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-      <None Remove="templates\project_inactive_alert.html" />
-      <Content Include="templates\project_inactive_alert.html">
+      <Content Include="EmailTemplates\project_inactive_alert.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-      <Content Include="templates\user_lock_alert.html">
+      <Content Include="EmailTemplates\user_lock_alert.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-      <Content Include="templates\user_deletion_alert.html">
+      <Content Include="EmailTemplates\user_deletion_alert.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="EmailTemplates\bug_report.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="EmailTemplates\test_template.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
@@ -36,6 +37,7 @@
         <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.19.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" Version="6.2.0" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.2.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.2.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.14.1" />
         
@@ -61,10 +63,15 @@
     <ItemGroup>
       <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
       <ProjectReference Include="..\Datahub.Infrastructure\Datahub.Infrastructure.csproj" />
+      <ProjectReference Include="..\Datahub.Portal\Datahub.Portal.csproj" />
       <ProjectReference Include="..\Datahub.ProjectTools\Datahub.ProjectTools.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <InternalsVisibleTo Include="Datahub.Functions.UnitTests" />
     </ItemGroup>
 </Project>

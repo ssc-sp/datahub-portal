@@ -16,13 +16,13 @@ public abstract class WorkspaceBaseStory : ComponentBase
     /// <summary>
     /// Placeholder service to get random projects
     /// </summary>
-    [Inject] protected PlaceholderService _placeholderService { get; set; } = null!;
+    [Inject] protected PlaceholderService PlaceholderService { get; set; } = null!;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-        _project = await _placeholderService.GetRandomProjectAsync();
+        _project = await PlaceholderService.GetRandomProjectAsync();
     }
 }

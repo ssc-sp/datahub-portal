@@ -3,6 +3,7 @@ using System.Text;
 using Askmethat.Aspnet.JsonLocalizer.Extensions;
 using Blazored.LocalStorage;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Security;
 using Datahub.CatalogSearch;
 using Datahub.Core.RoleManagement;
@@ -43,6 +44,7 @@ public static class ConfigureServices
         services.AddSingleton<IDatahubCatalogSearch, OfflineDatahubCatalogSearch>();
         services.AddScoped<IKeyVaultService, OfflineKeyVaultService>();
         services.AddScoped<IProjectUserManagementService, OfflineProjectUserManagementService>();
+        services.AddScoped<IDatabricksApiService, OfflineDatabricksApiService>();
         
         services.AddBlazoredLocalStorage();
         
