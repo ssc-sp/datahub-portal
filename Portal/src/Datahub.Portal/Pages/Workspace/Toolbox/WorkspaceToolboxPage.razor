@@ -1,7 +1,9 @@
 @using Datahub.Shared.Entities
 @using Datahub.Core.Model.Projects
+@using Datahub.Core.Services.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
+@inject IRequestManagementService _requestManagementService
 @inject ILogger<WorkspaceToolboxPage> _logger
 @inject ISnackbar _snackbar
 
@@ -42,7 +44,7 @@
                         </MudText>
                         <MudSpacer/>
                         <MudStack Row>
-                            @switch (_toolStatusMap[tool])
+                            @switch (_toolCurrentDevelopmentStatusMap[tool])
                             {
                                 case ToolStatus.Available:
                                     <MudButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await AddToolToWorkspace(tool))">
@@ -106,14 +108,16 @@
     [Parameter]
     public string WorkspaceAcronym { get; set; }
 
-    private readonly List<string> _toolList = new()
-    {
+    private Datahub_Project _workspace;
+
+    private readonly List<string> _toolList =
+    [
         TerraformTemplate.AzureDatabricks,
         TerraformTemplate.AzureStorageBlob,
         TerraformTemplate.AzureAppService,
         TerraformTemplate.AzurePostgres,
         TerraformTemplate.AzureArcGis
-    };
+    ];
 
     private enum ToolStatus
     {
@@ -124,14 +128,15 @@
         UnderDevelopment,
         Exists,
         MetadataRequired,
+        Error
     }
 
-    private Dictionary<string, ToolStatus> _toolStatusMap = new()
+    private readonly Dictionary<string, ToolStatus> _toolCurrentDevelopmentStatusMap = new()
     {
         { TerraformTemplate.AzureDatabricks, ToolStatus.Available },
         { TerraformTemplate.AzureStorageBlob, ToolStatus.Available },
         { TerraformTemplate.AzureAppService, ToolStatus.Available },
-        { TerraformTemplate.AzurePostgres, ToolStatus.Disabled },
+        { TerraformTemplate.AzurePostgres, ToolStatus.Available },
         { TerraformTemplate.AzureArcGis, ToolStatus.UnderDevelopment }
     };
 
@@ -143,39 +148,75 @@
         await base.OnInitializedAsync();
 
         await using var context = await _contextFactory.CreateDbContextAsync();
-        var workspace = await context.Projects
+        _workspace = await context.Projects
             .AsNoTracking()
+            .Include(w => w.Resources)
             .FirstOrDefaultAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
 
-        _metadataRequired = workspace?.MetadataAdded != true;
+        _metadataRequired = _workspace?.MetadataAdded != true;
         if (_metadataRequired)
         {
-            foreach (var (tool, _) in _toolStatusMap)
+            foreach (var (tool, _) in _toolCurrentDevelopmentStatusMap)
             {
-                _toolStatusMap[tool] = ToolStatus.MetadataRequired;
+                _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.MetadataRequired;
             }
         }
+        else
+        {
+            // loop through the tools and check if they exist
+            foreach (var tool in _toolList)
+            {
+                _toolCurrentDevelopmentStatusMap[tool] = GetToolStatus(tool);
+            }
+        }
+    }
+    
+    private ToolStatus GetToolStatus(string tool)
+    {
+        if(_toolCurrentDevelopmentStatusMap[tool] != ToolStatus.Available)
+        {
+            return _toolCurrentDevelopmentStatusMap[tool];
+        }
+        
+        var toolResource = _workspace.Resources.FirstOrDefault(r => r.ResourceType.EndsWith(tool));
+        if (toolResource == null)
+        {
+            return ToolStatus.Available;
+        }
+        
+        if(toolResource.CreatedAt == null)
+        {
+            return ToolStatus.PendingRequest;
+        }
+        
+        if(toolResource.CreatedAt < DateTime.UtcNow)
+        {
+            return ToolStatus.Exists;
+        }
+
+        return ToolStatus.Error;
     }
 
     private async Task AddToolToWorkspace(string tool)
     {
         _logger.LogInformation("Adding tool {Tool} to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
-        _toolStatusMap[tool] = ToolStatus.SendingRequest;
+        _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.SendingRequest;
         await InvokeAsync(StateHasChanged);
 
-    // wait for 2 seconds
-        await Task.Delay(2000);
-
-
-        _logger.LogInformation("Tool {Tool} successfully added to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
-        _toolStatusMap[tool] = ToolStatus.PendingRequest;
-        _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(tool)], Severity.Success);
-        await InvokeAsync(StateHasChanged);
-
-    // wait for 2 seconds
-        await Task.Delay(2000);
-        _toolStatusMap[tool] = ToolStatus.Exists;
-        await InvokeAsync(StateHasChanged);
+        try
+        {
+            await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, tool);
+            _logger.LogInformation("Tool {Tool} successfully added to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
+            _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.PendingRequest;
+            _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(tool)], Severity.Success);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error adding tool {Tool} to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
+            _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.Error;
+            _snackbar.Add(Localizer["Error adding {0} to your workspace", GetLabel(tool)], Severity.Error);
+        }
     }
 
     private string GetLabel(string tool)

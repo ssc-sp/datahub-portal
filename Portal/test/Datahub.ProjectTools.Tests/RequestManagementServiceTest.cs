@@ -31,7 +31,7 @@ public class RequestManagementServiceTest
         
         
         var requestManagementService = new RequestManagementService(
-            loggerMock.Object, dbContextMock.Object, toolService.Object, systemNotificationMock.Object, userInformationMock.Object, auditingMock.Object, resourceRequestServiceMock.Object, miscStorageMock.Object);
+            loggerMock.Object, dbContextMock.Object, userInformationMock.Object, auditingMock.Object, resourceRequestServiceMock.Object, miscStorageMock.Object);
 
         var project = new Datahub_Project
         {

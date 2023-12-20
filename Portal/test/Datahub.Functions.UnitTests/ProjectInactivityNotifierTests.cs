@@ -2,6 +2,7 @@ using Datahub.Application.Services;
 using Datahub.Application.Services.Projects;
 using Datahub.Core.Model.Datahub;
 using Datahub.Functions.Providers;
+using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
@@ -30,12 +31,14 @@ public class ProjectInactivityNotifierTests
 
     private readonly IProjectInactivityNotificationService _projectInactivityNotificationService =
         Substitute.For<IProjectInactivityNotificationService>();
+    
 
     private readonly IConfiguration _config = Substitute.For<IConfiguration>(); 
 
     private AzureConfig _azConfig;
     private QueuePongService _pongService;
     private EmailValidator _emailValidator;
+    private IEmailService _emailService;
 
     [SetUp]
     public void Setup()
@@ -43,8 +46,9 @@ public class ProjectInactivityNotifierTests
         _azConfig = new AzureConfig(_config);
         _pongService = new QueuePongService(_mediator);
         _emailValidator = new EmailValidator();
+        _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
         _sut = new ProjectInactivityNotifier(_loggerFactory, _mediator, _dbContextFactory, _pongService,
-            _projectInactivityNotificationService, _resourceMessagingService, _emailValidator, _dateProvider, _azConfig);
+            _projectInactivityNotificationService, _resourceMessagingService, _emailValidator, _dateProvider, _azConfig, _emailService);
     }
 
     [Test]
@@ -190,7 +194,7 @@ public class ProjectInactivityNotifierTests
         
         // Act
         var result = _sut.GetEmailRequestMessage(10, 20, "TEST", new List<string>());
-
+        
         // Assert
         result.Body.Should().Contain("Your workspace <a href=\"https://federal-science-datahub.canada.ca/w/TEST\">TEST</a> has been inactive for 20 days");
     }

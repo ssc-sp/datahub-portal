@@ -3,6 +3,7 @@ using Datahub.Application.Services;
 using Datahub.Application.Services.Projects;
 using Datahub.Core.Model.Datahub;
 using Datahub.Functions.Providers;
+using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
@@ -21,6 +22,7 @@ namespace Datahub.Functions
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
         private readonly IResourceMessagingService _resourceMessagingService;
         private readonly IProjectInactivityNotificationService _projectInactivityNotificationService;
+        private readonly IEmailService _emailService;
         private readonly IDateProvider _dateProvider;
         private readonly AzureConfig _config;
 
@@ -31,7 +33,7 @@ namespace Datahub.Functions
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory, QueuePongService pongService,
             IProjectInactivityNotificationService projectInactivityNotificationService,
             IResourceMessagingService resourceMessagingService, EmailValidator emailValidator,
-            IDateProvider dateProvider, AzureConfig config)
+            IDateProvider dateProvider, AzureConfig config, IEmailService emailService)
         {
             _logger = loggerFactory.CreateLogger<ProjectUsageNotifier>();
             _mediator = mediator;
@@ -42,6 +44,7 @@ namespace Datahub.Functions
             _emailValidator = emailValidator;
             _dateProvider = dateProvider;
             _config = config;
+            _emailService = emailService;
         }
 
         [Function("ProjectInactivityNotifier")]
@@ -66,7 +69,8 @@ namespace Datahub.Functions
             using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
 
             // get project
-            var project = await ctx.Projects.AsNoTracking().Where(x => x.Project_ID == message.ProjectId).FirstOrDefaultAsync(ct);
+            var project = await ctx.Projects.AsNoTracking().Where(x => x.Project_ID == message.ProjectId)
+                .FirstOrDefaultAsync(ct);
 
             // get project info
             var lastLoginDate = project.LastLoginDate ?? project.Last_Updated_DT;
@@ -153,32 +157,24 @@ namespace Datahub.Functions
         public EmailRequestMessage GetEmailRequestMessage(int daysUntilDeletion, int daysSinceLastLogin,
             string acronym, List<string> contacts)
         {
-            var (subjectTemplate, bodyTemplate) = TemplateUtils.GetEmailTemplate("project_inactive_alert.html");
-
-            if (subjectTemplate is null || bodyTemplate is null)
-                _logger.LogWarning("Email template file missing!");
-
-            subjectTemplate ??= "FSDH - Inactive workspace ({ws})";
-            bodyTemplate ??= "<p>Your workspace ({ws}) has been inactive for {inactive} days.</p>";
-
-            var subject = subjectTemplate
-                .Replace("{ws}", acronym);
-
-            var body = bodyTemplate
-                .Replace("{ws}", acronym)
-                .Replace("{inactive}", daysSinceLastLogin.ToString())
-                .Replace("{remaining}", daysUntilDeletion.ToString());
-
             List<string> bcc = new() { GetNotificationCCAddress() };
 
-            EmailRequestMessage notificationEmail = new()
+            Dictionary<string, string> subjectArgs = new()
             {
-                To = contacts,
-                BccTo = bcc,
-                Subject = subject,
-                Body = body
+                { "{{ws}}", acronym }
             };
-            return notificationEmail;
+
+            Dictionary<string, string> bodyArgs = new()
+            {
+                { "{ws}", acronym },
+                { "{inactive}", daysSinceLastLogin.ToString() },
+                { "{remaining}", daysUntilDeletion.ToString() }
+            };
+
+            var email = _emailService.BuildEmail("project_inactive_alert.html", contacts, bcc, bodyArgs,
+                subjectArgs);
+
+            return email;
         }
 
         private string GetNotificationCCAddress()

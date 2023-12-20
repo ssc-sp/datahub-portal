@@ -46,12 +46,12 @@
         try
         {
             using var ctx = _dbContextFactory.CreateDbContext();
-            var databricksTemplateName = RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
+            var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
             var projectDatabricks = ctx.Project_Resources2
                 .Where(r => r.ProjectId == project.Project_ID)
                 .FirstOrDefault(r => r.ResourceType == databricksTemplateName);
 
-            if (projectDatabricks != null && projectDatabricks.TimeCreated != null)
+            if (projectDatabricks != null && projectDatabricks.CreatedAt != null)
             {
                 var deserializeOptions = new JsonSerializerOptions
                 {
@@ -81,7 +81,7 @@
     private IEnumerable<Project_Resources2> GetDbs(Datahub_Project project)
     {
         return project.Resources
-            .Where(r => r.ResourceType == IRequestManagementService.POSTGRESQL || r.ResourceType == IRequestManagementService.SQLSERVER)
+            .Where(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)) 
             .ToList();
     }
 
