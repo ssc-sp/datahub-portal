@@ -161,5 +161,31 @@ namespace Datahub.Infrastructure.Services.Security
                 }
             }
         }
+
+        public async Task DeleteAllSecrets(ProjectCloudStorage projectCloudStorage, string acronym)
+        {
+            foreach (var secretKey in CloudStorageHelpers.All_Keys)
+            {
+                await TryDeleteSecret(acronym, GetSecretNameForStorage(projectCloudStorage, secretKey));
+            }
+        }
+
+        private async Task<bool> TryDeleteSecret(string acronym, string secretName)
+        {
+            try
+            {
+                var secret = await _keyVaultClient.DeleteSecretAsync(GetKeyVaultURL(GetVaultName(acronym.ToLowerInvariant(), portalConfiguration.Hosting.EnvironmentName)), secretName);
+                if (secret != null)
+                    return true;
+                return false;
+            } catch (KeyVaultErrorException kvex)
+            {
+                if (kvex.Body.Error.Code == "SecretNotFound")
+                {
+                    return false;
+                }
+                throw;
+            }
+        }
     }
 }

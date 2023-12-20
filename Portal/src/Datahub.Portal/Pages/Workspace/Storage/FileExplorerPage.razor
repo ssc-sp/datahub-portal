@@ -128,16 +128,16 @@
         _projectName = _project?.ProjectName;
         _projectId = _project?.Project_ID;
         containersLoaded = false;
-        await LoadContainersAsync();
-        containersLoaded = true;
         try {
             await keyVaultUserService.Authenticate();
+            await LoadContainersAsync();
+            containersLoaded = true;
+            StateHasChanged();
         } catch (MicrosoftIdentityWebChallengeUserException e) {
             _consentHandler.HandleException(e);
         } catch (Exception e) {
             _logger.LogError(e, "Error loading cloud storage connection");
         }
-        StateHasChanged();
     }
 
     private async Task LoadContainersAsync()
@@ -233,7 +233,7 @@
 
     private async Task AddCloudStorageAccount(CloudStorageProviderType cloudStorageProvider)
     {
-        var result = await ShowCloudStorageDialog(cloudStorageProvider, new ProjectCloudStorage());
+        var result = await ShowCloudStorageDialog(cloudStorageProvider, new ProjectCloudStorage() { Enabled = true, Name = $"{WorkspaceAcronym} Storage {cloudStorageProvider.ToString()}" });
 
         if (!result.Canceled)
         {
@@ -273,8 +273,9 @@
 
         if (!result.Canceled)
         {
-            if (result.Data is ProjectCloudStorage storageSettings)
+            if (result.Data is (ProjectCloudStorage storageSettings,IDictionary<string, string> ConnectionData))
             {               
+                await keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
                 await ctx.SaveChangesAsync();
                 await LoadContainersAsync();
                 await InvokeAsync(StateHasChanged);
@@ -314,6 +315,8 @@
             var confirmDelete = result.Data as bool?;
             if (confirmDelete.HasValue && confirmDelete.Value)
             {
+                await keyVaultUserService.DeleteAllSecrets(cloudProvider, WorkspaceAcronym);
+
                 ctx.ProjectCloudStorages.Remove(cloudProvider);
                 await ctx.SaveChangesAsync();
                 await LoadContainersAsync();

@@ -173,7 +173,8 @@
     protected override async Task OnInitializedAsync()
     {
         ConnectionDataInternal = await _cloudStorageManagerFactory.GetConnectionSecrets(ProjectCloudStorage, WorkspaceAcronym);
-        _isUnclassified = _initialConnectionData.Any(k => !string.IsNullOrEmpty(k.Value));
+        _isUnclassified = ConnectionDataInternal.Any(k => !string.IsNullOrEmpty(k.Value));
+        _isConnectionValid = _isUnclassified;
         _isConnectionVerified = (ProjectCloudStorage?.Enabled ?? false) && _isUnclassified;
         _initialConnectionData = new Dictionary<string, string>(ConnectionDataInternal);
         await PopulateHelpUrl();
