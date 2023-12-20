@@ -17,9 +17,6 @@
     public IDictionary<string, string> ConnectionData { get; set; }
 
     [Parameter]
-    public EventCallback<IDictionary<string, string>> ConnectionDataChanged { get; set; }
-
-    [Parameter]
     public EventCallback<bool> OnValidationChanged { get; set; }
 
     private bool IsValid => GetCredentials() != null;
@@ -39,11 +36,6 @@
         if (OnValidationChanged.HasDelegate)
         {
             OnValidationChanged.InvokeAsync(IsValid);
-        }
-
-        if (ConnectionDataChanged.HasDelegate)
-        {
-            ConnectionDataChanged.InvokeAsync();
         }
     }
 
