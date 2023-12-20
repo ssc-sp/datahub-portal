@@ -7,6 +7,7 @@
 @inject DatahubPortalConfiguration _portalConfiguration
 @inject IJSRuntime _jsRuntime
 @inject ILocalStorageService _localStorage
+@inject IMediator _mediatr
 
 @using MudBlazor
 @using Datahub.Core.Components.Common
@@ -22,6 +23,8 @@
 @using System.Net.Http.Headers;
 @using System.Text;
 @using System.Threading.Tasks;
+@using Datahub.Infrastructure.Queues.Messages
+@using MediatR
 @using Newtonsoft.Json;
 @using Microsoft.Identity.Web
 @using Microsoft.JSInterop;
@@ -220,22 +223,35 @@
         {
             workspaces = "N/A";
         }
+        
+    // We create the bug report message and send it to the queue.
+        var bugReport = new BugReportMessage(
+            UserName: _ticketName,
+            UserEmail: _ticketEmail,
+            UserOrganization: _ticketOrg,
+            PortalLanguage: _ticketPortalLanguage,
+            PreferredLanguage: _ticketPreferredLanguage == 1 ? "en" : "fr",
+            Timezone: timezone,
+            Workspaces: workspaces,
+            Topics: topics,
+            URL: url,
+            UserAgent: useragent,
+            Resolution: resolution,
+            LocalStorage: localStorageData,
+            BugReportType: BugReportTypes.SupportRequest,
+            Description: _ticketDescription
+        );
 
-    // We set up the title and description to be submitted in the issue.
-        var title = $"{topics} in {workspaces}";
-        var description = $"<b>Issue submitted by:</b> {_ticketName}<br /><b>Contact email:</b> {_ticketEmail}<br /><b>Organization:</b> {_ticketOrg}<br /><b>Preferred Language:</b> {preferredLanguage} <br /><b>Time Zone:</b> {timezone}<br /><br /><b>Topics:</b> {topics}<br /><b>Workspace:</b> {workspaces}<br /><b>Description:</b> {_ticketDescription}<br /><br /><b>Portal Language:</b> {_ticketPortalLanguage}<br /><b>Active URL:</b> {url}<br /><b>User Agent:</b> {useragent}<br /><b>Resolution:</b> {resolution}<br /><b>Local Storage:</b><br />{localStorageData}";
-
-    // Retrieve key and call CreateIssue function
-        var credentials = await _keyVaultService.GetSecret(_portalConfiguration.AdoServiceUser.PatSecretName);
-        var org = _portalConfiguration.AdoOrg.OrgName;
-        var project = _portalConfiguration.AdoOrg.ProjectName;
-        await CreateIssue(title, description, topics, org, project, credentials, _ticketName, _ticketEmail, workspaces, _ticketOrg, preferredLanguage, timezone);
-
+        await _mediatr.Send(bugReport);
+        
     // After the issue is created, we close the Help page.
         if (ToggleHelp.HasDelegate)
         {
             await ToggleHelp.InvokeAsync();
         }
+        
+        await DialogService.ShowMessageBox(Localizer["Success"], Localizer["Your support ticket has been created. Thank you!"], yesText: "OK");
+        
     }
 
     private string GetOrg(string email)
@@ -301,57 +317,7 @@
         _currentStep--;
     }
 
-    // Code to generate an issue in DevOps.
-
-    private static readonly HttpClient client = new HttpClient();
-        private const string devOpsUrl = "https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${workItemTypeName}?api-version=6.0";
-
-    public async Task CreateIssue(string title, string description, string topics, string organization, string project, string personalAccessToken, string name, string email, string workspaces, string orgname, string languagePref, string timezone)
-    {
-        var url = devOpsUrl.Replace("{organization}", organization).Replace("{project}", project).Replace("{workItemTypeName}", "Issue");
-
-    // Content of the issue. Possible additions: New tags (topics?), AssignedTo, State, Reason.
-        var body = new object[]
-        {
-            new { op = "add", path = "/fields/System.Title", value = title },
-            new { op = "add", path = "/fields/System.Description", value = description },
-            new { op = "add", path = "/fields/System.AreaPath", value = $"{project}\\FSDH Support Team" },
-            new { op = "add", path = "/fields/System.IterationPath", value = $"{project}\\POC 2" },
-            new { op = "add", path = "/fields/System.Tags", value = $"UserSubmitted; {name.Replace(",", " ")};{topics}" },
-            new { op = "add", path = "/fields/Submitted By", value = name },
-            new { op = "add", path = "/fields/Email", value = email },
-            new { op = "add", path = "/fields/Workspaces", value = workspaces },
-            new { op = "add", path = "/fields/Organization", value = orgname },
-            new { op = "add", path = "/fields/Timezone", value = timezone },
-            new { op = "add", path = "/fields/Preferred Language", value = languagePref },
-            new
-            {
-                op = "add",
-                path = "/relations/-",
-                value = new
-                {
-                    rel = "System.LinkTypes.Hierarchy-Reverse",
-                    url = $"https://dev.azure.com/{organization}/{project}/_apis/wit/workItems/1230",
-                    attributes = new { comment = "Parent work item for user generated issue" }
-                }
-            }
-        };
-
-        var jsonContent = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json-patch+json");
-        string credentials = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes($":{personalAccessToken}"));
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-
-        var response = await client.PostAsync(url, jsonContent);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            await DialogService.ShowMessageBox(Localizer["Error"], $"Error {response.StatusCode} - {response.ReasonPhrase}. Please contact / Veuillez contacter DataSolutions-SolutionsDeDonnees@ssc-spc.gc.ca", yesText: "OK");
-        }
-        else
-        {
-            await DialogService.ShowMessageBox(Localizer["Success"], Localizer["Your support ticket has been created. Thank you!"], yesText: "OK");
-        }
-    }
+    
 
 
 }

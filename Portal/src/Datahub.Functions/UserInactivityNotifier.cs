@@ -5,6 +5,7 @@ using Datahub.Application.Services;
 using Datahub.Application.Services.Projects;
 using Datahub.Core.Model.Datahub;
 using Datahub.Functions.Providers;
+using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
@@ -21,6 +22,7 @@ namespace Datahub.Functions
         private readonly ILogger<UserInactivityNotifier> _logger;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
         private readonly IUserInactivityNotificationService _userInactivityNotificationService;
+        private readonly IEmailService _emailService;
         private readonly IDateProvider _dateProvider;
         private readonly AzureConfig _config;
 
@@ -29,7 +31,7 @@ namespace Datahub.Functions
 
         public UserInactivityNotifier(IMediator mediator, ILoggerFactory loggerFactory,
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IDateProvider dateProvider, AzureConfig config,
-            QueuePongService pongService, EmailValidator emailValidator, IUserInactivityNotificationService userInactivityNotificationService)
+            QueuePongService pongService, EmailValidator emailValidator, IUserInactivityNotificationService userInactivityNotificationService, IEmailService emailService)
         {
             _mediator = mediator;
             _logger = loggerFactory.CreateLogger<UserInactivityNotifier>();
@@ -39,6 +41,7 @@ namespace Datahub.Functions
             _pongService = pongService;
             _emailValidator = emailValidator;
             _userInactivityNotificationService = userInactivityNotificationService;
+            _emailService = emailService;
         }
 
         [Function("UserInactivityNotifier")]
@@ -115,32 +118,17 @@ namespace Datahub.Functions
 
         public EmailRequestMessage GetEmailRequestMessage(int daysSince, int daysUntil, string reason, string email)
         {
-            var (subjectTemplate, bodyTemplate) = TemplateUtils.GetEmailTemplate($"{reason}_alert.html");
+            Dictionary<string, string> bodyArgs = new()
+            {
+                { "{daysSince}", daysSince.ToString() },
+                { "{daysUntil}", daysUntil.ToString() }
+            };
 
-            if (subjectTemplate is null || bodyTemplate is null)
-                _logger.LogWarning("Email template file missing!");
-
-            subjectTemplate ??= "FSDH - User inactivity";
-            string reasonTemplate = reason == "user_lock" ? "locked" : "deleted";
-            bodyTemplate ??=
-                $"<p>Your account has been inactive for {{daysSince}} days. Due to our cloud user policies, your account will be {reasonTemplate} in {{daysUntil}} day(s) if you do not login to the FSDH.</p>";
-
-
-            var body = bodyTemplate
-                .Replace("{daysSince}", daysSince.ToString())
-                .Replace("{daysUntil}", daysUntil.ToString());
+            Dictionary<string, string> subjectArgs = new();
 
             List<string> bcc = new() { GetNotificationCCAddress() };
 
-            EmailRequestMessage notificationEmail = new()
-            {
-                To = new List<string>() { email },
-                BccTo = bcc,
-                Subject = subjectTemplate,
-                Body = body
-            };
-
-            return notificationEmail;
+            return _emailService.BuildEmail($"{reason}_alert.html", new List<string>() { email }, bcc, bodyArgs, subjectArgs);
         }
 
         private string GetNotificationCCAddress()
