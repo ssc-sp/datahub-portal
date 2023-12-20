@@ -23,7 +23,8 @@ namespace Datahub.Infrastructure.Services.Security
         private readonly IUserInformationService _userInfoService;
         private readonly DatahubPortalConfiguration portalConfiguration;
         private readonly ILogger<CloudStorageManagerFactory> logger;
-        private readonly KeyVaultClient _keyVaultClient;
+        private string vaultToken;
+        private KeyVaultClient? _keyVaultClient = null;
 
         public KeyVaultUserService(ITokenAcquisition tokenAcquisition, 
             IUserInformationService userInfoService, 
@@ -34,16 +35,20 @@ namespace Datahub.Infrastructure.Services.Security
             _userInfoService = userInfoService;
             this.portalConfiguration = portalConfiguration;
             this.logger = logger;
+        }
+
+        public async Task Authenticate()
+        {
+            var user = await _userInfoService.GetAuthenticatedUser();
+            var scopes = new string[] { "https://vault.azure.net/user_impersonation" };
+            vaultToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes, user: user);
             _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(GetUserAccessToken));
         }
 
         private async Task<string> GetUserAccessToken(string auth, string res, string scope)
         {
-            var scopes = new string[] { "https://vault.azure.net/user_impersonation" };
-            var user = await _userInfoService.GetAuthenticatedUser();
-            var result = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes, user: user);
 
-            return await Task.FromResult(result);
+            return await Task.FromResult(vaultToken);
         }
 
         //    rg_name = f"fsdh_proj_{workspace_definition['Workspace']['Acronym']}_{environment_name}_rg"
@@ -55,6 +60,7 @@ namespace Datahub.Infrastructure.Services.Security
 
         public async Task<string?> GetSecret(string acronym, string name)
         {
+            if (_keyVaultClient is null) throw new InvalidOperationException("KeyVaultUserService not authenticated");
             var secretName = CleanName(name);
             // This retrieves the secret/certificate with the private key
             SecretBundle secret = null;
@@ -77,6 +83,8 @@ namespace Datahub.Infrastructure.Services.Security
 
         public async Task<bool?> IsSecretExpired(string acronym, string name)
         {
+            if (_keyVaultClient is null) throw new InvalidOperationException("KeyVaultUserService not authenticated");
+
             var secretName = CleanName(name);
             // This retrieves the secret/certificate with the private key
             SecretBundle secret = null;
@@ -112,6 +120,7 @@ namespace Datahub.Infrastructure.Services.Security
 
         public async Task StoreSecret(string acronym, string name, string secretValue, int monthValidity = 12)
         {
+            if (_keyVaultClient is null) throw new InvalidOperationException("KeyVaultUserService not authenticated");
             var secretName = CleanName(name);
             var secretAttributes = new SecretAttributes()
             {
@@ -124,7 +133,8 @@ namespace Datahub.Infrastructure.Services.Security
 
         public void Dispose()
         {
-            ((IDisposable)_keyVaultClient).Dispose();
+            if (_keyVaultClient != null)
+                ((IDisposable)_keyVaultClient).Dispose();
         }
 
         public string GetSecretNameForStorage(ProjectCloudStorage projectCloudStorage, string name) => CleanName($"st-{projectCloudStorage.Id}-{name}");

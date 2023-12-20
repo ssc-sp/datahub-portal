@@ -74,10 +74,10 @@
 
     private string BucketName
     {
-        get => ConnectionData[AWS_Region];
+        get => ConnectionData[AWS_BucketName];
         set
         {
-            ConnectionData[AWS_Region] = value;
+            ConnectionData[AWS_BucketName] = value;
             Validate();
         }
     }
@@ -90,9 +90,14 @@
         }
     }
 
-    protected override void OnParametersSet()
+    protected override async Task OnInitializedAsync()
     {
         if (ConnectionData is null) throw new InvalidDataException($"ConnectionData is null.");
+
+        if (string.IsNullOrEmpty(ConnectionData[AWS_Region]))
+        {
+            ConnectionData[AWS_Region] = DEFAULT_REGION;
+        }
 
         Validate();
     }

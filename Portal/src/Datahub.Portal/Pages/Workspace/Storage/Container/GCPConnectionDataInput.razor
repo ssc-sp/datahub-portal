@@ -39,7 +39,9 @@
         }
     }
 
-    protected override void OnParametersSet()
+    
+
+    protected override async Task OnInitializedAsync()
     {
         if (ConnectionData is null) throw new InvalidDataException($"ConnectionData is null.");
 
