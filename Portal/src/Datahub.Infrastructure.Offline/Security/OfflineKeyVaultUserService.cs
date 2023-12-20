@@ -15,6 +15,11 @@ namespace Datahub.Infrastructure.Offline.Security
             // nothing to do
         }
 
+        public Task DeleteAllSecrets(ProjectCloudStorage projectCloudStorage, string acronym)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IDictionary<string, string>> GetAllSecrets(string acronym)
         {
             throw new NotImplementedException();
