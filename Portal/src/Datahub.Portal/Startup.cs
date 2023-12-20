@@ -64,6 +64,7 @@ using Datahub.Application.Configuration;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Configuration;
+using Datahub.Infrastructure.Services.Security;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -146,6 +147,7 @@ public class Startup
         services.AddScoped<TimeZoneService>();
 
         services.AddUserAchievementServices();
+        services.AddSecurityServices();
 
         services.AddElemental();
         services.AddMudServices();

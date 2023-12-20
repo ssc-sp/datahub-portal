@@ -146,7 +146,7 @@
         {
             try 
             {
-                var storageManager = _cloudStorageManagerFactory.CreateCloudStorageManager(stg);
+                var storageManager = await _cloudStorageManagerFactory.CreateCloudStorageManager(WorkspaceAcronym, stg);
                 if (storageManager is null)
                 {
                     continue;
@@ -199,13 +199,13 @@
         return await ctx.ProjectCloudStorages.AsNoTracking().Where(e => e.ProjectId == _project.Project_ID).ToListAsync();
     }
 
-    private async Task<DialogResult> ShowCloudStorageDialog(CloudStorageProviderType cloudStorageProvider, CloudStorageSettings settings)
+    private async Task<DialogResult> ShowCloudStorageDialog(CloudStorageProviderType cloudStorageProvider, ProjectCloudStorage settings)
     {
         var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
 
         var dialogParams = new DialogParameters();
         dialogParams.Add(nameof(StorageConfigurationDialog.CloudProvider), cloudStorageProvider);
-        dialogParams.Add(nameof(StorageConfigurationDialog.CloudStorageSettings), settings);
+        dialogParams.Add(nameof(StorageConfigurationDialog.ProjectCloudStorage), settings);
 
         var dialogTitle = cloudStorageProvider switch
         {
@@ -221,22 +221,18 @@
 
     private async Task AddCloudStorageAccount(CloudStorageProviderType cloudStorageProvider)
     {
-        var result = await ShowCloudStorageDialog(cloudStorageProvider, new CloudStorageSettings());
+        var result = await ShowCloudStorageDialog(cloudStorageProvider, new ProjectCloudStorage());
 
         if (!result.Canceled)
         {
-            if (result.Data is CloudStorageSettings storageSettings)
+            if (result.Data is ProjectCloudStorage storageSettings)
             {
                 await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
-                var projectCloudStorage = new ProjectCloudStorage()
-                {
-                    ProjectId = _projectId.Value,
-                    Provider = cloudStorageProvider.ToString()
-                };
 
-                storageSettings.ApplyTo(projectCloudStorage);
+                storageSettings.ProjectId = _projectId.Value;
+                storageSettings.Provider = cloudStorageProvider.ToString();                
 
-                ctx.ProjectCloudStorages.Add(projectCloudStorage);
+                ctx.ProjectCloudStorages.Add(storageSettings);
 
                 await ctx.SaveChangesAsync();
                 await LoadContainersAsync();
@@ -258,18 +254,14 @@
         if (cloudProvider is null)
         {
             return;
-        }
+        }        
 
-        var cloudProviderSettings = new CloudStorageSettings(cloudProvider);
-
-        var result = await ShowCloudStorageDialog(pageCloudProvider.CloudStorageProvider, cloudProviderSettings);
+        var result = await ShowCloudStorageDialog(pageCloudProvider.CloudStorageProvider, cloudProvider);
 
         if (!result.Canceled)
         {
-            if (result.Data is CloudStorageSettings storageSettings)
-            {
-                storageSettings.ApplyTo(cloudProvider);
-
+            if (result.Data is ProjectCloudStorage storageSettings)
+            {               
                 await ctx.SaveChangesAsync();
                 await LoadContainersAsync();
                 await InvokeAsync(StateHasChanged);
