@@ -10,7 +10,10 @@
 @using Microsoft.Graph.Models
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
+@using Datahub.Application.Services.Security
+@using Microsoft.Identity.Web;
 
+@inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
 @inject IProjectStorageConfigurationService _projectStorageConfigService
@@ -18,6 +21,7 @@
 @inject IDialogService _dialogService
 @inject ILogger<FileExplorerPage> _logger
 @inject CloudStorageManagerFactory _cloudStorageManagerFactory
+@inject IKeyVaultUserService keyVaultUserService
 
 @* @page "/w/{ProjectAcronymParam}/storage" *@
 
@@ -126,6 +130,13 @@
         containersLoaded = false;
         await LoadContainersAsync();
         containersLoaded = true;
+        try {
+            await keyVaultUserService.Authenticate();
+        } catch (MicrosoftIdentityWebChallengeUserException e) {
+            _consentHandler.HandleException(e);
+        } catch (Exception e) {
+            _logger.LogError(e, "Error loading cloud storage connection");
+        }
         StateHasChanged();
     }
 
@@ -226,7 +237,7 @@
 
         if (!result.Canceled)
         {
-            if (result.Data is ProjectCloudStorage storageSettings)
+            if (result.Data is (ProjectCloudStorage storageSettings,IDictionary<string, string> ConnectionData))
             {
                 await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
 
@@ -236,6 +247,7 @@
                 ctx.ProjectCloudStorages.Add(storageSettings);
 
                 await ctx.SaveChangesAsync();
+                await keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
                 await LoadContainersAsync();
                 await InvokeAsync(StateHasChanged);
             }

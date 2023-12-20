@@ -10,6 +10,11 @@ namespace Datahub.Infrastructure.Offline.Security
 {
     public class OfflineKeyVaultUserService : IKeyVaultUserService
     {
+        public async Task Authenticate()
+        {
+            // nothing to do
+        }
+
         public Task<IDictionary<string, string>> GetAllSecrets(string acronym)
         {
             throw new NotImplementedException();
