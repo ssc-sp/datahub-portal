@@ -10,7 +10,10 @@
 @using Microsoft.Graph.Models
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
+@using Datahub.Application.Services.Security
+@using Microsoft.Identity.Web;
 
+@inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
 @inject IProjectStorageConfigurationService _projectStorageConfigService
@@ -18,6 +21,7 @@
 @inject IDialogService _dialogService
 @inject ILogger<FileExplorerPage> _logger
 @inject CloudStorageManagerFactory _cloudStorageManagerFactory
+@inject IKeyVaultUserService keyVaultUserService
 
 @* @page "/w/{ProjectAcronymParam}/storage" *@
 
@@ -124,9 +128,16 @@
         _projectName = _project?.ProjectName;
         _projectId = _project?.Project_ID;
         containersLoaded = false;
-        await LoadContainersAsync();
-        containersLoaded = true;
-        StateHasChanged();
+        try {
+            await keyVaultUserService.Authenticate();
+            await LoadContainersAsync();
+            containersLoaded = true;
+            StateHasChanged();
+        } catch (MicrosoftIdentityWebChallengeUserException e) {
+            _consentHandler.HandleException(e);
+        } catch (Exception e) {
+            _logger.LogError(e, "Error loading cloud storage connection");
+        }
     }
 
     private async Task LoadContainersAsync()
@@ -146,7 +157,7 @@
         {
             try 
             {
-                var storageManager = _cloudStorageManagerFactory.CreateCloudStorageManager(stg);
+                var storageManager = await _cloudStorageManagerFactory.CreateCloudStorageManager(WorkspaceAcronym, stg);
                 if (storageManager is null)
                 {
                     continue;
@@ -199,13 +210,14 @@
         return await ctx.ProjectCloudStorages.AsNoTracking().Where(e => e.ProjectId == _project.Project_ID).ToListAsync();
     }
 
-    private async Task<DialogResult> ShowCloudStorageDialog(CloudStorageProviderType cloudStorageProvider, CloudStorageSettings settings)
+    private async Task<DialogResult> ShowCloudStorageDialog(CloudStorageProviderType cloudStorageProvider, ProjectCloudStorage settings)
     {
         var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
 
         var dialogParams = new DialogParameters();
         dialogParams.Add(nameof(StorageConfigurationDialog.CloudProvider), cloudStorageProvider);
-        dialogParams.Add(nameof(StorageConfigurationDialog.CloudStorageSettings), settings);
+        dialogParams.Add(nameof(StorageConfigurationDialog.ProjectCloudStorage), settings);
+        dialogParams.Add(nameof(StorageConfigurationDialog.WorkspaceAcronym), WorkspaceAcronym);
 
         var dialogTitle = cloudStorageProvider switch
         {
@@ -221,24 +233,21 @@
 
     private async Task AddCloudStorageAccount(CloudStorageProviderType cloudStorageProvider)
     {
-        var result = await ShowCloudStorageDialog(cloudStorageProvider, new CloudStorageSettings());
+        var result = await ShowCloudStorageDialog(cloudStorageProvider, new ProjectCloudStorage() { Enabled = true, Name = $"{WorkspaceAcronym} Storage {cloudStorageProvider.ToString()}" });
 
         if (!result.Canceled)
         {
-            if (result.Data is CloudStorageSettings storageSettings)
+            if (result.Data is (ProjectCloudStorage storageSettings,IDictionary<string, string> ConnectionData))
             {
                 await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
-                var projectCloudStorage = new ProjectCloudStorage()
-                {
-                    ProjectId = _projectId.Value,
-                    Provider = cloudStorageProvider.ToString()
-                };
 
-                storageSettings.ApplyTo(projectCloudStorage);
+                storageSettings.ProjectId = _projectId.Value;
+                storageSettings.Provider = cloudStorageProvider.ToString();                
 
-                ctx.ProjectCloudStorages.Add(projectCloudStorage);
+                ctx.ProjectCloudStorages.Add(storageSettings);
 
                 await ctx.SaveChangesAsync();
+                await keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
                 await LoadContainersAsync();
                 await InvokeAsync(StateHasChanged);
             }
@@ -258,18 +267,15 @@
         if (cloudProvider is null)
         {
             return;
-        }
+        }        
 
-        var cloudProviderSettings = new CloudStorageSettings(cloudProvider);
-
-        var result = await ShowCloudStorageDialog(pageCloudProvider.CloudStorageProvider, cloudProviderSettings);
+        var result = await ShowCloudStorageDialog(pageCloudProvider.CloudStorageProvider, cloudProvider);
 
         if (!result.Canceled)
         {
-            if (result.Data is CloudStorageSettings storageSettings)
-            {
-                storageSettings.ApplyTo(cloudProvider);
-
+            if (result.Data is (ProjectCloudStorage storageSettings,IDictionary<string, string> ConnectionData))
+            {               
+                await keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
                 await ctx.SaveChangesAsync();
                 await LoadContainersAsync();
                 await InvokeAsync(StateHasChanged);
@@ -309,6 +315,8 @@
             var confirmDelete = result.Data as bool?;
             if (confirmDelete.HasValue && confirmDelete.Value)
             {
+                await keyVaultUserService.DeleteAllSecrets(cloudProvider, WorkspaceAcronym);
+
                 ctx.ProjectCloudStorages.Remove(cloudProvider);
                 await ctx.SaveChangesAsync();
                 await LoadContainersAsync();
