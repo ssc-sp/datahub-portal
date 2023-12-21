@@ -40,7 +40,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
-        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Landing/WelcomeBanner.razor.js");
+        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Home/WelcomeBanner.razor.js");
         _userBackgroundUrl = _datahubPortalConfiguration.Media.GetAchievementImageUrl(portalUser.BannerPictureUrl);
         _previews = await _announcementService.GetActivePreviews(_cultureService.IsFrench);
         _isLoading = false;
