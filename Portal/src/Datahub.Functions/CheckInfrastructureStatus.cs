@@ -63,25 +63,25 @@ public class CheckInfrastructureStatus
     public async Task RunCheckTimer([TimerTrigger("%ProjectUsageCRON%")] TimerInfo timerInfo)
     {
         // Core checks
-        RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureSqlDatabase, "core", "core")).Wait();
-        RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureKeyVault, "core", "core")).Wait();
-        RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureKeyVault, "workspaces", "workspaces")).Wait();
-        RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureFunction, "", "")).Wait();
+        await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureSqlDatabase, "core", "core"));
+        await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureKeyVault, "core", "core"));
+        await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureKeyVault, "workspaces", "workspaces"));
+        await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureFunction, "", ""));
 
         // Workspace checks (Storage, Databricks, eventually Web App)
         var projects = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).ToList();
         foreach (var project in projects)
         {
-            RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageAccount, project.Project_ID.ToString(), "temp")).Wait();
-            RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureDatabricks, "temp", project.Project_Acronym_CD)).Wait();
+            await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageAccount, project.Project_ID.ToString(), "temp"));
+            await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureDatabricks, "temp", project.Project_Acronym_CD));
         }
 
         // Queues checks
         var queues = _configuration["DatahubStorageQueue:QueueNames"];
         foreach (var queue in queues)
         {
-            RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageQueue, queue.ToString(), "0")).Wait();
-            RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageQueue, queue.ToString(), "1")).Wait();
+            await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageQueue, queue.ToString(), "0"));
+            await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageQueue, queue.ToString(), "1"));
         }
 
     }
@@ -251,9 +251,6 @@ public class CheckInfrastructureStatus
         {
             string accountName = _projectStorageConfigurationService.GetProjectStorageAccountName(request.Name);
             string accountKey = await _projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name);
-
-            string accountName = "fsdhprojdev";
-            string accountKey = "palceholder";
 
             var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
 
