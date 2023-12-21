@@ -1,14 +1,15 @@
 using Azure.Security.KeyVault.Secrets;
+using Azure.Storage.Queues.Models;
 using Azure.Identity;
 using Azure.Storage.Queues;
 using Datahub.Application.Configuration;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Health;
 using Datahub.Core.Services.Security;
+using Datahub.Core.Utils;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Storage;
-using Datahub.ProjectTools.Utils;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -41,7 +42,7 @@ public class CheckInfrastructureStatus
 
     public CheckInfrastructureStatus(
         ILoggerFactory loggerFactory,
-        DatahubProjectDBContext dbContextContext,
+        DatahubProjectDBContext dbProjectContext,
         AzureConfig azureConfig,
         IHttpClientFactory httpClientFactory,
         DatahubPortalConfiguration portalConfiguration,
@@ -50,7 +51,7 @@ public class CheckInfrastructureStatus
         ProjectStorageConfigurationService projectStorageConfigurationService)
     {
         _logger = loggerFactory.CreateLogger<CheckInfrastructureStatus>();
-        _projectDbContext = dbContextContext;
+        _projectDbContext = dbProjectContext;
         _azureConfig = azureConfig;
         _httpClientFactory = httpClientFactory;
         _portalConfiguration = portalConfiguration;
@@ -95,6 +96,13 @@ public class CheckInfrastructureStatus
         return result;
     }
 
+    [Function("CheckInfrastructureStatusQueue")]
+    public async Task<IActionResult> RunHealthCheckQueue([QueueTrigger("infrastructure-health-check", Connection = "DatahubStorageConnectionString")] QueueMessage queueItem)
+    {
+        var request = System.Text.Json.JsonSerializer.Deserialize<InfrastructureHealthCheckRequest>(queueItem.MessageText);
+        return await RunHealthCheck(request);
+    }
+
     private async Task<IActionResult> RunHealthCheck(InfrastructureHealthCheckRequest request)
     {
         _logger.LogInformation("C# HTTP trigger function processed a request");
@@ -106,7 +114,7 @@ public class CheckInfrastructureStatus
             case InfrastructureHealthResourceType.AzureSqlDatabase:
                 result = await CheckAzureSqlDatabase(request);
                 break;
-            case InfrastructureHealthResourceType.AzureStorageAccount: // Name is the project ID to check for
+            case InfrastructureHealthResourceType.AzureStorageAccount: // Name is the project acronym to check for
                 result = await CheckAzureStorageAccount(request);
                 break;
             case InfrastructureHealthResourceType.AzureKeyVault: // Group is which key vault to check
@@ -130,13 +138,27 @@ public class CheckInfrastructureStatus
         // If the result is unhealthy, create a bug in DevOps
         if (result.Check.Status == InfrastructureHealthStatus.Unhealthy)
         {
-            string subject = $"[TEST BUG] Failed Infrastructure Health Check";
-            string body = $"The infrastructure health check for {request.Name} failed. Please investigate.";
+            var bugReport = new BugReportMessage(
+                UserName: "Datahub Portal",
+                UserEmail: "",
+                UserOrganization: "",
+                PortalLanguage: "",
+                PreferredLanguage: "",
+                Timezone: "",
+                Workspaces: "",
+                Topics: "",
+                URL: "",
+                UserAgent: "",
+                Resolution: "",
+                LocalStorage: "",
+                BugReportType: BugReportTypes.InfrastructureError,
+                Description: $"[TESTING] The infrastructure health check for {request.Name} failed. Please investigate."
+            );
 
-            // TODO: Use the BugReportMessageHandler with the mediator.
+            await _mediator.Send(bugReport);
         }
 
-        await StoreResult(request, result);
+        //await StoreResult(request, result);
 
         return new OkObjectResult(result);
     }
@@ -269,7 +291,6 @@ public class CheckInfrastructureStatus
             check.Status = InfrastructureHealthStatus.Healthy;
         }
 
-        // check and see if the storage account exists
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
@@ -406,7 +427,10 @@ public class CheckInfrastructureStatus
             else
             {
                 bool queueExists = queueClient.Exists();
-                errors.Add("Unable to find the queue.");
+                if (!queueExists)
+                {
+                    errors.Add("The queue does not exist.");
+                }
             }
         }
         catch (Exception ex)

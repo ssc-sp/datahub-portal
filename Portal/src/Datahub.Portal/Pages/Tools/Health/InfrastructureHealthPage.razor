@@ -1,4 +1,9 @@
 @using Datahub.Core.Model.Health
+@using System.Text.Json
+@using Datahub.Infrastructure.Queues.Messages
+@using MediatR
+@inject IDialogService DialogService
+@inject IMediator _mediator
 
 <MudStack Spacing="6">
     <MudStack>
@@ -18,6 +23,7 @@
                 <MudTh>Resource</MudTh>
                 <MudTh>Status</MudTh>
                 <MudTh>Updated</MudTh>
+                <MudTh>Run Check</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd>@context.Name</MudTd>
@@ -27,6 +33,11 @@
                     </MudChip>
                 </MudTd>
                 <MudTd>@context.HealthCheckTimeUtc</MudTd>
+                <MudTd>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Group, context.Name))">
+						Run
+					</MudButton>
+                </MudTd>
             </RowTemplate>
         </MudTable>
     </MudStack>
@@ -42,6 +53,7 @@
                 <MudTh>Resource</MudTh>
                 <MudTh>Status</MudTh>
                 <MudTh>Updated</MudTh>
+                <MudTh>Run Check</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd>@context.Name</MudTd>
@@ -51,6 +63,11 @@
                     </MudChip>
                 </MudTd>
                 <MudTd>@context.HealthCheckTimeUtc</MudTd>
+                    <MudTd>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">
+                            Run
+                        </MudButton>
+                    </MudTd>
             </RowTemplate>
         </MudTable>
     </MudStack>
@@ -120,7 +137,7 @@
     {
         base.OnInitialized();
 
-    // create some random infrastructure health data
+        // create some random infrastructure health data
         _infrastructureHealth = CreateRandomWorkspaceAcronyms()
             .Select(acronym => (
                 from object resourceType in Enum.GetValues(typeof(InfrastructureHealthResourceType))
@@ -128,7 +145,7 @@
                 .ToList())
             .ToDictionary(item => item.First().Group, item => item);
 
-    // create some random core infrastructure health data
+        // create some random core infrastructure health data
         _coreInfrastructureHealth = new()
         {
             new InfrastructureHealthCheck()
@@ -227,6 +244,18 @@
                 HealthCheckTimeUtc = DateTime.UtcNow
             },
         };
+    }
+
+    private async Task CallFunction(InfrastructureHealthResourceType type, string name, string group)
+    {
+        var request = new InfrastructureHealthCheckMessage(
+            type,
+			name,
+			group
+        );
+
+        await _mediator.Send(request);
+        await DialogService.ShowMessageBox("Health Check", "Health check request sent to queue.");
     }
 
     private static Color GetColor(InfrastructureHealthStatus status)
