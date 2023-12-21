@@ -6,6 +6,8 @@ namespace Datahub.Shared.Entities;
 
 public class TerraformTemplate
 {
+    public static string GetTerraformServiceType(string templateName) => $"terraform:{templateName}";
+
     public const string NewProjectTemplate = "new-project-template";
     public const string VariableUpdate = "variable-update";
     public const string AzureStorageBlob = "azure-storage-blob";

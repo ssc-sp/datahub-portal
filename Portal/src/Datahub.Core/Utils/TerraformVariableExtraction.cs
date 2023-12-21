@@ -1,20 +1,20 @@
+#nullable enable
+
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
 
-namespace Datahub.ProjectTools.Utils;
-
-using System.Text.Json;
-using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services.Projects;
-using Datahub.ProjectTools.Services;
+namespace Datahub.Core.Utils;
 
 public static class TerraformVariableExtraction
 {
-    
+
     public static string? ExtractDatabricksWorkspaceId(Datahub_Project? project)
     {
-        var databricksTemplateName = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
+        var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
         return ExtractDatabricksWorkspaceId(
             project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent);
     }
@@ -43,7 +43,7 @@ public static class TerraformVariableExtraction
     /// <returns></returns>
     public static string? ExtractDatabricksUrl(Datahub_Project? project)
     {
-        var databricksTemplateName = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
+        var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
         return ExtractDatabricksUrl(
             project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent);
     }

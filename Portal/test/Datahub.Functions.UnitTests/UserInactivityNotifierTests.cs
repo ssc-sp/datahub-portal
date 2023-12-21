@@ -1,6 +1,7 @@
 ﻿using Datahub.Application.Services;
 using Datahub.Core.Model.Datahub;
 using Datahub.Functions.Providers;
+using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
@@ -28,10 +29,12 @@ namespace Datahub.Functions.UnitTests
             Substitute.For<IUserInactivityNotificationService>();
 
         private readonly IConfiguration _config = Substitute.For<IConfiguration>();
+        
 
         private AzureConfig _azConfig;
         private QueuePongService _pongService;
         private EmailValidator _emailValidator;
+        private IEmailService _emailService;
 
         [SetUp]
         public void Setup()
@@ -39,8 +42,9 @@ namespace Datahub.Functions.UnitTests
             _azConfig = new AzureConfig(_config);
             _pongService = new QueuePongService(_mediator);
             _emailValidator = new EmailValidator();
+            _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
             _sut = new UserInactivityNotifier(_mediator, _loggerFactory, _dbContextFactory, _dateProvider, _azConfig,
-                _pongService, _emailValidator, _userInactivityNotificationService);
+                _pongService, _emailValidator, _userInactivityNotificationService, _emailService);
         }
 
         [Test]
