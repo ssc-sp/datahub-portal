@@ -184,6 +184,7 @@ public class Startup
         services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
         services.AddSingleton<AzureManagementService>();
         services.AddSingleton<ProjectUsageService>();
+        services.AddSingleton<ProjectStorageConfigurationService>();
 
         services.AddSignalRCore();
 
