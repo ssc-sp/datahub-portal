@@ -74,7 +74,7 @@ public class CheckInfrastructureStatus
         foreach (var project in projects)
         {
             await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageAccount, project.Project_ID.ToString(), "temp"));
-            await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureDatabricks, "temp", project.Project_Acronym_CD));
+            await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureDatabricks, project.Project_Acronym_CD, "temp"));
         }
 
         // Queues checks
@@ -155,7 +155,7 @@ public class CheckInfrastructureStatus
                 Description: $"[TESTING] The infrastructure health check for {request.Name} failed. Please investigate."
             );
 
-            await _mediator.Send(bugReport);
+            //await _mediator.Send(bugReport);
         }
 
         //await StoreResult(request, result);
@@ -241,6 +241,22 @@ public class CheckInfrastructureStatus
             {
                 secret = await client.GetSecretAsync(workspaceKeyCheck);
             }
+
+            try
+            {
+                // Iterate through the keys in the key vault and check if they are expired
+                await foreach (var secretProperties in client.GetPropertiesOfSecretsAsync())
+                {
+                    if (secretProperties.ExpiresOn < DateTime.UtcNow)
+                    {
+                        errors.Add($"The secret {secretProperties.Name} has expired.");
+                    }
+                }
+            }
+            catch
+            {
+                errors.Add("Unable to retrieve the secrets from the key vault.");
+            }
         }
         catch (Exception ex)
         {
@@ -262,7 +278,7 @@ public class CheckInfrastructureStatus
         var check = new InfrastructureHealthCheck()
         {
             Group = request.Group,
-            Name = request.Group,
+            Name = request.Name,
             ResourceType = request.Type,
             Status = InfrastructureHealthStatus.Unhealthy,
             HealthCheckTimeUtc = DateTime.UtcNow
@@ -307,7 +323,6 @@ public class CheckInfrastructureStatus
             HealthCheckTimeUtc = DateTime.UtcNow
         };
 
-        //using var ctx = await _dbContextFactory.CreateDbContextAsync();
         var project = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).FirstOrDefault(p => p.Project_Acronym_CD == request.Name);
 
         if (project == null)
