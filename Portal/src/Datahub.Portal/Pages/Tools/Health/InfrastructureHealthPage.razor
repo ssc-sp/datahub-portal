@@ -1,7 +1,9 @@
 @using Datahub.Core.Model.Health
 @using System.Text.Json
 @using Datahub.Infrastructure.Queues.Messages
+@using Datahub.Core.Model.Projects;
 @using MediatR
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IDialogService DialogService
 @inject IMediator _mediator
 
@@ -34,7 +36,7 @@
                 </MudTd>
                 <MudTd>@context.HealthCheckTimeUtc</MudTd>
                 <MudTd>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Group, context.Name))">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
 						Run
 					</MudButton>
                 </MudTd>
@@ -64,7 +66,7 @@
                 </MudTd>
                 <MudTd>@context.HealthCheckTimeUtc</MudTd>
                     <MudTd>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
                             Run
                         </MudButton>
                     </MudTd>
@@ -92,32 +94,9 @@
                 {
                     var health = context.Value.FirstOrDefault(h => h.ResourceType == (InfrastructureHealthResourceType)resourceType);
                     <MudTd>
-                        @if (health is not null)
-                        {
-                            <MudMenu Dense AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopLeft">
-                                <ActivatorContent>
-                                    <MudChip Color="@GetColor(health.Status)" Size="Size.Small">
-                                        @health.Status
-                                    </MudChip>
-                                </ActivatorContent>
-                                <ChildContent>
-                                    @if (health.Status != InfrastructureHealthStatus.Create)
-                                    {
-                                        <MudMenuItem>Refresh Health Check</MudMenuItem>
-                                        @if (!string.IsNullOrWhiteSpace(health.Url))
-                                        {
-                                            <MudMenuItem Href="@health.Url">View Resource</MudMenuItem>
-                                        }
-                                        <MudDivider Class="my-2"/>
-                                        <MudMenuItem>Refresh request on queue</MudMenuItem>
-                                    }
-                                    else
-                                    {
-                                        <MudMenuItem>Add request to queue</MudMenuItem>
-                                    }
-                                </ChildContent>
-                            </MudMenu>
-                        }
+                        <MudChip Color="@GetColor(health.Status)" Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, context.Key))">
+                            @health.Status
+                        </MudChip>
                     </MudTd>
                 }
             </RowTemplate>
@@ -131,14 +110,16 @@
     private Dictionary<string, List<InfrastructureHealthCheck>> _infrastructureHealth = new ();
     private List<InfrastructureHealthCheck> _coreInfrastructureHealth = new ();
     private List<InfrastructureHealthCheck> _queueInfrastructureHealth = new ();
+    private DatahubProjectDBContext _projectDbContext;
 
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
-        // create some random infrastructure health data
-        _infrastructureHealth = CreateRandomWorkspaceAcronyms()
+        _projectDbContext = DbFactory.CreateDbContext();
+
+        _infrastructureHealth = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).Select(p => p.Project_Acronym_CD).ToList()
             .Select(acronym => (
                 from object resourceType in Enum.GetValues(typeof(InfrastructureHealthResourceType))
                 select CreateInfrastructureHealth(acronym, (InfrastructureHealthResourceType)resourceType))
@@ -250,12 +231,18 @@
     {
         var request = new InfrastructureHealthCheckMessage(
             type,
-			name,
-			group
+            name,
+            group
         );
 
-        await _mediator.Send(request);
-        await DialogService.ShowMessageBox("Health Check", "Health check request sent to queue.");
+        try
+        {
+            await _mediator.Send(request);
+        }
+        catch (Exception ex)
+		{
+			await DialogService.ShowMessageBox("Health Check", "Health check request failed. Type: " + type.ToString() + " Name: " + name + "Group: " + group + " Error: " + ex.Message + " Stack Trace: " + ex.StackTrace);
+		}
     }
 
     private static Color GetColor(InfrastructureHealthStatus status)
@@ -267,32 +254,6 @@
             InfrastructureHealthStatus.Unhealthy => Color.Error,
             _ => Color.Default
             };
-    }
-
-    private HashSet<string> CreateRandomWorkspaceAcronyms()
-    {
-    // return between 20 and 100 random four letter acronyms
-        var acronyms = new HashSet<string>();
-        var random = new Random();
-        var count = random.Next(20, 100);
-        for (var i = 0; i < count; i++)
-        {
-            acronyms.Add(CreateRandomAcronym());
-        }
-
-        return acronyms;
-    }
-
-    private static string CreateRandomAcronym()
-    {
-    // return a random four letter acronym
-        var random = new Random();
-        var acronym = "";
-        for (var i = 0; i < 4; i++)
-        {
-            acronym += (char)random.Next(65, 90);
-        }
-        return acronym;
     }
 
     private InfrastructureHealthCheck CreateInfrastructureHealth(string group, InfrastructureHealthResourceType resourceType)
