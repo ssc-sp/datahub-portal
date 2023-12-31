@@ -15,6 +15,7 @@
                         FieldValues=@_fieldValues
                         ShowAll=@_showAll
                         HideTranslationNote=@HideTranslationNote
+                        DisableTranslation=@DisableTranslation
                         OnFieldChanged=@FieldChanged />
 
         @*actions*@
@@ -138,6 +139,9 @@
 
     [Parameter]
     public bool HideTranslationNote { get; set; } = false;
+
+    [Parameter]
+    public bool DisableTranslation { get; set; } = false;
 
     public bool SaveDisabled => _savingData || !_requiredFieldsAreValid;
 
