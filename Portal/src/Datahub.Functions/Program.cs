@@ -13,6 +13,10 @@ using System.Net;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Projects;
+using Datahub.Core.Services.Security;
+using Datahub.Functions.Services;
+using Datahub.Portal;
+using Microsoft.AspNetCore.Hosting;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -45,6 +49,8 @@ var host = new HostBuilder()
         services.AddSingleton<AzureConfig>();
         services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
         services.AddSingleton<AzureManagementService>();
+        services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
+        services.AddSingleton<IEmailService, EmailService>();
         services.AddScoped<ProjectUsageService>();
         services.AddScoped<QueuePongService>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
@@ -52,6 +58,10 @@ var host = new HostBuilder()
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddSingleton<DatahubPortalConfiguration>();
 
+    })
+    .ConfigureWebHostDefaults(webBuilder =>
+    {
+        webBuilder.UseStartup<Startup>();
     })
     .Build();
 
