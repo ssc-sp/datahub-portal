@@ -100,10 +100,6 @@
 		</MauiXaml>
 	</ItemGroup>
 
-	<ItemGroup>
-	  <None Remove="Desktop.Uploader.csproj.backup" />
-	</ItemGroup>
-
 	<Import Project="..\Desktop.SharedCode\Desktop.SharedCode.projitems" Label="Shared" />
 
 </Project>

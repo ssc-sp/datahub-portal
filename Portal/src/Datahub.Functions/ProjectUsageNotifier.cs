@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Azure.Storage.Queues.Models;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
+using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
@@ -24,9 +25,10 @@ namespace Datahub.Functions
         private readonly AzureConfig _config;
         private readonly QueuePongService _pongService;
         private readonly EmailValidator _emailValidator;
+        private readonly IEmailService _emailService;
 
         public ProjectUsageNotifier(ILoggerFactory loggerFactory, AzureConfig config, IMediator mediator, 
-            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, QueuePongService pongService, EmailValidator emailValidator)
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, QueuePongService pongService, EmailValidator emailValidator, IEmailService emailService)
         {
             _logger = loggerFactory.CreateLogger<ProjectUsageNotifier>();
             _mediator = mediator;
@@ -34,6 +36,7 @@ namespace Datahub.Functions
             _notificationPercents = ParseNotificationPercents(config.NotificationPercents ?? "25,50,80,100");
             _pongService = pongService;
             _emailValidator = emailValidator;
+            _emailService = emailService;
             _config = config;
         }
 
@@ -130,31 +133,21 @@ namespace Datahub.Functions
 
         private EmailRequestMessage GetNotificationEmail(string projectAcro, int perc, List<string> contacts)
         {
-            var (subjectTemplate, bodyTemplate) = TemplateUtils.GetEmailTemplate("cost_alert.html");
-            if (subjectTemplate is null || bodyTemplate is null)
-                _logger.LogWarning("Email template file missing!");
+            Dictionary<string, string> bodyArgs = new()
+            {
+                { "{ws}", projectAcro },
+                { "{perc}", perc.ToString() }
+            };
 
-            subjectTemplate ??= "{perc}% Datahub credits consumed ({ws})";
-            bodyTemplate ??= "<p>Your workspace has consumed {perc}% of the allocated credits in Datahub.</p>";
-
-            var subject = subjectTemplate
-                .Replace("{ws}", projectAcro)
-                .Replace("{perc}", perc.ToString());
-
-            var body = bodyTemplate
-                .Replace("{ws}", projectAcro)
-                .Replace("{perc}", perc.ToString());
+            Dictionary<string, string> subjectArgs = new()
+            {
+                { "{ws}", projectAcro },
+                { "{perc}", perc.ToString() }
+            };
 
             List<string> bcc = new() { GetNotificationCCAddress() };
 
-            EmailRequestMessage notificationEmail = new() 
-            { 
-                To = contacts, 
-                BccTo = bcc,
-                Subject = subject, 
-                Body = body 
-            };
-            return notificationEmail;
+            return _emailService.BuildEmail("cost_alert.html", contacts, bcc, bodyArgs, subjectArgs);
         }
 
         private string GetNotificationCCAddress()

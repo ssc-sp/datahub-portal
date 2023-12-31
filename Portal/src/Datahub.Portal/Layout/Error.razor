@@ -1,7 +1,12 @@
 ﻿@using Datahub.Core.Services.Notification
+@using Datahub.Infrastructure.Queues.Messages
+@using MediatR
 @inject IJSRuntime JSRuntime
+@inject NavigationManager _navigationManager
 @inject IEmailNotificationService EmailNotificationService
 @inject IUserInformationService _userInformationService
+@inject ILocalStorageService _localStorage
+@inject IMediator _mediator
 
 <p id="datahub-error-page" style="display: none">An error has occured!</p>
 
@@ -87,9 +92,36 @@
             await InvokeAsync(StateHasChanged);
 
             var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
+            
+            var allKeys = await _localStorage.KeysAsync();
+            var dataDict = new Dictionary<string, string>();
+            foreach (var key in allKeys)
+            {
+                var value = await _localStorage.GetItemAsStringAsync(key);
+                dataDict.Add(key, value);
+            }
+            var localStorageData = Newtonsoft.Json.JsonConvert.SerializeObject(dataDict);
 
-            await EmailNotificationService.EmailErrorToDatahub($"Datahub App Error - {CorrelationId}", portalUser.Email, "",
-                AppInsightsQuery, Exception?.StackTrace);
+            var description = $"Datahub App Error - Correlation ID:{CorrelationId}\n\nApp Insights Query:{AppInsightsQuery}\n\n Exception Message: {Exception?.Message}\n\nException Stack Trace:{Exception?.StackTrace}";
+            
+            var bugReport = new BugReportMessage(
+                UserName: portalUser.DisplayName,
+                UserEmail: portalUser.Email,
+                UserOrganization: "",
+                PortalLanguage: portalUser.UserSettings.Language,
+                PreferredLanguage: "",
+                Timezone: "",
+                Workspaces: _navigationManager.Uri,
+                Topics: "System Error",
+                URL: _navigationManager.Uri,
+                UserAgent: "",
+                Resolution: "",
+                LocalStorage: localStorageData,
+                BugReportType: BugReportTypes.SystemError,
+                Description: description
+            );
+
+            await _mediator.Send(bugReport);
         }
         catch (Exception)
         {

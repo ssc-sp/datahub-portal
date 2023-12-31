@@ -64,6 +64,7 @@ using Datahub.Application.Configuration;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Configuration;
+using Datahub.Infrastructure.Services.Security;
 using Datahub.Application.Services.Publishing;
 using Datahub.Infrastructure.Services.Publishing;
 
@@ -148,6 +149,7 @@ public class Startup
         services.AddScoped<TimeZoneService>();
 
         services.AddUserAchievementServices();
+        services.AddSecurityServices();
 
         services.AddElemental();
         services.AddMudServices();
@@ -373,7 +375,7 @@ public class Startup
         // configure online/offline services
         if (!Offline)
         {
-            services.AddSingleton<IKeyVaultService, KeyVaultService>();
+            services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
             services.AddScoped<UserLocationManagerService>();
             services.AddSingleton<CommonAzureServices>();
             services.AddScoped<DataLakeClientService>();
