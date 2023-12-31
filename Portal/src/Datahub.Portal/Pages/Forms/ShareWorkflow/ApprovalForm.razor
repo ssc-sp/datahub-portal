@@ -11,7 +11,9 @@
                  OnConfigure="OnConfigure"
                  CancelLabel="@CancelLabel"
                  SubmitLabel="@SubmitLabel"
+                 Variant=@Variant.Outlined
                  LabelForPropertyFunc="@GetDataLabel"
+                 ModelFormStyle=@Forms.ModelFormStyle.Compact
                  LabelsOnTop />
     
     @if (!_validMandatoryCheckboxes)
@@ -79,7 +81,6 @@
             // create a new form
             _approvalForm = new()
             {
-                Department_NAME = "Natural Resources Canada / Ressources Naturelles Canada",
                 Type_Of_Data_TXT = "Data",
                 Name_NAME = User?.DisplayName ?? PortalUser?.DisplayName,
                 Email_EMAIL = User?.Mail ?? PortalUser?.Email,
@@ -150,43 +151,6 @@
     private void OnConfigure(Forms.IModelFormContext context)
     {
         context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Type_Of_Data_TXT, () => new string[] { "Data", "Info" });
-
-        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Sector_NAME, () => Sectors, s => 
-        {
-            var id = GetChoiceId(_sectors, s);
-            if (_sectorId != id)
-            {
-                _sectorId = id;
-                _approvalForm.Sector_ID = id;
-                RefreshBranches(context);
-            }
-        });
-
-        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Branch_NAME, () => Branches, b =>
-        {
-            var id = GetChoiceId(_branches, b, _sectorId);
-            if (_branchId != id)
-            {
-                _branchId = id;
-                _approvalForm.Branch_ID = id;
-                RefreshDivisions(context);
-            }
-        });
-
-        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Division_NAME, () => Divisions, d =>
-        {
-            var id = GetChoiceId(_divisions, d, _branchId);
-            if (_divisionId != id)
-            {
-                _divisionId = id;
-                RefreshSections(context);
-            }
-        });
-
-        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Section_NAME, () => Sections, s =>
-        {
-            _sectionId = GetChoiceId(_sections, s, _divisionId);
-        });
     }
 
     private void RefreshBranches(Forms.IModelFormContext context)

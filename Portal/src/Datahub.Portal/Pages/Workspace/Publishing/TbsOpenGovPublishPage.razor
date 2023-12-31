@@ -62,10 +62,12 @@
                     <MudText Typo=@Typo.h3>Open Gov Publishing Criteria</MudText>
                 </MudCardHeader>
 
-                <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm ApprovalFormId=@_approvalFormId
-                                                               OnSubmitForm=@UpdateApprovalFormId
-                                                               DatasetTitle=@Submission.DatasetTitle
-                                                               PortalUser=@_requestingUser />
+                <MudCardContent>
+                    <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm ApprovalFormId=@_approvalFormId
+                                                                           OnSubmitForm=@UpdateApprovalFormId
+                                                                           DatasetTitle=@Submission.DatasetTitle
+                                                                           PortalUser=@_requestingUser />
+                </MudCardContent>
             </MudCard>
         }
 
@@ -196,14 +198,19 @@
     private string GetStepTitle(StatusEnum s) => GetStepInfo(s)?.Item1;
     private string GetStepDescription(StatusEnum s) => GetStepInfo(s)?.Item2;
 
-    private int _approvalFormId = 0;
-    private string _datasetTitle;
+    private int _approvalFormId
+    {
+        get => Submission?.OpenGovCriteriaFormId ?? 0;
+        set
+        {
+            Submission.OpenGovCriteriaFormId = value;
+        }
+    }
     private PortalUser _requestingUser;
 
     private static readonly string[] SUBMISSION_FILE_PURPOSES = new string[]
     {
         TbsOpenGovSubmission.DATASET_FILE_TYPE,
-        TbsOpenGovSubmission.METADATA_FILE_TYPE,
         TbsOpenGovSubmission.DATA_DICTIONARY_FILE_TYPE,
         TbsOpenGovSubmission.SUPPORTING_DOC_FILE_TYPE
     };
