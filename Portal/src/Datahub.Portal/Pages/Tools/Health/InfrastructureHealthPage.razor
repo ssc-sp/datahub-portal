@@ -14,6 +14,9 @@
             @Localizer["View the health of the infrastructure that supports the application and the workspaces."]
         </MudText>
     </MudStack>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => CallFunction(0, "", "all"))" Style="width: fit-content;">
+        Run all checks
+    </MudButton>
     <MudStack>
         <MudText Typo="Typo.h2">@Localizer["Core Health"]</MudText>
         <MudText Typo="Typo.body1">

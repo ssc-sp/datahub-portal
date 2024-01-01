@@ -5,7 +5,6 @@ using Azure.Storage.Queues;
 using Datahub.Application.Configuration;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Health;
-using Datahub.Core.Services.Security;
 using Datahub.Core.Utils;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
@@ -17,13 +16,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using System.Net.Http.Headers;
-using System.Text;
 using MediatR;
-using Datahub.Infrastructure.Queues.MessageHandlers;
-using Lucene.Net.Search;
-using Microsoft.EntityFrameworkCore.Internal;
+using Azure.Storage.Blobs;
+using MudBlazor;
 
 namespace Datahub.Functions;
 
@@ -60,53 +55,59 @@ public class CheckInfrastructureStatus
         _projectStorageConfigurationService = projectStorageConfigurationService;
     }
 
+    /// <summary>
+    /// Azure Function that runs on a timer to check the infrastructure health of all infrastructure.
+    /// </summary>
+    /// <param name="timerInfo"></param>
+    /// <returns>An OkObjectResult containing the results for all infrastructure tests.</returns>
     [Function("CheckInfrastructureScheduled")]
-    public async Task RunCheckTimer([TimerTrigger("%ProjectUsageCRON%")] TimerInfo timerInfo)
+    public async Task<IActionResult> RunCheckTimer([TimerTrigger("%ProjectUsageCRON%")] TimerInfo timerInfo)
     {
-        // Core checks
-        await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureSqlDatabase, "core", "core"));
-        await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureKeyVault, "core", "core"));
-        await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureKeyVault, "workspaces", "workspaces"));
-        await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureFunction, "", ""));
-
-        // Workspace checks (Storage, Databricks, eventually Web App)
-        var projects = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).ToList();
-        foreach (var project in projects)
-        {
-            await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageAccount, project.Project_ID.ToString(), "temp"));
-            await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureDatabricks, project.Project_Acronym_CD, "temp"));
-        }
-
-        // Queues checks
-        var queues = _configuration["DatahubStorageQueue:QueueNames"];
-        foreach (var queue in queues)
-        {
-            await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageQueue, queue.ToString(), "0"));
-            await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageQueue, queue.ToString(), "1"));
-        }
-
+        _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+        ObjectResult[] results = await RunAllChecks();
+        return new OkObjectResult(results);
     }
 
+    /// <summary>
+    /// Azure Function that can be called to check a specific infrastructure resource with a POST request.
+    /// </summary>
+    /// <param name="req"></param>
+    /// <returns>An OkObjectResult containing the result for a specific infrastructure test.</returns>
     [Function("CheckInfrastructureStatusHttp")]
     public async Task<IActionResult> RunHealthCheckHttp([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req)
     {
+        _logger.LogInformation("C# HTTP trigger function processed a request.");
         var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
         var request = System.Text.Json.JsonSerializer.Deserialize<InfrastructureHealthCheckRequest>(requestBody);
         IActionResult result = await RunHealthCheck(request);
         return result;
     }
 
+    /// <summary>
+    /// Azure Function that can be called to check a specific infrastructure resource with a queue message, such as using the mediator.
+    /// </summary>
+    /// <param name="queueItem"></param>
+    /// <returns>An OkObjectResult containing the result for a specific infrastructure test.</returns>
     [Function("CheckInfrastructureStatusQueue")]
     public async Task<IActionResult> RunHealthCheckQueue([QueueTrigger("infrastructure-health-check", Connection = "DatahubStorageConnectionString")] QueueMessage queueItem)
     {
+        _logger.LogInformation($"C# Queue trigger function processed: {queueItem.MessageText}");
         var request = System.Text.Json.JsonSerializer.Deserialize<InfrastructureHealthCheckRequest>(queueItem.MessageText);
+
+        if (request.Group == "all")
+        {
+            return new OkObjectResult(await RunAllChecks());
+        }
         return await RunHealthCheck(request);
     }
 
+    /// <summary>
+    /// Checks the infrastructure health of a specific resource. Creates a bug report if the resource is unhealthy. Stores all results in a blob.
+    /// </summary>
+    /// <param name="request">the request containing the resource type, group, and name</param>
+    /// <returns>An OkObjectResult containing the result for a specific infrastructure test if the request is formatted properly. A BadRequestObjectResult is returned for poorly formatted requests.</returns>
     private async Task<IActionResult> RunHealthCheck(InfrastructureHealthCheckRequest request)
     {
-        _logger.LogInformation("C# HTTP trigger function processed a request");
-
         InfrastructureHealthCheckResponse result = new InfrastructureHealthCheckResponse(new InfrastructureHealthCheck(), new List<string>());
 
         switch (request?.Type)
@@ -155,19 +156,73 @@ public class CheckInfrastructureStatus
                 Description: $"[TESTING] The infrastructure health check for {request.Name} failed. Please investigate."
             );
 
-            //await _mediator.Send(bugReport);
+            await _mediator.Send(bugReport);
         }
 
-        //await StoreResult(request, result);
+        await StoreResult(request, result);
 
         return new OkObjectResult(result);
     }
 
-    private async Task StoreResult(InfrastructureHealthCheckRequest request, InfrastructureHealthCheckResponse result)
+    /// <summary>
+    /// Function that runs all infrastructure health checks. Called by the timer trigger.
+    /// </summary>
+    /// <returns>A list of ObjectResult objects with the results of all health checks.</returns>
+    private async Task<ObjectResult[]> RunAllChecks()
     {
-        throw new NotImplementedException();
+        ObjectResult[] objectResults = Array.Empty<ObjectResult>();
+
+        // Core checks
+        objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureSqlDatabase, "core", "core")));
+        objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureKeyVault, "core", "core")));
+        objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureKeyVault, "workspaces", "workspaces")));
+        objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureFunction, "", "")));
+
+        // Workspace checks (Storage, Databricks, eventually Web App)
+        var projects = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).ToList();
+        foreach (var project in projects)
+        {
+            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageAccount, project.Project_ID.ToString(), "temp")));
+            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureDatabricks, project.Project_Acronym_CD, "temp")));
+        }
+
+        // Queues checks
+        var queues = _configuration["DatahubStorageQueue:QueueNames"];
+        foreach (var queue in queues)
+        {
+            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageQueue, queue.ToString(), "0")));
+            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageQueue, queue.ToString(), "1")));
+        }
+
+        return objectResults;
     }
 
+    /// <summary>
+    /// Function that stores the result of an infrastructure health check in a blob.
+    /// </summary>
+    /// <param name="request">the request containing the infrastructure type, group, and name</param>
+    /// <param name="result">the result of the health check result to upload</param>
+    /// <returns></returns>
+    private async Task StoreResult(InfrastructureHealthCheckRequest request, InfrastructureHealthCheckResponse result)
+    {
+        var storageConnectionString = _configuration["DatahubStorageQueue:ConnectionString"];
+
+        var client = new BlobContainerClient(
+            storageConnectionString, "health-check-results"
+        );
+
+        await client.CreateIfNotExistsAsync();
+        var blob = client.GetBlobClient($"{request.Type}-{request.Group}-{request.Name}-{DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss")}.json");
+        await blob.UploadAsync(new System.IO.MemoryStream(System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(result)));
+
+        _logger.LogInformation($"Uploaded health check result to {blob.Uri}");
+    }
+
+    /// <summary>
+    /// Function that checks the health of an Azure SQL Database.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns>An InfrastructureHealthCheckResponse indicating the result of the check.</returns>
     private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
         InfrastructureHealthCheckRequest request)
     {
@@ -201,6 +256,11 @@ public class CheckInfrastructureStatus
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
+    /// <summary>
+    /// Function that gets the Azure Key Vault URL based on the request.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns>The URL for the group given.</returns>
     private Uri GetAzureKeyVaultUrl(InfrastructureHealthCheckRequest request)
     {
         if (request.Group != "core")
@@ -211,6 +271,11 @@ public class CheckInfrastructureStatus
         return new Uri($"https://{request.Name}.vault.azure.net/");
     }
 
+    /// <summary>
+    /// Function that checks the health of an Azure Key Vault.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns>An InfrastructureHealthCheckResponse indicating the result of the check.</returns>
     private async Task<InfrastructureHealthCheckResponse> CheckAzureKeyVault(InfrastructureHealthCheckRequest request)
     {
         var errors = new List<string>();
@@ -271,6 +336,11 @@ public class CheckInfrastructureStatus
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
+    /// <summary>
+    /// Function that checks the health of an Azure Storage Account.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns>An InfrastructureHealthCheckResponse indicating the result of the check.</returns>
     private async Task<InfrastructureHealthCheckResponse> CheckAzureStorageAccount(
         InfrastructureHealthCheckRequest request)
     {
@@ -310,6 +380,11 @@ public class CheckInfrastructureStatus
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
+    /// <summary>
+    /// Function that checks the health of an Azure Databricks workspace.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns>An InfrastructureHealthCheckResponse indicating the result of the check.</returns>
     private async Task<InfrastructureHealthCheckResponse> CheckAzureDatabricks(
                InfrastructureHealthCheckRequest request)
     {
@@ -369,6 +444,11 @@ public class CheckInfrastructureStatus
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
+    /// <summary>
+    /// Function that checks the health of the Azure Function App.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns>An InfrastructureHealthCheckResponse indicating the result of the check.</returns>
     private async Task<InfrastructureHealthCheckResponse> CheckAzureFunctions(InfrastructureHealthCheckRequest request)
     {
         string azureFunctionUrl = $"http://{request.Name}/api/FunctionsHealthCheck";
@@ -410,6 +490,11 @@ public class CheckInfrastructureStatus
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
+    /// <summary>
+    /// Function that checks the health of an Azure Storage Queue. Group == 1 for poison queue.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns>An InfrastructureHealthCheckResponse indicating the result of the check.</returns>
     private async Task<InfrastructureHealthCheckResponse> CheckAzureStorageQueue(InfrastructureHealthCheckRequest request)
     {
         var errors = new List<string>();
