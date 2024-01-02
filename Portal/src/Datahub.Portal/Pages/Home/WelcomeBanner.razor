@@ -40,12 +40,19 @@ else
     protected override async Task OnInitializedAsync()
     {
         var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
-        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Home/WelcomeBanner.razor.js");
         _userBackgroundUrl = _datahubPortalConfiguration.Media.GetAchievementImageUrl(portalUser.BannerPictureUrl);
         _previews = await _announcementService.GetActivePreviews(_cultureService.IsFrench);
         _isLoading = false;
-        _greeting = await GetGreeting();
         StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstrender)
+    {
+        if (firstrender)
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Home/WelcomeBanner.razor.js");
+            _greeting = await GetGreeting();
+        }
     }
 
     private string GetBackground()
