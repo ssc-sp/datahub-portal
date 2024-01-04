@@ -1,4 +1,4 @@
-﻿<MudDialog Style="height: 830px" ContentStyle="height: 100%">
+﻿<MudDialog Style="min-height: 80vh; max-height: 90vh" ContentStyle="height: 100%">
     <TitleContent>
         <div class="d-flex gap-4">
             <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Primary"/>
@@ -6,7 +6,7 @@
         </div>
     </TitleContent>
     <DialogContent>
-        <MudCarousel TData="object" Class="mud-width-full" Style="height: 690px; margin-bottom: 1rem" AutoCycle="false">
+        <MudCarousel TData="object" Class="mud-width-full" Style="height: 70vh; margin-bottom: 1rem" AutoCycle="false">
             <BulletTemplate Context="selected">
                 <div Class="mud-button-root mud-icon-button mud-icon-button-color-inherit mud-ripple mud-ripple-icon">
                     <span class="mud-icon-button-label">
@@ -19,7 +19,6 @@
                 {
                     <MudCarouselItem>
                         <MudStack Class="px-12 py-4" Style="height: 100%; overflow:  hidden; overflow-y: scroll">
-
                             <DHMarkdown Content="@content" LinkRewriter="@RewriteLink"/>
                         </MudStack>
                     </MudCarouselItem>
