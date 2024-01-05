@@ -158,6 +158,12 @@ public class TerraformOutputHandler
 
     internal async Task ProcessAzureWebApp(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
+        if(!outputVariables.ContainsKey(TerraformVariables.OutputAzureAppServiceStatus))
+        {
+            _logger.LogInformation("Azure App Service status not found in output variables");
+            return;
+        }
+        
         var azureAppServiceStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureAppServiceStatus].Value);
         if (!azureAppServiceStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
@@ -190,6 +196,12 @@ public class TerraformOutputHandler
 
     internal async Task ProcessAzureDatabricks(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
+        if(!outputVariables.ContainsKey(TerraformVariables.OutputAzureDatabricksStatus))
+        {
+            _logger.LogInformation("Azure Databricks status not found in output variables");
+            return;
+        }
+        
         var databricksStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureDatabricksStatus].Value);
         if (!databricksStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
         {
@@ -220,6 +232,12 @@ public class TerraformOutputHandler
 
     internal async Task ProcessAzureStorageBlob(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
+        if (!outputVariables.ContainsKey(TerraformVariables.OutputAzureStorageBlobStatus))
+        {
+            _logger.LogInformation("Azure storage blob status not found in output variables");
+            return;
+        }
+        
         var storageBlobStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
         if (!storageBlobStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
@@ -256,6 +274,12 @@ public class TerraformOutputHandler
 
     internal async Task ProcessAzurePostgres(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
+        if (!outputVariables.ContainsKey(TerraformVariables.OutputAzurePostgresStatus))
+        {
+            _logger.LogInformation("Azure Postgres status not found in output variables");
+            return;
+        }
+        
         var postgresStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzurePostgresStatus].Value);
         if (!postgresStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
         {
@@ -320,6 +344,11 @@ public class TerraformOutputHandler
         {
             _logger.LogInformation("Workspace version not found in output variables");
         }
+        
+        var projectResource = await GetProjectResource(outputVariables,
+            TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
+        
+        projectResource.CreatedAt = DateTime.UtcNow;
 
         await _projectDbContext.SaveChangesAsync();
     }
