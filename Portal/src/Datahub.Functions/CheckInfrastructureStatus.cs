@@ -136,6 +136,7 @@ public class CheckInfrastructureStatus
                 result = await CheckAzureStorageQueue(request);
                 break;
             case InfrastructureHealthResourceType.AzureWebApp:
+                result = await CheckWebApp(request);
                 break;
             case InfrastructureHealthResourceType.AzureFunction: // Name is the Azure Function location
                 result = await CheckAzureFunctions(request);
@@ -193,6 +194,7 @@ public class CheckInfrastructureStatus
             objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureSqlDatabase, "core", project.Project_Acronym_CD.ToString())));
             objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageAccount, "workspaces", project.Project_Acronym_CD.ToString())));
             objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureDatabricks, "workspaces", project.Project_Acronym_CD)));
+            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureWebApp, "workspaces", project.Project_Acronym_CD)));
         }
 
         // Queues checks
@@ -417,46 +419,64 @@ private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
 
         var project = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).FirstOrDefault(p => p.Project_Acronym_CD == request.Name);
 
+        // If the project is null, the project does not exist or there was an error retrieving it
         if (project == null)
         {
             check.Status = InfrastructureHealthStatus.Unhealthy;
             errors.Add("Failed to retrieve project.");
         }
-        else
         {
-            var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project);
-
-            if (databricksUrl == null)
+            // We check if the project has a databricks resource. If not, we return a create status.
+            bool checkForDatabricks = false;
+            var resources = project.Resources.ToArray();
+            foreach (var resource in resources)
+            {
+                if (resource.ResourceType == "terraform:azure-databricks")
+                {
+                    checkForDatabricks = true;
+                }
+            }
+            if (!checkForDatabricks)
             {
                 check.Status = InfrastructureHealthStatus.Create;
-                errors.Add("Failed to retrieve Databricks URL.");
             }
             else
             {
-                try
-                {
-                    using var httpClient = _httpClientFactory.CreateClient();
-                    var response = await httpClient.GetAsync(databricksUrl);
+                // We attempt to retrieve the databricks URL. If we cannot, we return an unhealthy status.
+                var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project);
 
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        check.Status = InfrastructureHealthStatus.Degraded;
-                        errors.Add($"Databricks returned an unhealthy status code: {response.StatusCode}.");
-                    }
-                    else
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                    }
-                }
-                catch (Exception ex)
+                if (databricksUrl == null)
                 {
                     check.Status = InfrastructureHealthStatus.Unhealthy;
-                    errors.Add($"Error while checking Databricks health: {ex.Message}");
+                    errors.Add("Failed to retrieve Databricks URL.");
+                }
+                else
+                {
+                    try
+                    {
+                        // We attempt to connect to the databricks URL. If we cannot, we return an unhealthy status.
+                        using var httpClient = _httpClientFactory.CreateClient();
+                        var response = await httpClient.GetAsync(databricksUrl);
+
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            check.Status = InfrastructureHealthStatus.Unhealthy;
+                            errors.Add($"Databricks returned an unhealthy status code: {response.StatusCode}.");
+                        }
+                        else
+                        {
+                            var content = await response.Content.ReadAsStringAsync();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        check.Status = InfrastructureHealthStatus.Unhealthy;
+                        errors.Add($"Error while checking Databricks health: {ex.Message}");
+                    }
                 }
             }
         }
-
-
+        
         if (!errors.Any())
         {
             check.Status = InfrastructureHealthStatus.Healthy;
@@ -564,6 +584,69 @@ private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
         if (!errors.Any())
         {
             check.Status = InfrastructureHealthStatus.Healthy;
+        }
+
+        return new InfrastructureHealthCheckResponse(check, errors);
+    }
+
+    /// <summary>
+    /// Function that checks the health of the Azure Web App, if enabled.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns>An InfrastructureHealthCheckResponse indicating the result of the check.</returns>
+    private async Task<InfrastructureHealthCheckResponse> CheckWebApp(InfrastructureHealthCheckRequest request)
+    {
+        var errors = new List<string>();
+        var check = new InfrastructureHealthCheck()
+        {
+            Group = request.Group,
+            Name = request.Name,
+            ResourceType = request.Type,
+            Status = InfrastructureHealthStatus.Unhealthy,
+            HealthCheckTimeUtc = DateTime.UtcNow
+        };
+
+        var project = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).FirstOrDefault(p => p.Project_Acronym_CD == request.Name);
+
+        // If the project is null, the project does not exist or there was an error retrieving it
+        if (project == null)
+        {
+            errors.Add("Unable to retrieve project.");
+            check.Status = InfrastructureHealthStatus.Create;
+        }
+        else
+        {
+            // We check if the project has a web app resource. If not, we return a create status.
+            if (project.WebAppEnabled == null || project.WebAppEnabled == false)
+            {
+                check.Status = InfrastructureHealthStatus.Create;
+            }
+            else
+            {
+                string url = project.WebApp_URL;
+
+                try
+                {
+                    // We attempt to connect to the URL. If we cannot, we return an unhealthy status.
+                    using var httpClient = _httpClientFactory.CreateClient();
+                    var response = await httpClient.GetAsync(url);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        check.Status = InfrastructureHealthStatus.Unhealthy;
+                        errors.Add($"Web App returned an unhealthy status code: {response.StatusCode}.");
+                    }
+                    else
+                    {
+                        var content = await response.Content.ReadAsStringAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    check.Status = InfrastructureHealthStatus.Unhealthy;
+                    errors.Add($"Error while checking Web App health: {ex.Message}");
+                }
+            }
         }
 
         return new InfrastructureHealthCheckResponse(check, errors);
