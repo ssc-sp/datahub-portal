@@ -165,7 +165,7 @@ public class CheckInfrastructureStatus
                 Description: $"[TESTING] The infrastructure health check for {request.Name} failed. Please investigate."
             );
 
-            //await _mediator.Send(bugReport);
+            await _mediator.Send(bugReport);
         }
 
         await StoreResult(result);
