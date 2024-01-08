@@ -25,16 +25,16 @@
 
         <MudTable Items="_coreInfrastructureHealth" Hover Dense>
             <HeaderContent>
-                <MudTh>Resource</MudTh>
-                <MudTh>Status</MudTh>
-                <MudTh>Updated</MudTh>
-                <MudTh>Run Check</MudTh>
+                <MudTh>@Localizer["Resource"]</MudTh>
+                <MudTh>@Localizer["Status"]</MudTh>
+                <MudTh>@Localizer["Updated"]</MudTh>
+                <MudTh>@Localizer["Run Check"]</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd>@context.ResourceType</MudTd>
                 <MudTd>
                     <MudChip Color="@GetColor(context.Status)" Size="Size.Small">
-                        @context.Status
+                        @Localizer[context.Status.ToString()]
                     </MudChip>
                 </MudTd>
                 <MudTd>@context.HealthCheckTimeUtc</MudTd>
@@ -55,22 +55,22 @@
 
         <MudTable Items="_queueInfrastructureHealth" Hover Dense>
             <HeaderContent>
-                <MudTh>Resource</MudTh>
-                <MudTh>Queue Status</MudTh>
-                <MudTh>Poison Queue Status</MudTh>
-                <MudTh>Updated</MudTh>
-                <MudTh>Run Check</MudTh>
+                <MudTh>@Localizer["Resource"]</MudTh>
+                <MudTh>@Localizer["Queue Status"]</MudTh>
+                <MudTh>@Localizer["Poison Queue Status"]</MudTh>
+                <MudTh>@Localizer["Updated"]</MudTh>
+                <MudTh>@Localizer["Run Check"]</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd>@context.Name</MudTd>
                 <MudTd>
                     <MudChip Color="@GetColor(context.Status)" Size="Size.Small">
-                        @context.Status
+                        @Localizer[context.Status.ToString()]
                     </MudChip>
                 </MudTd>
                 <MudTd>
                     <MudChip Color="@GetColor(GetPoison(context).Status)" Size="Size.Small">
-                        @GetPoison(context).Status
+                        @Localizer[GetPoison(context).Status.ToString()]
 					</MudChip>
                 </MudTd>
                 <MudTd>@context.HealthCheckTimeUtc</MudTd>
@@ -105,7 +105,7 @@
                     {
                         <MudTd>
 							<MudChip Color="@GetColor(InfrastructureHealthStatus.Create)" Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
-								Create
+								@Localizer["Create"]
 							</MudChip/>
                         </MudTd>
                     }
@@ -113,7 +113,7 @@
                     {
                         <MudTd>
 							<MudChip Color="@GetColor(health.Status)" Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
-								@health.Status
+								@Localizer[health.Status.ToString()]
 							</MudChip>
 						</MudTd>
                     }
