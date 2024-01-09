@@ -17,6 +17,7 @@ namespace Datahub.Core.Model.Datahub
         public string FileName { get; set; }
         public string FolderPath { get; set; }
         public string FileId { get; set; }
+        public string ContainerName {  get; set; }
         public OpenDataPublishFileUploadStatus UploadStatus { get; set; } = OpenDataPublishFileUploadStatus.NotStarted;
         public string UploadMessage { get; set; }
 
@@ -38,6 +39,7 @@ namespace Datahub.Core.Model.Datahub
     public enum OpenDataPublishFileUploadStatus
     {
         NotStarted,
+        ReadyToUpload,
         InProgress,
         Completed,
         Failed

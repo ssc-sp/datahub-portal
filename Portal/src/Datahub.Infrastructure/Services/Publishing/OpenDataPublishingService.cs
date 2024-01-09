@@ -62,7 +62,9 @@ namespace Datahub.Infrastructure.Services.Publishing
         {
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
-            var existingSubmission = await ctx.TbsOpenGovSubmissions.FirstOrDefaultAsync(s => s.Id == submission.Id);
+            var existingSubmission = await ctx.TbsOpenGovSubmissions
+                .Include(s => s.Files)
+                .FirstOrDefaultAsync(s => s.Id == submission.Id);
 
             if (existingSubmission == null)
             {
@@ -80,6 +82,16 @@ namespace Datahub.Infrastructure.Services.Publishing
             existingSubmission.ImsoApprovalRequestDate = submission.ImsoApprovalRequestDate;
             existingSubmission.ImsoApprovedDate = submission.ImsoApprovedDate;
             existingSubmission.OpenGovPublicationDate = submission.OpenGovPublicationDate;
+
+            foreach (var file in submission.Files)
+            {
+                var existingFile = existingSubmission.Files.FirstOrDefault(f => f.Id == file.Id);
+                if (existingFile != null)
+                {
+                    DoUpdateOpenDataPublishFile(existingFile, file);
+                }
+                //TODO add/delete files
+            }
             
             submission.Status = TbsOpenGovPublishingUtils.GetCurrentStatus(submission).ToString();
 
@@ -90,6 +102,13 @@ namespace Datahub.Infrastructure.Services.Publishing
             return submission;
         }
 
+        private static void DoUpdateOpenDataPublishFile(OpenDataPublishFile existing, OpenDataPublishFile updated)
+        {
+            existing.FilePurpose = updated.FilePurpose;
+            existing.UploadStatus = updated.UploadStatus;
+            existing.UploadMessage = updated.UploadMessage;
+        }
+        
         private static void UpdateGenericSubmissionData(OpenDataSubmission existing, OpenDataSubmission updated)
         {
             existing.DatasetTitle = updated.DatasetTitle;
@@ -141,11 +160,13 @@ namespace Datahub.Infrastructure.Services.Publishing
             return await Task.FromResult(submission);
         }
 
-        public async Task<int> AddFilesToSubmission(OpenDataSubmission openDataSubmission, IEnumerable<FileMetaData> files, int? containerId)
+        public async Task<int> AddFilesToSubmission(OpenDataSubmission openDataSubmission, IEnumerable<FileMetaData> files, int? containerId, string containerName)
         {
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
-            var submission = await ctx.OpenDataSubmissions.FirstOrDefaultAsync(s => s.Id == openDataSubmission.Id);
+            var submission = await ctx.OpenDataSubmissions
+                .Include(s => s.Files)
+                .FirstOrDefaultAsync(s => s.Id == openDataSubmission.Id);
 
             if (submission == null)
             {
@@ -158,6 +179,7 @@ namespace Datahub.Infrastructure.Services.Publishing
                 FileName = f.filename,
                 FolderPath = f.folderpath,
                 ProjectStorageId = containerId,
+                ContainerName = containerName,
                 Submission = submission
             });
 
@@ -173,6 +195,13 @@ namespace Datahub.Infrastructure.Services.Publishing
             await ctx.SaveChangesAsync();
 
             return await Task.FromResult(addedFiles);
+        }
+
+        public async Task<OpenDataPublishFile> UploadFileToTbs(OpenDataPublishFile openDataPublishFile)
+        {
+            //TODO
+            await Task.Delay(500);
+            return await Task.FromResult(openDataPublishFile);
         }
     }
 }

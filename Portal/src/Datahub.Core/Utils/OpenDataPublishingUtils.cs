@@ -86,7 +86,6 @@ namespace Datahub.Core.Utils
             var relevantPurposes = new HashSet<string>() 
             { 
                 TbsOpenGovSubmission.DATASET_FILE_TYPE, 
-                TbsOpenGovSubmission.METADATA_FILE_TYPE, 
                 TbsOpenGovSubmission.DATA_DICTIONARY_FILE_TYPE, 
                 TbsOpenGovSubmission.SUPPORTING_DOC_FILE_TYPE 
             };
@@ -123,7 +122,7 @@ namespace Datahub.Core.Utils
                     OpenDataPublishingUtils.Incomplete(TbsOpenGovSubmission.ProcessSteps.AwaitingFiles) :
                     OpenDataPublishingUtils.NotStarted(TbsOpenGovSubmission.ProcessSteps.AwaitingFiles);
             }
-            else if (!requiredPurposes.Except(files.Select(f => f.FilePurpose)).Any())
+            else if (!requiredPurposes.Except(files.Select(f => f.FilePurpose)).Any() && files.All(f => f.UploadStatus != OpenDataPublishFileUploadStatus.NotStarted))
             {
                 // all required files => complete
                 return OpenDataPublishingUtils.Complete(TbsOpenGovSubmission.ProcessSteps.AwaitingFiles);
