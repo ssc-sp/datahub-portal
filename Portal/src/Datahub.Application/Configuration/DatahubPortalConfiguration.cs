@@ -168,8 +168,8 @@ public class ConnectionStrings
     [JsonProperty("datahub_mssql_metadata")]
     public string? DatahubMsSqlMetadata { get; set; }
 
-    [JsonProperty("DATAHUB_MSSQL_LANGUAGETRAINING")]
-    public string? DatahubMsSqlLanguageTraining { get; set; }
+    // [JsonProperty("DATAHUB_MSSQL_LANGUAGETRAINING")]
+    // public string? DatahubMsSqlLanguageTraining { get; set; }
 }
 
 public class EmailNotification
