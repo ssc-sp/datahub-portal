@@ -59,10 +59,6 @@ var host = new HostBuilder()
         services.AddSingleton<DatahubPortalConfiguration>();
 
     })
-    .ConfigureWebHostDefaults(webBuilder =>
-    {
-        webBuilder.UseStartup<Startup>();
-    })
     .Build();
 
 host.Run();
