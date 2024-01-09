@@ -162,7 +162,7 @@ public class CheckInfrastructureStatus
                 Resolution: "",
                 LocalStorage: "",
                 BugReportType: BugReportTypes.InfrastructureError,
-                Description: $"[TESTING] The infrastructure health check for {request.Name} failed. Please investigate."
+                Description: $"The infrastructure health check for {request.Name} failed. Please investigate."
             );
 
             await _mediator.Send(bugReport);
@@ -506,7 +506,6 @@ private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
         try
         {
             using var httpClient = _httpClientFactory.CreateClient();
-            azureFunctionUrl = $"http://localhost:7071/api/FunctionsHealthCheck";
             var response = await httpClient.GetAsync(azureFunctionUrl);
 
             if (!response.IsSuccessStatusCode)
