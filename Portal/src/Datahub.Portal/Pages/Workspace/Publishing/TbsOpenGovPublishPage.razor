@@ -5,6 +5,7 @@
 @using StatusEnum = Datahub.Core.Model.Datahub.TbsOpenGovSubmission.ProcessSteps;
 @inject IUserInformationService _userService
 @inject IDialogService _dialogService
+@inject IOpenDataPublishingService _publishingService
 @*
 @inject IPublicDataFileService PublicDataFileService
 @inject IMSGraphService GraphService
@@ -75,7 +76,7 @@
         {
             <MudCard>
                 <MudCardHeader>
-                    <MudText Typo=@Typo.h3>Select Files</MudText>
+                    <MudText Typo=@Typo.h3>@Localizer["File Selection"]</MudText>
                 </MudCardHeader>
                 <MudCardContent>
                     <MudList>
@@ -110,6 +111,24 @@
                     <MudSpacer />
                     <MudButton>Add files</MudButton> 
                 </MudCardActions>
+            </MudCard>
+        }
+
+        @if (ShowFileUploadPane)
+        {
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo=@Typo.h3>@Localizer["File Upload"]</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTable T=@OpenDataPublishFile Items=@Submission.Files>
+                        <RowTemplate>
+                            <MudTd><MudText>@context.FileName</MudText></MudTd>
+                            <MudTd><MudText>@GetFilePurposeLabel(context.FilePurpose)</MudText></MudTd>
+                            <MudTd><PublishingFileControl File=@context OnUploadHandler=@UploadFileHandler /></MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent>
             </MudCard>
         }
 
@@ -177,6 +196,7 @@
     private bool ShowMetadataEntryForm => true; //TODO
     private bool ShowOpenGovCriteriaForm => _stepStates[StatusEnum.AwaitingApprovalCriteria] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowFileSelectionPane => _stepStates[StatusEnum.AwaitingFiles] == DHSteps<StatusEnum>.StepState.Running;
+    private bool ShowFileUploadPane => true;// _stepStates[StatusEnum.Uploading] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowImsoApprovalPane => true; //TODO
 
     private Dictionary<StatusEnum, DHSteps<StatusEnum>.StepState> _stepStates = new();
@@ -230,6 +250,8 @@
     private bool IsPurposeRequired(string purpose) => REQUIRED_SUBMISSION_FILE_PURPOSES.Contains(purpose);
     private bool IsPurposeMultiSelectable(string purpose) => MULTI_SELECTABLE_FILE_PURPOSES.Contains(purpose);
 
+    private string GetFilePurposeLabel(string filePurpose) => string.IsNullOrEmpty(filePurpose) ? Localizer["N/A"] : Localizer[$"{Submission.LocalizationPrefix}.FileTypes.{filePurpose}"];
+
     private async Task ShowFileInfoDialog(string initialFilePurpose)
     {
         var file = GetFirstFileWithPurpose(initialFilePurpose);
@@ -240,7 +262,31 @@
 
         var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
 
-        await _dialogService.ShowAsync<EditFileInformationDialog>(Localizer["Edit File Information"], dialogParams, dialogOptions);
+        var dialog = await _dialogService.ShowAsync<EditFileInformationDialog>(Localizer["Edit File Information"], dialogParams, dialogOptions);
+        var result = await dialog.Result;
+
+        if (result.Canceled)
+        {
+            //TODO revert metadata if possible
+        }
+        else
+        {
+            var saved = result.Data as bool? ?? false;
+            if (saved)
+            {
+                foreach (var f in Submission.Files)
+                {
+                    //TODO verify if metadata complete
+                    f.UploadStatus = OpenDataPublishFileUploadStatus.ReadyToUpload;
+                }
+                await UpdateSubmission();
+            }
+        }
+    }
+
+    public async Task UploadFileHandler(OpenDataPublishFile file)
+    {
+        await _publishingService.UploadFileToTbs(file);
     }
 
     private async Task UpdateApprovalFormId(Forms.ShareWorkflow.ApprovalFormSubmitArgs args)
