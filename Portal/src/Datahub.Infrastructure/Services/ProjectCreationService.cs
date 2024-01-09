@@ -169,13 +169,13 @@ public class ProjectCreationService : IProjectCreationService
         if (exists) return;
         
         var project = await context.Projects
-            .FirstOrDefaultAsync(p => p.Project_ID == projectId);
+            .FirstAsync(p => p.Project_ID == projectId);
         var currentPortalUser = await _userInformationService.GetCurrentPortalUserAsync();
 
         var newResource = new Project_Resources2
         {
-            Project = project,
-            RequestedBy = currentPortalUser,
+            ProjectId = project.Project_ID,
+            RequestedById = currentPortalUser.Id,
             ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)
         };
         

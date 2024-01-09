@@ -76,8 +76,8 @@ public class RequestManagementService : IRequestManagementService
 
         resource = new Project_Resources2
         {
-            Project = project,
-            RequestedBy = requestingUser,
+            ProjectId = project.Project_ID,
+            RequestedById = requestingUser.Id,
             ResourceType = TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name)
         };
 

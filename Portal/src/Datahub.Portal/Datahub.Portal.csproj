@@ -16,16 +16,10 @@
 	  <None Remove="Pages\NewFolder\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<Content Remove="package.json" />
-	</ItemGroup>
-	<ItemGroup>
 		<EmbeddedResource Include="Controllers\OpenDataApprovalForm.docx" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\.editorconfig" Link=".editorconfig" />
-		<None Include="package.json">
-			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
-		</None>
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="DocumentFormat.OpenXml" Version="2.20.0" />
