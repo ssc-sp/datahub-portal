@@ -1,3 +1,17 @@
+@using Datahub.Application.Services.Security
+@using Microsoft.Identity.Web
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IKeyVaultUserService _keyVaultUserService
+@inject ILogger<WorkspaceDatabasePage> _logger
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+
+
+@if (!_isElevated)
+{
+    <DHLoadingInitializer Message="@Localizer["Validating your credentials..."]"  />
+    return;
+}
 <MudStack>
     <MudText Typo="Typo.h1">
         @Localizer["Workspace Database"]
@@ -6,15 +20,26 @@
     <MudText>
         @Localizer["Here you can manage your workspace database. You can view and test the connectivity of your database"]
     </MudText>
-    
+
     <MudText Typo="Typo.h2">
         @Localizer["Database Info"]
     </MudText>
     <MudText>
         @Localizer["Host: {0}", _databaseHost]
     </MudText>
-  
-    
+    <MudText>
+        @Localizer["Database Name: {0}", _databaseName]
+    </MudText>
+    <MudText>
+        @Localizer["Username: {0}", _username]
+    </MudText>
+    <MudText>
+        @Localizer["Password: {0}", _password]
+    </MudText>
+    <MudText>
+        @Localizer["Port: {0}", _port]
+    </MudText>
+
     <MudText Typo="Typo.h2">
         @Localizer["Connection Info"]
     </MudText>
@@ -37,28 +62,80 @@
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
 
     private string _pythonConnectionInfo;
     private string _rConnectionInfo;
     private string _javaConnectionInfo;
     private string _csharpConnectionInfo;
-    
+
     private string _databaseHost = "mydemoserver.postgres.database.azure.com";
     private string _databaseName = "mypgsqldb";
-    private string _username = "mylogin@mydemoserver";
-    private string _password = "<server_admin_password>";
+    private string _username = "<secret>";
+    private string _password = "<secret>";
     private string _port = "5432";
+
+    private bool _isElevated = false;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        
-        _pythonConnectionInfo = BuildPythonConnectionInfo();
-        _rConnectionInfo = BuildRConnectionInfo();
-        _javaConnectionInfo = BuildJavaConnectionInfo();
-        _csharpConnectionInfo = BuildCSharpConnectionInfo();
+
+        try
+        {
+            await _keyVaultUserService.Authenticate();
+            _isElevated = true;
+            await HydrateValues();
+
+            _pythonConnectionInfo = BuildPythonConnectionInfo();
+            _rConnectionInfo = BuildRConnectionInfo();
+            _javaConnectionInfo = BuildJavaConnectionInfo();
+            _csharpConnectionInfo = BuildCSharpConnectionInfo();
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e)
+        {
+            _consentHandler.HandleException(e);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to get consent from user");
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task HydrateValues()
+    {
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+        var workspace = await context.Projects
+            .Include(x => x.Resources)
+            .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronym);
+
+        if (workspace == null)
+            throw new Exception($"Workspace with acronym {WorkspaceAcronym} not found");
+
+        _databaseHost = TerraformVariableExtraction.ExtractAzurePostgresHost(workspace);
+        _databaseName = TerraformVariableExtraction.ExtractAzurePostgresDatabaseName(workspace);
+
+        var usernameSecretName = TerraformVariableExtraction.ExtractAzurePostgresUsernameSecretName(workspace);
+        if (usernameSecretName != null)
+        {
+            _username = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, usernameSecretName);
+        }
+        else
+        {
+            _logger.LogWarning($"No username secret name found for workspace {WorkspaceAcronym}");
+        }
+
+        var passwordSecretName = TerraformVariableExtraction.ExtractAzurePostgresPasswordSecretName(workspace);
+        if (passwordSecretName != null)
+        {
+            _password = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, passwordSecretName);
+        }
+        else
+        {
+            _logger.LogWarning($"No password secret name found for workspace {WorkspaceAcronym}");
+        }
     }
 
     private string BuildPythonConnectionInfo()
