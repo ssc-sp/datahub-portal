@@ -1,11 +1,23 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using MimeKit;
 
-namespace Datahub.Core.Services.Notification;
+namespace Datahub.Application.Services.Notification;
+
+public class EmailConfiguration
+{
+    public string SmtpHost { get; set; }
+    public int SmtpPort { get; set; }
+    public string SmtpUsername { get; set; }
+    public string SmtpPassword { get; set; }
+    public string SenderName { get; set; }
+    public string SenderAddress { get; set; }
+    public string AppDomain { get; set; }
+    public bool DevTestMode { get; set; }
+    public string DevTestEmail { get; set; }
+}
 
 public interface IEmailNotificationService
 {
+    
     Task<string> RenderTemplate<T>(IDictionary<string, object> parameters = null) where T : Microsoft.AspNetCore.Components.IComponent;
     Task SendEmailMessage(string subject, string body, string userIdOrAddress, string recipientName = null, bool isHtml = true);
     Task SendEmailMessage(string subject, string body, IList<string> userIdsOrAddresses, bool isHtml = true);
@@ -18,7 +30,5 @@ public interface IEmailNotificationService
 
 
 }
-
-public record DatahubProjectInfo(string ProjectNameEn, string ProjectNameFr, string ProjectCode);
 
 public record DatahubEmailRecipient(string Name, string Address);

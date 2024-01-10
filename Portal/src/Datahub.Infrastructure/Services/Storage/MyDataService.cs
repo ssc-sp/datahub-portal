@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Azure;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
@@ -11,18 +6,19 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
+using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
+using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
-using Datahub.Core.Services.Security;
+using Datahub.Infrastructure.Services.Api;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph.Models;
-using Microsoft.Graph;
 using Microsoft.JSInterop;
 using Folder = Datahub.Core.Data.Folder;
 
-namespace Datahub.Core.Services.Storage;
+namespace Datahub.Infrastructure.Services.Storage;
 
 /// <summary>
 /// Important note - MyDataService is not used but the code is here because 
@@ -243,7 +239,7 @@ public class MyDataService
         long maxFileSize = 1024000000000;
         var metadata = fileMetadata!.GenerateMetadata();
 
-        var blobClientUtil = new Utils.BlobClientUtils(cxnstring, containerName);
+        var blobClientUtil = new Core.Utils.BlobClientUtils(cxnstring, containerName);
 
         await using var stream = fileMetadata.BrowserFile?.OpenReadStream(maxFileSize) ??
                                  browserFile?.OpenReadStream(maxFileSize);
@@ -397,7 +393,7 @@ public class MyDataService
                 //await lease.AcquireAsync(TimeSpan.FromSeconds(60));
 
                 // Get the source blob's properties and display the lease state.
-                Azure.Storage.Blobs.Models.BlobProperties sourceProperties = await sourceBlob.GetPropertiesAsync();
+                global::Azure.Storage.Blobs.Models.BlobProperties sourceProperties = await sourceBlob.GetPropertiesAsync();
                 //Console.WriteLine($"Lease state: {sourceProperties.LeaseState}");
 
                 // Get a BlobClient representing the destination blob with a unique name.
@@ -408,7 +404,7 @@ public class MyDataService
                 await destBlob.StartCopyFromUriAsync(sourceBlob.Uri);
 
                 // Get the destination blob's properties and display the copy status.
-                Azure.Storage.Blobs.Models.BlobProperties destProperties = await destBlob.GetPropertiesAsync();
+                global::Azure.Storage.Blobs.Models.BlobProperties destProperties = await destBlob.GetPropertiesAsync();
 
                 //Console.WriteLine($"Copy status: {destProperties.CopyStatus}");
                 //Console.WriteLine($"Copy progress: {destProperties.CopyProgress}");
@@ -418,7 +414,7 @@ public class MyDataService
                 // Update the source blob's properties.
                 sourceProperties = await sourceBlob.GetPropertiesAsync();
 
-                if (sourceProperties.LeaseState == Azure.Storage.Blobs.Models.LeaseState.Leased)
+                if (sourceProperties.LeaseState == global::Azure.Storage.Blobs.Models.LeaseState.Leased)
                 {
                     // Break the lease on the source blob.
                     await lease.BreakAsync();
