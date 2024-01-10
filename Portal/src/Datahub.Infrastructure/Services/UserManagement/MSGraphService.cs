@@ -1,21 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
+﻿using Azure.Identity;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.UserManagement;
+using Datahub.Core.Data;
+using Datahub.Core.Services.UserManagement;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
-using Microsoft.Graph.Auth;
-using Microsoft.Identity.Client;
-using Datahub.Core.Data;
-using System.Threading;
-using System.Linq;
-using Datahub.Core.Services.Security;
 using Microsoft.Graph.Models;
-using Lucene.Net.Search;
-using Azure.Identity;
 
-namespace Datahub.Core.Services.UserManagement;
+namespace Datahub.Infrastructure.Services.UserManagement;
 
 public class MSGraphService : IMSGraphService
 {

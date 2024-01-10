@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Globalization;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services.UserManagement;
+using Datahub.Core.Services;
+using Datahub.Core.Services.Notification;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
-namespace Datahub.Core.Services.Notification;
+namespace Datahub.Infrastructure.Services.Notification;
 
 public class SystemNotificationService : ISystemNotificationService, IDisposable
 {

@@ -13,10 +13,13 @@ using System.Net;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Projects;
+using Datahub.Application.Services.Security;
+using Datahub.Core.Data;
 using Datahub.Core.Services.Security;
 using Datahub.Functions.Services;
-using Datahub.Portal;
-using Microsoft.AspNetCore.Hosting;
+using Datahub.Functions.Providers;
+using Datahub.Functions.Validators;
+using Datahub.Infrastructure.Services.Security;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -56,12 +59,12 @@ var host = new HostBuilder()
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
         services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
+        services.AddScoped<IDateProvider, DateProvider>();
+        services.AddScoped<EmailValidator>();
         services.AddSingleton<DatahubPortalConfiguration>();
+        
+        services.Configure<APITarget>(config.GetSection("APITargets"));
 
-    })
-    .ConfigureWebHostDefaults(webBuilder =>
-    {
-        webBuilder.UseStartup<Startup>();
     })
     .Build();
 

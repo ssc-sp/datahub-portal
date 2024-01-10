@@ -1,7 +1,6 @@
-﻿using Datahub.Core.Services;
+﻿using Datahub.Application.Services.Security;
 using Microsoft.AspNetCore.Components;
-using Datahub.Core.Services.Security;
-using Datahub.Core.Services.Storage;
+using Datahub.Infrastructure.Services.Storage;
 
 namespace Datahub.Portal.Services.Offline;
 

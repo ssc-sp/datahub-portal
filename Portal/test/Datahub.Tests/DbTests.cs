@@ -6,11 +6,17 @@ using System;
 using Xunit;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.UserTracking;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Services.Security;
 using Datahub.Core.Services.Storage;
+using Datahub.Infrastructure.Services.Api;
+using Datahub.Infrastructure.Services.Security;
+using Datahub.Infrastructure.Services.Storage;
+using Datahub.Infrastructure.Services.UserManagement;
 
 namespace Datahub.Tests;
 

@@ -1,14 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using BlazorTemplater;
+using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
+using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Templates;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
@@ -16,20 +13,7 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 
-namespace Datahub.Core.Services.Notification;
-
-public class EmailConfiguration
-{
-    public string SmtpHost { get; set; }
-    public int SmtpPort { get; set; }
-    public string SmtpUsername { get; set; }
-    public string SmtpPassword { get; set; }
-    public string SenderName { get; set; }
-    public string SenderAddress { get; set; }
-    public string AppDomain { get; set; }
-    public bool DevTestMode { get; set; }
-    public string DevTestEmail { get; set; }
-}
+namespace Datahub.Infrastructure.Services.Notification;
 
 public class EmailNotificationService : IEmailNotificationService
 {

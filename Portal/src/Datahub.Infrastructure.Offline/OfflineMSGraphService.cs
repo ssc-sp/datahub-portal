@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
-using Datahub.Core.Services.UserManagement;
 using Microsoft.Extensions.Configuration;
 
-namespace Datahub.Core.Services.Offline;
+namespace Datahub.Infrastructure.Offline;
 
 public class OfflineMSGraphService : IMSGraphService
 {
-
     public Dictionary<string, GraphUser> UsersDict { get; set; }
 
     public OfflineMSGraphService(IConfiguration configuration)
