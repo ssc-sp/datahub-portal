@@ -73,7 +73,7 @@ namespace Datahub.Functions
                 .FirstOrDefaultAsync(ct);
 
             // get project info
-            var lastLoginDate = project.LastLoginDate ?? project.Last_Updated_DT;
+            var lastLoginDate = project?.LastLoginDate ?? project.Last_Updated_DT;
             var daysSinceLastLogin = (_dateProvider.Today - lastLoginDate).Days;
             var daysUntilDeletion = _dateProvider.ProjectDeletionDay() - daysSinceLastLogin;
             var operationalWindow = project.OperationalWindow;
@@ -146,7 +146,7 @@ namespace Datahub.Functions
             if (project is null)
                 return default;
 
-            var contacts = project.Users
+            var contacts = project.Users?
                 .Select(u => u.PortalUser.Email)
                 .Where(_emailValidator.IsValidEmail)
                 .ToList();
