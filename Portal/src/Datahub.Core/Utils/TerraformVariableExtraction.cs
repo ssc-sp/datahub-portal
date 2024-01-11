@@ -93,6 +93,11 @@ public static class TerraformVariableExtraction
             project?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent);
     }
 
+    /// <summary>
+    /// Extracts the Azure Postgres host from the project resource JSON content.
+    /// </summary>
+    /// <param name="projectResourceJsonContent">The JSON content of the project resource.</param>
+    /// <returns>The Azure Postgres host, or null if the JSON content is empty or whitespace.</returns>
     private static string? ExtractAzurePostgresHost(string? projectResourceJsonContent)
     {
         if (string.IsNullOrWhiteSpace(projectResourceJsonContent))
@@ -110,6 +115,11 @@ public static class TerraformVariableExtraction
         return azureDatabaseHostVariable;
     }
 
+    /// <summary>
+    /// Extracts the name of the Azure PostgreSQL database from the specified workspace.
+    /// </summary>
+    /// <param name="workspace">The Datahub_Project object representing the workspace.</param>
+    /// <returns>The name of the Azure PostgreSQL database.</returns>
     public static string? ExtractAzurePostgresDatabaseName(Datahub_Project? workspace)
     {
         var azureDatabaseTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
@@ -117,6 +127,11 @@ public static class TerraformVariableExtraction
             workspace?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent);
     }
 
+    /// <summary>
+    /// Extracts the Azure PostgreSQL database name from the given project resource JSON content.
+    /// </summary>
+    /// <param name="projectResourceJsonContent">The JSON content of the project resource.</param>
+    /// <returns>The Azure PostgreSQL database name if found in the JSON content; otherwise, null.</returns>
     private static string? ExtractAzurePostgresDatabaseName(string? projectResourceJsonContent)
     {
         if (string.IsNullOrWhiteSpace(projectResourceJsonContent))
@@ -134,6 +149,11 @@ public static class TerraformVariableExtraction
         return azureDatabaseNameVariable;
     }
 
+    /// <summary>
+    /// Extracts the username secret name from the given Azure Postgres workspace.
+    /// </summary>
+    /// <param name="workspace">The Azure Postgres workspace from which to extract the username secret name.</param>
+    /// <returns>The extracted username secret name.</returns>
     public static string? ExtractAzurePostgresUsernameSecretName(Datahub_Project? workspace)
     {
         var azureDatabaseTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
