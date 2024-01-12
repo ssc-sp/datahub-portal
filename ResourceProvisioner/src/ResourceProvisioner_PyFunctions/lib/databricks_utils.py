@@ -1,8 +1,11 @@
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.iam import ComplexValue
-
+from databricks.sdk.service.workspace import AzureKeyVaultSecretScopeMetadata
+from databricks.sdk.service.workspace import ScopeBackendType
+import lib.azkeyvault_utils as azkv_utils
 import os
 
+WORKSPACE_KV_SCOPE_NAME = "dh-workspace"
 
 def get_definition_role_lookup():
     """
@@ -77,6 +80,55 @@ def remove_deleted_users_in_workspace(definition_json, workspace_client):
     for user in toRemove:
         print(f'User {user.user_name} with external ID {user.external_id} is marked for removal')
         workspace_client.users.delete(user.id)
+
+def synchronize_workspace_secrets(environment_name, subscription_id, definition_json, workspace_client):
+    azure_tenant_id = os.environ["AzureTenantId"]    
+    kv_client = azkv_utils.get_keyvault_client(subscription_id, azure_tenant_id)
+    secret_list = azkv_utils.list_secrets(kv_client, environment_name, definition_json)
+    for secret in secret_list:
+        print(f"adding secret: {secret.name} to workspace")
+        workspace_client.secrets.put_secret(scope=WORKSPACE_KV_SCOPE_NAME, key=secret.name)
+
+def synchronize_workspace_secret_scopes(environment_name, subscription_id, definition_json, workspace_client):
+    """
+    Synchronizes the workspace secret scopes with the secret scopes defined in the definition file.
+
+    Will iterate over each secret scope in the definition file and check if they exist in the workspace.
+        - If the secret scope exists in the workspace, it will be checked to see if it has the correct ACLs.
+        - If the secret scope does not exist in the workspace, it will be created.
+
+    Args:
+        definition_json (dict): The workspace definition file as a dictionary (json).
+        workspace_client (WorkspaceClient): The databricks workspace client.
+
+    Returns:
+        None
+    """
+    # see https://databricks-sdk-py.readthedocs.io/en/latest/autogen/workspace.html#databricks.sdk.service.workspace.SecretsAPI    
+    rg_name, vault_name = azkv_utils.get_kv_reference(environment_name, definition_json)    
+
+    print(f"using vault: [{rg_name}].[{vault_name}]")
+    kv_uri = azkv_utils.get_keyvault_uri(vault_name.lower())
+    resource_id = f"/subscriptions/{subscription_id}/resourcegroups/{rg_name.lower()}/providers/Microsoft.KeyVault/vaults/{vault_name.lower()}"
+    workspace_secret_scopes = workspace_client.secrets.list_scopes()
+    # for workspace_secret_scope in workspace_secret_scopes:
+    #     print(f"Deleting secret scope {workspace_secret_scope.name}")
+    #     workspace_client.secrets.delete_scope(scope=workspace_secret_scope.name)
+    # Check if WORKSPACE_KV_SCOPE_NAME exists   
+    workspace_kv_scope_found = False
+    for workspace_secret_scope in workspace_secret_scopes:
+        if workspace_secret_scope.name == WORKSPACE_KV_SCOPE_NAME:
+            workspace_kv_scope_found = True
+            break
+    if not workspace_kv_scope_found:
+        print(f"Secret scope {WORKSPACE_KV_SCOPE_NAME} does not exist in workspace")
+        azKeyVault = AzureKeyVaultSecretScopeMetadata(resource_id=resource_id,dns_name=kv_uri)
+        workspace_client.secrets.create_scope(scope=WORKSPACE_KV_SCOPE_NAME, initial_manage_principal='users', 
+                                              scope_backend_type = ScopeBackendType.AZURE_KEYVAULT,
+                                              backend_azure_keyvault=azKeyVault)
+        print(f"Secret scope {WORKSPACE_KV_SCOPE_NAME} created in workspace")
+    else:
+        print(f"Secret scope {WORKSPACE_KV_SCOPE_NAME} already exists in workspace")    
 
 def synchronize_workspace_users(definition_json, workspace_client):
     """
