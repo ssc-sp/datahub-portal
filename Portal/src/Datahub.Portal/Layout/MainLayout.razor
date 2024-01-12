@@ -2,7 +2,7 @@
 
 @using Microsoft.Identity.Web
 @using Datahub.Portal.Views.Dialogs
-@using Datahub.Core.Components.PageBanner
+@using Datahub.Portal.Components.PageAlerts
 
 @inject NavigationManager _navigationManager
 @inject IDatahubAuditingService _auditingService
@@ -26,7 +26,11 @@
                 {
                     @if (_isUserValid)
                     {
-                        <DHPageAlert Title="@Localizer["Welcome to Datahub"]" Key=@DHPageAlert.Home/>
+                        <DHPageAlert Title="@Localizer["Welcome to Datahub"]" Key=@NewUserAlert.KEY>
+                            <ChildContent>
+                                <NewUserAlert/>
+                            </ChildContent>
+                        </DHPageAlert>
                     }
                     @Body
                 }
