@@ -31,8 +31,8 @@ class TestResourceProvisioner(unittest.TestCase):
         # Assert
         self.assertEqual(resp.status_code, 200)
         #self.assertEqual(response.get_body(), b"Hello, Azure Functions!")
-        #    
-        #  
+        #       
+        
     def test_databricks_sync(self):
         # Arrange
         workspace_data = Path('at3_workspace_data.json').read_text()
