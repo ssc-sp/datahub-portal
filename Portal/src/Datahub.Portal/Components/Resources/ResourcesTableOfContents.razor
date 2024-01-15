@@ -5,11 +5,11 @@
 
 <!--suppress CssUnresolvedCustomProperty -->
 <MudStack Style="position: sticky; top: calc(var(--mud-appbar-height) + 1rem); max-height:  calc(95vh - (var(--mud-appbar-height) + 1rem)); overflow: auto;">
-    <MudText Class="mb-3" Typo="Typo.body2" Style="text-transform: uppercase; font-weight: bold;">@Localizer["On This Page"]</MudText>
+    <MudText Class="mb-3" Typo="Typo.body1" Style="text-transform: uppercase; font-weight: bold;">@Localizer["On This Page"]</MudText>
     @foreach (var heading in Headings)
     {
         <MudLink Href="@GetLink(heading)">
-            <MudText Typo="Typo.body2">
+            <MudText Typo="Typo.body1">
                 @heading
             </MudText>
         </MudLink>
