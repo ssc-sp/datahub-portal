@@ -1,0 +1,64 @@
+﻿@*DHPageAlert.razor*@
+@using System.Web
+@using Datahub.Markdown;
+@inject CultureService _cultureService
+@inject IUserSettingsService _userSettingsService
+@inject ILogger<DHPageAlert> _logger
+@inject IConfiguration _configuration
+@inject IHttpClientFactory _httpClientFactory
+@inject IDialogService _dialogService
+
+@code {
+    // This is where the functionality of Page Alerts are implemented. I.e. checking if an alert has already been opened,
+    // and if not, opening it, etc.
+    
+    [Parameter] public string Title { get; set; }
+
+    [Parameter] public string Key { get; set; }
+
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var hideAlerts = await _userSettingsService.GetHideAlerts();
+            if (!hideAlerts)
+            {
+                var hiddenAlerts = await _userSettingsService.GetHiddenAlerts();
+
+                if (!hiddenAlerts.Contains(Key))
+                {
+                    await OpenDialog();
+                }
+            }
+        }
+    }
+
+    public async Task OpenDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            { "Title", Title },
+            { "ChildContent", ChildContent }
+        };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Large,
+            CloseButton = true,
+            DisableBackdropClick = true,
+            FullWidth = true
+        };
+
+        var dialog = await _dialogService.ShowAsync<DHPageAlertDialog>(Localizer["Page alert"], parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is bool hideAlerts)
+        {
+            await _userSettingsService.AddHiddenAlert(Key);
+            await _userSettingsService.SetHideAlerts(hideAlerts);
+        }
+    }
+
+}
