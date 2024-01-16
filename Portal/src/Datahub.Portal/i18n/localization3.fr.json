@@ -188,5 +188,13 @@
   "If you believe this is an error, please fill out a Support Request Form and we\u0027ll get right on it.": "Si vous pensez que c'est une erreur, veuillez remplir un formulaire de demande d'assistance et nous y répondrons.",
   "Otherwise, you can click the button below to return to the main page of DataHub.": "Autrement, vous pouvez cliquer sur le bouton suivant pour retourner à la page centrale de DataHub",
   "We apologize for any inconvenience.": "Nous sommes désolés pour les inconvénients.",
-  "Back to DataHub": "Retourner à DataHub"
+  "Back to DataHub": "Retourner à DataHub",
+  "SSC Datahub - News": "SSC Datahub - Nouvelles",
+  "Carousel Preview": "Prévisualisation du carrousel",
+  "Always hide this announcement": "Cachez toujours cette annonce",
+  "Announcement has an end date": "L'annonce a une date de fin",
+  "Select the start and end dates": "Sélectionnez les dates de début et de fin",
+  "Schedule": "Planifier",
+  "Preview": "Prévisualisation",
+  "Body": "Corps"
 }
