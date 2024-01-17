@@ -38,12 +38,36 @@ public static class TerraformVariableExtraction
             project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent,
             "workspace_url");
         
+        return FormatDatabricksUrl(databricksUrlVariable);
+    }
+
+    /// <summary>
+    /// Extracts the Databricks URL from the specified project resource.
+    /// </summary>
+    /// <param name="projectResource">The project resource containing the JSON content.</param>
+    /// <returns>The extracted Databricks URL or null if not found.</returns>
+    public static string? ExtractDatabricksUrl(Project_Resources2? projectResource)
+    {
+        var databricksUrlVariable =  ExtractStringVariable(
+            projectResource?.JsonContent,
+            "workspace_url");
+        
+        return FormatDatabricksUrl(databricksUrlVariable);
+    }
+
+    /// <summary>
+    /// Formats a Databricks URL by adding "https://" if it's not already present.
+    /// </summary>
+    /// <param name="databricksUrlVariable">The Databricks URL to be formatted.</param>
+    /// <returns>The formatted Databricks URL.</returns>
+    private static string? FormatDatabricksUrl(string? databricksUrlVariable)
+    {
         if (!databricksUrlVariable?.StartsWith("https://") ?? false)
         {
             databricksUrlVariable = $"https://{databricksUrlVariable}";
         }
 
-        return databricksUrlVariable;
+        return databricksUrlVariable;        
     }
 
     /// <summary>
