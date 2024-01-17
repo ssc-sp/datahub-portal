@@ -1,32 +1,31 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using System.Security.Cryptography;
+using System.Text;
+using Datahub.Application.Configuration;
+using Datahub.Application.Services.Security;
+using Datahub.Core.Data;
+using Datahub.Core.Services.Security;
 using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.KeyVault.WebKey;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Datahub.Core.Data;
-using System;
-using System.Threading.Tasks;
-using Microsoft.Azure.KeyVault.WebKey;
-using System.Text;
-using System.Security.Cryptography;
 
-namespace Datahub.Core.Services.Security;
+namespace Datahub.Infrastructure.Services.Security;
 
 public class KeyVaultCoreService : IKeyVaultService
 {
     private IConfiguration _configuration;
-    private IWebHostEnvironment _webHostEnvironment;
+    private DatahubPortalConfiguration _portalConfiguration;
     private ILogger<KeyVaultCoreService> _logger;
-    public KeyVaultClient _keyVaultClient;
+    private KeyVaultClient _keyVaultClient;
     private IOptions<APITarget> _targets;
 
-    public KeyVaultCoreService(IWebHostEnvironment webHostEnvironment, IConfiguration configureOptions, IOptions<APITarget> targets, ILogger<KeyVaultCoreService> logger)
+    public KeyVaultCoreService(IConfiguration configureOptions, IOptions<APITarget> targets, ILogger<KeyVaultCoreService> logger, DatahubPortalConfiguration portalConfiguration)
     {
-        _webHostEnvironment = webHostEnvironment;
         _configuration = configureOptions;
         _logger = logger;
+        _portalConfiguration = portalConfiguration;
         _targets = targets;
     }
 
@@ -90,8 +89,7 @@ public class KeyVaultCoreService : IKeyVaultService
     private void SetKeyVaultClient()
     {
         _logger.LogInformation("Entering setting Key Vault");
-        if (_webHostEnvironment.IsDevelopment() || _webHostEnvironment.EnvironmentName.Equals("sand", StringComparison.InvariantCultureIgnoreCase) 
-                                                || Environment.GetEnvironmentVariable("IS_LOCAL") != null)
+        if (_portalConfiguration.Hosting.EnvironmentName.Equals("dev", StringComparison.InvariantCultureIgnoreCase))
         {
             _logger.LogInformation("Entering key vault development");
 

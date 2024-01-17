@@ -15,6 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Datahub.Application\Datahub.Application.csproj" />
     <ProjectReference Include="..\..\Datahub.Core\Datahub.Core.csproj" />
   </ItemGroup>
 

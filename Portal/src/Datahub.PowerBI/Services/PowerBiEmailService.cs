@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Datahub.Application.Services.Notification;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Datahub.PowerBI.Services

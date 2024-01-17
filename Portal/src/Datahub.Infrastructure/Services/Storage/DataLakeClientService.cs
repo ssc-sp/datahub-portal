@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Azure.Storage;
+﻿using Azure.Storage;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
+using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
-using Datahub.Core.Services.Security;
+using Datahub.Infrastructure.Services.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Datahub.Core.Services.Storage;
+namespace Datahub.Infrastructure.Services.Storage;
 
 public class DataLakeClientService
 {

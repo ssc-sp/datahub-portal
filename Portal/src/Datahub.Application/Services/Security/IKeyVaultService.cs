@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace Datahub.Core.Services.Security;
+﻿namespace Datahub.Application.Services.Security;
 
 public interface IKeyVaultService
 {
