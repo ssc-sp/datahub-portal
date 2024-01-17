@@ -25,19 +25,19 @@
         @Localizer["Database Info"]
     </MudText>
     <MudText>
-        @Localizer["Host: {0}", _databaseHost]
+        @Localizer["Host: "] <code>@_databaseHost</code>
     </MudText>
     <MudText>
-        @Localizer["Database Name: {0}", _databaseName]
+        @Localizer["Database Name: "] <code>@_databaseName</code>
     </MudText>
     <MudText>
-        @Localizer["Username: {0}", _username]
+        @Localizer["Username: "] <code>@_username</code>
     </MudText>
     <MudText>
-        @Localizer["Password: {0}", _password]
+        @Localizer["Password: "] <code>@_password</code>
     </MudText>
     <MudText>
-        @Localizer["Port: {0}", _port]
+        @Localizer["Port: "] <code>@_port</code>
     </MudText>
 
     <MudText Typo="Typo.h2">
@@ -69,11 +69,11 @@
     private string _javaConnectionInfo;
     private string _csharpConnectionInfo;
 
-    private string _databaseHost = "mydemoserver.postgres.database.azure.com";
-    private string _databaseName = "mypgsqldb";
-    private string _username = "<secret>";
-    private string _password = "<secret>";
-    private string _port = "5432";
+    private string _databaseHost = "<database_host>";
+    private string _databaseName = "<database_name>";
+    private string _username = "<username>";
+    private string _password = "<password>";
+    private string _port = "<port>";
 
     private bool _isElevated = false;
 
@@ -87,10 +87,10 @@
             _isElevated = true;
             await HydrateValues();
 
-            _pythonConnectionInfo = BuildPythonConnectionInfo();
-            _rConnectionInfo = BuildRConnectionInfo();
-            _javaConnectionInfo = BuildJavaConnectionInfo();
-            _csharpConnectionInfo = BuildCSharpConnectionInfo();
+            _pythonConnectionInfo = ReplaceHydrationValues(BuildPythonConnectionInfo());
+            _rConnectionInfo = ReplaceHydrationValues(BuildRConnectionInfo());
+            _javaConnectionInfo = ReplaceHydrationValues(BuildJavaConnectionInfo());
+            _csharpConnectionInfo = ReplaceHydrationValues(BuildCSharpConnectionInfo());
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
         {
@@ -104,6 +104,17 @@
         StateHasChanged();
     }
 
+    private string ReplaceHydrationValues(string text)
+    {
+        text = text.Replace("<database_host>", _databaseHost);
+        text = text.Replace("<database_name>", _databaseName);
+        text = text.Replace("<username>", _username);
+        text = text.Replace("<password>", _password);
+        text = text.Replace("<port>", _port);
+
+        return text;
+    }
+
     private async Task HydrateValues()
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync();
@@ -114,6 +125,7 @@
         if (workspace == null)
             throw new Exception($"Workspace with acronym {WorkspaceAcronym} not found");
 
+        _port = "5432";
         _databaseHost = TerraformVariableExtraction.ExtractAzurePostgresHost(workspace);
         _databaseName = TerraformVariableExtraction.ExtractAzurePostgresDatabaseName(workspace);
 
@@ -144,10 +156,10 @@
 pip install psycopg2
 
 conn = psycopg2.connect(
-    host=""localhost"",
-    database=""suppliers"",
-    user=""postgres"",
-    password=""Abcd1234"")
+    host=""<database_host>"",
+    database=""<database_name>"",
+    user=""<username>"",
+    password=""<password>"",
 ```";
     }
 
@@ -156,43 +168,40 @@ conn = psycopg2.connect(
         return @"```r
 library(DBI)
 
-db <- 'DATABASE'  #provide the name of your db
+db <- '<database_name>'  #provide the name of your db
 
-host_db <- ‘HOST’ #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'  
+host_db <- ‘<database_host>’ #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'  
 
-db_port <- '98939'  # or any other port specified by the DBA
+db_port <- '<port>'  # or any other port specified by the DBA
 
-db_user <- USERNAME  
+db_user <- ‘<username>’  
 
-db_password <- ‘PASSWORD’
+db_password <- ‘<password>'
 
 con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)  
-        ```";
+```";
     }
 
     private string BuildJavaConnectionInfo()
     {
         return @"```java
-String url = ""jdbc:postgresql://localhost/test"";
+String url = ""jdbc:postgresql://<database_hst>:<port>/<database_name>"";
 Properties props = new Properties();
-props.setProperty(""user"", ""fred"");
-props.setProperty(""password"", ""secret"");
+props.setProperty(""user"", ""<username>"");
+props.setProperty(""password"", ""<password>
 props.setProperty(""ssl"", ""true"");
 Connection conn = DriverManager.getConnection(url, props);
-
-String url = ""jdbc:postgresql://localhost/test?user=fred&password=secret&ssl=true"";
-Connection conn = DriverManager.getConnection(url);
 ```";
     }
 
     private string BuildCSharpConnectionInfo()
     {
         return @"```csharp
-string Host = ""mydemoserver.postgres.database.azure.com"";
-string User = ""mylogin@mydemoserver"";
-string DBname = ""mypgsqldb"";
-string Password = ""<server_admin_password>"";
-string Port = ""5432"";
+string Host = ""<database_host>"";
+string User = ""<username>"";
+string DBname = ""<database_name>"";
+string Password = ""<password>"";
+string Port = ""<port>"";
 
 string connString =
     String.Format(
