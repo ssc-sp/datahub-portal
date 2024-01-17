@@ -146,7 +146,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Stories", "Portal\s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure.Offline", "Portal\src\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj", "{E84F619D-E105-4E1A-BD92-DF22DDAE966F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Core.SpecflowTests", "Portal\test\Datahub.Core.SpecflowTests\Datahub.Core.SpecflowTests.csproj", "{D84C8789-E77F-438A-A0B6-7DB1695B9C17}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.SpecflowTests", "Portal\test\Datahub.SpecflowTests\Datahub.SpecflowTests.csproj", "{D84C8789-E77F-438A-A0B6-7DB1695B9C17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

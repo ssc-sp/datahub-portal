@@ -1,7 +1,7 @@
 using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 
-namespace Datahub.Core.SpecflowTests;
+namespace Datahub.SpecflowTests;
 
 public class SpecFlowDbContextFactory(DbContextOptions<DatahubProjectDBContext> options)
     : IDbContextFactory<DatahubProjectDBContext>

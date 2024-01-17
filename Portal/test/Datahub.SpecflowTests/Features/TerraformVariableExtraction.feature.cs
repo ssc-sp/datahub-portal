@@ -9,14 +9,10 @@
 //  </auto-generated>
 // ------------------------------------------------------------------------------
 #region Designer generated code
+
 #pragma warning disable
-namespace Datahub.Core.SpecflowTests.Features
+namespace Datahub.SpecflowTests.Features
 {
-    using TechTalk.SpecFlow;
-    using System;
-    using System.Linq;
-    
-    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [NUnit.Framework.TestFixtureAttribute()]

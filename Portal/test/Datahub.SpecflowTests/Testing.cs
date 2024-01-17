@@ -1,4 +1,4 @@
-namespace Datahub.Core.SpecflowTests;
+namespace Datahub.SpecflowTests;
 
 public static class Testing
 {
