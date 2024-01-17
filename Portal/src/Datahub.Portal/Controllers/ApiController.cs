@@ -14,7 +14,10 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Projects;
+using Datahub.Infrastructure.Services.Security;
 
 namespace Datahub.Portal.Controllers;
 
