@@ -3,8 +3,10 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
-using Datahub.Application.Services.Storage;
 using Datahub.Core.Data;
+using Datahub.Core.Model.CloudStorage;
+using Datahub.Core.Storage;
+using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
 
 namespace Datahub.Infrastructure.Services.Storage;
 
@@ -314,5 +316,15 @@ public class AzureCloudStorageManager : ICloudStorageManager
         result.SetPermissions(permissions);
 
         return result;
+    }
+
+    public List<(string, string)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
+    {
+        return new List<(string, string)>
+        {
+            (ResourceSubstitutions.ProjectAcronym, projectAcronym),
+            (ResourceSubstitutions.StorageAccount, ResourceSubstitutions.GetStorageAccountNameFromProjectAcronym(projectAcronym)),
+            (ResourceSubstitutions.ContainerName, container.Name)
+        };
     }
 }

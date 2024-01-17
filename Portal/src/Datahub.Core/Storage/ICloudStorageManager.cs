@@ -1,7 +1,10 @@
 ﻿using Datahub.Core.Data;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Datahub.Application.Services.Storage;
-
+namespace Datahub.Core.Storage;
+#nullable enable
 public interface ICloudStorageManager
 {
     Task<List<string>> GetContainersAsync();
@@ -24,6 +27,8 @@ public interface ICloudStorageManager
 
     Task<StorageMetadata> GetStorageMetadataAsync(string container);
 
+    List<(string, string)> GetSubstitutions(string projectAcronym, CloudStorageContainer container);
+
     bool AzCopyEnabled { get; }
     bool DatabrickEnabled { get; }
     CloudStorageProviderType ProviderType { get; }
@@ -38,3 +43,4 @@ public enum CloudStorageProviderType
     AWS,
     GCP
 }
+#nullable disable

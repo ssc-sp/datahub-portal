@@ -1,7 +1,7 @@
 ﻿using Datahub.Application.Services.Security;
-using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using System;
