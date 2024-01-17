@@ -72,13 +72,15 @@ jobs:
     displayName: dotnet publish
     inputs:
       command: publish
-      projects: Portal/src/Datahub.Portal/*.csproj
-      arguments: -o $(Build.ArtifactStagingDirectory)/output/portal -r $(target_os) --self-contained true
+      publishWebProjects: false
+      projects: 'Portal/src/Datahub.Portal/*.csproj'
+      arguments: '-o $(Build.ArtifactStagingDirectory)/output/portal -r $(target_os) --self-contained true'  
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: datahub-portal'
     inputs:
       PathtoPublish: $(Build.ArtifactStagingDirectory)/output/portal
       ArtifactName: datahub-portal
+
 - job: Job_3
   displayName: Agent job - build function app
   dependsOn: Job_1
