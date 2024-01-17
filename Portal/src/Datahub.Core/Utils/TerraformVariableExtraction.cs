@@ -21,30 +21,9 @@ public static class TerraformVariableExtraction
     public static string? ExtractDatabricksWorkspaceId(Datahub_Project? project)
     {
         var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-        return ExtractDatabricksWorkspaceId(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent);
-    }
-
-    /// <summary>
-    /// Extracts the Databricks workspace ID from the given project resource JSON content.
-    /// </summary>
-    /// <param name="projectResourceJsonContent">The project resource JSON content.</param>
-    /// <returns>The Databricks workspace ID if found; otherwise, null.</returns>
-    private static string? ExtractDatabricksWorkspaceId(string? projectResourceJsonContent)
-    {
-        if (string.IsNullOrWhiteSpace(projectResourceJsonContent))
-            return null;
-
-        var deserializeOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        var jsonContent =
-            JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);
-        var databricksWorkspaceIdVariable = jsonContent?["workspace_id"];
-
-        return databricksWorkspaceIdVariable;
+        return ExtractStringVariable(
+            project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent,
+            "workspace_id");
     }
 
     /// <summary>
@@ -55,29 +34,10 @@ public static class TerraformVariableExtraction
     public static string? ExtractDatabricksUrl(Datahub_Project? project)
     {
         var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-        return ExtractDatabricksUrl(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent);
-    }
-
-    /// <summary>
-    /// Parses the project resource content to return the databricks url.
-    /// </summary>
-    /// <param name="projectResourceJsonContent"></param>
-    /// <returns></returns>a
-    public static string? ExtractDatabricksUrl(string? projectResourceJsonContent)
-    {
-        if (string.IsNullOrWhiteSpace(projectResourceJsonContent))
-            return null;
-
-        var deserializeOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        var jsonContent =
-            JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);
-        var databricksUrlVariable = jsonContent?["workspace_url"];
-
+        var databricksUrlVariable =  ExtractStringVariable(
+            project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent,
+            "workspace_url");
+        
         if (!databricksUrlVariable?.StartsWith("https://") ?? false)
         {
             databricksUrlVariable = $"https://{databricksUrlVariable}";
@@ -86,33 +46,17 @@ public static class TerraformVariableExtraction
         return databricksUrlVariable;
     }
 
+    /// <summary>
+    /// Extracts the Azure Postgres host from the given Datahub project.
+    /// </summary>
+    /// <param name="project">The Datahub project.</param>
+    /// <returns>The Azure Postgres host, or null if not found.</returns>
     public static string? ExtractAzurePostgresHost(Datahub_Project? project)
     {
         var azureDatabaseTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
-        return ExtractAzurePostgresHost(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent);
-    }
-
-    /// <summary>
-    /// Extracts the Azure Postgres host from the project resource JSON content.
-    /// </summary>
-    /// <param name="projectResourceJsonContent">The JSON content of the project resource.</param>
-    /// <returns>The Azure Postgres host, or null if the JSON content is empty or whitespace.</returns>
-    private static string? ExtractAzurePostgresHost(string? projectResourceJsonContent)
-    {
-        if (string.IsNullOrWhiteSpace(projectResourceJsonContent))
-            return null;
-
-        var deserializeOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        var jsonContent =
-            JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);
-        var azureDatabaseHostVariable = jsonContent?["postgres_dns"];
-
-        return azureDatabaseHostVariable;
+        return ExtractStringVariable(
+            project?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent,
+            "postgres_dns");
     }
 
     /// <summary>
@@ -123,31 +67,11 @@ public static class TerraformVariableExtraction
     public static string? ExtractAzurePostgresDatabaseName(Datahub_Project? workspace)
     {
         var azureDatabaseTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
-        return ExtractAzurePostgresDatabaseName(
-            workspace?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent);
+        return ExtractStringVariable(
+            workspace?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent,
+            "postgres_db_name");
     }
 
-    /// <summary>
-    /// Extracts the Azure PostgreSQL database name from the given project resource JSON content.
-    /// </summary>
-    /// <param name="projectResourceJsonContent">The JSON content of the project resource.</param>
-    /// <returns>The Azure PostgreSQL database name if found in the JSON content; otherwise, null.</returns>
-    private static string? ExtractAzurePostgresDatabaseName(string? projectResourceJsonContent)
-    {
-        if (string.IsNullOrWhiteSpace(projectResourceJsonContent))
-            return null;
-
-        var deserializeOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        var jsonContent =
-            JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);
-        var azureDatabaseNameVariable = jsonContent?["postgres_db_name"];
-
-        return azureDatabaseNameVariable;
-    }
 
     /// <summary>
     /// Extracts the username secret name from the given Azure Postgres workspace.
@@ -157,35 +81,31 @@ public static class TerraformVariableExtraction
     public static string? ExtractAzurePostgresUsernameSecretName(Datahub_Project? workspace)
     {
         var azureDatabaseTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
-        return ExtractAzurePostgresUsernameSecretName(
-            workspace?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent);
+        return ExtractStringVariable(
+            workspace?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent,
+            "postgres_secret_name_admin");
     }
 
-    private static string? ExtractAzurePostgresUsernameSecretName(string? projectResourceJsonContent)
-    {
-        if (string.IsNullOrWhiteSpace(projectResourceJsonContent))
-            return null;
-
-        var deserializeOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        var jsonContent =
-            JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);
-        var azureDatabaseUsernameSecretNameVariable = jsonContent?["postgres_secret_name_admin"];
-
-        return azureDatabaseUsernameSecretNameVariable;
-    }
-
+    /// <summary>
+    /// Extracts the name of the Azure PostgreSQL password secret from a Datahub workspace.
+    /// </summary>
+    /// <param name="workspace">The Datahub workspace.</param>
+    /// <returns>The name of the Azure PostgreSQL password secret, or null if not found.</returns>
     public static string? ExtractAzurePostgresPasswordSecretName(Datahub_Project? workspace)
     {
         var azureDatabaseTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
-        return ExtractAzurePostgresPasswordSecretName(
-            workspace?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent);
+        return ExtractStringVariable(
+            workspace?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent,
+            "postgres_secret_name_password");
     }
 
-    private static string? ExtractAzurePostgresPasswordSecretName(string? projectResourceJsonContent)
+    /// <summary>
+    /// Extracts a string variable from the given JSON content based on the variable name.
+    /// </summary>
+    /// <param name="projectResourceJsonContent">The JSON content from which to extract the variable.</param>
+    /// <param name="variableName">The name of the variable to extract.</param>
+    /// <returns>The extracted string variable.</returns>
+    private static string? ExtractStringVariable(string? projectResourceJsonContent, string variableName)
     {
         if (string.IsNullOrWhiteSpace(projectResourceJsonContent))
             return null;
@@ -197,8 +117,12 @@ public static class TerraformVariableExtraction
 
         var jsonContent =
             JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);
-        var azureDatabasePasswordSecretNameVariable = jsonContent?["postgres_secret_name_password"];
+        
+        if (!jsonContent?.ContainsKey(variableName) ?? true)
+            return null;
+        
+        var variable = jsonContent?[variableName];
 
-        return azureDatabasePasswordSecretNameVariable;
+        return variable;
     }
 }
