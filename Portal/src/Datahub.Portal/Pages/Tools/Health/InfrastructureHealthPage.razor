@@ -1,4 +1,11 @@
 @using Datahub.Core.Model.Health
+@using System.Text.Json
+@using Datahub.Infrastructure.Queues.Messages
+@using Datahub.Core.Model.Projects;
+@using MediatR
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject IDialogService DialogService
+@inject IMediator _mediator
 
 <MudStack Spacing="6">
     <MudStack>
@@ -7,6 +14,9 @@
             @Localizer["View the health of the infrastructure that supports the application and the workspaces."]
         </MudText>
     </MudStack>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => CallFunction(0, "", "all"))" Style="width: fit-content;">
+        @Localizer["Run all checks"]
+    </MudButton>
     <MudStack>
         <MudText Typo="Typo.h2">@Localizer["Core Health"]</MudText>
         <MudText Typo="Typo.body1">
@@ -15,18 +25,24 @@
 
         <MudTable Items="_coreInfrastructureHealth" Hover Dense>
             <HeaderContent>
-                <MudTh>Resource</MudTh>
-                <MudTh>Status</MudTh>
-                <MudTh>Updated</MudTh>
+                <MudTh>@Localizer["Resource"]</MudTh>
+                <MudTh>@Localizer["Status"]</MudTh>
+                <MudTh>@Localizer["Updated"]</MudTh>
+                <MudTh>@Localizer["Run Check"]</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd>@context.Name</MudTd>
+                <MudTd>@context.ResourceType</MudTd>
                 <MudTd>
                     <MudChip Color="@GetColor(context.Status)" Size="Size.Small">
-                        @context.Status
+                        @Localizer[context.Status.ToString()]
                     </MudChip>
                 </MudTd>
                 <MudTd>@context.HealthCheckTimeUtc</MudTd>
+                <MudTd>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
+						@Localizer["Run"]
+					</MudButton>
+                </MudTd>
             </RowTemplate>
         </MudTable>
     </MudStack>
@@ -39,24 +55,35 @@
 
         <MudTable Items="_queueInfrastructureHealth" Hover Dense>
             <HeaderContent>
-                <MudTh>Resource</MudTh>
-                <MudTh>Status</MudTh>
-                <MudTh>Updated</MudTh>
+                <MudTh>@Localizer["Resource"]</MudTh>
+                <MudTh>@Localizer["Queue Status"]</MudTh>
+                <MudTh>@Localizer["Poison Queue Status"]</MudTh>
+                <MudTh>@Localizer["Updated"]</MudTh>
+                <MudTh>@Localizer["Run Check"]</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd>@context.Name</MudTd>
                 <MudTd>
                     <MudChip Color="@GetColor(context.Status)" Size="Size.Small">
-                        @context.Status
+                        @Localizer[context.Status.ToString()]
                     </MudChip>
                 </MudTd>
+                <MudTd>
+                    <MudChip Color="@GetColor(GetPoison(context).Status)" Size="Size.Small">
+                        @Localizer[GetPoison(context).Status.ToString()]
+					</MudChip>
+                </MudTd>
                 <MudTd>@context.HealthCheckTimeUtc</MudTd>
+                    <MudTd>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
+                            @Localizer["Run"]
+                        </MudButton>
+                    </MudTd>
             </RowTemplate>
         </MudTable>
     </MudStack>
 
     <MudStack>
-
         <MudText Typo="Typo.h2">@Localizer["Workspace Health"]</MudText>
         <MudText Typo="Typo.body1">
             @Localizer["View the health of the infrastructure that supports the workspaces."]
@@ -64,44 +91,32 @@
         <MudTable Items="_infrastructureHealth" Hover Dense>
             <HeaderContent>
                 <MudTh>Workspace</MudTh>
-                @foreach (var resourceType in Enum.GetValues(typeof(InfrastructureHealthResourceType)))
+                @foreach (var resourceType in _workspaceChecks)
                 {
                     <MudTh>@resourceType</MudTh>
                 }
             </HeaderContent>
             <RowTemplate>
                 <MudTd>@context.Key</MudTd>
-                @foreach (var resourceType in Enum.GetValues(typeof(InfrastructureHealthResourceType)))
+                @foreach (var resourceType in _workspaceChecks)
                 {
                     var health = context.Value.FirstOrDefault(h => h.ResourceType == (InfrastructureHealthResourceType)resourceType);
-                    <MudTd>
-                        @if (health is not null)
-                        {
-                            <MudMenu Dense AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopLeft">
-                                <ActivatorContent>
-                                    <MudChip Color="@GetColor(health.Status)" Size="Size.Small">
-                                        @health.Status
-                                    </MudChip>
-                                </ActivatorContent>
-                                <ChildContent>
-                                    @if (health.Status != InfrastructureHealthStatus.Create)
-                                    {
-                                        <MudMenuItem>Refresh Health Check</MudMenuItem>
-                                        @if (!string.IsNullOrWhiteSpace(health.Url))
-                                        {
-                                            <MudMenuItem Href="@health.Url">View Resource</MudMenuItem>
-                                        }
-                                        <MudDivider Class="my-2"/>
-                                        <MudMenuItem>Refresh request on queue</MudMenuItem>
-                                    }
-                                    else
-                                    {
-                                        <MudMenuItem>Add request to queue</MudMenuItem>
-                                    }
-                                </ChildContent>
-                            </MudMenu>
-                        }
-                    </MudTd>
+                    if (health == null)
+                    {
+                        <MudTd>
+							<MudChip Color="@GetColor(InfrastructureHealthStatus.Create)" Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
+								@Localizer["Create"]
+							</MudChip/>
+                        </MudTd>
+                    }
+                    else
+                    {
+                        <MudTd>
+							<MudChip Color="@GetColor(health.Status)" Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
+								@Localizer[health.Status.ToString()]
+							</MudChip>
+						</MudTd>
+                    }
                 }
             </RowTemplate>
         </MudTable>
@@ -113,121 +128,131 @@
 
     private Dictionary<string, List<InfrastructureHealthCheck>> _infrastructureHealth = new ();
     private List<InfrastructureHealthCheck> _coreInfrastructureHealth = new ();
-    private List<InfrastructureHealthCheck> _queueInfrastructureHealth = new ();
+    private List<InfrastructureHealthCheck> _queueInfrastructureHealth = new();
+    private List<InfrastructureHealthCheck> _poisonQueueInfrastructureHealth = new();
+    private DatahubProjectDBContext _projectDbContext;
+    private List<InfrastructureHealthResourceType> _coreChecks = new List<InfrastructureHealthResourceType>
+	{
+		InfrastructureHealthResourceType.AzureSqlDatabase,
+		InfrastructureHealthResourceType.AzureKeyVault,
+		InfrastructureHealthResourceType.AzureStorageQueue,
+		InfrastructureHealthResourceType.AzureFunction,
+	};
+    private List<InfrastructureHealthResourceType> _workspaceChecks = new List<InfrastructureHealthResourceType>
+    {
+        InfrastructureHealthResourceType.AzureSqlDatabase,
+        InfrastructureHealthResourceType.AzureDatabricks,
+        InfrastructureHealthResourceType.AzureStorageAccount,
+        InfrastructureHealthResourceType.AzureWebApp,
+    };
 
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
-    // create some random infrastructure health data
-        _infrastructureHealth = CreateRandomWorkspaceAcronyms()
-            .Select(acronym => (
-                from object resourceType in Enum.GetValues(typeof(InfrastructureHealthResourceType))
-                select CreateInfrastructureHealth(acronym, (InfrastructureHealthResourceType)resourceType))
-                .ToList())
-            .ToDictionary(item => item.First().Group, item => item);
+        _projectDbContext = DbFactory.CreateDbContext();
 
-    // create some random core infrastructure health data
-        _coreInfrastructureHealth = new()
+        var projects = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).Select(p => p.Project_Acronym_CD).ToList();
+        _infrastructureHealth = new Dictionary<string, List<InfrastructureHealthCheck>>();
+
+        foreach (var acronym in projects)
         {
-            new InfrastructureHealthCheck()
+            var list = new List<InfrastructureHealthCheck>();
+            var res = _projectDbContext.InfrastructureHealthChecks
+                .Where(h => (_workspaceChecks.Contains(h.ResourceType)))
+                .Where(h => (h.Name.Contains(acronym)))
+                .GroupBy(h => h.ResourceType)
+                .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
+                .ToList();
+
+            foreach (var output in res)
             {
-                Name = "Portal Database",
-                ResourceType = InfrastructureHealthResourceType.AzureSqlDatabase,
-                Status = InfrastructureHealthStatus.Healthy,
-                HealthCheckTimeUtc = DateTime.UtcNow
-            },
-            new InfrastructureHealthCheck()
-            {
-                Name = "Portal Storage",
-                ResourceType = InfrastructureHealthResourceType.AzureStorageAccount,
-                Status = InfrastructureHealthStatus.Healthy,
-                HealthCheckTimeUtc = DateTime.UtcNow
-            },
-            new InfrastructureHealthCheck()
-            {
-                Name = "Portal Key Vault",
-                ResourceType = InfrastructureHealthResourceType.AzureKeyVault,
-                Status = InfrastructureHealthStatus.Healthy,
-                HealthCheckTimeUtc = DateTime.UtcNow
-            },
-            new InfrastructureHealthCheck()
-            {
-                Name = "Portal Storage Queue",
-                ResourceType = InfrastructureHealthResourceType.AzureStorageQueue,
-                Status = InfrastructureHealthStatus.Healthy,
-                HealthCheckTimeUtc = DateTime.UtcNow
+                list.Add(output);
             }
-        };
+            _infrastructureHealth.Add(acronym, list);
+        }
 
-        _queueInfrastructureHealth = new()
+        // Select the most recent core infrastructure health checks for each resource type
+        _coreInfrastructureHealth = _projectDbContext.InfrastructureHealthChecks
+                .Where(h => (_coreChecks.Contains(h.ResourceType)))
+                .Where(h => h.Group == "core")
+                .GroupBy(h => h.ResourceType)
+                .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
+                .ToList();
+
+        string[] queues = new string[]
         {
-            new InfrastructureHealthCheck()
-            {
-                Name = "Email notification",
-                ResourceType = InfrastructureHealthResourceType.AzureStorageQueue,
-                Status = InfrastructureHealthStatus.Healthy,
-                HealthCheckTimeUtc = DateTime.UtcNow
-            },
-            new InfrastructureHealthCheck()
-            {
-                Name = "Pong",
-                ResourceType = InfrastructureHealthResourceType.AzureStorageQueue,
-                Status = InfrastructureHealthStatus.Healthy,
-                HealthCheckTimeUtc = DateTime.UtcNow
-            },
-            new InfrastructureHealthCheck()
-            {
-                Name = "Project Capacity",
-                ResourceType = InfrastructureHealthResourceType.AzureStorageQueue,
-                Status = InfrastructureHealthStatus.Healthy,
-                HealthCheckTimeUtc = DateTime.UtcNow
-            },
-            new InfrastructureHealthCheck()
-            {
-                Name = "Project Usage Notification",
-                ResourceType = InfrastructureHealthResourceType.AzureStorageQueue,
-                Status = InfrastructureHealthStatus.Healthy,
-                HealthCheckTimeUtc = DateTime.UtcNow
-            },
-            new InfrastructureHealthCheck()
-            {
-                Name = "Project Usage Notification",
-                ResourceType = InfrastructureHealthResourceType.AzureStorageQueue,
-                Status = InfrastructureHealthStatus.Healthy,
-                HealthCheckTimeUtc = DateTime.UtcNow
-            },
-            new InfrastructureHealthCheck()
-            {
-                Name = "Project Usage Update",
-                ResourceType = InfrastructureHealthResourceType.AzureStorageQueue,
-                Status = InfrastructureHealthStatus.Healthy,
-                HealthCheckTimeUtc = DateTime.UtcNow
-            },
-            new InfrastructureHealthCheck()
-            {
-                Name = "Resource Run Request",
-                ResourceType = InfrastructureHealthResourceType.AzureStorageQueue,
-                Status = InfrastructureHealthStatus.Healthy,
-                HealthCheckTimeUtc = DateTime.UtcNow
-            },
-            new InfrastructureHealthCheck()
-            {
-                Name = "Storage Capacity",
-                ResourceType = InfrastructureHealthResourceType.AzureStorageQueue,
-                Status = InfrastructureHealthStatus.Healthy,
-                HealthCheckTimeUtc = DateTime.UtcNow
-            },
-            new InfrastructureHealthCheck()
-            {
-                Name = "User Run Request",
-                ResourceType = InfrastructureHealthResourceType.AzureStorageQueue,
-                Status = InfrastructureHealthStatus.Healthy,
-                HealthCheckTimeUtc = DateTime.UtcNow
-            },
+            "delete-run-request", "email-notification", "pong-queue", "project-capacity-update", "project-inactivity-notification", "project-usage-notification",
+            "project-usage-update", "resource-run-request", "storage-capacity", "terraform-output", "user-inactivity-notification", "user-run-request",
         };
+        _queueInfrastructureHealth = _projectDbContext.InfrastructureHealthChecks
+                .Where(h => (h.ResourceType == InfrastructureHealthResourceType.AzureStorageQueue))
+                .Where(h => (queues.Contains(h.Name)))
+                .GroupBy(h => h.Name)
+                .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
+                .ToList();
+
+        string[] poison_queues = new string[]
+        {
+            "delete-run-request-poison", "email-notification-poison", "pong-queue-poison", "project-capacity-update-poison", "project-inactivity-notification-poison",
+            "project-usage-notification-poison", "project-usage-update-poison", "resource-run-request-poison", "storage-capacity-poison", "terraform-output-poison",
+            "user-inactivity-notification-poison", "user-run-request-poison"
+        };
+        _poisonQueueInfrastructureHealth = _projectDbContext.InfrastructureHealthChecks
+                .Where(h => (h.ResourceType == InfrastructureHealthResourceType.AzureStorageQueue))
+                .Where(h => (poison_queues.Contains(h.Name)))
+                .GroupBy(h => h.Name)
+                .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
+                .ToList();
     }
+
+    private async Task CallFunction(InfrastructureHealthResourceType type, string name, string group)
+    {
+        if (group == "all")
+        {
+            bool? result = await DialogService.ShowMessageBox(
+                Localizer["Warning"],
+                Localizer["You are re-running all health checks. This may take a while."],
+                yesText: Localizer["Run all checks"], cancelText: Localizer["Cancel"]);
+
+            if (result == false || result == null)
+            {
+                return;
+            }
+        }
+
+        var request = new InfrastructureHealthCheckMessage(
+            type,
+            name,
+            group
+        );
+
+        try
+        {
+            await _mediator.Send(request);
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowMessageBox("Health Check", "Health check request failed. Type: " + type.ToString() + " Name: " + name + "Group: " + group + " Error: " + ex.Message);
+        }
+    }
+
+    private InfrastructureHealthCheck GetPoison(InfrastructureHealthCheck context)
+	{
+		var poison = _poisonQueueInfrastructureHealth.FirstOrDefault(h => h.Name == context.Name + "-poison");
+		if (poison == null)
+		{
+			return new InfrastructureHealthCheck
+			{
+				Name = context.Name,
+                ResourceType = InfrastructureHealthResourceType.AzureStorageQueue,
+				Status = InfrastructureHealthStatus.Create,
+				HealthCheckTimeUtc = DateTime.UtcNow
+			};
+		}
+		return poison;
+	}
 
     private static Color GetColor(InfrastructureHealthStatus status)
     {
@@ -237,47 +262,6 @@
             InfrastructureHealthStatus.Degraded => Color.Warning,
             InfrastructureHealthStatus.Unhealthy => Color.Error,
             _ => Color.Default
-            };
-    }
-
-    private HashSet<string> CreateRandomWorkspaceAcronyms()
-    {
-    // return between 20 and 100 random four letter acronyms
-        var acronyms = new HashSet<string>();
-        var random = new Random();
-        var count = random.Next(20, 100);
-        for (var i = 0; i < count; i++)
-        {
-            acronyms.Add(CreateRandomAcronym());
-        }
-
-        return acronyms;
-    }
-
-    private static string CreateRandomAcronym()
-    {
-    // return a random four letter acronym
-        var random = new Random();
-        var acronym = "";
-        for (var i = 0; i < 4; i++)
-        {
-            acronym += (char)random.Next(65, 90);
-        }
-        return acronym;
-    }
-
-    private InfrastructureHealthCheck CreateInfrastructureHealth(string group, InfrastructureHealthResourceType resourceType)
-    {
-        var exists = Random.Shared.Next(0, 2) == 1;
-        return new InfrastructureHealthCheck()
-        {
-            Group = group,
-            Name = $"{group}-{resourceType}",
-            Url = $"https://{group}-{resourceType}.azurewebsites.net",
-            ResourceType = resourceType,
-            Status = exists ? (InfrastructureHealthStatus)new Random().Next(1, 5) : InfrastructureHealthStatus.Create,
-            HealthCheckTimeUtc = DateTime.UtcNow
         };
     }
-
 }

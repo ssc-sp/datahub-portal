@@ -72,5 +72,6 @@ public enum InfrastructureHealthResourceType
     AzureKeyVault,
     AzureDatabricks,
     AzureStorageQueue,
-    AzureWebApp
+    AzureWebApp,
+    AzureFunction
 }
