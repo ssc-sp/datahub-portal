@@ -34,7 +34,6 @@ namespace Datahub.SpecflowTests.Steps
             scenarioContext["projectAcronym"] = projectAcronym;
         }
         
-        
         [Given(@"a workspace without a (.*) resource")]
         public async Task GivenAWorkspaceWithoutAResource(string resourceName)
         {
@@ -52,6 +51,33 @@ namespace Datahub.SpecflowTests.Steps
             
             scenarioContext[$"acronym:{resourceName}"] = projectAcronym;
         }
+        
+        [Given(@"a workspace with a (.*) resource")]
+        public async Task GivenAWorkspaceWithAResource(string resourceName)
+        {
+            var resourceType = TransformResourceName(resourceName);
+            
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var projectAcronym = $"{resourceType}-acronym";
+            var project = new Datahub_Project()
+            {
+                Project_Acronym_CD = projectAcronym,
+            };
+            
+            var resource = new Project_Resources2()
+            {
+                ResourceType = TerraformTemplate.GetTerraformServiceType(resourceType),
+                JsonContent = "{}",
+                Project = project
+            };
+            
+            ctx.Projects.Add(project);
+            ctx.Project_Resources2.Add(resource);
+            await ctx.SaveChangesAsync();
+            
+            scenarioContext[$"acronym:{resourceName}"] = projectAcronym;
+        }
+
         
         [Given(@"a current user")]
         public async Task GivenACurrentUser()
@@ -84,9 +110,10 @@ namespace Datahub.SpecflowTests.Steps
         }
         
         
-        [When(@"a current user requests to create a workspace (.*)")]
-        public async Task WhenACurrentUserRequestsToCreateAWorkspace(string resourceName)
+        [When(@"a current user requests to run a (.*) for a workspace")]
+        public async Task WhenACurrentUserRequestsToRunAForAWorkspace(string resourceName)
         {
+            
             var resourceType = TransformResourceName(resourceName);
             var projectAcronym = scenarioContext[$"acronym:{resourceName}"] as string;
             
@@ -157,15 +184,34 @@ namespace Datahub.SpecflowTests.Steps
             nameof(TerraformTemplate.NewProjectTemplate) => TerraformTemplate.NewProjectTemplate,
             nameof(TerraformTemplate.VariableUpdate) => TerraformTemplate.VariableUpdate,
             nameof(TerraformTemplate.Default) => TerraformTemplate.Default.Name,
-            _ => throw new ArgumentOutOfRangeException(nameof(constantName), constantName, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(constantName), constantName, "Error transforming resource name with value: " + constantName)
         };
 
-        [Then(@"there should be (.*) queue message to create provision the resource\(s\)")]
-        public void ThenThereShouldBeQueueMessageToCreateProvisionTheResourceS(int numberOfQueueMessages)
+        [Then(@"there should be (.*) messages in resource messaging queue")]
+        public void ThenThereShouldBeMessagesInResourceMessagingQueue(int numberOfQueueMessages)
         {
             resourceMessagingService
                 .Received(numberOfQueueMessages)
                 .SendToTerraformQueue(Arg.Any<WorkspaceDefinition>());
         }
+
+        [Then(@"there should not be a workspace (.*) resource created")]
+        public async Task ThenThereShouldNotBeAWorkspaceResourceCreated(string resourceName)
+        {
+            var resourceType = TransformResourceName(resourceName);
+            var projectAcronym = scenarioContext[$"acronym:{resourceName}"] as string;
+            
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = await ctx.Projects
+                .Include(p => p.Resources)
+                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+            
+            var expectedResource = project?.Resources
+                .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(resourceType));
+            
+            expectedResource.Should().BeNull();
+        }
+
+
     }
 }

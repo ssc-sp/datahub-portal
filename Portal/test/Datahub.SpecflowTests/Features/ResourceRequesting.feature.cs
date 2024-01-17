@@ -75,14 +75,27 @@ namespace Datahub.SpecflowTests.Features
         }
         
         [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("Create a new workspace database")]
+        [NUnit.Framework.DescriptionAttribute("Request a resource to be provisioned for a workspace")]
         [NUnit.Framework.CategoryAttribute("queue")]
-        public virtual void CreateANewWorkspaceDatabase()
+        [NUnit.Framework.TestCaseAttribute("Default", "1", null)]
+        [NUnit.Framework.TestCaseAttribute("NewProjectTemplate", "1", null)]
+        [NUnit.Framework.TestCaseAttribute("AzureAppService", "1", null)]
+        [NUnit.Framework.TestCaseAttribute("AzureDatabricks", "1", null)]
+        [NUnit.Framework.TestCaseAttribute("AzureStorageBlob", "1", null)]
+        [NUnit.Framework.TestCaseAttribute("AzurePostgres", "1", null)]
+        public virtual void RequestAResourceToBeProvisionedForAWorkspace(string resource_Name, string number_Of_Messages, string[] exampleTags)
         {
-            string[] tagsOfScenario = new string[] {
+            string[] @__tags = new string[] {
                     "queue"};
+            if ((exampleTags != null))
+            {
+                @__tags = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(@__tags, exampleTags));
+            }
+            string[] tagsOfScenario = @__tags;
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new workspace database", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            argumentsOfScenario.Add("resource_name", resource_Name);
+            argumentsOfScenario.Add("number_of_messages", number_Of_Messages);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Request a resource to be provisioned for a workspace", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 5
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -104,37 +117,29 @@ namespace Datahub.SpecflowTests.Features
             {
                 this.ScenarioStart();
 #line 6
-        testRunner.Given("a workspace without a database resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+        testRunner.Given(string.Format("a workspace without a {0} resource", resource_Name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 7
         testRunner.And("a current user", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 8
-        testRunner.When("a current user requests to create a workspace database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+        testRunner.When(string.Format("a current user requests to run a {0} for a workspace", resource_Name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 9
-        testRunner.Then("there should be a workspace database resource created", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+        testRunner.Then(string.Format("there should be a workspace {0} resource created", resource_Name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 10
-        testRunner.And("there should be a queue message to create a workspace database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+        testRunner.And(string.Format("there should be {0} messages in resource messaging queue", number_Of_Messages), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("Create a new workspace resource")]
+        [NUnit.Framework.DescriptionAttribute("Request to run an update resource for a workspace")]
         [NUnit.Framework.CategoryAttribute("queue")]
-        [NUnit.Framework.TestCaseAttribute("AzureAppService", null)]
-        [NUnit.Framework.TestCaseAttribute("AzureArcGis", null)]
-        [NUnit.Framework.TestCaseAttribute("AzureDatabricks", null)]
-        [NUnit.Framework.TestCaseAttribute("AzureStorageBlob", null)]
-        [NUnit.Framework.TestCaseAttribute("AzureVirtualMachine", null)]
-        [NUnit.Framework.TestCaseAttribute("ContactUs", null)]
-        [NUnit.Framework.TestCaseAttribute("NewProjectTemplate", null)]
-        [NUnit.Framework.TestCaseAttribute("VariableUpdate", null)]
-        [NUnit.Framework.TestCaseAttribute("Default", null)]
-        public virtual void CreateANewWorkspaceResource(string resource_Name, string[] exampleTags)
+        [NUnit.Framework.TestCaseAttribute("VariableUpdate", "1", null)]
+        public virtual void RequestToRunAnUpdateResourceForAWorkspace(string resource_Name, string number_Of_Messages, string[] exampleTags)
         {
             string[] @__tags = new string[] {
                     "queue"};
@@ -145,8 +150,9 @@ namespace Datahub.SpecflowTests.Features
             string[] tagsOfScenario = @__tags;
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             argumentsOfScenario.Add("resource_name", resource_Name);
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new workspace resource", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 13
+            argumentsOfScenario.Add("number_of_messages", number_Of_Messages);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Request to run an update resource for a workspace", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 22
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -166,20 +172,77 @@ namespace Datahub.SpecflowTests.Features
             else
             {
                 this.ScenarioStart();
-#line 14
+#line 23
         testRunner.Given(string.Format("a workspace without a {0} resource", resource_Name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 15
+#line 24
         testRunner.And("a current user", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 16
-        testRunner.When(string.Format("a current user requests to create a workspace {0}", resource_Name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line 25
+        testRunner.When(string.Format("a current user requests to run a {0} for a workspace", resource_Name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 17
-        testRunner.Then(string.Format("there should be a workspace {0} resource created", resource_Name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line 26
+        testRunner.Then(string.Format("there should not be a workspace {0} resource created", resource_Name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 18
-        testRunner.And("there should be 1 queue message to create provision the resource(s)", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 27
+        testRunner.And(string.Format("there should be {0} messages in resource messaging queue", number_Of_Messages), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [NUnit.Framework.TestAttribute()]
+        [NUnit.Framework.DescriptionAttribute("Request to run an unreleased workspace resource")]
+        [NUnit.Framework.CategoryAttribute("queue")]
+        [NUnit.Framework.TestCaseAttribute("AzureArcGis", null)]
+        [NUnit.Framework.TestCaseAttribute("AzureVirtualMachine", null)]
+        [NUnit.Framework.TestCaseAttribute("ContactUs", null)]
+        public virtual void RequestToRunAnUnreleasedWorkspaceResource(string resource_Name, string[] exampleTags)
+        {
+            string[] @__tags = new string[] {
+                    "queue"};
+            if ((exampleTags != null))
+            {
+                @__tags = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(@__tags, exampleTags));
+            }
+            string[] tagsOfScenario = @__tags;
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            argumentsOfScenario.Add("resource_name", resource_Name);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Request to run an unreleased workspace resource", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 34
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 35
+        testRunner.Given(string.Format("a workspace without a {0} resource", resource_Name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 36
+        testRunner.And("a current user", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 37
+        testRunner.When(string.Format("a current user requests to run a {0} for a workspace", resource_Name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 38
+        testRunner.Then(string.Format("there should not be a workspace {0} resource created", resource_Name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 39
+        testRunner.And("there should be 0 messages in resource messaging queue", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
