@@ -2,6 +2,7 @@ using System.Linq.Dynamic.Core;
 using System.Net.Mail;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;

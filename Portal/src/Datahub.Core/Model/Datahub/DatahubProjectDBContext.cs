@@ -6,6 +6,7 @@ using Datahub.Core.Model.Announcements;
 using Datahub.Core.Model.Catalog;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Model.Documentation;
+using Datahub.Core.Model.Health;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Repositories;
@@ -106,6 +107,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// Table for storing the cloud storage associcated to a project
     /// </summary>
     public DbSet<ProjectCloudStorage> ProjectCloudStorages { get; set; }
+
+    /// <summary>
+    /// Table for storing the infrastructure health checks
+    /// </summary>
+    public DbSet<InfrastructureHealthCheck> InfrastructureHealthChecks { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {

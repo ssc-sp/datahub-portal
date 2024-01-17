@@ -1,20 +1,16 @@
-﻿using Datahub.Core.Data;
-using Datahub.Core.Services.UserManagement;
+﻿using System.Text;
+using Datahub.Application.Services.UserManagement;
+using Datahub.Core.Data;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Services.Metadata;
 using Datahub.Metadata.Catalog;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Datahub.Core.Model.Datahub;
 
-namespace Datahub.Core.Services.Metadata;
+namespace Datahub.Infrastructure.Services.Metadata;
 
 public class CatalogImportService
 {

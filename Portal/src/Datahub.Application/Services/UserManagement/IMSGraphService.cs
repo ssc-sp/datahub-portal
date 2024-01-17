@@ -1,9 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Datahub.Core.Data;
+﻿using Datahub.Core.Data;
 
-namespace Datahub.Core.Services.UserManagement;
+namespace Datahub.Application.Services.UserManagement;
 
 public interface IMSGraphService
 {

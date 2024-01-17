@@ -12,21 +12,19 @@
     <MudItem xs="_headings.Any() ? 9 : 0">
         @if (ShowPaper)
         {
-            <MudPaper Class="px-6 py-4" Elevation="0" Outlined>
-                <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
-                    <MudButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
-                               OnClick="@HandleRemoveFromCache"
-                               Color="@Color.Primary"
-                               Variant="@Variant.Filled"
-                               StartIcon="@Icons.Material.Filled.Launch"
-                               Target="_blank">
-                        @Localizer["BUTTONS.Edit"]
-                    </MudButton>
-                </AuthorizeView>
-                <DHMarkdown Content="@_markdownContent"
-                            LinkRewriter="@RewriteLink"
-                            Substitutions="@Substitutions"/>
-            </MudPaper>
+            <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+                <MudButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
+                           OnClick="@HandleRemoveFromCache"
+                           Color="@Color.Primary"
+                           Variant="@Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.Launch"
+                           Target="_blank">
+                    @Localizer["BUTTONS.Edit"]
+                </MudButton>
+            </AuthorizeView>
+            <DHMarkdown Content="@_markdownContent"
+                        LinkRewriter="@RewriteLink"
+                        Substitutions="@Substitutions"/>
         }
         else
         {
@@ -56,14 +54,11 @@
 
 @code {
 
-    [Parameter]
-    public DocItem DocumentItem { get; set; }
+    [Parameter] public DocItem DocumentItem { get; set; }
 
-    [Parameter]
-    public List<(string, string)> Substitutions { get; set; }
+    [Parameter] public List<(string, string)> Substitutions { get; set; }
 
-    [Parameter]
-    public bool ShowPaper { get; set; } = true;
+    [Parameter] public bool ShowPaper { get; set; } = true;
 
     private string _markdownContent;
     private List<string> _headings = new();
@@ -88,7 +83,7 @@
     {
         if (link.StartsWith("http") || link.StartsWith("/api"))
             return link;
-    //if link has an image extension
+        //if link has an image extension
         var linkLc = link.ToLower();
         if (linkLc.EndsWith(".png") || linkLc.EndsWith(".jpg") || linkLc.EndsWith(".jpeg") || linkLc.EndsWith(".gif"))
         {
@@ -99,6 +94,7 @@
             var imgLink = new Uri(directory, link).AbsoluteUri;
             return imgLink;
         }
+
         return ResourcesPage.BaseUrl + "/" + System.Web.HttpUtility.UrlEncode(link);
     }
 
@@ -111,7 +107,7 @@
     {
         if (string.IsNullOrEmpty(markdownContent))
             return new List<string>();
-    // Pattern for second (##) headings only.
+        // Pattern for second (##) headings only.
         const string pattern = @"^#{2}.*$";
 
         var matches = Regex.Matches(markdownContent, pattern, RegexOptions.Multiline);
@@ -119,13 +115,13 @@
         var headings = new List<string>();
         foreach (Match match in matches)
         {
-    // Remove the leading hash characters and whitespace to only keep the text of the heading.
+            // Remove the leading hash characters and whitespace to only keep the text of the heading.
             var headingText = match.Value.TrimStart('#').Trim();
-    // Check if the heading contains a link
+            // Check if the heading contains a link
             const string linkPattern = @"\[(.*?)\]\((.*?)\)";
 
             headingText = Regex.Replace(headingText, linkPattern, "$1"); // Replace the link with its text only
-    // Remove any styling characters
+            // Remove any styling characters
             const string stylingPattern = @"(\*\*|__|\*|_|\~\~)";
             headingText = Regex.Replace(headingText, stylingPattern, "");
 

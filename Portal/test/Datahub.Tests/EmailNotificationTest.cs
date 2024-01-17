@@ -9,10 +9,15 @@ using Datahub.Core.Data;
 using Xunit;
 using Xunit.Abstractions;
 using System.Threading;
+using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.UserManagement;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.UserManagement;
+using Datahub.Infrastructure.Services.Notification;
 using Datahub.ProjectTools.Templates;
 using Datahub.Portal.Services.Notification;
+using EmailConfiguration = Datahub.Application.Services.Notification.EmailConfiguration;
 
 namespace Datahub.Tests;
 
@@ -25,7 +30,7 @@ public class EmailNotificationTestFixture: IDisposable
     public static readonly string USER_2_NAME = "Barney Rubble";
     public static readonly string USER_2_ADDR = "barney@bedrock.com";
 
-    public Core.Services.Notification.EmailConfiguration EmailConfig { get; private set; }
+    public EmailConfiguration EmailConfig { get; private set; }
     public EmailNotificationService EmailNotificationService { get; private set; }
     public PortalEmailService PortalNotificationService { get; private set; }
 
@@ -45,7 +50,7 @@ public class EmailNotificationTestFixture: IDisposable
             .AddJsonFile("appsettings.Development.json", false, true)
             .Build();
 
-        EmailConfig = new Core.Services.Notification.EmailConfiguration();
+        EmailConfig = new EmailConfiguration();
         _config.Bind(EmailNotificationService.EMAIL_CONFIGURATION_ROOT_KEY, EmailConfig);
 
         _localizerMock = new Mock<IStringLocalizer>();

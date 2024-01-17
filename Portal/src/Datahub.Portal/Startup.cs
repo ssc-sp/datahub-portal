@@ -61,10 +61,18 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Datahub.Infrastructure.Offline;
 using Datahub.Application.Configuration;
+using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.UserManagement;
+using Datahub.Infrastructure.Services.Api;
+using Datahub.Infrastructure.Services.Metadata;
+using Datahub.Infrastructure.Services.Notification;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Configuration;
 using Datahub.Infrastructure.Services.Security;
+using Datahub.Infrastructure.Services.Storage;
+using Datahub.Infrastructure.Services.UserManagement;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -186,6 +194,7 @@ public class Startup
         services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
         services.AddSingleton<AzureManagementService>();
         services.AddSingleton<ProjectUsageService>();
+        services.AddScoped<ProjectStorageConfigurationService>();
 
         services.AddSignalRCore();
 
