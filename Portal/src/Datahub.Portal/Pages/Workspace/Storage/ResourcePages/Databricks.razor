@@ -1,4 +1,6 @@
 ﻿@using Datahub.Core.Services.Storage
+@using Datahub.Core.Storage
+@using Datahub.Portal.Pages.Workspace.Storage.Container
 
 @inject CultureService _cultureService
 @inject IConfiguration _configuration
@@ -16,17 +18,15 @@
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
 
-    [Parameter]
-    public string Container { get; set; }
+    [Parameter, EditorRequired]
+    public CloudStorageContainer Container { get; set; }
 
     private List<(string, string)> _substitutions;
 
-    private void HandleSubstitutionsChanged(List<(string, string)> substitutions)
+    protected override void OnInitialized()
     {
-        _substitutions = substitutions;
-        _substitutions.Add((ResourceSubstitutions.ProjectAcronym, ProjectAcronym));
-        _substitutions.Add((ResourceSubstitutions.StorageAccount, ResourceSubstitutions.GetStorageAccountNameFromProjectAcronym(ProjectAcronym)));
-        _substitutions.Add((ResourceSubstitutions.ContainerName, Container));
+        base.OnInitialized();
+        _substitutions = Container.StorageManager.GetSubstitutions(ProjectAcronym, Container);
     }
     
     private string GetPageName()
