@@ -23,7 +23,7 @@ namespace Datahub.Infrastructure.Services.Security
         private readonly IUserInformationService _userInfoService;
         private readonly DatahubPortalConfiguration portalConfiguration;
         private readonly ILogger<CloudStorageManagerFactory> logger;
-        private string vaultToken;
+        private string? vaultToken;
         private KeyVaultClient? _keyVaultClient = null;
 
         public KeyVaultUserService(ITokenAcquisition tokenAcquisition, 
@@ -48,7 +48,7 @@ namespace Datahub.Infrastructure.Services.Security
         private async Task<string> GetUserAccessToken(string auth, string res, string scope)
         {
 
-            return await Task.FromResult(vaultToken);
+            return (await Task.FromResult(vaultToken))!;
         }
 
         //    rg_name = f"fsdh_proj_{workspace_definition['Workspace']['Acronym']}_{environment_name}_rg"
@@ -112,7 +112,7 @@ namespace Datahub.Infrastructure.Services.Security
             }
         }
 
-        private string CleanName(string name)
+        private static string CleanName(string name)
         {
             Regex regex = new Regex("[^a-zA-Z0-9-]");
             return regex.Replace(name, "");
@@ -137,14 +137,14 @@ namespace Datahub.Infrastructure.Services.Security
                 ((IDisposable)_keyVaultClient).Dispose();
         }
 
-        public string GetSecretNameForStorage(ProjectCloudStorage projectCloudStorage, string name) => CleanName($"st-{projectCloudStorage.Id}-{name}");
+        public static string GetSecretNameForStorage(int id, string name) => CleanName($"st-{id}-{name}");
 
         public async Task<IDictionary<string, string>> GetAllSecrets(ProjectCloudStorage projectCloudStorage, string acronym)
         {
             var secrets = new Dictionary<string, string>();
             foreach (var secretKey in CloudStorageHelpers.All_Keys)
             {
-                var secretValue = await GetSecret(acronym, GetSecretNameForStorage(projectCloudStorage, secretKey));
+                var secretValue = await GetSecret(acronym, GetSecretNameForStorage(projectCloudStorage.Id, secretKey));
                 if (secretValue != null)
                     secrets.Add(secretKey, secretValue);
             }
@@ -157,7 +157,7 @@ namespace Datahub.Infrastructure.Services.Security
             {
                 if (connectionData.ContainsKey(secretKey) && !string.IsNullOrEmpty(connectionData[secretKey]))
                 {
-                    await StoreSecret(acronym, GetSecretNameForStorage(projectCloudStorage, secretKey), connectionData[secretKey]);
+                    await StoreSecret(acronym, GetSecretNameForStorage(projectCloudStorage.Id, secretKey), connectionData[secretKey]);
                 }
             }
         }
@@ -166,7 +166,7 @@ namespace Datahub.Infrastructure.Services.Security
         {
             foreach (var secretKey in CloudStorageHelpers.All_Keys)
             {
-                await TryDeleteSecret(acronym, GetSecretNameForStorage(projectCloudStorage, secretKey));
+                await TryDeleteSecret(acronym, GetSecretNameForStorage(projectCloudStorage.Id, secretKey));
             }
         }
 

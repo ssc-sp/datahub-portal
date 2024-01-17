@@ -1,6 +1,4 @@
-﻿using Datahub.Application.Services.Storage;
-
-namespace Datahub.Portal.Pages.Workspace.Storage.Container;
+﻿namespace Datahub.Core.Storage;
 
 public class CloudStorageContainer
 {

@@ -1,5 +1,5 @@
-﻿using Datahub.Application.Services.Storage;
-using Datahub.Core.Data;
+﻿using Datahub.Core.Data;
+using Datahub.Core.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,6 +81,11 @@ namespace Datahub.Infrastructure.Services.Storage
         public Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess)
         {
             throw new NotImplementedException();
+        }
+
+        public List<(string, string)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
+        {
+            return new List<(string, string)>();
         }
     }
 }

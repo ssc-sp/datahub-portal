@@ -1,6 +1,6 @@
 ﻿@* FileExplorerPage.razor *@
 
-@using Datahub.Application.Services.Storage;
+@using Datahub.Core.Storage;
 @using Datahub.Portal.Components.PageAlerts
 @using Datahub.Core.Model.CloudStorage;
 @using Datahub.Infrastructure.Services.Storage;
@@ -72,7 +72,7 @@
                                 @if (SelectedContainer.StorageManager.DatabrickEnabled)
                                 {
                                     <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
-                                        <Databricks Container="@SelectedContainer.Name" />
+                                        <Databricks Container="@SelectedContainer" />
                                     </MudTabPanel>
                                 }
                                 @if (SelectedContainer.StorageManager.AzCopyEnabled)

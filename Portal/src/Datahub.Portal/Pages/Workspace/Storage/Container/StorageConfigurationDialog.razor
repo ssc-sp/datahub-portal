@@ -1,10 +1,9 @@
 ﻿@using Datahub.Markdown.Model
 @* StorageConfigurationDialog.razor *@
-@using Datahub.Application.Services.Storage;
 @using Datahub.Infrastructure.Services.Storage;
 @using Datahub.Core.Model.CloudStorage
 @using Microsoft.Identity.Web
-
+@using Datahub.Core.Storage
 @inject Datahub.Core.Services.Docs.DocumentationService DocService
 @inject CloudStorageManagerFactory _cloudStorageManagerFactory
 @inject ILogger<StorageConfigurationDialog> _logger
