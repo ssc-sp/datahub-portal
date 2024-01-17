@@ -206,7 +206,7 @@ jobs:
 
 
         pip install -r ./requirements.txt
-      workingDirectory: ResourceProvisioner/src/ResourceProvisioner.Functions.Python
+      workingDirectory: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
   - task: ArchiveFiles@2
     displayName: Archive
     enabled: False
