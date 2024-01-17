@@ -211,12 +211,12 @@ jobs:
     displayName: Archive
     enabled: False
     inputs:
-      rootFolderOrFile: ResourceProvisioner/src/ResourceProvisioner.Functions.Python
+      rootFolderOrFile: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
       archiveFile: $(Build.ArtifactStagingDirectory)/output/rpuser/rpuser.zip
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: user provisioner python function app'
     inputs:
-      PathtoPublish: ResourceProvisioner/src/ResourceProvisioner.Functions.Python
+      PathtoPublish: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
       ArtifactName: user-provisioner
 - job: Job_4
   displayName: Agent job - post-build
