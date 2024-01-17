@@ -1,22 +1,18 @@
 using BoDi;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
 using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
 using Datahub.ProjectTools.Services;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NSubstitute.Extensions;
 
-namespace Datahub.Core.SpecflowTests.Hooks;
+namespace Datahub.SpecflowTests.Hooks;
 
 [Binding]
 public class Hooks

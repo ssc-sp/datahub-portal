@@ -1,22 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Text;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
-using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
 using Datahub.Shared.Entities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
-using NSubstitute.Core;
-using TechTalk.SpecFlow;
 
-namespace Datahub.Core.SpecflowTests.Steps
+namespace Datahub.SpecflowTests.Steps
 {
     [Binding]
     public sealed class ResourceRequestingSteps(

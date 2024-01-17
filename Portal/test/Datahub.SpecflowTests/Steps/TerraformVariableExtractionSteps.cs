@@ -3,7 +3,7 @@ using Datahub.Core.Utils;
 using FluentAssertions;
 using TechTalk.SpecFlow.Assist;
 
-namespace Datahub.Core.SpecflowTests.Steps;
+namespace Datahub.SpecflowTests.Steps;
 
 [Binding]
 public sealed class TerraformVariableExtractionSteps
