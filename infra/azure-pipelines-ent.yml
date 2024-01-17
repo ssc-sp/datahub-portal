@@ -64,12 +64,6 @@ jobs:
       targetType: inline
       script: "cd Portal/src\n      $files=Get-Childitem -Path Datahub.Portal -Include appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike \"*\\Debug\\*\"}\n      foreach ($file in $files){\n        $fileRendered=$file.FullName.trim(\"-tmpl\")\n        Write-Host \"Processing file: ${file} > $fileRendered\"\n        Copy-Item $file.FullName -Force -Destination $fileRendered\n      }\n      cd Datahub.Portal; mv appsettings.Development.json appsettings.dev.json; Move-Item -Force appsettings.json-tmpl-spdatahub appsettings.json\n    "
   - task: DotNetCoreCLI@2
-    displayName: dotnet restore
-    enabled: False
-    inputs:
-      command: restore
-      projects: Portal/src/Datahub.Portal/*.csproj
-  - task: DotNetCoreCLI@2
     displayName: dotnet build
     inputs:
       projects: Portal/src/Datahub.Portal/*.csproj
