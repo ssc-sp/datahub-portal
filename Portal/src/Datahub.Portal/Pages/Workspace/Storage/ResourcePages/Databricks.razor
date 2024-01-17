@@ -1,4 +1,5 @@
 ﻿@using Datahub.Core.Services.Storage
+@using Datahub.Infrastructure.Services.Storage
 @using Datahub.Core.Storage
 @using Datahub.Portal.Pages.Workspace.Storage.Container
 
@@ -7,9 +8,25 @@
 
 <MudStack>
     @*<SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" ContainerToken />*@
-    <EmbeddedWiki PageNameEn="/UserGuide/Databricks/Access-your-storage-account-in-Databricks.md"
-                  PageNameFr="/fr/UserGuide/Databricks/Accédez-à-votre-compte-de-stockage-dans-Databricks.md"
-                  Substitutions="_substitutions" />
+    @if (Container.StorageManager is AWSCloudStorageManager)
+    {
+        <EmbeddedWiki PageNameEn="/UserGuide/Databricks/Access-aws-storage-account-in-Databricks.md"
+                      PageNameFr="/fr/UserGuide/Databricks/Accédez-à-votre-compte-aws-de-stockage-dans-Databricks.md"
+                      Substitutions="_substitutions" />
+    } else if (Container.StorageManager is AzureCloudStorageManager)
+    {
+        <EmbeddedWiki PageNameEn="/UserGuide/Databricks/Access-your-storage-account-in-Databricks.md"
+                      PageNameFr="/fr/UserGuide/Databricks/Accédez-à-votre-compte-de-stockage-dans-Databricks.md"
+                      Substitutions="_substitutions" />
+
+    }
+    else if (Container.StorageManager is GoogleCloudStorageManager)
+    {
+        <EmbeddedWiki PageNameEn="/UserGuide/Databricks/Access-gcp-storage-account-in-Databricks.md"
+                      PageNameFr="/fr/UserGuide/Databricks/Accédez-à-votre-compte-gcp-de-stockage-dans-Databricks.md"
+                      Substitutions="_substitutions" />
+    }
+
 </MudStack>
 
 

@@ -192,7 +192,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
     }
 
     public bool AzCopyEnabled => false;
-    public bool DatabrickEnabled => false;
+    public bool DatabrickEnabled => true;
 
     public CloudStorageProviderType ProviderType => CloudStorageProviderType.AWS;
 
