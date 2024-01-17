@@ -86,6 +86,9 @@
 		<ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
 		<ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Components\PageAlerts\" />
+	</ItemGroup>
 
 
     <Target Name="CopyCustomContent" AfterTargets="AfterBuild">

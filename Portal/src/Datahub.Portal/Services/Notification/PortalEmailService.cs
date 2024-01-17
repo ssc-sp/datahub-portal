@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BlazorTemplater;
+using Datahub.Application.Services.Notification;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Services.Notification;
@@ -22,6 +23,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using MimeKit;
 using Datahub.Core.Data;
+using Datahub.Core.Model.Projects;
 using Microsoft.Graph.Models;
 
 namespace Datahub.Portal.Services.Notification;

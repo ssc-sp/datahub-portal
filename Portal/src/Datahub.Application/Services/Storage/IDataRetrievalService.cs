@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Azure.Storage.Blobs;
+﻿using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
 using Datahub.Core.Data;
-using Microsoft.Graph;
 using Microsoft.Graph.Models;
 
-namespace Datahub.Core.Services.Storage;
+namespace Datahub.Application.Services.Storage;
 
 public interface IDataRetrievalService
 {

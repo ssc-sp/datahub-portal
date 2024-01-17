@@ -1,26 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
+using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
 using Datahub.Core.Services.Api;
-using Datahub.Core.Services.Security;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Folder = Datahub.Core.Data.Folder;
 using Version = Datahub.Core.Data.Version;
 
-namespace Datahub.Core.Services.Storage;
+namespace Datahub.Infrastructure.Services.Storage;
 
 public class DataRetrievalService : BaseService
 {
