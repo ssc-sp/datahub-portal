@@ -24,7 +24,7 @@ public class Startup
     {
         services.AddScoped<IUserInformationService, OfflineUserInformationService>();
         services.AddSingleton<IMSGraphService, MSGraphService>();
-        services.AddSingleton<IKeyVaultService, KeyVaultService>();
+        services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
         services.AddScoped<DataLakeClientService>();
         services.AddScoped<IWebHostEnvironment, FakeWebHostEnvironment>();
         services.AddScoped<IJSRuntime, FakeJSRuntime>();

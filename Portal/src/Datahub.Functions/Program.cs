@@ -49,7 +49,7 @@ var host = new HostBuilder()
         services.AddSingleton<AzureConfig>();
         services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
         services.AddSingleton<AzureManagementService>();
-        services.AddSingleton<IKeyVaultService, KeyVaultService>();
+        services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
         services.AddSingleton<IEmailService, EmailService>();
         services.AddScoped<ProjectUsageService>();
         services.AddScoped<QueuePongService>();
@@ -58,10 +58,6 @@ var host = new HostBuilder()
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddSingleton<DatahubPortalConfiguration>();
 
-    })
-    .ConfigureWebHostDefaults(webBuilder =>
-    {
-        webBuilder.UseStartup<Startup>();
     })
     .Build();
 

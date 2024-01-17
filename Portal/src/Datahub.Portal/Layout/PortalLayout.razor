@@ -26,30 +26,30 @@
         Elevation="0"
         ClipMode="DrawerClipMode.Always">
         <MudDrawerContainer>
-            <SectionOutlet SectionName="side-bar" />
+            <SectionOutlet SectionName="side-bar"/>
         </MudDrawerContainer>
     </MudDrawer>
     <MudMainContent>
-        <MudContainer Class="mt-8" MaxWidth="MaxWidth.Large">
-            <div class="reader-only" id="maincontent">
-                <h3>@Localizer["Main content"]</h3>
-            </div>
-            <ErrorBoundary @ref="_errorBoundary">
-                <ChildContent>
-                    @Body
-                </ChildContent>
-                <ErrorContent Context="ex">
-                    @if (HandleException(@ex))
-                    {
+        <div class="reader-only" id="maincontent">
+            <h3>@Localizer["Main content"]</h3>
+        </div>
+        <ErrorBoundary @ref="_errorBoundary">
+            <ChildContent>
+                @Body
+            </ChildContent>
+            <ErrorContent Context="ex">
+                @if (HandleException(@ex))
+                {
+                    <MudContainer Class="mt-8" MaxWidth="MaxWidth.Large">
                         <Error CorrelationId=@_correlationId Exception=@ex/>
-                    }
-                    else
-                    {
-                        @Body
-                    }
-                </ErrorContent>
-            </ErrorBoundary>
-        </MudContainer>
+                    </MudContainer>
+                }
+                else
+                {
+                    @Body
+                }
+            </ErrorContent>
+        </ErrorBoundary>
     </MudMainContent>
 
 </MudLayout>
@@ -88,6 +88,7 @@
             _lastException = ex;
             _ = AuditExceptionAsync(ex);
         }
+
         return true;
     }
 
@@ -107,7 +108,7 @@
         }
         catch (Exception)
         {
-    // ignored
+            // ignored
         }
     }
 

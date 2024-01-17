@@ -184,9 +184,9 @@ public class ProjectUserManagementService : IProjectUserManagementService
 
                 var newProjectUser = new Datahub_Project_User()
                 {
-                    Project = project,
-                    PortalUser = portalUser,
-                    ApprovedPortalUser = currentUser,
+                    Project_ID = project.Project_ID,
+                    PortalUserId = portalUser.Id,
+                    ApprovedPortalUserId = currentUser.Id,
                     Approved_DT = DateTime.UtcNow,
                     RoleId = projectUserAddUserCommand.RoleId,
                 };

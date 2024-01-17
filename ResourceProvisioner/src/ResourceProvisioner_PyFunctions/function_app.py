@@ -68,12 +68,17 @@ def sync_databricks_workspace_users_function(workspace_definition):
 
     """
     databricksHost = workspace_definition['AppData']['DatabricksHostUrl']
+    environment_name = os.environ["DataHub_ENVNAME"]   
+    subscription_id = os.environ["AZURE_SUBSCRIPTION_ID"]
 
     workspace_client = dtb_utils.get_workspace_client(databricksHost)
 
     # Cleanup users in workspace that aren't in AAD Graph
     dtb_utils.remove_deleted_users_in_workspace(workspace_definition, workspace_client)
     dtb_utils.synchronize_workspace_users(workspace_definition, workspace_client)
+
+    dtb_utils.synchronize_workspace_secret_scopes(environment_name, subscription_id, workspace_definition, workspace_client)    
+    #dtb_utils.synchronize_workspace_secrets(environment_name, subscription_id, workspace_definition, workspace_client)  
 
 def sync_keyvault_workspace_users_function(workspace_definition):
     """
@@ -88,10 +93,10 @@ def sync_keyvault_workspace_users_function(workspace_definition):
     """
     # get environment name from environment variables
     environment_name = os.environ["DataHub_ENVNAME"]   
-    subscriptionId = os.environ["AZURE_SUBSCRIPTION_ID"]
+    subscription_id = os.environ["AZURE_SUBSCRIPTION_ID"]
     tenantId = os.environ["AzureTenantId"]
 
-    kv_client = azkv_utils.get_keyvault_client(subscriptionId, tenantId)
+    kv_client = azkv_utils.get_keyvault_client(subscription_id, tenantId)
     azkv_utils.synchronize_access_policies(kv_client,environment_name, workspace_definition, tenantId)
 
     # Cleanup users in workspace that aren't in AAD Graph
