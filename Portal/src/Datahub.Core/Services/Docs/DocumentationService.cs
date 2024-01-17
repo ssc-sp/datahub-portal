@@ -154,7 +154,7 @@ public class DocumentationService
                 doc.Preview = String.Join(" ,", doc.Children.Select(d => d.Title));
             }
         }
-        foreach (var item in doc.Children)
+        foreach (var item in doc.Children.ToList())
         {
             await BuildDocAndPreviews(item);
         }

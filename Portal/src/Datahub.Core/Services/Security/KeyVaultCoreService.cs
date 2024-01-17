@@ -14,15 +14,15 @@ using System.Security.Cryptography;
 
 namespace Datahub.Core.Services.Security;
 
-public class KeyVaultService : IKeyVaultService
+public class KeyVaultCoreService : IKeyVaultService
 {
     private IConfiguration _configuration;
     private IWebHostEnvironment _webHostEnvironment;
-    private ILogger<KeyVaultService> _logger;
+    private ILogger<KeyVaultCoreService> _logger;
     public KeyVaultClient _keyVaultClient;
     private IOptions<APITarget> _targets;
 
-    public KeyVaultService(IWebHostEnvironment webHostEnvironment, IConfiguration configureOptions, IOptions<APITarget> targets, ILogger<KeyVaultService> logger)
+    public KeyVaultCoreService(IWebHostEnvironment webHostEnvironment, IConfiguration configureOptions, IOptions<APITarget> targets, ILogger<KeyVaultCoreService> logger)
     {
         _webHostEnvironment = webHostEnvironment;
         _configuration = configureOptions;
