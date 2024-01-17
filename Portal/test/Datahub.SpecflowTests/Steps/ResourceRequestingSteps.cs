@@ -117,6 +117,26 @@ namespace Datahub.SpecflowTests.Steps
             databaseResource?.JsonContent.Should().NotBeNullOrEmpty();
         }
 
+        [Then(@"there should be a workspace (.*) resource created")]
+        public async Task ThenThereShouldBeAWorkspaceResourceCreated(string resourceName)
+        {
+            var resourceType = TransformResourceName(resourceName);
+            var projectAcronym = scenarioContext[$"acronym:{resourceName}"] as string;
+            
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = await ctx.Projects
+                .Include(p => p.Resources)
+                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+            
+            var expectedResource = project?.Resources
+                .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(resourceType));
+            
+            expectedResource.Should().NotBeNull();
+            expectedResource?.JsonContent.Should().NotBeNullOrEmpty();
+            expectedResource?.RequestedAt.Should().BeBefore(DateTime.UtcNow);
+            expectedResource?.RequestedById.Should().BeGreaterThan(0);
+        }
+
         [Then(@"there should be a queue message to create a workspace database")]
         public void ThenThereShouldBeAQueueMessageToCreateAWorkspaceDatabase()
         {
@@ -125,13 +145,27 @@ namespace Datahub.SpecflowTests.Steps
                 .SendToTerraformQueue(Arg.Any<WorkspaceDefinition>());
         }
 
-
         private string TransformResourceName(string constantName) => constantName switch
         {
+            nameof(TerraformTemplate.AzureAppService) => TerraformTemplate.AzureAppService,
+            nameof(TerraformTemplate.AzureArcGis) => TerraformTemplate.AzureArcGis,
+            nameof(TerraformTemplate.AzureDatabricks) => TerraformTemplate.AzureDatabricks,
             nameof(TerraformTemplate.AzurePostgres) => TerraformTemplate.AzurePostgres,
+            nameof(TerraformTemplate.AzureStorageBlob) => TerraformTemplate.AzureStorageBlob,
+            nameof(TerraformTemplate.AzureVirtualMachine) => TerraformTemplate.AzureVirtualMachine,
+            nameof(TerraformTemplate.ContactUs) => TerraformTemplate.ContactUs,
+            nameof(TerraformTemplate.NewProjectTemplate) => TerraformTemplate.NewProjectTemplate,
+            nameof(TerraformTemplate.VariableUpdate) => TerraformTemplate.VariableUpdate,
+            nameof(TerraformTemplate.Default) => TerraformTemplate.Default.Name,
             _ => throw new ArgumentOutOfRangeException(nameof(constantName), constantName, null)
         };
 
-
+        [Then(@"there should be (.*) queue message to create provision the resource\(s\)")]
+        public void ThenThereShouldBeQueueMessageToCreateProvisionTheResourceS(int numberOfQueueMessages)
+        {
+            resourceMessagingService
+                .Received(numberOfQueueMessages)
+                .SendToTerraformQueue(Arg.Any<WorkspaceDefinition>());
+        }
     }
 }
