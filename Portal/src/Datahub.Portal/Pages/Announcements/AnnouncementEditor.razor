@@ -17,12 +17,17 @@
     return;
 }
 
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar />
+</SectionContent>
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
     <MudGrid>
         <MudItem xs="12">
-            <MudStack>
-                <MudText Typo="Typo.h2">@Localizer["Carousel Preview"]</MudText>
-                <AnnouncementCarousel Previews="@_announcementPreviews"  />
+			<MudStack>
+				<MudText Typo="Typo.h2">@Localizer["Carousel Preview"]</MudText>
+                <MudPaper>
+                    <AnnouncementCarousel Previews="@_announcementPreviews"  />
+                </MudPaper>
             </MudStack>
         </MudItem>
         <MudItem xs="4">
@@ -78,16 +83,20 @@
                 <MudDivider Class="my-4"/>
 
                 <MudStack>
-                    <MudText Typo="Typo.h4">English</MudText>
-                    <MudTextField @bind-Value="@_announcement.PreviewEn" T="string" Label="English carousel preview" Lines="3" Variant="Variant.Outlined"/>
+                    <MudText Typo="Typo.h4">@Localizer["English"]</MudText>
+                    <MudText Typo="Typo.h6">@Localizer["Preview"]</MudText>
+                    <DHMarkdownEditor InitialValue="@_announcement.PreviewEn" ValueChanged="HandleEnglishPreviewChanged" />
+                    <MudText Typo="Typo.h6">@Localizer["Body"]</MudText>
                     <DHMarkdownEditor InitialValue="@_announcement.BodyEn" ValueChanged="HandleEnglishValueChanged"/>
                 </MudStack>
 
                 <MudDivider Class="my-4"/>
 
                 <MudStack>
-                    <MudText Typo="Typo.h4" Class="mt-2">Français</MudText>
-                    <MudTextField @bind-Value="@_announcement.PreviewFr" T="string" Label="Aperçu du carrousel français" Lines="3" Variant="Variant.Outlined"/>
+                    <MudText Typo="Typo.h4" Class="mt-2">@Localizer["French"]</MudText>
+                    <MudText Typo="Typo.h6">@Localizer["Preview"]</MudText>
+                    <DHMarkdownEditor InitialValue="@_announcement.PreviewFr" ValueChanged="HandleFrenchPreviewChanged" />
+                    <MudText Typo="Typo.h6">@Localizer["Body"]</MudText>
                     <DHMarkdownEditor InitialValue="@_announcement.BodyFr" ValueChanged="HandleFrenchValueChanged"/>
                 </MudStack>
             </MudPaper>
@@ -151,9 +160,19 @@
         _announcement.BodyEn = value;
     }
 
+    private void HandleEnglishPreviewChanged(string value)
+    {
+        _announcement.PreviewEn = value;
+    }
+
     private void HandleFrenchValueChanged(string value)
     {
         _announcement.BodyFr = value;
+    }
+
+    private void HandleFrenchPreviewChanged(string value)
+    {
+        _announcement.PreviewFr = value;
     }
 
     private void ApplyControlParameters()
