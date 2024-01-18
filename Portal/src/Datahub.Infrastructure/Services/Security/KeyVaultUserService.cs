@@ -21,50 +21,63 @@ namespace Datahub.Infrastructure.Services.Security
     {
         private readonly ITokenAcquisition _tokenAcquisition;
         private readonly IUserInformationService _userInfoService;
-        private readonly DatahubPortalConfiguration portalConfiguration;
-        private readonly ILogger<CloudStorageManagerFactory> logger;
-        private string vaultToken;
+        private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
+        private readonly ILogger<KeyVaultUserService> _logger;
+        private string _vaultToken;
         private KeyVaultClient? _keyVaultClient = null;
 
-        public KeyVaultUserService(ITokenAcquisition tokenAcquisition, 
-            IUserInformationService userInfoService, 
-            DatahubPortalConfiguration portalConfiguration,
-            ILogger<CloudStorageManagerFactory> logger)
+        public KeyVaultUserService(ITokenAcquisition tokenAcquisition,
+            IUserInformationService userInfoService,
+            DatahubPortalConfiguration datahubPortalConfiguration,
+            ILogger<KeyVaultUserService> logger, MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler)
         {
             _tokenAcquisition = tokenAcquisition;
             _userInfoService = userInfoService;
-            this.portalConfiguration = portalConfiguration;
-            this.logger = logger;
+            _datahubPortalConfiguration = datahubPortalConfiguration;
+            _logger = logger;
         }
 
         public async Task Authenticate()
         {
             var user = await _userInfoService.GetAuthenticatedUser();
             var scopes = new string[] { "https://vault.azure.net/user_impersonation" };
-            vaultToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes, user: user);
+            _vaultToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes, user: user);
             _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(GetUserAccessToken));
         }
 
         private async Task<string> GetUserAccessToken(string auth, string res, string scope)
         {
-
-            return await Task.FromResult(vaultToken);
+            return await Task.FromResult(_vaultToken);
         }
 
         //    rg_name = f"fsdh_proj_{workspace_definition['Workspace']['Acronym']}_{environment_name}_rg"
         // vault_name = f"fsdh-proj-{workspace_definition['Workspace']['Acronym']}-{environment_name}-kv"
 
-        public string GetVaultName(string acronym, string environmentName) => $"fsdh-proj-{acronym}-{environmentName}-kv";
+        public string GetVaultName(string acronym, string environmentName) =>
+            $"fsdh-proj-{acronym}-{environmentName}-kv";
 
         public string GetKeyVaultURL(string vaultName) => $"https://{vaultName}.vault.azure.net/";
 
-        public async Task<string?> GetSecret(string acronym, string name)
+        public async Task<string?> GetSecretAsync(string acronym, string name)
         {
-            if (_keyVaultClient is null) throw new InvalidOperationException("KeyVaultUserService not authenticated");
+            if (_keyVaultClient is null)
+            {
+                try
+                {
+                    await Authenticate();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error authenticating KeyVaultUserService");
+                    throw new InvalidOperationException("KeyVaultUserService not authenticated");
+                }
+            }
+
             var secretName = CleanName(name);
             // This retrieves the secret/certificate with the private key
             SecretBundle secret = null;
-            var vaultName = GetKeyVaultURL(GetVaultName(acronym.ToLowerInvariant(), portalConfiguration.Hosting.EnvironmentName));
+            var vaultName =
+                GetKeyVaultURL(GetVaultName(acronym.ToLowerInvariant(), _datahubPortalConfiguration.Hosting.EnvironmentName));
             try
             {
                 secret = await this._keyVaultClient.GetSecretAsync(vaultName, secretName);
@@ -75,9 +88,11 @@ namespace Datahub.Infrastructure.Services.Security
                 {
                     return null;
                 }
-                logger.LogError(kvex, "Error retrieving secret {0} from vault {1}", secretName, vaultName);
+
+                _logger.LogError(kvex, "Error retrieving secret {0} from vault {1}", secretName, vaultName);
                 throw;
             }
+
             return secret.Value;
         }
 
@@ -90,7 +105,10 @@ namespace Datahub.Infrastructure.Services.Security
             SecretBundle secret = null;
             try
             {
-                secret = await this._keyVaultClient.GetSecretAsync(GetKeyVaultURL(GetVaultName(acronym.ToLowerInvariant(), portalConfiguration.Hosting.EnvironmentName)), secretName);
+                secret = await this._keyVaultClient.GetSecretAsync(
+                    GetKeyVaultURL(
+                        GetVaultName(acronym.ToLowerInvariant(), _datahubPortalConfiguration.Hosting.EnvironmentName)),
+                    secretName);
             }
             catch (KeyVaultErrorException kvex)
             {
@@ -98,8 +116,10 @@ namespace Datahub.Infrastructure.Services.Security
                 {
                     return null;
                 }
+
                 throw;
             }
+
             // Check if the secret is expired
             if (secret.Attributes.Expires.HasValue)
             {
@@ -128,7 +148,9 @@ namespace Datahub.Infrastructure.Services.Security
                 Expires = DateTimeOffset.UtcNow.AddMonths(monthValidity).DateTime,
                 NotBefore = DateTimeOffset.UtcNow.DateTime
             };
-            await _keyVaultClient.SetSecretAsync(GetKeyVaultURL(GetVaultName(acronym.ToLowerInvariant(), portalConfiguration.Hosting.EnvironmentName)), secretName, secretValue, secretAttributes: secretAttributes);
+            await _keyVaultClient.SetSecretAsync(
+                GetKeyVaultURL(GetVaultName(acronym.ToLowerInvariant(), _datahubPortalConfiguration.Hosting.EnvironmentName)),
+                secretName, secretValue, secretAttributes: secretAttributes);
         }
 
         public void Dispose()
@@ -137,27 +159,33 @@ namespace Datahub.Infrastructure.Services.Security
                 ((IDisposable)_keyVaultClient).Dispose();
         }
 
-        public string GetSecretNameForStorage(ProjectCloudStorage projectCloudStorage, string name) => CleanName($"st-{projectCloudStorage.Id}-{name}");
+        public string GetSecretNameForStorage(ProjectCloudStorage projectCloudStorage, string name) =>
+            CleanName($"st-{projectCloudStorage.Id}-{name}");
 
-        public async Task<IDictionary<string, string>> GetAllSecrets(ProjectCloudStorage projectCloudStorage, string acronym)
+        public async Task<IDictionary<string, string>> GetAllSecrets(ProjectCloudStorage projectCloudStorage,
+            string acronym)
         {
             var secrets = new Dictionary<string, string>();
             foreach (var secretKey in CloudStorageHelpers.All_Keys)
             {
-                var secretValue = await GetSecret(acronym, GetSecretNameForStorage(projectCloudStorage, secretKey));
+                var secretValue =
+                    await GetSecretAsync(acronym, GetSecretNameForStorage(projectCloudStorage, secretKey));
                 if (secretValue != null)
                     secrets.Add(secretKey, secretValue);
             }
+
             return secrets;
         }
 
-        public async Task StoreAllSecrets(ProjectCloudStorage projectCloudStorage, string acronym, IDictionary<string, string> connectionData)
+        public async Task StoreAllSecrets(ProjectCloudStorage projectCloudStorage, string acronym,
+            IDictionary<string, string> connectionData)
         {
             foreach (var secretKey in CloudStorageHelpers.All_Keys)
             {
                 if (connectionData.ContainsKey(secretKey) && !string.IsNullOrEmpty(connectionData[secretKey]))
                 {
-                    await StoreSecret(acronym, GetSecretNameForStorage(projectCloudStorage, secretKey), connectionData[secretKey]);
+                    await StoreSecret(acronym, GetSecretNameForStorage(projectCloudStorage, secretKey),
+                        connectionData[secretKey]);
                 }
             }
         }
@@ -174,16 +202,21 @@ namespace Datahub.Infrastructure.Services.Security
         {
             try
             {
-                var secret = await _keyVaultClient.DeleteSecretAsync(GetKeyVaultURL(GetVaultName(acronym.ToLowerInvariant(), portalConfiguration.Hosting.EnvironmentName)), secretName);
+                var secret = await _keyVaultClient.DeleteSecretAsync(
+                    GetKeyVaultURL(
+                        GetVaultName(acronym.ToLowerInvariant(), _datahubPortalConfiguration.Hosting.EnvironmentName)),
+                    secretName);
                 if (secret != null)
                     return true;
                 return false;
-            } catch (KeyVaultErrorException kvex)
+            }
+            catch (KeyVaultErrorException kvex)
             {
                 if (kvex.Body.Error.Code == "SecretNotFound")
                 {
                     return false;
                 }
+
                 throw;
             }
         }
