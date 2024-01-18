@@ -23,36 +23,36 @@ public class RequestManagementService : IRequestManagementService
 {
     private readonly ILogger<RequestManagementService> _logger;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-    private readonly IUserInformationService _userInformationService;
     private readonly IDatahubAuditingService _datahubAuditingService;
     private readonly IResourceMessagingService _resourceMessagingService;
-    private readonly IMiscStorageService _miscStorageService;
 
     public RequestManagementService(
         ILogger<RequestManagementService> logger,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        IUserInformationService userInformationService,
         IDatahubAuditingService datahubAuditingService,
-        IResourceMessagingService resourceMessagingService,
-        IMiscStorageService miscStorageService)
+        IResourceMessagingService resourceMessagingService)
     {
         _logger = logger;
         _dbContextFactory = dbContextFactory;
-        _userInformationService = userInformationService;
         _datahubAuditingService = datahubAuditingService;
         _resourceMessagingService = resourceMessagingService;
-        _miscStorageService = miscStorageService;
     }
 
 
-    public async Task HandleUserUpdatesToExternalPermissions(Datahub_Project project)
+    public async Task HandleUserUpdatesToExternalPermissions(Datahub_Project project, PortalUser currentPortalUser)
     {
-        var currentPortalUser = await _userInformationService.GetCurrentPortalUserAsync();
         var workspaceDefinition =
             await _resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD, currentPortalUser.Email);
         await _resourceMessagingService.SendToUserQueue(workspaceDefinition);
     }
 
+    /// <summary>
+    /// Processes a request to create a project resource.
+    /// </summary>
+    /// <param name="project">The project.</param>
+    /// <param name="requestingUser">The requesting user.</param>
+    /// <param name="requestedTemplate">The requested template.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     private async Task ProcessRequest(Datahub_Project project, PortalUser requestingUser,
         TerraformTemplate requestedTemplate)
     {
@@ -85,7 +85,15 @@ public class RequestManagementService : IRequestManagementService
         await ctx.TrackSaveChangesAsync(_datahubAuditingService);
     }
 
-    public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project datahubProject, string terraformTemplate)
+    /// <summary>
+    /// Handles a Terraform request asynchronously.
+    /// </summary>
+    /// <param name="datahubProject">The Datahub project.</param>
+    /// <param name="terraformTemplate">The Terraform template.</param>
+    /// <param name="requestingUser">The user making the request.</param>
+    /// <returns>True if the Terraform request was handled successfully; otherwise, false.</returns>
+    public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project datahubProject, string terraformTemplate,
+        PortalUser requestingUser)
     {
         using var scope = new TransactionScope(
             TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
@@ -104,13 +112,11 @@ public class RequestManagementService : IRequestManagementService
             }
 
             var newTemplates = TerraformTemplate.LatestFromNameWithDependencies(terraformTemplate);
-            var currentPortalUser = await _userInformationService.GetCurrentPortalUserAsync();
-
             if (terraformTemplate != TerraformTemplate.VariableUpdate)
             {
                 foreach (var template in newTemplates)
                 {
-                    await ProcessRequest(project, currentPortalUser, template);
+                    await ProcessRequest(project, requestingUser, template);
                 }
             }
 
@@ -125,7 +131,7 @@ public class RequestManagementService : IRequestManagementService
 
             var workspaceDefinition =
                 await _resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
-                    currentPortalUser.Email);
+                    requestingUser.Email);
             workspaceDefinition.Templates = allTemplates;
 
             await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);

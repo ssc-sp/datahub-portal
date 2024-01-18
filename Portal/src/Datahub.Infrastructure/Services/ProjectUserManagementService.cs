@@ -90,6 +90,8 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 .Select(p => p.ProjectAcronym)
                 .Distinct())
             .ToList();
+        
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
         // update each project
         foreach (var projectAcronym in projectAcronyms)
@@ -106,7 +108,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             context.Projects.Update(project);
             await context.SaveChangesAsync();
 
-            await _requestManagementService.HandleUserUpdatesToExternalPermissions(project);
+            await _requestManagementService.HandleUserUpdatesToExternalPermissions(project, currentUser);
         }
     }
 
