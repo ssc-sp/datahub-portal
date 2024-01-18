@@ -52,32 +52,32 @@ public class TerraformTemplate
     {
         return name switch
         {
-            NewProjectTemplate => new List<TerraformTemplate>()
-            {
-                LatestFromName(NewProjectTemplate),
-            },
-            AzureStorageBlob => new List<TerraformTemplate>()
-            {
+            NewProjectTemplate =>
+            [
+                LatestFromName(NewProjectTemplate)
+            ],
+            AzureStorageBlob =>
+            [
+                LatestFromName(AzureStorageBlob)
+            ],
+            AzureDatabricks =>
+            [
                 LatestFromName(AzureStorageBlob),
-            },
-            AzureDatabricks => new List<TerraformTemplate>()
-            {
+                LatestFromName(AzureDatabricks)
+            ],
+            AzureAppService =>
+            [
                 LatestFromName(AzureStorageBlob),
-                LatestFromName(AzureDatabricks),
-            },
-            AzureAppService => new List<TerraformTemplate>()
-            {
-                LatestFromName(AzureStorageBlob),
-                LatestFromName(AzureAppService),
-            },
-            AzurePostgres => new List<TerraformTemplate>()
-            {
-                LatestFromName(AzurePostgres),
-            },
-            VariableUpdate => new List<TerraformTemplate>()
-            {
-                LatestFromName(VariableUpdate),
-            },
+                LatestFromName(AzureAppService)
+            ],
+            AzurePostgres =>
+            [
+                LatestFromName(AzurePostgres)
+            ],
+            VariableUpdate =>
+            [
+                LatestFromName(VariableUpdate)
+            ],
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }
