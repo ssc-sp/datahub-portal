@@ -11,7 +11,7 @@ namespace Datahub.Infrastructure.Offline;
 
 public class OfflineUserInformationService : IUserInformationService
 {
-    private static readonly Guid UserGuid = new Guid(); 
+    public static readonly Guid UserGuid = new Guid(); 
 
     readonly ILogger<IUserInformationService> _logger;
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
@@ -217,7 +217,7 @@ public class OfflineUserInformationService : IUserInformationService
         PortalUserUpdated?.Invoke(this, new PortalUserUpdatedEventArgs(updatedUser));
         throw new NotImplementedException();
     }
-    public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated;
+    public event EventHandler<PortalUserUpdatedEventArgs>? PortalUserUpdated;
     public Task<bool> IsDailyLogin()
     {
         return Task.FromResult(false);
