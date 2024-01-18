@@ -249,4 +249,22 @@ jobs:
         git push origin "$versionNumber" --force
 
         Write-Output "Tagging $(Build.Repository.Name) with $versionNumber"
-...
+
+- job: Specflow_Job
+  displayName: Agent job - Specflow
+  dependsOn: Job_2
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+    - task: SpecFlowPlus@0
+      inputs:
+        generatorSource: 'FeatureFolder'
+        projectFilePath: Portal/test/Datahub.SpecflowTests
+        projectName: Datahub.SpecflowTests
+        #testExecutionJson: # Optional
+        #projectLanguage: 'en' # Optional
+        #workItemPrefix: # Optional
+        #workItemUrlTemplate: # Optional
+        #bindingAssemblies: # Optional
+        #output: # Optional
+      enabled: true
