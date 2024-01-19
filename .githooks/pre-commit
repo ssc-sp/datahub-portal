@@ -1,4 +1,12 @@
 #!/bin/sh
 echo 
+
+if ! which pwsh >/dev/null; then
+    echo "pwsh not found in PATH"
+    echo "Please install PowerShell Core 7.4.1 or later and try again or append --no-verify to your git command to skip pre-commit hooks"
+    exit 1
+fi
+
 exec pwsh -NonInteractive -NoProfile -File './.githooks/pre-commit-hook.ps1'
 exit
+
