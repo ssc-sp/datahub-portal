@@ -30,7 +30,7 @@ namespace Datahub.Infrastructure.Offline.Security
             throw new NotImplementedException();
         }
 
-        public Task<string?> GetSecret(string acronym, string name)
+        public Task<string?> GetSecretAsync(string acronym, string name)
         {
             throw new NotImplementedException();
         }
