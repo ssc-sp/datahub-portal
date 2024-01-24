@@ -6,6 +6,7 @@ using Azure.Storage.Sas;
 using Datahub.Core.Data;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Storage;
+using Datahub.Infrastructure.Services.Security;
 using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
 
 namespace Datahub.Infrastructure.Services.Storage;
@@ -14,13 +15,17 @@ public class AzureCloudStorageManager : ICloudStorageManager
 {
     private readonly string _accountName;
     private readonly string _accountKey;
+    private readonly bool _inboxAccount;
     private readonly string _connectionString;
     private readonly string _displayName;
+
+    public bool IsInboxAccount => _inboxAccount;
 
     public AzureCloudStorageManager(string accountName, string accountKey, string? displayName = default)
     {
         _accountName = accountName;
         _accountKey = accountKey;
+        _inboxAccount = displayName == default;
         _displayName = displayName ?? _accountName;
         _connectionString = @$"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
     }
@@ -320,11 +325,25 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     public List<(string, string)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
     {
-        return new List<(string, string)>
+        if (_inboxAccount)
         {
-            (ResourceSubstitutions.ProjectAcronym, projectAcronym),
-            (ResourceSubstitutions.StorageAccount, ResourceSubstitutions.GetStorageAccountNameFromProjectAcronym(projectAcronym)),
-            (ResourceSubstitutions.ContainerName, container.Name)
-        };
+            return new List<(string, string)>
+            {
+                (ResourceSubstitutions.ProjectAcronym, projectAcronym),
+                (ResourceSubstitutions.StorageAccount, ResourceSubstitutions.GetStorageAccountNameFromProjectAcronym(projectAcronym)),
+                (ResourceSubstitutions.ContainerName, container.Name)
+            };
+        }
+        else
+        {
+
+            return new List<(string, string)>
+            {
+                (ResourceSubstitutions.ProjectAcronym, projectAcronym),
+                (ResourceSubstitutions.AZAccountKey, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AZ_AccountKey)),
+                (ResourceSubstitutions.AZAccountName, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AZ_AccountName)),
+                (ResourceSubstitutions.ContainerName, container.Name)
+            };
+        }
     }
 }

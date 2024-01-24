@@ -13,11 +13,20 @@
         <EmbeddedWiki PageNameEn="/UserGuide/Databricks/Access-aws-storage-account-in-Databricks.md"
                       PageNameFr="/fr/UserGuide/Databricks/Accédez-à-votre-compte-aws-de-stockage-dans-Databricks.md"
                       Substitutions="_substitutions" />
-    } else if (Container.StorageManager is AzureCloudStorageManager)
+    } else if (Container.StorageManager is AzureCloudStorageManager az)
     {
+        if (az.IsInboxAccount)
+        {
         <EmbeddedWiki PageNameEn="/UserGuide/Databricks/Access-your-storage-account-in-Databricks.md"
                       PageNameFr="/fr/UserGuide/Databricks/Accédez-à-votre-compte-de-stockage-dans-Databricks.md"
                       Substitutions="_substitutions" />
+        } else
+        {
+            <EmbeddedWiki PageNameEn="/UserGuide/Databricks/Access-az-storage-account-in-Databricks.md"
+                          PageNameFr="/fr/UserGuide/Databricks/Accédez-à-votre-compte-az-de-stockage-dans-Databricks.md"
+                          Substitutions="_substitutions" />
+
+        }
 
     }
     else if (Container.StorageManager is GoogleCloudStorageManager)
