@@ -1,5 +1,7 @@
-﻿using Datahub.Application.Services.Storage;
-using Datahub.Core.Data;
+﻿using Datahub.Core.Data;
+using Datahub.Core.Storage;
+using Datahub.Infrastructure.Services.Security;
+using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
 using Google;
 using Google.Api.Gax;
 using Google.Apis.Auth.OAuth2;
@@ -117,7 +119,7 @@ namespace Datahub.Infrastructure.Services.Storage
         public async Task<bool> FileExistsAsync(string container, string filePath)
         {
             using var client = await CreateStorageClientAsync();
-            var options = new GetObjectOptions(); 
+            var options = new GetObjectOptions();
 
             try
             {
@@ -193,7 +195,7 @@ namespace Datahub.Infrastructure.Services.Storage
             try
             {
                 Page<GObject>? objects = null;
-                
+
                 // continuationToken from the interface doesn't actually do anything... for now just handle API pages internally
                 while (objects == null || objects.NextPageToken != null)
                 {
@@ -293,6 +295,17 @@ namespace Datahub.Infrastructure.Services.Storage
             {
                 return await Task.FromResult(false);
             }
+        }
+
+        public List<(string, string)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
+        {
+            return new List<(string, string)>
+        {
+            (ResourceSubstitutions.ProjectAcronym, projectAcronym),
+            (ResourceSubstitutions.GCPProjectId, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.GCP_ProjectId)),
+            (ResourceSubstitutions.GCPAccountKey, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.GCP_Json)),
+            (ResourceSubstitutions.ContainerName, container.Name)
+        };
         }
     }
 }
