@@ -304,6 +304,7 @@ namespace Datahub.Infrastructure.Services.Storage
             (ResourceSubstitutions.ProjectAcronym, projectAcronym),
             (ResourceSubstitutions.GCPProjectId, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.GCP_ProjectId)),
             (ResourceSubstitutions.GCPAccountKey, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.GCP_Json)),
+            (ResourceSubstitutions.ContainerName, container.Name)
         };
         }
     }
