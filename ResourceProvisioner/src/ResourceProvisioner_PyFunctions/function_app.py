@@ -69,7 +69,7 @@ def sync_databricks_workspace_users_function(workspace_definition):
     """
     databricksHost = workspace_definition['AppData']['DatabricksHostUrl']
     environment_name = os.environ["DataHub_ENVNAME"]   
-    subscription_id = os.environ["AZURE_SUBSCRIPTION_ID"]
+    subscription_id = os.environ["AzureSubscriptionId"]
 
     workspace_client = dtb_utils.get_workspace_client(databricksHost)
 
@@ -93,7 +93,7 @@ def sync_keyvault_workspace_users_function(workspace_definition):
     """
     # get environment name from environment variables
     environment_name = os.environ["DataHub_ENVNAME"]   
-    subscription_id = os.environ["AZURE_SUBSCRIPTION_ID"]
+    subscription_id = os.environ["AzureSubscriptionId"]
     tenantId = os.environ["AzureTenantId"]
 
     kv_client = azkv_utils.get_keyvault_client(subscription_id, tenantId)
