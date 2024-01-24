@@ -132,7 +132,7 @@ namespace Datahub.Infrastructure.Services.Security
             }
         }
 
-        private string CleanName(string name)
+        private static string CleanName(string name)
         {
             Regex regex = new Regex("[^a-zA-Z0-9-]");
             return regex.Replace(name, "");
@@ -159,8 +159,7 @@ namespace Datahub.Infrastructure.Services.Security
                 ((IDisposable)_keyVaultClient).Dispose();
         }
 
-        public string GetSecretNameForStorage(ProjectCloudStorage projectCloudStorage, string name) =>
-            CleanName($"st-{projectCloudStorage.Id}-{name}");
+        public static string GetSecretNameForStorage(int id, string name) => CleanName($"st-{id}-{name}");
 
         public async Task<IDictionary<string, string>> GetAllSecrets(ProjectCloudStorage projectCloudStorage,
             string acronym)
@@ -169,7 +168,7 @@ namespace Datahub.Infrastructure.Services.Security
             foreach (var secretKey in CloudStorageHelpers.All_Keys)
             {
                 var secretValue =
-                    await GetSecretAsync(acronym, GetSecretNameForStorage(projectCloudStorage, secretKey));
+                    await GetSecretAsync(acronym, GetSecretNameForStorage(projectCloudStorage.Id, secretKey));
                 if (secretValue != null)
                     secrets.Add(secretKey, secretValue);
             }
@@ -184,8 +183,7 @@ namespace Datahub.Infrastructure.Services.Security
             {
                 if (connectionData.ContainsKey(secretKey) && !string.IsNullOrEmpty(connectionData[secretKey]))
                 {
-                    await StoreSecret(acronym, GetSecretNameForStorage(projectCloudStorage, secretKey),
-                        connectionData[secretKey]);
+                    await StoreSecret(acronym, GetSecretNameForStorage(projectCloudStorage.Id, secretKey), connectionData[secretKey]);
                 }
             }
         }
@@ -194,7 +192,7 @@ namespace Datahub.Infrastructure.Services.Security
         {
             foreach (var secretKey in CloudStorageHelpers.All_Keys)
             {
-                await TryDeleteSecret(acronym, GetSecretNameForStorage(projectCloudStorage, secretKey));
+                await TryDeleteSecret(acronym, GetSecretNameForStorage(projectCloudStorage.Id, secretKey));
             }
         }
 
