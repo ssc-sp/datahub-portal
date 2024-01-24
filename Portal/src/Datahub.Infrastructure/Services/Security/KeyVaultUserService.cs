@@ -168,7 +168,7 @@ namespace Datahub.Infrastructure.Services.Security
             foreach (var secretKey in CloudStorageHelpers.All_Keys)
             {
                 var secretValue =
-                    await GetSecretAsync(acronym, GetSecretNameForStorage(projectCloudStorage, secretKey));
+                    await GetSecretAsync(acronym, GetSecretNameForStorage(projectCloudStorage.Id, secretKey));
                 if (secretValue != null)
                     secrets.Add(secretKey, secretValue);
             }

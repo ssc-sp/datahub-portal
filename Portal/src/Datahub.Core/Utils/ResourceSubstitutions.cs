@@ -11,6 +11,9 @@ public static class ResourceSubstitutions
     public const string ProjectAcronym = "<project_acronym>";
     public const string ContainerName = "<container_name>";
 
+    public const string AZAccountKey = "<az_key>";
+    public const string AZAccountName = "<az_name>";
+
     public const string AWSAccessKey = "<aws_access_key>";
     public const string AWSAccessKeySecret = "<aws_access_key_secret>";
     public const string AWSRegion = "<aws_region>";
