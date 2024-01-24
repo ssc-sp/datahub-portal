@@ -3,6 +3,7 @@ using Datahub.Metadata.Model;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 
@@ -13,19 +14,20 @@ public record ProjectResourceFormParams(FieldDefinitions FieldDefinitions, Metad
 public interface IRequestManagementService
 {
     /// <summary>
-    /// This method is used to handle the terraform request service, it takes in the project and the terraform template to run
+    /// Handles a Terraform request service asynchronously.
     /// </summary>
-    /// <param name="project"></param>
-    /// <param name="terraformTemplate"></param>
-    /// <returns>
-    /// Returns true if the terraform request service was handled successfully, false otherwise
-    /// </returns>
-    Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate);
+    /// <param name="project">The project to handle the Terraform request for.</param>
+    /// <param name="terraformTemplate">The Terraform template to use for the request.</param>
+    /// <param name="requestingUser">The user requesting the Terraform request.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a boolean indicating whether the Terraform request was handled successfully or not.</returns>
+    Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate,
+        PortalUser requestingUser);
 
     /// <summary>
-    /// Handles user updates to external permissions for a given project.
+    /// Handles user updates to external permissions for a specified Datahub project.
     /// </summary>
-    /// <param name="project">The datahub project.</param>
+    /// <param name="project">The Datahub project for which the user updates the external permissions.</param>
+    /// <param name="currentUser">The current portal user making the updates.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task HandleUserUpdatesToExternalPermissions(Datahub_Project project);
+    Task HandleUserUpdatesToExternalPermissions(Datahub_Project project, PortalUser currentUser);
 }
