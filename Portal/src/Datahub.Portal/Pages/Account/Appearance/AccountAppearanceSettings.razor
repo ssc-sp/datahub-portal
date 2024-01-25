@@ -1,10 +1,11 @@
 @using Datahub.Portal.Components.User
 @using Datahub.Core.Model.Achievements
+@using Datahub.Core.Services.Achievements
 
-@inject IUserInformationService _userInformationService
 @inject IUserSettingsService _userSettingsService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
-@inject IDialogService _dialogService
+@inject ILocalStorageService _localStorage
+@inject IPortalUserTelemetryService _telemetryService
 
 <MudStack Spacing="8" Class="mb-16">
     <MudStack>
@@ -12,7 +13,7 @@
         <MudDivider/>
     </MudStack>
     <SettingsField Label="@Localizer["Theme Preferences"]" Description="@Localizer["Choose how DataHub looks to you. Select a single theme, or sync with your operating system automatically."]">
-        <MudSelect T="string" Label="Current Theme" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@("DataHub Light")">
+        <MudSelect T="string" Label="@Localizer["Current Theme"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@("DataHub Light")">
             <MudSelectItem T="string" Value="@("DataHub Light")"/>
             <MudSelectItem Disabled T="string" Value="@("DataHub Dark")"/>
             <MudSelectItem Disabled T="string" Value="@("Space Light")"/>
@@ -38,8 +39,13 @@
 
     private async Task HandleLanguageChanged(string language)
     {
+        await _localStorage.SetItemAsStringAsync("language", language);
         await _userSettingsService.RegisterUserLanguage(language);
+        await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
         await _userSettingsService.SetLanguage(language);
+        
+        ViewedUser.UserSettings.Language = language;
+        
         await OnViewedUserChanged.InvokeAsync(ViewedUser);
     }
 }
