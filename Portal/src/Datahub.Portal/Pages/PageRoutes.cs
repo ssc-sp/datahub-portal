@@ -23,4 +23,5 @@ public static class PageRoutes
     public const string Tool = $"/{ToolPrefix}/{{Section}}";
 
     public const string Logout = "/signout-oidc";
+    public const string TermsAndConditions = "/terms-and-conditions";
 }
