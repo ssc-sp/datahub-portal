@@ -1241,5 +1241,14 @@
   "Once you add a tool to your workspace, it may take up to 30 minutes before it appears in your sidebar, at which point you will be able to use it by simply clicking on it. If you have any issues or concerns regarding requesting tools, feel free to contact us.": "Once you add a tool to your workspace, it may take up to 30 minutes before it appears in your sidebar, at which point you will be able to use it by simply clicking on it. If you have any issues or concerns regarding requesting tools, feel free to contact us.",
   "Congratulations on creating your workspace!": "Congratulations on creating your workspace!",
   "Current Language": "Current Language",
-  "Current Theme": "Current Theme"
+  "Current Theme": "Current Theme",
+  "Analyzing forest coverage": "Analyzing forest coverage",
+  "Search": "Search",
+  "SSC Datahub {0}": "SSC Datahub {0}",
+  "Achievements": "Achievements",
+  "Users": "Users",
+  "Terms and Conditions": "Terms and Conditions",
+  "Sign Out": "Sign Out",
+  "Admin Access Enabled": "Admin Access Enabled",
+  "User information updated": "User information updated"
 }
