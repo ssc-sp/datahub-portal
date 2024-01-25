@@ -329,7 +329,7 @@
     {
         return recentActivity.userRecentLink.LinkType switch
         {
-            DatahubLinkType.DataProject => recentActivity.datahubProject.ProjectName,
+            DatahubLinkType.DataProject => recentActivity.datahubProject?.ProjectName ?? recentActivity.userRecentLink.DataProject ?? "Workspace",
             DatahubLinkType.Databricks => $"{Localizer["Databricks"]} - {recentActivity.datahubProject.ProjectName}",
             DatahubLinkType.Repository => $"{Localizer["Repositories"]} - {recentActivity.datahubProject.ProjectName}",
             DatahubLinkType.Storage => $"{Localizer["Storage"]} - {recentActivity.datahubProject.ProjectName}",
