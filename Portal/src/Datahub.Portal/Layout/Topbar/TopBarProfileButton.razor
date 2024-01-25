@@ -22,13 +22,12 @@
         </ActivatorContent>
         <ChildContent>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
-                <MudMenuItem>
+                <MudMenuItem OnClick="@ToggleAdminMode">
                     <MudSwitch
                         T="bool"
                         Color="Color.Primary"
                         Checked="@_isViewAsAdmin"
-                        Label="@Localizer["Admin Access Enabled"]"
-                        CheckedChanged="@ToggleAdminMode"/>
+                        Label="@Localizer["Admin Access Enabled"]"/>
                 </MudMenuItem>
                 <MudDivider/>
             </DatahubAuthView>
@@ -53,19 +52,19 @@
     
     private LanguageToggle _languageToggle;
 
-    // get auth state
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
-        _isViewAsAdmin = !(await _userInformationService.IsViewingAsGuest());
+        _isViewAsAdmin = !await _userInformationService.IsViewingAsGuest();
     }
 
-    private async Task ToggleAdminMode(bool newValue)
+    private async Task ToggleAdminMode()
     {
-        await _userInformationService.SetViewingAsGuest(!newValue);
+        _isViewAsAdmin = !_isViewAsAdmin;
+        await _userInformationService.SetViewingAsGuest(!_isViewAsAdmin);
         _navigationManager.NavigateTo(_navigationManager.Uri, true);
     }
 
