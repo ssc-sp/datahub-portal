@@ -60,10 +60,7 @@
                                     </MudButton>
                                     break;
                                 case ToolStatus.PendingRequest:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
-                                        @Localizer["Tool being provisioned..."]
-                                        <MudIcon Icon="fa-light fa-spinner-third fa-spin" Class="ml-2" Style="font-size: 0.8rem;"/>
-                                    </MudButton>
+                                    <ToolBeingProvisionedButton Variant="@Variant.Filled" />
                                     break;
                                 case ToolStatus.Exists:
                                     <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
