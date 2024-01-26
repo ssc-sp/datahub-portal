@@ -1951,7 +1951,7 @@
   "Azure Database for PostgreSQL is a relational database service based on the open-source Postgres database engine. It\u0027s a fully managed database-as-a-service offering that can handle mission-critical workloads with predictable performance, security, high availability, and dynamic scalability.": "Azure Database for PostgreSQL est un service de base de données relationnelle basé sur le moteur de base de données open source Postgres. C'est un service de base de données entièrement géré qui peut gérer des charges de travail critiques avec des performances prévisibles, une sécurité, une haute disponibilité et une évolutivité dynamique.",
   "ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database.": "ArcGIS est un système d'information géographique (SIG) pour travailler avec des cartes et des informations géographiques. Il est utilisé pour créer et utiliser des cartes, compiler des données géographiques, analyser des informations cartographiées, partager et découvrir des informations géographiques, utiliser des cartes et des informations géographiques dans une gamme d'applications, et gérer des informations géographiques dans une base de données.",
   "Azure Storage Blob": "Stockage Blob Azure",
-  "Azure App Service": "Service d'application Azure",
+  "Azure App Service": "Application Azure",
   "Azure Postgres": "Postgres Azure",
   "Azure ArcGIS": "ArcGIS Azure",
   "Add to Workspace": "Ajouter à l'espace de travail",
