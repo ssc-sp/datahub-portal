@@ -190,6 +190,7 @@ public class ProjectCreationService : IProjectCreationService
         {
             Project_Acronym_CD = acronym,
             Project_Name = projectName,
+            Project_Name_Fr = projectName,
             Sector_Name = sectorName,
             Contact_List = portalUser.Email,
             Project_Admin = portalUser.Email,
