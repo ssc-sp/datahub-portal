@@ -12,6 +12,9 @@
             @Localizer["Access the storage accounts for the workspace to upload, download and share datasets with all workspace members."]
         </MudText>
         <MudElement HtmlTag="div">
+            @if (ProjectResource.CreatedAt.HasValue)
+            {
+                
             <MudButton
                 Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Storage}")"
                 Color="Color.Primary"
@@ -19,6 +22,11 @@
                 EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
                 @Localizer["View Storage"]
             </MudButton>
+            }
+            else
+            {
+                <ToolBeingProvisionedButton />
+            }
         </MudElement>
     </MudStack>
 </MudPaper>
