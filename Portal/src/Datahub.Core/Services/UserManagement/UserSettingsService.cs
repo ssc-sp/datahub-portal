@@ -348,7 +348,9 @@ namespace Datahub.Core.Services.UserManagement
             {
                 var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
                 await using var context = await _datahubContextFactory.CreateDbContextAsync();
-                var userSettings = await context.UserSettings.FirstOrDefaultAsync(u => u.PortalUserId == currentUser.Id);
+                var userSettings = await context.UserSettings
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.PortalUserId == currentUser.Id);
                 return userSettings;
             }
             catch (Exception ex)
