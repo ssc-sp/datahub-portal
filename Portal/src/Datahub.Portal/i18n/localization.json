@@ -1254,5 +1254,15 @@
   "Tool is being provisioned": "Tool is being provisioned",
   "Initializing Profile...": "Initializing Profile...",
   "Open Workspace": "Open Workspace",
-  "Create Workspace": "Create Workspace"
+  "Create Workspace": "Create Workspace",
+  "Workspace Database": "Workspace Database",
+  "Here you can manage your workspace database. You can view and test the connectivity of your database": "Here you can manage your workspace database. You can view and test the connectivity of your database",
+  "Database Info": "Database Info",
+  "Host: ": "Host: ",
+  "Database Name: ": "Database Name: ",
+  "Username: ": "Username: ",
+  "Password: ": "Password: ",
+  "Port: ": "Port: ",
+  "Connection Info": "Connection Info",
+  "SQL Database": "SQL Database"
 }
