@@ -1251,5 +1251,8 @@
   "Sign Out": "Sign Out",
   "Admin Access Enabled": "Admin Access Enabled",
   "User information updated": "User information updated",
-  "Tool is being provisioned": "Tool is being provisioned"
+  "Tool is being provisioned": "Tool is being provisioned",
+  "Initializing Profile...": "Initializing Profile...",
+  "Open Workspace": "Open Workspace",
+  "Create Workspace": "Create Workspace"
 }
