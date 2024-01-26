@@ -1964,6 +1964,7 @@
   "Sending Request...": "Envoi de la demande...",
   "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail",
   "Tool being provisioned...": "En cours d'approvisionnement",
+  "Tool being provisioned": "En cours d'approvisionnement",
   "Workspace Settings": "Paramètres de l'espace de travail",
   "Workspace Budget": "Budget de l'espace de travail",
   "The amount of credits allocated to your workspace. Please contact us if you wish to modify your budget.": "Le montant des crédits alloués à votre espace de travail. Veuillez nous contacter si vous souhaitez modifier votre budget.",
