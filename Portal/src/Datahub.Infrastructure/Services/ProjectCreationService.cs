@@ -4,6 +4,7 @@ using Datahub.Application.Services;
 using Datahub.Core.Data;
 using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Enums;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
@@ -119,15 +120,14 @@ public class ProjectCreationService : IProjectCreationService
                 acronym ??= await GenerateProjectAcronymAsync(projectName);
                 var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
                 
-                var user = await _userInformationService.GetCurrentGraphUserAsync();
-                if (user is null) 
+                var currentPortalUser = await _userInformationService.GetCurrentPortalUserAsync();
+                if (currentPortalUser is null) 
                     return false;
 
-                await AddProjectToDb(user, projectName, acronym, organization);
+                await AddProjectToDb(currentPortalUser, projectName, acronym, organization);
                 
                 await CreateNewTemplateProjectResourceAsync(acronym); 
                 
-                var currentPortalUser = await _userInformationService.GetCurrentPortalUserAsync();
                 var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
                 
                 await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
@@ -183,7 +183,7 @@ public class ProjectCreationService : IProjectCreationService
         await context.TrackSaveChangesAsync(_auditingService);
     }
     
-    private async Task AddProjectToDb(User user, string projectName, string acronym, string organization) 
+    private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization) 
     {
         var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
         var project = new Datahub_Project()
@@ -191,8 +191,8 @@ public class ProjectCreationService : IProjectCreationService
             Project_Acronym_CD = acronym,
             Project_Name = projectName,
             Sector_Name = sectorName,
-            Contact_List = user.Mail,
-            Project_Admin = user.Mail,
+            Contact_List = portalUser.Email,
+            Project_Admin = portalUser.Email,
             Project_Phase = TerraformOutputStatus.PendingApproval,
             Project_Status_Desc = "Ongoing",
             Project_Status = (int)ProjectStatus.InProgress,
@@ -200,8 +200,7 @@ public class ProjectCreationService : IProjectCreationService
         };
         await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
         await db.Projects.AddAsync(project);
-        if (string.IsNullOrWhiteSpace(user.Id)) throw new InvalidOperationException("Cannot add user without ID");
-        var portalUser = await _userInformationService.GetPortalUserAsync(user.Id);
+        
         var role = Project_Role.GetAll()
             .First(r => r.Id == (int)Project_Role.RoleNames.WorkspaceLead);
             
