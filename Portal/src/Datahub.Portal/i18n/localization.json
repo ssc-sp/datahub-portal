@@ -1257,5 +1257,6 @@
   "Tool is being provisioned": "Tool is being provisioned",
   "Initializing Profile...": "Initializing Profile...",
   "Open Workspace": "Open Workspace",
-  "Create Workspace": "Create Workspace"
+  "Create Workspace": "Create Workspace",
+  "Reset alert settings": "Reset alert settings"
 }
