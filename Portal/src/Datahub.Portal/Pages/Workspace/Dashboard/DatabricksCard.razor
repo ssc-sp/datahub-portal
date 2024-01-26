@@ -25,13 +25,7 @@
             }
             else
             {
-                <MudButton
-                    Color="Color.Primary"
-                    Variant="@Variant.Text"
-                    Disabled="true">
-                    <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true"/>
-                    @Localizer["Tool is being provisioned"]
-                </MudButton>
+                <ToolBeingProvisionedButton />
             }
         </MudElement>
     </MudStack>
