@@ -1949,9 +1949,9 @@
   "Azure Blob storage is Microsoft\u0027s object storage solution for the cloud. Blob storage is optimized for storing massive amounts of unstructured data, such as text or binary data.": "Le stockage Blob Azure est la solution de stockage d'objets de Microsoft pour le cloud. Le stockage Blob est optimisé pour le stockage de grandes quantités de données non structurées, telles que des données textuelles ou binaires.",
   "Azure App Service is a fully managed web hosting service for building web apps, mobile back ends, and RESTful APIs. It offers auto-scaling and high availability, supports both Windows and Linux, and enables automated deployments from GitHub, Azure DevOps, or any Git repo.": "Service d'application Azure est un service d'hébergement web entièrement géré pour la création d'applications web, de back-ends mobiles et d'API RESTful. Il offre une mise à l'échelle automatique et une haute disponibilité, prend en charge Windows et Linux, et permet des déploiements automatisés à partir de GitHub, Azure DevOps ou de n'importe quel référentiel Git.",
   "Azure Database for PostgreSQL is a relational database service based on the open-source Postgres database engine. It\u0027s a fully managed database-as-a-service offering that can handle mission-critical workloads with predictable performance, security, high availability, and dynamic scalability.": "Azure Database for PostgreSQL est un service de base de données relationnelle basé sur le moteur de base de données open source Postgres. C'est un service de base de données entièrement géré qui peut gérer des charges de travail critiques avec des performances prévisibles, une sécurité, une haute disponibilité et une évolutivité dynamique.",
-  "ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database.": "ArcGIS est un système d'information géographique (SIG) pour travailler avec des cartes et des informations géographiques. Il est utilisé pour créer et utiliser des cartes, compiler des données géographiques, analyser des informations cartographiées, partager et découvrir des informations géographiques, utiliser des cartes et des informations géographiques dans une gamme d'applications, et gérer des informations géographiques dans une base de données.",
+  "ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database.": "ArcGIS est un système d'information géographique (SIG) pour travailler avec des cartes et des informations géographiques. Il est utilisé pour créer et utiliser des cartes, compiler des données géographiques, analyser des informations cartographiées, découvrir des informations géographiques dans une gamme d'applications.",
   "Azure Storage Blob": "Stockage Blob Azure",
-  "Azure App Service": "Service d'application Azure",
+  "Azure App Service": "Application Azure",
   "Azure Postgres": "Postgres Azure",
   "Azure ArcGIS": "ArcGIS Azure",
   "Add to Workspace": "Ajouter à l'espace de travail",
@@ -1963,7 +1963,8 @@
   "Successfully saved project metadata.": "Métadonnées du projet enregistrées avec succès.",
   "Sending Request...": "Envoi de la demande...",
   "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail",
-  "Tool being provisioned...": "Outil en cours de provisionnement...",
+  "Tool being provisioned...": "En cours d'approvisionnement",
+  "Tool is being provisioned": "En cours d'approvisionnement",
   "Workspace Settings": "Paramètres de l'espace de travail",
   "Workspace Budget": "Budget de l'espace de travail",
   "The amount of credits allocated to your workspace. Please contact us if you wish to modify your budget.": "Le montant des crédits alloués à votre espace de travail. Veuillez nous contacter si vous souhaitez modifier votre budget.",
@@ -1979,5 +1980,7 @@
   "Current Theme": "Thème actuel",
   "Your achievements": "Vos réalisations",
   "Achievements": "Réalisations",
-  "User information updated": "Informations utilisateur mises à jour"
+  "User information updated": "Informations utilisateur mises à jour",
+  "Initializing Profile...": "Initialisation du profil...",
+  "Create Workspace": "Créer un espace de travail"
 }
