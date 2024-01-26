@@ -54,13 +54,12 @@
                                     </MudButton>
                                     break;
                                 case ToolStatus.SendingRequest:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                    <SpinnerButton Variant="@Variant.Filled">
                                         @Localizer["Sending Request..."]
-                                        <MudIcon Icon="fa-light fa-spinner-third fa-spin" Class="ml-2" Style="font-size: 0.8rem;"/>
-                                    </MudButton>
+                                    </SpinnerButton>
                                     break;
                                 case ToolStatus.PendingRequest:
-                                    <ToolBeingProvisionedButton Variant="@Variant.Filled" />
+                                    <ToolBeingProvisionedButton Variant="@Variant.Filled"/>
                                     break;
                                 case ToolStatus.Exists:
                                     <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
@@ -103,8 +102,7 @@
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
 
     private Datahub_Project _workspace;
 
@@ -168,26 +166,26 @@
             }
         }
     }
-    
+
     private ToolStatus GetToolStatus(string tool)
     {
-        if(_toolCurrentDevelopmentStatusMap[tool] != ToolStatus.Available)
+        if (_toolCurrentDevelopmentStatusMap[tool] != ToolStatus.Available)
         {
             return _toolCurrentDevelopmentStatusMap[tool];
         }
-        
+
         var toolResource = _workspace.Resources.FirstOrDefault(r => r.ResourceType.EndsWith(tool));
         if (toolResource == null)
         {
             return ToolStatus.Available;
         }
-        
-        if(toolResource.CreatedAt == null)
+
+        if (toolResource.CreatedAt == null)
         {
             return ToolStatus.PendingRequest;
         }
-        
-        if(toolResource.CreatedAt < DateTime.UtcNow)
+
+        if (toolResource.CreatedAt < DateTime.UtcNow)
         {
             return ToolStatus.Exists;
         }
@@ -228,7 +226,7 @@
             TerraformTemplate.AzurePostgres => Localizer["Azure Postgres"],
             TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
             _ => tool
-            };
+        };
     }
 
     private string GetDescription(string tool)
@@ -241,19 +239,20 @@
             TerraformTemplate.AzurePostgres => Localizer["Azure Database for PostgreSQL is a relational database service based on the open-source Postgres database engine. It's a fully managed database-as-a-service offering that can handle mission-critical workloads with predictable performance, security, high availability, and dynamic scalability."],
             TerraformTemplate.AzureArcGis => Localizer["ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database."],
             _ => tool
-            };
+        };
     }
 
     private string GetIcon(string tool)
     {
-        return tool switch{
+        return tool switch
+        {
             TerraformTemplate.AzureDatabricks => SidebarIcons.Databricks,
             TerraformTemplate.AzureStorageBlob => SidebarIcons.Storage,
             TerraformTemplate.AzureAppService => SidebarIcons.WebApp,
             TerraformTemplate.AzurePostgres => SidebarIcons.SqlDatabase,
             TerraformTemplate.AzureArcGis => SidebarIcons.ArcGis,
             _ => SidebarIcons.Default
-            };
+        };
     }
 
 }
