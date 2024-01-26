@@ -1243,6 +1243,8 @@
   "$CAD": "$CAD",
   "Cost Analysis": "Cost Analysis",
   "No cost data available, please check back later": "No cost data available, please check back later",
+  "Current Language": "Current Language",
+  "Current Theme": "Current Theme",
   "Analyzing forest coverage": "Analyzing forest coverage",
   "Search": "Search",
   "SSC Datahub {0}": "SSC Datahub {0}",
