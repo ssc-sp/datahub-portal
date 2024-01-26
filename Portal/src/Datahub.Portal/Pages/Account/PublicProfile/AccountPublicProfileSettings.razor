@@ -34,7 +34,7 @@
     </SettingsField>
     <SettingsField Label="@Localizer["Display page alerts and tutorials"]" Description="@Localizer["Choose whether or not to display alert and tutorial dialogs in Datahub."]">
         <MudSwitch T="bool" Label="@Localizer["Show alerts and tutorials"]" Checked="@(!ViewedUser.UserSettings.HideAlerts)" Color="Color.Primary" UnCheckedColor="Color.Dark" CheckedChanged="HandleHideAlertsChanged"/>
-        <MudButton OnClick="@ClearAlerts">@Localizer["Clear viewed alerts"]</MudButton>
+        <MudButton OnClick="@ClearAlerts">@Localizer["Reset alert settings"]</MudButton>
     </SettingsField>
 </MudStack>
 
@@ -45,8 +45,6 @@
 
     [Parameter]
     public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
-
-    private string BackgroundUrl => _datahubPortalConfiguration?.Media.GetAchievementThumbnailUrl(ViewedUser?.BannerPictureUrl);
 
     private async Task HandleImageSelected(string code, bool isProfilePicture)
     {
