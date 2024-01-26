@@ -1985,5 +1985,6 @@
   "Achievements": "Réalisations",
   "User information updated": "Informations utilisateur mises à jour",
   "Initializing Profile...": "Initialisation du profil...",
-  "Create Workspace": "Créer un espace de travail"
+  "Create Workspace": "Créer un espace de travail",
+  "Reset alert settings": "Réinitialiser les paramètres d'alerte"
 }
