@@ -1,7 +1,15 @@
 <MudButton
     Color="Color.Primary"
-    Variant="@Variant.Text"
+    Variant="@Variant"
     Disabled="true">
     <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true"/>
     @Localizer["Tool is being provisioned"]
 </MudButton>
+
+
+@code {
+
+    [Parameter]
+    public Variant Variant { get; set; } = Variant.Text;
+
+}
