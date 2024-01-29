@@ -5,7 +5,6 @@
     "datahub_mssql_etldb": "",
     "datahub_mssql_finance": "",
     "datahub_mssql_webanalytics": "",
-    "datahub_cosmosdb": "",
     "datahub_mssql_metadata-bak": "",
     "datahub_mssql_metadata": ""
   },

@@ -6,11 +6,17 @@ using System;
 using Xunit;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.UserTracking;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Services.Security;
 using Datahub.Core.Services.Storage;
+using Datahub.Infrastructure.Services.Api;
+using Datahub.Infrastructure.Services.Security;
+using Datahub.Infrastructure.Services.Storage;
+using Datahub.Infrastructure.Services.UserManagement;
 
 namespace Datahub.Tests;
 
@@ -18,7 +24,6 @@ public class DbTests
 {
     private ServiceProvider _serviceProvider;
     private IConfiguration _config;
-    private string _cosmosCxnStr = @"AccountEndpoint=https://dh-portal-cosmosdb-dev.documents.azure.com:443/;AccountKey=QAwclaaNFK2G5foH4g9NqGa2xBJfLS46n53LW3LKOqYMiGxBI4J9H3sOSSAwx9ZI7YHqPQzc5w3QZD29vSZBDg==;";
     private string _userId = "myuserid";
 
 
@@ -81,7 +86,7 @@ public class DbTests
             builder.AddConsole();
         });
         serviceCollection.AddScoped<UserLocationManagerService>();
-        serviceCollection.AddSingleton<IKeyVaultService, KeyVaultService>();
+        serviceCollection.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
         serviceCollection.AddScoped<UserLocationManagerService>();
         serviceCollection.AddSingleton<CommonAzureServices>();
         serviceCollection.AddScoped<DataLakeClientService>();

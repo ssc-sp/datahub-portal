@@ -5,11 +5,9 @@ namespace Datahub.Core.Services.Api;
 public class BaseService
 {
     protected NavigationManager _navigationManager;
-    protected UIControlsService _uiService;
 
-    public BaseService(NavigationManager navigationManager, UIControlsService uiService)
+    public BaseService(NavigationManager navigationManager)
     {
         _navigationManager = navigationManager;
-        _uiService = uiService;
     }
 }

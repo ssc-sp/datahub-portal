@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <AzureFunctionsVersion>v4</AzureFunctionsVersion>
         <OutputType>Exe</OutputType>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -8,14 +8,25 @@
         <UserSecretsId>7085b673-23cc-4759-933a-5a22d1004411</UserSecretsId>
     </PropertyGroup>
     <ItemGroup>
-      <None Remove="templates\cost_alert.html" />
-      <None Remove="templates\user_invitation.html" />
-    </ItemGroup>
-    <ItemGroup>
-      <Content Include="templates\cost_alert.html">
+      <Content Include="EmailTemplates\cost_alert.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-      <Content Include="templates\user_invitation.html">
+      <Content Include="EmailTemplates\user_invitation.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="EmailTemplates\project_inactive_alert.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="EmailTemplates\user_lock_alert.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="EmailTemplates\user_deletion_alert.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="EmailTemplates\bug_report.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="EmailTemplates\test_template.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
@@ -26,11 +37,12 @@
         <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.19.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" Version="6.2.0" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.2.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.2.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.14.1" />
         
         <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.*" />
         
 
 		<PackageReference Include="MailKit" Version="4.2.0" />
@@ -51,10 +63,15 @@
     <ItemGroup>
       <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
       <ProjectReference Include="..\Datahub.Infrastructure\Datahub.Infrastructure.csproj" />
+      <ProjectReference Include="..\Datahub.Portal\Datahub.Portal.csproj" />
       <ProjectReference Include="..\Datahub.ProjectTools\Datahub.ProjectTools.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <InternalsVisibleTo Include="Datahub.Functions.UnitTests" />
     </ItemGroup>
 </Project>

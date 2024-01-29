@@ -1,0 +1,255 @@
+﻿@*ProjectCosting.razor*@
+
+@* @page "/w/{ProjectAcronym}/costs" *@
+
+@using Datahub.Core.Data.CostEstimators
+@using Datahub.Infrastructure.Services.Azure;
+@using System.Text.Json;
+@using Datahub.Core.Model.Projects
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IAzurePriceListService _azurePriceListService
+@inject NavigationManager _navigationManager
+
+@if (_loading)
+{
+    <DHLoadingInitializer/>
+    return;
+}
+
+@if (_projectCredits is null)
+{
+    <MudStack>
+        <MudText Typo="Typo.h3">@Localizer["Cost Analysis"]</MudText>
+        <MudText Typo="Typo.body1">@Localizer["No cost data available, please check back later"]</MudText>
+    </MudStack>
+}
+
+<MudStack>
+    @if (_currentServiceCosts?.Count > 0)
+    {
+        <MudText Typo="Typo.h3">@Localizer["Cost Analysis"]</MudText>
+        <MudStack Row>
+            <MudChip Label="true"
+                     Icon="@Icons.Material.Filled.AttachMoney"
+                     Color="@MonthChipColor"
+                     Variant="@Variant.Text"
+                     OnClick="@HandleShowMonth">
+                @($"{CurrentCost:C} {Localizer["Total"]}")
+            </MudChip>
+            <MudChip Label="true"
+                     Icon="@Icons.Material.Filled.AttachMoney"
+                     Color="@YesterdayChipColor"
+                     Variant="@Variant.Text"
+                     OnClick="@HandleShowYesterday">
+                @($"{YesterdayCost:C} {Localizer["Yesterday"]}")
+            </MudChip>
+        </MudStack>
+        <div>
+            <MudChart ChartType="ChartType.Donut"
+                      Width="300px"
+                      Height="300px"
+                      LegendPosition="Position.Right"
+                      InputData="@ServiceCosts"
+                      InputLabels="@ServiceLabels">
+                <CustomGraphics>
+                    <text class="donut-inner-text" x="47%" y="35%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">@SelectedTotalLabel</text>
+                    <text class="donut-inner-text" x="47%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="4">@($"{SelectedTotalCost:C}")</text>
+                </CustomGraphics>
+            </MudChart>
+        </div>
+    }
+
+    @if (_currentDailyCosts?.Count > 1 && _currentDailyCosts.Any(c => c.Cost > 0))
+    {
+        <MudDivider Class="my-6" />
+        <MudText Typo="Typo.h3">@Localizer["Daily cost (over last 30 days)"]</MudText>
+        <div>
+            <MudChart ChartType="ChartType.Bar"
+                      ChartSeries="@DailySeries"
+                      XAxisLabels="@XAxisDailyLabels"
+                      Width="100%"
+                      Height="350px"/>
+        </div>
+    }
+
+    @if (_remainingBudget > 0 && _spendingEstimation != null)
+    {
+        <MudDivider Class="my-6" />
+        <MudStack>
+            <MudText Typo="Typo.h3">@Localizer["Daily cost (over last 30 days)"]</MudText>
+            <MudStack>
+                <MudText>
+                    <b>@Localizer["Project_Remaining_Credit_label"]</b> @(string.Format(Localizer["Project_Remaining_Credit_text"], _remainingBudget, _projectBudget))
+                </MudText>
+
+                <MudText >
+                    <b>@Localizer["Storage Equivalent:"]</b> @(string.Format(Localizer["Project_Remaining_Credit_Storage"], _remainingBudget, _storageEquivalentFormatted))
+                </MudText>
+
+                <MudStack Row>
+                    <MudStack>
+                        <MudText>
+                            <b>@Localizer["Compute Equivalent:"]</b> @(string.Format(Localizer["Project_Remaining_Credit_Compute"], _remainingBudget))
+                        </MudText>
+                    </MudStack>
+                    <MudStack>
+                        <MudText>
+                            @(string.Format(Localizer["Project_Remaining_Credit_Compute_Small"], _spendingEstimation.ComputeSmall))
+                        </MudText>
+                        <MudText>
+                            @(string.Format(Localizer["Project_Remaining_Credit_Compute_Medium"], _spendingEstimation.ComputeMedium))
+                        </MudText>
+                        <MudText>
+                            @(string.Format(Localizer["Project_Remaining_Credit_Compute_Large"], _spendingEstimation.ComputeLarge))
+                        </MudText>
+                    </MudStack>
+                </MudStack>
+            </MudStack>
+        </MudStack>
+    }
+
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    public decimal _projectBudget { get; set; }
+    private Project_Credits _projectCredits { get; set; }
+
+    private List<AzureDailyCost> _currentDailyCosts { get; set; } = new();
+    private List<AzureServiceCost> _currentServiceCosts { get; set; } = new();
+    private List<AzureServiceCost> _yesterdayServiceCosts { get; set; } = new();
+
+    private decimal CurrentCost => Convert.ToDecimal(_projectCredits.Current);
+    private decimal YesterdayCost => Convert.ToDecimal(_projectCredits.YesterdayCredits);
+
+    private bool _showingTotal = true;
+    private string SelectedTotalLabel => _showingTotal ? Localizer["Total"] : Localizer["Yesterday"];
+    private decimal SelectedTotalCost => _showingTotal ? CurrentCost : YesterdayCost;
+    private MudBlazor.Color MonthChipColor => _showingTotal ? MudBlazor.Color.Primary : MudBlazor.Color.Default;
+    private MudBlazor.Color YesterdayChipColor => _showingTotal ? MudBlazor.Color.Default : MudBlazor.Color.Primary;
+
+    private decimal _remainingBudget;
+    private SpendingEstimation _spendingEstimation;
+    private string _storageEquivalentFormatted;
+
+    private bool _loading = true;
+
+    private List<ChartSeries> DailySeries => new()
+    {
+        new() { Name = Localizer["$CAD"], Data = _currentDailyCosts.Select(dc => dc.Cost).ToArray() }
+    };
+
+    private string[] XAxisDailyLabels => _currentDailyCosts.Select(dc => FormatDay(dc.Date)).ToArray();
+    static string FormatDay(DateTime date) => $"{date.Day.ToString("D2")}";
+
+    private double[] ServiceCosts => _showingTotal ? GetMonthServiceCosts() : GetYesterdayServiceCosts();
+    private string[] ServiceLabels => _showingTotal ? GetMonthServiceLabels() : GetYesterdayServiceLabels();
+
+    private double[] GetMonthServiceCosts() => _currentServiceCosts.Select(sc => sc.Cost).ToArray();
+    private string[] GetMonthServiceLabels() => _currentServiceCosts.Select(sc => $"{sc.Name} ({sc.Cost:C})").ToArray();
+
+    private double[] GetYesterdayServiceCosts() => _yesterdayServiceCosts.Select(sc => sc.Cost).ToArray();
+    private string[] GetYesterdayServiceLabels() => _yesterdayServiceCosts.Select(sc => $"{sc.Name} ({sc.Cost:C})").ToArray();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+
+        var project = await ctx.Projects
+            .Include(p => p.Credits)
+            .AsSingleQuery()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        if (project?.Credits is null)
+        {
+            _loading = false;
+            return;
+        }
+
+        _projectCredits = project.Credits;
+        _projectBudget = project.Project_Budget ?? 0;
+
+        _remainingBudget = _projectBudget - CurrentCost;
+        if (_remainingBudget > 0)
+        {
+            _spendingEstimation = await GetSpendingEstimations(_remainingBudget);
+            _storageEquivalentFormatted = FormatStorageCapacity(_spendingEstimation.Storage);
+        }
+
+        ConvertCosts();
+
+        _loading = false;
+    }
+
+    private async Task<SpendingEstimation> GetSpendingEstimations(decimal amount)
+    {
+    // storage
+        var storageCostGrid = await _azurePriceListService.GetAzureStoragePriceLists();
+
+        var searchKey = IAzurePriceListService.GenerateAzureStoragePriceListKey(AccessTierType.Hot, DataRedundancyType.LRS);
+        var priceList = storageCostGrid.PriceLists[searchKey];
+        var storage = decimal.ToDouble(amount / priceList.Capacity.BasePrice);
+
+    // compute
+        var compCostGrid = await _azurePriceListService.GetAzureComputeCostPrices();
+
+        var smPerHour = CalculateComputeCost(5, compCostGrid.Ds3VmPrice, compCostGrid.DbuPrice, 0.75M, 1);
+        var mdPerHour = CalculateComputeCost(3, compCostGrid.Ds4VmPrice, compCostGrid.DbuPrice, 1.50M, 1);
+        var lgPerHour = CalculateComputeCost(3, compCostGrid.Ds5VmPrice, compCostGrid.DbuPrice, 3.00M, 1);
+
+        var small = Math.Truncate(decimal.ToDouble(amount / smPerHour));
+        var medium = Math.Truncate(decimal.ToDouble(amount / mdPerHour));
+        var large = Math.Truncate(decimal.ToDouble(amount / lgPerHour));
+
+        return new(storage, small, medium, large);
+    }
+
+    private decimal CalculateComputeCost(int numVms, decimal vmCost, decimal dbuPrice, decimal dbuFactor, int numHours)
+    {
+        var totalHours = numVms * numHours;
+        var vmPrice = totalHours * vmCost;
+        var dbuUnits = totalHours * dbuFactor;
+        var dbuPriceTotal = dbuUnits * dbuPrice;
+        return 1.1M * (vmPrice + dbuPriceTotal);
+    }
+
+    private string FormatStorageCapacity(double gigabytes)
+    {
+        var rounded = Math.Truncate(gigabytes * 100) / 100.0;
+
+        if (Math.Truncate(rounded) < 1024)
+            return $"{rounded} GB";
+
+        rounded = Math.Truncate((gigabytes / 1024) * 100) / 100.0;
+
+        return $"{rounded} TB";
+    }
+
+    private void ConvertCosts()
+    {
+        if (!string.IsNullOrEmpty(_projectCredits.CurrentPerService))
+        {
+            _currentServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.CurrentPerService);
+        }
+
+        if (!string.IsNullOrEmpty(_projectCredits.YesterdayPerService))
+        {
+            _yesterdayServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.YesterdayPerService);
+        }
+
+        if (!string.IsNullOrEmpty(_projectCredits.CurrentPerDay))
+        {
+            _currentDailyCosts = JsonSerializer.Deserialize<List<AzureDailyCost>>(_projectCredits.CurrentPerDay);
+        }
+    }
+
+    private void HandleShowMonth() => _showingTotal = true;
+    private void HandleShowYesterday() => _showingTotal = false;
+
+    record SpendingEstimation(double Storage, double ComputeSmall, double ComputeMedium, double ComputeLarge);
+
+}

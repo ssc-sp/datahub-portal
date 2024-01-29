@@ -1,0 +1,24 @@
+@using Datahub.Portal.Pages.Workspace
+
+@inherits WorkspaceBaseStory
+@attribute [Stories("Workspace/Admin Info")]
+
+
+<Stories TComponent="WorkspaceAdminInfo">
+    <Story Name="Default">
+        <Template>
+            <MudContainer MaxWidth="MaxWidth.Large">
+                <MudGrid>
+                    <MudItem xs="4">
+                        <WorkspaceAdminInfo WorkspaceAcronym="@_project.Project_Acronym_CD"/>
+                    </MudItem>
+                </MudGrid>
+            </MudContainer>
+        </Template>
+    </Story>
+</Stories>
+
+@code {
+
+
+}

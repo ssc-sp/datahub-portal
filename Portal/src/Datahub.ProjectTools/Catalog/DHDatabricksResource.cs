@@ -2,6 +2,7 @@
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Projects;
 using Datahub.ProjectTools.Services;
+using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -26,11 +27,11 @@ public class DHDatabricksResource : ActiveGitModuleResource
     protected override async Task InitializeAsync(string? userId, Microsoft.Graph.Models.User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
-        var serviceRequests = Project.ServiceRequests;
-        var serviceTerraformTemplateName =
-            RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
-        _databricksServiceRequested = serviceRequests.Any(r => r.ServiceType == serviceTerraformTemplateName && r.Is_Completed == null);
-        _databricksServiceCreated = serviceRequests.Any(r => r.ServiceType == serviceTerraformTemplateName && r.Is_Completed != null);
+        // var serviceRequests = Project.ProjectRequestAudits;
+        // var serviceTerraformTemplateName =
+            // TerraformTemplate.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
+        // _databricksServiceRequested = serviceRequests.Any(r => r.RequestType == serviceTerraformTemplateName && r.Is_Completed == null);
+        // _databricksServiceCreated = serviceRequests.Any(r => r.RequestType == serviceTerraformTemplateName && r.Is_Completed != null);
         
         Parameters.Add(nameof(Databricks.Project), Project);
     }

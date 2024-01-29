@@ -3,6 +3,7 @@ using Datahub.Metadata.Model;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 
@@ -12,34 +13,21 @@ public record ProjectResourceFormParams(FieldDefinitions FieldDefinitions, Metad
 
 public interface IRequestManagementService
 {
-    public const string DATABRICKS = ProjectResourceConstants.SERVICE_TYPE_DATABRICKS;
-    public const string POWERBI = ProjectResourceConstants.SERVICE_TYPE_POWERBI;
-    public const string STORAGE = ProjectResourceConstants.SERVICE_TYPE_STORAGE;
-    public const string SQLSERVER = ProjectResourceConstants.SERVICE_TYPE_SQL_SERVER;
-    public const string POSTGRESQL = ProjectResourceConstants.SERVICE_TYPE_POSTGRES;
-    public const string VIRTUAL_MACHINE  = ProjectResourceConstants.SERVICE_TYPE_VIRTUAL_MACHINE;
-
-    Task<ProjectResourceFormParams> CreateResourceInputFormParams(string resourceType);
-    Task<Dictionary<string, string>> GetDefaultValues(string resourceType);
-    Task<string> GetResourceInputDefinitionJson(string resourceType);
-    Task<List<Project_Resources2>> GetResourcesByRequest(Datahub_ProjectServiceRequests request);
-    
-    [Obsolete("Use HandleTerraformRequestServiceAsync instead")]
-    Task HandleRequestService(Datahub_Project project, string serviceType);
-    
     /// <summary>
-    /// This method is used to handle the terraform request service, it takes in the project and the terraform template to run
+    /// Handles a Terraform request service asynchronously.
     /// </summary>
-    /// <param name="project"></param>
-    /// <param name="terraformTemplate"></param>
-    /// <returns>
-    /// Returns true if the terraform request service was handled successfully, false otherwise
-    /// </returns>
-    Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate);
-    
-    Task HandleUserUpdatesToExternalPermissions(Datahub_Project project);
-    Task RequestService(Datahub_ProjectServiceRequests request, Dictionary<string, string> inputParams = null);
-    Task RequestServiceWithDefaults(Datahub_ProjectServiceRequests request);
-    Task SaveResourceInputDefinitionJson(string resourceType, string jsonContent);
-    Task<bool> UpdateResourceInputParameters(Guid resourceId, Dictionary<string, string> inputParams);
+    /// <param name="project">The project to handle the Terraform request for.</param>
+    /// <param name="terraformTemplate">The Terraform template to use for the request.</param>
+    /// <param name="requestingUser">The user requesting the Terraform request.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a boolean indicating whether the Terraform request was handled successfully or not.</returns>
+    Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate,
+        PortalUser requestingUser);
+
+    /// <summary>
+    /// Handles user updates to external permissions for a specified Datahub project.
+    /// </summary>
+    /// <param name="project">The Datahub project for which the user updates the external permissions.</param>
+    /// <param name="currentUser">The current portal user making the updates.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    Task HandleUserUpdatesToExternalPermissions(Datahub_Project project, PortalUser currentUser);
 }

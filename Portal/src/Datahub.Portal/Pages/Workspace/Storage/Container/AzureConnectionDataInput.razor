@@ -1,0 +1,68 @@
+﻿@* AzureConnectionDataInput.razor *@
+@using Datahub.Infrastructure.Services.Storage;
+@using static Datahub.Infrastructure.Services.Storage.CloudStorageHelpers;
+
+<MudTextField @bind-Value="AccountName"
+              Label=@Localizer["Storage Account Name"]
+              Variant="Variant.Text"
+              Adornment=@Adornment.End
+              Immediate
+              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
+
+<MudTextField @bind-Value="AccountKey"
+              Label=@Localizer["Account Key"]
+              Variant="Variant.Text"
+              InputType="InputType.Password"
+              Adornment=@Adornment.End
+              Immediate
+              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
+
+
+
+@code {
+
+    [Parameter]
+    public IDictionary<string, string> ConnectionData { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnValidationChanged { get; set; }
+
+    private bool IsValid => !(string.IsNullOrEmpty(AccountName) || string.IsNullOrEmpty(AccountKey));
+
+    private string AccountName
+    {
+        get => ConnectionData[AZ_AccountName];
+        set
+        {
+            ConnectionData[AZ_AccountName] = value;
+            Validate();
+        }
+    }
+
+    private string AccountKey
+    {
+        get => ConnectionData[AZ_AccountKey];
+        set
+        {
+            ConnectionData[AZ_AccountKey] = value;
+            Validate();
+        }
+    }
+
+    private void Validate()
+    {
+        if (OnValidationChanged.HasDelegate)
+        {
+            OnValidationChanged.InvokeAsync(IsValid);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ConnectionData is null) throw new InvalidDataException($"ConnectionData is null.");
+
+        Validate();
+    }
+
+
+}

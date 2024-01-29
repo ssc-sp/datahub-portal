@@ -1,0 +1,17 @@
+<MudButton
+    Color="Color.Primary"
+    Variant="@Variant"
+    Disabled="true">
+    <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true"/>
+    @ChildContent
+</MudButton>
+
+
+@code {
+
+    [Parameter]
+    public Variant Variant { get; set; } = Variant.Text;
+    
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}

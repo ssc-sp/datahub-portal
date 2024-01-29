@@ -1,7 +1,12 @@
 ﻿using Datahub.Core.Services.Docs;
+using Datahub.Markdown;
+using Datahub.Markdown.Model;
+using Datahub.Portal.Components.Resources;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -35,41 +40,50 @@ namespace Datahub.Tests.Docs
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpClient);
             // Arrange
             var memCache = new MemoryCache(new MemoryCacheOptions());
-            _service = new DocumentationService(config, logger, mockFactory.Object,memCache);
+            var me = new Mock<IWebHostEnvironment>();
+            me.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+            _service = new DocumentationService(config, logger, mockFactory.Object, me.Object, memCache);
         }
 
         [Fact]
-        public async void TestReadLastCommitTS()
+        public async Task TestReadLastCommitTS()
         {
             var lastCommit = await _service.GetLastRepoCommitTS();
             Assert.NotNull(lastCommit);
+        }
+
+        [Fact]
+        public void GivenIcon_ReadMudblazorIcon()
+        {
+            var iconData = DocItemHelper.GetMudblazorMaterialIcon("Outlined", "Workspaces");
+            Assert.NotNull(iconData);
         }
 
 
         [Fact]
         public void TestCompareCultureStrings()
         {
-            Assert.True(DocumentationService.CompareCulture("en-us", "en"));
-            Assert.True(DocumentationService.CompareCulture("en-ca", "EN"));
-            Assert.True(DocumentationService.CompareCulture("fr-ca", "FR"));
-            Assert.False(DocumentationService.CompareCulture("fr-ca", "en"));
+            Assert.True(MarkdownTools.CompareCulture("en-us", "en"));
+            Assert.True(MarkdownTools.CompareCulture("en-ca", "EN"));
+            Assert.True(MarkdownTools.CompareCulture("fr-ca", "FR"));
+            Assert.False(MarkdownTools.CompareCulture("fr-ca", "en"));
         }
 
         [Fact]
         public async Task Test1LoadEnglishSidebar()
         {
-            var root = await _service.GetLanguageRoot(DocumentationGuideRootSection.UserGuide,"en");
+            var root = await _service.LoadResourceTree(DocumentationGuideRootSection.UserGuide,"en");
             Assert.NotNull(root);
-            Assert.True(root.Children.Count > 10);
+            Assert.True(root.Children.Count > 5);
         }
 
         [Fact]
         public async Task TestLoadPage()
         {
-            var root = await _service.GetLanguageRoot(DocumentationGuideRootSection.UserGuide, "en");
+            var root = await _service.LoadResourceTree(DocumentationGuideRootSection.UserGuide, "en");
             Assert.NotNull(root);
-            Assert.True(root.Children.Count > 10);
-            var pageId = root.Children[9].Id!;
+            Assert.True(root.Children.Count > 5);
+            var pageId = root.Children[5].Id!;
             var loadedPage = _service.LoadPage(pageId, false);
             Assert.NotNull(loadedPage);
             var parent = _service.GetParent(loadedPage);

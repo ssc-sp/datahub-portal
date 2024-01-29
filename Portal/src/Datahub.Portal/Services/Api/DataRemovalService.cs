@@ -3,6 +3,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Storage;
+using Datahub.Infrastructure.Services.Storage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
@@ -18,9 +19,8 @@ public class DataRemovalService : BaseService, IDataRemovalService
     public DataRemovalService(ILogger<DataRemovalService> logger,
         DataLakeClientService dataLakeClientService,
         DataRetrievalService dataRetrievalService,
-        NavigationManager navigationManager,
-        UIControlsService uiService)
-        : base(navigationManager, uiService)
+        NavigationManager navigationManager)
+        : base(navigationManager)
     {
         _logger = logger;
         _dataLakeClientService = dataLakeClientService;

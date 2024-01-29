@@ -19,22 +19,12 @@ using System.Threading.Tasks;
 using static System.Net.WebRequestMethods;
 using Microsoft.Graph.Models;
 using static MudBlazor.CategoryTypes;
+using Datahub.Markdown;
+using Datahub.Markdown.Model;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace Datahub.Core.Services.Docs;
-
-public enum DocumentationGuideRootSection
-{
-    [StringValue("UserGuide")]
-    UserGuide,
-    [StringValue("AdminGuide")]
-    AdminGuide,
-    [StringValue("DeveloperGuide")]
-    DevGuide,
-    [StringValue("")]
-    RootFolder,
-    [StringValue("Hidden")]
-    Hidden,
-}
 
 #nullable enable
 
@@ -55,11 +45,14 @@ public class DocumentationService
     private readonly IMemoryCache _cache;
 
     public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger, 
-        IHttpClientFactory httpClientFactory,
+        IHttpClientFactory httpClientFactory, IWebHostEnvironment environment,
         IMemoryCache docCache)
     {
-        _docsRoot = config.GetValue(DOCS_ROOT_CONFIG_KEY, "https://raw.githubusercontent.com/ssc-sp/datahub-docs/main/")!;
-        _docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, "https://github.com/ssc-sp/datahub-docs/edit/main/")!;
+        //!ctx.HostingEnvironment.IsDevelopment()
+        
+        var branch = environment.IsProduction()? "main": "next";
+        _docsRoot = config.GetValue(DOCS_ROOT_CONFIG_KEY, $"https://raw.githubusercontent.com/ssc-sp/datahub-docs/{branch}/")!;
+        _docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, "https://github.com/ssc-sp/datahub-docs/edit/{branch}/")!;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _statusMessages = new List<TimeStampedStatus>();
@@ -112,84 +105,7 @@ public class DocumentationService
         return new Uri(_docsRoot + relLink).AbsoluteUri;
     }
 
-    private static DocItem? ParseSidebar(DocumentationGuideRootSection guide, string? inputMarkdown, Func<string, string> mapId)
-    {
-        if (string.IsNullOrEmpty(inputMarkdown))
-        {
-            return default;
-        }
 
-        var doc = Markdown.Parse(inputMarkdown);
-
-        var root = DocItem.MakeRoot(guide, GetIDFromString("root"));
-
-        ProcessBlock(doc, 0, null, root, mapId);
-        return root;
-    }
-
-    private static DocItem? ProcessBlock(MarkdownObject markdownObject, int level, DocItem? currentItem, DocItem parent, Func<string, string> mapId)
-    {
-        switch (markdownObject)
-        {
-            case LiteralInline literalInline:
-                var title = literalInline.ToString();
-                var id = GetIDFromString(title ?? "");
-                if (currentItem is null)
-                {
-                    var docItem1 = DocItem.GetItem(parent.RootSection, id, level, title, null);
-                    parent?.Children.Add(docItem1);
-                    return docItem1;
-                }
-                else
-                {
-                    currentItem.Title = title;
-                }
-                return null;
-
-            case LinkInline linkInline:
-                //[Microservice_Architecture](/Architecture/Microservice_Architecture.md)
-
-                var itemId = mapId.Invoke(linkInline.Url ?? "");
-                var docItem = DocItem.GetItem(parent.RootSection, itemId, level, linkInline.Title, linkInline.Url);
-                parent.Children.Add(docItem);
-
-                foreach (var child in linkInline)
-                {
-                    ProcessBlock(child, level, docItem, parent, mapId);
-                }
-                return docItem;
-
-            case LeafBlock paragraphBlock:
-                if (paragraphBlock.Inline != null)
-                    return ProcessBlock(paragraphBlock.Inline, level, currentItem, parent, mapId);
-                break;
-
-            case ContainerInline inline:
-                DocItem? newDoc = null;
-                foreach (var child in inline)
-                {
-                    var res = ProcessBlock(child, level, currentItem, parent, mapId);
-                    if (res != null)
-                        newDoc = res;
-                }
-                return newDoc;
-
-            case ContainerBlock containerBlock:
-                DocItem? currentParent = parent;
-                var currentLevel = level;
-                if (containerBlock is ListItemBlock)
-                    currentLevel++;
-                foreach (var child in containerBlock)
-                {
-                    var res2 = ProcessBlock(child, currentLevel, currentItem, 
-                        (containerBlock is ListItemBlock) ? currentParent : parent, mapId);
-                    if (res2 != null)
-                        currentParent = res2;
-                }
-                return currentParent;
-        }
-        return null;
-    }
 
     private string CleanupCharacters(string input)
     {
@@ -217,17 +133,28 @@ public class DocumentationService
 
     public async Task BuildDocAndPreviews(DocItem doc)
     {
-        if (doc.Title is not null)
+        if (doc.DocType == DocItemType.External)
         {
-            doc.Content = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, doc.GetMarkdownFileName());
-            BuildPreview(doc);
-        } else
-        {
-            //top level node
             doc.Content = null;
-            doc.Preview = String.Join(" ,", doc.Children.Select(d => d.Title));
+            doc.Preview = "External Web Link";
         }
-        foreach (var item in doc.Children)
+        else
+        {
+            if (doc.Title is not null)
+            {
+
+                doc.Content = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, doc.GetMarkdownFileName());
+                BuildPreview(doc);
+
+            }
+            else
+            {
+                //top level node
+                doc.Content = null;
+                doc.Preview = String.Join(" ,", doc.Children.Select(d => d.Title));
+            }
+        }
+        foreach (var item in doc.Children.ToList())
         {
             await BuildDocAndPreviews(item);
         }
@@ -240,24 +167,19 @@ public class DocumentationService
             doc.Preview = String.Join(", ", doc.Children.Select(d => d.Title));
             return;
         }
-        var cardDoc = Markdown.Parse(doc.Content);
-        var cardDocFlattened = cardDoc.Descendants();
 
-        var firstHeading = cardDocFlattened.FirstOrDefault(e => e is HeadingBlock) as HeadingBlock;
-        var firstPara = cardDocFlattened.FirstOrDefault(e => e is ParagraphBlock) as ParagraphBlock;
-        if (firstHeading?.Inline?.FirstChild is null || firstPara?.Inline?.FirstChild is null)
+        var cardContent = MarkdownTools.GetTitleAndPreview(doc.Content);
+        if (cardContent is null)
         {
-            AddStatusMessage($"Invalid card {doc.GetDescription()} - first Header or first Paragraph missing");
             doc.ContentTitle = null;
-            doc.Preview = String.Join(" ,",doc.Children.Select(d => d.Title));
-            return;
+            doc.Preview = String.Join(" ,", doc.Children.Select(d => d.Title));
+            AddStatusMessage($"Invalid card {doc.GetDescription()} - first Header or first Paragraph missing");
         }
-
-        var title = firstHeading.Inline.FirstChild.ToString();
-        var preview = firstPara.Inline.FirstChild.ToString();
-
-        doc.ContentTitle = title;
-        doc.Preview = preview;
+        else
+        {
+            doc.ContentTitle = cardContent.Value.Title;
+            doc.Preview = cardContent.Value.Preview;
+        }
     }
 
     public const string LOCALE_EN = "";
@@ -272,11 +194,11 @@ public class DocumentationService
 
         AddStatusMessage("Loading resources");
 
-        enOutline = ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_EN, useCache), _docFileMappings.GetEnglishDocumentId);
+        enOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_EN, useCache), _docFileMappings.GetEnglishDocumentId);
         if (enOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
 
-        frOutline = ParseSidebar(guide, await LoadDocsPage(guide, $"{SIDEBAR}", LOCALE_FR, useCache), _docFileMappings.GetFrenchDocumentId);
+        frOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, $"{SIDEBAR}", LOCALE_FR, useCache), _docFileMappings.GetFrenchDocumentId);
         if (frOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
         cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden,"Cached");
@@ -303,7 +225,7 @@ public class DocumentationService
             inCachePage = cachedDocs.LocatePath(path);
             if (inCachePage != null)
                 return inCachePage;
-            var itemId = (isFrench? _docFileMappings?.GetFrenchDocumentId(path): _docFileMappings?.GetEnglishDocumentId(path))?? GetIDFromString(path);
+            var itemId = (isFrench? _docFileMappings?.GetFrenchDocumentId(path): _docFileMappings?.GetEnglishDocumentId(path))?? MarkdownTools.GetIDFromString(path);
             var docItem = DocItem.GetItem(DocumentationGuideRootSection.Hidden, itemId, searchRoot.Level + 1, path, path);
 
             cachedDocs.Children.Add(docItem);
@@ -466,45 +388,14 @@ public class DocumentationService
         }
     }
     
-    static long GetStableHashCode(string str)
-    {
-        unchecked
-        {
-            long hash1 = 5381;
-            long hash2 = hash1;
-
-            for (int i = 0; i < str.Length && str[i] != '\0'; i += 2)
-            {
-                hash1 = ((hash1 << 5) + hash1) ^ str[i];
-                if (i == str.Length - 1 || str[i + 1] == '\0')
-                    break;
-                hash2 = ((hash2 << 5) + hash2) ^ str[i + 1];
-            }
-
-            return hash1 + (hash2 * 1566083941);
-        }
-    }
-
-    public static string GetIDFromString(string url)
-    {
-        return GetStableHashCode(url).ToString("X").ToLowerInvariant();
-    }
-
-    public static bool CompareCulture(string c1, string c2)
-    {
-        var ci1 = CultureInfo.GetCultureInfo(c1);
-        var ci2 = CultureInfo.GetCultureInfo(c2);
-        return ci1.Equals(ci2) || ci1.Parent.Equals(ci2) || ci2.Parent.Equals(ci1);
-    }
-
-    public async Task<DocItem?> GetLanguageRoot(DocumentationGuideRootSection guide, string locale, bool useCache = true)
+    public async Task<DocItem?> LoadResourceTree(DocumentationGuideRootSection guide, string locale, bool useCache = true)
     {
         if (enOutline == null || frOutline == null)
         {
             await LoadResourceTree(guide, useCache);
         }
 
-        var result = CompareCulture(locale,"fr") ? frOutline : enOutline;
+        var result = MarkdownTools.CompareCulture(locale,"fr") ? frOutline : enOutline;
         return result;
     }
 

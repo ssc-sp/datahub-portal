@@ -1,0 +1,82 @@
+﻿@* GCPConnectionDataInput.razor *@
+@using Datahub.Infrastructure.Services.Storage;
+@using static Datahub.Infrastructure.Services.Storage.CloudStorageHelpers;
+@using System.Text.Json;
+
+<MudTextField @bind-Value=@GCPConnectionJson
+              Label=@Localizer["Service Account Credentials (JSON)"]
+              Variant=@Variant.Outlined
+              Lines=10
+              Immediate
+              Adornment=@Adornment.End
+              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
+
+@code {
+
+    [Parameter]
+    public IDictionary<string, string> ConnectionData { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnValidationChanged { get; set; }
+
+    private bool IsValid => GetCredentials() != null;
+
+    private string GCPConnectionJson
+    {
+        get => ConnectionData[GCP_Json];
+        set
+        {
+            ConnectionData[GCP_Json] = value;
+            Validate();
+        }
+    }
+
+    private void Validate()
+    {
+        if (OnValidationChanged.HasDelegate)
+        {
+            OnValidationChanged.InvokeAsync(IsValid);
+        }
+    }
+
+    
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ConnectionData is null) throw new InvalidDataException($"ConnectionData is null.");
+
+        Validate();
+    }
+
+    private ServiceAccountCredentials? GetCredentials()
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<ServiceAccountCredentials>(GCPConnectionJson);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+                
+            
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles")]
+    private class ServiceAccountCredentials
+    {
+        string type { get; set; }
+        public string project_id { get; set; }
+        string private_key_id { get; set; }
+        string private_key { get; set; }
+        string client_email { get; set; }
+        string client_id { get; set; }
+        string auth_uri { get; set; }
+        string token_uri { get; set; }
+        string auth_provider_x509_cert_url { get; set; }
+        string client_x509_cert_url { get; set; }
+        string universe_domain { get; set; }
+    }        
+
+}
