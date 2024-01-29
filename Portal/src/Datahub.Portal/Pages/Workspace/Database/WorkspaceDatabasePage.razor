@@ -47,11 +47,16 @@
             <DHMarkdown Content="@_csharpConnectionInfo" LinkRewriter="@(link => link)"/>
         </MudTabPanel>
     </MudTabs>
+    
+    <DatabaseInfoTable
+        WorkspaceAcronym="@WorkspaceAcronym"
+        />
 </MudStack>
 
 @code {
 
-    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter, EditorRequired] 
+    public string WorkspaceAcronym { get; set; }
 
     private string _pythonConnectionInfo;
     private string _rConnectionInfo;
