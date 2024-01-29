@@ -81,6 +81,7 @@ jobs:
   - task: DotNetCoreCLI@2
     displayName: dotnet publish
     inputs:
+      projects: Portal/src/Datahub.Portal/*.csproj
       command: publish
       arguments: -o $(Build.ArtifactStagingDirectory)/output/portal -r $(target_os) --self-contained true
   - task: PublishBuildArtifacts@1
