@@ -1,6 +1,6 @@
 ﻿@inject NavigationManager NavigationManager
 @inject IExternalSearchService ExternalSearchService
-@inject IUserInformationService UserInfoService
+@inject IUserSettingsService UserSettingsService
 
 @*@page "/search/"
 @page "/search/{searchtext}"*@
@@ -146,7 +146,7 @@
   
     protected override async Task OnInitializedAsync()
     {
-        IsFrench = await UserInfoService.IsFrench();
+        IsFrench = await UserSettingsService.IsFrench();
 
         if (string.IsNullOrWhiteSpace(searchtext))
         {

@@ -1,0 +1,240 @@
+﻿@using Datahub.Application.Services.Notifications;
+@using Markdig
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IDatahubEmailService _emailService
+@inject IUserInformationService _userInformationService
+@inject IConfiguration _configuration
+@inject ISnackbar _snackbar
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _jsRuntime
+
+<MudStack Class="mb-4">
+    @*title*@
+    <MudStack Row Justify="Justify.SpaceBetween">
+        <MudText Typo="Typo.h1">@Localizer["DataHub Email"]</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@NavigateBack"></MudIconButton>
+    </MudStack>
+
+    @*to field*@
+    <MudGrid>
+        <MudItem xs="2">
+            <MudSelect T="RecipientType" @bind-Value="_recipientType" Label="To:" Variant="Variant.Outlined">
+                <MudSelectItem Value="RecipientType.All">
+                    <MudStack Row Spacing="3">
+                        <MudIcon Icon="@Icons.Material.Filled.People"/>
+                        <MudText>@Localizer["Everybody"]</MudText>
+                    </MudStack>
+                </MudSelectItem>
+
+                <MudSelectItem Value="RecipientType.Projects">
+                    <MudStack Row Spacing="3">
+                        <MudIcon Icon="@Icons.Material.Filled.Groups"/>
+                        <MudText>@Localizer["Workspaces"]</MudText>
+                    </MudStack>
+                </MudSelectItem>
+
+                <MudSelectItem Value="RecipientType.Addresses">
+                    <MudStack Row Spacing="3">
+                        <MudIcon Icon="@Icons.Material.Filled.AlternateEmail"/>
+                        <MudText>@Localizer["Emails"]</MudText>
+                    </MudStack>
+                </MudSelectItem>
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="10">
+            @if (_recipientType == RecipientType.Projects)
+            {
+                <MudSelect
+                    T="string"
+                    SelectedValues=@_selectedProjects
+                    MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))"
+                    SelectedValuesChanged=@HandleSelectedValuesChanged
+                    MultiSelection="true"
+                    Label="Select workspaces"
+                    Variant="Variant.Outlined">
+
+                    @foreach (var p in _projects)
+                    {
+                        <MudSelectItem Value=@p.Acronym>
+                            <MudStack Row Spacing="3">
+                                <MudText>@($"{p.Acronym} - {p.Name}")</MudText>
+                            </MudStack>
+                        </MudSelectItem>
+                    }
+
+                </MudSelect>
+            }
+
+            @if (_recipientType == RecipientType.Addresses)
+            {
+                <MudTextField @bind-Value="_recipients"
+                              DebounceInterval="250"
+                              Label=@Localizer["Enter email addresses"]
+                              HelperText=@Localizer["Enter email addresses separated by commas"]
+                              Adornment=@Adornment.End
+                              AdornmentIcon=@Icons.Material.Filled.Email
+                              Variant="Variant.Outlined"/>
+            }
+        </MudItem>
+    </MudGrid>
+
+    @*subject*@
+    <MudTextField @bind-Value="_subject"
+                  DebounceInterval="250"
+                  Label=@Localizer["Subject"]
+                  Adornment="@Adornment.End"
+                  AdornmentIcon="@Icons.Material.Filled.Subject"
+                  Variant="Variant.Outlined"/>
+
+    @*body*@
+    <DHMarkdownEditor InitialValue="@_emailBody" ValueChanged="HandleBodyChanged"/>
+
+    @*buttons*@
+    <MudStack Row Justify="Justify.FlexStart">
+        <MudButton Variant="Variant.Filled"
+                   EndIcon="@Icons.Material.Filled.Send"
+                   Color="Color.Warning"
+                   Disabled="@IsPreviewDisabled()"
+                   OnClick="@HandleEmailYourself">
+            @Localizer["Send Preview to yourself"]
+        </MudButton>
+        <MudButton Variant="Variant.Filled"
+                   EndIcon="@Icons.Material.Filled.Send"
+                   Color="Color.Primary"
+                   Disabled="@IsSendDisabled()"
+                   OnClick="@HandleSendEmail">
+            @Localizer["Send"]
+        </MudButton>
+    </MudStack>
+</MudStack>
+
+
+@code {
+
+    private RecipientType _recipientType = RecipientType.All;
+    private List<ProjectInfo> _projects = new();
+    private HashSet<string> _selectedProjects = new();
+    private string _recipients = string.Empty;
+    private string _subject = string.Empty;
+    private string _emailBody = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        _projects = await ctx.Projects.Select(p => new ProjectInfo(p.Project_Acronym_CD, p.ProjectName)).ToListAsync();
+    }
+
+    private bool IsPreviewDisabled()
+    {
+        return string.IsNullOrEmpty(_subject) || string.IsNullOrEmpty(_emailBody);
+    }
+
+    private bool IsSendDisabled()
+    {
+        if (_recipientType == RecipientType.Projects && _selectedProjects.Count == 0)
+            return true;
+
+        if (_recipientType == RecipientType.Addresses && ParseAddresses(_recipients).Count == 0)
+            return true;
+
+        return IsPreviewDisabled();
+    }
+
+    private void HandleBodyChanged(string value)
+    {
+        _emailBody = value;
+    }
+
+    private string GetMultiSelectionText(List<string> selectedValues)
+    {
+        return string.Join(", ", selectedValues);
+    }
+
+    private void HandleSelectedValuesChanged(IEnumerable<string> values)
+    {
+        _selectedProjects = new HashSet<string>(values);
+    }
+
+    private async Task HandleSendEmail()
+    {
+        var message = Localizer["Are you sure you want to send your email?"].ToString();
+        if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
+            return;
+
+        await SendEmailAsync(async () =>
+        {
+            switch (_recipientType)
+            {
+                case RecipientType.All:
+                    await _emailService.SendAll(GetToAddress(), _subject, GetBodyHtml());
+                    break;
+
+                case RecipientType.Projects:
+                    await _emailService.SendToProjects(GetToAddress(), _selectedProjects.ToList(), _subject, GetBodyHtml());
+                    break;
+
+                case RecipientType.Addresses:
+                    await _emailService.SendToRecipients(GetToAddress(), ParseAddresses(_recipients), _subject, GetBodyHtml());
+                    break;
+            }
+        });
+
+        NavigateBack();
+    }
+
+    private async Task HandleEmailYourself()
+    {
+        await SendEmailAsync(async () =>
+        {
+            var email = await _userInformationService.GetUserEmail();
+            await _emailService.SendToRecipients(email, new(), _subject, GetBodyHtml());
+        });
+    }
+
+    private async Task SendEmailAsync(Func<Task> action)
+    {
+        try
+        {
+            await action.Invoke();
+            _snackbar.Add(Localizer["Email sent"], Severity.Success);
+        }
+        catch
+        {
+            _snackbar.Add(Localizer["Failed to send the email"], Severity.Warning);
+        }
+    }
+
+    private void NavigateBack()
+    {
+        _navigationManager.NavigateTo("/tools");
+    }
+
+    static List<string> ParseAddresses(string text)
+    {
+        return (text ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+    }
+
+    private string GetToAddress()
+    {
+        return _configuration["EmailNotification:SenderAddress"] ?? "ssc.datahub.donotreply-nepasrepondre.datahub.spc@ssc-spc.gc.ca";
+    }
+
+    private string GetBodyHtml()
+    {
+        var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+        var valueHtml = Markdown.ToHtml(_emailBody ?? string.Empty, pipeline);
+        return valueHtml;
+    }
+
+    enum RecipientType
+    {
+        All,
+        Projects,
+        Addresses
+    }
+
+    record ProjectInfo(string Acronym, string Name);
+
+}

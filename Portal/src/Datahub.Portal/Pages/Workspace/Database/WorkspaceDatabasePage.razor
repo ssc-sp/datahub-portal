@@ -1,0 +1,227 @@
+@using Datahub.Application.Services.Security
+@using Microsoft.Identity.Web
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IKeyVaultUserService _keyVaultUserService
+@inject ILogger<WorkspaceDatabasePage> _logger
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+
+
+@if (!_isElevated)
+{
+    <DHLoadingInitializer Message="@Localizer["Validating your credentials..."]"  />
+    return;
+}
+<MudStack>
+    <MudText Typo="Typo.h1">
+        @Localizer["Workspace Database"]
+    </MudText>
+
+    <MudText>
+        @Localizer["Here you can manage your workspace database. You can view and test the connectivity of your database"]
+    </MudText>
+
+    <MudText Typo="Typo.h2">
+        @Localizer["Database Info"]
+    </MudText>
+    <MudText>
+        @Localizer["Host: "] <code>@_databaseHost</code>
+    </MudText>
+    <MudText>
+        @Localizer["Database Name: "] <code>@_databaseName</code>
+    </MudText>
+    <MudText>
+        @Localizer["Username: "] <code>@_username</code>
+    </MudText>
+    <MudText>
+        @Localizer["Password: "] <code>@_password</code>
+    </MudText>
+    <MudText>
+        @Localizer["Port: "] <code>@_port</code>
+    </MudText>
+
+    <MudText Typo="Typo.h2">
+        @Localizer["Connection Info"]
+    </MudText>
+
+    <MudTabs Elevation="0" Outlined PanelClass="pa-6" Class="mt-8">
+        <MudTabPanel Text="Python">
+            <DHMarkdown Content="@_pythonConnectionInfo" LinkRewriter="@(link => link)"/>
+        </MudTabPanel>
+        <MudTabPanel Text="R">
+            <DHMarkdown Content="@_rConnectionInfo" LinkRewriter="@(link => link)"/>
+        </MudTabPanel>
+        <MudTabPanel Text="Java">
+            <DHMarkdown Content="@_javaConnectionInfo" LinkRewriter="@(link => link)"/>
+        </MudTabPanel>
+        <MudTabPanel Text="C#">
+            <DHMarkdown Content="@_csharpConnectionInfo" LinkRewriter="@(link => link)"/>
+        </MudTabPanel>
+    </MudTabs>
+</MudStack>
+
+@code {
+
+    [Parameter] public string WorkspaceAcronym { get; set; }
+
+    private string _pythonConnectionInfo;
+    private string _rConnectionInfo;
+    private string _javaConnectionInfo;
+    private string _csharpConnectionInfo;
+
+    private string _databaseHost = "<database_host>";
+    private string _databaseName = "<database_name>";
+    private string _username = "<username>";
+    private string _password = "<password>";
+    private string _port = "<port>";
+
+    private bool _isElevated = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        try
+        {
+            await _keyVaultUserService.Authenticate();
+            _isElevated = true;
+            await HydrateValues();
+
+            _pythonConnectionInfo = ReplaceHydrationValues(BuildPythonConnectionInfo());
+            _rConnectionInfo = ReplaceHydrationValues(BuildRConnectionInfo());
+            _javaConnectionInfo = ReplaceHydrationValues(BuildJavaConnectionInfo());
+            _csharpConnectionInfo = ReplaceHydrationValues(BuildCSharpConnectionInfo());
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e)
+        {
+            _consentHandler.HandleException(e);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to get consent from user");
+        }
+
+        StateHasChanged();
+    }
+
+    private string ReplaceHydrationValues(string text)
+    {
+        text = text.Replace("<database_host>", _databaseHost);
+        text = text.Replace("<database_name>", _databaseName);
+        text = text.Replace("<username>", _username);
+        text = text.Replace("<password>", _password);
+        text = text.Replace("<port>", _port);
+
+        return text;
+    }
+
+    private async Task HydrateValues()
+    {
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+        var workspace = await context.Projects
+            .Include(x => x.Resources)
+            .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronym);
+
+        if (workspace == null)
+            throw new Exception($"Workspace with acronym {WorkspaceAcronym} not found");
+
+        _port = "5432";
+        _databaseHost = TerraformVariableExtraction.ExtractAzurePostgresHost(workspace);
+        _databaseName = TerraformVariableExtraction.ExtractAzurePostgresDatabaseName(workspace);
+
+        var usernameSecretName = TerraformVariableExtraction.ExtractAzurePostgresUsernameSecretName(workspace);
+        if (usernameSecretName != null)
+        {
+            _username = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, usernameSecretName);
+        }
+        else
+        {
+            _logger.LogWarning($"No username secret name found for workspace {WorkspaceAcronym}");
+        }
+
+        var passwordSecretName = TerraformVariableExtraction.ExtractAzurePostgresPasswordSecretName(workspace);
+        if (passwordSecretName != null)
+        {
+            _password = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, passwordSecretName);
+        }
+        else
+        {
+            _logger.LogWarning($"No password secret name found for workspace {WorkspaceAcronym}");
+        }
+    }
+
+    private string BuildPythonConnectionInfo()
+    {
+        return @"```python
+pip install psycopg2
+
+conn = psycopg2.connect(
+    host=""<database_host>"",
+    database=""<database_name>"",
+    user=""<username>"",
+    password=""<password>"",
+```";
+    }
+
+    private string BuildRConnectionInfo()
+    {
+        return @"```r
+library(DBI)
+
+db <- '<database_name>'  #provide the name of your db
+
+host_db <- ‘<database_host>’ #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'  
+
+db_port <- '<port>'  # or any other port specified by the DBA
+
+db_user <- ‘<username>’  
+
+db_password <- ‘<password>'
+
+con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)  
+```";
+    }
+
+    private string BuildJavaConnectionInfo()
+    {
+        return @"```java
+String url = ""jdbc:postgresql://<database_hst>:<port>/<database_name>"";
+Properties props = new Properties();
+props.setProperty(""user"", ""<username>"");
+props.setProperty(""password"", ""<password>
+props.setProperty(""ssl"", ""true"");
+Connection conn = DriverManager.getConnection(url, props);
+```";
+    }
+
+    private string BuildCSharpConnectionInfo()
+    {
+        return @"```csharp
+string Host = ""<database_host>"";
+string User = ""<username>"";
+string DBname = ""<database_name>"";
+string Password = ""<password>"";
+string Port = ""<port>"";
+
+string connString =
+    String.Format(
+        ""Server={0};Username={1};Database={2};Port={3};Password={4};SSLMode=Prefer"",
+        Host,
+        User,
+        DBname,
+        Port,
+        Password);
+
+
+using (var conn = new NpgsqlConnection(connString))
+{
+    Console.Out.WriteLine(""Opening connection"");
+    conn.Open();
+
+// do stuff
+
+}
+```";
+    }
+
+}

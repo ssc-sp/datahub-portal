@@ -1,0 +1,182 @@
+﻿@using Datahub.Markdown.Model
+@* StorageConfigurationDialog.razor *@
+@using Datahub.Infrastructure.Services.Storage;
+@using Datahub.Core.Model.CloudStorage
+@using Microsoft.Identity.Web
+@using Datahub.Core.Storage
+@inject Datahub.Core.Services.Docs.DocumentationService DocService
+@inject CloudStorageManagerFactory _cloudStorageManagerFactory
+@inject ILogger<StorageConfigurationDialog> _logger
+@inject IDialogService _dialogService
+
+<MudDialog>
+    <TitleContent>
+        <MudStack Row AlignItems=@AlignItems.Baseline >
+            <MudText Typo=@Typo.h6>@MudDialog.Title</MudText>
+            <MudSpacer />
+            <MudIconButton Icon=@Icons.Material.Filled.HelpOutline Disabled=@HideHelpIcon Href=@HelpUrl Title=@Localizer["Help"]  />
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        <MudStack>
+            <MudTextField @bind-Value=@ProjectCloudStorage.Name Label=@Localizer["Friendly Name"] Variant=@Variant.Text MaxLength="100" />
+            <MudCheckBox @bind-Checked=@ProjectCloudStorage.Enabled >@Localizer["Enabled"]</MudCheckBox>
+            @if (CloudProvider == CloudStorageProviderType.AWS)
+            {
+                <AWSConnectionDataInput ConnectionData=@ConnectionDataInternal OnValidationChanged=@HandleConnectionValidationChange />
+            }
+            else if (CloudProvider == CloudStorageProviderType.Azure)
+            {
+                <AzureConnectionDataInput ConnectionData=@ConnectionDataInternal OnValidationChanged=@HandleConnectionValidationChange />
+            }
+            else if (CloudProvider == CloudStorageProviderType.GCP)
+            {
+                <GCPConnectionDataInput ConnectionData=@ConnectionDataInternal OnValidationChanged=@HandleConnectionValidationChange />
+            }
+            <MudCheckBox @bind-Checked=@_isUnclassified>@Localizer["UnclassifiedDataConfirmation"]</MudCheckBox>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick=@HandleCancel Class="px-4">@Localizer["Cancel"]</MudButton>
+        @if (_isConnectionVerified) {
+            <MudButton Color=@Color.Success OnClick=@HandleSave Disabled=@SaveDisabled Variant=@Variant.Filled>
+                @Localizer["Save"]
+            </MudButton>
+        }
+        else
+        {
+            <MudButton Color=@Color.Primary Variant=@Variant.Filled Disabled=@TestDisabled OnClick=@TestConnection>
+                @if (_testingConnection)
+                {
+                    <MudProgressCircular Size=@Size.Small Indeterminate />
+                    <MudText Class="ms-2">@Localizer["Testing"]</MudText>
+                }
+                else
+                {
+                    <MudText>@Localizer["Test Connection"]</MudText>
+                }
+            </MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public CloudStorageProviderType CloudProvider { get; set; }
+
+    [Parameter]
+    public ProjectCloudStorage ProjectCloudStorage { get; set; }
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    private IDictionary<string, string> ConnectionDataInternal = CloudStorageManagerFactory.CreateNewStorageProperties();
+
+
+    private IDictionary<string, string> _initialConnectionData = CloudStorageManagerFactory.CreateNewStorageProperties();
+    private bool ConnectionDataChanged => !_initialConnectionData.Equals(ConnectionDataInternal);
+
+    private string _helpUrl = string.Empty;
+    private string HelpUrl
+    {
+        get => _helpUrl;
+        set
+        {
+            _helpUrl = value;
+            InvokeAsync(MudDialog.StateHasChanged);
+        }
+    }
+    private bool HideHelpIcon => string.IsNullOrEmpty(HelpUrl);
+
+    private bool _isConnectionValid = false;
+    private bool _isUnclassified = false;
+    private bool _isConnectionVerified = false;
+    private bool _testingConnection = false;
+
+    private bool SaveDisabled => !(_isConnectionValid && _isConnectionVerified && _isUnclassified);
+    private bool TestDisabled => _testingConnection || !_isConnectionValid;
+
+    private void HandleConnectionValidationChange(bool isValid)
+    {
+        _isConnectionValid = isValid;
+    }
+
+    private void HandleCancel() => MudDialog.Cancel();
+
+    private void HandleSave()
+    {
+        MudDialog.Close(DialogResult.Ok((ProjectCloudStorage,ConnectionDataInternal)));
+    }
+
+    private async Task PopulateHelpUrl()
+    {
+        // Use the English help URLs and document root to find the guid - the resource link will show up in the user's selected language
+        var helpResourceUrl = CloudProvider switch
+        {
+            CloudStorageProviderType.GCP => "/UserGuide/Storage/Import-GCP-Storage.md",
+            CloudStorageProviderType.Azure => "/UserGuide/Storage/Import-Azure-Storage.md",
+            CloudStorageProviderType.AWS => "/UserGuide/Storage/Import-AWS-Storage.md",
+            _ => "/UserGuide/Storage/Import-Storage.md"
+        };
+
+        var docRoot = await DocService.LoadResourceTree(DocumentationGuideRootSection.UserGuide, "en");
+        var id = docRoot?.LocatePath(helpResourceUrl)?.Id;
+        if (id is not null)
+        {
+            HelpUrl = $"/resources/{id}";
+        }
+    }
+
+    private async Task TestConnection()
+    {
+        _testingConnection = true;
+        await InvokeAsync(MudDialog.StateHasChanged);
+
+        var storageManager = _cloudStorageManagerFactory.CreateTestCloudStorageManager(CloudProvider, ConnectionDataInternal);
+        if (storageManager is null)
+        {
+            await FailConnectionTest();
+        }
+        else
+        {
+            try
+            {
+                var containerNames = await storageManager.GetContainersAsync();
+                _isConnectionVerified = true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error connecting to cloud storage connection");
+                await FailConnectionTest();
+            }
+        }
+
+        _testingConnection = false;
+    }
+
+    private async Task FailConnectionTest()
+    {
+        _isConnectionVerified = false;
+        ProjectCloudStorage.Enabled = false;
+        await _dialogService.ShowMessageBox(
+            Localizer["Connection Failed"], 
+            Localizer["DataHub was unable to successfully connect to the storage provider. Please verify that your connection credentials " +
+            "are correct and all necessary permissions are properly set on the storage account."]);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ConnectionDataInternal = await _cloudStorageManagerFactory.GetConnectionSecrets(ProjectCloudStorage, WorkspaceAcronym);
+        _isUnclassified = ConnectionDataInternal.Any(k => !string.IsNullOrEmpty(k.Value));
+        _isConnectionValid = _isUnclassified;
+        _isConnectionVerified = (ProjectCloudStorage?.Enabled ?? false) && _isUnclassified;
+        _initialConnectionData = new Dictionary<string, string>(ConnectionDataInternal);
+        await PopulateHelpUrl();
+    }
+
+}

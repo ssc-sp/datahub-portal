@@ -1,0 +1,46 @@
+﻿@using System.Web
+<MudDialog Style="min-height: 80vh; max-height: 90vh" ContentStyle="height: 100%">
+    <TitleContent>
+        <div class="d-flex gap-4">
+            <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Primary"/>
+            <MudText Typo="Typo.h4">@Localizer[Title]</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <CascadingValue Value="@RewriteLink" Name="RewriteLink">
+            @ChildContent
+        </CascadingValue>
+    </DialogContent>
+    <DialogActions>
+        <MudContainer Style="display: flex">
+            <MudCheckBox @bind-Checked="@_hideAllAlerts" T="bool" Style="margin-left: auto; margin-right: 20px" Size="Size.Medium" Label="@Localizer["Don't show alerts anymore"]" LabelPosition="LabelPosition.Start"/>
+            <MudButton OnClick="Close" Color="Color.Primary" Variant="Variant.Filled">@Localizer["Close"]</MudButton>
+        </MudContainer>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    // This is where the common look of a page alert dialog is defined.
+    
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public string Title { get; set; }
+
+    [Parameter] public List<string> Contents { get; set; }
+
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    
+    private string _baseUrl = $"/{PageRoutes.ResourcePrefix}";
+    
+    private string RewriteLink(string link)
+    {
+        if (link.StartsWith("http"))
+            return link;
+        return _baseUrl + "/" + HttpUtility.UrlEncode(link);
+    }
+
+    private bool _hideAllAlerts { get; set; } = false;
+
+    public void Close() => MudDialog.Close(DialogResult.Ok(_hideAllAlerts));
+}

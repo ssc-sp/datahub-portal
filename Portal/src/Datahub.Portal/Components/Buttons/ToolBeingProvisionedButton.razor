@@ -1,0 +1,11 @@
+<SpinnerButton Variant="@Variant">
+    @Localizer["Tool is being provisioned"]
+</SpinnerButton>
+
+
+@code {
+
+    [Parameter] public Variant Variant { get; set; } = Variant.Text;
+
+    [Parameter] public RenderFragment ChildContent { get; set; }
+}

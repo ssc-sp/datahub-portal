@@ -12,7 +12,7 @@ public class TranslationService
 
     public TranslationService(IConfiguration configuration)
     {
-        var useFreeApi = configuration.GetSection("DeepL").GetValue<bool>("UseFreeApi");
+        var useFreeApi = configuration.GetSection("DeepL").GetValue("UseFreeApi", true);
         var authKey = configuration.GetSection("DeepL").GetValue<string>("AuthKey");
         _client = new Translator(authKey, new TranslatorOptions() { ServerUrl = useFreeApi ? "https://api-free.deepl.com" : null });
     }

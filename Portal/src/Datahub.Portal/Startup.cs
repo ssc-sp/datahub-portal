@@ -59,9 +59,20 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Datahub.Infrastructure.Offline;
 using Datahub.Application.Configuration;
+using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.UserManagement;
+using Datahub.Infrastructure.Services.Api;
+using Datahub.Infrastructure.Services.Metadata;
+using Datahub.Infrastructure.Services.Notification;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Transforms;
+using Yarp.ReverseProxy.Configuration;
+using Datahub.Infrastructure.Services.Security;
+using Datahub.Infrastructure.Services.Storage;
+using Datahub.Infrastructure.Services.UserManagement;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -144,6 +155,7 @@ public class Startup
         services.AddScoped<TimeZoneService>();
 
         services.AddUserAchievementServices();
+        services.AddSecurityServices();
 
         services.AddElemental();
         services.AddMudServices();
@@ -182,6 +194,7 @@ public class Startup
         services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
         services.AddSingleton<AzureManagementService>();
         services.AddSingleton<ProjectUsageService>();
+        services.AddScoped<ProjectStorageConfigurationService>();
 
         services.AddSignalRCore();
 
@@ -314,10 +327,15 @@ public class Startup
             endpoints.MapControllers();
             endpoints.MapFallbackToPage("/_Host");
             // reverse proxy
-            if (ReverseProxyEnabled())
+            var provider = endpoints.ServiceProvider.GetService<IProxyConfigProvider>();
+            if (ReverseProxyEnabled() && provider != null)
             {
                 endpoints.MapReverseProxy();
-            }            
+            }  
+            else
+            {
+                logger.LogWarning($"Invalid Reverse Proxy configuration - No provider available");
+            }
         });       
     }
 
@@ -364,12 +382,13 @@ public class Startup
         // configure online/offline services
         if (!Offline)
         {
-            services.AddSingleton<IKeyVaultService, KeyVaultService>();
+            services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
             services.AddScoped<UserLocationManagerService>();
             services.AddSingleton<CommonAzureServices>();
             services.AddScoped<DataLakeClientService>();
 
             services.AddScoped<IUserInformationService, UserInformationService>();
+            services.AddScoped<IUserSettingsService, UserSettingsService>();
             services.AddSingleton<IMSGraphService, MSGraphService>();
 
             services.AddScoped<IProjectDatabaseService, ProjectDatabaseService>();
@@ -400,6 +419,7 @@ public class Startup
 
             services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
             services.AddScoped<IUserInformationService, OfflineUserInformationService>();
+            services.AddScoped<IUserSettingsService, OfflineUserSettingsService>();
             services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
             services.AddScoped<IPowerBiDataService, OfflinePowerBiDataService>();
 
@@ -429,7 +449,6 @@ public class Startup
         services.AddSingleton<GitHubToolsService>();
 
         services.AddScoped<NotificationsService>();
-        services.AddScoped<UIControlsService>();
         services.AddScoped<NotifierService>();
 
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
@@ -460,23 +479,16 @@ public class Startup
 
     private void ConfigureDbContexts(IServiceCollection services)
     {
-        ConfigureDbContext<DatahubProjectDBContext>(services, "datahub_mssql_project", Configuration.GetDriver());
-        ConfigureDbContext<WebAnalyticsContext>(services, "datahub_mssql_webanalytics", Configuration.GetDriver());
-        ConfigureDbContext<MetadataDbContext>(services, "datahub_mssql_metadata", Configuration.GetDriver());
+        var projectsDatabaseConnectionString = Configuration.GetConnectionString("datahub_mssql_project");
+        var useSqlite = projectsDatabaseConnectionString?.StartsWith("Data Source=") ?? false;
+        
+        ConfigureDbContext<DatahubProjectDBContext>(services, "datahub_mssql_project", useSqlite ? DbDriver.Sqlite : DbDriver.Azure);
+        ConfigureDbContext<MetadataDbContext>(services, "datahub_mssql_metadata", DbDriver.Azure);
     }
 
     private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName, DbDriver dbDriver)
         where T : DbContext
     {
         services.ConfigureDbContext<T>(Configuration, connectionStringName, dbDriver);
-    }
-
-    private void ConfigureCosmosDbContext<T>(IServiceCollection services, string connectionStringName,
-        string catalogName) where T : DbContext
-    {
-        var connectionString = Configuration.GetConnectionString(_currentEnvironment, connectionStringName);
-        services.AddPooledDbContextFactory<T>(options =>
-            options.UseCosmos(connectionString, databaseName: catalogName));
-        services.AddDbContextPool<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
     }
 }

@@ -1,0 +1,151 @@
+
+@using Datahub.Core.Model.Projects
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject IMetadataBrokerService _metadataBrokerService
+
+@attribute [Route(PageRoutes.Explore)]
+
+<PageTitle>
+    @Localizer["SSC Datahub - Explore"]
+</PageTitle>
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar/>
+</SectionContent>
+
+@if (!_allProjects.Any())
+{
+    <DHLoadingInitializer/>
+    return;
+}
+<MudStack>
+    @if (_featuredProjects.Any())
+    {
+        <MudText Typo="Typo.h1">@Localizer["Featured Workspaces"]</MudText>
+        <MudText Typo="Typo.body1">
+            @Localizer["Featured workspaces are a selection of workspaces that are currently being promoted by the Datahub team. You can view these projects' shared content to see what they are working on."]
+        </MudText>
+        <MudGrid>
+            @foreach (var featuredProject in _featuredProjects)
+            {
+                <MudItem xs="6" sm="4">
+                    <ProjectPreviewCard Project="featuredProject"/>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    <MudText Typo="Typo.h1" Class="mt-6 mb-3">@Localizer["All Workspaces"]</MudText>
+    <MudTable Striped Items="_filteredProjects" Class="mb-12" Filter="new Func<Datahub_Project, bool>(ProjectFilter)">
+        <ToolBarContent>
+            <MudTextField T="string" Placeholder="@Localizer["Search"]" DebounceInterval="500"
+                          @bind-Value="_projectSearchFilter" Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" Clearable="true">
+            </MudTextField>
+            <MudSpacer/>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.Project_Acronym_CD)">@Localizer["Acronym"]</MudTableSortLabel>
+            </MudTh>
+
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.ProjectName)" InitialDirection="SortDirection.Ascending">@Localizer["Name"]</MudTableSortLabel>
+            </MudTh>
+
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => GetDepartment(x.Project_Acronym_CD))" InitialDirection="SortDirection.Ascending">@Localizer["Department"]</MudTableSortLabel>
+            </MudTh>
+
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.Users?.Count ?? 0 + x.Repositories?.Count ?? 0)" InitialDirection="SortDirection.Ascending">@Localizer["Details"]</MudTableSortLabel>
+            </MudTh>
+
+            <MudTh>
+                @*placeholder for the actions colum*@
+            </MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Acronym">@context.Project_Acronym_CD</MudTd>
+
+            <MudTd DataLabel="Name">@context.ProjectName</MudTd>
+
+            <MudTd DataLabel="Department/Agency">@GetDepartment(context.Project_Acronym_CD)</MudTd>
+
+            <MudTd DataLabel="Details">
+                <ProjectPreviewCardIconDetails
+                    NumberOfUsers="context?.Users?.Count ?? 0"
+                    NumberOfRepositories="context?.Repositories?.Count ?? 0"
+                    NumberOfFiles="0"/>
+            </MudTd>
+
+            <MudTd DataLabel="ProjectButton">
+                <MudButton EndIcon="@UserWorkspaceOpenIcon" Variant="Variant.Text" Color="Color.Primary"
+                           Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{context.Project_Acronym_CD}")">
+                    @Localizer["Open Workspace"]
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager/>
+        </PagerContent>
+    </MudTable>
+</MudStack>
+
+@code {
+
+        private const string UserWorkspaceOpenIcon = Icons.Material.Filled.KeyboardDoubleArrowRight;
+
+    private List<Datahub_Project> _allProjects = new();
+    private List<Datahub_Project> _filteredProjects = new();
+    private List<Datahub_Project> _featuredProjects = new();
+        private const int FeaturedProjectsCount = 3;
+
+    private string _projectSearchFilter = string.Empty;
+    private readonly Dictionary<string, string> _departments = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var context = await _dbFactory.CreateDbContextAsync();
+        _allProjects = await context.Projects
+            .Where(p =>
+                (p.Project_Status == (int)ProjectStatus.InProgress || p.Is_Featured) &&
+                !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD)
+                && !string.IsNullOrWhiteSpace(p.Project_Name))
+            .Include(p => p.Users)
+            .Include(p => p.Repositories)
+    // .Include(p => p.SharedFiles)
+            .ToListAsync();
+
+        _filteredProjects = _allProjects;
+        _featuredProjects = _allProjects
+            .Where(p => p.Is_Featured)
+            .Take(FeaturedProjectsCount)
+            .ToList();
+
+        await LoadMetadata();
+    }
+
+    private async Task LoadMetadata()
+    {
+        var values = await _metadataBrokerService.ListObjectFieldValues("organization_name");
+        foreach (var v in values)
+        {
+            _departments[v.Name.ToLower()] = v.Value;
+        }
+    }
+
+    private string GetDepartment(string acronym)
+    {
+        return _departments.TryGetValue(acronym.ToLower(), out string value) ? value : "N/A";
+    }
+
+    private bool ProjectFilter(Datahub_Project project)
+    {
+        return project.Project_Name.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant()) ||
+               project.Project_Acronym_CD.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant()) ||
+               project.Sector_Name.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant());
+    }
+
+}

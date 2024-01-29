@@ -1,0 +1,46 @@
+@using Datahub.Core.Model.Projects
+
+<MudPaper Outlined Class="pa-4">
+    <MudStack>
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudIcon Icon="@SvgIcons.Databricks" Size="Size.Medium"/>
+            <MudText Typo="Typo.h3">@Localizer["Databricks Analytics"]</MudText>
+            <MudSpacer/>
+
+        </MudStack>
+        <MudText>
+            @Localizer["Access the Databricks notebooks for the workspace to write, execute and share analytics with all workspace members"]
+        </MudText>
+        <MudElement HtmlTag="div">
+            @if (ProjectResource.CreatedAt.HasValue)
+            {
+                <MudButton
+                    Href="@ExtractDatabricksUrl()"
+                    Target="_blank"
+                    Color="Color.Primary"
+                    Variant="@Variant.Text"
+                    EndIcon="@Icons.Material.Outlined.OpenInNew">
+                    @Localizer["Open Databricks"]
+                </MudButton>
+            }
+            else
+            {
+                <ToolBeingProvisionedButton />
+            }
+        </MudElement>
+    </MudStack>
+</MudPaper>
+
+@code {
+
+    [Parameter] [EditorRequired] public Project_Resources2 ProjectResource { get; set; }
+
+    [Parameter] [EditorRequired] public string WorkspaceAcronym { get; set; }
+
+
+    private string ExtractDatabricksUrl()
+    {
+        return TerraformVariableExtraction.ExtractDatabricksUrl(ProjectResource);
+    }
+
+}

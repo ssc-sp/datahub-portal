@@ -1,54 +1,54 @@
-﻿@*ProjectMetadata.razor*@
-@page "/admin/databricks/metadata/{ProjectAcronym}"
-@using Datahub.Metadata.Model
-@using Datahub.Shared
-@using Datahub.Core.Services.Projects
-@using System.Text.Json
-@using Datahub.Core.Model.Projects
-@using Datahub.Shared.Entities
-
-@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-
-<div class="manage-access"> 
-
-    <AeFlex Vertical>
-        <h1>@($"{ProjectAcronym} {Localizer["Initiative Databricks Metadata"]}")</h1>
-    </AeFlex>    
-
-    <ProjectObjectMetadata 
-        ProfileName="catalog"
-        ObjectId=@($"{ProjectAcronym}-Databricks")
-        Location=@_databricksNotebookUrl
-        ProjectAcronym=@ProjectAcronym 
-        ObjectType=@MetadataObjectType.Databricks
-        OnProjectLoaded=@HandleProjectLoaded />
-</div>
-
-
-@code {
-
-    [Parameter]
-    public string ProjectAcronym { get; set; }
-
-    private string _databricksNotebookUrl;
-
-    private void HandleProjectLoaded(Datahub_Project project)
-    {
-        var databricksTemplateName = RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
-
-        var projectDatabricks = project.Resources
-            .Where(r => r.Project.Project_Acronym_CD == ProjectAcronym)
-            .FirstOrDefault(r => r.ResourceType == databricksTemplateName);
-
-        if (projectDatabricks is null) return;
-        
-        var deserializeOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        var jsonContent =
-            JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectDatabricks.JsonContent, deserializeOptions);
-        _databricksNotebookUrl = jsonContent[TerraformVariables.OutputAzureDatabricksWorkspaceUrl]?.Value;
-    }
-}
+﻿@* $1$ProjectMetadata.razor#1# *@
+@* $1$ @page "/admin/databricks/metadata/{ProjectAcronym}" #1# *@
+@* @using Datahub.Metadata.Model *@
+@* @using Datahub.Shared *@
+@* @using Datahub.Core.Services.Projects *@
+@* @using System.Text.Json *@
+@* @using Datahub.Core.Model.Projects *@
+@* @using Datahub.Shared.Entities *@
+@* *@
+@* @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory *@
+@* *@
+@* <div class="manage-access">  *@
+@* *@
+@*     <AeFlex Vertical> *@
+@*         <h1>@($"{ProjectAcronym} {Localizer["Initiative Databricks Metadata"]}")</h1> *@
+@*     </AeFlex>     *@
+@* *@
+@*     <ProjectObjectMetadata  *@
+@*         ProfileName="catalog" *@
+@*         ObjectId=@($"{ProjectAcronym}-Databricks") *@
+@*         Location=@_databricksNotebookUrl *@
+@*         ProjectAcronym=@ProjectAcronym  *@
+@*         ObjectType=@MetadataObjectType.Databricks *@
+@*         OnProjectLoaded=@HandleProjectLoaded /> *@
+@* </div> *@
+@* *@
+@* *@
+@* @code { *@
+@* *@
+@*     [Parameter] *@
+@*     public string ProjectAcronym { get; set; } *@
+@* *@
+@*     private string _databricksNotebookUrl; *@
+@* *@
+@*     private void HandleProjectLoaded(Datahub_Project project) *@
+@*     { *@
+@*         // var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(IRequestManagementService.DATABRICKS); *@
+@* *@
+@*         var projectDatabricks = project.Resources *@
+@*             .Where(r => r.Project.Project_Acronym_CD == ProjectAcronym) *@
+@*             .FirstOrDefault(r => r.ResourceType == databricksTemplateName); *@
+@* *@
+@*         if (projectDatabricks is null) return; *@
+@*          *@
+@*         var deserializeOptions = new JsonSerializerOptions *@
+@*         { *@
+@*             PropertyNameCaseInsensitive = true *@
+@*         }; *@
+@* *@
+@*         var jsonContent = *@
+@*             JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectDatabricks.JsonContent, deserializeOptions); *@
+@*         _databricksNotebookUrl = jsonContent[TerraformVariables.OutputAzureDatabricksWorkspaceUrl]?.Value; *@
+@*     } *@
+@* } *@

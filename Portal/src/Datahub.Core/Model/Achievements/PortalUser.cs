@@ -16,14 +16,13 @@ public class PortalUser
     public DateTime? LastLoginDateTime { get; set; }
     public string BannerPictureUrl { get; set; }
     public string ProfilePictureUrl { get; set;}
-    public bool HideAchievements { get; set; }
-    public string Language { get; set; }
+    public List<UserInactivityNotifications> InactivityNotifications  { get; set; }
 
     #region Navigation props
     public ICollection<UserAchievement> Achievements { get; set; }
     public ICollection<TelemetryEvent> TelemetryEvents { get; set; }
-    
     public ICollection<UserRecentLink> RecentLinks { get; set; }
+    public UserSettings UserSettings { get; set; }
     #endregion
     
     #region Utility functions
@@ -31,7 +30,7 @@ public class PortalUser
     public IEnumerable<UserAchievement> GetUserAchievements()
     {
         return Achievements?
-                   .OrderBy(a => a.Achievement.Id)
+                   .OrderBy(a => a.Achievement?.Id)
                    .ThenBy(a => a.UnlockedAt)
                    .ToList()
                ?? new List<UserAchievement>();

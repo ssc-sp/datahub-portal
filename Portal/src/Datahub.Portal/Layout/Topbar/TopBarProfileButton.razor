@@ -1,6 +1,4 @@
 @inject IUserInformationService _userInformationService
-@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
-@inject UIControlsService _uiControlsService
 @inject NavigationManager _navigationManager
 
 @using Microsoft.Identity.Web
@@ -24,27 +22,22 @@
         </ActivatorContent>
         <ChildContent>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
-                <MudMenuItem>
+                <MudMenuItem OnClick="@ToggleAdminMode">
                     <MudSwitch
                         T="bool"
                         Color="Color.Primary"
                         Checked="@_isViewAsAdmin"
-                        Label="@Localizer["Admin Access Enabled"]"
-                        CheckedChanged="ToggleAdminMode"/>
+                        Label="@Localizer["Admin Access Enabled"]"/>
                 </MudMenuItem>
                 <MudDivider/>
             </DatahubAuthView>
-            <MudMenuItem Href="/profile">@Localizer["Your profile"]</MudMenuItem>
-            <MudMenuItem Href="/w">@Localizer["Your workspaces"]</MudMenuItem>
-            <MudMenuItem Href="/profile/settings/notifications">@Localizer["Your notifications"]</MudMenuItem>
-            <MudDivider/>
-            <MudMenuItem Href="/profile/settings">@Localizer["Settings"]</MudMenuItem>
-            <MudMenuItem>
-                <LanguageToggle/>
+            <MudMenuItem Href="@($"{PageRoutes.AccountPrefix}/{PersonalSidebar.SectionViews.Customization}")">@Localizer["Settings"]</MudMenuItem>
+            <MudMenuItem OnClick="@HandleLanguageToggle">
+                <LanguageToggle @ref="_languageToggle"/>
             </MudMenuItem>
-            <MudMenuItem Href="terms-and-conditions">@Localizer["Terms and Conditions"]</MudMenuItem>
+            <MudMenuItem Href="@PageRoutes.TermsAndConditions">@Localizer["Terms and Conditions"]</MudMenuItem>
             <MudDivider/>
-            <MudMenuItem OnClick="HandleLogOut">
+            <MudMenuItem OnClick="@HandleLogOut">
                 @Localizer["Sign Out"]
             </MudMenuItem>
         </ChildContent>
@@ -56,29 +49,33 @@
 
     private PortalUser _viewedUser;
     private bool _isViewAsAdmin;
+    
+    private LanguageToggle _languageToggle;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
-            _isViewAsAdmin = !(await _userInformationService.IsViewingAsGuest());
-        }
-        catch (Exception ex)
-        {
-            _consentHandler.HandleException(ex);
-        }
+        _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+        _isViewAsAdmin = !await _userInformationService.IsViewingAsGuest();
     }
 
-    private async Task ToggleAdminMode(bool newValue)
+    private async Task ToggleAdminMode()
     {
-        await _userInformationService.SetViewingAsGuest(!newValue);
+        _isViewAsAdmin = !_isViewAsAdmin;
+        await _userInformationService.SetViewingAsGuest(!_isViewAsAdmin);
         _navigationManager.NavigateTo(_navigationManager.Uri, true);
     }
-    
+
     private void HandleLogOut()
     {
         _navigationManager.NavigateTo("MicrosoftIdentity/Account/SignOut", true);
+    }
+
+    private async Task HandleLanguageToggle(MouseEventArgs arg)
+    {
+        await _languageToggle.ToggleLanguage();
     }
 
 }

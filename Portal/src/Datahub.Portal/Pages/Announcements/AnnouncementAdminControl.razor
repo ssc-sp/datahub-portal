@@ -7,7 +7,7 @@
     @if (Announcement.EndDateTime.HasValue)
     {
         <MudText Typo="Typo.body2" Color="@GetColor()">
-            @Localizer["Until {0} at {1}", Announcement.StartDateTime?.Date.ToString("yyyy-MM-dd")!, Announcement.StartDateTime?.TimeOfDay.ToString("hh\\:mm\\:ss")!]
+            @Localizer["Until {0} at {1}", Announcement.EndDateTime?.Date.ToString("yyyy-MM-dd")!, Announcement.EndDateTime?.TimeOfDay.ToString("hh\\:mm\\:ss")!]
         </MudText>
     }
     else
