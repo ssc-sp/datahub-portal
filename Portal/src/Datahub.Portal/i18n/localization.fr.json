@@ -1986,5 +1986,15 @@
   "User information updated": "Informations utilisateur mises à jour",
   "Initializing Profile...": "Initialisation du profil...",
   "Create Workspace": "Créer un espace de travail",
-  "Reset alert settings": "Réinitialiser les paramètres d'alerte"
+  "Reset alert settings": "Réinitialiser les paramètres d'alerte",
+  "Workspace Database": "Base de données de l'espace de travail",
+  "Here you can manage your workspace database. You can view and test the connectivity of your database": "Ici, vous pouvez gérer la base de données de votre espace de travail. Vous pouvez afficher et tester la connectivité de votre base de données",
+  "Database Info": "Informations sur la base de données",
+  "Host: ": "Hôte : ",
+  "Database Name: ": "Nom de la base de données : ",
+  "Username: ": "Nom d'utilisateur : ",
+  "Password: ": "Mot de passe : ",
+  "Port: ": "Port : ",
+  "Connection Info": "Informations de connexion",
+  "SQL Database": "Base de données SQL"
 }
