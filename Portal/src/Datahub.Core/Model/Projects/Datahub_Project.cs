@@ -240,7 +240,12 @@ public class Datahub_Project : IComparable<Datahub_Project>
     {
         get
         {
-            return Users.Select(x => x.PortalUser.LastLoginDateTime).Max();
+            if (Users != null)
+            {
+                return Users.Select(x => x.PortalUser.LastLoginDateTime).Max();
+            }
+            return Last_Updated_DT;
+            
         }
     }
     

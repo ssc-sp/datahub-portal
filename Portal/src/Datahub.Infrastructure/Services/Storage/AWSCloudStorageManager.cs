@@ -2,8 +2,10 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
-using Datahub.Application.Services.Storage;
 using Datahub.Core.Data;
+using Datahub.Core.Storage;
+using Datahub.Infrastructure.Services.Security;
+using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
 
 namespace Datahub.Infrastructure.Services.Storage;
 
@@ -190,7 +192,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
     }
 
     public bool AzCopyEnabled => false;
-    public bool DatabrickEnabled => false;
+    public bool DatabrickEnabled => true;
 
     public CloudStorageProviderType ProviderType => CloudStorageProviderType.AWS;
 
@@ -276,4 +278,16 @@ public class AWSCloudStorageManager : ICloudStorageManager
     static string RemoveSlash(string path) => path.EndsWith('/') ? path[..^1] : path;
 
     static bool IsRoot(string path) => string.IsNullOrEmpty(path) || path == "/";
+
+    public List<(string, string)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
+    {
+        return new List<(string, string)>
+        {
+            (ResourceSubstitutions.ProjectAcronym, projectAcronym),
+            (ResourceSubstitutions.AWSS3Bucket, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_BucketName)),
+            (ResourceSubstitutions.AWSAccessKey, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_AccesKeyId)),
+            (ResourceSubstitutions.AWSAccessKeySecret, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_AccessKeySecret)),
+            (ResourceSubstitutions.AWSRegion, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_Region))
+        };
+    }
 }

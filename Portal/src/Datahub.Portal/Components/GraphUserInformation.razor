@@ -1,0 +1,48 @@
+﻿@using Datahub.Core.Data
+@using Datahub.Core.Services.UserManagement;
+@using Datahub.Application.Services.UserManagement
+@inject IMSGraphService GraphService
+
+@if (_graphUser == null)
+{
+    <Spinner/>
+}
+else
+{
+    if (IsUserNameRequested)
+    {
+        <div>@($"{_graphUser.DisplayName} {PostText}")</div>
+    }
+    else
+    {
+        <div>@($"{_graphUser.Mail} {PostText}")</div>
+    }
+}
+
+
+@code {
+    [Parameter]
+    public string UserId { get; set; }
+
+    [Parameter]
+    public bool IsUserNameRequested { get; set; }
+
+    [Parameter]
+    public string PostText { get; set; }
+
+    private CancellationTokenSource _cts = new();
+
+    private GraphUser _graphUser;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _graphUser = await GraphService.GetUserAsync(UserId, _cts.Token);
+    }
+
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();        
+    }
+
+}

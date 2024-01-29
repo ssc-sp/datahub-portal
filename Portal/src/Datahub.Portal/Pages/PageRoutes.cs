@@ -14,7 +14,7 @@ public static class PageRoutes
     public const string AccountDefault = $"/{AccountPrefix}/";
     public const string Account = $"/{AccountPrefix}/{{Section}}";
     
-    public const string ResourcePrefix = "resource";
+    public const string ResourcePrefix = "resources";
     public const string ResourceDefault = $"/{ResourcePrefix}/";
     public const string Resource = $"/{ResourcePrefix}/{{PageName}}";
     
@@ -23,4 +23,5 @@ public static class PageRoutes
     public const string Tool = $"/{ToolPrefix}/{{Section}}";
 
     public const string Logout = "/signout-oidc";
+    public const string TermsAndConditions = "/terms-and-conditions";
 }
