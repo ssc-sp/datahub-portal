@@ -9,7 +9,7 @@
 
 @if (!_isElevated)
 {
-    <DHLoadingInitializer Message="@Localizer["Validating your credentials..."]"  />
+    <DHLoadingInitializer Message="@Localizer["Validating your credentials..."]"/>
     return;
 }
 <MudStack>
@@ -21,24 +21,13 @@
         @Localizer["Here you can manage your workspace database. You can view and test the connectivity of your database"]
     </MudText>
 
-    <MudText Typo="Typo.h2">
-        @Localizer["Database Info"]
-    </MudText>
-    <MudText>
-        @Localizer["Host: "] <code>@_databaseHost</code>
-    </MudText>
-    <MudText>
-        @Localizer["Database Name: "] <code>@_databaseName</code>
-    </MudText>
-    <MudText>
-        @Localizer["Username: "] <code>@_username</code>
-    </MudText>
-    <MudText>
-        @Localizer["Password: "] <code>@_password</code>
-    </MudText>
-    <MudText>
-        @Localizer["Port: "] <code>@_port</code>
-    </MudText>
+    <DatabaseInfoTable
+        DatabaseHost="@_databaseHost"
+        DatabaseName="@_databaseName"
+        Username="@_username"
+        Password="@_password"
+        Port="@_port"
+        />
 
     <MudText Typo="Typo.h2">
         @Localizer["Connection Info"]
