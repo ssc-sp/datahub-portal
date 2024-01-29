@@ -1,7 +1,7 @@
 ﻿@* FileExplorerPage.razor *@
 
-@using Datahub.Application.Services.Storage;
-@using Datahub.Core.Components.PageBanner
+@using Datahub.Core.Storage;
+@using Datahub.Portal.Components.PageAlerts
 @using Datahub.Core.Model.CloudStorage;
 @using Datahub.Infrastructure.Services.Storage;
 @using Datahub.Portal.Components.Dialogs;
@@ -33,12 +33,6 @@
     <DHLoadingInitializer />
     return;
 }
-
-<DHPageAlert 
-    Title=@Localizer["How to use Project Storage"] 
-    Key="@PageAlert.Storage"
-    WikiLinkEN="/Banners/Workspace-Storage"
-    WikiLinkFR="/fr/Banners/Stockage-de-l-espace-de-travail" />
 
 <MudStack>
     <MudStack Row Justify="Justify.SpaceBetween">
@@ -78,7 +72,7 @@
                                 @if (SelectedContainer.StorageManager.DatabrickEnabled)
                                 {
                                     <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
-                                        <Databricks Container="@SelectedContainer.Name" />
+                                        <Databricks Container="@SelectedContainer" />
                                     </MudTabPanel>
                                 }
                                 @if (SelectedContainer.StorageManager.AzCopyEnabled)

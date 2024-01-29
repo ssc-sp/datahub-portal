@@ -209,7 +209,8 @@
 
         try
         {
-            await _requestManagementService.HandleTerraformRequestServiceAsync(project, templateName);
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            await _requestManagementService.HandleTerraformRequestServiceAsync(project, templateName, currentUser);
             _snackbar.Add(Localizer["Successfully requested resource."], Severity.Success);
         }
         catch (Exception e)
