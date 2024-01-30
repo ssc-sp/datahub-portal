@@ -1,6 +1,8 @@
+using System.Linq.Dynamic.Core;
 using System.Transactions;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
@@ -47,7 +49,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
     }
 
     public async Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands,
-        List<ProjectUserAddUserCommand> projectUserAddUserCommands)
+        List<ProjectUserAddUserCommand> projectUserAddUserCommands, string requesterUserId)
     {
         // if there are no commands, return true
         if (!projectUserUpdateCommands.Any() && !projectUserAddUserCommands.Any())
@@ -67,7 +69,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 await UpdateProjectUsersAsync(projectUserUpdateCommands);
             }
 
-            await PropagateUserUpdatesToExternalPermissions(projectUserUpdateCommands, projectUserAddUserCommands);
+            await PropagateUserUpdatesToExternalPermissions(projectUserUpdateCommands, projectUserAddUserCommands, requesterUserId);
             return true;
         }
         catch (Exception e)
@@ -78,7 +80,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
     }
 
     private async Task PropagateUserUpdatesToExternalPermissions(IEnumerable<ProjectUserUpdateCommand> projectUserUpdateCommands,
-        IEnumerable<ProjectUserAddUserCommand> projectUserAddUserCommands)
+        IEnumerable<ProjectUserAddUserCommand> projectUserAddUserCommands, string requesterUserId)
     {
         // get all the distinct projects that have been modified
         var projectAcronyms = projectUserUpdateCommands
@@ -88,18 +90,25 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 .Select(p => p.ProjectAcronym)
                 .Distinct())
             .ToList();
+        
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
         // update each project
         foreach (var projectAcronym in projectAcronyms)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
+            
             var project = await context.Projects
-                .AsNoTracking()
                 .Include(p => p.Users)
                 .ThenInclude(u => u.PortalUser)
                 .FirstAsync(p => p.Project_Acronym_CD == projectAcronym);
+            
+            project.Last_Updated_DT = DateTime.Now;
+            project.Last_Updated_UserId = requesterUserId;
+            context.Projects.Update(project);
+            await context.SaveChangesAsync();
 
-            await _requestManagementService.HandleUserUpdatesToExternalPermissions(project);
+            await _requestManagementService.HandleUserUpdatesToExternalPermissions(project, currentUser);
         }
     }
 
@@ -116,15 +125,15 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 throw new InvalidOperationException("Cannot update a user that is not already a member of the project");
             }
 
-            if (projectUserUpdateCommand.NewRoleId == (int)Project_Role.RoleNames.Remove)
-            {
-                context.Project_Users.Remove(userToUpdate);
-            }
-            else
-            {
+            //if (projectUserUpdateCommand.NewRoleId == (int)Project_Role.RoleNames.Remove)
+            //{
+            //    context.Project_Users.Remove(userToUpdate);
+            //}
+            //else
+            //{
                 userToUpdate.RoleId = projectUserUpdateCommand.NewRoleId;
                 context.Update(userToUpdate);
-            }
+            //}
         }
 
         await context.TrackSaveChangesAsync(_datahubAuditingService);
@@ -169,25 +178,27 @@ public class ProjectUserManagementService : IProjectUserManagementService
             // Double check that the user is not already a member of the project
             if (projectUser is not null)
             {
-                _logger.LogError("User {GraphGuid} is already a member of project {ProjectAcronym}",
+                projectUser.RoleId = projectUserAddUserCommand.RoleId;
+                _logger.LogInformation("Changing role of removed user {GraphGuid} of project {ProjectAcronym}",
                     projectUserAddUserCommand.GraphGuid, projectUserAddUserCommand.ProjectAcronym);
-                throw new InvalidOperationException(
-                    $"User {projectUserAddUserCommand.GraphGuid} is already a member of project {projectUserAddUserCommand.ProjectAcronym}");
             }
-
-            var newProjectUser = new Datahub_Project_User()
+            else
             {
-                Project = project,
-                PortalUser = portalUser,
-                ApprovedPortalUser = currentUser,
-                Approved_DT = DateTime.UtcNow,
-                RoleId = projectUserAddUserCommand.RoleId,
-            };
+
+                var newProjectUser = new Datahub_Project_User()
+                {
+                    Project_ID = project.Project_ID,
+                    PortalUserId = portalUser.Id,
+                    ApprovedPortalUserId = currentUser.Id,
+                    Approved_DT = DateTime.UtcNow,
+                    RoleId = projectUserAddUserCommand.RoleId,
+                };
+                await context.Project_Users.AddAsync(newProjectUser);
+            }
 
             context.Attach(currentUser);
             context.Attach(portalUser);
 
-            await context.Project_Users.AddAsync(newProjectUser);
             await context.TrackSaveChangesAsync(_datahubAuditingService);
         }
     }

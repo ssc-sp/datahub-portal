@@ -8,11 +8,17 @@ using Datahub.Core.Services;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Services.Offline;
 using Tewr.Blazor.FileReader;
 using Datahub.Core.Services.Security;
 using Datahub.Core.Services.Storage;
 using Datahub.Core.Services.UserManagement;
+using Datahub.Infrastructure.Offline;
+using Datahub.Infrastructure.Services.Security;
+using Datahub.Infrastructure.Services.Storage;
+using Datahub.Infrastructure.Services.UserManagement;
 using Datahub.Portal.Services.Api;
 
 namespace Datahub.Tests;
@@ -23,7 +29,7 @@ public class Startup
     {
         services.AddScoped<IUserInformationService, OfflineUserInformationService>();
         services.AddSingleton<IMSGraphService, MSGraphService>();
-        services.AddSingleton<IKeyVaultService, KeyVaultService>();
+        services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
         services.AddScoped<DataLakeClientService>();
         services.AddScoped<IWebHostEnvironment, FakeWebHostEnvironment>();
         services.AddScoped<IJSRuntime, FakeJSRuntime>();

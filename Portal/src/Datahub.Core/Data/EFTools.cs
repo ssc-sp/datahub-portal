@@ -74,7 +74,11 @@ public static class EFTools
     public static void ConfigureDbContext<T>(this IServiceCollection services, IConfiguration configuration, string connectionStringName, DbDriver dbDriver) where T : DbContext
     {
         var connectionString = configuration.GetConnectionString(connectionStringName);
-        if (string.IsNullOrWhiteSpace(connectionStringName) || string.IsNullOrWhiteSpace(connectionString)) throw new InvalidProgramException($"Cannot configure {typeof(T).Name} - no connection string for '{connectionStringName}':{connectionString}");
+        if (string.IsNullOrWhiteSpace(connectionStringName) || string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidProgramException($"Cannot configure {typeof(T).Name} - no connection string for '{connectionStringName}':{connectionString}");
+        }
+        
         switch (dbDriver)
         {
             case DbDriver.Memory:
@@ -99,7 +103,6 @@ public static class EFTools
 
     private static string GetInfo(DatabaseFacade db)
     {
-        if (db.IsCosmos()) return db.GetCosmosClient()?.ToString() ?? "CosmosDB - no client";
         if (db.IsRelational()) return $"{db.GetDbConnection().Database}";
         return "NA";
     }

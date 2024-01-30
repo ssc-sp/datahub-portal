@@ -1,7 +1,6 @@
 ﻿using System.Runtime.Caching;
 using System.Text;
 using System.Text.Json.Serialization;
-using Datahub.ProjectTools.Utils;
 using Markdig;
 using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
@@ -127,7 +126,7 @@ public class GitHubToolsService
             await contentClient.GetRawContentByRef(GitHubOwner, GitHubRepo, readme.Path, GitHubBranchName);
         var builder = new MarkdownPipelineBuilder();
         builder.UseYamlFrontMatter();
-        var readmeDoc = Markdown.Parse(Encoding.UTF8.GetString(readmeContent!), builder.Build());
+        var readmeDoc = Markdig.Markdown.Parse(Encoding.UTF8.GetString(readmeContent!), builder.Build());
         var readmeDocFlattened = readmeDoc.Descendants().ToList();
         var english = GetSubSections(readmeDocFlattened, "English", 1);
         var descriptors = ExtractSubSections(english, 2);

@@ -5,8 +5,7 @@
     "datahub_mssql_etldb": "",
     "datahub_mssql_finance": "",
     "datahub_mssql_webanalytics": "",
-    "datahub_mssql_metadata": "",
-    "datahub_cosmosdb": ""
+    "datahub_mssql_metadata": ""
   },
   "DbDriver": "azure",
   "AzureAd": {

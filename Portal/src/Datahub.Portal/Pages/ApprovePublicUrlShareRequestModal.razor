@@ -3,6 +3,7 @@
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Services.Notification
 @using Datahub.Portal.Services.Notification;
+@using Datahub.Application.Services.UserManagement
 @inject NavigationManager NavManager
 @inject IPublicDataFileService PublicFileService
 @inject IMSGraphService GraphService
@@ -109,7 +110,7 @@
     {
         processing = true;
         await PublicFileService.DenyPublicUrlShare(SharedFile.File_ID);
-        await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
+        // await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
         processing = false;
     }
 
@@ -136,7 +137,7 @@
                 };
             await Task.WhenAll(tasks);
             approved = true;
-            await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
+            // await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
             processing = false;
         }
     }

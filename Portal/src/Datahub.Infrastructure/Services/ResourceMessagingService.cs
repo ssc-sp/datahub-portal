@@ -2,8 +2,8 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Utils;
 using Datahub.ProjectTools.Services;
-using Datahub.ProjectTools.Utils;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
 using Foundatio.Queues;
@@ -30,6 +30,28 @@ public class ResourceMessagingService : IResourceMessagingService
             Name = _datahubPortalConfiguration.DatahubStorageQueue.QueueNames.ResourceRunRequest,
         });
         await queue.EnqueueAsync(project);
+    }
+
+    public async Task SendToTerraformDeleteQueue(WorkspaceDefinition project, int projectId)
+    {
+        using IQueue<WorkspaceDefinition> queue = new AzureStorageQueue<WorkspaceDefinition>(new AzureStorageQueueOptions<WorkspaceDefinition>()
+        {
+            ConnectionString = _datahubPortalConfiguration.DatahubStorageQueue.ConnectionString,
+            Name = _datahubPortalConfiguration.DatahubStorageQueue.QueueNames.DeleteRunRequest,
+        });
+        
+        await queue.EnqueueAsync(project);
+        
+        // Update Deleted_DT on the project
+        using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        var projectToDeleted = await ctx.Projects
+            .FirstOrDefaultAsync(p => p.Project_ID == projectId);
+        if (projectToDeleted != null)
+        {
+            projectToDeleted.Deleted_DT = DateTime.UtcNow;
+            ctx.Projects.Update(projectToDeleted);
+            await ctx.SaveChangesAsync();
+        }
     }
 
     public async Task SendToUserQueue(WorkspaceDefinition workspaceDefinition, string? connectionString = null, string? queueName = null)

@@ -1,13 +1,18 @@
-﻿using Datahub.Core.Data;
+﻿using System;
+using System.Linq;
+using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Announcements;
 using Datahub.Core.Model.Catalog;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Model.Documentation;
+using Datahub.Core.Model.Health;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Repositories;
+using Datahub.Core.Model.UserTracking;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Core.Model.Datahub;
@@ -31,7 +36,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<WebForm_DBCodes> DBCodes { get; set; }
     public DbSet<Datahub_Project_User> Project_Users { get; set; }
     public DbSet<Datahub_Project_User_Request> Project_Users_Requests { get; set; }
-    public DbSet<Datahub_ProjectServiceRequests> Project_Requests { get; set; }
     public DbSet<Datahub_Project_Pipeline_Lnk> Project_Pipeline_Links { get; set; }
     public DbSet<Organization_Level> Organization_Levels { get; set; }
     public DbSet<OnboardingApp> OnboardingApps {  get; set; }
@@ -78,6 +82,10 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     
     public DbSet<Project_Role> Project_Roles { get; set; }
 
+    public DbSet<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
+    
+    public DbSet<UserInactivityNotifications> UserInactivityNotifications { get; set; }
+    
     public DbSet<DocumentationResource> DocumentationResources { get; set; }
     
     /// <summary>
@@ -99,6 +107,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// Table for storing the cloud storage associcated to a project
     /// </summary>
     public DbSet<ProjectCloudStorage> ProjectCloudStorages { get; set; }
+
+    /// <summary>
+    /// Table for storing the infrastructure health checks
+    /// </summary>
+    public DbSet<InfrastructureHealthCheck> InfrastructureHealthChecks { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
@@ -212,6 +225,12 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasForeignKey(f => f.DivisionId)
             .OnDelete(DeleteBehavior.NoAction);
 
+        modelBuilder.Entity<Datahub_Project>()
+            .HasMany(w => w.ProjectInactivityNotifications)
+            .WithOne(p => p.Project)
+            .HasForeignKey(p => p.Project_ID)
+            .OnDelete(DeleteBehavior.NoAction);
+
         modelBuilder.Entity<Project_Whitelist>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -255,5 +274,28 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             
         modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
+        
+        
+        if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+        {
+            // SQLite does not have proper support for DateTimeOffset via Entity Framework Core, see the limitations
+            // here: https://docs.microsoft.com/en-us/ef/core/providers/sqlite/limitations#query-limitations
+            // To work around this, when the Sqlite database provider is used, all model properties of type DateTimeOffset
+            // use the DateTimeOffsetToBinaryConverter
+            // Based on: https://github.com/aspnet/EntityFrameworkCore/issues/10784#issuecomment-415769754
+            // This only supports millisecond precision, but should be sufficient for most use cases.
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                var properties = entityType.ClrType.GetProperties().Where(p => p.PropertyType == typeof(DateTimeOffset)
+                                                                               || p.PropertyType == typeof(DateTimeOffset?));
+                foreach (var property in properties)
+                {
+                    modelBuilder
+                        .Entity(entityType.Name)
+                        .Property(property.Name)
+                        .HasConversion(new DateTimeOffsetToBinaryConverter());
+                }
+            }
+        }
     }
 }

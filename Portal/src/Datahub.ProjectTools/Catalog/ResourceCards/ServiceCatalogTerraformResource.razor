@@ -24,7 +24,7 @@
         @if (TemplateName == TerraformTemplate.ContactUs)
         {
 @*            <ViewExternalLinkButton ExternalUrl="@GitHubModule?.DocumentationUrl" Text="@Localizer["View Discussions"]"/>
-*@            <ViewExternalLinkButton 
+*@        <ViewExternalLinkButton 
                 Variant="Variant.Filled" 
                 ExternalUrl="@Descriptor?.ActionURL" 
                 Text="@Descriptor?.ActionDescription" 
@@ -80,7 +80,7 @@
     private async Task HandleRequestService()
     {
         _isRunning = true;
-        ResourceRequested = await RequestManagementService.HandleTerraformRequestServiceAsync(Project, TemplateName);
+        // ResourceRequested = await RequestManagementService.HandleTerraformRequestServiceAsync(Project, TemplateName);
         if (ResourceRequested)
         {
             _snackbar.Add(Localizer["Resource request has been successfully submitted"], Severity.Success);

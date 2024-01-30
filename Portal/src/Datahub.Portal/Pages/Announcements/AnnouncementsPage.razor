@@ -1,11 +1,20 @@
 ﻿@using Datahub.Core.Model.Announcements
 @using Datahub.Application.Services.Announcements
 
-@page "/news"
 
 @inject IAnnouncementService _announcementService
 
+@attribute [Route(PageRoutes.News)]
+
+<PageTitle>
+    @Localizer["SSC Datahub - News"]
+</PageTitle>
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar />
+</SectionContent>
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+    
     <MudStack Spacing="6">
         <MudStack Row>
             <MudText Typo="Typo.h1">@Localizer["DataHub News"]</MudText>

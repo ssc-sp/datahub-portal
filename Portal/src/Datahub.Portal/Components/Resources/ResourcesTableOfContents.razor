@@ -1,0 +1,38 @@
+@using System.Text.RegularExpressions
+@using MudBlazor.Utilities
+@inject NavigationManager NavigationManager
+
+
+<!--suppress CssUnresolvedCustomProperty -->
+<MudStack Style="position: sticky; top: calc(var(--mud-appbar-height) + 1rem); max-height:  calc(95vh - (var(--mud-appbar-height) + 1rem)); overflow: auto;">
+    <MudText Class="mb-3" Typo="Typo.body1" Style="text-transform: uppercase; font-weight: bold;">@Localizer["On This Page"]</MudText>
+    @foreach (var heading in Headings)
+    {
+        <MudLink Href="@GetLink(heading)">
+            <MudText Typo="Typo.body1">
+                @heading
+            </MudText>
+        </MudLink>
+    }
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public List<string> Headings { get; set; }
+    
+    //Comes from MudMarkdown library. Unfortunately, it's not public.
+    private static readonly string[] EscapeChars = { "+", ":", "&" };
+
+    private string GetLink(string heading)
+    {
+        var headingId = string.Join("-", heading.Split(EscapeChars, StringSplitOptions.None)
+            .Select(word => word.TrimStart().ToLowerInvariant()))
+            .Replace(" ", "-");
+    // remove the current heading from the url
+        var hashIndex = NavigationManager.Uri.IndexOf('#');
+        var url = hashIndex >= 0 ? NavigationManager.Uri[..hashIndex] : NavigationManager.Uri;
+        return $"{url}#{headingId}";
+    }
+
+}
