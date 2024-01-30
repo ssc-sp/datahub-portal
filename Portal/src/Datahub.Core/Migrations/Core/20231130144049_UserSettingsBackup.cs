@@ -29,6 +29,13 @@ namespace Datahub.Core.Migrations.Core
                 oldType: "nvarchar(max)",
                 oldNullable: true);
 
+            // remove PK from UserSettings
+            migrationBuilder.DropPrimaryKey(
+                name: "PK_UserSettings",
+                table: "UserSettings");
+            
+            migrationBuilder.Sql("TRUNCATE TABLE UserSettings");
+
             migrationBuilder.AlterColumn<int>(
                 name: "UserId",
                 table: "UserSettings",
