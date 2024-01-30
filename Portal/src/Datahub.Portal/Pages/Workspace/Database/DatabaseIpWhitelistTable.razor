@@ -1,10 +1,112 @@
-<MudText Typo="Typo.h2" Class="mt-6">
-    @Localizer["Database IP Whitelist"]
-</MudText>
+@using Azure.ResourceManager
+@using Azure.Identity
+@using Azure.Core
+@using Azure.ResourceManager.PostgreSql.FlexibleServers
+@using System.Net
+@using Azure
 
 
+@inject IHttpContextAccessor _httpContextAccessor
+@inject DatahubPortalConfiguration _portalConfiguration
+@inject ISnackbar _snackbar
+@inject ILogger<DatabaseIpWhitelistTable> _logger
+@inject IUserInformationService _userInformationService
+
+
+<MudStack Row>
+    <MudButton OnClick="@AddCurrentIpAddress">
+        @Localizer["Add current IP address ({0})", _userIpAddress]
+    </MudButton>
+    <MudSpacer/>
+</MudStack>
+
+<MudTable Items="@_firewallRules"
+          Dense="true"
+          Hover="true"
+          Outlined="true"
+          Class="mt-6 mb-12"
+          CanCancelEdit="true"
+          Filter="@(new Func<WhitelistIPAddressData, bool>(FilterFunc))"
+          @bind-SelectedItem="@_selectedItem"
+          SortLabel="@Localizer["Sort by"]"
+          CommitEditTooltip="@Localizer["Commit edit"]"
+          CancelEditTooltip="@Localizer["Cancel edit"]"
+          IsEditRowSwitchingBlocked="true"
+          EditTrigger="TableEditTrigger.EditButton"
+          ApplyButtonPosition="TableApplyButtonPosition.End"
+          EditButtonPosition="TableEditButtonPosition.End"
+          RowEditPreview="@BackupItem"
+          RowEditCommit="@ItemHasBeenCommitted"
+          >
+
+    <ToolBarContent>
+        <MudText Typo="Typo.h2" Class="mt-6">
+            @Localizer["Database IP Address Whitelist"]
+        </MudText>
+        <MudSpacer/>
+        <MudTextField
+            @bind-Value="@_filterString"
+            Label="@Localizer["Filter"]"
+            Adornment="Adornment.End"
+            AdornmentIcon="@SidebarIcons.Search"
+            IconSize="Size.Small"
+            Class="mt-0"/>
+    </ToolBarContent>
+
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortBy="@(new Func<PostgreSqlFlexibleServerFirewallRuleData, object>(x => x.Name))">@Localizer["Name"]</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="@(new Func<PostgreSqlFlexibleServerFirewallRuleData, object>(x => x.StartIPAddress))">@Localizer["IP Address"]</MudTableSortLabel>
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="@Localizer["Name"]">@context.Name</MudTd>
+        <MudTd DataLabel="@Localizer["IP Address"]">@context.StartIPAddress</MudTd>
+    </RowTemplate>
+    <RowEditingTemplate>
+        <MudTd DataLabel="@Localizer["Name"]">
+            <MudTextField @bind-Value="@_tempName" Required/>
+        </MudTd>
+        <MudTd DataLabel="@Localizer["IP Address"]">
+            <MudTextField @bind-Value="@context.StartIPAddress" Required/>
+        </MudTd>
+    </RowEditingTemplate>
+    <EditButtonContent Context="button">
+        <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
+    </EditButtonContent>
+</MudTable>
 
 @code {
-    [Parameter, EditorRequired] 
-    public string WorkspaceAcronym { get; set; }
+
+    [Parameter, EditorRequired] public string WorkspaceAcronym { get; set; }
+
+    private IPAddress _userIpAddress = default;
+    private string _filterString = default;
+    private WhitelistIPAddressData _selectedItem = default;
+
+    private string _tempName = "temp name";
+
+    private List<WhitelistIPAddressData> _firewallRules = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var postgresResource = GetPostgreSqlFlexibleServerResource();
+
+        await foreach (var firewallRule in postgresResource.GetPostgreSqlFlexibleServerFirewallRules())
+        {
+            _firewallRules.Add(new WhitelistIPAddressData(firewallRule.Data));
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        _userIpAddress = _httpContextAccessor?.HttpContext?.Connection.RemoteIpAddress;
+    
+        StateHasChanged();
+    }
 }
