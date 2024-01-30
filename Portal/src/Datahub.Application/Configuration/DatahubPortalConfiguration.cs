@@ -137,6 +137,9 @@ public class AzureAd
     public string SignedOutCallbackPath { get; set; } = "/signout-callback-oidc";
 
     public string AppIDURL { get; set; } = null!;
+    
+    public string InfraClientId { get; set; } = null!;
+    public string InfraClientSecret { get; set; } = null!;
 }
 
 public class AdoServiceUser
