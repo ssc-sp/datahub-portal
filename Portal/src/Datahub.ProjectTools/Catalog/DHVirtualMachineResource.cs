@@ -2,6 +2,7 @@ using Datahub.Core.Configuration;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Projects;
 using Datahub.ProjectTools.Services;
+using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph.Models;
@@ -29,11 +30,11 @@ public class DHVirtualMachineResource : ActiveGitModuleResource
     protected override async Task InitializeAsync(string? userId, User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await _dbContextFactory.CreateDbContextAsync();
-        var serviceRequests = Project.ServiceRequests;
-        var serviceTerraformTemplateName =
-            RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
-        _serviceRequested = serviceRequests.Any(r => r.ServiceType == serviceTerraformTemplateName && r.Is_Completed == null);
-        _serviceCreated = serviceRequests.Any(r => r.ServiceType == serviceTerraformTemplateName && r.Is_Completed != null);
+        // var serviceRequests = Project.ProjectRequestAudits;
+        // var serviceTerraformTemplateName =
+            // TerraformTemplate.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
+        // _serviceRequested = serviceRequests.Any(r => r.RequestType == serviceTerraformTemplateName && r.Is_Completed == null);
+        // _serviceCreated = serviceRequests.Any(r => r.RequestType == serviceTerraformTemplateName && r.Is_Completed != null);
     }
 
     protected override Type ComponentType { get; }

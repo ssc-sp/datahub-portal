@@ -1,76 +1,78 @@
-@*WhitelistWorkspaceResourcesPage.razor*@
-
-@page "/w/{ProjectAcronymParam}/whitelist"
-
-@using Datahub.Core.Services.Projects;
-@using Datahub.Shared.Entities;
-@using Datahub.Core.Model.Projects
-
-@inject IUserInformationService UserInformationService
-@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
-@inject ServiceAuthManager ServiceAuthManager
-@inject ILogger<DataProjectPage> Logger
-@inject NavigationManager NavigationManager
-@inject IRequestManagementService requestManagementService
-@inject IDatahubAuditingService auditingService
-
-@if (_project is not null && _isDatahubAdmin)
-{
-    <CascadingValue Value="@_project" Name="Project">
-        <CascadingValue Value="@_isDatahubAdmin" Name="IsDatahubAdmin">
-            <CascadingValue Value="@_isProjectAdmin" Name="IsProjectAdmin">
-                <ProjectInfo ProjectAcronym="@ProjectAcronymParam" />
-                <ResourceWhitelist OnBudgetUpdated=@HandleBudgetUpdated />
-            </CascadingValue>
-        </CascadingValue>
-    </CascadingValue>
-}
-
-@code {
-    [Parameter]
-    public string ProjectAcronymParam { get; set; }
-
-    private Datahub_Project _project;
-
-    private bool _isDatahubAdmin;
-    private bool _isProjectAdmin;
-    private string _userId;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _userId = await UserInformationService.GetUserIdString();
-        if (_userId is null) Logger.LogError("UserId is null");
-
-        var authUser = (await UserInformationService.GetAuthenticatedUser());
-        _isDatahubAdmin = !ServiceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
-        if (!_isDatahubAdmin)
-        {
-            //redirect back to workspace page
-            NavigationManager.NavigateTo($"/w/{ProjectAcronymParam}");
-            return;
-        }
-
-        _isProjectAdmin = !ServiceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole($"{_project?.Project_Acronym_CD}-admin");
-        await using var projectContext = await DbFactoryProject.CreateDbContextAsync();
-
-        _project = await projectContext.Projects            
-            .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
-            .FirstOrDefaultAsync();
-    }
-
-    private async Task HandleBudgetUpdated(decimal budget)
-    {
-        if (_project.Project_Budget == budget)
-            return;
-
-        await using var ctx = await DbFactoryProject.CreateDbContextAsync();
-
-        _project.Project_Budget = budget;
-
-        ctx.Attach(_project);
-        ctx.Projects.Update(_project);
-        await ctx.TrackSaveChangesAsync(auditingService);
-
-        await requestManagementService.HandleTerraformRequestServiceAsync(_project, TerraformTemplate.VariableUpdate);
-    }
-}
+@* $1$WhitelistWorkspaceResourcesPage.razor#1# *@
+@* *@
+@* $1$ @page "/w/{ProjectAcronymParam}/whitelist" #1# *@
+@* *@
+@* @using Datahub.Core.Services.Projects; *@
+@* @using Datahub.Shared.Entities; *@
+@* @using Datahub.Core.Model.Projects *@
+@* @using Datahub.Core.Model.Achievements *@
+@* *@
+@* @inject IUserInformationService _userInformationService *@
+@* @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject *@
+@* @inject ServiceAuthManager ServiceAuthManager *@
+@* @inject ILogger<DataProjectPage> Logger *@
+@* @inject NavigationManager NavigationManager *@
+@* @inject IRequestManagementService requestManagementService *@
+@* @inject IDatahubAuditingService auditingService *@
+@* *@
+@* @if (_project is not null && _isDatahubAdmin) *@
+@* { *@
+@*     <CascadingValue Value="@_project" Name="Project"> *@
+@*         <CascadingValue Value="@_isDatahubAdmin" Name="IsDatahubAdmin"> *@
+@*             <CascadingValue Value="@_isProjectAdmin" Name="IsProjectAdmin"> *@
+@*                 <ProjectInfo ProjectAcronym="@ProjectAcronymParam" /> *@
+@*                 <ResourceWhitelist OnBudgetUpdated=@HandleBudgetUpdated /> *@
+@*             </CascadingValue> *@
+@*         </CascadingValue> *@
+@*     </CascadingValue> *@
+@* } *@
+@* *@
+@* @code { *@
+@*     [Parameter] *@
+@*     public string ProjectAcronymParam { get; set; } *@
+@* *@
+@*     private Datahub_Project _project; *@
+@* *@
+@*     private bool _isDatahubAdmin; *@
+@*     private bool _isProjectAdmin; *@
+@*     private PortalUser _userId; *@
+@* *@
+@*     protected override async Task OnInitializedAsync() *@
+@*     { *@
+@*         _userId = await _userInformationService.GetUserIdString(); *@
+@*         if (_userId is null) Logger.LogError("UserId is null"); *@
+@* *@
+@*         var authUser = (await _userInformationService.GetAuthenticatedUser()); *@
+@*         _isDatahubAdmin = !ServiceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN); *@
+@*         if (!_isDatahubAdmin) *@
+@*         { *@
+@*             //redirect back to workspace page *@
+@*             NavigationManager.NavigateTo($"/w/{ProjectAcronymParam}"); *@
+@*             return; *@
+@*         } *@
+@* *@
+@*         _isProjectAdmin = !ServiceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole($"{_project?.Project_Acronym_CD}-admin"); *@
+@*         await using var projectContext = await DbFactoryProject.CreateDbContextAsync(); *@
+@* *@
+@*         _project = await projectContext.Projects             *@
+@*             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam) *@
+@*             .FirstOrDefaultAsync(); *@
+@*     } *@
+@* *@
+@*     private async Task HandleBudgetUpdated(decimal budget) *@
+@*     { *@
+@*         if (_project.Project_Budget == budget) *@
+@*             return; *@
+@* *@
+@*         await using var ctx = await DbFactoryProject.CreateDbContextAsync(); *@
+@* *@
+@*         _project.Project_Budget = budget; *@
+@* *@
+@*         ctx.Attach(_project); *@
+@*         ctx.Projects.Update(_project); *@
+@*         await ctx.TrackSaveChangesAsync(auditingService); *@
+@*          *@
+@*         var currentUser = await _userInformationService.GetCurrentPortalUserAsync(); *@
+@*         await requestManagementService.HandleTerraformRequestServiceAsync(_project, TerraformTemplate.VariableUpdate, currentUser); *@
+@*     } *@
+@* } *@

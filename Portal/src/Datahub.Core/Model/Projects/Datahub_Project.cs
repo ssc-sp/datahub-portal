@@ -11,6 +11,7 @@ using Datahub.Core.Model.Repositories;
 using Datahub.Core.Services.Notification;
 using Datahub.Shared.Entities;
 using Elemental.Components;
+using Microsoft.Graph.Models;
 using MudBlazor.Forms;
 using AeFormCategoryAttribute = MudBlazor.Forms.AeFormCategoryAttribute;
 using AeFormIgnoreAttribute = MudBlazor.Forms.AeFormIgnoreAttribute;
@@ -162,22 +163,24 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     [AeFormIgnore]
     public string Last_Updated_UserId { get; set; }
-
-
+    
     [AeFormIgnore]
     public DateTime? Deleted_DT { get; set; }
+    
+    [AeFormIgnore]
+    public bool IsDeleted => Deleted_DT != null && Deleted_DT < DateTime.UtcNow;
 
     public List<Datahub_ProjectComment> Comments { get; set; }
 
     public List<Datahub_Project_User> Users { get; set; }
-
-    public List<Datahub_ProjectServiceRequests> ServiceRequests { get; set; }
 
     public List<Client_Engagement> Client_Engagements { get; set; }
 
     public Project_Credits Credits { get; set; }
     
     public Project_Whitelist Whitelist { get; set; }
+    
+    public List<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
 
     [StringLength(400)]
     [AeFormCategory("Initiative Connections")]
@@ -231,6 +234,37 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     [AeFormIgnore]
     public bool? WebAppEnabled { get; set; }
+
+    [AeFormIgnore]
+    public DateTime? LastLoginDate
+    {
+        get
+        {
+            if (Users != null)
+            {
+                return Users.Select(x => x.PortalUser.LastLoginDateTime).Max();
+            }
+            return Last_Updated_DT;
+            
+        }
+    }
+    
+    [AeFormIgnore]
+    public DateTime? OperationalWindow { get; set; }
+
+    private bool _hasCostRecovery;
+    [AeFormIgnore]
+    public bool HasCostRecovery
+    {
+        get
+        {
+            return _hasCostRecovery || (Project_ID <= 42);
+        }
+        set
+        {
+            _hasCostRecovery = value;
+        }
+    }
 
     [AeFormIgnore]
     [StringLength(128)]

@@ -4,6 +4,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Storage;
+using Datahub.Infrastructure.Services.Storage;
 using Microsoft.AspNetCore.Components;
 
 namespace Datahub.Portal.Services.Api;
@@ -15,9 +16,8 @@ public class DataCreatorService : BaseService, IDataCreatorService
 
     public DataCreatorService(ILogger<DataCreatorService> logger,
         DataLakeClientService dataLakeClientService,
-        NavigationManager navigationManager,
-        UIControlsService uiService)
-        : base(navigationManager, uiService)
+        NavigationManager navigationManager)
+        : base(navigationManager)
     {
         _logger = logger;
         _dataLakeClientService = dataLakeClientService;

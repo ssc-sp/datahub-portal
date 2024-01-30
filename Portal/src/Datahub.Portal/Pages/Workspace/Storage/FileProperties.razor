@@ -1,0 +1,99 @@
+@*FileProperties.razor*@
+@using Datahub.Core.Components.Code
+@using Datahub.Core.Services.Api;
+@using Datahub.Core.Services.Storage;
+@using Datahub.Metadata.Model
+@using Datahub.Application.Services
+@using Datahub.Infrastructure.Services.Api
+@using Datahub.Infrastructure.Services.Storage
+
+@inject DataRetrievalService _dataRetrievalService
+@inject CommonAzureServices _commonAzureServices;
+
+@if (File != null)
+{
+    <div class="storage-properties">
+        <div class="title-container">
+            <i class="@DatahubTools.GetFileTypeIcon(File.fileformat)"></i>
+            <AeTypography Variant="h3" class="details-title-text">
+                @Path.GetFileName(File.name)
+            </AeTypography>
+        </div>
+
+        <div class="access-container">
+            <AeTypography Variant="h4">@Localizer["Who has access"]</AeTypography>
+            <span class="circle-item">
+                <ProfileCircle FullName="@ProjectAcronym"/>
+                <AeTypography>@ProjectAcronym</AeTypography>
+            </span>
+        </div>
+
+        <div class="properties">
+            <AeTypography class="properties-title" Variant="h4">@Localizer["Storage Properties"]</AeTypography>
+            @foreach (var (key, value) in _properties)
+            {
+                if (!string.IsNullOrEmpty(value) && value != "[]")
+                {
+                    <AeTypography class="label">@Localizer["ITEM-DETAILS-PAGE." + key]</AeTypography>
+                    <AeTypography class="text">@value</AeTypography>
+                }
+            }
+
+            <AeTypography class="label">@Localizer["Power BI URL"]</AeTypography>
+            <InlineCodeWithCopy>@_powerBiPasteText</InlineCodeWithCopy>
+            
+            <AeTypography class="label">@Localizer["File URL"]</AeTypography>
+            <InlineCodeWithCopy>@_fileLinkUrl</InlineCodeWithCopy>
+
+        </div>
+    </div>
+}
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [CascadingParameter(Name = "StorageAccountMetadata")]
+    public StorageMetadata StorageAccountMetadata { get; set; }
+
+    [Parameter]
+    public int? ProjectId { get; set; }
+
+    [Parameter]
+    public FileMetaData File { get; set; }
+
+    [Parameter]
+    public string ContainerName { get; set; } = "datahub";
+
+    [Parameter]
+    public bool Readonly { get; set; }
+
+    [Parameter]
+    public EventCallback OnMetadataChanged { get; set; }
+
+    private List<(string, string)> _properties;
+    private string _powerBiPasteText;
+    private string _fileLinkUrl;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        if (File == null)
+            return;
+
+        _properties = File.GetMetadataProperties()
+            .Where(p => p.isVisible)
+            .Select(p => (p.key, Value: File.GetMetadataPropertyValue(p.key)))
+            .ToList();
+
+        if (!string.IsNullOrEmpty(StorageAccountMetadata?.Url))
+        {
+            var accountName = StorageAccountMetadata.Url.Split('.')[0].Replace("https://", "");
+            _fileLinkUrl = $"{StorageAccountMetadata.Url}/{File.folderpath}{File.filename}";
+            _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{accountName}.dfs.core.windows.net/{File.folderpath}{File.filename}";
+        }
+    }
+}
+

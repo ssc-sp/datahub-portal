@@ -1,0 +1,66 @@
+@using Datahub.Portal.Pages.Account
+@using Datahub.Core.Model.Projects
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IDatahubAuditingService _auditingService
+
+<MudStack Spacing="8" Class="mb-16">
+    <MudStack>
+
+        <MudText Typo="Typo.h4">
+            @Localizer["Workspace Settings"]
+        </MudText>
+        <MudDivider/>
+    </MudStack>
+
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <SettingsField Label="@Localizer["Workspace Budget"]" Description="@Localizer["The amount of credits allocated to your workspace. Please contact us if you wish to modify your budget."]">
+                <MudTextField T="decimal" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@_budget" ValueChanged="@OnBudgetChanged"/>
+            </SettingsField>
+        </MudItem>
+        <MudItem xs="0" sm="6"/>
+        <MudDivider />
+        <MudItem xs="12" sm="6" Class="mt-16">
+            <SettingsField Label="@Localizer["Delete Workspace"]" Description="@Localizer["Delete your workspace and all associated data. This action cannot be undone."]">
+                <MudButton Variant="Variant.Filled" Color="Color.Error" Disabled>
+                    @Localizer["Delete Workspace"]
+                </MudButton>
+            </SettingsField>
+        </MudItem>
+        <MudItem xs="0" sm="6"/>
+    </MudGrid>
+
+
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    private decimal _budget;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+        var project = await context.Projects
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        _budget = project.Project_Budget ?? 0;
+    }
+
+    private async Task OnBudgetChanged(decimal arg)
+    {
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+        var project = await context.Projects
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        project.Project_Budget = arg;
+        await context.TrackSaveChangesAsync(_auditingService);
+    }
+
+}

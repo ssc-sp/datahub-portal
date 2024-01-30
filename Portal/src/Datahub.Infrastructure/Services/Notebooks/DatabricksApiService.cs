@@ -7,7 +7,7 @@ using Datahub.Core.Data.Databricks;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Services.CatalogSearch;
-using Datahub.ProjectTools.Utils;
+using Datahub.Core.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

@@ -1,0 +1,83 @@
+@using Datahub.Core.Components.AuthViews
+@using Datahub.Portal.Components.User
+@using Datahub.Application.Services
+@using Datahub.Core.Model.Projects
+
+@inject IProjectUserManagementService _projectUserManagementService
+
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated" ProjectAcronym="@ProjectAcronym">
+    <MudStack>
+        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
+            @if (_projectAdmins.Any())
+            {
+                <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
+            }
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@_viewMembersHref">
+                    @Localizer["View Members"]
+                </MudButton>
+            </DatahubAuthView>
+        </MudStack>
+        <MudStack>
+            @foreach (var admin in _projectAdmins)
+            {
+                var graphId = admin.PortalUser?.GraphGuid;
+                if (!string.IsNullOrEmpty(graphId))
+                {
+                    <UserCard ViewedUserGraphId=@graphId Size="Size.Medium" ShowProfileLink />
+                }
+            }
+        </MudStack>
+
+        @if (_projectMembers.Any())
+        {
+            <MudDivider Class="my-4"/>
+
+            <MudStack Class="mb-2">
+                <MudText Typo="Typo.h5">@Localizer["Collaborators"]</MudText>
+            </MudStack>
+            <MudStack>
+                @foreach (var member in _projectMembers)
+                {
+                    var graphId = member.PortalUser?.GraphGuid;
+                    if (!string.IsNullOrEmpty(graphId))
+                    {
+                        <UserCard ViewedUserGraphId=@graphId Size="Size.Medium" ShowProfileLink />
+                    }                    
+                }
+            </MudStack>
+        }
+    </MudStack>
+</DatahubAuthView>
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private List<Datahub_Project_User> _projectAdmins = new();
+    private List<Datahub_Project_User> _projectMembers = new();
+    
+    private string _viewMembersHref => $"{PageRoutes.WorkspacePrefix}/{ProjectAcronym}/{WorkspaceSidebar.SectionViews.Users}";
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        var workspaceMembers = await _projectUserManagementService.GetProjectUsersAsync(ProjectAcronym);
+        
+        _projectAdmins = workspaceMembers
+            .Where(m => m.RoleId 
+                is (int) Project_Role.RoleNames.Admin 
+                or (int) Project_Role.RoleNames.WorkspaceLead)
+            .ToList();
+        
+        _projectMembers = workspaceMembers
+            .Where(m => m.RoleId
+                is (int) Project_Role.RoleNames.Collaborator)
+            .ToList();
+    }
+
+}

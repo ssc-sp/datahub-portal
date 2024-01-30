@@ -1,0 +1,247 @@
+# 'Allow scripts to access the OAuth token' was selected in pipeline.  Add the following YAML to any steps requiring access:
+#       env:
+#           MY_ACCESS_TOKEN: $(System.AccessToken)
+# Variable 'target_os' was defined in the Variables tab
+# Variable 'version.MajorMinor' was defined in the Variables tab
+# Variable 'version.Revision' was defined in the Variables tab
+
+variables:
+  target_os: linux-x64
+  version.MajorMinor: 3.3
+  version.Revision: $[counter(variables['version.MajorMinor'], 0)]
+  
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: refs/heads/develop
+jobs:
+- job: Job_1
+  displayName: 'Agent job: prepare'
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+    clean: true
+    lfs: true
+    fetchTags: false
+  - task: UseDotNet@2
+    displayName: Use .NET Core sdk 8.0.x
+    inputs:
+      version: 8.0.x
+      includePreviewVersions: true
+      performMultiLevelLookup: true
+  - task: UseNode@1
+    displayName: Use Node 16.x
+    inputs:
+      version: 16.x
+  - task: PowerShell@2
+    displayName: 'PowerShell Script: Set build number'
+    inputs:
+      targetType: inline
+      script: >-
+        [string] $dateCode = (Get-Date -Format 'yyyyMMdd')
+
+        [string] $buildName = "$(version.MajorMinor).$(version.Revision)_$dateCode"
+
+
+        Write-Host "Setting the name of the build to '$buildName'."
+
+        Write-Host "##vso[build.updatebuildnumber]$buildName"
+- job: Job_2
+  displayName: Agent job - build portal app
+  dependsOn: Job_1
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+    clean: true
+    lfs: true
+    fetchTags: false
+  - task: PowerShell@2
+    displayName: PowerShell Script - copy appsettings
+    inputs:
+      targetType: inline
+      script: "cd Portal/src\n      $files=Get-Childitem -Path Datahub.Portal -Include appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike \"*\\Debug\\*\"}\n      foreach ($file in $files){\n        $fileRendered=$file.FullName.trim(\"-tmpl\")\n        Write-Host \"Processing file: ${file} > $fileRendered\"\n        Copy-Item $file.FullName -Force -Destination $fileRendered\n      }\n      cd Datahub.Portal; mv appsettings.Development.json appsettings.dev.json; Move-Item -Force appsettings.json-tmpl-spdatahub appsettings.json\n    "
+  - task: DotNetCoreCLI@2
+    displayName: dotnet build
+    inputs:
+      projects: Portal/src/Datahub.Portal/*.csproj
+      arguments: --configuration $(BuildConfiguration)
+  - task: DotNetCoreCLI@2
+    displayName: dotnet publish
+    inputs:
+      command: publish
+      publishWebProjects: false
+      projects: 'Portal/src/Datahub.Portal/*.csproj'
+      arguments: '-o $(Build.ArtifactStagingDirectory)/output/portal -r $(target_os) --self-contained true'  
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: datahub-portal'
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/output/portal
+      ArtifactName: datahub-portal
+
+- job: Job_3
+  displayName: Agent job - build function app
+  dependsOn: Job_1
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+    clean: true
+    lfs: true
+    fetchTags: false
+  - task: DotNetCoreCLI@2
+    displayName: dotnet restore
+    inputs:
+      command: restore
+      projects: Portal/src/Datahub.Functions/*.csproj
+  - task: DotNetCoreCLI@2
+    displayName: dotnet build
+    inputs:
+      projects: Portal/src/Datahub.Functions/*.csproj
+      arguments: --configuration $(BuildConfiguration)
+  - task: DotNetCoreCLI@2
+    displayName: dotnet publish
+    inputs:
+      command: publish
+      publishWebProjects: false
+      projects: Portal/src/Datahub.Functions/*.csproj
+      arguments: -o $(Build.ArtifactStagingDirectory)/output/portal -r $(target_os) --self-contained true
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: datahub-function'
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/output/portal
+      ArtifactName: datahub-function
+- job: Job_5
+  displayName: Agent job - build resource provisioner function app
+  dependsOn: Job_1
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+    clean: true
+    lfs: true
+    fetchTags: false
+  - task: DotNetCoreCLI@2
+    displayName: dotnet restore
+    inputs:
+      command: restore
+      projects: ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj
+  - task: DotNetCoreCLI@2
+    displayName: dotnet build
+    inputs:
+      projects: ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj
+      arguments: --configuration $(BuildConfiguration)
+  - task: DotNetCoreCLI@2
+    displayName: dotnet publish
+    inputs:
+      command: publish
+      publishWebProjects: false
+      projects: ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj
+      arguments: -o $(Build.ArtifactStagingDirectory)/output/resourceprovisioner -r $(target_os) --self-contained true
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: resource-provisioner-function'
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/output/resourceprovisioner
+      ArtifactName: resource-provisioner-function
+- job: Job_6
+  displayName: Agent job - package maintenance pages
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+    clean: true
+    lfs: true
+    fetchTags: false
+  - task: DotNetCoreCLI@2
+    displayName: dotnet restore
+    inputs:
+      command: restore
+      projects: Portal/src/Datahub.Maintenance/*.csproj
+  - task: DotNetCoreCLI@2
+    displayName: dotnet build
+    inputs:
+      projects: Portal/src/Datahub.Maintenance/*.csproj
+      arguments: --configuration $(BuildConfiguration)
+  - task: DotNetCoreCLI@2
+    displayName: dotnet publish
+    inputs:
+      command: publish
+      publishWebProjects: false
+      projects: Portal/src/Datahub.Maintenance/*.csproj
+      arguments: -o $(Build.ArtifactStagingDirectory)/output/maintenancepage -r $(target_os) --self-contained true
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: maintenance page'
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/output/maintenancepage
+      ArtifactName: maintenance-page
+- job: Job_7
+  displayName: Agent job - build python user provisioner function
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+    clean: true
+    lfs: true
+    fetchTags: false
+  - task: UsePythonVersion@0
+    displayName: Use Python 3.11
+    inputs:
+      versionSpec: 3.11
+  - task: Bash@3
+    displayName: Bash Script - pip Install application dependencies
+    inputs:
+      targetType: inline
+      script: >
+        # Write your commands here
+
+
+        echo 'building python'
+
+        # pip install --target="./.python_packages/lib/site-packages" -r ./requirements.txt
+
+
+        pip install -r ./requirements.txt
+      workingDirectory: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
+  - task: ArchiveFiles@2
+    displayName: Archive
+    enabled: False
+    inputs:
+      rootFolderOrFile: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
+      archiveFile: $(Build.ArtifactStagingDirectory)/output/rpuser/rpuser.zip
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: user provisioner python function app'
+    inputs:
+      PathtoPublish: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
+      ArtifactName: user-provisioner
+- job: Job_4
+  displayName: Agent job - post-build
+  dependsOn:
+  - Job_1
+  - Job_2
+  - Job_3
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+    clean: true
+    lfs: true
+    fetchTags: false
+    persistCredentials: True
+  - task: PowerShell@2
+    displayName: PowerShell Script
+    inputs:
+      targetType: inline
+      script: >-
+        git config --global user.name "AzureDevOps Agent"
+
+        $versionNumber="$(build.buildNumber)"
+
+
+        git tag "$versionNumber" --force
+
+        git push origin "$versionNumber" --force
+
+        Write-Output "Tagging $(Build.Repository.Name) with $versionNumber"
+...

@@ -58,7 +58,7 @@
     private async Task HandleRequestService()
     {
         isRunning = true;
-        await RequestManagementService.HandleRequestService(Project, ResourceType);
+        // await RequestManagementService.HandleRequestService(Project, ResourceType);
         _resourceRequested = true;
         isRunning = false;
 

@@ -1,14 +1,12 @@
-@page "/tools/stats"
 @using Datahub.Shared.Entities
 @using System.Text.Json
 @using Datahub.Core.Model.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@attribute [Authorize(Roles = "DHPGLIST-admin")]
 
 <MudStack>
     <MudText Typo="Typo.h1">DataHub Statistics</MudText>
-    <MudText Typo="Typo.body1">This page shows statistics about the DataHub.</MudText>
+    <MudText>This page shows statistics about the DataHub.</MudText>
 
     <MudTable Items="@_statsRows" Hover="true" Loading="_isLoading" LoadingProgressColor="Color.Info">
         <HeaderContent>
@@ -205,7 +203,7 @@
             _statsRows = context.Projects
                 .Include(p => p.Credits)
                 .Include(p => p.Users)
-                .Include(p => p.ServiceRequests)
+                // .Include(p => p.ProjectRequestAudits)
                 .AsEnumerable()
                 .Select(p => new DatahubProjectStatsRow()
                 {
@@ -219,13 +217,13 @@
                     Leads = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.WorkspaceLead).Select(u => u.User_Name).ToList(),
                     Admins = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Admin).Select(u => u.User_Name).ToList(),
                     Collaborators = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Collaborator).Select(u => u.User_Name).ToList(),
-                    StorageStatus = p.ServiceRequests?
-                        .Where(sr => sr.ServiceType.Contains(TerraformTemplate.AzureStorageBlob))
-                        .Select(sr => sr.Is_Completed.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
+                    StorageStatus = p.Resources?
+                        .Where(sr => sr.ResourceType.Contains(TerraformTemplate.AzureStorageBlob))
+                        .Select(sr => sr.CreatedAt.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
                         .FirstOrDefault() ?? DatahubProjectStatsRow.ResourceStatus.None,
-                    DatabricksStatus = p.ServiceRequests?
-                        .Where(sr => sr.ServiceType.Contains(TerraformTemplate.AzureDatabricks))
-                        .Select(sr => sr.Is_Completed.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
+                    DatabricksStatus = p.Resources?
+                        .Where(sr => sr.ResourceType.Contains(TerraformTemplate.AzureDatabricks))
+                        .Select(sr => sr.CreatedAt.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
                         .FirstOrDefault() ?? DatahubProjectStatsRow.ResourceStatus.None
                 })
                 .ToList();
