@@ -6,6 +6,8 @@ namespace Datahub.Shared.Entities;
 
 public class TerraformTemplate
 {
+    public static string GetTerraformServiceType(string templateName) => $"terraform:{templateName}";
+
     public const string NewProjectTemplate = "new-project-template";
     public const string VariableUpdate = "variable-update";
     public const string AzureStorageBlob = "azure-storage-blob";
@@ -14,6 +16,7 @@ public class TerraformTemplate
     public const string AzureAppService = "azure-app-service";
     public const string AzurePostgres = "azure-postgres";
     public const string ContactUs = "contact-us";
+    public const string AzureArcGis = "azure-arcgis";
 
     public string Name { get; set; }
     public static TerraformTemplate Default => LatestFromName(NewProjectTemplate);
@@ -49,32 +52,32 @@ public class TerraformTemplate
     {
         return name switch
         {
-            NewProjectTemplate => new List<TerraformTemplate>()
-            {
-                LatestFromName(NewProjectTemplate),
-            },
-            AzureStorageBlob => new List<TerraformTemplate>()
-            {
+            NewProjectTemplate =>
+            [
+                LatestFromName(NewProjectTemplate)
+            ],
+            AzureStorageBlob =>
+            [
+                LatestFromName(AzureStorageBlob)
+            ],
+            AzureDatabricks =>
+            [
                 LatestFromName(AzureStorageBlob),
-            },
-            AzureDatabricks => new List<TerraformTemplate>()
-            {
+                LatestFromName(AzureDatabricks)
+            ],
+            AzureAppService =>
+            [
                 LatestFromName(AzureStorageBlob),
-                LatestFromName(AzureDatabricks),
-            },
-            AzureAppService => new List<TerraformTemplate>()
-            {
-                LatestFromName(AzureStorageBlob),
-                LatestFromName(AzureAppService),
-            },
-            AzurePostgres => new List<TerraformTemplate>()
-            {
-                LatestFromName(AzurePostgres),
-            },
-            VariableUpdate => new List<TerraformTemplate>()
-            {
-                LatestFromName(VariableUpdate),
-            },
+                LatestFromName(AzureAppService)
+            ],
+            AzurePostgres =>
+            [
+                LatestFromName(AzurePostgres)
+            ],
+            VariableUpdate =>
+            [
+                LatestFromName(VariableUpdate)
+            ],
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }

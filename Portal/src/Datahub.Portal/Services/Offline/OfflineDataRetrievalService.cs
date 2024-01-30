@@ -1,7 +1,6 @@
-﻿using Datahub.Core.Services;
+﻿using Datahub.Application.Services.Security;
 using Microsoft.AspNetCore.Components;
-using Datahub.Core.Services.Security;
-using Datahub.Core.Services.Storage;
+using Datahub.Infrastructure.Services.Storage;
 
 namespace Datahub.Portal.Services.Offline;
 
@@ -9,11 +8,10 @@ public class OfflineDataRetrievalService : DataRetrievalService
 {
     public OfflineDataRetrievalService(ILogger<DataRetrievalService> logger,
         IKeyVaultService keyVaultService,                            
-        NavigationManager navigationManager,
-        UIControlsService uiService) : base(logger, keyVaultService,
+        NavigationManager navigationManager) : base(logger, keyVaultService,
         null,
-        navigationManager,
-        uiService)
+        navigationManager
+        )
     {
     }
 

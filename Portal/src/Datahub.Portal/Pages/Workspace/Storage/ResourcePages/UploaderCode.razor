@@ -1,0 +1,28 @@
+﻿@using Datahub.Portal.Pages.Workspace.Storage.Container
+@using Datahub.Core.Storage;
+@* UploaderCode.razor *@
+
+<MudStack>
+    <MudElement>
+        <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container="@Container"
+            UseUploadCode=true GenerateAndCopy=true
+            TokenName="Desktop Uploader Code"
+            />
+    </MudElement>
+    <EmbeddedWiki PageNameEn="/UserGuide/Storage/Desktop-Uploader.md"
+                  PageNameFr="/fr/UserGuide/Storage/Chargeur-de-bureau.md"
+                  Substitutions="_substitutions" />
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public CloudStorageContainer Container { get; set; }
+
+    private List<(string, string)> _substitutions;
+
+    private void HandleSubstitutionsChanged(List<(string, string)> substitutions)
+    {
+        _substitutions = substitutions;
+    }
+}

@@ -1,0 +1,26 @@
+@using Datahub.Portal.Pages.Workspace.Storage.Container
+@using Datahub.Core.Storage;
+@* AzCopy.razor *@
+
+<MudStack>
+    <MudElement>
+        <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container="@Container" ExpiryDays="5"/>
+    </MudElement>
+    <EmbeddedWiki PageNameEn="/UserGuide/Storage/Use-AzCopy.md"
+                  PageNameFr="/fr/UserGuide/Storage/Utilisez-AzCopy.md"
+                  Substitutions="_substitutions"/>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public CloudStorageContainer Container { get; set; }
+
+    private List<(string, string)> _substitutions;
+
+    private void HandleSubstitutionsChanged(List<(string, string)> substitutions)
+    {
+        _substitutions = substitutions;
+    }
+
+}

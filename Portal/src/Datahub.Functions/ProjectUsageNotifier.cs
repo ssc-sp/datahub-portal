@@ -3,6 +3,8 @@ using System.Text.RegularExpressions;
 using Azure.Storage.Queues.Models;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
+using Datahub.Functions.Services;
+using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using MediatR;
@@ -22,15 +24,19 @@ namespace Datahub.Functions
         private readonly ILogger<ProjectUsageNotifier> _logger;
         private readonly AzureConfig _config;
         private readonly QueuePongService _pongService;
+        private readonly EmailValidator _emailValidator;
+        private readonly IEmailService _emailService;
 
         public ProjectUsageNotifier(ILoggerFactory loggerFactory, AzureConfig config, IMediator mediator, 
-            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, QueuePongService pongService)
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, QueuePongService pongService, EmailValidator emailValidator, IEmailService emailService)
         {
             _logger = loggerFactory.CreateLogger<ProjectUsageNotifier>();
             _mediator = mediator;
             _dbContextFactory = dbContextFactory;
             _notificationPercents = ParseNotificationPercents(config.NotificationPercents ?? "25,50,80,100");
             _pongService = pongService;
+            _emailValidator = emailValidator;
+            _emailService = emailService;
             _config = config;
         }
 
@@ -75,7 +81,7 @@ namespace Datahub.Functions
             // get the matching notification %
             var notificationPerc = GetNotificationPercent(currentPercent);
                         
-            // check if notification is not needed
+            // check if notification is not needed 
             if (notificationPerc == 0 || details.Credits.PercNotified == notificationPerc)
             {
                 return;
@@ -117,7 +123,7 @@ namespace Datahub.Functions
 
             var contacts = project.Users
                 .Select(u => u.User_Name)
-                .Where(IsValidEmail)
+                .Where(_emailValidator.IsValidEmail)
                 .ToList();
 
             var budget = Convert.ToDouble(project.Project_Budget);
@@ -127,31 +133,21 @@ namespace Datahub.Functions
 
         private EmailRequestMessage GetNotificationEmail(string projectAcro, int perc, List<string> contacts)
         {
-            var (subjectTemplate, bodyTemplate) = TemplateUtils.GetEmailTemplate("cost_alert.html");
-            if (subjectTemplate is null || bodyTemplate is null)
-                _logger.LogWarning("Email template file missing!");
+            Dictionary<string, string> bodyArgs = new()
+            {
+                { "{ws}", projectAcro },
+                { "{perc}", perc.ToString() }
+            };
 
-            subjectTemplate ??= "{perc}% Datahub credits consumed ({ws})";
-            bodyTemplate ??= "<p>Your workspace has consumed {perc}% of the allocated credits in Datahub.</p>";
-
-            var subject = subjectTemplate
-                .Replace("{ws}", projectAcro)
-                .Replace("{perc}", perc.ToString());
-
-            var body = bodyTemplate
-                .Replace("{ws}", projectAcro)
-                .Replace("{perc}", perc.ToString());
+            Dictionary<string, string> subjectArgs = new()
+            {
+                { "{ws}", projectAcro },
+                { "{perc}", perc.ToString() }
+            };
 
             List<string> bcc = new() { GetNotificationCCAddress() };
 
-            EmailRequestMessage notificationEmail = new() 
-            { 
-                To = contacts, 
-                BccTo = bcc,
-                Subject = subject, 
-                Body = body 
-            };
-            return notificationEmail;
+            return _emailService.BuildEmail("cost_alert.html", contacts, bcc, bodyArgs, subjectArgs);
         }
 
         private string GetNotificationCCAddress()
@@ -171,10 +167,7 @@ namespace Datahub.Functions
                            .ToArray();
         }
 
-        static bool IsValidEmail(string email)
-        {
-            return !string.IsNullOrEmpty(email) && Regex.IsMatch(email, @"^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$");
-        }
+        
 
         static ProjectUsageNotificationMessage? DeserializeQueueMessage(string message)
         {

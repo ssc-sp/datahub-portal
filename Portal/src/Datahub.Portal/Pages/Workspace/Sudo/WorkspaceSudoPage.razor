@@ -1,0 +1,98 @@
+@using System.Text.Json
+@using Datahub.Application.Services
+@using Datahub.Core.Model.Projects
+
+@inject IResourceMessagingService _resourceMessagingService
+@inject IProjectCreationService _projectCreationService
+@inject IUserInformationService _userInformationService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+
+@* @page "/w/{ProjectAcronymParam}/sudo" *@
+
+@if (_project is null)
+{
+    <DHLoadingInitializer />
+    return;
+}
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+    <Authorized>
+        <MudStack>
+            <MudText Typo="Typo.h1">
+                @Localizer["Super User Page"]
+            </MudText>
+            <MudStack>
+                <MudText Typo="Typo.h2">
+                    @Localizer["Workspace Version"]
+                </MudText>
+                <MudText Typo="Typo.body2" Style="font-size: 0.7rem; font-family: Consolas,sans-serif;">
+                    Project ID: @_project.Project_ID [@(_project.Version ?? Localizer["v0.0.0"])]
+                </MudText>
+            </MudStack>
+            <MudStack>
+                <MudText Typo="Typo.h2">
+                    @Localizer["Workspace Definition"]
+                </MudText>
+                <DHMarkdown Content="@_workspaceDefinitionMarkdown" LinkRewriter="RewriteLink"/>
+            </MudStack>
+
+            <MudStack>
+                <MudText Typo="Typo.h2">
+                    @Localizer["Expected Terraform Output"]
+                </MudText>
+                <DHMarkdown Content="@_expectedTerraformOutput" LinkRewriter="RewriteLink"/>
+            </MudStack>
+        </MudStack>
+    </Authorized>
+    <NotAuthorized>
+        <MudStack AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h1">
+                @Localizer["Not Authorized"]
+            </MudText>
+            <MudText Typo="Typo.body1">
+                @Localizer["You are not authorized to view this page."]
+            </MudText>
+        </MudStack>
+    </NotAuthorized>
+</DatahubAuthView>
+
+
+@code {
+    private string _workspaceDefinitionMarkdown;
+    private string _expectedTerraformOutput;
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    private Datahub_Project _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await _projectCreationService.CreateNewTemplateProjectResourceAsync(WorkspaceAcronym);
+
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym, currentUser.Email);
+
+        var workspaceDefinitionJsonString = JsonSerializer.Serialize(workspaceDefinition,
+            new JsonSerializerOptions
+            {
+                WriteIndented = true,
+            });
+
+        _workspaceDefinitionMarkdown = $"```json\n{workspaceDefinitionJsonString}\n```";
+
+        var context = await _dbContextFactory.CreateDbContextAsync();
+        _project = await context.Projects
+            .Include(p => p.Resources)
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        _expectedTerraformOutput =  $"```json\n{TerraformOutputHelper.GetExpectedTerraformOutput(_project)}\n```";
+    }
+
+    private static string RewriteLink(string link)
+    {
+        return link;
+    }
+}

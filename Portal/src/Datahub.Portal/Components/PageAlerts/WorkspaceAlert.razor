@@ -1,0 +1,159 @@
+﻿<MudCarousel TData="object" Class="mud-width-full" Style="height: 70vh; margin-bottom: 1rem" AutoCycle="false">
+    <BulletTemplate Context="selected">
+        <div Class="mud-button-root mud-icon-button mud-icon-button-color-inherit mud-ripple mud-ripple-icon">
+            <span class="mud-icon-button-label">
+                <MudIcon Icon="@(selected ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Circle)" Color="@Color.Inherit"/>
+            </span>
+        </div>
+    </BulletTemplate>
+    <ChildContent>
+        <MudCarouselItem>
+            <MudStack Class="px-12 py-4" Style="height: 100%; overflow:  hidden; overflow-y: scroll; padding-bottom: 50px">
+                <h1>
+                    @Localizer["Workspaces"]
+                </h1>
+                <p>
+                    @Localizer["A workspace in the Federal Science Datahub is a collection of cloud resources along with a list of members. The cloud resources within your workspace (e.g. storage accounts, etc.) are only accessible by the members of your workspace and\ncan\nonly be managed by workspace admins or leads."]
+                </p>
+                <p style="margin-bottom: 100px">
+                    @Localizer["A FSDH workspace is the perfect place to collaborate with GC colleagues, share data and analytics, and build research or\nbusiness projects."]
+                </p>
+            </MudStack>
+        </MudCarouselItem>
+        <MudCarouselItem>
+            <MudStack Class="px-12 py-4" Style="height: 100%; overflow:  hidden; overflow-y: scroll; padding-bottom: 50px">
+                <h1>
+                    @Localizer["Navigating your workspace"]
+                </h1>
+                <img src="https://github.com/ssc-sp/datahub-docs/assets/56747050/e0bf3303-5c31-44a2-aa5a-a1b013783565" alt=@Localizer["Layout of a workspace"]/>
+                <p style="margin-bottom: 100px">
+                    @Localizer["There are two important sections of the page when working within a workspace:"]
+                    <ol>
+                        <li>
+                            <b>@Localizer["Sidebar"]</b> @Localizer[": This is where you can navigate to the different tools in your workspace, as well as manage the workspace itself. As we are just getting started, there may not be any available tools in your brand new workspace but we will get there!"]
+                        </li>
+                        <li>
+                            <b>@Localizer["Content"]</b> @Localizer[": This is where your selected tool will be displayed and where you will do your work! In the picture above, the workspace dashboard is displayed, where you can see an overview of your workspace, its tools, its members and its incurred costs."]
+                        </li>
+                    </ol>
+                </p>
+            </MudStack>
+        </MudCarouselItem>
+        <MudCarouselItem>
+            <MudStack Class="px-12 py-4" Style="height: 100%; overflow:  hidden; overflow-y: scroll; padding-bottom: 50px">
+                <h1>
+                    @Localizer["Using the workspace sidebar"]
+                </h1>
+                <img src="https://github.com/ssc-sp/datahub-docs/assets/56747050/d0537632-9520-4110-b7d6-3771bfc2fd95" alt=@Localizer["Sidebar of a workspace"] style="object-fit: contain"/>
+                <p>
+                    @Localizer["The first section of our workspace sidebar displays the different tools that are built within our workspace. A new workspace will only have the dashboard available, but as your project grows, you will have several tools available to you,\nsuch as Databricks, file storage, databases, web applications and more!"]
+                </p>
+                <p>
+                    @Localizer["The second section of the sidebar is where you manage your workspace:"]
+                    <ul>
+                        <li>
+                            <b>@Localizer["Toolbox"]</b> @Localizer[": Request new tools for your workspace."]
+                        </li>
+                        <li>
+                            <b>@Localizer["Users"]</b> @Localizer[": Manage workspace users and their roles and permissions."]
+                        </li>
+                        <li>
+                            <b>@Localizer["Metadata"]</b> @Localizer[": Provide additional information regarding your workspace."]
+                        </li>
+                        <li>
+                            <b>@Localizer["Reports"]</b> @Localizer[": Access costing and storage information of your workspace."]
+                        </li>
+                        <li>
+                            <b>@Localizer["Settings"]</b> @Localizer[": Define other settings pertaining to your workspace."]
+                        </li>
+                    </ul>
+                </p>
+                <p style="margin-bottom: 100px">
+                    <b>@Localizer["NOTE"]</b>@Localizer[": The first step of a new workspace is always to fill out the metadata! Without having filled your workspace metadata you _cannot_ request new tools from the toolbox. Let us have a look at metadata!"]
+                </p>
+            </MudStack>
+        </MudCarouselItem>
+        <MudCarouselItem>
+            <MudStack Class="px-12 py-4" Style="height: 100%; overflow:  hidden; overflow-y: scroll; padding-bottom: 50px">
+                <h1>
+                    @Localizer["The first step towards success: metadata"]
+                </h1>
+                <img src="https://github.com/ssc-sp/datahub-docs/assets/56747050/7aecf6c0-5758-4663-a65d-fe41e5e9ed73" alt=@Localizer["Entering the metadata of your workspace"]/>
+                <p>
+                    @Localizer["In order to do anything in your workspace, it is required that you fill out your project metadata. Metadata is information about the project, such as a description, keywords and organization, that allow us to have a better idea\nof your needs and that will allow peers outside of your workspace to get an idea of what you're doing!"]
+                </p>
+                <p style="margin-bottom: 100px">
+                    @Localizer["Make sure you fill out all of the required information and that you click \"Save Metadata\" at the bottom! You are asked to provide information in both official languages for some of the fields, but you can use the \"Google translate\" button to\nautomatically populate the missing language."]
+                </p>
+            </MudStack>
+        </MudCarouselItem>
+        <MudCarouselItem>
+            <MudStack Class="px-12 py-4" Style="height: 100%; overflow:  hidden; overflow-y: scroll; padding-bottom: 50px">
+                <h1>
+                    @Localizer["Inviting your colleagues to your workspace"]
+                </h1>
+                <img src="https://github.com/ssc-sp/datahub-docs/assets/56747050/525383db-6a82-46a0-b323-f62211d07c11" alt=@Localizer["Inviting colleagues to a workspace"]/>
+                <p>
+                    @Localizer["Once you have filled your metadata, it is a great time to start inviting your colleagues. To do so, navigate to the \"Users\" tab of your workspace from the sidebar, where you will see all of the current members of your workspace\nand their roles. Then click \"Invite new user\", enter their email and select \"Add new user\" (if they are not already part of FSDH) or their FSDH account (if they are existing users). Once you have selected all the users you want to add\nclick the \"Add new users\" button in purple, then select the roles of the members you are going to invite!"]
+                </p>
+                <p>
+                    <ul>
+                        <li>
+                            <b>@Localizer["Guest"]</b> @Localizer[" is the default role and has only read access to all resources within your project."]
+                        </li>
+                        <li>
+                            <b>@Localizer["Collaborators"]</b> @Localizer[" is the role that you will want to give to most of your colleagues. It gives them read/write access to most of your resources."]
+                        </li>
+                        <li>
+                            <b>@Localizer["Admin"]</b> @Localizer[" users have read/write access to your resources and can also manage other peoples permissions as well as your workspace tools."]
+                        </li>
+                        <li>
+                            <b>@Localizer["Workspace lead"]</b> @Localizer[" should be given to as little people as possible. They have all permissions on the workspace and are also the business representative for the workspace for potential communications and issues."]
+                        </li>
+                    </ul>
+                </p>
+                <p>
+                    @Localizer["Once you have decided a role for all your colleagues, ensure that you click the \"Save Changes\" button, which will send all the required invitations."]
+                </p>
+                <p style="margin-bottom: 100px">
+                    @Localizer["Note that workspace leads and admins can remove members by selecting their role and selecting \"Remove User\"."]
+                </p>
+            </MudStack>
+        </MudCarouselItem>
+        <MudCarouselItem>
+                    <MudStack Class="px-12 py-4" Style="height: 100%; overflow:  hidden; overflow-y: scroll; padding-bottom: 50px">
+                        <h1>
+                            @Localizer["Requesting tools in the toolbox"]
+                        </h1>
+                        <img src="https://github.com/ssc-sp/datahub-docs/assets/56747050/6176805d-573e-4a6a-9641-d704a6beb02f" alt=@Localizer["Requesting a tool in the toolbox"]/>
+                        <p>
+                            @Localizer["Once your metadata is complete and you have invited your colleagues in your workspace, the final step is to request the tools necessary to your project!"]
+                        </p>
+                        <p>
+                            @Localizer["To do so, navigate to the toolbox, where you will see all of the tools currently available in FSDH, ensure you read and understand the description of each tool and request the ones you need simply by clicking the \"Add to workspace\" button!"]
+                        </p>
+                        <p>
+                            @Localizer["Once you add a tool to your workspace, it may take up to 30 minutes before it appears in your sidebar, at which point you will be able to use it by simply clicking on it. If you have any issues or concerns regarding requesting tools, feel free to contact us."]
+                        </p>
+                        <p style="margin-bottom: 100px">
+                            <b>@Localizer["Congratulations on creating your workspace!"]</b>
+                        </p>
+                    </MudStack>
+                </MudCarouselItem>
+    </ChildContent>
+</MudCarousel>
+
+@code {
+
+    [CascadingParameter(Name = "RewriteLink")]
+    public Func<string, string> RewriteLink { get; set; }
+
+    public string GetStartedLink { get; set; }
+    public const string KEY = "tutorials/workspace";
+
+    protected override void OnInitialized()
+    {
+        GetStartedLink = RewriteLink("7937ceb6430cedd7");
+    }
+
+}

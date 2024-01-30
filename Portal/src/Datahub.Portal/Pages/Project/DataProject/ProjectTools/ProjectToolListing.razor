@@ -10,7 +10,7 @@
 @using Datahub.Application.Services.Notebooks
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Repositories
-@using Datahub.Portal.Pages.Project.Repositories
+@using Datahub.Portal.Pages.Workspace.Repositories
 @using Datahub.Shared.Entities
 
 @inject ServiceAuthManager _serviceAuthManager
@@ -209,7 +209,8 @@
 
         try
         {
-            await _requestManagementService.HandleTerraformRequestServiceAsync(project, templateName);
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            await _requestManagementService.HandleTerraformRequestServiceAsync(project, templateName, currentUser);
             _snackbar.Add(Localizer["Successfully requested resource."], Severity.Success);
         }
         catch (Exception e)
