@@ -1,4 +1,6 @@
-﻿using Datahub.Core.Data.ResourceProvisioner;
+﻿using System.Text.Json;
+using System.Text.Json.Nodes;
+using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Notification;
@@ -10,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Transactions;
+using AngleSharp.Common;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
@@ -52,9 +55,10 @@ public class RequestManagementService : IRequestManagementService
     /// <param name="project">The project.</param>
     /// <param name="requestingUser">The requesting user.</param>
     /// <param name="requestedTemplate">The requested template.</param>
+    /// <param name="configuration">Specific configurations associated with the requested template.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     private async Task ProcessRequest(Datahub_Project project, PortalUser requestingUser,
-        TerraformTemplate requestedTemplate)
+        TerraformTemplate requestedTemplate, object? configuration = null)
     {
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
         ctx.Projects.Attach(project);
@@ -74,6 +78,12 @@ public class RequestManagementService : IRequestManagementService
             return;
         }
 
+        if (configuration is null)
+        {
+            _logger.LogInformation("Required configuration not provided for {TerraformTemplate}", requestedTemplate.Name);
+            return;
+        }
+
         resource = new Project_Resources2
         {
             ProjectId = project.Project_ID,
@@ -81,6 +91,8 @@ public class RequestManagementService : IRequestManagementService
             ResourceType = TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name)
         };
 
+        resource.JsonContent = ProcessConfiguration(resource, configuration);
+        
         await ctx.Project_Resources2.AddAsync(resource);
         await ctx.TrackSaveChangesAsync(_datahubAuditingService);
     }
@@ -91,9 +103,10 @@ public class RequestManagementService : IRequestManagementService
     /// <param name="datahubProject">The Datahub project.</param>
     /// <param name="terraformTemplate">The Terraform template.</param>
     /// <param name="requestingUser">The user making the request.</param>
+    /// <param name="configuration">Specific configurations associated with the requested template.</param>
     /// <returns>True if the Terraform request was handled successfully; otherwise, false.</returns>
     public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project datahubProject, string terraformTemplate,
-        PortalUser requestingUser)
+        PortalUser requestingUser, object? configuration = null )
     {
         using var scope = new TransactionScope(
             TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
@@ -116,7 +129,7 @@ public class RequestManagementService : IRequestManagementService
             {
                 foreach (var template in newTemplates)
                 {
-                    await ProcessRequest(project, requestingUser, template);
+                    await ProcessRequest(project, requestingUser, template, configuration);
                 }
             }
 
@@ -145,6 +158,31 @@ public class RequestManagementService : IRequestManagementService
             return false;
         }
     }
+    
+    /// <summary>
+    /// Processes the configuration for the specified template. This method is used to add additional configuration to a resource.
+    /// </summary>
+    /// <param name="resource">The resource.</param>
+    /// <param name="configuration">The configuration. Will be cast to corresponding configuration object depending on the resource given</param>
+    /// <returns></returns>
+    public string ProcessConfiguration(Project_Resources2 resource, object configuration)
+    {
+        JsonObject json = JsonObject.Parse(resource.JsonContent).AsObject();
+        var jsonContent = "";
+        
+        switch (TerraformTemplate.GetTerraformServiceType(resource.ResourceType))
+        {
+            case TerraformTemplate.AzureAppService:
+                AppServiceConfiguration config = (AppServiceConfiguration)configuration;
+                json.Add("app_service_framework", config.AppServiceFramework);
+                json.Add("app_service_git_repo", config.AppServiceGitRepo);
+                json.Add("app_service_compose_path", config.AppServiceComposePath);
+                jsonContent = json.ToString();
+                break;
+        }
+
+        return jsonContent;
+    }
 
     public static Role GetTerraformUserRole(Datahub_Project_User projectUser)
     {
@@ -158,6 +196,8 @@ public class RequestManagementService : IRequestManagementService
             _ => Role.Guest
         };
     }
+    
+    
 
     // public static FieldValueContainer BuildFieldValues(FieldDefinitions fieldDefinitions,
     //     Dictionary<string, string> existingValues, string objectId = null)

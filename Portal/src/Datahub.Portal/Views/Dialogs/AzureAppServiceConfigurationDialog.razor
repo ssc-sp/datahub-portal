@@ -1,0 +1,44 @@
+﻿@using MudBlazor
+@using Datahub.Shared.Entities
+
+<MudDialog>
+    <DialogContent>
+        <MudSelect Label="Select a framework" @bind-Value="selectedFramework">
+            @foreach(string framework in AppServiceTemplates.TEMPLATES)
+            {
+                <MudSelectItem Value="@framework" Label="@framework" />
+            }
+        </MudSelect>
+        
+        <MudTextField Label="Enter git repo URL" @bind-Value="gitRepoUrl" Disabled="@(selectedFramework!=AppServiceTemplates.CUSTOM)"/>
+
+        <MudTextField Label="Enter Docker compose file path" @bind-Value="dockerComposeFilePath" Disabled="@(selectedFramework!=AppServiceTemplates.CUSTOM)"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Submit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public MudDialogInstance MudDialog { get; set; }
+    
+    private string selectedFramework; 
+    private string gitRepoUrl;
+    private string dockerComposeFilePath;
+
+    void Submit()
+    {
+        var config = AppServiceTemplates.GetTemplateConfiguration(AppServiceTemplates.CUSTOM);
+        if (selectedFramework == AppServiceTemplates.CUSTOM)
+        {
+            config.AppServiceFramework = selectedFramework;
+            config.AppServiceGitRepo = gitRepoUrl;
+            config.AppServiceComposePath = dockerComposeFilePath;
+        }
+        else
+        {
+            config = AppServiceTemplates.GetTemplateConfiguration(selectedFramework);
+        }
+        MudDialog.Close(DialogResult.Ok(config));
+    }
+}
