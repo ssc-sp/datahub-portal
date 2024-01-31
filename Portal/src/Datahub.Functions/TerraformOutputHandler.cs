@@ -1,11 +1,15 @@
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Transactions;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Security;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services.Projects;
+using Datahub.Core.Utils;
 using Datahub.Infrastructure.Services;
 using Datahub.ProjectTools.Services;
 using Datahub.Shared;
@@ -25,16 +29,19 @@ public class TerraformOutputHandler
     private readonly QueuePongService _pongService;
     private readonly IResourceMessagingService _resourceMessagingService;
     private readonly AzureConfig _config;
+    private readonly IKeyVaultService _keyVaultService;
     private const string TerraformOutputHandlerName = "terraform-output-handler";
 
     public TerraformOutputHandler(ILoggerFactory loggerFactory, DatahubProjectDBContext projectDbContext,
-        QueuePongService pongService, IResourceMessagingService resourceMessagingService, AzureConfig config)
+        QueuePongService pongService, IResourceMessagingService resourceMessagingService, AzureConfig config,
+        IKeyVaultService keyVaultService)
     {
         _projectDbContext = projectDbContext;
         _logger = loggerFactory.CreateLogger("TerraformOutputHandler");
         _pongService = pongService;
         _resourceMessagingService = resourceMessagingService;
         _config = config;
+        _keyVaultService = keyVaultService;
     }
 
     [Function("TerraformOutputHandler")]
@@ -158,12 +165,12 @@ public class TerraformOutputHandler
 
     internal async Task ProcessAzureWebApp(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
-        if(!outputVariables.ContainsKey(TerraformVariables.OutputAzureAppServiceStatus))
+        if (!outputVariables.ContainsKey(TerraformVariables.OutputAzureAppServiceStatus))
         {
             _logger.LogInformation("Azure App Service status not found in output variables");
             return;
         }
-        
+
         var azureAppServiceStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureAppServiceStatus].Value);
         if (!azureAppServiceStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
@@ -179,11 +186,9 @@ public class TerraformOutputHandler
         var appServiceId = outputVariables[TerraformVariables.OutputAzureAppServiceId];
         var appServiceHostName = outputVariables[TerraformVariables.OutputAzureAppServiceHostName];
 
-        var jsonContent = new JsonObject
-        {
-            ["app_service_id"] = appServiceId.Value,
-            ["app_service_hostname"] = appServiceHostName.Value,
-        };
+        JsonObject jsonContent = JsonObject.Parse(projectResource.JsonContent).AsObject();
+        jsonContent.Add("app_service_id", appServiceId.Value);
+        jsonContent.Add("app_service_hostname", appServiceHostName.Value);
 
         projectResource.CreatedAt = DateTime.UtcNow;
         projectResource.JsonContent = jsonContent.ToString();
@@ -192,16 +197,18 @@ public class TerraformOutputHandler
         projectResource.Project.WebAppEnabled = true;
 
         await _projectDbContext.SaveChangesAsync();
+
+        await ConfigureAppService(outputVariables);
     }
 
     internal async Task ProcessAzureDatabricks(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
-        if(!outputVariables.ContainsKey(TerraformVariables.OutputAzureDatabricksStatus))
+        if (!outputVariables.ContainsKey(TerraformVariables.OutputAzureDatabricksStatus))
         {
             _logger.LogInformation("Azure Databricks status not found in output variables");
             return;
         }
-        
+
         var databricksStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureDatabricksStatus].Value);
         if (!databricksStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
         {
@@ -237,7 +244,7 @@ public class TerraformOutputHandler
             _logger.LogInformation("Azure storage blob status not found in output variables");
             return;
         }
-        
+
         var storageBlobStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
         if (!storageBlobStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
@@ -279,24 +286,24 @@ public class TerraformOutputHandler
             _logger.LogInformation("Azure Postgres status not found in output variables");
             return;
         }
-        
+
         var postgresStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzurePostgresStatus].Value);
         if (!postgresStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
         {
             _logger.LogError("Azure Postgres status is not completed. Status: {Status}", postgresStatus);
             return;
         }
-        
+
         var projectResource = await GetProjectResource(outputVariables,
             TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres));
-        
+
         var postgresId = outputVariables[TerraformVariables.OutputAzurePostgresId];
         var postgresDns = outputVariables[TerraformVariables.OutputAzurePostgresDns];
         var postgresDbName = outputVariables[TerraformVariables.OutputAzurePostgresDatabaseName];
         var postgresSecretNameAdmin = outputVariables[TerraformVariables.OutputAzurePostgresSecretNameAdmin];
         var postgresSecretNamePassword = outputVariables[TerraformVariables.OutputAzurePostgresSecretNamePassword];
         var postgresServerName = outputVariables[TerraformVariables.OutputAzurePostgresServerName];
-        
+
         var jsonContent = new JsonObject
         {
             ["postgres_id"] = postgresId.Value,
@@ -306,10 +313,10 @@ public class TerraformOutputHandler
             ["postgres_secret_name_password"] = postgresSecretNamePassword.Value,
             ["postgres_server_name"] = postgresServerName.Value
         };
-        
+
         projectResource.CreatedAt = DateTime.UtcNow;
         projectResource.JsonContent = jsonContent.ToString();
-        
+
         await _projectDbContext.SaveChangesAsync();
     }
 
@@ -344,10 +351,10 @@ public class TerraformOutputHandler
         {
             _logger.LogInformation("Workspace version not found in output variables");
         }
-        
+
         var projectResource = await GetProjectResource(outputVariables,
             TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
-        
+
         projectResource.CreatedAt = DateTime.UtcNow;
 
         await _projectDbContext.SaveChangesAsync();
@@ -393,5 +400,80 @@ public class TerraformOutputHandler
         }
 
         return projectResource;
+    }
+
+    private async Task ConfigureAppService(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
+    {
+        _logger.LogInformation("Configuring web app for project acronym {ProjectAcronymValue}",
+            outputVariables[TerraformVariables.OutputProjectAcronym].Value);
+        
+        var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
+        var project = await _projectDbContext.Projects
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
+
+        if (project is null)
+        {
+            _logger.LogError("Project not found for acronym {ProjectId}, could not configure web app",
+                projectAcronym.Value);
+            throw new Exception($"Project not found for acronym {projectAcronym.Value}, could not configure web app");
+        }
+
+        var appServiceConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(project);
+
+        if (appServiceConfiguration is null)
+        {
+            _logger.LogError(
+                "App service configuration not found for project acronym {ProjectAcronymValue}, could not configure web app",
+                projectAcronym.Value);
+            throw new Exception(
+                $"App service configuration not found for project acronym {projectAcronym.Value}, could not configure web app");
+        }
+
+        var credentials = await _keyVaultService.GetSecret(_config.AdoConfig.PatSecretName);
+        var pipelineUrl = _config.AdoConfig.PipelineURL.Replace("{organization}", _config.AdoConfig.OrgName)
+            .Replace("{project}", _config.AdoConfig.ProjectName)
+            .Replace("{pipelineId}", _config.AdoConfig.AppServiceConfigPipelineId);
+
+        var rgName = outputVariables[TerraformVariables.OutputAzureResourceGroupName].Value;
+
+        var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
+            Convert.ToBase64String(Encoding.ASCII.GetBytes($":{credentials}")));
+
+        var body = new 
+        {
+            resources = new
+            {
+                repositories = new
+                {
+                    self = new
+                    {
+                        refName = "refs/heads/main"
+                    }
+                }
+            },
+            templateParameters = new
+            {
+                resourceGroup = rgName,
+                webAppId = appServiceConfiguration.AppServiceId,
+                gitUrl = appServiceConfiguration.AppServiceGitRepo,
+                composePath = appServiceConfiguration.AppServiceComposePath
+            }
+        };
+        
+        var json = JsonConvert.SerializeObject(body);
+        
+        _logger.LogInformation("Sending configuration request to pipeline url {PipelineUrl} with body {RequestBody}", pipelineUrl, body.ToString());
+        var response = await httpClient.PostAsync(pipelineUrl, new StringContent(json, Encoding.UTF8, "application/json"));
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("Error configuring web app for project acronym {ProjectAcronymValue}, could not configure web app",
+                projectAcronym.Value);
+            throw new Exception(
+                $"Error configuring web app for project acronym {projectAcronym.Value}, could not configure web app");
+        }
+        
+        _logger.LogInformation("Web app configured for project acronym {ProjectAcronymValue}", projectAcronym.Value);
     }
 }
