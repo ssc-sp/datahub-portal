@@ -33,7 +33,7 @@ public class TerraformOutputHandlerTests
 
         var mockLogger = new Mock<ILoggerFactory>();
 
-        _terraformOutputHandler = new TerraformOutputHandler(mockLogger.Object, _context, null, null, null);
+        _terraformOutputHandler = new TerraformOutputHandler(mockLogger.Object, _context, null, null, null, null);
     }
 
     [TearDown]

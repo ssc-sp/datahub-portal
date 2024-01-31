@@ -84,4 +84,6 @@ public class AdoConfig
     public string OrgName { get; set; } = "DataSolutionsDonnees";
     public string ProjectName { get; set; } = "FSDH SSC";
     public string URL { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${workItemTypeName}?api-version=6.0";
+    public string PipelineURL { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/pipelines/{pipelineId}/runs?api-version=7.1-preview.1";
+    public string AppServiceConfigPipelineId { get; set; } = "9";
 }
