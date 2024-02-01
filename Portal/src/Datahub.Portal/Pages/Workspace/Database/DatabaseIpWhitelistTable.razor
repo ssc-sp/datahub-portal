@@ -36,6 +36,7 @@
           ApplyButtonPosition="TableApplyButtonPosition.End"
           EditButtonPosition="TableEditButtonPosition.End"
           RowEditPreview="@BackupItem"
+          RowEditCancel="@ResetItemToOriginalValues"
           RowEditCommit="@ItemHasBeenCommitted"
           >
 
@@ -55,10 +56,10 @@
 
     <HeaderContent>
         <MudTh>
-            <MudTableSortLabel SortBy="@(new Func<PostgreSqlFlexibleServerFirewallRuleData, object>(x => x.Name))">@Localizer["Name"]</MudTableSortLabel>
+            <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.Name))">@Localizer["Name"]</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="@(new Func<PostgreSqlFlexibleServerFirewallRuleData, object>(x => x.StartIPAddress))">@Localizer["IP Address"]</MudTableSortLabel>
+            <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.StartIPAddress))">@Localizer["IP Address"]</MudTableSortLabel>
         </MudTh>
     </HeaderContent>
     <RowTemplate>
@@ -67,7 +68,7 @@
     </RowTemplate>
     <RowEditingTemplate>
         <MudTd DataLabel="@Localizer["Name"]">
-            <MudTextField @bind-Value="@_tempName" Required/>
+            <MudTextField @bind-Value="@context.Name" Required/>
         </MudTd>
         <MudTd DataLabel="@Localizer["IP Address"]">
             <MudTextField @bind-Value="@context.StartIPAddress" Required/>
@@ -85,9 +86,7 @@
     private IPAddress _userIpAddress = default;
     private string _filterString = default;
     private WhitelistIPAddressData _selectedItem = default;
-
-    private string _tempName = "temp name";
-
+    private WhitelistIPAddressData _elementBeforeEdit = default;
     private List<WhitelistIPAddressData> _firewallRules = [];
 
     protected override async Task OnInitializedAsync()
