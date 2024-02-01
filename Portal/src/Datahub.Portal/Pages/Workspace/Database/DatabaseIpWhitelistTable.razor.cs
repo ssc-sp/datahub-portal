@@ -29,16 +29,16 @@ public partial class DatabaseIpWhitelistTable
 
         var postgresResource = client.GetPostgreSqlFlexibleServerResource(new ResourceIdentifier(resourceIdentifier));
         
-        client.
         return postgresResource;
     }
     
-    private async Task ItemHasBeenCommitted(object element)
+    private void ItemHasBeenCommitted(object element)
     {
         var item = element as WhitelistIPAddressData;
         
-        await CreateOrUpdateIpAddress(item);
-        _snackbar.Add(Localizer["Item has been committed"], Severity.Success);
+        CreateOrUpdateIpAddress(item);
+        _snackbar.Add(Localizer["IP address has been updated."], Severity.Success);
+        
         _logger.LogInformation($"Item has been committed: {item?.Name}");
     }
       
@@ -56,6 +56,10 @@ public partial class DatabaseIpWhitelistTable
         return false;
     }
 
+    /// <summary>
+    /// Adds the current IP address to the whitelist.
+    /// </summary>
+    /// <returns>Void</returns>
     private async Task AddCurrentIpAddress()
     {
         var startIpAddress = new IPAddress(new byte[] { 192, 168, 1, 1 });
@@ -69,15 +73,51 @@ public partial class DatabaseIpWhitelistTable
             EndIPAddress = endIpAddress
         };
 
-        await CreateOrUpdateIpAddress(userWhitelistIpAddress);
+        CreateOrUpdateIpAddress(userWhitelistIpAddress);
     }
-    
-    private async Task CreateOrUpdateIpAddress(WhitelistIPAddressData rule)
+
+    /// <summary>
+    /// Creates or updates a firewall rule for whitelisting an IP address.
+    /// </summary>
+    /// <param name="rule">The whitelist IP address data.</param>
+    private void CreateOrUpdateIpAddress(WhitelistIPAddressData rule)
     {
         var postgresResource = GetPostgreSqlFlexibleServerResource();
-
         var rules = postgresResource.GetPostgreSqlFlexibleServerFirewallRules();
-        await rules.CreateOrUpdateAsync(WaitUntil.Started, rule.Name, rule.FlexibleFirewallRuleData);
+        
+        _logger.LogInformation($"Creating or updating firewall rule: {rule.Name}");
+        rules.CreateOrUpdate(WaitUntil.Started, rule.Name, rule.FlexibleFirewallRuleData);
+        _logger.LogInformation($"Firewall rule has been created or updated: {rule.Name}");
+    }
+
+    /// <summary>
+    /// Backs up an item by creating a copy of it in memory.
+    /// </summary>
+    /// <param name="whitelistRule">The item to be backed up.</param>
+    private void BackupItem(object whitelistRule)
+    {
+        _elementBeforeEdit = new WhitelistIPAddressData
+        {
+            Name = ((WhitelistIPAddressData)whitelistRule).Name,
+            StartIPAddress = ((WhitelistIPAddressData)whitelistRule).StartIPAddress,
+            EndIPAddress = ((WhitelistIPAddressData)whitelistRule).EndIPAddress
+        };
+        
+        _logger.LogInformation($"Item has been backed up: {_elementBeforeEdit?.Name}");
+    }
+
+    private void ResetItemToOriginalValues(object whitelistRule)
+    {
+        if (whitelistRule is not WhitelistIPAddressData item)
+        {
+            return;
+        }
+
+        item.Name = _elementBeforeEdit.Name;
+        item.StartIPAddress = _elementBeforeEdit.StartIPAddress;
+        item.EndIPAddress = _elementBeforeEdit.EndIPAddress;
+
+        _logger.LogInformation($"Item has been reset to original values: {item.Name}");
     }
 }
 
