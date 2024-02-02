@@ -177,10 +177,10 @@ con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port,
     private string BuildJavaConnectionInfo()
     {
         return @"```java
-String url = ""jdbc:postgresql://<database_hst>:<port>/<database_name>"";
+String url = ""jdbc:postgresql://<database_host>:<port>/<database_name>"";
 Properties props = new Properties();
 props.setProperty(""user"", ""<username>"");
-props.setProperty(""password"", ""<password>
+props.setProperty(""password"", ""<password>"");
 props.setProperty(""ssl"", ""true"");
 Connection conn = DriverManager.getConnection(url, props);
 ```";
