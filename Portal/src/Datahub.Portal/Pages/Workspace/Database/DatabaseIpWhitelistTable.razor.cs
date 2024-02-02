@@ -11,7 +11,7 @@ namespace Datahub.Portal.Pages.Workspace.Database;
 
 public partial class DatabaseIpWhitelistTable
 {
-    private PostgreSqlFlexibleServerResource GetPostgreSqlFlexibleServerResource()
+    private PostgreSqlFlexibleServerResource BuildPostgresSqlFlexibleServerResource()
     {
         var credential = new ClientSecretCredential(
             _portalConfiguration.AzureAd.TenantId, 
@@ -32,7 +32,13 @@ public partial class DatabaseIpWhitelistTable
         return postgresResource;
     }
     
-    private void ItemHasBeenCommitted(object element)
+    private void HandleCommitEditClicked(MouseEventArgs args)
+    {
+        _logger.LogInformation("Commit edit button clicked.");
+        _snackbar.Add(Localizer["Sending IP address updated"], Severity.Info);
+    }
+    
+    private void HandleRowEditCommit(object element)
     {
         var item = element as WhitelistIPAddressData;
         
@@ -82,9 +88,12 @@ public partial class DatabaseIpWhitelistTable
     /// <param name="rule">The whitelist IP address data.</param>
     private void CreateOrUpdateIpAddress(WhitelistIPAddressData rule)
     {
-        var postgresResource = GetPostgreSqlFlexibleServerResource();
+        var postgresResource = BuildPostgresSqlFlexibleServerResource();
         var rules = postgresResource.GetPostgreSqlFlexibleServerFirewallRules();
         
+        // until we support IP ranges, we will only use the start IP address
+        rule.EndIPAddress = rule.StartIPAddress;
+
         _logger.LogInformation($"Creating or updating firewall rule: {rule.Name}");
         rules.CreateOrUpdate(WaitUntil.Started, rule.Name, rule.FlexibleFirewallRuleData);
         _logger.LogInformation($"Firewall rule has been created or updated: {rule.Name}");
@@ -106,7 +115,7 @@ public partial class DatabaseIpWhitelistTable
         _logger.LogInformation($"Item has been backed up: {_elementBeforeEdit?.Name}");
     }
 
-    private void ResetItemToOriginalValues(object whitelistRule)
+    private void HandleRowEditCancel(object whitelistRule)
     {
         if (whitelistRule is not WhitelistIPAddressData item)
         {

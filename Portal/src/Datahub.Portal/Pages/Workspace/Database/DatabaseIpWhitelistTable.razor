@@ -33,12 +33,12 @@
           CancelEditTooltip="@Localizer["Cancel edit"]"
           IsEditRowSwitchingBlocked="true"
           EditTrigger="TableEditTrigger.EditButton"
+          OnCommitEditClick="@HandleCommitEditClicked"
           ApplyButtonPosition="TableApplyButtonPosition.End"
           EditButtonPosition="TableEditButtonPosition.End"
           RowEditPreview="@BackupItem"
-          RowEditCancel="@ResetItemToOriginalValues"
-          RowEditCommit="@ItemHasBeenCommitted"
-          >
+          RowEditCancel="@HandleRowEditCancel"
+          RowEditCommit="@HandleRowEditCommit">
 
     <ToolBarContent>
         <MudText Typo="Typo.h2" Class="mt-6">
@@ -71,7 +71,7 @@
             <MudTextField @bind-Value="@context.Name" Required/>
         </MudTd>
         <MudTd DataLabel="@Localizer["IP Address"]">
-            <MudTextField @bind-Value="@context.StartIPAddress" Required/>
+            <MudTextField @bind-Value="@context.StartIPAddress" Required Converter="@BuildConverter()"/>
         </MudTd>
     </RowEditingTemplate>
     <EditButtonContent Context="button">
@@ -89,11 +89,19 @@
     private WhitelistIPAddressData _elementBeforeEdit = default;
     private List<WhitelistIPAddressData> _firewallRules = [];
 
+    private Converter<IPAddress> BuildConverter() =>
+        new()
+        {
+            SetFunc = value => value?.ToString() ?? string.Empty,
+            GetFunc = IPAddress.Parse,
+            SetErrorMessage = Localizer["Invalid IP address format (e.g. 192.168.2.1)"],
+        };
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-        var postgresResource = GetPostgreSqlFlexibleServerResource();
+        var postgresResource = BuildPostgresSqlFlexibleServerResource();
 
         await foreach (var firewallRule in postgresResource.GetPostgreSqlFlexibleServerFirewallRules())
         {
@@ -105,7 +113,8 @@
     {
         base.OnAfterRender(firstRender);
         _userIpAddress = _httpContextAccessor?.HttpContext?.Connection.RemoteIpAddress;
-    
+
         StateHasChanged();
     }
+
 }
