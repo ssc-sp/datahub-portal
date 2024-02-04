@@ -1,13 +1,11 @@
 @using Datahub.Shared.Entities
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Projects
-@using Datahub.Portal.Views.Dialogs
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject IRequestManagementService _requestManagementService
 @inject IUserInformationService _userInformationService
 @inject ILogger<WorkspaceToolboxPage> _logger
-@inject IDialogService _dialogService
 @inject ISnackbar _snackbar
 
 <MudStack>
@@ -56,16 +54,12 @@
                                     </MudButton>
                                     break;
                                 case ToolStatus.SendingRequest:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                    <SpinnerButton Variant="@Variant.Filled">
                                         @Localizer["Sending Request..."]
-                                        <MudIcon Icon="fa-light fa-spinner-third fa-spin" Class="ml-2" Style="font-size: 0.8rem;"/>
-                                    </MudButton>
+                                    </SpinnerButton>
                                     break;
                                 case ToolStatus.PendingRequest:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
-                                        @Localizer["Tool being provisioned..."]
-                                        <MudIcon Icon="fa-light fa-spinner-third fa-spin" Class="ml-2" Style="font-size: 0.8rem;"/>
-                                    </MudButton>
+                                    <ToolBeingProvisionedButton Variant="@Variant.Filled"/>
                                     break;
                                 case ToolStatus.Exists:
                                     <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
@@ -108,8 +102,7 @@
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
 
     private Datahub_Project _workspace;
 
@@ -139,7 +132,7 @@
         { TerraformTemplate.AzureDatabricks, ToolStatus.Available },
         { TerraformTemplate.AzureStorageBlob, ToolStatus.Available },
         { TerraformTemplate.AzureAppService, ToolStatus.Available },
-        { TerraformTemplate.AzurePostgres, ToolStatus.Available },
+        { TerraformTemplate.AzurePostgres, ToolStatus.UnderDevelopment },
         { TerraformTemplate.AzureArcGis, ToolStatus.UnderDevelopment }
     };
 
@@ -173,26 +166,26 @@
             }
         }
     }
-    
+
     private ToolStatus GetToolStatus(string tool)
     {
-        if(_toolCurrentDevelopmentStatusMap[tool] != ToolStatus.Available)
+        if (_toolCurrentDevelopmentStatusMap[tool] != ToolStatus.Available)
         {
             return _toolCurrentDevelopmentStatusMap[tool];
         }
-        
+
         var toolResource = _workspace.Resources.FirstOrDefault(r => r.ResourceType.EndsWith(tool));
         if (toolResource == null)
         {
             return ToolStatus.Available;
         }
-        
-        if(toolResource.CreatedAt == null)
+
+        if (toolResource.CreatedAt == null)
         {
             return ToolStatus.PendingRequest;
         }
-        
-        if(toolResource.CreatedAt < DateTime.UtcNow)
+
+        if (toolResource.CreatedAt < DateTime.UtcNow)
         {
             return ToolStatus.Exists;
         }
@@ -203,24 +196,17 @@
     private async Task AddToolToWorkspace(string tool)
     {
         _logger.LogInformation("Adding tool {Tool} to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
-        
-        var configuration = await ConfigureTool(tool);
         _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.SendingRequest;
         await InvokeAsync(StateHasChanged);
-        
-        await ProvisionTool(tool, configuration);
-        _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.PendingRequest;
-        await InvokeAsync(StateHasChanged);
-    }
 
-    private async Task ProvisionTool(string tool, object configuration = null)
-    {
         try
         {
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, tool, currentUser, configuration);
+            await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, tool, currentUser);
             _logger.LogInformation("Tool {Tool} successfully added to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
+            _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.PendingRequest;
             _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(tool)], Severity.Success);
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
         {
@@ -228,35 +214,6 @@
             _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.Error;
             _snackbar.Add(Localizer["Error adding {0} to your workspace", GetLabel(tool)], Severity.Error);
         }
-    }
-    
-    private async Task<object> ConfigureTool(string tool)
-    {
-        try
-        {
-            var configurationDialog = GetConfigurationDialog(tool);
-            if (configurationDialog == null)
-            {
-                return null;
-            }
-            
-            var parameters = new DialogParameters();
-            var dialog = await _dialogService.ShowAsync(configurationDialog, Localizer["Configuration for {0}", tool] , parameters);
-            var result = await dialog.Result;
-            if (result.Canceled)
-            {
-                return null;
-            }
-
-            return result.Data;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error configuring tool {Tool} for workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
-            _snackbar.Add(Localizer["Error configuring {0} for your workspace", GetLabel(tool)], Severity.Error);
-        }
-
-        return null;
     }
 
     private string GetLabel(string tool)
@@ -269,7 +226,7 @@
             TerraformTemplate.AzurePostgres => Localizer["Azure Postgres"],
             TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
             _ => tool
-            };
+        };
     }
 
     private string GetDescription(string tool)
@@ -282,30 +239,20 @@
             TerraformTemplate.AzurePostgres => Localizer["Azure Database for PostgreSQL is a relational database service based on the open-source Postgres database engine. It's a fully managed database-as-a-service offering that can handle mission-critical workloads with predictable performance, security, high availability, and dynamic scalability."],
             TerraformTemplate.AzureArcGis => Localizer["ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database."],
             _ => tool
-            };
+        };
     }
 
     private string GetIcon(string tool)
     {
-        return tool switch{
+        return tool switch
+        {
             TerraformTemplate.AzureDatabricks => SidebarIcons.Databricks,
             TerraformTemplate.AzureStorageBlob => SidebarIcons.Storage,
             TerraformTemplate.AzureAppService => SidebarIcons.WebApp,
             TerraformTemplate.AzurePostgres => SidebarIcons.SqlDatabase,
             TerraformTemplate.AzureArcGis => SidebarIcons.ArcGis,
             _ => SidebarIcons.Default
-            };
-    }
-
-    private Type GetConfigurationDialog(string tool)
-    {
-        return tool switch
-        {
-            TerraformTemplate.AzureAppService => typeof(AzureAppServiceConfigurationDialog),
-            _ => null
         };
     }
-
-    
 
 }
