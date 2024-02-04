@@ -7,19 +7,21 @@
         public string AppServiceComposePath { get; set; } = string.Empty;
         public string AppServiceId { get; set; } = string.Empty;
         public string AppServiceHostName { get; set; } = string.Empty;
+        public string AppServiceRg { get; set; } = string.Empty;
 
         public AppServiceConfiguration(string appServiceFramework, string appServiceGitRepo,
-            string appServiceComposePath, string appServiceId = "", string appServiceHostName = "")
+            string appServiceComposePath, string appServiceId = "", string appServiceHostName = "", string appServiceRg = "")
         {
             AppServiceFramework = appServiceFramework;
             AppServiceGitRepo = appServiceGitRepo;
             AppServiceComposePath = appServiceComposePath;
             AppServiceId = appServiceId;
             AppServiceHostName = appServiceHostName;
+            AppServiceRg = appServiceRg;
         }
     }
 
-    public class AppServiceTemplates
+    public static class AppServiceTemplates
     {
         private static AppServiceConfiguration SHINY_CONFIG =
             new("shiny", "https://github.com/ssc-sp/datahub-infra.git", "dev/docker/shiny-app/");

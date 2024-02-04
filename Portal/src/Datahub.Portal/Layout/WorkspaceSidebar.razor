@@ -206,7 +206,6 @@
         return sectionView switch
         {
             SectionViews.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(_project),
-            SectionViews.WebApp => _project.WebApp_URL,
             _ => $"{_path}/{sectionView}"
             };
     }
@@ -216,7 +215,6 @@
         return sectionView switch
         {
             SectionViews.Databricks => "_blank",
-            SectionViews.WebApp => "_blank",
             _ => "_self"
             };
     }

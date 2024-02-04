@@ -1,5 +1,4 @@
-﻿@using MudBlazor
-@using Datahub.Shared.Entities
+﻿@using Datahub.Shared.Entities
 
 <MudDialog>
     <DialogContent>
@@ -9,7 +8,6 @@
                 <MudSelectItem Value="@framework" Label="@framework" />
             }
         </MudSelect>
-        
         <MudTextField Label="Enter git repo URL" @bind-Value="gitRepoUrl" Disabled="@(selectedFramework!=AppServiceTemplates.CUSTOM)"/>
 
         <MudTextField Label="Enter Docker compose file path" @bind-Value="dockerComposeFilePath" Disabled="@(selectedFramework!=AppServiceTemplates.CUSTOM)"/>

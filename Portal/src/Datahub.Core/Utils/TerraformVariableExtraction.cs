@@ -34,10 +34,10 @@ public static class TerraformVariableExtraction
     public static string? ExtractDatabricksUrl(Datahub_Project? project)
     {
         var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-        var databricksUrlVariable =  ExtractStringVariable(
+        var databricksUrlVariable = ExtractStringVariable(
             project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent,
             "workspace_url");
-        
+
         return FormatDatabricksUrl(databricksUrlVariable);
     }
 
@@ -48,32 +48,29 @@ public static class TerraformVariableExtraction
     /// <returns>The extracted Databricks URL or null if not found.</returns>
     public static string? ExtractDatabricksUrl(Project_Resources2? projectResource)
     {
-        var databricksUrlVariable =  ExtractStringVariable(
+        var databricksUrlVariable = ExtractStringVariable(
             projectResource?.JsonContent,
             "workspace_url");
-        
+
         return FormatDatabricksUrl(databricksUrlVariable);
     }
-    
+
     /// <summary>
     /// Extracts the app service configuration from a Datahub Project.
     /// </summary>
     /// <param name="project">The Datahub Project to find the app service config from</param>
     /// <returns>The AppServiceConfiguration object containing the configuration info of the app service</returns>
-    public static AppServiceConfiguration? ExtractAppServiceConfiguration(Datahub_Project? project)
+    public static AppServiceConfiguration ExtractAppServiceConfiguration(Datahub_Project? project)
     {
         var appServiceTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService);
         var appServiceFramework = ExtractStringVariable(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.JsonContent,
+            project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.InputJsonContent,
             "app_service_framework");
-        var appServiceRuntime = ExtractStringVariable(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.JsonContent,
-            "app_service_runtime");
         var appServiceGitRepo = ExtractStringVariable(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.JsonContent,
+            project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.InputJsonContent,
             "app_service_git_repo");
         var appServiceComposePath = ExtractStringVariable(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.JsonContent,
+            project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.InputJsonContent,
             "app_service_compose_path");
         var appServiceId = ExtractStringVariable(
             project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.JsonContent,
@@ -81,10 +78,13 @@ public static class TerraformVariableExtraction
         var appServiceHostName = ExtractStringVariable(
             project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.JsonContent,
             "app_service_host_name");
+        var appServiceRg = ExtractStringVariable(
+            project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.JsonContent,
+            "app_service_rg");
         return new AppServiceConfiguration(appServiceFramework, appServiceGitRepo,
-            appServiceComposePath, appServiceId, appServiceHostName);
+            appServiceComposePath, appServiceId, appServiceHostName, appServiceRg);
     }
-    
+
     /// <summary>
     /// Extracts the app service configuration from a project resource.
     /// </summary>
@@ -93,16 +93,13 @@ public static class TerraformVariableExtraction
     public static AppServiceConfiguration? ExtractAppServiceConfiguration(Project_Resources2? projectResource)
     {
         var appServiceFramework = ExtractStringVariable(
-            projectResource?.JsonContent,
+            projectResource?.InputJsonContent,
             "app_service_framework");
-        var appServiceRuntime = ExtractStringVariable(
-            projectResource?.JsonContent,
-            "app_service_runtime");
         var appServiceGitRepo = ExtractStringVariable(
-            projectResource?.JsonContent,
+            projectResource?.InputJsonContent,
             "app_service_git_repo");
         var appServiceComposePath = ExtractStringVariable(
-            projectResource?.JsonContent,
+            projectResource?.InputJsonContent,
             "app_service_compose_path");
         var appServiceId = ExtractStringVariable(
             projectResource?.JsonContent,
@@ -110,7 +107,11 @@ public static class TerraformVariableExtraction
         var appServiceHostName = ExtractStringVariable(
             projectResource?.JsonContent,
             "app_service_host_name");
-        return new AppServiceConfiguration(appServiceFramework, appServiceGitRepo, appServiceComposePath, appServiceId, appServiceHostName);
+        var appServiceRg = ExtractStringVariable(
+            projectResource?.JsonContent,
+            "app_service_rg");
+        return new AppServiceConfiguration(appServiceFramework, appServiceGitRepo, appServiceComposePath, appServiceId,
+            appServiceHostName, appServiceRg);
     }
 
     /// <summary>
@@ -125,7 +126,7 @@ public static class TerraformVariableExtraction
             databricksUrlVariable = $"https://{databricksUrlVariable}";
         }
 
-        return databricksUrlVariable;        
+        return databricksUrlVariable;
     }
 
     /// <summary>
@@ -199,10 +200,10 @@ public static class TerraformVariableExtraction
 
         var jsonContent =
             JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);
-        
+
         if (!jsonContent?.ContainsKey(variableName) ?? true)
             return null;
-        
+
         var variable = jsonContent?[variableName];
 
         return variable;

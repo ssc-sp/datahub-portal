@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
-#nullable enable
 namespace Datahub.Core.Services.Projects;
 
 public record ProjectResourceFormParams(FieldDefinitions FieldDefinitions, MetadataProfile Profile);
@@ -21,7 +20,7 @@ public interface IRequestManagementService
     /// <param name="requestingUser">The user requesting the Terraform request.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a boolean indicating whether the Terraform request was handled successfully or not.</returns>
     Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate,
-        PortalUser requestingUser, object? configuration = null);
+        PortalUser requestingUser);
 
     /// <summary>
     /// Handles user updates to external permissions for a specified Datahub project.
