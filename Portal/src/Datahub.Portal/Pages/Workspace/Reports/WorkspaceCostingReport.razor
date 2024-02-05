@@ -17,6 +17,14 @@
     return;
 }
 
+@if (_projectCredits is null)
+{
+    <MudStack>
+        <MudText Typo="Typo.h3">@Localizer["Cost Analysis"]</MudText>
+        <MudText Typo="Typo.body1">@Localizer["No cost data available, please check back later"]</MudText>
+    </MudStack>
+}
+
 <MudStack>
     @if (_currentServiceCosts?.Count > 0)
     {
@@ -158,7 +166,7 @@
 
         if (project?.Credits is null)
         {
-            _navigationManager.NavigateTo("/");
+            _loading = false;
             return;
         }
 

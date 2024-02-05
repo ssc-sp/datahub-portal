@@ -1,5 +1,6 @@
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Services.Storage;
+using Datahub.Infrastructure.Services.Storage;
 using Microsoft.JSInterop;
 
 namespace Datahub.Portal.Pages.Workspace.Storage;

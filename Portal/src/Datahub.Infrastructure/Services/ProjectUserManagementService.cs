@@ -2,6 +2,7 @@ using System.Linq.Dynamic.Core;
 using System.Transactions;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
@@ -89,6 +90,8 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 .Select(p => p.ProjectAcronym)
                 .Distinct())
             .ToList();
+        
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
         // update each project
         foreach (var projectAcronym in projectAcronyms)
@@ -105,7 +108,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             context.Projects.Update(project);
             await context.SaveChangesAsync();
 
-            await _requestManagementService.HandleUserUpdatesToExternalPermissions(project);
+            await _requestManagementService.HandleUserUpdatesToExternalPermissions(project, currentUser);
         }
     }
 
