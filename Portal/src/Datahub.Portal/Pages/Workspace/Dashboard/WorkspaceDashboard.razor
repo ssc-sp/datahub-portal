@@ -110,7 +110,8 @@
     private Dictionary<string, Type> _cardComponents = new()
     {
         { "terraform:azure-databricks", typeof(DatabricksCard) },
-        { "terraform:azure-storage-blob", typeof(StorageCard) }
+        { "terraform:azure-storage-blob", typeof(StorageCard) },
+        { "terraform:azure-app-service", typeof(AppServiceCard) }
     };
 
     private List<ProjectRepository> _projectRepositories = new();

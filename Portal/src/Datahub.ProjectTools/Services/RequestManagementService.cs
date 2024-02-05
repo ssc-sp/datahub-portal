@@ -55,7 +55,6 @@ public class RequestManagementService : IRequestManagementService
     /// <param name="project">The project.</param>
     /// <param name="requestingUser">The requesting user.</param>
     /// <param name="requestedTemplate">The requested template.</param>
-    /// <param name="configuration">Specific configurations associated with the requested template.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     private async Task ProcessRequest(Datahub_Project project, PortalUser requestingUser,
         TerraformTemplate requestedTemplate)
@@ -95,7 +94,6 @@ public class RequestManagementService : IRequestManagementService
     /// <param name="datahubProject">The Datahub project.</param>
     /// <param name="terraformTemplate">The Terraform template.</param>
     /// <param name="requestingUser">The user making the request.</param>
-    /// <param name="configuration">Specific configurations associated with the requested template.</param>
     /// <returns>True if the Terraform request was handled successfully; otherwise, false.</returns>
     public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project datahubProject, string terraformTemplate,
         PortalUser requestingUser)
