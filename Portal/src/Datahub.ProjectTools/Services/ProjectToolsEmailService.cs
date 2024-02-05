@@ -11,6 +11,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.UserManagement;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.ProjectTools.Services
 {

@@ -26,9 +26,9 @@ jobs:
     lfs: true
     fetchTags: false
   - task: UseDotNet@2
-    displayName: Use .NET Core sdk 7.0.x
+    displayName: Use .NET Core sdk 8.0.x
     inputs:
-      version: 7.0.x
+      version: 8.0.x
       includePreviewVersions: true
       performMultiLevelLookup: true
   - task: UseNode@1
@@ -64,12 +64,6 @@ jobs:
       targetType: inline
       script: "cd Portal/src\n      $files=Get-Childitem -Path Datahub.Portal -Include appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike \"*\\Debug\\*\"}\n      foreach ($file in $files){\n        $fileRendered=$file.FullName.trim(\"-tmpl\")\n        Write-Host \"Processing file: ${file} > $fileRendered\"\n        Copy-Item $file.FullName -Force -Destination $fileRendered\n      }\n      cd Datahub.Portal; mv appsettings.Development.json appsettings.dev.json; Move-Item -Force appsettings.json-tmpl-spdatahub appsettings.json\n    "
   - task: DotNetCoreCLI@2
-    displayName: dotnet restore
-    enabled: False
-    inputs:
-      command: restore
-      projects: Portal/src/Datahub.Portal/*.csproj
-  - task: DotNetCoreCLI@2
     displayName: dotnet build
     inputs:
       projects: Portal/src/Datahub.Portal/*.csproj
@@ -78,12 +72,15 @@ jobs:
     displayName: dotnet publish
     inputs:
       command: publish
-      arguments: -o $(Build.ArtifactStagingDirectory)/output/portal -r $(target_os) --self-contained true
+      publishWebProjects: false
+      projects: 'Portal/src/Datahub.Portal/*.csproj'
+      arguments: '-o $(Build.ArtifactStagingDirectory)/output/portal -r $(target_os) --self-contained true'  
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: datahub-portal'
     inputs:
       PathtoPublish: $(Build.ArtifactStagingDirectory)/output/portal
       ArtifactName: datahub-portal
+
 - job: Job_3
   displayName: Agent job - build function app
   dependsOn: Job_1
@@ -206,17 +203,17 @@ jobs:
 
 
         pip install -r ./requirements.txt
-      workingDirectory: ResourceProvisioner/src/ResourceProvisioner.Functions.Python
+      workingDirectory: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
   - task: ArchiveFiles@2
     displayName: Archive
     enabled: False
     inputs:
-      rootFolderOrFile: ResourceProvisioner/src/ResourceProvisioner.Functions.Python
+      rootFolderOrFile: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
       archiveFile: $(Build.ArtifactStagingDirectory)/output/rpuser/rpuser.zip
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: user provisioner python function app'
     inputs:
-      PathtoPublish: ResourceProvisioner/src/ResourceProvisioner.Functions.Python
+      PathtoPublish: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
       ArtifactName: user-provisioner
 - job: Job_4
   displayName: Agent job - post-build

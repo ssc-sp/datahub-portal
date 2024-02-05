@@ -4,6 +4,7 @@ using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Data;
 using Datahub.Core.Services.Storage;
+using Datahub.Infrastructure.Services.Storage;
 using Datahub.Portal.Model;
 using Microsoft.AspNetCore.Components;
 

@@ -55,7 +55,7 @@
                 }
                 @if (_showAllWorkspaces == false && _userRoles.Count > _maxWorkspacesToShow)
                 {
-                    <MudLink OnClick="@(() => _showAllWorkspaces = true)" Typo="Typo.body2" Color="Color.Default" Class="ml-4" Style="font-size: 0.75rem;" Disabled="@_canNotCreateWorkspace">
+                    <MudLink OnClick="@(() => _showAllWorkspaces = true)" Typo="Typo.body2" Color="Color.Default" Class="ml-4" Style="font-size: 0.75rem;">
                         @Localizer["Show more"]
                     </MudLink>
                 }
@@ -146,7 +146,7 @@
     private ushort _maxRecentLinks = 5;
     private ushort _maxWorkspacesToShow = 3;
     private ushort _numberOfRemainingWorkspaces = 3;
-    private bool _canNotCreateWorkspace => _numberOfRemainingWorkspaces <= 0;
+    private bool _canNotCreateWorkspace => _numberOfRemainingWorkspaces <= 0 && !_isViewAsAdmin;
 
     private bool _showAllRecentLinks = false;
     private bool _showAllWorkspaces = false;
@@ -329,7 +329,7 @@
     {
         return recentActivity.userRecentLink.LinkType switch
         {
-            DatahubLinkType.DataProject => recentActivity.datahubProject.ProjectName,
+            DatahubLinkType.DataProject => recentActivity.datahubProject?.ProjectName ?? recentActivity.userRecentLink.DataProject ?? "Workspace",
             DatahubLinkType.Databricks => $"{Localizer["Databricks"]} - {recentActivity.datahubProject.ProjectName}",
             DatahubLinkType.Repository => $"{Localizer["Repositories"]} - {recentActivity.datahubProject.ProjectName}",
             DatahubLinkType.Storage => $"{Localizer["Storage"]} - {recentActivity.datahubProject.ProjectName}",

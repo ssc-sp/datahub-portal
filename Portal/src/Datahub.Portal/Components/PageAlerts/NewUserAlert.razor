@@ -1,0 +1,147 @@
+﻿<MudCarousel TData="object" Class="mud-width-full" Style="height: 70vh; margin-bottom: 1rem" AutoCycle="false">
+    <BulletTemplate Context="selected">
+        <div Class="mud-button-root mud-icon-button mud-icon-button-color-inherit mud-ripple mud-ripple-icon">
+            <span class="mud-icon-button-label">
+                <MudIcon Icon="@(selected ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Circle)" Color="@Color.Inherit"/>
+            </span>
+        </div>
+    </BulletTemplate>
+    <ChildContent>
+        <MudCarouselItem>
+            <MudStack Class="px-12 py-4" Style="height: 100%; overflow:  hidden; overflow-y: scroll; padding-bottom: 50px">
+                <h1>
+                    @Localizer["What is the Federal Science DataHub?"]
+                </h1>
+                <p>
+                    @Localizer["The Federal Science DataHub is a secure, cloud-based platform that provides a collaborative environment for GC scientists and researchers to store, work with, and share data.It is a central location for GC scientists and researchers to store data, perform collaborative analysis, and manipulate data using advanced analytics tools."]
+                </p>
+                <p>
+                    @Localizer["If you're just getting started, we recommend reading this short introduction, which will guide you through the layout and basic functionalities of the Federal Science Datahub."]
+                </p>
+                <p>
+                    @Localizer["If you would like to learn more, you can also visit the "]
+                    <b>
+                        <a href=@GetStartedLink>@Localizer["Getting started"]</a>
+                    </b>
+                    @Localizer[" section of the resources."]
+                </p>
+            </MudStack>
+        </MudCarouselItem>
+        <MudCarouselItem>
+            <MudStack Class="px-12 py-4" Style="height: 100%; overflow:  hidden; overflow-y: scroll">
+                <h1>
+                    @Localizer["Layout"]
+                </h1>
+                    <img src="https://github.com/ssc-sp/datahub-docs/assets/56747050/838daca4-be3a-4cbd-91a1-5ebf536fb3c6" alt=@Localizer["Layout of the FSDH"]/>
+                <p>
+                    @Localizer["The Federal Science Datahub website is divided into 3 parts:"]
+                    <ol>
+                        <li>
+                            <b>@Localizer["Topbar"]</b> @Localizer[": Accessing the home page, the news page, exploring and searching for workspaces or users."]
+                        </li>
+                        <li>
+                            <b>@Localizer["Sidebar"]</b> @Localizer[": Accessing your workspaces, your recent resources or your profile."]
+                        </li>
+                        <li>
+                            <b>@Localizer["Content"]</b> @Localizer[": Where science is done! Wherever you go, this section will display the page's main content, and in the case of the home page, you will see your personal dashboard, where your profile, achievements and workspaces are displayed."]
+                        </li>
+                    </ol>
+                </p>
+                <p style="margin-bottom: 100px">
+                    @Localizer["The next few pages will show you how to use this layout and create your very own workspace!"]
+                </p>
+            </MudStack>
+        </MudCarouselItem>
+        <MudCarouselItem>
+            <MudStack Class="px-12 py-4" Style="height: 100%; overflow:  hidden; overflow-y: scroll">
+                <h1>
+                    @Localizer["Using the topbar"]
+                </h1>
+                    <img src="https://github.com/ssc-sp/datahub-docs/assets/56747050/3c6e5878-250e-4ac3-b2f9-d40240fb8e77" alt=@Localizer["Topbar headers"]/>
+                <p>
+                    @Localizer["The topbar contains the major navigation routes:"]
+                    <ul>
+                        <li>
+                            <b>@Localizer["Home"]</b> @Localizer[": A dashboard of your workspaces and resources."]
+                        </li>
+                        <li>
+                            <b>@Localizer["News"]</b> @Localizer[": Where you can find information pertaining to new features of the FSDH as well as potential service disruptions."]
+                        </li>
+                        <li>
+                            <b>@Localizer["Explore"]</b> @Localizer[": Find what your peers are doing by browsing featured workspaces."]
+                        </li>
+                        <li>
+                            <b>@Localizer["Learn"]</b> @Localizer[": Read guides and tutorials on how to use our platform and its many tools."]
+                        </li>
+                    </ul>
+                </p>
+                    <img src="https://github.com/ssc-sp/datahub-docs/assets/56747050/28203417-79f6-4b27-a5d5-a0fb947dad56" alt=@Localizer["Topbar search bar"]/>
+                <p>
+                    <ul>
+                        <li>
+                            <b>@Localizer["Search"]</b> @Localizer[": You can also search for workspaces, resources or users on the platform using the search box in the topbar."]
+                        </li>
+                    </ul>
+                </p>
+                    <img src="https://github.com/ssc-sp/datahub-docs/assets/56747050/9e991080-4d65-4a3b-8ed9-5fd00ac9e29f" alt=@Localizer["Topbar help and profile"]/>
+                <p style="margin-bottom: 100px">
+                    <ul>
+                        <li>
+                            <b>@Localizer["Help & Profile"]</b> @Localizer[": You can request for support using the help button, or access your profile settings."]
+                        </li>
+                    </ul>
+                </p>
+            </MudStack>
+        </MudCarouselItem>
+        <MudCarouselItem>
+            <MudStack Class="px-12 py-4" Style="height: 100%; overflow:  hidden; overflow-y: scroll">
+                <h1>
+                    @Localizer["Using the sidebar"]
+                </h1>
+                    <img src="https://github.com/ssc-sp/datahub-docs/assets/56747050/c42ae472-acce-4016-b29b-ea703e083953" alt=@Localizer["Different sections of the sidebar"] style="object-fit: contain"/>
+                <p style="margin-bottom: 100px">
+                    <ul>
+                        <li>
+                            <b>@Localizer["My workspaces"]</b> @Localizer[": Where you can find the workspaces you are a part of, as well as the button to create a new workspace. As you are just getting started, we recommend you create a workpace!"]
+                        </li>
+                        <li>
+                            <b>@Localizer["Recent activity"]</b> @Localizer[": Where you can find a list of the recent resources you have accessed. From there, you can quickly multitask by jumping back and forth between different resources."]
+                        </li>
+                        <li>
+                            <b>@Localizer["My account"]</b> @Localizer[": Where you can find your profile settings, ranging from appearance and customization to your notification settings!"]
+                        </li>
+                    </ul>
+                </p>
+            </MudStack>
+        </MudCarouselItem>
+        <MudCarouselItem>
+            <MudStack Class="px-12 py-4" Style="height: 100%; overflow:  hidden; overflow-y: scroll">
+                <h1>
+                    @Localizer["Creating a workspace"]
+                </h1>
+                <img src="https://github.com/ssc-sp/datahub-docs/assets/56747050/b7b2ebd3-567f-4c1e-8096-7e471090d7cb" alt=@Localizer["Creating a workspace"]/>
+                <p>
+                    @Localizer["Clicking the \"New\" button in the workspace section of the sidebar will open a pop-up which will guide you in the creation of your very own workspace! Once you are done selecting a name, an acronym will be auto-generated for you, but you may change it!"]
+                </p>
+                <p style="margin-bottom: 100px">
+                    @Localizer["Happy with your workspace name and acronym? Click on \"Create workspace\" and your new workspace will soon appear in the sidebar!"]
+                </p>
+            </MudStack>
+        </MudCarouselItem>
+    </ChildContent>
+</MudCarousel>
+
+@code {
+
+    [CascadingParameter(Name = "RewriteLink")]
+    public Func<string, string> RewriteLink { get; set; }
+
+    public string GetStartedLink { get; set; }
+    public const string KEY = "tutorials/home";
+
+    protected override void OnInitialized()
+    {
+        GetStartedLink = RewriteLink("7937ceb6430cedd7");
+    }
+
+}

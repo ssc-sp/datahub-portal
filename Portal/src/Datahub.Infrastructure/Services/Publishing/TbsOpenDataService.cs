@@ -6,6 +6,7 @@ using Datahub.CKAN.Package;
 using Datahub.CKAN.Service;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Metadata;
+using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Bcpg;
@@ -155,7 +156,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
     public async Task<string?> GetApiKeyForWorkspace(string workspaceAcronym)
     {
-        return await _keyvaultUserService.GetSecret(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY);
+        return await _keyvaultUserService.GetSecretAsync(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY);
     }
 
     public async Task SetApiKeyForWorkspace(string workspaceAcronym, string apiKey)
