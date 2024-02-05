@@ -65,6 +65,9 @@
     <RowTemplate>
         <MudTd DataLabel="@Localizer["Name"]">@context.Name</MudTd>
         <MudTd DataLabel="@Localizer["IP Address"]">@context.StartIPAddress</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@SidebarIcons.Delete" aria-label="@(Localizer["Delete"])" OnClick="@(() => DeleteIpAddress(context))" />
+        </MudTd>
     </RowTemplate>
     <RowEditingTemplate>
         <MudTd DataLabel="@Localizer["Name"]">
@@ -73,6 +76,7 @@
         <MudTd DataLabel="@Localizer["IP Address"]">
             <MudTextField @bind-Value="@context.StartIPAddress" Required Converter="@BuildConverter()"/>
         </MudTd>
+        <MudTd />
     </RowEditingTemplate>
     <EditButtonContent Context="button">
         <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>

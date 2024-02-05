@@ -43,4 +43,5 @@ public static class SidebarIcons
     // Other Icons
     public const string Search = "fa-light fa-search";
     public const string Edit = "fa-light fa-edit";
+    public const string Delete = "fa-light fa-trash";
 }
