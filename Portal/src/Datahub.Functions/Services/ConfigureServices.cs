@@ -25,6 +25,12 @@ public static class ConfigureServices
                                                                         ?? throw new ArgumentNullException(
                                                                             "DatahubStorageConnectionString");
         }
+        
+        if (string.IsNullOrEmpty(datahubConfiguration.AzureAd.TenantId))
+        {
+            datahubConfiguration.AzureAd.TenantId = configuration["TENANT_ID"]
+                                                    ?? throw new ArgumentNullException("TENANT_ID");
+        }
 
         if (string.IsNullOrEmpty(datahubConfiguration.AzureAd.ClientId))
         {
