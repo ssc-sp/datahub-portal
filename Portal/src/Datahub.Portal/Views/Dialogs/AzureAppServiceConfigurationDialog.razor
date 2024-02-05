@@ -2,18 +2,18 @@
 
 <MudDialog>
     <DialogContent>
-        <MudSelect Label="Select a framework" @bind-Value="selectedFramework">
+        <MudSelect Label=@Localizer["Select a framework"] @bind-Value="selectedFramework">
             @foreach(string framework in AppServiceTemplates.TEMPLATES)
             {
                 <MudSelectItem Value="@framework" Label="@framework" />
             }
         </MudSelect>
-        <MudTextField Label="Enter git repo URL" @bind-Value="gitRepoUrl" Disabled="@(selectedFramework!=AppServiceTemplates.CUSTOM)"/>
+        <MudTextField Label=@Localizer["Enter git repo URL"] @bind-Value="gitRepoUrl" Disabled="@(selectedFramework!=AppServiceTemplates.CUSTOM)"/>
 
-        <MudTextField Label="Enter Docker compose file path" @bind-Value="dockerComposeFilePath" Disabled="@(selectedFramework!=AppServiceTemplates.CUSTOM)"/>
+        <MudTextField Label=@Localizer["Enter Docker compose file path"] @bind-Value="dockerComposeFilePath" Disabled="@(selectedFramework!=AppServiceTemplates.CUSTOM)"/>
     </DialogContent>
     <DialogActions>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Submit</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">@Localizer["Submit"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -29,9 +29,9 @@
         var config = AppServiceTemplates.GetTemplateConfiguration(AppServiceTemplates.CUSTOM);
         if (selectedFramework == AppServiceTemplates.CUSTOM)
         {
-            config.AppServiceFramework = selectedFramework;
-            config.AppServiceGitRepo = gitRepoUrl;
-            config.AppServiceComposePath = dockerComposeFilePath;
+            config.Framework = selectedFramework;
+            config.GitRepo = gitRepoUrl;
+            config.ComposePath = dockerComposeFilePath;
         }
         else
         {

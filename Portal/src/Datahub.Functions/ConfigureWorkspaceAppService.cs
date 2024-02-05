@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Azure.Storage.Queues.Models;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
@@ -14,16 +15,16 @@ using Microsoft.Extensions.Logging;
 
 namespace Datahub.Functions
 {
-    public class ConfigureAppService
+    public class ConfigureWorkspaceAppService
     {
-        private readonly ILogger<ConfigureAppService> _logger;
+        private readonly ILogger<ConfigureWorkspaceAppService> _logger;
         private readonly IKeyVaultService _keyVaultService;
         private readonly AzureConfig _config;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContext;
         private readonly IResourceMessagingService _resourceMessagingService;
         private HttpClient _httpClient = new ();
 
-        public ConfigureAppService(ILogger<ConfigureAppService> logger, IKeyVaultService keyVaultService, AzureConfig config, IResourceMessagingService resourceMessagingService, IDbContextFactory<DatahubProjectDBContext> dbContext)
+        public ConfigureWorkspaceAppService(ILogger<ConfigureWorkspaceAppService> logger, IKeyVaultService keyVaultService, AzureConfig config, IResourceMessagingService resourceMessagingService, IDbContextFactory<DatahubProjectDBContext> dbContext)
         {
             _logger = logger;
             _keyVaultService = keyVaultService;
@@ -32,12 +33,12 @@ namespace Datahub.Functions
             _dbContext = dbContext;
         }
 
-        [Function(nameof(ConfigureAppService))]
+        [Function(nameof(ConfigureWorkspaceAppService))]
         public async Task Run([QueueTrigger("web-app-configuration", Connection = "DatahubStorageConnectionString")] QueueMessage message)
         {
             _logger.LogInformation($"C# Queue trigger function processed: {message.MessageText}");
             
-            var appServiceConfigurationMessage = JsonSerializer.Deserialize<AppServiceConfigurationMessage>(message.MessageText)!;
+            var appServiceConfigurationMessage = JsonSerializer.Deserialize<WorkspaceAppServiceConfigurationMessage>(message.MessageText)!;
             
             var projectAcronym = appServiceConfigurationMessage.ProjectAcronym;
             
@@ -61,7 +62,7 @@ namespace Datahub.Functions
                     $"App service configuration not found for project acronym {projectAcronym}, could not configure web app");
             }
 
-            var rgName = appServiceConfiguration.AppServiceRg;
+            var rgName = appServiceConfiguration.ResourceGroupName;
 
             await ConfigureHttpClient();
 
@@ -80,7 +81,7 @@ namespace Datahub.Functions
 
         private async Task<string> GetPipelineUrlByName(string pipelineName)
         {
-            var url = _config.AdoConfig.GetPipelineURL.Replace("{organization}", _config.AdoConfig.OrgName)
+            var url = _config.AdoConfig.ListPipelineUrlTemplate.Replace("{organization}", _config.AdoConfig.OrgName)
                 .Replace("{project}", _config.AdoConfig.ProjectName);
             var response = await _httpClient.GetAsync(url);
             
@@ -105,26 +106,27 @@ namespace Datahub.Functions
         
         private async Task PostPipelineRun(string pipelineUrl, AppServiceConfiguration appServiceConfiguration, string projectAcronym, string rgName)
         {
-            var body = new
+            var body = new JsonObject
             {
-                resources = new
+                ["resources"] = new JsonObject
                 {
-                    repositories = new
+                    ["repositories"] = new JsonObject
                     {
-                        self = new
+                        ["self"] = new JsonObject
                         {
-                            refName = "refs/heads/main"
+                            ["refName"] = "refs/heads/main"
                         }
                     }
                 },
-                templateParameters = new
+                ["templateParameters"] = new JsonObject
                 {
-                    resourceGroup = rgName,
-                    webAppId = appServiceConfiguration.AppServiceId,
-                    gitUrl = appServiceConfiguration.AppServiceGitRepo,
-                    composePath = appServiceConfiguration.AppServiceComposePath
+                    ["resourceGroup"] = rgName,
+                    ["webAppId"] = appServiceConfiguration.Id,
+                    ["gitUrl"] = appServiceConfiguration.GitRepo,
+                    ["composePath"] = appServiceConfiguration.ComposePath
                 }
             };
+            
 
             var json = JsonSerializer.Serialize(body);
 

@@ -7,11 +7,9 @@
 @using MediatR
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@inject IKeyVaultUserService _keyVaultUserService
 @inject IDialogService _dialogService
 @inject ISnackbar _snackbar
 @inject ILogger<WorkspaceWebAppPage> _logger
-@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IMediator _mediatr
 
 <MudStack>
@@ -20,7 +18,13 @@
             @Localizer["Web Application"]
         </MudText>
         <MudSpacer/>
-        <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Dark" Size="Size.Medium" OnClick="async () => { await ConfigureWebApp(); }"/>
+        @if (_isProvisioned)
+        {
+            <MudButton Color="Color.Primary" Size="Size.Medium" Variant="Variant.Filled" OnClick="async () => { await ConfigureWebApp(); }">
+                @Localizer["Configure "]
+                <MudIcon Icon="@Icons.Material.Filled.Settings"/>
+            </MudButton>
+        }
     </MudStack>
 
     <MudText>
@@ -30,31 +34,40 @@
     <MudText Typo="Typo.h2">
         @Localizer["Web Application Info"]
     </MudText>
-    <MudText>
-        @Localizer["Host: "] <MudLink Href="@_webAppHost">@_webAppHost</MudLink>
-    </MudText>
-    <MudText>
-        @Localizer["Id: "] <code>@_webAppId</code>
-    </MudText>
-    <MudText>
-        @Localizer["Status: "]
-    </MudText>
-    @if (_isConfigured)
+    @if (_isProvisioned)
     {
         <MudText>
-            @Localizer["Framework: "] <code>@_webAppFramework</code>
+            @Localizer["Host: "] <MudLink Href="@_webAppHost">@_webAppHost</MudLink>
         </MudText>
         <MudText>
-            @Localizer["Git repo: "] <code>@_webAppRepo</code>
+            @Localizer["Id: "] <code>@_webAppId</code>
         </MudText>
         <MudText>
-            @Localizer["Compose path: "] <code>@_webAppCompose</code>
+            @Localizer["Status: "]
         </MudText>
+        @if (_isConfigured)
+        {
+            <MudText>
+                @Localizer["Framework: "] <code>@_webAppFramework</code>
+            </MudText>
+            <MudText>
+                @Localizer["Git repo: "] <code>@_webAppRepo</code>
+            </MudText>
+            <MudText>
+                @Localizer["Compose path: "] <code>@_webAppCompose</code>
+            </MudText>
+        }
+        else
+        {
+            <MudText>
+                @Localizer["This web application is not configured yet. Please configure it using the settings icon in the top right corner of the section."]
+            </MudText>
+        }
     }
     else
     {
         <MudText>
-            @Localizer["This web application is not configured yet. Please configure it using the settings icon in the top right corner of the section."]
+            @Localizer["This web application is not provisioned yet. Please come back soon."]
         </MudText>
     }
 
@@ -71,24 +84,12 @@
     private string _webAppCompose = "<path_to_compose>";
 
     private bool _isConfigured;
+    private bool _isProvisioned;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
-        try
-        {
-            await HydrateValues();
-        }
-        catch (MicrosoftIdentityWebChallengeUserException e)
-        {
-            _consentHandler.HandleException(e);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to get consent from user");
-        }
-
+        await HydrateValues();
         StateHasChanged();
     }
 
@@ -104,16 +105,17 @@
 
         var appConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(workspace);
 
-        _webAppHost = appConfiguration.AppServiceHostName;
-        _webAppId = appConfiguration.AppServiceId;
+        _webAppHost = appConfiguration.HostName;
+        _webAppId = appConfiguration.Id;
 
-        _isConfigured = !(string.IsNullOrWhiteSpace(appConfiguration.AppServiceFramework) && string.IsNullOrWhiteSpace(appConfiguration.AppServiceGitRepo) && string.IsNullOrWhiteSpace(appConfiguration.AppServiceComposePath));
+        _isProvisioned = !(string.IsNullOrWhiteSpace(_webAppHost) && string.IsNullOrWhiteSpace(_webAppId));
+        _isConfigured = !(string.IsNullOrWhiteSpace(appConfiguration.Framework) && string.IsNullOrWhiteSpace(appConfiguration.GitRepo) && string.IsNullOrWhiteSpace(appConfiguration.ComposePath));
 
         if (_isConfigured)
         {
-            _webAppFramework = appConfiguration.AppServiceFramework;
-            _webAppRepo = appConfiguration.AppServiceGitRepo;
-            _webAppCompose = appConfiguration.AppServiceComposePath;
+            _webAppFramework = appConfiguration.Framework;
+            _webAppRepo = appConfiguration.GitRepo;
+            _webAppCompose = appConfiguration.ComposePath;
         }
     }
 
@@ -124,7 +126,7 @@
             MaxWidth = MaxWidth.Large,
             FullWidth = true
         };
-        
+
         var dialog = await _dialogService.ShowAsync<AzureAppServiceConfigurationDialog>(Localizer["Configure Web Application"], dialogOptions);
         var dialogResult = await dialog.Result;
 
@@ -138,12 +140,12 @@
                 _logger.LogInformation("Web app configuration processed");
                 _snackbar.Add(Localizer["Web application configuration processed"], Severity.Success);
                 StateHasChanged();
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 _logger.LogError(e, "Failed to save web app configuration");
                 _snackbar.Add(Localizer["Web application configuration failed"], Severity.Error);
             }
-            
         }
     }
 
@@ -165,9 +167,9 @@
 
         var jsonObject = new JsonObject
         {
-            ["app_service_framework"] = config.AppServiceFramework,
-            ["app_service_git_repo"] = config.AppServiceGitRepo,
-            ["app_service_compose_path"] = config.AppServiceComposePath
+            ["app_service_framework"] = config.Framework,
+            ["app_service_git_repo"] = config.GitRepo,
+            ["app_service_compose_path"] = config.ComposePath
         };
 
         projectResource.InputJsonContent = jsonObject.ToString();
@@ -177,7 +179,7 @@
 
     private async Task TriggerWebAppConfiguration()
     {
-        var message = new AppServiceConfigurationMessage(WorkspaceAcronym);
+        var message = new WorkspaceAppServiceConfigurationMessage(WorkspaceAcronym);
         await _mediatr.Send(message);
     }
 

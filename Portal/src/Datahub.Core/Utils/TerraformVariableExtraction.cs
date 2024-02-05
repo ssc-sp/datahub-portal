@@ -63,26 +63,15 @@ public static class TerraformVariableExtraction
     public static AppServiceConfiguration ExtractAppServiceConfiguration(Datahub_Project? project)
     {
         var appServiceTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService);
-        var appServiceFramework = ExtractStringVariable(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.InputJsonContent,
-            "app_service_framework");
-        var appServiceGitRepo = ExtractStringVariable(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.InputJsonContent,
-            "app_service_git_repo");
-        var appServiceComposePath = ExtractStringVariable(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.InputJsonContent,
-            "app_service_compose_path");
-        var appServiceId = ExtractStringVariable(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.JsonContent,
-            "app_service_id");
-        var appServiceHostName = ExtractStringVariable(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.JsonContent,
-            "app_service_host_name");
-        var appServiceRg = ExtractStringVariable(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == appServiceTemplateName)?.JsonContent,
-            "app_service_rg");
-        return new AppServiceConfiguration(appServiceFramework, appServiceGitRepo,
-            appServiceComposePath, appServiceId, appServiceHostName, appServiceRg);
+        var appServiceResource = project?.Resources?.FirstOrDefault(r =>
+            r.ResourceType == appServiceTemplateName);
+        
+        if (appServiceResource == null)
+        {
+            throw new Exception("App service resource not found in the project");
+        }
+        
+        return ExtractAppServiceConfiguration(appServiceResource);
     }
 
     /// <summary>
@@ -90,7 +79,7 @@ public static class TerraformVariableExtraction
     /// </summary>
     /// <param name="projectResource">The project resource</param>
     /// <returns>The AppServiceConfiguration object containing the configuration info of the app service</returns>
-    public static AppServiceConfiguration? ExtractAppServiceConfiguration(Project_Resources2? projectResource)
+    public static AppServiceConfiguration ExtractAppServiceConfiguration(Project_Resources2? projectResource)
     {
         var appServiceFramework = ExtractStringVariable(
             projectResource?.InputJsonContent,

@@ -51,7 +51,7 @@ namespace Datahub.Functions
 
                 // Retrieve ADO information
                 var credentials = await _keyVaultService.GetSecret(_config.AdoConfig.PatSecretName);
-                string devOpsUrl = _config.AdoConfig.URL;
+                string devOpsUrl = _config.AdoConfig.WorkItemsUrlTemplate;
 
                 // Preemptively build the post url
                 var url = devOpsUrl.Replace("{organization}", _config.AdoConfig.OrgName).Replace("{project}", _config.AdoConfig.ProjectName)

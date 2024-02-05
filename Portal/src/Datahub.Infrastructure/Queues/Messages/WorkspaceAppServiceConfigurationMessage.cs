@@ -2,7 +2,7 @@
 
 namespace Datahub.Infrastructure.Queues.Messages
 {
-    public record AppServiceConfigurationMessage(
+    public record WorkspaceAppServiceConfigurationMessage(
         string ProjectAcronym
         ) : IRequest;
 }

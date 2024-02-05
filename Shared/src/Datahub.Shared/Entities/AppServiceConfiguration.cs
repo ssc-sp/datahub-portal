@@ -2,22 +2,22 @@
 {
     public class AppServiceConfiguration
     {
-        public string AppServiceFramework { get; set; } = string.Empty;
-        public string AppServiceGitRepo { get; set; } = string.Empty;
-        public string AppServiceComposePath { get; set; } = string.Empty;
-        public string AppServiceId { get; set; } = string.Empty;
-        public string AppServiceHostName { get; set; } = string.Empty;
-        public string AppServiceRg { get; set; } = string.Empty;
+        public string Framework { get; set; } = string.Empty;
+        public string GitRepo { get; set; } = string.Empty;
+        public string ComposePath { get; set; } = string.Empty;
+        public string Id { get; set; } = string.Empty;
+        public string HostName { get; set; } = string.Empty;
+        public string ResourceGroupName { get; set; } = string.Empty;
 
-        public AppServiceConfiguration(string appServiceFramework, string appServiceGitRepo,
-            string appServiceComposePath, string appServiceId = "", string appServiceHostName = "", string appServiceRg = "")
+        public AppServiceConfiguration(string framework, string gitRepo,
+            string composePath, string id = "", string hostName = "", string resourceGroupName = "")
         {
-            AppServiceFramework = appServiceFramework;
-            AppServiceGitRepo = appServiceGitRepo;
-            AppServiceComposePath = appServiceComposePath;
-            AppServiceId = appServiceId;
-            AppServiceHostName = appServiceHostName;
-            AppServiceRg = appServiceRg;
+            Framework = framework;
+            GitRepo = gitRepo;
+            ComposePath = composePath;
+            Id = id;
+            HostName = hostName;
+            ResourceGroupName = resourceGroupName;
         }
     }
 
