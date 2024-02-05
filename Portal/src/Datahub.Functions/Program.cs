@@ -32,7 +32,7 @@ var host = new HostBuilder()
     .ConfigureServices((hostContext, services) =>
     {
         var config = hostContext.Configuration;
-        
+
         var connectionString = config["datahub_mssql_project"];
         if (connectionString is not null)
         {
@@ -41,13 +41,18 @@ var host = new HostBuilder()
             services.AddDbContextPool<DatahubProjectDBContext>(options => options.UseSqlServer(connectionString));
         }
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
+        services.AddMediatR(cfg =>
+            cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
 
-        services.AddHttpClient(AzureManagementService.ClientName).AddPolicyHandler(
-            Policy<HttpResponseMessage>
-                .Handle<HttpRequestException>()
-                .OrResult(x => x.StatusCode == HttpStatusCode.TooManyRequests)
-                .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(2), 5)));
+        services.AddHttpClient(AzureManagementService.ClientName)
+            .AddPolicyHandler(
+                Policy<HttpResponseMessage>
+                    .Handle<HttpRequestException>()
+                    .OrResult(x => x.StatusCode == HttpStatusCode.TooManyRequests)
+                    .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(2), 5)))
+            .AddPolicyHandler(
+                Policy.RateLimitAsync<HttpResponseMessage>(10000, TimeSpan.FromHours(1) )
+                );
 
         services.AddSingleton<AzureConfig>();
         services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
@@ -63,9 +68,8 @@ var host = new HostBuilder()
         services.AddScoped<EmailValidator>();
 
         services.AddDatahubConfigurationFromFunctionFormat(config);
-        
-        services.Configure<APITarget>(config.GetSection("APITargets"));
 
+        services.Configure<APITarget>(config.GetSection("APITargets"));
     })
     .Build();
 
