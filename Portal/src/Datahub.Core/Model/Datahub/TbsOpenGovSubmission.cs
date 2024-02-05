@@ -11,6 +11,7 @@ namespace Datahub.Core.Model.Datahub
     public class TbsOpenGovSubmission : OpenDataSubmission
     {
         public const string DATASET_FILE_TYPE = "Dataset";
+        public const string GUIDE_FILE_TYPE = "Guide";
         public const string METADATA_FILE_TYPE = "Metadata";
         public const string SUPPORTING_DOC_FILE_TYPE = "SupportingDoc";
         public const string DATA_DICTIONARY_FILE_TYPE = "DataDictionary";

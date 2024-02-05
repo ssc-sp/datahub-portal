@@ -15,8 +15,8 @@ public static class FieldNames
     public static string security_classification => nameof(security_classification);
     public static string subject => nameof(subject);
 
-    public static string title_en => nameof(title_en);
-    public static string title_fr => nameof(title_fr);
+    public static string title_translated_en => nameof(title_translated_en);
+    public static string title_translated_fr => nameof(title_translated_fr);
     public static string pub_contact_email => nameof(pub_contact_email);
     public static string organization_name => nameof(organization_name);
     public static string org_name_at_pub_en => nameof(org_name_at_pub_en);

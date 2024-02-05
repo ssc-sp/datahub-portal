@@ -5,21 +5,27 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Datahub.CKAN.Service;
 
 public class CKANService : ICKANService
 {
     #region Static CKAN data
+    private const string PACKAGE_CREATE_ACTION = "package_create";
+    private const string PACKAGE_SHOW_ACTION = "package_show";
+    private const string RESOURCE_CREATE_ACTION = "resource_create";
+
     private static HashSet<string> KnownFileTypes { get; }
 
     static CKANService()
     {
-        KnownFileTypes = new HashSet<string>()
-        {
+        KnownFileTypes =
+        [
             "AAC", "AIFF", "APK", "AVI", "BAG", "BMP", "BWF", "CCT", "CDF", "CDR", "COD", "CSV", "DBD", "DBF", "DICOM", 
             "DNG", "DOC", "DOCX", "DXF", "E00", "ECW", "EDI", "EMF", "EPUB3", "EPUB2", "EPS", "ESRI REST", "EXE", "FITS", 
             "GDB", "GEOPDF", "GEORSS", "GEOTIF", "GEOJSON", "GPKG", "GIF", "GML", "GRD", "GRIB1", "GRIB2", "HDF", "HTML", 
@@ -28,18 +34,54 @@ public class CKANService : ICKANService
             "PPTX", "RDF", "TTL", "NT", "RDFA", "RSS", "RTF", "SAR", "SAS", "SAV", "SEGY", "SHP", "SQL", "SQLITE3", "SQLITE", 
             "SVG", "TIFF", "TRIG", "TRIX", "TFW", "TXT", "VPF", "WAV", "WCS", "WFS", "WMS", "WMTS", "WMV", "WPS", "XML", "XLS", 
             "XLSM", "XLSX", "ZIP"
-        };
+        ];
     }
+
+    private static string GetFileFormat(string fileName, string defaultFormat)
+    {
+        var ext = Path.GetExtension(fileName);
+        if (string.IsNullOrEmpty(ext))
+        {
+            return defaultFormat;
+        }
+
+        var fileExt = ext[1..].ToUpper();
+        return KnownFileTypes.Contains(fileExt) ? fileExt : defaultFormat;
+    }
+    
+    public static string NewMultipartBoundary() => $"------ {DateTime.Now.Ticks:x} --------";
+    
+    private static CkanPackageBasic CreateTestPackageBasic(string id) => new()
+    {
+        Id = id,
+        Name = "Test",
+        State = "active",
+        ImsoApproval = "false",
+        ReadyToPublish = "false"
+    };
+
+    static JsonSerializerOptions GetSerializationOptions() => new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
+    // initial version only uses "dataset" and "guide" types; if multi-word types are added, they will need to be
+    // converted to snake_case. e.g. "GeospatialMaterial" => "geospatial_material"
+    static string TransformResourceType(string resourceType) => resourceType?.ToLowerInvariant();
     #endregion
 
     readonly HttpClient _httpClient;
     readonly CKANConfiguration _ckanConfiguration;
+    readonly string _apiKey;
 
-    public CKANService(HttpClient httpClient, IOptions<CKANConfiguration> ckanConfiguration)
+    public CKANService(HttpClient httpClient, IOptions<CKANConfiguration> ckanConfiguration, string apiKey = null)
     {
         _httpClient = httpClient;
         _ckanConfiguration = ckanConfiguration.Value;
+        _apiKey = string.IsNullOrEmpty(apiKey) ? _ckanConfiguration.ApiKey : apiKey;
     }
+
+    private bool IsTestMode => _ckanConfiguration.TestMode;
 
     public async Task<CKANApiResult> CreatePackage(FieldValueContainer fieldValues, bool allFields, string url)
     {
@@ -49,27 +91,174 @@ public class CKANService : ICKANService
         // generate json from package
         var jsonData = JsonSerializer.Serialize(packageData, GetSerializationOptions());
 
-        var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+        var content = new StringContent(jsonData, Encoding.UTF8, MediaTypeNames.Application.Json);
 
-        return await PostRequestAsync("package_create", content);
+        var result = await PostRequestAsync(PACKAGE_CREATE_ACTION, content);
+
+        return await Task.FromResult(result);
     }
 
-    public async Task<CKANApiResult> AddResourcePackage(string packageId, string fileName, Stream fileData)
+    private async Task<CKANApiResult> FetchPackage(string packageId)
     {
-        var boundary = System.Guid.NewGuid().ToString();
-        using var content = new MultipartFormDataContent(boundary);
+        var parameters = new Dictionary<string, object>
+        {
+            ["id"] = packageId
+        };
+        
+        return await DoRequestAsync(HttpMethod.Get, PACKAGE_SHOW_ACTION, null, parameters);
+    }
 
-        content.Headers.ContentType.MediaType = "multipart/form-data";
+    public async Task<CKANApiResult> CreateOrFetchPackage(FieldValueContainer fieldValues, bool allFields)
+    {
+        if (IsTestMode)
+        {
+            return new CKANApiResult(true, string.Empty, CreateTestPackageBasic(fieldValues.ObjectId));
+        }
 
-        content.Add(new StringContent(packageId), "package_id");
-        content.Add(new StringContent(fileName), "name_translated-en");
-        content.Add(new StringContent(fileName), "name_translated-fr");
-        content.Add(new StringContent("en"), "language");
-        content.Add(new StringContent("dataset"), "resource_type");
-        content.Add(new StringContent(GetFileFormat(fileName, "other")), "format");
-        content.Add(new StreamContent(fileData), "upload", fileName);
+        var result = await FetchPackage(fieldValues.ObjectId);
 
-        return await PostRequestAsync("resource_create", content);
+        if (!result.Succeeded)
+        {
+            result = await CreatePackage(fieldValues, allFields, null);
+        }
+
+        if (result.Succeeded) 
+        {
+            var ckanPackageJson = result.CkanObject?.ToString();
+            if (ckanPackageJson != null)
+            {
+                return await Task.FromResult(new CKANApiResult(result.Succeeded, result.ErrorMessage, CkanPackageBasic.Deserialize(ckanPackageJson)));
+            }
+        }
+
+        return await Task.FromResult(result);
+    }
+
+    
+    public async Task<CKANApiResult> AddResourcePackage(string packageId, string filename, string filePurpose, FieldValueContainer metadata, Stream fileContentStream, long? contentLength = null)
+    {
+        var nameEn = metadata["name_translated_en"]?.Value_TXT ?? filename;
+        var nameFr = metadata["name_translated_fr"]?.Value_TXT ?? filename;
+        var fileFormat = GetFileFormat(filename, "other");
+        var languages = (metadata["resource_language"]?.Value_TXT ?? "en|fr").Split("|");
+        var resourceType = TransformResourceType(filePurpose);
+
+        var streamContent = new StreamContent(fileContentStream);
+        streamContent.Headers.ContentLength = contentLength;
+
+
+        var boundary = NewMultipartBoundary();
+        using var content = new MultipartFormDataContent(boundary)
+        {
+            { new StringContent(packageId), "package_id" },
+            { new StringContent(nameEn), "name_translated-en" },
+            { new StringContent(nameFr), "name_translated-fr" },
+            { new StringContent(resourceType), "resource_type" },
+            { new StringContent(fileFormat), "format" }
+        };
+        
+        foreach (var lang in languages)
+        {
+            content.Add(new StringContent(lang), "language");
+        }
+
+        content.Add(streamContent, "upload", filename);
+
+        // TODO - find a way to get the upload sending successfully with stream-to-stream
+        // instead of serializing the entire payload into memory
+        await content.ReadAsStringAsync();
+
+        // var result = await PostRequestAsync(RESOURCE_CREATE_ACTION, content);
+        var result = await DoRequestAsync(HttpMethod.Post, RESOURCE_CREATE_ACTION, content);
+
+        return await Task.FromResult(result);
+    }
+
+    #nullable enable
+    private async Task<CKANApiResult> DoRequestAsync(HttpMethod method, string action, HttpContent? content = null, Dictionary<string,object>? parameters = null)
+    {
+        try
+        {
+            // this is to avoid developing on the VPN (test mode should be off in prod)
+            if (IsTestMode) 
+            {
+                return new CKANApiResult(true, string.Empty);
+            }
+
+            var baseUrl = _ckanConfiguration.BaseUrl;
+            var apiKey = _apiKey;
+
+            var requestUri = new UriBuilder($"{baseUrl}/action/{action}");
+            if (parameters != null) 
+            {
+                var queryParams = HttpUtility.ParseQueryString(requestUri.Query);
+                foreach(var k in parameters.Keys)
+                {
+                    queryParams[k] = parameters[k]?.ToString() ?? string.Empty;
+                }
+                requestUri.Query = queryParams.ToString();
+            }
+
+            using var httpRequest = new HttpRequestMessage(method, requestUri.Uri)
+            {
+                Content = content
+            };
+            httpRequest.Headers.Add("X-CKAN-API-Key", apiKey);
+            if (method == HttpMethod.Post) 
+            {
+                httpRequest.Headers.TransferEncodingChunked = false;
+            }
+
+            var t = false;
+            if (content != null && t)
+            {
+                var test = await content.ReadAsStringAsync();
+            }
+
+            // var response = await _httpClient.PostAsync($"{baseUrl}/action/{action}", content);
+            using var response = await _httpClient.SendAsync(httpRequest).ConfigureAwait(false);
+            //response.EnsureSuccessStatusCode();
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var ckanResult = JsonSerializer.Deserialize<CKANResult>(jsonResponse, GetSerializationOptions());
+
+            if (ckanResult == null)
+            {
+                return new CKANApiResult(false, "Invalid response from API");
+            }
+
+            var errorMessage = ckanResult.Success ? string.Empty : ckanResult.Error?.__type ?? string.Empty;
+            return new CKANApiResult(ckanResult.Success, errorMessage, ckanResult.Result);
+        }
+        catch (Exception ex)
+        {
+            return new CKANApiResult(false, ex.Message);
+        }
+    }
+    #nullable restore
+
+    public async Task<CKANApiResult> AddResourcePackageOld(string packageId, string fileName, Stream fileData, long? contentLength = null)
+    {
+        var boundary = NewMultipartBoundary();
+
+        var streamContent = new StreamContent(fileData);
+        if (contentLength.HasValue)
+        {
+            streamContent.Headers.ContentLength = contentLength.Value;
+        }
+
+        using var content = new MultipartFormDataContent(boundary)
+        {
+            { new StringContent(packageId), "package_id" },
+            { new StringContent(fileName), "name_translated-en" },
+            { new StringContent(fileName), "name_translated-fr" },
+            { new StringContent("en"), "language" },
+            { new StringContent("dataset"), "resource_type" },
+            { new StringContent(GetFileFormat(fileName, "other")), "format" },
+            { streamContent, "upload", fileName }
+        };
+        
+        return await PostRequestAsync("resource_create", content, false);
     }
 
     public async Task<CKANApiResult> DeletePackage(string packageId)
@@ -85,44 +274,45 @@ public class CKANService : ICKANService
         return await PostRequestAsync("package_delete", content);
     }
 
-    private async Task<CKANApiResult> PostRequestAsync(string action, HttpContent content)
+    private async Task<CKANApiResult> PostRequestAsync(string action, HttpContent content, bool oldMethod = false)
     {
-        try
-        {
-            // this is to avoid developing on the VPN (test mode should be off in prod)
-            if (_ckanConfiguration.TestMode)
-                return new CKANApiResult(true, "");
+        // if (oldMethod)
+        // {
+        //     try
+        //     {
+        //         // this is to avoid developing on the VPN (test mode should be off in prod)
+        //         if (_ckanConfiguration.TestMode)
+        //             return new CKANApiResult(true, "");
 
-            var baseUrl = _ckanConfiguration.BaseUrl;
-            var apiKey = _ckanConfiguration.ApiKey;
+        //         var baseUrl = _ckanConfiguration.BaseUrl;
+        //         var apiKey = _ckanConfiguration.ApiKey;
 
-            content.Headers.Add("X-CKAN-API-Key", apiKey);
+        //         content.Headers.Add("X-CKAN-API-Key", apiKey);
 
-            var response = await _httpClient.PostAsync($"{baseUrl}/{action}", content);
-            //response.EnsureSuccessStatusCode();
+        //         // var test = await content.ReadAsStringAsync();
 
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            var ckanResult = JsonSerializer.Deserialize<CKANResult>(jsonResponse, GetSerializationOptions());
+        //         var response = await _httpClient.PostAsync($"{baseUrl}/action/{action}", content);
+        //         //response.EnsureSuccessStatusCode();
 
-            var errorMessage = ckanResult.Success ? string.Empty : ckanResult.Error?.__type;
-            return new CKANApiResult(ckanResult.Success, errorMessage);
-        }
-        catch (Exception ex)
-        {
-            return new CKANApiResult(false, ex.Message);
-        }
+        //         var jsonResponse = await response.Content.ReadAsStringAsync();
+        //         var ckanResult = JsonSerializer.Deserialize<CKANResult>(jsonResponse, GetSerializationOptions());
+
+        //         var errorMessage = ckanResult.Success ? string.Empty : ckanResult.Error?.__type;
+        //         return new CKANApiResult(ckanResult.Success, errorMessage, ckanResult.Result);
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return new CKANApiResult(false, ex.Message);
+        //     }
+        // }
+        // else
+        // {
+            return await DoRequestAsync(HttpMethod.Post, action, content);
+        // }
     }
 
-    private string GetFileFormat(string fileName, string defaultFormat)
-    {
-        var fileExt = (Path.GetExtension(fileName) ?? ".").Substring(1).ToUpper();
-        return KnownFileTypes.Contains(fileExt) ? fileExt : defaultFormat;
-    }
 
-    static JsonSerializerOptions GetSerializationOptions() => new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
+
 }
 
 class CKANResult
