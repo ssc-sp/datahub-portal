@@ -43,6 +43,15 @@ public partial class DatabaseIpWhitelistTable
         var item = element as WhitelistIPAddressData;
         
         CreateOrUpdateIpAddress(item);
+        
+        // if it's only the name that has changed
+        if (Equals(item?.StartIPAddress, _elementBeforeEdit?.StartIPAddress) 
+            && Equals(item?.EndIPAddress, _elementBeforeEdit?.EndIPAddress))
+        {
+            // clean up the old firewall rule
+            DeleteIpAddress(_elementBeforeEdit);
+        }
+        
         _snackbar.Add(Localizer["IP address has been updated."], Severity.Success);
         
         _logger.LogInformation($"Item has been committed: {item?.Name}");
@@ -80,6 +89,16 @@ public partial class DatabaseIpWhitelistTable
         };
 
         CreateOrUpdateIpAddress(userWhitelistIpAddress);
+    }
+
+    private void DeleteIpAddress(WhitelistIPAddressData whitelistIpAddressData)
+    {
+        var postgresResource = BuildPostgresSqlFlexibleServerResource();
+        var rules = postgresResource.GetPostgreSqlFlexibleServerFirewallRules();
+        var rule = rules.Get(whitelistIpAddressData?.Name);
+
+        _logger.LogInformation($"Deleting firewall rule: {whitelistIpAddressData?.Name}");
+        rule.Value.Delete(WaitUntil.Started);
     }
 
     /// <summary>
