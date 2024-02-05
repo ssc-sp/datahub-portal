@@ -50,7 +50,7 @@ public class ProjectUsageScheduler
         var timeout = 0;
 
         var resources = await GetProjectResources(ctx);
-        var sortedResources = resources.OrderBy(r => r.LastUpdate);
+        var sortedResources = resources.OrderBy(r => r.LastUpdate).Take(1000);
         
         foreach (var resource in sortedResources)
         {
