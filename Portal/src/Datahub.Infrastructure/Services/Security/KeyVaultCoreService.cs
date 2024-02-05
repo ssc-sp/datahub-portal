@@ -15,15 +15,13 @@ namespace Datahub.Infrastructure.Services.Security;
 
 public class KeyVaultCoreService : IKeyVaultService
 {
-    private IConfiguration _configuration;
     private DatahubPortalConfiguration _portalConfiguration;
     private ILogger<KeyVaultCoreService> _logger;
     private KeyVaultClient _keyVaultClient;
     private IOptions<APITarget> _targets;
 
-    public KeyVaultCoreService(IConfiguration configureOptions, IOptions<APITarget> targets, ILogger<KeyVaultCoreService> logger, DatahubPortalConfiguration portalConfiguration)
+    public KeyVaultCoreService(IOptions<APITarget> targets, ILogger<KeyVaultCoreService> logger, DatahubPortalConfiguration portalConfiguration)
     {
-        _configuration = configureOptions;
         _logger = logger;
         _portalConfiguration = portalConfiguration;
         _targets = targets;
@@ -88,8 +86,7 @@ public class KeyVaultCoreService : IKeyVaultService
 
     private void SetKeyVaultClient()
     {
-        if (_configuration["PortalRunAsManagedIdentity"]
-                 .Equals("enabled", StringComparison.InvariantCultureIgnoreCase))
+        if (_portalConfiguration.PortalRunAsManagedIdentity.Equals("enabled", StringComparison.InvariantCultureIgnoreCase))
         {
             _logger.LogInformation("Entering key vault production with Managed Identity");
             var azureServiceTokenProvider = new AzureServiceTokenProvider("RunAs=App");
