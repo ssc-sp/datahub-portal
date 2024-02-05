@@ -88,19 +88,7 @@ public class KeyVaultCoreService : IKeyVaultService
 
     private void SetKeyVaultClient()
     {
-        _logger.LogInformation("Entering setting Key Vault");
-        if (_portalConfiguration.Hosting.EnvironmentName.Equals("dev", StringComparison.InvariantCultureIgnoreCase))
-        {
-            _logger.LogInformation("Entering key vault development");
-
-            var tenantId = _configuration["AzureAd:TenantId"];
-            var clientId = _configuration["AzureAd:ClientId"];
-            var clientSecret = _configuration["AzureAd:ClientSecret"];
-
-            var azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={clientId};TenantId={tenantId};AppKey={clientSecret}");
-            _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-        }
-        else if (_configuration["PortalRunAsManagedIdentity"]
+        if (_configuration["PortalRunAsManagedIdentity"]
                  .Equals("enabled", StringComparison.InvariantCultureIgnoreCase))
         {
             _logger.LogInformation("Entering key vault production with Managed Identity");
@@ -109,10 +97,13 @@ public class KeyVaultCoreService : IKeyVaultService
         }
         else
         {
+            var tenantId = _portalConfiguration.AzureAd.TenantId;
+            var clientId = _portalConfiguration.AzureAd.ClientId;
+            var clientSecret = _portalConfiguration.AzureAd.ClientSecret;
+            
             _logger.LogInformation("Entering key vault production with default identity");
-            var azureServiceTokenProvider = new AzureServiceTokenProvider();
+            var azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={clientId};TenantId={tenantId};AppKey={clientSecret}");
             _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-
         }
     }
 
