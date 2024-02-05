@@ -31,52 +31,55 @@
                 <ProjectPreviewCard Project="@project"/>
             </MudItem>
         }
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
-            <Authorized>
-                <MudItem xs="6" sm="@SmSize">
-                    <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="999"/>
-                </MudItem>
-            
-            </Authorized>
-            <NotAuthorized>
-                @if (_numberOfRemainingWorkspaces > 0)
-                {
+        @if (_isCurrentUser)
+        {
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+                <Authorized>
                     <MudItem xs="6" sm="@SmSize">
-                        <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="@_numberOfRemainingWorkspaces"/>
+                        <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="999"/>
                     </MudItem>
-                }
-            </NotAuthorized>
-        </DatahubAuthView>
+
+                </Authorized>
+                <NotAuthorized>
+                    @if (_numberOfRemainingWorkspaces > 0)
+                    {
+                        <MudItem xs="6" sm="@SmSize">
+                            <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="@_numberOfRemainingWorkspaces"/>
+                        </MudItem>
+                    }
+                </NotAuthorized>
+            </DatahubAuthView>
+        }
     </MudGrid>
 </MudStack>
 
 @code {
 
-    [Parameter]
-    public bool ShowTitle { get; set; } = true;
+    [Parameter] public bool ShowTitle { get; set; } = true;
 
-    [Parameter]
-    public int SmSize { get; set; } = 4;
+    [Parameter] public int SmSize { get; set; } = 4;
 
-    [Parameter]
-    public string UserId { get; set; }
+    [Parameter] public string UserId { get; set; }
 
-        private const int MaxWorkspaceCount = 3;
+    private bool _isCurrentUser;
+
+    private const int MaxWorkspaceCount = 3;
 
     private List<Datahub_Project_User> _userRoles;
-    private string _chipStyle;
     private int _numberOfRemainingWorkspaces;
 
-    protected override async Task OnInitializedAsync()
+    private string _chipStyle = new StyleBuilder()
+        .AddStyle("margin-left", "0")
+        .AddStyle("margin-bottom", "0")
+        .Build();
+
+    protected override async Task OnParametersSetAsync()
     {
-        await base.OnInitializedAsync();
+        await base.OnParametersSetAsync();
 
-        _chipStyle = new StyleBuilder()
-            .AddStyle("margin-left", "0")
-            .AddStyle("margin-bottom", "0")
-            .Build();
-
-        var userId = UserId ?? (await _userInformationService.GetCurrentGraphUserAsync()).Id;
+        var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var userId = UserId ?? portalUser.GraphGuid;
+        _isCurrentUser = userId == portalUser.GraphGuid;
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
         _userRoles = await dbContext.Project_Users

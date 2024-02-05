@@ -30,48 +30,48 @@
 
 @* <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Personal" UserGraphId="@_viewedPortalUser.GraphGuid"> *@
 @* <Authorized> *@
-<MudGrid>
 
-    @if (_viewedPortalUser is null)
+@if (_viewedPortalUser is null)
+{
+    <DHLoadingInitializer Message="@Localizer["Loading Settings"]"/>
+}
+else
+{
+    var containsKey = !string.IsNullOrWhiteSpace(Section)
+                      && _sectionComponents.ContainsKey(Section);
+    var parameters = new Dictionary<string, object>
     {
-        <DHLoadingInitializer Message="@Localizer["Loading Settings"]"/>
-    }
-    else
-    {
-        var containsKey = !string.IsNullOrWhiteSpace(Section)
-                          && _sectionComponents.ContainsKey(Section);
-        var parameters = new Dictionary<string, object>
-        {
-            { "OnViewedUserChanged", EventCallback.Factory.Create<PortalUser>(this, HandleViewedUserChanged) },
-            { "ViewedUser", _viewedPortalUser }
-        };
+        { "OnViewedUserChanged", EventCallback.Factory.Create<PortalUser>(this, HandleViewedUserChanged) },
+        { "ViewedUser", _viewedPortalUser }
+    };
 
-        if (containsKey)
-        {
+    if (containsKey)
+    {
+        <MudGrid>
             <MudItem xs="12">
                 <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
             </MudItem>
             <MudItem xs="12" sm="8">
                 <DynamicComponent Type="@_sectionComponents[Section]" Parameters="@parameters"/>
             </MudItem>
-        }
-        else
-        {
-            _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
-            <HomePage/>
-        }
+        </MudGrid>
     }
-</MudGrid>
+    else
+    {
+        _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
+        <HomePage/>
+    }
+}
 
 @code {
 
-    [Parameter]
-    public string Section { get; set; }
+    [Parameter] public string Section { get; set; }
 
     private PortalUser _viewedPortalUser;
+
     private string _title => _viewedPortalUser?.DisplayName != null
         ? $"- {_viewedPortalUser.DisplayName}"
-        : "- Home"; 
+        : "- Home";
 
 
     protected override async Task OnParametersSetAsync()
@@ -107,3 +107,4 @@
     }
 
 }
+

@@ -36,18 +36,11 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
     {
         await using var ctx = await _contextFactory.CreateDbContextAsync();
 
-        // get the logged user graph Id
-        var userId = await _userInformationService.GetUserIdString();
-
-        // retrieve the portal user
-        var portalUser = await ctx.PortalUsers
-            .Include(p => p.Achievements)
-            .FirstOrDefaultAsync(p => p.GraphGuid == userId);
-
+        var portalUser = await _userInformationService.GetCurrentPortalUserWithAchievementsAsync();
         // check the user exists
         if (portalUser is null)
         {
-            _logger.LogWarning("Logging Telemetry without a Portal User. UserId: {0}", userId);
+            _logger.LogWarning("Logging Telemetry without a Portal User. Event: {eventName}", eventName);
             return;
         }
 
