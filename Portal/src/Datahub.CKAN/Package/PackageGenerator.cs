@@ -47,7 +47,7 @@ public class PackageGenerator
         dict["type"] = "dataset";
 
         dict["restrictions"] = "unrestricted";
-        dict["owner_org"] = "9391E0A2-9717-4755-B548-4499C21F917B";
+        dict["owner_org"] = "ssc-spc"; //TODO: specify based on org choice
         dict["date_published"] = fieldValues["date_published"]?.Value_TXT ?? DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         var requiredFields = fieldValues.Where(f => allFields || f.FieldDefinition?.Required_FLAG == true);
@@ -77,7 +77,7 @@ public class PackageGenerator
         dict["license_id"] = "ca-ogl-lgo";
 
         // ready to publish
-        dict["ready_to_publish"] = "true";
+        dict["ready_to_publish"] = "false";
         dict["imso_approval"] = "false";
 
         return dict;

@@ -23,7 +23,8 @@ namespace Datahub.Core.Utils
     
     public static class TbsOpenGovPublishingUtils
     {
-        public static OpenDataPublishingStepStatus<TbsOpenGovSubmission.ProcessSteps> CheckStepStatus(TbsOpenGovSubmission submission, TbsOpenGovSubmission.ProcessSteps step) => step switch
+        public static OpenDataPublishingStepStatus<TbsOpenGovSubmission.ProcessSteps> CheckStepStatus(TbsOpenGovSubmission submission, TbsOpenGovSubmission.ProcessSteps step) => 
+        step switch
         {
             TbsOpenGovSubmission.ProcessSteps.AwaitingMetadata => submission.MetadataComplete ?
                 OpenDataPublishingUtils.Complete(step) :
@@ -86,8 +87,7 @@ namespace Datahub.Core.Utils
             var relevantPurposes = new HashSet<string>() 
             { 
                 TbsOpenGovSubmission.DATASET_FILE_TYPE, 
-                TbsOpenGovSubmission.DATA_DICTIONARY_FILE_TYPE, 
-                TbsOpenGovSubmission.SUPPORTING_DOC_FILE_TYPE 
+                TbsOpenGovSubmission.GUIDE_FILE_TYPE
             };
             var relevantFiles = files.Where(f => relevantPurposes.Contains(f.FilePurpose));
 
@@ -111,8 +111,7 @@ namespace Datahub.Core.Utils
             var requiredPurposes = new HashSet<string>() 
             { 
                 TbsOpenGovSubmission.DATASET_FILE_TYPE, 
-                TbsOpenGovSubmission.METADATA_FILE_TYPE, 
-                TbsOpenGovSubmission.DATA_DICTIONARY_FILE_TYPE 
+                TbsOpenGovSubmission.GUIDE_FILE_TYPE
             };
 
             if (files == null || files.Count < 1)

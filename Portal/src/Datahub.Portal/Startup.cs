@@ -458,6 +458,7 @@ public class Startup
         services.AddCKANService();
         services.AddSingleton<IOpenDataService, OpenDataService>();
         
+        services.AddScoped<ITbsOpenDataService, TbsOpenDataService>();
         services.AddScoped<IOpenDataPublishingService, OpenDataPublishingService>();
 
         services.AddGeoCoreService();

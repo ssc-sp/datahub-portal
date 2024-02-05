@@ -39,7 +39,7 @@ public class OpenDataService : IOpenDataService
                 SetFileShareStatus(sharedRecordId, OpenDataUploadStatus.RecordCreated);
 
                 // publish to open data resource
-                result = await ckanService.AddResourcePackage(fileId, fileName, stream);
+                result = await ckanService.AddResourcePackageOld(fileId, fileName, stream);
                 if (result.Succeeded)
                 {
                     // record successfull uploaded

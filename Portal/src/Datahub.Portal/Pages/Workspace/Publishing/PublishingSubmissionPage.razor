@@ -1,10 +1,14 @@
 ﻿@* PublishingSubmissionPage.razor *@
 
-@* @page "/w/{ProjectAcronym}/publishing/{SubmissionIdStr}" *@
 @using Datahub.Application.Services.Publishing;
+@using Datahub.Application.Services.Security;
 @inject IUserInformationService UserService
 @inject IOpenDataPublishingService PublishingService
 @inject NavigationManager NavManager
+@inject IKeyVaultUserService _kvService;
+@inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+
+@implements IDisposable
 
 @if (IsTbsSubmission)
 {
@@ -28,6 +32,8 @@ else
 
     [Parameter]
     public string SubSection { get; set; }
+
+    private System.Threading.Timer _fileStatusTimer;
 
     private long? SubmissionId => long.TryParse(SubSection, out var result) ? result : default;
     private bool ValidSubmissionId => SubmissionId.HasValue;
@@ -78,8 +84,34 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        try 
+        {
+            await _kvService.Authenticate();
+        }
+        catch (Microsoft.Identity.Web.MicrosoftIdentityWebChallengeUserException e)
+        {
+            _consentHandler.HandleException(e);
+        }
+        
         await LoadSubmission();
 
+        _fileStatusTimer = new System.Threading.Timer(async (object? stateInfo) =>
+        {
+            var numRefreshed = await PublishingService.RefreshFileUploadStatuses(_submission);
+            if (numRefreshed > 0)
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        }, new System.Threading.AutoResetEvent(false), 2000, 2000);
+
         await base.OnInitializedAsync();
+    }
+
+    public void Dispose()
+    {
+        if (_fileStatusTimer != null)
+        {
+            _fileStatusTimer.Dispose();
+        }
     }
 }

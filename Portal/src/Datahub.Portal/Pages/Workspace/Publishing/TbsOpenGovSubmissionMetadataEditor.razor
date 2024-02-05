@@ -7,6 +7,7 @@
 
 @if (_initialized)
 {
+    <MudText Typo=@Typo.caption>@Localizer["Fields marked with * are required"]</MudText>
     <ObjectMetadataEditor @ref=@_editor
         @key=@ObjectId
         ObjectId=@ObjectId
@@ -45,7 +46,7 @@
         }
 
         var isFrench = _reqUser.UserSettings.Language?.Contains(CultureService.French) ?? false;
-        var titleField = isFrench ? FieldNames.title_fr : FieldNames.title_en;
+        var titleField = isFrench ? FieldNames.title_translated_fr : FieldNames.title_translated_fr;
         if (string.IsNullOrEmpty(_editor.GetValue(titleField)))
         {
             _editor.SetValue(titleField, Submission.DatasetTitle);
@@ -54,6 +55,7 @@
 
     private async Task SaveChanges()
     {
+        //TODO strip out workspace fields
         var selectedOrganization = _editor.GetSelectedChoices(FieldNames.organization_name).FirstOrDefault();
         if (selectedOrganization != null)
         {

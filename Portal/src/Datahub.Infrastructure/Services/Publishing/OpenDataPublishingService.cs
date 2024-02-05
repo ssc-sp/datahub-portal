@@ -12,7 +12,8 @@ using System.Threading.Tasks;
 
 namespace Datahub.Infrastructure.Services.Publishing
 {
-    public class OpenDataPublishingService(IUserInformationService userService, IDbContextFactory<DatahubProjectDBContext> dbContextFactory) : IOpenDataPublishingService
+    public class OpenDataPublishingService(IUserInformationService userService,
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory) : IOpenDataPublishingService
     {
         private readonly IUserInformationService _userService = userService;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = dbContextFactory;
@@ -92,7 +93,7 @@ namespace Datahub.Infrastructure.Services.Publishing
                 }
                 //TODO add/delete files
             }
-            
+
             submission.Status = TbsOpenGovPublishingUtils.GetCurrentStatus(submission).ToString();
 
             UpdateGenericSubmissionData(existingSubmission, submission);
@@ -108,7 +109,7 @@ namespace Datahub.Infrastructure.Services.Publishing
             existing.UploadStatus = updated.UploadStatus;
             existing.UploadMessage = updated.UploadMessage;
         }
-        
+
         private static void UpdateGenericSubmissionData(OpenDataSubmission existing, OpenDataSubmission updated)
         {
             existing.DatasetTitle = updated.DatasetTitle;
@@ -185,7 +186,7 @@ namespace Datahub.Infrastructure.Services.Publishing
 
             submission.Files ??= new List<OpenDataPublishFile>();
             var addedFiles = 0;
-            
+
             foreach (var file in additionalFiles)
             {
                 submission.Files.Add(file);
@@ -197,11 +198,61 @@ namespace Datahub.Infrastructure.Services.Publishing
             return await Task.FromResult(addedFiles);
         }
 
-        public async Task<OpenDataPublishFile> UploadFileToTbs(OpenDataPublishFile openDataPublishFile)
+        public async Task<OpenDataPublishFile> UpdateFileUploadStatus(OpenDataPublishFile file, OpenDataPublishFileUploadStatus status, string? uploadMessage = null)
         {
-            //TODO
-            await Task.Delay(500);
-            return await Task.FromResult(openDataPublishFile);
+            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            var existingFile = await ctx.OpenDataPublishFiles.FirstOrDefaultAsync(f => f.Id == file.Id);
+            if (existingFile == null)
+            {
+                throw new OpenDataPublishingException($"Could not find file with ID {file.Id} (filename: {file.FileName}, submission ID #{file.SubmissionId})");
+            }
+
+            existingFile.UploadStatus = status;
+            existingFile.UploadMessage = uploadMessage;
+
+            await ctx.SaveChangesAsync();
+
+            return await Task.FromResult(existingFile);
+        }
+
+        public async Task<int> RefreshFileUploadStatuses(OpenDataSubmission? submission)
+        {
+            if (submission == null)
+            {
+                return await Task.FromResult(0);
+            }
+
+            var filesToUpdate = submission.Files
+                .Where(f => f.UploadStatus == OpenDataPublishFileUploadStatus.InProgress)
+                .Select(f => f.Id);
+
+            if (filesToUpdate.Any())
+            {
+                int numUpdated = 0;
+
+                await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+                var updatedFiles = await ctx.OpenDataPublishFiles
+                    .Where(f => filesToUpdate.Contains(f.Id))
+                    .AsNoTracking()
+                    .ToListAsync();
+                
+                foreach (var f in updatedFiles)
+                {
+                    var loadedFile = submission.Files.FirstOrDefault(lf => lf.Id == f.Id);
+                    if (loadedFile != null && loadedFile.UploadStatus != f.UploadStatus)
+                    {
+                        loadedFile.UploadStatus = f.UploadStatus;
+                        loadedFile.UploadMessage = f.UploadMessage;
+                        numUpdated++;
+                    }
+                }
+
+                return await Task.FromResult(numUpdated);
+            }
+            else
+            {
+                return await Task.FromResult(0);
+            }
         }
     }
 }

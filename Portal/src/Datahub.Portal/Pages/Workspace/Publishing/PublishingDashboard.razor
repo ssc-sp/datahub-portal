@@ -1,10 +1,14 @@
 ﻿@* @page "/w/{ProjectAcronym}/publishing" *@
 @using Datahub.Application.Services.Publishing;
+@using Datahub.Application.Services.Security;
 @using Datahub.Core.Model.Projects;
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IOpenDataPublishingService _publishingService
+@inject ITbsOpenDataService _tbsService;
 @inject IDialogService _dialogService;
 @inject NavigationManager _navManager;
+@inject IKeyVaultUserService _kvService;
+@inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 
 @*@inject IPublicDataFileService PublicDataFileService
 @inject IMSGraphService GraphService
@@ -14,20 +18,22 @@
 @using Datahub.Core.Services.Api
 @implements IDisposable*@
 
-<MudText Typo=@Typo.h2>Publishing Dashboard</MudText>
+<MudText Typo=@Typo.h2>@Localizer["Publishing Dashboard"]</MudText>
 
 <MudStack Spacing="6">
 
-    <MudButton OnClick=@PublishNewDataset Variant=@Variant.Filled Color=@Color.Primary>Publish New Dataset</MudButton>
+    <MudText>
+        <MudButton OnClick=@PublishNewDataset Variant=@Variant.Filled Color=@Color.Primary>@Localizer["Publish New Dataset"]</MudButton>
+    </MudText>
 
     @if (ShowPublishingProcessTable)
     {
         <MudTable Items=@_publishingProcesses Striped>
             <HeaderContent>
-                <MudTh>Dataset</MudTh>
-                <MudTh>Type</MudTh>
-                <MudTh>Status</MudTh>
-                <MudTh>Requesting User</MudTh>
+                <MudTh>@Localizer["Dataset"]</MudTh>
+                <MudTh>@Localizer["Type"]</MudTh>
+                <MudTh>@Localizer["Status"]</MudTh>
+                <MudTh>@Localizer["Requesting User"]</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd>
@@ -41,8 +47,27 @@
     }
     else
     {
-        <MudText>Relax guy, take a load off</MudText>
+        <MudText>@Localizer["Please wait"]</MudText>
     }
+
+    <MudCard>
+        <MudCardHeader>
+            <MudText Typo=@Typo.h3>@Localizer["Admin Tools"]</MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudTextField 
+                InputType=@_tbsOpenGovApiKeyFieldType 
+                Label=@Localizer["OpenGov API Key"] 
+                @bind-Value=@_tbsOpenGovApiKey
+                Adornment=@Adornment.End
+                AdornmentIcon=@_tbsOpenGovApiKeyFieldIcon
+                OnAdornmentClick=@(() => _showTbsOpenGovApiKey = !_showTbsOpenGovApiKey) />
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@UpdateSettings >@Localizer["Update"]</MudButton>
+            <MudButton OnClick=@ResetSettings >@Localizer["Reset"]</MudButton>
+        </MudCardActions>
+    </MudCard>
 </MudStack>
 
 @*<style>
@@ -141,6 +166,11 @@
 
     private bool ShowPublishingProcessTable => _initialized;
 
+    private string _tbsOpenGovApiKey;
+    private bool _showTbsOpenGovApiKey = false;
+    private InputType _tbsOpenGovApiKeyFieldType => _showTbsOpenGovApiKey? InputType.Text : InputType.Password;
+    private string _tbsOpenGovApiKeyFieldIcon => _showTbsOpenGovApiKey? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+
     private async Task PublishNewDataset()
     {
         var dialogParams = new DialogParameters<PublishNewDatasetDialog>();
@@ -160,8 +190,28 @@
 
     }
 
+    private async Task UpdateSettings() 
+    {
+        await _tbsService.SetApiKeyForWorkspace(WorkspaceAcronym, _tbsOpenGovApiKey);
+    }
+
+    private async Task ResetSettings() 
+    {
+        _tbsOpenGovApiKey = await _tbsService.GetApiKeyForWorkspace(WorkspaceAcronym);
+    }
+
     protected override async Task OnInitializedAsync()
     {
+        try 
+        {
+            await _kvService.Authenticate();
+            await ResetSettings();
+        }
+        catch (Microsoft.Identity.Web.MicrosoftIdentityWebChallengeUserException e)
+        {
+            _consentHandler.HandleException(e);
+        }
+
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
         _project = await ctx.Projects

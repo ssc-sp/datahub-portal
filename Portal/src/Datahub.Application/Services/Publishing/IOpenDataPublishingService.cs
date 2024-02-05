@@ -16,7 +16,8 @@ namespace Datahub.Application.Services.Publishing
         Task<TbsOpenGovSubmission> UpdateTbsOpenGovSubmission(TbsOpenGovSubmission submission);
         Task<OpenDataSubmission> CreateOpenDataSubmission(OpenDataSubmissionBasicInfo openDataSubmissionBasicInfo);
         Task<int> AddFilesToSubmission(OpenDataSubmission openDataSubmission, IEnumerable<FileMetaData> files, int? containerId, string containerName);
-        Task<OpenDataPublishFile> UploadFileToTbs(OpenDataPublishFile openDataPublishFile);
+        Task<OpenDataPublishFile> UpdateFileUploadStatus(OpenDataPublishFile file, OpenDataPublishFileUploadStatus status, string? uploadMessage = null);
+        Task<int> RefreshFileUploadStatuses(OpenDataSubmission? submission);
     }
 
     public class OpenDataPublishingException : Exception

@@ -14,7 +14,8 @@ public class CKANServiceFactory : ICKANServiceFactory
         _httpClientFactory = httpClientFactory;
     }
 
-    public ICKANService CreateService() => new CKANService(_httpClientFactory.CreateClient("DatahubApp"), _ckanConfiguration);
+    public ICKANService CreateService() => CreateService(null);
+    public ICKANService CreateService(string apiKey) => new CKANService(_httpClientFactory.CreateClient("CkanClient"), _ckanConfiguration, apiKey);
 
     public bool IsStaging() => (_ckanConfiguration.Value.BaseUrl ?? "").Contains("staging");
 }
