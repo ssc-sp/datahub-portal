@@ -40,8 +40,8 @@
 
     protected override void OnInitialized()
     {
-        ConfirmText = string.IsNullOrEmpty(ConfirmText) ? Localizer["BUTTONS.Confirm"] : ConfirmText;
-        CancelText = string.IsNullOrEmpty(CancelText) ? Localizer["BUTTONS.Cancel"] : CancelText;
+        ConfirmText = string.IsNullOrEmpty(ConfirmText) ? Localizer["Confirm"] : ConfirmText;
+        CancelText = string.IsNullOrEmpty(CancelText) ? Localizer["Cancel"] : CancelText;
     }
 
     public async Task Processing(bool response)

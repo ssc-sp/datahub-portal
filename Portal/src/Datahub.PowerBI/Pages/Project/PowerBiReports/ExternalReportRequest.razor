@@ -30,8 +30,8 @@ else if (externalReport == null)
         <MudText>@Localizer["Request External Report"]</MudText>
         <MudPopover Class="pa-8" Open=@_requestPopupOpen TransformOrigin=@Origin.TopRight>
             <MudText>@Localizer["RequestExternalSharingFor", @Report.Report_Name]</MudText>
-            <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@(() => OnCreateClick(Report.Report_ID))>@Localizer["BUTTONS.Confirm"]</MudButton>
-            <MudButton OnClick=@(() => _requestPopupOpen = false)>@Localizer["BUTTONS.Cancel"]</MudButton>
+            <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@(() => OnCreateClick(Report.Report_ID))>@Localizer["Confirm"]</MudButton>
+            <MudButton OnClick=@(() => _requestPopupOpen = false)>@Localizer["Cancel"]</MudButton>
         </MudPopover>
     </MudStack>
 }
@@ -56,8 +56,8 @@ else
 
             <MudPopover Class="pa-8" Open=@_revokePopupOpen >
                 <MudText>@RevokeDialogPrompt</MudText>
-                <MudButton Color=@Color.Error Variant=@Variant.Filled OnClick=@(() => OnRevokeClick(Report.Report_ID))>@Localizer["BUTTONS.Confirm"]</MudButton>
-                <MudButton OnClick=@(() => _revokePopupOpen = false)>@Localizer["BUTTONS.Cancel"]</MudButton>
+                <MudButton Color=@Color.Error Variant=@Variant.Filled OnClick=@(() => OnRevokeClick(Report.Report_ID))>@Localizer["Confirm"]</MudButton>
+                <MudButton OnClick=@(() => _revokePopupOpen = false)>@Localizer["Cancel"]</MudButton>
             </MudPopover>
         </MudPopover>
     </MudStack>
