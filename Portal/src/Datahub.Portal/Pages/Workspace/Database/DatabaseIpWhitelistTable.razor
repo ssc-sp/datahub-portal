@@ -11,13 +11,25 @@
 @inject ISnackbar _snackbar
 @inject ILogger<DatabaseIpWhitelistTable> _logger
 @inject IUserInformationService _userInformationService
+@inject IJSRuntime _jsRuntime
 
 
-<MudStack Row>
-    <MudButton OnClick="@AddCurrentIpAddress">
-        @Localizer["Add current IP address ({0})", _userIpAddress]
-    </MudButton>
-    <MudSpacer/>
+<MudStack>
+    <MudText Typo="Typo.h2" Class="mt-6">
+        @Localizer["Database Firewall Rules"]
+    </MudText>
+    <MudText>
+        @Localizer["The following IP addresses are whitelisted for the database. Names must be unique and can only contain letters, numbers, underscores and hyphens."]
+    </MudText>
+    <MudStack Row>
+        <MudButton OnClick="@AddCurrentIpAddress">
+            @Localizer["Add current IP address ({0})", _userIpAddress]
+        </MudButton>
+        <MudButton OnClick="@AddNewIpAddress">
+                    @Localizer["Add a new IP address"]
+                </MudButton>
+        <MudSpacer/>
+    </MudStack>
 </MudStack>
 
 <MudTable Items="@_firewallRules"
@@ -34,14 +46,14 @@
           IsEditRowSwitchingBlocked="true"
           EditTrigger="TableEditTrigger.EditButton"
           OnCommitEditClick="@HandleCommitEditClicked"
-          ApplyButtonPosition="TableApplyButtonPosition.End"
-          EditButtonPosition="TableEditButtonPosition.End"
+          ApplyButtonPosition="TableApplyButtonPosition.Start"
+          EditButtonPosition="TableEditButtonPosition.Start"
           RowEditPreview="@BackupItem"
           RowEditCancel="@HandleRowEditCancel"
           RowEditCommit="@HandleRowEditCommit">
 
     <ToolBarContent>
-        <MudText Typo="Typo.h2" Class="mt-6">
+        <MudText Typo="Typo.h3" Class="mt-6">
             @Localizer["Database IP Address Whitelist"]
         </MudText>
         <MudSpacer/>
@@ -54,6 +66,13 @@
             Class="mt-0"/>
     </ToolBarContent>
 
+    <ColGroup>
+        <col/>
+        <col/>
+        <col/>
+        <col style="width: 50px;"/> <!-- Delete button column -->
+    </ColGroup>
+
     <HeaderContent>
         <MudTh>
             <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.Name))">@Localizer["Name"]</MudTableSortLabel>
@@ -61,12 +80,16 @@
         <MudTh>
             <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.StartIPAddress))">@Localizer["IP Address"]</MudTableSortLabel>
         </MudTh>
+        <MudTh/>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="@Localizer["Name"]">@context.Name</MudTd>
-        <MudTd DataLabel="@Localizer["IP Address"]">@context.StartIPAddress</MudTd>
+        <MudTd DataLabel="@Localizer["IP Address (192.168.2.1)"]">@context.StartIPAddress</MudTd>
         <MudTd>
-            <MudIconButton Icon="@SidebarIcons.Delete" aria-label="@(Localizer["Delete"])" OnClick="@(() => DeleteIpAddress(context))" />
+            <MudTooltip Text="@Localizer["Delete IP Address"]">
+                <MudIconButton Size="Size.Small" Icon="@SidebarIcons.Delete" aria-label="@(Localizer["Delete"])"
+                               OnClick="@(() => DeleteIpAddress(context, true))"/>
+            </MudTooltip>
         </MudTd>
     </RowTemplate>
     <RowEditingTemplate>
@@ -76,7 +99,7 @@
         <MudTd DataLabel="@Localizer["IP Address"]">
             <MudTextField @bind-Value="@context.StartIPAddress" Required Converter="@BuildConverter()"/>
         </MudTd>
-        <MudTd />
+        <MudTd/>
     </RowEditingTemplate>
     <EditButtonContent Context="button">
         <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
