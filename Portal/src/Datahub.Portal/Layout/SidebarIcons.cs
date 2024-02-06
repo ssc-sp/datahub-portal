@@ -39,4 +39,9 @@ public static class SidebarIcons
     public const string Workspace = "fa-light fa-display-code";
     public const string Resources = "fa-light fa-book-bookmark";
     public const string CreateNew = "fa-light fa-layer-plus";
+    
+    // Other Icons
+    public const string Search = "fa-light fa-search";
+    public const string Edit = "fa-light fa-edit";
+    public const string Delete = "fa-light fa-trash";
 }

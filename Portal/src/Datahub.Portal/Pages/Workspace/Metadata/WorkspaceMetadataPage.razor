@@ -51,19 +51,12 @@
                 .Where(r => r.ProjectId == project.Project_ID)
                 .FirstOrDefault(r => r.ResourceType == databricksTemplateName);
 
-            if (projectDatabricks != null && projectDatabricks.CreatedAt != null)
+            if (projectDatabricks is { CreatedAt: not null })
             {
-                var deserializeOptions = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-
-                var jsonContent =
-                    JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectDatabricks.JsonContent, deserializeOptions);
-                var databricksUrlVariable = jsonContent[TerraformVariables.OutputAzureDatabricksWorkspaceUrl];
+                var databricksUrlVariable = TerraformVariableExtraction.ExtractDatabricksUrl(projectDatabricks);
 
                 MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, $"{project.Project_Acronym_CD}-Databricks",
-                    MetadataObjectType.Databricks, databricksUrlVariable.Value, true);
+                    MetadataObjectType.Databricks, databricksUrlVariable, true);
             }
 
             foreach (var db in GetDbs(project))
