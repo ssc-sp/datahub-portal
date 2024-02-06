@@ -83,5 +83,7 @@ public class AdoConfig
     public string PatSecretName { get; set; } = "ado-service-user-pat";
     public string OrgName { get; set; } = "DataSolutionsDonnees";
     public string ProjectName { get; set; } = "FSDH SSC";
-    public string URL { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${workItemTypeName}?api-version=6.0";
+    public string WorkItemsUrlTemplate { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${workItemTypeName}?api-version=6.0";
+    public string ListPipelineUrlTemplate { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/pipelines?api-version=7.1-preview.1";
+    public string AppServiceConfigPipeline { get; set; } = "web-app-configuration";
 }

@@ -206,7 +206,6 @@
         return sectionView switch
         {
             SectionViews.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(_project),
-            SectionViews.WebApp => _project.WebApp_URL,
             _ => $"{_path}/{sectionView}"
         };
     }
@@ -216,7 +215,6 @@
         return sectionView switch
         {
             SectionViews.Databricks => "_blank",
-            SectionViews.WebApp => "_blank",
             _ => "_self"
         };
     }
@@ -270,7 +268,7 @@
             SectionViews.Dashboard => true,
             SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
             SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false,
-            SectionViews.WebApp => !string.IsNullOrEmpty(_project?.WebApp_URL),
+            SectionViews.WebApp => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService)) ?? false,
             SectionViews.SqlDatabase => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)) ?? false,
             SectionViews.Repositories => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
             SectionViews.ArcGis => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis)) ?? false,
