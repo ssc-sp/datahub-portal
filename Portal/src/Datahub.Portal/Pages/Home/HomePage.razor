@@ -66,13 +66,14 @@
             </MudItem>
         }
     </MudGrid>
-    <UserProjects UserId="@_viewedPortalUser!.GraphGuid" SmSize="6"/>
+    <UserProjects UserId="@_userProjectGuid" SmSize="6"/>
 </MudStack>
 
 @code {
 
     private PortalUser _currentUser;
     private PortalUser _viewedPortalUser;
+    private string _userProjectGuid;
     private string _achievementsUrl => $"{PageRoutes.AccountPrefix}/{PersonalSidebar.SectionViews.Achievements}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
 
     protected override async Task OnInitializedAsync()
@@ -91,6 +92,8 @@
         {
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
         }
+        
+        _userProjectGuid = _viewedPortalUser.GraphGuid;
+        StateHasChanged();
     }
-
 }
