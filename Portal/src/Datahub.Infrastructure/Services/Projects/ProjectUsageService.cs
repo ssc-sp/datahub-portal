@@ -11,7 +11,8 @@ public class ProjectUsageService
     private readonly AzureManagementService _azureManagementService;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 
-    public ProjectUsageService(AzureManagementService azureManagementService, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+    public ProjectUsageService(AzureManagementService azureManagementService,
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
     {
         _azureManagementService = azureManagementService;
         _dbContextFactory = dbContextFactory;
@@ -63,7 +64,8 @@ public class ProjectUsageService
 
         var date = DateTime.UtcNow.Date;
 
-        var entity = await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(e => e.ProjectId == projectId && e.Date == date);
+        var entity =
+            await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(e => e.ProjectId == projectId && e.Date == date);
         entity ??= new() { ProjectId = projectId, Date = date };
 
 //#if !DEBUG
@@ -98,7 +100,8 @@ public class ProjectUsageService
         return capacity;
     }
 
-    private async Task UpdateYesterdayStats(DatahubProjectDBContext ctx, int projectId, List<AzureServiceCost> yesterdayCosts)
+    private async Task UpdateYesterdayStats(DatahubProjectDBContext ctx, int projectId,
+        List<AzureServiceCost> yesterdayCosts)
     {
         if (yesterdayCosts.Count == 0)
             return;
@@ -126,15 +129,17 @@ public class ProjectUsageService
         return date.HasValue && DateTime.UtcNow.AddMinutes(-minutes) < date;
     }
 
-    private async Task<(bool Succeeded, List<AzureServiceCost>? yesterdayCosts)> UpdateUsage(AzureManagementSession session, 
+    private async Task<(bool Succeeded, List<AzureServiceCost>? yesterdayCosts)> UpdateUsage(
+        AzureManagementSession session,
         Project_Credits projectCredits, string[] resourceGroups, CancellationToken ct)
     {
         // monthy by service
-        var costByService = await session.GetResourceGroupYearCostByService(resourceGroups);
-        if (costByService is not null)
+        var allCosts = await session.GetResourceGroupYearDailyCostByService(resourceGroups);
+
+        if (allCosts is not null)
         {
-            projectCredits.CurrentPerService = JsonSerializer.Serialize(costByService);
-            projectCredits.Current = costByService.Sum(c => c.Cost);
+            projectCredits.CurrentPerService = JsonSerializer.Serialize(GetTotalCostsPerService(allCosts));
+            projectCredits.Current = allCosts.Sum(c => c.Cost);
         }
         else
         {
@@ -147,22 +152,16 @@ public class ProjectUsageService
                 throw new Exception($"Failed to read up to date cost for resource group '{resourceGroups}'");
         }
 
-        // wait 5 seconds before trying next query
-        await Task.Delay(5000);
-
         // yesterday by service
-        var yesterdayCostByService = await session.GetResourceGroupYesterdayCostByService(resourceGroups);
+        var yesterdayCostByService = GetYesterdayCostsPerService(allCosts);
         if (yesterdayCostByService is not null)
         {
             projectCredits.YesterdayPerService = JsonSerializer.Serialize(yesterdayCostByService);
             projectCredits.YesterdayCredits = yesterdayCostByService.Sum(c => c.Cost);
         }
 
-        // wait 2 seconds before trying next query
-        await Task.Delay(2000);
-
         // current cost by day
-        var costsPerDay = await session.GetResourceGroupMonthlyCostPerDay(resourceGroups);
+        var costsPerDay = GetMonthCostsPerDay(allCosts);
         if (costsPerDay is not null)
             projectCredits.CurrentPerDay = JsonSerializer.Serialize(costsPerDay);
 
@@ -170,6 +169,70 @@ public class ProjectUsageService
         projectCredits.LastUpdate = DateTime.UtcNow;
 
         return (true, yesterdayCostByService);
+    }
+
+    private List<AzureServiceCost> GetTotalCostsPerService(List<AzureServiceCost> costs)
+    {
+        var totalCosts = new List<AzureServiceCost>();
+
+        foreach (var cost in costs)
+        {
+            var existing = totalCosts.FirstOrDefault(c => c.Name == cost.Name);
+            if (existing is null)
+            {
+                cost.Date = DateTime.MinValue;
+                totalCosts.Add(cost);
+            }
+            else
+            {
+                existing.Cost += cost.Cost;
+            }
+        }
+
+        return totalCosts;
+    }
+
+    private List<AzureServiceCost> GetTotalCostsPerDay(List<AzureServiceCost> costs)
+    {
+        var dailyCosts = new List<AzureServiceCost>();
+        
+        var days = costs.Select(c => c.Date.Date).Distinct().ToList();
+        
+        foreach (var day in days)
+        {
+            var dayCosts = costs.Where(c => c.Date.Date == day).ToList();
+            dailyCosts.Add(new AzureServiceCost
+            {
+                Name = "Total",
+                Cost = GetTotalCost(dayCosts),
+                Date = day
+            });
+        }
+
+        return dailyCosts;
+    }
+
+    private List<AzureServiceCost> GetYesterdayCostsPerService(List<AzureServiceCost> costs)
+    {
+        var totalCosts = new List<AzureServiceCost>();
+
+        var yesterdayCosts = costs.Where(c => c.Date.Date == DateTime.Now.AddDays(-1).Date).ToList();
+
+        return GetTotalCostsPerService(yesterdayCosts);
+    }
+    
+    private List<AzureServiceCost> GetMonthCostsPerDay(List<AzureServiceCost> costs)
+    {
+        var totalCosts = new List<AzureServiceCost>();
+
+        var monthCosts = costs.Where(c => c.Date.Date >= DateTime.Now.AddDays(-30).Date).ToList();
+
+        return GetTotalCostsPerService(monthCosts);
+    }
+
+    private double GetTotalCost(List<AzureServiceCost> costs)
+    {
+        return costs.Sum(c => c.Cost);
     }
 }
 

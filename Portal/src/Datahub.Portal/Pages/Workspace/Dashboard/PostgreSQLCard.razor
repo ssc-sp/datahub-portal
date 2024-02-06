@@ -4,23 +4,23 @@
 <MudPaper Outlined Class="pa-4">
     <MudStack>
         <MudStack Row AlignItems="AlignItems.Center">
-            <MudIcon Icon="fa-light fa-hard-drive" Size="Size.Medium"/>
-            <MudText Typo="Typo.h3">@Localizer["Workspace Storage"]</MudText>
+            <MudIcon Icon="@SidebarIcons.SqlDatabase" Size="Size.Medium"/>
+            <MudText Typo="Typo.h3">@Localizer["Azure PostgreSQL Database"]</MudText>
         </MudStack>
 
         <MudText>
-            @Localizer["Access the storage accounts for the workspace to upload, download and share datasets with all workspace members."]
+            @Localizer["This is a flexible PostgreSQL database hosted in Azure. It is used to store data for this project. You can view the details of the connection by clicking the button below."]
         </MudText>
         <MudElement HtmlTag="div">
             @if (ProjectResource.CreatedAt.HasValue)
             {
                 
             <MudButton
-                Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Storage}")"
+                Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.SqlDatabase}")"
                 Color="Color.Primary"
                 Variant="@Variant.Text"
                 EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
-                @Localizer["View Storage"]
+                @Localizer["View Connection Details"]
             </MudButton>
             }
             else

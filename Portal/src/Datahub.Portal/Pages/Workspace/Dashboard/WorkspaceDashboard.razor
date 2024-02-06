@@ -99,8 +99,7 @@
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
 
     private Datahub_Project _project;
 
@@ -109,9 +108,9 @@
 
     private Dictionary<string, Type> _cardComponents = new()
     {
-        { "terraform:azure-databricks", typeof(DatabricksCard) },
-        { "terraform:azure-storage-blob", typeof(StorageCard) },
-        { "terraform:azure-app-service", typeof(AppServiceCard) }
+        { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks), typeof(DatabricksCard) },
+        { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob), typeof(StorageCard) },
+        { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres), typeof(PostgreSQLCard) }
     };
 
     private List<ProjectRepository> _projectRepositories = new();
@@ -135,7 +134,7 @@
 
     private string ParseResourceType(string resourceType)
     {
-    // if it's in the dictionary, return the type otherwise return null
+        // if it's in the dictionary, return the type otherwise return null
         return _cardComponents.ContainsKey(resourceType) ? resourceType : null;
     }
 

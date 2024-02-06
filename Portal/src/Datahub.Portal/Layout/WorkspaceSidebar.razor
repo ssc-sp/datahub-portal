@@ -34,7 +34,7 @@
             {
                 <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
 
-                    <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)">
+                    <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
                         <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
                             <MudStack Row AlignItems="@AlignItems.Center">
                                 <MudIcon Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
@@ -82,8 +82,7 @@
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
 
     private Datahub_Project _project;
 
@@ -113,8 +112,8 @@
         public const string Settings = "settings";
     }
 
-    private List<string> _workspaceTools = new()
-    {
+    private List<string> _workspaceTools =
+    [
         SectionViews.Dashboard,
         SectionViews.Databricks,
         SectionViews.Storage,
@@ -122,17 +121,17 @@
         SectionViews.SqlDatabase,
         SectionViews.Repositories,
         SectionViews.ArcGis
-    };
+    ];
 
-    private List<string> _workspaceAdministration = new()
-    {
+    private List<string> _workspaceAdministration =
+    [
         SectionViews.Toolbox,
         SectionViews.Users,
         SectionViews.Metadata,
         SectionViews.Reports,
         SectionViews.Sudo,
         SectionViews.Settings
-    };
+    ];
 
     protected override async Task OnInitializedAsync()
     {
@@ -145,7 +144,7 @@
             .Include(p => p.Resources)
             .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
-    // check the resources against what to display in the sidebar
+        // check the resources against what to display in the sidebar
     }
 
     public static DatahubAuthView.AuthLevels GetAuthLevel(string sectionView)
@@ -160,14 +159,15 @@
             SectionViews.Repositories => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.ArcGis => DatahubAuthView.AuthLevels.WorkspaceGuest,
 
-    // Administration
+            // Administration
             SectionViews.Toolbox => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
             SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Reports => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Sudo => DatahubAuthView.AuthLevels.DatahubAdmin,
             SectionViews.Settings => DatahubAuthView.AuthLevels.WorkspaceAdmin,
-            _ => DatahubAuthView.AuthLevels.Unauthorized};
+            _ => DatahubAuthView.AuthLevels.Unauthorized
+        };
     }
 
     private async Task RegisterClickTelemetry(string toolSection)
@@ -207,7 +207,7 @@
         {
             SectionViews.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(_project),
             _ => $"{_path}/{sectionView}"
-            };
+        };
     }
 
     private string GetTarget(string sectionView)
@@ -216,7 +216,7 @@
         {
             SectionViews.Databricks => "_blank",
             _ => "_self"
-            };
+        };
     }
 
     private string GetIcon(string sectionView)
@@ -237,7 +237,7 @@
             SectionViews.Sudo => SidebarIcons.Sudo,
             SectionViews.Settings => SidebarIcons.Settings,
             _ => SidebarIcons.Dashboard
-            };
+        };
     }
 
     private string GetLabel(string sectionView)
@@ -258,7 +258,7 @@
             SectionViews.Sudo => Localizer["Sudo"],
             SectionViews.Settings => Localizer["Settings"],
             _ => Localizer["Dashboard"]
-            };
+        };
     }
 
     private bool ShouldToolBeShown(string toolSection)
@@ -273,7 +273,22 @@
             SectionViews.Repositories => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
             SectionViews.ArcGis => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis)) ?? false,
             _ => false
-            };
+        };
+    }
+
+    private bool IsDisabled(string toolSection)
+    {
+        return toolSection switch
+        {
+            SectionViews.Dashboard => false,
+            SectionViews.Databricks => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
+            SectionViews.Storage => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true,
+            SectionViews.WebApp => string.IsNullOrEmpty(_project?.WebApp_URL),
+            SectionViews.SqlDatabase => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.CreatedAt.HasValue) ?? true,
+            SectionViews.Repositories => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
+            SectionViews.ArcGis => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.CreatedAt.HasValue) ?? true,
+            _ => true
+        };
     }
 
 }
