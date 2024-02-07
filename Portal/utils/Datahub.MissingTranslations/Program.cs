@@ -64,7 +64,7 @@ var frenchOutput = missingFrenchTranslations
 var frenchOutputJson = JsonSerializer.Serialize(frenchOutput, serializeOptions);
 
 
-File.WriteAllText("missing-translations.json", englishOutputJson);
+File.WriteAllText("missing-translations.en.json", englishOutputJson);
 File.WriteAllText("missing-translations.fr.json", frenchOutputJson);
 
 Console.WriteLine("Done!");
