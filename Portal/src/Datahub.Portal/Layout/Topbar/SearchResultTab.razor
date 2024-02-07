@@ -65,8 +65,8 @@
 
     private string GetLink(CatalogObject obj) => obj.ObjectType switch
     {
-        CatalogObjectType.Workspace => $"/w/{obj.ObjectId}",
-        CatalogObjectType.User => $"/account?u={obj.ObjectId.Base64Encode()}",
+        CatalogObjectType.Workspace => $"/{PageRoutes.WorkspacePrefix}/{obj.ObjectId}",
+        CatalogObjectType.User => $"{PageRoutes.AccountDefault}?u={obj.ObjectId.Base64Encode()}",
         CatalogObjectType.Repository => obj.Location ?? "#",
         _ => "#"
     };
