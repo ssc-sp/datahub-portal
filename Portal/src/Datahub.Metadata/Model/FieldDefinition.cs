@@ -39,6 +39,7 @@ public class FieldDefinition
     public string Description => CultureUtils.SelectCulture(English_DESC, French_DESC);
     public bool HasChoices => Choices?.Count > 0;
     public bool IsDateField => (Validators_TXT ?? "").Split(' ').Contains("isodate");
+    public bool IsEmailField => (Validators_TXT ?? "").Split(' ').Contains("email");
         
     public string GetChoiceTextValue(string choiceValue, bool english)
     {
