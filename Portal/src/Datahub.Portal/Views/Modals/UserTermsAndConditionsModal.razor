@@ -29,8 +29,8 @@
     </div>
 
     <div class="modal-footer">
-        <button class="submitbutton finish" disabled="@(!isChecked)" type="submit" @onclick="() => OnDecision?.Invoke(true)">@LocalizerRes("BUTTONS.Submit")</button>
-        <button class="submitbutton cancel" @onclick="() => OnDecision?.Invoke(false)">@LocalizerRes("BUTTONS.Cancel")</button>
+        <button class="submitbutton finish" disabled="@(!isChecked)" type="submit" @onclick="() => OnDecision?.Invoke(true)">@LocalizerRes("Submit")</button>
+        <button class="submitbutton cancel" @onclick="() => OnDecision?.Invoke(false)">@LocalizerRes("Cancel")</button>
     </div>
 </div>
 
@@ -50,16 +50,16 @@
                     {"TAC-PAGE.AgreeToTAC",     "I agree to the Terms and Conditions"},
                     {"TAC-PAGE.Introduction",   "Scroll down to read the complete terms and conditions before accepting."},
                     {"TAC-PAGE.Title",          "Welcome to <title>"},
-                    {"BUTTONS.Submit",          "Submit"},
-                    {"BUTTONS.Cancel",          "Cancel"}
+                    {"Submit",          "Submit"},
+                    {"Cancel",          "Cancel"}
         }},
         {"fr-CA", new Dictionary<string, string>() {
                     {"TAC-PAGE.AcceptTerms",    "Accepté les termes et conditions"},
                     {"TAC-PAGE.AgreeToTAC",     "J'accepte les termes et conditions"},
                     {"TAC-PAGE.Introduction",   "Faites défiler vers le bas pour lire les termes et conditions complets avant d'accepter."},
                     {"TAC-PAGE.Title",          "Bienvenue au <title>"},
-                    {"BUTTONS.Submit",          "Soumettre"},
-                    {"BUTTONS.Cancel",          "Annuler"}
+                    {"Submit",          "Soumettre"},
+                    {"Cancel",          "Annuler"}
         }}
     };
 
