@@ -69,4 +69,9 @@
 		<ProjectReference Include="..\modules\Datahub.M365Forms\Datahub.M365Forms.csproj" />
 		<ProjectReference Include="..\modules\Datahub.PIP\Datahub.PIP.csproj" />
 	</ItemGroup>
+	<ItemGroup>
+	  <_ContentIncludedByDefault Remove="i18n\nrcan\initiatives.fr.json" />
+	  <_ContentIncludedByDefault Remove="i18n\nrcan\initiatives.json" />
+	  <_ContentIncludedByDefault Remove="i18n\nrcan\title.json" />
+	</ItemGroup>
 </Project>
