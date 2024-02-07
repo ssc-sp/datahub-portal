@@ -88,16 +88,16 @@ else
                 @if (_isSavingReport)
                 {
                     <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                    <MudText Class="ms-2">@Localizer[$"BUTTONS.Save"]</MudText>
+                    <MudText Class="ms-2">@Localizer[$"Save"]</MudText>
                 }
                 else
                 {
-                    <MudText>@Localizer[$"BUTTONS.Save"]</MudText>
+                    <MudText>@Localizer[$"Save"]</MudText>
                 }
             </MudButton>
 
             <MudButton OnClick=@CancelEditing Variant="Variant.Outlined" Color="Color.Default">
-                <MudText>@Localizer[$"BUTTONS.Cancel"]</MudText>
+                <MudText>@Localizer[$"Cancel"]</MudText>
             </MudButton>
             
         </MudStack>
