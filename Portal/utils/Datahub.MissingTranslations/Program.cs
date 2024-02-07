@@ -4,12 +4,13 @@ using System.Text.RegularExpressions;
 
 Console.WriteLine("Hello, World!");
 
-
-
 // load in the i18n english file from /src/Datahub.Portal/i18n/localization.json
 
-var i18n = File.ReadAllText(@"../../../../../src/Datahub.Portal/i18n/localization.json");
-var i18nData = JsonSerializer.Deserialize<Dictionary<string, string>>(i18n);
+var englishTranslationText = File.ReadAllText(@"../../../../../src/Datahub.Portal/i18n/localization.json");
+var englishTranslations = JsonSerializer.Deserialize<Dictionary<string, string>>(englishTranslationText);
+
+var frenchTranslationText = File.ReadAllText(@"../../../../../src/Datahub.Portal/i18n/localization.fr.json");
+var frenchTranslations = JsonSerializer.Deserialize<Dictionary<string, string>>(frenchTranslationText);
 
 // scan the /src/Datahub.Portal directory for all .cs and .razor files
 // for each file, scan the contents for any string after "@Localizer[" or "Localizer["
@@ -31,19 +32,41 @@ foreach (var file in files)
 // for each string, check if it exists in the i18n file
 // if it doesn't, add it to a list of missing translations
 
-var missingTranslations = new List<string>();
+var missingEnglishTranslations = new List<string>();
+var missingFrenchTranslations = new List<string>();
 foreach (var str in strings)
 {
-    if (!i18nData.ContainsKey(str))
+    if (!englishTranslations!.ContainsKey(str))
     {
-        missingTranslations.Add(str);
+        missingEnglishTranslations.Add(str);
+    }
+    
+    if (!frenchTranslations!.ContainsKey(str))
+    {
+        missingFrenchTranslations.Add(str);
     }
 }
 
 // output the missing translations to a file
+var serializeOptions = new JsonSerializerOptions
+{
+    WriteIndented = true
+};
 
-var output = JsonSerializer.Serialize(missingTranslations);
-File.WriteAllText("missing-translations.json", output);
+var englishOutput = missingEnglishTranslations
+    .Distinct()
+    .ToDictionary(x => x, x => x);
+var englishOutputJson = JsonSerializer.Serialize(englishOutput, serializeOptions);
+
+var frenchOutput = missingFrenchTranslations
+    .Distinct()
+    .ToDictionary(x => x, x => x);
+var frenchOutputJson = JsonSerializer.Serialize(frenchOutput, serializeOptions);
+
+
+File.WriteAllText("missing-translations.json", englishOutputJson);
+File.WriteAllText("missing-translations.fr.json", frenchOutputJson);
+
 Console.WriteLine("Done!");
 
 
