@@ -50,8 +50,8 @@
         }
 
         <div class="button-footer">
-            <button class="submitbutton cancel" disabled="@(waitingOnAddShare)" type="reset" @onclick="() => RefreshSelectedUser()">@Localizer["BUTTONS.Cancel"]</button>
-            <button class="submitbutton finish" disabled="@(addShareDisabled || waitingOnAddShare)" type="submit" @onclick="() => AddNewUserToShare()">@Localizer["BUTTONS.Finish"]</button>
+            <button class="submitbutton cancel" disabled="@(waitingOnAddShare)" type="reset" @onclick="() => RefreshSelectedUser()">@Localizer["Cancel"]</button>
+            <button class="submitbutton finish" disabled="@(addShareDisabled || waitingOnAddShare)" type="submit" @onclick="() => AddNewUserToShare()">@Localizer["Finish"]</button>
         </div>
     }
     else
