@@ -19,15 +19,15 @@
         {
             <textarea @bind=@_currentJson style="min-height: 400px;" />
             <div>
-                <AeButton OnClickEvent=@SaveChanges Disabled=@_isSaving>@Localizer["BUTTONS.Save"]</AeButton>
-                <AeButton OnClickEvent=@CancelChanges Disabled=@_isSaving class="light">@Localizer["BUTTONS.Cancel"]</AeButton>
+                <AeButton OnClickEvent=@SaveChanges Disabled=@_isSaving>@Localizer["Save"]</AeButton>
+                <AeButton OnClickEvent=@CancelChanges Disabled=@_isSaving class="light">@Localizer["Cancel"]</AeButton>
             </div>
         }
         else
         {
             <code><pre>@_currentJson</pre></code>
             <div>
-                <AeButton OnClickEvent=@(() => _isEditing = true)>@Localizer["BUTTONS.Edit"]</AeButton>
+                <AeButton OnClickEvent=@(() => _isEditing = true)>@Localizer["Edit"]</AeButton>
             </div>
         }
     </AeFlex>
