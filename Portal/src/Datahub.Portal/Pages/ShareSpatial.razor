@@ -63,7 +63,7 @@
                     </AeFlex>
 
                     <AeFlex>
-                        <AeButton OnClickEvent=@UploadSignedDocument Disabled=@UploadSignedDocumentDisabled()>@Localizer["BUTTONS.Submit"]</AeButton>
+                        <AeButton OnClickEvent=@UploadSignedDocument Disabled=@UploadSignedDocumentDisabled()>@Localizer["Submit"]</AeButton>
                         <div>
                             @if (_savingData)
                             {
@@ -114,7 +114,7 @@
                 <AeCard style="margin-top: 1rem;">
                     <Typography Variant="h3">@Localizer["FGP-WIZARD.CancelSharing"]</Typography>
                     <p>@Localizer["FGP-WIZARD.CancelSharingDescription"]</p>
-                    <AeButton OnClickEvent=@ShowCancelRequestDialog>@Localizer["BUTTONS.Cancel"]</AeButton>
+                    <AeButton OnClickEvent=@ShowCancelRequestDialog>@Localizer["Cancel"]</AeButton>
                 </AeCard>
             }
 
