@@ -22,8 +22,8 @@ else
         <VersionsList Versions="versions" SelectedItem="((string s) => OnSelectItem(s))"></VersionsList>
     </div>
     <div class="modal-footer" style="padding-top:1rem">
-        <AeButton Disabled="@string.IsNullOrWhiteSpace(selectedVersionId)" class="submitbutton finish" @onclick="() => OnDecision(true)">@Localizer["BUTTONS.Restore"]</AeButton>
-        <AeButton class="cancelbutton cancel" @onclick="() => OnDecision(false)">@Localizer["BUTTONS.Cancel"]</AeButton>
+        <AeButton Disabled="@string.IsNullOrWhiteSpace(selectedVersionId)" class="submitbutton finish" @onclick="() => OnDecision(true)">@Localizer["Restore"]</AeButton>
+        <AeButton class="cancelbutton cancel" @onclick="() => OnDecision(false)">@Localizer["Cancel"]</AeButton>
     </div>
 }
 

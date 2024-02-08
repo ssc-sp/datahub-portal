@@ -21,44 +21,52 @@ public class AzureManagementSession
 
     public string AccessToken => _accessToken;
 
-    public async Task<double?> GetResourceGroupLastYearCost(string[] resourceGroups)
+    // public async Task<double?> GetResourceGroupLastYearCost(string[] resourceGroups)
+    // {
+    //     var url = GetCostManagementRequestUrl();
+    //     var request = GetYearCostRequest(resourceGroups);
+    //     var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
+    //     return GetResourceGroupCost(response);
+    // }
+    //
+    // public async Task<List<AzureDailyCost>?> GetResourceGroupMonthlyCostPerDay(string[] resourceGroups)
+    // {
+    //     var url = GetCostManagementRequestUrl();
+    //     var request = GetMonthlyCostPerDayRequest(resourceGroups);
+    //     var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
+    //     return GetResourceGroupCostPerDay(response);
+    // }
+    //
+    // public async Task<double?> GetResourceGroupYesterdayCost(string[] resourceGroups)
+    // {
+    //     var url = GetCostManagementRequestUrl();
+    //     var request = GetYesterdayTotalCostRequest(resourceGroups);
+    //     var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
+    //     return GetResourceGroupCost(response);
+    // }
+    //
+    // public async Task<List<AzureServiceCost>?> GetResourceGroupYearCostByService(string[] resourceGroups)
+    // {
+    //     var url = GetCostManagementRequestUrl();
+    //     var request = GetYearCostByServiceRequest(resourceGroups);
+    //     var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
+    //     return GetServiceCosts(response, nameIndex: 1);
+    // }
+    //
+    // public async Task<List<AzureServiceCost>?> GetResourceGroupYesterdayCostByService(string[] resourceGroups)
+    // {
+    //     var url = GetCostManagementRequestUrl();
+    //     var request = GetYesterdayCostByServiceRequest(resourceGroups);
+    //     var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
+    //     return GetServiceCosts(response, nameIndex: 1);
+    // }
+    
+    public async Task<List<AzureServiceCost>?> GetResourceGroupYearDailyCostByService(string[] resourceGroups)
     {
         var url = GetCostManagementRequestUrl();
-        var request = GetYearCostRequest(resourceGroups);
+        var request = GetYearDailyCostByService(resourceGroups);
         var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
-        return GetResourceGroupCost(response);
-    }
-
-    public async Task<List<AzureDailyCost>?> GetResourceGroupMonthlyCostPerDay(string[] resourceGroups)
-    {
-        var url = GetCostManagementRequestUrl();
-        var request = GetMonthlyCostPerDayRequest(resourceGroups);
-        var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
-        return GetResourceGroupCostPerDay(response);
-    }
-
-    public async Task<double?> GetResourceGroupYesterdayCost(string[] resourceGroups)
-    {
-        var url = GetCostManagementRequestUrl();
-        var request = GetYesterdayTotalCostRequest(resourceGroups);
-        var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
-        return GetResourceGroupCost(response);
-    }
-
-    public async Task<List<AzureServiceCost>?> GetResourceGroupYearCostByService(string[] resourceGroups)
-    {
-        var url = GetCostManagementRequestUrl();
-        var request = GetYearCostByServiceRequest(resourceGroups);
-        var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
-        return GetServiceCosts(response, nameIndex: 1);
-    }
-
-    public async Task<List<AzureServiceCost>?> GetResourceGroupYesterdayCostByService(string[] resourceGroups)
-    {
-        var url = GetCostManagementRequestUrl();
-        var request = GetYesterdayCostByServiceRequest(resourceGroups);
-        var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
-        return GetServiceCosts(response, nameIndex: 1);
+        return GetServiceCosts(response);
     }
 
     public async Task<double> GetTotalAverageStorageCapacity(params string[] resourceGroups)
@@ -274,6 +282,64 @@ public class AzureManagementSession
         };
     }
 
+    static CostManagementRequest GetFiscalYearDailyCostByService(string[] resourceGroups)
+    {
+        var (from, to) = GetCurrentFiscalYearPeriod();
+        return new()
+        {
+            Type = "ActualCost",
+            DataSet = new()
+            {
+                Granularity = "Daily",
+                Aggregation = GetCostAggregation(),
+                Grouping = new()
+                {
+                    new()
+                    {
+                        Type = "Dimension",
+                        Name = "ServiceName"
+                    }
+                },
+                Filter = GetResourceGroupsFilter(resourceGroups)
+            },
+            Timeframe = "Custom",
+            TimePeriod = new()
+            {
+                From = from,
+                To = to
+            }
+        };
+    }
+    
+    static CostManagementRequest GetYearDailyCostByService(string[] resourceGroups)
+    {
+        var (from, to) = GetLastYearPeriod();
+        return new()
+        {
+            Type = "ActualCost",
+            DataSet = new()
+            {
+                Granularity = "Daily",
+                Aggregation = GetCostAggregation(),
+                Grouping = new()
+                {
+                    new()
+                    {
+                        Type = "Dimension",
+                        Name = "ServiceName"
+                    }
+                },
+                Filter = GetResourceGroupsFilter(resourceGroups)
+            },
+            Timeframe = "Custom",
+            TimePeriod = new()
+            {
+                From = from,
+                To = to
+            }
+        };
+    }
+
     static CostManagementRequestFilter GetResourceGroupsFilter(string[] rgs) => new()
     {
         Dimensions = new()
@@ -314,15 +380,22 @@ public class AzureManagementSession
         }).ToList();
     }
 
-    static List<AzureServiceCost>? GetServiceCosts(CostManagementResponse? response, int nameIndex)
+    static List<AzureServiceCost>? GetServiceCosts(CostManagementResponse? response)
     {
+        List<Column> columns = response?.Properties?.Columns.Select(c => new Column(c.Name, c.Type)).ToList();
+        
+        int nameIndex = columns.FindIndex(c => c.Name == "ServiceName");
+        int costIndex = columns.FindIndex(c => c.Name == "Cost");
+        int dateIndex = columns.FindIndex(c => c.Name == "UsageDate");
+        
         return response?.Properties?.Rows?.Select(r => new AzureServiceCost() 
         { 
             Name = ParseString(r[nameIndex]),
-            Cost = ParseDouble(r[0])
+            Cost = ParseDouble(r[costIndex]),
+            Date = ParseDate(r[dateIndex])
         })
         .Where(c => c.Cost > 0.0)
-        .OrderByDescending(c => c.Cost)
+        .OrderByDescending(c => c.Date)
         .ToList();
     }
 
@@ -347,6 +420,14 @@ public class AzureManagementSession
         return (from, to);
     }
 
+    static (DateTime from, DateTime to) GetCurrentFiscalYearPeriod()
+    {
+        bool pastApril = DateTime.Now.Month >= 4;
+        var from = pastApril ? new DateTime(DateTime.Now.Year, 4, 1) : new DateTime(DateTime.Now.Year - 1, 4, 1);
+        var to = pastApril ? new DateTime(DateTime.Now.Year + 1, 3, 31) : new DateTime(DateTime.Now.Year, 3, 31);
+        return (from, to);
+    }
+
     static string ParseString(object o) => o?.ToString() ?? string.Empty;
 
     static double ParseDouble(object o) => double.TryParse(o.ToString(), out double v) ? v : default;
@@ -356,4 +437,6 @@ public class AzureManagementSession
         var strValue = o.ToString();
         return DateTime.ParseExact(strValue!, "yyyyMMdd", CultureInfo.InvariantCulture).Date;
     }
+    
+    record Column(string Name, string Type);
 }
