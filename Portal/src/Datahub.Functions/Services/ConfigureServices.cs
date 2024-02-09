@@ -52,12 +52,7 @@ public static class ConfigureServices
         }
 
         // Unfortunately we currently use 2 different APITarget type (APITarget which is its own class and APITargets which is a class of DatahubPortalConfiguration)
-        APITarget apiTarget = new APITarget
-        {
-            KeyVaultName = datahubConfiguration.APITargets.KeyVaultName
-        };
-
-        services.AddSingleton(apiTarget);
+        services.Configure<APITarget>(target => target.KeyVaultName = datahubConfiguration.APITargets.KeyVaultName );
         services.AddSingleton(datahubConfiguration);
 
         return services;
