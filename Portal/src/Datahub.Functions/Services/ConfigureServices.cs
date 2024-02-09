@@ -1,4 +1,5 @@
 using Datahub.Application.Configuration;
+using Datahub.Core.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -43,7 +44,15 @@ public static class ConfigureServices
             datahubConfiguration.AzureAd.ClientSecret = configuration["FUNC_SP_CLIENT_SECRET"]
                                                         ?? throw new ArgumentNullException("FUNC_SP_CLIENT_SECRET");
         }
+        
+        if (string.IsNullOrEmpty(datahubConfiguration.APITargets.KeyVaultName))
+        {
+            datahubConfiguration.APITargets.KeyVaultName = configuration["KeyVaultName"]
+                                                          ?? throw new ArgumentNullException("KeyVaultName");
+        }
 
+        // Unfortunately we currently use 2 different APITarget type (APITarget which is its own class and APITargets which is a class of DatahubPortalConfiguration)
+        services.Configure<APITarget>(target => target.KeyVaultName = datahubConfiguration.APITargets.KeyVaultName );
         services.AddSingleton(datahubConfiguration);
 
         return services;
