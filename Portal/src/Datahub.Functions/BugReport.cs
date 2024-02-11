@@ -19,16 +19,14 @@ namespace Datahub.Functions
     public class BugReport
     {
         private readonly ILogger<BugReport> _logger;
-        private readonly IKeyVaultService _keyVaultService;
         private readonly AzureConfig _config;
         private readonly IEmailService _emailService;
         private readonly IMediator _mediator;
 
-        public BugReport(ILogger<BugReport> logger, IKeyVaultService keyVaultService, AzureConfig config,
+        public BugReport(ILogger<BugReport> logger, AzureConfig config,
             IEmailService emailService, IMediator mediator)
         {
             _logger = logger;
-            _keyVaultService = keyVaultService;
             _config = config;
             _emailService = emailService;
             _mediator = mediator;
@@ -50,7 +48,7 @@ namespace Datahub.Functions
 
 
                 // Retrieve ADO information
-                var credentials = await _keyVaultService.GetSecret(_config.AdoConfig.PatSecretName);
+                var credentials = _config.AdoConfig.ServiceUserPat; 
                 string devOpsUrl = _config.AdoConfig.URL;
 
                 // Preemptively build the post url
