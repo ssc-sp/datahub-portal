@@ -17,13 +17,13 @@
                 Target="_blank"
                 Color="Color.Primary"
                 Variant="@Variant.Text"
-                EndIcon="@Icons.Material.Outlined.OpenInNew">
+                EndIcon="@SidebarIcons.External">
                 @Localizer["Navigate to Web App"]
             </MudButton>
         </MudElement>
         <MudElement HtmlTag="div">
             <MudButton
-                Href=@($"/w/{WorkspaceAcronym}/webapp")
+                Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{PageRoutes.WebAppPrefix}")
                 Color="Color.Primary"
                 Variant="@Variant.Text"
                 EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
@@ -42,7 +42,8 @@
 
     private string GetWebAppUrl()
     {
-        return TerraformVariableExtraction.ExtractAppServiceConfiguration(ProjectResource).HostName;
+        var webAppConfig = TerraformVariableExtraction.ExtractAppServiceConfiguration(ProjectResource);
+        return webAppConfig.HostName ?? String.Empty;
     }
 
 }

@@ -1,16 +1,28 @@
 ﻿@using Datahub.Shared.Entities
+@using Datahub.Application.Validators
+
 
 <MudDialog>
     <DialogContent>
-        <MudSelect Label=@Localizer["Select a framework"] @bind-Value="selectedFramework">
-            @foreach(string framework in AppServiceTemplates.TEMPLATES)
+        <MudStack Class="pa-4">
+            <MudText>
+                @Localizer["Select a framework from the list, which will be used to generate a template app service configuration. If you want to deploy a custom web application, select 'Custom' and provide the git repo URL and the path to the docker compose file."]
+            </MudText>
+            <MudLink Href="@PageRoutes.ResourceDefault">
+                @Localizer["Learn more about configuring a web application"]
+            </MudLink>
+            <MudSelect Class="mt-2" Label=@Localizer["Select a framework"] @bind-Value="_selectedFramework">
+                @foreach (string framework in AppServiceTemplates.TEMPLATES)
+                {
+                    <MudSelectItem Value="@framework" Label="@framework"/>
+                }
+            </MudSelect>
+            @if (_selectedFramework == AppServiceTemplates.CUSTOM)
             {
-                <MudSelectItem Value="@framework" Label="@framework" />
+                <MudTextField Class="mt-2" Label=@Localizer["Enter git repo URL"] @bind-Value="_gitRepoUrl" HelperText="@Localizer["Must be a valid URL, i.e. https://*.git"]" Placeholder="https://gitprovider.com/me/myrepo.git" Validation="@GitRepoValidator()"/>
+                <MudTextField Label=@Localizer["Enter Docker compose file path"] @bind-Value="_dockerComposeFilePath" HelperText="@Localizer["Path from the base of your repo to the desired compose file, leave empty if at root"]"/>
             }
-        </MudSelect>
-        <MudTextField Label=@Localizer["Enter git repo URL"] @bind-Value="gitRepoUrl" Disabled="@(selectedFramework!=AppServiceTemplates.CUSTOM)"/>
-
-        <MudTextField Label=@Localizer["Enter Docker compose file path"] @bind-Value="dockerComposeFilePath" Disabled="@(selectedFramework!=AppServiceTemplates.CUSTOM)"/>
+        </MudStack>
     </DialogContent>
     <DialogActions>
         <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">@Localizer["Submit"]</MudButton>
@@ -19,24 +31,36 @@
 
 @code {
     [Parameter] public MudDialogInstance MudDialog { get; set; }
-    
-    private string selectedFramework; 
-    private string gitRepoUrl;
-    private string dockerComposeFilePath;
+    [Parameter] public AppServiceConfiguration Configuration { get; set; }
+
+    private string _selectedFramework;
+    private string _gitRepoUrl;
+    private string _dockerComposeFilePath;
+
+    private Func<string, string> GitRepoValidator() => value => Localizer["{0}", new GitRepoValidator().Validate(value).Errors.Select(e => e.ErrorMessage).First()];
+
+    protected override void OnInitialized()
+    {
+        _selectedFramework = Configuration.Framework ?? "";
+        _gitRepoUrl = Configuration.GitRepo ?? "";
+        _dockerComposeFilePath = Configuration.ComposePath ?? "";
+    }
 
     void Submit()
     {
         var config = AppServiceTemplates.GetTemplateConfiguration(AppServiceTemplates.CUSTOM);
-        if (selectedFramework == AppServiceTemplates.CUSTOM)
+        if (_selectedFramework == AppServiceTemplates.CUSTOM)
         {
-            config.Framework = selectedFramework;
-            config.GitRepo = gitRepoUrl;
-            config.ComposePath = dockerComposeFilePath;
+            config.Framework = _selectedFramework;
+            config.GitRepo = _gitRepoUrl;
+            config.ComposePath = _dockerComposeFilePath;
         }
         else
         {
-            config = AppServiceTemplates.GetTemplateConfiguration(selectedFramework);
+            config = AppServiceTemplates.GetTemplateConfiguration(_selectedFramework);
         }
+
         MudDialog.Close(DialogResult.Ok(config));
     }
+
 }

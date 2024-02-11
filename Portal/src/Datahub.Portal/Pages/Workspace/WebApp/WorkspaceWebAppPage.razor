@@ -21,8 +21,8 @@
         @if (_isProvisioned)
         {
             <MudButton Color="Color.Primary" Size="Size.Medium" Variant="Variant.Filled" OnClick="async () => { await ConfigureWebApp(); }">
-                @Localizer["Configure "]
-                <MudIcon Icon="@Icons.Material.Filled.Settings"/>
+                @Localizer["Configure"]
+                <MudIcon Class="ml-2" Icon="@Icons.Material.Filled.Settings"/>
             </MudButton>
         }
     </MudStack>
@@ -31,38 +31,15 @@
         @Localizer["Here you can manage your web application. You can view and edit the configurations of your web application"]
     </MudText>
 
-    <MudText Typo="Typo.h2">
-        @Localizer["Web Application Info"]
-    </MudText>
-    @if (_isProvisioned)
+    @if (_isProvisioned && _isConfigured)
+    {
+        <WorkspaceWebAppInfoTable WebAppHost="@_webAppHost" WebAppId="@_webAppId" Framework="@_webAppFramework" GitRepo="@_webAppRepo" ComposePath="@_webAppCompose"/>
+    }
+    else if (_isProvisioned)
     {
         <MudText>
-            @Localizer["Host: "] <MudLink Href="@_webAppHost">@_webAppHost</MudLink>
+            @Localizer["This web application is not configured yet. Please configure it by clicking the \"Configure\" button at the top right of the page."]
         </MudText>
-        <MudText>
-            @Localizer["Id: "] <code>@_webAppId</code>
-        </MudText>
-        <MudText>
-            @Localizer["Status: "]
-        </MudText>
-        @if (_isConfigured)
-        {
-            <MudText>
-                @Localizer["Framework: "] <code>@_webAppFramework</code>
-            </MudText>
-            <MudText>
-                @Localizer["Git repo: "] <code>@_webAppRepo</code>
-            </MudText>
-            <MudText>
-                @Localizer["Compose path: "] <code>@_webAppCompose</code>
-            </MudText>
-        }
-        else
-        {
-            <MudText>
-                @Localizer["This web application is not configured yet. Please configure it using the settings icon in the top right corner of the section."]
-            </MudText>
-        }
     }
     else
     {
@@ -75,13 +52,14 @@
 
 @code {
 
-    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter, EditorRequired] public string WorkspaceAcronym { get; set; }
 
     private string _webAppHost = "<web_app_host>";
     private string _webAppId = "<web_app_id>";
     private string _webAppFramework = "<framework>";
     private string _webAppRepo = "<git_repo>";
     private string _webAppCompose = "<path_to_compose>";
+    private AppServiceConfiguration _appConfiguration;
 
     private bool _isConfigured;
     private bool _isProvisioned;
@@ -103,19 +81,22 @@
         if (workspace == null)
             throw new Exception($"Workspace with acronym {WorkspaceAcronym} not found");
 
-        var appConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(workspace);
+        _appConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(workspace);
 
-        _webAppHost = appConfiguration.HostName;
-        _webAppId = appConfiguration.Id;
-
-        _isProvisioned = !(string.IsNullOrWhiteSpace(_webAppHost) && string.IsNullOrWhiteSpace(_webAppId));
-        _isConfigured = !(string.IsNullOrWhiteSpace(appConfiguration.Framework) && string.IsNullOrWhiteSpace(appConfiguration.GitRepo) && string.IsNullOrWhiteSpace(appConfiguration.ComposePath));
-
-        if (_isConfigured)
+        if (_appConfiguration != null)
         {
-            _webAppFramework = appConfiguration.Framework;
-            _webAppRepo = appConfiguration.GitRepo;
-            _webAppCompose = appConfiguration.ComposePath;
+            _webAppHost = _appConfiguration.HostName;
+            _webAppId = _appConfiguration.Id;
+
+            _isProvisioned = !(string.IsNullOrWhiteSpace(_webAppHost) && string.IsNullOrWhiteSpace(_webAppId));
+            _isConfigured = !(string.IsNullOrWhiteSpace(_appConfiguration.Framework) && string.IsNullOrWhiteSpace(_appConfiguration.GitRepo) && string.IsNullOrWhiteSpace(_appConfiguration.ComposePath));
+
+            if (_isConfigured)
+            {
+                _webAppFramework = _appConfiguration.Framework;
+                _webAppRepo = _appConfiguration.GitRepo;
+                _webAppCompose = _appConfiguration.ComposePath;
+            }
         }
     }
 
@@ -123,11 +104,17 @@
     {
         var dialogOptions = new DialogOptions()
         {
-            MaxWidth = MaxWidth.Large,
-            FullWidth = true
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true
         };
 
-        var dialog = await _dialogService.ShowAsync<AzureAppServiceConfigurationDialog>(Localizer["Configure Web Application"], dialogOptions);
+        var dialogParameters = new DialogParameters
+        {
+            { "Configuration", _appConfiguration }
+        };
+
+        var dialog = await _dialogService.ShowAsync<AzureAppServiceConfigurationDialog>(Localizer["Configure Web Application"], dialogParameters, dialogOptions);
         var dialogResult = await dialog.Result;
 
         if (!dialogResult.Canceled)
@@ -182,5 +169,4 @@
         var message = new WorkspaceAppServiceConfigurationMessage(WorkspaceAcronym);
         await _mediatr.Send(message);
     }
-
 }

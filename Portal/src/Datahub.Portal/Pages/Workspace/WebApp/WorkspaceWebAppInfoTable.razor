@@ -1,0 +1,66 @@
+﻿<MudText Typo="Typo.h2" Class="mt-6">
+    @Localizer["Web Application Information"]
+</MudText>
+<MudSimpleTable Dense Hover Striped Outlined>
+    <thead>
+    <tr>
+        <th><b>@Localizer["Property"]</b></th>
+        <th><b>@Localizer["Value"]</b></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>
+            @Localizer["Host"]
+        </td>
+        <td>
+            <MudLink Href="@WebAppHost">@WebAppHost</MudLink>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @Localizer["Web App Id"]
+        </td>
+        <td>
+            <code>@WebAppId</code>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @Localizer["Framework"]
+        </td>
+        <td>
+            <code>@Framework</code>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @Localizer["Git Repo"]
+        </td>
+        <td>
+            <MudLink Href="@GitRepo">@GitRepo</MudLink>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @Localizer["Path to compose"]
+        </td>
+        <td>
+            <code>@ComposePath</code>
+        </td>
+    </tr>
+    </tbody>
+</MudSimpleTable>
+
+@code {
+
+    [Parameter] public string WebAppHost { get; set; }
+
+    [Parameter] public string WebAppId { get; set; }
+
+    [Parameter] public string Framework { get; set; }
+
+    [Parameter] public string GitRepo { get; set; }
+
+    [Parameter] public string ComposePath { get; set; }
+}
