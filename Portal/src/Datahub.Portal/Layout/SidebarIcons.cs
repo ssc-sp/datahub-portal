@@ -39,4 +39,7 @@ public static class SidebarIcons
     public const string Workspace = "fa-light fa-display-code";
     public const string Resources = "fa-light fa-book-bookmark";
     public const string CreateNew = "fa-light fa-layer-plus";
+    
+    // General Icons
+    public const string External = "fa-light fa-arrow-up-right-from-square";
 }

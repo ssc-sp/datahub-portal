@@ -1,13 +1,12 @@
 ﻿using Datahub.Application.Services.Security;
-using Datahub.Core.Services.Security;
-using Datahub.Functions;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Infrastructure.Services.Security;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+
+namespace Datahub.Functions.UnitTests;
 
 [TestFixture]
 public class BugReportTests
