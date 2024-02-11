@@ -14,7 +14,7 @@ public class AzureConfig : IAzureServicePrincipalConfig
     {
         _config = config;
         _emailConfig = new EmailNotification();
-        _adoConfig = new AdoConfig();
+        _adoConfig = new AdoConfig(_config);
         _config.Bind("EmailNotification", _emailConfig);
         _config.Bind("AdoConfig", _adoConfig);
     }
@@ -79,9 +79,15 @@ public class EmailNotification
 
 public class AdoConfig
 {
-    public string OidSecretName { get; set; } = "ado-service-user-oid";
-    public string PatSecretName { get; set; } = "ado-service-user-pat";
+    public string ServiceUserOid { get; set; } 
+    public string ServiceUserPat{ get; set; }
     public string OrgName { get; set; } = "DataSolutionsDonnees";
     public string ProjectName { get; set; } = "FSDH SSC";
     public string URL { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${workItemTypeName}?api-version=6.0";
+
+    public AdoConfig(IConfiguration _config)
+    {
+        ServiceUserOid = _config["ADO_ServiceUserOID"] ?? "";
+        ServiceUserPat = _config["ADO_ServiceUserPAT"] ?? "";
+    }
 }
