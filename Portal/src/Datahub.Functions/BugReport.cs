@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Net.Http.Headers;
 using System.Text;
-using Azure;
 using Azure.Storage.Queues.Models;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Services.Security;
+using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services.Security;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+using Microsoft.VisualStudio.Services.WebApi.Patch;
+using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -48,7 +51,6 @@ namespace Datahub.Functions
 
 
                 // Retrieve ADO information
-                var credentials = _config.AdoConfig.ServiceUserPat; 
                 string devOpsUrl = _config.AdoConfig.URL;
 
                 // Preemptively build the post url
@@ -59,11 +61,10 @@ namespace Datahub.Functions
                 var issue = await CreateIssue(bug);
 
                 // Post the issue to ADO and parse the response
-                var content = await PostIssue(issue, credentials, url);
-                var response = JsonConvert.DeserializeObject<Dictionary<string, object>>(content);
+                var workItem = await PostIssue(issue, url);
 
                 // Build the email
-                var email = BuildEmail(bug, response);
+                var email = BuildEmail(bug, workItem);
 
                 if (email is not null)
                 {
@@ -80,11 +81,11 @@ namespace Datahub.Functions
             }
         }
 
-        public EmailRequestMessage? BuildEmail(BugReportMessage bug, Dictionary<string, object> response)
+        public EmailRequestMessage? BuildEmail(BugReportMessage bug, WorkItem workItem)
         {
             var sendTo = new List<string> { _config.Email.AdminEmail };
-            var url = response["url"].ToString() ?? "";
-            var id = response["id"].ToString() ?? "";
+            var url = workItem.Url ?? ""; 
+            var id = workItem.Id.ToString() ?? "";
 
             Dictionary<string, string> subjectArgs = new()
             {
@@ -102,7 +103,7 @@ namespace Datahub.Functions
         }
 
 
-        public async Task<object> CreateIssue(BugReportMessage bug)
+        public async Task<JsonPatchDocument> CreateIssue(BugReportMessage bug)
         {
             var organization = _config.AdoConfig.OrgName;
             var project = _config.AdoConfig.ProjectName;
@@ -112,28 +113,24 @@ namespace Datahub.Functions
                 $"<b>Issue submitted by:</b> {bug.UserName}<br /><b>Contact email:</b> {bug.UserEmail}<br /><b>Organization:</b> {bug.UserOrganization}<br /><b>Preferred Language:</b> {bug.PreferredLanguage} <br /><b>Time Zone:</b> {bug.Timezone}<br /><br /><b>Topics:</b> {bug.Topics}<br /><b>Workspace:</b> {bug.Workspaces}<br /><b>Description:</b> {bug.Description}<br /><br /><b>Portal Language:</b> {bug.PortalLanguage}<br /><b>Active URL:</b> {bug.URL}<br /><b>User Agent:</b> {bug.UserAgent}<br /><b>Resolution:</b> {bug.Resolution}<br /><b>Local Storage:</b><br />{bug.LocalStorage}";
 
             // Content of the issue. Possible additions: New tags (topics?), AssignedTo, State, Reason.
-            var body = new object[]
+            var body = new JsonPatchDocument
             {
-                new { op = "add", path = "/fields/System.Title", value = title },
-                new { op = "add", path = "/fields/System.Description", value = description },
-                new { op = "add", path = "/fields/System.AreaPath", value = $"{project}\\FSDH Support Team" },
-                new { op = "add", path = "/fields/System.IterationPath", value = $"{project}\\POC 2" },
-                new
+                new JsonPatchOperation { Operation = Operation.Add, Path = "/fields/System.Title", Value = title },
+                new JsonPatchOperation { Operation = Operation.Add, Path = "/fields/System.Description", Value = description },
+                new JsonPatchOperation { Operation = Operation.Add, Path = "/fields/System.AreaPath", Value = $"{project}\\FSDH Support Team" },
+                new JsonPatchOperation { Operation = Operation.Add, Path = "/fields/System.IterationPath", Value = $"{project}\\POC 2" },
+                new JsonPatchOperation { Operation = Operation.Add, Path = "/fields/System.Tags", Value = $"UserSubmitted; {bug.UserName.Replace(",", " ")};{bug.Topics}" },
+                new JsonPatchOperation { Operation = Operation.Add, Path = "/fields/Submitted By", Value = bug.UserName },
+                new JsonPatchOperation { Operation = Operation.Add, Path = "/fields/Email", Value = bug.UserEmail },
+                new JsonPatchOperation { Operation = Operation.Add, Path = "/fields/Workspaces", Value = bug.Workspaces },
+                new JsonPatchOperation { Operation = Operation.Add, Path = "/fields/Organization", Value = bug.UserOrganization },
+                new JsonPatchOperation { Operation = Operation.Add, Path = "/fields/Timezone", Value = bug.Timezone },
+                new JsonPatchOperation { Operation = Operation.Add, Path = "/fields/Preferred Language", Value = bug.PreferredLanguage },
+                new JsonPatchOperation
                 {
-                    op = "add", path = "/fields/System.Tags",
-                    value = $"UserSubmitted; {bug.UserName.Replace(",", " ")};{bug.Topics}"
-                },
-                new { op = "add", path = "/fields/Submitted By", value = bug.UserName },
-                new { op = "add", path = "/fields/Email", value = bug.UserEmail },
-                new { op = "add", path = "/fields/Workspaces", value = bug.Workspaces },
-                new { op = "add", path = "/fields/Organization", value = bug.UserOrganization },
-                new { op = "add", path = "/fields/Timezone", value = bug.Timezone },
-                new { op = "add", path = "/fields/Preferred Language", value = bug.PreferredLanguage },
-                new
-                {
-                    op = "add",
-                    path = "/relations/-",
-                    value = new
+                    Operation = Operation.Add,
+                    Path = "/relations/-",
+                    Value = new
                     {
                         rel = "System.LinkTypes.Hierarchy-Reverse",
                         url = $"https://dev.azure.com/{organization}/{project}/_apis/wit/workItems/{(int)bug.BugReportType}",
@@ -145,18 +142,13 @@ namespace Datahub.Functions
             return body;
         }
 
-        public async Task<string> PostIssue(object body, string personalAccessToken, string postUrl)
+        public async Task<WorkItem> PostIssue(JsonPatchDocument body, string postUrl)
         {
-            var client = new HttpClient();
-            var jsonContent = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8,
-                "application/json-patch+json");
-            string credentials = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes($":{personalAccessToken}"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+            var clientProvider = new AdoClientProvider(_config);
+            var client = await clientProvider.GetWorkItemClient();
+            var workItem = await client.CreateWorkItemAsync(body, _config.AdoConfig.ProjectName, "Issue");
 
-            var response = await client.PostAsync(postUrl, jsonContent);
-            var responseContent = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
+            if (workItem is null)
             {
                 _logger.LogError("Unable to create issue in DevOps.");
             }
@@ -165,7 +157,7 @@ namespace Datahub.Functions
                 _logger.LogInformation("Successfully created issue in DevOps.");
             }
 
-            return responseContent;
+            return workItem;
         }
     }
 }
