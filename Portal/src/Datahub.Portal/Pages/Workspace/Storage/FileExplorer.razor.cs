@@ -222,7 +222,7 @@ public partial class FileExplorer
 
         var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
 
-        var dialog = await _dialogService.ShowAsync<PublishNewDatasetDialog>("Add Files To Dataset", dialogParams, options);
+        var dialog = await _dialogService.ShowAsync<PublishNewDatasetDialog>(Localizer["Add Files To Dataset"], dialogParams, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
@@ -168,10 +169,27 @@ public class CKANService : ICKANService
         // instead of serializing the entire payload into memory
         await content.ReadAsStringAsync();
 
-        // var result = await PostRequestAsync(RESOURCE_CREATE_ACTION, content);
         var result = await DoRequestAsync(HttpMethod.Post, RESOURCE_CREATE_ACTION, content);
 
         return await Task.FromResult(result);
+    }
+
+    private static string GetCkanErrorMessage(CKANResult result)
+    {
+        if (result.Success)
+        {
+            return string.Empty;
+        }
+        else
+        {
+            string[] parts =
+            [
+                result.Error?.__type,
+                result.Error?.Message
+            ];
+
+            return string.Join(" - ", parts.Where(s => !string.IsNullOrEmpty(s)));
+        }
     }
 
     #nullable enable
@@ -204,20 +222,8 @@ public class CKANService : ICKANService
                 Content = content
             };
             httpRequest.Headers.Add("X-CKAN-API-Key", apiKey);
-            if (method == HttpMethod.Post) 
-            {
-                httpRequest.Headers.TransferEncodingChunked = false;
-            }
 
-            var t = false;
-            if (content != null && t)
-            {
-                var test = await content.ReadAsStringAsync();
-            }
-
-            // var response = await _httpClient.PostAsync($"{baseUrl}/action/{action}", content);
-            using var response = await _httpClient.SendAsync(httpRequest).ConfigureAwait(false);
-            //response.EnsureSuccessStatusCode();
+            using var response = await _httpClient.SendAsync(httpRequest);
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
             var ckanResult = JsonSerializer.Deserialize<CKANResult>(jsonResponse, GetSerializationOptions());
@@ -227,7 +233,7 @@ public class CKANService : ICKANService
                 return new CKANApiResult(false, "Invalid response from API");
             }
 
-            var errorMessage = ckanResult.Success ? string.Empty : ckanResult.Error?.__type ?? string.Empty;
+            var errorMessage = GetCkanErrorMessage(ckanResult);
             return new CKANApiResult(ckanResult.Success, errorMessage, ckanResult.Result);
         }
         catch (Exception ex)
@@ -237,6 +243,7 @@ public class CKANService : ICKANService
     }
     #nullable restore
 
+    // TODO: Remove this
     public async Task<CKANApiResult> AddResourcePackageOld(string packageId, string fileName, Stream fileData, long? contentLength = null)
     {
         var boundary = NewMultipartBoundary();
@@ -258,7 +265,7 @@ public class CKANService : ICKANService
             { streamContent, "upload", fileName }
         };
         
-        return await PostRequestAsync("resource_create", content, false);
+        return await PostRequestAsync("resource_create", content);
     }
 
     public async Task<CKANApiResult> DeletePackage(string packageId)
@@ -274,45 +281,8 @@ public class CKANService : ICKANService
         return await PostRequestAsync("package_delete", content);
     }
 
-    private async Task<CKANApiResult> PostRequestAsync(string action, HttpContent content, bool oldMethod = false)
-    {
-        // if (oldMethod)
-        // {
-        //     try
-        //     {
-        //         // this is to avoid developing on the VPN (test mode should be off in prod)
-        //         if (_ckanConfiguration.TestMode)
-        //             return new CKANApiResult(true, "");
-
-        //         var baseUrl = _ckanConfiguration.BaseUrl;
-        //         var apiKey = _ckanConfiguration.ApiKey;
-
-        //         content.Headers.Add("X-CKAN-API-Key", apiKey);
-
-        //         // var test = await content.ReadAsStringAsync();
-
-        //         var response = await _httpClient.PostAsync($"{baseUrl}/action/{action}", content);
-        //         //response.EnsureSuccessStatusCode();
-
-        //         var jsonResponse = await response.Content.ReadAsStringAsync();
-        //         var ckanResult = JsonSerializer.Deserialize<CKANResult>(jsonResponse, GetSerializationOptions());
-
-        //         var errorMessage = ckanResult.Success ? string.Empty : ckanResult.Error?.__type;
-        //         return new CKANApiResult(ckanResult.Success, errorMessage, ckanResult.Result);
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         return new CKANApiResult(false, ex.Message);
-        //     }
-        // }
-        // else
-        // {
-            return await DoRequestAsync(HttpMethod.Post, action, content);
-        // }
-    }
-
-
-
+    private async Task<CKANApiResult> PostRequestAsync(string action, HttpContent content) => await DoRequestAsync(HttpMethod.Post, action, content);
+    
 }
 
 class CKANResult

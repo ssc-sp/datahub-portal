@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Portal.Services;
 
+//TODO remove this class
+
 public class OpenDataService : IOpenDataService
 {
     readonly ICKANServiceFactory _serviceFactory;

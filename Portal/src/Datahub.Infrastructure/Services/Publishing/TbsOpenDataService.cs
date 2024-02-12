@@ -8,6 +8,8 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Metadata;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Storage;
+using Datahub.Metadata.DTO;
+using Datahub.Metadata.Utils;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Bcpg;
 
@@ -33,11 +35,13 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
     public async Task<CKANApiResult> CreateOrFetchPackage(OpenDataSubmission submission)
     {
-        var metadata = await _metadataBrokerService.GetObjectMetadataValues(submission.UniqueId, null);
-        if (metadata == null)
+        var submissionMetadata = await _metadataBrokerService.GetObjectMetadataValues(submission.UniqueId);
+        if (submissionMetadata == null)
         {
             throw new OpenDataPublishingException($"Metadata not found for submission with ID {submission.Id} (unique id: {submission.UniqueId})");
         }
+
+        await ApplyWorkspaceOwnerOrgToMetadata(submissionMetadata, submission.Project.Project_Acronym_CD);
 
         var apiKey = await GetApiKeyForWorkspace(submission.Project.Project_Acronym_CD);
         if (string.IsNullOrEmpty(apiKey))
@@ -47,21 +51,45 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
         var ckanService = _ckanServiceFactory.CreateService(apiKey);
 
-        var result = await ckanService.CreateOrFetchPackage(metadata, false);
+        var result = await ckanService.CreateOrFetchPackage(submissionMetadata, false);
 
         return await Task.FromResult(result);
     }
 
+    private async Task ApplyWorkspaceOwnerOrgToMetadata(FieldValueContainer submissionMetadata, string workspaceAcronym)
+    {
+        var workspaceMetadata = await _metadataBrokerService.GetObjectMetadataValues(workspaceAcronym);
+        if (workspaceMetadata == null)
+        {
+            throw new OpenDataPublishingException($"Metadata not found for workspace {workspaceAcronym}");
+        }
+
+        submissionMetadata[FieldNames.opengov_owner_org].Value_TXT = workspaceMetadata[FieldNames.opengov_owner_org].Value_TXT;
+    }
+
     private async Task<ICloudStorageManager> GetCloudStorageManagerAsync(OpenDataPublishFile publishFile)
     {
+        var projectAcronym = publishFile.Submission.Project.Project_Acronym_CD;
+
         if (publishFile.ProjectStorageId.HasValue)
         {
-            //TODO fetch from db, etc
-            throw new NotImplementedException();
+            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            var storage = await ctx.ProjectCloudStorages.AsNoTracking().FirstOrDefaultAsync(s => s.Id == publishFile.ProjectStorageId);
+            if (storage == null)
+            {
+                throw new OpenDataPublishingException($"Project cloud storage not found with id {publishFile.ProjectStorageId} (submission {publishFile.SubmissionId})");
+            }
+
+            var storageManager = await _cloudStorageManagerFactory.CreateCloudStorageManager(projectAcronym, storage);
+            if (storageManager == null)
+            {
+                throw new OpenDataPublishingException($"Could not open cloud storage with id {publishFile.ProjectStorageId} (submission {publishFile.SubmissionId})");
+            }
+
+            return await Task.FromResult(storageManager);
         }
         else
         {
-            var projectAcronym = publishFile.Submission.Project.Project_Acronym_CD;
             var accountName = _projectStorageConfigService.GetProjectStorageAccountName(projectAcronym);
             var accountKey = await _projectStorageConfigService.GetProjectStorageAccountKey(projectAcronym);
             var storageManager = new AzureCloudStorageManager(accountName, accountKey);
@@ -162,5 +190,13 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
     public async Task SetApiKeyForWorkspace(string workspaceAcronym, string apiKey)
     {
         await _keyvaultUserService.StoreSecret(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY, apiKey);
+    }
+
+    public async Task<bool> IsWorkspaceReadyForSubmission(string workspaceAcronym)
+    {
+        var isApiKeySetup = await IsApiKeyConfiguredForWorkspace(workspaceAcronym);
+        var workspaceMetadata = await _metadataBrokerService.GetObjectMetadataValues(workspaceAcronym);
+        var isOrgSetup = !string.IsNullOrEmpty(workspaceMetadata?[FieldNames.opengov_owner_org]?.Value_TXT);
+        return await Task.FromResult(isApiKeySetup && isOrgSetup);
     }
 }
