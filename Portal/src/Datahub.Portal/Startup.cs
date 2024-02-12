@@ -71,6 +71,8 @@ using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Configuration;
 using Datahub.Infrastructure.Services.Security;
+using Datahub.Application.Services.Publishing;
+using Datahub.Infrastructure.Services.Publishing;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
 
@@ -463,6 +465,9 @@ public class Startup
 
         services.AddCKANService();
         services.AddSingleton<IOpenDataService, OpenDataService>();
+        
+        services.AddScoped<ITbsOpenDataService, TbsOpenDataService>();
+        services.AddScoped<IOpenDataPublishingService, OpenDataPublishingService>();
 
         services.AddGeoCoreService();
 

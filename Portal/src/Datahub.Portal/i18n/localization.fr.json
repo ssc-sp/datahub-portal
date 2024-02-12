@@ -2532,5 +2532,6 @@
   "{0} credits consumed yesterday": "{0} crédits consommés hier",
   "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail",
   "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés.",
-  " is the default role and has only read access to all resources within your project.": " est le rôle par défaut et n'a qu'un accès en lecture à toutes les ressources de votre projet."
+  " is the default role and has only read access to all resources within your project.": " est le rôle par défaut et n'a qu'un accès en lecture à toutes les ressources de votre projet.",
+  "You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting.": "Vous devez reconnaître et cocher toutes les cases des <b>Critères obligatoires de libération</b> avant de soumettre votre demande."
 }

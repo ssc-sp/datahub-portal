@@ -1,4 +1,5 @@
 @* FileExplorer.razor *@
+@using Datahub.Application.Services.Publishing
 @using Datahub.Core.Storage;
 @using Datahub.Core.Components.FileUpload
 @using Datahub.Core.Services.Achievements;
@@ -10,6 +11,9 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IJSRuntime _jsRuntime
 @inject IPortalUserTelemetryService _telemetryService
+@inject IDialogService _dialogService
+@inject IOpenDataPublishingService _publishingService;
+@inject NavigationManager _navManager;
 
 @implements IAsyncDisposable
 
@@ -25,6 +29,7 @@
             SetCurrentFolder="SetCurrentFolder"
             OnFileDelete="HandleFileDelete"
             OnFileDownload="HandleFileDownload"
+            OnPublishFiles="HandlePublishFiles"
             OnFileRename="HandleFileRename"
             OnDeleteFolder="HandleDeleteFolder" />
 
