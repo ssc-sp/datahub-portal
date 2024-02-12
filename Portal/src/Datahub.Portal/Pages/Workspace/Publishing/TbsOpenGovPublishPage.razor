@@ -272,21 +272,18 @@
         var dialog = await _dialogService.ShowAsync<EditFileInformationDialog>(Localizer["Edit File Information"], dialogParams, dialogOptions);
         var result = await dialog.Result;
 
-        // TODO rework file info dialog / return handling to better deal with resource metadata
-
-        if (result.Canceled)
+        if (!result.Canceled)
         {
-            //TODO revert metadata if possible
-        }
-        else
-        {
-            var saved = result.Data as bool? ?? false;
-            if (saved)
+            var completeFiles = result.Data as Dictionary<long, bool>;
+            if (completeFiles != null && completeFiles.Count > 0)
             {
-                foreach (var f in Submission.Files)
+                foreach (var fileResult in completeFiles)
                 {
-                    //TODO verify if metadata complete
-                    f.UploadStatus = OpenDataPublishFileUploadStatus.ReadyToUpload;
+                    var updatedFile = Submission.Files.FirstOrDefault(f => f.Id == fileResult.Key);
+                    if (updatedFile != null)
+                    {
+                        updatedFile.UploadStatus = fileResult.Value ? OpenDataPublishFileUploadStatus.ReadyToUpload : OpenDataPublishFileUploadStatus.NotStarted;
+                    }
                 }
                 await UpdateSubmission();
             }
