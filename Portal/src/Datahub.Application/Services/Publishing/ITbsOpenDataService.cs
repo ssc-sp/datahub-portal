@@ -11,4 +11,5 @@ public interface ITbsOpenDataService
     Task<bool> IsApiKeyConfiguredForWorkspace(string workspaceAcronym);
     Task<string?> GetApiKeyForWorkspace(string workspaceAcronym);
     Task SetApiKeyForWorkspace(string workspaceAcronym, string apiKey);
+    Task<bool> IsWorkspaceReadyForSubmission(string workspaceAcronym);
 }

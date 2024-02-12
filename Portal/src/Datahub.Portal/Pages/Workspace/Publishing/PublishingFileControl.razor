@@ -9,7 +9,7 @@
     else if (File.UploadStatus == OpenDataPublishFileUploadStatus.ReadyToUpload)
     {
         <MudStack Row AlignItems=@AlignItems.Center>
-            <MudButton OnClick=@UploadClicked Color=@Color.Primary Variant=@Variant.Filled>@_uploadButtonLabelInternal</MudButton>
+            <MudButton OnClick=@UploadClicked Color=@Color.Primary Variant=@Variant.Filled Disabled=@_disableButtonInternal>@_uploadButtonLabelInternal</MudButton>
             <MudText>@Localizer["Ready to upload"]</MudText>
         </MudStack>
     }
@@ -47,6 +47,9 @@ else
     public OpenDataPublishFile File { get; set; }
 
     [Parameter]
+    public bool CanPublish { get; set; }
+
+    [Parameter]
     public EventCallback<OpenDataPublishFile> OnUploadHandler { get; set; }
 
     [Parameter]
@@ -58,6 +61,7 @@ else
     private string _notStartedMessageInternal => string.IsNullOrEmpty(NotStartedMessage) ? Localizer["File is not ready to upload"] : NotStartedMessage;
     private string _uploadButtonLabelInternal => string.IsNullOrEmpty(UploadButtonLabel) ? Localizer["Upload"] : UploadButtonLabel;
 
+    private bool _disableButtonInternal => !CanPublish;
 
     private async Task UploadClicked()
     {

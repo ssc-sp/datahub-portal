@@ -9,7 +9,7 @@
         {
             @if (HasFiles)
             {
-                <MudText Typo=@Typo.h3>Files</MudText>
+                <MudText Typo=@Typo.h3>@Localizer["Files"]</MudText>
                 <MudList>
                     @foreach(var f in Files)
                     {
@@ -29,7 +29,7 @@
                 }
             </MudSelect>
         }
-        <MudTextField @bind-Value=@_datasetTitle Label="Dataset Title" Required Disabled=@IsExistingSubmissionSelected />
+        <MudTextField @bind-Value=@_datasetTitle Label=@Localizer["Dataset Title"] Required Disabled=@IsExistingSubmissionSelected />
         <MudSelect T=@OpenDataPublishProcessType @bind-Value=@_processType ToStringFunc=@ProcessTypeLabel Disabled=@IsExistingSubmissionSelected>
             @foreach (var t in _availableTypes)
             {
@@ -38,8 +38,8 @@
         </MudSelect>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick=@Cancel>Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick=@Submit>Ok</MudButton>
+        <MudButton OnClick=@Cancel>@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick=@Submit>@Localizer["Ok"]</MudButton>
     </DialogActions>
 </MudDialog>
 

@@ -3,7 +3,8 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Utils
-@inject IUserInformationService _userService
+@inject IUserInformationService _userService;
+@inject IMetadataBrokerService _metadataService;
 
 @if (_initialized)
 {
@@ -16,7 +17,7 @@
         Location=@ProjectAcronym
         UpdateCatalog=@false
         SecurityClass=@Core.SecurityClassification.Unclassified
-        DefaultMetadataId=@Submission.Project.Project_Acronym_CD
+        DefaultMetadataId=@ProjectAcronym
         OnNewMetadataCreated=@OnNewMetadataCreated
         OnExistingMetadataLoaded=@OnNewMetadataCreated
         ValidateRequired=@false
@@ -34,36 +35,52 @@
     [Parameter]
     public EventCallback OnMetadataUpdated { get; set; }
 
+    static readonly ISet<string> INHERITED_FIELDS_TO_REMOVE = new HashSet<string> ()
+    {
+        FieldNames.name_en,
+        FieldNames.name_fr,
+        FieldNames.organization_name,
+        FieldNames.description_en,
+        FieldNames.description_fr,
+        FieldNames.creator,
+        FieldNames.contact_email
+    };
+
     private PortalUser _reqUser;
     private bool _initialized = false;
-    private int ding = 0;
+    private FieldValueContainer _workspaceMetadata = null;
 
-    private void OnNewMetadataCreated()
+    private async Task OnNewMetadataCreated()
     {
-        if (string.IsNullOrEmpty(_editor.GetValue(FieldNames.pub_contact_email)))
-        {
-            _editor.SetValue(FieldNames.pub_contact_email, _reqUser.Email);
-        }
-
         var isFrench = _reqUser.UserSettings.Language?.Contains(CultureService.French) ?? false;
-        var titleField = isFrench ? FieldNames.title_translated_fr : FieldNames.title_translated_fr;
+        var titleField = isFrench ? FieldNames.title_translated_fr : FieldNames.title_translated_en;
         if (string.IsNullOrEmpty(_editor.GetValue(titleField)))
         {
             _editor.SetValue(titleField, Submission.DatasetTitle);
         }
+
+        await Task.CompletedTask;
+    }
+
+    private async Task LoadWorkspaceMetadata()
+    {
+        if (_workspaceMetadata != null)
+        {
+            await Task.CompletedTask;
+        }
+
+        _workspaceMetadata = await _metadataService.GetObjectMetadataValues(ProjectAcronym);
     }
 
     private async Task SaveChanges()
     {
-        //TODO strip out workspace fields
-        var selectedOrganization = _editor.GetSelectedChoices(FieldNames.organization_name).FirstOrDefault();
-        if (selectedOrganization != null)
+        foreach (var fieldName in INHERITED_FIELDS_TO_REMOVE)
         {
-            var orgNameEn = selectedOrganization.Label_English_TXT;
-            var orgNameFr = selectedOrganization.Label_French_TXT;
-
-            _editor.SetValue(FieldNames.org_name_at_pub_en, orgNameEn);
-            _editor.SetValue(FieldNames.org_name_at_pub_fr, orgNameFr);
+            var existingValue = _editor.GetValue(fieldName);
+            if (!string.IsNullOrEmpty(existingValue))
+            {
+                _editor.SetValue(fieldName, null);
+            }
         }
 
         await _editor.SaveChanges();

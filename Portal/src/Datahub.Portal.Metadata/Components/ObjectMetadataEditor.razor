@@ -288,6 +288,12 @@
 
     public async Task<bool> SaveChanges() => await DoSaveChanges();
 
+    public async Task ResetValues()
+    {
+        await LoadFieldValues();
+        await InvokeAsync(StateHasChanged);
+    }
+
     private async Task HandleSaveButton()
     {
         if (!SaveDisabled)

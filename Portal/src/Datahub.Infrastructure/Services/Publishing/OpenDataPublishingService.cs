@@ -23,6 +23,7 @@ namespace Datahub.Infrastructure.Services.Publishing
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
             var submissions = await ctx.OpenDataSubmissions
+                .AsNoTracking()
                 .Where(s => s.ProjectId == workspaceId && s.OpenForAttachingFiles)
                 .ToListAsync();
 
@@ -34,6 +35,7 @@ namespace Datahub.Infrastructure.Services.Publishing
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
             var submission = await ctx.OpenDataSubmissions
+                .AsNoTracking()
                 .Include(s => s.Files)
                 .Include(s => s.Project)
                 .Include(s => s.RequestingUser)
@@ -52,6 +54,7 @@ namespace Datahub.Infrastructure.Services.Publishing
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
             var submissions = await ctx.OpenDataSubmissions
+                .AsNoTracking()
                 .Include(s => s.RequestingUser)
                 .Where(s => s.ProjectId == workspaceId)
                 .ToListAsync();
@@ -133,10 +136,8 @@ namespace Datahub.Infrastructure.Services.Publishing
             }
 
             var user = await _userService.GetCurrentPortalUserAsync();
-            submission.RequestingUser = user;
+            submission.RequestingUserId = user.Id;
             submission.RequestDate = DateTime.Today;
-
-
 
             await ctx.SaveChangesAsync();
 

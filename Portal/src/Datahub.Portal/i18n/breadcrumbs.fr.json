@@ -91,5 +91,6 @@
   "breadcrumb_notifications": "Notifications",
   "breadcrumb_diagnostics": "Diagnostiques",
   "breadcrumb_news": "Nouvelles",
-  "breadcrumb_repository": "Dépôt"
+  "breadcrumb_repository": "Dépôt",
+  "breadcrumb_publishing": "Publication"
 }

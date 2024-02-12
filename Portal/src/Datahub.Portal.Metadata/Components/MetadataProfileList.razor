@@ -5,16 +5,6 @@
 @using Datahub.Metadata.DTO
 
 <div>
-@*     <AeTable 
-        Accessors=@_profileAccessorFunctions 
-        T=@ProfileSummary
-        Dataset=@_profiles
-        Headers=@_profileHeaders
-        Renderers=@_profileRenderFunctions
-        GridTemplateColumns="3fr 3fr 1fr"
-    />
-
- *@
     <MudTable T=@ProfileSummary
         Items=@_profiles
         >
@@ -39,18 +29,12 @@
 @code {
 
     private List<ProfileSummary> _profiles;
-    private List<string> _profileHeaders = new();
-    private List<Func<ProfileSummary, RenderFragment>> _profileRenderFunctions = new();
-    private List<Func<ProfileSummary, string>> _profileAccessorFunctions = new();
 
     protected override async Task OnInitializedAsync()
     {
         using var ctx = ContextFactory.CreateDbContext();
 
         _profiles = await GetProfiles(ctx);
-        _profileHeaders = new() { Localizer["Name"], Localizer["Sections"], null };
-        _profileAccessorFunctions = new() { GetProfileName, GetProfileSections, null };
-        _profileRenderFunctions = new() { null, null, GetEditProfileFragment }; 
     }
 
     private string GetProfileName(ProfileSummary summary) => summary.Name;

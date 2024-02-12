@@ -10,7 +10,7 @@
 
 @implements IDisposable
 
-<MudText Typo=@Typo.h2>TBS Open Government Registry</MudText>
+<MudText Typo=@Typo.h2>@Localizer["TBS Open Government Registry"]</MudText>
 
 @if(SubmissionLoaded)
 {
@@ -18,6 +18,11 @@
     <MudText Typo=@Typo.h3>Dataset: @Submission.DatasetTitle</MudText>
     
     <MudStack Spacing="6" >
+
+        @if (ShowSubmissionWarning)
+        {
+            <MudAlert Severity=@Severity.Warning>@Localizer["Publishing settings have not been properly set up for this workspace, so you will not be able to submit files to the Open Government Registry. Please contact your workspace administrator."]</MudAlert>
+        }
 
         <MudCard>
             <MudCardHeader>
@@ -43,7 +48,7 @@
         {
             <MudCard>
                 <MudCardHeader>
-                    <MudText Typo=@Typo.h3>Submission Metadata</MudText>
+                    <MudText Typo=@Typo.h3>@Localizer["Submission Metadata"]</MudText>
                 </MudCardHeader>
                 <MudCardContent>
                     <TbsOpenGovSubmissionMetadataEditor Submission=@Submission OnMetadataUpdated=@UpdateSubmission />
@@ -55,7 +60,7 @@
         {
             <MudCard>
                 <MudCardHeader>
-                    <MudText Typo=@Typo.h3>Open Gov Publishing Criteria</MudText>
+                    <MudText Typo=@Typo.h3>@Localizer["Open Gov Publishing Criteria"]</MudText>
                 </MudCardHeader>
 
                 <MudCardContent>
@@ -102,9 +107,7 @@
                     </MudList>
                 </MudCardContent>
                 <MudCardActions>
-                    <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@UpdateSubmission >Update</MudButton>
-                    <MudSpacer />
-                    <MudButton>Add files</MudButton> 
+                    <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@UpdateSubmission >@Localizer["Update"]</MudButton>
                 </MudCardActions>
             </MudCard>
         }
@@ -120,10 +123,13 @@
                         <RowTemplate>
                             <MudTd><MudText>@context.FileName</MudText></MudTd>
                             <MudTd><MudText>@GetFilePurposeLabel(context.FilePurpose)</MudText></MudTd>
-                            <MudTd><PublishingFileControl File=@context OnUploadHandler=@UploadFileHandler /></MudTd>
+                            <MudTd><PublishingFileControl File=@context OnUploadHandler=@UploadFileHandler CanPublish=@_canBeSubmitted /></MudTd>
                         </RowTemplate>
                     </MudTable>
                 </MudCardContent>
+                <MudCardActions>
+                    <MudButton Color=@Color.Error OnClick=@ResetFileStatuses>@Localizer["Reset"]</MudButton>
+                </MudCardActions>
             </MudCard>
         }
 
@@ -175,6 +181,9 @@
     public TbsOpenGovSubmission Submission { get; set; }
 
     [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    [Parameter]
     public EventCallback OnSubmissionUpdated { get; set; }
 
     private bool _timelineCollapsed = true;
@@ -186,13 +195,17 @@
 
     private GenericSyncer Syncer = new();
 
-    private bool SubmissionLoaded => Submission != null;
+    private bool SubmissionLoaded => _initialized && Submission != null;
+    private bool _initialized = false;
+
+    private bool _canBeSubmitted = false;
+    private bool ShowSubmissionWarning => SubmissionLoaded && !_canBeSubmitted;
 
     private bool ShowMetadataEntryForm => true; //TODO
     private bool ShowOpenGovCriteriaForm => _stepStates[StatusEnum.AwaitingApprovalCriteria] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowFileSelectionPane => true; // _stepStates[StatusEnum.AwaitingFiles] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowFileUploadPane => true;// _stepStates[StatusEnum.Uploading] == DHSteps<StatusEnum>.StepState.Running;
-    private bool ShowImsoApprovalPane => true; //TODO
+    private bool ShowImsoApprovalPane => false; //TODO
 
     private Dictionary<StatusEnum, DHSteps<StatusEnum>.StepState> _stepStates = new();
     private Dictionary<StatusEnum, (string, string)?> _stepInfo = new();
@@ -259,6 +272,8 @@
         var dialog = await _dialogService.ShowAsync<EditFileInformationDialog>(Localizer["Edit File Information"], dialogParams, dialogOptions);
         var result = await dialog.Result;
 
+        // TODO rework file info dialog / return handling to better deal with resource metadata
+
         if (result.Canceled)
         {
             //TODO revert metadata if possible
@@ -286,13 +301,28 @@
         var updatedFile = await _tbsService.UploadFile(file);
         UpdateFileStatus(file, updatedFile);
         await InvokeAsync(StateHasChanged);
-        @* await _publishingService.UploadFileToTbs(file); *@
     }
 
     private void UpdateFileStatus(OpenDataPublishFile file, OpenDataPublishFile updatedFile)
     {
         file.UploadStatus = updatedFile.UploadStatus;
         file.UploadMessage = updatedFile.UploadMessage;
+    }
+
+    private async Task ResetFileStatuses()
+    {
+        var tasks = Submission.Files.Select(f => _publishingService.UpdateFileUploadStatus(f, OpenDataPublishFileUploadStatus.ReadyToUpload));
+        var updatedFiles = await Task.WhenAll(tasks);
+        foreach (var file in updatedFiles)
+        {
+            var matchingFile = Submission.Files.FirstOrDefault(f => f.Id == file.Id);
+            if (matchingFile != null)
+            {
+                UpdateFileStatus(matchingFile, file);
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task UpdateApprovalFormId(Forms.ShareWorkflow.ApprovalFormSubmitArgs args)
@@ -326,7 +356,7 @@
     {
         if (OnSubmissionUpdated.HasDelegate)
         {
-           await OnSubmissionUpdated.InvokeAsync();
+            await OnSubmissionUpdated.InvokeAsync();
         }
     }
 
@@ -365,11 +395,15 @@
         _stepInfo = _steps.ToDictionary(s => s, s => GetStepPair(s));
         _stepStates = _steps.ToDictionary(s => s, s => DHSteps<StatusEnum>.StepState.Queued);
 
+        _canBeSubmitted = await _tbsService.IsWorkspaceReadyForSubmission(WorkspaceAcronym);
+
         SetStatusSteps();
 
         _requestingUser = Submission?.RequestingUser ?? await _userService.GetCurrentPortalUserAsync();
 
         if (Syncer != null) Syncer.Notify += StateHasChanged;
+
+        _initialized = true;
 
         await base.OnInitializedAsync();
     }
