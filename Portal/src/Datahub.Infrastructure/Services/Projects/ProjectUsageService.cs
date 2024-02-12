@@ -180,8 +180,13 @@ public class ProjectUsageService
             var existing = totalCosts.FirstOrDefault(c => c.Name == cost.Name);
             if (existing is null)
             {
-                cost.Date = DateTime.MinValue;
-                totalCosts.Add(cost);
+                var newCost = new AzureServiceCost
+                {
+                    Date = DateTime.MinValue,
+                    Name = cost.Name,
+                    Cost = cost.Cost
+                };
+                totalCosts.Add(newCost);
             }
             else
             {
