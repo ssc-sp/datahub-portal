@@ -353,7 +353,6 @@ public class Startup
         {
             options.CacheDuration = TimeSpan.FromMinutes(15);
             options.ResourcesPath = "i18n";
-            options.AdditionalResourcePaths = new[] { $"i18n/{Program.GetDataHubProfile()}" };
             options.UseBaseName = false;
             options.IsAbsolutePath = true;
             options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;

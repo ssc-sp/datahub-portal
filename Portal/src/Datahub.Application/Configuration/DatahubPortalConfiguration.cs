@@ -128,6 +128,7 @@ public class AzureAd
     public string Instance { get; set; } = "https://login.microsoftonline.com/";
     public string Domain { get; set; } = null!;
     public string TenantId { get; set; } = null!;
+    public string SubscriptionId { get; set; } = null!;
     public string ClientId { get; set; } = null!;
     public string ClientSecret { get; set; } = null!;
     public string CallbackPath { get; set; } = "/signin-oidc";
@@ -136,6 +137,9 @@ public class AzureAd
     public string SignedOutCallbackPath { get; set; } = "/signout-callback-oidc";
 
     public string AppIDURL { get; set; } = null!;
+    
+    public string InfraClientId { get; set; } = null!;
+    public string InfraClientSecret { get; set; } = null!;
 }
 
 public class AdoServiceUser

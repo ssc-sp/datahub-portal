@@ -18,8 +18,9 @@ public class ProjectUsageScheduler
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
     private readonly IMediator _mediator;
 
-    public ProjectUsageScheduler(ILoggerFactory loggerFactory, IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IMediator mediator)
-	{
+    public ProjectUsageScheduler(ILoggerFactory loggerFactory,
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IMediator mediator)
+    {
         _logger = loggerFactory.CreateLogger<ProjectUsageScheduler>();
         _dbContextFactory = dbContextFactory;
         _mediator = mediator;
@@ -33,7 +34,8 @@ public class ProjectUsageScheduler
 
 #if DEBUG
     [Function("ProjectUsageSchedulerHttp")]
-    public async Task RunHttp([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestData req)
+    public async Task RunHttp(
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestData req)
     {
         await RunScheduler();
     }
@@ -48,7 +50,9 @@ public class ProjectUsageScheduler
         var timeout = 0;
 
         var resources = await GetProjectResources(ctx);
-        foreach (var resource in resources)
+        var sortedResources = resources.OrderBy(r => r.LastUpdate).Take(1000);
+        
+        foreach (var resource in sortedResources)
         {
             if (scheduled.Contains(resource.ProjectId))
                 continue;
@@ -56,11 +60,10 @@ public class ProjectUsageScheduler
             var message = TryDeserializeMessage(resource, timeout);
             if (message is null)
             {
-                _logger.LogWarning($"Invalid resource json found in project {resource.ProjectId}:\n{resource.JsonContent}");
+                _logger.LogWarning(
+                    $"Invalid resource json found in project {resource.ProjectId}:\n{resource.JsonContent}");
                 continue;
             }
-
-            timeout += 10; // add 10 seconds
 
             // track project id
             scheduled.Add(message.ProjectId);
@@ -68,11 +71,9 @@ public class ProjectUsageScheduler
             // send/post the message
             await _mediator.Send(message);
 
-            timeout += 5;
-
             var capacityMessage = ConvertToCapacityUpdateMessage(message, timeout);
 
-            // send/post the message
+            // send/post the message,
             await _mediator.Send(capacityMessage);
         }
 
@@ -87,14 +88,16 @@ public class ProjectUsageScheduler
             if (string.IsNullOrEmpty(content?.resource_group_name))
                 return default;
 
-            return new ProjectUsageUpdateMessage(resource.ProjectId, content.resource_group_name, resource.Databricks, timeout);
+            return new ProjectUsageUpdateMessage(resource.ProjectId, content.resource_group_name, resource.Databricks,
+                timeout);
         }
         catch
         {
-            _logger.LogInformation($"Found project {resource.ProjectId} with invalid JsonContent:\n{resource.JsonContent}");
+            _logger.LogInformation(
+                $"Found project {resource.ProjectId} with invalid JsonContent:\n{resource.JsonContent}");
             return default;
         }
-    }    
+    }
 
     private async Task<List<ProjectResourceData>> GetProjectResources(DatahubProjectDBContext ctx)
     {
@@ -110,12 +113,23 @@ public class ProjectUsageScheduler
             {
                 databrickProjects.Add(res.ProjectId);
             }
+
             if (res.ResourceType == storageBlobType)
             {
                 projects.Add(res);
             }
         }
-        return projects.Select(p => new ProjectResourceData(p.ProjectId, p.JsonContent, databrickProjects.Contains(p.ProjectId))).ToList();
+
+        return projects.Select(p => new ProjectResourceData(p.ProjectId, p.JsonContent,
+            databrickProjects.Contains(p.ProjectId), GetLastUpdate(ctx, p.ProjectId))).ToList();
+    }
+
+    private DateTime GetLastUpdate(DatahubProjectDBContext ctx, int projectId)
+    {
+        var lastUpdate = ctx.Project_Credits.Where(u => u.ProjectId == projectId).Select(u => u.LastUpdate)
+            .FirstOrDefault();
+
+        return lastUpdate ?? DateTime.MinValue;
     }
 
     static ProjectCapacityUpdateMessage ConvertToCapacityUpdateMessage(ProjectUsageUpdateMessage message, int timeout)
@@ -124,6 +138,6 @@ public class ProjectUsageScheduler
     }
 
     record DBResourceContent(string resource_group_name);
-    record ProjectResourceData(int ProjectId, string JsonContent, bool Databricks);
-}
 
+    record ProjectResourceData(int ProjectId, string JsonContent, bool Databricks, DateTime LastUpdate);
+}

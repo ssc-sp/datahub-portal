@@ -19,7 +19,7 @@
     @if (!_validMandatoryCheckboxes)
     {
         <MudAlert Severity="Severity.Warning">
-            @(new MarkupString(Localizer["OPENDATA-WIZARD.MustAcknowledgeMandatoryReleaseCriteria"]))
+            @(new MarkupString(Localizer["You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting."]))
         </MudAlert>
     }    
 </MudItem>

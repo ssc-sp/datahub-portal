@@ -18,7 +18,7 @@
 <MudCard Class="pa-4">
     <MudCardHeader>
         <CardHeaderContent>
-            <MudText Typo="Typo.h4">@Localizer["ERROR-PAGE.SomethingWentWrong-Label"]</MudText>
+            <MudText Typo="Typo.h4">@Localizer["Something went wrong"]</MudText>
         </CardHeaderContent>
         <CardHeaderActions>
             <MudTooltip Text="@Localizer["Error"]">
@@ -29,7 +29,7 @@
     <MudCardContent>
         <MudStack Spacing="2">
             <MudItem>
-                <MudText Typo="Typo.h5">@Localizer["ERROR-PAGE.TechnicalDetails-Label"]</MudText>
+                <MudText Typo="Typo.h5">@Localizer["TECHNICAL DETAILS"]</MudText>
                 <MudText>@GetGeneralErrorText()</MudText>
             </MudItem>
 
@@ -79,7 +79,7 @@
 
     private MarkupString GetGeneralErrorText()
     {
-        var template = Localizer["ERROR-PAGE.ErrorExplanation-Text"].ToString();
+        var template = Localizer["An application error has occurred on the DataHub server. The error has been recorded with Correlation ID {0}. To avoid network issues, if you are currently on the VPN, please try to disconnect the VPN and retry your actions."].ToString();
         return new MarkupString(string.Format(template, $"<strong>{CorrelationId}</strong>"));
     }
 

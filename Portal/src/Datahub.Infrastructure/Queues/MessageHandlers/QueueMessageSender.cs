@@ -28,6 +28,8 @@ public abstract class QueueMessageSender<T> : IRequestHandler<T> where T : IRequ
         var queueClient = new QueueClient(storageConnectionString, queueName);
         var message = EncodeBase64(JsonSerializer.Serialize(request));
 
+        await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
+
         // pick up the timeout span
         TimeSpan? timeoutSpan = request is IMessageTimeout t ? TimeSpan.FromSeconds(t.Timeout) : default;
 
