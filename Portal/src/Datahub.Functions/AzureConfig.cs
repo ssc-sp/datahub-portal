@@ -79,15 +79,18 @@ public class EmailNotification
 
 public class AdoConfig
 {
-    public string ServiceUserOid { get; set; } 
-    public string ServiceUserPat{ get; set; }
+    public string SpClientId { get; set; } 
+    public string SpClientSecret { get; set; }
     public string OrgName { get; set; } = "DataSolutionsDonnees";
     public string ProjectName { get; set; } = "FSDH SSC";
+    
+    public string OrgUrl { get; set; }
     public string URL { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${workItemTypeName}?api-version=6.0";
 
     public AdoConfig(IConfiguration _config)
     {
-        ServiceUserOid = _config["ADO_ServiceUserOID"] ?? "";
-        ServiceUserPat = _config["ADO_ServiceUserPAT"] ?? "";
+        SpClientId = _config["AdoSpClientId"] ?? "";
+        SpClientSecret = _config["AdoSpClientSecret"] ?? "";
+        OrgUrl = "https://dev.azure.com/" + OrgName;
     }
 }
