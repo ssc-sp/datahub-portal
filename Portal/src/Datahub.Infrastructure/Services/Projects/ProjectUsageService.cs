@@ -173,23 +173,8 @@ public class ProjectUsageService
 
     private List<AzureServiceCost> GetTotalCostsPerService(List<AzureServiceCost> costs)
     {
-        var totalCosts = new List<AzureServiceCost>();
-
-        foreach (var cost in costs)
-        {
-            var existing = totalCosts.FirstOrDefault(c => c.Name == cost.Name);
-            if (existing is null)
-            {
-                cost.Date = DateTime.MinValue;
-                totalCosts.Add(cost);
-            }
-            else
-            {
-                existing.Cost += cost.Cost;
-            }
-        }
-
-        return totalCosts;
+        return costs.GroupBy(c => c.Name).Select(gp => new AzureServiceCost
+            { Date = gp.Min(g => g.Date), Name = gp.Key, Cost = gp.Sum(g => g.Cost) }).ToList();
     }
 
     private List<AzureServiceCost> GetTotalCostsPerDay(List<AzureServiceCost> costs)
