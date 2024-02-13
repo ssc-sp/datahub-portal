@@ -331,7 +331,7 @@ public class DocumentationService
 
     public async Task<JsonNode?> ReadURL(Dictionary<string, string>? parameters = null)
     {
-        var client = _httpClientFactory.CreateClient();
+        var client = _httpClientFactory.CreateClient("cert");
 
         var builder = new UriBuilder(new Uri(COMMIT_API_URL));
         if (parameters != null)
@@ -362,7 +362,7 @@ public class DocumentationService
         if (_cache.TryGetValue(url, out var docContent) && useCache)
             return docContent as string;
 
-        var httpClient = _httpClientFactory.CreateClient();
+        var httpClient = _httpClientFactory.CreateClient("cert");
         try
         {
             var content = await httpClient.GetStringAsync(url);

@@ -73,6 +73,7 @@ using Yarp.ReverseProxy.Configuration;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
+using Datahub.Core.Utils;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -142,8 +143,9 @@ public class Startup
 
         // add custom app services in this method
         ConfigureCoreDatahubServices(services);
-
         services.AddHttpClient();
+        services.AddHttpClientWithTrustedCertificate("cert");
+        services.AddHttpClientWithTrustedCertificate<WikiService>();
         services.AddHttpClient<GraphServiceClient>()
             .AddPolicyHandler(GetRetryPolicy());
         services.AddFileReaderService();
