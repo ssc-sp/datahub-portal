@@ -63,8 +63,7 @@ var host = new HostBuilder()
         services.AddScoped<EmailValidator>();
 
         services.AddDatahubConfigurationFromFunctionFormat(config);
-        
-        services.Configure<APITarget>(config.GetSection("APITargets"));
+       
 
     })
     .Build();
