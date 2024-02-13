@@ -35,7 +35,7 @@ namespace Datahub.SpecflowTests.Features
         public virtual void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "IP Address Whitelist", "\tAllows a user to add an IP address to the whitelist of a cloud resource", ProgrammingLanguage.CSharp, ((string[])(null)));
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "IP Address Whitelist", "Allows a user to add an IP address to the whitelist of a cloud resource", ProgrammingLanguage.CSharp, ((string[])(null)));
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -75,15 +75,16 @@ namespace Datahub.SpecflowTests.Features
         
         [NUnit.Framework.TestAttribute()]
         [NUnit.Framework.DescriptionAttribute("Add my IP address to the whitelist")]
-        [NUnit.Framework.TestCaseAttribute("192.168.2.1", null)]
-        public virtual void AddMyIPAddressToTheWhitelist(string ip_Address, string[] exampleTags)
+        [NUnit.Framework.TestCaseAttribute("my-firewall", "123.123.123.123", null)]
+        public virtual void AddMyIPAddressToTheWhitelist(string name, string ip_Address, string[] exampleTags)
         {
             string[] tagsOfScenario = exampleTags;
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            argumentsOfScenario.Add("name", name);
             argumentsOfScenario.Add("ip_address", ip_Address);
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Add my IP address to the whitelist", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 4
-this.ScenarioInitialize(scenarioInfo);
+    this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
             bool isFeatureIgnored = default(bool);
@@ -103,30 +104,39 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 this.ScenarioStart();
 #line 5
- testRunner.Given("a current user with a name of <name>", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+        testRunner.Given(string.Format("a current user with a name of {0}", name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 6
- testRunner.And(string.Format("an IP address of {0}", ip_Address), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+        testRunner.And(string.Format("an IP address of {0}", ip_Address), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 7
- testRunner.When("the user adds their current IP to the whitelist", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+        testRunner.When("the user adds their current IP to the whitelist", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 8
- testRunner.Then(string.Format("the {0} should be in the whitelist with <name>", ip_Address), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+        testRunner.Then(string.Format("the {0} should be in the whitelist", ip_Address), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 9
+        testRunner.And(string.Format("the {0} associated with {1}", name, ip_Address), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("Conform to Azure Firewall naming conventions")]
-        public virtual void ConformToAzureFirewallNamingConventions()
+        [NUnit.Framework.DescriptionAttribute("Names should conform to Azure Firewall naming conventions")]
+        [NUnit.Framework.TestCaseAttribute("my-firewall", "my-firewall", null)]
+        [NUnit.Framework.TestCaseAttribute("my_firewall", "my-firewall", null)]
+        [NUnit.Framework.TestCaseAttribute("my.firewall", "my-firewall", null)]
+        [NUnit.Framework.TestCaseAttribute("my firewall", "my-firewall", null)]
+        public virtual void NamesShouldConformToAzureFirewallNamingConventions(string name, string cleaned_Name, string[] exampleTags)
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = exampleTags;
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Conform to Azure Firewall naming conventions", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            argumentsOfScenario.Add("name", name);
+            argumentsOfScenario.Add("cleaned_name", cleaned_Name);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Names should conform to Azure Firewall naming conventions", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 15
-this.ScenarioInitialize(scenarioInfo);
+    this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
             bool isFeatureIgnored = default(bool);
@@ -146,16 +156,63 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 this.ScenarioStart();
 #line 16
- testRunner.Given("a current user", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+        testRunner.Given(string.Format("a firewall {0}", name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 17
- testRunner.And("a firewall <name>", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+        testRunner.When("the name is cleaned up for compliance", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 18
- testRunner.When("the user goes to create or update a firewall <name> to the whitelist", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+        testRunner.Then(string.Format("the {0} should be {1}", name, cleaned_Name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 19
- testRunner.Then("the <name> should be cleaned up", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [NUnit.Framework.TestAttribute()]
+        [NUnit.Framework.DescriptionAttribute("Add my existing IP address to the whitelist")]
+        [NUnit.Framework.TestCaseAttribute("test", "123.123.123.123", "my-firewall", null)]
+        public virtual void AddMyExistingIPAddressToTheWhitelist(string name, string ip_Address, string existing_Name, string[] exampleTags)
+        {
+            string[] tagsOfScenario = exampleTags;
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            argumentsOfScenario.Add("name", name);
+            argumentsOfScenario.Add("ip_address", ip_Address);
+            argumentsOfScenario.Add("existing_name", existing_Name);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Add my existing IP address to the whitelist", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 27
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 28
+        testRunner.Given(string.Format("a current user with a name of {0}", name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 29
+        testRunner.And(string.Format("an IP address of {0}", ip_Address), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 30
+        testRunner.And(string.Format("the {0} is already in the whitelist with {1}", ip_Address, existing_Name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 31
+        testRunner.When("the user adds their current IP to the whitelist", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 32
+        testRunner.Then(string.Format("the {0} should be in the whitelist with {1}", ip_Address, name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
