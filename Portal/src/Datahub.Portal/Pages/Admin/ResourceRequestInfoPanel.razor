@@ -31,8 +31,8 @@
 @*             @if (r.IsEditing) *@
 @*             { *@
 @*                 <div> *@
-@*                     <AeButton OnClickEvent=@(async () => await SaveInputParams(r)) Disabled=@_isSaving>@Localizer["BUTTONS.Save"]</AeButton> *@
-@*                     <AeButton class="light" OnClickEvent=@(async () => await CancelEditing(r)) Disabled=@_isSaving>@Localizer["BUTTONS.Cancel"]</AeButton> *@
+@*                     <AeButton OnClickEvent=@(async () => await SaveInputParams(r)) Disabled=@_isSaving>@Localizer["Save"]</AeButton> *@
+@*                     <AeButton class="light" OnClickEvent=@(async () => await CancelEditing(r)) Disabled=@_isSaving>@Localizer["Cancel"]</AeButton> *@
 @*                     <SuccessIndicator @bind-IsLoading=@_isSaving @ref=@_savingInd /> *@
 @*                 </div> *@
 @*             } *@

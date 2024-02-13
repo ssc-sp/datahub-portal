@@ -14,7 +14,7 @@ public class AzureConfig : IAzureServicePrincipalConfig
     {
         _config = config;
         _emailConfig = new EmailNotification();
-        _adoConfig = new AdoConfig();
+        _adoConfig = new AdoConfig(_config);
         _config.Bind("EmailNotification", _emailConfig);
         _config.Bind("AdoConfig", _adoConfig);
     }
@@ -79,11 +79,18 @@ public class EmailNotification
 
 public class AdoConfig
 {
-    public string OidSecretName { get; set; } = "ado-service-user-oid";
-    public string PatSecretName { get; set; } = "ado-service-user-pat";
+    public string SpClientId { get; set; } 
+    public string SpClientSecret { get; set; }
     public string OrgName { get; set; } = "DataSolutionsDonnees";
     public string ProjectName { get; set; } = "FSDH SSC";
-    public string WorkItemsUrlTemplate { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${workItemTypeName}?api-version=6.0";
-    public string ListPipelineUrlTemplate { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/pipelines?api-version=7.1-preview.1";
-    public string AppServiceConfigPipeline { get; set; } = "web-app-configuration";
+    
+    public string OrgUrl { get; set; }
+    public string URL { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${workItemTypeName}?api-version=6.0";
+
+    public AdoConfig(IConfiguration _config)
+    {
+        SpClientId = _config["AdoSpClientId"] ?? "";
+        SpClientSecret = _config["AdoSpClientSecret"] ?? "";
+        OrgUrl = "https://dev.azure.com/" + OrgName;
+    }
 }

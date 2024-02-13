@@ -1,4 +1,5 @@
 using Datahub.Application.Configuration;
+using Datahub.Core.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -43,7 +44,7 @@ public static class ConfigureServices
             datahubConfiguration.AzureAd.ClientSecret = configuration["FUNC_SP_CLIENT_SECRET"]
                                                         ?? throw new ArgumentNullException("FUNC_SP_CLIENT_SECRET");
         }
-
+        
         services.AddSingleton(datahubConfiguration);
 
         return services;
