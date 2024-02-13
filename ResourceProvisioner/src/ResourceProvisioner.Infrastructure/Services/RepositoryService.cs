@@ -373,12 +373,18 @@ public class RepositoryService : IRepositoryService
 
     public async Task ValidateWorkspaceVersion(TerraformWorkspace terraformWorkspace)
     {
-        if (terraformWorkspace.Version == TerraformWorkspace.DefaultVersion)
-        {
-            var versions = await GetModuleVersions();
-            var latestVersion = versions.Max();
-            terraformWorkspace.Version = $"v{latestVersion!.ToString()}";
-        }
+        // Old behavior, to maintain existing versions
+        // if (terraformWorkspace.Version == TerraformWorkspace.DefaultVersion)
+        // {
+        //     var versions = await GetModuleVersions();
+        //     var latestVersion = versions.Max();
+        //     terraformWorkspace.Version = $"v{latestVersion!.ToString()}";
+        // }
+        
+        // new behavior to always update the version
+        var versions = await GetModuleVersions();
+        var latestVersion = versions.Max();
+        terraformWorkspace.Version = $"v{latestVersion!.ToString()}";
     }
 
     public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate template, TerraformWorkspace terraformWorkspace,
