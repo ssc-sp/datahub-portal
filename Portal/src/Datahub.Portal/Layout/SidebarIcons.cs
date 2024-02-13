@@ -40,6 +40,9 @@ public static class SidebarIcons
     public const string Resources = "fa-light fa-book-bookmark";
     public const string CreateNew = "fa-light fa-layer-plus";
     
-    // General Icons
+    // Other Icons
     public const string External = "fa-light fa-arrow-up-right-from-square";
+    public const string Search = "fa-light fa-search";
+    public const string Edit = "fa-light fa-edit";
+    public const string Delete = "fa-light fa-trash";
 }
