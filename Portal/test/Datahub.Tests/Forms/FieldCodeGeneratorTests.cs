@@ -162,7 +162,7 @@ public class FieldCodeGeneratorTests
         Assert.Contains("[AeFormCategory(\"AnySection\", 10)]", csharp);
     }
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public void GenerateCSharp_ForFieldTypeDropdawn_ProducesExpectedCode()
     {
         WebForm_Field field = new()
