@@ -1,40 +1,32 @@
 steps:
   - template: templates/dotnet-test.yml
-    displayName: Datahub Achievements Tests
     parameters:
         CSPROJ: 'Portal/test/Datahub.Achievements.Tests/*.csproj'
         
   - template: templates/dotnet-test.yml
-    displayName: Datahub Catalog Search Tests
     parameters:
         CSPROJ: 'Portal/test/Datahub.CatalogSearch.Tests/*.csproj'
 
   - template: templates/dotnet-test.yml
-    displayName: Datahub Functions Tests
     parameters:
         CSPROJ: 'Portal/test/Datahub.Functions.UnitTests/*.csproj'
 
   - template: templates/dotnet-test.yml
-    displayName: Datahub Infrastructure Tests
     parameters:
         CSPROJ: 'Portal/test/Datahub.Infrastructure.UnitTests/*.csproj'
       
   - template: templates/dotnet-test.yml
-    displayName: Datahub Language Training Tests
     parameters:
         CSPROJ: 'Portal/test/Datahub.LanguageTraining.Tests/*.csproj'
         
   - template: templates/dotnet-test.yml
-    displayName: Datahub Specflow Tests
     parameters:
           CSPROJ: 'Portal/test/Datahub.SpecflowTests/*.csproj'        
 
   - template: templates/dotnet-test.yml
-    displayName: Datahub E2E Specflow Tests
     parameters:
           CSPROJ: 'Portal/test/Datahub.Specs/*.csproj'
 
   - template: templates/dotnet-test.yml
-    displayName: Datahub Unit Tests
     parameters:
         CSPROJ: 'Portal/test/Datahub.Tests/*.csproj'
