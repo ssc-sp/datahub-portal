@@ -6,9 +6,6 @@ parameters:
     default: "*.csproj" # defaults for any parameters that specified with "." (current directory)
 
 
-variables:
-  buildConfiguration: 'Release'
-
 # Run a .NET Core test with the specified project file
 steps:
   - task: UseDotNet@2
@@ -23,5 +20,4 @@ steps:
     inputs:
       command: test
       projects: $(CSPROJ)
-      arguments: '--configuration $(buildConfiguration)'
       workingDirectory: $(System.DefaultWorkingDirectory)
