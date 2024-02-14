@@ -260,7 +260,7 @@ jobs:
       displayName: "Install maui-tizen"
       inputs:
         command: 'custom'
-        custom: 'dotnet workload install maui-tizen'
+        custom: 'workload install maui-tizen'
     - task: DotNetCoreCLI@2
       inputs:
         command: 'test'
