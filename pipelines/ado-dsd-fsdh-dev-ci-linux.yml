@@ -255,5 +255,6 @@ jobs:
   dependsOn: Job_2
   pool:
     vmImage: ubuntu-latest
-  template: fsdh-test.yml
+  steps:
+  - template: fsdh-test.yml
     
