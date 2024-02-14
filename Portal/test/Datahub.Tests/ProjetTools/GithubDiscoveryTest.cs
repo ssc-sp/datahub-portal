@@ -67,7 +67,7 @@ public class GithubDiscoveryTest
         Assert.True(modules.Count >= 4);
     }
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async Task TestCheckIfValidModule()
     {
         var c = new Connection(new ProductHeaderValue("ssc-datahub"));

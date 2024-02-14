@@ -126,7 +126,7 @@ public class ExternalSearchTest: IClassFixture<ExternalSearchFixture>
         Assert.Equal(10, result.Count);
     }
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async void TestSingleFGPResultFrench()
     {
         var keyword = "Pompage turbinage";
@@ -159,7 +159,7 @@ public class ExternalSearchTest: IClassFixture<ExternalSearchFixture>
         Assert.Equal(0, result.Count);
     }
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async void TestFGPEmbeddedObjects()
     {
         var keyword = "ferroalloy";

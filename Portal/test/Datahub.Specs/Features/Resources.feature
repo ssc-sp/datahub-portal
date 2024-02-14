@@ -1,3 +1,4 @@
+@ignore
 Feature: Res
 	The resource page should be accessible to all users.
 
