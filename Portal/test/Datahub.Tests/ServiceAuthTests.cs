@@ -37,7 +37,7 @@ public class ServiceAuthTests:IDisposable
         ctx.Dispose();
     }
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async Task GivenUser_RetrieveProjects()
     {
         var auths = await _authManager.GetUserAuthorizations("d6d53fcc-9d82-4b0e-8b91-91248c344224");

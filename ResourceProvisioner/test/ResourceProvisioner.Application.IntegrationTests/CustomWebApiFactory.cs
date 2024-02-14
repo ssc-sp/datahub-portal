@@ -11,7 +11,7 @@ internal class CustomWebApiFactory : WebApplicationFactory<Program>
         builder.ConfigureAppConfiguration(configurationBuilder =>
         {
             var integrationConfig = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.Test.json")
+                .AddJsonFile("appsettings.Test.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables()
                 .Build();
 
