@@ -250,8 +250,8 @@ jobs:
 
         Write-Output "Tagging $(Build.Repository.Name) with $versionNumber"
 
-- job: Specflow_Job
-  displayName: Agent job - Specflow
+- job: Testing_job
+  displayName: Agent job - Testing
   dependsOn: Job_2
   pool:
     vmImage: ubuntu-latest
@@ -259,17 +259,6 @@ jobs:
     - task: DotNetCoreCLI@2
       inputs:
         command: 'test'
-        projects: 'Portal/test/Datahub.SpecflowTests/Datahub.SpecflowTests.csproj'
-        testRunTitle: 'Specflow Unit Tests'
-    - task: SpecFlowPlus@0
-      inputs:
-        generatorSource: 'FeatureFolder'
-        projectFilePath: Portal/test/Datahub.SpecflowTests
-        projectName: Datahub.SpecflowTests
-        #testExecutionJson: # Optional
-        #projectLanguage: 'en' # Optional
-        #workItemPrefix: # Optional
-        #workItemUrlTemplate: # Optional
-        #bindingAssemblies: # Optional
-        #output: # Optional
-      enabled: true
+        projects: 'Datahub.sln'
+        testRunTitle: 'Datahub Tests'
+    
