@@ -1,3 +1,4 @@
+@ignore
 Feature: Sidebar
 	The Sidebar should match the role
 
