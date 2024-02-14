@@ -1,0 +1,43 @@
+steps:
+  - name: Checkout code
+    uses: actions/checkout@v2
+    
+  - name: Datahub Achievements Tests
+    uses: ./templates/dotnet-test.yml
+    with:
+      CSPROJ: 'Portal/test/Datahub.Achievements.Test/*.csproj'
+
+  - name: Datahub Catalog Search Tests
+    uses: ./templates/dotnet-test.yml
+    with:
+      CSPROJ: 'Portal/test/Datahub.CatalogSearch.Tests/*.csproj'
+      
+  - name: Datahub Functions Tests
+    uses: ./templates/dotnet-test.yml
+    with:
+      CSPROJ: 'Portal/test/Datahub.Functions.UnitTests/*.csproj'
+      
+  - name: Datahub Infrastructure Tests
+    uses: ./templates/dotnet-test.yml
+    with:
+      CSPROJ: 'Portal/test/Datahub.Infrastructure.UnitTests/*.csproj'
+      
+  - name: Datahub Language Training Tests
+    uses: ./templates/dotnet-test.yml
+    with:
+      CSPROJ: 'Portal/test/Datahub.LanguageTraining.Tests/*.csproj'
+      
+  - name: Datahub Specflow Tests
+    uses: ./templates/dotnet-test.yml
+    with:
+      CSPROJ: 'Portal/test/Datahub.SpecflowTests/*.csproj'
+      
+  - name: Datahub E2E Specflow Tests
+    uses: ./templates/dotnet-test.yml
+    with:
+      CSPROJ: 'Portal/test/Datahub.Specs/*.csproj'
+      
+  - name: Datahub Unit Tests
+    uses: ./templates/dotnet-test.yml
+    with:
+      CSPROJ: 'Portal/test/Datahub.Tests/*.csproj'

@@ -255,15 +255,5 @@ jobs:
   dependsOn: Job_2
   pool:
     vmImage: ubuntu-latest
-  steps:
-    - task: DotNetCoreCLI@2
-      displayName: "Install maui-tizen"
-      inputs:
-        command: 'custom'
-        custom: 'workload install maui-tizen'
-    - task: DotNetCoreCLI@2
-      inputs:
-        command: 'test'
-        projects: 'Datahub.sln'
-        testRunTitle: 'Datahub Tests'
+  template: fsdh-test.yml
     

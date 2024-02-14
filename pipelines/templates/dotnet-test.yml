@@ -1,0 +1,27 @@
+# File: templates/dotnet-test.yml
+
+parameters:
+  - name: CSPROJ
+    type: string
+    default: "*.csproj" # defaults for any parameters that specified with "." (current directory)
+
+
+variables:
+  buildConfiguration: 'Release'
+
+# Run a .NET Core test with the specified project file
+steps:
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core sdk 8.0.x'
+    inputs:
+      version: 8.0.x
+      includePreviewVersions: true
+      performMultiLevelLookup: true
+
+  - task: DotNetCoreCLI@2
+    displayName: dotnet test
+    inputs:
+      command: test
+      projects: $(CSPROJ)
+      arguments: '--configuration $(buildConfiguration)'
+      workingDirectory: $(System.DefaultWorkingDirectory)
