@@ -1,43 +1,40 @@
 steps:
-  - name: Checkout code
-    uses: actions/checkout@v2
-    
-  - name: Datahub Achievements Tests
-    uses: ./templates/dotnet-test.yml
-    with:
-      CSPROJ: 'Portal/test/Datahub.Achievements.Test/*.csproj'
+  - template: templates/dotnet-test.yml
+    displayName: Datahub Achievements Tests
+    parameters:
+        CSPROJ: 'Portal/test/Datahub.Achievements.Tests/*.csproj'
+        
+  - template: templates/dotnet-test.yml
+    displayName: Datahub Catalog Search Tests
+    parameters:
+        CSPROJ: 'Portal/test/Datahub.CatalogSearch.Tests/*.csproj'
 
-  - name: Datahub Catalog Search Tests
-    uses: ./templates/dotnet-test.yml
-    with:
-      CSPROJ: 'Portal/test/Datahub.CatalogSearch.Tests/*.csproj'
+  - template: templates/dotnet-test.yml
+    displayName: Datahub Functions Tests
+    parameters:
+        CSPROJ: 'Portal/test/Datahub.Functions.UnitTests/*.csproj'
+
+  - template: templates/dotnet-test.yml
+    displayName: Datahub Infrastructure Tests
+    parameters:
+        CSPROJ: 'Portal/test/Datahub.Infrastructure.UnitTests/*.csproj'
       
-  - name: Datahub Functions Tests
-    uses: ./templates/dotnet-test.yml
-    with:
-      CSPROJ: 'Portal/test/Datahub.Functions.UnitTests/*.csproj'
-      
-  - name: Datahub Infrastructure Tests
-    uses: ./templates/dotnet-test.yml
-    with:
-      CSPROJ: 'Portal/test/Datahub.Infrastructure.UnitTests/*.csproj'
-      
-  - name: Datahub Language Training Tests
-    uses: ./templates/dotnet-test.yml
-    with:
-      CSPROJ: 'Portal/test/Datahub.LanguageTraining.Tests/*.csproj'
-      
-  - name: Datahub Specflow Tests
-    uses: ./templates/dotnet-test.yml
-    with:
-      CSPROJ: 'Portal/test/Datahub.SpecflowTests/*.csproj'
-      
-  - name: Datahub E2E Specflow Tests
-    uses: ./templates/dotnet-test.yml
-    with:
-      CSPROJ: 'Portal/test/Datahub.Specs/*.csproj'
-      
-  - name: Datahub Unit Tests
-    uses: ./templates/dotnet-test.yml
-    with:
-      CSPROJ: 'Portal/test/Datahub.Tests/*.csproj'
+  - template: templates/dotnet-test.yml
+    displayName: Datahub Language Training Tests
+    parameters:
+        CSPROJ: 'Portal/test/Datahub.LanguageTraining.Tests/*.csproj'
+        
+  - template: templates/dotnet-test.yml
+    displayName: Datahub Specflow Tests
+    parameters:
+          CSPROJ: 'Portal/test/Datahub.SpecflowTests/*.csproj'        
+
+  - template: templates/dotnet-test.yml
+    displayName: Datahub E2E Specflow Tests
+    parameters:
+          CSPROJ: 'Portal/test/Datahub.Specs/*.csproj'
+
+  - template: templates/dotnet-test.yml
+    displayName: Datahub Unit Tests
+    parameters:
+        CSPROJ: 'Portal/test/Datahub.Tests/*.csproj'
