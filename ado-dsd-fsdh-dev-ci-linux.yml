@@ -257,6 +257,11 @@ jobs:
     vmImage: ubuntu-latest
   steps:
     - task: DotNetCoreCLI@2
+      displayName: "Install maui-tizen"
+      inputs:
+        command: 'custom'
+        custom: 'dotnet workload install maui-tizen'
+    - task: DotNetCoreCLI@2
       inputs:
         command: 'test'
         projects: 'Datahub.sln'
