@@ -28,7 +28,7 @@ public class PowerBIAPITests
         "https://analysis.windows.net/powerbi/api/Workspace.ReadWrite.All"
     };
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async Task GivenCurrentUser_ListWorkspaces()
     {
         var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { ExcludeInteractiveBrowserCredential = false, ExcludeVisualStudioCodeCredential = true  });
