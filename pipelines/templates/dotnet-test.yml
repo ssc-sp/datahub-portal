@@ -8,16 +8,10 @@ parameters:
 
 # Run a .NET Core test with the specified project file
 steps:
-  - task: UseDotNet@2
-    displayName: 'Use .NET Core sdk 8.0.x'
-    inputs:
-      version: 8.0.x
-      includePreviewVersions: true
-      performMultiLevelLookup: true
-
   - task: DotNetCoreCLI@2
-    displayName: dotnet test
+    displayName: dotnet test - $(CSPROJ)
     inputs:
       command: test
       projects: $(CSPROJ)
       workingDirectory: $(System.DefaultWorkingDirectory)
+      

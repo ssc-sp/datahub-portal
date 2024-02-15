@@ -1,4 +1,11 @@
 steps:
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core sdk 8.0.x'
+    inputs:
+      version: 8.0.x
+      includePreviewVersions: true
+      performMultiLevelLookup: true
+        
   - template: templates/dotnet-test.yml
     parameters:
         CSPROJ: 'Portal/test/Datahub.Achievements.Tests/*.csproj'
@@ -21,11 +28,11 @@ steps:
         
   - template: templates/dotnet-test.yml
     parameters:
-          CSPROJ: 'Portal/test/Datahub.SpecflowTests/*.csproj'        
+          CSPROJ: './Portal/test/Datahub.SpecflowTests/*.csproj'        
 
   - template: templates/dotnet-test.yml
     parameters:
-          CSPROJ: 'Portal/test/Datahub.Specs/*.csproj'
+          CSPROJ: '/Portal/test/Datahub.Specs/*.csproj'
 
   - template: templates/dotnet-test.yml
     parameters:
