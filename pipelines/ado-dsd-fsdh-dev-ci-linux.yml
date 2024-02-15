@@ -250,11 +250,11 @@ jobs:
 
         Write-Output "Tagging $(Build.Repository.Name) with $versionNumber"
 
-- job: Testing_job
-  displayName: Agent job - Testing
+- job: Portal_Testing_job
+  displayName: Agent job - Portal Testing
   dependsOn: Job_2
   pool:
     vmImage: ubuntu-latest
   steps:
-  - template: fsdh-test.yml
+  - template: fsdh-portal-tests.yml
     
