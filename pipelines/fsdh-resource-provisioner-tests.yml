@@ -7,6 +7,14 @@ steps:
       performMultiLevelLookup: true
 
   - task: DotNetCoreCLI@2
+    displayName: 'Datahub Catalog Search Unit Tests'
+    condition: succeededOrFailed()
+    inputs:
+      command: 'test'
+      projects: 'Portal/test/Datahub.CatalogSearch.Tests/Datahub.CatalogSearch.Tests.csproj'
+      testRunTitle: 'Datahub Catalog Search Tests'
+
+  - task: DotNetCoreCLI@2
     displayName: 'Datahub Function Unit Tests'
     condition: succeededOrFailed()
     inputs:
@@ -23,6 +31,14 @@ steps:
       testRunTitle: 'Datahub Infrastructure Unit Tests'
 
   - task: DotNetCoreCLI@2
+    displayName: 'Datahub Language Training Unit Tests'
+    condition: succeededOrFailed()
+    inputs:
+      command: 'test'
+      projects: 'Portal/test/Datahub.LanguageTraining.Tests/Datahub.LanguageTraining.Tests.csproj'
+      testRunTitle: 'Datahub Language Training Unit Tests'
+
+  - task: DotNetCoreCLI@2
     displayName: 'Datahub Specflow Tests'
     condition: succeededOrFailed()
     inputs:
@@ -31,7 +47,6 @@ steps:
       testRunTitle: 'Datahub Specflow Tests'
 
   - task: DotNetCoreCLI@2
-    displayName: 'Datahub Specs Tests'
     condition: succeededOrFailed()
     inputs:
       command: 'test'
@@ -39,7 +54,6 @@ steps:
       testRunTitle: 'Datahub Specs Tests'
 
   - task: DotNetCoreCLI@2
-    displayName: 'Datahub Unit Tests'
     condition: succeededOrFailed()
     inputs:
       command: 'test'
