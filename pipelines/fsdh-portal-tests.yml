@@ -7,42 +7,49 @@ steps:
       performMultiLevelLookup: true
 
   - task: DotNetCoreCLI@2
+    condition: succeededOrFailed()
     inputs:
       command: 'test'
       projects: 'Portal/test/Datahub.CatalogSearch.Tests/Datahub.CatalogSearch.Tests.csproj'
       testRunTitle: 'Datahub Unit Tests'
 
   - task: DotNetCoreCLI@2
+    condition: succeededOrFailed()
     inputs:
       command: 'test'
       projects: 'Portal/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
       testRunTitle: 'Datahub Function Unit  Tests'
         
   - task: DotNetCoreCLI@2
+    condition: succeededOrFailed()
     inputs:
       command: 'test'
       projects: 'Portal/test/Datahub.Infrastructure.UnitTests/Datahub.Infrastructure.UnitTests.csproj'
       testRunTitle: 'Datahub Infrastructure Unit Tests'
 
   - task: DotNetCoreCLI@2
+    condition: succeededOrFailed()
     inputs:
       command: 'test'
       projects: 'Portal/test/Datahub.LanguageTraining.Tests/Datahub.LanguageTraining.Tests.csproj'
       testRunTitle: 'Datahub Language Training Unit Tests'
 
   - task: DotNetCoreCLI@2
+    condition: succeededOrFailed()
     inputs:
       command: 'test'
       projects: 'Portal/test/Datahub.SpecflowTests/Datahub.SpecflowTests.csproj'
       testRunTitle: 'Datahub Specflow Tests'
       
   - task: DotNetCoreCLI@2
+    condition: succeededOrFailed()
     inputs:
       command: 'test'
       projects: 'Portal/test/Datahub.Specs/Datahub.Specs.csproj'
       testRunTitle: 'Datahub Specs Tests'
 
   - task: DotNetCoreCLI@2
+    condition: succeededOrFailed()
     inputs:
       command: 'test'
       projects: 'Portal/test/Datahub.Tests/Datahub.Tests.csproj'
