@@ -75,7 +75,7 @@
                     <MudCardContent>
                         <MudStack Row>
                             <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick=@SubmitForApproval Disabled=@_savingData>
-                                <MudText>@Localizer["BUTTONS.Submit"]</MudText>
+                                <MudText>@Localizer["Submit"]</MudText>
                             </MudButton>
                             <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
                         </MudStack>
@@ -174,7 +174,7 @@
                             <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.CancelSharingDescription"]</MudText>
                             <MudItem>
                                 <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick=@ShowCancelRequestDialog Disabled=@_savingData>
-                                    <MudText>@Localizer["BUTTONS.Cancel"]</MudText>
+                                    <MudText>@Localizer["Cancel"]</MudText>
                                 </MudButton>
                             </MudItem>
                         </MudStack>

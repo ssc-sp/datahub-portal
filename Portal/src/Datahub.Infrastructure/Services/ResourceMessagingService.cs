@@ -29,6 +29,8 @@ public class ResourceMessagingService : IResourceMessagingService
             ConnectionString = _datahubPortalConfiguration.DatahubStorageQueue.ConnectionString,
             Name = _datahubPortalConfiguration.DatahubStorageQueue.QueueNames.ResourceRunRequest,
         });
+        
+        
         await queue.EnqueueAsync(project);
     }
 

@@ -61,9 +61,9 @@ var host = new HostBuilder()
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();
-        services.AddSingleton<DatahubPortalConfiguration>();
-        
-        services.Configure<APITarget>(config.GetSection("APITargets"));
+
+        services.AddDatahubConfigurationFromFunctionFormat(config);
+       
 
     })
     .Build();

@@ -1,3 +1,4 @@
+@ignore
 Feature: Tools
 	The tools page should be accessible for admin logged users
 

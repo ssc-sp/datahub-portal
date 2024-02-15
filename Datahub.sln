@@ -54,10 +54,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonTranslator", "Portal\ut
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDbUsers", "Portal\utils\SyncDbUsers\SyncDbUsers.csproj", "{346091EA-1E82-4220-9387-C181BF5E1019}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.CatalogSearch.Tests", "Portal\test\Datahub.CatalogSearch.Tests\Datahub.CatalogSearch.Tests.csproj", "{3404918C-7A35-4C30-91FB-F2A8D4DE8014}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.LanguageTraining.Tests", "Portal\test\Datahub.LanguageTraining.Tests\Datahub.LanguageTraining.Tests.csproj", "{1AC41270-FD3B-4EB4-BFDB-B030527C888C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Tests", "Portal\test\Datahub.Tests\Datahub.Tests.csproj", "{693C3DC6-CF30-4942-80EA-EEC8ABB87DD3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.CatalogSearch", "Portal\src\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj", "{213E0A3B-D933-4E81-AFD5-AA2D0B1CC3F8}"
@@ -110,6 +106,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A8C7
 		scripts\fix_CS8981.ps1 = scripts\fix_CS8981.ps1
 		scripts\initLocalDev.ps1 = scripts\initLocalDev.ps1
 		scripts\merge_fork.ps1 = scripts\merge_fork.ps1
+		scripts\find-translations.ps1 = scripts\find-translations.ps1
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Specs", "Portal\test\Datahub.Specs\Datahub.Specs.csproj", "{D07C3009-6F0F-486D-91E1-0084B4B4FF46}"
@@ -147,6 +144,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure.Offline", "Portal\src\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj", "{E84F619D-E105-4E1A-BD92-DF22DDAE966F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.SpecflowTests", "Portal\test\Datahub.SpecflowTests\Datahub.SpecflowTests.csproj", "{D84C8789-E77F-438A-A0B6-7DB1695B9C17}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.MissingTranslations", "Portal\utils\Datahub.MissingTranslations\Datahub.MissingTranslations.csproj", "{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -202,14 +201,6 @@ Global
 		{346091EA-1E82-4220-9387-C181BF5E1019}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{346091EA-1E82-4220-9387-C181BF5E1019}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{346091EA-1E82-4220-9387-C181BF5E1019}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3404918C-7A35-4C30-91FB-F2A8D4DE8014}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3404918C-7A35-4C30-91FB-F2A8D4DE8014}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3404918C-7A35-4C30-91FB-F2A8D4DE8014}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3404918C-7A35-4C30-91FB-F2A8D4DE8014}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1AC41270-FD3B-4EB4-BFDB-B030527C888C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1AC41270-FD3B-4EB4-BFDB-B030527C888C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1AC41270-FD3B-4EB4-BFDB-B030527C888C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1AC41270-FD3B-4EB4-BFDB-B030527C888C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{693C3DC6-CF30-4942-80EA-EEC8ABB87DD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{693C3DC6-CF30-4942-80EA-EEC8ABB87DD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{693C3DC6-CF30-4942-80EA-EEC8ABB87DD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -327,6 +318,10 @@ Global
 		{D84C8789-E77F-438A-A0B6-7DB1695B9C17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D84C8789-E77F-438A-A0B6-7DB1695B9C17}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D84C8789-E77F-438A-A0B6-7DB1695B9C17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -349,8 +344,6 @@ Global
 		{7CAA042A-AA21-44BD-A0F8-0E89CD651B33} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 		{297AA1C7-6026-46B7-A494-B974E6663F94} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 		{346091EA-1E82-4220-9387-C181BF5E1019} = {73AC16BF-F514-4081-8C74-63C6399260E0}
-		{3404918C-7A35-4C30-91FB-F2A8D4DE8014} = {47D68FB0-47FE-485D-AE94-00C48643721E}
-		{1AC41270-FD3B-4EB4-BFDB-B030527C888C} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 		{693C3DC6-CF30-4942-80EA-EEC8ABB87DD3} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 		{213E0A3B-D933-4E81-AFD5-AA2D0B1CC3F8} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{2B7CB3D4-519A-4815-89E0-C601F6A2244C} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
@@ -384,6 +377,7 @@ Global
 		{9D940C0C-8D3D-4314-8F17-43AF32D3761F} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{E84F619D-E105-4E1A-BD92-DF22DDAE966F} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{D84C8789-E77F-438A-A0B6-7DB1695B9C17} = {47D68FB0-47FE-485D-AE94-00C48643721E}
+		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}

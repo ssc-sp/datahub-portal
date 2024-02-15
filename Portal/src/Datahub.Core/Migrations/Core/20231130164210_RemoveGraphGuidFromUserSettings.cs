@@ -10,6 +10,10 @@ namespace Datahub.Core.Migrations.Core
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_UserSettings_PortalUsers_UserId",
+                table: "UserSettings");
+            
             migrationBuilder.DropColumn(
                 name: "UserGuid",
                 table: "UserSettings");

@@ -61,11 +61,6 @@ public class Program
                 logBuilder.AddFilter("Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware", LogLevel.Information);
                 logBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware", LogLevel.Information);
             })
-            .ConfigureAppConfiguration(conf =>
-            {
-                string profile = GetDataHubProfile();
-                conf.AddJsonFile($"datahub.{profile}.json", true);
-            })
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.UseStartup<Startup>();                    
@@ -78,8 +73,4 @@ public class Program
                 });
             });
 
-    public static string GetDataHubProfile()
-    {
-        return Environment.GetEnvironmentVariable("HostingProfile") ?? "nrcan";
-    }
 }

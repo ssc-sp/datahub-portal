@@ -10,8 +10,8 @@
         <Spinner />
     }
     <div class="modal-footer">
-        <button class="submitbutton finish" disabled="@(isConfirmDisabled || isProcessing)" type="submit" @onclick="() => Processing()">@Localizer["BUTTONS.Confirm"]</button>
-        <button class="submitbutton cancel" disabled="@isProcessing" @onclick="() => OnDecision?.Invoke((false, string.Empty))">@Localizer["BUTTONS.Cancel"]</button>
+        <button class="submitbutton finish" disabled="@(isConfirmDisabled || isProcessing)" type="submit" @onclick="() => Processing()">@Localizer["Confirm"]</button>
+        <button class="submitbutton cancel" disabled="@isProcessing" @onclick="() => OnDecision?.Invoke((false, string.Empty))">@Localizer["Cancel"]</button>
     </div>
 </div>
 
