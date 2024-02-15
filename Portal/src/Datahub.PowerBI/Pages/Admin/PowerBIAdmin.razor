@@ -122,7 +122,7 @@
                                         <AeButton OnClickEvent=@UpdateWorkspaceProjectAssignment 
                                             Disabled=@UpdateWorkspaceProjectAssignmentDisabled>@Localizer[$"{LOCALIZATION_PREFIX}.UpdateAssignment"]</AeButton>
                                         <AeButton OnClickEvent=@WorkspaceBeingEdited.RevertProjectAssignment 
-                                            Disabled=@UpdateWorkspaceProjectAssignmentDisabled class="light">@Localizer["BUTTONS.Revert"]</AeButton>
+                                            Disabled=@UpdateWorkspaceProjectAssignmentDisabled class="light">@Localizer["Revert"]</AeButton>
                                         <SuccessIndicator @bind-IsLoading=@IsSavingWorkspace />
                                     </div>
                                 </div>
@@ -150,8 +150,8 @@
                                     </label>
                                 </div>
                                 <div>
-                                    <AeButton OnClickEvent=@SaveWorkspace Disabled=@SaveWorkspaceDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
-                                    <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                                    <AeButton OnClickEvent=@SaveWorkspace Disabled=@SaveWorkspaceDisabled>@Localizer[$"Save"]</AeButton>
+                                    <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"Cancel"]</AeButton>
                                     <SuccessIndicator @bind-IsLoading=@IsSavingWorkspace @ref=@_saveWorkspaceInd />
                                 </div>
                             </ChildContent>
@@ -200,8 +200,8 @@
                                     </label>
                                 </div>
                                 <div>
-                                    <AeButton OnClickEvent=@SaveDataset Disabled=@SaveDatasetDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
-                                    <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                                    <AeButton OnClickEvent=@SaveDataset Disabled=@SaveDatasetDisabled>@Localizer[$"Save"]</AeButton>
+                                    <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"Cancel"]</AeButton>
                                     <SuccessIndicator @bind-IsLoading=@IsSavingDataset @ref=@_saveDatasetInd />
                                 </div>
                             </ChildContent>
@@ -294,8 +294,8 @@
                                     />
 
                                     <div style="margin-top: 1rem;">
-                                        <AeButton OnClickEvent=@SaveReport Disabled=@SaveReportDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
-                                        <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                                        <AeButton OnClickEvent=@SaveReport Disabled=@SaveReportDisabled>@Localizer[$"Save"]</AeButton>
+                                        <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"Cancel"]</AeButton>
                                         <SuccessIndicator @bind-IsLoading=@IsSavingReport @ref=@_saveReportInd />
                                     </div>
                                 </MudStack>
@@ -397,15 +397,15 @@
                                             </ul>
                                         }
                                         <div>
-                                            <AeButton OnClickEvent=@SaveGlobalPowerBiAdmins >@Localizer[$"BUTTONS.Save"]</AeButton>
-                                            <AeButton OnClickEvent=@CancelEditingGlobalPowerBiAdmins class="light">@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                                            <AeButton OnClickEvent=@SaveGlobalPowerBiAdmins >@Localizer[$"Save"]</AeButton>
+                                            <AeButton OnClickEvent=@CancelEditingGlobalPowerBiAdmins class="light">@Localizer[$"Cancel"]</AeButton>
                                             <SuccessIndicator />
                                         </div>
                                     </AeFlex>
                                 }
                                 else
                                 {
-                                    <AeButton OnClickEvent=@(() => _editingGlobalPowerBiAdmins = true)>@Localizer[$"BUTTONS.Edit"]</AeButton>
+                                    <AeButton OnClickEvent=@(() => _editingGlobalPowerBiAdmins = true)>@Localizer[$"Edit"]</AeButton>
                                 }
                             </div>
                         </ChildContent>

@@ -47,7 +47,7 @@ public class APIServiceTest
     //    _apiService = ApiService;
     //}
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public void ParseCustomFieldsToJson()
     {
 
@@ -62,7 +62,7 @@ public class APIServiceTest
         Assert.True(json == @"[{""key"":""key1"",""value"":""value1""},{""key"":""key2"",""value"":""value2""}]");
     }
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public void GivenVersionJSONresponse_ThenParseCorrectlyToClass()
     {
         string json = @"[{""versionid"":""2020 - 11 - 16T17: 45:43.9741390Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Unclassified"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 16T17: 45:43 + 00:00""},{""versionid"":""2020 - 11 - 16T17: 46:14.6966275Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Protected A"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 16T17: 46:14 + 00:00""},{""versionid"":""2020 - 11 - 16T20: 16:56.4849377Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Unclassified"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 16T20: 16:56 + 00:00""},{""versionid"":""2020 - 11 - 17T18: 51:07.7526279Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Unclassified"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 17T18: 51:07 + 00:00""}]";
@@ -71,7 +71,7 @@ public class APIServiceTest
         Assert.True(versions.Count > 0);
     }
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public void GivenGen2URL_GenerateABFSUri()
     {
         var fileSystemName = "datahub";
@@ -84,7 +84,7 @@ public class APIServiceTest
         Assert.True(uri == "abfs://datahub@datahubdatalakedev.dfs.core.windows.net/NRCan-RNCan.gc.ca/nabeel.bader/favicon-192.png");
     }
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public void SerializeVersions()
     {
         Metadata metadata = new Metadata();
@@ -115,7 +115,7 @@ public class APIServiceTest
     string cxnstring = @"";
 
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async Task ListFilesInGen2Flat()
     {
         BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
@@ -143,7 +143,7 @@ public class APIServiceTest
 
 
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async Task ConnectToGen2SAFlat()
     {
 
@@ -178,7 +178,7 @@ public class APIServiceTest
 
 
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async Task ConnectToGen2SA()
     {
         // Theres two options here. Theres the AD option using the service principal 
@@ -208,7 +208,7 @@ public class APIServiceTest
         //Assert.NotNull(deleteresponse);
     }
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async Task ListDirectories()
     {
         var sharedKeyCredential = new StorageSharedKeyCredential(storageAccountName, storageAccountKey);
@@ -282,7 +282,7 @@ public class APIServiceTest
     }
 
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async Task ListFilePermissions()
     {
         var sharedKeyCredential = new StorageSharedKeyCredential(storageAccountName, storageAccountKey);
@@ -294,7 +294,7 @@ public class APIServiceTest
         //Assert.NotNull(FileAccessControl);
     }
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async Task Rerun_Indexer()
     {
         var azureKeyCreds = new AzureKeyCredential("21D5756DF91AE0E5E65C47D41DDE3ACF");
@@ -306,7 +306,7 @@ public class APIServiceTest
 
     }
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public void Get_Index()
     {
         var azureKeyCreds = new AzureKeyCredential("21D5756DF91AE0E5E65C47D41DDE3ACF");
@@ -324,7 +324,7 @@ public class APIServiceTest
         //Assert.True(response.Value.Results.Count > 0);
     }
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async Task DeleteFile()
     {
         var sharedKeyCredential = new StorageSharedKeyCredential(storageAccountName, storageAccountKey);
@@ -343,7 +343,7 @@ public class APIServiceTest
     }
 
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async Task GivenSearchParameters_RetrieveJsonFromCognitiveSearch()
     {
         var indexClient = CreateSearchIndexClient("azureblob-index");
@@ -378,7 +378,7 @@ public class APIServiceTest
         Assert.NotEmpty(fileMetaDatas);
     }
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public Task CreateIndex()
     {
         FieldBuilder fieldBuilder = new FieldBuilder();

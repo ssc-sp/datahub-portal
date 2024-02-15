@@ -1,0 +1,66 @@
+<MudText Typo="Typo.h2" Class="mt-6">
+    @Localizer["Database Information"]
+</MudText>
+<MudSimpleTable Dense Hover Striped Outlined>
+    <thead>
+    <tr>
+        <th><b>@Localizer["Property"]</b></th>
+        <th><b>@Localizer["Value"]</b></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>
+            @Localizer["Host"]
+        </td>
+        <td>
+            <code>@DatabaseHost</code>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @Localizer["Database Name"]
+        </td>
+        <td>
+            <code>@DatabaseName</code>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @Localizer["Username"]
+        </td>
+        <td>
+            <code>@Username</code>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @Localizer["Password"]
+        </td>
+        <td>
+            <code>@Password</code>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @Localizer["Port"]
+        </td>
+        <td>
+            <code>@Port</code>
+        </td>
+    </tr>
+    </tbody>
+</MudSimpleTable>
+
+@code {
+
+    [Parameter] public string DatabaseHost { get; set; }
+
+    [Parameter] public string DatabaseName { get; set; }
+
+    [Parameter] public string Username { get; set; }
+
+    [Parameter] public string Password { get; set; }
+
+    [Parameter] public string Port { get; set; }
+}
