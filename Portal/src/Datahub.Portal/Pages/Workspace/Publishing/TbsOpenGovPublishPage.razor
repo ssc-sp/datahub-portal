@@ -7,6 +7,7 @@
 @inject IDialogService _dialogService
 @inject IOpenDataPublishingService _publishingService
 @inject ITbsOpenDataService _tbsService;
+@inject NavigationManager _navManager;
 
 @implements IDisposable
 
@@ -26,7 +27,7 @@
 
         <MudCard>
             <MudCardHeader>
-                <MudText Typo=@Typo.h3>Timeline</MudText>
+                <MudText Typo=@Typo.h3>@Localizer["Timeline"]</MudText>
                 <MudSpacer />
                 <MudButton OnClick=@ToggleTimeline >@(_timelineCollapsed? "Expand":"Collapse")</MudButton>
             </MudCardHeader>
@@ -137,21 +138,19 @@
         {
             <MudCard>
                 <MudCardHeader>
-                    <MudText Typo=@Typo.h3>IMSO Approval</MudText>
+                    <MudText Typo=@Typo.h3>@Localizer["IMSO Approval"]</MudText>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudStack Row>
-                        @* user selector *@
-                        <MudTextField T=@string Label=@Localizer["IMSO Email"] />
-                        @if (Submission.ImsoApprovalRequested)
-                        {
-                            <MudTooltip Text=@Localizer["IMSO Approval request has been sent"]>
-                                <div class="reader-only">@Localizer["IMSO Approval request has been sent"]</div>
-                                <MudIcon Icon=@Icons.Material.Filled.Check Color=@Color.Success Size=@Size.Large />
-                            </MudTooltip>
-                        }
-                        <MudButton OnClick=@SendImsoApprovalRequest>@Localizer["Send approval request"]</MudButton>
-                    </MudStack>
+                    <MudText>@Localizer["Please press the button below to generate the IMSO approval form."]</MudText>
+                    <MudButton 
+                        Href=@($"{_navManager.BaseUri}api/OpenDataApproval?id={Submission.OpenGovCriteriaFormId}") 
+                        Target="_blank" 
+                        Variant=@Variant.Outlined 
+                        Color=@Color.Primary
+                        OnClick=@SendImsoApprovalRequest
+                    >@Localizer["Generate IMSO Approval Form"]</MudButton>
+
+                    <MudText>@Localizer["After it is approved, upload the signed form to your cloud storage and submit it below to finalize the IMSO Approval."]</MudText>
                     <MudStack Row>
                         <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
                             FilePurpose=@TbsOpenGovSubmission.IMSO_APPROVAL_FILE_TYPE
@@ -164,7 +163,7 @@
                             Disabled=@(!HasFileSelectedForPurpose(TbsOpenGovSubmission.IMSO_APPROVAL_FILE_TYPE))
                             OnClick=@SubmitImsoApprovalDocument
                         >@Localizer["Submit"]</MudButton>
-                    </MudStack>
+                    </MudStack> 
                 </MudCardContent>
 
             </MudCard>
@@ -205,7 +204,7 @@
     private bool ShowOpenGovCriteriaForm => _stepStates[StatusEnum.AwaitingApprovalCriteria] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowFileSelectionPane => true; // _stepStates[StatusEnum.AwaitingFiles] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowFileUploadPane => true;// _stepStates[StatusEnum.Uploading] == DHSteps<StatusEnum>.StepState.Running;
-    private bool ShowImsoApprovalPane => false; //TODO
+    private bool ShowImsoApprovalPane => true; //TODO
 
     private Dictionary<StatusEnum, DHSteps<StatusEnum>.StepState> _stepStates = new();
     private Dictionary<StatusEnum, (string, string)?> _stepInfo = new();
@@ -324,8 +323,6 @@
 
     private async Task UpdateApprovalFormId(Forms.ShareWorkflow.ApprovalFormSubmitArgs args)
     {
-        //TODO 
-
         _approvalFormId = args.FormId;
 
         Submission.OpenGovCriteriaMetDate = DateTime.Today;
@@ -337,7 +334,6 @@
 
     private async Task SendImsoApprovalRequest()
     {
-        //TODO
         Submission.ImsoApprovalRequestDate = DateTime.Today;
         await UpdateSubmission();
         await Task.CompletedTask;
