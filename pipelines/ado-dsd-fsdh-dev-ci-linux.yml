@@ -258,3 +258,10 @@ jobs:
   steps:
   - template: fsdh-portal-tests.yml
     
+- job: ResourceProvisioner_Testing_job
+  displayName: Agent job - Resource Provisioner Testing
+  dependsOn: Job_2
+  pool:
+      vmImage: ubuntu-latest
+  steps:
+    - template: fsdh-resource-provisioner-tests.yml

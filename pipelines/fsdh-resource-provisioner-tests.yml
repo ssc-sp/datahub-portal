@@ -7,55 +7,33 @@ steps:
       performMultiLevelLookup: true
 
   - task: DotNetCoreCLI@2
-    displayName: 'Datahub Catalog Search Unit Tests'
+    displayName: 'Resource Provisioner Application Integration Tests'
     condition: succeededOrFailed()
     inputs:
       command: 'test'
-      projects: 'Portal/test/Datahub.CatalogSearch.Tests/Datahub.CatalogSearch.Tests.csproj'
-      testRunTitle: 'Datahub Catalog Search Tests'
+      projects: 'ResourceProvisioner/test/ResourceProvisioner.Application.IntegrationTests/ResourceProvisioner.Application.IntegrationTests.csproj'
+      testRunTitle: 'Resource Provisioner Application Integration Tests'
 
   - task: DotNetCoreCLI@2
-    displayName: 'Datahub Function Unit Tests'
+    displayName: 'Resource Provisioner Application Unit Tests'
     condition: succeededOrFailed()
     inputs:
       command: 'test'
-      projects: 'Portal/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
-      testRunTitle: 'Datahub Function Unit Tests'
+      projects: 'ResourceProvisioner/test/ResourceProvisioner.Application.UnitTests/ResourceProvisioner.Application.UnitTests.csproj'
+      testRunTitle: 'Resource Provisioner Application Unit Tests'
 
   - task: DotNetCoreCLI@2
-    displayName: 'Datahub Infrastructure Unit Tests'
+    displayName: 'Resource Provisioner Domain Unit Tests'
     condition: succeededOrFailed()
     inputs:
       command: 'test'
-      projects: 'Portal/test/Datahub.Infrastructure.UnitTests/Datahub.Infrastructure.UnitTests.csproj'
-      testRunTitle: 'Datahub Infrastructure Unit Tests'
+      projects: 'ResourceProvisioner/test/ResourceProvisioner.Domain.UnitTests/ResourceProvisioner.Domain.UnitTests.csproj'
+      testRunTitle: 'Resource Provisioner Domain Unit Tests'
 
   - task: DotNetCoreCLI@2
-    displayName: 'Datahub Language Training Unit Tests'
+    displayName: 'Resource Provisioner Infrastructure Unit Tests'
     condition: succeededOrFailed()
     inputs:
       command: 'test'
-      projects: 'Portal/test/Datahub.LanguageTraining.Tests/Datahub.LanguageTraining.Tests.csproj'
-      testRunTitle: 'Datahub Language Training Unit Tests'
-
-  - task: DotNetCoreCLI@2
-    displayName: 'Datahub Specflow Tests'
-    condition: succeededOrFailed()
-    inputs:
-      command: 'test'
-      projects: 'Portal/test/Datahub.SpecflowTests/Datahub.SpecflowTests.csproj'
-      testRunTitle: 'Datahub Specflow Tests'
-
-  - task: DotNetCoreCLI@2
-    condition: succeededOrFailed()
-    inputs:
-      command: 'test'
-      projects: 'Portal/test/Datahub.Specs/Datahub.Specs.csproj'
-      testRunTitle: 'Datahub Specs Tests'
-
-  - task: DotNetCoreCLI@2
-    condition: succeededOrFailed()
-    inputs:
-      command: 'test'
-      projects: 'Portal/test/Datahub.Tests/Datahub.Tests.csproj'
-      testRunTitle: 'Datahub Unit Tests'
+      projects: 'ResourceProvisioner/test/ResourceProvisioner.Infrastructure.UnitTests/ResourceProvisioner.Infrastructure.UnitTests.csproj'
+      testRunTitle: 'Resource Provisioner Infrastructure Unit Tests'
