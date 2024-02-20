@@ -30,7 +30,7 @@
 
 @if (!containersLoaded)
 {
-    <DHLoadingInitializer />
+    <DHLoadingInitializer/>
     return;
 }
 
@@ -44,14 +44,14 @@
                 @if (ShouldShowContainerDropdown)
                 {
                     <MudStack Style="border-bottom: 1px solid var(--mud-palette-lines-default);" Class="my-6">
-                        <MudStack Row Justify=@Justify.FlexStart AlignItems=@AlignItems.Center >
+                        <MudStack Row Justify=@Justify.FlexStart AlignItems=@AlignItems.Center>
                             <MudText Typo="Typo.h2">@Localizer["Current Container"]</MudText>
-                            <StorageContainerSelector 
-                                @bind-SelectedContainer=@SelectedContainer 
-                                CloudContainers=_cloudContainers 
-                                OnAddProviderClicked=@AddCloudStorageAccount 
+                            <StorageContainerSelector
+                                @bind-SelectedContainer=@SelectedContainer
+                                CloudContainers=_cloudContainers
+                                OnAddProviderClicked=@AddCloudStorageAccount
                                 OnEditProviderClicked=@EditCloudStorageAccount
-                                OnRemoveProviderClicked=@RemoveCloudStorageAccount />
+                                OnRemoveProviderClicked=@RemoveCloudStorageAccount/>
                         </MudStack>
                     </MudStack>
                 }
@@ -60,25 +60,31 @@
                     {
                         <MudTabs Elevation="0" @key="@SelectedContainer.Name">
                             <MudTabPanel Text="@(!MultiContainer ? SelectedContainer.Name : Localizer["File Explorer"])" Icon="fas fa-hdd">
-                                <FileExplorer ProjectId=@_projectId Container="@_selectedContainer" />
+                                <FileExplorer ProjectId=@_projectId Container="@_selectedContainer"/>
                             </MudTabPanel>
                             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
                                 @if (SelectedContainer.StorageManager.AzCopyEnabled)
                                 {
                                     <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
-                                        <AzCopy Container=@SelectedContainer />
+                                        <MudStack Class="py-6 px-2">
+                                            <AzCopy Container=@SelectedContainer/>
+                                        </MudStack>
                                     </MudTabPanel>
                                 }
                                 @if (SelectedContainer.StorageManager.DatabrickEnabled)
                                 {
                                     <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
-                                        <Databricks Container="@SelectedContainer" />
+                                        <MudStack Class="py-6 px-2">
+                                            <Databricks Container="@SelectedContainer"/>
+                                        </MudStack>
                                     </MudTabPanel>
                                 }
                                 @if (SelectedContainer.StorageManager.AzCopyEnabled)
                                 {
                                     <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
-                                        <UploaderCode Container=@SelectedContainer />
+                                        <MudStack Class="py-6 px-2">
+                                            <UploaderCode Container=@SelectedContainer/>
+                                        </MudStack>
                                     </MudTabPanel>
                                 }
                             </DatahubAuthView>
@@ -92,8 +98,7 @@
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
 
     private Datahub_Project _project;
     private int? _projectId;
@@ -111,7 +116,7 @@
 
         _user = await _userInformationService.GetCurrentGraphUserAsync();
         _isUserProjectAdmin = await _userInformationService.IsUserProjectAdmin(WorkspaceAcronym) ||
-            await _userInformationService.IsUserProjectWorkspaceLead(WorkspaceAcronym);
+                              await _userInformationService.IsUserProjectWorkspaceLead(WorkspaceAcronym);
 
         _project = await projectContext.Projects
             .Include(p => p.Users)
@@ -122,14 +127,19 @@
         _projectName = _project?.ProjectName;
         _projectId = _project?.Project_ID;
         containersLoaded = false;
-        try {
+        try
+        {
             await keyVaultUserService.Authenticate();
             await LoadContainersAsync();
             containersLoaded = true;
             StateHasChanged();
-        } catch (MicrosoftIdentityWebChallengeUserException e) {
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e)
+        {
             _consentHandler.HandleException(e);
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             _logger.LogError(e, "Error loading cloud storage connection");
         }
     }
@@ -145,11 +155,11 @@
         var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
         var containerNames = await projectStorageManager.GetContainersAsync();
 
-        _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(accountName, c, CloudStorageProviderType.Azure, projectStorageManager)));        
+        _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(accountName, c, CloudStorageProviderType.Azure, projectStorageManager)));
         var dbStorage = await GetCloudStorages();
         foreach (var stg in dbStorage.Where(s => s.Enabled || _isUserProjectAdmin))
         {
-            try 
+            try
             {
                 var storageManager = await _cloudStorageManagerFactory.CreateCloudStorageManager(WorkspaceAcronym, stg);
                 if (storageManager is null)
@@ -169,12 +179,11 @@
                     ctx.Attach(stg);
                     stg.Enabled = false;
                     await ctx.SaveChangesAsync();
-                } 
+                }
                 catch (Exception ex2)
                 {
-                    _logger.LogCritical(ex2, $"error disabling containers from {stg.Name} (ID:{stg.Id})");                    
+                    _logger.LogCritical(ex2, $"error disabling containers from {stg.Name} (ID:{stg.Id})");
                 }
-
             }
         }
 
@@ -183,14 +192,8 @@
 
     public CloudStorageContainer SelectedContainer
     {
-        get 
-        { 
-            return _selectedContainer; 
-        }
-        set 
-        { 
-            _selectedContainer = value; 
-        }
+        get { return _selectedContainer; }
+        set { _selectedContainer = value; }
     }
 
     private bool MultiContainer => _cloudContainers?.Count > 1;
@@ -231,12 +234,12 @@
 
         if (!result.Canceled)
         {
-            if (result.Data is (ProjectCloudStorage storageSettings,IDictionary<string, string> ConnectionData))
+            if (result.Data is (ProjectCloudStorage storageSettings, IDictionary<string, string> ConnectionData))
             {
                 await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
 
                 storageSettings.ProjectId = _projectId.Value;
-                storageSettings.Provider = cloudStorageProvider.ToString();                
+                storageSettings.Provider = cloudStorageProvider.ToString();
 
                 ctx.ProjectCloudStorages.Add(storageSettings);
 
@@ -261,14 +264,14 @@
         if (cloudProvider is null)
         {
             return;
-        }        
+        }
 
         var result = await ShowCloudStorageDialog(pageCloudProvider.CloudStorageProvider, cloudProvider);
 
         if (!result.Canceled)
         {
-            if (result.Data is (ProjectCloudStorage storageSettings,IDictionary<string, string> ConnectionData))
-            {               
+            if (result.Data is (ProjectCloudStorage storageSettings, IDictionary<string, string> ConnectionData))
+            {
                 await keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
                 await ctx.SaveChangesAsync();
                 await LoadContainersAsync();
@@ -318,4 +321,5 @@
             }
         }
     }
+
 }
