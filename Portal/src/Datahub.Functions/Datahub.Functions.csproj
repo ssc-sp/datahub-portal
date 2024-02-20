@@ -33,6 +33,9 @@
     <ItemGroup>
         
         
+        <PackageReference Include="Azure.Identity" Version="1.11.0-beta.1" />
+        
+        
         <PackageReference Include="Azure.Storage.Queues" Version="12.16.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.19.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
@@ -46,6 +49,15 @@
         
 
 		<PackageReference Include="MailKit" Version="4.2.0" />
+        
+
+		<PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="16.170.0" />
+        
+
+		<PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="16.170.0" />
+        
+
+		<PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="16.170.0" />
 
     </ItemGroup>
     <ItemGroup>

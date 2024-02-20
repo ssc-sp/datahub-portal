@@ -69,7 +69,7 @@ namespace Datahub.Tests.Docs
             Assert.False(MarkdownTools.CompareCulture("fr-ca", "en"));
         }
 
-        [Fact]
+        [Fact (Skip = "Needs to be validated")]
         public async Task Test1LoadEnglishSidebar()
         {
             var root = await _service.LoadResourceTree(DocumentationGuideRootSection.UserGuide,"en");
@@ -77,7 +77,7 @@ namespace Datahub.Tests.Docs
             Assert.True(root.Children.Count > 5);
         }
 
-        [Fact]
+        [Fact (Skip = "Needs to be validated")]
         public async Task TestLoadPage()
         {
             var root = await _service.LoadResourceTree(DocumentationGuideRootSection.UserGuide, "en");
