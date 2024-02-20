@@ -63,6 +63,12 @@
                 @Localizer["Delete Folder"]
             </AeButton>
 
+            <span class="tool-divider"></span>
+
+            <AeButton class="button-tool" @onclick="HandlePublish" Disabled="IsActionDisabled(ButtonAction.Publish)">
+                <i class="fas fa-bullhorn"></i>
+                @Localizer["Publish"]
+            </AeButton>
         </div>
 
         <HeadingBreadcrumbs SetCurrentFolder="@SetCurrentFolder" CurrentFolder="@CurrentFolder" />
@@ -110,6 +116,9 @@
 
     [Parameter]
     public EventCallback OnDeleteFolder { get; set; }
+
+    [Parameter]
+    public EventCallback<IEnumerable<FileMetaData>> OnPublishFiles { get; set; }
 
     [Parameter]
     public Guid MetadataSignature { get; set; } = Guid.NewGuid();
