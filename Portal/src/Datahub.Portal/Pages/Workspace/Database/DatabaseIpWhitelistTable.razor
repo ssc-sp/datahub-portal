@@ -21,6 +21,9 @@
     <MudText>
         @Localizer["The following IP addresses are whitelisted for the database. Names must be unique and can only contain letters, numbers, underscores and hyphens."]
     </MudText>
+    <MudAlert Severity="Severity.Info">
+        @Localizer["Changes to the firewall rules can take up to 15 minutes to apply."]
+    </MudAlert>
     <MudStack Row>
         <MudButton OnClick="@AddCurrentIpAddress">
             @Localizer["Add current IP address ({0})", _userIpAddress]
