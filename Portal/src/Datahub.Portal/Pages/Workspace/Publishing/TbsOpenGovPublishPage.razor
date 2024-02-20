@@ -151,21 +151,55 @@
                     >@Localizer["Generate IMSO Approval Form"]</MudButton>
 
                     <MudText>@Localizer["After it is approved, upload the signed form to your cloud storage and submit it below to finalize the IMSO Approval."]</MudText>
-                    <MudStack Row>
-                        <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
-                            FilePurpose=@TbsOpenGovSubmission.IMSO_APPROVAL_FILE_TYPE
-                            Submission=@Submission
-                            Syncer=@Syncer
-                        />
-                        <MudButton 
-                            Variant=@Variant.Filled 
-                            Color=@Color.Primary 
-                            Disabled=@(!HasFileSelectedForPurpose(TbsOpenGovSubmission.IMSO_APPROVAL_FILE_TYPE))
-                            OnClick=@SubmitImsoApprovalDocument
-                        >@Localizer["Submit"]</MudButton>
-                    </MudStack> 
+                    
+                    <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
+                        FilePurpose=@TbsOpenGovSubmission.IMSO_APPROVAL_FILE_TYPE
+                        Submission=@Submission
+                        Syncer=@Syncer
+                    />
+                    
                 </MudCardContent>
+                <MudCardActions>
+                    <MudButton 
+                        Variant=@Variant.Filled 
+                        Color=@Color.Primary 
+                        Disabled=@(!HasFileSelectedForPurpose(TbsOpenGovSubmission.IMSO_APPROVAL_FILE_TYPE))
+                        OnClick=@SubmitImsoApprovalDocument
+                    >@Localizer["Submit"]</MudButton>
+                </MudCardActions>
 
+            </MudCard>
+        }
+
+        @if (ShowReadyToPublishPane)
+        {
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo=@Typo.h3>@Localizer["Ready to Publish"]</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText>@Localizer["Please press the button below to publish your submission on the Open Data Registry."]</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant=@Variant.Filled Color=@Color.Primary OnClick=@PublishSubmission>@Localizer["Publish"]</MudButton>
+                </MudCardActions>
+            </MudCard>
+        }
+
+        @if (ShowPublishedPane)
+        {
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo=@Typo.h3>@Localizer["Published"]</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText>@Localizer["Your data set has been published!"]</MudText>
+                    <MudTextField InputType=@InputType.Date ReadOnly Value=@Submission.OpenGovPublicationDate Label=@Localizer["Publication Date"] />
+                    <MudTextField ReadOnly Value=@SubmissionUrl Label=@Localizer["URL"] />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href=@SubmissionUrl Target="_blank" Variant=@Variant.Filled Color=@Color.Success>@Localizer["Open in new tab"]</MudButton>
+                </MudCardActions>
             </MudCard>
         }
 
@@ -185,6 +219,9 @@
     [Parameter]
     public EventCallback OnSubmissionUpdated { get; set; }
 
+    [Parameter]
+    public EventCallback OnSubmissionRefreshed { get; set; }
+
     private bool _timelineCollapsed = true;
     private async Task ToggleTimeline()
     {
@@ -197,6 +234,8 @@
     private bool SubmissionLoaded => _initialized && Submission != null;
     private bool _initialized = false;
 
+    private string SubmissionUrl => _tbsService.DerivePublishUrl(Submission);
+
     private bool _canBeSubmitted = false;
     private bool ShowSubmissionWarning => SubmissionLoaded && !_canBeSubmitted;
 
@@ -205,6 +244,8 @@
     private bool ShowFileSelectionPane => true; // _stepStates[StatusEnum.AwaitingFiles] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowFileUploadPane => true;// _stepStates[StatusEnum.Uploading] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowImsoApprovalPane => true; //TODO
+    private bool ShowReadyToPublishPane => true;
+    private bool ShowPublishedPane => _stepStates[StatusEnum.Published] == DHSteps<StatusEnum>.StepState.Passed;
 
     private Dictionary<StatusEnum, DHSteps<StatusEnum>.StepState> _stepStates = new();
     private Dictionary<StatusEnum, (string, string)?> _stepInfo = new();
@@ -328,21 +369,30 @@
         Submission.OpenGovCriteriaMetDate = DateTime.Today;
 
         await UpdateSubmission();
-
-        await Task.CompletedTask;
     }
 
     private async Task SendImsoApprovalRequest()
     {
         Submission.ImsoApprovalRequestDate = DateTime.Today;
         await UpdateSubmission();
-        await Task.CompletedTask;
     }
 
     private async Task SubmitImsoApprovalDocument()
     {
-        Submission.ImsoApprovedDate = DateTime.Today;
-        await UpdateSubmission();
+        var result = await _tbsService.UpdatePackageImsoApproval(Submission, true);
+        if (result.Succeeded)
+        {
+            await RefreshSubmission();
+        }
+    }
+
+    private async Task PublishSubmission()
+    {
+        var result = await _tbsService.UpdatePackagePublication(Submission, true);
+        if (result.Succeeded)
+        {
+            await RefreshSubmission();
+        }
     }
 
     private async Task UpdateSubmission()
@@ -351,6 +401,16 @@
         {
             await OnSubmissionUpdated.InvokeAsync();
         }
+    }
+
+    private async Task RefreshSubmission()
+    {
+        if (OnSubmissionRefreshed.HasDelegate)
+        {
+            await OnSubmissionRefreshed.InvokeAsync();
+        }
+
+        SetStatusSteps();
     }
 
     private void SetStatusSteps()

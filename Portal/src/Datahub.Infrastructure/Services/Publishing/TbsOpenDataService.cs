@@ -1,7 +1,6 @@
 ﻿using Datahub.Application.Services;
 using Datahub.Application.Services.Publishing;
 using Datahub.Application.Services.Security;
-using Datahub.Application.Services.Storage;
 using Datahub.CKAN.Package;
 using Datahub.CKAN.Service;
 using Datahub.Core.Model.Datahub;
@@ -11,7 +10,7 @@ using Datahub.Infrastructure.Services.Storage;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Utils;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Bcpg;
+using Microsoft.Extensions.Options;
 
 namespace Datahub.Infrastructure.Services.Publishing;
 
@@ -22,7 +21,8 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
         CloudStorageManagerFactory cloudStorageManagerFactory,
         IHttpClientFactory httpClientFactory,
         IOpenDataPublishingService publishingService,
-        IKeyVaultUserService keyvaultUserService) : ITbsOpenDataService
+        IKeyVaultUserService keyvaultUserService,
+        IOptions<CKANConfiguration> ckanConfiguration) : ITbsOpenDataService
 {
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = dbContextFactory;
     private readonly ICKANServiceFactory _ckanServiceFactory = ckanServiceFactory;
@@ -32,6 +32,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly IOpenDataPublishingService _publishingService = publishingService;
     private readonly IKeyVaultUserService _keyvaultUserService = keyvaultUserService;
+    private readonly IOptions<CKANConfiguration> _ckanConfiguration = ckanConfiguration;
 
     public async Task<CKANApiResult> CreateOrFetchPackage(OpenDataSubmission submission)
     {
@@ -43,17 +44,22 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
         await ApplyWorkspaceOwnerOrgToMetadata(submissionMetadata, submission.Project.Project_Acronym_CD);
 
-        var apiKey = await GetApiKeyForWorkspace(submission.Project.Project_Acronym_CD);
-        if (string.IsNullOrEmpty(apiKey))
-        {
-            throw new OpenDataPublishingException($"TBS OpenGov API Key not found for workspacce {submission.Project.Project_Acronym_CD}");
-        }
-
-        var ckanService = _ckanServiceFactory.CreateService(apiKey);
+        var ckanService = await CreateCkanServiceUsingWorkspaceApi(submission.Project.Project_Acronym_CD);
 
         var result = await ckanService.CreateOrFetchPackage(submissionMetadata, false);
 
         return await Task.FromResult(result);
+    }
+
+    private async Task<ICKANService> CreateCkanServiceUsingWorkspaceApi(string workspaceAcronym)
+    {
+        var apiKey = await GetApiKeyForWorkspace(workspaceAcronym);
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            throw new OpenDataPublishingException($"TBS OpenGov API Key not found for workspacce {workspaceAcronym}");
+        }
+
+        return await Task.FromResult(_ckanServiceFactory.CreateService(apiKey));
     }
 
     private async Task ApplyWorkspaceOwnerOrgToMetadata(FieldValueContainer submissionMetadata, string workspaceAcronym)
@@ -134,20 +140,14 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
                 throw new OpenDataPublishingException($"Metadata not found for file {publishFile.FileName}");
             }
 
-            var apiKey = await GetApiKeyForWorkspace(publishFile.Submission.Project.Project_Acronym_CD);
-            if (string.IsNullOrEmpty(apiKey))
-            {
-                throw new OpenDataPublishingException($"TBS OpenGov API Key not found for workspacce {publishFile.Submission.Project.Project_Acronym_CD}");
-            }
-
+            var ckanService = await CreateCkanServiceUsingWorkspaceApi(publishFile.Submission.Project.Project_Acronym_CD);
             var cloudStorageManager = await GetCloudStorageManagerAsync(publishFile);
             var fullFilePath = JoinPath(publishFile.FolderPath, publishFile.FileName);
             var downloadUrl = await cloudStorageManager.DownloadFileAsync(publishFile.ContainerName, fullFilePath);
-
+            
             // fire and forget
             var task = DownloadFileContent(downloadUrl, async stream =>
             {
-                var ckanService = _ckanServiceFactory.CreateService(apiKey);
                 try
                 {
                     var uploadResult = await ckanService.AddResourcePackage(package.Id, publishFile.FileName, publishFile.FilePurpose, metadata, stream);
@@ -198,5 +198,55 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
         var workspaceMetadata = await _metadataBrokerService.GetObjectMetadataValues(workspaceAcronym);
         var isOrgSetup = !string.IsNullOrEmpty(workspaceMetadata?[FieldNames.opengov_owner_org]?.Value_TXT);
         return await Task.FromResult(isApiKeySetup && isOrgSetup);
+    }
+
+    private async Task<CKANApiResult> DoUpdatePackage(TbsOpenGovSubmission submission, Dictionary<string, string> updateAttributes)
+    {
+        var ckanService = await CreateCkanServiceUsingWorkspaceApi(submission.Project.Project_Acronym_CD);
+        return await ckanService.UpdatePackageAttributes(submission.UniqueId, updateAttributes);
+    }
+
+    public async Task<CKANApiResult> UpdatePackageImsoApproval(TbsOpenGovSubmission submission, bool imsoApproved)
+    {
+        var updateAttributes = new Dictionary<string, string>()
+        {
+            { CkanPackageBasic.IMSO_APPROVAL_JSON_PROPERTY_NAME, imsoApproved.ToString().ToLowerInvariant() }
+        };
+
+        var result = await DoUpdatePackage(submission, updateAttributes);
+
+        if (result.Succeeded)
+        {
+            submission.ImsoApprovedDate = imsoApproved ? DateTime.Today : null;
+            await _publishingService.UpdateTbsOpenGovSubmission(submission);
+        }
+
+        return await Task.FromResult(result);
+    }
+
+    public async Task<CKANApiResult> UpdatePackagePublication(TbsOpenGovSubmission submission, bool published)
+    {
+        var pubDate = DateTime.Today;
+
+        var updateAttributes = new Dictionary<string, string>()
+        {
+            { CkanPackageBasic.READY_TO_PUBLISH_JSON_PROPERTY_NAME, published.ToString().ToLowerInvariant() },
+            { CkanPackageBasic.DATE_PUBLISHED_JSON_PROPERTY_NAME, pubDate.ToString("yyyy-MM-dd") },
+        };
+
+        var result = await DoUpdatePackage(submission, updateAttributes);
+
+        if (result.Succeeded)
+        {
+            submission.OpenGovPublicationDate = published ? pubDate : null;
+            await _publishingService.UpdateTbsOpenGovSubmission(submission);
+        }
+
+        return await Task.FromResult(result);
+    }
+
+    public string DerivePublishUrl(TbsOpenGovSubmission submission)
+    {
+        return $"{_ckanConfiguration.Value.DatasetUrl}/{submission.UniqueId}";
     }
 }

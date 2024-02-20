@@ -19,6 +19,7 @@ public class CKANService : ICKANService
     #region Static CKAN data
     private const string PACKAGE_CREATE_ACTION = "package_create";
     private const string PACKAGE_SHOW_ACTION = "package_show";
+    private const string PACKAGE_PATCH_ACTION = "package_patch";
     private const string RESOURCE_CREATE_ACTION = "resource_create";
 
     private static HashSet<string> KnownFileTypes { get; }
@@ -126,7 +127,7 @@ public class CKANService : ICKANService
         if (result.Succeeded) 
         {
             var ckanPackageJson = result.CkanObject?.ToString();
-            if (ckanPackageJson != null)
+            if (!string.IsNullOrEmpty(ckanPackageJson))
             {
                 return await Task.FromResult(new CKANApiResult(result.Succeeded, result.ErrorMessage, CkanPackageBasic.Deserialize(ckanPackageJson)));
             }
@@ -135,7 +136,33 @@ public class CKANService : ICKANService
         return await Task.FromResult(result);
     }
 
-    
+    public async Task<CKANApiResult> UpdatePackageAttributes(string packageId, IDictionary<string, string> attributes)
+    {
+        var boundary = NewMultipartBoundary();
+        using var content = new MultipartFormDataContent(boundary)
+        {
+            { new StringContent(packageId), "id" }
+        };
+
+        foreach (var kvp in attributes)
+        {
+            content.Add(new StringContent(kvp.Value), kvp.Key);
+        }
+
+        var result = await DoRequestAsync(HttpMethod.Post, PACKAGE_PATCH_ACTION, content);
+
+        if (result.Succeeded)
+        {
+            var packageJson = result.CkanObject?.ToString();
+            if (!string.IsNullOrEmpty(packageJson))
+            {
+                return await Task.FromResult(new CKANApiResult(result.Succeeded, result.ErrorMessage, CkanPackageBasic.Deserialize(packageJson)));
+            }
+        }
+
+        return await Task.FromResult(result);
+    }
+
     public async Task<CKANApiResult> AddResourcePackage(string packageId, string filename, string filePurpose, FieldValueContainer metadata, Stream fileContentStream, long? contentLength = null)
     {
         var nameEn = metadata["name_translated_en"]?.Value_TXT ?? filename;
@@ -192,6 +219,8 @@ public class CKANService : ICKANService
         }
     }
 
+    private string CreateActionUrl(string action) => $"{_ckanConfiguration.ApiUrl}/action/{action}";
+
     #nullable enable
     private async Task<CKANApiResult> DoRequestAsync(HttpMethod method, string action, HttpContent? content = null, Dictionary<string,object>? parameters = null)
     {
@@ -203,10 +232,10 @@ public class CKANService : ICKANService
                 return new CKANApiResult(true, string.Empty);
             }
 
-            var baseUrl = _ckanConfiguration.BaseUrl;
+            var baseUrl = CreateActionUrl(action);
             var apiKey = _apiKey;
 
-            var requestUri = new UriBuilder($"{baseUrl}/action/{action}");
+            var requestUri = new UriBuilder(baseUrl);
             if (parameters != null) 
             {
                 var queryParams = HttpUtility.ParseQueryString(requestUri.Query);
@@ -282,7 +311,6 @@ public class CKANService : ICKANService
     }
 
     private async Task<CKANApiResult> PostRequestAsync(string action, HttpContent content) => await DoRequestAsync(HttpMethod.Post, action, content);
-    
 }
 
 class CKANResult
