@@ -266,7 +266,8 @@ public class AzureCloudStorageManager : ICloudStorageManager
             createdby = GetMetadata(metadata, FileMetaData.CreatedBy),
             lastmodifiedby = GetMetadata(metadata, FileMetaData.LastModifiedBy),
             lastmodifiedts = props.LastModified.DateTime,
-            filesize = props.ContentLength.ToString()
+            filesize = props.ContentLength.ToString(),
+            folderpath = client.Path
         };
     }
 

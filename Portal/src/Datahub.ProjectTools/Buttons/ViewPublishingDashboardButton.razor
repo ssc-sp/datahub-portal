@@ -1,0 +1,47 @@
+@* ViewPublishingDashboardButton.razor *@
+
+@using Datahub.Core.Model.Datahub
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+
+@*@if (_isInitialized)*@
+@*{*@
+    <MudButton Variant="Variant.Text" EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Color="Color.Primary" Size="Size.Small">
+        <DHLink Underline="Underline.None" Typo="Typo.button" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.PublishingDashboard"  >
+            @($"{Localizer["Publishing Dashboard"]}")
+        </DHLink>
+    </MudButton>
+@*}*@
+@*else
+{
+    <MudButton Variant="Variant.Text" EndIcon="fa-solid fa-spinner-third fa-spin" Color="Color.Primary" Disabled Size="Size.Small">
+        <DHLink Underline="Underline.None" Typo="Typo.button" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.Storage">
+            @($"{Localizer["View Shared Files"]} (?)")
+        </DHLink>
+    </MudButton>
+}
+*@
+@code {
+
+    [Parameter]
+    public string? ProjectAcronym { get; set; }
+
+    //private int _numberOfSharedFiles;
+    private bool _isInitialized = true;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        //if (ProjectAcronym != null)
+        //{
+        //    await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        //    _numberOfSharedFiles = await dbContext.SharedDataFiles
+        //        .CountAsync(p => p.ProjectCode_CD == ProjectAcronym);
+        //}
+
+        //_isInitialized = true;
+        //StateHasChanged();
+    }
+
+}

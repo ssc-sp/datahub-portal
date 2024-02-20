@@ -1,0 +1,156 @@
+﻿@* @page "/w/{ProjectAcronym}/publishing" *@
+@using Datahub.Application.Services.Publishing;
+@using Datahub.Application.Services.Security;
+@using Datahub.Core.Model.Projects;
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IOpenDataPublishingService _publishingService
+@inject ITbsOpenDataService _tbsService;
+@inject IDialogService _dialogService;
+@inject NavigationManager _navManager;
+@inject IKeyVaultUserService _kvService;
+@inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+
+
+<MudText Typo=@Typo.h2>@Localizer["Publishing Dashboard"]</MudText>
+
+<MudStack Spacing="6">
+
+    <MudText>
+        <MudButton OnClick=@PublishNewDataset Variant=@Variant.Filled Color=@Color.Primary>@Localizer["Publish New Dataset"]</MudButton>
+    </MudText>
+
+    @if (ShowPublishingProcessTable)
+    {
+        <MudTable Items=@_publishingProcesses Striped>
+            <HeaderContent>
+                <MudTh>@Localizer["Dataset"]</MudTh>
+                <MudTh>@Localizer["Type"]</MudTh>
+                <MudTh>@Localizer["Status"]</MudTh>
+                <MudTh>@Localizer["Requesting User"]</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>
+                    <DHLink PublishingSubmissionId=@context.Id DataProject=@WorkspaceAcronym>@context.DatasetTitle</DHLink>
+                </MudTd>
+                <MudTh>@Localizer[$"{context.LocalizationPrefix}.TypeName"]</MudTh>
+                <MudTh>@Localizer[$"{context.LocalizationPrefix}.Status.{context.Status}.Title"]</MudTh>
+                <MudTh>@context.RequestingUser.DisplayName</MudTh>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudText>@Localizer["Please wait"]</MudText>
+    }
+
+    <MudCard>
+        <MudCardHeader>
+            <MudText Typo=@Typo.h3>@Localizer["Admin Tools"]</MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudTextField 
+                InputType=@_tbsOpenGovApiKeyFieldType 
+                Label=@Localizer["OpenGov API Key"] 
+                @bind-Value=@_tbsOpenGovApiKey
+                Adornment=@Adornment.End
+                AdornmentIcon=@_tbsOpenGovApiKeyFieldIcon
+                OnAdornmentClick=@(() => _showTbsOpenGovApiKey = !_showTbsOpenGovApiKey) />
+            
+            <ObjectMetadataEditor @ref=@_tbsWorkspaceOrgEditor
+                @key=@WorkspaceAcronym
+                ObjectId=@WorkspaceAcronym
+                ObjectType=@Datahub.Metadata.Model.MetadataObjectType.DataInitiative
+                ProfileName="opengov_ext"
+                UpdateCatalog=@false
+                SecurityClass=@Core.SecurityClassification.Unclassified
+                ValidateRequired=@false
+                HideSaveButton
+                DisableTranslation
+                />
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@UpdateSettings >@Localizer["Update"]</MudButton>
+            <MudButton OnClick=@ResetSettings >@Localizer["Reset"]</MudButton>
+        </MudCardActions>
+    </MudCard>
+</MudStack>
+
+    @code {
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    private Datahub_Project _project;
+    private List<OpenDataSubmission> _publishingProcesses;
+    private bool _initialized = false;
+
+    private bool ShowPublishingProcessTable => _initialized;
+
+    private string _tbsOpenGovApiKey;
+    private bool _showTbsOpenGovApiKey = false;
+    private InputType _tbsOpenGovApiKeyFieldType => _showTbsOpenGovApiKey? InputType.Text : InputType.Password;
+    private string _tbsOpenGovApiKeyFieldIcon => _showTbsOpenGovApiKey? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+
+    private ObjectMetadataEditor _tbsWorkspaceOrgEditor;
+
+    private async Task PublishNewDataset()
+    {
+        var dialogParams = new DialogParameters<PublishNewDatasetDialog>();
+        dialogParams.Add(x => x.IsFileExplorerDialog, false);
+        dialogParams.Add(x => x.WorkspaceId, _project?.Project_ID);
+
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialog = await _dialogService.ShowAsync<PublishNewDatasetDialog>(Localizer["Publish New Dataset"], dialogParams, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var submissionInfo = result.Data as OpenDataSubmissionBasicInfo;
+            if (submissionInfo == null)
+            {
+                throw new OpenDataPublishingException($"Could not get submission information");
+            }
+
+            var submission = await _publishingService.CreateOpenDataSubmission(submissionInfo);
+            _navManager.NavigateTo($"/w/{WorkspaceAcronym}/publishing/{submission.Id}");
+        }
+
+    }
+
+    private async Task UpdateSettings() 
+    {
+        await _tbsService.SetApiKeyForWorkspace(WorkspaceAcronym, _tbsOpenGovApiKey);
+        await _tbsWorkspaceOrgEditor.SaveChanges();
+    }
+
+    private async Task ResetSettings() 
+    {
+        _tbsOpenGovApiKey = await _tbsService.GetApiKeyForWorkspace(WorkspaceAcronym);
+        await _tbsWorkspaceOrgEditor.ResetValues();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try 
+        {
+            await _kvService.Authenticate();
+            await ResetSettings();
+        }
+        catch (Microsoft.Identity.Web.MicrosoftIdentityWebChallengeUserException e)
+        {
+            _consentHandler.HandleException(e);
+        }
+
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+
+        _project = await ctx.Projects
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        _publishingProcesses = await _publishingService.GetOpenDataSubmissionsAsync(_project.Project_ID);
+
+        _initialized = true;
+        await base.OnInitializedAsync();
+    }
+
+}
