@@ -12,7 +12,11 @@
 
 @if (IsTbsSubmission)
 {
-    <TbsOpenGovPublishPage Submission=@_tbsSubmission OnSubmissionUpdated=@UpdateTbsOpenGovSubmission WorkspaceAcronym=@WorkspaceAcronym />
+    <TbsOpenGovPublishPage 
+        Submission=@_tbsSubmission 
+        OnSubmissionUpdated=@UpdateTbsOpenGovSubmission
+        OnSubmissionRefreshed=@LoadSubmission
+        WorkspaceAcronym=@WorkspaceAcronym />
 }
 else if (ValidSubmissionId)
 {

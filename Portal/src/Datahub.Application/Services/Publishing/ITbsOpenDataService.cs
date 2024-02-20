@@ -12,4 +12,7 @@ public interface ITbsOpenDataService
     Task<string?> GetApiKeyForWorkspace(string workspaceAcronym);
     Task SetApiKeyForWorkspace(string workspaceAcronym, string apiKey);
     Task<bool> IsWorkspaceReadyForSubmission(string workspaceAcronym);
+    Task<CKANApiResult> UpdatePackageImsoApproval(TbsOpenGovSubmission submission, bool imsoApproved);
+    Task<CKANApiResult> UpdatePackagePublication(TbsOpenGovSubmission submission, bool published);
+    string DerivePublishUrl(TbsOpenGovSubmission submission);
 }
