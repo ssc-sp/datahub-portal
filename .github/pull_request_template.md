@@ -23,9 +23,9 @@
 <!-- If you're unsure about any of these, don't hesitate to ask! -->
 - [ ] PR is submitted to the correct branch `develop`.
 - [ ] Code follows the code style of this project.
-- [ ] Relevant tests have been updated or added.
-- [ ] All new and existing tests passed.
-- [ ] I have added or updated necessary documentation (if appropriate)
-- [ ] If this PR requires a change to any configuration, there is a corresponding PR in the "infrastructure" repository.
+- [ ] Changes are covered by Specflow tests and all new or existing tests are passing.
+- [ ] Any new or updated translatable strings have been added to the localization files.
+- [ ] Necessary and relevant documentation has been created or updated.
+- [ ] There are either no changes to the application's configuration or the necessary changes in the infrastructure repository are included in a separate PR.
 
 <!-- Link to the "infrastructure" repository PR here -->
