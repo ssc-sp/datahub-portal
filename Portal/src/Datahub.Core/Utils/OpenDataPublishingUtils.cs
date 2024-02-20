@@ -114,6 +114,8 @@ namespace Datahub.Core.Utils
                 TbsOpenGovSubmission.GUIDE_FILE_TYPE
             };
 
+            var requiredFiles = files.Where(f => requiredPurposes.Contains(f.FilePurpose));
+
             if (files == null || files.Count < 1)
             {
                 // no files => not started, unless criteria is met
@@ -121,7 +123,7 @@ namespace Datahub.Core.Utils
                     OpenDataPublishingUtils.Incomplete(TbsOpenGovSubmission.ProcessSteps.AwaitingFiles) :
                     OpenDataPublishingUtils.NotStarted(TbsOpenGovSubmission.ProcessSteps.AwaitingFiles);
             }
-            else if (!requiredPurposes.Except(files.Select(f => f.FilePurpose)).Any() && files.All(f => f.UploadStatus != OpenDataPublishFileUploadStatus.NotStarted))
+            else if (!requiredPurposes.Except(files.Select(f => f.FilePurpose)).Any() && requiredFiles.All(f => f.UploadStatus != OpenDataPublishFileUploadStatus.NotStarted))
             {
                 // all required files => complete
                 return OpenDataPublishingUtils.Complete(TbsOpenGovSubmission.ProcessSteps.AwaitingFiles);
