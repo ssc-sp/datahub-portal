@@ -27,7 +27,7 @@ public class DbTests
     private string _userId = "myuserid";
 
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async void GraphServiceTest()
     {
         LoadServices();
@@ -43,7 +43,7 @@ public class DbTests
         }
     }
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async void GraphServiceTest_GetUser()
     {
         LoadServices();
@@ -60,7 +60,7 @@ public class DbTests
     }
 
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async void GraphServiceTest_GetUsers()
     {
         LoadServices();

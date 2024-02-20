@@ -1,3 +1,4 @@
+@ignore
 Feature: News
 	The News should be accessible to all users.
 

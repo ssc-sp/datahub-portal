@@ -3,12 +3,7 @@
 This repository contains the source code the Federal Science DataHub. 
 
 
-| [View Priority Bugs](https://github.com/ssc-sp/datahub-portal/issues?q=is%3Aissue+is%3Aopen+label%3Abug%2Cpriority) | [View Milestone Bugs](https://github.com/ssc-sp/datahub-portal/issues?q=is%3Aissue+is%3Aopen+label%3Abug+milestone%3A%22Pilot+2.0.0%22) | 
-| --- | --- |
-| ![GitHub issue custom search](https://img.shields.io/github/issues-search?color=red&label=priority%20bugs&query=repo%3Assc-sp%2Fdatahub-portal%20is%3Aissue%20is%3Aopen%20label%3Abug%2Cpriority) | ![GitHub issue custom search](https://img.shields.io/github/issues-search?color=red&label=milestone%20bugs&query=repo%3Assc-sp%2Fdatahub-portal%20is%3Aissue%20is%3Aopen%20label%3Abug%20milestone%3A%22Pilot%202.0.0%22) |
-
-| [View Milestone Planning](https://github.com/orgs/ssc-sp/projects/4/views/25) |
-| --- |
+![Repository Analytics](https://repobeats.axiom.co/api/embed/4f8232ed4f6dc3b08e20251bc5d5525047cbd490.svg "Repobeats analytics image")
 
 
 ## Learn more about DataHub

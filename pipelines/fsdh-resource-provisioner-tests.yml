@@ -1,0 +1,39 @@
+steps:
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core sdk 8.0.x'
+    inputs:
+      version: 8.0.x
+      includePreviewVersions: true
+      performMultiLevelLookup: true
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Resource Provisioner Application Integration Tests'
+    condition: succeededOrFailed()
+    inputs:
+      command: 'test'
+      projects: 'ResourceProvisioner/test/ResourceProvisioner.Application.IntegrationTests/ResourceProvisioner.Application.IntegrationTests.csproj'
+      testRunTitle: 'Resource Provisioner Application Integration Tests'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Resource Provisioner Application Unit Tests'
+    condition: succeededOrFailed()
+    inputs:
+      command: 'test'
+      projects: 'ResourceProvisioner/test/ResourceProvisioner.Application.UnitTests/ResourceProvisioner.Application.UnitTests.csproj'
+      testRunTitle: 'Resource Provisioner Application Unit Tests'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Resource Provisioner Domain Unit Tests'
+    condition: succeededOrFailed()
+    inputs:
+      command: 'test'
+      projects: 'ResourceProvisioner/test/ResourceProvisioner.Domain.UnitTests/ResourceProvisioner.Domain.UnitTests.csproj'
+      testRunTitle: 'Resource Provisioner Domain Unit Tests'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Resource Provisioner Infrastructure Unit Tests'
+    condition: succeededOrFailed()
+    inputs:
+      command: 'test'
+      projects: 'ResourceProvisioner/test/ResourceProvisioner.Infrastructure.UnitTests/ResourceProvisioner.Infrastructure.UnitTests.csproj'
+      testRunTitle: 'Resource Provisioner Infrastructure Unit Tests'

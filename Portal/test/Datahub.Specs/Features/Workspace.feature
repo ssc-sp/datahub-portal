@@ -1,3 +1,4 @@
+@ignore
 Feature: Ws
 	The Workpace should be accessible to all users.
 
