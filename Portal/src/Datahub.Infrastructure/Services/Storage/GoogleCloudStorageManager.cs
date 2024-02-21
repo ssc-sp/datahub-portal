@@ -224,6 +224,7 @@ namespace Datahub.Infrastructure.Services.Storage
                             {
                                 id = obj.ETag,
                                 name = GetObjectName(obj),
+                                folderpath = folderPath,
                                 filesize = obj.Size?.ToString(),
                                 lastmodifiedts = obj.Updated ?? default,
                             });
