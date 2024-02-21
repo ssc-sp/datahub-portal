@@ -136,6 +136,8 @@
   "Authorized": "Authorized",
   "Average (GB)": "Average (GB)",
   "AzCopy": "AzCopy",
+  "Azure API Management:": "Azure API Management:",
+  "Azure API Management is a fully managed service that enables participants to publish, secure, transform, maintain, and monitor APIs. To use API Management, you must first create an Azure App Service.": "Azure API Management is a fully managed service that enables participants to publish, secure, transform, maintain, and monitor APIs. To use API Management, you must first create an Azure App Service.",
   "Azure App Service is a fully managed web hosting service for building web apps, mobile back ends, and RESTful APIs. It offers auto-scaling and high availability, supports both Windows and Linux, and enables automated deployments from GitHub, Azure DevOps, or any Git repo.": "Azure App Service is a fully managed web hosting service for building web apps, mobile back ends, and RESTful APIs. It offers auto-scaling and high availability, supports both Windows and Linux, and enables automated deployments from GitHub, Azure DevOps, or any Git repo.",
   "Azure App Service": "Azure App Service",
   "Azure ArcGIS": "Azure ArcGIS",
