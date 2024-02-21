@@ -213,6 +213,12 @@ public partial class FileExplorer
     
     private async Task HandlePublishFiles(IEnumerable<FileMetaData> files)
     {
+        if (!_publishingService.IsPublishingFeatureEnabled())
+        {
+            await Task.CompletedTask;
+            return;
+        }
+
         var dialogParams = new DialogParameters<PublishNewDatasetDialog>
         {
             { x => x.IsFileExplorerDialog, true },

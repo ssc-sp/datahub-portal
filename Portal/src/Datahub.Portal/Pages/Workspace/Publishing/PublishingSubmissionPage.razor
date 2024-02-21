@@ -10,21 +10,24 @@
 
 @implements IDisposable
 
-@if (IsTbsSubmission)
+@if (IsPublishingEnabled)
 {
-    <TbsOpenGovPublishPage 
-        Submission=@_tbsSubmission 
-        OnSubmissionUpdated=@UpdateTbsOpenGovSubmission
-        OnSubmissionRefreshed=@LoadSubmission
-        WorkspaceAcronym=@WorkspaceAcronym />
-}
-else if (ValidSubmissionId)
-{
-    <MudProgressCircular Indeterminate Size=@Size.Large />
-}
-else
-{
-    <MudText>Invalid id</MudText>
+    @if (IsTbsSubmission)
+    {
+        <TbsOpenGovPublishPage 
+            Submission=@_tbsSubmission 
+            OnSubmissionUpdated=@UpdateTbsOpenGovSubmission
+            OnSubmissionRefreshed=@LoadSubmission
+            WorkspaceAcronym=@WorkspaceAcronym />
+    }
+    else if (ValidSubmissionId)
+    {
+        <MudProgressCircular Indeterminate Size=@Size.Large />
+    }
+    else
+    {
+        <MudText>Invalid id</MudText>
+    }
 }
 
 
@@ -37,6 +40,8 @@ else
     public string SubSection { get; set; }
 
     private System.Threading.Timer _fileStatusTimer;
+
+    private bool IsPublishingEnabled => PublishingService.IsPublishingFeatureEnabled();
 
     private long? SubmissionId => long.TryParse(SubSection, out var result) ? result : default;
     private bool ValidSubmissionId => SubmissionId.HasValue;

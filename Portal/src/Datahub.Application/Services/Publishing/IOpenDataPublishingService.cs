@@ -18,6 +18,7 @@ namespace Datahub.Application.Services.Publishing
         Task<int> AddFilesToSubmission(OpenDataSubmission openDataSubmission, IEnumerable<FileMetaData> files, int? containerId, string containerName);
         Task<OpenDataPublishFile> UpdateFileUploadStatus(OpenDataPublishFile file, OpenDataPublishFileUploadStatus status, string? uploadMessage = null);
         Task<int> RefreshFileUploadStatuses(OpenDataSubmission? submission);
+        bool IsPublishingFeatureEnabled();
     }
 
     public class OpenDataPublishingException : Exception

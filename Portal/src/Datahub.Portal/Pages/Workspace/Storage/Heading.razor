@@ -1,3 +1,4 @@
+@using Datahub.Application.Services.Publishing
 @using Datahub.Core.Components.Common
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Achievements;
@@ -14,6 +15,7 @@
 @inject ServiceAuthManager ServiceAuthManager
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IProjectUserManagementService _projectUserManagementService
+@inject IOpenDataPublishingService _openDataPublishingService
 
 <Toaster Toasts="_toasts" >
     
