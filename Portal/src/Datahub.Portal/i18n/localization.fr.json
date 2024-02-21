@@ -206,6 +206,8 @@
   "Automated cataloging for your data and the ability to manage the metadata around your dataset to make it more discoverable.": "Catalogage automatisé de vos données et possibilité de gérer les métadonnées autour de votre ensemble de données afin de les rendre plus accessibles.",
   "Average (GB)": "Moyenne (Go)",
   "AzCopy": "AzCopy",
+  "Azure API Management": "Gestion des API Azure",
+  "Azure API Management is a fully managed service that enables participants to publish, secure, transform, maintain, and monitor APIs. To use API Management, you must first create an Azure App Service.": "La Gestion des API Azure est un service entièrement géré qui permet aux participants de publier, de sécuriser, de transformer, de maintenir et de surveiller les API. Pour utiliser la Gestion des API, vous devez d'abord créer un Service d'application Azure.",
   "Azure App Service is a fully managed web hosting service for building web apps, mobile back ends, and RESTful APIs. It offers auto-scaling and high availability, supports both Windows and Linux, and enables automated deployments from GitHub, Azure DevOps, or any Git repo.": "Service d'application Azure est un service d'hébergement web entièrement géré pour la création d'applications web, de back-ends mobiles et d'API RESTful. Il offre une mise à l'échelle automatique et une haute disponibilité, prend en charge Windows et Linux, et permet des déploiements automatisés à partir de GitHub, Azure DevOps ou de n'importe quel référentiel Git.",
   "Azure App Service": "Application Azure",
   "Azure ArcGIS": "ArcGIS Azure",
