@@ -125,6 +125,14 @@
                             <MudTd><MudText>@context.FileName</MudText></MudTd>
                             <MudTd><MudText>@GetFilePurposeLabel(context.FilePurpose)</MudText></MudTd>
                             <MudTd><PublishingFileControl File=@context OnUploadHandler=@UploadFileHandler CanPublish=@_canBeSubmitted /></MudTd>
+                            <MudTd>
+                                <MudTooltip Text=@Localizer["Edit File Info"]>
+                                    <div class="reader-only">@Localizer["Edit File Info"]</div>
+                                    <MudIconButton Icon=@Icons.Material.Filled.Edit
+                                                   Disabled=@(false)
+                                                   OnClick=@(async () => await ShowFileInfoDialog(context)) />
+                                </MudTooltip>
+                            </MudTd>
                         </RowTemplate>
                     </MudTable>
                 </MudCardContent>
@@ -299,13 +307,13 @@
 
     private string GetFilePurposeLabel(string filePurpose) => string.IsNullOrEmpty(filePurpose) ? Localizer["N/A"] : Localizer[$"{Submission.LocalizationPrefix}.FileTypes.{filePurpose}"];
 
-    private async Task ShowFileInfoDialog(string initialFilePurpose)
-    {
-        var file = GetFirstFileWithPurpose(initialFilePurpose);
+    private async Task ShowFileInfoDialog(string initialFilePurpose) => await ShowFileInfoDialog(GetFirstFileWithPurpose(initialFilePurpose));
 
+    private async Task ShowFileInfoDialog(OpenDataPublishFile initialFile)
+    {
         var dialogParams = new DialogParameters<EditFileInformationDialog>();
         dialogParams.Add(x => x.Submission, Submission);
-        dialogParams.Add(x => x.InitialFile, file);
+        dialogParams.Add(x => x.InitialFile, initialFile);
 
         var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
 
