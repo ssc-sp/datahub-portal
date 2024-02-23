@@ -2,6 +2,7 @@ import azure.functions as func
 import logging
 import lib.databricks_utils as dtb_utils
 import lib.azkeyvault_utils as azkv_utils
+import lib.azstorage_utils as azsg_utils
 import os
 
 #from lib.databricks_utils import get_workspace_client, remove_deleted_users_in_workspace, synchronize_workspace_users
@@ -23,12 +24,17 @@ def http_sync_workspace_users_function(req: func.HttpRequest) -> func.HttpRespon
     """
     workspace_definition = req.get_json()
     logging.info("Synchronizing workspace users.")
+
     logging.info("Synchronizing databricks users.")
     sync_databricks_workspace_users_function(workspace_definition)
+    
     logging.info("Synchronizing keyvault users.")
     sync_keyvault_workspace_users_function(workspace_definition)
-    logging.info("Successfully synchronized workspace users.")
 
+    logging.info("Synchronizing storage account policies")
+    sync_storage_workspace_users_function(workspace_definition)
+
+    logging.info("Successfully synchronized workspace users.")
     return func.HttpResponse("Successfully synchronized workspace users.")
 
 @app.function_name(name="SynchronizeWorkspaceUsersQueueTrigger")
@@ -82,7 +88,7 @@ def sync_databricks_workspace_users_function(workspace_definition):
 
 def sync_keyvault_workspace_users_function(workspace_definition):
     """
-    Synchronizes the users in the Databricks workspace with the users in the definition file.
+    Synchronizes the users in the keyvault with the users in the definition file.
 
     Args:
         workspace_definition (dict): The workspace definition file.
@@ -102,6 +108,29 @@ def sync_keyvault_workspace_users_function(workspace_definition):
     # Cleanup users in workspace that aren't in AAD Graph
     #remove_deleted_users_in_workspace(workspace_client)
     #synchronize_workspace_users(workspace_definition, workspace_client)
+
+def sync_storage_workspace_users_function(workspace_definition):
+    """
+    Synchronizes the users in the storage account with the users in the definition file.
+
+    Args:
+        workspace_definition (dict): The workspace definition file.
+
+    Returns:
+        None
+ 
+    """
+    # get environment name from environment variables
+    environment_name = os.environ["DataHub_ENVNAME"]   
+    subscription_id = os.environ["AzureSubscriptionId"]
+    tenantId = os.environ["AzureTenantId"]
+
+    sg_client = azsg_utils.get_authorization_client(subscription_id, tenantId)
+    azsg_utils.synchronize_access_policies(sg_client,subscription_id, environment_name, workspace_definition)
+
+    # Cleanup users in workspace that aren't in AAD Graph
+    #remove_deleted_users_in_workspace(workspace_client)
+    #synchronize_workspace_users(workspace_definition, workspace_client)    
 
 
 
