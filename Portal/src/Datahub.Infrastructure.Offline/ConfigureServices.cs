@@ -27,8 +27,7 @@ namespace Datahub.Infrastructure.Offline;
 public static class ConfigureServices
 {
         
-    public static IServiceCollection AddDatahubOfflineInfrastructureServices(this IServiceCollection services,
-        IConfiguration configuration)
+    public static IServiceCollection AddDatahubOfflineInfrastructureServices(this IServiceCollection services)
     {
         
         services.AddSingleton<CultureService>();
