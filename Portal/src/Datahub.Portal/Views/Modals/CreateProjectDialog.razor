@@ -158,7 +158,7 @@
 
     private async Task CreateProject()
     {
-        _success = ValidateAcronym(_projectAcronym).Result is null; // Force validation - users can avoid otherwise by clicking the button while the field is selected.
+        _success = string.IsNullOrWhiteSpace(await ValidateAcronym(_projectAcronym)); // Force validation - users can avoid otherwise by clicking the button while the field is selected.
 
         if (_success)
         {

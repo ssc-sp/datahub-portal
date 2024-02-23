@@ -115,7 +115,7 @@ public partial class DatabaseIpWhitelistTable
 
         CreateOrUpdateIpAddress(userWhitelistIpAddress);
         
-        _snackbar.Add(Localizer["Current IP address has been added."], Severity.Success);
+        _snackbar.Add(Localizer["Current IP address has been added. Changes may take 15 minutes to apply."], Severity.Success);
         _firewallRules.Add(userWhitelistIpAddress);
     }
 
@@ -139,7 +139,7 @@ public partial class DatabaseIpWhitelistTable
             };
 
             CreateOrUpdateIpAddress(newWhitelistIpAddress);
-            _snackbar.Add(Localizer["IP address {0} has been added.", ipAddress], Severity.Success);
+            _snackbar.Add(Localizer["IP address {0} has been added. Changes may take 15 minutes to apply.", ipAddress], Severity.Success);
             _firewallRules.Add(newWhitelistIpAddress);
         }
         else
