@@ -1,114 +1,111 @@
-from azure.mgmt.keyvault import KeyVaultManagementClient
 from azure.identity import ClientSecretCredential
-from azure.mgmt.keyvault import KeyVaultManagementClient
-from azure.mgmt.keyvault.models import AccessPolicyEntry, VaultAccessPolicyParameters, SecretPermissions
+from azure.mgmt.authorization import AuthorizationManagementClient
+from azure.mgmt.authorization.models import RoleAssignmentCreateParameters
 import os
-import asyncio
-import requests
+import uuid
 
-def get_keyvault_client(subscription_id, tenant_id) -> KeyVaultManagementClient:
+CONTRIBUTOR="ba92f5b4-2d11-453d-a403-e96b0029c9fe"
+READER="acdd72a7-3385-48ef-bd42-f606fba81ae7"
+
+def assign_blob_reader_role(auth_client, subscription_id, scope, user_object_id, read_only):
+    if (read_only):
+        roleId = READER
+    else:
+        roleId = CONTRIBUTOR
+    # Define the role assignment parameters
+    # see https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles for details
+    role_assignment_parameters = RoleAssignmentCreateParameters(
+        role_definition_id="/subscriptions/{subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/{roleId}".format(subscriptionId=subscription_id,roleId=roleId),
+        principal_id=user_object_id
+    )
+
+    # Assign the role
+    auth_client.role_assignments.create(
+        scope=scope,
+        role_assignment_name=uuid.uuid4(),
+        parameters=role_assignment_parameters
+    )
+
+def remove_existing_role(client:AuthorizationManagementClient, scope, user_object_id):
+    role_assignments = client.role_assignments.list_for_scope(scope)
+    for role in role_assignments:
+        if role.principal_id == user_object_id:
+            client.role_assignments.delete_at_scope(scope, role.name)
+
+def get_storage_reference(environment_name, definition_json):
+    rg_name = f"fsdh_proj_{definition_json['Workspace']['Acronym']}_{environment_name}_rg"
+    sg_name = f"fsdhproj{definition_json['Workspace']['Acronym']}{environment_name}"
+    return rg_name,sg_name
+
+def get_scope(subscription_id, resource_group_name, storage_account_name):
+    return "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{storageAccountName}".format(subscriptionId=subscription_id, resourceGroupName=resource_group_name, storageAccountName=storage_account_name)
+
+def check_blob_reader_role(client:AuthorizationManagementClient, scope, user_object_id):
+     role_assignments = client.role_assignments.list_for_scope(scope)
+     for role in role_assignments:
+          if role.principal_id == user_object_id:
+                return role.role_definition_id == READER
+     return None
+
+def get_authorization_client(subscription_id, tenant_id) -> AuthorizationManagementClient:
     """
-    Retrieves a Key Vault client for the specified environment and workspace definition.
+    Retrieves an Authorization Management client for the specified environment and workspace definition.
 
     Args:
-        environment_name (str): The name of the environment.
-        definition_json (dict): The definition of the workspace.
+        subscription_id (str): The subscription id.
+        tenant_id (str): The tenant id.
 
     Returns:
-        keyvault_client: The Key Vault client object.
+        auth_client: The Authorization Management client object.
 
     """
     credential = ClientSecretCredential(
         tenant_id=tenant_id,
         client_id=os.environ["AzureClientId"],
-        client_secret=os.environ["AzureClientSecret"])    
+        client_secret=os.environ["AzureClientSecret"]
+    )
 
-    kv_client = KeyVaultManagementClient(
+    auth_client = AuthorizationManagementClient(
         credential=credential,
         subscription_id=subscription_id
     )
     
-    return kv_client
+    return auth_client    
 
-
-def get_keyvault_uri(keyvault_name):
-    # Replace these values with your Azure Key Vault details
-    return f"https://{keyvault_name}.vault.azure.net/"
-
-def list_secrets(client:KeyVaultManagementClient, environment_name, definition_json):
-    rg_name, vault_name = get_kv_reference(environment_name, definition_json)
-    print(f"using vault: [{rg_name}].[{vault_name}]")
-    
-    vault = client.vaults.get(rg_name, vault_name)
-    # Get a list of secrets    
-    secrets = client.secrets.list(rg_name,vault_name)
-    return secrets
-
-def synchronize_access_policies(client:KeyVaultManagementClient, environment_name, definition_json, tenant_id):
-    rg_name, vault_name = get_kv_reference(environment_name, definition_json)
-    print(f"using vault: [{rg_name}].[{vault_name}]")
-    # Replace these values with your Azure Key Vault details
-
-    # Create a SecretClient using the default Azure credential from Azure Identity
-
-    # Get access policies
-    vault = client.vaults.get(rg_name, vault_name)
-
-    current_policies = vault.properties.access_policies
+def synchronize_access_policies(client:AuthorizationManagementClient, subscription_id, environment_name, definition_json):
+    (rg_name,sg_account) = get_storage_reference(environment_name, definition_json)
+    scope = get_scope(subscription_id, rg_name, sg_account)
     # iterate through definition_json['Workspace']['Acronym']
     for user in (user for user in definition_json['Workspace']['Users'] if user['Role'] != 'Removed'):
         user_id = user['ObjectId']
-        # check if user exists in access policies
-        user_exists = False
-        for policy in vault.properties.access_policies:
-            if policy.object_id == user_id:
-                user_exists = True
-                break
-        # if user does not exist, add user to access policies
-        if not user_exists:
-            print(f"adding user {user_id} to access policies")
-            # add user to access policies                        
-            #vault = clients.kv_client.vaults.get(rg_name, vault_name)
-            #print(f"User {user} has permissions: {policy.permissions}")
-            #print(policy)        
-            # enable secret list,get,delete,set,update permissions for user
-            # Define the access policy
-            permissions = ["list","get"]
-            if user['Role'] == 'Admin':
-                permissions = ["list","get","delete","set"]
-            access_policy = AccessPolicyEntry(tenant_id=tenant_id, object_id=user_id, 
-                                            permissions={'secrets': permissions})
-            current_policies.append(access_policy)
-                            
-        else:
-            print(f"user {user['ObjectId']} already exists in access policies")
-    # collect all the object ids
-    #object_ids = [policy.object_id for policy in vault.properties.access_policies]
-    #output = asyncio.run(collect_ms_graph_properties(clients,object_ids))
-    # Print access policies
-    removed_users = [user for user in definition_json['Workspace']['Users'] if user['Role'] == 'Removed']    
-    for policy in vault.properties.access_policies:
-        if policy.object_id in (user['ObjectId'] for user in removed_users):
-            print(f"removing user {policy.object_id} from access policies")
-            current_policies.remove(policy)
-            #vault = clients.kv_client.vaults.get(rg_name, vault_name)
-            #        
-        # print(f"User {user} has permissions: {policy.permissions}")
-        # print(policy)        
-    # Update the vault with the new policies
-    vault.properties.access_policies = current_policies
-    keyvault_poller = client.vaults.begin_create_or_update(
-        rg_name, vault_name, vault
-    )
-
-    return keyvault_poller.result() 
-
-def get_kv_reference(environment_name, definition_json):
-    rg_name = f"fsdh_proj_{definition_json['Workspace']['Acronym']}_{environment_name}_rg"
-    vault_name = f"fsdh-proj-{definition_json['Workspace']['Acronym']}-{environment_name}-kv"
-    return rg_name,vault_name   
-
-
-
-    
-
+        print(f"processing user {user_id} access policies")
+        try:
+            reader_role = check_blob_reader_role(client, scope, user_id)
+            if user['Role'] == 'Guest':
+                if reader_role is None:
+                    print(f"assigning user {user_id} to access policies - read-only")
+                    assign_blob_reader_role(client, subscription_id, scope, user_id, True)
+                elif not reader_role:
+                    print(f"assigning user {user_id} to access policies - read-only")
+                    remove_existing_role(client, scope, user_id)
+                    assign_blob_reader_role(client, subscription_id, scope, user_id, True)
+                else:
+                    print(f"user {user_id} already has read-only access policies")
+            else:
+                if reader_role is None:
+                    print(f"assigning user {user_id} to access policies - read-write")
+                    assign_blob_reader_role(client, subscription_id, scope, user_id, False)
+                elif reader_role:
+                    print(f"assigning user {user_id} to access policies - read-write")
+                    remove_existing_role(client, scope, user_id)
+                    assign_blob_reader_role(client, subscription_id, scope, user_id, False)
+                else:
+                    print(f"user {user_id} already has read-write access policies")
+        except Exception as e:
+            print(f"error processing user {user_id} access policies: {e}")
+    for user in (user for user in definition_json['Workspace']['Users'] if user['Role'] == 'Removed'):
+        try:
+            print(f"removing user {user['ObjectId']} from access policies")
+            remove_existing_role(client, scope, user['ObjectId'])
+        except Exception as e:
+            print(f"error processing user {user_id} access policies: {e}")
