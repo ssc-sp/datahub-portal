@@ -1326,6 +1326,9 @@ namespace Datahub.Core.Migrations.Core
                     b.Property<string>("Division_Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("GC_Docs_URL")
                         .HasColumnType("nvarchar(max)");
 
@@ -1335,6 +1338,9 @@ namespace Datahub.Core.Migrations.Core
 
                     b.Property<bool>("HasCostRecovery")
                         .HasColumnType("bit");
+
+                    b.Property<string>("HashedAPIToken")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("Initial_Meeting_DT")
                         .HasColumnType("datetime2");

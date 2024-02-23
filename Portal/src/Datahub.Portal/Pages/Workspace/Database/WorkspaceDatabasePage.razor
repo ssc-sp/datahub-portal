@@ -9,7 +9,7 @@
 
 @if (!_isElevated)
 {
-    <DHLoadingInitializer Message="@Localizer["Validating your credentials..."]"  />
+    <DHLoadingInitializer Message="@Localizer["Validating your credentials..."]"/>
     return;
 }
 <MudStack>
@@ -21,30 +21,22 @@
         @Localizer["Here you can manage your workspace database. You can view and test the connectivity of your database"]
     </MudText>
 
-    <MudText Typo="Typo.h2">
-        @Localizer["Database Info"]
-    </MudText>
-    <MudText>
-        @Localizer["Host: "] <code>@_databaseHost</code>
-    </MudText>
-    <MudText>
-        @Localizer["Database Name: "] <code>@_databaseName</code>
-    </MudText>
-    <MudText>
-        @Localizer["Username: "] <code>@_username</code>
-    </MudText>
-    <MudText>
-        @Localizer["Password: "] <code>@_password</code>
-    </MudText>
-    <MudText>
-        @Localizer["Port: "] <code>@_port</code>
-    </MudText>
+    <DatabaseInfoTable
+        DatabaseHost="@_databaseHost"
+        DatabaseName="@_databaseName"
+        Username="@_username"
+        Password="@_password"
+        Port="@_port"
+        />
 
     <MudText Typo="Typo.h2">
         @Localizer["Connection Info"]
     </MudText>
 
     <MudTabs Elevation="0" Outlined PanelClass="pa-6" Class="mt-8">
+        <MudTabPanel Text="Databricks">
+            <DHMarkdown Content="@_databricksConnectionInfo" LinkRewriter="@(link => link)"/>
+        </MudTabPanel>
         <MudTabPanel Text="Python">
             <DHMarkdown Content="@_pythonConnectionInfo" LinkRewriter="@(link => link)"/>
         </MudTabPanel>
@@ -58,16 +50,20 @@
             <DHMarkdown Content="@_csharpConnectionInfo" LinkRewriter="@(link => link)"/>
         </MudTabPanel>
     </MudTabs>
+    
+    <DatabaseIpWhitelistTable WorkspaceAcronym="@WorkspaceAcronym" />
 </MudStack>
 
 @code {
 
-    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter, EditorRequired] 
+    public string WorkspaceAcronym { get; set; }
 
     private string _pythonConnectionInfo;
     private string _rConnectionInfo;
     private string _javaConnectionInfo;
     private string _csharpConnectionInfo;
+    private string _databricksConnectionInfo;
 
     private string _databaseHost = "<database_host>";
     private string _databaseName = "<database_name>";
@@ -91,6 +87,7 @@
             _rConnectionInfo = ReplaceHydrationValues(BuildRConnectionInfo());
             _javaConnectionInfo = ReplaceHydrationValues(BuildJavaConnectionInfo());
             _csharpConnectionInfo = ReplaceHydrationValues(BuildCSharpConnectionInfo());
+            _databricksConnectionInfo = ReplaceHydrationValues(BuildDatabricksConnectionInfo());
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
         {
@@ -185,10 +182,10 @@ con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port,
     private string BuildJavaConnectionInfo()
     {
         return @"```java
-String url = ""jdbc:postgresql://<database_hst>:<port>/<database_name>"";
+String url = ""jdbc:postgresql://<database_host>:<port>/<database_name>"";
 Properties props = new Properties();
 props.setProperty(""user"", ""<username>"");
-props.setProperty(""password"", ""<password>
+props.setProperty(""password"", ""<password>"");
 props.setProperty(""ssl"", ""true"");
 Connection conn = DriverManager.getConnection(url, props);
 ```";
@@ -221,6 +218,37 @@ using (var conn = new NpgsqlConnection(connString))
 // do stuff
 
 }
+```";
+    }
+
+    private string BuildDatabricksConnectionInfo()
+    {
+        return @"```python
+%python
+database_host = ""<database_host>""
+database_port = ""5432""
+database_name = ""<database_name>""
+table = ""<table_name>""
+user = ""<username>""
+password = ""<password>""
+
+url = f""jdbc:postgresql://{database_host}:{database_port}/{database_name}""
+
+remote_table = (spark.read
+    .format(""jdbc"")
+    .option(""driver"", driver)
+    .option(""url"", url)
+    .option(""dbtable"", table)
+    .option(""user"", user)
+    .option(""password"", password)
+    .load()
+)
+
+# Optional - Convert the table to use with pandas
+import pandas as pd
+remote_table = remote_table.toPandas()
+
+display(remote_table)
 ```";
     }
 

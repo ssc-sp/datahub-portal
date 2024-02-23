@@ -250,21 +250,18 @@ jobs:
 
         Write-Output "Tagging $(Build.Repository.Name) with $versionNumber"
 
-- job: Specflow_Job
-  displayName: Agent job - Specflow
+- job: Portal_Testing_job
+  displayName: Agent job - Portal Testing
   dependsOn: Job_2
   pool:
     vmImage: ubuntu-latest
   steps:
-    - task: SpecFlowPlus@0
-      inputs:
-        generatorSource: 'FeatureFolder'
-        projectFilePath: Portal/test/Datahub.SpecflowTests
-        projectName: Datahub.SpecflowTests
-        #testExecutionJson: # Optional
-        #projectLanguage: 'en' # Optional
-        #workItemPrefix: # Optional
-        #workItemUrlTemplate: # Optional
-        #bindingAssemblies: # Optional
-        #output: # Optional
-      enabled: true
+  - template: fsdh-portal-tests.yml
+    
+- job: ResourceProvisioner_Testing_job
+  displayName: Agent job - Resource Provisioner Testing
+  dependsOn: Job_2
+  pool:
+      vmImage: ubuntu-latest
+  steps:
+    - template: fsdh-resource-provisioner-tests.yml
