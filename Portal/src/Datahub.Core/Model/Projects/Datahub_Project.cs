@@ -269,6 +269,8 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeFormIgnore]
     [StringLength(128)]
     public string WebApp_URL { get; set; }
+
+    
     
     [AeFormIgnore]
     [StringLength(16)]
@@ -317,6 +319,10 @@ public class Datahub_Project : IComparable<Datahub_Project>
             return new DatahubProjectInfo(Project_Name, Project_Name_Fr, Project_Acronym_CD);
         }
     }
+
+    public string HashedAPIToken { get; set; }
+
+    public DateTime ExpiryDate { get; set; }
 
     public int CompareTo(Datahub_Project other)
     {

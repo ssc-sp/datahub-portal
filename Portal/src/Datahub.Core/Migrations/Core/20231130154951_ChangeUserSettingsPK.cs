@@ -14,10 +14,6 @@ namespace Datahub.Core.Migrations.Core
             migrationBuilder.DropTable(
                 name: "UserSettingsBackup");
             
-            migrationBuilder.DropPrimaryKey(
-                name: "PK_UserSettings",
-                table: "UserSettings");
-
             migrationBuilder.AddColumn<int>(
                 name: "PortalUserId",
                 table: "UserSettings",

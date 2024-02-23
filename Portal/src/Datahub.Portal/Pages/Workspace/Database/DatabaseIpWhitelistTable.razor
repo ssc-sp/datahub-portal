@@ -1,0 +1,150 @@
+@using Azure.ResourceManager
+@using Azure.Identity
+@using Azure.Core
+@using Azure.ResourceManager.PostgreSql.FlexibleServers
+@using System.Net
+@using Azure
+
+
+@inject IHttpContextAccessor _httpContextAccessor
+@inject DatahubPortalConfiguration _portalConfiguration
+@inject ISnackbar _snackbar
+@inject ILogger<DatabaseIpWhitelistTable> _logger
+@inject IUserInformationService _userInformationService
+@inject IJSRuntime _jsRuntime
+
+
+<MudStack>
+    <MudText Typo="Typo.h2" Class="mt-6">
+        @Localizer["Database Firewall Rules"]
+    </MudText>
+    <MudText>
+        @Localizer["The following IP addresses are whitelisted for the database. Names must be unique and can only contain letters, numbers, underscores and hyphens."]
+    </MudText>
+    <MudAlert Severity="Severity.Info">
+        @Localizer["Changes to the firewall rules can take up to 15 minutes to apply."]
+    </MudAlert>
+    <MudStack Row>
+        <MudButton OnClick="@AddCurrentIpAddress">
+            @Localizer["Add current IP address ({0})", _userIpAddress]
+        </MudButton>
+        <MudButton OnClick="@AddNewIpAddress">
+                    @Localizer["Add a new IP address"]
+                </MudButton>
+        <MudSpacer/>
+    </MudStack>
+</MudStack>
+
+<MudTable Items="@_firewallRules"
+          Dense="true"
+          Hover="true"
+          Outlined="true"
+          Class="mt-6 mb-12"
+          CanCancelEdit="true"
+          Filter="@(new Func<WhitelistIPAddressData, bool>(FilterFunc))"
+          @bind-SelectedItem="@_selectedItem"
+          SortLabel="@Localizer["Sort by"]"
+          CommitEditTooltip="@Localizer["Commit edit"]"
+          CancelEditTooltip="@Localizer["Cancel edit"]"
+          IsEditRowSwitchingBlocked="true"
+          EditTrigger="TableEditTrigger.EditButton"
+          OnCommitEditClick="@HandleCommitEditClicked"
+          ApplyButtonPosition="TableApplyButtonPosition.Start"
+          EditButtonPosition="TableEditButtonPosition.Start"
+          RowEditPreview="@BackupItem"
+          RowEditCancel="@HandleRowEditCancel"
+          RowEditCommit="@HandleRowEditCommit">
+
+    <ToolBarContent>
+        <MudText Typo="Typo.h3" Class="mt-6">
+            @Localizer["Database IP Address Whitelist"]
+        </MudText>
+        <MudSpacer/>
+        <MudTextField
+            @bind-Value="@_filterString"
+            Label="@Localizer["Filter"]"
+            Adornment="Adornment.End"
+            AdornmentIcon="@SidebarIcons.Search"
+            IconSize="Size.Small"
+            Class="mt-0"/>
+    </ToolBarContent>
+
+    <ColGroup>
+        <col/>
+        <col/>
+        <col/>
+        <col style="width: 50px;"/> <!-- Delete button column -->
+    </ColGroup>
+
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.Name))">@Localizer["Name"]</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.StartIPAddress))">@Localizer["IP Address"]</MudTableSortLabel>
+        </MudTh>
+        <MudTh/>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="@Localizer["Name"]">@context.Name</MudTd>
+        <MudTd DataLabel="@Localizer["IP Address (192.168.2.1)"]">@context.StartIPAddress</MudTd>
+        <MudTd>
+            <MudTooltip Text="@Localizer["Delete IP Address"]">
+                <MudIconButton Size="Size.Small" Icon="@SidebarIcons.Delete" aria-label="@(Localizer["Delete"])"
+                               OnClick="@(() => DeleteIpAddress(context, true))"/>
+            </MudTooltip>
+        </MudTd>
+    </RowTemplate>
+    <RowEditingTemplate>
+        <MudTd DataLabel="@Localizer["Name"]">
+            <MudTextField @bind-Value="@context.Name" Required/>
+        </MudTd>
+        <MudTd DataLabel="@Localizer["IP Address"]">
+            <MudTextField @bind-Value="@context.StartIPAddress" Required Converter="@BuildConverter()"/>
+        </MudTd>
+        <MudTd/>
+    </RowEditingTemplate>
+    <EditButtonContent Context="button">
+        <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
+    </EditButtonContent>
+</MudTable>
+
+@code {
+
+    [Parameter, EditorRequired] public string WorkspaceAcronym { get; set; }
+
+    private IPAddress _userIpAddress = default;
+    private string _filterString = default;
+    private WhitelistIPAddressData _selectedItem = default;
+    private WhitelistIPAddressData _elementBeforeEdit = default;
+    private List<WhitelistIPAddressData> _firewallRules = [];
+
+    private Converter<IPAddress> BuildConverter() =>
+        new()
+        {
+            SetFunc = value => value?.ToString() ?? string.Empty,
+            GetFunc = IPAddress.Parse,
+            SetErrorMessage = Localizer["Invalid IP address format (e.g. 192.168.2.1)"],
+        };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var postgresResource = BuildPostgresSqlFlexibleServerResource();
+
+        await foreach (var firewallRule in postgresResource.GetPostgreSqlFlexibleServerFirewallRules())
+        {
+            _firewallRules.Add(new WhitelistIPAddressData(firewallRule.Data));
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        _userIpAddress = _httpContextAccessor?.HttpContext?.Connection.RemoteIpAddress;
+
+        StateHasChanged();
+    }
+
+}

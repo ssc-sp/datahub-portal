@@ -112,7 +112,8 @@
         TerraformTemplate.AzureStorageBlob,
         TerraformTemplate.AzureAppService,
         TerraformTemplate.AzurePostgres,
-        TerraformTemplate.AzureArcGis
+        TerraformTemplate.AzureArcGis,
+        TerraformTemplate.AzureAPI
     ];
 
     private enum ToolStatus
@@ -132,8 +133,9 @@
         { TerraformTemplate.AzureDatabricks, ToolStatus.Available },
         { TerraformTemplate.AzureStorageBlob, ToolStatus.Available },
         { TerraformTemplate.AzureAppService, ToolStatus.UnderDevelopment },
-        { TerraformTemplate.AzurePostgres, ToolStatus.UnderDevelopment },
-        { TerraformTemplate.AzureArcGis, ToolStatus.UnderDevelopment }
+        { TerraformTemplate.AzurePostgres, ToolStatus.Available },
+        { TerraformTemplate.AzureArcGis, ToolStatus.UnderDevelopment },
+        { TerraformTemplate.AzureAPI, ToolStatus.UnderDevelopment }
     };
 
     private bool _metadataRequired = true;
@@ -225,6 +227,7 @@
             TerraformTemplate.AzureAppService => Localizer["Azure App Service"],
             TerraformTemplate.AzurePostgres => Localizer["Azure Postgres"],
             TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
+            TerraformTemplate.AzureAPI => Localizer["Azure API Management"],
             _ => tool
         };
     }
@@ -238,6 +241,7 @@
             TerraformTemplate.AzureAppService => Localizer["Azure App Service is a fully managed web hosting service for building web apps, mobile back ends, and RESTful APIs. It offers auto-scaling and high availability, supports both Windows and Linux, and enables automated deployments from GitHub, Azure DevOps, or any Git repo."],
             TerraformTemplate.AzurePostgres => Localizer["Azure Database for PostgreSQL is a relational database service based on the open-source Postgres database engine. It's a fully managed database-as-a-service offering that can handle mission-critical workloads with predictable performance, security, high availability, and dynamic scalability."],
             TerraformTemplate.AzureArcGis => Localizer["ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database."],
+            TerraformTemplate.AzureAPI => Localizer["Azure API Management is a fully managed service that enables participants to publish, secure, transform, maintain, and monitor APIs. To use API Management, you must first create an Azure App Service."],
             _ => tool
         };
     }
@@ -251,6 +255,7 @@
             TerraformTemplate.AzureAppService => SidebarIcons.WebApp,
             TerraformTemplate.AzurePostgres => SidebarIcons.SqlDatabase,
             TerraformTemplate.AzureArcGis => SidebarIcons.ArcGis,
+            TerraformTemplate.AzureAPI => SidebarIcons.Api,
             _ => SidebarIcons.Default
         };
     }

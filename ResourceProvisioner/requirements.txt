@@ -16,7 +16,7 @@ azure-mgmt-keyvault==10.3.0
 certifi==2023.11.17
 cffi==1.16.0
 charset-normalizer==3.3.2
-cryptography==41.0.6
+cryptography==42.0.4
 databricks-sdk==0.9.0
 Deprecated==1.2.14
 frozenlist==1.4.0
