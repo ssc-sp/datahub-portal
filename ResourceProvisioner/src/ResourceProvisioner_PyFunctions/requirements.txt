@@ -9,6 +9,7 @@ azure-keyvault-keys==4.8.0
 azure-keyvault-secrets==4.7.0
 azure-mgmt-core==1.4.0
 azure-mgmt-keyvault==10.3.0
+azure-mgmt-storage==21.1.0
 certifi==2023.7.22
 cffi==1.16.0
 charset-normalizer==3.2.0
