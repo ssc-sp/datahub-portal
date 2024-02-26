@@ -83,9 +83,11 @@ namespace Datahub.SpecflowTests.Features
         [Xunit.SkippableFactAttribute(DisplayName="Show padding on the carousel when it does not start with an image")]
         [Xunit.TraitAttribute("FeatureTitle", "News Carousel")]
         [Xunit.TraitAttribute("Description", "Show padding on the carousel when it does not start with an image")]
+        [Xunit.TraitAttribute("Category", "IWebHostEnvironment")]
         public void ShowPaddingOnTheCarouselWhenItDoesNotStartWithAnImage()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "IWebHostEnvironment"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Show padding on the carousel when it does not start with an image", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 5
@@ -99,16 +101,13 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 this.ScenarioStart();
 #line 6
- testRunner.Given("the news carousel is not starting with an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+ testRunner.Given("there is a news carousel component with an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 7
- testRunner.When("the carousel is displayed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+ testRunner.Then("the carousel should not have padding on the x-axis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 8
- testRunner.Then("the carousel should have padding on the x-axis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 9
- testRunner.And("the carousel should have padding on the y-axis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("the carousel should not have padding on the y-axis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
