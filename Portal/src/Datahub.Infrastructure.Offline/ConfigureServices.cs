@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using Askmethat.Aspnet.JsonLocalizer.Extensions;
 using Blazored.LocalStorage;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Security;
@@ -27,11 +28,11 @@ namespace Datahub.Infrastructure.Offline;
 public static class ConfigureServices
 {
         
-    public static IServiceCollection AddDatahubOfflineInfrastructureServices(this IServiceCollection services)
+    public static IServiceCollection AddDatahubOfflineInfrastructureServices(this IServiceCollection services, DatahubPortalConfiguration? portalConfiguration = null)
     {
-        
+        portalConfiguration ??= new DatahubPortalConfiguration();
         services.AddSingleton<CultureService>();
-        services.AddDatahubLocalization();
+        services.AddDatahubLocalization(portalConfiguration);
         
         services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
         services.AddScoped<IDatahubAuditingService, OfflineDatahubTelemetryAuditingService>();
@@ -51,7 +52,7 @@ public static class ConfigureServices
         return services;
     }
 
-    public static IServiceCollection AddDatahubLocalization(this IServiceCollection services)
+    public static IServiceCollection AddDatahubLocalization(this IServiceCollection services, DatahubPortalConfiguration portalConfiguration)
     {
         var supportedCultures = new HashSet<CultureInfo>
         {
@@ -62,8 +63,8 @@ public static class ConfigureServices
         services.AddJsonLocalization(options =>
         {
             options.CacheDuration = TimeSpan.FromMinutes(15);
-            options.ResourcesPath = "../Datahub.Portal/i18n";
-            options.AdditionalResourcePaths = new[] { "../Datahub.Portal/i18n/ssc" };
+            options.ResourcesPath = portalConfiguration.CultureSettings.ResourcesPath;
+            options.AdditionalResourcePaths = portalConfiguration.CultureSettings.AdditionalResourcePaths;
             options.UseBaseName = false;
             options.IsAbsolutePath = true;
             options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
