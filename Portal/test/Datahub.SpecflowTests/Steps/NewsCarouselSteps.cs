@@ -45,7 +45,7 @@ public sealed class NewsCarouselSteps(
         var module = JSInterop.SetupModule("./_content/Datahub.Core/Components/DHMarkdown.razor.js");
         JSInterop.Setup<BunitJSInterop>("import", "./_content/Datahub.Core/Components/DHMarkdown.razor.js")
             .SetResult(module);
-        module.SetupVoid("styleCodeblocks", Arg.Any<ElementReference>());
+        module.SetupVoid("styleCodeblocks");
         JSInterop.Mode = JSRuntimeMode.Loose;
         
         
@@ -60,13 +60,6 @@ public sealed class NewsCarouselSteps(
      
     }
 
-    [Then(@"the carousel should have padding on the x-axis")]
-    public void ThenTheCarouselShouldHavePaddingOnTheXAxis()
-    {
-        var newsCarousel = scenarioContext["newsCarousel"] as IRenderedComponent<AnnouncementCarousel>;
-        newsCarousel!.Find(".carousel").ClassList.Should().Contain("px-4");
-    }
-
     [Then(@"the carousel should not have padding on the x-axis")]
     public void ThenTheCarouselShouldNotHavePaddingOnTheXAxis()
     {
@@ -79,5 +72,49 @@ public sealed class NewsCarouselSteps(
     {
         var newsCarousel = scenarioContext["newsCarousel"] as IRenderedComponent<AnnouncementCarousel>;
         newsCarousel!.Find(".mud-carousel-item.mud-carousel-item-default > div").ClassList.Should().NotContain("py-");
+    }
+
+    [Given(@"there is a news carousel component without an image")]
+    public void GivenThereIsANewsCarouselComponentWithoutAnImage()
+    {
+        Services.AddSingleton<IWebHostEnvironment>(hostingEnvironment);
+        var portalConfiguration = new DatahubPortalConfiguration()
+        {
+            CultureSettings =
+            {
+                ResourcesPath = $"{RelativePathToSrc}/Datahub.Portal/i18n",
+                AdditionalResourcePaths = []
+            }
+        };
+        Services.AddDatahubOfflineInfrastructureServices(portalConfiguration);
+        
+        var module = JSInterop.SetupModule("./_content/Datahub.Core/Components/DHMarkdown.razor.js");
+        JSInterop.Setup<BunitJSInterop>("import", "./_content/Datahub.Core/Components/DHMarkdown.razor.js")
+            .SetResult(module);
+        module.SetupVoid("styleCodeblocks");
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        
+        
+        var newsCarousel = RenderComponent<AnnouncementCarousel>(p => p
+            .Add(p => p.Previews, new List<AnnouncementPreview>
+            {
+                new(1, "## hello world")
+            })
+        );
+        scenarioContext["newsCarousel"] = newsCarousel;
+    }
+    
+    [Then(@"the carousel should have padding on the x-axis")]
+    public void ThenTheCarouselShouldHavePaddingOnTheXAxis()
+    {
+        var newsCarousel = scenarioContext["newsCarousel"] as IRenderedComponent<AnnouncementCarousel>;
+        newsCarousel!.Find(".mud-carousel-item.mud-carousel-item-default > div").ClassList.Should().Contain("px-12");
+    }
+
+    [Then(@"the carousel should have padding on the y-axis")]
+    public void ThenTheCarouselShouldHavePaddingOnTheYAxis()
+    {
+        var newsCarousel = scenarioContext["newsCarousel"] as IRenderedComponent<AnnouncementCarousel>;
+        newsCarousel!.Find(".mud-carousel-item.mud-carousel-item-default > div").ClassList.Should().Contain("py-4");
     }
 }
