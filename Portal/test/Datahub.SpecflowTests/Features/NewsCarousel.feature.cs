@@ -19,12 +19,14 @@ namespace Datahub.SpecflowTests.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    [Xunit.TraitAttribute("Category", "IWebHostEnvironment")]
     public partial class NewsCarouselFeature : object, Xunit.IClassFixture<NewsCarouselFeature.FixtureData>, System.IDisposable
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
         
-        private static string[] featureTags = ((string[])(null));
+        private static string[] featureTags = new string[] {
+                "IWebHostEnvironment"};
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
@@ -80,16 +82,14 @@ namespace Datahub.SpecflowTests.Features
             this.TestTearDown();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Show padding on the carousel when it does not start with an image")]
+        [Xunit.SkippableFactAttribute(DisplayName="Show padding on the carousel when it starts with an image")]
         [Xunit.TraitAttribute("FeatureTitle", "News Carousel")]
-        [Xunit.TraitAttribute("Description", "Show padding on the carousel when it does not start with an image")]
-        [Xunit.TraitAttribute("Category", "IWebHostEnvironment")]
-        public void ShowPaddingOnTheCarouselWhenItDoesNotStartWithAnImage()
+        [Xunit.TraitAttribute("Description", "Show padding on the carousel when it starts with an image")]
+        public void ShowPaddingOnTheCarouselWhenItStartsWithAnImage()
         {
-            string[] tagsOfScenario = new string[] {
-                    "IWebHostEnvironment"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Show padding on the carousel when it does not start with an image", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Show padding on the carousel when it starts with an image", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 5
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -108,6 +108,37 @@ this.ScenarioInitialize(scenarioInfo);
 #line hidden
 #line 8
  testRunner.And("the carousel should not have padding on the y-axis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Show padding on the carousel when it does not start with an image")]
+        [Xunit.TraitAttribute("FeatureTitle", "News Carousel")]
+        [Xunit.TraitAttribute("Description", "Show padding on the carousel when it does not start with an image")]
+        public void ShowPaddingOnTheCarouselWhenItDoesNotStartWithAnImage()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Show padding on the carousel when it does not start with an image", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 10
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 11
+ testRunner.Given("there is a news carousel component without an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 12
+ testRunner.Then("the carousel should have padding on the x-axis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 13
+ testRunner.And("the carousel should have padding on the y-axis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
