@@ -7,6 +7,7 @@ using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
 using Datahub.ProjectTools.Services;
 using Datahub.Shared.Entities;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@ using NSubstitute;
 namespace Datahub.SpecflowTests.Hooks;
 
 [Binding]
-public class Hooks
+public class Hooks 
 {
     [BeforeScenario("queue")]
     public void BeforeScenarioRequiringQueue(IObjectContainer objectContainer, ScenarioContext scenarioContext)
@@ -56,5 +57,14 @@ public class Hooks
         objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
         objectContainer.RegisterInstanceAs<IResourceMessagingService>(substituteResourceMessageService);
         objectContainer.RegisterInstanceAs<IRequestManagementService>(requestManagementService);
+    }
+
+    [BeforeScenario("IWebHostEnvironment")]
+    public void BeforeScenarioRequiringOffline(IObjectContainer objectContainer, ScenarioContext scenarioContext)
+    {
+        var substituteHostingEnvironment = Substitute.For<IWebHostEnvironment>();
+        substituteHostingEnvironment.EnvironmentName.Returns("Hosting:SpecflowUnitTestingEnvironment");
+        
+        objectContainer.RegisterInstanceAs<IWebHostEnvironment>(substituteHostingEnvironment);
     }
 }
