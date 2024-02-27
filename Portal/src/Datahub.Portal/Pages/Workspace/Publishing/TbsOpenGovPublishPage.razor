@@ -124,6 +124,14 @@
                         Variant=@Variant.Filled 
                         OnClick=@UpdateSubmission 
                         Disabled=@(!FilePurposesHaveChanged())>@Localizer["Update"]</MudButton>
+
+                    <MudButton
+                        Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Storage}")
+                        Color=@Color.Primary
+                        Variant=@Variant.Text
+                        EndIcon=@Icons.Material.Outlined.KeyboardDoubleArrowRight
+                    >@Localizer["Add Files"]</MudButton>
+
                     <MudButton Color=@Color.Error OnClick=@ResetFileStatuses>@Localizer["Reset Upload Statuses"]</MudButton>
                 </MudCardActions>
             </MudCard>
