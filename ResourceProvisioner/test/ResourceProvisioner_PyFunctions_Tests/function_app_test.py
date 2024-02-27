@@ -51,5 +51,15 @@ class TestResourceProvisioner(unittest.TestCase):
              
         #self.assertEqual(response.get_body(), b"Hello, Azure Functions!")
 
+    def test_storage_sync(self):
+        # Arrange
+        workspace_data = Path('at3_workspace_data.json').read_text()
+        json_workspace = json.loads(workspace_data)
+     
+        # Call the function.
+        app.sync_storage_workspace_users_function(json_workspace)
+             
+        #self.assertEqual(response.get_body(), b"Hello, Azure Functions!")
+
 if __name__ == '__main__':
     unittest.main()

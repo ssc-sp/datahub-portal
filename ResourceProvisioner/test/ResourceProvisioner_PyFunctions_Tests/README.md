@@ -34,6 +34,11 @@ pip freeze >requirements.txt
 
 ## Running Tests
 
+### Environment
+
+This will configure the environment variables required for the tests
+`./configure_env.ps1`
+
 ### All Tests
 
 `python .\function_app_test.py`
@@ -42,4 +47,6 @@ pip freeze >requirements.txt
 
 `python .\function_app_test.py TestResourceProvisioner.<testname>`
 
-`python .\function_app_test.py TestResourceProvisioner.test_azkeyvault_sync`
+Examples:
+- `python .\function_app_test.py TestResourceProvisioner.test_azkeyvault_sync`
+- `python .\function_app_test.py TestResourceProvisioner.test_storage_sync`
