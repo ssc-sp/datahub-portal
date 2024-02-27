@@ -25,7 +25,7 @@ public static class ConfigureServices
     public static IServiceCollection AddDatahubBlazingStoryServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDatahubApplicationServices(configuration);
-        services.AddDatahubOfflineInfrastructureServices(configuration);
+        services.AddDatahubOfflineInfrastructureServices();
         
         services.AddTransient<IAuthenticationSchemeProvider, MockSchemeProvider>();
         services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();

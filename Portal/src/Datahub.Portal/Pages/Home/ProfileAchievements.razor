@@ -11,7 +11,7 @@
         <MudAvatarGroup Max="12" Spacing="6" MaxColor="Color.Dark">
             @foreach (var userAchievement in GetUserAchievements())
             {
-                <MudAvatar Image="@(_portalConfiguration.Media.GetAchievementThumbnailUrl(userAchievement.Achievement.Id))" />
+                <MudAvatar Alt="@Localizer["Achievement icon"]" Image="@(_portalConfiguration.Media.GetAchievementThumbnailUrl(userAchievement.Achievement.Id))" />
             }
         </MudAvatarGroup>
     </MudStack>

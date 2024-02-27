@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
@@ -12,25 +12,19 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="bunit" Version="1.26.64" />
+        <PackageReference Include="Deque.AxeCore.Commons" Version="4.8.2" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.1" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
         <PackageReference Include="NSubstitute" Version="5.1.0" />
         <PackageReference Include="SpecFlow.Plus.LivingDocPlugin" Version="3.9.57"/>
-        <PackageReference Include="SpecFlow.NUnit" Version="3.9.22"/>
-        <PackageReference Include="nunit" Version="4.0.1" />
-        <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
         <PackageReference Include="FluentAssertions" Version="6.12.0" />
+        <PackageReference Include="SpecFlow.xUnit" Version="3.9.74" />
+        <PackageReference Include="xunit" Version="2.7.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Datahub.Application\Datahub.Application.csproj" />
-      <ProjectReference Include="..\..\src\Datahub.Core\Datahub.Core.csproj" />
       <ProjectReference Include="..\..\src\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj" />
-      <ProjectReference Include="..\..\src\Datahub.Infrastructure\Datahub.Infrastructure.csproj" />
+      <ProjectReference Include="..\..\src\Datahub.Portal\Datahub.Portal.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\..\src\Datahub.Core\Datahub.Core.csproj" />
-    </ItemGroup>
-
 </Project>

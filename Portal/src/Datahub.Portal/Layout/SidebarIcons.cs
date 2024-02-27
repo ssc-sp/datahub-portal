@@ -20,6 +20,7 @@ public static class SidebarIcons
     public const string SqlDatabase = "fa-light fa-database";
     public const string Repositories = "fa-light fa-book-bookmark";
     public const string ArcGis = SvgIcons.ArcGis;
+    public const string Api = "fa-light fa-network-wired";
     
     // Workspace Administration Sidebar Icons
     public const string Toolbox = "fa-light fa-toolbox";
