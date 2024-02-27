@@ -19,71 +19,79 @@ namespace Datahub.SpecflowTests.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [NUnit.Framework.TestFixtureAttribute()]
-    [NUnit.Framework.DescriptionAttribute("Resource Requesting")]
-    public partial class ResourceRequestingFeature
+    public partial class ResourceRequestingFeature : object, Xunit.IClassFixture<ResourceRequestingFeature.FixtureData>, System.IDisposable
     {
         
-        private TechTalk.SpecFlow.ITestRunner testRunner;
+        private static TechTalk.SpecFlow.ITestRunner testRunner;
         
-        private string[] _featureTags = ((string[])(null));
+        private static string[] featureTags = ((string[])(null));
+        
+        private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
 #line 1 "ResourceRequesting.feature"
 #line hidden
         
-        [NUnit.Framework.OneTimeSetUpAttribute()]
-        public virtual void FeatureSetup()
+        public ResourceRequestingFeature(ResourceRequestingFeature.FixtureData fixtureData, Datahub_SpecflowTests_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        {
+            this._testOutputHelper = testOutputHelper;
+            this.TestInitialize();
+        }
+        
+        public static void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
             TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Resource Requesting", "Tests around the workspace resource requesting and its functionality for the user" +
-                    "", ProgrammingLanguage.CSharp, ((string[])(null)));
+                    "", ProgrammingLanguage.CSharp, featureTags);
             testRunner.OnFeatureStart(featureInfo);
         }
         
-        [NUnit.Framework.OneTimeTearDownAttribute()]
-        public virtual void FeatureTearDown()
+        public static void FeatureTearDown()
         {
             testRunner.OnFeatureEnd();
             testRunner = null;
         }
         
-        [NUnit.Framework.SetUpAttribute()]
-        public virtual void TestInitialize()
+        public void TestInitialize()
         {
         }
         
-        [NUnit.Framework.TearDownAttribute()]
-        public virtual void TestTearDown()
+        public void TestTearDown()
         {
             testRunner.OnScenarioEnd();
         }
         
-        public virtual void ScenarioInitialize(TechTalk.SpecFlow.ScenarioInfo scenarioInfo)
+        public void ScenarioInitialize(TechTalk.SpecFlow.ScenarioInfo scenarioInfo)
         {
             testRunner.OnScenarioInitialize(scenarioInfo);
-            testRunner.ScenarioContext.ScenarioContainer.RegisterInstanceAs<NUnit.Framework.TestContext>(NUnit.Framework.TestContext.CurrentContext);
+            testRunner.ScenarioContext.ScenarioContainer.RegisterInstanceAs<Xunit.Abstractions.ITestOutputHelper>(_testOutputHelper);
         }
         
-        public virtual void ScenarioStart()
+        public void ScenarioStart()
         {
             testRunner.OnScenarioStart();
         }
         
-        public virtual void ScenarioCleanup()
+        public void ScenarioCleanup()
         {
             testRunner.CollectScenarioErrors();
         }
         
-        [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("Request a resource to be provisioned for a workspace")]
-        [NUnit.Framework.CategoryAttribute("queue")]
-        [NUnit.Framework.TestCaseAttribute("Default", "1", null)]
-        [NUnit.Framework.TestCaseAttribute("NewProjectTemplate", "1", null)]
-        [NUnit.Framework.TestCaseAttribute("AzureAppService", "1", null)]
-        [NUnit.Framework.TestCaseAttribute("AzureDatabricks", "1", null)]
-        [NUnit.Framework.TestCaseAttribute("AzureStorageBlob", "1", null)]
-        [NUnit.Framework.TestCaseAttribute("AzurePostgres", "1", null)]
-        public virtual void RequestAResourceToBeProvisionedForAWorkspace(string resource_Name, string number_Of_Messages, string[] exampleTags)
+        void System.IDisposable.Dispose()
+        {
+            this.TestTearDown();
+        }
+        
+        [Xunit.SkippableTheoryAttribute(DisplayName="Request a resource to be provisioned for a workspace")]
+        [Xunit.TraitAttribute("FeatureTitle", "Resource Requesting")]
+        [Xunit.TraitAttribute("Description", "Request a resource to be provisioned for a workspace")]
+        [Xunit.TraitAttribute("Category", "queue")]
+        [Xunit.InlineDataAttribute("Default", "1", new string[0])]
+        [Xunit.InlineDataAttribute("NewProjectTemplate", "1", new string[0])]
+        [Xunit.InlineDataAttribute("AzureAppService", "1", new string[0])]
+        [Xunit.InlineDataAttribute("AzureDatabricks", "1", new string[0])]
+        [Xunit.InlineDataAttribute("AzureStorageBlob", "1", new string[0])]
+        [Xunit.InlineDataAttribute("AzurePostgres", "1", new string[0])]
+        public void RequestAResourceToBeProvisionedForAWorkspace(string resource_Name, string number_Of_Messages, string[] exampleTags)
         {
             string[] @__tags = new string[] {
                     "queue"};
@@ -95,21 +103,11 @@ namespace Datahub.SpecflowTests.Features
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             argumentsOfScenario.Add("resource_name", resource_Name);
             argumentsOfScenario.Add("number_of_messages", number_Of_Messages);
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Request a resource to be provisioned for a workspace", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Request a resource to be provisioned for a workspace", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 5
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
-            bool isScenarioIgnored = default(bool);
-            bool isFeatureIgnored = default(bool);
-            if ((tagsOfScenario != null))
-            {
-                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((this._featureTags != null))
-            {
-                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((isScenarioIgnored || isFeatureIgnored))
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
                 testRunner.SkipScenario();
             }
@@ -135,11 +133,12 @@ namespace Datahub.SpecflowTests.Features
             this.ScenarioCleanup();
         }
         
-        [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("Request to run an update resource for a workspace")]
-        [NUnit.Framework.CategoryAttribute("queue")]
-        [NUnit.Framework.TestCaseAttribute("VariableUpdate", "1", null)]
-        public virtual void RequestToRunAnUpdateResourceForAWorkspace(string resource_Name, string number_Of_Messages, string[] exampleTags)
+        [Xunit.SkippableTheoryAttribute(DisplayName="Request to run an update resource for a workspace")]
+        [Xunit.TraitAttribute("FeatureTitle", "Resource Requesting")]
+        [Xunit.TraitAttribute("Description", "Request to run an update resource for a workspace")]
+        [Xunit.TraitAttribute("Category", "queue")]
+        [Xunit.InlineDataAttribute("VariableUpdate", "1", new string[0])]
+        public void RequestToRunAnUpdateResourceForAWorkspace(string resource_Name, string number_Of_Messages, string[] exampleTags)
         {
             string[] @__tags = new string[] {
                     "queue"};
@@ -151,21 +150,11 @@ namespace Datahub.SpecflowTests.Features
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             argumentsOfScenario.Add("resource_name", resource_Name);
             argumentsOfScenario.Add("number_of_messages", number_Of_Messages);
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Request to run an update resource for a workspace", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Request to run an update resource for a workspace", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 22
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
-            bool isScenarioIgnored = default(bool);
-            bool isFeatureIgnored = default(bool);
-            if ((tagsOfScenario != null))
-            {
-                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((this._featureTags != null))
-            {
-                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((isScenarioIgnored || isFeatureIgnored))
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
                 testRunner.SkipScenario();
             }
@@ -191,13 +180,14 @@ namespace Datahub.SpecflowTests.Features
             this.ScenarioCleanup();
         }
         
-        [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("Request to run an unreleased workspace resource")]
-        [NUnit.Framework.CategoryAttribute("queue")]
-        [NUnit.Framework.TestCaseAttribute("AzureArcGis", null)]
-        [NUnit.Framework.TestCaseAttribute("AzureVirtualMachine", null)]
-        [NUnit.Framework.TestCaseAttribute("ContactUs", null)]
-        public virtual void RequestToRunAnUnreleasedWorkspaceResource(string resource_Name, string[] exampleTags)
+        [Xunit.SkippableTheoryAttribute(DisplayName="Request to run an unreleased workspace resource")]
+        [Xunit.TraitAttribute("FeatureTitle", "Resource Requesting")]
+        [Xunit.TraitAttribute("Description", "Request to run an unreleased workspace resource")]
+        [Xunit.TraitAttribute("Category", "queue")]
+        [Xunit.InlineDataAttribute("AzureArcGis", new string[0])]
+        [Xunit.InlineDataAttribute("AzureVirtualMachine", new string[0])]
+        [Xunit.InlineDataAttribute("ContactUs", new string[0])]
+        public void RequestToRunAnUnreleasedWorkspaceResource(string resource_Name, string[] exampleTags)
         {
             string[] @__tags = new string[] {
                     "queue"};
@@ -208,21 +198,11 @@ namespace Datahub.SpecflowTests.Features
             string[] tagsOfScenario = @__tags;
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             argumentsOfScenario.Add("resource_name", resource_Name);
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Request to run an unreleased workspace resource", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Request to run an unreleased workspace resource", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 34
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
-            bool isScenarioIgnored = default(bool);
-            bool isFeatureIgnored = default(bool);
-            if ((tagsOfScenario != null))
-            {
-                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((this._featureTags != null))
-            {
-                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((isScenarioIgnored || isFeatureIgnored))
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
                 testRunner.SkipScenario();
             }
@@ -246,6 +226,22 @@ namespace Datahub.SpecflowTests.Features
 #line hidden
             }
             this.ScenarioCleanup();
+        }
+        
+        [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
+        [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+        public class FixtureData : System.IDisposable
+        {
+            
+            public FixtureData()
+            {
+                ResourceRequestingFeature.FeatureSetup();
+            }
+            
+            void System.IDisposable.Dispose()
+            {
+                ResourceRequestingFeature.FeatureTearDown();
+            }
         }
     }
 }
