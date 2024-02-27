@@ -9,19 +9,28 @@
         </MudStack>
 
         <MudText>
-            @Localizer["Access the storage accounts for the workspace to upload, download and share datasets with all workspace members."]
+            @Localizer["Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data."]
         </MudText>
         <MudElement HtmlTag="div">
             @if (ProjectResource.CreatedAt.HasValue)
             {
-                
-            <MudButton
-                Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Storage}")"
-                Color="Color.Primary"
-                Variant="@Variant.Text"
-                EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
-                @Localizer["View Storage"]
-            </MudButton>
+            <MudStack Row>
+                <MudButton
+                    Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Storage}")"
+                    Color="Color.Primary"
+                    Variant="@Variant.Text"
+                    EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
+                    @Localizer["View Storage"]
+                </MudButton>
+
+                <MudButton 
+                    Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Publishing}")"
+                    Color="Color.Primary"
+                    Variant="@Variant.Text"
+                    EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
+                    @Localizer["Go To Publishing Dashboard"]
+                </MudButton>
+            </MudStack>
             }
             else
             {
