@@ -86,4 +86,10 @@ public sealed class TerraformVariableExtractionSteps
         var postgresPasswordSecretName = TerraformVariableExtraction.ExtractAzurePostgresPasswordSecretName(project);
         _scenarioContext["postgresPasswordSecretName"] = postgresPasswordSecretName;
     }
+
+    [Given(@"the first number is (.*)")]
+    public void GivenTheFirstNumberIs(int p0)
+    {
+        ScenarioContext.StepIsPending();
+    }
 }
