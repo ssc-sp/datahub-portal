@@ -76,7 +76,7 @@
                 //TODO log
             }
 
-            NavManager.NavigateTo($"/w/{WorkspaceAcronym}/publishing");
+            NavManager.NavigateTo($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Publishing}");
         }
 
         await InvokeAsync(StateHasChanged);

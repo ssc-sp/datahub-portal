@@ -116,7 +116,7 @@
             }
 
             var submission = await _publishingService.CreateOpenDataSubmission(submissionInfo);
-            _navManager.NavigateTo($"/w/{WorkspaceAcronym}/publishing/{submission.Id}");
+            _navManager.NavigateTo($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Publishing}/{submission.Id}");
         }
 
     }
