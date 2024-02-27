@@ -73,71 +73,58 @@
             </MudCard>
         }
 
-        @if(ShowFileSelectionPane)
+        @if (ShowSubmissionFilesPane)
         {
             <MudCard>
                 <MudCardHeader>
-                    <MudText Typo=@Typo.h3>@Localizer["File Selection"]</MudText>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudList>
-                    @foreach (var p in SUBMISSION_FILE_PURPOSES) 
-                    {
-                        <MudListItem>
-                            <MudStack Row>
-                                <Datahub.Core.Components.OpenDataSharing.FilePurposeSelector 
-                                    FilePurpose=@p
-                                    Submission=@Submission
-                                    Syncer=@Syncer
-                                    Required=@IsPurposeRequired(p)
-                                    MultiSelect=@IsPurposeMultiSelectable(p)
-                                />
-                                <MudTooltip Text=@Localizer["Edit File Info"]>
-                                     <div class="reader-only">@Localizer["Edit File Info"]</div>
-                                     <MudIconButton 
-                                         Icon=@Icons.Material.Filled.Edit 
-                                         Disabled=@(!HasFileSelectedForPurpose(p))
-                                         OnClick=@(async () => await ShowFileInfoDialog(p))
-                                     />
-                                </MudTooltip>
-                            </MudStack>
-
-                        </MudListItem>
-
-                    }
-                    </MudList>
-                </MudCardContent>
-                <MudCardActions>
-                    <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@UpdateSubmission >@Localizer["Update"]</MudButton>
-                </MudCardActions>
-            </MudCard>
-        }
-
-        @if (ShowFileUploadPane)
-        {
-            <MudCard>
-                <MudCardHeader>
-                    <MudText Typo=@Typo.h3>@Localizer["File Upload"]</MudText>
+                    <MudText Typo=@Typo.h3>@Localizer["Submission Files"]</MudText>
                 </MudCardHeader>
                 <MudCardContent>
                     <MudTable T=@OpenDataPublishFile Items=@Submission.Files>
                         <RowTemplate>
                             <MudTd><MudText>@context.FileName</MudText></MudTd>
-                            <MudTd><MudText>@GetFilePurposeLabel(context.FilePurpose)</MudText></MudTd>
-                            <MudTd><PublishingFileControl File=@context OnUploadHandler=@UploadFileHandler CanPublish=@_canBeSubmitted /></MudTd>
+                            <MudTd>
+                                <MudSelect 
+                                    T=@string
+                                    Label=@Localizer["File Purpose"]
+                                    @bind-Value=@context.FilePurpose
+                                    ReadOnly=@(!IsFilePurposeChangeable(context))
+                                    ToStringFunc=@GetFilePurposeLabel>
+                                    
+                                    <MudSelectItem Value=default(string) />
+
+                                    @foreach (var purpose in AVAILABLE_FILE_PURPOSES)
+                                    {
+                                    <MudSelectItem Value=@purpose Disabled=@(!IsPurposeSubmittable(purpose)) />
+                                    }
+
+                                </MudSelect>
+                            </MudTd>
+                            <MudTd>
+                                <PublishingFileControl 
+                                    File=@context 
+                                    OnUploadHandler=@UploadFileHandler 
+                                    CanPublish=@CanFileBePublished(context) />
+                            </MudTd>
                             <MudTd>
                                 <MudTooltip Text=@Localizer["Edit File Info"]>
                                     <div class="reader-only">@Localizer["Edit File Info"]</div>
-                                    <MudIconButton Icon=@Icons.Material.Filled.Edit
-                                                   Disabled=@(false)
-                                                   OnClick=@(async () => await ShowFileInfoDialog(context)) />
+                                    <MudIconButton 
+                                        Icon=@Icons.Material.Filled.Edit
+                                        Disabled=@(false)
+                                        OnClick=@(async () => await ShowFileInfoDialog(context)) />
                                 </MudTooltip>
                             </MudTd>
                         </RowTemplate>
                     </MudTable>
                 </MudCardContent>
                 <MudCardActions>
-                    <MudButton Color=@Color.Error OnClick=@ResetFileStatuses>@Localizer["Reset"]</MudButton>
+                    <MudButton 
+                        Color=@Color.Primary 
+                        Variant=@Variant.Filled 
+                        OnClick=@UpdateSubmission 
+                        Disabled=@(!FilePurposesHaveChanged())>@Localizer["Update"]</MudButton>
+                    <MudButton Color=@Color.Error OnClick=@ResetFileStatuses>@Localizer["Reset Upload Statuses"]</MudButton>
                 </MudCardActions>
             </MudCard>
         }
@@ -242,15 +229,17 @@
     private bool SubmissionLoaded => _initialized && Submission != null;
     private bool _initialized = false;
 
+    // TODO implement and replace with generic change tracker
+    private IDictionary<OpenDataPublishFile, string> _initialFilePurposes = new Dictionary<OpenDataPublishFile, string>();
+
     private string SubmissionUrl => _tbsService.DerivePublishUrl(Submission);
 
-    private bool _canBeSubmitted = false;
-    private bool ShowSubmissionWarning => SubmissionLoaded && !_canBeSubmitted;
+    private bool _workspaceReadyForSubmission = false;
+    private bool ShowSubmissionWarning => SubmissionLoaded && !_workspaceReadyForSubmission;
 
     private bool ShowMetadataEntryForm => true; //TODO
     private bool ShowOpenGovCriteriaForm => _stepStates[StatusEnum.AwaitingApprovalCriteria] == DHSteps<StatusEnum>.StepState.Running;
-    private bool ShowFileSelectionPane => true; // _stepStates[StatusEnum.AwaitingFiles] == DHSteps<StatusEnum>.StepState.Running;
-    private bool ShowFileUploadPane => true;// _stepStates[StatusEnum.Uploading] == DHSteps<StatusEnum>.StepState.Running;
+    private bool ShowSubmissionFilesPane => true;// _stepStates[StatusEnum.Uploading] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowImsoApprovalPane => true; //TODO
     private bool ShowReadyToPublishPane => true;
     private bool ShowPublishedPane => _stepStates[StatusEnum.Published] == DHSteps<StatusEnum>.StepState.Passed;
@@ -284,6 +273,12 @@
     }
     private PortalUser _requestingUser;
 
+    private static readonly string[] AVAILABLE_FILE_PURPOSES = new string[]
+    {
+        TbsOpenGovSubmission.DATASET_FILE_TYPE,
+        TbsOpenGovSubmission.GUIDE_FILE_TYPE,
+        TbsOpenGovSubmission.IMSO_APPROVAL_FILE_TYPE
+    };
     private static readonly string[] SUBMISSION_FILE_PURPOSES = new string[]
     {
         TbsOpenGovSubmission.DATASET_FILE_TYPE,
@@ -306,6 +301,18 @@
     private bool IsPurposeMultiSelectable(string purpose) => MULTI_SELECTABLE_FILE_PURPOSES.Contains(purpose);
 
     private string GetFilePurposeLabel(string filePurpose) => string.IsNullOrEmpty(filePurpose) ? Localizer["N/A"] : Localizer[$"{Submission.LocalizationPrefix}.FileTypes.{filePurpose}"];
+
+    private bool CanFileBePublished(OpenDataPublishFile file) => _workspaceReadyForSubmission && !FilePurposesHaveChanged() && IsPurposeSubmittable(file.FilePurpose);
+    private bool IsPurposeSubmittable(string purpose) => SUBMISSION_FILE_PURPOSES.Contains(purpose);
+    private bool IsPurposeNotSelectable(string purpose) => AVAILABLE_FILE_PURPOSES.Contains(purpose) && !IsPurposeSubmittable(purpose);
+
+    private bool IsFilePurposeChangeable(OpenDataPublishFile file)
+    {
+        var changeable = string.IsNullOrEmpty(file.FilePurpose) || SUBMISSION_FILE_PURPOSES.Contains(file.FilePurpose);
+        changeable = changeable && file.UploadStatus == OpenDataPublishFileUploadStatus.NotStarted || file.UploadStatus == OpenDataPublishFileUploadStatus.ReadyToUpload;
+
+        return changeable;
+    }
 
     private async Task ShowFileInfoDialog(string initialFilePurpose) => await ShowFileInfoDialog(GetFirstFileWithPurpose(initialFilePurpose));
 
@@ -418,6 +425,17 @@
             await OnSubmissionRefreshed.InvokeAsync();
         }
 
+        InitializeLoadedSubmission();
+    }
+
+    private bool FilePurposesHaveChanged() => _initialFilePurposes.Any(kvp => kvp.Key.FilePurpose != kvp.Value);
+
+    private void InitializeLoadedSubmission()
+    {
+        if (!SubmissionLoaded) return;
+
+        _initialFilePurposes = Submission.Files.ToDictionary(f => f, f => f.FilePurpose);
+
         SetStatusSteps();
     }
 
@@ -447,7 +465,7 @@
 
     protected override void OnParametersSet()
     {
-        SetStatusSteps();
+        InitializeLoadedSubmission();
         base.OnParametersSet();
     }
 
@@ -456,9 +474,9 @@
         _stepInfo = _steps.ToDictionary(s => s, s => GetStepPair(s));
         _stepStates = _steps.ToDictionary(s => s, s => DHSteps<StatusEnum>.StepState.Queued);
 
-        _canBeSubmitted = await _tbsService.IsWorkspaceReadyForSubmission(WorkspaceAcronym);
+        _workspaceReadyForSubmission = await _tbsService.IsWorkspaceReadyForSubmission(WorkspaceAcronym);
 
-        SetStatusSteps();
+        InitializeLoadedSubmission();
 
         _requestingUser = Submission?.RequestingUser ?? await _userService.GetCurrentPortalUserAsync();
 
