@@ -3,6 +3,7 @@ using Datahub.Core.Components;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
+using Datahub.Portal.Layout;
 using Datahub.Portal.Pages.Workspace.Publishing;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
@@ -255,7 +256,7 @@ public partial class FileExplorer
 
             var addedFiles = await _publishingService.AddFilesToSubmission(submission, files, Container.Id, ContainerName);
 
-            _navManager.NavigateTo($"/w/{ProjectAcronym}/publishing/{submission.Id}");
+            _navManager.NavigateTo($"/{PageRoutes.WorkspacePrefix}/{ProjectAcronym}/{WorkspaceSidebar.SectionViews.Publishing}/{submission.Id}");
         }
 
         await Task.CompletedTask;
