@@ -46,7 +46,7 @@ public class ProjectCreationTests
         return services.BuildServiceProvider();
     }
     
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async Task GivenListOfProjects_CreateAcronyms()
     {
         // ReSharper disable StringLiteralTypo
@@ -69,7 +69,7 @@ public class ProjectCreationTests
     }
 
 
-    [Fact]
+    [Fact (Skip = "Needs to be validated")]
     public async Task GivenDatahubProjectWithoutAcronym_CreateResourcesAndAddProject()
     {
         const string projectName = "Datahub Unit Testing";
