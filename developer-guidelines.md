@@ -110,7 +110,7 @@ Welcome to our developer guide! This document provides guidelines and best pract
 
 ## Documentation
 
-- Keep documentation up-to-date with code changes.
+- Keep [documentation](https://github.com/ssc-sp/datahub-docs) up-to-date with code changes. 
 
 ## Continuous Integration/Continuous Deployment (CI/CD)
 
