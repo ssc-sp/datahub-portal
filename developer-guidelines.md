@@ -105,6 +105,7 @@ Welcome to our developer guide! This document provides guidelines and best pract
 
 - Write unit tests for all critical business logic.
 - Write specflow unit tests for all new code, when applicable.
+- Use bUnit and specflow for Blazor component testing.
 - Use a mocking framework like NSubstitute for unit testing dependencies.
 - Aim for high code coverage but prioritize meaningful tests over coverage percentage.
 
