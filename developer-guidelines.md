@@ -126,10 +126,9 @@ Welcome to our developer guide! This document provides guidelines and best pract
 
 ## Miscellaneous
 
-- Avoid hardcoding sensitive information like connection strings or API keys.
-- Use the appropriate configuration objects for storing configuration.
-- Regularly update dependencies to the latest versions to ensure security and compatibility.
-- Encourage collaboration and communication among team members.
+- Use `Localizer` for localizing strings in the application. Can leverage the `Datahub.MissingTranslations` tool to identify missing translations.
+- Use the appropriate configuration objects for storing configuration, (i.e., `DatahubPortalConfiguration`, `ResourceProvisionerConfiguration`, etc).
+- Encourage collaboration and communication among team members, and reach out to the team in the dev channel for any questions or concerns.
 
 ## Additional Resources
 
