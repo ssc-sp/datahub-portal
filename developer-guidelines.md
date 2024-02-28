@@ -1,0 +1,139 @@
+# Developer Guidelines
+
+Welcome to our developer guide! This document provides guidelines and best practices for developers working on this project.
+
+## Coding Standards
+
+- Follow the [Microsoft .NET Coding Conventions](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/inside-a-program/coding-conventions).
+- Use descriptive variable and method names and follow the [C# Naming Conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/identifier-names).
+- Follow SOLID principles where applicable.
+- Write clear and concise comments for non-obvious code sections.
+
+## Folder Structure
+
+- Separate projects based on domain centric boundaries.
+- Follow a consistent naming convention for projects and test projects.
+
+> Note: Projects marked with an asterisk (*) are part of the previous NRCan solution but are not actively maintained and will be moved or integrated into the new solution architecture.
+
+```plaintext
+/
+├───Desktop
+│   ├───Desktop.SharedCode
+│   └───Desktop.Uploader
+├───docs
+├───infra
+├───pipelines
+├───Portal
+│   ├───src
+│   │   ├───Datahub.Achievements*
+│   │   ├───Datahub.Application
+│   │   ├───Datahub.CatalogSearch*
+│   │   ├───Datahub.CKAN*
+│   │   ├───Datahub.Core
+│   │   ├───Datahub.Functions
+│   │   ├───Datahub.GeoCore*
+│   │   ├───Datahub.Infrastructure
+│   │   ├───Datahub.Infrastructure.Offline
+│   │   ├───Datahub.Maintenance*
+│   │   ├───Datahub.Metadata*
+│   │   ├───Datahub.Portal
+│   │   ├───Datahub.Portal.Metadata*
+│   │   ├───Datahub.PowerBI*
+│   │   ├───Datahub.ProjectTools*
+│   │   ├───Datahub.Stories
+│   │   └───modules
+│   │       ├───Datahub.Finance*
+│   │       ├───Datahub.LanguageTraining*
+│   │       ├───Datahub.M365Forms*
+│   │       └───Datahub.PIP*
+│   ├───test
+│   │   ├───Datahub.Functions.UnitTests
+│   │   ├───Datahub.Infrastructure.UnitTests
+│   │   ├───Datahub.SpecflowTests
+│   │   ├───Datahub.Specs
+│   │   └───Datahub.Tests*
+│   └───utils
+│       ├───CatalogIngestTool*
+│       ├───Datahub.MissingTranslations
+│       ├───JsonTranslator*
+│       ├───SyncDbUsers*
+│       ├───SyncDBUsersConsole*
+│       └───SyncDocs
+├───ResourceProvisioner
+│   ├───src
+│   │   ├───ResourceProvisioner.API
+│   │   ├───ResourceProvisioner.Application
+│   │   ├───ResourceProvisioner.Functions
+│   │   ├───ResourceProvisioner.Infrastructure
+│   │   └───ResourceProvisioner_PyFunctions
+│   └───test
+│       ├───ResourceProvisioner.Application.IntegrationTests
+│       ├───ResourceProvisioner.Application.UnitTests
+│       ├───ResourceProvisioner.Domain.UnitTests
+│       ├───ResourceProvisioner.Infrastructure.UnitTests
+│       └───ResourceProvisioner_PyFunctions_Tests
+├───scripts
+├───Shared
+│   └───src
+│       ├───Datahub.Markdown
+│       └───Datahub.Shared
+├───SyncLocalization
+└───utils
+```
+
+
+## Version Control
+
+- Use feature branches for long-lived feature development.
+- Follow [Git Flow](https://nvie.com/posts/a-successful-git-branching-model/) branching model.
+- Write clear and descriptive commit messages.
+- Use pull requests for code reviews and merging into feature or main branches.
+
+## Dependency Management
+
+- Use NuGet for managing third-party dependencies.
+- Verify the license of third-party dependencies to ensure compliance (MIT, Apache, etc.)
+
+## Testing
+
+- Write unit tests for all critical business logic.
+- Write specflow unit tests for all new code, when applicable.
+- Use a mocking framework like NSubstitute for unit testing dependencies.
+- Aim for high code coverage but prioritize meaningful tests over coverage percentage.
+
+## Documentation
+
+- Keep documentation up-to-date with code changes.
+
+## Continuous Integration/Continuous Deployment (CI/CD)
+
+- Use the ADO CI/CD pipelines to automate build, test, and deployment processes.
+- Include and validate automated tests are passing in the CI pipeline for all pull requests.
+
+## Security
+
+- Follow OWASP guidelines for web application security.
+- Sanitize input to prevent injection attacks.
+- Use parameterized queries to prevent SQL injection.
+- Store sensitive data securely, following best practices.
+- Ensure that .githooks are running on the repository to prevent secrets from being committed.
+
+
+## Miscellaneous
+
+- Avoid hardcoding sensitive information like connection strings or API keys.
+- Use the appropriate configuration objects for storing configuration.
+- Regularly update dependencies to the latest versions to ensure security and compatibility.
+- Encourage collaboration and communication among team members.
+
+## Additional Resources
+
+- [Microsoft .NET Documentation](https://docs.microsoft.com/en-us/dotnet/)
+- [C# Language Reference](https://docs.microsoft.com/en-us/dotnet/csharp/)
+- [Entity Framework Core Documentation](https://docs.microsoft.com/en-us/ef/core/)
+- [ASP.NET Core Documentation](https://docs.microsoft.com/en-us/aspnet/core/)
+- [Specflow Documentation](https://specflow.org/documentation/)
+- [NSubstitute Documentation](https://nsubstitute.github.io/)
+- [Blazor Documentation](https://docs.microsoft.com/en-us/aspnet/core/blazor/)
+
