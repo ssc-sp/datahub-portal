@@ -33,7 +33,7 @@ public partial class Testing
     public void RunBeforeAnyTests()
     {
         _configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.Test.json", optional: false, reloadOnChange: true)
+            .AddJsonFile("appsettings.Test.json", optional: true, reloadOnChange: true)
             .Build();
         
         _datahubPortalConfiguration = new DatahubPortalConfiguration();

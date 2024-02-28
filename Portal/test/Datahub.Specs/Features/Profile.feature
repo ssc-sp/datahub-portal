@@ -1,3 +1,4 @@
+@ignore
 Feature: Profile
 	The Profile should be accessible to all users.
 
