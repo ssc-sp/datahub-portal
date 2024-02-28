@@ -4,6 +4,7 @@ using Datahub.Infrastructure.Queues.Messages;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using NSubstitute;
 
 namespace Datahub.Functions.UnitTests;
@@ -12,7 +13,6 @@ namespace Datahub.Functions.UnitTests;
 public class BugReportTests
 {
     private ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
-    private IKeyVaultService _keyVaultService = Substitute.For<IKeyVaultService>();
     private IMediator _mediator = Substitute.For<IMediator>();
     private IConfiguration _config = Substitute.For<IConfiguration>();
     
@@ -28,7 +28,7 @@ public class BugReportTests
         _logger = _loggerFactory.CreateLogger<BugReport>();
         _azureConfig = new AzureConfig(_config);
         _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
-        _bugReport = new BugReport(_logger, _keyVaultService, _azureConfig, _emailService, _mediator);
+        _bugReport = new BugReport(_logger, _azureConfig, _emailService, _mediator);
         _bugReportMessage = new BugReportMessage(
             UserName: "Test",
             UserEmail: "example@email.com",
@@ -51,10 +51,10 @@ public class BugReportTests
     public void BuildEmail_WithValidInputs_ReturnsEmailRequestMessage()
     {
         // Arrange
-        var response = new Dictionary<string, object>
+        var response = new WorkItem()
         {
-            { "url", "Test Url" },
-            { "id", "Test Id" }
+            Id = 0,
+            Url = "Test Url"
         };
 
         // Act

@@ -2,27 +2,73 @@
 @using Datahub.Portal.Views.Dialogs
 @using Datahub.Shared.Entities
 @using Microsoft.Identity.Web
-@using System.Text.Json.Nodes
-@using Datahub.Infrastructure.Queues.Messages
-@using MediatR
+@using Datahub.Core.Model.Projects
+@using System.Text.Json
+@using Datahub.Application.Services.WebApp
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IKeyVaultUserService _keyVaultUserService
 @inject IDialogService _dialogService
 @inject ISnackbar _snackbar
 @inject ILogger<WorkspaceWebAppPage> _logger
-@inject IMediator _mediatr
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+@inject IWorkspaceWebAppManagementService _webAppMgmtService
 
+@if (!_isElevated)
+{
+    <DHLoadingInitializer Message="@Localizer["Validating your credentials..."]"/>
+    return;
+}
 <MudStack>
     <MudStack Row="true">
         <MudText Typo="Typo.h1">
             @Localizer["Web Application"]
         </MudText>
+        <MudStack AlignItems="AlignItems.End" Justify="Justify.Center">
+            <MudIcon Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)" Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])"/>
+        </MudStack>
         <MudSpacer/>
         @if (_isProvisioned)
         {
-            <MudButton Color="Color.Primary" Size="Size.Medium" Variant="Variant.Filled" OnClick="async () => { await ConfigureWebApp(); }">
+            @if (!_webAppState)
+            {
+                <MudButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Start" IconColor="@Color.Success" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
+                    @if (_isStartStopping)
+                    {
+                        <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                    }
+                    else
+                    {
+                        @Localizer["Start"]
+                    }
+                </MudButton>
+            }
+            else
+            {
+                <MudButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Stop" IconColor="@Color.Error" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
+                    @if (_isStartStopping)
+                    {
+                        <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                    }
+                    else
+                    {
+                        @Localizer["Stop"]
+                    }
+                </MudButton>
+            }
+
+            <MudButton Disabled="@(_isRestarting || !_webAppState)" Variant="Variant.Filled" StartIcon="@SidebarIcons.Restart" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
+                @if (_isRestarting)
+                {
+                    <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                }
+                else
+                {
+                    @Localizer["Restart"]
+                }
+            </MudButton>
+            <MudButton Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" StartIcon="@SidebarIcons.Gear" OnClick="@(async () => await ConfigureWebApp())">
                 @Localizer["Configure"]
-                <MudIcon Class="ml-2" Icon="@Icons.Material.Filled.Settings"/>
             </MudButton>
         }
     </MudStack>
@@ -47,8 +93,12 @@
             @Localizer["This web application is not provisioned yet. Please come back soon."]
         </MudText>
     }
-
+    @if (_resource is not null)
+    {
+        <EnvironmentVariablesTable resource="@_resource" projectAcronym="@WorkspaceAcronym" isEditable="false"/>
+    }
 </MudStack>
+
 
 @code {
 
@@ -59,28 +109,47 @@
     private string _webAppFramework = "<framework>";
     private string _webAppRepo = "<git_repo>";
     private string _webAppCompose = "<path_to_compose>";
+
     private AppServiceConfiguration _appConfiguration;
+    private Project_Resources2 _resource;
 
     private bool _isConfigured;
     private bool _isProvisioned;
+    private bool _isElevated;
+    private bool _webAppState;
+    private bool _isStartStopping;
+    private bool _isRestarting;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        await HydrateValues();
+
+        try
+        {
+            await _keyVaultUserService.Authenticate();
+            _isElevated = true;
+            _resource = await _webAppMgmtService.GetResource(WorkspaceAcronym);
+            await HydrateValues();
+            _webAppState = await _webAppMgmtService.GetState(_webAppId);
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e)
+        {
+            _consentHandler.HandleException(e);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to get consent from user");
+        }
+
         StateHasChanged();
     }
 
     private async Task HydrateValues()
     {
-        await using var context = await _dbContextFactory.CreateDbContextAsync();
-        var workspace = await context.Projects
+        using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        var workspace = await ctx.Projects
             .Include(x => x.Resources)
             .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronym);
-
-        if (workspace == null)
-            throw new Exception($"Workspace with acronym {WorkspaceAcronym} not found");
-
         _appConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(workspace);
 
         if (_appConfiguration != null)
@@ -100,8 +169,31 @@
         }
     }
 
+    private async Task ExecuteAsyncWithStateChangeDelay(Func<string, Task<bool>> action, string param, int delay)
+    {
+        if (action.Method.Name == "Start" || action.Method.Name == "Stop")
+        {
+            _isStartStopping = true;
+        }
+        else if (action.Method.Name == "Restart")
+        {
+            _isRestarting = true;
+        }
+
+        StateHasChanged();
+        await action.Invoke(param);
+        await Task.Delay(delay);
+        _webAppState = await _webAppMgmtService.GetState(_webAppId);
+        _isStartStopping = false;
+        _isRestarting = false;
+        StateHasChanged();
+    }
+
     private async Task ConfigureWebApp()
     {
+        using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        var resource = await _webAppMgmtService.GetResource(ctx, WorkspaceAcronym);
+
         var dialogOptions = new DialogOptions()
         {
             MaxWidth = MaxWidth.Medium,
@@ -111,7 +203,9 @@
 
         var dialogParameters = new DialogParameters
         {
-            { "Configuration", _appConfiguration }
+            { "Configuration", _appConfiguration },
+            { "WorkspaceAcronym", WorkspaceAcronym },
+            { "Resource", resource }
         };
 
         var dialog = await _dialogService.ShowAsync<AzureAppServiceConfigurationDialog>(Localizer["Configure Web Application"], dialogParameters, dialogOptions);
@@ -121,9 +215,14 @@
         {
             try
             {
-                var config = dialogResult.Data as AppServiceConfiguration;
-                await SaveWebAppConfiguration(config);
-                await TriggerWebAppConfiguration();
+                var resultData = dialogResult.Data as (AppServiceConfiguration Config, Dictionary<string, string> EnvVars)?;
+                var config = resultData?.Config;
+                var envVars = resultData?.EnvVars;
+
+                await _webAppMgmtService.SaveConfiguration(WorkspaceAcronym, config!);
+                await SaveEnvironmentVariableKeys(envVars);
+                await SetEnvironmentVariableValues(envVars);
+                await _webAppMgmtService.Configure(WorkspaceAcronym, config);
                 _logger.LogInformation("Web app configuration processed");
                 _snackbar.Add(Localizer["Web application configuration processed"], Severity.Success);
                 StateHasChanged();
@@ -136,37 +235,27 @@
         }
     }
 
-    private async Task SaveWebAppConfiguration(AppServiceConfiguration config)
+    private async Task SaveEnvironmentVariableKeys(Dictionary<string, string> envVars)
     {
-        await using var context = await _dbContextFactory.CreateDbContextAsync();
-        var workspace = await context.Projects
-            .Include(x => x.Resources)
-            .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronym);
+        using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        var projectResource = await _webAppMgmtService.GetResource(ctx, WorkspaceAcronym);
 
-        if (workspace == null)
-            throw new Exception($"Workspace with acronym {WorkspaceAcronym} not found");
+        var envVarKeys = envVars.Keys.ToList();
+        var jsonKeys = JsonSerializer.Serialize(envVarKeys);
+        var inputJson = JsonSerializer.Deserialize<Dictionary<string, dynamic>>(projectResource.InputJsonContent);
+        inputJson["environment_variables_keys"] = jsonKeys;
+        var jsonObject = JsonSerializer.Serialize(inputJson);
+        projectResource.InputJsonContent = jsonObject;
 
-        var projectResource = workspace.Resources
-            .FirstOrDefault(x => x.ResourceType == TerraformTemplate.AzureAppService);
+        await ctx.SaveChangesAsync();
+    }
 
-        if (projectResource == null)
-            throw new Exception($"Azure App Service resource not found for workspace {WorkspaceAcronym}");
-
-        var jsonObject = new JsonObject
+    private async Task SetEnvironmentVariableValues(Dictionary<string, string> envVars)
+    {
+        foreach (var envVar in envVars)
         {
-            ["app_service_framework"] = config.Framework,
-            ["app_service_git_repo"] = config.GitRepo,
-            ["app_service_compose_path"] = config.ComposePath
-        };
-
-        projectResource.InputJsonContent = jsonObject.ToString();
-
-        await context.SaveChangesAsync();
+            await _keyVaultUserService.StoreSecret(WorkspaceAcronym, envVar.Key, envVar.Value);
+        }
     }
 
-    private async Task TriggerWebAppConfiguration()
-    {
-        var message = new WorkspaceAppServiceConfigurationMessage(WorkspaceAcronym);
-        await _mediatr.Send(message);
-    }
 }

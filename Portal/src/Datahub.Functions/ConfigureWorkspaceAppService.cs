@@ -1,13 +1,11 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Azure.Storage.Queues.Models;
-using Datahub.Application.Services;
-using Datahub.Application.Services.Security;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Utils;
+using Datahub.Functions.Providers;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Entities;
 using Microsoft.Azure.Functions.Worker;
@@ -21,23 +19,21 @@ namespace Datahub.Functions
     public class ConfigureWorkspaceAppService
     {
         private readonly ILogger<ConfigureWorkspaceAppService> _logger;
-        private readonly IKeyVaultService _keyVaultService;
         private readonly AzureConfig _config;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContext;
         internal HttpClient _httpClient = new();
 
         public ConfigureWorkspaceAppService(ILogger<ConfigureWorkspaceAppService> logger,
-            IKeyVaultService keyVaultService, AzureConfig config, IDbContextFactory<DatahubProjectDBContext> dbContext)
+            AzureConfig config, IDbContextFactory<DatahubProjectDBContext> dbContext)
         {
             _logger = logger;
-            _keyVaultService = keyVaultService;
             _config = config;
             _dbContext = dbContext;
         }
 
         [Function(nameof(ConfigureWorkspaceAppService))]
         public async Task Run(
-            [QueueTrigger("web-app-configuration", Connection = "DatahubStorageConnectionString")]
+            [QueueTrigger("workspace-app-service-configuration", Connection = "DatahubStorageConnectionString")]
             QueueMessage message)
         {
             _logger.LogInformation($"C# Queue trigger function processed: {message.MessageText}");
@@ -54,23 +50,22 @@ namespace Datahub.Functions
         private async Task ConfigureAppService(WorkspaceAppServiceConfigurationMessage appServiceConfigurationMessage,
             string projectAcronym)
         {
-            var pipelineUrl = await GetPipelineUrlByName(_config.AdoConfig.AppServiceConfigPipeline);
+            var pipelineId = await GetPipelineIdByName(_config.AdoConfig.AppServiceConfigPipeline);
             var appServiceConfiguration = await GetAppServiceConfiguration(projectAcronym);
-            await PostPipelineRun(pipelineUrl, appServiceConfiguration, projectAcronym);
+            await PostPipelineRun(pipelineId, appServiceConfiguration, projectAcronym);
         }
 
         private async Task ConfigureHttpClient()
         {
-            var credentials = await _keyVaultService.GetSecret(_config.AdoConfig.PatSecretName);
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
-                Convert.ToBase64String(Encoding.ASCII.GetBytes($":{credentials}")));
+            var adoProvider = new AdoClientProvider(_config);
+            _httpClient = await adoProvider.GetPipelineClient();
         }
 
         private async Task<AppServiceConfiguration> GetAppServiceConfiguration(string projectAcronym)
         {
             using var ctx = await _dbContext.CreateDbContextAsync();
-            var project = ctx.Projects.AsNoTracking().FirstOrDefault(p => p.Project_Acronym_CD == projectAcronym);
+            var project = ctx.Projects.AsNoTracking().Include(p => p.Resources)
+                .FirstOrDefault(p => p.Project_Acronym_CD == projectAcronym);
 
             if (project is null)
             {
@@ -93,7 +88,7 @@ namespace Datahub.Functions
             return appServiceConfiguration;
         }
 
-        internal async Task<string> GetPipelineUrlByName(string pipelineName)
+        internal async Task<int> GetPipelineIdByName(string pipelineName)
         {
             var url = _config.AdoConfig.ListPipelineUrlTemplate.Replace("{organization}", _config.AdoConfig.OrgName)
                 .Replace("{project}", _config.AdoConfig.ProjectName);
@@ -106,8 +101,8 @@ namespace Datahub.Functions
             }
 
             var responseContent = await response.Content.ReadAsStringAsync();
-            var pipelines = JsonSerializer.Deserialize<PipelinesResponse>(responseContent)!.Value;
-            var pipeline = pipelines.FirstOrDefault(p => p.Name == pipelineName);
+            var pipelines = JsonSerializer.Deserialize<PipelinesResponse>(responseContent)!.value;
+            var pipeline = pipelines.FirstOrDefault(p => p.name == pipelineName);
 
             if (pipeline is null)
             {
@@ -115,7 +110,7 @@ namespace Datahub.Functions
                 throw new ArgumentException($"Pipeline {pipelineName} not found");
             }
 
-            return pipeline.Url;
+            return pipeline.id;
         }
 
         internal JsonObject GetPipelineBody(AppServiceConfiguration appServiceConfiguration)
@@ -134,7 +129,6 @@ namespace Datahub.Functions
                 },
                 ["templateParameters"] = new JsonObject
                 {
-                    ["resourceGroup"] = appServiceConfiguration.ResourceGroupName,
                     ["webAppId"] = appServiceConfiguration.Id,
                     ["gitUrl"] = appServiceConfiguration.GitRepo,
                     ["composePath"] = appServiceConfiguration.ComposePath
@@ -142,20 +136,24 @@ namespace Datahub.Functions
             };
         }
 
-        internal async Task<HttpResponseMessage> PostPipelineRun(string pipelineUrl,
+        internal async Task<HttpResponseMessage> PostPipelineRun(int pipelineId,
             AppServiceConfiguration appServiceConfiguration,
             string projectAcronym)
         {
             var body = GetPipelineBody(appServiceConfiguration);
-            var json = JsonSerializer.Serialize(body);
-
+            var json = JsonSerializer.Serialize(body); 
+            var pipelineUrl = _config.AdoConfig.PostPipelineRunUrlTemplate.Replace("{organization}", _config.AdoConfig.OrgName)
+                .Replace("{project}", _config.AdoConfig.ProjectName)
+                .Replace("{pipelineId}", pipelineId.ToString());
+            
             _logger.LogInformation(
                 "Sending configuration request to pipeline url {PipelineUrl} with body {RequestBody}", pipelineUrl,
                 body.ToString());
 
             var response =
-                await _httpClient.PostAsync(pipelineUrl,
-                    new StringContent(json, Encoding.UTF8, "application/json"));
+                await _httpClient.PostAsync(pipelineUrl, new StringContent(json, Encoding.UTF8, "application/json"));
+            
+            var content = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
@@ -172,8 +170,8 @@ namespace Datahub.Functions
             return response;
         }
 
-        private record PipelinesResponse(int Count, Pipeline[] Value);
+        private record PipelinesResponse(int count, Pipeline[] value);
 
-        private record Pipeline(string Name, string Url, int Id);
+        private record Pipeline(string name, string url, int id);
     }
 }

@@ -96,11 +96,21 @@ public static class TerraformVariableExtraction
         var appServiceHostName = ExtractStringVariable(
             projectResource?.JsonContent,
             "app_service_host_name");
-        var appServiceRg = ExtractStringVariable(
-            projectResource?.JsonContent,
-            "app_service_rg");
         return new AppServiceConfiguration(appServiceFramework, appServiceGitRepo, appServiceComposePath, appServiceId,
-            appServiceHostName, appServiceRg);
+            appServiceHostName);
+    }
+
+    /// <summary>
+    /// Extracts the environment variable keys from a project resource. This is made generic,
+    /// so that it can be used on any resource
+    /// </summary>
+    /// <param name="projectResources">The project resource to get the environment variables from</param>
+    /// <returns>A list of string, corresponding to the keys of the environment variables stored in the workspace keyvault</returns>
+    public static IList<string> ExtractEnvironmentVariableKeys(Project_Resources2 projectResources)
+    {
+     var envVarsString = ExtractStringVariable(projectResources?.InputJsonContent, "environment_variables_keys") ?? "[]";
+     var envVars = JsonSerializer.Deserialize<List<string>>(envVarsString);
+     return envVars ?? new List<string>();
     }
 
     /// <summary>
