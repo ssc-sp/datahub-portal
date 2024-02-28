@@ -85,10 +85,13 @@ Welcome to our developer guide! This document provides guidelines and best pract
 
 ## Version Control
 
-- Use feature branches for long-lived feature development.
-- Follow [Git Flow](https://nvie.com/posts/a-successful-git-branching-model/) branching model.
 - Write clear and descriptive commit messages.
-- Use pull requests for code reviews and merging into feature or main branches.
+- Use feature branches for long-lived feature development.
+- Use hotfix branches for critical bug fixes.
+- Use initials for branch names to identify the developer working on the branch (e.g., `yr/task-name` or `yr/hotfix-name`).
+- Use pull requests for code reviews to merge branches.
+- Use the pull request template to provide a summary of changes, testing details, and checklist items.
+- Follow [Git Flow](https://nvie.com/posts/a-successful-git-branching-model/) branching model.
 
 ## Dependency Management
 
