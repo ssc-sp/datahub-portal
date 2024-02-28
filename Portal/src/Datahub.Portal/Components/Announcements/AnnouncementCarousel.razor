@@ -18,12 +18,22 @@
             @foreach (var preview in Previews)
             {
                 <MudCarouselItem Transition="Transition.Fade">
-                    <MudStack Class="px-12 py-4" Style="height: 100%">
-                        <DHMarkdown Content="@preview.Preview"/>
+                    @if (!preview.Preview.StartsWith("!["))
+                    {
+                        <MudStack Class="px-12 py-4" Style="height: 100%">
+                            <DHMarkdown Content="@preview.Preview"/>
+                            <MudButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
+                                @Localizer["Read more"]
+                            </MudButton>
+                        </MudStack>
+                    }
+					else
+					{
+						<DHMarkdown Content="@preview.Preview"/>
                         <MudButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
                             @Localizer["Read more"]
                         </MudButton>
-                    </MudStack>
+					}
                 </MudCarouselItem>
             }
         </MudCarousel>

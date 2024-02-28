@@ -28,12 +28,16 @@
         Password="@_password"
         Port="@_port"
         />
+    <MudButton Type="Button" style="width: fit-content;" OnClick="ToggleContentVisibility" Color=@Color.Primary Variant=@Variant.Filled>@Localizer[_message]</MudButton>
 
     <MudText Typo="Typo.h2">
         @Localizer["Connection Info"]
     </MudText>
 
     <MudTabs Elevation="0" Outlined PanelClass="pa-6" Class="mt-8">
+        <MudTabPanel Text="Databricks">
+            <DHMarkdown Content="@_databricksConnectionInfo" LinkRewriter="@(link => link)"/>
+        </MudTabPanel>
         <MudTabPanel Text="Python">
             <DHMarkdown Content="@_pythonConnectionInfo" LinkRewriter="@(link => link)"/>
         </MudTabPanel>
@@ -60,12 +64,16 @@
     private string _rConnectionInfo;
     private string _javaConnectionInfo;
     private string _csharpConnectionInfo;
+    private string _databricksConnectionInfo;
 
     private string _databaseHost = "<database_host>";
     private string _databaseName = "<database_name>";
     private string _username = "<username>";
     private string _password = "<password>";
     private string _port = "<port>";
+
+    private bool _hideContent = true;
+    private string _message = "Show Connection Info";
 
     private bool _isElevated = false;
 
@@ -79,10 +87,7 @@
             _isElevated = true;
             await HydrateValues();
 
-            _pythonConnectionInfo = ReplaceHydrationValues(BuildPythonConnectionInfo());
-            _rConnectionInfo = ReplaceHydrationValues(BuildRConnectionInfo());
-            _javaConnectionInfo = ReplaceHydrationValues(BuildJavaConnectionInfo());
-            _csharpConnectionInfo = ReplaceHydrationValues(BuildCSharpConnectionInfo());
+            UpdateCodeSamples();
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
         {
@@ -93,6 +98,49 @@
             _logger.LogError(e, "Failed to get consent from user");
         }
 
+        StateHasChanged();
+    }
+
+    private async Task ToggleContentVisibility()
+    {
+        if (_hideContent){
+            _hideContent = false;
+            _message = "Hide Connection Info";
+            await HydrateValues();
+            UpdateCodeSamples();
+
+        }
+        else
+        {
+            _hideContent = true;
+            _message = "Show Connection Info";
+            _databaseHost = "<database_host>";
+            _databaseName = "<database_name>";
+            _username = "<username>";
+            _password = "<password>";
+            _port = "<port>";
+            UpdateCodeSamples();
+        }
+        StateHasChanged();
+    }
+
+    private void UpdateCodeSamples()
+    {
+        if (_hideContent){
+            _pythonConnectionInfo = BuildPythonConnectionInfo();
+            _rConnectionInfo = BuildRConnectionInfo();
+            _javaConnectionInfo = BuildJavaConnectionInfo();
+            _csharpConnectionInfo = BuildCSharpConnectionInfo();
+            _databricksConnectionInfo = BuildDatabricksConnectionInfo();
+        }
+        else
+        {
+            _pythonConnectionInfo = ReplaceHydrationValues(BuildPythonConnectionInfo());
+            _rConnectionInfo = ReplaceHydrationValues(BuildRConnectionInfo());
+            _javaConnectionInfo = ReplaceHydrationValues(BuildJavaConnectionInfo());
+            _csharpConnectionInfo = ReplaceHydrationValues(BuildCSharpConnectionInfo());
+            _databricksConnectionInfo = ReplaceHydrationValues(BuildDatabricksConnectionInfo());
+        }
         StateHasChanged();
     }
 
@@ -109,36 +157,39 @@
 
     private async Task HydrateValues()
     {
-        await using var context = await _dbContextFactory.CreateDbContextAsync();
-        var workspace = await context.Projects
-            .Include(x => x.Resources)
-            .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronym);
-
-        if (workspace == null)
-            throw new Exception($"Workspace with acronym {WorkspaceAcronym} not found");
-
-        _port = "5432";
-        _databaseHost = TerraformVariableExtraction.ExtractAzurePostgresHost(workspace);
-        _databaseName = TerraformVariableExtraction.ExtractAzurePostgresDatabaseName(workspace);
-
-        var usernameSecretName = TerraformVariableExtraction.ExtractAzurePostgresUsernameSecretName(workspace);
-        if (usernameSecretName != null)
+        if (!_hideContent)
         {
-            _username = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, usernameSecretName);
-        }
-        else
-        {
-            _logger.LogWarning($"No username secret name found for workspace {WorkspaceAcronym}");
-        }
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var workspace = await context.Projects
+                .Include(x => x.Resources)
+                .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronym);
 
-        var passwordSecretName = TerraformVariableExtraction.ExtractAzurePostgresPasswordSecretName(workspace);
-        if (passwordSecretName != null)
-        {
-            _password = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, passwordSecretName);
-        }
-        else
-        {
-            _logger.LogWarning($"No password secret name found for workspace {WorkspaceAcronym}");
+            if (workspace == null)
+                throw new Exception($"Workspace with acronym {WorkspaceAcronym} not found");
+
+            _port = "5432";
+            _databaseHost = TerraformVariableExtraction.ExtractAzurePostgresHost(workspace);
+            _databaseName = TerraformVariableExtraction.ExtractAzurePostgresDatabaseName(workspace);
+
+            var usernameSecretName = TerraformVariableExtraction.ExtractAzurePostgresUsernameSecretName(workspace);
+            if (usernameSecretName != null)
+            {
+                _username = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, usernameSecretName);
+            }
+            else
+            {
+                _logger.LogWarning($"No username secret name found for workspace {WorkspaceAcronym}");
+            }
+
+            var passwordSecretName = TerraformVariableExtraction.ExtractAzurePostgresPasswordSecretName(workspace);
+            if (passwordSecretName != null)
+            {
+                _password = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, passwordSecretName);
+            }
+            else
+            {
+                _logger.LogWarning($"No password secret name found for workspace {WorkspaceAcronym}");
+            }
         }
     }
 
@@ -213,6 +264,37 @@ using (var conn = new NpgsqlConnection(connString))
 // do stuff
 
 }
+```";
+    }
+
+    private string BuildDatabricksConnectionInfo()
+    {
+        return @"```python
+%python
+database_host = ""<database_host>""
+database_port = ""5432""
+database_name = ""<database_name>""
+table = ""<table_name>""
+user = ""<username>""
+password = ""<password>""
+
+url = f""jdbc:postgresql://{database_host}:{database_port}/{database_name}""
+
+remote_table = (spark.read
+    .format(""jdbc"")
+    .option(""driver"", driver)
+    .option(""url"", url)
+    .option(""dbtable"", table)
+    .option(""user"", user)
+    .option(""password"", password)
+    .load()
+)
+
+# Optional - Convert the table to use with pandas
+import pandas as pd
+remote_table = remote_table.toPandas()
+
+display(remote_table)
 ```";
     }
 
