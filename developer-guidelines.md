@@ -96,7 +96,10 @@ Welcome to our developer guide! This document provides guidelines and best pract
 ## Dependency Management
 
 - Use NuGet for managing third-party dependencies.
+- Avoid adding unnecessary transitive dependencies and only add dependencies that are required.
 - Verify the license of third-party dependencies to ensure compliance (MIT, Apache, etc.)
+- Use the latest stable version of dependencies when possible.
+- Package versions should use a `*` on minor versions to simplify updating dependencies.
 
 ## Testing
 
