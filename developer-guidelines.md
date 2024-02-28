@@ -121,11 +121,8 @@ Welcome to our developer guide! This document provides guidelines and best pract
 ## Security
 
 - Follow OWASP guidelines for web application security.
-- Sanitize input to prevent injection attacks.
-- Use parameterized queries to prevent SQL injection.
-- Store sensitive data securely, following best practices.
+- Store sensitive data securely in Azure Key Vaults, following best practices.
 - Ensure that .githooks are running on the repository to prevent secrets from being committed.
-
 
 ## Miscellaneous
 
