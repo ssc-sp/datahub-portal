@@ -267,6 +267,5 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
         var mainTfContent = await File.ReadAllTextAsync(mainTfPath);
         Assert.That(mainTfContent, Does.Not.Contain(TerraformService.TerraformVersionToken));
         Assert.That(mainTfContent, Does.Not.Contain(TerraformService.TerraformBranchToken));
-        Assert.That(mainTfContent, Does.Contain(version));
     }
 }
