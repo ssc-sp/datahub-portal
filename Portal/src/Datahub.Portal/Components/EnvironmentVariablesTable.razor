@@ -1,0 +1,168 @@
+﻿@using Datahub.Core.Model.Projects
+@using Datahub.Portal.Pages.Workspace.Database
+@using Datahub.Core.Model.Achievements
+@using Datahub.Infrastructure.Services.Security
+@using Datahub.Application.Services.Security
+@using Microsoft.Identity.Web
+
+@inject IKeyVaultUserService _keyVaultUserService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ILogger<EnvironmentVariablesTable> _logger
+@inject ISnackbar _snackbar
+@inject IJSRuntime _jsRuntime
+@inject IUserInformationService _userInformationService
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+
+@if (isEditable)
+{
+    <MudTable Items="@envVars"
+              Dense="true"
+              Hover="true"
+              Outlined="true"
+              Class="mt-6 mb-12"
+              CanCancelEdit="true"
+              Filter="@(new Func<(string Key, string Value), bool>(FilterFunc))"
+              @bind-SelectedItem="@_selectedItem"
+              SortLabel="@Localizer["Sort by"]"
+              CommitEditTooltip="@Localizer["Commit edit"]"
+              CancelEditTooltip="@Localizer["Cancel edit"]"
+              IsEditRowSwitchingBlocked="true"
+              EditTrigger="TableEditTrigger.EditButton"
+              OnCommitEditClick="@HandleCommitEditClicked"
+              ApplyButtonPosition="TableApplyButtonPosition.Start"
+              EditButtonPosition="TableEditButtonPosition.Start"
+              RowEditPreview="@BackupItem"
+              RowEditCancel="@HandleRowEditCancel"
+              RowEditCommit="@HandleRowEditCommit">
+
+        <ToolBarContent>
+            <MudText Typo="Typo.h3" Class="mt-6">
+                @Localizer["Environment variables"]
+            </MudText>
+            <MudSpacer/>
+            <MudTextField
+                @bind-Value="@_filterString"
+                Label="@Localizer["Filter"]"
+                Adornment="Adornment.End"
+                AdornmentIcon="@SidebarIcons.Search"
+                IconSize="Size.Small"
+                Class="mt-0"/>
+        </ToolBarContent>
+
+
+        <ColGroup>
+            <col/>
+            <col/>
+            <col/>
+            <col style="width: 50px;"/> <!-- Delete button column -->
+        </ColGroup>
+
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<(string Key, string Value), string>(x => x.Key))">@Localizer["Key"]</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<(string Key, string Value), string>(x => x.Value))">@Localizer["Value"]</MudTableSortLabel>
+            </MudTh>
+            <MudTh/>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="@Localizer["Key"]">@context.Key</MudTd>
+            <MudTd DataLabel="@Localizer["Value"]">@context.Value</MudTd>
+            <MudTd>
+                <MudTooltip Text="@Localizer["Delete environment variable"]">
+                    <MudIconButton Size="Size.Small" Icon="@SidebarIcons.Delete" aria-label="@(Localizer["Delete"])"
+                                   OnClick="@(() => DeleteEnvironmentVariable(context, true))"/>
+                </MudTooltip>
+            </MudTd>
+        </RowTemplate>
+        <RowEditingTemplate>
+            <MudTd DataLabel="@Localizer["Key"]">
+                <MudTextField @bind-Value="@context.Key" Required/>
+            </MudTd>
+            <MudTd DataLabel="@Localizer["Value"]">
+                <code>
+                    <MudTextField @bind-Value="@context.Value" Required/>
+                </code>
+            </MudTd>
+            <MudTd/>
+        </RowEditingTemplate>
+        <EditButtonContent Context="button">
+            <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
+        </EditButtonContent>
+    </MudTable>
+
+    <MudButton Variant="Variant.Filled" OnClick="@AddNewEnvironmentVariable" StartIcon="@SidebarIcons.Plus">
+        @Localizer["Add environment variable"]
+    </MudButton>
+}
+else
+{
+    <MudTable Items="@envVars"
+              Dense="false"
+              Hover="false"
+              Outlined="true"
+              Class="mt-6 mb-12"
+              Filter="@(new Func<(string Key, string Value), bool>(FilterFunc))"
+              SortLabel="@Localizer["Sort by"]">
+
+        <ToolBarContent>
+            <MudText Typo="Typo.h3" Class="mt-6">
+                @Localizer["Environment variables"]
+            </MudText>
+            <MudSpacer/>
+            <MudTextField
+                @bind-Value="@_filterString"
+                Label="@Localizer["Filter"]"
+                Adornment="Adornment.End"
+                AdornmentIcon="@SidebarIcons.Search"
+                IconSize="Size.Small"
+                Class="mt-0"/>
+            <MudSpacer/>
+            <MudToggleIconButton @bind-Toggled="@_show" Icon="@SidebarIcons.Show" ToggledIcon="@SidebarIcons.Hide" Title="@Localizer["Show environment variable values"]" ToggledTitle="@Localizer["Hide environment variable values"]"/>
+        </ToolBarContent>
+
+        <ColGroup>
+            <col/>
+            <col/>
+            <col/>
+        </ColGroup>
+
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<(string Key, string Value), string>(x => x.Key))">@Localizer["Key"]</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<(string Key, string Value), string>(x => x.Value))">@Localizer["Value"]</MudTableSortLabel>
+            </MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="@Localizer["Key"]">
+                @context.Key
+            </MudTd>
+            <MudTd DataLabel="@Localizer["Value"]">
+                <code>@(_show ? context.Value : GetHiddenValue(context.Value))</code>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    [Parameter] public Project_Resources2 resource { get; set; }
+    [Parameter] public string projectAcronym { get; set; }
+    [Parameter] public bool isEditable { get; set; }
+
+    private string _filterString = default;
+    private (string Key, string Value) _selectedItem = default;
+    private (string Key, string Value) _elementBeforeEdit = default;
+    public List<(string Key, string Value)> envVars = new();
+    private bool _show = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        envVars = await GetEnvironmentVariables();
+    }
+
+}
