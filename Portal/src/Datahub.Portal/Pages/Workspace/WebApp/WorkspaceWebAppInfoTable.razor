@@ -14,7 +14,7 @@
             @Localizer["Host"]
         </td>
         <td>
-            <MudLink Href="@WebAppHost">@WebAppHost</MudLink>
+            <MudLink Href="@_url" Target="_blank" >@WebAppHost</MudLink>
         </td>
     </tr>
     <tr>
@@ -63,4 +63,13 @@
     [Parameter] public string GitRepo { get; set; }
 
     [Parameter] public string ComposePath { get; set; }
+
+    private string _url;
+    
+    protected override void OnParametersSet()
+    {
+        _url = new UriBuilder(WebAppHost).Uri.ToString();
+    }
+
+
 }
