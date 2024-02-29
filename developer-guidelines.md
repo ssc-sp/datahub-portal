@@ -129,6 +129,7 @@ Welcome to our developer guide! This document provides guidelines and best pract
 - Use `Localizer` for localizing strings in the application. Can leverage the `Datahub.MissingTranslations` tool to identify missing translations.
 - Use the appropriate configuration objects for storing configuration, (i.e., `DatahubPortalConfiguration`, `ResourceProvisionerConfiguration`, etc).
 - Encourage collaboration and communication among team members, and reach out to the team in the dev channel for any questions or concerns.
+- When applicable, reference the Azure Devops work item number in the commit message (with `AB#{ID}`) to link them.
 
 ## Additional Resources
 
