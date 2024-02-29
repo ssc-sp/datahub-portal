@@ -89,10 +89,11 @@
         MudDialog.Close(result);
     }
 
-    protected override Task OnInitializedAsync()
+
+    protected override void OnInitialized()
     {
         _currentFile = InitialFile ?? Submission.Files.FirstOrDefault();
 
-        return base.OnInitializedAsync();
+        base.OnInitialized();
     }
 }
