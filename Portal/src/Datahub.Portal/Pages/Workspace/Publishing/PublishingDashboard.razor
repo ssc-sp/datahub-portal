@@ -4,6 +4,7 @@
 @using Datahub.Core.Model.Projects;
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IOpenDataPublishingService _publishingService
+@inject DatahubPortalConfiguration _config
 @inject ITbsOpenDataService _tbsService;
 @inject IDialogService _dialogService;
 @inject NavigationManager _navManager;
@@ -87,7 +88,7 @@
     private bool _initialized = false;
 
     private bool ShowPublishingProcessTable => _initialized;
-    private bool IsPublishingEnabled => _publishingService.IsPublishingFeatureEnabled();
+    private bool IsPublishingEnabled => _config.CKAN.IsFeatureEnabled;
 
     private string _tbsOpenGovApiKey;
     private bool _showTbsOpenGovApiKey = false;

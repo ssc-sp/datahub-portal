@@ -1,4 +1,6 @@
-﻿using Datahub.CKAN.Package;
+﻿using Datahub.Application.Configuration;
+using Datahub.Application.Services.Publishing;
+using Datahub.CKAN.Package;
 using Datahub.Metadata.DTO;
 using Microsoft.Extensions.Options;
 using System;
@@ -12,7 +14,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace Datahub.CKAN.Service;
+namespace Datahub.Infrastructure.Services.Publishing;
 
 public class CKANService : ICKANService
 {
@@ -73,13 +75,13 @@ public class CKANService : ICKANService
     #endregion
 
     readonly HttpClient _httpClient;
-    readonly CKANConfiguration _ckanConfiguration;
+    readonly CkanConfiguration _ckanConfiguration;
     readonly string _apiKey;
 
-    public CKANService(HttpClient httpClient, IOptions<CKANConfiguration> ckanConfiguration, string apiKey = null)
+    public CKANService(HttpClient httpClient, CkanConfiguration ckanConfiguration, string apiKey = null)
     {
         _httpClient = httpClient;
-        _ckanConfiguration = ckanConfiguration.Value;
+        _ckanConfiguration = ckanConfiguration;
         _apiKey = string.IsNullOrEmpty(apiKey) ? _ckanConfiguration.ApiKey : apiKey;
     }
 

@@ -5,6 +5,7 @@
 @inject IUserInformationService UserService
 @inject IOpenDataPublishingService PublishingService
 @inject NavigationManager NavManager
+@inject DatahubPortalConfiguration _config
 @inject IKeyVaultUserService _kvService;
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 
@@ -41,7 +42,7 @@
 
     private System.Threading.Timer _fileStatusTimer;
 
-    private bool IsPublishingEnabled => PublishingService.IsPublishingFeatureEnabled();
+    private bool IsPublishingEnabled => _config.CKAN.IsFeatureEnabled;
 
     private long? SubmissionId => long.TryParse(SubSection, out var result) ? result : default;
     private bool ValidSubmissionId => SubmissionId.HasValue;

@@ -1,8 +1,8 @@
-﻿using Datahub.Application.Services;
+﻿using Datahub.Application.Configuration;
+using Datahub.Application.Services;
 using Datahub.Application.Services.Publishing;
 using Datahub.Application.Services.Security;
 using Datahub.CKAN.Package;
-using Datahub.CKAN.Service;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Metadata;
 using Datahub.Core.Storage;
@@ -10,7 +10,6 @@ using Datahub.Infrastructure.Services.Storage;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Utils;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace Datahub.Infrastructure.Services.Publishing;
 
@@ -22,7 +21,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
         IHttpClientFactory httpClientFactory,
         IOpenDataPublishingService publishingService,
         IKeyVaultUserService keyvaultUserService,
-        IOptions<CKANConfiguration> ckanConfiguration) : ITbsOpenDataService
+        DatahubPortalConfiguration config) : ITbsOpenDataService
 {
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = dbContextFactory;
     private readonly ICKANServiceFactory _ckanServiceFactory = ckanServiceFactory;
@@ -32,7 +31,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly IOpenDataPublishingService _publishingService = publishingService;
     private readonly IKeyVaultUserService _keyvaultUserService = keyvaultUserService;
-    private readonly IOptions<CKANConfiguration> _ckanConfiguration = ckanConfiguration;
+    private readonly DatahubPortalConfiguration _config = config;
 
     public async Task<CKANApiResult> CreateOrFetchPackage(OpenDataSubmission submission)
     {
@@ -144,7 +143,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
             var cloudStorageManager = await GetCloudStorageManagerAsync(publishFile);
             var fullFilePath = JoinPath(publishFile.FolderPath, publishFile.FileName);
             var downloadUrl = await cloudStorageManager.DownloadFileAsync(publishFile.ContainerName, fullFilePath);
-            
+
             // fire and forget
             var task = DownloadFileContent(downloadUrl, async stream =>
             {
@@ -247,6 +246,6 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
     public string DerivePublishUrl(TbsOpenGovSubmission submission)
     {
-        return $"{_ckanConfiguration.Value.DatasetUrl}/{submission.UniqueId}";
+        return $"{_config.CKAN.DatasetUrl}/{submission.UniqueId}";
     }
 }

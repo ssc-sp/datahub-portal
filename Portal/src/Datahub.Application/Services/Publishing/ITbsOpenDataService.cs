@@ -1,5 +1,4 @@
-﻿using Datahub.CKAN.Service;
-using Datahub.Core.Model.Datahub;
+﻿using Datahub.Core.Model.Datahub;
 
 namespace Datahub.Application.Services.Publishing;
 
