@@ -1,4 +1,4 @@
-﻿using Datahub.CKAN.Service;
+﻿using Datahub.Application.Services.Publishing;
 using Datahub.Core.Model.Datahub;
 using Datahub.Metadata.DTO;
 using Microsoft.EntityFrameworkCore;

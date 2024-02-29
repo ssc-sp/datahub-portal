@@ -9,7 +9,7 @@
 @inject IUserInformationService _userInformationService
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@inject IOpenDataPublishingService _openDataPublishingService
+@inject DatahubPortalConfiguration _config
 
 <MudStack Class="px-4 mt-6">
     <MudStack Class="ml-2">
@@ -270,9 +270,6 @@
         };
     }
 
-    private bool ShouldPublishingBeShown => _openDataPublishingService.IsPublishingFeatureEnabled() && (_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false);
-    private bool ShouldPublishingBeDisabled => !ShouldPublishingBeShown;
-
     private bool ShouldToolBeShown(string toolSection)
     {
         return toolSection switch
@@ -280,7 +277,7 @@
             SectionViews.Dashboard => true,
             SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
             SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false,
-            SectionViews.Publishing => ShouldPublishingBeShown,
+            SectionViews.Publishing => _config.CKAN.IsFeatureEnabled && (_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false),
             SectionViews.WebApp => !string.IsNullOrEmpty(_project?.WebApp_URL),
             SectionViews.SqlDatabase => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)) ?? false,
             SectionViews.Repositories => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
@@ -296,7 +293,7 @@
             SectionViews.Dashboard => false,
             SectionViews.Databricks => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
             SectionViews.Storage => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true,
-            SectionViews.Publishing => ShouldPublishingBeDisabled,
+            SectionViews.Publishing => !_config.CKAN.IsFeatureEnabled || (!_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true),
             SectionViews.WebApp => string.IsNullOrEmpty(_project?.WebApp_URL),
             SectionViews.SqlDatabase => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.CreatedAt.HasValue) ?? true,
             SectionViews.Repositories => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
