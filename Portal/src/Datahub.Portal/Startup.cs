@@ -4,7 +4,6 @@ using Blazored.LocalStorage;
 using Datahub.Application;
 using Datahub.Application.Services;
 using Datahub.CatalogSearch;
-using Datahub.CKAN.Service;
 using Datahub.Core;
 using Datahub.Core.Configuration;
 using Datahub.Core.Data;
@@ -71,6 +70,8 @@ using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Configuration;
 using Datahub.Infrastructure.Services.Security;
+using Datahub.Application.Services.Publishing;
+using Datahub.Infrastructure.Services.Publishing;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
 
@@ -176,7 +177,6 @@ public class Startup
         services.Configure<DataProjectsConfiguration>(Configuration.GetSection("DataProjectsConfiguration"));
         services.Configure<APITarget>(Configuration.GetSection("APITargets"));
         services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
-        services.Configure<CKANConfiguration>(Configuration.GetSection("CKAN"));
         services.Configure<GeoCoreConfiguration>(Configuration.GetSection("GeoCore"));
         services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
         services.AddScoped<IPortalVersionService, PortalVersionService>();
@@ -461,8 +461,11 @@ public class Startup
 
         services.AddSingleton<ServiceAuthManager>();
 
-        services.AddCKANService();
+        services.AddSingleton<ICKANServiceFactory, CKANServiceFactory>();
         services.AddSingleton<IOpenDataService, OpenDataService>();
+        
+        services.AddScoped<ITbsOpenDataService, TbsOpenDataService>();
+        services.AddScoped<IOpenDataPublishingService, OpenDataPublishingService>();
 
         services.AddGeoCoreService();
 

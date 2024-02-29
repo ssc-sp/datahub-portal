@@ -1,3 +1,4 @@
+@using Datahub.Application.Services.Publishing
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.UserTracking
@@ -8,6 +9,7 @@
 @inject IUserInformationService _userInformationService
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject DatahubPortalConfiguration _config
 
 <MudStack Class="px-4 mt-6">
     <MudStack Class="ml-2">
@@ -98,6 +100,7 @@
     {
         public const string Dashboard = "dashboard";
         public const string Storage = "storage";
+        public const string Publishing = "publishing";
         public const string Databricks = "databricks";
         public const string Repositories = "repositories";
         public const string WebApp = "webapp";
@@ -117,6 +120,7 @@
         SectionViews.Dashboard,
         SectionViews.Databricks,
         SectionViews.Storage,
+        SectionViews.Publishing,
         SectionViews.WebApp,
         SectionViews.SqlDatabase,
         SectionViews.Repositories,
@@ -154,6 +158,7 @@
             SectionViews.Dashboard => DatahubAuthView.AuthLevels.Authenticated,
             SectionViews.Databricks => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.Storage => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.Publishing => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.WebApp => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.SqlDatabase => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.Repositories => DatahubAuthView.AuthLevels.WorkspaceGuest,
@@ -175,29 +180,29 @@
         switch (toolSection)
         {
             case SectionViews.Databricks:
-            {
-                var userRecentLink = new UserRecentLink()
+                {
+                    var userRecentLink = new UserRecentLink()
                 {
                     LinkType = DatahubLinkType.Databricks,
                     DataProject = WorkspaceAcronym,
                     accessedTime = DateTimeOffset.Now
                 };
 
-                await _userLocationManagerService.RegisterNavigation(userRecentLink);
-                break;
-            }
+                    await _userLocationManagerService.RegisterNavigation(userRecentLink);
+                    break;
+                }
             case SectionViews.WebApp:
-            {
-                var userRecentLink = new UserRecentLink()
+                {
+                    var userRecentLink = new UserRecentLink()
                 {
                     LinkType = DatahubLinkType.AzureWebApp,
                     DataProject = WorkspaceAcronym,
                     accessedTime = DateTimeOffset.Now
                 };
 
-                await _userLocationManagerService.RegisterNavigation(userRecentLink);
-                break;
-            }
+                    await _userLocationManagerService.RegisterNavigation(userRecentLink);
+                    break;
+                }
         }
     }
 
@@ -227,6 +232,7 @@
         {
             SectionViews.Dashboard => SidebarIcons.Dashboard,
             SectionViews.Databricks => SidebarIcons.Databricks,
+            SectionViews.Publishing => SidebarIcons.Publishing,
             SectionViews.Storage => SidebarIcons.Storage,
             SectionViews.WebApp => SidebarIcons.WebApp,
             SectionViews.SqlDatabase => SidebarIcons.SqlDatabase,
@@ -249,6 +255,7 @@
             SectionViews.Dashboard => Localizer["Dashboard"],
             SectionViews.Databricks => Localizer["Databricks"],
             SectionViews.Storage => Localizer["Storage"],
+            SectionViews.Publishing => Localizer["Publishing"],
             SectionViews.WebApp => Localizer["Web App"],
             SectionViews.SqlDatabase => Localizer["SQL Database"],
             SectionViews.Repositories => Localizer["Repositories"],
@@ -270,6 +277,7 @@
             SectionViews.Dashboard => true,
             SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
             SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false,
+            SectionViews.Publishing => _config.CKAN.IsFeatureEnabled && (_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false),
             SectionViews.WebApp => !string.IsNullOrEmpty(_project?.WebApp_URL),
             SectionViews.SqlDatabase => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)) ?? false,
             SectionViews.Repositories => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
@@ -285,6 +293,7 @@
             SectionViews.Dashboard => false,
             SectionViews.Databricks => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
             SectionViews.Storage => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true,
+            SectionViews.Publishing => !_config.CKAN.IsFeatureEnabled || (!_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true),
             SectionViews.WebApp => string.IsNullOrEmpty(_project?.WebApp_URL),
             SectionViews.SqlDatabase => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.CreatedAt.HasValue) ?? true,
             SectionViews.Repositories => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,

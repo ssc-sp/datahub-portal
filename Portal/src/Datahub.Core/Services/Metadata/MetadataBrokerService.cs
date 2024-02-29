@@ -125,9 +125,12 @@ public class MetadataBrokerService : IMetadataBrokerService
                 }
                 else
                 {
-                    // add new value
-                    editedValue.ObjectMetadataId = current.ObjectMetadataId;
-                    ctx.ObjectFieldValues.Add(editedValue);
+                    // add new value if not null or empty
+                    if (!string.IsNullOrEmpty(editedValue.Value_TXT))
+                    {
+                        editedValue.ObjectMetadataId = current.ObjectMetadataId;
+                        ctx.ObjectFieldValues.Add(editedValue);
+                    }
                 }
             }
 
