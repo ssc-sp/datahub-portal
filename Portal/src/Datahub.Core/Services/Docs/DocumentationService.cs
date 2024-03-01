@@ -461,6 +461,7 @@ public class DocumentationService
             {
                 var response = await blobClient.DownloadContentAsync();
                 var content = response.Value.Content.ToString();
+                content = MarkdownHelper.RemoveFrontMatter(content);
                 return content;
             }
             else
