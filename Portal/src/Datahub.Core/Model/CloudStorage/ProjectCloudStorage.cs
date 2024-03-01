@@ -1,4 +1,6 @@
-﻿using Datahub.Core.Model.Projects;
+﻿using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
+using System.Collections.Generic;
 
 namespace Datahub.Core.Model.CloudStorage;
 
@@ -11,4 +13,6 @@ public class ProjectCloudStorage
     public string Name { get; set; }
     public string ConnectionData { get; set; }
     public bool Enabled { get; set; }
+
+    public IList<OpenDataPublishFile> PublishingSubmissionFiles { get; set; }
 }
