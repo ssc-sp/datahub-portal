@@ -79,7 +79,7 @@
 
     @if (_isProvisioned && _isConfigured)
     {
-        <WorkspaceWebAppInfoTable WebAppHost="@_webAppHost" WebAppId="@_webAppId" Framework="@_webAppFramework" GitRepo="@_webAppRepo" ComposePath="@_webAppCompose"/>
+        <WorkspaceWebAppInfoTable WebAppHost="@_webAppHost" WebAppId="@_webAppId" Framework="@_webAppFramework" GitRepo="@_webAppRepo" ComposePath="@_webAppCompose" WorkspaceAcronym="@WorkspaceAcronym"/>
     }
     else if (_isProvisioned)
     {

@@ -42,9 +42,8 @@
 
     private string GetWebAppUrl()
     {
-        var webAppConfig = TerraformVariableExtraction.ExtractAppServiceConfiguration(ProjectResource);
-        var url = new UriBuilder(webAppConfig.HostName);
-        return url.Uri.ToString();
+        var url = $"/{PageRoutes.WebAppPrefix}/{WorkspaceAcronym}/";
+        return url;
     }
 
 }

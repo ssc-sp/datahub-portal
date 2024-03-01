@@ -122,12 +122,6 @@ else
             <MudToggleIconButton @bind-Toggled="@_show" Icon="@SidebarIcons.Show" ToggledIcon="@SidebarIcons.Hide" Title="@Localizer["Show environment variable values"]" ToggledTitle="@Localizer["Hide environment variable values"]"/>
         </ToolBarContent>
 
-        <ColGroup>
-            <col/>
-            <col/>
-            <col/>
-        </ColGroup>
-
         <HeaderContent>
             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<(string Key, string Value), string>(x => x.Key))">@Localizer["Key"]</MudTableSortLabel>
