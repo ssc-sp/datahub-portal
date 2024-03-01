@@ -23,6 +23,7 @@ using Datahub.Markdown;
 using Datahub.Markdown.Model;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Azure.Storage.Blobs;
 
 namespace Datahub.Core.Services.Docs;
 
@@ -44,6 +45,11 @@ public class DocumentationService
     private DocItem cachedDocs;
     private readonly IMemoryCache _cache;
 
+    // New for blob storage
+    private readonly BlobServiceClient _blobServiceClient;
+    private readonly string _containerName;
+    private readonly string _blobRoot;
+
     public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger, 
         IHttpClientFactory httpClientFactory, IWebHostEnvironment environment,
         IMemoryCache docCache)
@@ -58,6 +64,13 @@ public class DocumentationService
         _statusMessages = new List<TimeStampedStatus>();
         _cache = docCache;
         cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
+
+        // New for blob storage
+        var storageAccount = config["Media:AccountName"];
+        var connectionString = config["Media:StorageConnectionString"];
+        _containerName = "docs";
+        _blobServiceClient = new BlobServiceClient(connectionString);
+        _blobRoot = $"https://{storageAccount}.blob.core.windows.net/{_containerName}/";
     }
 
     public async Task<bool> InvalidateCache()
@@ -95,16 +108,15 @@ public class DocumentationService
         _statusMessages.Add(error);
     }
 
-    public string BuildAbsoluteURL(string relLink)
+    public string BuildAbsoluteURL(string relLink) // Updated for blob storage
     {
         if (relLink is null)
         {
             throw new ArgumentNullException(nameof(relLink));
         }
 
-        return new Uri(_docsRoot + relLink).AbsoluteUri;
+        return new Uri(_blobRoot + relLink).AbsoluteUri;
     }
-
 
 
     private string CleanupCharacters(string input)
@@ -196,7 +208,7 @@ public class DocumentationService
 
         enOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_EN, useCache), _docFileMappings.GetEnglishDocumentId);
         if (enOutline is null)
-            throw new InvalidOperationException("Cannot load sidebar and content");
+            throw new InvalidOperationException($"Cannot load sidebar and content");
 
         frOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, $"{SIDEBAR}", LOCALE_FR, useCache), _docFileMappings.GetFrenchDocumentId);
         if (frOutline is null)
@@ -269,7 +281,7 @@ public class DocumentationService
 
         StringBuilder sb = new();
 
-        sb.Append(_docsRoot);
+        sb.Append(_blobRoot);
         
         if (allFolders.Count > 0)
         {
@@ -279,6 +291,7 @@ public class DocumentationService
             }
         }
         sb.Append(name);
+        AddStatusMessage($"Built URL: {sb.ToString()}");
 
         return sb.ToString();
     }
@@ -357,34 +370,29 @@ public class DocumentationService
 
 
 
-    private async Task<string?> LoadDocs(string url, bool useCache = true, bool skipFrontMatter = true)
+    private async Task<string?> LoadDocs(string url, bool useCache = true, bool skipFrontMatter = true) // Updated for blob storage
     {
-        if (_cache.TryGetValue(url, out var docContent) && useCache)
-            return docContent as string;
-
-        var httpClient = _httpClientFactory.CreateClient();
         try
         {
-            var content = await httpClient.GetStringAsync(url);
-            if (skipFrontMatter)
-            {                 
-                content = MarkdownHelper.RemoveFrontMatter(content);
-            }
-            // Set cache options.
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
-                // Keep in cache for this time, reset time if accessed.
-                .SetAbsoluteExpiration(DateTime.Now.AddHours(1));
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+            var blobClient = blobContainerClient.GetBlobClient(url.Split(_blobRoot)[1]);
 
-            // Save data in cache.
-            _cache.Set(url, content, cacheEntryOptions);
+        if (await blobClient.ExistsAsync())
+        {
+            var response = await blobClient.DownloadContentAsync();
+            var content = response.Value.Content.ToString();
+            AddStatusMessage($"Loaded {url}");
             return content;
         }
+        else
+        {
+            return null;
+        }
+    }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error loading {url}", url);
-            AddStatusMessage($"Error loading {url}");
-
-            return default(string);
+            AddStatusMessage($"Error loading {url}: {e.Message}");
+            return e.Message;
         }
     }
     
