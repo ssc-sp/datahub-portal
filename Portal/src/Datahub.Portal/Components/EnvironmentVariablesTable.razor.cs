@@ -65,7 +65,7 @@ namespace Datahub.Portal.Components
         private void HandleCommitEditClicked(MouseEventArgs args)
         {
             _logger.LogInformation("Commit edit button clicked.");
-            _snackbar.Add(Localizer["Sending environment variable updated"], Severity.Info);
+            _snackbar.Add(Localizer["Environment variable updated"], Severity.Info);
         }
 
         private void HandleRowEditCommit(object element)

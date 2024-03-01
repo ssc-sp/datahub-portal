@@ -21,7 +21,6 @@ namespace Datahub.Functions
         private readonly ILogger<ConfigureWorkspaceAppService> _logger;
         private readonly AzureConfig _config;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContext;
-        internal HttpClient _httpClient = new();
 
         public ConfigureWorkspaceAppService(ILogger<ConfigureWorkspaceAppService> logger,
             AzureConfig config, IDbContextFactory<DatahubProjectDBContext> dbContext)
@@ -43,7 +42,6 @@ namespace Datahub.Functions
 
             var projectAcronym = appServiceConfigurationMessage.ProjectAcronym;
 
-            await ConfigureHttpClient();
             await ConfigureAppService(appServiceConfigurationMessage, projectAcronym);
         }
 
@@ -55,10 +53,10 @@ namespace Datahub.Functions
             await PostPipelineRun(pipelineId, appServiceConfiguration, projectAcronym);
         }
 
-        private async Task ConfigureHttpClient()
+        private async Task<HttpClient> ConfigureHttpClient()
         {
             var adoProvider = new AdoClientProvider(_config);
-            _httpClient = await adoProvider.GetPipelineClient();
+            return await adoProvider.GetPipelineClient();
         }
 
         private async Task<AppServiceConfiguration> GetAppServiceConfiguration(string projectAcronym)
@@ -90,9 +88,10 @@ namespace Datahub.Functions
 
         internal async Task<int> GetPipelineIdByName(string pipelineName)
         {
+            var httpClient = await ConfigureHttpClient();
             var url = _config.AdoConfig.ListPipelineUrlTemplate.Replace("{organization}", _config.AdoConfig.OrgName)
                 .Replace("{project}", _config.AdoConfig.ProjectName);
-            var response = await _httpClient.GetAsync(url);
+            var response = await httpClient.GetAsync(url);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -140,6 +139,7 @@ namespace Datahub.Functions
             AppServiceConfiguration appServiceConfiguration,
             string projectAcronym)
         {
+            var httpClient = await ConfigureHttpClient();
             var body = GetPipelineBody(appServiceConfiguration);
             var json = JsonSerializer.Serialize(body); 
             var pipelineUrl = _config.AdoConfig.PostPipelineRunUrlTemplate.Replace("{organization}", _config.AdoConfig.OrgName)
@@ -151,7 +151,7 @@ namespace Datahub.Functions
                 body.ToString());
 
             var response =
-                await _httpClient.PostAsync(pipelineUrl, new StringContent(json, Encoding.UTF8, "application/json"));
+                await httpClient.PostAsync(pipelineUrl, new StringContent(json, Encoding.UTF8, "application/json"));
             
             var content = await response.Content.ReadAsStringAsync();
 

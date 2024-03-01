@@ -408,7 +408,7 @@ public class Startup
             services.AddScoped<UpdateProjectMonthlyCostService>();
             services.AddScoped<IProjectCreationService, ProjectCreationService>();
 
-            services.AddSingleton<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
+            services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
             
             services.AddDatahubApplicationServices(Configuration);
             services.AddDatahubInfrastructureServices(Configuration);

@@ -187,8 +187,6 @@ public class TerraformOutputHandler
         projectResource.CreatedAt = DateTime.UtcNow;
         projectResource.JsonContent = jsonContent.ToString();
 
-        await _projectDbContext.SaveChangesAsync();
-
         projectResource.Project.WebApp_URL = appServiceHostName.Value;
         projectResource.Project.WebAppEnabled = true;
 
