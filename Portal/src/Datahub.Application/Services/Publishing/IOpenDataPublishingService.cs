@@ -19,11 +19,4 @@ namespace Datahub.Application.Services.Publishing
         Task<OpenDataPublishFile> UpdateFileUploadStatus(OpenDataPublishFile file, OpenDataPublishFileUploadStatus status, string? uploadMessage = null);
         Task<int> RefreshFileUploadStatuses(OpenDataSubmission? submission);
     }
-
-    public class OpenDataPublishingException : Exception
-    {
-        public OpenDataPublishingException() : base() { }
-        public OpenDataPublishingException(string? message) : base(message) { }
-        public OpenDataPublishingException(string? message, Exception? innerException) : base(message, innerException) { }
-    }
 }

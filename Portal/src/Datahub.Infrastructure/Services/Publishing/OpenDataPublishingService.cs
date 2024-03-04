@@ -1,4 +1,5 @@
-﻿using Datahub.Application.Services.Publishing;
+﻿using Datahub.Application.Exceptions;
+using Datahub.Application.Services.Publishing;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
