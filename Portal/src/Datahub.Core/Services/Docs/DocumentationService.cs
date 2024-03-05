@@ -76,7 +76,7 @@ public class DocumentationService
         var connectionString = config["Media:StorageConnectionString"];
         _containerName = "docs";
         _blobServiceClient = new BlobServiceClient(connectionString);
-        _blobRoot = $"https://{storageAccount}.blob.core.windows.net/{_containerName}/";
+        _blobRoot = $"https://{storageAccount}.blob.core.windows.net/{_containerName}";
     }
 
     /// <summary>
