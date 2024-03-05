@@ -5,7 +5,7 @@ using System.Net.Http;
 
 namespace Datahub.Infrastructure.Services.Publishing;
 
-public class CKANServiceFactory : ICKANServiceFactory
+public class CKANServiceFactory
 {
     readonly DatahubPortalConfiguration _config;
     readonly IHttpClientFactory _httpClientFactory;

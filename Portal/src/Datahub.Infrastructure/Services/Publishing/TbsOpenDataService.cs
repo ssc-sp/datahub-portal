@@ -15,7 +15,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Datahub.Infrastructure.Services.Publishing;
 
 public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        ICKANServiceFactory ckanServiceFactory,
+        CKANServiceFactory ckanServiceFactory,
         IMetadataBrokerService metadataBrokerService,
         IProjectStorageConfigurationService projectStorageConfigService,
         CloudStorageManagerFactory cloudStorageManagerFactory,
@@ -25,7 +25,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
         DatahubPortalConfiguration config) : ITbsOpenDataService
 {
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = dbContextFactory;
-    private readonly ICKANServiceFactory _ckanServiceFactory = ckanServiceFactory;
+    private readonly CKANServiceFactory _ckanServiceFactory = ckanServiceFactory;
     private readonly IMetadataBrokerService _metadataBrokerService = metadataBrokerService;
     private readonly IProjectStorageConfigurationService _projectStorageConfigService = projectStorageConfigService;
     private readonly CloudStorageManagerFactory _cloudStorageManagerFactory = cloudStorageManagerFactory;
