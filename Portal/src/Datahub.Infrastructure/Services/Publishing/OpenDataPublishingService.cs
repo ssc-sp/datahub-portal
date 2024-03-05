@@ -159,7 +159,7 @@ namespace Datahub.Infrastructure.Services.Publishing
             return await Task.FromResult(submission);
         }
 
-        public async Task<int> AddFilesToSubmission(OpenDataSubmission openDataSubmission, IEnumerable<FileMetaData> files, int? containerId, string containerName)
+        public async Task AddFilesToSubmission(OpenDataSubmission openDataSubmission, IEnumerable<FileMetaData> files, int? containerId, string containerName)
         {
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
@@ -183,17 +183,13 @@ namespace Datahub.Infrastructure.Services.Publishing
             });
 
             submission.Files ??= new List<OpenDataPublishFile>();
-            var addedFiles = 0;
-
+            
             foreach (var file in additionalFiles)
             {
                 submission.Files.Add(file);
-                addedFiles++;
             }
 
             await ctx.SaveChangesAsync();
-
-            return await Task.FromResult(addedFiles);
         }
 
         public async Task<OpenDataPublishFile> UpdateFileUploadStatus(OpenDataPublishFile file, OpenDataPublishFileUploadStatus status, string? uploadMessage = null)

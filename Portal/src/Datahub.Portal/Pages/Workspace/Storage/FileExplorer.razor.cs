@@ -255,7 +255,7 @@ public partial class FileExplorer
                 throw new OpenDataPublishingException("No available submission provided or created");
             }
 
-            var addedFiles = await _publishingService.AddFilesToSubmission(submission, files, Container.Id, ContainerName);
+            await _publishingService.AddFilesToSubmission(submission, files, Container.Id, ContainerName);
 
             _navManager.NavigateTo($"/{PageRoutes.WorkspacePrefix}/{ProjectAcronym}/{WorkspaceSidebar.SectionViews.Publishing}/{submission.Id}");
         }
