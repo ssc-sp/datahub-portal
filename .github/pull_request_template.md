@@ -12,6 +12,7 @@
 <!-- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
+- [ ] Unit test (new or update to tests)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] Documentation update (change that would cause documentation to be updated)
 - [ ] Configuration change (change that would affect the configuration of the application)
