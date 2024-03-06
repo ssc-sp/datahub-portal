@@ -26,7 +26,7 @@ public sealed class NewsCarouselSteps(
         Services.AddSingleton<IWebHostEnvironment>(hostingEnvironment);
         var portalConfiguration = new DatahubPortalConfiguration()
         {
-            CultureSettings =
+            CultureSettings = 
             {
                 ResourcesPath = $"{RelativePathToSrc}/Datahub.Portal/i18n",
                 AdditionalResourcePaths = []
