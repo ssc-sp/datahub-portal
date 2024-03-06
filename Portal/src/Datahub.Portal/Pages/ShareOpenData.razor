@@ -4,6 +4,7 @@
 @using Datahub.Metadata.DTO
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Application.Services.Notification
+@using Datahub.Portal.Pages.Workspace.Publishing
 @inject CustomNavigation NavManager
 @inject IPublicDataFileService PublicFileService
 @inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
@@ -74,7 +75,7 @@
                             </MudText>
                         </MudCardHeader>
                         <MudCardContent>
-                            <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm 
+                            <ApprovalForm 
                                 ApprovalFormId=@_approvalFormId
                                 OnSubmitForm=@UpdateApprovalFormId
                                 DatasetTitle=@_datasetTitle
@@ -451,7 +452,7 @@
         }
     }
 
-    private async Task UpdateApprovalFormId(Forms.ShareWorkflow.ApprovalFormSubmitArgs args)
+    private async Task UpdateApprovalFormId(ApprovalFormSubmitArgs args)
     {
         _savingData = true;
         try
