@@ -58,7 +58,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
         {
             BucketName = _bucketName
         };
- 
+
         ListObjectsV2Response response;
         do
         {
@@ -66,7 +66,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
             foreach (S3Object entry in response.S3Objects)
             {
                 var (belongsToFolder, isFolder, relativePath) = AnalyseFolderItem(folderPath, entry.Key);
-                
+
                 if (!belongsToFolder || string.IsNullOrEmpty(relativePath))
                 {
                     continue;
@@ -80,13 +80,13 @@ public class AWSCloudStorageManager : ICloudStorageManager
 
                 FileMetaData fileMetaData = new()
                 {
-                    id = entry.ETag,
-                    name = relativePath,
-                    lastmodifiedts = entry.LastModified,
-                    filesize = entry.Size.ToString()
+                    Id = entry.ETag,
+                    Name = relativePath,
+                    Lastmodifiedts = entry.LastModified,
+                    Filesize = entry.Size.ToString()
                 };
 
-                files.Add(fileMetaData);               
+                files.Add(fileMetaData);
             }
 
             request.ContinuationToken = response.NextContinuationToken;
@@ -209,7 +209,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
 
             var transferUtility = new TransferUtility(s3Client);
 
-            var fullPath = IsRoot(file.folderpath) ? file.filename : $"{file.folderpath}{file.filename}";
+            var fullPath = IsRoot(file.Folderpath) ? file.Filename : $"{file.Folderpath}{file.Filename}";
             await transferUtility.UploadAsync(stream, _bucketName, fullPath);
 
             return true;
@@ -284,10 +284,10 @@ public class AWSCloudStorageManager : ICloudStorageManager
         return new List<(string, string)>
         {
             (ResourceSubstitutions.ProjectAcronym, projectAcronym),
-            (ResourceSubstitutions.AWSS3Bucket, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_BucketName)),
-            (ResourceSubstitutions.AWSAccessKey, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_AccesKeyId)),
-            (ResourceSubstitutions.AWSAccessKeySecret, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_AccessKeySecret)),
-            (ResourceSubstitutions.AWSRegion, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_Region))
+            (ResourceSubstitutions.AWSS3Bucket, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWSBucketName)),
+            (ResourceSubstitutions.AWSAccessKey, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWSAccesKeyId)),
+            (ResourceSubstitutions.AWSAccessKeySecret, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWSAccessKeySecret)),
+            (ResourceSubstitutions.AWSRegion, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWSRegion))
         };
     }
 }

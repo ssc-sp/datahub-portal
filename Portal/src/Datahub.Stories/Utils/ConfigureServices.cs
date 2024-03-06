@@ -25,20 +25,20 @@ public static class ConfigureServices
     public static IServiceCollection AddDatahubBlazingStoryServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDatahubApplicationServices(configuration);
-        services.AddDatahubOfflineInfrastructureServices();
-        
+        services.AddDatahubOfflineInfrastructureServices(configuration);
+
         services.AddTransient<IAuthenticationSchemeProvider, MockSchemeProvider>();
         services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
         services.AddSingleton<ServiceAuthManager>();
         services.AddScoped<UserLocationManagerService>();
         services.AddMudMarkdownServices();
-        
+
         // Add the EF Core DbContexts
         services.AddDbContextFactory<DatahubProjectDBContext>(options =>
         {
             options.UseSqlite(configuration.GetConnectionString("DatahubProjectDBContext"));
         });
-        
+
         services.AddDbContextFactory<MetadataDbContext>(options =>
         {
             options.UseSqlite(configuration.GetConnectionString("DatahubMetadataDBContext"));
@@ -48,5 +48,5 @@ public static class ConfigureServices
 
         return services;
     }
-        
+
 }

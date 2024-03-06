@@ -4,21 +4,21 @@
 <div class="versionContainer">
     @foreach (var version in Versions)
     {
-        <div class="fileGrid" @onclick="() => SelectRowById(version.versionid)">
+        <div class="fileGrid" @onclick="() => SelectRowById(version.Versionid)">
             <div class="grid-item">
                 <i class="@iconClass(version)"></i>
             </div>
             <div class="grid-item">
-                <b>@Localizer["VERSION-LIST-PAGE.Version", version.index]&nbsp;</b> @version.index == Versions.Count ? Localizer["VERSION-LIST-PAGE.Current"] : string.Empty
+                <b>@Localizer["VERSION-LIST-PAGE.Version", version.Index]&nbsp;</b> @version.Index == Versions.Count ? Localizer["VERSION-LIST-PAGE.Current"] : string.Empty
             </div>
             <div class="grid-item">
                 <a>not in use</a>
             </div>
             <div class="grid-item">
-                @version.metadata.uploadeddate.ToString("f", CultureInfo.CreateSpecificCulture("en-CA"))
+                @version.Metadata.Uploadeddate.ToString("f", CultureInfo.CreateSpecificCulture("en-CA"))
             </div>
             <div class="grid-item">
-                @DatahubTools.BytesToString(version.metadata.filesize.ToString())
+                @DatahubTools.BytesToString(version.Metadata.Filesize.ToString())
             </div>
         </div>
     }
@@ -36,7 +36,7 @@
 
     public string iconClass(Datahub.Core.Data.Version item)
     {
-        if (_selectedItem == item.versionid)
+        if (_selectedItem == item.Versionid)
         {
             return "far fa-check-circle icon-color";
         }
@@ -52,12 +52,12 @@
 
     private async Task<string> GetStatus(Datahub.Core.Data.Version version)
     {
-        string createdUser = await MSGraphService.GetUserName(version.metadata.createdby, CancellationToken.None); 
+        string createdUser = await MSGraphService.GetUserName(version.Metadata.Createdby, CancellationToken.None); 
         if (string.IsNullOrWhiteSpace(createdUser))
         {
             createdUser = Localizer["VERSION-LIST-PAGE.Unknown"];
         }
 
-        return Localizer[ version.index == 1 ? "VERSION-LIST-PAGE.CreatedBy" : "VERSION-LIST-PAGE.EditedBy", createdUser];
+        return Localizer[ version.Index == 1 ? "VERSION-LIST-PAGE.CreatedBy" : "VERSION-LIST-PAGE.EditedBy", createdUser];
     }
 }

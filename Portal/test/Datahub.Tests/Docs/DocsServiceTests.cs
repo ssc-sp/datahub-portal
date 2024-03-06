@@ -53,7 +53,7 @@ namespace Datahub.Tests.Docs
         }
 
         [Fact]
-        public void GivenIcon_ReadMudblazorIcon()
+        public void GivenIconReadMudblazorIcon()
         {
             var iconData = DocItemHelper.GetMudblazorMaterialIcon("Outlined", "Workspaces");
             Assert.NotNull(iconData);
@@ -69,15 +69,15 @@ namespace Datahub.Tests.Docs
             Assert.False(MarkdownTools.CompareCulture("fr-ca", "en"));
         }
 
-        [Fact (Skip = "Needs to be validated")]
+        [Fact(Skip = "Needs to be validated")]
         public async Task Test1LoadEnglishSidebar()
         {
-            var root = await _service.LoadResourceTree(DocumentationGuideRootSection.UserGuide,"en");
+            var root = await _service.LoadResourceTree(DocumentationGuideRootSection.UserGuide, "en");
             Assert.NotNull(root);
             Assert.True(root.Children.Count > 5);
         }
 
-        [Fact (Skip = "Needs to be validated")]
+        [Fact(Skip = "Needs to be validated")]
         public async Task TestLoadPage()
         {
             var root = await _service.LoadResourceTree(DocumentationGuideRootSection.UserGuide, "en");

@@ -32,7 +32,6 @@ using Datahub.Infrastructure.Services.Projects;
 using Datahub.LanguageTraining.Services;
 using Datahub.M365Forms.Services;
 using Datahub.Metadata.Model;
-using Datahub.Portal.Data.Forms.WebAnalytics;
 using Datahub.Portal.Middleware;
 using Datahub.Portal.Services;
 using Datahub.Portal.Services.Api;
@@ -73,7 +72,6 @@ using Yarp.ReverseProxy.Configuration;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
-using Datahub.Infrastructure.Services.ReverseProxy;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -234,7 +232,6 @@ public class Startup
 
         if (ReverseProxyEnabled())
         {
-            services.AddTelemetryConsumer<YarpTelemetryConsumer>();
             services.AddReverseProxy()
                     .AddTransforms(builderContext =>
                     {
@@ -247,7 +244,7 @@ public class Startup
                             transformContext.ProxyRequest.Headers.Add("role", transformContext.HttpContext.GetWorkspaceRole());
                             await Task.CompletedTask;
                         });
-                    });            
+                    });
         }
     }
 
@@ -255,7 +252,7 @@ public class Startup
     {
         var datahubConfiguration = new DatahubPortalConfiguration();
         Configuration.Bind(datahubConfiguration);
-        
+
         return datahubConfiguration.ReverseProxy.Enabled;
     }
 
@@ -333,19 +330,19 @@ public class Startup
             if (ReverseProxyEnabled() && provider != null)
             {
                 endpoints.MapReverseProxy();
-            }  
+            }
             else
             {
                 logger.LogWarning($"Invalid Reverse Proxy configuration - No provider available");
             }
-        });       
+        });
     }
 
     private void ConfigureLocalization(IServiceCollection services)
     {
         var cultureSection = Configuration.GetSection("CultureSettings");
         var trackTranslations = cultureSection.GetValue<bool>("TrackTranslations", false);
-        var defaultCulture = cultureSection.GetValue<string>("Default","en-ca");
+        var defaultCulture = cultureSection.GetValue<string>("Default", "en-ca");
         var supportedCultures = cultureSection.GetValue<string>("SupportedCultures");
         var supportedCultureInfos = new HashSet<CultureInfo>(ParseCultures(supportedCultures));
 
@@ -482,7 +479,7 @@ public class Startup
     {
         var projectsDatabaseConnectionString = Configuration.GetConnectionString("datahub_mssql_project");
         var useSqlite = projectsDatabaseConnectionString?.StartsWith("Data Source=") ?? false;
-        
+
         ConfigureDbContext<DatahubProjectDBContext>(services, "datahub_mssql_project", useSqlite ? DbDriver.Sqlite : DbDriver.Azure);
         ConfigureDbContext<MetadataDbContext>(services, "datahub_mssql_metadata", DbDriver.Azure);
     }

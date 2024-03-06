@@ -32,7 +32,7 @@ public partial class WhitelistIPAddressData
                 throw new ArgumentException("Name cannot be null or whitespace.", nameof(value));
 
             const int maxLength = 63;
-            
+
             var trimmedName = value.Length > maxLength ? value.Substring(0, maxLength) : value;
 
             // replace all non-alphanumeric characters with empty string

@@ -4,10 +4,10 @@ namespace Datahub.Core.Services.Api;
 
 public class BaseService
 {
-    protected NavigationManager _navigationManager;
+    protected NavigationManager NavigationManager { get; private set; }
 
     public BaseService(NavigationManager navigationManager)
     {
-        _navigationManager = navigationManager;
+        this.NavigationManager = navigationManager;
     }
 }

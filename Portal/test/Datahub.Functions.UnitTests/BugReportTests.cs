@@ -1,9 +1,7 @@
 ﻿using Datahub.Application.Services.Security;
-using Datahub.Core.Services.Security;
 using Datahub.Functions;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Infrastructure.Services.Security;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -16,7 +14,7 @@ public class BugReportTests
     private IKeyVaultService _keyVaultService = Substitute.For<IKeyVaultService>();
     private IMediator _mediator = Substitute.For<IMediator>();
     private IConfiguration _config = Substitute.For<IConfiguration>();
-    
+
     private BugReport _bugReport;
     private ILogger<BugReport> _logger;
     private AzureConfig _azureConfig;
@@ -50,7 +48,7 @@ public class BugReportTests
 
     [Test]
     [Ignore("Need to fix")]
-    public void BuildEmail_WithValidInputs_ReturnsEmailRequestMessage()
+    public void BuildEmailWithValidInputsReturnsEmailRequestMessage()
     {
         // Arrange
         var response = new Dictionary<string, object>
@@ -70,7 +68,7 @@ public class BugReportTests
 
     [Test]
     [Ignore("Need to fix")]
-    public async Task CreateIssue_WithValidInputs_ReturnsIssueObject()
+    public async Task CreateIssueWithValidInputsReturnsIssueObject()
     {
         // Act
         var result = await _bugReport.CreateIssue(_bugReportMessage);
@@ -79,7 +77,7 @@ public class BugReportTests
         Assert.IsNotNull(result);
         Assert.IsInstanceOf<object[]>(result);
     }
-    
+
     [OneTimeTearDown]
     public void TearDown()
     {

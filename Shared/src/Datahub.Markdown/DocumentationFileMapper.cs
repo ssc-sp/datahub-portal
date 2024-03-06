@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace Datahub.Markdown;
 
@@ -8,7 +6,7 @@ public class DocumentationFileMapper
 {
     private readonly FileMapping[] _mappings;
 
-    public DocumentationFileMapper(string? content) 
+    public DocumentationFileMapper(string? content)
     {
         if (content is null)
         {

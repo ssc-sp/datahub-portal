@@ -10,32 +10,31 @@ using System.Text;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using Datahub.Shared.Annotations;
-using static System.Collections.Specialized.BitVector32;
 namespace SyncDocs;
 
 internal class MarkdownProcessor
 {
-	private readonly ConfigParams _config;
-	private readonly string _sourcePath;
-	private readonly DocTranslationService _translationService;
+    private readonly ConfigParams _config;
+    private readonly string _sourcePath;
+    private readonly DocTranslationService _translationService;
     private readonly DictionaryCache _fileNameCache;
     private readonly FileMappingService _mappingService;
 
-    public MarkdownProcessor(ConfigParams config, string sourcePath, DocTranslationService translationService, 
+    public MarkdownProcessor(ConfigParams config, string sourcePath, DocTranslationService translationService,
         DictionaryCache fileNameCache, FileMappingService mappingService)
-	{
-		_config = config;
+    {
+        _config = config;
         _sourcePath = sourcePath;
         _translationService = translationService;
         _fileNameCache = fileNameCache;
         _mappingService = mappingService;
     }
 
-	public Task CreateTranslatedFolder(string relative, string path) 
-	{
+    public Task CreateTranslatedFolder(string relative, string path)
+    {
         var outputFolder = GetTargetPath(path);
         if (!Directory.Exists(outputFolder))
-		{
+        {
             Directory.CreateDirectory(outputFolder);
         }
         return Task.CompletedTask;
@@ -61,12 +60,12 @@ internal class MarkdownProcessor
             .Normalize(NormalizationForm.FormC);
     }
 
-    public IDictionary<string, string> ValidationErrors { get; set; } = new ConcurrentDictionary<string,string>();
+    public IDictionary<string, string> ValidationErrors { get; set; } = new ConcurrentDictionary<string, string>();
 
     private static DocumentationGuideRootSection? GetSection(string relPath)
     {
         var currentSection = relPath.Split("/", StringSplitOptions.RemoveEmptyEntries)[1];
-        var sections = Enum.GetValues<DocumentationGuideRootSection>().Select(v => (section:v,path: v.GetStringValue())).ToList();
+        var sections = Enum.GetValues<DocumentationGuideRootSection>().Select(v => (section: v, path: v.GetStringValue())).ToList();
         if (!sections.Any(s => s.path == currentSection))
             return null;
         return sections.First(s => s.path == currentSection).section;
@@ -99,7 +98,7 @@ internal class MarkdownProcessor
 
         // remap the path
         var sourcePath = path[..^sourceFileName.Length];
-        
+
         var outputPath = GetTargetPath(sourcePath);
 
         // handle file name translation
@@ -115,7 +114,7 @@ internal class MarkdownProcessor
         if (!File.Exists(outputFilePath) || CheckIfDraft(outputFilePath) || isSidebar)
         {
             var outputFile = await _translationService.TranslateMarkupFile(path, outputFilePath, isSidebar);
-            Console.WriteLine($"+ {(outputFile is null ? ("no client available for " + outputFilePath):(Path.GetFullPath(outputFile)))}");
+            Console.WriteLine($"+ {(outputFile is null ? ("no client available for " + outputFilePath) : (Path.GetFullPath(outputFile)))}");
         }
     }
 
@@ -236,8 +235,8 @@ internal class MarkdownProcessor
 
 
     private string GetTargetPath(string path)
-	{
-		var relativePath = path[_sourcePath.Length..];
+    {
+        var relativePath = path[_sourcePath.Length..];
         if (relativePath.StartsWith('/') || relativePath.StartsWith('\\'))
             relativePath = relativePath[1..];
         return Path.Combine(_sourcePath, _config.Target, relativePath);

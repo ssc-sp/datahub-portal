@@ -7,11 +7,11 @@
     <TitleContent>
         <MudText Typo="Typo.h6">
             <MudIcon Icon="@Icons.Material.Filled.CommentBank" Class="mr-3 mb-n1" />
-           @Project.ProjectName - @Project.Project_Acronym_CD
+           @Project.ProjectName - @Project.ProjectAcronymCD
         </MudText>
     </TitleContent>
     <DialogContent>
-            <Datahub.Core.Components.Form.MudFormTemplate T="Datahub_ProjectComment"
+            <Datahub.Core.Components.Form.MudFormTemplate T="DatahubProjectComment"
                                                      U="DatahubProjectDBContext"
                                                      Metadata="@_formMetadata"
                                                      HandleSubmit="HandleValidSubmit"
@@ -32,17 +32,17 @@
 @code {
 
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-    [Parameter] public Datahub_Project Project { get; set; }
+    [Parameter] public DatahubProject Project { get; set; }
     [Parameter] public DatahubProjectDBContext Context { get; set; }
     //private DatahubProjectDBContext Context;
     private Microsoft.Graph.Models.User _user = null!;
 
     private List<string> _headers = new();
-    private FormMetadata<Datahub_ProjectComment> _formMetadata = new();
-    private Datahub_ProjectComment _comment;
-    private List<Datahub_ProjectComment> _comments;
+    private FormMetadata<DatahubProjectComment> _formMetadata = new();
+    private DatahubProjectComment _comment;
+    private List<DatahubProjectComment> _comments;
     private string _searchFilter = string.Empty;
-    private Dictionary<string, Func<Datahub_ProjectComment, string>> _sortAccessors = new();
+    private Dictionary<string, Func<DatahubProjectComment, string>> _sortAccessors = new();
     private bool refreshTracker;
 
     protected override async Task OnInitializedAsync()
@@ -62,7 +62,7 @@
 
     private void LoadData(string searchfilter)
     {
-        _comments = Project.Comments.OrderByDescending(d => d.Comment_Date_DT).ToList();
+        _comments = Project.Comments.OrderByDescending(d => d.CommentDateDT).ToList();
 
         _formMetadata.Header = string.Empty;
         _formMetadata.SubHeader = Localizer["Comments"];
@@ -72,10 +72,10 @@
         _formMetadata.AllowDelete = false;
         _formMetadata.IsSubmitEnabled = true;
     }
-    private List<Func<Datahub_ProjectComment, string>> accessorFunctions = new List<Func<Datahub_ProjectComment, string>>
+    private List<Func<DatahubProjectComment, string>> accessorFunctions = new List<Func<DatahubProjectComment, string>>
     {
-        new Func<Datahub_ProjectComment, string>(p => { return p.Comment_Date_DT.ToShortDateString();}),
-        new Func<Datahub_ProjectComment, string>(p => { return p.Comment_NT ?? ""; }),
+        new Func<DatahubProjectComment, string>(p => { return p.CommentDateDT.ToShortDateString();}),
+        new Func<DatahubProjectComment, string>(p => { return p.CommentNT ?? ""; }),
     };
 
     private async Task HandleValidSubmit()
@@ -83,11 +83,11 @@
 
         if (_comment != null)
         {            
-            _comment.Last_Updated_DT = DateTime.Now;
-            _comment.Last_Updated_UserId = _user.Mail;
-            if (_comment.Comment_ID == 0)
+            _comment.LastUpdatedDT = DateTime.Now;
+            _comment.LastUpdatedUserId = _user.Mail;
+            if (_comment.CommentID == 0)
             {
-                _comment.Comment_Date_DT = DateTime.Now;
+                _comment.CommentDateDT = DateTime.Now;
                 Project.Comments.Add(_comment);
                 refreshTracker = true;
             }
@@ -103,11 +103,11 @@
 
     private void CreateNewComment()
     {
-        _comment = new Datahub_ProjectComment() { Comment_Date_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, Project = Project };
+        _comment = new DatahubProjectComment() { CommentDateDT = DateTime.Now, CreatedDT = DateTime.Now, CreatedUserId = _user.Mail, Project = Project };
         StateHasChanged();
     }
 
-    private void SetFormEdit(Datahub_ProjectComment comment)
+    private void SetFormEdit(DatahubProjectComment comment)
     {
         _comment = comment;
         StateHasChanged();
@@ -124,7 +124,7 @@
     {
         if (refreshTracker)
         {
-            MudDialog.Close(DialogResult.Ok(Project.Project_ID));
+            MudDialog.Close(DialogResult.Ok(Project.ProjectID));
         }
         else
         {

@@ -1,50 +1,44 @@
-﻿using Datahub.Markdown.Model;
-using Markdig;
+﻿using System.Globalization;
+using System.Text;
+using Datahub.Markdown.Model;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.Core.Services.Wiki;
 
 public class WikiService : IWikiService
 {
-    private readonly string _wikiRoot;
-    private readonly string _wikiEditPrefix;
-    private readonly ILogger<WikiService> _logger;
-    private readonly IHttpClientFactory _httpClientFactory;
-
     private const string WIKIROOT_CONFIG_KEY = "WikiURL";
     private const string WIKI_EDIT_URL_CONFIG_KEY = "EditWikiURLPrefix";
 
-    //TODO: use proper caching
-    private MarkdownLanguageRoot EnglishLanguageRoot;
-    private MarkdownLanguageRoot FrenchLanguageRoot;
+    private readonly string wikiRoot;
+    private readonly string wikiEditPrefix;
+    private readonly ILogger<WikiService> logger;
+    private readonly IHttpClientFactory httpClientFactory;
 
-    private IList<TimeStampedStatus> _errorList;
+    //TODO: use proper caching
+    private MarkdownLanguageRoot englishLanguageRoot;
+    private MarkdownLanguageRoot frenchLanguageRoot;
+
+    private IList<TimeStampedStatus> errorList;
 
     public event Func<Task> NotifyRefreshErrors;
 
     public WikiService(IConfiguration config, ILogger<WikiService> logger, IHttpClientFactory httpClientFactory)
     {
-        _wikiRoot = config[WIKIROOT_CONFIG_KEY];
-        _wikiEditPrefix = config[WIKI_EDIT_URL_CONFIG_KEY];
-        _logger = logger;
-        _httpClientFactory = httpClientFactory;
-        _errorList = new List<TimeStampedStatus>();
+        wikiRoot = config[WIKIROOT_CONFIG_KEY];
+        wikiEditPrefix = config[WIKI_EDIT_URL_CONFIG_KEY];
+        this.logger = logger;
+        this.httpClientFactory = httpClientFactory;
+        errorList = new List<TimeStampedStatus>();
     }
 
     private async Task AddErrorMessage(string message)
     {
         var error = new TimeStampedStatus(DateTime.UtcNow, message);
-        _errorList.Add(error);
+        errorList.Add(error);
         await InvokeNotifyRefreshErrors();
     }
 
@@ -52,8 +46,8 @@ public class WikiService : IWikiService
     {
         string nameTrimmed = name.TrimStart('/');
 
-        var fullUrl = $"{_wikiRoot}{nameTrimmed}.md";
-        using var client = _httpClientFactory.CreateClient();
+        var fullUrl = $"{wikiRoot}{nameTrimmed}.md";
+        using var client = httpClientFactory.CreateClient();
         try
         {
             var content = await client.GetStringAsync(fullUrl);
@@ -66,10 +60,9 @@ public class WikiService : IWikiService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Cannot load page url: {FullUrl}", fullUrl);
+            logger.LogError(ex, "Cannot load page url: {FullUrl}", fullUrl);
             return null;
         }
-
     }
 
     private static IList<LinkInline> GetListedLinks(string inputMarkdown)
@@ -186,23 +179,26 @@ public class WikiService : IWikiService
 
     private async Task LoadResourceTree()
     {
-        _errorList = new List<TimeStampedStatus>();
+        errorList = new List<TimeStampedStatus>();
 
         await AddErrorMessage("Loading resources");
 
         var rootSidebar = await LoadSidebar();
         var rootLinks = GetListedLinks(rootSidebar);
-        if (rootLinks != null) {
+        if (rootLinks != null)
+        {
             var enLink = rootLinks[0];
             var frLink = rootLinks[1];
 
-            EnglishLanguageRoot = await PopulateResourceLanguageRoot(enLink);
-            FrenchLanguageRoot = await PopulateResourceLanguageRoot(frLink);
+            englishLanguageRoot = await PopulateResourceLanguageRoot(enLink);
+            frenchLanguageRoot = await PopulateResourceLanguageRoot(frLink);
 
             await AddErrorMessage("Finished loading resources");
-        } else {
-            _logger.LogWarning($"No data found for root sidebar {rootSidebar}");
-        }        
+        }
+        else
+        {
+            logger.LogWarning($"No data found for root sidebar {rootSidebar}");
+        }
     }
 
     private static string BuildSidebarName(IList<string> folders = null)
@@ -225,7 +221,7 @@ public class WikiService : IWikiService
     {
         StringBuilder sb = new();
 
-        sb.Append(_wikiRoot);
+        sb.Append(wikiRoot);
         if (folders?.Count > 0)
         {
             foreach (var f in folders)
@@ -248,7 +244,7 @@ public class WikiService : IWikiService
     {
         var url = BuildUrl(name, folders);
 
-        var httpClient = _httpClientFactory.CreateClient();
+        var httpClient = httpClientFactory.CreateClient();
         try
         {
             var result = await httpClient.GetStringAsync(url);
@@ -256,7 +252,7 @@ public class WikiService : IWikiService
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error loading {url}", url);
+            logger.LogError(e, "Error loading {url}", url);
             await AddErrorMessage($"Error loading {url}");
 
             return await Task.FromResult(default(string));
@@ -265,12 +261,12 @@ public class WikiService : IWikiService
 
     public async Task<MarkdownLanguageRoot> LoadLanguageRoot(bool isFrench)
     {
-        if (EnglishLanguageRoot == null || FrenchLanguageRoot == null)
+        if (englishLanguageRoot == null || frenchLanguageRoot == null)
         {
             await LoadResourceTree();
         }
 
-        var result = isFrench ? FrenchLanguageRoot : EnglishLanguageRoot;
+        var result = isFrench ? frenchLanguageRoot : englishLanguageRoot;
         return await Task.FromResult(result);
     }
 
@@ -281,12 +277,11 @@ public class WikiService : IWikiService
         return await LoadWikiPage(name, path);
     }
 
-    public string GetEditUrl(MarkdownCard card) => $"{_wikiEditPrefix}{card.Url}/_edit";
+    public string GetEditUrl(MarkdownCard card) => $"{wikiEditPrefix}{card.Url}/_edit";
 
-    public IReadOnlyList<TimeStampedStatus> GetErrorList() => _errorList.AsReadOnly();
+    public IReadOnlyList<TimeStampedStatus> GetErrorList() => errorList.AsReadOnly();
 
     public async Task LogNotFoundError(string pageName, string resourceRoot) => await AddErrorMessage($"{pageName} was not found in {resourceRoot} cache");
 
     public async Task LogNoArticleSpecifiedError(string url, string resourceRoot) => await AddErrorMessage($"Embedded resource on page {url} does not specify a page name in {resourceRoot}");
 }
-

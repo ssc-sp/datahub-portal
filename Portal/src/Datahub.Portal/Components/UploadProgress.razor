@@ -16,9 +16,9 @@
     {
         get
         {
-            if (File?.bytesToUpload > 0)
+            if (File?.BytesToUpload > 0)
             {
-                return ((float)File.uploadedBytes / (float)File.bytesToUpload) * 100.0F;
+                return ((float)File.UploadedBytes / (float)File.BytesToUpload) * 100.0F;
             }
 
             return 0F;

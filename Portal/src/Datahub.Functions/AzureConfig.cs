@@ -1,6 +1,5 @@
 ﻿using Datahub.Infrastructure.Services.Azure;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Datahub.Functions;
 
@@ -20,21 +19,21 @@ public class AzureConfig : IAzureServicePrincipalConfig
     }
 
     public EmailNotification Email => _emailConfig;
-    
+
     public AdoConfig AdoConfig => _adoConfig;
 
     public string? NotificationPercents => _config["ProjectUsageNotificationPercents"];
-    
+
     #region Inactivity
-    
+
     public string? ProjectInactivityNotificationDays => _config["ProjectInactivityNotificationDays"] ?? "7,2";
-    
+
     public string? ProjectInactivityDeletionDays => _config["ProjectInactivityDeletionDays"] ?? "180";
-    
+
     public string? UserInactivityNotificationDays => _config["UserInactivityNotificationDays"] ?? "7,2";
     public string? UserInactivityLockedDays => _config["UserInactivityLockedDays"] ?? "30";
     public string? UserInactivityDeletionDays => _config["UserInactivityDeletionDays"] ?? "90";
-    
+
     #endregion
 
     #region Azure SP
@@ -43,7 +42,7 @@ public class AzureConfig : IAzureServicePrincipalConfig
     public string ClientId => _config["FUNC_SP_CLIENT_ID"] ?? "";
     public string ClientSecret => _config["FUNC_SP_CLIENT_SECRET"] ?? "";
     public string SubscriptionId => _config["SUBSCRIPTION_ID"] ?? "";
-    
+
     #endregion
 
     #region Storage Notifications
@@ -51,7 +50,7 @@ public class AzureConfig : IAzureServicePrincipalConfig
     public string StorageQueueConnection => _config["DatahubStorageConnectionString"] ?? "";
     public string MaxStorageCapacity => _config["MAX_STORAGE_CAPACITY"] ?? "180000000000"; //"2000000000000";
     public string UserRunRequestQueueName => _config["UserRunRequestQueueName"] ?? "user-run-request";
-    
+
     #endregion
 
     public string PortalUrl => _config["PORTAL_URL"] ?? "";
@@ -70,27 +69,27 @@ public class EmailNotification
     public string? SenderAddress { get; set; }
     public string? NotificationsCCAddress { get; set; }
     public string? AdminEmail { get; set; } = "datasolutions-solutiondedonnees@ssc-spc.gc.ca";
-    public bool IsValid => !string.IsNullOrEmpty(SmtpHost) && 
-                           !string.IsNullOrEmpty(SmtpUsername) && 
-                           !string.IsNullOrEmpty(SmtpPassword) && 
+    public bool IsValid => !string.IsNullOrEmpty(SmtpHost) &&
+                           !string.IsNullOrEmpty(SmtpUsername) &&
+                           !string.IsNullOrEmpty(SmtpPassword) &&
                            !string.IsNullOrEmpty(SenderAddress) &&
                            SmtpPort != 0;
 }
 
 public class AdoConfig
 {
-    public string SpClientId { get; set; } 
+    public string SpClientId { get; set; }
     public string SpClientSecret { get; set; }
     public string OrgName { get; set; } = "DataSolutionsDonnees";
     public string ProjectName { get; set; } = "FSDH SSC";
-    
+
     public string OrgUrl { get; set; }
     public string URL { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/${workItemTypeName}?api-version=6.0";
 
-    public AdoConfig(IConfiguration _config)
+    public AdoConfig(IConfiguration Config)
     {
-        SpClientId = _config["AdoSpClientId"] ?? "";
-        SpClientSecret = _config["AdoSpClientSecret"] ?? "";
+        SpClientId = Config["AdoSpClientId"] ?? "";
+        SpClientSecret = Config["AdoSpClientSecret"] ?? "";
         OrgUrl = "https://dev.azure.com/" + OrgName;
     }
 }

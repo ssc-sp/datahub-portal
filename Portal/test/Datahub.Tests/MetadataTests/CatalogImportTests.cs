@@ -9,7 +9,7 @@ namespace Datahub.Tests.MetadataTests;
 public class CatalogImportTests
 {
     [Fact]
-    public void CatalogImport_Deserialize()
+    public void CatalogImportDeserialize()
     {
         var entries = JsonConvert.DeserializeObject<CatalogEntry[]>(GetFileContent("sample_catalog.json"))!.ToList();
         Assert.NotNull(entries);

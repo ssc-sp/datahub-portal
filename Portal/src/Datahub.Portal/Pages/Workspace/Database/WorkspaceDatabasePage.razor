@@ -162,7 +162,7 @@
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var workspace = await context.Projects
                 .Include(x => x.Resources)
-                .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronym);
+                .FirstOrDefaultAsync(x => x.ProjectAcronymCD == WorkspaceAcronym);
 
             if (workspace == null)
                 throw new Exception($"Workspace with acronym {WorkspaceAcronym} not found");

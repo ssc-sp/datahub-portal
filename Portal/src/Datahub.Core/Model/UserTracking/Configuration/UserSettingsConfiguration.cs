@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
@@ -14,7 +11,7 @@ namespace Datahub.Core.Model.UserTracking.Configuration
                 (c1, c2) => c1.SequenceEqual(c2),
                 c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                 c => c.ToList());
-            
+
             builder.ToTable("UserSettings");
             builder.HasKey(e => e.PortalUserId);
             builder.Property(e => e.UserName)
@@ -31,11 +28,10 @@ namespace Datahub.Core.Model.UserTracking.Configuration
             builder.Property(e => e.HiddenAlerts)
                 .HasConversion(
                     v => string.Join(',', v),
-                    v => string.IsNullOrEmpty(v) ? new List<string>() : v.Split(',', System.StringSplitOptions.RemoveEmptyEntries).ToList());
+                    v => string.IsNullOrEmpty(v) ? new List<string>() : v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList());
             builder.Property(e => e.HiddenAlerts)
                 .Metadata
                 .SetValueComparer(valueComparer);
-            
         }
     }
 }

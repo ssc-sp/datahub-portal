@@ -7,14 +7,14 @@ public class FieldChoice
     public int FieldChoiceId { get; set; }
     public int FieldDefinitionId { get; set; }
     public virtual FieldDefinition FieldDefinition { get; set; }
-    public string Value_TXT { get; set; }
-    public string Cascading_Value_TXT { get; set; }
-    public string Label_English_TXT { get; set; }
-    public string Label_French_TXT { get; set; }
+    public string ValueTXT { get; set; }
+    public string CascadingValueTXT { get; set; }
+    public string LabelEnglishTXT { get; set; }
+    public string LabelFrenchTXT { get; set; }
 
     #region Entity extensions
 
-    public string Label => CultureUtils.SelectCulture(Label_English_TXT, Label_French_TXT);
+    public string Label => CultureUtils.SelectCulture(LabelEnglishTXT, LabelFrenchTXT);
 
     #endregion
 }

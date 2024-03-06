@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using System;
-using System.Collections.Generic;
 
 namespace Datahub.Core.Data;
 
@@ -12,7 +10,7 @@ public class FormMetadata<T>
     public string UserId { get; set; }
     public string TableDisclaimer { get; set; }
     public List<T> DataSet { get; set; }
-    public Dictionary<string, List<T>> TabbedDataSets {get; set;}
+    public Dictionary<string, List<T>> TabbedDataSets { get; set; }
 
     public IList<Func<T, string>> AccessorFunctions { get; set; }
 
@@ -25,7 +23,7 @@ public class FormMetadata<T>
 
     public IList<string> MarkDownContentFooter { get; set; }
 
-    public IList<Func<T, (string, string)>> NavigateUrls { get; set; }
+    public IList<Func<T, (string Name, string Path)>> NavigateUrls { get; set; }
     public IList<(Delegate Label, Delegate Choices)> FilterProperties { get; set; }
     public bool AllowSearch { get; set; }
 

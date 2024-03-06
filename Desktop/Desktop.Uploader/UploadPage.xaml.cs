@@ -1,18 +1,9 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.Maui.Platform;
-using Datahub.Maui.Uploader;
-using Datahub.Core.DataTransfers;
 using Datahub.Maui.Uploader.Models;
 using Datahub.Maui.Uploader.IO;
-using System.Threading;
-using Windows.Storage.Pickers;
 using CommunityToolkit.Maui.Storage;
-using CommunityToolkit.Maui.Alerts;
-using CommunityToolkit.Maui.Core;
-using SpeedTestSharp.DataTypes.External;
 using Datahub.Maui.Uploader.Resources;
-using CommunityToolkit.Maui.Storage;
-using CommunityToolkit.Maui.Alerts;
 
 namespace Datahub.Maui.Uploader
 {
@@ -103,21 +94,21 @@ namespace Datahub.Maui.Uploader
             }
         }
 
-        public const string DEFAULT_STATUS = "Ready...";
+        public const string DEFAULTSTATUS = "Ready...";
 
         private async void AddfileBtn_Clicked(object sender, EventArgs e)
         {
             PickOptions options = new()
             {
                 PickerTitle = AppResources.SelectFilePicker,
-                
+
             };
             var result = await FilePicker.Default.PickMultipleAsync(options);
             if (result != null)
             {
                 foreach (var file in result)
                 {
-                    var item = new LocalItemInfo(file.FullPath, false, null, DEFAULT_STATUS);
+                    var item = new LocalItemInfo(file.FullPath, false, null, DEFAULTSTATUS);
                     uploadList.Add(item);
                     item.Bytes = new FileInfo(item.Name).Length;
                     item.Status = $"{fileUtils.GetFriendlyFileSize(item.Bytes.Value)}";
@@ -223,7 +214,7 @@ namespace Datahub.Maui.Uploader
             {
                 var mbytesSinceLastUpdate = (progress - prevProgressValue.Value) * currentSize.Value / (1024 * 1024);
                 var secsSinceLastUpdate = (DateTime.Now - prevProgressTS.Value).TotalSeconds;
-                var instantSpeed = Math.Min(0,mbytesSinceLastUpdate / secsSinceLastUpdate);
+                var instantSpeed = Math.Min(0, mbytesSinceLastUpdate / secsSinceLastUpdate);
                 currentSpeedMbps = (instantSpeed * 0.5 + currentSpeedMbps * 1.5) / 2;
             }
             var totalUploadSize = currentUploadBatch.Sum(i => i.Bytes ?? 0);
@@ -269,7 +260,7 @@ namespace Datahub.Maui.Uploader
             var success = true;
             foreach (var file in item.AllFiles)
             {
-                var totalProgress = uploadedBytes * 1.0 / item.Bytes.Value;                
+                var totalProgress = uploadedBytes * 1.0 / item.Bytes.Value;
                 var maxProgress = (uploadedBytes + file.Length) * 1.0 / item.Bytes.Value;
                 var relPath = Path.GetRelativePath(basePath.FullName, file.FullName);
                 var blobPath = relPath.Replace('\\', '/');
@@ -296,7 +287,7 @@ namespace Datahub.Maui.Uploader
             var result = await folderPicker.PickAsync(CancellationToken.None);
             if (result.IsSuccessful)
             {
-                var item = new LocalItemInfo(result.Folder.Path, true, null, DEFAULT_STATUS);
+                var item = new LocalItemInfo(result.Folder.Path, true, null, DEFAULTSTATUS);
                 uploadList.Add(item);
                 await Task.Factory.StartNew(() =>
                 {

@@ -22,7 +22,7 @@ else
 
 @if (_form != null)
 {
-    <AeButton To="@($"/w/{ProjectAcronym}/forms/{_form.WebForm_ID}")">Back</AeButton>
+    <AeButton To="@($"/w/{ProjectAcronym}/forms/{_form.WebFormID}")">Back</AeButton>
 }
 else
 {
@@ -38,7 +38,7 @@ else
     public string FormId { get; set; }
 
     private DatahubProjectDBContext projectContext;
-    private WebForm_Field _formField;
+    private WebFormField _formField;
     private WebForm _form;
 
     protected override async Task OnInitializedAsync()
@@ -47,7 +47,7 @@ else
         _form = await projectContext.WebForms
             .Include(f => f.Fields)
             .Include(f => f.Project)
-            .SingleOrDefaultAsync(f => f.WebForm_ID == int.Parse(FormId));
+            .SingleOrDefaultAsync(f => f.WebFormID == int.Parse(FormId));
         
         if (_form != null)
         {
@@ -59,9 +59,9 @@ else
         }
     }
 
-    private async Task<WebForm_Field> DoCreateFormField()
+    private async Task<WebFormField> DoCreateFormField()
     {
-        return await Task.FromResult(new WebForm_Field()
+        return await Task.FromResult(new WebFormField()
         {
             WebForm = _form
         });
@@ -70,7 +70,7 @@ else
     private async void HandleValidSubmit()
     {
         //TODO error handling, logging
-        _formField.Date_Updated_DT = DateTime.UtcNow;
+        _formField.DateUpdatedDT = DateTime.UtcNow;
         var result = await projectContext.Fields.AddAsync(_formField);
         _formField = result.Entity;
         await projectContext.SaveChangesAsync();

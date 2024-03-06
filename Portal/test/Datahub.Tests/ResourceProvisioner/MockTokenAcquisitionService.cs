@@ -11,12 +11,12 @@ namespace Datahub.Tests.ResourceProvisioner;
 public class MockTokenAcquisitionService : ITokenAcquisition
 {
     private readonly IConfiguration _configuration;
-    
+
     public MockTokenAcquisitionService(IConfiguration configuration)
     {
         _configuration = configuration;
     }
-    
+
     public Task<string> GetAccessTokenForUserAsync(IEnumerable<string> scopes, string authenticationScheme, string tenantId = null,
         string userFlow = null, ClaimsPrincipal user = null, TokenAcquisitionOptions tokenAcquisitionOptions = null)
     {

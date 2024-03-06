@@ -61,7 +61,7 @@
     public PortalUser Inviter { get; set; } = null!;
 
     [Parameter]
-    public List<Datahub_Project_User> CurrentProjectUsers { get; set; } = new();
+    public List<DatahubProjectUser> CurrentProjectUsers { get; set; } = new();
 
     private readonly List<ProjectUserAddUserCommand> _usersToAdd = new();
     private readonly EmailAddressAttribute _emailValidator = new() { ErrorMessage = "The email address is invalid" };
@@ -113,7 +113,7 @@
             case -1 when _emailValidator.IsValid(search):
                 _searchResultUsers.Insert(0, new GraphUser()
                 {
-                    mailAddress = new MailAddress(search), DisplayName = Localizer["Add New User"], Id = ProjectUserAddUserCommand.NEW_USER_GUID
+                    MailAddress = new MailAddress(search), DisplayName = Localizer["Add New User"], Id = ProjectUserAddUserCommand.NEW_USER_GUID
                 });
                 break;
         }
@@ -179,7 +179,7 @@
             GraphGuid = user.Id,
             Email = user.Mail,
             DisplayName = user.DisplayName,
-            RoleId = (int)Project_Role.RoleNames.Guest,
+            RoleId = (int)ProjectRole.RoleNames.Guest,
         };
 
         if (!user.Id.Equals(ProjectUserAddUserCommand.NEW_USER_GUID))

@@ -2,8 +2,6 @@
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Metadata;
-using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
 using Datahub.GeoCore.Service;
 using Datahub.Metadata.DTO;
 using Datahub.Portal.Model;
@@ -17,7 +15,6 @@ using System.Text.Json;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Projects;
-using Datahub.Infrastructure.Services.Security;
 
 namespace Datahub.Portal.Controllers;
 
@@ -33,9 +30,9 @@ public class ApiController : Controller
     private readonly IMSGraphService _msGraphService;
     private readonly IGeoCoreServiceFactory _geoCoreServiceFactory;
 
-    public ApiController(ILogger<ApiController> logger, 
-        IDbContextFactory<DatahubProjectDBContext> contextFactory, IKeyVaultService keyVaultService, 
-        IMetadataBrokerService metadataBrokerService, IPublicDataFileService publicDataService, 
+    public ApiController(ILogger<ApiController> logger,
+        IDbContextFactory<DatahubProjectDBContext> contextFactory, IKeyVaultService keyVaultService,
+        IMetadataBrokerService metadataBrokerService, IPublicDataFileService publicDataService,
         IMSGraphService msGraphService, IGeoCoreServiceFactory geoCoreServiceFactory)
     {
         _logger = logger;
@@ -130,13 +127,13 @@ public class ApiController : Controller
             return BadRequest(ModelState);
 
         // check the file_id is a valid GUID 
-        if (!Guid.TryParse(data.file_id, out var fileId))
+        if (!Guid.TryParse(data.fileId, out var fileId))
             return BadRequest($"Invalid file_id, must be a valid GUID!");
 
         // check the file_id doesn't exists in the shared files
         var sharedFile = await _publicDataService.LoadOpenDataSharedFileInfo(fileId);
         if (sharedFile is not null)
-            return BadRequest($"A share with id: {data.file_id} already exists!");
+            return BadRequest($"A share with id: {data.fileId} already exists!");
 
         // get the field definitions
         var fieldDefinitions = await _metadataBrokerService.GetFieldDefinitions();
@@ -152,9 +149,9 @@ public class ApiController : Controller
             return validateDateFieldsResponse;
 
         // get the user id from the email contact
-        var userId = await _msGraphService.GetUserIdFromEmailAsync(data.email_contact, CancellationToken.None);
+        var userId = await _msGraphService.GetUserIdFromEmailAsync(data.emailContact, CancellationToken.None);
         if (userId is null)
-            return BadRequest($"Invalid email account '{data.email_contact}'");
+            return BadRequest($"Invalid email account '{data.emailContact}'");
 
         // create metadata record for external object
         await SaveMetadata(data, fieldDefinitions);
@@ -163,10 +160,10 @@ public class ApiController : Controller
         var approvalFormId = await SaveApprovalForm(data);
 
         // create open data share record
-        var url = await _publicDataService.CreateExternalOpenDataSharing(approvalFormId, data.file_id, data.file_name, data.file_url,
-            userId, apiUser.Project_Acronym_CD);
+        var url = await _publicDataService.CreateExternalOpenDataSharing(approvalFormId, data.fileId, data.fileName, data.fileUrl,
+            userId, apiUser.ProjectAcronymCD);
 
-        return Ok(new OpenDataShareResponse(data.file_id, url));
+        return Ok(new OpenDataShareResponse(data.fileId, url));
     }
 
     [HttpGet]
@@ -226,7 +223,7 @@ public class ApiController : Controller
             return BadRequest($"Invalid email contact '{emailContact}'");
 
         // save a pre-filled approval form and retrieve the form id
-        var approvalFormId = await SaveApprovalForm(requestSummary.title_en, emailContact, $"{requestSummary.title_en } / {requestSummary.title_en}");
+        var approvalFormId = await SaveApprovalForm(requestSummary.titleEn, emailContact, $"{requestSummary.titleEn} / {requestSummary.titleEn}");
 
         // save and store json request
         var shareId = await SaveGeoData(requestJson, approvalFormId, emailContact);
@@ -238,12 +235,12 @@ public class ApiController : Controller
 
     private string GetAuthorizationToken() => Request.Headers["DH-Auth-Key"]!;
 
-    private bool IsDisabledOrExpired(Datahub_ProjectApiUser apiUser) 
-        => !apiUser.Enabled || (apiUser.Expiration_DT.HasValue && apiUser.Expiration_DT.Value > DateTime.UtcNow);
+    private bool IsDisabledOrExpired(DatahubProjectApiUser apiUser)
+        => !apiUser.Enabled || (apiUser.ExpirationDT.HasValue && apiUser.ExpirationDT.Value > DateTime.UtcNow);
 
     private async Task SaveMetadata(OpenDataShareRequest data, FieldDefinitions fieldDefinitions)
     {
-        var fieldValues = await _metadataBrokerService.GetObjectMetadataValues(data.file_id);
+        var fieldValues = await _metadataBrokerService.GetObjectMetadataValues(data.fileId);
         foreach (var field in EnumerateFieldValues(data))
         {
             var definition = fieldDefinitions.Get(field.name);
@@ -261,36 +258,36 @@ public class ApiController : Controller
 
         SpatialObjectShare geoObjectShare = new()
         {
-            GeoObjectShare_ID = Guid.NewGuid().ToString(),
-            Json_TXT = requestJson,
-            ApprovalForm_ID = approvalFormId,
-            Email_Contact_TXT = emailContact                
+            GeoObjectShareID = Guid.NewGuid().ToString(),
+            JsonTXT = requestJson,
+            ApprovalFormID = approvalFormId,
+            EmailContactTXT = emailContact
         };
 
         ctx.GeoObjectShares.Add(geoObjectShare);
         await ctx.SaveChangesAsync();
 
-        return geoObjectShare.GeoObjectShare_ID;
+        return geoObjectShare.GeoObjectShareID;
     }
 
     private Task<int> SaveApprovalForm(OpenDataShareRequest data)
     {
-        return SaveApprovalForm(data.file_name, data.email_contact, $"{data.title_translated_en } / {data.title_translated_en}");
+        return SaveApprovalForm(data.fileName, data.emailContact, $"{data.titleTranslatedEn} / {data.titleTranslatedEn}");
     }
 
     private async Task<int> SaveApprovalForm(string name, string email, string title)
     {
         Datahub.Metadata.Model.ApprovalForm approvalForm = new()
         {
-            Name_NAME = name,
-            Email_EMAIL = email,
-            Dataset_Title_TXT = title,
-            Type_Of_Data_TXT = "Data"
+            NameNAME = name,
+            EmailEMAIL = email,
+            DatasetTitleTXT = title,
+            TypeOfDataTXT = "Data"
         };
         return await _metadataBrokerService.SaveApprovalForm(approvalForm);
     }
 
-    private async Task<Datahub_ProjectApiUser?> GetApiUserAsync(string token)
+    private async Task<DatahubProjectApiUser?> GetApiUserAsync(string token)
     {
         try
         {
@@ -301,7 +298,7 @@ public class ApiController : Controller
             Guid apiClientGuid = Guid.Parse(apiClientId);
 
             using var ctx = _contextFactory.CreateDbContext();
-            var apiUser = await ctx.Project_ApiUsers.FirstOrDefaultAsync(u => u.ProjectApiUser_ID == apiClientGuid);
+            var apiUser = await ctx.ProjectApiUsers.FirstOrDefaultAsync(u => u.ProjectApiUserID == apiClientGuid);
 
             return apiUser;
         }
@@ -320,8 +317,8 @@ public class ApiController : Controller
             var definition = fieldDefinitions.Get(field.Name);
             if (definition is not null && definition.HasChoices)
             {
-                var choices = definition.Choices.Select(c => new FieldChoice(c.Value_TXT, c.Label_English_TXT, c.Label_French_TXT)).ToList();
-                yield return new FieldChoices(field.Name, choices); 
+                var choices = definition.Choices.Select(c => new FieldChoice(c.ValueTXT, c.LabelEnglishTXT, c.LabelFrenchTXT)).ToList();
+                yield return new FieldChoices(field.Name, choices);
             }
         }
     }
@@ -349,13 +346,13 @@ public class ApiController : Controller
 
     private IActionResult? ValidateDateFields(OpenDataShareRequest data)
     {
-        if (!IsValidDate(data.date_published))
+        if (!IsValidDate(data.datePublished))
             return BadRequest("Invalid 'date_published'");
 
-        if (!string.IsNullOrEmpty(data.time_period_coverage_start) && !IsValidDate(data.time_period_coverage_start))
+        if (!string.IsNullOrEmpty(data.timePeriodCoverageStart) && !IsValidDate(data.timePeriodCoverageStart))
             return BadRequest("Invalid 'time_period_coverage_start'");
 
-        if (!string.IsNullOrEmpty(data.time_period_coverage_end) && !IsValidDate(data.time_period_coverage_end))
+        if (!string.IsNullOrEmpty(data.timePeriodCoverageEnd) && !IsValidDate(data.timePeriodCoverageEnd))
             return BadRequest("Invalid 'time_period_coverage_end'");
 
         return null;

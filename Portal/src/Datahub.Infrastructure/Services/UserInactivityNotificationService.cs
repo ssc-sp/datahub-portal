@@ -21,7 +21,7 @@ namespace Datahub.Infrastructure.Services
             using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
             var notification = new UserInactivityNotifications
             {
-                User_ID = userId,
+                UserID = userId,
                 NotificationDate = notificationDate,
                 DaysBeforeLocked = daysBeforeLocked,
                 DaysBeforeDeleted = daysBeforeDeleted

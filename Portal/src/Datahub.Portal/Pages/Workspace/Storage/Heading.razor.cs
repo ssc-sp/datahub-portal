@@ -1,5 +1,4 @@
 using Datahub.Core.Model.Achievements;
-using Datahub.Core.Services.Storage;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.JSInterop;
 
@@ -18,7 +17,7 @@ public partial class Heading
         DeleteFolder,
         NewFolder
     }
-    
+
     private async Task HandleUpload()
     {
         if (IsActionDisabled(ButtonAction.Upload))
@@ -33,7 +32,7 @@ public partial class Heading
             return;
 
         var downloads = SelectedItems
-            .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
+            .Where(selectedItem => Files?.Any(f => f.Name == selectedItem) ?? false);
 
         foreach (var download in downloads)
         {
@@ -44,7 +43,7 @@ public partial class Heading
 
     private async Task HandleAzSyncDown()
     {
-        var uri = await _dataRetrievalService.GenerateSasToken(DataRetrievalService.DEFAULT_CONTAINER_NAME, ProjectAcronym, 14);
+        var uri = await _dataRetrievalService.GenerateSasToken(DataRetrievalService.DEFAULTCONTAINERNAME, ProjectAcronym, 14);
         await _module.InvokeAsync<string>("azSyncDown", uri.ToString(), _dotNetHelper);
     }
 
@@ -58,9 +57,9 @@ public partial class Heading
 
         var sb = new System.Text.StringBuilder();
         sb.Append("/sharingworkflow/");
-        sb.Append(selectedFile.fileid);
+        sb.Append(selectedFile.Fileid);
         sb.Append("?filename=");
-        sb.Append(selectedFile.filename);
+        sb.Append(selectedFile.Filename);
         if (!string.IsNullOrWhiteSpace(ProjectAcronym))
         {
             sb.Append("&project=");
@@ -69,7 +68,7 @@ public partial class Heading
         else
         {
             sb.Append("&folderpath=");
-            sb.Append(selectedFile.folderpath);
+            sb.Append(selectedFile.Folderpath);
         }
         _navigationManager.NavigateTo(sb.ToString());
     }
@@ -80,7 +79,7 @@ public partial class Heading
             return;
 
         var deletes = SelectedItems
-            .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
+            .Where(selectedItem => Files?.Any(f => f.Name == selectedItem) ?? false);
 
         foreach (var delete in deletes)
         {
@@ -92,12 +91,12 @@ public partial class Heading
     {
         if (IsActionDisabled(ButtonAction.Rename))
             return;
-        
+
         var selectedFile = _selectedFiles.FirstOrDefault();
         if (selectedFile is not null && _ownsSelectedFiles)
         {
-            var newName = await _jsRuntime.InvokeAsync<string>("prompt", "Enter new name", 
-                FileExplorer.GetFileName(selectedFile.filename));
+            var newName = await _jsRuntime.InvokeAsync<string>("prompt", "Enter new name",
+                FileExplorer.GetFileName(selectedFile.Filename));
             newName = newName?.Replace("/", "").Trim();
 
             await OnFileRename.InvokeAsync(newName);
@@ -108,7 +107,7 @@ public partial class Heading
     {
         if (IsActionDisabled(ButtonAction.NewFolder))
             return;
-        
+
         var newFolderName = await _module.InvokeAsync<string>("promptForNewFolderName");
         if (!string.IsNullOrWhiteSpace(newFolderName))
         {
@@ -120,7 +119,7 @@ public partial class Heading
     {
         if (IsActionDisabled(ButtonAction.DeleteFolder))
             return;
-        
+
         await OnDeleteFolder.InvokeAsync();
     }
 
@@ -128,15 +127,15 @@ public partial class Heading
     {
         if (_currentUserRole is null)
             return true;
-        
+
         return buttonAction switch
         {
-            ButtonAction.Upload   => !_currentUserRole.IsAtLeastCollaborator,
-            ButtonAction.AzSync   => !_isElectron,
+            ButtonAction.Upload => !_currentUserRole.IsAtLeastCollaborator,
+            ButtonAction.AzSync => !_isElectron,
             ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastGuest,
-            ButtonAction.Share    => !_isUnclassifiedSingleFile,
-            ButtonAction.Delete   => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
-            ButtonAction.Rename   => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator || SelectedItems.Count > 1,
+            ButtonAction.Share => !_isUnclassifiedSingleFile,
+            ButtonAction.Delete => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
+            ButtonAction.Rename => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator || SelectedItems.Count > 1,
             ButtonAction.NewFolder => !_currentUserRole.IsAtLeastCollaborator,
             ButtonAction.DeleteFolder => Files.Any() || Folders.Any() || CurrentFolder == "/" || !_currentUserRole.IsAtLeastCollaborator,
             _ => false

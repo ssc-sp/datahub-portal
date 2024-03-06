@@ -1,4 +1,3 @@
-using System.Collections;
 using Datahub.Application.Commands;
 using Datahub.Core.Model.Projects;
 
@@ -19,5 +18,5 @@ public interface IProjectUserManagementService
     /// <summary>
     /// Gets all users in a project.
     /// </summary>
-    Task<List<Datahub_Project_User>> GetProjectUsersAsync(string projectAcronym);
+    Task<List<DatahubProjectUser>> GetProjectUsersAsync(string projectAcronym);
 }

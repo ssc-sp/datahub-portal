@@ -1,6 +1,4 @@
-﻿using Datahub.Core.DataTransfers;
-using Datahub.Maui.Uploader;
-namespace Datahub.Maui.Uploader
+﻿namespace Datahub.Maui.Uploader
 {
     public partial class App : Application
     {
@@ -35,6 +33,6 @@ namespace Datahub.Maui.Uploader
             window.X = (displayInfo.Width / displayInfo.Density - window.Width) / 2;
             window.Y = (displayInfo.Height / displayInfo.Density - window.Height) / 2;
         }
-        
+
     }
 }

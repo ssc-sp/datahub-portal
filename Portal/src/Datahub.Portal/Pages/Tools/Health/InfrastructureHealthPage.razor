@@ -153,7 +153,7 @@
 
         _projectDbContext = DbFactory.CreateDbContext();
 
-        var projects = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).Select(p => p.Project_Acronym_CD).ToList();
+        var projects = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).Select(p => p.ProjectAcronymCD).ToList();
         _infrastructureHealth = new Dictionary<string, List<InfrastructureHealthCheck>>();
 
         foreach (var acronym in projects)

@@ -42,7 +42,7 @@ public static class SyncDbUsersFunction
             var content = new StringBuilder();
             var projects = await (new ProjectFactory(new EnvConfiguration())).GetUsersFromProjects().ConfigureAwait(false);
 
-            content.AppendLine($"{System.Environment.GetEnvironmentVariable("projectDbConnectionString")}\n");
+            content.AppendLine($"{Environment.GetEnvironmentVariable("projectDbConnectionString")}\n");
 
             if (projects == null)
             {

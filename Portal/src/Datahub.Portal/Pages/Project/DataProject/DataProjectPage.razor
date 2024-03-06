@@ -59,11 +59,11 @@
     [Parameter]
     public string ProjectAcronymParam { get; set; }
 
-    private Datahub_Project _project;
+    private DatahubProject _project;
     private string _userId;
     private string _projectName;
     private bool _isFrench;
-    private List<Client_Engagement> _clientEngagements = new();
+    private List<ClientEngagement> _clientEngagements = new();
 
     private bool ReverseProxyEnabled => Configuration.ReverseProxy.Enabled;
 
@@ -76,7 +76,7 @@
             // .Include(p => p.ProjectRequestAudits)
             .Include(p => p.Pipelines)
             .Include(p => p.Whitelist)
-            .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
+            .Where(p => p.ProjectAcronymCD == ProjectAcronymParam)
             .FirstOrDefaultAsync();
 
         if (_project is null)
@@ -88,8 +88,8 @@
         _userId = await _userInformationService.GetUserIdString();
         if (_userId is null) _logger.LogError("UserId is null");
 
-        var isMemberOfProject = projectContext.Project_Users
-            .Any(p => p.User_ID == _userId && p.Project.Project_Acronym_CD == ProjectAcronymParam);
+        var isMemberOfProject = projectContext.ProjectUsers
+            .Any(p => p.UserID == _userId && p.Project.ProjectAcronymCD == ProjectAcronymParam);
 
         if (isMemberOfProject)
         {
@@ -100,7 +100,7 @@
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewProjectNotMemberOf);
         }
 
-        _clientEngagements = await projectContext.Client_Engagements.Where(ce => ce.Project == _project && ce.Is_Engagement_Active).ToListAsync();
+        _clientEngagements = await projectContext.ClientEngagements.Where(ce => ce.Project == _project && ce.IsEngagementActive).ToListAsync();
         await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
 
     // record recent link
@@ -108,7 +108,7 @@
     }
 
     private bool WebAppEnabled => ReverseProxyEnabled && _project?.WebAppEnabled == true;
-    private bool WebAppSaveDisabled => WebAppEnabled && string.IsNullOrWhiteSpace(_project?.WebApp_URL);
+    private bool WebAppSaveDisabled => WebAppEnabled && string.IsNullOrWhiteSpace(_project?.WebAppURL);
 
     private async Task RecordRecentLink()
     {
@@ -119,7 +119,7 @@
         {
             LinkType = DatahubLinkType.DataProject,
             DataProject = ProjectAcronymParam,
-            accessedTime = DateTimeOffset.Now
+            AccessedTime = DateTimeOffset.Now
         };
 
         await _userLocationManagerService.RegisterNavigation(userRecentLink);
@@ -144,7 +144,7 @@
             {
                 var userEmail = await _userInformationService.GetUserEmail();
                 var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(ProjectAcronymParam, requestingUserEmail: userEmail);
-                await _resourceMessagingService.SendToTerraformDeleteQueue(workspaceDefinition, _project.Project_ID);
+                await _resourceMessagingService.SendToTerraformDeleteQueue(workspaceDefinition, _project.ProjectID);
                 _snackbar.Add("Workspace succesfully queued for deletion", Severity.Success);
             }
             catch (Exception e)

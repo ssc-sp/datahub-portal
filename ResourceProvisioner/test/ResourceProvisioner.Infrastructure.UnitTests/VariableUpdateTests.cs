@@ -96,7 +96,7 @@ public class VariableUpdateTests
         // assert that the only files that have been modified are *.auto.tfvars.json
         foreach (var file in files)
         {
-            if(file.EndsWith(".auto.tfvars.json"))
+            if (file.EndsWith(".auto.tfvars.json"))
                 Assert.That(File.GetLastWriteTime(file), Is.Not.EqualTo(fileDates[file]));
             else
                 Assert.That(File.GetLastWriteTime(file), Is.EqualTo(fileDates[file]));

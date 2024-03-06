@@ -8,7 +8,7 @@ namespace SyncDbUsers;
 
 public class ProjectFactory
 {
-     
+
     private IAppConfig configuration;
     private string projectCode;
     public ProjectFactory(IAppConfig configuration, string projectCode = null)
@@ -16,7 +16,7 @@ public class ProjectFactory
         this.configuration = configuration;
         this.projectCode = projectCode;
     }
-      
+
     public async Task<IEnumerable<Project>> GetUsersFromProjects(string projectCode = null)
     {
         using (SqlConnection connection = new SqlConnection(this.configuration.GetConnectionString()/*System.Environment.GetEnvironmentVariable("projectDbConnectionString")*/))

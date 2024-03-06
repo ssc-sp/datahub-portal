@@ -1,7 +1,6 @@
 ﻿using Datahub.Application.Configuration;
 using Datahub.Application.Services.ReverseProxy;
 using Datahub.Core.Model.Datahub;
-using Microsoft.Extensions.Configuration;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
 
@@ -11,7 +10,6 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
 {
     private readonly DatahubProjectDBContext _context;
     private readonly DatahubPortalConfiguration _config;
-    
 
     public ReverseProxyConfigService(DatahubProjectDBContext context, DatahubPortalConfiguration config)
     {
@@ -21,23 +19,17 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
 
     public ReverseProxyConfig GetConfigurationFromProjects()
     {
-        var allConfig = GetAllConfigurationFromProjects();
-        return new ReverseProxyConfig(allConfig.Select(c => c.Route).ToList(), allConfig.Select(c => c.Cluster).ToList());
-
-    }
-
-    public List<(string Acronym, RouteConfig Route, ClusterConfig Cluster)> GetAllConfigurationFromProjects()
-    {
         var basePath = _config.ReverseProxy.BasePath;
 
         var data = _context.Projects
-            .Where(e => e.WebAppEnabled == true && e.WebApp_URL != null)
-            .Select(e => new ProjectWebData(e.Project_Acronym_CD, e.WebApp_URL))
+            .Where(e => e.WebAppEnabled == true && e.WebAppURL != null)
+            .Select(e => new ProjectWebData(e.ProjectAcronymCD, e.WebAppURL))
             .ToList();
 
         var routes = data.Select(d => BuildRoute(basePath, d.Acronym)).ToList();
         var clusters = data.Select(d => BuildCluster(d.Acronym, d.Url)).ToList();
-        return data.Select(d => (d.Acronym, BuildRoute(basePath, d.Acronym), BuildCluster(d.Acronym, d.Url))).ToList(); 
+
+        return new ReverseProxyConfig(routes, clusters);
     }
 
     static RouteConfig BuildRoute(string basePath, string acronym)

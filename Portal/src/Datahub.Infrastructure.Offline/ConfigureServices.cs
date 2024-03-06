@@ -2,22 +2,16 @@ using System.Globalization;
 using System.Text;
 using Askmethat.Aspnet.JsonLocalizer.Extensions;
 using Blazored.LocalStorage;
-using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Security;
 using Datahub.CatalogSearch;
-using Datahub.Core.RoleManagement;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Achievements;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Services.Metadata;
-using Datahub.Core.Services.Notification;
-using Datahub.Core.Services.Offline;
-using Datahub.Core.Services.Security;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Infrastructure.Offline.Security;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
@@ -27,13 +21,14 @@ namespace Datahub.Infrastructure.Offline;
 
 public static class ConfigureServices
 {
-        
-    public static IServiceCollection AddDatahubOfflineInfrastructureServices(this IServiceCollection services, DatahubPortalConfiguration? portalConfiguration = null)
+
+    public static IServiceCollection AddDatahubOfflineInfrastructureServices(this IServiceCollection services,
+        IConfiguration configuration)
     {
-        portalConfiguration ??= new DatahubPortalConfiguration();
+
         services.AddSingleton<CultureService>();
-        services.AddDatahubLocalization(portalConfiguration);
-        
+        services.AddDatahubLocalization();
+
         services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
         services.AddScoped<IDatahubAuditingService, OfflineDatahubTelemetryAuditingService>();
         services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
@@ -45,14 +40,14 @@ public static class ConfigureServices
         services.AddScoped<IKeyVaultService, OfflineKeyVaultService>();
         services.AddScoped<IProjectUserManagementService, OfflineProjectUserManagementService>();
         services.AddScoped<IDatabricksApiService, OfflineDatabricksApiService>();
-        
+
         services.AddBlazoredLocalStorage();
-        
-        
+
+
         return services;
     }
 
-    public static IServiceCollection AddDatahubLocalization(this IServiceCollection services, DatahubPortalConfiguration portalConfiguration)
+    public static IServiceCollection AddDatahubLocalization(this IServiceCollection services)
     {
         var supportedCultures = new HashSet<CultureInfo>
         {
@@ -63,8 +58,8 @@ public static class ConfigureServices
         services.AddJsonLocalization(options =>
         {
             options.CacheDuration = TimeSpan.FromMinutes(15);
-            options.ResourcesPath = portalConfiguration.CultureSettings.ResourcesPath;
-            options.AdditionalResourcePaths = portalConfiguration.CultureSettings.AdditionalResourcePaths;
+            options.ResourcesPath = "../Datahub.Portal/i18n";
+            options.AdditionalResourcePaths = new[] { "../Datahub.Portal/i18n/ssc" };
             options.UseBaseName = false;
             options.IsAbsolutePath = true;
             options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;

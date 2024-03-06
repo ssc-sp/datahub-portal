@@ -1,4 +1,3 @@
-using System.Linq;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 
@@ -6,7 +5,7 @@ namespace Datahub.Core.Utils;
 
 public static class TerraformOutputHelper
 {
-    public static string GetExpectedTerraformOutput(Datahub_Project project, string workspaceId = null, string workspaceUrl = null, string envAcronym = "dev")
+    public static string GetExpectedTerraformOutput(DatahubProject project, string workspaceId = null, string workspaceUrl = null, string envAcronym = "dev")
     {
         var expectedTerraformOutput = GetExpectedTerraformOutputResourceGroupString();
         // var workspaceId = "";
@@ -31,8 +30,8 @@ public static class TerraformOutputHelper
             expectedTerraformOutput =
                 string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzureWebAppString());
         }
-        
-        if(project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres))))
+
+        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres))))
         {
             expectedTerraformOutput =
                 string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzurePostgresString());
@@ -40,8 +39,8 @@ public static class TerraformOutputHelper
 
         var content = expectedTerraformOutput
             .Replace("{{env_acronym}}", envAcronym)
-            .Replace("{{project_cd}}", project.Project_Acronym_CD)
-            .Replace("{{project_cd_lower}}", project.Project_Acronym_CD.ToLower())
+            .Replace("{{project_cd}}", project.ProjectAcronymCD)
+            .Replace("{{project_cd_lower}}", project.ProjectAcronymCD.ToLower())
             .Replace("{{workspace_version}}", project.Version)
             .Replace("{{workspace_id}}", workspaceId)
             .Replace("{{workspace_url}}", workspaceUrl);

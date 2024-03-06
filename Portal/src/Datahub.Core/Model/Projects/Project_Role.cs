@@ -1,43 +1,39 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
 namespace Datahub.Core.Model.Projects;
 
-public class Project_Role
+public class ProjectRole
 {
     public int Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    
+
     /// <summary>
-    /// This should be used to determine if the user is at least an admin or not.
+    /// Gets a value indicating whether this should be used to determine if the user is at least an admin or not.
     /// Note: If you are looking to show or hide UI elements off this, use the "DatahubAuthView" instead.
     /// Note: This will not work inside EF Core Queries
     /// </summary>
     public bool IsAtLeastAdmin => Id is (int)RoleNames.Admin or (int)RoleNames.WorkspaceLead;
 
     /// <summary>
-    /// This should be used to determine if the user is at least a collaborator or not.
+    /// Gets a value indicating whether this should be used to determine if the user is at least a collaborator or not.
     /// Note: If you are looking to show or hide UI elements off this, use the "DatahubAuthView" instead.
     /// Note: This will not work inside EF Core Queries
     /// </summary>
     public bool IsAtLeastCollaborator => Id is (int)RoleNames.Collaborator || IsAtLeastAdmin;
-    
+
     /// <summary>
-    /// This should be used to determine if the user is at least a guest or not.
+    /// Gets a value indicating whether this should be used to determine if the user is at least a guest or not.
     /// Note: If you are looking to show or hide UI elements off this, use the "DatahubAuthView" instead.
     /// Note: This will not work inside EF Core Queries
     /// </summary>
     public bool IsAtLeastGuest => Id is (int)RoleNames.Guest || IsAtLeastCollaborator;
 
-    public static IEnumerable<Project_Role> GetAll() => _roles.Value;
+    public static IEnumerable<ProjectRole> GetAll() => roles.Value;
 
-    private static Lazy<IEnumerable<Project_Role>> _roles = new(CreateRoles);
+    private static Lazy<IEnumerable<ProjectRole>> roles = new(CreateRoles);
 
-    private static IEnumerable<Project_Role> CreateRoles()
+    private static IEnumerable<ProjectRole> CreateRoles()
     {
-        return new List<Project_Role>
+        return new List<ProjectRole>
         {
             new()
             {
@@ -82,6 +78,6 @@ public class Project_Role
         WorkspaceLead = 2,
         Admin = 3,
         Collaborator = 4,
-        Guest = 5        
+        Guest = 5
     }
 }

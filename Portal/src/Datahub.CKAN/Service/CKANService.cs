@@ -20,13 +20,13 @@ public class CKANService : ICKANService
     {
         KnownFileTypes = new HashSet<string>()
         {
-            "AAC", "AIFF", "APK", "AVI", "BAG", "BMP", "BWF", "CCT", "CDF", "CDR", "COD", "CSV", "DBD", "DBF", "DICOM", 
-            "DNG", "DOC", "DOCX", "DXF", "E00", "ECW", "EDI", "EMF", "EPUB3", "EPUB2", "EPS", "ESRI REST", "EXE", "FITS", 
-            "GDB", "GEOPDF", "GEORSS", "GEOTIF", "GEOJSON", "GPKG", "GIF", "GML", "GRD", "GRIB1", "GRIB2", "HDF", "HTML", 
-            "IATI", "IPA", "JAR", "JFIF", "JP2", "JPG", "JSON", "JSONLD", "JSONL", "KML", "KMZ", "LAS", "LYR", "TAB", 
-            "MFX", "MOV", "MPEG", "MPEG-1", "MP3", "MXD", "NETCDF", "ODP", "ODS", "ODT", "PDF", "PNG", "PPT", 
-            "PPTX", "RDF", "TTL", "NT", "RDFA", "RSS", "RTF", "SAR", "SAS", "SAV", "SEGY", "SHP", "SQL", "SQLITE3", "SQLITE", 
-            "SVG", "TIFF", "TRIG", "TRIX", "TFW", "TXT", "VPF", "WAV", "WCS", "WFS", "WMS", "WMTS", "WMV", "WPS", "XML", "XLS", 
+            "AAC", "AIFF", "APK", "AVI", "BAG", "BMP", "BWF", "CCT", "CDF", "CDR", "COD", "CSV", "DBD", "DBF", "DICOM",
+            "DNG", "DOC", "DOCX", "DXF", "E00", "ECW", "EDI", "EMF", "EPUB3", "EPUB2", "EPS", "ESRI REST", "EXE", "FITS",
+            "GDB", "GEOPDF", "GEORSS", "GEOTIF", "GEOJSON", "GPKG", "GIF", "GML", "GRD", "GRIB1", "GRIB2", "HDF", "HTML",
+            "IATI", "IPA", "JAR", "JFIF", "JP2", "JPG", "JSON", "JSONLD", "JSONL", "KML", "KMZ", "LAS", "LYR", "TAB",
+            "MFX", "MOV", "MPEG", "MPEG-1", "MP3", "MXD", "NETCDF", "ODP", "ODS", "ODT", "PDF", "PNG", "PPT",
+            "PPTX", "RDF", "TTL", "NT", "RDFA", "RSS", "RTF", "SAR", "SAS", "SAV", "SEGY", "SHP", "SQL", "SQLITE3", "SQLITE",
+            "SVG", "TIFF", "TRIG", "TRIX", "TFW", "TXT", "VPF", "WAV", "WCS", "WFS", "WMS", "WMTS", "WMV", "WPS", "XML", "XLS",
             "XLSM", "XLSX", "ZIP"
         };
     }
@@ -56,7 +56,7 @@ public class CKANService : ICKANService
 
     public async Task<CKANApiResult> AddResourcePackage(string packageId, string fileName, Stream fileData)
     {
-        var boundary = System.Guid.NewGuid().ToString();
+        var boundary = Guid.NewGuid().ToString();
         using var content = new MultipartFormDataContent(boundary);
 
         content.Headers.ContentType.MediaType = "multipart/form-data";
@@ -129,7 +129,7 @@ class CKANResult
 {
     public string Help { get; set; }
     public bool Success { get; set; }
-    public object Result {  get; set; }
+    public object Result { get; set; }
     public CKANError Error { get; set; }
 }
 

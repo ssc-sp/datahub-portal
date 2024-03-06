@@ -1,26 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using BlazorTemplater;
 using Datahub.Application.Services.Notification;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
-using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
 using Datahub.Portal.Templates;
 using Datahub.Portal.Templates.FileSharing;
 using Datahub.Portal.Templates.Onboarding;
-using Datahub.Core.Utils;
-using MailKit.Net.Smtp;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
 using MimeKit;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Projects;
@@ -61,8 +46,8 @@ public class PortalEmailService
     )
     {
         _localizer = localizer;
-    
-        _logger = logger;        
+
+        _logger = logger;
         _serviceAuthManager = serviceAuthManager;
         _emailNotificationService = emailNotificationService;
     }
@@ -73,15 +58,15 @@ public class PortalEmailService
     {
         var parametersDict = BuildOnboardingParameters(parameters);
 
-        var subject = $"Onboarding Request – {parameters.App.Product_Name}";
+        var subject = $"Onboarding Request – {parameters.App.ProductName}";
         var html = isClientNotificationSent ? await _emailNotificationService.RenderTemplate<OnboardingAdminUpdated>(parametersDict) : await _emailNotificationService.RenderTemplate<OnboardingAdmin>(parametersDict);
         await _emailNotificationService.SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
         if (!isClientNotificationSent)
         {
             html = await _emailNotificationService.RenderTemplate<OnboardingClient>(parametersDict);
-            await _emailNotificationService.SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
-            if (!string.IsNullOrEmpty(parameters.App.Additional_Contact_Email_EMAIL))
-                await _emailNotificationService.SendEmailMessage(subject, html, parameters.App.Additional_Contact_Email_EMAIL, parameters.App.Additional_Contact_Email_EMAIL);
+            await _emailNotificationService.SendEmailMessage(subject, html, parameters.App.ClientEmail, parameters.App.ClientContactName);
+            if (!string.IsNullOrEmpty(parameters.App.AdditionalContactEmailEMAIL))
+                await _emailNotificationService.SendEmailMessage(subject, html, parameters.App.AdditionalContactEmailEMAIL, parameters.App.AdditionalContactEmailEMAIL);
         }
 
     }
@@ -91,11 +76,11 @@ public class PortalEmailService
         var parametersDict = BuildOnboardingParameters(parameters);
         var subject = $"Please complete the details for your DataHub Initiative";
         var html = await _emailNotificationService.RenderTemplate<OnBoardingMetadataRequest>(parametersDict);
-        await _emailNotificationService.SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
+        await _emailNotificationService.SendEmailMessage(subject, html, parameters.App.ClientEmail, parameters.App.ClientContactName);
     }
 
 
-   
+
     private Dictionary<string, object> BuildOnboardingParameters(OnboardingParameters parameters)
     {
 
@@ -162,20 +147,20 @@ public class PortalEmailService
     {
         var subject = "[DataHub] Public file sharing request approved";
 
-        var sharingStatusLink = $"/share/public/{sharedFileInfo.File_ID}";
+        var sharingStatusLink = $"/share/public/{sharedFileInfo.FileID}";
 
         var parameters = new Dictionary<string, object>()
         {
-            { nameof(PublicUrlShareApproved.Filename), sharedFileInfo.Filename_TXT },
+            { nameof(PublicUrlShareApproved.Filename), sharedFileInfo.FilenameTXT },
             { nameof(PublicUrlShareApproved.DataProject), projectInfo },
             { nameof(PublicUrlShareApproved.FileSharingStatusLink), _emailNotificationService.BuildAppLink(sharingStatusLink) },
             { nameof(PublicUrlShareApproved.PublicUrlLink), publicUrlLink }
         };
 
         var now = DateTime.UtcNow;
-        if (sharedFileInfo.PublicationDate_DT > now)
+        if (sharedFileInfo.PublicationDateDT > now)
         {
-            parameters.Add(nameof(PublicUrlShareApproved.PublicationDate), sharedFileInfo.PublicationDate_DT);
+            parameters.Add(nameof(PublicUrlShareApproved.PublicationDate), sharedFileInfo.PublicationDateDT);
         }
 
         var html = await _emailNotificationService.RenderTemplate<PublicUrlShareApproved>(parameters);
@@ -192,7 +177,7 @@ public class PortalEmailService
         parameters.Add(nameof(StorageCostEstimateAdmin.UserEmail), estimatingUser.Mail);
         var adminHtml = await _emailNotificationService.RenderTemplate<StorageCostEstimateAdmin>(parameters);
 
-        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(RoleConstants.DATAHUB_ADMIN_PROJECT);
+        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(RoleConstants.DATAHUBADMINPROJECT);
 
         var tasks = new List<Task>()
         {
@@ -215,7 +200,7 @@ public class PortalEmailService
 
         var adminHtml = await _emailNotificationService.RenderTemplate<ComputeCostEstimate>(parameters);
 
-        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(RoleConstants.DATAHUB_ADMIN_PROJECT);
+        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(RoleConstants.DATAHUBADMINPROJECT);
 
         var tasks = new List<Task>()
         {

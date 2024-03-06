@@ -20,7 +20,7 @@
 
 @code {
 
-    private string _classname => $"{Variant} {_inputClass}";
+    private string _classname => $"{Variant} {InputClass}";
 
     [Parameter]
     public DatahubLinkType LinkType { get; set; } = DatahubLinkType.Undefined;
@@ -113,7 +113,7 @@
             link.ResourceArticleTitle = ResourceArticleName;
             link.Name = Name;
         }
-        link.accessedTime = DateTimeOffset.Now;
+        link.AccessedTime = DateTimeOffset.Now;
 
         await UserLocationManagerService.RegisterNavigation(link);
         switch (LinkType)

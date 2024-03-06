@@ -88,18 +88,18 @@
                             </DropZone>
                         }
                         @foreach (var file in _files
-                            .Where(f => f?.name?.Contains(_filterValue) ?? false)
-                            .OrderBy(f => f.name.ToLower()))
+                            .Where(f => f?.Name?.Contains(_filterValue) ?? false)
+                            .OrderBy(f => f.Name.ToLower()))
                         {
                             <FileItem
-                                Name="@GetFileName(file.name)"
+                                Name="@GetFileName(file.Name)"
                                 Modified="@file.Modified"
-                                Size="@file.filesize"
-                                @onclick="@(() => _selectedItems = new HashSet<string> {file.name})"
-                                OnSelectionClick="() => HandleFileSelectionClick(file.name)"
-                                Highlighted="_selectedItems.Contains(file.name)">
+                                Size="@file.Filesize"
+                                @onclick="@(() => _selectedItems = new HashSet<string> {file.Name})"
+                                OnSelectionClick="() => HandleFileSelectionClick(file.Name)"
+                                Highlighted="_selectedItems.Contains(file.Name)">
                                 <Icon>
-                                    <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
+                                    <i class="@DatahubTools.GetFileTypeIcon(file.Fileformat)"></i>
                                 </Icon>
                             </FileItem>
                         }
@@ -116,7 +116,7 @@
                     }
                     else
                     {
-                        var file = _files.FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
+                        var file = _files.FirstOrDefault(f => f.Name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
                         <FileProperties @key=@_selectedItem
                                         ProjectId=@ProjectId 
                                         File=@file 
@@ -194,7 +194,7 @@
         _uploadingFiles = new List<FileMetaData>();
     }
 
-    private bool OwnsFile(FileMetaData file) => (file?.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
+    private bool OwnsFile(FileMetaData file) => (file?.Ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
 
     private Guid _metadataSignature = Guid.NewGuid();
 

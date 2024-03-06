@@ -12,9 +12,9 @@ public static class SecurityClassification
     {
         return classificationType switch
         {
-            ClassificationType.ProtectedA => SecurityClassification.ProtectedA,
-            ClassificationType.ProtectedB => SecurityClassification.ProtectedB,
-            _ => SecurityClassification.Unclassified
+            ClassificationType.ProtectedA => ProtectedA,
+            ClassificationType.ProtectedB => ProtectedB,
+            _ => Unclassified
         };
     }
 }

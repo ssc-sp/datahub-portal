@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel;
 using System.Reflection;
 
@@ -12,7 +11,7 @@ public static class AnnotationTools
     /// the items in your enum.
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
+    /// <returns>string value in description annotation</returns>
     public static string GetStringValue(this Enum value)
     {
         // Get the type

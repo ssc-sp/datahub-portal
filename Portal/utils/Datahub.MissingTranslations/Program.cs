@@ -40,7 +40,7 @@ foreach (var str in strings)
     {
         missingEnglishTranslations.Add(str);
     }
-    
+
     if (!frenchTranslations!.ContainsKey(str))
     {
         missingFrenchTranslations.Add(str);

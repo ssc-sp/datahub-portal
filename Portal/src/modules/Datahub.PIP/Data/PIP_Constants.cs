@@ -1,36 +1,36 @@
 ﻿namespace Datahub.PIP.Data;
 
-public class PIP_Constants
+public class PIPConstants
 {
     public static readonly string[] NA = { "N/A" };
 
 
-    public static readonly string[] FIVE_OPTIONS_MANDATORY = { "TO BE COMPLETED", "1", "2", "3", "4", "5" };
-    public static readonly string[] FIVE_OPTIONS = { "1", "2", "3", "4", "5" };
+    public static readonly string[] FIVEOPTIONSMANDATORY = { "TO BE COMPLETED", "1", "2", "3", "4", "5" };
+    public static readonly string[] FIVEOPTIONS = { "1", "2", "3", "4", "5" };
     public static readonly string[] TIMELINE = { "Ongoing", "Future" };
     public static readonly string[] YESNO = { "Yes", "No" };
-    public static readonly string[] NOT_REPORTABLE_INDICATOR = { "Indicator outdated", "Indicator or data quality issues", "Program ending", "Methodology needs updating", "Data not available", "Other" };
+    public static readonly string[] NOTREPORTABLEINDICATOR = { "Indicator outdated", "Indicator or data quality issues", "Program ending", "Methodology needs updating", "Data not available", "Other" };
 
-    public static readonly string[] ONGOING_ACTIVITIES = { "Risk Analysis", "Risk controls", "Measurement and Communication", "No monitoring activities", "Other" };
-    public static readonly string[] ONGOING_ACTIVITIES_TIMEFRAME = { "Daily",
+    public static readonly string[] ONGOINGACTIVITIES = { "Risk Analysis", "Risk controls", "Measurement and Communication", "No monitoring activities", "Other" };
+    public static readonly string[] ONGOINGACTIVITIESTIMEFRAME = { "Daily",
         "Weekly",
         "Bi-weekly",
         "Monthly",
         "Bi-monthly",
-        "Quarterly", 
-        "Semi-annually", 
-        "Annually", 
-        "Ad-hoc", 
-        "Other", 
+        "Quarterly",
+        "Semi-annually",
+        "Annually",
+        "Ad-hoc",
+        "Other",
         "N/A"
     };
-        
 
 
-    public static readonly string[] EQUITY_SEEKING_GROUPS = { "Indigenous Peoples", "LGBTQ2S+", "People with disabilities", "Black people and racialized people", "Women", 
+
+    public static readonly string[] EQUITYSEEKINGGROUPS = { "Indigenous Peoples", "LGBTQ2S+", "People with disabilities", "Black people and racialized people", "Women",
         "Underrepresented groups including immigrants", "older adults", " people living in poverty", "rural/remote residents and language minorities" };
 
-    public static readonly string[] CORE_RESPONSIBILITY = { "R1 Canadians have access to cutting-edge research to inform decisions on the management  of natural resources",
+    public static readonly string[] CORERESPONSIBILITY = { "R1 Canadians have access to cutting-edge research to inform decisions on the management  of natural resources",
         "R2 Communities and officials have the tools to safeguard Canadians from natural hazards and explosives",
         "R3 Communities and industries are adapting to climate change",
         "R4 Natural resource sectors are innovative",
@@ -42,19 +42,19 @@ public class PIP_Constants
 
 
 
-    public static readonly string[] CORE_RESPONSIBILITY1 = { "R1 Canadians have access to cutting-edge research to inform decisions on the management  of natural resources",
+    public static readonly string[] CORERESPONSIBILITY1 = { "R1 Canadians have access to cutting-edge research to inform decisions on the management  of natural resources",
         "R2 Communities and officials have the tools to safeguard Canadians from natural hazards and explosives",
         "R3 Communities and industries are adapting to climate change"};
 
-    public static readonly string[] CORE_RESPONSIBILITY2 = { "R4 Natural resource sectors are innovative",
+    public static readonly string[] CORERESPONSIBILITY2 = { "R4 Natural resource sectors are innovative",
         "R5 Clean technologies and energy efficiencies enhance economic performance",
         "R6 Canada’s natural resources are sustainable"};
 
-    public static readonly string[] CORE_RESPONSIBILITY3 = {"R7 Access to new and priority markets for Canada’s natural resources is enhanced",
+    public static readonly string[] CORERESPONSIBILITY3 = {"R7 Access to new and priority markets for Canada’s natural resources is enhanced",
         "R8 Canadians are engaged in the future of the new and inclusive resource economy",
         "R9 Enhanced competitiveness of Canada’s natural resource sectors"};
     //   "Core Responsibility 1", "Core Responsibility 2", "Core Responsibility 3", "Internal Services" };
-    public static readonly string[] CORE_RESPONSIBILITIES = { "Natural Resource Science and Risk Mitigation", "Innovative and Sustainable Natural Resource Development", "Globally Competitive Natural Resource Sectors", "Internal Services" };
+    public static readonly string[] CORERESPONSIBILITIES = { "Natural Resource Science and Risk Mitigation", "Innovative and Sustainable Natural Resource Development", "Globally Competitive Natural Resource Sectors", "Internal Services" };
 
     public static readonly string[] STRATEGIC = {"Accelerate development and adoption of clean technology and transition to a net-zero future in a post-pandemic economic recovery",
         "Improve market access and competitiveness for Canada’s resource sectors",
@@ -106,7 +106,7 @@ public class PIP_Constants
         "27 - Develop a comprehensive blue economy strategy",
     };
 
-    public static readonly string[] TRANSFER_PROGRAMS = {"Contributions in support of the Green Construction through Wood Program (voted)",
+    public static readonly string[] TRANSFERPROGRAMS = {"Contributions in support of the Green Construction through Wood Program (voted)",
         "Grants and Contributions in support of Clean Technology Challenges (voted)",
         "Contributions in support of Energy Efficiency (voted)",
         "Contributions in support of Expanding Market Opportunities (voted)",
@@ -137,7 +137,7 @@ public class PIP_Constants
         "Critical Minerals Research, Development and Demonstration"
     };
 
-    public static readonly string[] TRANSFER_PROGRAMS_LESS5 = {"Grants in support of Outreach and Engagement, Energy Efficiency and Energy Innovation (voted)",
+    public static readonly string[] TRANSFERPROGRAMSLESS5 = {"Grants in support of Outreach and Engagement, Energy Efficiency and Energy Innovation (voted)",
         "Grants in support of Innovative Solutions Canada (voted)",
         "Contributions in support of the Indigenous Consultations Participant Funding Program (voted)",
         "Contributions in support of National Risk Profile – Wildfire Risk Assessment (voted)",
@@ -156,7 +156,7 @@ public class PIP_Constants
         "Contributions in support of Earthquake Early Warning (voted)",
         "Climate Action Support Payments (Energy Manager Program and Clean Energy for Rural and Remote Communities Program)"};
 
-    public static readonly string[] HORIZONTAL_INITIATIVES = { "CGCC – Clean Growth and Climate Change (ECCC)",
+    public static readonly string[] HORIZONTALINITIATIVES = { "CGCC – Clean Growth and Climate Change (ECCC)",
         "Emergency Management Strategy (PSC)",
         "FCSAP – Federal Contaminated Sites Action Plan (ECCC)",
         "IICP – Investing in Infrastructure Canada Plan (INFC)",
@@ -169,7 +169,7 @@ public class PIP_Constants
         "SCP – Strengthen Climate Plan (ECCC)",
         "YESS - Youth Employment Skills Strategy (ESDC)",
     };
-    public static readonly string[] GOC_OUTCOMES = {"Economic Affairs - income security and employment for Canadians",
+    public static readonly string[] GOCOUTCOMES = {"Economic Affairs - income security and employment for Canadians",
         "Economic Affairs - Strong economic growth",
         "Economic Affairs - an innovative and knowledge based economy",
         "Economic Affairs - a clean and healthy environment",
@@ -194,7 +194,7 @@ public class PIP_Constants
         "Other Transfer Payments",
         "Enterprise-Wide Program / Service",
         "Safety or Security Program / Service" };
-    public static readonly string[] TARGET_GROUPS = {"Economic Segments - Agriculture industry",
+    public static readonly string[] TARGETGROUPS = {"Economic Segments - Agriculture industry",
         "Economic Segments - Energy and/or utilities sector",
         "Economic Segments - Entrepreneurs",
         "Economic Segments - Finance and/or insurance sectors",
@@ -283,8 +283,8 @@ public class PIP_Constants
         "Provinces, Territories and Communities - Rural communities",
         "Provinces, Territories and Communities - Urban communities",
     };
-    public static readonly string[] GOC_TAGS1 = {
-        "Crown Corporations", 
+    public static readonly string[] GOCTAGS1 = {
+        "Crown Corporations",
         "Democratic Institutions",
         "Economic Development",
         "Employment and Income Security",
@@ -304,7 +304,7 @@ public class PIP_Constants
         "Transparency and Accountability",
     };
 
-    public static readonly string[] GOC_TAGS = {"1 - Children",
+    public static readonly string[] GOCTAGS = {"1 - Children",
         "2 - Youth",
         "3 - Seniors",
         "4 - Families",
@@ -386,7 +386,7 @@ public class PIP_Constants
         "80 - Water treatment / distribution facilities",
         "81 - Ecological systems and/or natural habitats",
         "82 - Species at risk and/or invasive species" };
-    public static readonly string[] GOC_CLASSIFICATION = {
+    public static readonly string[] GOCCLASSIFICATION = {
         "Economic affairs n.e.c.",
         "Electricity",
         "Executive and legislative organs",

@@ -70,18 +70,18 @@ public class OmniUser
 
 public class Variables
 {
-    public string az_subscription_id { get; set; }
-    public string az_tenant_id { get; set; }
-    public string budget_amount { get; set; }
-    public string storage_size_limit_tb { get; set; }
-    public string environment_classification { get; set; }
-    public string environment_name { get; set; }
-    public string az_location { get; set; }
-    public string resource_prefix { get; set; }
-    public string datahub_app_sp_oid { get; set; }
-    public string azure_databricks_enterprise_oid { get; set; }
-    public string log_workspace_id { get; set; } = "";
-    public string aad_admin_group_oid { get; set; }
-    public CommonTags common_tags { get; set; }
+    public string azSubscriptionId { get; set; }
+    public string azTenantId { get; set; }
+    public string budgetAmount { get; set; }
+    public string storageSizeLimitTb { get; set; }
+    public string environmentClassification { get; set; }
+    public string environmentName { get; set; }
+    public string azLocation { get; set; }
+    public string resourcePrefix { get; set; }
+    public string datahubAppSpOid { get; set; }
+    public string azureDatabricksEnterpriseOid { get; set; }
+    public string logWorkspaceId { get; set; } = "";
+    public string aadAdminGroupOid { get; set; }
+    public CommonTags commonTags { get; set; }
 }
 

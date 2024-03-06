@@ -1,19 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Bunit;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Announcements;
 using Datahub.Infrastructure.Offline;
 using Datahub.Portal.Components.Announcements;
 using FluentAssertions;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.JSInterop;
-using NSubstitute;
-using TechTalk.SpecFlow;
 
 namespace Datahub.SpecflowTests.Steps;
 
@@ -25,9 +17,9 @@ public sealed class NewsCarouselSteps(
 {
     // For additional details on SpecFlow step definitions see https://go.specflow.org/doc-stepdef
 
-    
+
     private const string RelativePathToSrc = "../../../../../src";
-    
+
     [Given(@"there is a news carousel component with an image")]
     public void GivenThereIsANewsCarouselComponentWithAnImage()
     {
@@ -41,14 +33,14 @@ public sealed class NewsCarouselSteps(
             }
         };
         Services.AddDatahubOfflineInfrastructureServices(portalConfiguration);
-        
+
         var module = JSInterop.SetupModule("./_content/Datahub.Core/Components/DHMarkdown.razor.js");
         JSInterop.Setup<BunitJSInterop>("import", "./_content/Datahub.Core/Components/DHMarkdown.razor.js")
             .SetResult(module);
         module.SetupVoid("styleCodeblocks");
         JSInterop.Mode = JSRuntimeMode.Loose;
-        
-        
+
+
         var newsCarousel = RenderComponent<AnnouncementCarousel>(p => p
             .Add(p => p.Previews, new List<AnnouncementPreview>
             {
@@ -57,7 +49,7 @@ public sealed class NewsCarouselSteps(
         );
         scenarioContext["newsCarousel"] = newsCarousel;
 
-     
+
     }
 
     [Then(@"the carousel should not have padding on the x-axis")]
@@ -87,14 +79,14 @@ public sealed class NewsCarouselSteps(
             }
         };
         Services.AddDatahubOfflineInfrastructureServices(portalConfiguration);
-        
+
         var module = JSInterop.SetupModule("./_content/Datahub.Core/Components/DHMarkdown.razor.js");
         JSInterop.Setup<BunitJSInterop>("import", "./_content/Datahub.Core/Components/DHMarkdown.razor.js")
             .SetResult(module);
         module.SetupVoid("styleCodeblocks");
         JSInterop.Mode = JSRuntimeMode.Loose;
-        
-        
+
+
         var newsCarousel = RenderComponent<AnnouncementCarousel>(p => p
             .Add(p => p.Previews, new List<AnnouncementPreview>
             {
@@ -103,7 +95,7 @@ public sealed class NewsCarouselSteps(
         );
         scenarioContext["newsCarousel"] = newsCarousel;
     }
-    
+
     [Then(@"the carousel should have padding on the x-axis")]
     public void ThenTheCarouselShouldHavePaddingOnTheXAxis()
     {

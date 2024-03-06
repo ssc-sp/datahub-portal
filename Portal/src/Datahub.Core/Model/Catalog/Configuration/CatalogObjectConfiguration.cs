@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace Datahub.Core.Model.Catalog.Configuration;
 
@@ -18,14 +17,14 @@ internal class CatalogObjectConfiguration : IEntityTypeConfiguration<CatalogObje
                .HasMaxLength(64)
                .IsRequired();
 
-        builder.Property(e => e.Name_English)
+        builder.Property(e => e.NameEnglish)
                .HasMaxLength(160);
 
-        builder.Property(e => e.Name_French)
+        builder.Property(e => e.NameFrench)
                .HasMaxLength(160);
 
-        builder.Property(e => e.Desc_English);
+        builder.Property(e => e.DescEnglish);
 
-        builder.Property(e => e.Desc_French);
+        builder.Property(e => e.DescFrench);
     }
 }

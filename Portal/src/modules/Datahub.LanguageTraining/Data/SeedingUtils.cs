@@ -12,10 +12,10 @@ public static class SeedingUtils
             {
                 yield return new()
                 {
-                    Year_NUM = year,
-                    Quarter_NUM = (byte)q,
-                    Open_DT = new DateTime(year, startMonth, 17),
-                    Close_DT = new DateTime(year, endMonth, 2)
+                    YearNUM = year,
+                    QuarterNUM = (byte)q,
+                    OpenDT = new DateTime(year, startMonth, 17),
+                    CloseDT = new DateTime(year, endMonth, 2)
                 };
                 startMonth += 3;
                 endMonth += 3;

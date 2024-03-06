@@ -11,7 +11,7 @@ if (!File.Exists(fPath))
 }
 var tgt = Path.Combine(Path.GetDirectoryName(fPath)!, "output-fr.json");
 using var sourceFile = File.OpenRead(src);
-var data = (await JsonSerializer.DeserializeAsync<Dictionary<string,string>>(sourceFile)) ?? new();
+var data = (await JsonSerializer.DeserializeAsync<Dictionary<string, string>>(sourceFile)) ?? new();
 var cfgPath = Path.GetFullPath(@"../../../../../src/Datahub.Portal");
 var config = new ConfigurationBuilder()
     //.SetBasePath(AppContext.BaseDirectory)

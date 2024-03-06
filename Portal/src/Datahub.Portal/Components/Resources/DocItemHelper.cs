@@ -1,6 +1,5 @@
 ﻿using Datahub.Markdown.Model;
 using MudBlazor;
-using System.Data;
 using System.Reflection;
 
 namespace Datahub.Portal.Components.Resources

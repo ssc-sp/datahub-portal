@@ -17,7 +17,7 @@ public class CKANPakageBuilderTest
     }
 
     [Fact]
-    public void PakageBuilder_GivenMetadata_MustConvertToExpectedJson()
+    public void PakageBuilderGivenMetadataMustConvertToExpectedJson()
     {
         var fieldValues = FieldDefinitionHelper.LoadFields(_fieldDefinitions);
         Assert.NotNull(fieldValues);
@@ -56,7 +56,7 @@ public class CKANPakageBuilderTest
         Assert.NotNull(dict["resources"]);
         var resources = (object[])dict["resources"];
         Assert.True(resources.Length == 1);
-            
+
         var resource1 = resources[0] as Dictionary<string, object>;
         Assert.NotNull(resource1);
 

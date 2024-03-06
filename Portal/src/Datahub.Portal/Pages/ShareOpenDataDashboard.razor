@@ -59,7 +59,7 @@
     private IPageableComponent _myTable;
     private int _lastClicked = 0;
 
-    static string GetFileName(OpenDataSharedFile entry) => entry.Filename_TXT;
+    static string GetFileName(OpenDataSharedFile entry) => entry.FilenameTXT;
     private RenderFragment GetFileLink(OpenDataSharedFile entry) => @<OpenDataFileLink File=@entry />;
     private RenderFragment GetPDFLink(OpenDataSharedFile entry) => @<OpenDataApprovalLink File=@entry><i class="far fa-file-pdf"></i></OpenDataApprovalLink>;
     private RenderFragment GetApproveLink(OpenDataSharedFile entry) => @<OpenDataApprovalButton File=@entry OnApprove=@OnApproveFile />;
@@ -80,25 +80,25 @@
     {
         try
         {
-            var fileId = file.File_ID.ToString();
+            var fileId = file.FileID.ToString();
 
             var status = file.GetOpenDataSharingStatus();
             if (status == OpenDataSharingStatus.PendingApproval)
             {
                 // get the metadata
                 var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(fileId);
-                await PublicFileService.ApproveOpenDataShare(file.File_ID, GetPublicationDate(fieldValues));
+                await PublicFileService.ApproveOpenDataShare(file.FileID, GetPublicationDate(fieldValues));
 
-                var project = await PublicFileService.GetProjectWithUsers(file.ProjectCode_CD);
+                var project = await PublicFileService.GetProjectWithUsers(file.ProjectCodeCD);
                 var notificationKey = "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.OpenDataPublicationApproved";
 
                 var tasks = new List<Task>()
                 {
                     // todo: send email 
-                    SystemNotificationService.CreateSystemNotificationWithLink(file.RequestingUser_ID,
-                        $"/share/opendata/{file.File_ID}", "SYSTEM-NOTIFICATION.ViewSharingStatus",
-                        notificationKey, file.Filename_TXT, new BilingualStringArgument(project.ProjectInfo.ProjectNameEn, project.ProjectInfo.ProjectNameFr),
-                        file.PublicationDate_DT?.ToShortDateString())
+                    SystemNotificationService.CreateSystemNotificationWithLink(file.RequestingUserID,
+                        $"/share/opendata/{file.FileID}", "SYSTEM-NOTIFICATION.ViewSharingStatus",
+                        notificationKey, file.FilenameTXT, new BilingualStringArgument(project.ProjectInfo.ProjectNameEn, project.ProjectInfo.ProjectNameFr),
+                        file.PublicationDateDT?.ToShortDateString())
                 };
                 await Task.WhenAll(tasks);
             }
@@ -118,7 +118,7 @@
             var fieldValue = fields.FirstOrDefault(fv => fv.FieldDefinitionId == definition.FieldDefinitionId);
             if (fieldValue != null)
             {
-                DateTime.TryParse(fieldValue.Value_TXT, out date);
+                DateTime.TryParse(fieldValue.ValueTXT, out date);
             }
         }
         return date;

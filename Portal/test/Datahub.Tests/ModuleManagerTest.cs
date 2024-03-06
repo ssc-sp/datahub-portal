@@ -20,8 +20,8 @@ public class ModuleManagerTest
         _env = new FakeWebHostEnvironment();
     }
 
-    [Fact (Skip = "Needs to be validated")]
-    public void GivenModuleName_FindClass()
+    [Fact(Skip = "Needs to be validated")]
+    public void GivenModuleNameFindClass()
     {
         var mod = new ModuleManager();
         mod.LoadModules("*");
@@ -35,8 +35,8 @@ public class ModuleManagerTest
         Assert.Contains(typeof(Datahub.LanguageTraining.LanguageTrainingModule), mod.Modules);
     }
 
-    [Fact (Skip = "Needs to be validated")]
-    public void GivenFilterStar_FindModule()
+    [Fact(Skip = "Needs to be validated")]
+    public void GivenFilterStarFindModule()
     {
         var mod = new ModuleManager();
         mod.LoadModules("*");
@@ -45,8 +45,8 @@ public class ModuleManagerTest
         Assert.Contains(typeof(Datahub.LanguageTraining.LanguageTrainingModule), mod.Modules);
     }
 
-    [Fact (Skip = "Needs to be validated")]
-    public void GivenFilterSingle_FindModule()
+    [Fact(Skip = "Needs to be validated")]
+    public void GivenFilterSingleFindModule()
     {
         var mod = new ModuleManager();
         mod.LoadModules("*");

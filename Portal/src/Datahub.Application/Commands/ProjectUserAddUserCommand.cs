@@ -11,6 +11,6 @@ public class ProjectUserAddUserCommand
     public string DisplayName { get; set; }
     public string Email { get; set; }
     public int RoleId { get; set; }
-    
+
     public PortalUser? PortalUser { get; set; }
 }

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Datahub.Markdown.Model;
+﻿namespace Datahub.Markdown.Model;
 
 public abstract class AbstractMarkdownPage
 {
@@ -20,7 +17,7 @@ public class MarkdownCard : AbstractMarkdownPage
     public string Url { get; private set; }
     public MarkdownCategory ParentCategory => Parent as MarkdownCategory;
 
-    public MarkdownCard(string title, string preview, string url, MarkdownCategory category): base(title, category)
+    public MarkdownCard(string title, string preview, string url, MarkdownCategory category) : base(title, category)
     {
         Preview = preview;
         Url = url;

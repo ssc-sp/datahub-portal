@@ -75,13 +75,13 @@ public class CatalogSearchEngine : ICatalogSearchEngine
     private IEnumerable<CatalogDocument> GetEnglishDocuments()
     {
         using var ctx = _contextFactory.CreateDbContext();
-        return ctx.CatalogObjects.Select(e => new CatalogDocument(e.CatalogObjectId.ToString(), e.Name_TXT, e.Search_English_TXT));
+        return ctx.CatalogObjects.Select(e => new CatalogDocument(e.CatalogObjectId.ToString(), e.NameTXT, e.SearchEnglishTXT));
     }
 
     private IEnumerable<CatalogDocument> GetFrenchDocuments()
     {
         using var ctx = _contextFactory.CreateDbContext();
-        return ctx.CatalogObjects.Select(e => new CatalogDocument(e.CatalogObjectId.ToString(), e.Name_French_TXT, e.Search_French_TXT));
+        return ctx.CatalogObjects.Select(e => new CatalogDocument(e.CatalogObjectId.ToString(), e.NameFrenchTXT, e.SearchFrenchTXT));
     }
 }
 

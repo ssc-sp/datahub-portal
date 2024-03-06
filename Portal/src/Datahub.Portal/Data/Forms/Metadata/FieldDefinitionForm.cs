@@ -8,40 +8,40 @@ public class FieldDefinitionForm
     [Required]
     [StringLength(256)]
     [AeFormCategory("Name", 10)]
-    public string Field_Name_TXT { get; set; }
+    public string FieldNameTXT { get; set; }
 
     [Required]
     [StringLength(256)]
     [AeFormCategory("Name", 10)]
-    public string Name_English_TXT { get; set; }
+    public string NameEnglishTXT { get; set; }
 
     [Required]
     [StringLength(256)]
     [AeFormCategory("Name", 10)]
-    public string Name_French_TXT { get; set; }
+    public string NameFrenchTXT { get; set; }
 
     [StringLength(256)]
     [AeFormCategory("Description", 20)]
-    public string English_DESC { get; set; }
+    public string EnglishDESC { get; set; }
 
     [StringLength(256)]
     [AeFormCategory("Description", 20)]
-    public string French_DESC { get; set; }
+    public string FrenchDESC { get; set; }
 
     [AeFormCategory("Other", 30)]
-    public bool Required_FLAG { get; set; }
+    public bool RequiredFLAG { get; set; }
 
     [AeFormCategory("Other", 30)]
-    public bool MultiSelect_FLAG { get; set; }
+    public bool MultiSelectFLAG { get; set; }
 
     [StringLength(256)]
     [AeFormCategory("Other", 30)]
-    public string Default_Value_TXT { get; set; }
+    public string DefaultValueTXT { get; set; }
 
     [AeFormCategory("Other", 30)]
-    public int Sort_Order_NUM { get; set; }
+    public int SortOrderNUM { get; set; }
 
     [AeFormCategory("Other", 30)]
     [AeLabel(placeholder: "Enter choice list separated by | characters. (new definitions)")]
-    public string Choices_TXT { get; set; }
+    public string ChoicesTXT { get; set; }
 }

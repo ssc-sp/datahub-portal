@@ -104,7 +104,7 @@
 
     [Parameter] public string WorkspaceAcronym { get; set; }
 
-    private Datahub_Project _workspace;
+    private DatahubProject _workspace;
 
     private readonly List<string> _toolList =
     [
@@ -149,7 +149,7 @@
         _workspace = await context.Projects
             .AsNoTracking()
             .Include(w => w.Resources)
-            .FirstOrDefaultAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
+            .FirstOrDefaultAsync(w => w.ProjectAcronymCD == WorkspaceAcronym);
 
         _metadataRequired = _workspace?.MetadataAdded != true;
         if (_metadataRequired)

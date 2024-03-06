@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Datahub.Core.Model.Achievements;
+﻿namespace Datahub.Core.Model.Achievements;
 
 public class TelemetryEvent
 {
@@ -9,9 +7,7 @@ public class TelemetryEvent
     public string EventName { get; set; }
     public DateTime EventDate { get; set; }
 
-    #region Navigation props
     public virtual PortalUser PortalUser { get; set; }
-    #endregion
 }
 
 public struct TelemetryEvents

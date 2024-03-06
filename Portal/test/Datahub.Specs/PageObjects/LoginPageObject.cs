@@ -5,7 +5,7 @@ namespace Datahub.Specs.PageObjects;
 
 public class LoginPageObject : BasePageObject
 {
-    public LoginPageObject(IConfiguration configuration, IBrowser browser, bool admin) 
+    public LoginPageObject(IConfiguration configuration, IBrowser browser, bool admin)
         : base(configuration, browser, admin, path: "login")
     {
     }
@@ -58,8 +58,8 @@ public class LoginPageObject : BasePageObject
             {
                 File.Delete(AuthStoragePath);
             }
-            catch 
-            { 
+            catch
+            {
             }
         }
     }

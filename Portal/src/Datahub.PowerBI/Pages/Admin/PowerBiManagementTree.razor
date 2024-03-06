@@ -33,10 +33,10 @@
 
 @code {
 
-    private static readonly string LOCALIZATION_PREFIX = $"{PowerBiManagementConstants.POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY}.POWER_BI_ADMIN";
+    private static readonly string LOCALIZATION_PREFIX = $"{PowerBiManagementConstants.POWERBIMANAGEMENTLOCALIZATIONROOTKEY}.POWER_BI_ADMIN";
 
     [Parameter]
-    public List<Datahub_Project> DataProjects { get; set; }
+    public List<DatahubProject> DataProjects { get; set; }
 
     [Parameter]
     public List<PowerBiAdminWorkspaceTreeItem> Workspaces { get; set; }
@@ -62,7 +62,7 @@
 
     private async Task BuildTreeSimplified()
     {
-        var projectDict = DataProjects.ToDictionary(p => p.Project_ID, p => new PowerBiAdminTreeItem(p.ProjectName, PowerBiAdminTreeItemType.Project));
+        var projectDict = DataProjects.ToDictionary(p => p.ProjectID, p => new PowerBiAdminTreeItem(p.ProjectName, PowerBiAdminTreeItemType.Project));
         var noProject = new PowerBiAdminTreeItem(Localizer[$"{LOCALIZATION_PREFIX}.Unassigned"], PowerBiAdminTreeItemType.Container);
 
         foreach (var workspace in Workspaces.OrderBy(w => w.DbWorkspaceName))

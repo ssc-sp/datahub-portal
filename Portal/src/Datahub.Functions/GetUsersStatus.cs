@@ -12,14 +12,14 @@ namespace Datahub.Functions
     {
         private readonly ILogger _logger;
         private readonly AzureConfig _configuration;
-        
-        
+
+
         public GetUsersStatus(ILoggerFactory loggerFactory, AzureConfig configuration)
         {
             _logger = loggerFactory.CreateLogger<CreateGraphUser>();
             _configuration = configuration;
         }
-        
+
         private GraphServiceClient GetAuthenticatedGraphClient()
         {
             var scopes = new[] { "https://graph.microsoft.com/.default" };
@@ -34,7 +34,7 @@ namespace Datahub.Functions
 
             return new(clientSecretCredential, scopes);
         }
-        
+
         [Function("GetUsersStatus")]
         public async Task<HttpResponseData> GetUsersDetails(
             [HttpTrigger(AuthorizationLevel.Function, "get")]
@@ -42,7 +42,7 @@ namespace Datahub.Functions
         {
             _logger.LogInformation("C# GetUsersStatus HTTP trigger function processed a request");
             var graphClient = GetAuthenticatedGraphClient();
-            
+
             //////////////// Getting locked users
             _logger.LogInformation("Fetching locked users...");
 
@@ -50,7 +50,7 @@ namespace Datahub.Functions
                 requestConfiguration =>
                 {
                     requestConfiguration.QueryParameters.Filter = "accountEnabled eq false";
-                    requestConfiguration.QueryParameters.Select = new[] { "displayName","mail","id" };
+                    requestConfiguration.QueryParameters.Select = new[] { "displayName", "mail", "id" };
                 });
 
 
@@ -65,7 +65,7 @@ namespace Datahub.Functions
                 {
                     requestConfiguration.QueryParameters.Select = new[] { "mail" };
                 });
-            
+
             var groupUsers = groupGraphResult?.Value?.OfType<User>().Select(x => x.Mail).ToList();
             _logger.LogInformation("Processed SP group members");
 
@@ -76,7 +76,7 @@ namespace Datahub.Functions
                 { "all", groupUsers ?? new List<string>() },
                 { "locked",  lockedGroupUsers}
             };
-            
+
             var response = request.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(dict);
             return response;

@@ -3,14 +3,13 @@ using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
-using Datahub.Infrastructure.Services.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Datahub.Infrastructure.Services.Api;
 
 public class CommonAzureServices
-{    
+{
     private IOptions<APITarget> _targets;
     private readonly ILogger _logger;
     private readonly IKeyVaultService _keyVaultService;

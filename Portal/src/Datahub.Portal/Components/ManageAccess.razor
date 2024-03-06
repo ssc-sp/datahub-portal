@@ -68,30 +68,30 @@
     }
     <div class="line"></div>
 
-    @foreach (var person in SelectedFile.sharedwith)
+    @foreach (var person in SelectedFile.Sharedwith)
     {        
         <div class="textrows">
-            <ProfileCircle UserId="@person.userid" style="margin-left: 1rem" />
+            <ProfileCircle UserId="@person.Userid" style="margin-left: 1rem" />
             <div class="nrcan-typography">
-                <GraphUserInformation UserId="@person.userid" IsUserNameRequested="true"></GraphUserInformation>
+                <GraphUserInformation UserId="@person.Userid" IsUserNameRequested="true"></GraphUserInformation>
             </div>
             <div class="nrcan-typography">
-                @if (waitingOnUserOp.ContainsKey(person.userid))
+                @if (waitingOnUserOp.ContainsKey(person.Userid))
                 {
                     <Spinner Small="true" />
                 }
                 else
                 {
                    <AeDropdown 
-                       LabelRenderFragment="@(() => GetLabel(person.role))" 
-                       Items="permissionOptions.Where(s => s != person.role)" 
+                       LabelRenderFragment="@(() => GetLabel(person.Role))" 
+                       Items="permissionOptions.Where(s => s != person.Role)" 
                        class="manageAccessDropdown" 
                        Renderer="GetOption" OnChange="(selectedItem) => _ = OnPermissionSwitch(person, selectedItem)" 
                    />      
                 }
             </div>
             <div class="nrcan-typography">
-                <i class="fal fa-times-circle" style="cursor:pointer" @onclick="() => RemoveSharedUser(person.userid)"></i>
+                <i class="fal fa-times-circle" style="cursor:pointer" @onclick="() => RemoveSharedUser(person.Userid)"></i>
             </div>
         </div>
     }
@@ -146,7 +146,7 @@
         chosenUser = null;
         selectedPermission = string.Empty;
         _currentUser = await UserInformationService.GetCurrentGraphUserAsync();
-        _ownedBy = await MSGraphService.GetUserName(SelectedFile.ownedby, CancellationToken.None);
+        _ownedBy = await MSGraphService.GetUserName(SelectedFile.Ownedby, CancellationToken.None);
         await DataSharingService.LoadSharedUsers(SelectedFile);
     }
 
@@ -177,7 +177,7 @@
         toggleWaitOnUser(userId);
         if (await DataSharingService.RemoveSharedUsers(SelectedFile, userId))
         {
-            SelectedFile.sharedwith.RemoveAll(x => x.userid == userId);
+            SelectedFile.Sharedwith.RemoveAll(x => x.Userid == userId);
             StateHasChanged();
         }
         toggleWaitOnUser(userId);
@@ -202,8 +202,8 @@
         {
             var waitingOn = new Sharedwith()
             {
-                userid = chosenUser.Id,
-                role = selectedPermission
+                Userid = chosenUser.Id,
+                Role = selectedPermission
             };
             await OnConfirmChangeOwner(chosenUser.DisplayName, waitingOn);
         }
@@ -224,15 +224,15 @@
 
     private async Task OnPermissionSwitch(Sharedwith person, string selectedItem)
     {
-        var userName = await MSGraphService.GetUserName(person.userid, CancellationToken.None);
+        var userName = await MSGraphService.GetUserName(person.Userid, CancellationToken.None);
         if (selectedItem != AccessPermissions.ChangeOwner)
         {
-            toggleWaitOnUser(person.userid);
-            if (await DataSharingService.AddSharedUsers(SelectedFile, person.userid, selectedItem))
+            toggleWaitOnUser(person.Userid);
+            if (await DataSharingService.AddSharedUsers(SelectedFile, person.Userid, selectedItem))
             {
-                person.role = selectedItem;
+                person.Role = selectedItem;
             }
-            toggleWaitOnUser(person.userid);
+            toggleWaitOnUser(person.Userid);
         }
         else
         {
@@ -243,7 +243,7 @@
 
     private async Task OnConfirmChangeOwner(string userName, Sharedwith waitingOn)
     {
-        List<string> choiceTextList = new List<string>() {  Localizer["MANAGE-ACCESS-PAGE.ChangeOwnerPrompt", SelectedFile.filename, userName] };
+        List<string> choiceTextList = new List<string>() {  Localizer["MANAGE-ACCESS-PAGE.ChangeOwnerPrompt", SelectedFile.Filename, userName] };
         await UI.ToggleModal(
     @<UserChoiceModal HeaderText="@Localizer["MANAGE-ACCESS-PAGE.ChangeOwnerTitle"]" OnDecision="(b) => HandleAlertDecision(b, waitingOn)" ChoiceTextList=choiceTextList />);
     }
@@ -253,14 +253,14 @@
         if (IsContinue)
         {
             // Save a lookup (ONLY when this is on the chosen user, which is already in memory)
-            var newOwner = (chosenUser?.Id == waitingOn.userid) ? chosenUser : await MSGraphService.GetUserAsync(waitingOn.userid, CancellationToken.None);
+            var newOwner = (chosenUser?.Id == waitingOn.Userid) ? chosenUser : await MSGraphService.GetUserAsync(waitingOn.Userid, CancellationToken.None);
             // Check if the user has a root folder (i.e. have they logged in)
             if (true) //await ApiService.DoesFolderExist(newOwner.RootFolder)
             {
                 if (await DataSharingService.ChangeFileOwner(SelectedFile, newOwner, _currentUser.Id))
                 {
-                    waitingOn.role = AccessPermissions.ChangeOwner;
-                    SelectedFile.parent.Remove(SelectedFile);
+                    waitingOn.Role = AccessPermissions.ChangeOwner;
+                    SelectedFile.Parent.Remove(SelectedFile);
 
                     UI.ToggleRightSidebar();
                     await NotifierService.Update("filegrid", true);

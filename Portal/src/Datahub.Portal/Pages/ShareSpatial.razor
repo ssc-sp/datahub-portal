@@ -158,24 +158,24 @@
         // read shared record
         using var ctx = dbContextFactory.CreateDbContext();
 
-        _sharedObject = await ctx.GeoObjectShares.FirstOrDefaultAsync(e => e.GeoObjectShare_ID == ObjectId);
+        _sharedObject = await ctx.GeoObjectShares.FirstOrDefaultAsync(e => e.GeoObjectShareID == ObjectId);
 
         // object not found, share has been unpublished or abandoned
         if (_sharedObject is null || _sharedObject.ShareStatus > SpatialObjectShareStatus.DatasetPublished)
             await NavManager.NavigateTo($"/", true);
 
-        _requestingUser = await GraphService.GetUserFromEmailAsync(_sharedObject.Email_Contact_TXT, CancellationToken.None);
+        _requestingUser = await GraphService.GetUserFromEmailAsync(_sharedObject.EmailContactTXT, CancellationToken.None);
 
         var currentUser = await UserInformationService.GetCurrentGraphUserAsync();
         _isOwnRequest = currentUser.Id == _requestingUser.Id;
 
-        _requestSummary = JsonSerializer.Deserialize<GeoDataShareRequest>(_sharedObject.Json_TXT);
+        _requestSummary = JsonSerializer.Deserialize<GeoDataShareRequest>(_sharedObject.JsonTXT);
 
         _geoCoreService = GeoCoreServiceFactory.CreateService();
     }
 
     private SpatialObjectShareStatus CurrentStatus => _sharedObject.ShareStatus;
-    private int ApprovalFormId => _sharedObject.ApprovalForm_ID;
+    private int ApprovalFormId => _sharedObject.ApprovalFormID;
 
     private bool ShowApprovalForm => _isOwnRequest && (CurrentStatus == SpatialObjectShareStatus.FillApprovalForm || _editSubmittedApproval) && (ApprovalFormId != 0);
     private bool ShowSubmitApprovalForm => _isOwnRequest && CurrentStatus == SpatialObjectShareStatus.SubmitApprovalForm && !_editSubmittedApproval;
@@ -184,11 +184,11 @@
     private bool ShowCancelPanel => _isOwnRequest && CurrentStatus < SpatialObjectShareStatus.DatasetPublished;
     private bool ShowPublicUrl => CurrentStatus == SpatialObjectShareStatus.DatasetPublished;
 
-    private string Title => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLowerInvariant() == "fr" ? _requestSummary.title_fr : _requestSummary.title_en;
+    private string Title => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLowerInvariant() == "fr" ? _requestSummary.titleFr : _requestSummary.titleEn;
 
     private string GenerateApprovalDocumentUrl => $"/api/OpenDataApproval?id={ApprovalFormId}";
 
-    private string PublicationURL => _geoCoreService.GetDatasetUrl(_sharedObject.Publication_ID, "en");
+    private string PublicationURL => _geoCoreService.GetDatasetUrl(_sharedObject.PublicationID, "en");
 
     private string StepTitle(SpatialObjectShareStatus status) => Localizer[$"{PREFIX}.{status}.Title"];
     private string StepMessage(SpatialObjectShareStatus status) => Localizer[$"{PREFIX}.{status}.Description"];
@@ -245,7 +245,7 @@
             _savingData = true;
             await InvokeAsync(StateHasChanged);
 
-            _sharedObject.Approval_Document_URL = _signedApprovalFormUrl;
+            _sharedObject.ApprovalDocumentURL = _signedApprovalFormUrl;
             _sharedObject.ShareStatus = SpatialObjectShareStatus.WaitingForApproval;
             await UpdateSharedObject();
 
@@ -264,12 +264,12 @@
             _savingData = true;
             await InvokeAsync(StateHasChanged);
 
-            var result = await _geoCoreService.PublishDataset(_sharedObject.Json_TXT);
+            var result = await _geoCoreService.PublishDataset(_sharedObject.JsonTXT);
 
             if (result.Suceeded)
             {
                 _sharedObject.ShareStatus = SpatialObjectShareStatus.DatasetPublished;
-                _sharedObject.Publication_ID = result.DatasetId;
+                _sharedObject.PublicationID = result.DatasetId;
                 await UpdateSharedObject();
             }
             else

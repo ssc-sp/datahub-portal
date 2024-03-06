@@ -101,9 +101,9 @@
 
     [Parameter] public string WorkspaceAcronym { get; set; }
 
-    private Datahub_Project _project;
+    private DatahubProject _project;
 
-    private List<Project_Resources2> _resources;
+    private List<ProjectResources2> _resources;
     private string _toolboxLink => $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Toolbox}";
 
     private Dictionary<string, Type> _cardComponents = new()
@@ -122,7 +122,7 @@
         await using var context = await _dbContextFactory.CreateDbContextAsync();
         _project = await context.Projects
             .Include(w => w.Resources)
-            .FirstOrDefaultAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
+            .FirstOrDefaultAsync(w => w.ProjectAcronymCD == WorkspaceAcronym);
 
         _resources = _project.Resources
             .Where(r => r.ResourceType != TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))

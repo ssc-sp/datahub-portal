@@ -1,5 +1,4 @@
 ﻿using Markdig.Syntax;
-using Markdig;
 using Octokit;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,7 +66,7 @@ public class GithubDiscoveryTest
         Assert.True(modules.Count >= 4);
     }
 
-    [Fact (Skip = "Needs to be validated")]
+    [Fact(Skip = "Needs to be validated")]
     public async Task TestCheckIfValidModule()
     {
         var c = new Connection(new ProductHeaderValue("ssc-datahub"));
@@ -107,9 +106,11 @@ public class GithubDiscoveryTest
         var french = GetSubSections(readmeDocFlattened, "Français", 1);
         var descriptors_fr = ExtractSubSections(french, 2);
         //Language            
-            
-        var en =  new GitHubModuleDescriptor() { Title = ValidateKey("Title", dir, descriptors)?? "Missing Title", 
-            Description = ValidateKey("Why", dir, descriptors), 
+
+        var en = new GitHubModuleDescriptor()
+        {
+            Title = ValidateKey("Title", dir, descriptors) ?? "Missing Title",
+            Description = ValidateKey("Why", dir, descriptors),
             Tags = ValidateKey("Tags", dir, descriptors)?.Split(",").Select(t => t.Trim()).ToArray(),
             Language = "en"
         };
@@ -120,11 +121,12 @@ public class GithubDiscoveryTest
             Tags = ValidateKey("Mots Clefs", dir, descriptors_fr)?.Split(",").Select(t => t.Trim()).ToArray(),
             Language = "en"
         };
-        return new GitHubModule() {
+        return new GitHubModule()
+        {
             Name = dir.Name,
             Path = dir.Path,
             CalculatorPath = ValidateKey("Calculator", dir, descriptors),
-            Descriptors = new List<GitHubModuleDescriptor>() { en,fr}
+            Descriptors = new List<GitHubModuleDescriptor>() { en, fr }
         };
     }
 
@@ -137,7 +139,7 @@ public class GithubDiscoveryTest
         else
         {
             errors.Add(new RepositoryDescriptorErrors()
-            {                    
+            {
                 Path = module.Path,
                 Error = $"Module {module.Name} is missing the '{key}' section"
             });
@@ -163,7 +165,7 @@ public class GithubDiscoveryTest
                     break;
                 }
             }
-            if (blockLocated) 
+            if (blockLocated)
             {
                 result.Add(item);
             }
@@ -171,14 +173,14 @@ public class GithubDiscoveryTest
         return result.Skip(1).ToList();//skip the inline block
     }
 
-    private Dictionary<string,string> ExtractSubSections(List<MarkdownObject> readmeDocFlattened, int level)
+    private Dictionary<string, string> ExtractSubSections(List<MarkdownObject> readmeDocFlattened, int level)
     {
         var result = new Dictionary<string, string>();
         var iterator = readmeDocFlattened.GetEnumerator();
-        string? currentHeader = null;            
+        string? currentHeader = null;
         while (iterator.MoveNext())
         {
-            var item = iterator.Current;                
+            var item = iterator.Current;
             if (item is HeadingBlock heading)
             {
                 currentHeader = null;

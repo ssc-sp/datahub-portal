@@ -2,5 +2,5 @@ namespace Datahub.Shared.Entities;
 
 public class WorkspaceAppData
 {
-        public string DatabricksHostUrl { get; set; } = string.Empty;
+    public string DatabricksHostUrl { get; set; } = string.Empty;
 }

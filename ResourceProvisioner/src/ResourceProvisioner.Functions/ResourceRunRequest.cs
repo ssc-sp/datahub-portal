@@ -19,18 +19,18 @@ public class ResourceRunRequest
         _configuration = configuration;
         _commandHandler = commandHandler;
     }
-    
+
     [Function("ResourceRunRequest")]
     public async Task RunAsync([QueueTrigger("resource-run-request", Connection = "ResourceRunRequestConnectionString")] string myQueueItem)
     {
         _logger.LogInformation("C# Queue trigger function started");
-        
+
         var deserializeOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
         var resourceRun = JsonSerializer.Deserialize<CreateResourceRunCommand>(myQueueItem, deserializeOptions);
-        
+
         var resourceRunCommandValidator = new CreateResourceRunCommandValidator();
         var validationResult = await resourceRunCommandValidator.ValidateAsync(resourceRun);
         if (!validationResult.IsValid)

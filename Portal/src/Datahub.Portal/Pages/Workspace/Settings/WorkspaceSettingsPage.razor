@@ -48,18 +48,18 @@
         await using var context = await _dbContextFactory.CreateDbContextAsync();
         var project = await context.Projects
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == WorkspaceAcronym);
 
-        _budget = project.Project_Budget ?? 0;
+        _budget = project.ProjectBudget ?? 0;
     }
 
     private async Task OnBudgetChanged(decimal arg)
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync();
         var project = await context.Projects
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == WorkspaceAcronym);
 
-        project.Project_Budget = arg;
+        project.ProjectBudget = arg;
         await context.TrackSaveChangesAsync(_auditingService);
     }
 

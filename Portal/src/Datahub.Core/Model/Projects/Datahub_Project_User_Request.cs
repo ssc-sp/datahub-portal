@@ -1,26 +1,23 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Datahub.Core.Model.Projects;
 
-public class Datahub_Project_User_Request
+public class DatahubProjectUserRequest
 {
-
     [Key]
-    public int ProjectUserRequest_ID { get; set; }
-        
+    public int ProjectUserRequestID { get; set; }
+
     [StringLength(200)]
-    public string User_ID { get; set; }
+    public string UserID { get; set; }
 
-    public DateTime Requested_DT { get; set; }
+    public DateTime RequestedDT { get; set; }
 
-    public DateTime? Approved_DT { get; set;  }
-        
+    public DateTime? ApprovedDT { get; set; }
+
     public string ApprovedUser { get; set; }
-        
-    public Datahub_Project Project { get; set; }
+
+    public DatahubProject Project { get; set; }
 
     [Timestamp]
     public byte[] Timestamp { get; set; }
-
 }

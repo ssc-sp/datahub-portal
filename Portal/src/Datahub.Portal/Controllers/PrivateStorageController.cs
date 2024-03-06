@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Datahub.Core.Data;
 using Datahub.Core.Services.Api;
-using Datahub.Core.Services.Storage;
 using Datahub.Infrastructure.Services.Storage;
-using Newtonsoft.Json;
 
 namespace Datahub.Portal.Controllers;
 
@@ -18,7 +15,7 @@ public class PrivateStorageController : Controller
     private IPublicDataFileService _pubFileService { get; set; }
 
     public PrivateStorageController(
-        ILogger<PublicController> logger, 
+        ILogger<PublicController> logger,
         IPublicDataFileService pubFileService,
         DataRetrievalService dataRetrievalService
     )

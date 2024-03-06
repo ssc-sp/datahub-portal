@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.ApplicationInsights;
+﻿using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Options;
 
@@ -9,17 +6,17 @@ namespace Datahub.Core.Services.Notification;
 
 public class DatahubTelemetryAuditingService : IDatahubAuditingService
 {
-    private readonly TelemetryClient _telemetryClient;
-    private readonly IUserInformationService _userInformationService;
+    private readonly TelemetryClient telemetryClient;
+    private readonly IUserInformationService userInformationService;
 
     public DatahubTelemetryAuditingService(IUserInformationService userInformationService, IOptions<TelemetryConfiguration> telemetryConfig)
     {
-        _telemetryClient = new TelemetryClient(telemetryConfig.Value);
-        _userInformationService = userInformationService;
+        telemetryClient = new TelemetryClient(telemetryConfig.Value);
+        this.userInformationService = userInformationService;
     }
-        
-    /// <inheritdoc>
-    public async Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, bool anonymous, params (string key, string value)[] details)
+
+    /// <inheritdoc/>
+    public async Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, bool anonymous, params (string Key, string Value)[] details)
     {
         var properties = new Dictionary<string, string>
         {
@@ -28,12 +25,12 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
             [nameof(changeType)] = changeType.ToString(),
         };
         await AppendIdentity(properties, anonymous);
-        _telemetryClient.TrackEvent("DataEvent", AppendDetails(properties, details));
-        _telemetryClient.Flush();
+        telemetryClient.TrackEvent("DataEvent", AppendDetails(properties, details));
+        telemetryClient.Flush();
     }
 
-    /// <inheritdoc>
-    public async Task TrackSecurityEvent(string scope, string table, AuditChangeType changeType, params (string key, string value)[] details)
+    /// <inheritdoc/>
+    public async Task TrackSecurityEvent(string scope, string table, AuditChangeType changeType, params (string Key, string Value)[] details)
     {
         var properties = new Dictionary<string, string>
         {
@@ -42,12 +39,12 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
             [nameof(changeType)] = changeType.ToString()
         };
         await AppendIdentity(properties);
-        _telemetryClient.TrackEvent("SecurityEvent", AppendDetails(properties, details));
-        _telemetryClient.Flush();
+        telemetryClient.TrackEvent("SecurityEvent", AppendDetails(properties, details));
+        telemetryClient.Flush();
     }
 
-    /// <inheritdoc>
-    public async Task TrackAdminEvent(string scope, string table, AuditChangeType changeType, params (string key, string value)[] details)
+    /// <inheritdoc/>
+    public async Task TrackAdminEvent(string scope, string table, AuditChangeType changeType, params (string Key, string Value)[] details)
     {
         var properties = new Dictionary<string, string>
         {
@@ -56,31 +53,31 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
             [nameof(changeType)] = changeType.ToString()
         };
         await AppendIdentity(properties);
-        _telemetryClient.TrackEvent("AdminEvent", AppendDetails(properties, details));
-        _telemetryClient.Flush();
+        telemetryClient.TrackEvent("AdminEvent", AppendDetails(properties, details));
+        telemetryClient.Flush();
     }
 
-    /// <inheritdoc>
-    public async Task TrackException(Exception exception, params (string key, string value)[] details)
+    /// <inheritdoc/>
+    public async Task TrackException(Exception exception, params (string Key, string Value)[] details)
     {
         var properties = new Dictionary<string, string>();
         await AppendIdentity(properties);
-        _telemetryClient.TrackException(exception, AppendDetails(properties, details));
-        _telemetryClient.Flush();
+        telemetryClient.TrackException(exception, AppendDetails(properties, details));
+        telemetryClient.Flush();
     }
 
-    /// <inheritdoc>
-    public async Task TrackEvent(string name, params (string key, string value)[] details)
+    /// <inheritdoc/>
+    public async Task TrackEvent(string name, params (string Key, string Value)[] details)
     {
         var properties = new Dictionary<string, string>();
         await AppendIdentity(properties);
-        _telemetryClient.TrackEvent(name, AppendDetails(properties, details));
-        _telemetryClient.Flush();
+        telemetryClient.TrackEvent(name, AppendDetails(properties, details));
+        telemetryClient.Flush();
     }
 
     private async Task AppendIdentity(Dictionary<string, string> dictionary, bool anonymous = false)
     {
-        var user = anonymous ? await _userInformationService.GetAnonymousGraphUserAsync() : await _userInformationService.GetCurrentGraphUserAsync();
+        var user = anonymous ? await userInformationService.GetAnonymousGraphUserAsync() : await userInformationService.GetCurrentGraphUserAsync();
         if (user != null)
         {
             dictionary["userId"] = user.Id;
@@ -89,7 +86,7 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
         }
     }
 
-    static Dictionary<string, string> AppendDetails(Dictionary<string, string> dictionary, (string key, string value)[] properties)
+    internal static Dictionary<string, string> AppendDetails(Dictionary<string, string> dictionary, (string Key, string Value)[] properties)
     {
         foreach (var (key, value) in properties)
         {

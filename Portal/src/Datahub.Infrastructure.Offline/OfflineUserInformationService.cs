@@ -11,11 +11,11 @@ namespace Datahub.Infrastructure.Offline;
 
 public class OfflineUserInformationService : IUserInformationService
 {
-    public static readonly Guid UserGuid = new Guid(); 
+    public static readonly Guid UserGuid = new Guid();
 
     readonly ILogger<IUserInformationService> _logger;
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
-    
+
     private User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
 
     public OfflineUserInformationService(ILogger<IUserInformationService> logger, IDbContextFactory<DatahubProjectDBContext> contextFactory)
@@ -84,7 +84,7 @@ public class OfflineUserInformationService : IUserInformationService
     {
         return Task.FromResult(true);
     }
-        
+
     public bool SetLanguage(string language)
     {
         return true;
@@ -108,41 +108,41 @@ public class OfflineUserInformationService : IUserInformationService
     public async Task<PortalUser> GetCurrentPortalUserAsync()
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         // get yan
         // var yan = await context.PortalUsers.FirstOrDefaultAsync(u => u.DisplayName == "Yannick Robert");
         // return yan;
-        
+
         // get total number of users
         var totalUsers = await context.PortalUsers.CountAsync();
-        
+
         // return a random one
         var randomUser = await context.PortalUsers.Skip(new Random().Next(0, totalUsers)).FirstOrDefaultAsync();
-        
+
         return randomUser!;
     }
 
     public async Task<PortalUser> GetPortalUserAsync(string userGraphId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         return (await context.PortalUsers.FirstOrDefaultAsync(u => u.GraphGuid == userGraphId))!;
     }
 
     public async Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync()
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         // get total number of users
         var totalUsers = await context.PortalUsers.CountAsync();
-        
+
         // return a random one
         var randomUser = await context.PortalUsers
             .Include(u => u.Achievements)
                 .ThenInclude(a => a.Achievement)
             .Skip(new Random().Next(0, totalUsers))
             .FirstOrDefaultAsync();
-        
+
         return randomUser!;
     }
 
@@ -209,9 +209,9 @@ public class OfflineUserInformationService : IUserInformationService
 
     public Task<PortalUser> GetAuthenticatedPortalUser()
     {
-        return Task.FromResult(new PortalUser(){GraphGuid = AnonymousUser.Id});
+        return Task.FromResult(new PortalUser() { GraphGuid = AnonymousUser.Id });
     }
-    
+
     public Task<bool> UpdatePortalUserAsync(PortalUser updatedUser)
     {
         PortalUserUpdated?.Invoke(this, new PortalUserUpdatedEventArgs(updatedUser));

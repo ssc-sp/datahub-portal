@@ -10,12 +10,12 @@ namespace Datahub.Tests.Forms;
 public class FieldCodeGeneratorTests
 {
     [Fact]
-    public void GetFormattedFieldName_FieldWithValidChars_ProducesExpectedName()
+    public void GetFormattedFieldNameFieldWithValidCharsProducesExpectedName()
     {
         var expected = "CleanName";
-        WebForm_Field field = new()
+        WebFormField field = new()
         {
-            Field_DESC = "CleanName",
+            FieldDESC = "CleanName",
         };
 
         var generator = new FieldCodeGenerator(DummyMap);
@@ -25,12 +25,12 @@ public class FieldCodeGeneratorTests
     }
 
     [Fact]
-    public void GetFormattedFieldName_FieldWithInvalidChars_ProducesExpectedName()
+    public void GetFormattedFieldNameFieldWithInvalidCharsProducesExpectedName()
     {
         var expected = "Clean_Name";
-        WebForm_Field field = new()
+        WebFormField field = new()
         {
-            Field_DESC = "Clean !@#$%^&*()-Name",
+            FieldDESC = "Clean !@#$%^&*()-Name",
         };
 
         var generator = new FieldCodeGenerator(DummyMap);
@@ -40,13 +40,13 @@ public class FieldCodeGeneratorTests
     }
 
     [Fact]
-    public void GenerateSQLName_ForFieldWithExtension_ProducesExpectedSqlName()
+    public void GenerateSQLNameForFieldWithExtensionProducesExpectedSqlName()
     {
         var expected = "Name_EXT";
-        WebForm_Field field = new()
+        WebFormField field = new()
         {
-            Field_DESC = "Name",
-            Extension_CD = "EXT"
+            FieldDESC = "Name",
+            ExtensionCD = "EXT"
         };
 
         var generator = new FieldCodeGenerator(DummyMap);
@@ -56,12 +56,12 @@ public class FieldCodeGeneratorTests
     }
 
     [Fact]
-    public void GenerateSQLName_ForFieldWithNoExtension_ProducesExpectedJSON()
+    public void GenerateSQLNameForFieldWithNoExtensionProducesExpectedJSON()
     {
         var expected = "Name";
-        WebForm_Field field = new()
+        WebFormField field = new()
         {
-            Field_DESC = "Name",
+            FieldDESC = "Name",
         };
 
         var generator = new FieldCodeGenerator(DummyMap);
@@ -71,13 +71,13 @@ public class FieldCodeGeneratorTests
     }
 
     [Fact]
-    public void GenerateJSON_ForFieldWithNoSpaces_ProducesExpectedJSON()
+    public void GenerateJSONForFieldWithNoSpacesProducesExpectedJSON()
     {
         var fieldName = "ExpectedName";
         var expected = "\"ExpectedName\": \"ExpectedName\"";
-        WebForm_Field field = new()
+        WebFormField field = new()
         {
-            Field_DESC = fieldName
+            FieldDESC = fieldName
         };
 
         var generator = new FieldCodeGenerator(DummyMap);
@@ -87,13 +87,13 @@ public class FieldCodeGeneratorTests
     }
 
     [Fact]
-    public void GenerateJSON_ForFieldWithSpace_ProducesExpectedJSON()
+    public void GenerateJSONForFieldWithSpaceProducesExpectedJSON()
     {
         var fieldName = "Field with spaces";
-        var expected = $"\"Field_with_spaces\": \"{ fieldName }\"";
-        WebForm_Field field = new()
+        var expected = $"\"Field_with_spaces\": \"{fieldName}\"";
+        WebFormField field = new()
         {
-            Field_DESC = fieldName
+            FieldDESC = fieldName
         };
 
         var generator = new FieldCodeGenerator(DummyMap);
@@ -103,12 +103,12 @@ public class FieldCodeGeneratorTests
     }
 
     [Fact]
-    public void GenerateCSharp_ForRequiredField_ProducesExpectedCode()
+    public void GenerateCSharpForRequiredFieldProducesExpectedCode()
     {
-        WebForm_Field field = new()
+        WebFormField field = new()
         {
-            Field_DESC = "AnyField",
-            Mandatory_FLAG = true
+            FieldDESC = "AnyField",
+            MandatoryFLAG = true
         };
 
         var generator = new FieldCodeGenerator(DummyMap);
@@ -118,12 +118,12 @@ public class FieldCodeGeneratorTests
     }
 
     [Fact]
-    public void GenerateCSharp_ForNotRequiredField_ProducesExpectedCode()
+    public void GenerateCSharpForNotRequiredFieldProducesExpectedCode()
     {
-        WebForm_Field field = new()
+        WebFormField field = new()
         {
-            Field_DESC = "AnyField",
-            Mandatory_FLAG = false
+            FieldDESC = "AnyField",
+            MandatoryFLAG = false
         };
 
         var generator = new FieldCodeGenerator(DummyMap);
@@ -133,12 +133,12 @@ public class FieldCodeGeneratorTests
     }
 
     [Fact]
-    public void GenerateCSharp_ForFieldWithMaxLength_ProducesExpectedCode()
+    public void GenerateCSharpForFieldWithMaxLengthProducesExpectedCode()
     {
-        WebForm_Field field = new()
+        WebFormField field = new()
         {
-            Field_DESC = "AnyField",
-            Max_Length_NUM = 32
+            FieldDESC = "AnyField",
+            MaxLengthNUM = 32
         };
 
         var generator = new FieldCodeGenerator(DummyMap);
@@ -148,12 +148,12 @@ public class FieldCodeGeneratorTests
     }
 
     [Fact]
-    public void GenerateCSharp_ForFieldWithSection_ProducesExpectedCode()
+    public void GenerateCSharpForFieldWithSectionProducesExpectedCode()
     {
-        WebForm_Field field = new()
+        WebFormField field = new()
         {
-            Field_DESC = "AnyField",
-            Section_DESC = "AnySection"
+            FieldDESC = "AnyField",
+            SectionDESC = "AnySection"
         };
 
         var generator = new FieldCodeGenerator(s => 10);
@@ -162,14 +162,14 @@ public class FieldCodeGeneratorTests
         Assert.Contains("[AeFormCategory(\"AnySection\", 10)]", csharp);
     }
 
-    [Fact (Skip = "Needs to be validated")]
-    public void GenerateCSharp_ForFieldTypeDropdawn_ProducesExpectedCode()
+    [Fact(Skip = "Needs to be validated")]
+    public void GenerateCSharpForFieldTypeDropdawnProducesExpectedCode()
     {
-        WebForm_Field field = new()
+        WebFormField field = new()
         {
-            Field_DESC = "AnyField",
-            Type_CD = "Dropdown",
-            Description_DESC = "Expected description",
+            FieldDESC = "AnyField",
+            TypeCD = "Dropdown",
+            DescriptionDESC = "Expected description",
         };
 
         var generator = new FieldCodeGenerator(DummyMap);
@@ -179,13 +179,13 @@ public class FieldCodeGeneratorTests
     }
 
     [Fact]
-    public void GenerateCSharp_ForFieldTypeDropdawnWithChoices_ProducesExpectedCode()
+    public void GenerateCSharpForFieldTypeDropdawnWithChoicesProducesExpectedCode()
     {
-        WebForm_Field field = new()
+        WebFormField field = new()
         {
-            Field_DESC = "AnyField",
-            Type_CD = "Dropdown",
-            Choices_TXT = "Red | Green | Blue | Light brown"
+            FieldDESC = "AnyField",
+            TypeCD = "Dropdown",
+            ChoicesTXT = "Red | Green | Blue | Light brown"
         };
 
         var generator = new FieldCodeGenerator(DummyMap);
@@ -195,12 +195,12 @@ public class FieldCodeGeneratorTests
     }
 
     [Fact]
-    public void GenerateCSharp_ForFieldTypeMoney_ProducesExpectedAnotationCode()
+    public void GenerateCSharpForFieldTypeMoneyProducesExpectedAnotationCode()
     {
-        WebForm_Field field = new()
+        WebFormField field = new()
         {
-            Field_DESC = "AnyField",
-            Type_CD = "Money",
+            FieldDESC = "AnyField",
+            TypeCD = "Money",
         };
 
         var generator = new FieldCodeGenerator(DummyMap);
@@ -210,12 +210,12 @@ public class FieldCodeGeneratorTests
     }
 
     [Fact]
-    public void GenerateCSharp_ForFieldOfType_ProducesExpectedDeclarationCode()
+    public void GenerateCSharpForFieldOfTypeProducesExpectedDeclarationCode()
     {
-        WebForm_Field field = new()
+        WebFormField field = new()
         {
-            Field_DESC = "IntField",
-            Type_CD = "Integer",
+            FieldDESC = "IntField",
+            TypeCD = "Integer",
         };
 
         var generator = new FieldCodeGenerator(DummyMap);
@@ -225,12 +225,12 @@ public class FieldCodeGeneratorTests
     }
 
     [Fact]
-    public void GenerateCSharp_ForMoneyTypeFields_ProducesExpectedAnotationCode()
+    public void GenerateCSharpForMoneyTypeFieldsProducesExpectedAnotationCode()
     {
-        WebForm_Field field = new()
+        WebFormField field = new()
         {
-            Field_DESC = "MoneyField",
-            Type_CD = "Money",
+            FieldDESC = "MoneyField",
+            TypeCD = "Money",
         };
 
         var generator = new FieldCodeGenerator(DummyMap);
@@ -242,7 +242,7 @@ public class FieldCodeGeneratorTests
     [Fact]
     public void ExpressionTest()
     {
-            
+
         var parameterExpression = Expression.Parameter(typeof(HierarchyLevel), "fc");
         var prop = Expression.Property(parameterExpression, "FundCenterModifiedEnglish");
         var lambda = Expression.Lambda<Func<HierarchyLevel, string>>(prop, parameterExpression);

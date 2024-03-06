@@ -42,7 +42,7 @@
     public string WorkspaceAcronym { get; set; }
 
     private decimal _projectBudget { get; set; }
-    private Project_Credits _projectCredits { get; set; }
+    private ProjectCredits _projectCredits { get; set; }
 
     private decimal CurrentCost => Convert.ToDecimal(_projectCredits?.Current ?? 0);
 
@@ -67,10 +67,10 @@
         var project = await ctx.Projects
             .Include(p => p.Credits)
             .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == WorkspaceAcronym);
 
         _projectCredits = project.Credits;
-        _projectBudget = project.Project_Budget ?? 0;
+        _projectBudget = project.ProjectBudget ?? 0;
 
         _remainingBudget = _projectBudget - CurrentCost;
 

@@ -14,9 +14,9 @@
 {
     <div class="storage-properties">
         <div class="title-container">
-            <i class="@DatahubTools.GetFileTypeIcon(File.fileformat)"></i>
+            <i class="@DatahubTools.GetFileTypeIcon(File.Fileformat)"></i>
             <AeTypography Variant="h3" class="details-title-text">
-                @Path.GetFileName(File.name)
+                @Path.GetFileName(File.Name)
             </AeTypography>
         </div>
 
@@ -84,15 +84,15 @@
             return;
 
         _properties = File.GetMetadataProperties()
-            .Where(p => p.isVisible)
-            .Select(p => (p.key, Value: File.GetMetadataPropertyValue(p.key)))
+            .Where(p => p.IsVisible)
+            .Select(p => (p.Key, Value: File.GetMetadataPropertyValue(p.Key)))
             .ToList();
 
         if (!string.IsNullOrEmpty(StorageAccountMetadata?.Url))
         {
             var accountName = StorageAccountMetadata.Url.Split('.')[0].Replace("https://", "");
-            _fileLinkUrl = $"{StorageAccountMetadata.Url}/{File.folderpath}{File.filename}";
-            _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{accountName}.dfs.core.windows.net/{File.folderpath}{File.filename}";
+            _fileLinkUrl = $"{StorageAccountMetadata.Url}/{File.Folderpath}{File.Filename}";
+            _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{accountName}.dfs.core.windows.net/{File.Folderpath}{File.Filename}";
         }
     }
 }

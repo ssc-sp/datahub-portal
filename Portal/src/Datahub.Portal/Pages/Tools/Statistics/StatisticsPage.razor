@@ -207,16 +207,16 @@
                 .AsEnumerable()
                 .Select(p => new DatahubProjectStatsRow()
                 {
-                    ProjectId = p.Project_ID,
+                    ProjectId = p.ProjectID,
                     Name = p.Project_Name,
-                    Acronym = p.Project_Acronym_CD,
+                    Acronym = p.ProjectAcronymCD,
                     MetadataComplete = p.MetadataAdded ?? false,
-                    BudgetLimit = p.Project_Budget ?? 0,
+                    BudgetLimit = p.ProjectBudget ?? 0,
                     BudgetSpent = p.Credits?.Current ?? 0,
                     CostOfLastXDays = GetLastXDaysOfCosts(p.Credits, numberOfDays),
-                    Leads = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.WorkspaceLead).Select(u => u.User_Name).ToList(),
-                    Admins = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Admin).Select(u => u.User_Name).ToList(),
-                    Collaborators = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Collaborator).Select(u => u.User_Name).ToList(),
+                    Leads = p.Users?.Where(u => u.RoleId == (int) ProjectRole.RoleNames.WorkspaceLead).Select(u => u.UserName).ToList(),
+                    Admins = p.Users?.Where(u => u.RoleId == (int) ProjectRole.RoleNames.Admin).Select(u => u.UserName).ToList(),
+                    Collaborators = p.Users?.Where(u => u.RoleId == (int) ProjectRole.RoleNames.Collaborator).Select(u => u.UserName).ToList(),
                     StorageStatus = p.Resources?
                         .Where(sr => sr.ResourceType.Contains(TerraformTemplate.AzureStorageBlob))
                         .Select(sr => sr.CreatedAt.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
@@ -234,7 +234,7 @@
         }
     }
 
-    private static decimal GetLastXDaysOfCosts(Project_Credits projectCredits, int days)
+    private static decimal GetLastXDaysOfCosts(ProjectCredits projectCredits, int days)
     {
         if (projectCredits == null)
         {

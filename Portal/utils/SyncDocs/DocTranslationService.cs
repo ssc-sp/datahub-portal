@@ -3,9 +3,7 @@ using Markdig.Extensions.Yaml;
 using Markdig.Renderers.Roundtrip;
 using Markdig;
 using Markdig.Syntax;
-using static System.Net.Mime.MediaTypeNames;
 using System.Text.RegularExpressions;
-using System.ComponentModel.DataAnnotations;
 
 namespace SyncDocs;
 
@@ -16,7 +14,7 @@ internal class DocTranslationService
     private readonly DictionaryCache _translationCache;
     private readonly List<GlossaryTerm> _glossaryTerms;
 
-    public DocTranslationService(string sourcePath, string deeplKey, bool useFreeAPI, 
+    public DocTranslationService(string sourcePath, string deeplKey, bool useFreeAPI,
         DictionaryCache translationCache, List<GlossaryTerm> glossaryTerms)
     {
         _sourcePath = sourcePath;

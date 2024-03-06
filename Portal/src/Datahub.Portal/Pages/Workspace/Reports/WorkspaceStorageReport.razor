@@ -43,8 +43,8 @@
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var averages = await ctx.Projects
-            .Where(e => e.Project_Acronym_CD == WorkspaceAcronym)
-            .Join(ctx.Project_Storage_Avgs, p => p.Project_ID, s => s.ProjectId, (p, s) => s)
+            .Where(e => e.ProjectAcronymCD == WorkspaceAcronym)
+            .Join(ctx.ProjectStorageAvgs, p => p.ProjectID, s => s.ProjectId, (p, s) => s)
             .Where(e => e.Date >= minDate)
             .Select(e => new DayAverage(e.Date.Day, e.AverageCapacity))
             .ToListAsync();

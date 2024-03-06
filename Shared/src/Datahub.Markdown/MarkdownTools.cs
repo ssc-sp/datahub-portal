@@ -1,17 +1,11 @@
-﻿using Datahub.Markdown.Model;
-using Markdig.Syntax;
-using System;
-using System.Collections.Generic;
+﻿using Markdig.Syntax;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.Markdown
 {
     public static class MarkdownTools
     {
-        public static (string Title,string Preview)? GetTitleAndPreview(string content)
+        public static (string Title, string Preview)? GetTitleAndPreview(string content)
         {
             var cardDoc = Markdig.Markdown.Parse(content);
             var cardDocFlattened = cardDoc.Descendants();

@@ -10,7 +10,7 @@ namespace Datahub.Core.Model.Projects.Configuration
         {
             builder.ToTable("ProjectInactivityNotifications");
 
-            builder.HasKey(e => e.Project_ID);
+            builder.HasKey(e => e.ProjectID);
 
             builder.Property(e => e.NotificationDate)
                 .IsRequired();

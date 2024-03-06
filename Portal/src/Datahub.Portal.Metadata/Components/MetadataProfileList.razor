@@ -58,7 +58,7 @@
     {
         return await ctx.Profiles
             .Include(p => p.Sections)
-            .Select(p => new ProfileSummary(p.ProfileId, p.Name, string.Join(", ", p.Sections.Select(s => s.Name_English_TXT))))
+            .Select(p => new ProfileSummary(p.ProfileId, p.Name, string.Join(", ", p.Sections.Select(s => s.NameEnglishTXT))))
             .ToListAsync();
     }
 

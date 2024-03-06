@@ -12,7 +12,7 @@ namespace Datahub.Tests.MetadataTests;
 public class TranslatedFieldPairsTests
 {
     [Fact]
-    public void BindField_ForNotTranslatedField_ShouldReturnNull()
+    public void BindFieldForNotTranslatedFieldShouldReturnNull()
     {
         // translated fields end in: _en or _fr nothing else is valid
         TranslatedFieldPairs translatedFieldPairs = new();
@@ -22,7 +22,7 @@ public class TranslatedFieldPairsTests
     }
 
     [Fact]
-    public void BindField_ForTranslatedField_ShouldReturnNonNull()
+    public void BindFieldForTranslatedFieldShouldReturnNonNull()
     {
         TranslatedFieldPairs translatedFieldPairs = new();
         Assert.NotNull(translatedFieldPairs.BindField("name_en", CreateFieldValue(1, "anyvalue")));
@@ -30,7 +30,7 @@ public class TranslatedFieldPairsTests
     }
 
     [Fact]
-    public void BindField_SameRootField_ShouldReturnSameInstance()
+    public void BindFieldSameRootFieldShouldReturnSameInstance()
     {
         string rootName = "Expected";
 
@@ -47,7 +47,7 @@ public class TranslatedFieldPairsTests
     }
 
     [Fact]
-    public void BindField_SameRootField_ShouldAssignLanguagesProperly()
+    public void BindFieldSameRootFieldShouldAssignLanguagesProperly()
     {
         string rootName = "Expected";
 
@@ -64,7 +64,7 @@ public class TranslatedFieldPairsTests
     }
 
     [Fact]
-    public void BindField_DifferentRootField_ShouldReturnDifferentInstance()
+    public void BindFieldDifferentRootFieldShouldReturnDifferentInstance()
     {
         ObjectFieldValue fieldValueEn = CreateFieldValue(1, "anyvalue");
         ObjectFieldValue fieldValueFr = CreateFieldValue(2, "anyvalue");
@@ -78,7 +78,7 @@ public class TranslatedFieldPairsTests
     }
 
     [Fact]
-    public void GetPaired_SameRootField_ShouldReturnExpected()
+    public void GetPairedSameRootFieldShouldReturnExpected()
     {
         ObjectFieldValue fieldValueEn = CreateFieldValue(1, "anyvalue");
         ObjectFieldValue fieldValueFr = CreateFieldValue(2, "anyvalue");
@@ -103,6 +103,6 @@ public class TranslatedFieldPairsTests
 
     static ObjectFieldValue CreateFieldValue(int definitionId, string value)
     {
-        return new() { FieldDefinitionId = definitionId, Value_TXT = value };
+        return new() { FieldDefinitionId = definitionId, ValueTXT = value };
     }
 }

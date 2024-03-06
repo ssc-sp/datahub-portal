@@ -6,7 +6,7 @@ namespace Datahub.Specs.PageObjects;
 
 public class ToolsPageObject : BasePageObject
 {
-    public ToolsPageObject(IConfiguration configuration, IBrowser browser) 
+    public ToolsPageObject(IConfiguration configuration, IBrowser browser)
         : base(configuration, browser, false, path: "tools")
     {
     }

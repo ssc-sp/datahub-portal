@@ -5,7 +5,7 @@ namespace Datahub.Finance.Data;
 
 public class FiscalYear
 {
-        
+
     [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
     [Required]
     public int YearId { get; set; }
@@ -14,5 +14,5 @@ public class FiscalYear
     public string Year { get; set; }
 
     public List<FundCenter> FundCenters { get; set; }
-        
+
 }

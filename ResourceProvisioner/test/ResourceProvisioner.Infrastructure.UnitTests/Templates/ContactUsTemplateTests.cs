@@ -1,8 +1,5 @@
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using Datahub.Shared.Entities;
 using ResourceProvisioner.Infrastructure.Common;
-using ResourceProvisioner.Infrastructure.Services;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Templates;
 
@@ -25,7 +22,7 @@ public class ContactUsTemplateTests
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
-        
+
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
 
         var module = GenerateTerraformTemplate(TerraformTemplate.ContactUs);
@@ -47,9 +44,9 @@ public class ContactUsTemplateTests
 
         var module = GenerateTerraformTemplate(TerraformTemplate.ContactUs);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
-        
+
         await _terraformService.CopyTemplateAsync(module, workspace);
-        
+
         // assert that no new files were created
         Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
         var newFileCount = Directory.GetFiles(moduleDestinationPath, "*", SearchOption.AllDirectories).Length;

@@ -17,10 +17,6 @@ using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MediatR;
-using Azure.Storage.Blobs;
-using MudBlazor;
-using AngleSharp.Common;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Datahub.Functions;
 
@@ -86,7 +82,7 @@ public class CheckInfrastructureStatus
         {
             return new OkObjectResult(await RunAllChecks());
         }
-        
+
         IActionResult result = await RunHealthCheck(request);
         return result;
     }
@@ -191,10 +187,10 @@ public class CheckInfrastructureStatus
         var projects = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).ToList();
         foreach (var project in projects)
         {
-            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureSqlDatabase, "core", project.Project_Acronym_CD.ToString())));
-            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageAccount, "workspaces", project.Project_Acronym_CD.ToString())));
-            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureDatabricks, "workspaces", project.Project_Acronym_CD)));
-            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureWebApp, "workspaces", project.Project_Acronym_CD)));
+            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureSqlDatabase, "core", project.ProjectAcronymCD.ToString())));
+            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageAccount, "workspaces", project.ProjectAcronymCD.ToString())));
+            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureDatabricks, "workspaces", project.ProjectAcronymCD)));
+            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureWebApp, "workspaces", project.ProjectAcronymCD)));
         }
 
         // Queues checks
@@ -232,13 +228,13 @@ public class CheckInfrastructureStatus
         await _projectDbContext.SaveChangesAsync();
     }
 
-/// <summary>
-/// Function that checks the health of an Azure SQL Database.
-/// </summary>
-/// <param name="request"></param>
-/// <returns>An InfrastructureHealthCheckResponse indicating the result of the check.</returns>
-private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
-        InfrastructureHealthCheckRequest request)
+    /// <summary>
+    /// Function that checks the health of an Azure SQL Database.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns>An InfrastructureHealthCheckResponse indicating the result of the check.</returns>
+    private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
+            InfrastructureHealthCheckRequest request)
     {
         var errors = new List<string>();
         var check = new InfrastructureHealthCheck()
@@ -417,7 +413,7 @@ private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
             HealthCheckTimeUtc = DateTime.UtcNow
         };
 
-        var project = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).FirstOrDefault(p => p.Project_Acronym_CD == request.Name);
+        var project = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).FirstOrDefault(p => p.ProjectAcronymCD == request.Name);
 
         // If the project is null, the project does not exist or there was an error retrieving it
         if (project == null)
@@ -476,7 +472,7 @@ private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
                 }
             }
         }
-        
+
         if (!errors.Any())
         {
             check.Status = InfrastructureHealthStatus.Healthy;
@@ -605,7 +601,7 @@ private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
             HealthCheckTimeUtc = DateTime.UtcNow
         };
 
-        var project = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).FirstOrDefault(p => p.Project_Acronym_CD == request.Name);
+        var project = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).FirstOrDefault(p => p.ProjectAcronymCD == request.Name);
 
         // If the project is null, the project does not exist or there was an error retrieving it
         if (project == null)
@@ -622,7 +618,7 @@ private async Task<InfrastructureHealthCheckResponse> CheckAzureSqlDatabase(
             }
             else
             {
-                string url = project.WebApp_URL;
+                string url = project.WebAppURL;
 
                 try
                 {

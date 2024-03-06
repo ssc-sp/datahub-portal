@@ -6,7 +6,7 @@ namespace Datahub.Specs.PageObjects;
 
 public class WorkspacePageObject : BasePageObject
 {
-    public WorkspacePageObject(DatahubPortalConfiguration datahubPortalConfiguration, IConfiguration configuration, IBrowser browser) 
+    public WorkspacePageObject(DatahubPortalConfiguration datahubPortalConfiguration, IConfiguration configuration, IBrowser browser)
         : base(configuration, browser, false, path: datahubPortalConfiguration.ProjectUrlSegment)
     {
     }

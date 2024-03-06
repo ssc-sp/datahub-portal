@@ -63,11 +63,11 @@ public class GitController : Controller
 
     private async Task SaveProjectGitUrl(string acronym, string url)
     {
-        var project = await _context.Projects.FirstOrDefaultAsync(e => e.Project_Acronym_CD == acronym);
+        var project = await _context.Projects.FirstOrDefaultAsync(e => e.ProjectAcronymCD == acronym);
         if (project is null)
             return;
 
-        project.GitRepo_URL = url;
+        project.GitRepoURL = url;
 
         await _context.SaveChangesAsync();
     }

@@ -5,7 +5,7 @@
 @inject NotifierService NotifierService
 
 @* TODO: this is a legacy page part of the my data - keeping this in the code because it has logic to work with blob versions in ACL storage*@
-<h4 class="nrcan-typography h4">@Localizer["VERSION-PAGE.Header", File.filename]</h4>
+<h4 class="nrcan-typography h4">@Localizer["VERSION-PAGE.Header", File.Filename]</h4>
 <p class="nrcan-typography paragragh">@Localizer["VERSION-PAGE.Introduction1"]</p>
 <p class="nrcan-typography paragragh">@Localizer["VERSION-PAGE.Introduction2"]</p>
 
@@ -53,7 +53,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        versions = await DataRetreivalService.GetFileVersions(File.fileid);
+        versions = await DataRetreivalService.GetFileVersions(File.Fileid);
         versions.Reverse();
 
         IndexVersions();
@@ -63,6 +63,6 @@ else
     private void IndexVersions()
     {
         var idx = versions.Count;
-        versions.ForEach(item => item.index = idx--);
+        versions.ForEach(item => item.Index = idx--);
     }
 }

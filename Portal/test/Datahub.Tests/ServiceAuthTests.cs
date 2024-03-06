@@ -1,5 +1,4 @@
 ﻿using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +10,7 @@ using Xunit;
 
 namespace Datahub.Tests;
 
-public class ServiceAuthTests:IDisposable
+public class ServiceAuthTests : IDisposable
 {
     private readonly DatahubProjectDBContext ctx;
     private ServiceAuthManager _authManager;
@@ -37,8 +36,8 @@ public class ServiceAuthTests:IDisposable
         ctx.Dispose();
     }
 
-    [Fact (Skip = "Needs to be validated")]
-    public async Task GivenUser_RetrieveProjects()
+    [Fact(Skip = "Needs to be validated")]
+    public async Task GivenUserRetrieveProjects()
     {
         var auths = await _authManager.GetUserAuthorizations("d6d53fcc-9d82-4b0e-8b91-91248c344224");
     }

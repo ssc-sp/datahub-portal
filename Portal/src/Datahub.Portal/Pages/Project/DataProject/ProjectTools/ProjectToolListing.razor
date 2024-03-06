@@ -40,7 +40,7 @@
             {
                 <MudStack Class="my-12">
                     <MudText Class="mb-4" Typo="Typo.h2">@Localizer["Your Workspace Tools"]</MudText>
-                    @if (_datahubPortalConfiguration.ReverseProxy.Enabled && !string.IsNullOrWhiteSpace(_project?.WebApp_URL))
+                    @if (_datahubPortalConfiguration.ReverseProxy.Enabled && !string.IsNullOrWhiteSpace(_project?.WebAppURL))
                     {
                         <AzureWebAppCard ProjectAcronym="@ProjectAcronym"/>
                     }
@@ -128,8 +128,8 @@
     private bool _isLoading = true;
     private string WhitelistUrl => $"{_datahubPortalConfiguration.ProjectUrlSegment}/{ProjectAcronym}/whitelist";
 
-    private Datahub_Project _project;
-    private List<Project_Resources2> _projectDatabaseResources = new();
+    private DatahubProject _project;
+    private List<ProjectResources2> _projectDatabaseResources = new();
     private List<ProjectRepository> _projectRepositories = new();
 
     private List<(Type type, IDictionary<string, object> parameters)> _activeResources;
@@ -178,7 +178,7 @@
             .ToList();
 
         _project = await projectDbContext.Projects
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == ProjectAcronym);
 
         _isLoading = false;
     }
@@ -197,7 +197,7 @@
         var context = await _dbFactoryProject.CreateDbContextAsync();
         var project = await context.Projects
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == ProjectAcronym);
         
         _snackbar.Add(Localizer["Requesting resource..."]);
 

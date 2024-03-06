@@ -9,7 +9,7 @@ public interface IAnnouncementService
     /// </summary>
     /// <returns></returns>
     public Task<List<Announcement>> GetAnnouncementsAsync();
-    
+
     /// <summary>
     /// Returns an announcement with the given id. If no announcement is found, returns an empty announcement.
     /// </summary>

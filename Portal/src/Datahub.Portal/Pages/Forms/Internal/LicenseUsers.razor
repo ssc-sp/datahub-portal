@@ -48,8 +48,8 @@ else
     [Parameter]
     public string RequestIDParam {get;set;}
     private int RequestID;
-    private PBI_User_License_Request _userRequest;
-    private List<PBI_User_License_Request> _userRequests = new List<PBI_User_License_Request>();
+    private PBIUserLicenseRequest _userRequest;
+    private List<PBIUserLicenseRequest> _userRequests = new List<PBIUserLicenseRequest>();
     private string SubmitLabel = "Add new";
     private DatahubProjectDBContext Context;
 
@@ -63,32 +63,32 @@ else
 
 
     // Accessor functions to retrieve cell value
-    private List<Func<PBI_User_License_Request, string>> accessorFunctions = new List<Func<PBI_User_License_Request, string>>
+    private List<Func<PBIUserLicenseRequest, string>> accessorFunctions = new List<Func<PBIUserLicenseRequest, string>>
     {
-        new Func<PBI_User_License_Request, string>(p => { return p.UserEmail; }),
-        new Func<PBI_User_License_Request, string>(p => { return p.LicenseType.ToString(); }),
-        new Func<PBI_User_License_Request, string>(p => { return p.ID.ToString(); })
+        new Func<PBIUserLicenseRequest, string>(p => { return p.UserEmail; }),
+        new Func<PBIUserLicenseRequest, string>(p => { return p.LicenseType.ToString(); }),
+        new Func<PBIUserLicenseRequest, string>(p => { return p.ID.ToString(); })
     };
 
-    private async Task Delete(PBI_User_License_Request project)
+    private async Task Delete(PBIUserLicenseRequest project)
     {
-        Context.PowerBI_License_User_Requests.Remove(project);
+        Context.PowerBILicenseUserRequests.Remove(project);
         await Context.SaveChangesAsync();
-        _userRequests = Context.PowerBI_License_User_Requests.ToList();
+        _userRequests = Context.PowerBILicenseUserRequests.ToList();
     }
 
-    private void SetFormEdit(PBI_User_License_Request project)
+    private void SetFormEdit(PBIUserLicenseRequest project)
     {
         _userRequest = project;
         SubmitLabel = "Save Changes";
     }
 
-    private List<Func<PBI_User_License_Request, RenderFragment>> GetRenderers()
+    private List<Func<PBIUserLicenseRequest, RenderFragment>> GetRenderers()
     {
-        return new List<Func<PBI_User_License_Request, RenderFragment>>
+        return new List<Func<PBIUserLicenseRequest, RenderFragment>>
         {
             null, null, null, 
-            new Func<PBI_User_License_Request, RenderFragment>(q =>
+            new Func<PBIUserLicenseRequest, RenderFragment>(q =>
             {
                 return 
                 @<div class="icon-container">
@@ -104,19 +104,19 @@ else
         // load projects        
         Context = DbFactory.CreateDbContext();
         RequestID= Int32.Parse(RequestIDParam);
-        _userRequests = Context.PowerBI_License_User_Requests.ToList();
-        _userRequest = new PBI_User_License_Request() { ID = 0, RequestID = RequestID } ;
+        _userRequests = Context.PowerBILicenseUserRequests.ToList();
+        _userRequest = new PBIUserLicenseRequest() { ID = 0, RequestID = RequestID } ;
     }
 
      private async Task HandleValidSubmit()
     {
         if(_userRequest.ID == 0)
         {
-            Context.PowerBI_License_User_Requests.Add(_userRequest);
+            Context.PowerBILicenseUserRequests.Add(_userRequest);
         }
         await Context.SaveChangesAsync();
-        _userRequest = new PBI_User_License_Request() { ID = 0, RequestID = RequestID } ;
-        _userRequests = Context.PowerBI_License_User_Requests.ToList();
+        _userRequest = new PBIUserLicenseRequest() { ID = 0, RequestID = RequestID } ;
+        _userRequests = Context.PowerBILicenseUserRequests.ToList();
         SubmitLabel = "Add New";
     }
 

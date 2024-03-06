@@ -56,8 +56,8 @@
     [Parameter]
     public string ProjectAcronym { get; set; }
 
-    private List<Datahub_Project_User> _projectAdmins = new();
-    private List<Datahub_Project_User> _projectMembers = new();
+    private List<DatahubProjectUser> _projectAdmins = new();
+    private List<DatahubProjectUser> _projectMembers = new();
     
     private string _viewMembersHref => $"{PageRoutes.WorkspacePrefix}/{ProjectAcronym}/{WorkspaceSidebar.SectionViews.Users}";
 
@@ -70,13 +70,13 @@
         
         _projectAdmins = workspaceMembers
             .Where(m => m.RoleId 
-                is (int) Project_Role.RoleNames.Admin 
-                or (int) Project_Role.RoleNames.WorkspaceLead)
+                is (int) ProjectRole.RoleNames.Admin 
+                or (int) ProjectRole.RoleNames.WorkspaceLead)
             .ToList();
         
         _projectMembers = workspaceMembers
             .Where(m => m.RoleId
-                is (int) Project_Role.RoleNames.Collaborator)
+                is (int) ProjectRole.RoleNames.Collaborator)
             .ToList();
     }
 

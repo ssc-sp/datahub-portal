@@ -11,29 +11,29 @@ namespace Datahub.Tests.MetadataTests;
 public class FieldValueContainerTests
 {
     [Fact]
-    public void FieldValueContainer_ValidateRequired_MustSucceedWhenAllRequiredFieldsEntered()
+    public void FieldValueContainerValidateRequiredMustSucceedWhenAllRequiredFieldsEntered()
     {
         var definitions = GetDefinitions(("name", true), ("ignored", false), ("expected", true));
         var container = GetFieldValueContainer(definitions, ("name", "any name"), ("expected", "any value"));
 
-        var actual = container.ValidateRequired(f => f.Required_FLAG);
+        var actual = container.ValidateRequired(f => f.RequiredFLAG);
 
         Assert.True(actual);
     }
 
     [Fact]
-    public void FieldValueContainer_ValidateRequired_MustFailWhenARequiredFieldsIsNotEntered()
+    public void FieldValueContainerValidateRequiredMustFailWhenARequiredFieldsIsNotEntered()
     {
         var definitions = GetDefinitions(("name", true), ("not_ignored", true), ("expected", true));
         var container = GetFieldValueContainer(definitions, ("name", "any name"), ("expected", "any value"));
 
-        var actual = container.ValidateRequired(f => f.Required_FLAG);
+        var actual = container.ValidateRequired(f => f.RequiredFLAG);
 
         Assert.False(actual);
     }
 
     [Fact]
-    public void FieldValueContainer_GetValue_MustReturnExpected()
+    public void FieldValueContainerGetValueMustReturnExpected()
     {
         var fieldDefinitions = FieldDefinitionHelper.LoadDefinitions();
 
@@ -43,17 +43,17 @@ public class FieldValueContainerTests
             ("topic_category", "environment"));
 
         var expected = "Sample file";
-        var actual = container["title_translated_en"].Value_TXT;
+        var actual = container["title_translated_en"].ValueTXT;
         Assert.Equal(actual, expected);
 
         expected = "Expected name";
         container.SetValue("name", expected);
-        actual = container["name"].Value_TXT;
+        actual = container["name"].ValueTXT;
         Assert.Equal(actual, expected);
     }
 
     [Fact]
-    public void FieldValueContainer_GetSelectedChoices_MustReturnExpected()
+    public void FieldValueContainerGetSelectedChoicesMustReturnExpected()
     {
         var fieldDefinitions = FieldDefinitionHelper.LoadDefinitions();
 
@@ -65,12 +65,12 @@ public class FieldValueContainerTests
         var choices = container.GetSelectedChoices("subject").ToArray();
         Assert.True(choices.Length == 2);
 
-        var expected = "agriculture"; 
-        var actual = choices[0].Value_TXT;
+        var expected = "agriculture";
+        var actual = choices[0].ValueTXT;
         Assert.Equal(actual, expected);
 
         expected = "law";
-        actual = choices[1].Value_TXT;
+        actual = choices[1].ValueTXT;
         Assert.Equal(actual, expected);
     }
 
@@ -82,21 +82,21 @@ public class FieldValueContainerTests
         definitions.Add(fields.Select(f => new FieldDefinition()
         {
             FieldDefinitionId = id++,
-            Field_Name_TXT = f.name,
-            Required_FLAG = f.required,
-            English_DESC = f.name,
-            French_DESC = f.name                
+            FieldNameTXT = f.name,
+            RequiredFLAG = f.required,
+            EnglishDESC = f.name,
+            FrenchDESC = f.name
         }));
         return definitions;
     }
 
     static FieldValueContainer GetFieldValueContainer(FieldDefinitions definitions, params (string name, string value)[] fieldValues)
     {
-        return new FieldValueContainer(1, "1", definitions, fieldValues.Select(fv => new ObjectFieldValue() 
-        { 
+        return new FieldValueContainer(1, "1", definitions, fieldValues.Select(fv => new ObjectFieldValue()
+        {
             FieldDefinition = definitions.Get(fv.name),
-            FieldDefinitionId = definitions.Get(fv.name).FieldDefinitionId, 
-            Value_TXT = fv.value 
+            FieldDefinitionId = definitions.Get(fv.name).FieldDefinitionId,
+            ValueTXT = fv.value
         }));
     }
 }

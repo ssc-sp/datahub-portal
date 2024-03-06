@@ -5,22 +5,22 @@ namespace Datahub.PowerBI.Services.Offline;
 
 public class OfflinePowerBiDataService : IPowerBiDataService
 {
-    public Task<bool> AddOrUpdateCataloguedDatasets(IEnumerable<PowerBi_DataSetDefinition> datasetDefinitions)
+    public Task<bool> AddOrUpdateCataloguedDatasets(IEnumerable<PowerBiDataSetDefinition> datasetDefinitions)
     {
         throw new NotImplementedException();
     }
 
-    public Task<bool> AddOrUpdateCataloguedReports(IEnumerable<PowerBi_ReportDefinition> reportDefinitions)
+    public Task<bool> AddOrUpdateCataloguedReports(IEnumerable<PowerBiReportDefinition> reportDefinitions)
     {
         throw new NotImplementedException();
     }
 
-    public Task<bool> AddOrUpdateCataloguedWorkspaces(IEnumerable<PowerBi_WorkspaceDefinition> workspaceDefinitions)
+    public Task<bool> AddOrUpdateCataloguedWorkspaces(IEnumerable<PowerBiWorkspaceDefinition> workspaceDefinitions)
     {
         throw new NotImplementedException();
     }
 
-    public Task<bool> BulkAddOrUpdatePowerBiItems(IEnumerable<PowerBi_WorkspaceDefinition> workspaceDefinitions, IEnumerable<PowerBi_DataSetDefinition> datasetDefinitions, IEnumerable<PowerBi_ReportDefinition> reportDefinitions)
+    public Task<bool> BulkAddOrUpdatePowerBiItems(IEnumerable<PowerBiWorkspaceDefinition> workspaceDefinitions, IEnumerable<PowerBiDataSetDefinition> datasetDefinitions, IEnumerable<PowerBiReportDefinition> reportDefinitions)
     {
         throw new NotImplementedException();
     }
@@ -55,22 +55,22 @@ public class OfflinePowerBiDataService : IPowerBiDataService
         throw new NotImplementedException();
     }
 
-    public Task<IList<PowerBi_DataSet>> GetAllDatasets()
+    public Task<IList<PowerBiDataSet>> GetAllDatasets()
     {
-        return Task.FromResult<IList<PowerBi_DataSet>>(new List<PowerBi_DataSet>());
+        return Task.FromResult<IList<PowerBiDataSet>>(new List<PowerBiDataSet>());
     }
 
-    public Task<IList<PowerBi_Report>> GetAllReports()
+    public Task<IList<PowerBiReport>> GetAllReports()
     {
-        return Task.FromResult<IList<PowerBi_Report>>(new List<PowerBi_Report>());
+        return Task.FromResult<IList<PowerBiReport>>(new List<PowerBiReport>());
     }
 
-    public Task<IList<PowerBi_Workspace>> GetAllWorkspaces()
+    public Task<IList<PowerBiWorkspace>> GetAllWorkspaces()
     {
-        return Task.FromResult<IList<PowerBi_Workspace>>(new List<PowerBi_Workspace>());
+        return Task.FromResult<IList<PowerBiWorkspace>>(new List<PowerBiWorkspace>());
     }
 
-    public Task<PowerBi_DataSet> GetDatasetById(Guid id)
+    public Task<PowerBiDataSet> GetDatasetById(Guid id)
     {
         throw new NotImplementedException();
     }
@@ -85,24 +85,24 @@ public class OfflinePowerBiDataService : IPowerBiDataService
         throw new NotImplementedException();
     }
 
-    public Task<PowerBi_Report> GetReportById(Guid id, bool includeWorkspace = false)
+    public Task<PowerBiReport> GetReportById(Guid id, bool includeWorkspace = false)
     {
         throw new NotImplementedException();
     }
 
-    public Task<List<PowerBi_Report>> GetReportsForProject(string projectCode, bool includeSandbox = false)
+    public Task<List<PowerBiReport>> GetReportsForProject(string projectCode, bool includeSandbox = false)
     {
-        return Task.FromResult(new List<PowerBi_Report>());
+        return Task.FromResult(new List<PowerBiReport>());
     }
 
-    public Task<List<PowerBi_Report>> GetReportsForProjectWithExternalReportInfo(string projectCode, bool includeSandbox = false)
+    public Task<List<PowerBiReport>> GetReportsForProjectWithExternalReportInfo(string projectCode, bool includeSandbox = false)
     {
-        return Task.FromResult(new List<PowerBi_Report>());
+        return Task.FromResult(new List<PowerBiReport>());
     }
 
-    public Task<List<PowerBi_Report>> GetReportsForUser(string userId)
+    public Task<List<PowerBiReport>> GetReportsForUser(string userId)
     {
-        return Task.FromResult(new List<PowerBi_Report>());
+        return Task.FromResult(new List<PowerBiReport>());
     }
 
     public Task<List<ExternalPowerBiReport>> GetRequestedExternalReports()
@@ -110,12 +110,12 @@ public class OfflinePowerBiDataService : IPowerBiDataService
         throw new NotImplementedException();
     }
 
-    public Task<PowerBi_Workspace> GetWorkspaceById(Guid id, bool includeChildren = false)
+    public Task<PowerBiWorkspace> GetWorkspaceById(Guid id, bool includeChildren = false)
     {
         throw new NotImplementedException();
     }
 
-    public Task<List<PowerBi_Report>> GetWorkspaceReports(Guid id)
+    public Task<List<PowerBiReport>> GetWorkspaceReports(Guid id)
     {
         throw new NotImplementedException();
     }

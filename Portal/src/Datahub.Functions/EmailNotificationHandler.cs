@@ -91,5 +91,5 @@ public class EmailNotificationHandler
         }
     }
 
-    static MailboxAddress GetMailboxAddress(string address) => new(address, address); 
+    static MailboxAddress GetMailboxAddress(string address) => new(address, address);
 }

@@ -4,11 +4,11 @@ using Elemental.Components;
 
 namespace Datahub.PIP.Data;
 
-public class PIP_IndicatorAndResults
+public class PIPIndicatorAndResults
 {
     [Key]
     [AeFormIgnore]
-    public int IndicatorAndResult_ID { get; set; }
+    public int IndicatorAndResultID { get; set; }
 
     [MaxLength(20)]
     [AeFormIgnore]
@@ -20,152 +20,152 @@ public class PIP_IndicatorAndResults
     [AeFormCategory("Indicator Status", 1)]
     [MaxLength(100)]
     [AeLabel(row: "1", column: "1", isDropDown: true, validValues: new[] { "Input Required", "DRR Results Required" })]
-    public string Indicator_Status { get; set; }
+    public string IndicatorStatus { get; set; }
 
     [AeFormCategory("Indicator Details", 5)]
     [AeLabel(row: "1", column: "2", isDropDown: true, placeholder: "Please Select")]
     [MaxLength(400)]
-    public string Outcome_Level_DESC { get; set; }
+    public string OutcomeLevelDESC { get; set; }
 
     [AeFormCategory("Indicator Details", 5)]
     [AeLabel(row: "1", column: "2")]
     [MaxLength(1000)]
-    public string Program_Output_Or_Outcome_DESC { get; set; }
+    public string ProgramOutputOrOutcomeDESC { get; set; }
 
     [AeFormCategory("Indicator Details", 5)]
     [AeLabel(row: "3", column: "1")]
     [MaxLength(4000)]
-    public string Indicator_DESC { get; set; }
+    public string IndicatorDESC { get; set; }
 
     [AeFormCategory("Indicator Details", 5)]
     [AeLabel(row: "4", column: "1", isDropDown: true, placeholder: "Please Select")]
     [MaxLength(1000)]
-    public string Source_Of_Indicator_DESC { get; set; }
+    public string SourceOfIndicatorDESC { get; set; }
 
     [AeFormCategory("Indicator Details", 5)]
     [AeLabel(row: "4", column: "2", isDropDown: true, placeholder: "Please Select")]
     [MaxLength(1000)]
-    public string Source_Of_Indicator2_DESC { get; set; }
+    public string SourceOfIndicator2DESC { get; set; }
 
     [AeFormCategory("Indicator Details", 5)]
     [AeLabel(row: "4", column: "3", isDropDown: true, placeholder: "Please Select")]
     [MaxLength(1000)]
-    public string Source_Of_Indicator3_DESC { get; set; }
+    public string SourceOfIndicator3DESC { get; set; }
 
     [AeFormCategory("Indicator Details", 5)]
     [AeLabel(row: "7", column: "1", isDropDown: true, placeholder: "Please Select")]
     [MaxLength(50)]
-    public string Can_Report_On_Indicator { get; set; }
+    public string CanReportOnIndicator { get; set; }
 
     [AeFormCategory("Indicator Details", 5)]
     [AeLabel(row: "7", column: "2", isDropDown: true, placeholder: "Please Select")]
     [MaxLength(100)]
-    public string Cannot_Report_On_Indicator { get; set; }
+    public string CannotReportOnIndicator { get; set; }
 
     [AeFormCategory("Indicator Details", 5)]
     [AeLabel(row: "8", column: "1")]
     [MaxLength(4000)]
-    public string DRF_Indicator_No { get; set; }
+    public string DRFIndicatorNo { get; set; }
 
-        
+
     [AeFormCategory("Indicator Details", 5)]
     [AeLabel(row: "9", column: "1")]
     [MaxLength(1000)]
-    public string Branch_Optional_DESC { get; set; }
+    public string BranchOptionalDESC { get; set; }
 
     [AeFormCategory("Indicator Details", 5)]
     [AeLabel(row: "9", column: "2")]
     [MaxLength(1000)]
-    public string Sub_Program { get; set; }
+    public string SubProgram { get; set; }
 
     [AeFormCategory("Indicator Details", 5)]
     [AeLabel(row: "10", column: "1", isDropDown: true, placeholder: "Please Select")]
     [MaxLength(1000)]
-    public string Indicator_Category_DESC { get; set; }
+    public string IndicatorCategoryDESC { get; set; }
 
     [AeFormCategory("Indicator Details", 5)]
     [AeLabel(row: "10", column: "2", isDropDown: true, placeholder: "Please Select")]
     [MaxLength(1000)]
-    public string Indicator_Direction_DESC { get; set; }
+    public string IndicatorDirectionDESC { get; set; }
 
 
     [AeLabel(row: "11", column: "1")]
     [MaxLength(4000)]
     [AeFormCategory("Methodology", 10)]
-    public string Indicator_Rationale_DESC { get; set; }
+    public string IndicatorRationaleDESC { get; set; }
 
     [AeLabel(row: "12", column: "1")]
     [AeFormCategory("Methodology", 10)]
     [MaxLength(2000)]
-    public string Indicator_Calculation_Formula_NUM { get; set; }
+    public string IndicatorCalculationFormulaNUM { get; set; }
 
     [AeLabel(row: "13", column: "1")]
     [AeFormCategory("Methodology", 10)]
     [MaxLength(4000)]
-    public string Measurement_Strategy { get; set; }
+    public string MeasurementStrategy { get; set; }
 
     [AeLabel(row: "14", column: "1")]
     [AeFormCategory("Methodology", 10)]
     [MaxLength(1000)]
-    public string Baseline_DESC { get; set; }
+    public string BaselineDESC { get; set; }
     [AeLabel(row: "14", column: "2")]
     [AeFormCategory("Methodology", 10)]
     [MaxLength(100)]
-    public string Date_Of_Baseline_DT { get; set; }
+    public string DateOfBaselineDT { get; set; }
 
     [AeLabel(row: "15", column: "1")]
     [AeFormCategory("Methodology", 10)]
     [MaxLength(4000)]
-    public string Notes_Definitions { get; set; }
+    public string NotesDefinitions { get; set; }
 
     [AeLabel(row: "16", column: "1")]
     [AeFormCategory("Methodology", 10)]
     [MaxLength(1000)]
-    public string Data_Source_DESC { get; set; }
+    public string DataSourceDESC { get; set; }
     [AeLabel(row: "16", column: "2")]
     [AeFormCategory("Methodology", 10)]
     [MaxLength(1000)]
-    public string Data_Owner_NAME { get; set; }
+    public string DataOwnerNAME { get; set; }
 
 
     [AeLabel(row: "17", column: "1", isDropDown: true, placeholder: "Please Select")]
     [MaxLength(1000)]
     [AeFormCategory("Methodology", 10)]
-    public string Frequency_DESC { get; set; }
+    public string FrequencyDESC { get; set; }
     [AeLabel(row: "17", column: "2", isDropDown: true, placeholder: "Please Select")]
     [MaxLength(1000)]
     [AeFormCategory("Methodology", 10)]
-    public string Data_Type_DESC { get; set; }
+    public string DataTypeDESC { get; set; }
 
     [AeLabel(row: "18", column: "1")]
     [MaxLength(8000)]
     [AeFormCategory("Methodology", 10)]
-    public string Methodology_How_Will_The_Indicator_Be_Measured { get; set; }
+    public string MethodologyHowWillTheIndicatorBeMeasured { get; set; }
 
     [AeLabel(row: "19", column: "1", isDropDown: true, placeholder: "Please Select")]
     [MaxLength(1000)]
     [AeFormCategory("Target", 20)]
-    public string Target_Type_DESC { get; set; }
+    public string TargetTypeDESC { get; set; }
     [AeLabel(row: "19", column: "2")]
     [AeFormCategory("Target", 20)]
     [MaxLength(4000)]
-    public string Target_DESC { get; set; }
+    public string TargetDESC { get; set; }
     [AeLabel(row: "19", column: "3")]
     [AeFormCategory("Target", 20)]
-    public DateTime? Date_To_Achieve_Target_DT { get; set; }
+    public DateTime? DateToAchieveTargetDT { get; set; }
 
 
     [AeLabel(row: "20", column: "1")]
     [AeFormCategory("Actual Results", 30)]
     [MaxLength(500)]
-    public string Result_DESC { get; set; }
+    public string ResultDESC { get; set; }
     [AeLabel(row: "20", column: "2")]
     [AeFormCategory("Actual Results", 30)]
-    public DateTime? Date_Result_Collected { get; set; }
+    public DateTime? DateResultCollected { get; set; }
     [AeLabel(row: "20", column: "3", isDropDown: true, placeholder: "Please Select")]
     [MaxLength(1000)]
     [AeFormCategory("Actual Results", 30)]
-    public string Target_Met { get; set; }
+    public string TargetMet { get; set; }
 
 
     [AeLabel(row: "21", column: "1")]
@@ -176,12 +176,12 @@ public class PIP_IndicatorAndResults
     [MaxLength(8000)]
     [AeLabel(row: "22", column: "1")]
     [AeFormCategory("Actual Results", 30)]
-    public string Midyear_Results { get; set; }
+    public string MidyearResults { get; set; }
 
     [AeFormIgnore]
     [MaxLength(8000)]
     [AeFormCategory("Actual Results", 30)]
-    public string Trend_Rationale { get; set; }
+    public string TrendRationale { get; set; }
 
 
     [AeFormIgnore]
@@ -192,29 +192,29 @@ public class PIP_IndicatorAndResults
 
 
     [AeFormIgnore]
-    public string Last_Updated_UserId { get; set; }
+    public string LastUpdatedUserId { get; set; }
 
     [AeLabel(row: "28", column: "1")]
     [AeFormCategory("Latest Update Information", 60)]
     [NotMapped]
-    [Editable(false)] public string Last_Updated_UserName { get; set; }
+    [Editable(false)] public string LastUpdatedUserName { get; set; }
 
 
 
 
     [AeLabel(row: "28", column: "2")]
     [AeFormCategory("Latest Update Information", 60)]
-    [Required] public DateTime Date_Updated_DT { get; set; }
+    [Required] public DateTime DateUpdatedDT { get; set; }
 
 
-    public PIP_Tombstone PIP_Tombstone { get; set; }
+    public PIPTombstone PIPTombstone { get; set; }
 
-        
 
-    public PIP_FiscalYears FiscalYear { get; set; }
+
+    public PIPFiscalYears FiscalYear { get; set; }
 
     [AeFormIgnore]
-    public DateTime Last_Updated_DT { get; set; }
+    public DateTime LastUpdatedDT { get; set; }
 
     [AeFormIgnore]
     [Timestamp]

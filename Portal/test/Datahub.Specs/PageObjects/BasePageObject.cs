@@ -27,8 +27,8 @@ public abstract class BasePageObject
     public IBrowser Browser { get; }
     public string Path { get; }
 
-    public IPage Page 
-    { 
+    public IPage Page
+    {
         get
         {
             if (_page is null)

@@ -35,7 +35,7 @@ public class PackageGenerator
         dict["name"] = fieldValues.ObjectId;
 
         // take title english for general title
-        dict["title"] = fieldValues["title_translated_en"]?.Value_TXT ?? string.Empty;
+        dict["title"] = fieldValues["title_translated_en"]?.ValueTXT ?? string.Empty;
 
         // private
         dict["private"] = @private;
@@ -48,9 +48,9 @@ public class PackageGenerator
 
         dict["restrictions"] = "unrestricted";
         dict["owner_org"] = "9391E0A2-9717-4755-B548-4499C21F917B";
-        dict["date_published"] = fieldValues["date_published"]?.Value_TXT ?? DateTime.UtcNow.ToString("yyyy-MM-dd");
+        dict["date_published"] = fieldValues["date_published"]?.ValueTXT ?? DateTime.UtcNow.ToString("yyyy-MM-dd");
 
-        var requiredFields = fieldValues.Where(f => allFields || f.FieldDefinition?.Required_FLAG == true);
+        var requiredFields = fieldValues.Where(f => allFields || f.FieldDefinition?.RequiredFLAG == true);
         var agents = InstantiateAgents(requiredFields).ToList();
         foreach (var agent in agents)
         {
@@ -91,12 +91,12 @@ public class PackageGenerator
             var matchingAgent = _fieldAgents.FirstOrDefault(a => a.Matches(definition));
             if (matchingAgent != null)
             {
-                var (append, agent) = matchingAgent.Instantiate(definition.Field_Name_TXT, fv.Value_TXT);
+                var (append, agent) = matchingAgent.Instantiate(definition.FieldNameTXT, fv.ValueTXT);
                 if (append)
                 {
                     yield return agent;
                 }
-            }                
+            }
         }
     }
 }

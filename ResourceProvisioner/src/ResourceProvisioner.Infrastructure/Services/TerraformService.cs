@@ -16,7 +16,7 @@ public class TerraformService : ITerraformService
 {
     public const string TerraformVersionToken = "{{version}}";
     public const string TerraformBranchToken = "{{branch}}";
-    
+
     private readonly ILogger<TerraformService> _logger;
     internal static readonly List<string> EXCLUDED_FILE_EXTENSIONS = new(new[] { ".md" });
     private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
@@ -203,7 +203,7 @@ public class TerraformService : ITerraformService
             await File.WriteAllTextAsync(variablesFilePath,
                 JsonSerializer.Serialize(missingVariables
                     .Select(missingVariable => (
-                        missingVariable.Key, 
+                        missingVariable.Key,
                         ComputeVariableValue(terraformWorkspace, missingVariable.Key, missingVariable.Value.Value, missingVariable.Value.isRequired)))
                     .Where(mv => mv.Item2 != null)
                     .ToDictionary(mv => mv.Key, mv => mv.Item2))
@@ -235,11 +235,11 @@ public class TerraformService : ITerraformService
             TerraformVariables.ProjectAcronym => terraformWorkspace.Acronym,
             TerraformVariables.BudgetAmount => terraformWorkspace.BudgetAmount,
             TerraformVariables.StorageSizeLimitInTb => terraformWorkspace.StorageSizeLimitInTB,
-            
+
             // optional variables
             TerraformVariables.AzureLogWorkspaceId => string.Empty,
             TerraformVariables.AllowSourceIp => string.Empty,
-            _ => isRequired 
+            _ => isRequired
                 ? throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<{variableType}> in configuration")
                 : null
@@ -291,11 +291,11 @@ public class TerraformService : ITerraformService
             TerraformVariables.BackendResourceGroupName => _resourceProvisionerConfiguration.Terraform.Backend
                 .ResourceGroupName,
             TerraformVariables.BackendStorageAccountName =>
-                $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}{_resourceProvisionerConfiguration.Terraform.Variables.environment_name}terraformbackend",
+                $"{_resourceProvisionerConfiguration.Terraform.Variables.resourcePrefix}{_resourceProvisionerConfiguration.Terraform.Variables.environmentName}terraformbackend",
             TerraformVariables.BackendContainerName =>
-                $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-project-states",
+                $"{_resourceProvisionerConfiguration.Terraform.Variables.resourcePrefix}-project-states",
             TerraformVariables.BackendKeyName =>
-                $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-{workspaceName}.tfstate",
+                $"{_resourceProvisionerConfiguration.Terraform.Variables.resourcePrefix}-{workspaceName}.tfstate",
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<string> in configuration")
         });

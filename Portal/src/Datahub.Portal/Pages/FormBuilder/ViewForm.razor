@@ -11,9 +11,9 @@
         <AeCard>
             <ChildContent>
                 <div style="margin: 1rem">
-                    <h2>@_form.Title_DESC</h2>
+                    <h2>@_form.TitleDESC</h2>
 
-                    <p>@_form.Description_DESC</p>
+                    <p>@_form.DescriptionDESC</p>
 
                     <h3>Form Fields</h3>
 
@@ -97,26 +97,26 @@
         "Section", "Field", "Mandatory", "Field Type", "Extension"
     };
 
-    private List<Func<WebForm_Field, string>> accessorFunctions = new List<Func<WebForm_Field, string>>()
+    private List<Func<WebFormField, string>> accessorFunctions = new List<Func<WebFormField, string>>()
     {
-        (f => f.Section_DESC),
-        (f => f.Field_DESC),
-        (f => f.Mandatory_FLAG? "Yes": "No" ),
-        (f => f.Type_CD),
+        (f => f.SectionDESC),
+        (f => f.FieldDESC),
+        (f => f.MandatoryFLAG? "Yes": "No" ),
+        (f => f.TypeCD),
         (f => f.ExtensionLabel)
     };
 
-    private List<Func<WebForm_Field, RenderFragment>> renderFunctions = new List<Func<WebForm_Field, RenderFragment>>()
+    private List<Func<WebFormField, RenderFragment>> renderFunctions = new List<Func<WebFormField, RenderFragment>>()
     {
         null,
-        (f => @<a href=@($"/w/{f.WebForm.Project.Project_Acronym_CD}/forms/fields/{f.FieldID}")>@f.Field_DESC</a>),
-        (f => f.Mandatory_FLAG? @<MudIcon Icon="fas fa-asterisk" /> : @<span></span>
+        (f => @<a href=@($"/w/{f.WebForm.Project.ProjectAcronymCD}/forms/fields/{f.FieldID}")>@f.FieldDESC</a>),
+        (f => f.MandatoryFLAG? @<MudIcon Icon="fas fa-asterisk" /> : @<span></span>
     ),
         null,
         null
     };
 
-    private List<WebForm_Field> _formFields = new List<WebForm_Field>();
+    private List<WebFormField> _formFields = new List<WebFormField>();
     private FieldCodeGenerator _fieldCodeGenerator = new(s => 0);
     private List<string> _sections = new List<string>();
 
@@ -130,12 +130,12 @@
             _form = await projectContext.WebForms
                 .Include(f => f.Fields)
                 .Include(f => f.Project)
-                .SingleOrDefaultAsync(f => f.WebForm_ID == _formId.Value);
+                .SingleOrDefaultAsync(f => f.WebFormID == _formId.Value);
             
             if (_form != null)
             {
                 _formFields = _form.Fields;
-                _sections = _formFields.Select(f => f.Section_DESC)
+                _sections = _formFields.Select(f => f.SectionDESC)
                                        .Where(s => !string.IsNullOrEmpty(s))
                                        .Distinct()
                                        .ToList();
@@ -151,7 +151,7 @@
 
     private bool HasFields => _formFields?.Count > 0;
 
-    private IEnumerable<WebForm_Field> GetFieldsBySection() => _formFields.OrderBy(f => f.Section_DESC ?? "A");
+    private IEnumerable<WebFormField> GetFieldsBySection() => _formFields.OrderBy(f => f.SectionDESC ?? "A");
 
     public void Dispose() { projectContext.Dispose(); }
 }

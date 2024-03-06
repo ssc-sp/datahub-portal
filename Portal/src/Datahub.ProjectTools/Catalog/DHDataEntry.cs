@@ -7,12 +7,12 @@ namespace Datahub.ProjectTools.Catalog;
 
 #nullable enable
 public class DHDataEntry : ActiveGitModuleResource
-{ 
+{
 
     private readonly IDbContextFactory<DatahubProjectDBContext> dbFactoryProject;
     private readonly bool _isServiceConfigured;
 
-    public DHDataEntry(IDbContextFactory<DatahubProjectDBContext> dbFactoryProject,            
+    public DHDataEntry(IDbContextFactory<DatahubProjectDBContext> dbFactoryProject,
         IOptions<DataProjectsConfiguration> configuration)
     {
         this.dbFactoryProject = dbFactoryProject;
@@ -27,7 +27,7 @@ public class DHDataEntry : ActiveGitModuleResource
         await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
         // var serviceRequests = Project.ProjectRequestAudits;
         _dataEntryServiceRequested = false; //serviceRequests.Any(r => r.ServiceType == IRequestManagementService. && r.Is_Completed == null);
-        _dataEntryServiceCreated = !string.IsNullOrEmpty(Project.WebForms_URL);
+        _dataEntryServiceCreated = !string.IsNullOrEmpty(Project.WebFormsURL);
         Parameters.Add(nameof(DataEntry.Project), Project);
     }
 

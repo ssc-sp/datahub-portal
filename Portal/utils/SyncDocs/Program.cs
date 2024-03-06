@@ -9,8 +9,6 @@
 using SyncDocs;
 using Microsoft.Extensions.Configuration;
 using CommandLine;
-using Microsoft.Extensions.Options;
-using System.Runtime.CompilerServices;
 
 const string SIDEBAR = "_sidebar.md";
 const string SIDEBAR_META = "_sidebar.md.yaml";
@@ -28,7 +26,7 @@ var config = builder.Build();
 var configParams = config.Get<ConfigParams>() ?? new();
 
 await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(args)
-.WithParsedAsync<TranslateOptions>(async options => 
+.WithParsedAsync<TranslateOptions>(async options =>
 {
     try
     {
@@ -53,7 +51,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
 
         if (options.Validate)
         {
-            await IteratePath(options.Path, BuildExcluder(configParams), async (_,_) => { }, markdownProcessor.ValidateFile);
+            await IteratePath(options.Path, BuildExcluder(configParams), async (_, _) => { }, markdownProcessor.ValidateFile);
         }
 
         if (options.Validate && markdownProcessor.ValidationErrors.Count > 0)
@@ -83,7 +81,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
         Console.WriteLine($"Error processing translations: {ex.Message}");
     }
 }))
-.WithParsedAsync<GensidebarOptions>(async options => 
+.WithParsedAsync<GensidebarOptions>(async options =>
 {
     try
     {
@@ -91,7 +89,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
         var topLevelfolders = new List<string>();
         var topLevelfiles = new List<string>();
         // iterate the provided source folder
-        Func<string,bool> excluder = n => Path.GetFileName(n) == SIDEBAR || BuildExcluder(configParams)(n);
+        Func<string, bool> excluder = n => Path.GetFileName(n) == SIDEBAR || BuildExcluder(configParams)(n);
         await IteratePath(options.Path, excluder, AddAsync(topLevelfolders!), AddAsync(topLevelfiles), options.TopLevelDepth);
         var gen = new SidebarGenerator();
         var topSidebar = gen.GenerateTopLevel(options.Path, topLevelfiles, topLevelfolders, options.Profile);
@@ -124,7 +122,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
                 Console.WriteLine($"Generated sidebar {sidebarPath}");
             }
         }
-    } 
+    }
     catch (Exception ex)
     {
         Console.WriteLine($"Error processing sidebar: {ex.Message}");
@@ -132,7 +130,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
 });
 
 #region util functions
-static Task IteratePath(string path, Func<string, bool> excludeFunc, Func<string,string, Task> addFolder, Func<string,string, Task> addFile, int maxRecursion = int.MaxValue, int recursionLevel = 0)
+static Task IteratePath(string path, Func<string, bool> excludeFunc, Func<string, string, Task> addFolder, Func<string, string, Task> addFile, int maxRecursion = int.MaxValue, int recursionLevel = 0)
     => IteratePath2(path, path, excludeFunc, addFolder, addFile, maxRecursion, recursionLevel);
 
 static string GetRelativePath(string current, string root)
@@ -142,7 +140,7 @@ static string GetRelativePath(string current, string root)
     return path1.MakeRelativeUri(path2).OriginalString;
 }
 
-static async Task IteratePath2(string root, string path, Func<string, bool> excludeFunc, Func<string,string,Task> addFolder, Func<string,string,Task> addFile, int maxRecursion = int.MaxValue, int recursionLevel = 0)
+static async Task IteratePath2(string root, string path, Func<string, bool> excludeFunc, Func<string, string, Task> addFolder, Func<string, string, Task> addFile, int maxRecursion = int.MaxValue, int recursionLevel = 0)
 {
     foreach (var dir in Directory.GetDirectories(path))
     {
@@ -176,9 +174,9 @@ static async Task CleanupTargetDirectory(ConfigParams configParams, string path)
     var folders = new List<string>();
     var files = new List<string>();
     //cleanup French folder
-    await IteratePath(Path.Combine(path, configParams.Target), s => false, (_,f) => { folders.Add(f); return Task.CompletedTask; }, (_,f) => { files.Add(f); return Task.CompletedTask; });
+    await IteratePath(Path.Combine(path, configParams.Target), s => false, (_, f) => { folders.Add(f); return Task.CompletedTask; }, (_, f) => { files.Add(f); return Task.CompletedTask; });
     foreach (var item in files.Where(f => Path.GetExtension(f) == ".md"))
-    {   
+    {
         if (MarkdownProcessor.CheckIfDraft(item) && !string.Equals(Path.GetFileName(item), NAVBAR, StringComparison.InvariantCultureIgnoreCase))
         {
             Console.WriteLine($"Deleting draft file {item}");
@@ -190,7 +188,7 @@ static async Task CleanupTargetDirectory(ConfigParams configParams, string path)
         if (Directory.EnumerateFiles(folder).Count() == 0)
         {
             Console.WriteLine($"Deleting empty folder {folder}");
-            Directory.Delete(folder);               
+            Directory.Delete(folder);
         }
     }
 }
@@ -198,7 +196,7 @@ static async Task CleanupTargetDirectory(ConfigParams configParams, string path)
 static Func<string, bool> BuildExcluder(ConfigParams config)
 {
     var excludeSet = config.GetExcludedFolders().Select(s => s.ToLower()).ToHashSet();
-    return n => excludeSet.Contains(n.ToLower()) || string.Equals(Path.GetFileName(n),NAVBAR,StringComparison.InvariantCultureIgnoreCase);
+    return n => excludeSet.Contains(n.ToLower()) || string.Equals(Path.GetFileName(n), NAVBAR, StringComparison.InvariantCultureIgnoreCase);
 }
 
 static int FolderDepth(string path)
@@ -214,7 +212,7 @@ static int FolderDepth(string path)
 
 static Func<string, string, Task> AddAsync(List<string> list)
 {
-    return (relative,s) =>
+    return (relative, s) =>
     {
         list.Add(s);
         return Task.CompletedTask;
@@ -224,7 +222,7 @@ static Func<string, string, Task> AddAsync(List<string> list)
 static IEnumerable<GlossaryTerm> GetGlossary(string basePath)
 {
     var glossaryPath = Path.Combine(basePath, "glossary.csv");
-    
+
     if (!File.Exists(glossaryPath))
         yield break;
 
@@ -250,7 +248,7 @@ public class TranslateOptions
     [Option("deepl", Required = false)]
     public string? DeeplKey { get; set; } = null;
 
-    [Option('f',"FreeAPI", Required = false)]
+    [Option('f', "FreeAPI", Required = false)]
     public bool UseFreeAPI { get; set; } = false;
 
     [Option('p', "profile", Required = true)]
@@ -275,7 +273,7 @@ public class GensidebarOptions
 
     [Option('t', "topLevel", Required = false)]
     public int TopLevelDepth { get; set; } = 1;
-    
+
     [Option('p', "profile", Required = true)]
     public string Profile { get; set; } = "ssc";
 }

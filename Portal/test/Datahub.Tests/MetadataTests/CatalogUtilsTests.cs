@@ -10,7 +10,7 @@ namespace Datahub.Tests.MetadataTests;
 public class CatalogUtilsTests
 {
     [Fact]
-    public void GroupResults_CountAndPickedResults_AsExpected()
+    public void GroupResultsCountAndPickedResultsAsExpected()
     {
         var targetGroup = Guid.NewGuid();
         var results = new List<CatalogObjectResult>
@@ -21,7 +21,7 @@ public class CatalogUtilsTests
         };
 
         var grouped = CatalogUtils.GroupResults(results, CatalogObjectLanguage.English);
-            
+
         Assert.NotNull(grouped);
         Assert.Equal(2, grouped.Count);
         Assert.Equal(1, grouped[0].CatalogObjectId);
@@ -29,7 +29,7 @@ public class CatalogUtilsTests
     }
 
     [Fact]
-    public void GroupResults_ResultsOrder_AsExpected()
+    public void GroupResultsResultsOrderAsExpected()
     {
         var targetGroup = Guid.NewGuid();
         var results = new List<CatalogObjectResult>
@@ -48,7 +48,7 @@ public class CatalogUtilsTests
     }
 
     [Fact]
-    public void GroupResults_PlantRResults_AsExpected()
+    public void GroupResultsPlantRResultsAsExpected()
     {
         var targetGroup = Guid.NewGuid();
         var results = new List<CatalogObjectResult>

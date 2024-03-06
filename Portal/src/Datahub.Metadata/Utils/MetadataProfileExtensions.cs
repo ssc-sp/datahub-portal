@@ -14,7 +14,7 @@ public static class MetadataProfileExtensions
         {
             foreach (var s in profile.Sections)
             {
-                foreach (var f in s.Fields.Where(f => f.Required_FLAG))
+                foreach (var f in s.Fields.Where(f => f.RequiredFLAG))
                 {
                     required.Add(f.FieldDefinitionId);
                 }
@@ -25,16 +25,16 @@ public static class MetadataProfileExtensions
 
     public static HashSet<int> GetRequiredFieldSet(this MetadataSection section)
     {
-        return new(section.Fields.Where(f => f.Required_FLAG).Select(f => f.FieldDefinitionId));
+        return new(section.Fields.Where(f => f.RequiredFLAG).Select(f => f.FieldDefinitionId));
     }
 
     public static HashSet<int> GetNotRequiredFieldSet(this MetadataSection section)
     {
-        return new(section.Fields.Where(f => !f.Required_FLAG).Select(f => f.FieldDefinitionId));
+        return new(section.Fields.Where(f => !f.RequiredFLAG).Select(f => f.FieldDefinitionId));
     }
 
     public static bool HasOptionalFields(this MetadataProfile profile)
     {
-        return profile.Sections.Any(s => s.Fields.Any(f => !f.Required_FLAG));
+        return profile.Sections.Any(s => s.Fields.Any(f => !f.RequiredFLAG));
     }
 }

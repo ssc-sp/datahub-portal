@@ -1,6 +1,5 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
-using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Utils;
 using Datahub.ProjectTools.Services;
@@ -29,8 +28,8 @@ public class ResourceMessagingService : IResourceMessagingService
             ConnectionString = _datahubPortalConfiguration.DatahubStorageQueue.ConnectionString,
             Name = _datahubPortalConfiguration.DatahubStorageQueue.QueueNames.ResourceRunRequest,
         });
-        
-        
+
+
         await queue.EnqueueAsync(project);
     }
 
@@ -41,16 +40,16 @@ public class ResourceMessagingService : IResourceMessagingService
             ConnectionString = _datahubPortalConfiguration.DatahubStorageQueue.ConnectionString,
             Name = _datahubPortalConfiguration.DatahubStorageQueue.QueueNames.DeleteRunRequest,
         });
-        
+
         await queue.EnqueueAsync(project);
-        
+
         // Update Deleted_DT on the project
         using var ctx = await _dbContextFactory.CreateDbContextAsync();
         var projectToDeleted = await ctx.Projects
-            .FirstOrDefaultAsync(p => p.Project_ID == projectId);
+            .FirstOrDefaultAsync(p => p.ProjectID == projectId);
         if (projectToDeleted != null)
         {
-            projectToDeleted.Deleted_DT = DateTime.UtcNow;
+            projectToDeleted.DeletedDT = DateTime.UtcNow;
             ctx.Projects.Update(projectToDeleted);
             await ctx.SaveChangesAsync();
         }
@@ -75,20 +74,20 @@ public class ResourceMessagingService : IResourceMessagingService
             .Include(p => p.Users)
             .ThenInclude(u => u.PortalUser)
             .Include(p => p.Resources)
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-        
-        if(project == null)
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectAcronym);
+
+        if (project == null)
         {
             throw new ProjectNotFoundException($"Project {projectAcronym} not found.");
         }
-            
-       
+
+
         var users = project.Users
             .Where(u => u.PortalUser != null)
             .Select(u => new TerraformUser
             {
-                ObjectId = u.PortalUser.GraphGuid, 
-                Email = u.PortalUser.Email, 
+                ObjectId = u.PortalUser.GraphGuid,
+                Email = u.PortalUser.Email,
                 Role = RequestManagementService.GetTerraformUserRole(u)
             })
             .ToList();

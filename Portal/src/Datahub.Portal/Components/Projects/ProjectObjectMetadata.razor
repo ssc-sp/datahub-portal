@@ -21,7 +21,7 @@
                           DefaultMetadataId=@DefaultMetadaId
                           ProfileName=@ProfileName
                           Location=@Location
-                          ProjectId=@_project.Project_ID
+                          ProjectId=@_project.ProjectID
                           ObjectType=@ObjectType
                           SecurityClass=@GetProjectSensitivity()
                           SaveButtonLabel=@GetSaveButtonLabel()
@@ -66,17 +66,17 @@
     public bool ValidateRequired { get; set; } = true;
 
     [Parameter]
-    public EventCallback<Datahub_Project> OnProjectLoaded { get; set; }
+    public EventCallback<DatahubProject> OnProjectLoaded { get; set; }
 
     [Parameter]
-    public EventCallback<Datahub_Project> OnMetadataSaved { get; set; }
+    public EventCallback<DatahubProject> OnMetadataSaved { get; set; }
 
     [Parameter]
     public bool AllowDiscard { get; set; } = true;
 
     private string DefaultMetadaId => ObjectId != ProjectAcronym ? ProjectAcronym : null;
 
-    private Datahub_Project _project;
+    private DatahubProject _project;
     private int? _sector;
     private int? _branch;
     private ObjectMetadataEditor _editor;
@@ -86,7 +86,7 @@
         using var ctx = await ContextFactory.CreateDbContextAsync();
         _project = await ctx.Projects.Include(p => p.Resources)
             .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == ProjectAcronym);
         if (_project is not null)
         {
             await TryReadProjectSectorAndBranch();
@@ -97,19 +97,19 @@
     private async Task TryReadProjectSectorAndBranch()
     {
         var sectors = await OrganizationLevelsService.GetSectors();
-        _sector = FindOrganizationLevelId(sectors, _project.Sector_Name);
+        _sector = FindOrganizationLevelId(sectors, _project.SectorName);
         var branches = await OrganizationLevelsService.GetBranches();
-        _branch = FindOrganizationLevelId(branches, _project.Branch_Name);
+        _branch = FindOrganizationLevelId(branches, _project.BranchName);
     }
 
-    private int? FindOrganizationLevelId(List<OrganizationLevel> levels, string value)
+    private int? FindOrganizationLevelId(List<DHOrganizationLevel> levels, string value)
     {
         if (!string.IsNullOrEmpty(value))
             return levels.FirstOrDefault(l => MatchesLevelWithName(l, value))?.Id;
         return default;
     }
 
-    private bool MatchesLevelWithName(OrganizationLevel level, string value)
+    private bool MatchesLevelWithName(DHOrganizationLevel level, string value)
     {
         var mode = StringComparison.OrdinalIgnoreCase;
         return value.Equals(level.EnglishLabel, mode) ||
@@ -120,20 +120,20 @@
 
     private void OnMetadataCreated()
     {
-        if (string.IsNullOrEmpty(_editor.GetValue(FieldNames.name_en)))
-            _editor.SetValue(FieldNames.name_en, _project.Project_Name);
+        if (string.IsNullOrEmpty(_editor.GetValue(FieldNames.nameEn)))
+            _editor.SetValue(FieldNames.nameEn, _project.Project_Name);
 
-        if (string.IsNullOrEmpty(_editor.GetValue(FieldNames.name_fr)))
-            _editor.SetValue(FieldNames.name_fr, _project.Project_Name_Fr);
+        if (string.IsNullOrEmpty(_editor.GetValue(FieldNames.nameFr)))
+            _editor.SetValue(FieldNames.nameFr, _project.ProjectNameFr);
 
         if (string.IsNullOrEmpty(_editor.GetValue(FieldNames.acronym)))
-            _editor.SetValue(FieldNames.acronym, _project.Project_Acronym_CD);
+            _editor.SetValue(FieldNames.acronym, _project.ProjectAcronymCD);
 
-        if (string.IsNullOrEmpty(_editor.GetValue(FieldNames.description_en)))
-            _editor.SetValue(FieldNames.description_en, _project.Project_Summary_Desc);
+        if (string.IsNullOrEmpty(_editor.GetValue(FieldNames.descriptionEn)))
+            _editor.SetValue(FieldNames.descriptionEn, _project.ProjectSummaryDesc);
 
-        if (string.IsNullOrEmpty(_editor.GetValue(FieldNames.description_fr)))
-            _editor.SetValue(FieldNames.description_fr, _project.Project_Summary_Desc_Fr);
+        if (string.IsNullOrEmpty(_editor.GetValue(FieldNames.descriptionFr)))
+            _editor.SetValue(FieldNames.descriptionFr, _project.ProjectSummaryDescFr);
     }
 
     private async Task HandleSave(FieldValueContainer values)
@@ -147,27 +147,27 @@
 
             var sector = _editor.GetSelectedChoices("sector").FirstOrDefault();
             if (sector is not null)
-                _project.Sector_Name = sector.Label;
+                _project.SectorName = sector.Label;
 
             var branch = _editor.GetSelectedChoices("branch").FirstOrDefault();
             if (branch is not null)
-                _project.Branch_Name = branch.Label;
+                _project.BranchName = branch.Label;
 
-            var name_en = _editor.GetValue(FieldNames.name_en);
+            var name_en = _editor.GetValue(FieldNames.nameEn);
             if (!string.IsNullOrEmpty(name_en))
                 _project.Project_Name = name_en;
 
-            var name_fr = _editor.GetValue(FieldNames.name_fr);
+            var name_fr = _editor.GetValue(FieldNames.nameFr);
             if (!string.IsNullOrEmpty(name_fr))
-                _project.Project_Name_Fr = name_fr;
+                _project.ProjectNameFr = name_fr;
 
-            var desc_en = _editor.GetValue(FieldNames.description_en);
+            var desc_en = _editor.GetValue(FieldNames.descriptionEn);
             if (!string.IsNullOrEmpty(desc_en))
-                _project.Project_Summary_Desc = desc_en;
+                _project.ProjectSummaryDesc = desc_en;
 
-            var desc_fr = _editor.GetValue(FieldNames.description_fr);
+            var desc_fr = _editor.GetValue(FieldNames.descriptionFr);
             if (!string.IsNullOrEmpty(desc_en))
-                _project.Project_Summary_Desc_Fr = desc_fr;
+                _project.ProjectSummaryDescFr = desc_fr;
 
             using var ctx = await ContextFactory.CreateDbContextAsync();
             ctx.Attach(_project);
@@ -177,11 +177,11 @@
             var catalogObject = new Core.Model.Catalog.CatalogObject()
             {
                 ObjectType = Core.Model.Catalog.CatalogObjectType.Workspace,
-                ObjectId = _project.Project_Acronym_CD,
-                Name_English = _project.Project_Name,
-                Name_French = _project.Project_Name_Fr,
-                Desc_English = _project.Project_Summary_Desc,
-                Desc_French = _project.Project_Summary_Desc_Fr
+                ObjectId = _project.ProjectAcronymCD,
+                NameEnglish = _project.Project_Name,
+                NameFrench = _project.ProjectNameFr,
+                DescEnglish = _project.ProjectSummaryDesc,
+                DescFrench = _project.ProjectSummaryDescFr
             };
             await _datahubCatalogSearch.AddCatalogObject(catalogObject);
 
@@ -202,7 +202,7 @@
 
     private string GetProjectSensitivity()
     {
-        var sensitivity = (_project?.Data_Sensitivity ?? "").ToUpper();
+        var sensitivity = (_project?.DataSensitivity ?? "").ToUpper();
         return sensitivity switch
         {
             "CLASSIFIED" or

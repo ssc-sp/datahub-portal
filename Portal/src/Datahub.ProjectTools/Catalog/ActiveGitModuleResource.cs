@@ -1,5 +1,4 @@
-﻿using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.Projects;
+﻿using Datahub.Core.Model.Projects;
 using Microsoft.Graph.Models;
 
 namespace Datahub.ProjectTools.Catalog;
@@ -11,7 +10,7 @@ public abstract class ActiveGitModuleResource : IProjectResource
         return null;
     }
 
-    protected Dictionary<string, object> Parameters =  new();
+    protected Dictionary<string, object> Parameters = new();
 
     public (Type, IDictionary<string, object>)[] GetActiveResources()
     {
@@ -35,7 +34,7 @@ public abstract class ActiveGitModuleResource : IProjectResource
 
     protected virtual bool IsRequestAvailable { get; } = true;
 
-    public Datahub_Project Project { get; private set; }
+    public DatahubProject Project { get; private set; }
 
     public (Type type, IDictionary<string, object> parameters)? GetInactiveResource()
     {
@@ -49,7 +48,7 @@ public abstract class ActiveGitModuleResource : IProjectResource
 
     public abstract string[] GetTags();
 
-    public async Task<bool> InitializeAsync(Datahub_Project project, string? userId, User graphUser, bool isProjectAdmin)
+    public async Task<bool> InitializeAsync(DatahubProject project, string? userId, User graphUser, bool isProjectAdmin)
     {
         if (userId is null)
             return false;

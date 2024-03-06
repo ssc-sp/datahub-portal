@@ -13,10 +13,10 @@
                 <i class="fas fa-file-alt"></i>
                 <span class="upload-text">
                     <AeTypography class="snack-file-name">
-                        @file.filename
+                        @file.Filename
                     </AeTypography>
                     <AeTypography class="file-upload-bytes">
-                        @UploadedByteSize(file.uploadedBytes)
+                        @UploadedByteSize(file.UploadedBytes)
                     </AeTypography>
                 </span>
                 <div class="snack-file-progress">
@@ -42,7 +42,7 @@
 
     private float CalculateProgress(FileMetaData file)
     {
-        return file.bytesToUpload > 0 ? (float) file.uploadedBytes / file.bytesToUpload * 100F : -1F;
+        return file.BytesToUpload > 0 ? (float) file.UploadedBytes / file.BytesToUpload * 100F : -1F;
     }
 
 }

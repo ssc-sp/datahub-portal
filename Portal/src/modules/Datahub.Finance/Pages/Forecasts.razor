@@ -59,7 +59,7 @@
     <MudCard>
         <MudCardContent>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("finance/fundcenters"))">Back</MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo($"finance/summaryforecasts/{_fundCenters[0].FundCenter_ID}"))">Next</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo($"finance/summaryforecasts/{_fundCenters[0].FundCenterID}"))">Next</MudButton>
         </MudCardContent>
     </MudCard>
 }
@@ -122,14 +122,14 @@
 
     private void LoadData(string searchfilter)
     {
-        _fundCenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Where(f => f.FundCenter_ID.ToString() == fundcenterId).ToList();
+        _fundCenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Where(f => f.FundCenterID.ToString() == fundcenterId).ToList();
         _branch = _fundCenters[0].Branch.FCCode;
-        _forecasts = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).ToList();
-        _forecasts.ForEach(c => { if (c.Potential_Hiring_Process != null && c.Potential_Hiring_Process.GetValueOrDefault() > 0) { c.PHP_Values = Finance_Constants.Potential_Hiring_Process.Where(p => p.Id == c.Potential_Hiring_Process.GetValueOrDefault()).SingleOrDefault(); } });
-        _forecasts.ForEach(c => { if (c.Incremental_Replacement != null && c.Incremental_Replacement.GetValueOrDefault() > 0) { c.IR_Values = Finance_Constants.Incremental_Replacements.Where(p => p.Id == c.Incremental_Replacement.GetValueOrDefault()).SingleOrDefault(); } });
-        _forecasts.ForEach(c => { if (c.FTE_Accomodations_Location != null && c.FTE_Accomodations_Location.GetValueOrDefault() > 0) { c.FTE_Accomodations_Location_Values = Finance_Constants.FTE_Intended_Location.Where(p => p.Id == c.FTE_Accomodations_Location.GetValueOrDefault()).SingleOrDefault(); } });
-        _forecasts.ForEach(c => { if (c.FTE_Accomodations_Requirements != null && c.FTE_Accomodations_Requirements.GetValueOrDefault() > 0) { c.FTE_Accomodations_Req_Values = Finance_Constants.FTE_Accomodation_Requirements.Where(p => p.Id == c.FTE_Accomodations_Requirements.GetValueOrDefault()).SingleOrDefault(); } });
-        _forecasts.ForEach(c => { if (c.Position_Workspace_Type != null && c.Position_Workspace_Type.GetValueOrDefault() > 0) { c.Position_Workspace_Type_Values = Finance_Constants.Position_Workspace_Type.Where(p => p.Id == c.Position_Workspace_Type.GetValueOrDefault()).SingleOrDefault(); } });
+        _forecasts = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.IsDeleted).ToList();
+        _forecasts.ForEach(c => { if (c.PotentialHiringProcess != null && c.PotentialHiringProcess.GetValueOrDefault() > 0) { c.PHPValues = Finance_Constants.Potential_Hiring_Process.Where(p => p.Id == c.PotentialHiringProcess.GetValueOrDefault()).SingleOrDefault(); } });
+        _forecasts.ForEach(c => { if (c.IncrementalReplacement != null && c.IncrementalReplacement.GetValueOrDefault() > 0) { c.IRValues = Finance_Constants.Incremental_Replacements.Where(p => p.Id == c.IncrementalReplacement.GetValueOrDefault()).SingleOrDefault(); } });
+        _forecasts.ForEach(c => { if (c.FTEAccomodationsLocation != null && c.FTEAccomodationsLocation.GetValueOrDefault() > 0) { c.FTEAccomodationsLocationValues = Finance_Constants.FTE_Intended_Location.Where(p => p.Id == c.FTEAccomodationsLocation.GetValueOrDefault()).SingleOrDefault(); } });
+        _forecasts.ForEach(c => { if (c.FTEAccomodationsRequirements != null && c.FTEAccomodationsRequirements.GetValueOrDefault() > 0) { c.FTEAccomodationsReqValues = Finance_Constants.FTE_Accomodation_Requirements.Where(p => p.Id == c.FTEAccomodationsRequirements.GetValueOrDefault()).SingleOrDefault(); } });
+        _forecasts.ForEach(c => { if (c.PositionWorkspaceType != null && c.PositionWorkspaceType.GetValueOrDefault() > 0) { c.PositionWorkspaceTypeValues = Finance_Constants.Position_Workspace_Type.Where(p => p.Id == c.PositionWorkspaceType.GetValueOrDefault()).SingleOrDefault(); } });
 
         _formMetadata.Header = string.Empty;
         _formMetadata.SubHeader = Localizer["SFT Details"];
@@ -153,7 +153,7 @@
         var summaryForecast = Context.Forecasts.Where(f => f == forecast).SingleOrDefault();
         if (summaryForecast is not null)
         {
-            summaryForecast.Is_Deleted = true;
+            summaryForecast.IsDeleted = true;
             await Context.TrackSaveChangesAsync(AuditingService);
         }
         _forecast = forecast;
@@ -165,19 +165,19 @@
 
     private List<Func<Forecast, string>> accessorFunctions = new List<Func<Forecast, string>>
     {
-        new Func<Forecast, string>(p => { return p.Employee_Planned_Staffing ?? ""; }),
-        new Func<Forecast, string>(p => { return p.Employee_Position_Number?.ToString() ?? ""; }),
-        new Func<Forecast, string>(p => { return p.Employee_Last_Name ?? ""; }),
-        new Func<Forecast, string>(p => { return p.Employee_First_Name ?? ""; }),
-        new Func<Forecast, string>(p => { return p.Is_Indeterminate ? "True" : "False"; }),
+        new Func<Forecast, string>(p => { return p.EmployeePlannedStaffing ?? ""; }),
+        new Func<Forecast, string>(p => { return p.EmployeePositionNumber?.ToString() ?? ""; }),
+        new Func<Forecast, string>(p => { return p.EmployeeLastName ?? ""; }),
+        new Func<Forecast, string>(p => { return p.EmployeeFirstName ?? ""; }),
+        new Func<Forecast, string>(p => { return p.IsIndeterminate ? "True" : "False"; }),
         new Func<Forecast, string>(p => { return p.Classification; }),
         new Func<Forecast, string>(p => { return p.Fund; }),
-        new Func<Forecast, string>(p => { return p.Start_Date.ToShortDateString(); }),
-        new Func<Forecast, string>(p => { return p.End_Date.ToShortDateString(); }),
+        new Func<Forecast, string>(p => { return p.StartDate.ToShortDateString(); }),
+        new Func<Forecast, string>(p => { return p.EndDate.ToShortDateString(); }),
         new Func<Forecast, string>(p => { return p.FTE.ToString(); }),
         new Func<Forecast, string>(p => { return p.Salary.Value.ToString("C"); }),
-        new Func<Forecast, string>(p => { return p.IR_Values?.EnglishText ?? "N/A"; }),
-        new Func<Forecast, string>(p => { return p.PHP_Values?.EnglishText ?? "N/A"; }),
+        new Func<Forecast, string>(p => { return p.IRValues?.EnglishText ?? "N/A"; }),
+        new Func<Forecast, string>(p => { return p.PHPValues?.EnglishText ?? "N/A"; }),
     };
 
     private void LoadSortExpressions()
@@ -195,7 +195,7 @@
 
     private void CreateNewProject()
     {        
-        _forecast = new Forecast() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, FundCenter = _fundCenters[0], Start_Date = DateTime.Now, End_Date = DateTime.Now };
+        _forecast = new Forecast() { LastUpdatedDT = DateTime.Now, CreatedDT = DateTime.Now, CreatedUserId = _user.Mail, FundCenter = _fundCenters[0], StartDate = DateTime.Now, EndDate = DateTime.Now };
         StateHasChanged();
     }
 
@@ -204,16 +204,16 @@
 
         if (_forecast != null && IsValidSubmission())
         {
-            if (_forecast.Forecast_ID == 0)
+            if (_forecast.ForecastID == 0)
             {
                 _forecast = Context.Forecasts.Add(_forecast).Entity;
             }
-            _forecast.Last_Updated_DT = DateTime.Now;
-            _forecast.Potential_Hiring_Process = _forecast.PHP_Values?.Id ?? null;
-            _forecast.Incremental_Replacement = _forecast.IR_Values?.Id ?? null;
-            _forecast.FTE_Accomodations_Location = _forecast.FTE_Accomodations_Location_Values?.Id ?? null;
-            _forecast.FTE_Accomodations_Requirements = _forecast.FTE_Accomodations_Req_Values?.Id ?? null;
-            _forecast.Position_Workspace_Type = _forecast.Position_Workspace_Type_Values?.Id ?? null;
+            _forecast.LastUpdatedDT = DateTime.Now;
+            _forecast.PotentialHiringProcess = _forecast.PHPValues?.Id ?? null;
+            _forecast.IncrementalReplacement = _forecast.IRValues?.Id ?? null;
+            _forecast.FTEAccomodationsLocation = _forecast.FTEAccomodationsLocationValues?.Id ?? null;
+            _forecast.FTEAccomodationsRequirements = _forecast.FTEAccomodationsReqValues?.Id ?? null;
+            _forecast.PositionWorkspaceType = _forecast.PositionWorkspaceTypeValues?.Id ?? null;
 
             await Context.TrackSaveChangesAsync(AuditingService);
             await UpdateSummaryForecasts();
@@ -234,29 +234,29 @@
 
     private async Task UpdateSummaryForecasts(Forecast forecast = null)
     {
-        var sum = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).Select(t => t.Salary ?? 0).Sum();
-        var fteSum = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).Select(t => t.FTE ?? 0).Sum();
-        var fund = Context.SummaryForecasts.Where(f => f.Fund == _forecast.Fund && f.FundCenter == _forecast.FundCenter && !f.Is_Deleted).FirstOrDefault();
+        var sum = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.IsDeleted).Select(t => t.Salary ?? 0).Sum();
+        var fteSum = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.IsDeleted).Select(t => t.FTE ?? 0).Sum();
+        var fund = Context.SummaryForecasts.Where(f => f.Fund == _forecast.Fund && f.FundCenter == _forecast.FundCenter && !f.IsDeleted).FirstOrDefault();
 
 
-        var attritionRate = Context.FundCenters.Where(f => f.FundCenter_ID.ToString() == fundcenterId).Select(a => a.AttritionRate).FirstOrDefault() ?? 0;
+        var attritionRate = Context.FundCenters.Where(f => f.FundCenterID.ToString() == fundcenterId).Select(a => a.AttritionRate).FirstOrDefault() ?? 0;
         if (fund is not null)
         {
-            fund.SFT_Forecast = sum * ((100 - attritionRate) / 100);
-            fund.SFT_Forecast_Gross = sum;
-            fund.FTE_Sum = fteSum;
+            fund.SFTForecast = sum * ((100 - attritionRate) / 100);
+            fund.SFTForecastGross = sum;
+            fund.FTESum = fteSum;
         }
         else
         {
             var newFund = new SummaryForecast()
                 {
                     Fund = _forecast.Fund,
-                    SFT_Forecast_Gross = _forecast.Salary,
-                    SFT_Forecast = (_forecast.Salary * ((100 - attritionRate) / 100)),
-                    FTE_Sum = _forecast.FTE,
-                    Last_Updated_DT = DateTime.Now,
-                    Created_DT = DateTime.Now,
-                    Created_UserId = _user.Mail,
+                    SFTForecastGross = _forecast.Salary,
+                    SFTForecast = (_forecast.Salary * ((100 - attritionRate) / 100)),
+                    FTESum = _forecast.FTE,
+                    LastUpdatedDT = DateTime.Now,
+                    CreatedDT = DateTime.Now,
+                    CreatedUserId = _user.Mail,
                     FundCenter = _fundCenters[0]
                 };
 
@@ -274,13 +274,13 @@
 
     private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
     {
-        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.PHP_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.Potential_Hiring_Process);
-        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.IR_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.Incremental_Replacements);
-        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.FTE_Accomodations_Location_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.FTE_Intended_Location);
-        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.FTE_Accomodations_Req_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.FTE_Accomodation_Requirements);
-        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.Position_Workspace_Type_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.Position_Workspace_Type);
+        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.PHPValues, p => p?.EnglishText ?? "-", () => Finance_Constants.Potential_Hiring_Process);
+        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.IRValues, p => p?.EnglishText ?? "-", () => Finance_Constants.Incremental_Replacements);
+        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.FTEAccomodationsLocationValues, p => p?.EnglishText ?? "-", () => Finance_Constants.FTE_Intended_Location);
+        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.FTEAccomodationsReqValues, p => p?.EnglishText ?? "-", () => Finance_Constants.FTE_Accomodation_Requirements);
+        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.PositionWorkspaceTypeValues, p => p?.EnglishText ?? "-", () => Finance_Constants.Position_Workspace_Type);
 
-        context.SetVisible<Forecast>(p => p.Other_Locations, _forecast.FTE_Accomodations_Location_Values?.EnglishText == "Other");
+        context.SetVisible<Forecast>(p => p.OtherLocations, _forecast.FTEAccomodationsLocationValues?.EnglishText == "Other");
     }
 
 

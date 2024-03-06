@@ -9,9 +9,9 @@ namespace Datahub.Stories.Utils;
 /// </summary>
 public class PlaceholderService
 {
-    
+
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-    
+
     /// <summary>
     /// Constructor
     /// </summary>
@@ -25,15 +25,15 @@ public class PlaceholderService
     /// Get a random project from the database
     /// </summary>
     /// <returns></returns>
-    public async Task<Datahub_Project> GetRandomProjectAsync()
+    public async Task<DatahubProject> GetRandomProjectAsync()
     {
         // get a random project from the database
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        
+
         var numberOfProjects = await dbContext.Projects.CountAsync();
-        
+
         var randomProjectIndex = Random.Shared.Next(0, numberOfProjects);
-        
+
         var project = await dbContext.Projects
             .AsNoTracking()
             .Skip(randomProjectIndex)

@@ -5,10 +5,10 @@ public class CatalogObject
     public int Id { get; set; }
     public CatalogObjectType ObjectType { get; set; }
     public string ObjectId { get; set; }
-    public string Name_English { get; set; }
-    public string Name_French { get; set; }
-    public string Desc_English { get; set; }
-    public string Desc_French { get; set; }
+    public string NameEnglish { get; set; }
+    public string NameFrench { get; set; }
+    public string DescEnglish { get; set; }
+    public string DescFrench { get; set; }
     public string Location { get; set; }
 }
 

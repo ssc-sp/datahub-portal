@@ -8,7 +8,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            
+
 
             migrationBuilder.AddColumn<bool>(
                 name: "IsActualResultsLocked",
@@ -38,7 +38,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                 nullable: false,
                 defaultValue: false);
 
-          
+
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

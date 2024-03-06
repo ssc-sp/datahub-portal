@@ -1,6 +1,4 @@
 using System.Text.Json;
-using System.Text.RegularExpressions;
-using Azure.Storage.Queues.Models;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Functions.Services;
@@ -8,9 +6,7 @@ using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -27,7 +23,7 @@ namespace Datahub.Functions
         private readonly EmailValidator _emailValidator;
         private readonly IEmailService _emailService;
 
-        public ProjectUsageNotifier(ILoggerFactory loggerFactory, AzureConfig config, IMediator mediator, 
+        public ProjectUsageNotifier(ILoggerFactory loggerFactory, AzureConfig config, IMediator mediator,
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory, QueuePongService pongService, EmailValidator emailValidator, IEmailService emailService)
         {
             _logger = loggerFactory.CreateLogger<ProjectUsageNotifier>();
@@ -41,7 +37,7 @@ namespace Datahub.Functions
         }
 
         [Function("ProjectUsageNotifier")]
-        public async Task Run([QueueTrigger("%QueueProjectUsageNotification%", Connection = "DatahubStorageConnectionString")] string queueItem, 
+        public async Task Run([QueueTrigger("%QueueProjectUsageNotification%", Connection = "DatahubStorageConnectionString")] string queueItem,
             CancellationToken cancellationToken)
         {
             // test for ping
@@ -77,10 +73,10 @@ namespace Datahub.Functions
 
             // calc current %
             var currentPercent = details.ProjectBudget > 0 ? (int)Math.Round(100.0 * details.Credits.Current / details.ProjectBudget) : 0;
-            
+
             // get the matching notification %
             var notificationPerc = GetNotificationPercent(currentPercent);
-                        
+
             // check if notification is not needed 
             if (notificationPerc == 0 || details.Credits.PercNotified == notificationPerc)
             {
@@ -95,7 +91,7 @@ namespace Datahub.Functions
                 details.Credits.PercNotified = notificationPerc;
                 details.Credits.LastNotified = DateTime.UtcNow;
 
-                ctx.Project_Credits.Update(details.Credits);
+                ctx.ProjectCredits.Update(details.Credits);
 
                 await ctx.SaveChangesAsync(cancellationToken);
 
@@ -108,11 +104,11 @@ namespace Datahub.Functions
             }
         }
 
-        private async Task<ProjectNotificationDetails?> GetProjectDetails(DatahubProjectDBContext ctx, int projectId, 
+        private async Task<ProjectNotificationDetails?> GetProjectDetails(DatahubProjectDBContext ctx, int projectId,
             CancellationToken cancellationToken)
         {
             var project = await ctx.Projects
-                .Where(e => e.Project_ID == projectId)
+                .Where(e => e.ProjectID == projectId)
                 .Include(e => e.Credits)
                 .Include(e => e.Users)
                 .AsSingleQuery()
@@ -122,13 +118,13 @@ namespace Datahub.Functions
                 return default;
 
             var contacts = project.Users
-                .Select(u => u.User_Name)
+                .Select(u => u.UserName)
                 .Where(_emailValidator.IsValidEmail)
                 .ToList();
 
-            var budget = Convert.ToDouble(project.Project_Budget);
+            var budget = Convert.ToDouble(project.ProjectBudget);
 
-            return new(project.Project_Acronym_CD, contacts, budget, project.Credits);
+            return new(project.ProjectAcronymCD, contacts, budget, project.Credits);
         }
 
         private EmailRequestMessage GetNotificationEmail(string projectAcro, int perc, List<string> contacts)
@@ -167,13 +163,13 @@ namespace Datahub.Functions
                            .ToArray();
         }
 
-        
+
 
         static ProjectUsageNotificationMessage? DeserializeQueueMessage(string message)
         {
             return JsonSerializer.Deserialize<ProjectUsageNotificationMessage>(message);
         }
 
-        record ProjectNotificationDetails(string ProjectAcro, List<string> Contacts, double ProjectBudget, Project_Credits Credits);
+        record ProjectNotificationDetails(string ProjectAcro, List<string> Contacts, double ProjectBudget, ProjectCredits Credits);
     }
 }

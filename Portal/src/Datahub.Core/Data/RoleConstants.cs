@@ -4,24 +4,24 @@ namespace Datahub.Core.Data;
 
 public static class RoleConstants
 {
-    public const string ADMIN_SUFFIX = "-admin";
-    public const string WORKSPACE_LEAD_SUFFIX = "-workspace-lead";
-    public const string COLLABORATOR_SUFFIX = "-collaborator";
-    public const string GUEST_SUFFIX = "-guest";
-    public const string WEBAPP_SUFFIX = "-webapp";
+    public const string ADMINSUFFIX = "-admin";
+    public const string WORKSPACELEADSUFFIX = "-workspace-lead";
+    public const string COLLABORATORSUFFIX = "-collaborator";
+    public const string GUESTSUFFIX = "-guest";
+    public const string WEBAPPSUFFIX = "-webapp";
 
-    public const string DATAHUB_ADMIN_PROJECT = "DHPGLIST";
-    public const string DATAHUB_ROLE_ADMIN = DATAHUB_ADMIN_PROJECT + ADMIN_SUFFIX;
-    public const string DATAHUB_ROLE_ADMIN_AS_GUEST = DATAHUB_ADMIN_PROJECT + "-admin-as-guest";
+    public const string DATAHUBADMINPROJECT = "DHPGLIST";
+    public const string DATAHUBROLEADMIN = DATAHUBADMINPROJECT + ADMINSUFFIX;
+    public const string DATAHUBROLEADMINASGUEST = DATAHUBADMINPROJECT + "-admin-as-guest";
 
-    public static string GetRoleConstants(Project_Role role)
+    public static string GetRoleConstants(ProjectRole role)
     {
         return role.Id switch
         {
-            2 => WORKSPACE_LEAD_SUFFIX,
-            3 => ADMIN_SUFFIX,
-            4 => COLLABORATOR_SUFFIX,
-            5 => GUEST_SUFFIX,
+            2 => WORKSPACELEADSUFFIX,
+            3 => ADMINSUFFIX,
+            4 => COLLABORATORSUFFIX,
+            5 => GUESTSUFFIX,
             _ => "role not found"
         };
     }

@@ -6,12 +6,9 @@ using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Metadata;
-using Datahub.Core.Services.Notification;
-using Datahub.Core.Services.Storage;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Portal.Templates;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Graph;
 using Microsoft.Graph.Models;
 
 namespace Datahub.Portal.Services.Api;
@@ -36,7 +33,7 @@ public class PublicDataFileService : IPublicDataFileService
     private readonly IEmailNotificationService _emailNotificationService;
     private readonly PublicFileSharingConfiguration _config;
 
-    public static readonly string PUBLIC_FILE_SHARING_CONFIG_ROOT_KEY = "PublicFileSharing";
+    public static readonly string PUBLICFILESHARINGCONFIGROOTKEY = "PublicFileSharing";
 
     public PublicDataFileService(
         DatahubProjectDBContext projectDbContext,
@@ -55,24 +52,24 @@ public class PublicDataFileService : IPublicDataFileService
         _metadataService = metadataService;
         _emailNotificationService = emailNotificationService;
         _config = new();
-        config.Bind(PUBLIC_FILE_SHARING_CONFIG_ROOT_KEY, _config);
+        config.Bind(PUBLICFILESHARINGCONFIGROOTKEY, _config);
     }
 
     public async Task CreateDataSharingRequest(FileMetaData fileMetaData, string projectCode, User requestingUser, bool openDataRequest = false)
     {
-        if (fileMetaData == null || requestingUser == null) 
+        if (fileMetaData == null || requestingUser == null)
         {
             _logger.LogError($"Null user {requestingUser} or file {fileMetaData}");
             return;
         }
 
-        if (!Guid.TryParse(fileMetaData.fileid, out Guid fileId))
+        if (!Guid.TryParse(fileMetaData.Fileid, out Guid fileId))
         {
-            _logger.LogError($"Invalid file id: {fileMetaData.fileid}");
+            _logger.LogError($"Invalid file id: {fileMetaData.Fileid}");
             return;
         }
 
-        var existingFile = await _projectDbContext.SharedDataFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
+        var existingFile = await _projectDbContext.SharedDataFiles.FirstOrDefaultAsync(e => e.FileID == fileId);
         if (existingFile != null)
         {
             _logger.LogError($"File {fileId} already has a sharing record");
@@ -81,31 +78,31 @@ public class PublicDataFileService : IPublicDataFileService
 
         if (openDataRequest)
         {
-            _ = Int64.TryParse(fileMetaData.filesize, out Int64 fileSize);
+            _ = Int64.TryParse(fileMetaData.Filesize, out Int64 fileSize);
 
             var shareRequest = new OpenDataSharedFile
             {
-                IsOpenDataRequest_FLAG = true,
-                File_ID = fileId,
-                Filename_TXT = fileMetaData.filename,
-                FolderPath_TXT = fileMetaData.folderpath,
-                ProjectCode_CD = projectCode?.ToLowerInvariant(),
-                RequestingUser_ID = requestingUser.Id,
-                RequestedDate_DT = DateTime.UtcNow
+                IsOpenDataRequestFLAG = true,
+                FileID = fileId,
+                FilenameTXT = fileMetaData.Filename,
+                FolderPathTXT = fileMetaData.Folderpath,
+                ProjectCodeCD = projectCode?.ToLowerInvariant(),
+                RequestingUserID = requestingUser.Id,
+                RequestedDateDT = DateTime.UtcNow
             };
 
             var dbResult = await _projectDbContext.OpenDataSharedFiles.AddAsync(shareRequest);
         }
-        else 
+        else
         {
             var shareRequest = new SharedDataFile()
             {
-                File_ID = fileId,
-                Filename_TXT = fileMetaData.filename,
-                FolderPath_TXT = fileMetaData.folderpath,
-                ProjectCode_CD = projectCode?.ToLowerInvariant(),
-                RequestingUser_ID = requestingUser.Id,
-                RequestedDate_DT = DateTime.UtcNow
+                FileID = fileId,
+                FilenameTXT = fileMetaData.Filename,
+                FolderPathTXT = fileMetaData.Folderpath,
+                ProjectCodeCD = projectCode?.ToLowerInvariant(),
+                RequestingUserID = requestingUser.Id,
+                RequestedDateDT = DateTime.UtcNow
             };
 
             var dbResult = await _projectDbContext.SharedDataFiles.AddAsync(shareRequest);
@@ -120,16 +117,16 @@ public class PublicDataFileService : IPublicDataFileService
     {
         var shareRequest = new OpenDataSharedFile
         {
-            IsOpenDataRequest_FLAG = true,
-            File_ID = Guid.Parse(fileId),
-            Filename_TXT = fileName,
-            FolderPath_TXT = "",
-            ProjectCode_CD = projectCode?.ToLowerInvariant(),
-            RequestingUser_ID = contactEmail,
-            RequestedDate_DT = DateTime.UtcNow,
-            MetadataCompleted_FLAG = true,
-            FileUrl_TXT = fileUrl,
-            ApprovalForm_ID = approvalFormId
+            IsOpenDataRequestFLAG = true,
+            FileID = Guid.Parse(fileId),
+            FilenameTXT = fileName,
+            FolderPathTXT = "",
+            ProjectCodeCD = projectCode?.ToLowerInvariant(),
+            RequestingUserID = contactEmail,
+            RequestedDateDT = DateTime.UtcNow,
+            MetadataCompletedFLAG = true,
+            FileUrlTXT = fileUrl,
+            ApprovalFormID = approvalFormId
         };
 
         await _projectDbContext.OpenDataSharedFiles.AddAsync(shareRequest);
@@ -145,29 +142,29 @@ public class PublicDataFileService : IPublicDataFileService
     public async Task<Uri> DownloadPublicUrlSharedFile(Guid fileId, IPAddress ipAddress = null)
     {
         var publicFile = await LoadPublicUrlSharedFileInfo(fileId);
-            
-        if (publicFile == null) 
+
+        if (publicFile == null)
         {
             _logger.LogError($"File not found: {fileId}");
             //TODO an exception instead of returning null
             return await Task.FromResult<Uri>(null);
         }
 
-        if (!publicFile.ApprovedDate_DT.HasValue || publicFile.ApprovedDate_DT > DateTime.UtcNow)
+        if (!publicFile.ApprovedDateDT.HasValue || publicFile.ApprovedDateDT > DateTime.UtcNow)
         {
             _logger.LogError($"File not approved for public: {fileId}");
             return await Task.FromResult<Uri>(null);
         }
 
-        if (!publicFile.PublicationDate_DT.HasValue || publicFile.PublicationDate_DT > DateTime.UtcNow)
+        if (!publicFile.PublicationDateDT.HasValue || publicFile.PublicationDateDT > DateTime.UtcNow)
         {
-            _logger.LogError($"File {fileId} is not yet published (publication: {publicFile.PublicationDate_DT?.ToShortDateString()})");
+            _logger.LogError($"File {fileId} is not yet published (publication: {publicFile.PublicationDateDT?.ToShortDateString()})");
             return await Task.FromResult<Uri>(null);
         }
 
-        if (publicFile.ExpirationDate_DT.HasValue && publicFile.ExpirationDate_DT < DateTime.UtcNow)
+        if (publicFile.ExpirationDateDT.HasValue && publicFile.ExpirationDateDT < DateTime.UtcNow)
         {
-            _logger.LogError($"File {fileId} is no longer available (expiration date: {publicFile.ExpirationDate_DT?.ToShortDateString()})");
+            _logger.LogError($"File {fileId} is no longer available (expiration date: {publicFile.ExpirationDateDT?.ToShortDateString()})");
             return await Task.FromResult<Uri>(null);
         }
 
@@ -178,39 +175,39 @@ public class PublicDataFileService : IPublicDataFileService
     {
         var fileMetadata = new FileMetaData()
         {
-            filename = publicFile.Filename_TXT,
-            name = publicFile.Filename_TXT,
-            folderpath = publicFile.FolderPath_TXT
+            Filename = publicFile.FilenameTXT,
+            Name = publicFile.FilenameTXT,
+            Folderpath = publicFile.FolderPathTXT
         };
 
         // audit download file
         if (ipAddress != null)
         {
-            await _datahubAuditingService.TrackDataEvent(publicFile.Filename_TXT, publicFile.GetType().Name, AuditChangeType.Download, anonymous, ("ipAddress", ipAddress.ToString()));
+            await _datahubAuditingService.TrackDataEvent(publicFile.FilenameTXT, publicFile.GetType().Name, AuditChangeType.Download, anonymous, ("ipAddress", ipAddress.ToString()));
         }
         else
         {
-            await _datahubAuditingService.TrackDataEvent(publicFile.Filename_TXT, publicFile.GetType().Name, AuditChangeType.Download, anonymous);
+            await _datahubAuditingService.TrackDataEvent(publicFile.FilenameTXT, publicFile.GetType().Name, AuditChangeType.Download, anonymous);
         }
 
         if (publicFile.IsProjectBased)
         {
-            return await dataRetrievalService.GetUserDelegationSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileMetadata.filename, publicFile.ProjectCode_CD.ToLowerInvariant());
+            return await dataRetrievalService.GetUserDelegationSasBlob(DataRetrievalService.DEFAULTCONTAINERNAME, fileMetadata.Filename, publicFile.ProjectCodeCD.ToLowerInvariant());
         }
         else
         {
-            return await dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileMetadata, null);
+            return await dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULTCONTAINERNAME, fileMetadata, null);
         }
     }
 
     private System.Linq.Expressions.Expression<Func<SharedDataFile, bool>> GenerateSharingRequestsAwaitingApprovalCondition(string projectCode)
     {
-        return f => f.ProjectCode_CD != null 
-                    && f.ProjectCode_CD.ToLower() == projectCode.ToLower() 
-                    && f.SubmittedDate_DT.HasValue 
-                    && !f.ApprovedDate_DT.HasValue
-                    && !f.IsOpenDataRequest_FLAG;
-    } 
+        return f => f.ProjectCodeCD != null
+                    && f.ProjectCodeCD.ToLower() == projectCode.ToLower()
+                    && f.SubmittedDateDT.HasValue
+                    && !f.ApprovedDateDT.HasValue
+                    && !f.IsOpenDataRequestFLAG;
+    }
 
     public async Task<List<SharedDataFile>> GetProjectSharingRequestsAwaitingApproval(string projectCode)
     {
@@ -228,19 +225,19 @@ public class PublicDataFileService : IPublicDataFileService
     public async Task<int> GetUsersOwnDataSharingRequestsCount(string projectCode, string requestingUserId)
     {
         return await _projectDbContext.SharedDataFiles
-            .CountAsync(f => f.ProjectCode_CD != null
-                             && f.ProjectCode_CD.ToLower() == projectCode.ToLower()
-                             && f.RequestingUser_ID.ToLower() == requestingUserId.ToLower());
+            .CountAsync(f => f.ProjectCodeCD != null
+                             && f.ProjectCodeCD.ToLower() == projectCode.ToLower()
+                             && f.RequestingUserID.ToLower() == requestingUserId.ToLower());
     }
 
     public async Task<SharedDataFile> LoadPublicUrlSharedFileInfo(Guid fileId)
     {
-        return await _projectDbContext.SharedDataFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
+        return await _projectDbContext.SharedDataFiles.FirstOrDefaultAsync(e => e.FileID == fileId);
     }
 
     public async Task<OpenDataSharedFile> LoadOpenDataSharedFileInfo(Guid fileId)
     {
-        return await _projectDbContext.OpenDataSharedFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
+        return await _projectDbContext.OpenDataSharedFiles.FirstOrDefaultAsync(e => e.FileID == fileId);
     }
 
     public async Task<bool> MarkMetadataComplete(Guid fileId)
@@ -248,7 +245,7 @@ public class PublicDataFileService : IPublicDataFileService
         var submission = await LoadPublicUrlSharedFileInfo(fileId);
         if (submission != null)
         {
-            submission.MetadataCompleted_FLAG = true;
+            submission.MetadataCompletedFLAG = true;
             var result = await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
             if (result < 1)
             {
@@ -269,14 +266,14 @@ public class PublicDataFileService : IPublicDataFileService
         var submission = await LoadPublicUrlSharedFileInfo(fileId);
         if (submission != null)
         {
-            submission.SubmittedDate_DT = DateTime.UtcNow;
+            submission.SubmittedDateDT = DateTime.UtcNow;
             var result = await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
             if (result < 1)
             {
                 _logger.LogError($"Error submitting file {fileId}");
                 return false;
             }
-                
+
             return true;
         }
         else
@@ -290,7 +287,7 @@ public class PublicDataFileService : IPublicDataFileService
         var submission = await LoadPublicUrlSharedFileInfo(fileId);
         if (submission != null)
         {
-            submission.ExpirationDate_DT = expiryDate;
+            submission.ExpirationDateDT = expiryDate;
             var result = await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
             if (result < 1)
             {
@@ -311,8 +308,8 @@ public class PublicDataFileService : IPublicDataFileService
         var shareInfo = await LoadPublicUrlSharedFileInfo(fileId);
         if (shareInfo is not null)
         {
-            shareInfo.ApprovedDate_DT = DateTime.UtcNow;
-            shareInfo.PublicationDate_DT = publicationDate ?? shareInfo.ApprovedDate_DT;
+            shareInfo.ApprovedDateDT = DateTime.UtcNow;
+            shareInfo.PublicationDateDT = publicationDate ?? shareInfo.ApprovedDateDT;
             await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
         }
     }
@@ -322,8 +319,8 @@ public class PublicDataFileService : IPublicDataFileService
         var shareInfo = await LoadPublicUrlSharedFileInfo(fileId);
         if (shareInfo is not null)
         {
-            shareInfo.ApprovedDate_DT = DateTime.UtcNow;
-            shareInfo.PublicationDate_DT = publicationDate;
+            shareInfo.ApprovedDateDT = DateTime.UtcNow;
+            shareInfo.PublicationDateDT = publicationDate;
             await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
         }
     }
@@ -333,7 +330,7 @@ public class PublicDataFileService : IPublicDataFileService
         var shareInfo = await LoadOpenDataSharedFileInfo(fileId);
         if (shareInfo is not null)
         {
-            shareInfo.FileStorage_CD = urlSharing ? FileStorageType.Datahub : FileStorageType.OpenData;
+            shareInfo.FileStorageCD = urlSharing ? FileStorageType.Datahub : FileStorageType.OpenData;
             await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
         }
         return shareInfo;
@@ -345,8 +342,8 @@ public class PublicDataFileService : IPublicDataFileService
     {
         var shareInfo = await LoadOpenDataSharedFileInfo(fileId);
 
-        shareInfo.ApprovalForm_ID = approvalFormId;
-        shareInfo.ApprovalFormEdited_FLAG = true;
+        shareInfo.ApprovalFormID = approvalFormId;
+        shareInfo.ApprovalFormEditedFLAG = true;
 
         await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
     }
@@ -355,8 +352,8 @@ public class PublicDataFileService : IPublicDataFileService
     {
         var shareInfo = await LoadOpenDataSharedFileInfo(fileId);
 
-        shareInfo.SignedApprovalForm_URL = url;
-        shareInfo.SubmittedDate_DT = DateTime.UtcNow;
+        shareInfo.SignedApprovalFormURL = url;
+        shareInfo.SubmittedDateDT = DateTime.UtcNow;
 
         await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
     }
@@ -364,22 +361,22 @@ public class PublicDataFileService : IPublicDataFileService
     public async Task<List<SharedDataFile>> GetAllSharedDataForProject(string projectCode)
     {
         return await _projectDbContext.SharedDataFiles
-            .Where(f => f.ProjectCode_CD != null && f.ProjectCode_CD.ToLower() == projectCode.ToLower())
+            .Where(f => f.ProjectCodeCD != null && f.ProjectCodeCD.ToLower() == projectCode.ToLower())
             .ToListAsync();
     }
 
     public async Task<bool> IsUserProjectDataApprover(string projectCode, string userId)
     {
-        var projectUserEntries = await _projectDbContext.Project_Users
-            .Where(p => p.Project.Project_Acronym_CD == projectCode && p.User_ID == userId)
+        var projectUserEntries = await _projectDbContext.ProjectUsers
+            .Where(p => p.Project.ProjectAcronymCD == projectCode && p.UserID == userId)
             .ToListAsync();
         return projectUserEntries.Any(p => p.Role.IsAtLeastCollaborator);
     }
 
-    public async Task<Datahub_Project> GetProjectWithUsers(string projectCode)
+    public async Task<DatahubProject> GetProjectWithUsers(string projectCode)
     {
         var project = await _projectDbContext.Projects
-            .Where(p => p.Project_Acronym_CD == projectCode)
+            .Where(p => p.ProjectAcronymCD == projectCode)
             .Include(p => p.Users)
             .SingleOrDefaultAsync();
         return project;
@@ -395,9 +392,9 @@ public class PublicDataFileService : IPublicDataFileService
     private async Task DoDeleteOpenDataShare(Guid fileId)
     {
         var shareInfo = await LoadOpenDataSharedFileInfo(fileId);
-        if (shareInfo.ApprovalForm_ID.HasValue)
+        if (shareInfo.ApprovalFormID.HasValue)
         {
-            await _metadataService.DeleteApprovalForm(shareInfo.ApprovalForm_ID.Value);
+            await _metadataService.DeleteApprovalForm(shareInfo.ApprovalFormID.Value);
         }
         _projectDbContext.OpenDataSharedFiles.Remove(shareInfo);
         await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
@@ -406,7 +403,7 @@ public class PublicDataFileService : IPublicDataFileService
     public async Task CancelPublicDataShare(Guid fileId)
     {
         var shareInfo = await LoadPublicUrlSharedFileInfo(fileId);
-        if (shareInfo.IsOpenDataRequest_FLAG)
+        if (shareInfo.IsOpenDataRequestFLAG)
         {
             await DoDeleteOpenDataShare(fileId);
         }
@@ -438,19 +435,19 @@ public class PublicDataFileService : IPublicDataFileService
     public async Task<List<OpenDataSharedFile>> GetPendingApprovalOpenDataFiles()
     {
         return await _projectDbContext.OpenDataSharedFiles
-            .Where(e => e.IsOpenDataRequest_FLAG && !e.ApprovedDate_DT.HasValue && !string.IsNullOrEmpty(e.SignedApprovalForm_URL))
+            .Where(e => e.IsOpenDataRequestFLAG && !e.ApprovedDateDT.HasValue && !string.IsNullOrEmpty(e.SignedApprovalFormURL))
             .ToListAsync();
     }
 
     public async Task SetPendingApprovalOpenDataAsRead(OpenDataSharedFile file)
     {
-        file.ApprovalFormRead_FLAG = true;
+        file.ApprovalFormReadFLAG = true;
         await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
     }
 
     public async Task SetPendingApprovalOpenDataAsApproved(OpenDataSharedFile file)
     {
-        file.ApprovedDate_DT = DateTime.UtcNow;
+        file.ApprovedDateDT = DateTime.UtcNow;
         await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
     }
 
@@ -461,7 +458,7 @@ public class PublicDataFileService : IPublicDataFileService
             { "UserName", _config.OpenDataApproverName },
             { "Url", _emailNotificationService.BuildAppLink("/share/dashboard") }
         };
-            
+
         var emailBody = await _emailNotificationService.RenderTemplate<RequestForApprovalNotificationEmail>(parameters);
         var emailRecipients = new List<string>() { _config.OpenDataApproverEmail };
 

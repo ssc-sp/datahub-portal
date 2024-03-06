@@ -1,6 +1,6 @@
 ﻿namespace Datahub.Core.Model.Onboarding;
 
-public class Onboarding_Constants
+public class OnboardingConstants
 {
     public static readonly string[] CATEGORY =
     {

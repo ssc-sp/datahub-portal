@@ -20,11 +20,11 @@ public sealed class TerraformVariableExtractionSteps
     [Given(@"a datahub project with the following resources")]
     public void GivenADatahubProjectWithTheFollowingResources(Table table)
     {
-        var project = new Datahub_Project();
-        
-        var projectResources = table.CreateSet<Project_Resources2>()
+        var project = new DatahubProject();
+
+        var projectResources = table.CreateSet<ProjectResources2>()
             .ToList();
-        
+
         project.Resources = projectResources;
         _scenarioContext["project"] = project;
     }
@@ -32,7 +32,7 @@ public sealed class TerraformVariableExtractionSteps
     [When(@"I call the method to extract the databricks workspace id")]
     public void WhenICallTheMethodToExtractTheDatabricksWorkspaceId()
     {
-        var project = _scenarioContext["project"] as Datahub_Project;
+        var project = _scenarioContext["project"] as DatahubProject;
         var databricksWorkspaceId = TerraformVariableExtraction.ExtractDatabricksWorkspaceId(project);
         _scenarioContext["databricksWorkspaceId"] = databricksWorkspaceId;
     }
@@ -42,7 +42,7 @@ public sealed class TerraformVariableExtractionSteps
     {
         var expectedValue = table.Rows[0]["Value"];
         var name = table.Rows[0]["Name"];
-        
+
         var actualValue = _scenarioContext[name] as string;
         actualValue.Should().Be(expectedValue);
     }
@@ -50,7 +50,7 @@ public sealed class TerraformVariableExtractionSteps
     [When(@"I call the method to extract the databricks workspace url")]
     public void WhenICallTheMethodToExtractTheDatabricksWorkspaceUrl()
     {
-        var project = _scenarioContext["project"] as Datahub_Project;
+        var project = _scenarioContext["project"] as DatahubProject;
         var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project);
         _scenarioContext["databricksUrl"] = databricksUrl;
     }
@@ -58,7 +58,7 @@ public sealed class TerraformVariableExtractionSteps
     [When(@"I call the method to extract the postgres host")]
     public void WhenICallTheMethodToExtractThePostgresHost()
     {
-        var project = _scenarioContext["project"] as Datahub_Project;
+        var project = _scenarioContext["project"] as DatahubProject;
         var postgresHost = TerraformVariableExtraction.ExtractAzurePostgresHost(project);
         _scenarioContext["postgresHost"] = postgresHost;
     }
@@ -66,7 +66,7 @@ public sealed class TerraformVariableExtractionSteps
     [When(@"I call the method to extract the postgres database name")]
     public void WhenICallTheMethodToExtractThePostgresDatabaseName()
     {
-        var project = _scenarioContext["project"] as Datahub_Project;
+        var project = _scenarioContext["project"] as DatahubProject;
         var postgresDatabaseName = TerraformVariableExtraction.ExtractAzurePostgresDatabaseName(project);
         _scenarioContext["postgresDatabaseName"] = postgresDatabaseName;
     }
@@ -74,7 +74,7 @@ public sealed class TerraformVariableExtractionSteps
     [When(@"I call the method to extract the postgres username secret name")]
     public void WhenICallTheMethodToExtractThePostgresUsernameSecretName()
     {
-        var project = _scenarioContext["project"] as Datahub_Project;
+        var project = _scenarioContext["project"] as DatahubProject;
         var postgresUsernameSecretName = TerraformVariableExtraction.ExtractAzurePostgresUsernameSecretName(project);
         _scenarioContext["postgresUsernameSecretName"] = postgresUsernameSecretName;
     }
@@ -82,14 +82,8 @@ public sealed class TerraformVariableExtractionSteps
     [When(@"I call the method to extract the postgres password secret name")]
     public void WhenICallTheMethodToExtractThePostgresPasswordSecretName()
     {
-        var project = _scenarioContext["project"] as Datahub_Project;
+        var project = _scenarioContext["project"] as DatahubProject;
         var postgresPasswordSecretName = TerraformVariableExtraction.ExtractAzurePostgresPasswordSecretName(project);
         _scenarioContext["postgresPasswordSecretName"] = postgresPasswordSecretName;
-    }
-
-    [Given(@"the first number is (.*)")]
-    public void GivenTheFirstNumberIs(int p0)
-    {
-        ScenarioContext.StepIsPending();
     }
 }

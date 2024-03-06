@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace Datahub.Core.Services.Achievements;
+﻿namespace Datahub.Core.Services.Achievements;
 
 public interface IPortalUserTelemetryService
 {
@@ -10,12 +6,13 @@ public interface IPortalUserTelemetryService
     /// Event raised when new achievements are achieved
     /// </summary>
     event EventHandler<AchievementsEarnedEventArgs> OnAchievementsEarned;
+
     /// <summary>
     /// Report a telemetry event
     /// </summary>
     /// <param name="eventName">Name, use TelemetryEvents constants</param>
-    /// <see cref="TelemetryEvents"/>
-    /// <returns></returns>
+    /// <see href="TelemetryEvents"/>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     Task LogTelemetryEvent(string eventName);
 }
 

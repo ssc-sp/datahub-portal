@@ -84,12 +84,12 @@
     private bool IsDatahubAdmin { get; set; }
 
     [CascadingParameter(Name = "Project")]
-    private Datahub_Project Project { get; set; }
+    private DatahubProject Project { get; set; }
 
     [Parameter]
     public EventCallback<decimal> OnBudgetUpdated { get; set; }
 
-    private Project_Whitelist _whitelist;
+    private ProjectWhitelist _whitelist;
     private bool _isLoaded;
 
     private double? _budget;
@@ -109,8 +109,8 @@
         if (!IsDatahubAdmin) 
             return;
 
-        _whitelist = await _projectResourceWhitelistService.GetWhitelistByProjectAsync(Project.Project_ID);
-        _budget = Convert.ToDouble(Project.Project_Budget);
+        _whitelist = await _projectResourceWhitelistService.GetWhitelistByProjectAsync(Project.ProjectID);
+        _budget = Convert.ToDouble(Project.ProjectBudget);
         _isLoaded = true;
 
         StateHasChanged();

@@ -69,11 +69,11 @@ namespace Datahub.Functions
             using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
 
             // get project
-            var project = await ctx.Projects.AsNoTracking().Where(x => x.Project_ID == message.ProjectId)
+            var project = await ctx.Projects.AsNoTracking().Where(x => x.ProjectID == message.ProjectId)
                 .FirstOrDefaultAsync(ct);
 
             // get project info
-            var lastLoginDate = project?.LastLoginDate ?? project.Last_Updated_DT;
+            var lastLoginDate = project?.LastLoginDate ?? project.LastUpdatedDT;
             var daysSinceLastLogin = (_dateProvider.Today - lastLoginDate).Days;
             var daysUntilDeletion = _dateProvider.ProjectDeletionDay() - daysSinceLastLogin;
             var operationalWindow = project.OperationalWindow;
@@ -102,7 +102,7 @@ namespace Datahub.Functions
             // if project to be deleted, send to terraform delete queue
             if (workspaceDefinition != null)
             {
-                await _resourceMessagingService.SendToTerraformDeleteQueue(workspaceDefinition, project.Project_ID);
+                await _resourceMessagingService.SendToTerraformDeleteQueue(workspaceDefinition, project.ProjectID);
             }
         }
 
@@ -140,7 +140,7 @@ namespace Datahub.Functions
 
             var project = await ctx.Projects
                 .AsNoTracking()
-                .Where(e => e.Project_ID == projectId)
+                .Where(e => e.ProjectID == projectId)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (project is null)
@@ -151,7 +151,7 @@ namespace Datahub.Functions
                 .Where(_emailValidator.IsValidEmail)
                 .ToList();
 
-            return (contacts, project.Project_Acronym_CD);
+            return (contacts, project.ProjectAcronymCD);
         }
 
         public EmailRequestMessage GetEmailRequestMessage(int daysUntilDeletion, int daysSinceLastLogin,

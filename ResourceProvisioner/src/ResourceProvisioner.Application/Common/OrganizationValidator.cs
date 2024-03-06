@@ -10,7 +10,7 @@ public class OrganizationValidator : AbstractValidator<TerraformOrganization>
         RuleFor(x => x.Code)
             .NotEmpty()
             .MaximumLength(10);
-        
+
         RuleFor(x => x.Name)
             .NotEmpty()
             .MaximumLength(100);

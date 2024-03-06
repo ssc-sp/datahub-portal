@@ -62,7 +62,7 @@
     [Parameter]
     public string projectAcronym { get; set; }
 
-    private List<PowerBi_Report> _powerBiReports = new();
+    private List<PowerBiReport> _powerBiReports = new();
     private int _currentPage = 0;
     private IPageableComponent _reportTable;
 
@@ -85,15 +85,15 @@
         "External_Access"
     };
 
-    private List<Func<PowerBi_Report, string>> accessors = new()
+    private List<Func<PowerBiReport, string>> accessors = new()
     {
-        r => r.Workspace?.Workspace_Name ?? string.Empty,
-        r => r.Report_Name,
+        r => r.Workspace?.WorkspaceName ?? string.Empty,
+        r => r.ReportName,
         r => r.InCatalog.ToString(),
         null
     };
 
-    private List<Func<PowerBi_Report, RenderFragment>> renderers = new();
+    private List<Func<PowerBiReport, RenderFragment>> renderers = new();
 
 
     private List<string> LocalizeHeaders(List<string> input) => input.Select(s => Localizer[s].ToString()).ToList();
@@ -161,39 +161,39 @@
         _powerBiReports = await PowerBiDataService.GetReportsForProjectWithExternalReportInfo(projectAcronym, IncludeSandbox);
     }
 
-    private void OpenMetadataEditor(PowerBi_Report r)
+    private void OpenMetadataEditor(PowerBiReport r)
     {
         RenderFragment reportEditor = @<Datahub.PowerBI.Pages.PowerBI.PowerBiReportMetadataEditor 
-            PowerBiReportId=@r.Report_ID 
+            PowerBiReportId=@r.ReportID 
             ProjectAcronym=@projectAcronym 
             OnCloseDialog=@CloseDialog />;
-        UiControls.ShowDialog(r.Report_Name, @<RenderFragmentModal Fragment=reportEditor />);
+        UiControls.ShowDialog(r.ReportName, @<RenderFragmentModal Fragment=reportEditor />);
     }
 
-    private RenderFragment ExternalReport(PowerBi_Report r) => @<Datahub.PowerBI.Pages.Project.PowerBiReports.ExternalReportRequest Report=@(r) RefreshTable=RefreshTable CurrentUserEmail=@currentUserEmail/>;
+    private RenderFragment ExternalReport(PowerBiReport r) => @<Datahub.PowerBI.Pages.Project.PowerBiReports.ExternalReportRequest Report=@(r) RefreshTable=RefreshTable CurrentUserEmail=@currentUserEmail/>;
 
-    private RenderFragment ReportLinkFragment(PowerBi_Report r) =>
+    private RenderFragment ReportLinkFragment(PowerBiReport r) =>
     @<MudText>
         <DHLink 
                 LinkType=@DatahubLinkType.PowerBI
-                DataProject=@(r.Workspace.Project?.Project_Acronym_CD) 
-                PBIWorkspaceId=@(r.Workspace_Id.ToString())
-                PBIReportId=@(r.Report_ID.ToString())
-                Name=@(r.Report_Name)>
-            @r.Report_Name
+                DataProject=@(r.Workspace.Project?.ProjectAcronymCD) 
+                PBIWorkspaceId=@(r.WorkspaceId.ToString())
+                PBIReportId=@(r.ReportID.ToString())
+                Name=@(r.ReportName)>
+            @r.ReportName
         </DHLink>
     </MudText>;
 
     private RenderFragment InCatalogIcon = @<MudIcon Color=@Color.Success Icon=@Icons.Material.Filled.Check />;
     private RenderFragment NotInCatalogIcon = @<MudIcon Color=@Color.Error Icon=@Icons.Material.Filled.Close />;
 
-    private RenderFragment CatalogEntryFragment(PowerBi_Report r) =>
+    private RenderFragment CatalogEntryFragment(PowerBiReport r) =>
     @<MudStack Row AlignItems=@AlignItems.Center >
         @(r.InCatalog? InCatalogIcon: NotInCatalogIcon)
         <MudTooltip Text="@Localizer["Edit"]">
             <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenMetadataEditor(r))" />
         </MudTooltip>
-        <Datahub.PowerBI.Pages.PowerBI.InternalPublishedPowerBIReportLinks ReportID=@r.Report_ID.ToString() />
+        <Datahub.PowerBI.Pages.PowerBI.InternalPublishedPowerBIReportLinks ReportID=@r.ReportID.ToString() />
     </MudStack>;
 
 

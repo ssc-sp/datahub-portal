@@ -11,7 +11,7 @@ public class CatalogDigestTests
 {
 
     [Fact]
-    public void CreateCalatogDigest_ShouldReturnExpected()
+    public void CreateCalatogDigestShouldReturnExpected()
     {
         FieldValueContainer fieldValues = new(1, "id1", GetFieldDefinitions(), new List<ObjectFieldValue>());
         fieldValues.SetValue("name", "Name1");
@@ -60,16 +60,16 @@ public class CatalogDigestTests
         return new()
         {
             FieldDefinitionId = id,
-            Field_Name_TXT = name,
+            FieldNameTXT = name,
             Choices = choices.ToList()
         };
     }
 
-    static FieldChoice MakeChoice(int defId, string value, string enLabel = null, string frLabel = null) => new() 
-    { 
-        FieldDefinitionId = defId, 
-        Value_TXT = value,
-        Label_English_TXT = enLabel ?? value,
-        Label_French_TXT = frLabel ?? value
+    static FieldChoice MakeChoice(int defId, string value, string enLabel = null, string frLabel = null) => new()
+    {
+        FieldDefinitionId = defId,
+        ValueTXT = value,
+        LabelEnglishTXT = enLabel ?? value,
+        LabelFrenchTXT = frLabel ?? value
     };
 }

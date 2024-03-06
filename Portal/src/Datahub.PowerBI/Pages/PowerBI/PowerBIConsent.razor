@@ -60,7 +60,7 @@
     private async Task OnCreateUrl()
     {
         using var context = DbFactoryProject.CreateDbContext();
-        var extreport = context.ExternalPowerBiReports.Where(r => r.ExternalPowerBiReport_ID.ToString() == ExternalReportId).FirstOrDefault();
+        var extreport = context.ExternalPowerBiReports.Where(r => r.ExternalPowerBiReportID.ToString() == ExternalReportId).FirstOrDefault();
 
         //reportToken = await PowerBiServiceApi.GetAccessTokenAsync();
         EmbedToken token = null;
@@ -88,14 +88,14 @@
                 iterationCount: 100000,
                 numBytesRequested: 256 / 8));
 
-            exreport.ExternalPowerBiReport_ID = Convert.ToInt32(ExternalReportId);
+            exreport.ExternalPowerBiReportID = Convert.ToInt32(ExternalReportId);
             exreport.Token = token.Token;
             exreport.Url = report.EmbedUrl;
-            exreport.End_Date = DateTime.Now.AddDays(_tokenDurationDays);
-            exreport.Is_Created = true;
+            exreport.EndDate = DateTime.Now.AddDays(_tokenDurationDays);
+            exreport.IsCreated = true;
             exreport.RequestingUser = extreport.RequestingUser;
-            exreport.Report_ID = extreport.Report_ID;
-            exreport.Validation_Code = hashed;
+            exreport.ReportID = extreport.ReportID;
+            exreport.ValidationCode = hashed;
             exreport.ValidationSalt = salt;
             exreport.UnhashedValidationCode = validationcode.ToString();
             await PowerBiDataService.UpdateExternalPowerBiRecord(exreport);
@@ -104,7 +104,7 @@
             await EmailService.SendPowerBiExternalUrlEmail(emailParams);
 
             using var context2 = DbFactoryProject.CreateDbContext();
-            var extreportdb = context2.ExternalPowerBiReports.Where(r => r.Report_ID.ToString() == ReportId).FirstOrDefault();
+            var extreportdb = context2.ExternalPowerBiReports.Where(r => r.ReportID.ToString() == ReportId).FirstOrDefault();
 
             if (extreportdb is not null)
             {
@@ -119,7 +119,7 @@
                 await JSRuntime.InvokeAsync<object>(
                     "ShowMyPowerBI.showReportEmbed",
                     PowerBIElement, extreportdb.Token, extreportdb.Url,
-                extreportdb.Report_ID.ToString(), pbiSettings);
+                extreportdb.ReportID.ToString(), pbiSettings);
             }
         }
     }
@@ -127,7 +127,7 @@
     private PowerBiExternalReportParameters GetEmailParameters(ExternalPowerBiReport report)
     {
         PowerBiExternalReportParameters param = new();
-        param.AppUrl = $"/powerbi-report/embed/{report.Report_ID.ToString()}";
+        param.AppUrl = $"/powerbi-report/embed/{report.ReportID.ToString()}";
         param.App = report;
        
         return param;

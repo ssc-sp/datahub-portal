@@ -26,7 +26,7 @@
     public List<CatalogObjectResult> CatalogResults { get; init; } = new();
 
     [Parameter]
-    public Func<CatalogObjectResult, Datahub_Project> GetProject { get; set; }
+    public Func<CatalogObjectResult, DatahubProject> GetProject { get; set; }
 
     [Parameter]
     public Func<CatalogObjectResult, bool, string> MapSector { get; set; }

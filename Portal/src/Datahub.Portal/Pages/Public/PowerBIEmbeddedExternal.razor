@@ -65,7 +65,7 @@
     private async Task OnOpenReport()
     {
         using var context = _dbFactoryProject.CreateDbContext();
-        ExtReport = await context.ExternalPowerBiReports.Where(r => r.Report_ID.ToString() == ReportId).FirstOrDefaultAsync();
+        ExtReport = await context.ExternalPowerBiReports.Where(r => r.ReportID.ToString() == ReportId).FirstOrDefaultAsync();
         
         await ValidateUser();
     }
@@ -79,7 +79,7 @@
             iterationCount: 100000,
             numBytesRequested: 256 / 8));
 
-        _isAccessible = hashed == ExtReport.Validation_Code;
+        _isAccessible = hashed == ExtReport.ValidationCode;
         await LaunchReport();
     }
 
@@ -102,7 +102,7 @@
                 await JSRuntime.InvokeAsync<object>(
                     "ShowMyPowerBI.showReportEmbed",
                     PowerBIElement, ExtReport.Token, ExtReport.Url,
-                ExtReport.Report_ID.ToString(), pbiSettings);
+                ExtReport.ReportID.ToString(), pbiSettings);
 
             }
             else

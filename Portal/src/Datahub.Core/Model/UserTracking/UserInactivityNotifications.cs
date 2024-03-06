@@ -1,11 +1,10 @@
-﻿using System;
-using Datahub.Core.Model.Achievements;
+﻿using Datahub.Core.Model.Achievements;
 
 namespace Datahub.Core.Model.UserTracking
 {
     public class UserInactivityNotifications
     {
-        public int User_ID { get; set; }
+        public int UserID { get; set; }
         public PortalUser User { get; set; }
         public DateTime NotificationDate { get; set; }
         public int DaysBeforeLocked { get; set; }

@@ -8,10 +8,10 @@ public class UpdateProjectMonthlyCostService
     private const string FUNCTION_CONFIG_KEY = "UpdateProjectMonthlyCostFunction";
     private const string FUNCTION_URL_CONFIG_KEY = "FunctionUrl";
     private const string FUNCTION_CODE_CONFIG_KEY = "FunctionCode";
-    
+
     private readonly ILogger<UpdateProjectMonthlyCostService> _logger;
     private readonly IConfiguration _configuration;
-    
+
     public UpdateProjectMonthlyCostService(
         ILogger<UpdateProjectMonthlyCostService> logger,
         IConfiguration configuration)
@@ -44,4 +44,3 @@ public class UpdateProjectMonthlyCostService
         return -1;
     }
 }
-        

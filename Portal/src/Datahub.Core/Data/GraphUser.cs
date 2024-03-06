@@ -1,5 +1,4 @@
 using System.Net.Mail;
-using Microsoft.Graph;
 using Microsoft.Graph.Models;
 
 namespace Datahub.Core.Data;
@@ -10,62 +9,74 @@ namespace Datahub.Core.Data;
 public class GraphUser
 {
     /// <summary>
+    /// Gets or sets user Id
+    /// </summary>
+    /// <value>
     /// User Id
-    /// </summary>
-    /// <value></value>
-    public string Id { get; set; } 
+    /// </value>
+    public string Id { get; set; }
 
     /// <summary>
+    /// Gets or sets name of user
+    /// </summary>
+    /// <value>
     /// Name of user
-    /// </summary>
-    /// <value></value>
-    public string DisplayName { get; set; } 
-        
-    /// <summary>
-    /// Mail Address
-    /// </summary>
-    /// <value></value>
-    public MailAddress mailAddress { get; set; }     
+    /// </value>
+    public string DisplayName { get; set; }
 
     /// <summary>
-    /// The user's email address
+    /// Gets or sets mail Address
     /// </summary>
-    /// <value></value>
+    /// <value>
+    /// Mail Address
+    /// </value>
+    public MailAddress MailAddress { get; set; }
+
+    /// <summary>
+    /// Gets the user's email address
+    /// </summary>
+    /// <value>
+    /// The user's email address
+    /// </value>
     public string Mail
     {
         get
         {
-            return mailAddress?.Address?.ToLower() ?? string.Empty;
+            return MailAddress?.Address?.ToLower() ?? string.Empty;
         }
     }
 
     /// <summary>
-    /// The user's email address
+    /// Gets the user's email address
     /// </summary>
-    /// <value></value>
+    /// <value>
+    /// The user's email address
+    /// </value>
     public string UserName
     {
         get
         {
-            return mailAddress?.User?.ToLower() ?? string.Empty;
+            return MailAddress?.User?.ToLower() ?? string.Empty;
         }
     }
 
     /// <summary>
-    /// The user's email domain
+    /// Gets the user's email domain
     /// </summary>
-    /// <value></value>
+    /// <value>
+    /// The user's email domain
+    /// </value>
     public string Domain
     {
         get
         {
-            return mailAddress?.Host?.ToLower() ?? string.Empty;
+            return MailAddress?.Host?.ToLower() ?? string.Empty;
         }
     }
 
     public string RootFolder
     {
-        get 
+        get
         {
             return $"{Domain}/{UserName}";
         }
@@ -77,15 +88,15 @@ public class GraphUser
     /// Static ctor to create from GraphUser
     /// </summary>
     /// <param name="user"></param>
-    /// <returns></returns>
+    /// <returns>MS Graph user entity</returns>
     public static GraphUser Create(User user)
     {
         var email = user.Mail ?? "unknown@unknown.com";
-        var instance = new GraphUser() 
+        var instance = new GraphUser()
         {
             Id = user.Id,
             DisplayName = user.DisplayName,
-            mailAddress = new MailAddress(email),
+            MailAddress = new MailAddress(email),
             Department = user.Department
         };
         return instance;

@@ -15,7 +15,7 @@ public class ObjectMetadata
     /// <summary>
     /// External object identifier (restricted to 128 chars)
     /// </summary>
-    public string ObjectId_TXT { get; set; }
+    public string ObjectIdTXT { get; set; }
     /// <summary>
     /// Parent metadata version
     /// </summary>

@@ -1,20 +1,13 @@
-﻿using System;
-using System.Net.Http.Headers;
-using System.Text;
-using Azure.Storage.Queues.Models;
-using Datahub.Application.Services.Security;
-using Datahub.Core.Services.Security;
+﻿using Azure.Storage.Queues.Models;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Infrastructure.Services.Security;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
-using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Datahub.Functions
@@ -84,7 +77,7 @@ namespace Datahub.Functions
         public EmailRequestMessage? BuildEmail(BugReportMessage bug, WorkItem workItem)
         {
             var sendTo = new List<string> { _config.Email.AdminEmail };
-            var url = workItem.Url ?? ""; 
+            var url = workItem.Url ?? "";
             var id = workItem.Id.ToString() ?? "";
 
             Dictionary<string, string> subjectArgs = new()
@@ -107,7 +100,7 @@ namespace Datahub.Functions
         {
             var organization = _config.AdoConfig.OrgName;
             var project = _config.AdoConfig.ProjectName;
-            
+
             var title = $"{bug.Topics} in {bug.Workspaces}";
             var description =
                 $"<b>Issue submitted by:</b> {bug.UserName}<br /><b>Contact email:</b> {bug.UserEmail}<br /><b>Organization:</b> {bug.UserOrganization}<br /><b>Preferred Language:</b> {bug.PreferredLanguage} <br /><b>Time Zone:</b> {bug.Timezone}<br /><br /><b>Topics:</b> {bug.Topics}<br /><b>Workspace:</b> {bug.Workspaces}<br /><b>Description:</b> {bug.Description}<br /><br /><b>Portal Language:</b> {bug.PortalLanguage}<br /><b>Active URL:</b> {bug.URL}<br /><b>User Agent:</b> {bug.UserAgent}<br /><b>Resolution:</b> {bug.Resolution}<br /><b>Local Storage:</b><br />{bug.LocalStorage}";

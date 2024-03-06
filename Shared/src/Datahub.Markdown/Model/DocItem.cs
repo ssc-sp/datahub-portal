@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-
-namespace Datahub.Markdown.Model;
+﻿namespace Datahub.Markdown.Model;
 
 #nullable enable
 
@@ -69,9 +65,10 @@ public class DocItem
     public string? Content
     {
         get { return _content; }
-        set {
+        set
+        {
             _content = value;
-            if (_content?.Contains("<video",StringComparison.InvariantCultureIgnoreCase) ?? false)
+            if (_content?.Contains("<video", StringComparison.InvariantCultureIgnoreCase) ?? false)
                 DocType = DocItemType.Tutorial;
         }
     }

@@ -12,7 +12,7 @@
         </MudStack>
     </ActivatorContent>
     <ChildContent>
-        @foreach (var role in _projectRoles.Where(r => r.Id != (int)Project_Role.RoleNames.Remove))
+        @foreach (var role in _projectRoles.Where(r => r.Id != (int)ProjectRole.RoleNames.Remove))
         {
             <MudMenuItem OnClick="@(() => RoleChanged(role.Id))" Style="max-width: 400px;">
                 <MudText Typo="Typo.h6">@Localizer[role.Name]</MudText>
@@ -35,9 +35,9 @@
     [Parameter]
     public EventCallback<int> OnRoleChanged { get; set; }
 
-    private Project_Role _currentRole;
-    private IEnumerable<Project_Role> _projectRoles;
-    private Project_Role _removeRole;
+    private ProjectRole _currentRole;
+    private IEnumerable<ProjectRole> _projectRoles;
+    private ProjectRole _removeRole;
 
     private string _outlineStyle = new StyleBuilder()
         .AddStyle("border", "1px solid var(--mud-palette-table-lines)")
@@ -46,8 +46,8 @@
 
     protected override void OnParametersSet()
     {
-        _projectRoles = Project_Role.GetAll().ToList();
-        _removeRole = _projectRoles.First(r => r.Id == (int)Project_Role.RoleNames.Remove);
+        _projectRoles = ProjectRole.GetAll().ToList();
+        _removeRole = _projectRoles.First(r => r.Id == (int)ProjectRole.RoleNames.Remove);
         // _projectRoles = _projectRoles.Where(r => r.Id != (int)Project_Role.RoleNames.Remove);
 
         _currentRole = _projectRoles.FirstOrDefault(r => r.Id == InitialValue);
@@ -55,7 +55,7 @@
 
     private async Task RoleChanged(int newRoleId)
     {
-        if(newRoleId == (int)Project_Role.RoleNames.Remove)
+        if(newRoleId == (int)ProjectRole.RoleNames.Remove)
         {
             var message = Localizer["Are you sure you want to remove this user from the workspace?"].Value;
             var confirmed = await _jsRuntime.InvokeAsync<bool>("confirm", message);

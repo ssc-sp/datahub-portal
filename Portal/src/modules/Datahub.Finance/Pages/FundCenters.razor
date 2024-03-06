@@ -114,7 +114,7 @@
 
     private List<Func<FundCenter, (string, string)>> buttonFunctions = new List<Func<FundCenter, (string, string)>>
     {
-        new Func<FundCenter, (string, string)>(p => { return ("Next" , $"/finance/forecasts/{p.FundCenter_ID.ToString()}"); }),
+        new Func<FundCenter, (string, string)>(p => { return ("Next" , $"/finance/forecasts/{p.FundCenterID.ToString()}"); }),
     };
 
     private async Task GoToNextSheet()
@@ -158,7 +158,7 @@
     private void CreateNewProject()
     {
         //var defaultBranch = _sectorLookup.Where(s => s.SectorId == 1).First().Branches.Where(b => b.BranchId == 1).First();
-        _fundcenter = new FundCenter() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, Last_Updated_UserId = _user.Mail, Sector = null };
+        _fundcenter = new FundCenter() { LastUpdatedDT = DateTime.Now, CreatedDT = DateTime.Now, CreatedUserId = _user.Mail, LastUpdatedUserId = _user.Mail, Sector = null };
         RefreshBranches(null, null);
         RefreshDivisions(null, null);
         StateHasChanged();
@@ -169,11 +169,11 @@
 
         if (_fundcenter != null)
         {
-            if (_fundcenter.FundCenter_ID == 0)
+            if (_fundcenter.FundCenterID == 0)
             {
                 _fundcenter = Context.FundCenters.Add(_fundcenter).Entity;
             }
-            _fundcenter.Last_Updated_DT = DateTime.Now;
+            _fundcenter.LastUpdatedDT = DateTime.Now;
             await Context.SaveChangesAsync();
             LoadData(_searchFilter);
             _fundcenter = null;

@@ -58,7 +58,7 @@ public class NewProjectTemplateTests
             var expectedContent = sourceFileContent
                 .Replace(TerraformService.TerraformVersionToken, workspace.Version)
                 .Replace(TerraformService.TerraformBranchToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}");
-            
+
             var destinationFileContent =
                 await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
             Assert.That(destinationFileContent, Is.EqualTo(expectedContent));
@@ -84,9 +84,9 @@ public class NewProjectTemplateTests
             ["az_location"] = _configuration["Terraform:Variables:az_location"],
             ["resource_prefix"] = _configuration["Terraform:Variables:resource_prefix"],
             ["project_cd"] = "ShouldExtractNewProjectTemplateVariables",
-            ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
-            ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
-            ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aad_admin_group_oid,
+            ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budgetAmount,
+            ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storageSizeLimitTb,
+            ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aadAdminGroupOid,
             ["common_tags"] = new JsonObject
             {
                 ["ClientOrganization"] = _configuration["Terraform:Variables:common_tags:ClientOrganization"],
@@ -135,22 +135,22 @@ public class NewProjectTemplateTests
 
         var expectedVariables = new JsonObject
         {
-            ["az_subscription_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id,
-            ["az_tenant_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_tenant_id,
-            ["datahub_app_sp_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.datahub_app_sp_oid,
-            ["environment_classification"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_classification,
-            ["environment_name"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_name,
-            ["az_location"] = _resourceProvisionerConfiguration.Terraform.Variables.az_location,
-            ["resource_prefix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix,
-            ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
-            ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
-            ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aad_admin_group_oid,
+            ["az_subscription_id"] = _resourceProvisionerConfiguration.Terraform.Variables.azSubscriptionId,
+            ["az_tenant_id"] = _resourceProvisionerConfiguration.Terraform.Variables.azTenantId,
+            ["datahub_app_sp_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.datahubAppSpOid,
+            ["environment_classification"] = _resourceProvisionerConfiguration.Terraform.Variables.environmentClassification,
+            ["environment_name"] = _resourceProvisionerConfiguration.Terraform.Variables.environmentName,
+            ["az_location"] = _resourceProvisionerConfiguration.Terraform.Variables.azLocation,
+            ["resource_prefix"] = _resourceProvisionerConfiguration.Terraform.Variables.resourcePrefix,
+            ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budgetAmount,
+            ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storageSizeLimitTb,
+            ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aadAdminGroupOid,
             ["project_cd"] = "ShouldExtractNewProjectTemplateVariablesWithoutDuplicates",
             ["common_tags"] = new JsonObject
             {
-                ["ClientOrganization"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.ClientOrganization,
-                ["Environment"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.Environment,
-                ["Sector"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.Sector,
+                ["ClientOrganization"] = _resourceProvisionerConfiguration.Terraform.Variables.commonTags.ClientOrganization,
+                ["Environment"] = _resourceProvisionerConfiguration.Terraform.Variables.commonTags.Environment,
+                ["Sector"] = _resourceProvisionerConfiguration.Terraform.Variables.commonTags.Sector,
             },
         };
 
@@ -215,7 +215,7 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
         Assert.That(File.Exists(expectedConfigurationFilename), Is.True);
         Assert.That(await File.ReadAllTextAsync(expectedConfigurationFilename), Is.EqualTo(expectedConfiguration));
     }
-    
+
     [Test]
     public async Task ShouldSkipExtractBackendConfigurationIfExists()
     {
@@ -233,15 +233,15 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
         await _terraformService.CopyTemplateAsync(module, workspace);
-        
+
         // Write a fake backend config before extracting
         var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
             "project.tfbackend");
         var existingConfiguration = "test";
         Directory.CreateDirectory(Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym)));
         await File.WriteAllTextAsync(expectedConfigurationFilename, existingConfiguration);
-        
-        
+
+
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
 
         Assert.That(File.Exists(expectedConfigurationFilename), Is.True);
@@ -256,12 +256,12 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var command = GenerateTestCreateResourceRunCommand(
             workspaceAcronym, new List<string>() { TerraformTemplate.NewProjectTemplate }, true, version);
-        
+
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
         await _repositoryService.ExecuteResourceRuns(command.Templates, command.Workspace, command.RequestingUserEmail);
-    
+
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
-        
+
         // verify that the file main.tf does not contain "{{version}}" or "{{branch}}"
         var mainTfPath = Path.Join(moduleDestinationPath, "main.tf");
         var mainTfContent = await File.ReadAllTextAsync(mainTfPath);

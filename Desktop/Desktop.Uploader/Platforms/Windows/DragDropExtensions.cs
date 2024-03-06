@@ -4,14 +4,12 @@ using Windows.Storage;
 using DataPackageOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation;
 using DragEventArgs = Microsoft.UI.Xaml.DragEventArgs;
 
-using System.Text;
-
 //https://github.com/VladislavAntonyuk/MauiSamples/blob/main/MauiPaint/Platforms/Windows/DragDropHelper.cs
 public static class DragDropHelper
 {
     public static void RegisterDragDrop(UIElement element, Func<string, Task>? content)
     {
-        element.AllowDrop = true;        
+        element.AllowDrop = true;
         element.Drop += async (s, e) =>
         {
             if (e.DataView.Contains(StandardDataFormats.StorageItems))

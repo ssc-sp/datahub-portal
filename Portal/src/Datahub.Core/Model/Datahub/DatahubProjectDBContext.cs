@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using Datahub.Core.Data;
+﻿using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Announcements;
 using Datahub.Core.Model.Catalog;
@@ -27,20 +25,20 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     {
     }
 
-    public DbSet<Datahub_Project> Projects { get; set; }
-    public DbSet<PBI_License_Request> PowerBI_License_Requests { get; set; }
-    public DbSet<PBI_User_License_Request> PowerBI_License_User_Requests { get; set; }
-    public DbSet<Datahub_ProjectComment> Project_Comments { get; set; }
-    public DbSet<WebForm_Field> Fields { get; set; }
+    public DbSet<DatahubProject> Projects { get; set; }
+    public DbSet<PBILicenseRequest> PowerBILicenseRequests { get; set; }
+    public DbSet<PBIUserLicenseRequest> PowerBILicenseUserRequests { get; set; }
+    public DbSet<DatahubProjectComment> ProjectComments { get; set; }
+    public DbSet<WebFormField> Fields { get; set; }
     public DbSet<WebForm> WebForms { get; set; }
-    public DbSet<WebForm_DBCodes> DBCodes { get; set; }
-    public DbSet<Datahub_Project_User> Project_Users { get; set; }
-    public DbSet<Datahub_Project_User_Request> Project_Users_Requests { get; set; }
-    public DbSet<Datahub_Project_Pipeline_Lnk> Project_Pipeline_Links { get; set; }
-    public DbSet<Organization_Level> Organization_Levels { get; set; }
-    public DbSet<OnboardingApp> OnboardingApps {  get; set; }
+    public DbSet<WebFormDBCodes> DBCodes { get; set; }
+    public DbSet<DatahubProjectUser> ProjectUsers { get; set; }
+    public DbSet<DatahubProjectUserRequest> ProjectUsersRequests { get; set; }
+    public DbSet<DatahubProjectPipelineLnk> ProjectPipelineLinks { get; set; }
+    public DbSet<OrganizationLevel> OrganizationLevels { get; set; }
+    public DbSet<OnboardingApp> OnboardingApps { get; set; }
 
-    public DbSet<Project_Resources2> Project_Resources2 { get; set; }
+    public DbSet<ProjectResources2> ProjectResources2 { get; set; }
 
     public DbSet<PublicDataFile> PublicDataFiles { get; set; }
 
@@ -49,189 +47,187 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     public DbSet<SystemNotification> SystemNotifications { get; set; }
 
-    public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
-    public DbSet<Project_Credits> Project_Credits { get; set; }
-    public DbSet<Project_Whitelist> Project_Whitelists { get; set; }
+    public DbSet<DatahubProjectCosts> ProjectCosts { get; set; }
+    public DbSet<ProjectCredits> ProjectCredits { get; set; }
+    public DbSet<ProjectWhitelist> ProjectWhitelists { get; set; }
 
-    public DbSet<Project_Storage> Project_Storage_Avgs { get; set; }
+    public DbSet<ProjectStorage> ProjectStorageAvgs { get; set; }
 
     public DbSet<MiscStoredObject> MiscStoredObjects { get; set; }
 
-    public DbSet<Datahub_ProjectApiUser> Project_ApiUsers { get; set; }
-    public DbSet<PowerBi_Workspace> PowerBi_Workspaces { get; set; }
-    public DbSet<PowerBi_Report> PowerBi_Reports { get; set; }
-    public DbSet<PowerBi_DataSet> PowerBi_DataSets { get; set; }
+    public DbSet<DatahubProjectApiUser> ProjectApiUsers { get; set; }
+    public DbSet<PowerBiWorkspace> PowerBiWorkspaces { get; set; }
+    public DbSet<PowerBiReport> PowerBiReports { get; set; }
+    public DbSet<PowerBiDataSet> PowerBiDataSets { get; set; }
 
     public DbSet<SpatialObjectShare> GeoObjectShares { get; set; }
     public DbSet<ExternalPowerBiReport> ExternalPowerBiReports { get; set; }
 
-    public DbSet<Client_Engagement> Client_Engagements { get; set; }
-        
+    public DbSet<ClientEngagement> ClientEngagements { get; set; }
+
     public DbSet<Achievements.Achievement> Achievements { get; set; }
     public DbSet<Achievements.PortalUser> PortalUsers { get; set; }
     public DbSet<Achievements.UserAchievement> UserAchievements { get; set; }
     public DbSet<Achievements.TelemetryEvent> TelemetryEvents { get; set; }
-    
+
     public DbSet<UserTracking.UserSettings> UserSettings { get; set; }
 
     public DbSet<UserTracking.UserRecentLink> UserRecentLinks { get; set; }
 
     public DbSet<Announcement> Announcements { get; set; }
-    
+
     public DbSet<ProjectRepository> ProjectRepositories { get; set; }
-    
-    public DbSet<Project_Role> Project_Roles { get; set; }
+
+    public DbSet<ProjectRole> ProjectRoles { get; set; }
 
     public DbSet<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
-    
+
     public DbSet<UserInactivityNotifications> UserInactivityNotifications { get; set; }
-    
+
     public DbSet<DocumentationResource> DocumentationResources { get; set; }
-    
+
     /// <summary>
-    /// Table for storing any additional details when users go through the self registration process
+    /// Gets or sets table for storing any additional details when users go through the self registration process
     /// </summary>
     public DbSet<SelfRegistrationDetails> SelfRegistrationDetails { get; set; }
-    
+
     /// <summary>
-    /// Table for storing any additional details when users go through the project creation process
+    /// Gets or sets table for storing any additional details when users go through the project creation process
     /// </summary>
     public DbSet<ProjectCreationDetails> ProjectCreationDetails { get; set; }
 
     /// <summary>
-    /// Cataloged objects 
+    /// Gets or sets cataloged objects
     /// </summary>
     public DbSet<CatalogObject> CatalogObjects { get; set; }
 
     /// <summary>
-    /// Table for storing the cloud storage associcated to a project
+    /// Gets or sets table for storing the cloud storage associcated to a project
     /// </summary>
     public DbSet<ProjectCloudStorage> ProjectCloudStorages { get; set; }
 
     /// <summary>
-    /// Table for storing the infrastructure health checks
+    /// Gets or sets table for storing the infrastructure health checks
     /// </summary>
     public DbSet<InfrastructureHealthCheck> InfrastructureHealthChecks { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
-        var p1 = context.Projects.Add(new Datahub_Project()
+        var p1 = context.Projects.Add(new DatahubProject()
         {
-            Project_ID = 1,
-            Project_Acronym_CD = RoleConstants.DATAHUB_ADMIN_PROJECT,
-            Project_Status_Desc = ProjectStatus.InProgress.ToString(),
+            ProjectID = 1,
+            ProjectAcronymCD = RoleConstants.DATAHUBADMINPROJECT,
+            ProjectStatusDesc = ProjectStatus.InProgress.ToString(),
             Project_Name = "Datahub Tracker",
-            Is_Private = false,
-            Project_Icon = "database",
-            Project_Summary_Desc = "Datahub Project Tracker",
-            Sector_Name = "CIOSB"
+            IsPrivate = false,
+            ProjectIcon = "database",
+            ProjectSummaryDesc = "Datahub Project Tracker",
+            SectorName = "CIOSB"
         }).Entity;
         context.Projects.Add(
-            new Datahub_Project()
+            new DatahubProject()
             {
-                Project_ID = 2,
-                Project_Acronym_CD = "TEST1",
-                Project_Status_Desc = ProjectStatus.InProgress.ToString(),
+                ProjectID = 2,
+                ProjectAcronymCD = "TEST1",
+                ProjectStatusDesc = ProjectStatus.InProgress.ToString(),
                 Project_Name = "Test Project 1",
-                Is_Private = false,
-                Project_Icon = "database",
-                Project_Summary_Desc = "Test Project 1 for CFS",
-                Sector_Name = "CFS"
+                IsPrivate = false,
+                ProjectIcon = "database",
+                ProjectSummaryDesc = "Test Project 1 for CFS",
+                SectorName = "CFS"
             });
-        context.Projects.Add(new Datahub_Project()
+        context.Projects.Add(new DatahubProject()
         {
-            Project_ID = 3,
-            Project_Acronym_CD = "TEST2",
-            Project_Status_Desc = ProjectStatus.InProgress.ToString(),
+            ProjectID = 3,
+            ProjectAcronymCD = "TEST2",
+            ProjectStatusDesc = ProjectStatus.InProgress.ToString(),
             Project_Name = "Test Project 2",
-            Is_Private = false,
-            Project_Icon = "database",
-            Project_Summary_Desc = "Test Project 2 for CFS",
-            Sector_Name = "CFS"
+            IsPrivate = false,
+            ProjectIcon = "database",
+            ProjectSummaryDesc = "Test Project 2 for CFS",
+            SectorName = "CFS"
         });
         var initialSetup = configuration.GetSection("InitialSetup");
         if (initialSetup?.GetValue<string>("AdminGUID") != null)
         {
-            var user = context.Project_Users.Add(new Datahub_Project_User()
+            var user = context.ProjectUsers.Add(new DatahubProjectUser()
             {
                 PortalUser = new PortalUser()
                 {
-                    GraphGuid = initialSetup.GetValue<string>("AdminGUID"), 
+                    GraphGuid = initialSetup.GetValue<string>("AdminGUID"),
                 },
                 Project = p1,
-                RoleId = (int) Project_Role.RoleNames.Admin
+                RoleId = (int)ProjectRole.RoleNames.Admin
             });
             //var permissions = context.Project_Users_Requests.Add(new Datahub_)
         }
-
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DatahubProjectDBContext).Assembly);
 
-        modelBuilder.Entity<WebForm_Field>()
+        modelBuilder.Entity<WebFormField>()
             .HasOne(p => p.WebForm)
             .WithMany(p => p.Fields);
 
-        modelBuilder.Entity<WebForm_Field>()
-            .Property(e => e.Extension_CD)
+        modelBuilder.Entity<WebFormField>()
+            .Property(e => e.ExtensionCD)
             .HasDefaultValue("NONE");
 
-        modelBuilder.Entity<WebForm_Field>()
-            .Property(e => e.Type_CD)
+        modelBuilder.Entity<WebFormField>()
+            .Property(e => e.TypeCD)
             .HasDefaultValue("Text");
 
         modelBuilder.Entity<WebForm>().HasOne(e => e.Project).WithMany(e => e.WebForms);
 
-        modelBuilder.Entity<Datahub_Project>().HasOne(p => p.PBI_License_Request).WithOne(p => p.Project).HasForeignKey<PBI_License_Request>(l => l.Project_ID);
-        modelBuilder.Entity<Datahub_Project>().HasIndex(p => p.Project_Acronym_CD).IsUnique();
+        modelBuilder.Entity<DatahubProject>().HasOne(p => p.PBILicenseRequest).WithOne(p => p.Project).HasForeignKey<PBILicenseRequest>(l => l.ProjectID);
+        modelBuilder.Entity<DatahubProject>().HasIndex(p => p.ProjectAcronymCD).IsUnique();
 
-        modelBuilder.Entity<Datahub_ProjectComment>().HasOne(c => c.Project).WithMany(p => p.Comments);
+        modelBuilder.Entity<DatahubProjectComment>().HasOne(c => c.Project).WithMany(p => p.Comments);
 
-        modelBuilder.Entity<Datahub_Project_Pipeline_Lnk>().HasKey(t => new { t.Project_ID, t.Process_Nm });
+        modelBuilder.Entity<DatahubProjectPipelineLnk>().HasKey(t => new { t.ProjectID, t.ProcessNm });
 
-        modelBuilder.Entity<PowerBi_Workspace>()
-            .HasOne<Datahub_Project>(w => w.Project)
-            .WithMany(p => p.PowerBi_Workspaces)
-            .HasForeignKey(w => w.Project_Id);
+        modelBuilder.Entity<PowerBiWorkspace>()
+            .HasOne<DatahubProject>(w => w.Project)
+            .WithMany(p => p.PowerBiWorkspaces)
+            .HasForeignKey(w => w.ProjectId);
 
-        modelBuilder.Entity<PowerBi_Report>()
-            .HasOne<PowerBi_Workspace>(r => r.Workspace)
+        modelBuilder.Entity<PowerBiReport>()
+            .HasOne<PowerBiWorkspace>(r => r.Workspace)
             .WithMany(w => w.Reports)
-            .HasForeignKey(r => r.Workspace_Id);
+            .HasForeignKey(r => r.WorkspaceId);
 
-        modelBuilder.Entity<PowerBi_DataSet>()
-            .HasOne<PowerBi_Workspace>(d => d.Workspace)
+        modelBuilder.Entity<PowerBiDataSet>()
+            .HasOne<PowerBiWorkspace>(d => d.Workspace)
             .WithMany(w => w.Datasets)
-            .HasForeignKey(d => d.Workspace_Id);
+            .HasForeignKey(d => d.WorkspaceId);
 
-
-        modelBuilder.Entity<Datahub_Project>()
+        modelBuilder.Entity<DatahubProject>()
             .HasOne(w => w.Sector)
             .WithMany(p => p.Sectors)
             .HasForeignKey(f => f.SectorId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        modelBuilder.Entity<Datahub_Project>()
+        modelBuilder.Entity<DatahubProject>()
             .HasOne(w => w.Branch)
             .WithMany(p => p.Branches)
             .HasForeignKey(f => f.BranchId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        modelBuilder.Entity<Datahub_Project>()
+        modelBuilder.Entity<DatahubProject>()
             .HasOne(w => w.Division)
             .WithMany(p => p.Divisions)
             .HasForeignKey(f => f.DivisionId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        modelBuilder.Entity<Datahub_Project>()
+        modelBuilder.Entity<DatahubProject>()
             .HasMany(w => w.ProjectInactivityNotifications)
             .WithOne(p => p.Project)
-            .HasForeignKey(p => p.Project_ID)
+            .HasForeignKey(p => p.ProjectID)
             .OnDelete(DeleteBehavior.NoAction);
 
-        modelBuilder.Entity<Project_Whitelist>(entity =>
+        modelBuilder.Entity<ProjectWhitelist>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.HasOne(e => e.Project)
@@ -239,12 +235,12 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
                 .OnDelete(DeleteBehavior.NoAction);
         });
 
-        modelBuilder.Entity<Datahub_Project_Costs>(entity =>
+        modelBuilder.Entity<DatahubProjectCosts>(entity =>
         {
-            entity.HasIndex(e => new { e.Project_ID, e.Date });
+            entity.HasIndex(e => new { e.ProjectID, e.Date });
         });
 
-        modelBuilder.Entity<Project_Credits>(entity =>
+        modelBuilder.Entity<ProjectCredits>(entity =>
         {
             entity.ToTable("Project_Credits");
             entity.HasKey(e => e.Id);
@@ -253,17 +249,17 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
                   .OnDelete(DeleteBehavior.NoAction);
         });
 
-        modelBuilder.Entity<PBI_User_License_Request>()
+        modelBuilder.Entity<PBIUserLicenseRequest>()
             .HasOne(p => p.LicenseRequest)
-            .WithMany(b => b.User_License_Requests)
+            .WithMany(b => b.UserLicenseRequests)
             .HasForeignKey(p => p.RequestID);
 
         modelBuilder.Entity<PublicDataFile>()
-            .HasIndex(e => e.File_ID)
+            .HasIndex(e => e.FileID)
             .IsUnique();
-            
+
         modelBuilder.Entity<SharedDataFile>()
-            .HasIndex(e => e.File_ID)
+            .HasIndex(e => e.FileID)
             .IsUnique();
 
         modelBuilder.Entity<MiscStoredObject>()
@@ -271,11 +267,10 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
         modelBuilder.Entity<SpatialObjectShare>()
             .ToTable("SpatialObjectShares");
-            
-        modelBuilder.Entity<Datahub_Project_User>()
-            .Property(u => u.ProjectUser_ID);
-        
-        
+
+        modelBuilder.Entity<DatahubProjectUser>()
+            .Property(u => u.ProjectUserID);
+
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
             // SQLite does not have proper support for DateTimeOffset via Entity Framework Core, see the limitations

@@ -13,21 +13,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
-using Microsoft.Graph.Auth;
 using Microsoft.Graph.Models;
-using Microsoft.Identity.Client;
 using Newtonsoft.Json;
 using GraphServiceClient = Microsoft.Graph.GraphServiceClient;
 
 #region Config
 
 var config = new ConfigurationBuilder()
-     .SetBasePath(System.IO.Directory.GetCurrentDirectory())
+     .SetBasePath(Directory.GetCurrentDirectory())
      .AddJsonFile($"appsettings.Development.json")
      .Build();
 
-string projectDbConnectionString  = config[nameof(projectDbConnectionString)]!;
+string projectDbConnectionString = config[nameof(projectDbConnectionString)]!;
 string metadataDbConnectionString = config[nameof(metadataDbConnectionString)]!;
 string tenantId = config["TenantId"]!;
 string clientId = config["ClientId"]!;
@@ -81,7 +78,7 @@ if (metadataCtx is not null && projectCtx is not null && InputFileExists(args))
         // create ObjectMetadata
         ObjectMetadata objMetadata = new()
         {
-            ObjectId_TXT = entry.id,
+            ObjectIdTXT = entry.id,
             MetadataVersionId = 2
         };
 
@@ -98,29 +95,29 @@ if (metadataCtx is not null && projectCtx is not null && InputFileExists(args))
 
         fieldValues.SetValue("sector", $"{sector?.Id ?? 0}");
         fieldValues.SetValue("collection", "primary");
-        fieldValues.SetValue("title_translated_en", entry.name_en);
-        fieldValues.SetValue("title_translated_fr", entry.name_fr);
+        fieldValues.SetValue("title_translated_en", entry.nameEn);
+        fieldValues.SetValue("title_translated_fr", entry.nameFr);
         fieldValues.SetValue("contact_information", graphUser?.Mail ?? entry.contact);
         fieldValues.SetValue("subject", subjectValues);
-        fieldValues.SetValue("keywords_en", String.Join(",", entry.keywords_en));
-        fieldValues.SetValue("keywords_fr", String.Join(",", entry.keywords_fr));
+        fieldValues.SetValue("keywords_en", String.Join(",", entry.keywordsEn));
+        fieldValues.SetValue("keywords_fr", String.Join(",", entry.keywordsFr));
         await metadataBroker.SaveMetadata(fieldValues, true);
 
         var catalogObj = new CatalogObject()
         {
             ObjectMetadataId = objMetadata.ObjectMetadataId,
             DataType = MetadataObjectType.DatasetUrl,
-            Name_TXT = entry.name_en,
-            Name_French_TXT = entry.name_fr,
-            Location_TXT = entry.url_en,
-            SecurityClass_TXT = entry.securityClass ?? "Unclassified",
-            Sector_NUM = sector?.Id ?? 0,
-            Branch_NUM = 0, // no branch for now
-            Contact_TXT = graphUser?.Mail ?? entry.contact,
-            Search_English_TXT = GetCatalogText(GetSubjects(entry, true), GetPrograms(entry), 
-                sector?.Name_English ?? "", string.Empty, entry.name_en, entry.keywords_en),
-            Search_French_TXT = GetCatalogText(GetSubjects(entry, false), GetPrograms(entry), 
-                sector?.Name_French ?? "", string.Empty, entry.name_fr, entry.keywords_fr),
+            NameTXT = entry.nameEn,
+            NameFrenchTXT = entry.nameFr,
+            LocationTXT = entry.urlEn,
+            SecurityClassTXT = entry.securityClass ?? "Unclassified",
+            SectorNUM = sector?.Id ?? 0,
+            BranchNUM = 0, // no branch for now
+            ContactTXT = graphUser?.Mail ?? entry.contact,
+            SearchEnglishTXT = GetCatalogText(GetSubjects(entry, true), GetPrograms(entry),
+                sector?.NameEnglish ?? "", string.Empty, entry.nameEn, entry.keywordsEn),
+            SearchFrenchTXT = GetCatalogText(GetSubjects(entry, false), GetPrograms(entry),
+                sector?.NameFrench ?? "", string.Empty, entry.nameFr, entry.keywordsFr),
         };
 
         metadataCtx.CatalogObjects.Add(catalogObj);
@@ -142,7 +139,7 @@ static bool InputFileExists(string[] args) => args.Length > 0 && File.Exists(arg
 
 static bool ObjectMetadataExists(MetadataDbContext ctx, string id)
 {
-    return ctx.ObjectMetadataSet.Any(e => e.ObjectId_TXT == id);
+    return ctx.ObjectMetadataSet.Any(e => e.ObjectIdTXT == id);
 }
 
 static Microsoft.Graph.GraphServiceClient PrepareAuthenticatedClient(string tenantId, string clientId, string clientSecret)
@@ -173,7 +170,7 @@ static async Task<User?> GetGraphUser(GraphServiceClient graphClient, string use
         requestConfiguration =>
         {
             requestConfiguration.QueryParameters.Search = $"\"onPremisesSamAccountName:{userName}\"";
-            requestConfiguration.QueryParameters.Select = new[] { "mail","department"};
+            requestConfiguration.QueryParameters.Select = new[] { "mail", "department" };
             requestConfiguration.QueryParameters.Count = true;
             requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");
         });
@@ -190,14 +187,14 @@ static async Task<Sector> GetSector(DatahubProjectDBContext ctx, string? departm
     var engAcronym = (department ?? "").Split('.').FirstOrDefault();
     if (!string.IsNullOrEmpty(engAcronym))
     {
-        var orgLevel = await ctx.Organization_Levels.FirstOrDefaultAsync(e => e.Full_Acronym_E == engAcronym);
+        var orgLevel = await ctx.OrganizationLevels.FirstOrDefaultAsync(e => e.FullAcronymE == engAcronym);
         if (orgLevel is not null)
         {
             return new Sector()
             {
-                Id = orgLevel.Organization_ID,
-                Name_English = orgLevel.Org_Name_E,
-                Name_French = orgLevel.Org_Name_F
+                Id = orgLevel.OrganizationID,
+                NameEnglish = orgLevel.OrgNameE,
+                NameFrench = orgLevel.OrgNameF
             };
         }
     }
@@ -206,7 +203,7 @@ static async Task<Sector> GetSector(DatahubProjectDBContext ctx, string? departm
 
 static IEnumerable<string> GetSubjects(Entry entry, bool eng)
 {
-    return entry.subjects is not null ? entry.subjects.Select(s => eng ? s.name_en : s.name_fr) : new List<string>();
+    return entry.subjects is not null ? entry.subjects.Select(s => eng ? s.nameEn : s.nameFr) : new List<string>();
 }
 
 static IEnumerable<string> GetPrograms(Entry entry)
@@ -238,11 +235,11 @@ string GetSubjectValues(FieldDefinitions definitions, List<CatalogIngestTool.Sub
         return "";
 
     List<string> values = new();
-    foreach (var subject in subjects.Select(s => s.name_en))
+    foreach (var subject in subjects.Select(s => s.nameEn))
     {
-        var found = choices.FirstOrDefault(c => c.Label_English_TXT.Equals(subject, StringComparison.InvariantCultureIgnoreCase));
+        var found = choices.FirstOrDefault(c => c.LabelEnglishTXT.Equals(subject, StringComparison.InvariantCultureIgnoreCase));
         if (found != null)
-            values.Add(found.Value_TXT);
+            values.Add(found.ValueTXT);
     }
 
     return String.Join("|", values);
@@ -255,27 +252,27 @@ namespace CatalogIngestTool
 {
     class DummyDatahubAuditingService : IDatahubAuditingService
     {
-        public Task TrackAdminEvent(string scope, string source, AuditChangeType changeType, params (string key, string value)[] details)
+        public Task TrackAdminEvent(string scope, string source, AuditChangeType changeType, params (string Key, string Value)[] details)
         {
             return Task.CompletedTask;
         }
 
-        public Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, bool anonymous, params (string key, string value)[] details)
+        public Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, bool anonymous, params (string Key, string Value)[] details)
         {
             return Task.CompletedTask;
         }
 
-        public Task TrackException(Exception exception, params (string key, string value)[] details)
+        public Task TrackException(Exception exception, params (string Key, string Value)[] details)
         {
             return Task.CompletedTask;
         }
 
-        public Task TrackSecurityEvent(string scope, string table, AuditChangeType changeType, params (string key, string value)[] details)
+        public Task TrackSecurityEvent(string scope, string table, AuditChangeType changeType, params (string Key, string Value)[] details)
         {
             return Task.CompletedTask;
         }
 
-        public Task TrackEvent(string message, params (string key, string value)[] details)
+        public Task TrackEvent(string message, params (string Key, string Value)[] details)
         {
             return Task.CompletedTask;
         }

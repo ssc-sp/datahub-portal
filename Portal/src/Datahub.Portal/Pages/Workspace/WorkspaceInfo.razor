@@ -18,7 +18,7 @@
     [Parameter, EditorRequired]
     public string WorkspaceAcronym { get; set; }
 
-    private Datahub_Project _project;
+    private DatahubProject _project;
     private FieldValueContainer _projectMetadata;
     private string _projectDescription;
 
@@ -28,7 +28,7 @@
 
         await using var db = await _dbFactoryProject.CreateDbContextAsync();
         _project = await db.Projects
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == WorkspaceAcronym);
 
         _projectMetadata = await _metadataBrokerService.GetObjectMetadataValues(WorkspaceAcronym);
         _projectDescription = GetProjectDescription();

@@ -1,33 +1,32 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using MudBlazor.Forms;
 
 namespace Datahub.Core.Model.Projects;
 
-public class Datahub_ProjectComment
+public class DatahubProjectComment
 {
     [Key]
     [AeFormIgnore]
-    public int Comment_ID { get; set; }
+    public int CommentID { get; set; }
 
-    public DateTime Comment_Date_DT { get; set; }
+    public DateTime CommentDateDT { get; set; }
 
-    public string Comment_NT { get; set; }
+    public string CommentNT { get; set; }
 
     [AeFormIgnore]
     [Timestamp]
     public byte[] Timestamp { get; set; }
-    public Datahub_Project Project { get; set; }
+    public DatahubProject Project { get; set; }
 
     [AeFormIgnore]
-    public string Last_Updated_UserId { get; set; }
+    public string LastUpdatedUserId { get; set; }
 
     [AeFormIgnore]
-    public DateTime Last_Updated_DT { get; set; }
+    public DateTime LastUpdatedDT { get; set; }
 
     [AeFormIgnore]
-    public string Created_UserId { get; set; }
+    public string CreatedUserId { get; set; }
 
     [AeFormIgnore]
-    public DateTime Created_DT { get; set; }
+    public DateTime CreatedDT { get; set; }
 }

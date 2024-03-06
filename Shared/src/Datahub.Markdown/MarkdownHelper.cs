@@ -2,7 +2,6 @@
 using Markdig.Extensions.Yaml;
 using Markdig.Renderers.Roundtrip;
 using Markdig.Syntax;
-using System.IO;
 using System.Text.RegularExpressions;
 
 namespace Datahub.Markdown
@@ -19,7 +18,7 @@ namespace Datahub.Markdown
             var renderer = new RoundtripRenderer(sw);
             // extract the front matter from markdown document
             var yamlBlocks = document.Descendants<YamlFrontMatterBlock>();
-            
+
             foreach (var block in yamlBlocks)
             {
                 block.Lines = new Markdig.Helpers.StringLineGroup();

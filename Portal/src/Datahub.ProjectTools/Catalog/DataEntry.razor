@@ -18,7 +18,7 @@
         }
     </Logo>
     <ToolActionsList>
-        <DHLink Variant="h3" DataProject="@Project.Project_Acronym_CD" WebFormsURL="@Project.WebForms_URL">
+        <DHLink Variant="h3" DataProject="@Project.ProjectAcronymCD" WebFormsURL="@Project.WebFormsURL">
             <ToolActionButton LinkType="LinkType.Internal">
                 @Localizer["Open Data Entry Application"]
             </ToolActionButton>
@@ -27,7 +27,7 @@
 </ToolCard>
 
 @code {
-    [Parameter] public Datahub_Project Project { get; set; }
+    [Parameter] public DatahubProject Project { get; set; }
     [Parameter] public string Title { get; set; }
     [Parameter] public string Description { get; set; }
     [Parameter] public string Icon { get; set; }

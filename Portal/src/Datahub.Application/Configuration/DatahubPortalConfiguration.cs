@@ -40,7 +40,7 @@ public class DatahubPortalConfiguration
     public string DatahubGraphInviteFunctionUrl { get; set; } = null!;
     public string DatahubGraphUsersStatusFunctionUrl { get; set; } = null!;
     public TermsAndConditionsUrl TermsAndConditionsUrl { get; set; } = new();
-    public PreRegistrationDocumentationUrl PreRegistrationDocumentationUrl  { get; set; } = new();
+    public PreRegistrationDocumentationUrl PreRegistrationDocumentationUrl { get; set; } = new();
 
     public string SupportFormUrl { get; set; } =
         "https://forms.office.com/pages/responsepage.aspx?id=lMFb0L-U1kquLh2w8uOPXhksOXzZ73RCp9fVTz4vTU5UNTc1U00yNVUxWVg4SkJGMFVHN1RCTTdQRS4u";
@@ -61,7 +61,7 @@ public class Media
 {
     public string StorageConnectionString { get; set; } = null!;
     public string StaticAssetsUrl { get; set; } = "https://fsdhstaticassetstorage.blob.core.windows.net";
-    
+
     public string GetAchievementThumbnailUrl(string? code) => $"{StaticAssetsUrl}/achievements/thumbnails/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
     public string GetAchievementPortraitUrl(string? code) => $"{StaticAssetsUrl}/achievements/portraits/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
     public string GetAchievementImageUrl(string? code) => $"{StaticAssetsUrl}/achievements/backgrounds/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
@@ -91,8 +91,6 @@ public class CultureSettings
     public string Default { get; set; } = "en-CA";
     public string SupportedCultures { get; set; } = "fr-CA|en-CA";
     public bool TrackTranslations = false;
-    public string ResourcesPath { get; set; } = "../Datahub.Portal/i18n";
-    public string[] AdditionalResourcePaths { get; set; } = ["../Datahub.Portal/i18n/ssc"];
 }
 
 public class DataProjects
@@ -139,7 +137,7 @@ public class AzureAd
     public string SignedOutCallbackPath { get; set; } = "/signout-callback-oidc";
 
     public string AppIDURL { get; set; } = null!;
-    
+
     public string InfraClientId { get; set; } = null!;
     public string InfraClientSecret { get; set; } = null!;
 }

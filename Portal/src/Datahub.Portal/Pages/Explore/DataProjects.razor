@@ -37,7 +37,7 @@
         </MudGrid>
     }
     <MudText Typo="Typo.h1" Class="mt-6 mb-3">@Localizer["All Workspaces"]</MudText>
-    <MudTable Striped Items="_filteredProjects" Class="mb-12" Filter="new Func<Datahub_Project, bool>(ProjectFilter)">
+    <MudTable Striped Items="_filteredProjects" Class="mb-12" Filter="new Func<DatahubProject, bool>(ProjectFilter)">
         <ToolBarContent>
             <MudTextField T="string" Placeholder="@Localizer["Search"]" DebounceInterval="500"
                           @bind-Value="_projectSearchFilter" Adornment="Adornment.Start"
@@ -47,19 +47,19 @@
         </ToolBarContent>
         <HeaderContent>
             <MudTh>
-                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.Project_Acronym_CD)">@Localizer["Acronym"]</MudTableSortLabel>
+                <MudTableSortLabel SortBy="new Func<DatahubProject, object>(x => x.ProjectAcronymCD)">@Localizer["Acronym"]</MudTableSortLabel>
             </MudTh>
 
             <MudTh>
-                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.ProjectName)" InitialDirection="SortDirection.Ascending">@Localizer["Name"]</MudTableSortLabel>
+                <MudTableSortLabel SortBy="new Func<DatahubProject, object>(x => x.ProjectName)" InitialDirection="SortDirection.Ascending">@Localizer["Name"]</MudTableSortLabel>
             </MudTh>
 
             <MudTh>
-                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => GetDepartment(x.Project_Acronym_CD))" InitialDirection="SortDirection.Ascending">@Localizer["Department"]</MudTableSortLabel>
+                <MudTableSortLabel SortBy="new Func<DatahubProject, object>(x => GetDepartment(x.ProjectAcronymCD))" InitialDirection="SortDirection.Ascending">@Localizer["Department"]</MudTableSortLabel>
             </MudTh>
 
             <MudTh>
-                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.Users?.Count ?? 0 + x.Repositories?.Count ?? 0)" InitialDirection="SortDirection.Ascending">@Localizer["Details"]</MudTableSortLabel>
+                <MudTableSortLabel SortBy="new Func<DatahubProject, object>(x => x.Users?.Count ?? 0 + x.Repositories?.Count ?? 0)" InitialDirection="SortDirection.Ascending">@Localizer["Details"]</MudTableSortLabel>
             </MudTh>
 
             <MudTh>
@@ -67,11 +67,11 @@
             </MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Acronym">@context.Project_Acronym_CD</MudTd>
+            <MudTd DataLabel="Acronym">@context.ProjectAcronymCD</MudTd>
 
             <MudTd DataLabel="Name">@context.ProjectName</MudTd>
 
-            <MudTd DataLabel="Department/Agency">@GetDepartment(context.Project_Acronym_CD)</MudTd>
+            <MudTd DataLabel="Department/Agency">@GetDepartment(context.ProjectAcronymCD)</MudTd>
 
             <MudTd DataLabel="Details">
                 <ProjectPreviewCardIconDetails
@@ -82,7 +82,7 @@
 
             <MudTd DataLabel="ProjectButton">
                 <MudButton EndIcon="@UserWorkspaceOpenIcon" Variant="Variant.Text" Color="Color.Primary"
-                           Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{context.Project_Acronym_CD}")">
+                           Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{context.ProjectAcronymCD}")">
                     @Localizer["Open Workspace"]
                 </MudButton>
             </MudTd>
@@ -97,9 +97,9 @@
 
         private const string UserWorkspaceOpenIcon = Icons.Material.Filled.KeyboardDoubleArrowRight;
 
-    private List<Datahub_Project> _allProjects = new();
-    private List<Datahub_Project> _filteredProjects = new();
-    private List<Datahub_Project> _featuredProjects = new();
+    private List<DatahubProject> _allProjects = new();
+    private List<DatahubProject> _filteredProjects = new();
+    private List<DatahubProject> _featuredProjects = new();
         private const int FeaturedProjectsCount = 3;
 
     private string _projectSearchFilter = string.Empty;
@@ -110,8 +110,8 @@
         await using var context = await _dbFactory.CreateDbContextAsync();
         _allProjects = await context.Projects
             .Where(p =>
-                (p.Project_Status == (int)ProjectStatus.InProgress || p.Is_Featured) &&
-                !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD)
+                (p.ProjectStatus == (int)ProjectStatus.InProgress || p.IsFeatured) &&
+                !p.IsPrivate && !string.IsNullOrWhiteSpace(p.ProjectAcronymCD)
                 && !string.IsNullOrWhiteSpace(p.Project_Name))
             .Include(p => p.Users)
             .Include(p => p.Repositories)
@@ -120,7 +120,7 @@
 
         _filteredProjects = _allProjects;
         _featuredProjects = _allProjects
-            .Where(p => p.Is_Featured)
+            .Where(p => p.IsFeatured)
             .Take(FeaturedProjectsCount)
             .ToList();
 
@@ -141,11 +141,11 @@
         return _departments.TryGetValue(acronym.ToLower(), out string value) ? value : "N/A";
     }
 
-    private bool ProjectFilter(Datahub_Project project)
+    private bool ProjectFilter(DatahubProject project)
     {
         return project.Project_Name.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant()) ||
-               project.Project_Acronym_CD.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant()) ||
-               project.Sector_Name.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant());
+               project.ProjectAcronymCD.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant()) ||
+               project.SectorName.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant());
     }
 
 }

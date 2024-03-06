@@ -23,7 +23,7 @@
         <MudText Typo=@Typo.h3>
             @if (_showReportInfo)
             {
-                @_catalogReport.Name_English
+                @_catalogReport.NameEnglish
             }
             else if (_isWorking)
             {
@@ -65,7 +65,7 @@
                                 {
                                     <MudListItem>
                                         <MudLink Href=@GenerateReportLink(report) @onclick=@(async () => await ChangeReport(report))>
-                                            @report.Name_English - @Localizer[@report.Language.ToString()]
+                                            @report.NameEnglish - @Localizer[@report.Language.ToString()]
                                         </MudLink>
                                     </MudListItem>
                                 }
@@ -315,7 +315,7 @@
     {
         _catalogKeywords = new();
         var keywords = ReportIsFrench ? "keywords_fr" : "keywords_en";
-        var eTags = _catalogReport?.Metadata[keywords].Value_TXT ?? string.Empty;
+        var eTags = _catalogReport?.Metadata[keywords].ValueTXT ?? string.Empty;
         var eTagsList = eTags.Split(',', StringSplitOptions.RemoveEmptyEntries)
                              .Select(kw => kw.Trim())
                              .Where(kw => !string.IsNullOrEmpty(kw))

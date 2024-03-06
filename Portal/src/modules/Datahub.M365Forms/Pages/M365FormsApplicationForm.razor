@@ -73,10 +73,10 @@
     private SuccessIndicator _submitApprovalInd = null!;
     private bool _submittingApproval = false;
 
-    private List<OrganizationLevel> _sectors = new(); 
+    private List<DHOrganizationLevel> _sectors = new(); 
     private List<string> Sectors => LocalizeChoices(_sectors);
 
-    private List<string> LocalizeChoices(IEnumerable<OrganizationLevel> levels)
+    private List<string> LocalizeChoices(IEnumerable<DHOrganizationLevel> levels)
     {
         return levels.Select(s => !_isFrench ? s.EnglishLabel : s.FrenchLabel)
                      .OrderBy(s => s)
@@ -94,12 +94,12 @@
         _sectors = await OrganizationLevelsService.GetSectors();
         AccessorFunctions = new List<Func<M365FormsApplication, string>>
         {
-            p => { return Localizer[p.Name_of_Team]; },
-            p => { return Localizer[p.Description_of_Team ?? string.Empty]; },            
+            p => { return Localizer[p.NameOfTeam]; },
+            p => { return Localizer[p.DescriptionOfTeam ?? string.Empty]; },            
             p => { return p.Visibility ?? string.Empty; },
-            p => { return p.Team_Owner1 ?? string.Empty; },
-            p => { return p.Team_Owner2 ?? string.Empty; },
-            p => { return p.Team_Owner3 ?? string.Empty; },
+            p => { return p.TeamOwner1 ?? string.Empty; },
+            p => { return p.TeamOwner2 ?? string.Empty; },
+            p => { return p.TeamOwner3 ?? string.Empty; },
             p => { return p.SubmittedBy ?? string.Empty; },
             p => { return p.M365FormStatus ?? string.Empty; },
         };
@@ -150,26 +150,26 @@
     {
         if (_isUserAdmin)
         {
-            _m365FormsApplications = Context.M365FormsApplications.OrderByDescending(d => d.Last_Updated_DT).ToList();
+            _m365FormsApplications = Context.M365FormsApplications.OrderByDescending(d => d.LastUpdatedDT).ToList();
         }
         else
         {
-            _m365FormsApplications = Context.M365FormsApplications.OrderByDescending(d => d.Last_Updated_DT).Where(a => a.SubmittedBy == _user.Mail).ToList();
+            _m365FormsApplications = Context.M365FormsApplications.OrderByDescending(d => d.LastUpdatedDT).Where(a => a.SubmittedBy == _user.Mail).ToList();
         }
         if (filter == "All" || string.IsNullOrEmpty(filter))
         {
 
-            _formMetadata.DataSet = _m365FormsApplications.OrderByDescending(d => d.Last_Updated_DT).ToList();
+            _formMetadata.DataSet = _m365FormsApplications.OrderByDescending(d => d.LastUpdatedDT).ToList();
 
         }
         else
         {
-            _formMetadata.DataSet = _m365FormsApplications.OrderByDescending(d => d.Last_Updated_DT).Where(r => r.M365FormStatus == filter).ToList();
+            _formMetadata.DataSet = _m365FormsApplications.OrderByDescending(d => d.LastUpdatedDT).Where(r => r.M365FormStatus == filter).ToList();
         }
 
         if (!string.IsNullOrEmpty(AppId))
         {
-            m365FormApplication = Context.M365FormsApplications.Where(a => a.Application_ID == Convert.ToInt32(AppId)).FirstOrDefault();
+            m365FormApplication = Context.M365FormsApplications.Where(a => a.ApplicationID == Convert.ToInt32(AppId)).FirstOrDefault();
             if (m365FormApplication != null && !_isUserAdmin)
             {
                 m365FormApplication = null;
@@ -182,12 +182,12 @@
         if (m365FormApplication != null)
         {
             _submittingApproval = true;
-            if (m365FormApplication.Application_ID == 0)
+            if (m365FormApplication.ApplicationID == 0)
             {
                 m365FormApplication = Context.M365FormsApplications.Add(m365FormApplication).Entity;
             }
-            m365FormApplication.Last_Updated_DT = DateTime.Now;
-            m365FormApplication.Last_Updated_UserId = _user.Id??throw new InvalidDataException($"no user found");
+            m365FormApplication.LastUpdatedDT = DateTime.Now;
+            m365FormApplication.LastUpdatedUserId = _user.Id??throw new InvalidDataException($"no user found");
             if (string.IsNullOrEmpty(m365FormApplication.M365FormStatus))
             {
                 m365FormApplication.M365FormStatus = "Team Requested";
@@ -207,11 +207,11 @@
             {
                 M365FormsParameters m365FormsParameters = new()
                     {
-                        AppId = m365FormApplication.Application_ID,
-                        TeamName = m365FormApplication.Name_of_Team,
-                        BusinessOwner = m365FormApplication.Business_Owner,
+                        AppId = m365FormApplication.ApplicationID,
+                        TeamName = m365FormApplication.NameOfTeam,
+                        BusinessOwner = m365FormApplication.BusinessOwner,
                         SubmitterEmaill = _user.Mail,
-                        AppUrl = $"/m365form/applications/{m365FormApplication.Application_ID}",
+                        AppUrl = $"/m365form/applications/{m365FormApplication.ApplicationID}",
                         AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
                     };
 
@@ -232,7 +232,7 @@
     {
         if (!_onchange)
         {
-            context.RegisterOptionValueProperty<M365FormsApplication>(p => p.Client_Sector, () => Sectors);
+            context.RegisterOptionValueProperty<M365FormsApplication>(p => p.ClientSector, () => Sectors);
         }
 
         ToggleVisibility(context);
@@ -240,13 +240,13 @@
 
     private void ToggleVisibility(IModelFormContext context)
     {
-        context.SetVisible<M365FormsApplication>(p => p.Other_Txt!, m365FormApplication?.Other == true);
-        context.SetVisible<M365FormsApplication>(p => p.Expected_Lifespan_DT!, m365FormApplication?.Ongoing_Lifespan != true);
+        context.SetVisible<M365FormsApplication>(p => p.OtherTxt!, m365FormApplication?.Other == true);
+        context.SetVisible<M365FormsApplication>(p => p.ExpectedLifespanDT!, m365FormApplication?.OngoingLifespan != true);
         context.SetVisible<M365FormsApplication>(p => p.M365FormStatus!, _isUserAdmin);
         context.SetVisible<M365FormsApplication>(p => p.Comments!, _isUserAdmin);
         context.SetVisible<M365FormsApplication>(p => p.IsOrganizationalTeam!, _isUserAdmin);
-        context.SetVisible<M365FormsApplication>(p => p.Last_Updated_DT!, _isUserAdmin);
-        context.SetVisible<M365FormsApplication>(p => p.Submitted_DT!, _isUserAdmin);
+        context.SetVisible<M365FormsApplication>(p => p.LastUpdatedDT!, _isUserAdmin);
+        context.SetVisible<M365FormsApplication>(p => p.SubmittedDT!, _isUserAdmin);
         _onchange = false;
     }
 
@@ -259,7 +259,7 @@
 
     private void CreateNewApplication()
     {
-        m365FormApplication = new M365FormsApplication() { Last_Updated_DT = DateTime.Now, Expected_Lifespan_DT = DateTime.Now, SubmittedBy = _user.Mail, Submitted_DT = DateTime.Now };
+        m365FormApplication = new M365FormsApplication() { LastUpdatedDT = DateTime.Now, ExpectedLifespanDT = DateTime.Now, SubmittedBy = _user.Mail, SubmittedDT = DateTime.Now };
         //var user = await UserInformationService.GetUserAsync();        
         _formMetadata.IsSubmitEnabled = true;
         StateHasChanged();

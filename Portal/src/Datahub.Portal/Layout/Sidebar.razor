@@ -84,7 +84,7 @@
     {
         try {
             var lastCommitGit = await documentationService.GetLastRepoCommitTS();
-            var lastCommitUser = await localStorage.GetItemAsync<DateTime?>(DocumentationService.COMMIT_API_URL) ?? DateTime.MinValue;
+            var lastCommitUser = await localStorage.GetItemAsync<DateTime?>(DocumentationService.COMMITAPIURL) ?? DateTime.MinValue;
             //await localStorage.SetItemAsync(DocumentationService.COMMIT_API_URL, lastCommitGit);
             return lastCommitGit.HasValue && lastCommitGit.Value > lastCommitUser;
         } catch (Exception ex)
@@ -116,7 +116,7 @@
         {
             return new()
             {
-                ("/administration", Icon.ADMIN, "SIDEBAR.Admin", new List<string>() {RoleConstants.DATAHUB_ROLE_ADMIN})
+                ("/administration", Icon.ADMIN, "SIDEBAR.Admin", new List<string>() {RoleConstants.DATAHUBROLEADMIN})
             };
         }
 

@@ -1,16 +1,8 @@
-﻿using Datahub.Core.Services.Notification;
-using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
-using Datahub.Core.Utils;
+﻿using Datahub.Core.Services.Security;
 using Datahub.ProjectTools.Templates;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Projects;
@@ -19,11 +11,11 @@ namespace Datahub.ProjectTools.Services
 {
     public class ProjectToolsEmailService
     {
-        public static readonly string EMAIL_CONFIGURATION_ROOT_KEY = "EmailNotification";
+        public static readonly string EMAILCONFIGURATIONROOTKEY = "EmailNotification";
 
-        public static readonly string USERNAME_TEMPLATE_KEY = "Username";
-        public static readonly string SERVICE_TEMPLATE_KEY = "Service";
-        public static readonly string DATA_PROJECT_TEMPLATE_KEY = "DataProject";
+        public static readonly string USERNAMETEMPLATEKEY = "Username";
+        public static readonly string SERVICETEMPLATEKEY = "Service";
+        public static readonly string DATAPROJECTTEMPLATEKEY = "DataProject";
 
         private EmailConfiguration _config;
 
@@ -47,7 +39,7 @@ namespace Datahub.ProjectTools.Services
         {
             _localizer = localizer;
             _config = new EmailConfiguration();
-            config.Bind(EMAIL_CONFIGURATION_ROOT_KEY, _config);
+            config.Bind(EMAILCONFIGURATIONROOTKEY, _config);
             if (_config.AppDomain is null)
             {
                 logger.LogCritical("No Email Configuration available");
@@ -63,13 +55,13 @@ namespace Datahub.ProjectTools.Services
         {
             var parameters = new Dictionary<string, object>()
         {
-            { SERVICE_TEMPLATE_KEY, serviceName },
-            { DATA_PROJECT_TEMPLATE_KEY, projectInfo }
+            { SERVICETEMPLATEKEY, serviceName },
+            { DATAPROJECTTEMPLATEKEY, projectInfo }
         };
 
             if (username != null)
             {
-                parameters.Add(USERNAME_TEMPLATE_KEY, username);
+                parameters.Add(USERNAMETEMPLATEKEY, username);
             }
 
             return parameters;

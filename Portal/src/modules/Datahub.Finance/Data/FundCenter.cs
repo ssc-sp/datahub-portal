@@ -7,7 +7,7 @@ public class FundCenter
 {
     [Key]
     [AeFormIgnore]
-    public int FundCenter_ID { get; set; }
+    public int FundCenterID { get; set; }
 
     [AeFormCategory("Sector Information")]
     [Required]
@@ -17,7 +17,7 @@ public class FundCenter
     [AeFormCategory("Sector Information")]
     [MudForm(IsDropDown = true)]
     [Editable(false)]
-    [Required]        
+    [Required]
     public HierarchyLevel Sector { get; set; }
 
     [AeFormCategory("Sector Information")]
@@ -41,16 +41,16 @@ public class FundCenter
     public string Description { get; set; }
 
     [AeFormIgnore]
-    public string Last_Updated_UserId { get; set; }
+    public string LastUpdatedUserId { get; set; }
 
     [AeFormIgnore]
-    public DateTime Last_Updated_DT { get; set; }
+    public DateTime LastUpdatedDT { get; set; }
 
     [AeFormIgnore]
-    public string Created_UserId { get; set; }
+    public string CreatedUserId { get; set; }
 
     [AeFormIgnore]
-    public DateTime Created_DT { get; set; }
+    public DateTime CreatedDT { get; set; }
 
     [AeFormIgnore]
     [Timestamp]

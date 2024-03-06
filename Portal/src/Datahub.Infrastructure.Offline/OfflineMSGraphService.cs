@@ -85,7 +85,7 @@ public class OfflineMSGraphService : IMSGraphService
         var user = await GetUserAsync(userId, CancellationToken.None);
         return user?.Mail;
     }
-      
+
     public Task<string> GetUserIdFromEmailAsync(string email, CancellationToken tkn)
     {
         throw new NotImplementedException();
@@ -102,7 +102,7 @@ public class OfflineMSGraphService : IMSGraphService
         return Task.FromResult(UsersDict);
     }
 
-    public Task<GraphUser> GetUserFromEmailAsync(string email, CancellationToken tkn) 
+    public Task<GraphUser> GetUserFromEmailAsync(string email, CancellationToken tkn)
     {
         return Task.FromResult((GraphUser)null);
     }

@@ -1,17 +1,15 @@
 ﻿using Datahub.Core.Model.Achievements;
 using RulesEngine.Models;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Datahub.Core.Services.Achievements;
 
 public class AchievementEngine
 {
-    private readonly List<AchievementRule> _rules;
+    private readonly List<AchievementRule> rules;
 
     public AchievementEngine(IEnumerable<Achievement> achievements)
     {
-        _rules = achievements.Select(CreateAchievementRule).ToList();
+        rules = achievements.Select(CreateAchievementRule).ToList();
     }
 
     public async IAsyncEnumerable<string> Evaluate(string currentMetric, IEnumerable<string> ownedAchivements)
@@ -20,7 +18,7 @@ public class AchievementEngine
         HashSet<string> earnedSet = new(ownedAchivements);
 
         // filter the rules (only non achieved achivements)
-        var filteredRules = _rules.Where(r => !earnedSet.Contains(r.AchivementId)).ToList();
+        var filteredRules = rules.Where(r => !earnedSet.Contains(r.AchivementId)).ToList();
 
         // create the rule engine
         var engine = CreateRulesEngine(filteredRules);
@@ -48,24 +46,24 @@ public class AchievementEngine
         }
     }
 
-    static IEnumerable<string> ExtractAchivements(List<RuleResultTree> response)
+    internal static IEnumerable<string> ExtractAchivements(List<RuleResultTree> response)
     {
         return response.Where(r => r.IsSuccess).Select(r => r.Rule.RuleName);
     }
 
-    static RulesEngine.RulesEngine CreateRulesEngine(List<AchievementRule> rules)
+    internal static RulesEngine.RulesEngine CreateRulesEngine(List<AchievementRule> rules)
     {
-        var rulesEngineSettings = new ReSettings 
-        { 
-            CustomTypes = new[] { typeof(Utils) } 
+        var rulesEngineSettings = new ReSettings
+        {
+            CustomTypes = new[] { typeof(Utils) }
         };
         return new RulesEngine.RulesEngine(CreateWorkflows(rules).ToArray(), rulesEngineSettings);
     }
 
-    const string AchievementWorkflow = nameof(AchievementWorkflow);
-    const string MetaAchievementWorkflow = nameof(MetaAchievementWorkflow);
+    public const string AchievementWorkflow = nameof(AchievementWorkflow);
+    public const string MetaAchievementWorkflow = nameof(MetaAchievementWorkflow);
 
-    static IEnumerable<Workflow> CreateWorkflows(List<AchievementRule> rules)
+    internal static IEnumerable<Workflow> CreateWorkflows(List<AchievementRule> rules)
     {
         var achievementRules = rules.Where(r => !r.IsMeta).Select(r => r.Rule).ToList();
         if (achievementRules.Any())
@@ -80,12 +78,12 @@ public class AchievementEngine
         }
     }
 
-    static AchievementRule CreateAchievementRule(Achievement achievement)
+    internal static AchievementRule CreateAchievementRule(Achievement achievement)
     {
         return new(achievement.Id, achievement.IsTrophy(), CreateRule(achievement));
     }
 
-    static Rule CreateRule(Achievement achievement)
+    internal static Rule CreateRule(Achievement achievement)
     {
         return new Rule()
         {
@@ -98,5 +96,4 @@ public class AchievementEngine
     }
 }
 
-record AchievementRule(string AchivementId, bool IsMeta, Rule Rule);
-
+internal record AchievementRule(string AchivementId, bool IsMeta, Rule Rule);

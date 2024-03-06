@@ -23,7 +23,7 @@ public class ProjectUsageService
         using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
 
         // find existing 
-        var projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(e => e.ProjectId == projectId, ct);
+        var projectCredits = await ctx.ProjectCredits.FirstOrDefaultAsync(e => e.ProjectId == projectId, ct);
 
         // create if it does exists
         projectCredits ??= new() { ProjectId = projectId };
@@ -41,11 +41,11 @@ public class ProjectUsageService
         // add or update
         if (projectCredits.Id == 0)
         {
-            ctx.Project_Credits.Add(projectCredits);
+            ctx.ProjectCredits.Add(projectCredits);
         }
         else
         {
-            ctx.Project_Credits.Update(projectCredits);
+            ctx.ProjectCredits.Update(projectCredits);
         }
 
         // update the day stats
@@ -65,14 +65,14 @@ public class ProjectUsageService
         var date = DateTime.UtcNow.Date;
 
         var entity =
-            await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(e => e.ProjectId == projectId && e.Date == date);
+            await ctx.ProjectStorageAvgs.FirstOrDefaultAsync(e => e.ProjectId == projectId && e.Date == date);
         entity ??= new() { ProjectId = projectId, Date = date };
 
-//#if !DEBUG
+        //#if !DEBUG
         // check if already got today's capacity
         if (entity.AverageCapacity > 0)
             return entity.AverageCapacity;
-//#endif
+        //#endif
 
         // create azure session
         var session = await _azureManagementService.GetSession(ct);
@@ -88,11 +88,11 @@ public class ProjectUsageService
 
         if (entity.Id == 0)
         {
-            ctx.Project_Storage_Avgs.Add(entity);
+            ctx.ProjectStorageAvgs.Add(entity);
         }
         else
         {
-            ctx.Project_Storage_Avgs.Update(entity);
+            ctx.ProjectStorageAvgs.Update(entity);
         }
 
         await ctx.SaveChangesAsync(ct);
@@ -108,19 +108,19 @@ public class ProjectUsageService
 
         var yesterday = DateTime.Now.AddDays(-1).Date;
 
-        if (await ctx.Project_Costs.AnyAsync(c => c.Project_ID == projectId && c.Date == yesterday))
+        if (await ctx.ProjectCosts.AnyAsync(c => c.ProjectID == projectId && c.Date == yesterday))
             return;
 
         foreach (var serviceCost in yesterdayCosts)
         {
-            Datahub_Project_Costs cost = new()
+            DatahubProjectCosts cost = new()
             {
-                Project_ID = projectId,
+                ProjectID = projectId,
                 Date = yesterday,
                 CadCost = serviceCost.Cost,
                 ServiceName = serviceCost.Name
             };
-            ctx.Project_Costs.Add(cost);
+            ctx.ProjectCosts.Add(cost);
         }
     }
 
@@ -131,7 +131,7 @@ public class ProjectUsageService
 
     private async Task<(bool Succeeded, List<AzureServiceCost>? yesterdayCosts)> UpdateUsage(
         AzureManagementSession session,
-        Project_Credits projectCredits, string[] resourceGroups, CancellationToken ct)
+        ProjectCredits projectCredits, string[] resourceGroups, CancellationToken ct)
     {
         // monthy by service
         var allCosts = await session.GetResourceGroupYearDailyCostByService(resourceGroups);
@@ -174,15 +174,15 @@ public class ProjectUsageService
     private List<AzureServiceCost> GetTotalCostsPerService(List<AzureServiceCost> costs)
     {
         return costs.GroupBy(c => c.Name).Select(gp => new AzureServiceCost
-            { Date = gp.Min(g => g.Date), Name = gp.Key, Cost = gp.Sum(g => g.Cost) }).ToList();
+        { Date = gp.Min(g => g.Date), Name = gp.Key, Cost = gp.Sum(g => g.Cost) }).ToList();
     }
 
     private List<AzureServiceCost> GetTotalCostsPerDay(List<AzureServiceCost> costs)
     {
         var dailyCosts = new List<AzureServiceCost>();
-        
+
         var days = costs.Select(c => c.Date.Date).Distinct().ToList();
-        
+
         foreach (var day in days)
         {
             var dayCosts = costs.Where(c => c.Date.Date == day).ToList();
@@ -205,7 +205,7 @@ public class ProjectUsageService
 
         return GetTotalCostsPerService(yesterdayCosts);
     }
-    
+
     private List<AzureServiceCost> GetMonthCostsPerDay(List<AzureServiceCost> costs)
     {
         var totalCosts = new List<AzureServiceCost>();

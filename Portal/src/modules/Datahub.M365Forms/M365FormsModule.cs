@@ -15,6 +15,6 @@ public class M365FormsModule : IDatahubModule
 
     public void InitializeDatabases(DatahubModuleContext ctx, IConfiguration configuration)
     {
-        ctx.InitializeDatabase<M365FormsDBContext>(configuration); 
+        ctx.InitializeDatabase<M365FormsDBContext>(configuration);
     }
 }

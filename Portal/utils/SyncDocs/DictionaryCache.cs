@@ -40,7 +40,7 @@ internal class DictionaryCache
             catch (Exception)
             {
                 return false;
-            }    
+            }
         }
         return true;
     }

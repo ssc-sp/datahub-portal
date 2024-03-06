@@ -6,33 +6,33 @@ namespace Datahub.Core.Services.Api;
 
 public class ApiTelemetryService
 {
-    public const string  FileUploadSizeMetricName = "FIleUploadSize";
-    public const string  FileUploadTimeMetricName = "FIleUploadTime";
-    public const string  FileUploadBPMSMetricName = "FIleUploadBPMS";
-    private TelemetryConfiguration _config = TelemetryConfiguration.CreateDefault();
+    public const string FileUploadSizeMetricName = "FIleUploadSize";
+    public const string FileUploadTimeMetricName = "FIleUploadTime";
+    public const string FileUploadBPMSMetricName = "FIleUploadBPMS";
+    private TelemetryConfiguration config = TelemetryConfiguration.CreateDefault();
 
-    private TelemetryClient _client;
-    protected TelemetryClient client
+    private TelemetryClient client;
+    protected TelemetryClient Client
     {
         get
         {
-            if (_client == null)
+            if (client == null)
             {
-                _client = new TelemetryClient(_config);
+                client = new TelemetryClient(config);
             }
 
-            return _client;
+            return client;
         }
     }
     public ApiTelemetryService()
     {
-    }                
+    }
 
     public void LogMetric(string metricName, double value, string filename)
     {
         var dict = new Dictionary<string, string>();
         dict.Add("filename", filename);
-        client.TrackMetric(metricName, value, dict);
+        Client.TrackMetric(metricName, value, dict);
     }
 
     public void LogFileUploadSize(long filesize, string filename)

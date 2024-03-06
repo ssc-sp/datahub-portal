@@ -6,7 +6,7 @@
 @inject IDatahubAuditingService AuditingService
 
 @page "/tracker/{projectAcronym}"
-<AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+<AuthorizeView Roles="@RoleConstants.DATAHUBROLEADMIN">
     <Authorized>
 <div style="padding-left: 2rem;padding-right: 2rem">
     <AeFlex Vertical>
@@ -15,14 +15,14 @@
     <AeCard CardPosition="AeCard.CardStyle.Horizontal">
         <Header>
             <div style="width:180px;">
-                <i class="@($"fad fa-{_project.Project_Icon}")" />
+                <i class="@($"fad fa-{_project.ProjectIcon}")" />
             </div>
         </Header>
         <ChildContent>
             <AeTypography Variant="h1">@_project.ProjectName</AeTypography>
             <AeMarkdown Content="@($"{_project.ProjectDescription}")"></AeMarkdown>
             <AeTypography>@DataLocalizer["Data Sensitivity"]</AeTypography>
-            <AeTypography Variant="h2">@DataLocalizer[_project.Data_Sensitivity]</AeTypography>
+            <AeTypography Variant="h2">@DataLocalizer[_project.DataSensitivity]</AeTypography>
         </ChildContent>
     </AeCard>
 
@@ -33,7 +33,7 @@
         </div>
     </AeFlex>
         <AeTable Accessors="commentAccessorFunctions"
-               T="Datahub_ProjectComment"
+               T="DatahubProjectComment"
                Dataset="_project.Comments"       
                Headers="commentsHeaders" 
                GridTemplateColumns="1fr 8fr"
@@ -58,9 +58,9 @@
     [Parameter]
     public string projectAcronym { get; set; }
 
-    private Datahub_Project _project;
+    private DatahubProject _project;
 
-    private Datahub_ProjectComment _comment;
+    private DatahubProjectComment _comment;
 
     private List<string> commentsHeaders = new List<string>
     {
@@ -69,15 +69,15 @@
 
     private void AddNewComment()
     {
-        _comment = new Datahub_ProjectComment() { Comment_Date_DT = DateTime.Now, Project = _project };
+        _comment = new DatahubProjectComment() { CommentDateDT = DateTime.Now, Project = _project };
         StateHasChanged();
     }
 
     // Accessor functions to retrieve cell value
-    private List<Func<Datahub_ProjectComment, string>> commentAccessorFunctions = new List<Func<Datahub_ProjectComment, string>>
+    private List<Func<DatahubProjectComment, string>> commentAccessorFunctions = new List<Func<DatahubProjectComment, string>>
     {
-        new Func<Datahub_ProjectComment, string>(p => { return p.Comment_Date_DT.ToShortDateString(); }),
-        new Func<Datahub_ProjectComment, string>(p => { return ShortenString(p.Comment_NT,50); })
+        new Func<DatahubProjectComment, string>(p => { return p.CommentDateDT.ToShortDateString(); }),
+        new Func<DatahubProjectComment, string>(p => { return ShortenString(p.CommentNT,50); })
     };
 
     private DatahubProjectDBContext projectContext;
@@ -88,7 +88,7 @@
     {
         projectContext = DbFactoryProject.CreateDbContext();   
         _project = projectContext.Projects.Include(p => p.Comments)
-                        .Single(p => p.Project_Acronym_CD == projectAcronym);        
+                        .Single(p => p.ProjectAcronymCD == projectAcronym);        
     }
 
     public static string ShortenString(string input, int maxLength)
@@ -110,15 +110,15 @@
     {
         if (_comment != null)
         {
-            if (_comment.Comment_ID == 0)
+            if (_comment.CommentID == 0)
             {
-                _comment = projectContext.Project_Comments.Add(_comment).Entity;
+                _comment = projectContext.ProjectComments.Add(_comment).Entity;
             }
             await projectContext.TrackSaveChangesAsync(AuditingService);
         }
     }
 
-    private void SetCommentEdit(Datahub_ProjectComment comment)
+    private void SetCommentEdit(DatahubProjectComment comment)
     {
         _comment = comment;
         StateHasChanged();

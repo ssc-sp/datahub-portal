@@ -1,18 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Datahub.Core.Services;
-using System;
 using Xunit;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
-using Datahub.Core.Model.UserTracking;
-using Datahub.Core.Services.Api;
 using Datahub.Core.Services.UserManagement;
-using Datahub.Core.Services.Security;
-using Datahub.Core.Services.Storage;
 using Datahub.Infrastructure.Services.Api;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
@@ -27,14 +21,14 @@ public class DbTests
     private string _userId = "myuserid";
 
 
-    [Fact (Skip = "Needs to be validated")]
+    [Fact(Skip = "Needs to be validated")]
     public async void GraphServiceTest()
     {
         LoadServices();
 
         using (var scope = _serviceProvider.CreateScope())
         {
-                
+
             var myGraphService = scope.ServiceProvider.GetRequiredService<IMSGraphService>();
             //var graphService = scope.ServiceProvider.
             var user = await myGraphService.GetUserIdFromEmailAsync("alexander.khavich@nrcan-rncan.gc.ca", CancellationToken.None);
@@ -43,8 +37,8 @@ public class DbTests
         }
     }
 
-    [Fact (Skip = "Needs to be validated")]
-    public async void GraphServiceTest_GetUser()
+    [Fact(Skip = "Needs to be validated")]
+    public async void GraphServiceTestGetUser()
     {
         LoadServices();
 
@@ -54,14 +48,14 @@ public class DbTests
             var myGraphService = scope.ServiceProvider.GetRequiredService<IMSGraphService>();
             //var graphService = scope.ServiceProvider.
             var user = await myGraphService.GetUserAsync("0403528c-5abc-423f-9201-9c945f628595", CancellationToken.None);
-                
+
             Assert.True(user != null);
         }
     }
 
 
-    [Fact (Skip = "Needs to be validated")]
-    public async void GraphServiceTest_GetUsers()
+    [Fact(Skip = "Needs to be validated")]
+    public async void GraphServiceTestGetUsers()
     {
         LoadServices();
 
@@ -69,13 +63,13 @@ public class DbTests
         {
 
             var myGraphService = scope.ServiceProvider.GetRequiredService<IMSGraphService>();
-                
+
             var user = await myGraphService.GetUsersListAsync("erik", CancellationToken.None);
 
             Assert.True(user != null);
         }
     }
-     
+
     private void LoadServices()
     {
         var serviceCollection = new ServiceCollection();

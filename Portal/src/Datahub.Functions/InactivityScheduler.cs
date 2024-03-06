@@ -1,5 +1,4 @@
-﻿using System;
-using Datahub.Core.Model.Datahub;
+﻿using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Queues.Messages;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
@@ -11,7 +10,7 @@ namespace Datahub.Functions
 {
     public class InactivityScheduler
     {
-        
+
         private readonly ILogger<InactivityScheduler> _logger;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
         private readonly IMediator _mediator;
@@ -22,7 +21,7 @@ namespace Datahub.Functions
             _dbContextFactory = dbContextFactory;
             _mediator = mediator;
         }
-        
+
         [Function("InactivityScheduler")]
         public async Task Run([TimerTrigger("%InactivityCRON%")] TimerInfo timerInfo)
         {
@@ -43,14 +42,14 @@ namespace Datahub.Functions
         private async Task ScheduleProjects()
         {
             var projects = await GetProjects();
-            
+
             foreach (var project in projects)
             {
                 var message = DeserializeProjectMessage(project);
                 await _mediator.Send(message);
             }
         }
-        
+
         private async Task ScheduleUsers()
         {
             var users = await GetUsers();
@@ -65,7 +64,7 @@ namespace Datahub.Functions
         private async Task<List<int>> GetProjects()
         {
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
-            return ctx.Projects.AsNoTracking().Select(x => x.Project_ID).Distinct().ToList();
+            return ctx.Projects.AsNoTracking().Select(x => x.ProjectID).Distinct().ToList();
         }
 
         private async Task<List<int>> GetUsers()
@@ -84,5 +83,5 @@ namespace Datahub.Functions
             return new UserInactivityNotificationMessage(userId);
         }
     }
-    
+
 }

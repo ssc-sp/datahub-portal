@@ -7,13 +7,7 @@ using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Datahub.Infrastructure.Services.Security
 {
@@ -165,7 +159,7 @@ namespace Datahub.Infrastructure.Services.Security
             string acronym)
         {
             var secrets = new Dictionary<string, string>();
-            foreach (var secretKey in CloudStorageHelpers.All_Keys)
+            foreach (var secretKey in CloudStorageHelpers.AllKeys)
             {
                 var secretValue =
                     await GetSecretAsync(acronym, GetSecretNameForStorage(projectCloudStorage.Id, secretKey));
@@ -179,7 +173,7 @@ namespace Datahub.Infrastructure.Services.Security
         public async Task StoreAllSecrets(ProjectCloudStorage projectCloudStorage, string acronym,
             IDictionary<string, string> connectionData)
         {
-            foreach (var secretKey in CloudStorageHelpers.All_Keys)
+            foreach (var secretKey in CloudStorageHelpers.AllKeys)
             {
                 if (connectionData.ContainsKey(secretKey) && !string.IsNullOrEmpty(connectionData[secretKey]))
                 {
@@ -190,7 +184,7 @@ namespace Datahub.Infrastructure.Services.Security
 
         public async Task DeleteAllSecrets(ProjectCloudStorage projectCloudStorage, string acronym)
         {
-            foreach (var secretKey in CloudStorageHelpers.All_Keys)
+            foreach (var secretKey in CloudStorageHelpers.AllKeys)
             {
                 await TryDeleteSecret(acronym, GetSecretNameForStorage(projectCloudStorage.Id, secretKey));
             }

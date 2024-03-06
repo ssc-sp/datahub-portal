@@ -2,7 +2,6 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Application.Services.Notebooks;
-using Datahub.Core.Data;
 using Datahub.Core.Data.Databricks;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Repositories;
@@ -38,7 +37,7 @@ public class DatabricksApiService : IDatabricksApiService
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         var project = await dbContext.Projects
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectAcronym);
 
         if (project == null)
         {
@@ -47,7 +46,7 @@ public class DatabricksApiService : IDatabricksApiService
         }
 
         var results = await dbContext.ProjectRepositories
-            .Where(pr => pr.ProjectId == project.Project_ID
+            .Where(pr => pr.ProjectId == project.ProjectID
                          && pr.IsPublic)
             .ToListAsync();
 
@@ -91,7 +90,7 @@ public class DatabricksApiService : IDatabricksApiService
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         var project = await dbContext.Projects
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectAcronym);
 
         if (project == null)
         {
@@ -100,7 +99,7 @@ public class DatabricksApiService : IDatabricksApiService
         }
 
         var projectRepository = await dbContext.ProjectRepositories
-            .FirstOrDefaultAsync(pr => pr.ProjectId == project.Project_ID
+            .FirstOrDefaultAsync(pr => pr.ProjectId == project.ProjectID
                                        && pr.RepositoryUrl == repositoryInfoDto.Url);
 
         if (projectRepository == null)
@@ -108,7 +107,7 @@ public class DatabricksApiService : IDatabricksApiService
             projectRepository = new ProjectRepository();
             dbContext.ProjectRepositories.Add(projectRepository);
         }
-            
+
         projectRepository.Project = project;
         projectRepository.RepositoryUrl = repositoryInfoDto.Url;
         projectRepository.IsPublic = repositoryInfoDto.IsPublic;
@@ -116,17 +115,17 @@ public class DatabricksApiService : IDatabricksApiService
         projectRepository.HeadCommitId = repositoryInfoDto.HeadCommitId;
         projectRepository.Provider = repositoryInfoDto.Provider;
         projectRepository.Path = repositoryInfoDto.Path;
-        
+
         await dbContext.SaveChangesAsync();
 
         var catalogObject = new Core.Model.Catalog.CatalogObject()
         {
             ObjectType = Core.Model.Catalog.CatalogObjectType.Repository,
-            ObjectId = project.Project_Acronym_CD,
-            Name_English = project.Project_Name,
-            Name_French = project.Project_Name_Fr,
-            Desc_English = project.Project_Summary_Desc,
-            Desc_French = project.Project_Summary_Desc_Fr
+            ObjectId = project.ProjectAcronymCD,
+            NameEnglish = project.Project_Name,
+            NameFrench = project.ProjectNameFr,
+            DescEnglish = project.ProjectSummaryDesc,
+            DescFrench = project.ProjectSummaryDescFr
         };
 
         await _datahubCatalogSearch.AddCatalogObject(catalogObject);
@@ -139,7 +138,7 @@ public class DatabricksApiService : IDatabricksApiService
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
         var project = await dbContext.Projects
             .Include(p => p.Resources)
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectAcronym);
 
         if (project == null)
         {
@@ -148,7 +147,7 @@ public class DatabricksApiService : IDatabricksApiService
         }
 
         return await dbContext.ProjectRepositories
-            .Where(pr => pr.ProjectId == project.Project_ID)
+            .Where(pr => pr.ProjectId == project.ProjectID)
             .ToDictionaryAsync(pr => pr.RepositoryUrl, pr => pr.IsPublic);
     }
 
@@ -157,7 +156,7 @@ public class DatabricksApiService : IDatabricksApiService
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
         var project = await dbContext.Projects
             .Include(p => p.Resources)
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectAcronym);
 
         if (project == null)
         {

@@ -26,15 +26,15 @@ public class OfflineProjectUserManagementService : IProjectUserManagementService
         throw new NotImplementedException();
     }
 
-    public async Task<List<Datahub_Project_User>> GetProjectUsersAsync(string projectAcronym)
+    public async Task<List<DatahubProjectUser>> GetProjectUsersAsync(string projectAcronym)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        return await context.Project_Users
+        return await context.ProjectUsers
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
             .Include(u => u.Role)
-            .Where(u => u.Project.Project_Acronym_CD == projectAcronym)
+            .Where(u => u.Project.ProjectAcronymCD == projectAcronym)
             .Where(u => u.PortalUser != null)
             .ToListAsync();
     }

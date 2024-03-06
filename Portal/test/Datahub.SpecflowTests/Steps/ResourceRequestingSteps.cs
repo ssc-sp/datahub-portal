@@ -23,72 +23,72 @@ namespace Datahub.SpecflowTests.Steps
         {
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             const string projectAcronym = "test";
-            var project = new Datahub_Project()
+            var project = new DatahubProject()
             {
-                Project_Acronym_CD = projectAcronym,
+                ProjectAcronymCD = projectAcronym,
             };
-            
+
             ctx.Projects.Add(project);
             await ctx.SaveChangesAsync();
-            
+
             scenarioContext["projectAcronym"] = projectAcronym;
         }
-        
+
         [Given(@"a workspace without a (.*) resource")]
         public async Task GivenAWorkspaceWithoutAResource(string resourceName)
         {
             var resourceType = TransformResourceName(resourceName);
-            
+
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var projectAcronym = $"{resourceType}-acronym";
-            var project = new Datahub_Project()
+            var project = new DatahubProject()
             {
-                Project_Acronym_CD = projectAcronym,
+                ProjectAcronymCD = projectAcronym,
             };
-            
+
             ctx.Projects.Add(project);
             await ctx.SaveChangesAsync();
-            
+
             scenarioContext[$"acronym:{resourceName}"] = projectAcronym;
         }
-        
+
         [Given(@"a workspace with a (.*) resource")]
         public async Task GivenAWorkspaceWithAResource(string resourceName)
         {
             var resourceType = TransformResourceName(resourceName);
-            
+
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var projectAcronym = $"{resourceType}-acronym";
-            var project = new Datahub_Project()
+            var project = new DatahubProject()
             {
-                Project_Acronym_CD = projectAcronym,
+                ProjectAcronymCD = projectAcronym,
             };
-            
-            var resource = new Project_Resources2()
+
+            var resource = new ProjectResources2()
             {
                 ResourceType = TerraformTemplate.GetTerraformServiceType(resourceType),
                 JsonContent = "{}",
                 Project = project
             };
-            
+
             ctx.Projects.Add(project);
-            ctx.Project_Resources2.Add(resource);
+            ctx.ProjectResources2.Add(resource);
             await ctx.SaveChangesAsync();
-            
+
             scenarioContext[$"acronym:{resourceName}"] = projectAcronym;
         }
 
-        
+
         [Given(@"a current user")]
         public async Task GivenACurrentUser()
         {
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var currentUser = new PortalUser()
             {
-                GraphGuid = Testing.CURRENT_USER_GUID.ToString(),
-                Email = Testing.CURRENT_USER_EMAIL
+                GraphGuid = Testing.CURRENTUSERGUID.ToString(),
+                Email = Testing.CURRENTUSEREMAIL
             };
-            
+
             ctx.PortalUsers.Add(currentUser);
             await ctx.SaveChangesAsync();
         }
@@ -98,32 +98,32 @@ namespace Datahub.SpecflowTests.Steps
         public async Task WhenACurrentUserRequestsToCreateAWorkspaceDatabase()
         {
             var projectAcronym = scenarioContext["projectAcronym"] as string;
-            
+
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects
-                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-            
+                .FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectAcronym);
+
             var currentUser = await ctx.PortalUsers
-                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CURRENT_USER_GUID.ToString());
-            
+                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CURRENTUSERGUID.ToString());
+
             await requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.AzurePostgres, currentUser);
         }
-        
-        
+
+
         [When(@"a current user requests to run a (.*) for a workspace")]
         public async Task WhenACurrentUserRequestsToRunAForAWorkspace(string resourceName)
         {
-            
+
             var resourceType = TransformResourceName(resourceName);
             var projectAcronym = scenarioContext[$"acronym:{resourceName}"] as string;
-            
+
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects
-                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-            
+                .FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectAcronym);
+
             var currentUser = await ctx.PortalUsers
-                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CURRENT_USER_GUID.ToString());
-            
+                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CURRENTUSERGUID.ToString());
+
             await requestManagementService.HandleTerraformRequestServiceAsync(project, resourceType, currentUser);
         }
 
@@ -131,15 +131,15 @@ namespace Datahub.SpecflowTests.Steps
         public async Task ThenThereShouldBeAWorkspaceDatabaseResourceCreated()
         {
             var projectAcronym = scenarioContext["projectAcronym"] as string;
-            
+
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects
                 .Include(p => p.Resources)
-                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-            
+                .FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectAcronym);
+
             var databaseResource = project?.Resources
                 .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres));
-            
+
             databaseResource.Should().NotBeNull();
             databaseResource?.JsonContent.Should().NotBeNullOrEmpty();
         }
@@ -149,15 +149,15 @@ namespace Datahub.SpecflowTests.Steps
         {
             var resourceType = TransformResourceName(resourceName);
             var projectAcronym = scenarioContext[$"acronym:{resourceName}"] as string;
-            
+
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects
                 .Include(p => p.Resources)
-                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-            
+                .FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectAcronym);
+
             var expectedResource = project?.Resources
                 .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(resourceType));
-            
+
             expectedResource.Should().NotBeNull();
             expectedResource?.JsonContent.Should().NotBeNullOrEmpty();
             expectedResource?.RequestedAt.Should().BeBefore(DateTime.UtcNow);
@@ -200,15 +200,15 @@ namespace Datahub.SpecflowTests.Steps
         {
             var resourceType = TransformResourceName(resourceName);
             var projectAcronym = scenarioContext[$"acronym:{resourceName}"] as string;
-            
+
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects
                 .Include(p => p.Resources)
-                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-            
+                .FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectAcronym);
+
             var expectedResource = project?.Resources
                 .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(resourceType));
-            
+
             expectedResource.Should().BeNull();
         }
 

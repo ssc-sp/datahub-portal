@@ -97,10 +97,10 @@
     {
         return files.Select(f => new ShareApproval() 
         { 
-            Name = f.Filename_TXT, 
-            ShareUrl = $@"/share/opendata/{f.File_ID}",
-            DocumentUrl = f.SignedApprovalForm_URL, 
-            Read = f.ApprovalFormRead_FLAG, 
+            Name = f.FilenameTXT, 
+            ShareUrl = $@"/share/opendata/{f.FileID}",
+            DocumentUrl = f.SignedApprovalFormURL, 
+            Read = f.ApprovalFormReadFLAG, 
             RequestObject = f 
         }).ToList();
     }
@@ -112,12 +112,12 @@
 
     static ShareApproval Convert(SpatialObjectShare geoObject, bool english)
     {
-        var requestSummary = JsonSerializer.Deserialize<GeoDataShareRequest>(geoObject.Json_TXT);
+        var requestSummary = JsonSerializer.Deserialize<GeoDataShareRequest>(geoObject.JsonTXT);
         return new()
         {
-            Name = english ? requestSummary.title_en : requestSummary.title_fr,
-            ShareUrl = $@"/share/spatial/{geoObject.GeoObjectShare_ID}",
-            DocumentUrl = geoObject.Approval_Document_URL,
+            Name = english ? requestSummary.titleEn : requestSummary.titleFr,
+            ShareUrl = $@"/share/spatial/{geoObject.GeoObjectShareID}",
+            DocumentUrl = geoObject.ApprovalDocumentURL,
             RequestObject = geoObject
         };
     }
@@ -142,17 +142,17 @@
     {
         try
         {
-            var fileId = file.File_ID.ToString();
+            var fileId = file.FileID.ToString();
 
             var status = file.GetOpenDataSharingStatus();
             if (status == OpenDataSharingStatus.PendingApproval)
             {
                 // get the metadata
                 var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(fileId);
-                await PublicFileService.ApproveOpenDataShare(file.File_ID, GetPublicationDate(fieldValues));
+                await PublicFileService.ApproveOpenDataShare(file.FileID, GetPublicationDate(fieldValues));
 
-                var requestingUser = await GraphService.GetUserAsync(file.RequestingUser_ID, default);
-                await NotifyWorkflowOwner(requestingUser.DisplayName, requestingUser.Mail, file.Filename_TXT, $"/share/opendata/{file.File_ID}");
+                var requestingUser = await GraphService.GetUserAsync(file.RequestingUserID, default);
+                await NotifyWorkflowOwner(requestingUser.DisplayName, requestingUser.Mail, file.FilenameTXT, $"/share/opendata/{file.FileID}");
             }
         }
         catch (Exception ex)
@@ -174,8 +174,8 @@
                 ctx.GeoObjectShares.Update(geoObject);
                 await ctx.TrackSaveChangesAsync(AuditingService);
 
-                var requestingUser = await GraphService.GetUserFromEmailAsync(geoObject.Email_Contact_TXT, default);
-                var url = $@"/share/spatial/{geoObject.GeoObjectShare_ID}";
+                var requestingUser = await GraphService.GetUserFromEmailAsync(geoObject.EmailContactTXT, default);
+                var url = $@"/share/spatial/{geoObject.GeoObjectShareID}";
 
                 await NotifyWorkflowOwner(requestingUser.DisplayName, requestingUser.Mail, shareApproval.Name, url);
             }
@@ -200,7 +200,7 @@
             var fieldValue = fields.FirstOrDefault(fv => fv.FieldDefinitionId == definition.FieldDefinitionId);
             if (fieldValue != null)
             {
-                DateTime.TryParse(fieldValue.Value_TXT, out date);
+                DateTime.TryParse(fieldValue.ValueTXT, out date);
             }
         }
         return date;

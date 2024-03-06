@@ -2,10 +2,10 @@
 
 namespace Datahub.PIP.Data;
 
-public class PIP_TombstoneRisks
+public class PIPTombstoneRisks
 {
     [Key]
-    public int TombstoneRisk_ID { get; set; }
-    public PIP_Tombstone Pip_Tombstone { get; set; }
-    public PIP_Risks Pip_Risk { get; set; }
+    public int TombstoneRiskID { get; set; }
+    public PIPTombstone PipTombstone { get; set; }
+    public PIPRisks PipRisk { get; set; }
 }

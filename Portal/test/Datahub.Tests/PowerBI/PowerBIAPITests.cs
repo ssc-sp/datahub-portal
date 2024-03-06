@@ -28,10 +28,10 @@ public class PowerBIAPITests
         "https://analysis.windows.net/powerbi/api/Workspace.ReadWrite.All"
     };
 
-    [Fact (Skip = "Needs to be validated")]
-    public async Task GivenCurrentUser_ListWorkspaces()
+    [Fact(Skip = "Needs to be validated")]
+    public async Task GivenCurrentUserListWorkspaces()
     {
-        var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { ExcludeInteractiveBrowserCredential = false, ExcludeVisualStudioCodeCredential = true  });
+        var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { ExcludeInteractiveBrowserCredential = false, ExcludeVisualStudioCodeCredential = true });
         var token = await credential.GetTokenAsync(
             new Azure.Core.TokenRequestContext(
                 new[] { powerbiUri })
@@ -46,7 +46,7 @@ public class PowerBIAPITests
             var workspaces = (await client.Groups.GetGroupsAsync()).Value;
             foreach (var workspace in workspaces)
             {
-                    
+
                 allDataSets.AddRange((await client.Datasets.GetDatasetsInGroupAsync(workspace.Id)).Value);
                 var cReports = (await client.Reports.GetReportsInGroupAsync(workspace.Id)).Value;
             }
@@ -58,7 +58,7 @@ public class PowerBIAPITests
             //var groupRequest = new GroupCreationRequest() {  Name = "Test-APICreate"};
             //var newWorkspace = await client.Groups.CreateGroupAsync(groupRequest, true);
         }
-        Assert.True(allDataSets.Count > 0);      
+        Assert.True(allDataSets.Count > 0);
         //Assert.True(allDataSets.Count(d => d.EndorsementDetails != null) > 0);
     }
 }

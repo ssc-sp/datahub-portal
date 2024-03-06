@@ -221,10 +221,10 @@
         var values = await MetadataBrokerService.GetObjectMetadataValues(objectId, DefaultMetadataId);
         foreach (var fv in values)
         {
-            var fieldName = fv.FieldDefinition.Field_Name_TXT;
+            var fieldName = fv.FieldDefinition.FieldNameTXT;
             if (string.IsNullOrEmpty(_fieldValues.GetValue(fieldName)))
             {
-                _fieldValues.SetValue(fieldName, fv.Value_TXT);
+                _fieldValues.SetValue(fieldName, fv.ValueTXT);
             }
         }
         await InvokeAsync(StateHasChanged);
@@ -357,7 +357,7 @@
     {
         foreach (var definition in _definitions.Fields)
         {
-            switch (definition.Field_Name_TXT)
+            switch (definition.FieldNameTXT)
             {
                 case "sector":
                     definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSectors(), false).ToList();
@@ -375,26 +375,26 @@
         }
     }
 
-    private IEnumerable<FieldChoice> GetOrganizationChoices(List<OrganizationLevel> levels, bool cascades)
+    private IEnumerable<FieldChoice> GetOrganizationChoices(List<DHOrganizationLevel> levels, bool cascades)
     {
         if (cascades)
         {
             yield return new FieldChoice()
             {
-                Value_TXT = $"0",
-                Cascading_Value_TXT = "*",
-                Label_English_TXT = "-",
-                Label_French_TXT = "-"
+                ValueTXT = $"0",
+                CascadingValueTXT = "*",
+                LabelEnglishTXT = "-",
+                LabelFrenchTXT = "-"
             };
         }        
         foreach (var l in levels)
         {
             yield return new FieldChoice()
             {
-                Value_TXT = $"{l.Id}",
-                Cascading_Value_TXT = cascades ? $"{l.ParentId}" : null,
-                Label_English_TXT = l.EnglishLabel,
-                Label_French_TXT = l.FrenchLabel
+                ValueTXT = $"{l.Id}",
+                CascadingValueTXT = cascades ? $"{l.ParentId}" : null,
+                LabelEnglishTXT = l.EnglishLabel,
+                LabelFrenchTXT = l.FrenchLabel
             };
         }
     }

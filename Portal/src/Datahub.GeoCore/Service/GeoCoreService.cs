@@ -14,7 +14,7 @@ internal class GeoCoreService : IGeoCoreService
         _httpClient = httpClient;
         _config = config.Value;
     }
-        
+
     public async Task<GeoCoreResult> PublishDataset(string jsonData)
     {
         var content = new StringContent(jsonData, Encoding.UTF8, "application/json");

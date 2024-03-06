@@ -1,14 +1,13 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Datahub.Core.Model.Projects;
 
-public class Datahub_Project_Costs
+public class DatahubProjectCosts
 {
     [Key]
-    public int ProjectCosts_ID { get; set; }
+    public int ProjectCostsID { get; set; }
 
-    public int Project_ID { get; set; }
+    public int ProjectID { get; set; }
 
     public DateTime Date { get; set; } = DateTime.UtcNow;
     public double CadCost { get; set; }

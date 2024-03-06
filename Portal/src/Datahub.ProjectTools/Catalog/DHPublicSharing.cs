@@ -28,18 +28,18 @@ public class DHPublicSharing : IProjectResource
 
     private Dictionary<string, object> parameters = new Dictionary<string, object>();
 
-    public async Task<bool> InitializeAsync(Datahub_Project project, string? userId, Microsoft.Graph.Models.User graphUser, bool isProjectAdmin)
+    public async Task<bool> InitializeAsync(DatahubProject project, string? userId, Microsoft.Graph.Models.User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
-        isDataApprover = await projectDbContext.Project_Users
-            .Where(u => u.User_ID == userId && project == u.Project)
-            .AnyAsync(u => u.RoleId == (int)Project_Role.RoleNames.Admin || u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead);
+        isDataApprover = await projectDbContext.ProjectUsers
+            .Where(u => u.UserID == userId && project == u.Project)
+            .AnyAsync(u => u.RoleId == (int)ProjectRole.RoleNames.Admin || u.RoleId == (int)ProjectRole.RoleNames.WorkspaceLead);
         parameters.Add(nameof(PublicSharing.isDataApprover), isDataApprover);
-        sharingRequestAwaitingApprovalCount = await publicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(project.Project_Acronym_CD);
+        sharingRequestAwaitingApprovalCount = await publicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(project.ProjectAcronymCD);
         parameters.Add(nameof(PublicSharing.sharingRequestAwaitingApprovalCount), sharingRequestAwaitingApprovalCount);
-        ownSharingRequestCount = await publicDataFileService.GetUsersOwnDataSharingRequestsCount(project.Project_Acronym_CD, userId);
+        ownSharingRequestCount = await publicDataFileService.GetUsersOwnDataSharingRequestsCount(project.ProjectAcronymCD, userId);
         parameters.Add(nameof(PublicSharing.ownSharingRequestCount), ownSharingRequestCount);
-        parameters.Add(nameof(PublicSharing.ProjectAcronym), project.Project_Acronym_CD);
+        parameters.Add(nameof(PublicSharing.ProjectAcronym), project.ProjectAcronymCD);
 
         return true;
     }

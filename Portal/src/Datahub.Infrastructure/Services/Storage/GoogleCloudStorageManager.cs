@@ -6,14 +6,8 @@ using Google;
 using Google.Api.Gax;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Storage.v1.Data;
-using Google.Apis.Upload;
 using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using GObject = Google.Apis.Storage.v1.Data.Object;
 
 namespace Datahub.Infrastructure.Services.Storage
@@ -222,10 +216,10 @@ namespace Datahub.Infrastructure.Services.Storage
                         {
                             files.Add(new()
                             {
-                                id = obj.ETag,
-                                name = GetObjectName(obj),
-                                filesize = obj.Size?.ToString(),
-                                lastmodifiedts = obj.Updated ?? default,
+                                Id = obj.ETag,
+                                Name = GetObjectName(obj),
+                                Filesize = obj.Size?.ToString(),
+                                Lastmodifiedts = obj.Updated ?? default,
                             });
                         }
                     }
@@ -280,7 +274,7 @@ namespace Datahub.Infrastructure.Services.Storage
         {
             using var client = await CreateStorageClientAsync();
 
-            var destinationFilePath = $"{NormalizeFolderPath(file.folderpath)}{file.filename}";
+            var destinationFilePath = $"{NormalizeFolderPath(file.Folderpath)}{file.Filename}";
             var contentType = file.BrowserFile.ContentType;
             var options = new UploadObjectOptions();
 
@@ -302,8 +296,8 @@ namespace Datahub.Infrastructure.Services.Storage
             return new List<(string, string)>
         {
             (ResourceSubstitutions.ProjectAcronym, projectAcronym),
-            (ResourceSubstitutions.GCPProjectId, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.GCP_ProjectId)),
-            (ResourceSubstitutions.GCPAccountKey, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.GCP_Json)),
+            (ResourceSubstitutions.GCPProjectId, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.GCPProjectId)),
+            (ResourceSubstitutions.GCPAccountKey, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.GCPJson)),
             (ResourceSubstitutions.ContainerName, container.Name)
         };
         }

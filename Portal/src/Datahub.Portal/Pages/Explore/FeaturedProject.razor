@@ -3,19 +3,19 @@
 <div class="project">
     <span class="sector">
         <i class="@($"fad fa-{_projectIcon}")"></i>
-        <AeTypography>@Localizer[@Project.Sector_Name]</AeTypography>
+        <AeTypography>@Localizer[@Project.SectorName]</AeTypography>
     </span>
-    <DHLink class="name" DataProject="@Project.Project_Acronym_CD">@Project.ProjectName</DHLink>
+    <DHLink class="name" DataProject="@Project.ProjectAcronymCD">@Project.ProjectName</DHLink>
     <DHMarkdown Content="@($"{Project.ProjectDescription}")"></DHMarkdown>
-    <DHLink class="project-btn" DataProject="@Project.Project_Acronym_CD">
+    <DHLink class="project-btn" DataProject="@Project.ProjectAcronymCD">
         <AeButton>@Localizer["View Project"]</AeButton>
     </DHLink>
 </div>
 
 @code {
 
-    private string _projectIcon => $"fas fa-{Project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
+    private string _projectIcon => $"fas fa-{Project?.ProjectIcon ?? Icon.DEFAULTPROJECTICON}";
 
     [Parameter]
-    public Datahub_Project Project { get; init; }
+    public DatahubProject Project { get; init; }
 }

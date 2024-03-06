@@ -2,10 +2,10 @@
 
 public class GeoDataShareRequest
 {
-    public string title_en { get; set; }
-    public string title_fr { get; set; }
-    public string keywords_en { get; set; }
-    public string keywords_fr { get; set; }
+    public string titleEn { get; set; }
+    public string titleFr { get; set; }
+    public string keywordsEn { get; set; }
+    public string keywordsFr { get; set; }
     public List<GeoDataContact> contact { get; set; }
 }
 

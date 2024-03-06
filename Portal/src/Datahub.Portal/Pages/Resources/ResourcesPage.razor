@@ -188,7 +188,7 @@ else
         try
         {
             var lastCommitGit = await _documentationService.GetLastRepoCommitTS();
-            await _localStorage.SetItemAsync(DocumentationService.COMMIT_API_URL, lastCommitGit);
+            await _localStorage.SetItemAsync(DocumentationService.COMMITAPIURL, lastCommitGit);
         }
         catch (Exception ex)
         {

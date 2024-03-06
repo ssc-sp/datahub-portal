@@ -19,15 +19,15 @@ public partial class UserEnrollmentService : IUserEnrollmentService
 
     [GeneratedRegex("^([\\w\\.\\-]+)@([\\w\\-]+)(\\.gc\\.ca)$")]
     private static partial Regex GC_CA_Regex();
-    
+
     [GeneratedRegex("^([\\w\\.\\-]+)@(canada\\.ca)$")]
     private static partial Regex Canada_CA_Regex();
-    
+
     public UserEnrollmentService(
-        ILogger<UserEnrollmentService> logger, 
+        ILogger<UserEnrollmentService> logger,
         IHttpClientFactory httpClientFactory,
         DatahubPortalConfiguration datahubPortalConfiguration,
-        IDbContextFactory<DatahubProjectDBContext> contextFactory) 
+        IDbContextFactory<DatahubProjectDBContext> contextFactory)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
@@ -37,8 +37,8 @@ public partial class UserEnrollmentService : IUserEnrollmentService
 
     public bool IsValidGcEmail(string? email)
     {
-        if(email == null) return false;
-        
+        if (email == null) return false;
+
         var reOld = GC_CA_Regex();
         var reNew = Canada_CA_Regex();
 
@@ -52,7 +52,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         {
             throw new InvalidOperationException("Invalid email address. Must be a valid GC email address");
         }
-        
+
         _logger.LogInformation("Sending invite to {Email}", registrationRequestEmail);
 
         var payload = new Dictionary<string, JsonNode>
@@ -67,7 +67,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         var numberOfRetries = 0;
         const int maxNumberOfRetries = 5;
         string id, resultString;
-        
+
         var content = new StringContent(jsonBody.ToString(), Encoding.UTF8, "application/json");
         do
         {
@@ -75,10 +75,10 @@ public partial class UserEnrollmentService : IUserEnrollmentService
             var result = await client.PostAsync(url, content);
 
             resultString = await result.Content.ReadAsStringAsync();
-        
+
             var resultJson = JsonNode.Parse(resultString);
             id = resultJson?["data"]?["id"]?.ToString() ?? string.Empty;
-        
+
             // try to see if function wrapped it in a "Value" object
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -90,7 +90,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         {
             throw new InvalidOperationException($"No ID available in response '{resultString}' from {url}");
         }
-        
+
         _logger.LogInformation("Invite sent to {Email} and received id {Id}", registrationRequestEmail, id);
         return id;
     }
@@ -98,14 +98,14 @@ public partial class UserEnrollmentService : IUserEnrollmentService
     public async Task SaveRegistrationDetails(string? registrationRequestEmail, string? comment)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        
+
         var selfRegistrationDetails = new SelfRegistrationDetails
         {
             Email = registrationRequestEmail,
             Comment = comment,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         context.SelfRegistrationDetails.Add(selfRegistrationDetails);
         await context.SaveChangesAsync();
     }

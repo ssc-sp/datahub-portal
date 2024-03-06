@@ -5,7 +5,7 @@
 
 <h2>Selected Program</h2>
 <AeTable Accessors="accessorFunctionsPip"
-         T="PIP_Tombstone"
+         T="PIPTombstone"
          Dataset="_tombstones"
          Headers="pipheaders"
          GridTemplateColumns="4fr 8fr"
@@ -17,12 +17,12 @@
     [Parameter]
     public string tombstone { get; set; }
 
-    private List<PIP_Tombstone> _tombstones;
+    private List<PIPTombstone> _tombstones;
 
     protected override void OnInitialized()
     {
         // load projects
-        _tombstones = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).ToList();        
+        _tombstones = Context.Tombstones.Where(p => p.TombstoneID == Convert.ToInt32(tombstone)).ToList();        
     }
 
 
@@ -31,9 +31,9 @@
         "Title","Official Title"
     };
 
-    private List<Func<PIP_Tombstone, string>> accessorFunctionsPip = new List<Func<PIP_Tombstone, string>>
+    private List<Func<PIPTombstone, string>> accessorFunctionsPip = new List<Func<PIPTombstone, string>>
     {
-        new Func<PIP_Tombstone, string>(p => { return p.Program_Title; }),
-        new Func<PIP_Tombstone, string>(p => { return p.Program_Official_Title; }),
+        new Func<PIPTombstone, string>(p => { return p.ProgramTitle; }),
+        new Func<PIPTombstone, string>(p => { return p.ProgramOfficialTitle; }),
     };
 }

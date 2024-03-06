@@ -9,7 +9,7 @@ public class SummaryForecast
 {
     [Key]
     [AeFormIgnore]
-    public int Forecast_ID { get; set; }
+    public int ForecastID { get; set; }
 
 
     [AeFormIgnore]
@@ -23,17 +23,17 @@ public class SummaryForecast
 
 
     [AeFormIgnore]
-    public int? Key_Activity { get; set; }
+    public int? KeyActivity { get; set; }
     [NotMapped]
     [AeFormCategory("Planned Staffing")]
     [MudForm(IsDropDown = true)]
-    public DropDownContainer KA_Values { get; set; }
+    public DropDownContainer KAValues { get; set; }
 
 
 
     [AeFormCategory("Planned Staffing")]
-    [MaxLength(5000)]        
-    public string Key_Activity_Additional_Information { get; set; }
+    [MaxLength(5000)]
+    public string KeyActivityAdditionalInformation { get; set; }
 
 
 
@@ -43,32 +43,32 @@ public class SummaryForecast
 
     [AeFormCategory("Salary Forecast")]
     [Editable(false)]
-    public double? FTE_Sum { get; set; }
+    public double? FTESum { get; set; }
 
 
     [DisplayFormat(DataFormatString = "C2")]
     [AeFormCategory("Salary Forecast")]
     [Editable(false)]
-    public double? SFT_Forecast_Gross { get; set; }
+    public double? SFTForecastGross { get; set; }
 
     [DisplayFormat(DataFormatString = "C2")]
     [AeFormCategory("Salary Forecast")]
     [Editable(false)]
-    public double? SFT_Forecast { get; set; }
+    public double? SFTForecast { get; set; }
 
     [DisplayFormat(DataFormatString = "C2")]
     [AeFormCategory("O&M Forecast")]
     public double? THC { get; set; }
     [AeFormCategory("O&M Forecast")]
     [DisplayFormat(DataFormatString = "C2")]
-    public double? Other_OnM { get; set; }
+    public double? OtherOnM { get; set; }
 
     [DisplayFormat(DataFormatString = "C2")]
     [AeFormCategory("Capital Forecast")]
     public double? Personel { get; set; }
     [AeFormCategory("Capital Forecast")]
     [DisplayFormat(DataFormatString = "C2")]
-    public double? Non_Personel { get; set; }
+    public double? NonPersonel { get; set; }
 
     [DisplayFormat(DataFormatString = "C2")]
     [AeFormCategory("G&C Forecast")]
@@ -81,26 +81,26 @@ public class SummaryForecast
     [DisplayFormat(DataFormatString = "C2")]
     [AeFormCategory("Total Forecast")]
     [Editable(false)]
-    public double? Total_Forecast => (SFT_Forecast ?? 0) + (THC ?? 0)+ (Other_OnM ?? 0) + (Personel ?? 0) + (Non_Personel ?? 0) + (Grants ?? 0) + (Contribution ?? 0);
+    public double? TotalForecast => (SFTForecast ?? 0) + (THC ?? 0) + (OtherOnM ?? 0) + (Personel ?? 0) + (NonPersonel ?? 0) + (Grants ?? 0) + (Contribution ?? 0);
 
     [AeFormCategory("Total Forecast")]
     public string AdditionalNotes { get; set; }
 
 
     [AeFormIgnore]
-    public string Last_Updated_UserId { get; set; }
+    public string LastUpdatedUserId { get; set; }
 
     [AeFormIgnore]
-    public DateTime Last_Updated_DT { get; set; }
+    public DateTime LastUpdatedDT { get; set; }
 
     [AeFormIgnore]
-    public string Created_UserId { get; set; }
+    public string CreatedUserId { get; set; }
 
     [AeFormIgnore]
-    public DateTime Created_DT { get; set; }
+    public DateTime CreatedDT { get; set; }
 
     [AeFormIgnore]
-    public bool Is_Deleted { get; set; }
+    public bool IsDeleted { get; set; }
 
     [AeFormIgnore]
     [Timestamp]

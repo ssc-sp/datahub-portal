@@ -19,7 +19,7 @@ public partial class FileExplorer
         _files = dfsPage.Files;
         _folders = dfsPage.Folders;
 
-        _loading = false;       
+        _loading = false;
 
         StateHasChanged();
     }
@@ -29,7 +29,7 @@ public partial class FileExplorer
         if (_lastContainer != Container)
         {
             await RefreshStoragePageAsync();
-        }            
+        }
     }
 
     private async Task HandleNewFolder(string folderName)
@@ -56,9 +56,9 @@ public partial class FileExplorer
         if (!await StorageManager.DeleteFileAsync(ContainerName, JoinPath(_currentFolder, fileName)))
             return;
 
-        _files?.RemoveAll(f => f.name.Equals(fileName, StringComparison.OrdinalIgnoreCase));
+        _files?.RemoveAll(f => f.Name.Equals(fileName, StringComparison.OrdinalIgnoreCase));
 
-        _selectedItems = new HashSet<string> {_currentFolder};
+        _selectedItems = new HashSet<string> { _currentFolder };
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserDeleteFile);
     }
 
@@ -76,15 +76,15 @@ public partial class FileExplorer
 
         if (!await StorageManager.RenameFileAsync(ContainerName, oldFileName, newFileName))
             return;
-        
-        _files.RemoveAll(f => f.name == fileName);
+
+        _files.RemoveAll(f => f.Name == fileName);
     }
 
     private async Task HandleFileRename(string fileRename)
     {
         if (string.IsNullOrWhiteSpace(fileRename))
             return;
-        
+
         var currentFileName = GetFileName(_selectedItem);
 
         var oldFileName = JoinPath(_currentFolder, currentFileName);
@@ -99,12 +99,12 @@ public partial class FileExplorer
 
         if (fileExists)
         {
-            _files.RemoveAll(f => f.name == fileRename);
+            _files.RemoveAll(f => f.Name == fileRename);
         }
 
-        var targetFile = _files.FirstOrDefault(f => f.name == currentFileName);
+        var targetFile = _files.FirstOrDefault(f => f.Name == currentFileName);
         if (targetFile is not null)
-            targetFile.name = fileRename;
+            targetFile.Name = fileRename;
     }
 
     private async Task HandleDeleteFolder()
@@ -150,28 +150,28 @@ public partial class FileExplorer
 
         var fileMetadata = new FileMetaData
         {
-            id = Guid.NewGuid().ToString(),
-            createdby = GraphUser.Mail,
-            folderpath = folder,
-            filename = browserFile.Name,
-            filesize = browserFile.Size.ToString(),
-            uploadStatus = FileUploadStatus.SelectedToUpload,
-            bytesToUpload = browserFile.Size,
-            createdts = DateTime.UtcNow,
-            lastmodifiedts = DateTime.UtcNow,
+            Id = Guid.NewGuid().ToString(),
+            Createdby = GraphUser.Mail,
+            Folderpath = folder,
+            Filename = browserFile.Name,
+            Filesize = browserFile.Size.ToString(),
+            UploadStatus = FileUploadStatus.SelectedToUpload,
+            BytesToUpload = browserFile.Size,
+            Createdts = DateTime.UtcNow,
+            Lastmodifiedts = DateTime.UtcNow,
             BrowserFile = browserFile
         };
 
         lock (this)
         {
             _uploadingFiles.Add(fileMetadata);
-        }                
+        }
 
         _ = InvokeAsync(async () =>
         {
             var succeeded = await StorageManager.UploadFileAsync(ContainerName, fileMetadata, uploadedBytes =>
             {
-                fileMetadata.uploadedBytes = uploadedBytes;
+                fileMetadata.UploadedBytes = uploadedBytes;
                 _ = InvokeAsync(StateHasChanged);
             });
 
@@ -190,22 +190,22 @@ public partial class FileExplorer
                 {
                     if (fileExists)
                     {
-                        _files.RemoveAll(f => f.name == fileMetadata.name);
+                        _files.RemoveAll(f => f.Name == fileMetadata.Name);
                     }
                     _files.Add(fileMetadata);
                 }
             }
 
             await InvokeAsync(StateHasChanged);
-        });        
+        });
     }
 
     private async Task HandleFileDownload(string filename)
-    {   
+    {
         var uri = await StorageManager.DownloadFileAsync(ContainerName, JoinPath(_currentFolder, filename));
         await _module.InvokeVoidAsync("downloadFile", uri.ToString());
     }
-    
+
     private string GetDirectoryName(string path)
     {
         var lastIndex = path.TrimEnd('/').LastIndexOf("/", StringComparison.Ordinal);
@@ -249,7 +249,7 @@ public partial class FileExplorer
     private void HandleFileSelectionClick(string filename)
     {
         _selectedItems.RemoveWhere(i => i.EndsWith("/", StringComparison.InvariantCulture));
-        
+
         if (_selectedItems.Contains(filename))
         {
             _selectedItems.Remove(filename);

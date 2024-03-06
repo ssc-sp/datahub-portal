@@ -20,7 +20,7 @@
     <ToolActionsList>
         <ul>
             <li>
-                <DHLink DataProject="@(Project.Project_Acronym_CD)" DatabricksURL="@Project.Project_Acronym_CD">
+                <DHLink DataProject="@(Project.ProjectAcronymCD)" DatabricksURL="@Project.ProjectAcronymCD">
                     <ToolActionButton LinkType="LinkType.External">
                         @Localizer["Open Azure Databricks"]
                     </ToolActionButton>
@@ -34,7 +34,7 @@
 </ToolCard>
 
 @code {
-    [Parameter] public Datahub_Project Project { get; set; }
+    [Parameter] public DatahubProject Project { get; set; }
     [Parameter] public string Title { get; set; }
     [Parameter] public string Description { get; set; }
     [Parameter] public string Icon { get; set; }
@@ -43,6 +43,6 @@
 
     private void HandleEditMetadata()
     {
-        NavigationManager.NavigateTo($"/admin/databricks/metadata/{Project.Project_Acronym_CD}");
+        NavigationManager.NavigateTo($"/admin/databricks/metadata/{Project.ProjectAcronymCD}");
     }
 }

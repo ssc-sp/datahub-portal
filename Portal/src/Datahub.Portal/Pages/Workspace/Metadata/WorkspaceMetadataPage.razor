@@ -41,28 +41,28 @@
         var user = await _userInformationService.GetCurrentGraphUserAsync();
     }
 
-    private void HandleMetadataSaved(Datahub_Project project)
+    private void HandleMetadataSaved(DatahubProject project)
     {
         try
         {
             using var ctx = _dbContextFactory.CreateDbContext();
             var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-            var projectDatabricks = ctx.Project_Resources2
-                .Where(r => r.ProjectId == project.Project_ID)
+            var projectDatabricks = ctx.ProjectResources2
+                .Where(r => r.ProjectId == project.ProjectID)
                 .FirstOrDefault(r => r.ResourceType == databricksTemplateName);
 
             if (projectDatabricks is { CreatedAt: not null })
             {
                 var databricksUrlVariable = TerraformVariableExtraction.ExtractDatabricksUrl(projectDatabricks);
 
-                MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, $"{project.Project_Acronym_CD}-Databricks",
+                MetadataBrokerService.CreateChildMetadata(project.ProjectAcronymCD, $"{project.ProjectAcronymCD}-Databricks",
                     MetadataObjectType.Databricks, databricksUrlVariable, true);
             }
 
             foreach (var db in GetDbs(project))
             {
-                MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, db.ResourceId.ToString(),
-                    MetadataObjectType.Database, project.Project_Acronym_CD, true);
+                MetadataBrokerService.CreateChildMetadata(project.ProjectAcronymCD, db.ResourceId.ToString(),
+                    MetadataObjectType.Database, project.ProjectAcronymCD, true);
             }
         }
         catch (Exception ex)
@@ -71,7 +71,7 @@
         }
     }
 
-    private IEnumerable<Project_Resources2> GetDbs(Datahub_Project project)
+    private IEnumerable<ProjectResources2> GetDbs(DatahubProject project)
     {
         return project.Resources
             .Where(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)) 

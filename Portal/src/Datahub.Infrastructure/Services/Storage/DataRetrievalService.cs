@@ -19,7 +19,7 @@ namespace Datahub.Infrastructure.Services.Storage;
 public class DataRetrievalService : BaseService
 {
     private const string METADATA_FILE_ID = "fileid";
-    public const string DEFAULT_CONTAINER_NAME = "datahub";
+    public const string DEFAULTCONTAINERNAME = "datahub";
 
     private readonly ILogger<DataRetrievalService> _logger;
     private readonly DataLakeClientService _dataLakeClientService;
@@ -122,12 +122,12 @@ public class DataRetrievalService : BaseService
 
                     var file = new FileMetaData()
                     {
-                        id = fileId,
-                        filename = blobItem.Name,
-                        ownedby = ownedBy,
-                        createdby = createdBy,
+                        Id = fileId,
+                        Filename = blobItem.Name,
+                        Ownedby = ownedBy,
+                        Createdby = createdBy,
                         // lastmodifiedby = lastModifiedBy,
-                        lastmodifiedts = DateTime.Now
+                        Lastmodifiedts = DateTime.Now
                     };
 
                     folder.Add(file, false);
@@ -166,13 +166,13 @@ public class DataRetrievalService : BaseService
 
         return result;
     }
-        
+
     private async Task<Uri> GetDelegationSasBlobUri(string container, string fileName, string projectUploadCode, int days, BlobSasPermissions permissions, bool containerLevel = false)
     {
         var project = projectUploadCode.ToLowerInvariant();
         var containerClient = await GetBlobContainerClient(project, container);
         var sasBuilder = containerLevel
-            ? GetContainerSasBuild(containerClient.Name, days, permissions) 
+            ? GetContainerSasBuild(containerClient.Name, days, permissions)
             : GetBlobSasBuilder(container, fileName, days, permissions);
 
         var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(project);
@@ -198,14 +198,14 @@ public class DataRetrievalService : BaseService
 
     private static BlobSasBuilder GetContainerSasBuild(string containerName, int days, BlobSasPermissions permissions)
     {
-        var sasBuilder  = new BlobSasBuilder
+        var sasBuilder = new BlobSasBuilder
         {
             BlobContainerName = containerName,
             Resource = "c",
             StartsOn = DateTimeOffset.Now,
             ExpiresOn = DateTimeOffset.Now.AddDays(days)
         };
-            
+
         sasBuilder.SetPermissions(permissions);
 
         return sasBuilder;
@@ -226,7 +226,7 @@ public class DataRetrievalService : BaseService
         return await GetDelegationSasBlobUri(container, null, projectUploadCode, daysValidity, BlobSasPermissions.All, containerLevel);
     }
 
-        
+
 
     public async Task<Uri> DownloadFile(string container, FileMetaData file, string projectUploadCode)
     {
@@ -234,12 +234,12 @@ public class DataRetrievalService : BaseService
         {
             if (!string.IsNullOrEmpty(projectUploadCode))
             {
-                return await GetUserDelegationSasBlob(container, file.filename, projectUploadCode);
+                return await GetUserDelegationSasBlob(container, file.Filename, projectUploadCode);
             }
 
             var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
-            DataLakeDirectoryClient directoryClient = fileSystemClient.GetDirectoryClient(file.folderpath);
-            DataLakeFileClient fileClient = directoryClient.GetFileClient(file.filename);
+            DataLakeDirectoryClient directoryClient = fileSystemClient.GetDirectoryClient(file.Folderpath);
+            DataLakeFileClient fileClient = directoryClient.GetFileClient(file.Filename);
             Response<FileDownloadInfo> downloadResponse = await fileClient.ReadAsync();
 
             var sharedKeyCredential = await _dataLakeClientService.GetSharedKeyCredential();
@@ -268,13 +268,13 @@ public class DataRetrievalService : BaseService
                 Sas = sasBuilder.ToSasQueryParameters(sharedKeyCredential)
             };
 
-            _logger.LogDebug($"File URI Generation: {file.folderpath}/{file.filename} SUCCEEDED.");
+            _logger.LogDebug($"File URI Generation: {file.Folderpath}/{file.Filename} SUCCEEDED.");
 
             return dataLakeUriBuilder.ToUri();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"File URI Generation: {file.folderpath}/{file.filename} FAILED.");
+            _logger.LogError(ex, $"File URI Generation: {file.Folderpath}/{file.Filename} FAILED.");
             throw;
         }
     }
@@ -352,7 +352,7 @@ public class DataRetrievalService : BaseService
         try
         {
             var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
-            var directoryClient = fileSystemClient.GetDirectoryClient(folder.fullPathFromRoot);
+            var directoryClient = fileSystemClient.GetDirectoryClient(folder.FullPathFromRoot);
             var subdirectories = directoryClient.GetPathsAsync().AsPages(default, 20);
 
             await foreach (var directoryPage in subdirectories)
@@ -375,13 +375,13 @@ public class DataRetrievalService : BaseService
             }
 
             folder.Sort();
-            _logger.LogDebug("Get file list for folder: {FullPathFromRoot} for user: {DisplayName} results: {Count} SUCCEEDED", folder.fullPathFromRoot, user.DisplayName, folder.children.Count);
+            _logger.LogDebug("Get file list for folder: {FullPathFromRoot} for user: {DisplayName} results: {Count} SUCCEEDED", folder.FullPathFromRoot, user.DisplayName, folder.Children.Count);
 
             return folder;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Get file list for folder: {FullPathFromRoot} for user: {DisplayName} FAILED", folder.fullPathFromRoot, user.DisplayName);
+            _logger.LogError(ex, "Get file list for folder: {FullPathFromRoot} for user: {DisplayName} FAILED", folder.FullPathFromRoot, user.DisplayName);
             throw;
         }
     }
@@ -394,11 +394,11 @@ public class DataRetrievalService : BaseService
         {
             return new Folder
             {
-                name = itemName,
-                id = itemName,
-                createdby = item.Owner,
-                lastmodifiedby = item.Owner,
-                lastmodifiedts = item.LastModified.DateTime
+                Name = itemName,
+                Id = itemName,
+                Createdby = item.Owner,
+                Lastmodifiedby = item.Owner,
+                Lastmodifiedts = item.LastModified.DateTime
             };
         }
 
@@ -406,11 +406,11 @@ public class DataRetrievalService : BaseService
         PathProperties properties = fileClient.GetProperties();
         var file = new FileMetaData()
         {
-            filename = itemName,
-            ownedby = item.Owner,
-            createdby = item.Owner,
-            lastmodifiedby = item.Owner,
-            lastmodifiedts = item.LastModified.DateTime
+            Filename = itemName,
+            Ownedby = item.Owner,
+            Createdby = item.Owner,
+            Lastmodifiedby = item.Owner,
+            Lastmodifiedts = item.LastModified.DateTime
         };
 
         file.ParseDictionary(properties.Metadata);
@@ -475,7 +475,7 @@ public class DataRetrievalService : BaseService
                 {
                     var fileId = await VerifyFileIdMetadata(blobItem, containerClient);
                     var fileMetaData = FileMetadataFromBlobItem(blobItem, fileId);
-                        
+
                     result.Add(fileMetaData);
                 }
             }
@@ -488,7 +488,7 @@ public class DataRetrievalService : BaseService
             throw;
         }
     }
-        
+
     [Obsolete("Use ProjectDataRetrievalService.VerifyFileIdMetadata instead")]
     private static async Task<string> VerifyFileIdMetadata(BlobHierarchyItem blobItem, BlobContainerClient containerClient)
     {
@@ -531,13 +531,13 @@ public class DataRetrievalService : BaseService
         {
             return new FileMetaData()
             {
-                id = fileId,
-                filename = blobItem.Name,
-                ownedby = ownedBy,
-                createdby = createdBy,
-                lastmodifiedby = lastModifiedBy,
-                lastmodifiedts = blobItem.Properties.LastModified?.DateTime ?? DateTime.Now,
-                filesize = blobItem.Properties.ContentLength.ToString()
+                Id = fileId,
+                Filename = blobItem.Name,
+                Ownedby = ownedBy,
+                Createdby = createdBy,
+                Lastmodifiedby = lastModifiedBy,
+                Lastmodifiedts = blobItem.Properties.LastModified?.DateTime ?? DateTime.Now,
+                Filesize = blobItem.Properties.ContentLength.ToString()
             };
         }
 
@@ -552,13 +552,13 @@ public class DataRetrievalService : BaseService
 
         return new FileMetaData()
         {
-            id = fileId,
-            filename = blobItem.Name,
-            ownedby = ownedBy,
-            createdby = createdBy,
-            lastmodifiedby = lastModifiedBy,
-            lastmodifiedts = parsedModifiedDate,
-            filesize = fileSize
+            Id = fileId,
+            Filename = blobItem.Name,
+            Ownedby = ownedBy,
+            Createdby = createdBy,
+            Lastmodifiedby = lastModifiedBy,
+            Lastmodifiedts = parsedModifiedDate,
+            Filesize = fileSize
         };
     }
 
@@ -569,7 +569,7 @@ public class DataRetrievalService : BaseService
         {
             var folders = new List<string>();
             var files = new List<FileMetaData>();
-                
+
             var connectionString = await GetProjectConnectionString(projectAcronym.ToLower());
             var blobServiceClient = new BlobServiceClient(connectionString);
             var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
@@ -594,11 +594,11 @@ public class DataRetrievalService : BaseService
                         var fileMetaData = FileMetadataFromBlobItem(blobHierarchyItem, fileId);
                         files.Add(fileMetaData);
                     }
-                        
+
                 }
                 return (folders, files, continuationToken);
             }
-                
+
             return (folders, files, continuationToken);
         }
         catch (Exception ex)
@@ -618,7 +618,7 @@ public class DataRetrievalService : BaseService
     {
         var connectionString = await GetProjectConnectionString(projectAcronym.ToLower());
         var blobServiceClient = new BlobServiceClient(connectionString);
-            
+
         var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
         var blobClient = containerClient.GetBlobClient(filename);
 

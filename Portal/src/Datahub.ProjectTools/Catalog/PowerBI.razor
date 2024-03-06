@@ -20,7 +20,7 @@
     <ToolActionsList>
         <ul>
             <li>
-                <DHLink Variant="h3" DataProject="@(Project.Project_Acronym_CD)" LinkType="DatahubLinkType.PowerBIReport">
+                <DHLink Variant="h3" DataProject="@(Project.ProjectAcronymCD)" LinkType="DatahubLinkType.PowerBIReport">
                     <ToolActionButton LinkType="LinkType.External">
                         @Localizer["Open Power BI"]
                     </ToolActionButton>
@@ -31,7 +31,7 @@
 </ToolCard>
 
 @code {
-    [Parameter] public Datahub_Project Project { get; set; }
+    [Parameter] public DatahubProject Project { get; set; }
     [Parameter] public string Title { get; set; }
     [Parameter] public string Description { get; set; }
     [Parameter] public string Icon { get; set; }

@@ -1,7 +1,6 @@
 ﻿using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.ProjectTools.Services;
 using Datahub.Shared.Entities;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
@@ -51,7 +50,7 @@ public class ProjectUsageScheduler
 
         var resources = await GetProjectResources(ctx);
         var sortedResources = resources.OrderBy(r => r.LastUpdate).Take(1000);
-        
+
         foreach (var resource in sortedResources)
         {
             if (scheduled.Contains(resource.ProjectId))
@@ -106,8 +105,8 @@ public class ProjectUsageScheduler
         var terraformServiceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
         var storageBlobType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
 
-        var projects = new List<Project_Resources2>();
-        await foreach (var res in ctx.Project_Resources2.AsAsyncEnumerable())
+        var projects = new List<ProjectResources2>();
+        await foreach (var res in ctx.ProjectResources2.AsAsyncEnumerable())
         {
             if (res.ResourceType == terraformServiceType)
             {
@@ -126,7 +125,7 @@ public class ProjectUsageScheduler
 
     private DateTime GetLastUpdate(DatahubProjectDBContext ctx, int projectId)
     {
-        var lastUpdate = ctx.Project_Credits.Where(u => u.ProjectId == projectId).Select(u => u.LastUpdate)
+        var lastUpdate = ctx.ProjectCredits.Where(u => u.ProjectId == projectId).Select(u => u.LastUpdate)
             .FirstOrDefault();
 
         return lastUpdate ?? DateTime.MinValue;

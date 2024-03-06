@@ -100,7 +100,7 @@
             </MudButton>
         </DatahubAuthView>
     </MudStack>
-    <MudTable Items="@_filteredProjectUsers" Striped Filter="@(new Func<Datahub_Project_User, bool>(SearchFilter))">
+    <MudTable Items="@_filteredProjectUsers" Striped Filter="@(new Func<DatahubProjectUser, bool>(SearchFilter))">
         <ToolBarContent>
             <MudStack Row AlignItems="AlignItems.Center">
                 <MudTabs Elevation="0" Rounded>
@@ -113,25 +113,25 @@
                                  BadgeData="@_workspaceLeadCount"
                                  BadgeColor="Color.Transparent"
                                  Style="@_tabStyle"
-                                 OnClick="@(() => ProjectMemberRoleFilter((int)Project_Role.RoleNames.WorkspaceLead))"
+                                 OnClick="@(() => ProjectMemberRoleFilter((int)ProjectRole.RoleNames.WorkspaceLead))"
                                  Disabled="@(_workspaceLeadCount == 0)"/>
                     <MudTabPanel Text="@Localizer["Admins"]"
                                  BadgeData="@_adminCount"
                                  BadgeColor="Color.Transparent"
                                  Style="@_tabStyle"
-                                 OnClick="@(() => ProjectMemberRoleFilter((int)Project_Role.RoleNames.Admin))"
+                                 OnClick="@(() => ProjectMemberRoleFilter((int)ProjectRole.RoleNames.Admin))"
                                  Disabled="@(_adminCount == 0)"/>
                     <MudTabPanel Text="@Localizer["Collaborators"]"
                                  BadgeData="@_contributorCount"
                                  BadgeColor="Color.Transparent"
                                  Style="@_tabStyle"
-                                 OnClick="@(() => ProjectMemberRoleFilter((int)Project_Role.RoleNames.Collaborator))"
+                                 OnClick="@(() => ProjectMemberRoleFilter((int)ProjectRole.RoleNames.Collaborator))"
                                  Disabled="@(_contributorCount == 0)"/>
                     <MudTabPanel Text="@Localizer["Guests"]"
                                  BadgeData="@_guestCount"
                                  BadgeColor="Color.Transparent"
                                  Style="@_tabStyle"
-                                 OnClick="@(() => ProjectMemberRoleFilter((int)Project_Role.RoleNames.Guest))"
+                                 OnClick="@(() => ProjectMemberRoleFilter((int)ProjectRole.RoleNames.Guest))"
                                  Disabled="@(_guestCount == 0)"/>
                 </MudTabs>
                 <MudStack AlignItems="AlignItems.Center">
@@ -142,18 +142,18 @@
 
         <HeaderContent>
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<Datahub_Project_User, object>(x => x?.PortalUser?.DisplayName))" InitialDirection="SortDirection.Ascending">
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectUser, object>(x => x?.PortalUser?.DisplayName))" InitialDirection="SortDirection.Ascending">
                     @Localizer["Account"]
                 </MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<Datahub_Project_User, object>(x => x?.PortalUser?.Email))">
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectUser, object>(x => x?.PortalUser?.Email))">
                     @Localizer["Email"]
                 </MudTableSortLabel>
             </MudTh>
             <MudTh>@Localizer["Role"]</MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<Datahub_Project_User, object>(x => x?.Approved_DT))">
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectUser, object>(x => x?.ApprovedDT))">
                     @Localizer["Added to Workspace"]
                 </MudTableSortLabel>
             </MudTh>
@@ -186,9 +186,9 @@
                 </DatahubAuthView>
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
-                @if (rowContext.Approved_DT != null)
+                @if (rowContext.ApprovedDT != null)
                 {
-                    @rowContext.Approved_DT.Value.ToString("MMMM dd, yyyy")
+                    @rowContext.ApprovedDT.Value.ToString("MMMM dd, yyyy")
                 }
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
@@ -217,16 +217,16 @@
     // private bool _isLoading = true;
     private bool _updateInProgress;
     //
-    private int _workspaceLeadCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.WorkspaceLead) ?? 0;
-    private int _adminCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Admin) ?? 0;
-    private int _contributorCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Collaborator) ?? 0;
-    private int _guestCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Guest) ?? 0;
+    private int _workspaceLeadCount => _projectUsers?.Count(x => x.Role?.Id == (int)ProjectRole.RoleNames.WorkspaceLead) ?? 0;
+    private int _adminCount => _projectUsers?.Count(x => x.Role?.Id == (int)ProjectRole.RoleNames.Admin) ?? 0;
+    private int _contributorCount => _projectUsers?.Count(x => x.Role?.Id == (int)ProjectRole.RoleNames.Collaborator) ?? 0;
+    private int _guestCount => _projectUsers?.Count(x => x.Role?.Id == (int)ProjectRole.RoleNames.Guest) ?? 0;
     private int _allCount => _projectUsers?.Count ?? 0;
     // private ProjectMemberRole? _currentRoleFilter = null;
     // private List<ProjectMember> _projectUsers;
     // private List<ProjectMember> _filteredProjectMembers;
-    private List<Datahub_Project_User> _projectUsers;
-    private List<Datahub_Project_User> _filteredProjectUsers;
+    private List<DatahubProjectUser> _projectUsers;
+    private List<DatahubProjectUser> _filteredProjectUsers;
 
     private List<ProjectUserAddUserCommand> _usersToAdd = new();
     private List<ProjectUserUpdateCommand> _usersToUpdate = new();
@@ -261,7 +261,7 @@
         ProjectMemberRoleFilter();
     }
 
-    private bool SearchFilter(Datahub_Project_User projectUser)
+    private bool SearchFilter(DatahubProjectUser projectUser)
     {
         if (string.IsNullOrWhiteSpace(_filterString))
             return true;
@@ -274,12 +274,12 @@
     {
         _filteredProjectUsers = _projectUsers
             .Where(x => roleId is null || x.Role.Id == roleId)
-            .Where(x => x.Role.Id != (int)Project_Role.RoleNames.Remove)
+            .Where(x => x.Role.Id != (int)ProjectRole.RoleNames.Remove)
             .Where(SearchFilter)
             .ToList();
     }
 
-    private void UpdateProjectMemberRole(Datahub_Project_User projectUser, int newRoleId)
+    private void UpdateProjectMemberRole(DatahubProjectUser projectUser, int newRoleId)
     {
     // check if the user is already in the list of users to be updated
         var existingUser = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
@@ -305,14 +305,14 @@
     private void UpdateProjectMemberRole(ProjectUserAddUserCommand projectUser, int newRoleId)
     {
         projectUser.RoleId = newRoleId;
-        if (projectUser.RoleId == (int)Project_Role.RoleNames.Remove)
+        if (projectUser.RoleId == (int)ProjectRole.RoleNames.Remove)
         {
             _usersToAdd.Remove(projectUser);
         }
         StateHasChanged();
     }
 
-    private bool IsModified(Datahub_Project_User projectUser)
+    private bool IsModified(DatahubProjectUser projectUser)
     {
         return _usersToUpdate.Any(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
     }
@@ -323,7 +323,7 @@
         var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
         var dialogParameters = new DialogParameters
         {
-            { "CurrentProjectUsers", _projectUsers.Where(x => x.Role.Id != (int)Project_Role.RoleNames.Remove).ToList() },
+            { "CurrentProjectUsers", _projectUsers.Where(x => x.Role.Id != (int)ProjectRole.RoleNames.Remove).ToList() },
             { "ProjectAcronym", WorkspaceAcronym },
             { "Inviter", currentUser }
         };

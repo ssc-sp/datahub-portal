@@ -17,7 +17,7 @@ public static class ConfigureServices
 
 
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
-                
+
         var resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
         configuration.Bind(resourceProvisionerConfiguration);
         services.AddSingleton(resourceProvisionerConfiguration);

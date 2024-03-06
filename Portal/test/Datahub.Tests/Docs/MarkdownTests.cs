@@ -1,14 +1,4 @@
-﻿using Datahub.Core.Services.Docs;
-using Datahub.Markdown;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
-using System.Net.Http;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using Datahub.Markdown;
 using Xunit;
 
 
@@ -17,7 +7,7 @@ namespace Datahub.Tests.Docs
     public class MarkdownTests
     {
         [Fact]
-        public void GivenMarkdown_RemoveFrontmatter()
+        public void GivenMarkdownRemoveFrontmatter()
         {
             var md = @"---
 remarks: Automatically translated with DeepL
@@ -51,7 +41,7 @@ Le DataHub est une plateforme d'entreprise permettant de stocker, de travailler 
 
 
         [Fact]
-        public void GivenSidebarLine_ExtractIcon()
+        public void GivenSidebarLineExtractIcon()
         {
             var line = "- Learn [](Icon:LibraryBooks)";
             Assert.Equal("LibraryBooks", MarkdownHelper.ExtractIconFromComments(line));

@@ -9,7 +9,7 @@
 @inject ServiceAuthManager ServiceAuthManager
 @inject PowerBiEmailService EmailService
 
-<AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
+<AuthorizeView Roles=@RoleConstants.DATAHUBROLEADMIN>
     @if (!currentUserIsAdmin)
     {
         currentUserIsAdmin = true;
@@ -29,8 +29,8 @@ else if (externalReport == null)
         <MudIcon Icon=@Icons.TwoTone.AddBox />
         <MudText>@Localizer["Request External Report"]</MudText>
         <MudPopover Class="pa-8" Open=@_requestPopupOpen TransformOrigin=@Origin.TopRight>
-            <MudText>@Localizer["RequestExternalSharingFor", @Report.Report_Name]</MudText>
-            <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@(() => OnCreateClick(Report.Report_ID))>@Localizer["Confirm"]</MudButton>
+            <MudText>@Localizer["RequestExternalSharingFor", @Report.ReportName]</MudText>
+            <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@(() => OnCreateClick(Report.ReportID))>@Localizer["Confirm"]</MudButton>
             <MudButton OnClick=@(() => _requestPopupOpen = false)>@Localizer["Cancel"]</MudButton>
         </MudPopover>
     </MudStack>
@@ -46,7 +46,7 @@ else
             
             @if(_isReportActive)
             {
-                <MudText>@Localizer["TemporaryExternalLink"]: <MudLink Href=@TempExternalReportLink>@Report.Report_Name</MudLink></MudText>
+                <MudText>@Localizer["TemporaryExternalLink"]: <MudLink Href=@TempExternalReportLink>@Report.ReportName</MudLink></MudText>
             }
 
             @if (_canRevokeExternalLink)
@@ -56,7 +56,7 @@ else
 
             <MudPopover Class="pa-8" Open=@_revokePopupOpen >
                 <MudText>@RevokeDialogPrompt</MudText>
-                <MudButton Color=@Color.Error Variant=@Variant.Filled OnClick=@(() => OnRevokeClick(Report.Report_ID))>@Localizer["Confirm"]</MudButton>
+                <MudButton Color=@Color.Error Variant=@Variant.Filled OnClick=@(() => OnRevokeClick(Report.ReportID))>@Localizer["Confirm"]</MudButton>
                 <MudButton OnClick=@(() => _revokePopupOpen = false)>@Localizer["Cancel"]</MudButton>
             </MudPopover>
         </MudPopover>
@@ -66,7 +66,7 @@ else
 @code {
 
     [Parameter]
-    public PowerBi_Report Report { get; set; }
+    public PowerBiReport Report { get; set; }
 
     [Parameter]
     public string CurrentUserEmail { get; set; }
@@ -91,8 +91,8 @@ else
     private bool _reportExists => externalReport != null;
     private bool _reportNotExpired => !externalReport.IsExpired;
 
-    private bool _isReportActive => _reportExists && _reportNotExpired && externalReport.Is_Created;
-    private bool _isReportRequested => _reportExists && _reportNotExpired && !externalReport.Is_Created;
+    private bool _isReportActive => _reportExists && _reportNotExpired && externalReport.IsCreated;
+    private bool _isReportRequested => _reportExists && _reportNotExpired && !externalReport.IsCreated;
 
     private string StatusIcon => _isReportActive ? Icons.TwoTone.CheckBox : Icons.TwoTone.HourglassBottom;
     private string StatusKey => _isReportActive ? "Show info" : "Requested";
@@ -100,15 +100,15 @@ else
     private string RevokeButtonKey => _isReportActive ? "Revoke external sharing" : "Cancel external sharing request";
     private string RevokeButtonCaption => Localizer[RevokeButtonKey];
     private string RevokeDialogKey => _isReportActive ? $"RevokeExtSharingFor" : $"CancelExtSharingRequestFor";
-    private string RevokeDialogPrompt => Localizer[RevokeDialogKey, Report.Report_Name];
+    private string RevokeDialogPrompt => Localizer[RevokeDialogKey, Report.ReportName];
 
-    private string TempExternalReportLink => $"/powerbi-report/embed/{Report.Report_ID.ToString()}";
+    private string TempExternalReportLink => $"/powerbi-report/embed/{Report.ReportID.ToString()}";
 
     protected override async Task OnInitializedAsync()
     {
         _isWorking = true;
 
-        externalReport = await PowerBiDataService.GetExternalReportRecord(Report.Report_ID);
+        externalReport = await PowerBiDataService.GetExternalReportRecord(Report.ReportID);
         currentUserIsFrench = await UserSettingsService.IsFrench();
         
         _isWorking = false;
@@ -123,7 +123,7 @@ else
         PowerBiExternalReportParameters powerbiExternalParameters = new() { 
                             AppUrl = $"/administration",
                             App = null, 
-                            AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(RoleConstants.DATAHUB_ADMIN_PROJECT)
+                            AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(RoleConstants.DATAHUBADMINPROJECT)
                         };
         await EmailService.SendExternalPowerBiCreationRequested(powerbiExternalParameters);
 

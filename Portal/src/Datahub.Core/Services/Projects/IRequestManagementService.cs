@@ -1,11 +1,7 @@
 ﻿using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
-using Datahub.Shared.Entities;
 
 namespace Datahub.Core.Services.Projects;
 
@@ -20,7 +16,7 @@ public interface IRequestManagementService
     /// <param name="terraformTemplate">The Terraform template to use for the request.</param>
     /// <param name="requestingUser">The user requesting the Terraform request.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a boolean indicating whether the Terraform request was handled successfully or not.</returns>
-    Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate,
+    Task<bool> HandleTerraformRequestServiceAsync(DatahubProject project, string terraformTemplate,
         PortalUser requestingUser);
 
     /// <summary>
@@ -29,5 +25,5 @@ public interface IRequestManagementService
     /// <param name="project">The Datahub project for which the user updates the external permissions.</param>
     /// <param name="currentUser">The current portal user making the updates.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task HandleUserUpdatesToExternalPermissions(Datahub_Project project, PortalUser currentUser);
+    Task HandleUserUpdatesToExternalPermissions(DatahubProject project, PortalUser currentUser);
 }

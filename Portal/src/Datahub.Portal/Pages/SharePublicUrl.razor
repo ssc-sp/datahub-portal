@@ -436,7 +436,7 @@
     private async Task LoadProjectInfo()
     {
         var project = await PublicFileService.GetProjectWithUsers(_projectCode);
-        _dataApproverUserIds = project.Users.Where(pu => pu.Role.IsAtLeastCollaborator).Select(pu => pu.User_ID).ToList();
+        _dataApproverUserIds = project.Users.Where(pu => pu.Role.IsAtLeastCollaborator).Select(pu => pu.UserID).ToList();
         _projectInfo = project.ProjectInfo;
     }
 
@@ -468,17 +468,17 @@
             return;
         }
 
-        _requestFilename = sharedFileInfo.Filename_TXT;
-        _projectCode = sharedFileInfo.ProjectCode_CD;
+        _requestFilename = sharedFileInfo.FilenameTXT;
+        _projectCode = sharedFileInfo.ProjectCodeCD;
         await LoadProjectInfo();
 
-        _requestingUser = await GraphService.GetUserAsync(sharedFileInfo.RequestingUser_ID, CancellationToken.None);
+        _requestingUser = await GraphService.GetUserAsync(sharedFileInfo.RequestingUserID, CancellationToken.None);
         var currentUser = await currentUserTask;
         _isOwnRequest = currentUser.Id == _requestingUser.Id;
 
-        _publicationDateStr = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
+        _publicationDateStr = sharedFileInfo.PublicationDateDT?.ToShortDateString();
 
-        _dateHolder.Date = sharedFileInfo.ExpirationDate_DT;
+        _dateHolder.Date = sharedFileInfo.ExpirationDateDT;
         _dateHolder.EnableTempSharing = _dateHolder.Date.HasValue;
 
         var status = sharedFileInfo.GetPublicUrlSharingStatus();
@@ -497,7 +497,7 @@
 
     private (string, string)? GetStepPair(PublicUrlSharingStatus status)
     {
-        var prefix = SharedDataFile.PUBLIC_URL_SHARING_STATUS_LOCALIZATION_PREFIX;
+        var prefix = SharedDataFile.PUBLICURLSHARINGSTATUSLOCALIZATIONPREFIX;
         var title = $"{prefix}.{status}.Title";
         var desc = $"{prefix}.{status}.Description";
         return (Localizer[title], Localizer[desc]);
