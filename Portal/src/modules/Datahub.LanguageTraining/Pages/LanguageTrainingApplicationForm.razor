@@ -29,7 +29,7 @@
         SetFormEditRecord="SetFormEdit" 
         HandleFilterChange="HandleFilterChange" />
 
-<AuthorizeView Roles="@($"{PROJECTACRONYM}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
+<AuthorizeView Roles="@($"{PROJECTACRONYM}-admin, {RoleConstants.DATAHUBROLEADMIN}")">
     <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
         <AeTypography Variant="h3">@DataLocalizer["Admin Actions"]</AeTypography>
         <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
@@ -79,7 +79,7 @@
         // period dates are EST time based
         var date = DateTime.UtcNow.ConvertUtcToEasternTime().Date;
         _currentPeriod = GetCurrentPeriod(Context);
-        _nextPeriod = Context.SeasonRegistrationPeriods.FirstOrDefault(e => e.Open_DT > date);
+        _nextPeriod = Context.SeasonRegistrationPeriods.FirstOrDefault(e => e.OpenDT > date);
 
         PrepareMetadata();
     }
@@ -93,7 +93,7 @@
             {
                 var powerBiTargets = @"https://app.powerbi.com/groups/dabe2469-0692-42c4-b492-bd2872fa779c/rdlreports/ad9e392e-2949-49d4-8848-92d6ba59907d?rp:p_year_for_language_training={0}&rp:p_quarter_num={1}&rdl:format=EXCELOPENXML";
                 var fiscalYear = GetFiscalYear(lastPeriod);
-                var url = string.Format(powerBiTargets, fiscalYear, lastPeriod.Quarter_NUM);
+                var url = string.Format(powerBiTargets, fiscalYear, lastPeriod.QuarterNUM);
                 await JsInterop.InvokeVoidAsync("open", url, "_blank");
             }
             catch (Exception)
@@ -106,8 +106,8 @@
     {
         var date = DateTime.UtcNow.ConvertUtcToEasternTime().Date;
         var lastPeriod = Context.SeasonRegistrationPeriods
-                                .OrderByDescending(e => e.Open_DT)
-                                .FirstOrDefault(e => e.Open_DT < date);
+                                .OrderByDescending(e => e.OpenDT)
+                                .FirstOrDefault(e => e.OpenDT < date);
         return lastPeriod;
     }
 
@@ -143,9 +143,9 @@
 
             var template = DataLocalizer["LanguageTrainingApplication.Registrations_open_from_to"];
 
-            var openFormatted = _nextPeriod.Open_DT.ToShortDateString();
-            var closeFormatted = _nextPeriod.Close_DT.ToShortDateString();
-            var season = DataLocalizer[GetSeason(_nextPeriod.Quarter_NUM)];
+            var openFormatted = _nextPeriod.OpenDT.ToShortDateString();
+            var closeFormatted = _nextPeriod.CloseDT.ToShortDateString();
+            var season = DataLocalizer[GetSeason(_nextPeriod.QuarterNUM)];
             var fiscalYear = GetFiscalYear(_nextPeriod);
 
             return string.Format(template, season, fiscalYear, openFormatted, closeFormatted);
@@ -155,15 +155,15 @@
             // Registrations open for {0} {1} until {Friday}, {December} {2}, {2022} by 6:00 PM (EDT).
             // Inscriptions ouvertes pour {0} {1} au plus tard vendredi, le {2} {décembre} {2022}, à 18 h 00 (HAE).
             var template = DataLocalizer["LanguageTrainingApplication.Registrations_open_until"];
-            var closeDateTime = _currentPeriod.Close_DT;
-            var season = DataLocalizer["LanguageTrainingApplication." + GetSeason(_currentPeriod.Quarter_NUM)];
+            var closeDateTime = _currentPeriod.CloseDT;
+            var season = DataLocalizer["LanguageTrainingApplication." + GetSeason(_currentPeriod.QuarterNUM)];
             var fiscalYear = GetFiscalYear(_currentPeriod);
             var dowText = DataLocalizer[closeDateTime.DayOfWeek.ToString()];
             var monthText = DataLocalizer[GetMonth(closeDateTime.Month)];
             var year = closeDateTime.Year;
             var day = closeDateTime.Day;
 
-            var formattedDate = _currentPeriod.Close_DT.ToShortDateString();
+            var formattedDate = _currentPeriod.CloseDT.ToShortDateString();
             return string.Format(template, season, fiscalYear, ToLowerIfFrench(dowText), ToLowerIfFrench(monthText), day, year);
         }
     }
@@ -195,19 +195,19 @@
         _  => "Unknown"
     };
 
-    static int GetFiscalYear(SeasonRegistrationPeriod period) => period.Quarter_NUM switch
+    static int GetFiscalYear(SeasonRegistrationPeriod period) => period.QuarterNUM switch
     {
-        4 => period.Year_NUM + 1,
-        _ => period.Year_NUM
+        4 => period.YearNUM + 1,
+        _ => period.YearNUM
     };
 
     private List<Func<LanguageTrainingApplication, string>> accessorFunctions = new List<Func<LanguageTrainingApplication, string>>
     {
-        new Func<LanguageTrainingApplication, string>(p => { return p.NRCan_Username; }),
-        new Func<LanguageTrainingApplication, string>(p => { return p.Sector_Branch; }),
-        new Func<LanguageTrainingApplication, string>(p => { return (p.Delegate_Manager_First_Name + " " + p.Delegated_Manager_Last_Name); }),
-        new Func<LanguageTrainingApplication, string>(p => { return p.I_am_seeking; }),
-        new Func<LanguageTrainingApplication, string>(p => { return p.Manager_Decision; }),
+        new Func<LanguageTrainingApplication, string>(p => { return p.NRCanUsername; }),
+        new Func<LanguageTrainingApplication, string>(p => { return p.SectorBranch; }),
+        new Func<LanguageTrainingApplication, string>(p => { return (p.DelegateManagerFirstName + " " + p.DelegatedManagerLastName); }),
+        new Func<LanguageTrainingApplication, string>(p => { return p.IAmSeeking; }),
+        new Func<LanguageTrainingApplication, string>(p => { return p.ManagerDecision; }),
     };
 
 
@@ -227,11 +227,11 @@
     {
         if (_languageTrainingApplication != null)
         {
-            if (_languageTrainingApplication.Application_ID == 0)
+            if (_languageTrainingApplication.ApplicationID == 0)
             {
                 _languageTrainingApplication = Context.LanguageTrainingApplications.Add(_languageTrainingApplication).Entity;
             }
-            _languageTrainingApplication.Last_Updated_DT = DateTime.Now;
+            _languageTrainingApplication.LastUpdatedDT = DateTime.Now;
 
             await Context.TrackSaveChangesAsync(AuditingService);
 
@@ -241,8 +241,8 @@
             {                
                 await SendApplicationCompletedEmails(param);
                 _languageTrainingApplication.ApplicationCompleteEmailSent = true;
-                _languageTrainingApplication.FormSubmitted_DT = DateTime.Now;
-                _languageTrainingApplication.FormSubmitted_UserId = _user.Mail;
+                _languageTrainingApplication.FormSubmittedDT = DateTime.Now;
+                _languageTrainingApplication.FormSubmittedUserId = _user.Mail;
                 await Context.TrackSaveChangesAsync(AuditingService);
             }
 
@@ -272,19 +272,19 @@
     {
         await EmailService.SendLanguageSchoolDecision(param);
         _languageTrainingApplication.LSUDecisionSent = true;
-        _languageTrainingApplication.LanguageSchoolDecision_DT = DateTime.Now;
-        _languageTrainingApplication.LanguageSchoolDecision_UserId = _user.Mail;
+        _languageTrainingApplication.LanguageSchoolDecisionDT = DateTime.Now;
+        _languageTrainingApplication.LanguageSchoolDecisionUserId = _user.Mail;
         await Context.TrackSaveChangesAsync(AuditingService);
     }
 
     private async Task SendManagerDecisionEmails(LanguageTrainingParameters param)
     {
-        if (_languageTrainingApplication.Manager_Decision == "Approved" || _languageTrainingApplication.Manager_Decision == "Declined")
+        if (_languageTrainingApplication.ManagerDecision == "Approved" || _languageTrainingApplication.ManagerDecision == "Declined")
         { 
             await EmailService.SendManagerDecisionEmail(param);
             _languageTrainingApplication.ManagerDecisionSent = true;
-            _languageTrainingApplication.ManagerDecision_DT = DateTime.Now;
-            _languageTrainingApplication.ManagerDecision_UserId = _user.Mail;
+            _languageTrainingApplication.ManagerDecisionDT = DateTime.Now;
+            _languageTrainingApplication.ManagerDecisionUserId = _user.Mail;
             await Context.TrackSaveChangesAsync(AuditingService);
         }  
     }
@@ -297,18 +297,18 @@
     private LanguageTrainingParameters GetLanguageTrainingParameters()
     {
         LanguageTrainingParameters param = new();
-        param.ApplicationId = _languageTrainingApplication.Application_ID.ToString();
-        param.AppUrl = $"/languagetraining/applications/{_languageTrainingApplication.Application_ID}";
-        param.EmployeeEmailAddress = _languageTrainingApplication.Email_Address_EMAIL;
-        param.EmployeeName = $"{_languageTrainingApplication.First_Name} {_languageTrainingApplication.Last_Name}";
-        param.TrainingType = _languageTrainingApplication.Training_Type;
-        param.ManagerEmailAddress = _languageTrainingApplication.Delegated_Manager_Email;
-        param.ManagerName = _languageTrainingApplication.Delegate_Manager_First_Name + " " + _languageTrainingApplication.Delegated_Manager_Last_Name;
-        param.ManagerDecision = _languageTrainingApplication.Manager_Decision;
+        param.ApplicationId = _languageTrainingApplication.ApplicationID.ToString();
+        param.AppUrl = $"/languagetraining/applications/{_languageTrainingApplication.ApplicationID}";
+        param.EmployeeEmailAddress = _languageTrainingApplication.EmailAddressEMAIL;
+        param.EmployeeName = $"{_languageTrainingApplication.FirstName} {_languageTrainingApplication.LastName}";
+        param.TrainingType = _languageTrainingApplication.TrainingType;
+        param.ManagerEmailAddress = _languageTrainingApplication.DelegatedManagerEmail;
+        param.ManagerName = _languageTrainingApplication.DelegateManagerFirstName + " " + _languageTrainingApplication.DelegatedManagerLastName;
+        param.ManagerDecision = _languageTrainingApplication.ManagerDecision;
         param.AdminEmailAddresses = ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM);
         param.LanguageSchoolDecision = _languageTrainingApplication.Decision;
-        param.Session = _languageTrainingApplication.Session_For_Language_Training;
-        param.Class = _languageTrainingApplication.Class_For_Language_Training;
+        param.Session = _languageTrainingApplication.SessionForLanguageTraining;
+        param.Class = _languageTrainingApplication.ClassForLanguageTraining;
         param.FormUrl =  $"{NavigationManager.BaseUri}{FORMLOCATION}";
         return param;
     }
@@ -316,24 +316,24 @@
     private async Task LoadApps(string filter)
     {
         var latestPeriod = GetLatestPeriod();
-        var quarter = latestPeriod.Quarter_NUM;
+        var quarter = latestPeriod.QuarterNUM;
         var year = GetFiscalYear(latestPeriod);
 
         if (_isUserAdmin)
         {
             _languageTrainingApplications = await Context.LanguageTrainingApplications
-                .Where(a => a.Year_For_Language_Training == year && a.Quarter_NUM == quarter)
+                .Where(a => a.YearForLanguageTraining == year && a.QuarterNUM == quarter)
                 .ToListAsync();
             if (!string.IsNullOrEmpty(AppId))
             {
-                _languageTrainingApplication = Context.LanguageTrainingApplications.Where(a => a.Application_ID == Convert.ToInt32(AppId)).FirstOrDefault();
+                _languageTrainingApplication = Context.LanguageTrainingApplications.Where(a => a.ApplicationID == Convert.ToInt32(AppId)).FirstOrDefault();
             }
         }
         else
         {
             _languageTrainingApplications = Context.LanguageTrainingApplications
-                .Where(a => a.Year_For_Language_Training == year && a.Quarter_NUM == quarter)
-                .Where(r => (r.Email_Address_EMAIL.ToLower() == _user.Mail.ToLower()) || (r.Delegated_Manager_Email.ToLower() == _user.Mail.ToLower()))
+                .Where(a => a.YearForLanguageTraining == year && a.QuarterNUM == quarter)
+                .Where(r => (r.EmailAddressEMAIL.ToLower() == _user.Mail.ToLower()) || (r.DelegatedManagerEmail.ToLower() == _user.Mail.ToLower()))
                 .ToList();
         }
 
@@ -343,39 +343,39 @@
         }
         else
         {
-            _formMetadata.DataSet = _languageTrainingApplications.Where(r => r.Manager_Decision == filter).ToList();
+            _formMetadata.DataSet = _languageTrainingApplications.Where(r => r.ManagerDecision == filter).ToList();
         }
     }
 
     private List<string> GetTrainingTypes()
     {
-        var languageClass = _languageTrainingApplication.I_am_seeking;
-        return languageClass == "English Language Training" ? Language_Constants.TRAININGTYPEENGLISH.ToList() : Language_Constants.TRAININGTYPEFRENCH.ToList();
+        var languageClass = _languageTrainingApplication.IAmSeeking;
+        return languageClass == "English Language Training" ? LanguageConstants.TRAININGTYPEENGLISH.ToList() : LanguageConstants.TRAININGTYPEFRENCH.ToList();
     }
 
     private void OnConfigure(IModelFormContext context)
     {
         if (!_onchange)
         {
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Sector_Branch, () => Language_Constants.SECTORSANDBRANCHES);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Province_Territory, () => Language_Constants.PROVINCES);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Employment_Status, () => Language_Constants.EMPLOYMENT_STATUS);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.I_am_seeking, () => Language_Constants.LANGUAGE_TRAINING, s => 
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SectorBranch, () => LanguageConstants.SECTORSANDBRANCHES);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.ProvinceTerritory, () => LanguageConstants.PROVINCES);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.EmploymentStatus, () => LanguageConstants.EMPLOYMENTSTATUS);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.IAmSeeking, () => LanguageConstants.LANGUAGETRAINING, s => 
             {
-                context.RefreshOptions<LanguageTrainingApplication>(p => p.Training_Type);
+                context.RefreshOptions<LanguageTrainingApplication>(p => p.TrainingType);
             });
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Language_Training_Provided_By, () => Language_Constants.LANGUAGE_TRAINING_PROVIDERS);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Last_Course_Successfully_Completed, () => Language_Constants.CLASSES_E);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Reading, () => Language_Constants.SLESTATUS);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Writing, () => Language_Constants.SLESTATUS);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Oral, () => Language_Constants.SLESTATUS);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.LanguageTrainingProvidedBy, () => LanguageConstants.LANGUAGETRAININGPROVIDERS);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.LastCourseSuccessfullyCompleted, () => LanguageConstants.CLASSESE);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLEResultsReading, () => LanguageConstants.SLESTATUS);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLEResultsWriting, () => LanguageConstants.SLESTATUS);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLEResultsOral, () => LanguageConstants.SLESTATUS);
             //context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Session_For_Language_Training, () => Language_Constants.QUARTERS);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Class_For_Language_Training, () => Language_Constants.CLASSES_E);        
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Decision, () => Language_Constants.LANGUAGE_SCHOOL_SELECTION);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Completed_Training_Session, () => Language_Constants.QUARTERS);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Manager_Decision, () => new[] { "Pending", "Approved", "Declined"});
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Training_Type, () => GetTrainingTypes());
-            context.RegisterFieldNotes<LanguageTrainingApplication>(p => p.Manager_Decision, "The manager must approve or decline this application to proceed");
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.ClassForLanguageTraining, () => LanguageConstants.CLASSESE);        
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Decision, () => LanguageConstants.LANGUAGESCHOOLSELECTION);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.CompletedTrainingSession, () => LanguageConstants.QUARTERS);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.ManagerDecision, () => new[] { "Pending", "Approved", "Declined"});
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.TrainingType, () => GetTrainingTypes());
+            context.RegisterFieldNotes<LanguageTrainingApplication>(p => p.ManagerDecision, "The manager must approve or decline this application to proceed");
         }
 
         ToggleVisibility(context);
@@ -383,41 +383,41 @@
 
     private void ToggleVisibility(IModelFormContext context)
     {
-        context.SetVisible<LanguageTrainingApplication>(p => p.Language_Training_Since_LETP_Assessment, _languageTrainingApplication.Completed_LETP_Assessment);
-        context.SetVisible<LanguageTrainingApplication>(p => p.Language_Training_Provided_By, _languageTrainingApplication.Completed_LETP_Assessment && _languageTrainingApplication.Language_Training_Since_LETP_Assessment);
-        context.SetVisible<LanguageTrainingApplication>(p => p.Last_Course_Successfully_Completed, _languageTrainingApplication.Completed_LETP_Assessment && (_languageTrainingApplication.Language_Training_Provided_By == "NRCan Language School" || _languageTrainingApplication.Language_Training_Provided_By == "École de langues de RNCan"));
-        context.SetVisible<LanguageTrainingApplication>(p => p.Completed_Training_Year, _languageTrainingApplication.Completed_LETP_Assessment && (_languageTrainingApplication.Language_Training_Provided_By == "NRCan Language School" || _languageTrainingApplication.Language_Training_Provided_By == "École de langues de RNCan"));
-        context.SetVisible<LanguageTrainingApplication>(p => p.Completed_Training_Session, _languageTrainingApplication.Completed_LETP_Assessment && (_languageTrainingApplication.Language_Training_Provided_By == "NRCan Language School" || _languageTrainingApplication.Language_Training_Provided_By == "École de langues de RNCan"));
-        context.SetVisible<LanguageTrainingApplication>(p => p.Report_Sent_To_NRCan_Language_School, _languageTrainingApplication.Completed_LETP_Assessment  && (_languageTrainingApplication.Language_Training_Provided_By == "External Provider" || _languageTrainingApplication.Language_Training_Provided_By == "Fournisseur externe"));
-        context.SetVisible<LanguageTrainingApplication>(p => p.Second_Language_Evaluation_Results, _languageTrainingApplication.Completed_LETP_Assessment);
-        context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Results_Reading, _languageTrainingApplication.Completed_LETP_Assessment && _languageTrainingApplication.Second_Language_Evaluation_Results);
-        context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Results_Writing, _languageTrainingApplication.Completed_LETP_Assessment && _languageTrainingApplication.Second_Language_Evaluation_Results);
-        context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Results_Oral, _languageTrainingApplication.Completed_LETP_Assessment && _languageTrainingApplication.Second_Language_Evaluation_Results);
-        context.SetVisible<LanguageTrainingApplication>(p => p.Training_Type, _languageTrainingApplication.Completed_LETP_Assessment);
-        context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Test_Date, _languageTrainingApplication.Completed_LETP_Assessment && (_languageTrainingApplication.Training_Type == "Individual - Coaching" || _languageTrainingApplication.Training_Type == "Encadrement individuel"));
+        context.SetVisible<LanguageTrainingApplication>(p => p.LanguageTrainingSinceLETPAssessment, _languageTrainingApplication.CompletedLETPAssessment);
+        context.SetVisible<LanguageTrainingApplication>(p => p.LanguageTrainingProvidedBy, _languageTrainingApplication.CompletedLETPAssessment && _languageTrainingApplication.LanguageTrainingSinceLETPAssessment);
+        context.SetVisible<LanguageTrainingApplication>(p => p.LastCourseSuccessfullyCompleted, _languageTrainingApplication.CompletedLETPAssessment && (_languageTrainingApplication.LanguageTrainingProvidedBy == "NRCan Language School" || _languageTrainingApplication.LanguageTrainingProvidedBy == "École de langues de RNCan"));
+        context.SetVisible<LanguageTrainingApplication>(p => p.CompletedTrainingYear, _languageTrainingApplication.CompletedLETPAssessment && (_languageTrainingApplication.LanguageTrainingProvidedBy == "NRCan Language School" || _languageTrainingApplication.LanguageTrainingProvidedBy == "École de langues de RNCan"));
+        context.SetVisible<LanguageTrainingApplication>(p => p.CompletedTrainingSession, _languageTrainingApplication.CompletedLETPAssessment && (_languageTrainingApplication.LanguageTrainingProvidedBy == "NRCan Language School" || _languageTrainingApplication.LanguageTrainingProvidedBy == "École de langues de RNCan"));
+        context.SetVisible<LanguageTrainingApplication>(p => p.ReportSentToNRCanLanguageSchool, _languageTrainingApplication.CompletedLETPAssessment  && (_languageTrainingApplication.LanguageTrainingProvidedBy == "External Provider" || _languageTrainingApplication.LanguageTrainingProvidedBy == "Fournisseur externe"));
+        context.SetVisible<LanguageTrainingApplication>(p => p.SecondLanguageEvaluationResults, _languageTrainingApplication.CompletedLETPAssessment);
+        context.SetVisible<LanguageTrainingApplication>(p => p.SLEResultsReading, _languageTrainingApplication.CompletedLETPAssessment && _languageTrainingApplication.SecondLanguageEvaluationResults);
+        context.SetVisible<LanguageTrainingApplication>(p => p.SLEResultsWriting, _languageTrainingApplication.CompletedLETPAssessment && _languageTrainingApplication.SecondLanguageEvaluationResults);
+        context.SetVisible<LanguageTrainingApplication>(p => p.SLEResultsOral, _languageTrainingApplication.CompletedLETPAssessment && _languageTrainingApplication.SecondLanguageEvaluationResults);
+        context.SetVisible<LanguageTrainingApplication>(p => p.TrainingType, _languageTrainingApplication.CompletedLETPAssessment);
+        context.SetVisible<LanguageTrainingApplication>(p => p.SLETestDate, _languageTrainingApplication.CompletedLETPAssessment && (_languageTrainingApplication.TrainingType == "Individual - Coaching" || _languageTrainingApplication.TrainingType == "Encadrement individuel"));
         //context.SetVisible<LanguageTrainingApplication>(p => p.Session_For_Language_Training, _languageTrainingApplication.Completed_LETP_Assessment && !(_languageTrainingApplication.Training_Type == "Private training: Coaching**" || _languageTrainingApplication.Training_Type == "Individual - Coaching"));
-        context.SetVisible<LanguageTrainingApplication>(p => p.Class_For_Language_Training, _languageTrainingApplication.Completed_LETP_Assessment && !(_languageTrainingApplication.Training_Type == "Private training: Coaching**" || _languageTrainingApplication.Training_Type == "Individual - Coaching"));
-        context.SetVisible<LanguageTrainingApplication>(p => p.Delegate_Manager_First_Name, _languageTrainingApplication.Completed_LETP_Assessment);
-        context.SetVisible<LanguageTrainingApplication>(p => p.Delegated_Manager_Last_Name, _languageTrainingApplication.Completed_LETP_Assessment);
-        context.SetVisible<LanguageTrainingApplication>(p => p.Delegated_Manager_Email, _languageTrainingApplication.Completed_LETP_Assessment);
-        context.SetVisible<LanguageTrainingApplication>(p => p.Employee_Appointed_NonImperative_Basis, _languageTrainingApplication.Completed_LETP_Assessment);
-        context.SetVisible<LanguageTrainingApplication>(p => p.Employee_equity_group, _languageTrainingApplication.Completed_LETP_Assessment);
-        context.SetVisible<LanguageTrainingApplication>(p => p.Employee_language_profile_raised, _languageTrainingApplication.Completed_LETP_Assessment);
-        context.SetVisible<LanguageTrainingApplication>(p => p.Employee_professional_dev_program, _languageTrainingApplication.Completed_LETP_Assessment);
+        context.SetVisible<LanguageTrainingApplication>(p => p.ClassForLanguageTraining, _languageTrainingApplication.CompletedLETPAssessment && !(_languageTrainingApplication.TrainingType == "Private training: Coaching**" || _languageTrainingApplication.TrainingType == "Individual - Coaching"));
+        context.SetVisible<LanguageTrainingApplication>(p => p.DelegateManagerFirstName, _languageTrainingApplication.CompletedLETPAssessment);
+        context.SetVisible<LanguageTrainingApplication>(p => p.DelegatedManagerLastName, _languageTrainingApplication.CompletedLETPAssessment);
+        context.SetVisible<LanguageTrainingApplication>(p => p.DelegatedManagerEmail, _languageTrainingApplication.CompletedLETPAssessment);
+        context.SetVisible<LanguageTrainingApplication>(p => p.EmployeeAppointedNonImperativeBasis, _languageTrainingApplication.CompletedLETPAssessment);
+        context.SetVisible<LanguageTrainingApplication>(p => p.EmployeeEquityGroup, _languageTrainingApplication.CompletedLETPAssessment);
+        context.SetVisible<LanguageTrainingApplication>(p => p.EmployeeLanguageProfileRaised, _languageTrainingApplication.CompletedLETPAssessment);
+        context.SetVisible<LanguageTrainingApplication>(p => p.EmployeeProfessionalDevProgram, _languageTrainingApplication.CompletedLETPAssessment);
 
-        context.SetVisible<LanguageTrainingApplication>(p => p.Employee_In_Pardp, _languageTrainingApplication.Completed_LETP_Assessment);
-        context.SetVisible<LanguageTrainingApplication>(p => p.Employee_talent_management_exercise, _languageTrainingApplication.Completed_LETP_Assessment);
+        context.SetVisible<LanguageTrainingApplication>(p => p.EmployeeInPardp, _languageTrainingApplication.CompletedLETPAssessment);
+        context.SetVisible<LanguageTrainingApplication>(p => p.EmployeeTalentManagementExercise, _languageTrainingApplication.CompletedLETPAssessment);
 
-        var isDelegatedManager = _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower();
+        var isDelegatedManager = _languageTrainingApplication.DelegatedManagerEmail?.ToLower() == _user.Mail.ToLower();
 
-        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_First_Name, _isUserAdmin || isDelegatedManager);
-        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Last_Name, _isUserAdmin || isDelegatedManager);
-        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Email_Address, _isUserAdmin || isDelegatedManager);
-        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Decision, _isUserAdmin || isDelegatedManager);
+        context.SetVisible<LanguageTrainingApplication>(p => p.ManagerFirstName, _isUserAdmin || isDelegatedManager);
+        context.SetVisible<LanguageTrainingApplication>(p => p.ManagerLastName, _isUserAdmin || isDelegatedManager);
+        context.SetVisible<LanguageTrainingApplication>(p => p.ManagerEmailAddress, _isUserAdmin || isDelegatedManager);
+        context.SetVisible<LanguageTrainingApplication>(p => p.ManagerDecision, _isUserAdmin || isDelegatedManager);
         context.SetVisible<LanguageTrainingApplication>(p => p.Decision, _isUserAdmin);
 
 
-        _formMetadata.IsSubmitEnabled = _isUserAdmin || isDelegatedManager || (_isNewApp && _languageTrainingApplication.Completed_LETP_Assessment);
+        _formMetadata.IsSubmitEnabled = _isUserAdmin || isDelegatedManager || (_isNewApp && _languageTrainingApplication.CompletedLETPAssessment);
         var footerfile = _formMetadata.IsSubmitEnabled ? (_isFrench ? "FormFooterFr.md" : "FormFooter.md") : (_isNewApp ? (_isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md") : (_isFrench ? "FormFooterSubmittedFr.md" : "FormFooterSubmitted.md"));
 
         _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{footerfile}").ToList();
@@ -433,23 +433,23 @@
     private void CreateNewApplication()
     {
         _isNewApp = true;
-        _languageTrainingApplication = new LanguageTrainingApplication() { Last_Updated_DT = DateTime.Now, Manager_Decision = "Pending" };
+        _languageTrainingApplication = new LanguageTrainingApplication() { LastUpdatedDT = DateTime.Now, ManagerDecision = "Pending" };
         //var user = await UserInformationService.GetUserAsync();
-        _languageTrainingApplication.Email_Address_EMAIL = _user.Mail;
-        _languageTrainingApplication.First_Name = _user.GivenName;
-        _languageTrainingApplication.Last_Name = _user.Surname;
+        _languageTrainingApplication.EmailAddressEMAIL = _user.Mail;
+        _languageTrainingApplication.FirstName = _user.GivenName;
+        _languageTrainingApplication.LastName = _user.Surname;
 
         // _currentPeriod shouldn't be null here!
-        _languageTrainingApplication.Year_For_Language_Training = _currentPeriod is not null ? GetFiscalYear(_currentPeriod) : DateTime.Now.Year;
-        _languageTrainingApplication.Quarter_NUM = _currentPeriod?.Quarter_NUM ?? 1;
-        _languageTrainingApplication.Session_For_Language_Training = GetSessionForTraining();
+        _languageTrainingApplication.YearForLanguageTraining = _currentPeriod is not null ? GetFiscalYear(_currentPeriod) : DateTime.Now.Year;
+        _languageTrainingApplication.QuarterNUM = _currentPeriod?.QuarterNUM ?? 1;
+        _languageTrainingApplication.SessionForLanguageTraining = GetSessionForTraining();
 
         StateHasChanged();
     }
 
     private string GetSessionForTraining()
     {
-        return _currentPeriod?.Quarter_NUM switch
+        return _currentPeriod?.QuarterNUM switch
         {
             null => string.Empty,
             1 => "Q1 - April to June",
@@ -471,12 +471,12 @@
         var estDateTimeNow = DateTime.UtcNow.ConvertUtcToEasternTime();
 
         var date = estDateTimeNow.Date;
-        var period = ctx.SeasonRegistrationPeriods.FirstOrDefault(e => e.Open_DT <= date && date <= e.Close_DT);
+        var period = ctx.SeasonRegistrationPeriods.FirstOrDefault(e => e.OpenDT <= date && date <= e.CloseDT);
 
         if (period is null)
             return null;
         
-        if (estDateTimeNow > GetCloseDateExact(period.Close_DT))
+        if (estDateTimeNow > GetCloseDateExact(period.CloseDT))
             return null;
 
         return period;

@@ -1,8 +1,5 @@
-﻿using Datahub.Core.Data;
-using Datahub.Core.Services;
-using Datahub.Core.Services.Security;
+﻿using Datahub.Core.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Datahub.Portal.Pages.Project
@@ -12,7 +9,7 @@ namespace Datahub.Portal.Pages.Project
     {
 
         [Inject]
-        public IUserInformationService _userInformationService { get; set; } = null!;
+        public IUserInformationService UserInformationService { get; set; } = null!;
 
         [Inject]
         public ILogger<ProjectMemberBlock> logger { get; set; } = null!;
@@ -53,10 +50,10 @@ namespace Datahub.Portal.Pages.Project
 
             if (ProjectAcronym is null)
                 throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
-            var userId = (await _userInformationService.GetCurrentGraphUserAsync()).Id;
-            var isDatahubAdmin = await _userInformationService.IsUserDatahubAdmin();
-            var isProjectAdmin = await _userInformationService.IsUserProjectAdmin(ProjectAcronym);
-            var isProjectMember = await _userInformationService.IsUserProjectMember(ProjectAcronym);
+            var userId = (await UserInformationService.GetCurrentGraphUserAsync()).Id;
+            var isDatahubAdmin = await UserInformationService.IsUserDatahubAdmin();
+            var isProjectAdmin = await UserInformationService.IsUserProjectAdmin(ProjectAcronym);
+            var isProjectMember = await UserInformationService.IsUserProjectMember(ProjectAcronym);
             logger.LogTrace($"User {userId} in ProjectMemberBlock - isDatahubAdmin: {isDatahubAdmin} isProjectAdmin: {isProjectAdmin} ");
             if (AdminOnly)
                 isAuthorized = isDatahubAdmin || isProjectAdmin;

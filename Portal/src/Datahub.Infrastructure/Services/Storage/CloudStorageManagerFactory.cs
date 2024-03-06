@@ -1,14 +1,8 @@
 ﻿using Datahub.Application.Services.Security;
 using Datahub.Core.Model.CloudStorage;
-using Datahub.Core.Model.Projects;
 using Datahub.Core.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using static Datahub.Infrastructure.Services.Storage.CloudStorageHelpers;
 
@@ -40,10 +34,10 @@ namespace Datahub.Infrastructure.Services.Storage
             return CreateCloudStorageManager(stg.Id, stg.Provider, stg.Name, connectionData, stg.Enabled);
         }
 
-        public async Task<IDictionary<string,string>> GetConnectionSecrets(ProjectCloudStorage pcs, string? acronym = null)
+        public async Task<IDictionary<string, string>> GetConnectionSecrets(ProjectCloudStorage pcs, string? acronym = null)
         {
             if (acronym is null)
-                acronym = pcs.Project.Project_Acronym_CD;
+                acronym = pcs.Project.ProjectAcronymCD;
             if (pcs.Id == 0)
                 return CreateNewStorageProperties();
             IDictionary<string, string>? existingSecrets = null;
@@ -57,7 +51,7 @@ namespace Datahub.Infrastructure.Services.Storage
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex,"Could not find connection data for cloud storage provider with id {0}", pcs.Id);
+                _logger.LogWarning(ex, "Could not find connection data for cloud storage provider with id {0}", pcs.Id);
             }
             if (existingSecrets?.Count > 0)
             {
@@ -72,29 +66,29 @@ namespace Datahub.Infrastructure.Services.Storage
         public static IDictionary<string, string> CreateNewStorageProperties()
         {
             var connectionData = new Dictionary<string, string>();
-            connectionData[AZ_AccountName] = string.Empty;
-            connectionData[AZ_AccountKey] = string.Empty;
-            connectionData[AWS_AccesKeyId] = string.Empty;
-            connectionData[AWS_AccessKeySecret] = string.Empty;
-            connectionData[AWS_Region] = string.Empty;
-            connectionData[AWS_BucketName] = string.Empty;
-            connectionData[GCP_ProjectId] = string.Empty;
-            connectionData[GCP_Json] = string.Empty;
+            connectionData[AZAccountName] = string.Empty;
+            connectionData[AZAccountKey] = string.Empty;
+            connectionData[AWSAccesKeyId] = string.Empty;
+            connectionData[AWSAccessKeySecret] = string.Empty;
+            connectionData[AWSRegion] = string.Empty;
+            connectionData[AWSBucketName] = string.Empty;
+            connectionData[GCPProjectId] = string.Empty;
+            connectionData[GCPJson] = string.Empty;
             return connectionData;
         }
 
         public ICloudStorageManager? CreateTestCloudStorageManager(CloudStorageProviderType providerType, IDictionary<string, string> connectionData) =>
             CreateCloudStorageManager(default, providerType.ToString(), "test", connectionData, true);
 
-        private ICloudStorageManager? CreateCloudStorageManager(int id, string provider, string name, IDictionary<string,string> connectionData, bool enabled)
+        private ICloudStorageManager? CreateCloudStorageManager(int id, string provider, string name, IDictionary<string, string> connectionData, bool enabled)
         {
             if (provider == CloudStorageProviderType.Azure.ToString())
             {
 
-                var stAccountName = string.IsNullOrEmpty(name) ? connectionData[AZ_AccountName] : name;
+                var stAccountName = string.IsNullOrEmpty(name) ? connectionData[AZAccountName] : name;
 
                 ICloudStorageManager storageManager = enabled ?
-                    new AzureCloudStorageManager(connectionData[AZ_AccountName], connectionData[AZ_AccountKey], stAccountName) :
+                    new AzureCloudStorageManager(connectionData[AZAccountName], connectionData[AZAccountKey], stAccountName) :
                     new DisabledCloudStorageManager(CloudStorageProviderType.Azure, stAccountName);
 
                 return storageManager;
@@ -102,11 +96,11 @@ namespace Datahub.Infrastructure.Services.Storage
             else if (provider == CloudStorageProviderType.AWS.ToString())
             {
 
-                var stAccountName = string.IsNullOrEmpty(name) ? connectionData[AWS_BucketName] : name;
+                var stAccountName = string.IsNullOrEmpty(name) ? connectionData[AWSBucketName] : name;
 
                 ICloudStorageManager storageManager = enabled ?
-                    new AWSCloudStorageManager(stAccountName, connectionData[AWS_AccesKeyId], connectionData[AWS_AccessKeySecret],
-                        connectionData[AWS_Region], connectionData[AWS_BucketName]) :
+                    new AWSCloudStorageManager(stAccountName, connectionData[AWSAccesKeyId], connectionData[AWSAccessKeySecret],
+                        connectionData[AWSRegion], connectionData[AWSBucketName]) :
                     new DisabledCloudStorageManager(CloudStorageProviderType.AWS, stAccountName);
 
                 return storageManager;
@@ -114,12 +108,12 @@ namespace Datahub.Infrastructure.Services.Storage
             else if (provider == CloudStorageProviderType.GCP.ToString())
             {
 
-                var stAccountName = string.IsNullOrEmpty(name) ? connectionData[GCP_ProjectId] : name;
+                var stAccountName = string.IsNullOrEmpty(name) ? connectionData[GCPProjectId] : name;
 
                 ICloudStorageManager storageManager = enabled ?
-                    new GoogleCloudStorageManager(_logFactory, connectionData[GCP_ProjectId], connectionData[GCP_Json], stAccountName) :
+                    new GoogleCloudStorageManager(_logFactory, connectionData[GCPProjectId], connectionData[GCPJson], stAccountName) :
                     new DisabledCloudStorageManager(CloudStorageProviderType.GCP, stAccountName);
-                
+
                 return storageManager;
             }
             else

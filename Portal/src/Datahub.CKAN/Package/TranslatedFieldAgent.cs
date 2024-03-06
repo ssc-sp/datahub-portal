@@ -9,7 +9,7 @@ class TranslatedFieldAgent : FieldAgent
 
     public override bool Matches(FieldDefinition definition)
     {
-        var fieldName = definition.Field_Name_TXT ?? "";
+        var fieldName = definition.FieldNameTXT ?? "";
         return fieldName.EndsWith("_en") || fieldName.EndsWith("_fr");
     }
 

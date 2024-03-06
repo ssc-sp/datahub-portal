@@ -1,7 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
@@ -18,7 +16,7 @@ public static class TerraformVariableExtraction
     /// </summary>
     /// <param name="project">The Datahub project.</param>
     /// <returns>The Databricks workspace Id.</returns>
-    public static string? ExtractDatabricksWorkspaceId(Datahub_Project? project)
+    public static string? ExtractDatabricksWorkspaceId(DatahubProject? project)
     {
         var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
         return ExtractStringVariable(
@@ -30,14 +28,14 @@ public static class TerraformVariableExtraction
     /// Extracts the databricks url from a Datahub Project. Be sure to include the project resources in the project object.
     /// </summary>
     /// <param name="project"></param>
-    /// <returns></returns>
-    public static string? ExtractDatabricksUrl(Datahub_Project? project)
+    /// <returns>Databricks URL of the workspace</returns>
+    public static string? ExtractDatabricksUrl(DatahubProject? project)
     {
         var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-        var databricksUrlVariable =  ExtractStringVariable(
+        var databricksUrlVariable = ExtractStringVariable(
             project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent,
             "workspace_url");
-        
+
         return FormatDatabricksUrl(databricksUrlVariable);
     }
 
@@ -46,12 +44,12 @@ public static class TerraformVariableExtraction
     /// </summary>
     /// <param name="projectResource">The project resource containing the JSON content.</param>
     /// <returns>The extracted Databricks URL or null if not found.</returns>
-    public static string? ExtractDatabricksUrl(Project_Resources2? projectResource)
+    public static string? ExtractDatabricksUrl(ProjectResources2? projectResource)
     {
-        var databricksUrlVariable =  ExtractStringVariable(
+        var databricksUrlVariable = ExtractStringVariable(
             projectResource?.JsonContent,
             "workspace_url");
-        
+
         return FormatDatabricksUrl(databricksUrlVariable);
     }
 
@@ -67,7 +65,7 @@ public static class TerraformVariableExtraction
             databricksUrlVariable = $"https://{databricksUrlVariable}";
         }
 
-        return databricksUrlVariable;        
+        return databricksUrlVariable;
     }
 
     /// <summary>
@@ -75,7 +73,7 @@ public static class TerraformVariableExtraction
     /// </summary>
     /// <param name="project">The Datahub project.</param>
     /// <returns>The Azure Postgres host, or null if not found.</returns>
-    public static string? ExtractAzurePostgresHost(Datahub_Project? project)
+    public static string? ExtractAzurePostgresHost(DatahubProject? project)
     {
         var azureDatabaseTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
         return ExtractStringVariable(
@@ -88,7 +86,7 @@ public static class TerraformVariableExtraction
     /// </summary>
     /// <param name="workspace">The Datahub_Project object representing the workspace.</param>
     /// <returns>The name of the Azure PostgreSQL database.</returns>
-    public static string? ExtractAzurePostgresDatabaseName(Datahub_Project? workspace)
+    public static string? ExtractAzurePostgresDatabaseName(DatahubProject? workspace)
     {
         var azureDatabaseTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
         return ExtractStringVariable(
@@ -96,13 +94,12 @@ public static class TerraformVariableExtraction
             "postgres_db_name");
     }
 
-
     /// <summary>
     /// Extracts the username secret name from the given Azure Postgres workspace.
     /// </summary>
     /// <param name="workspace">The Azure Postgres workspace from which to extract the username secret name.</param>
     /// <returns>The extracted username secret name.</returns>
-    public static string? ExtractAzurePostgresUsernameSecretName(Datahub_Project? workspace)
+    public static string? ExtractAzurePostgresUsernameSecretName(DatahubProject? workspace)
     {
         var azureDatabaseTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
         return ExtractStringVariable(
@@ -115,7 +112,7 @@ public static class TerraformVariableExtraction
     /// </summary>
     /// <param name="workspace">The Datahub workspace.</param>
     /// <returns>The name of the Azure PostgreSQL password secret, or null if not found.</returns>
-    public static string? ExtractAzurePostgresPasswordSecretName(Datahub_Project? workspace)
+    public static string? ExtractAzurePostgresPasswordSecretName(DatahubProject? workspace)
     {
         var azureDatabaseTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
         return ExtractStringVariable(
@@ -141,10 +138,10 @@ public static class TerraformVariableExtraction
 
         var jsonContent =
             JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);
-        
+
         if (!jsonContent?.ContainsKey(variableName) ?? true)
             return null;
-        
+
         var variable = jsonContent?[variableName];
 
         return variable;

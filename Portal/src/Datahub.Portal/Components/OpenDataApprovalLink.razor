@@ -13,17 +13,17 @@
     [Parameter]
     public OpenDataSharedFile File { get; set; }
 
-    private bool Disabled => File.ApprovalFormRead_FLAG;
+    private bool Disabled => File.ApprovalFormReadFLAG;
 
     private async void NavigateToUrl()
     {
-        if (!File.ApprovalFormRead_FLAG)
+        if (!File.ApprovalFormReadFLAG)
         {
             await PublicFileService.SetPendingApprovalOpenDataAsRead(File);
             await InvokeAsync(StateHasChanged);
             try
             {
-                await jsRuntime.InvokeVoidAsync("open", File.SignedApprovalForm_URL, "_blank");
+                await jsRuntime.InvokeVoidAsync("open", File.SignedApprovalFormURL, "_blank");
             }
             catch (Exception)
             {

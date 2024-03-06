@@ -22,5 +22,5 @@ public class DirectoryUtilsTests
             DirectoryUtils.GetProjectPath(new ResourceProvisionerConfiguration(), null);
         });
     }
-    
+
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.Telemetry.Consumption;
 
@@ -14,7 +9,7 @@ public class YarpTelemetryConsumer : IForwarderTelemetryConsumer
 
     private (DateTime Timestamp, ForwarderError error)? _lastError;
 
-    public (DateTime Timestamp, string errorDescription)? GetLastError() => _lastError is null?null:(_lastError.Value.Timestamp, _lastError.Value.error.ToString());
+    public (DateTime Timestamp, string errorDescription)? GetLastError() => _lastError is null ? null : (_lastError.Value.Timestamp, _lastError.Value.error.ToString());
 
     private ConcurrentDictionary<(string cluster, string route), DateTime> _lastInvoke = new();
 

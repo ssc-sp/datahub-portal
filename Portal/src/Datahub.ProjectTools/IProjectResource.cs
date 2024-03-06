@@ -1,5 +1,4 @@
-﻿using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.Projects;
+﻿using Datahub.Core.Model.Projects;
 using Microsoft.Graph.Models;
 
 namespace Datahub.ProjectTools;
@@ -12,5 +11,5 @@ public interface IProjectResource
     public string? GetCostEstimatorLink();
 
     public string[] GetTags();
-    Task<bool> InitializeAsync(Datahub_Project project, string? userId, User graphUser, bool isProjectAdmin);
+    Task<bool> InitializeAsync(DatahubProject project, string? userId, User graphUser, bool isProjectAdmin);
 }

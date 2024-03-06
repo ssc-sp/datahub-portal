@@ -13,17 +13,17 @@ public class CreateResourceRunTests
     public async Task ShouldRequireMinimumFields()
     {
         var command = new CreateResourceRunCommand();
-        
+
         await FluentActions.Invoking(() =>
             SendAsync(command)).Should().ThrowAsync<ValidationException>();
     }
-    
+
     [Test]
     [Ignore("Incomplete functionality")]
     public async Task ShouldCreateResourceRun()
     {
         await RunAsDefaultUserAsync();
-        
+
         var command = new CreateResourceRunCommand
         {
             Templates = new List<TerraformTemplate>
@@ -44,7 +44,7 @@ public class CreateResourceRunTests
                 }
             }
         };
-        
+
         var id = await SendAsync(command);
         Assert.That(id, Is.Not.Null);
     }

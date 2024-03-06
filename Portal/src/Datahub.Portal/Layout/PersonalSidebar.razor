@@ -44,7 +44,7 @@
             <MudNavMenu Color="Color.Primary">
                 @foreach (var userRole in userRoles)
                 {
-                    <MudNavLink Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
+                    <MudNavLink Href="@($"/w/{userRole.Project.ProjectAcronymCD}")">
                         <MudStack Row AlignItems="AlignItems.Center">
                             <MudIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                             <MudText Style="@_workspaceLinkStyle">
@@ -140,8 +140,8 @@
 
     private PortalUser _viewedUser;
     private bool _isViewAsAdmin;
-    private List<Datahub_Project_User> _userRoles;
-    private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
+    private List<DatahubProjectUser> _userRoles;
+    private List<(UserRecentLink, DatahubProject)> _recentLinks = new();
 
     private ushort _maxRecentLinks = 5;
     private ushort _maxWorkspacesToShow = 3;
@@ -204,7 +204,7 @@
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
-        _userRoles = await dbContext.Project_Users
+        _userRoles = await dbContext.ProjectUsers
             .Include(u => u.Role)
             .Include(u => u.Project)
     // .ThenInclude(p => p.Users)
@@ -216,14 +216,14 @@
 
         _recentLinks = userRecent?
             .Select(l => (l, project:GetProject(dbContext, l)))
-            .ToList() ?? new List<(UserRecentLink l, Datahub_Project project)>();
+            .ToList() ?? new List<(UserRecentLink l, DatahubProject project)>();
 
-        _numberOfRemainingWorkspaces = (ushort)(MaxWorkspaceCount - _userRoles.Count(u => u.RoleId is (int)Project_Role.RoleNames.WorkspaceLead or (int)Project_Role.RoleNames.Admin));
+        _numberOfRemainingWorkspaces = (ushort)(MaxWorkspaceCount - _userRoles.Count(u => u.RoleId is (int)ProjectRole.RoleNames.WorkspaceLead or (int)ProjectRole.RoleNames.Admin));
 
         _isLoaded = true;
     }
 
-    private List<Datahub_Project_User> GetWorkspaces()
+    private List<DatahubProjectUser> GetWorkspaces()
     {
         return _showAllWorkspaces
             ? _userRoles
@@ -233,13 +233,13 @@
     }
 
 
-    private Datahub_Project GetProject(DatahubProjectDBContext dbContext, UserRecentLink link)
+    private DatahubProject GetProject(DatahubProjectDBContext dbContext, UserRecentLink link)
     {
         if (link.DataProject is null) return null;
         return dbContext.Projects
             .AsNoTracking()
             .Include(p => p.Resources)
-            .FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject.Trim());
+            .FirstOrDefault(p => p.ProjectAcronymCD == link.DataProject.Trim());
     }
 
     private string GetSectionViewUrl(string prefix, string sectionView)
@@ -298,7 +298,7 @@
         }
     }
 
-    private string GetSectionViewUrl((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
+    private string GetSectionViewUrl((UserRecentLink userRecentLink, DatahubProject datahubProject) recentActivity)
     {
         return recentActivity.userRecentLink.LinkType switch
         {
@@ -312,7 +312,7 @@
     }
 
 
-    private string GetIcon((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
+    private string GetIcon((UserRecentLink userRecentLink, DatahubProject datahubProject) recentActivity)
     {
         return recentActivity.userRecentLink.LinkType switch
         {
@@ -325,7 +325,7 @@
             };
     }
 
-    private string GetLabel((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
+    private string GetLabel((UserRecentLink userRecentLink, DatahubProject datahubProject) recentActivity)
     {
         return recentActivity.userRecentLink.LinkType switch
         {

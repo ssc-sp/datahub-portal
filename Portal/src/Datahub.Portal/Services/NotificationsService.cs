@@ -5,7 +5,7 @@ public class NotificationsService
 
     public NotificationsService()
     {
-            
-    }        
+
+    }
 
 }

@@ -9,7 +9,7 @@
 }
 else 
 {
-    <h3>@_formField.Section_DESC - @_formField.Field_DESC</h3>
+    <h3>@_formField.SectionDESC - @_formField.FieldDESC</h3>
 
     @if (_mode == ViewMode.View)
     {
@@ -24,11 +24,11 @@ else
             <tbody>
                 <tr>
                     <td>Section</td>
-                    <td>@_formField.Section_DESC</td>
+                    <td>@_formField.SectionDESC</td>
                 </tr>
                 <tr>
                     <td>Field</td>
-                    <td>@_formField.Field_DESC</td>
+                    <td>@_formField.FieldDESC</td>
                 </tr>
                 <tr>
                     <td>Extension</td>
@@ -36,15 +36,15 @@ else
                 </tr>
                 <tr>
                     <td>Choices</td>
-                    <td>@_formField.Choices_TXT</td>
+                    <td>@_formField.ChoicesTXT</td>
                 </tr>
                 <tr>
                     <td>MaxLength</td>
-                    <td>@_formField.Max_Length_NUM</td>
+                    <td>@_formField.MaxLengthNUM</td>
                 </tr>
                 <tr>
                     <td>Mandatory</td>
-                    <td>@_formField.Mandatory_FLAG</td>
+                    <td>@_formField.MandatoryFLAG</td>
                 </tr>
                 <tr>
                     <td>Formatted</td>
@@ -52,7 +52,7 @@ else
                 </tr>
                 <tr>
                     <td>Code</td>
-                    <td>@_formField.Extension_CD</td>
+                    <td>@_formField.ExtensionCD</td>
                 </tr>
                 <tr>
                     <td>SQL Name</td>
@@ -91,7 +91,7 @@ else
 }
 else
 {
-    <AeButton To=@($"/w/{ProjectAcronym}/forms/{_formField.WebForm_ID}")>Back</AeButton>
+    <AeButton To=@($"/w/{ProjectAcronym}/forms/{_formField.WebFormID}")>Back</AeButton>
 }
 
 
@@ -109,8 +109,8 @@ else
     [Parameter]
     public string Id { get; set; }
 
-    private WebForm_Field _formField;
-    private WebForm_Field _originalFormField;
+    private WebFormField _formField;
+    private WebFormField _originalFormField;
     private FieldCodeGenerator _fieldCodeGenerator = new(s => 0);
 
     private void ChangeViewMode(ViewMode mode)
@@ -129,7 +129,7 @@ else
         await Task.Run(() => ChangeViewMode(ViewMode.View));
     }
 
-    private async Task<WebForm_Field> LoadFormField()
+    private async Task<WebFormField> LoadFormField()
     {
         var formField = await projectContext.Fields
             .SingleOrDefaultAsync(f => f.FieldID == int.Parse(Id));
@@ -142,7 +142,7 @@ else
         return formField;
     }
 
-    private async Task<WebForm_Field> HandleCancel()
+    private async Task<WebFormField> HandleCancel()
     {
         _formField.TakeValuesFrom(_originalFormField); //workaround to prevent cancelled changes from being saved
         GoToViewMode();
@@ -158,7 +158,7 @@ else
     private async void HandleValidSubmit()
     {
         //TODO error checking, logging
-        _formField.Date_Updated_DT = DateTime.UtcNow;
+        _formField.DateUpdatedDT = DateTime.UtcNow;
         var result = projectContext.Fields.Update(_formField);
         await projectContext.SaveChangesAsync();
 

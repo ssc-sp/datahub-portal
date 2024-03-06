@@ -12,7 +12,7 @@
     <MudItem xs="_headings.Any() ? 9 : 0">
         @if (ShowPaper)
         {
-            <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+            <AuthorizeView Roles="@RoleConstants.DATAHUBROLEADMIN">
                 <MudButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
                            OnClick="@HandleRemoveFromCache"
                            Color="@Color.Primary"
@@ -28,7 +28,7 @@
         }
         else
         {
-            <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+            <AuthorizeView Roles="@RoleConstants.DATAHUBROLEADMIN">
                 <MudButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
                            OnClick="@HandleRemoveFromCache"
                            Color="@Color.Primary"
@@ -74,7 +74,7 @@
             LinkType = DatahubLinkType.ResourceArticle,
             ResourceArticleId = DocumentItem.Id,
             ResourceArticleTitle = DocumentItem.Title,
-            accessedTime = DateTimeOffset.Now,
+            AccessedTime = DateTimeOffset.Now,
         };
         await UserLocationManagerService.RegisterNavigation(userRecentLink);
     }

@@ -1,6 +1,5 @@
 ﻿using Azure.Storage.Files.DataLake;
 using Datahub.Core.Data;
-using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Storage;
 using Datahub.Infrastructure.Services.Storage;
@@ -36,13 +35,13 @@ public class DataRemovalService : BaseService, IDataRemovalService
             var directoryClient = await DeleteAllFilesUnderneath(folder, currentUser);
             var response = directoryClient.DeleteAsync();
 
-            _logger.LogDebug($"Delete folder: {folder.fullPathFromRoot} user: {currentUser.DisplayName} SUCCEEDED.");
+            _logger.LogDebug($"Delete folder: {folder.FullPathFromRoot} user: {currentUser.DisplayName} SUCCEEDED.");
 
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Delete folder: {folder.fullPathFromRoot} user: {currentUser.DisplayName} FAILED.");
+            _logger.LogError(ex, $"Delete folder: {folder.FullPathFromRoot} user: {currentUser.DisplayName} FAILED.");
             throw;
         }
     }
@@ -52,18 +51,18 @@ public class DataRemovalService : BaseService, IDataRemovalService
         try
         {
             var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
-            var directoryClient = fileSystemClient.GetDirectoryClient(file.folderpath);
-            DataLakeFileClient fileClient = directoryClient.GetFileClient(file.filename);
+            var directoryClient = fileSystemClient.GetDirectoryClient(file.Folderpath);
+            DataLakeFileClient fileClient = directoryClient.GetFileClient(file.Filename);
 
             var result = await DeleteFileClient(fileClient, file, currentUser);
             var status = result ? "SUCCEEDED" : "FAILED";
 
-            _logger.LogDebug($"Delete file: {file.folderpath}/{file.filename} user: {currentUser.DisplayName} {status}.");
+            _logger.LogDebug($"Delete file: {file.Folderpath}/{file.Filename} user: {currentUser.DisplayName} {status}.");
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Delete file: {file.folderpath}/{file.filename} user: {currentUser.DisplayName} FAILED.");
+            _logger.LogError(ex, $"Delete file: {file.Folderpath}/{file.Filename} user: {currentUser.DisplayName} FAILED.");
             throw;
         }
     }
@@ -74,7 +73,7 @@ public class DataRemovalService : BaseService, IDataRemovalService
         {
             // Parameters: folderid, folderowner, foldername, parentfolderid
             var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
-            var directoryClient = fileSystemClient.GetDirectoryClient(folder.fullPathFromRoot);
+            var directoryClient = fileSystemClient.GetDirectoryClient(folder.FullPathFromRoot);
 
             // Deleting a folder means deleting all files underneath,
             // We need to mark these files as 'isdeleted' for indexer
@@ -86,7 +85,7 @@ public class DataRemovalService : BaseService, IDataRemovalService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"DeleteAllFilesUnderneath folder: {folder.fullPathFromRoot} user: {currentUser.DisplayName} FAILED.");
+            _logger.LogError(ex, $"DeleteAllFilesUnderneath folder: {folder.FullPathFromRoot} user: {currentUser.DisplayName} FAILED.");
             throw;
         }
     }
@@ -97,10 +96,10 @@ public class DataRemovalService : BaseService, IDataRemovalService
         {
             try
             {
-                var directoryClient = fileSystemClient.GetDirectoryClient(folder.fullPathFromRoot);
+                var directoryClient = fileSystemClient.GetDirectoryClient(folder.FullPathFromRoot);
                 foreach (FileMetaData file in folder.AllFiles)
                 {
-                    var fileClient = directoryClient.GetFileClient(file.filename);
+                    var fileClient = directoryClient.GetFileClient(file.Filename);
                     await DeleteFileClient(fileClient, file, currentUser);
                 }
 
@@ -112,7 +111,7 @@ public class DataRemovalService : BaseService, IDataRemovalService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"MarkChildFilesForDeletion folder: {folder.fullPathFromRoot} user: {currentUser.DisplayName} FAILED.");
+                _logger.LogError(ex, $"MarkChildFilesForDeletion folder: {folder.FullPathFromRoot} user: {currentUser.DisplayName} FAILED.");
                 throw;
             }
         }
@@ -123,15 +122,15 @@ public class DataRemovalService : BaseService, IDataRemovalService
         try
         {
             // Before deleting a file, we need to update timestamp so indexer can remove
-            file.lastmodifiedts = DateTime.UtcNow;
-            file.lastmodifiedby = currentUser.Id;
-            file.isdeleted = "true";
+            file.Lastmodifiedts = DateTime.UtcNow;
+            file.Lastmodifiedby = currentUser.Id;
+            file.Isdeleted = "true";
 
             fileClient.SetMetadata(file.GenerateMetadata());
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"MarkFileForDeletion file: {file.folderpath}/{file.filename} user: {currentUser.DisplayName} FAILED.");
+            _logger.LogError(ex, $"MarkFileForDeletion file: {file.Folderpath}/{file.Filename} user: {currentUser.DisplayName} FAILED.");
             throw;
         }
     }
@@ -149,14 +148,14 @@ public class DataRemovalService : BaseService, IDataRemovalService
             }
 
             var status = (response.Status == 200) ? "SUCCEEDED" : "FAILED";
-            _logger.LogDebug($"Delete file: {file.folderpath}/{file.filename} user: {currentUser.DisplayName} {status}.");
+            _logger.LogDebug($"Delete file: {file.Folderpath}/{file.Filename} user: {currentUser.DisplayName} {status}.");
 
             return response.Status == 200;
         }
         catch (Exception ex)
         {
             // Eat this excpetion, parent will handle!
-            _logger.LogError(ex, $"Delete file: {file.folderpath}/{file.filename} user: {currentUser.DisplayName} FAILED.");
+            _logger.LogError(ex, $"Delete file: {file.Folderpath}/{file.Filename} user: {currentUser.DisplayName} FAILED.");
             throw;
         }
     }
@@ -169,12 +168,12 @@ public class DataRemovalService : BaseService, IDataRemovalService
             return await CloudStorageAccount.Parse(connectionString)
                 .CreateCloudBlobClient()
                 .GetContainerReference(containerName)
-                .GetBlockBlobReference(file.name)
+                .GetBlockBlobReference(file.Name)
                 .DeleteIfExistsAsync();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Delete blob : {Filename} owned by: {DisplayName} FAILED", file.name, currentUser.DisplayName);   
+            _logger.LogError(ex, "Delete blob : {Filename} owned by: {DisplayName} FAILED", file.Name, currentUser.DisplayName);
             throw;
         }
     }

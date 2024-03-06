@@ -1,37 +1,35 @@
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Model.Datahub;
 
-public class Organization_Level
+public class OrganizationLevel
 {
     [Key]
-    public int SectorAndBranchS_ID { get; set; }
+    public int SectorAndBranchSID { get; set; }
 
-    public int Organization_ID { get; set; }
+    public int OrganizationID { get; set; }
 
     [StringLength(4000)]
-    public string Full_Acronym_E { get; set; }
+    public string FullAcronymE { get; set; }
     [StringLength(4000)]
-    public string Full_Acronym_F { get; set; }
+    public string FullAcronymF { get; set; }
     [StringLength(4000)]
-    public string Org_Acronym_E { get; set; }
+    public string OrgAcronymE { get; set; }
     [StringLength(4000)]
-    public string Org_Acronym_F { get; set; }
+    public string OrgAcronymF { get; set; }
     [StringLength(4000)]
-    public string Org_Name_E { get; set; }
+    public string OrgNameE { get; set; }
     [StringLength(4000)]
-    public string Org_Name_F { get; set; }
+    public string OrgNameF { get; set; }
     [StringLength(1)]
-    public string Org_Level { get; set; }
-    public int? Superior_OrgId { get; set; }
+    public string OrgLevel { get; set; }
+    public int? SuperiorOrgId { get; set; }
 
     //[ForeignKey("SectorId")]
-    public List<Datahub_Project> Sectors { get; set; }
+    public List<DatahubProject> Sectors { get; set; }
     //[ForeignKey("BranchId")]
-    public List<Datahub_Project> Branches { get; set; }
+    public List<DatahubProject> Branches { get; set; }
     //[ForeignKey("DivisionId")]
-    public List<Datahub_Project> Divisions { get; set; }
-
+    public List<DatahubProject> Divisions { get; set; }
 }

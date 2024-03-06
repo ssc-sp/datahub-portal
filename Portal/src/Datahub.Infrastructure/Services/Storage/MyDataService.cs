@@ -88,21 +88,21 @@ public class MyDataService
     }
     public Folder MyDataFolder { get; } = new Folder()
     {
-        id = "-1",
-        name = "MyData",
-        isShared = false
+        Id = "-1",
+        Name = "MyData",
+        IsShared = false
     };
     public NonHierarchicalFolder SharedDataFolder { get; } = new NonHierarchicalFolder()
     {
-        id = "-2",
-        name = "SharedWithYou",
-        isShared = true
+        Id = "-2",
+        Name = "SharedWithYou",
+        IsShared = true
     };
     public NonHierarchicalFolder SearchDataFolder { get; } = new NonHierarchicalFolder()
     {
-        id = "-3",
-        name = "SearchData",
-        isShared = false
+        Id = "-3",
+        Name = "SearchData",
+        IsShared = false
     };
     public string LogoutURL
     {
@@ -127,9 +127,9 @@ public class MyDataService
     public async Task SetupUserFolders()
     {
         var rootFolder = await _userInformationService.GetUserRootFolder();
-        MyDataFolder.id = rootFolder;
-        SharedDataFolder.id = rootFolder;
-        SearchDataFolder.id = rootFolder;
+        MyDataFolder.Id = rootFolder;
+        SharedDataFolder.Id = rootFolder;
+        SearchDataFolder.Id = rootFolder;
 
         if (CurrentFolder == null)
         {
@@ -147,7 +147,7 @@ public class MyDataService
             options.IncludeTotalCount = true;
 
             // Build our list of fields to retrieve from files
-            foreach (string propertyName in FileMetaDataExtensions.GetMetadataProperties(null).Where(p => !string.IsNullOrWhiteSpace(p.key) && p.inSearch).Select(p => p.key))
+            foreach (string propertyName in FileMetaDataExtensions.GetMetadataProperties(null).Where(p => !string.IsNullOrWhiteSpace(p.Key) && p.InSearch).Select(p => p.Key))
             {
                 options.Select.Add(propertyName);
             }
@@ -179,7 +179,7 @@ public class MyDataService
     {
         await UploadGen2File(fileMetadata, projectUploadCode, containerName, (progress) =>
         {
-            fileMetadata.uploadedBytes = progress;
+            fileMetadata.UploadedBytes = progress;
             _ = _notifierService.Update($"adddata", false);
         });
     }
@@ -190,16 +190,16 @@ public class MyDataService
         {
             if (fileMetadata.BrowserFile != null)
             {
-                fileMetadata.bytesToUpload = fileMetadata.BrowserFile.Size;
-                fileMetadata.filesize = fileMetadata.BrowserFile.Size.ToString();
+                fileMetadata.BytesToUpload = fileMetadata.BrowserFile.Size;
+                fileMetadata.Filesize = fileMetadata.BrowserFile.Size.ToString();
             }
-            else 
+            else
             {
-                fileMetadata.bytesToUpload = browserFile.Size;
-                fileMetadata.filesize = browserFile.Size.ToString();
+                fileMetadata.BytesToUpload = browserFile.Size;
+                fileMetadata.Filesize = browserFile.Size.ToString();
             }
-                
-            fileMetadata.folderpath = string.IsNullOrEmpty(projectUploadCode) ? fileMetadata.folderpath : string.Empty;
+
+            fileMetadata.Folderpath = string.IsNullOrEmpty(projectUploadCode) ? fileMetadata.Folderpath : string.Empty;
 
 
             if (string.IsNullOrEmpty(projectUploadCode))
@@ -216,19 +216,19 @@ public class MyDataService
             fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadSuccess);
 
             // Done, so we can remove!
-            UploadedFiles.Remove($"{fileMetadata.folderpath}/{fileMetadata.filename}");
+            UploadedFiles.Remove($"{fileMetadata.Folderpath}/{fileMetadata.Filename}");
 
-            _logger.LogInformation($"Uploading file: {fileMetadata.folderpath}/{fileMetadata.filename} User: {fileMetadata.ownedby}");
+            _logger.LogInformation($"Uploading file: {fileMetadata.Folderpath}/{fileMetadata.Filename} User: {fileMetadata.Ownedby}");
         }
         catch (Exception e)
         {
             fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadError);
-            _logger.LogError(e, $"Error uploading file: {fileMetadata.folderpath}/{fileMetadata.filename} User: {fileMetadata.ownedby}");
+            _logger.LogError(e, $"Error uploading file: {fileMetadata.Folderpath}/{fileMetadata.Filename} User: {fileMetadata.Ownedby}");
 
         }
 
         // Done upload, update ONE last time!
-        await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
+        await _notifierService.Update($"{fileMetadata.Folderpath}/{fileMetadata.Filename}", true);
 
 
     }
@@ -244,7 +244,7 @@ public class MyDataService
         await using var stream = fileMetadata.BrowserFile?.OpenReadStream(maxFileSize) ??
                                  browserFile?.OpenReadStream(maxFileSize);
 
-        await blobClientUtil.UploadFile(fileMetadata.filename, stream, metadata, progress);
+        await blobClientUtil.UploadFile(fileMetadata.Filename, stream, metadata, progress);
     }
 
     private async Task UploadToGen2Storage(FileMetaData fileMetadata)
@@ -252,22 +252,22 @@ public class MyDataService
         try
         {
 
-            fileMetadata.uploadStatus = FileUploadStatus.UploadingToRepository;
+            fileMetadata.UploadStatus = FileUploadStatus.UploadingToRepository;
 
             var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
-            var directoryClient = fileSystemClient.GetDirectoryClient(fileMetadata.folderpath);
-            DataLakeFileClient fileClient = directoryClient.GetFileClient(fileMetadata.filename);
+            var directoryClient = fileSystemClient.GetDirectoryClient(fileMetadata.Folderpath);
+            DataLakeFileClient fileClient = directoryClient.GetFileClient(fileMetadata.Filename);
 
 
             //await fileClient.UploadAsync()
 
-            var fileUploading = $"{fileMetadata.folderpath}/{fileMetadata.filename}";
+            var fileUploading = $"{fileMetadata.Folderpath}/{fileMetadata.Filename}";
 
             var uploadOptions = new DataLakeFileUploadOptions()
             {
                 ProgressHandler = new Progress<long>((progress) =>
                 {
-                    fileMetadata.uploadedBytes = progress;
+                    fileMetadata.UploadedBytes = progress;
                     _ = _notifierService.Update($"adddata", false);
                 })
             };
@@ -281,9 +281,9 @@ public class MyDataService
             await fileClient.UploadAsync(browserFile.OpenReadStream(maxFileSize), uploadOptions);
 
             watch.Stop();
-            _telemetryService.LogFileUploadSize(fileMetadata.uploadedBytes, fileUploading);
+            _telemetryService.LogFileUploadSize(fileMetadata.UploadedBytes, fileUploading);
             _telemetryService.LogFileUploadTime(watch.ElapsedMilliseconds, fileUploading);
-            _telemetryService.LogFileUploadBpms(fileMetadata.uploadedBytes / watch.ElapsedMilliseconds, fileUploading);
+            _telemetryService.LogFileUploadBpms(fileMetadata.UploadedBytes / watch.ElapsedMilliseconds, fileUploading);
 
             var metadata = fileMetadata.GenerateMetadata();
             //metadata.Add("IsDeleted", "0");
@@ -294,9 +294,9 @@ public class MyDataService
                 Owner = RolePermissions.Read | RolePermissions.Write
             };
 
-            await fileClient.SetPermissionsAsync(perm, fileMetadata.ownedby);
+            await fileClient.SetPermissionsAsync(perm, fileMetadata.Ownedby);
 
-            fileMetadata.uploadStatus = FileUploadStatus.FileUploadSuccess;
+            fileMetadata.UploadStatus = FileUploadStatus.FileUploadSuccess;
         }
         catch (Exception e)
         {
@@ -309,14 +309,14 @@ public class MyDataService
     {
         var authState = await _userInformationService.GetCurrentGraphUserAsync();
 
-        fileMetadata.createdby = authState.Id;
-        fileMetadata.lastmodifiedby = authState.Id; //TODO this will need to change edit functionality
-        fileMetadata.ownedby = authState.Id; //TODO this will need to change edit functionality
-        fileMetadata.lastmodifiedts = DateTime.Now.Date;
+        fileMetadata.Createdby = authState.Id;
+        fileMetadata.Lastmodifiedby = authState.Id; //TODO this will need to change edit functionality
+        fileMetadata.Ownedby = authState.Id; //TODO this will need to change edit functionality
+        fileMetadata.Lastmodifiedts = DateTime.Now.Date;
 
-        if (string.IsNullOrWhiteSpace(fileMetadata.fileid))
+        if (string.IsNullOrWhiteSpace(fileMetadata.Fileid))
         {
-            fileMetadata.fileid = Guid.NewGuid().ToString();
+            fileMetadata.Fileid = Guid.NewGuid().ToString();
         }
     }
 
@@ -328,7 +328,7 @@ public class MyDataService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "GetFolderStructure folder: {FullPathFromRoot} user: {DisplayName} FAILED", folder.fullPathFromRoot, user.DisplayName);
+            _logger.LogError(ex, "GetFolderStructure folder: {FullPathFromRoot} user: {DisplayName} FAILED", folder.FullPathFromRoot, user.DisplayName);
             throw;
         }
     }
@@ -344,7 +344,7 @@ public class MyDataService
                 return await GetSearchResults(folder, filterSearch, user);
             }
 
-            if (folder?.isShared ?? false)
+            if (folder?.IsShared ?? false)
             {
                 return await GetSharedFileList(folder, user);
             }
@@ -354,7 +354,7 @@ public class MyDataService
         catch (Exception ex)
         {
             _logger.LogError(ex, "GetFileList folder: {FullPathFromRoot} filter search: {FilterSearch} user: {DisplayName} FAILED",
-                folder?.fullPathFromRoot, filterSearch, user?.DisplayName);
+                folder?.FullPathFromRoot, filterSearch, user?.DisplayName);
             throw;
         }
     }
@@ -376,7 +376,7 @@ public class MyDataService
 
         try
         {
-            var containerClient = await dataRetrievalService.GetBlobContainerClient(null, MyDataService.MYDATA_CONTAINER_NAME);
+            var containerClient = await dataRetrievalService.GetBlobContainerClient(null, MYDATACONTAINERNAME);
             // Get the name of the first blob in the container to use as the source.
             var sourceBlob = containerClient.GetBlobClient(fileid).WithVersion(versionId);
 
@@ -433,13 +433,13 @@ public class MyDataService
 
     public async Task<long> GetUserUsedDataTotal(User user)
     {
-            
+
 
         Folder rootFolder = new Folder()
         {
-            id = MyDataFolder.id,
-            name = MyDataFolder.name,
-            isShared = false
+            Id = MyDataFolder.Id,
+            Name = MyDataFolder.Name,
+            IsShared = false
         };
         //TODO - refactor this call. GetFileList has been moved to the Data Retrieval Service
         //rootFolder = await GetFileList(rootFolder, user, false, true);
@@ -455,7 +455,7 @@ public class MyDataService
         return directoryClient.Exists();
     }
 
-    public const string MYDATA_CONTAINER_NAME = "datahub";
+    public const string MYDATACONTAINERNAME = "datahub";
 
 
 

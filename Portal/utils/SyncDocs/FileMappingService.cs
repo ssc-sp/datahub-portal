@@ -13,10 +13,10 @@ internal class FileMappingService
         _filePath = filePath;
     }
 
-	public void AddPair(string id, string engPath, string frePath)
-	{
-		_pairs.Add(new(id, engPath, frePath));
-	}
+    public void AddPair(string id, string engPath, string frePath)
+    {
+        _pairs.Add(new(id, engPath, frePath));
+    }
 
     public bool CleanUpMappings()
     {
@@ -45,12 +45,12 @@ internal class FileMappingService
     }
 
     public bool SaveMappings()
-	{
+    {
         try
         {
-            var options = new JsonSerializerOptions() 
-            { 
-                WriteIndented = true 
+            var options = new JsonSerializerOptions()
+            {
+                WriteIndented = true
             };
 
             // save new mapping

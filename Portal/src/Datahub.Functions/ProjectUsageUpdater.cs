@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Azure.Storage.Queues.Models;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Projects;
@@ -25,7 +24,7 @@ public class ProjectUsageUpdater
     }
 
     [Function("ProjectUsageUpdater")]
-    public async Task Run([QueueTrigger("%QueueProjectUsageUpdate%", Connection = "DatahubStorageConnectionString")] string queueItem, 
+    public async Task Run([QueueTrigger("%QueueProjectUsageUpdate%", Connection = "DatahubStorageConnectionString")] string queueItem,
         CancellationToken cancellationToken)
     {
         // test for ping
@@ -71,7 +70,7 @@ public class ProjectUsageUpdater
     static ProjectUsageUpdateMessage DeserializeQueueMessage(string text)
     {
         var message = JsonSerializer.Deserialize<ProjectUsageUpdateMessage>(text);
-        
+
         // verify message 
         if (message is null || message.ProjectId <= 0 || string.IsNullOrEmpty(message.ResourceGroup))
         {

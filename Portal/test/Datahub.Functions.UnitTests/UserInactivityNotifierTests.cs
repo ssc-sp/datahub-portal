@@ -29,7 +29,7 @@ namespace Datahub.Functions.UnitTests
             Substitute.For<IUserInactivityNotificationService>();
 
         private readonly IConfiguration _config = Substitute.For<IConfiguration>();
-        
+
 
         private AzureConfig _azConfig;
         private QueuePongService _pongService;
@@ -51,7 +51,7 @@ namespace Datahub.Functions.UnitTests
         [TestCase(10, new[] { 10, 2 })]
         [TestCase(1, new[] { 1, 0 })]
         [TestCase(0, new[] { 0, 0, 100 })]
-        public async Task CheckIfUserToBeNotified_InLockedDays(int daysUntilLocked, int[] notificationDays)
+        public async Task CheckIfUserToBeNotifiedInLockedDays(int daysUntilLocked, int[] notificationDays)
         {
             // Arrange
             _dateProvider.UserInactivityNotificationDays().Returns(notificationDays);
@@ -67,7 +67,7 @@ namespace Datahub.Functions.UnitTests
         [TestCase(10, new[] { 10, 2 })]
         [TestCase(1, new[] { 1, 0 })]
         [TestCase(0, new[] { 0, 0, 100 })]
-        public async Task CheckIfUserToBeNotified_InDeletedDays(int daysUntilDeleted, int[] notificationDays)
+        public async Task CheckIfUserToBeNotifiedInDeletedDays(int daysUntilDeleted, int[] notificationDays)
         {
             // Arrange
             _dateProvider.UserInactivityNotificationDays().Returns(notificationDays);
@@ -83,7 +83,7 @@ namespace Datahub.Functions.UnitTests
         [TestCase(10, 30, new[] { 5, 2 })]
         [TestCase(5, 100, new[] { 200, 7 })]
         [TestCase(0, 2, new[] { 5, 7, 100 })]
-        public async Task CheckIfUserToBeNotified_NotInNotificationDays(int daysUntilLocked, int daysUntilDeleted,
+        public async Task CheckIfUserToBeNotifiedNotInNotificationDays(int daysUntilLocked, int daysUntilDeleted,
             int[] notificationDays)
         {
             // Arrange
@@ -97,11 +97,11 @@ namespace Datahub.Functions.UnitTests
         }
 
         [Test]
-        public async Task GetLockedEmailRequestMessage_ReturnsCorrectMessage()
+        public async Task GetLockedEmailRequestMessageReturnsCorrectMessage()
         {
             // Act
             var result = _sut.GetEmailRequestMessage(20, 10, "user_lock", "test@example.com");
-            
+
             // Assert
             result.Body.Should()
                 .Contain("If you do not login to your account in the next 10 day(s), your account will be locked.");
@@ -109,11 +109,11 @@ namespace Datahub.Functions.UnitTests
         }
 
         [Test]
-        public async Task GetDeletedEmailRequestMessage_ReturnsCorrectMessage()
+        public async Task GetDeletedEmailRequestMessageReturnsCorrectMessage()
         {
             // Act
             var result = _sut.GetEmailRequestMessage(20, 10, "user_deletion", "test@example.com");
-            
+
             // Assert
             result.Body.Should()
                 .Contain("If you do not login to your account in the next 10 day(s), your account will be deleted.");

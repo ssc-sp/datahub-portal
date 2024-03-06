@@ -9,34 +9,34 @@ public class MetadataField : Attribute
 public class OpenDataShareRequest
 {
     [Required]
-    public string file_url { get; set; }
+    public string fileUrl { get; set; }
     [Required]
-    public string file_id { get; set; }
+    public string fileId { get; set; }
     [Required]
-    public string file_name { get; set; }
+    public string fileName { get; set; }
     [Required]
-    public string email_contact { get; set; }
+    public string emailContact { get; set; }
     [Required]
     [MetadataField]
     public string collection { get; set; }
     [Required]
     [MetadataField]
-    public string title_translated_en { get; set; }
+    public string titleTranslatedEn { get; set; }
     [Required]
     [MetadataField]
-    public string title_translated_fr { get; set; }
+    public string titleTranslatedFr { get; set; }
     [Required]
     [MetadataField]
-    public string notes_translated_en { get; set; }
+    public string notesTranslatedEn { get; set; }
     [Required]
     [MetadataField]
-    public string notes_translated_fr { get; set; }
+    public string notesTranslatedFr { get; set; }
     [Required]
     [MetadataField]
-    public string keywords_en { get; set; }
+    public string keywordsEn { get; set; }
     [Required]
     [MetadataField]
-    public string keywords_fr { get; set; }
+    public string keywordsFr { get; set; }
     [Required]
     [MetadataField]
     public string subject { get; set; }
@@ -45,17 +45,17 @@ public class OpenDataShareRequest
     public string frequency { get; set; }
     [Required]
     [MetadataField]
-    public string date_published { get; set; }
+    public string datePublished { get; set; }
     [Required]
     [MetadataField]
     public string jurisdiction { get; set; }
 
     [MetadataField]
-    public string time_period_coverage_start { get; set; }
+    public string timePeriodCoverageStart { get; set; }
     [MetadataField]
-    public string time_period_coverage_end { get; set; }
+    public string timePeriodCoverageEnd { get; set; }
     [MetadataField]
     public string audience { get; set; }
     [MetadataField]
-    public string digital_object_identifier { get; set; }
+    public string digitalObjectIdentifier { get; set; }
 }

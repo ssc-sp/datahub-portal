@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -35,7 +34,7 @@ public enum OpenDataUploadStatus
 {
     NotStarted,
     UploadingFile,
-    RecordCreated,        
+    RecordCreated,
     UploadCompleted,
     Failed
 }
@@ -43,57 +42,56 @@ public enum OpenDataUploadStatus
 public class SharedDataFile
 {
     private static readonly string SHARING_STATUS_LOCALIZATION_PREFIX = "SHARING-STATUS";
-    public static readonly string PUBLIC_URL_SHARING_STATUS_LOCALIZATION_PREFIX = SHARING_STATUS_LOCALIZATION_PREFIX + ".PublicUrl";
-    public static readonly string OPEN_DATA_SHARING_STATUS_LOCALIZATION_PREFIX = SHARING_STATUS_LOCALIZATION_PREFIX + ".OpenData";
-
+    public static readonly string PUBLICURLSHARINGSTATUSLOCALIZATIONPREFIX = SHARING_STATUS_LOCALIZATION_PREFIX + ".PublicUrl";
+    public static readonly string OPENDATASHARINGSTATUSLOCALIZATIONPREFIX = SHARING_STATUS_LOCALIZATION_PREFIX + ".OpenData";
 
     [Key]
-    public long SharedDataFile_ID { get; set; }
+    public long SharedDataFileID { get; set; }
 
-    public Guid File_ID { get; set; }
+    public Guid FileID { get; set; }
 
-    public bool IsOpenDataRequest_FLAG { get; set; } = false;
+    public bool IsOpenDataRequestFLAG { get; set; } = false;
 
-    public string Filename_TXT { get; set; }
-        
-    public string FolderPath_TXT { get; set; }
-    public string ProjectCode_CD { get; set; }
-    public bool IsProjectBased => !string.IsNullOrEmpty(ProjectCode_CD);
+    public string FilenameTXT { get; set; }
+
+    public string FolderPathTXT { get; set; }
+    public string ProjectCodeCD { get; set; }
+    public bool IsProjectBased => !string.IsNullOrEmpty(ProjectCodeCD);
 
     [Required]
     [StringLength(200)]
-    public string RequestingUser_ID { get; set; }
-        
-    [StringLength(200)]
-    public string ApprovingUser_ID { get; set; }
+    public string RequestingUserID { get; set; }
 
-    public DateTime RequestedDate_DT { get; set; }
-    public DateTime? SubmittedDate_DT { get; set; }
-    public DateTime? ApprovedDate_DT { get; set; }
-    public DateTime? PublicationDate_DT { get; set; }
-    public DateTime? ExpirationDate_DT { get; set; }
-    public DateTime? UnpublishDate_DT { get; set; }
-    public bool MetadataCompleted_FLAG { get; set; }
+    [StringLength(200)]
+    public string ApprovingUserID { get; set; }
+
+    public DateTime RequestedDateDT { get; set; }
+    public DateTime? SubmittedDateDT { get; set; }
+    public DateTime? ApprovedDateDT { get; set; }
+    public DateTime? PublicationDateDT { get; set; }
+    public DateTime? ExpirationDateDT { get; set; }
+    public DateTime? UnpublishDateDT { get; set; }
+    public bool MetadataCompletedFLAG { get; set; }
 
     public PublicUrlSharingStatus GetPublicUrlSharingStatus()
     {
-        if (ApprovedDate_DT.HasValue && ExpirationDate_DT.HasValue && ExpirationDate_DT.Value <= DateTime.UtcNow)
+        if (ApprovedDateDT.HasValue && ExpirationDateDT.HasValue && ExpirationDateDT.Value <= DateTime.UtcNow)
         {
             return PublicUrlSharingStatus.Expired;
         }
-        if (PublicationDate_DT.HasValue && PublicationDate_DT.Value <= DateTime.UtcNow)
+        if (PublicationDateDT.HasValue && PublicationDateDT.Value <= DateTime.UtcNow)
         {
             return PublicUrlSharingStatus.AccessPublicUrl;
         }
-        else if (ApprovedDate_DT.HasValue && ApprovedDate_DT.Value <= DateTime.UtcNow)
+        else if (ApprovedDateDT.HasValue && ApprovedDateDT.Value <= DateTime.UtcNow)
         {
             return PublicUrlSharingStatus.PendingPublication;
         }
-        else if (SubmittedDate_DT.HasValue && SubmittedDate_DT.Value <= DateTime.UtcNow)
+        else if (SubmittedDateDT.HasValue && SubmittedDateDT.Value <= DateTime.UtcNow)
         {
             return PublicUrlSharingStatus.PendingApproval;
         }
-        else if (MetadataCompleted_FLAG)
+        else if (MetadataCompletedFLAG)
         {
             return PublicUrlSharingStatus.RequestApproval;
         }
@@ -108,15 +106,15 @@ public class SharedDataFile
         string prefix;
         string statusCode;
 
-        if (IsOpenDataRequest_FLAG && this is OpenDataSharedFile file)
+        if (IsOpenDataRequestFLAG && this is OpenDataSharedFile file)
         {
-            prefix = OPEN_DATA_SHARING_STATUS_LOCALIZATION_PREFIX;
+            prefix = OPENDATASHARINGSTATUSLOCALIZATIONPREFIX;
             var status = file.GetOpenDataSharingStatus();
             statusCode = status.ToString();
         }
         else
         {
-            prefix = PUBLIC_URL_SHARING_STATUS_LOCALIZATION_PREFIX;
+            prefix = PUBLICURLSHARINGSTATUSLOCALIZATIONPREFIX;
             var status = GetPublicUrlSharingStatus();
             statusCode = status.ToString();
         }
@@ -126,40 +124,40 @@ public class SharedDataFile
 }
 
 [Table("OpenDataSharedFile")]
-public class OpenDataSharedFile: SharedDataFile
+public class OpenDataSharedFile : SharedDataFile
 {
-    public int? ApprovalForm_ID { get; set; }
-    public string SignedApprovalForm_URL { get; set; }
-    public bool ApprovalFormRead_FLAG { get; set; }
-    public FileStorageType? FileStorage_CD { get; set; }
-    public OpenDataUploadStatus UploadStatus_CD { get; set; }
-    public string UploadError_TXT { get; set; }
-    public string FileUrl_TXT { get; set; }
-    public bool ApprovalFormEdited_FLAG { get; set; }
+    public int? ApprovalFormID { get; set; }
+    public string SignedApprovalFormURL { get; set; }
+    public bool ApprovalFormReadFLAG { get; set; }
+    public FileStorageType? FileStorageCD { get; set; }
+    public OpenDataUploadStatus UploadStatusCD { get; set; }
+    public string UploadErrorTXT { get; set; }
+    public string FileUrlTXT { get; set; }
+    public bool ApprovalFormEditedFLAG { get; set; }
 
     public OpenDataSharingStatus GetOpenDataSharingStatus()
     {
-        if (FileStorage_CD.HasValue)
+        if (FileStorageCD.HasValue)
         {
             return OpenDataSharingStatus.AccessOpenData;
         }
-        if (PublicationDate_DT.HasValue && PublicationDate_DT.Value <= DateTime.UtcNow)
+        if (PublicationDateDT.HasValue && PublicationDateDT.Value <= DateTime.UtcNow)
         {
             return OpenDataSharingStatus.PendingUpload;
         }
-        else if (ApprovedDate_DT.HasValue && ApprovedDate_DT.Value <= DateTime.UtcNow)
+        else if (ApprovedDateDT.HasValue && ApprovedDateDT.Value <= DateTime.UtcNow)
         {
             return OpenDataSharingStatus.PendingPublication;
         }
-        else if (!string.IsNullOrEmpty(SignedApprovalForm_URL))
+        else if (!string.IsNullOrEmpty(SignedApprovalFormURL))
         {
             return OpenDataSharingStatus.PendingApproval;
         }
-        else if (ApprovalForm_ID.HasValue && ApprovalForm_ID > 0 && ApprovalFormEdited_FLAG)
+        else if (ApprovalFormID.HasValue && ApprovalFormID > 0 && ApprovalFormEditedFLAG)
         {
             return OpenDataSharingStatus.SubmitSignedPDF;
         }
-        else if (MetadataCompleted_FLAG)
+        else if (MetadataCompletedFLAG)
         {
             return OpenDataSharingStatus.OpenGovApprovalForm;
         }

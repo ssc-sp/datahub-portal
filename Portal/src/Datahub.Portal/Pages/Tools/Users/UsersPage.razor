@@ -67,8 +67,8 @@ else
         _userWorkspaces = _portalUsers.Select(u => new UserWorkspaces
         {
             User = u,
-            Workspaces = context.Project_Users.Include(pu => pu.Project)
-                .Where(pu => pu.User_ID == u.GraphGuid)
+            Workspaces = context.ProjectUsers.Include(pu => pu.Project)
+                .Where(pu => pu.UserID == u.GraphGuid)
                 .Select(pu => pu.Project).ToList(),
         }).ToList();
         StateHasChanged();

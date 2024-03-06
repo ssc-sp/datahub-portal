@@ -3,13 +3,13 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Datahub.Core.Model.Projects.Configuration;
 
-public class ProjectUsersConfiguration : IEntityTypeConfiguration<Datahub_Project_User>
+public class ProjectUsersConfiguration : IEntityTypeConfiguration<DatahubProjectUser>
 {
-    public void Configure(EntityTypeBuilder<Datahub_Project_User> builder)
+    public void Configure(EntityTypeBuilder<DatahubProjectUser> builder)
     {
         builder.ToTable("Project_Users");
-        
-        builder.HasKey(e => e.ProjectUser_ID);
+
+        builder.HasKey(e => e.ProjectUserID);
 
         // builder.HasOne(e => e.PortalUser)
         //     .WithMany()
@@ -20,17 +20,17 @@ public class ProjectUsersConfiguration : IEntityTypeConfiguration<Datahub_Projec
         //     .WithMany()
         //     .HasForeignKey(e => e.ApprovedPortalUserId)
         //     .OnDelete(DeleteBehavior.NoAction);
-        
+
         // builder.HasOne(e => e.Role)
         //     .WithMany()
         //     .HasForeignKey(e => e.RoleId)
         //     .OnDelete(DeleteBehavior.NoAction);
-        
+
         builder.HasOne(e => e.Project)
             .WithMany(e => e.Users)
-            .HasForeignKey(e => e.Project_ID)
+            .HasForeignKey(e => e.ProjectID)
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.Property(e => e.Approved_DT);
+        builder.Property(e => e.ApprovedDT);
     }
 }

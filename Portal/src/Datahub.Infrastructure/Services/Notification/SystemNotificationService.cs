@@ -42,7 +42,7 @@ public class SystemNotificationService : ISystemNotificationService, IDisposable
         enCulture = new CultureInfo("en-ca");
         frCulture = new CultureInfo("fr-ca");
 
-        _notificationPageSize = ISystemNotificationService.DEFAULT_PAGE_SIZE;
+        _notificationPageSize = ISystemNotificationService.DEFAULTPAGESIZE;
     }
 
     private string GetLocalizedString(CultureInfo culture, string textKey, object[] arguments)
@@ -70,7 +70,7 @@ public class SystemNotificationService : ISystemNotificationService, IDisposable
     {
         return await DoCreateSystemNotifications(userIds, textKey, arguments);
     }
-    public async Task<int> CreateSystemNotificationsWithLink(IEnumerable<string> userIds, string actionLink,  string linkKey, string textKey, params object[] arguments)
+    public async Task<int> CreateSystemNotificationsWithLink(IEnumerable<string> userIds, string actionLink, string linkKey, string textKey, params object[] arguments)
     {
         return await DoCreateSystemNotifications(userIds, textKey, arguments, actionLink, linkKey);
     }
@@ -84,7 +84,7 @@ public class SystemNotificationService : ISystemNotificationService, IDisposable
         else if (argument is BilingualStringArgument)
         {
             var bilingualArg = argument as BilingualStringArgument;
-            var culture = global::System.Threading.Thread.CurrentThread.CurrentUICulture;
+            var culture = Thread.CurrentThread.CurrentUICulture;
             var isFrench = culture == frCulture;
             return isFrench ? bilingualArg.French : bilingualArg.English;
         }
@@ -93,7 +93,7 @@ public class SystemNotificationService : ISystemNotificationService, IDisposable
             var keyArg = argument as LocalizedKeyStringArgument;
             return _localizer[keyArg.Key];
         }
-        else 
+        else
         {
             return argument?.ToString();
         }
@@ -123,13 +123,13 @@ public class SystemNotificationService : ISystemNotificationService, IDisposable
             .ToHashSet()
             .Select(userId => new SystemNotification()
             {
-                Generated_TS = now,
-                NotificationTextEn_TXT = textEn,
-                NotificationTextFr_TXT = textFr,
-                ReceivingUser_ID = userId,
-                Read_FLAG = false,
-                ActionLink_URL = actionLink,
-                ActionLink_Key = linkKey
+                GeneratedTS = now,
+                NotificationTextEnTXT = textEn,
+                NotificationTextFrTXT = textFr,
+                ReceivingUserID = userId,
+                ReadFLAG = false,
+                ActionLinkURL = actionLink,
+                ActionLinkKey = linkKey
             });
 
         using var ctx = _dbContextFactory.CreateDbContext();
@@ -159,17 +159,17 @@ public class SystemNotificationService : ISystemNotificationService, IDisposable
     {
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
         return await ctx.SystemNotifications
-            .CountAsync(n => n.ReceivingUser_ID.ToLower() == userId
-                             && (!unreadOnly || !n.Read_FLAG));
+            .CountAsync(n => n.ReceivingUserID.ToLower() == userId
+                             && (!unreadOnly || !n.ReadFLAG));
     }
-        
+
     public async Task<List<SystemNotification>> GetNotificationsForUser(string userId, bool unreadOnly = false, int pageNumber = 0)
     {
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
         return await ctx.SystemNotifications
-            .Where(n => n.ReceivingUser_ID.ToLower() == userId 
-                        && (!unreadOnly || !n.Read_FLAG))
-            .OrderByDescending(n => n.Generated_TS)
+            .Where(n => n.ReceivingUserID.ToLower() == userId
+                        && (!unreadOnly || !n.ReadFLAG))
+            .OrderByDescending(n => n.GeneratedTS)
             .Skip(pageNumber * _notificationPageSize)
             .Take(_notificationPageSize)
             .ToListAsync();
@@ -178,12 +178,12 @@ public class SystemNotificationService : ISystemNotificationService, IDisposable
     public async Task SetReadStatus(long notificationId, bool readStatus)
     {
         using var ctx = _dbContextFactory.CreateDbContext();
-        var notification = await ctx.SystemNotifications.FirstOrDefaultAsync(n => n.Notification_ID == notificationId);
+        var notification = await ctx.SystemNotifications.FirstOrDefaultAsync(n => n.NotificationID == notificationId);
         if (notification != null)
         {
-            notification.Read_FLAG = readStatus;
+            notification.ReadFLAG = readStatus;
             await ctx.SaveChangesAsync();
-            await NotifyUsers(new List<string>() { notification.ReceivingUser_ID });
+            await NotifyUsers(new List<string>() { notification.ReceivingUserID });
         }
     }
 

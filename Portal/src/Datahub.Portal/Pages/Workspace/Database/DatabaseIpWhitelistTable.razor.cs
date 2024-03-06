@@ -25,8 +25,8 @@ public partial class DatabaseIpWhitelistTable
     private PostgreSqlFlexibleServerResource BuildPostgresSqlFlexibleServerResource()
     {
         var credential = new ClientSecretCredential(
-            _portalConfiguration.AzureAd.TenantId, 
-            _portalConfiguration.AzureAd.InfraClientId, 
+            _portalConfiguration.AzureAd.TenantId,
+            _portalConfiguration.AzureAd.InfraClientId,
             _portalConfiguration.AzureAd.InfraClientSecret);
         var client = new ArmClient(credential);
 
@@ -39,7 +39,7 @@ public partial class DatabaseIpWhitelistTable
         var resourceIdentifier = $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}";
 
         var postgresResource = client.GetPostgreSqlFlexibleServerResource(new ResourceIdentifier(resourceIdentifier));
-        
+
         return postgresResource;
     }
 
@@ -61,19 +61,19 @@ public partial class DatabaseIpWhitelistTable
     private void HandleRowEditCommit(object element)
     {
         var item = element as WhitelistIPAddressData;
-        
+
         CreateOrUpdateIpAddress(item);
-        
+
         // if it's only the name that has changed
-        if (Equals(item?.StartIPAddress, _elementBeforeEdit?.StartIPAddress) 
+        if (Equals(item?.StartIPAddress, _elementBeforeEdit?.StartIPAddress)
             && Equals(item?.EndIPAddress, _elementBeforeEdit?.EndIPAddress))
         {
             // clean up the old firewall rule
             DeleteIpAddress(_elementBeforeEdit);
         }
-        
+
         _snackbar.Add(Localizer["IP address has been updated."], Severity.Success);
-        
+
         _logger.LogInformation($"Item has been committed: {item?.Name}");
     }
 
@@ -105,7 +105,7 @@ public partial class DatabaseIpWhitelistTable
         var startIpAddress = _userIpAddress;
         var endIpAddress = _userIpAddress;
         var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-        
+
         var userWhitelistIpAddress = new WhitelistIPAddressData
         {
             Name = currentUser.Email,
@@ -114,7 +114,7 @@ public partial class DatabaseIpWhitelistTable
         };
 
         CreateOrUpdateIpAddress(userWhitelistIpAddress);
-        
+
         _snackbar.Add(Localizer["Current IP address has been added. Changes may take 15 minutes to apply."], Severity.Success);
         _firewallRules.Add(userWhitelistIpAddress);
     }
@@ -161,7 +161,7 @@ public partial class DatabaseIpWhitelistTable
 
         _logger.LogInformation($"Deleting firewall rule: {whitelistIpAddressData?.Name}");
         rule.Value.Delete(WaitUntil.Started);
-        
+
         if (showSnackbar)
         {
             _snackbar.Add(Localizer["IP address {0} has been deleted.", whitelistIpAddressData?.Name ?? string.Empty], Severity.Success);
@@ -176,7 +176,7 @@ public partial class DatabaseIpWhitelistTable
     {
         var postgresResource = BuildPostgresSqlFlexibleServerResource();
         var rules = postgresResource.GetPostgreSqlFlexibleServerFirewallRules();
-        
+
         // until we support IP ranges, we will only use the start IP address
         rule.EndIPAddress = rule.StartIPAddress;
 
@@ -197,7 +197,7 @@ public partial class DatabaseIpWhitelistTable
             StartIPAddress = ((WhitelistIPAddressData)whitelistRule).StartIPAddress,
             EndIPAddress = ((WhitelistIPAddressData)whitelistRule).EndIPAddress
         };
-        
+
         _logger.LogInformation($"Item has been backed up: {_elementBeforeEdit?.Name}");
     }
 

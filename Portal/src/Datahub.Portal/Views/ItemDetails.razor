@@ -13,8 +13,8 @@
         <div style="position: relative;">
             <h4 class="nrcan-typography title h4">
                 <i class="fal fa-times-circle details-close-button" title=@Localizer["ITEM-DETAILS-PAGE.CloseDetails"] @onclick=@HandleClose></i>
-                <i class="@DatahubTools.GetFileTypeIcon(SelectedFile.fileformat)"></i>
-                @SelectedFile.filename
+                <i class="@DatahubTools.GetFileTypeIcon(SelectedFile.Fileformat)"></i>
+                @SelectedFile.Filename
             </h4>
         </div>
 
@@ -32,9 +32,9 @@
             {
                 @if (propertyName == "customfields")
                 {
-                    @for (int i = 0; i < SelectedFile.customfields.Count; i++)
+                    @for (int i = 0; i < SelectedFile.Customfields.Count; i++)
                     {
-                        <CustomFieldsView Field="@SelectedFile.customfields[i]" IncludeHeader="@(i == 0)" />
+                        <CustomFieldsView Field="@SelectedFile.Customfields[i]" IncludeHeader="@(i == 0)" />
                     }
                 }
                 else if (!string.IsNullOrWhiteSpace(displayValue))
@@ -65,10 +65,10 @@
             </div>
 
             <div class="item-row">
-                <ObjectMetadataEditor ObjectId=@SelectedFile.fileid 
-                                      Name=@SelectedFile.filename
+                <ObjectMetadataEditor ObjectId=@SelectedFile.Fileid 
+                                      Name=@SelectedFile.Filename
                                       Location=@Project
-                                      SecurityClass=@SelectedFile.securityclass
+                                      SecurityClass=@SelectedFile.Securityclass
                                       SaveButtonLabel=@Localizer["Save"] 
                                       ProfileName="catalog"
                                       ObjectType=@MetadataObjectType.File
@@ -79,13 +79,13 @@
 
         </div>
         <div class="@ActivityContentClassname">
-            @foreach (var activity in SelectedFile.activities)
+            @foreach (var activity in SelectedFile.Activities)
             {
                 <div class="item-row"> 
                     @*In the future, instead of "created", use @activity.verb*@
                     @((MarkupString)GetActivity(activity))
                     <div class="nrcan-typography mini-timestamp">
-                        @activity.activityts
+                        @activity.Activityts
                     </div>
                 </div>
             }
@@ -111,7 +111,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        foreach (string propertyName in FileMetaDataExtensions.GetMetadataProperties(null).Where(p => p.isVisible).Select(p => p.key))
+        foreach (string propertyName in FileMetaDataExtensions.GetMetadataProperties(null).Where(p => p.IsVisible).Select(p => p.Key))
         {
             var propertyValue = await GetPropertyDisplayValue(propertyName);
             if (!string.IsNullOrEmpty(propertyValue))
@@ -122,10 +122,10 @@
         }
     }
 
-    private bool PreviewMetadata => !(CurrentUser ?? "").Equals(SelectedFile?.ownedby, StringComparison.InvariantCultureIgnoreCase);
+    private bool PreviewMetadata => !(CurrentUser ?? "").Equals(SelectedFile?.Ownedby, StringComparison.InvariantCultureIgnoreCase);
 
-    private string FileLinkURL => $"https://{CommonAzureServices.StorageAccountName}.blob.core.windows.net/datahub/{SelectedFile.folderpath}/{SelectedFile.filename}";
-    private string PowerBIPasteText => $"abfs://{CommonAzureServices.FileSystemName}@{CommonAzureServices.StorageAccountName}.dfs.core.windows.net/{SelectedFile.folderpath}/{SelectedFile.filename}";
+    private string FileLinkURL => $"https://{CommonAzureServices.StorageAccountName}.blob.core.windows.net/datahub/{SelectedFile.Folderpath}/{SelectedFile.Filename}";
+    private string PowerBIPasteText => $"abfs://{CommonAzureServices.FileSystemName}@{CommonAzureServices.StorageAccountName}.dfs.core.windows.net/{SelectedFile.Folderpath}/{SelectedFile.Filename}";
 
     private string DetailsTabClassname => $"tab-link {(_detailsActive ? "active" : "")}";
     private string ActivityTabClassname => $"tab-link {(!_detailsActive ? "active" : "")}";
@@ -152,7 +152,7 @@
 
     public void OpenMetadata()
     {        
-        NavigationManager.NavigateTo($"/metadata/{SelectedFile.fileid}");
+        NavigationManager.NavigateTo($"/metadata/{SelectedFile.Fileid}");
     }
 
     private async Task<string> GetPropertyDisplayValue(string propertyName)
@@ -166,7 +166,7 @@
                 return await MSGraphService.GetUserName(value, CancellationToken.None);
 
             case "tags":
-                return SelectedFile._tags;
+                return SelectedFile.Tags;
 
             default:
                 return SelectedFile.GetMetadataPropertyValue(propertyName);

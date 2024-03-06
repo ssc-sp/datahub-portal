@@ -33,7 +33,7 @@ public class ToolsStepDefinitions
     public async Task ThenASetOfToolsAreAvailable()
     {
         var page = _toolsPageObject.Page;
-        foreach(var label in ToolLabels)
+        foreach (var label in ToolLabels)
         {
             (await page.QuerySelectorAsync($"h5:has-text(\"{label}\")")).Should().NotBeNull();
         }

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Datahub.Core.Services;
+﻿namespace Datahub.Core.Services;
 
 public class DatahubTools
 {
@@ -9,7 +7,7 @@ public class DatahubTools
         long byteCount;
         if (long.TryParse(byteCountStr, out byteCount))
         {
-            return DatahubTools.BytesToString(byteCount);
+            return BytesToString(byteCount);
         }
 
         return "...";

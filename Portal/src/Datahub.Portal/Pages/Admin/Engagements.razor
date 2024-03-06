@@ -12,7 +12,7 @@
 @inject IDatahubAuditingService AuditingService
 @inject ServiceAuthManager ServiceAuthManager
 
-<Datahub.Core.Components.Form.MudFormTemplate T="Client_Engagement"
+<Datahub.Core.Components.Form.MudFormTemplate T="ClientEngagement"
                                          U="DatahubProjectDBContext"
                                          Metadata="@_formMetadata"
                                          HandleSubmit="HandleValidSubmit"
@@ -31,14 +31,14 @@
 
     [Parameter]
     public string projectAcronym { get; set; }
-    private FormMetadata<Client_Engagement> _formMetadata = new();
+    private FormMetadata<ClientEngagement> _formMetadata = new();
 
-    private List<Client_Engagement> _clientengagements;
-    private Client_Engagement _clientengagement;
+    private List<ClientEngagement> _clientengagements;
+    private ClientEngagement _clientengagement;
     //private List<Sector> _sectorLookup;
-    private Dictionary<string, Func<Client_Engagement, string>> _sortAccessors = new();
+    private Dictionary<string, Func<ClientEngagement, string>> _sortAccessors = new();
     private DatahubProjectDBContext Context;
-    private Datahub_Project _project;
+    private DatahubProject _project;
     private Microsoft.Graph.Models.User _user = null!;
     private ClaimsPrincipal _claimsUser = null;
     private string _searchFilter = string.Empty;
@@ -48,7 +48,7 @@
         _user = await UserInformationService.GetCurrentGraphUserAsync();
         _claimsUser = (await authenticationStateTask).User;
         Context = DbFactory.CreateDbContext();
-        _project = Context.Projects.Single(p => p.Project_Acronym_CD == projectAcronym);
+        _project = Context.Projects.Single(p => p.ProjectAcronymCD == projectAcronym);
         LoadData(_searchFilter);
     }
 
@@ -60,15 +60,15 @@
 
     private void CreateNewProject()
     {
-        _clientengagement = new Client_Engagement() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, Last_Updated_UserId = _user.Mail, Project = _project };
+        _clientengagement = new ClientEngagement() { LastUpdatedDT = DateTime.Now, CreatedDT = DateTime.Now, CreatedUserId = _user.Mail, LastUpdatedUserId = _user.Mail, Project = _project };
         StateHasChanged();
     }
 
     private void LoadData(string searchfilter)
     {
-        _clientengagements = Context.Client_Engagements.Where(ce => ce.Project == _project).ToList();
+        _clientengagements = Context.ClientEngagements.Where(ce => ce.Project == _project).ToList();
 
-        var isUserAdmin = _claimsUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+        var isUserAdmin = _claimsUser.IsInRole(RoleConstants.DATAHUBROLEADMIN);
         var clientengagements = _clientengagements;
         //if (!string.IsNullOrWhiteSpace(searchfilter))
         //{
@@ -96,17 +96,17 @@
         _formMetadata.IsAddEnabled = true;
     }
 
-    private List<Func<Client_Engagement, string>> accessorFunctions = new List<Func<Client_Engagement, string>>
+    private List<Func<ClientEngagement, string>> accessorFunctions = new List<Func<ClientEngagement, string>>
     {
-        new Func<Client_Engagement, string>(p => { return p.Engagement_Name; }),
-        new Func<Client_Engagement, string>(p => { return p.Engagement_Start_Date?.Date.ToShortDateString(); }),
-        new Func<Client_Engagement, string>(p => { return p.Requirements_Gathering_EndDate?.Date.ToShortDateString(); }),
-        new Func<Client_Engagement, string>(p => { return p.Phase1_Development_EndDate?.Date.ToShortDateString(); }),
-        new Func<Client_Engagement, string>(p => { return p.Phase1_Testing_EndDate?.Date.ToShortDateString(); }),
-        new Func<Client_Engagement, string>(p => { return p.Phase2_Development_EndDate?.Date.ToShortDateString(); }),
-        new Func<Client_Engagement, string>(p => { return p.Phase2_Testing_EndDate?.Date.ToShortDateString(); }),
-        new Func<Client_Engagement, string>(p => { return p.Final_Updates_EndDate?.Date.ToShortDateString(); }),
-        new Func<Client_Engagement, string>(p => { return p.Final_Release_Date?.Date.ToShortDateString(); }),
+        new Func<ClientEngagement, string>(p => { return p.EngagementName; }),
+        new Func<ClientEngagement, string>(p => { return p.EngagementStartDate?.Date.ToShortDateString(); }),
+        new Func<ClientEngagement, string>(p => { return p.RequirementsGatheringEndDate?.Date.ToShortDateString(); }),
+        new Func<ClientEngagement, string>(p => { return p.Phase1DevelopmentEndDate?.Date.ToShortDateString(); }),
+        new Func<ClientEngagement, string>(p => { return p.Phase1TestingEndDate?.Date.ToShortDateString(); }),
+        new Func<ClientEngagement, string>(p => { return p.Phase2DevelopmentEndDate?.Date.ToShortDateString(); }),
+        new Func<ClientEngagement, string>(p => { return p.Phase2TestingEndDate?.Date.ToShortDateString(); }),
+        new Func<ClientEngagement, string>(p => { return p.FinalUpdatesEndDate?.Date.ToShortDateString(); }),
+        new Func<ClientEngagement, string>(p => { return p.FinalReleaseDate?.Date.ToShortDateString(); }),
     };
 
 
@@ -115,11 +115,11 @@
 
         if (_clientengagement != null)
         {
-            if (_clientengagement.Engagement_ID == 0)
+            if (_clientengagement.EngagementID == 0)
             {
-                _clientengagement = Context.Client_Engagements.Add(_clientengagement).Entity;
+                _clientengagement = Context.ClientEngagements.Add(_clientengagement).Entity;
             }
-            _clientengagement.Last_Updated_DT = DateTime.Now;
+            _clientengagement.LastUpdatedDT = DateTime.Now;
             await Context.SaveChangesAsync();
             LoadData(_searchFilter); ;
             _clientengagement = null;
@@ -134,11 +134,11 @@
         "Engangement Name", "Engagement Start Date", "Requirements End Date", "Phase 1 End Date", "Phase 1 QA End Date", "Phase 2 End Date", "Phase 2 QA End Date", "Final Dev End Date", "Release Date"
     };
 
-    private async Task<Client_Engagement> ClearForm()
+    private async Task<ClientEngagement> ClearForm()
     {
         _clientengagement = null;
         StateHasChanged();
-        return await Task.FromResult((Client_Engagement)null);
+        return await Task.FromResult((ClientEngagement)null);
     }
 
     private string GetDataLabel(string propName)
@@ -153,7 +153,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private void SetFormEdit(Client_Engagement engagement)
+    private void SetFormEdit(ClientEngagement engagement)
     {
         _clientengagement = engagement;
         StateHasChanged();

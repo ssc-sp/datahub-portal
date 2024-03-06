@@ -20,7 +20,7 @@ public static class ConfigureServices
             var encodedToken = Convert.ToBase64String(Encoding.UTF8.GetBytes(token));
             client.DefaultRequestHeaders.Add("Authorization", $"Basic {encodedToken}");
         });
-        
+
         services.AddSingleton<ITerraformService, TerraformService>();
 
         return services;

@@ -51,9 +51,9 @@
         _ => Icons.Material.Filled.Share
     };
 
-    private string GetName(CatalogObject obj) => (French ? obj.Name_French : obj.Name_English) ?? obj.Name_English;
+    private string GetName(CatalogObject obj) => (French ? obj.NameFrench : obj.NameEnglish) ?? obj.NameEnglish;
 
-    private string GetDescription(CatalogObject obj) => (French ? obj.Desc_French : obj.Desc_English) ?? obj.Desc_English;
+    private string GetDescription(CatalogObject obj) => (French ? obj.DescFrench : obj.DescEnglish) ?? obj.DescEnglish;
 
     private string GetType(CatalogObject obj) => obj.ObjectType switch
     {

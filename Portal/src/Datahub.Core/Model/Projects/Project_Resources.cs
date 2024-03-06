@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Datahub.Core.Model.Achievements;
 using Newtonsoft.Json;
 
 namespace Datahub.Core.Model.Projects;
 
-public class Project_Resources2
+public class ProjectResources2
 {
     [Key]
     public Guid ResourceId { get; set; } = Guid.NewGuid();
@@ -26,12 +24,12 @@ public class Project_Resources2
     public int ProjectId { get; set; }
 
     public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
-    public int RequestedById { get; set; } 
+    public int RequestedById { get; set; }
     public PortalUser RequestedBy { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
-    public Datahub_Project Project { get; set; }
+    public DatahubProject Project { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
     public int? UpdatedById { get; set; }
@@ -40,26 +38,24 @@ public class Project_Resources2
     public string InputJsonContent { get; set; } = "{}";
 }
 
-    
-
 public static class ProjectResourceConstants
 {
-    public const string SERVICE_TYPE_POSTGRES = "psql";
-    public const string SERVICE_TYPE_SQL_SERVER = "sql";
-    public const string SERVICE_TYPE_STORAGE = "storage";
-    public const string SERVICE_TYPE_DATABRICKS = "databricks";
-    public const string SERVICE_TYPE_POWERBI = "powerbi";
-    public const string SERVICE_TYPE_VIRTUAL_MACHINE = "virtual-machine";
+    public const string STORAGETYPEBLOB = "blob";
+    public const string STORAGETYPEGEN2 = "gen2";
 
-    public static readonly string[] ALL_RESOURCE_TYPES = new[] 
-    { 
-        SERVICE_TYPE_DATABRICKS, 
-        SERVICE_TYPE_SQL_SERVER, 
-        SERVICE_TYPE_POSTGRES, 
-        SERVICE_TYPE_POWERBI, 
-        SERVICE_TYPE_STORAGE 
+    public const string SERVICETYPEPOSTGRES = "psql";
+    public const string SERVICETYPESQLSERVER = "sql";
+    public const string SERVICETYPESTORAGE = "storage";
+    public const string SERVICETYPEDATABRICKS = "databricks";
+    public const string SERVICETYPEPOWERBI = "powerbi";
+    public const string SERVICETYPEVIRTUALMACHINE = "virtual-machine";
+
+    public static readonly string[] ALLRESOURCETYPES = new[]
+    {
+        SERVICETYPEDATABRICKS,
+        SERVICETYPESQLSERVER,
+        SERVICETYPEPOSTGRES,
+        SERVICETYPEPOWERBI,
+        SERVICETYPESTORAGE
     };
-
-    public const string STORAGE_TYPE_BLOB = "blob";
-    public const string STORAGE_TYPE_GEN2 = "gen2";
 }

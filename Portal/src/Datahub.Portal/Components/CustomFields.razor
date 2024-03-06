@@ -7,11 +7,11 @@
     </div>
     <div class="customuserinput">
         <span>@Localizer["ADD-DATA-PAGE.Key-Label"]</span>
-        <input type="text" value="@Field.key" @onchange="OnKeyChange" />
+        <input type="text" value="@Field.Key" @onchange="OnKeyChange" />
     </div>
     <div class="customuserinput">
         <span>@Localizer["ADD-DATA-PAGE.Value-Label"]</span>
-        <input type="text" value="@Field.value" @onchange="OnValueChange" />
+        <input type="text" value="@Field.Value" @onchange="OnValueChange" />
     </div>
     <div class="roundbutton" style="margin-right: 1rem" @onclick="OnDeleteRow">
         <i class="fal fa-trash-alt"></i>
@@ -36,13 +36,13 @@
 
     private Task OnKeyChange(ChangeEventArgs e)
     {
-        Field.key = e.Value.ToString();
+        Field.Key = e.Value.ToString();
         return CustomFieldChanged.InvokeAsync(null);
     }
 
     private Task OnValueChange(ChangeEventArgs e)
     {
-        Field.value = e.Value.ToString();
+        Field.Value = e.Value.ToString();
         return CustomFieldChanged.InvokeAsync(null);
     }
 

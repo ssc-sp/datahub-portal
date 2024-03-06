@@ -73,7 +73,7 @@
     private readonly string POSTGRES_RESOURCES_URL = "https://raw.githubusercontent.com/wiki/NRCan/datahub-portal/Postgresql-Resources.md";
 
     [Parameter]
-    public Datahub_Project DataProject { get; set; }
+    public DatahubProject DataProject { get; set; }
 
     [Parameter]
     public bool GetAccessTokenImmediately { get; set; } = false;
@@ -136,16 +136,16 @@
         {
             _dbAttributes = new Dictionary<string, string>()
             {
-                {"DatabaseName", DataProject.DB_Name},
-                {"DatabaseServer", DataProject.DB_Server},
-                {"DatabaseType", DataProject.DB_Type}
+                {"DatabaseName", DataProject.DBName},
+                {"DatabaseServer", DataProject.DBServer},
+                {"DatabaseType", DataProject.DBType}
             };
 
             var user = await loadUserTask;
             if (DataProject.IsDatabasePostgres)
             {
-                _dbAttributes.Add("DbUsername", $"{user.Mail.ToLowerInvariant()}@{DataProject.DB_Server}");
-                _dbAttributes.Add("DbHostname", $"{DataProject.DB_Server}.{POSTGRES_HOST_SUFFIX}");
+                _dbAttributes.Add("DbUsername", $"{user.Mail.ToLowerInvariant()}@{DataProject.DBServer}");
+                _dbAttributes.Add("DbHostname", $"{DataProject.DBServer}.{POSTGRES_HOST_SUFFIX}");
             }
         }
 

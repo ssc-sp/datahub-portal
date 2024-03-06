@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using System;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using System.Security.Claims;
 using Datahub.Core.Data;
 using Datahub.Core.Services.Security;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Logging;
 
 namespace Datahub.Core.RoleManagement;
 
@@ -32,7 +29,7 @@ public class RoleClaimTransformer : IClaimsTransformation
             }
             else
             {
-                var claims = ((ClaimsIdentity)principal.Identity);
+                var claims = (ClaimsIdentity)principal.Identity;
                 if (claims is null)
                     return principal;
 
@@ -42,17 +39,17 @@ public class RoleClaimTransformer : IClaimsTransformation
 
                 foreach (var (role, project) in authorizedProjects)
                 {
-                    if (project.Project_Acronym_CD == RoleConstants.DATAHUB_ADMIN_PROJECT && serviceAuthManager.GetViewingAsGuest(userId))
+                    if (project.ProjectAcronymCD == RoleConstants.DATAHUBADMINPROJECT && serviceAuthManager.GetViewingAsGuest(userId))
                     {
-                        claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST));
+                        claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.DATAHUBROLEADMINASGUEST));
                     }
                     else
                     {
-                        claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{RoleConstants.GetRoleConstants(role)}"));
+                        claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.ProjectAcronymCD}{RoleConstants.GetRoleConstants(role)}"));
                     }
                     if (project.WebAppEnabled == true)
                     {
-                        claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{RoleConstants.WEBAPP_SUFFIX}"));
+                        claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.ProjectAcronymCD}{RoleConstants.WEBAPPSUFFIX}"));
                     }
                 }
             }

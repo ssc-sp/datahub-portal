@@ -1,10 +1,10 @@
 ﻿namespace Datahub.Portal.Data.Pipelines;
 
-public class ETL_CONTROL_TBL
+public class ETLCONTROLTBL
 {
-    public string PROCESS_NM { get; set; }
-    public DateTime? START_TS { get; set; }
-    public DateTime? END_TS { get; set; }
-    public string STATUS_FLAG { get; set; }
-    public long? RUN_ID { get; set; }
+    public string PROCESSNM { get; set; }
+    public DateTime? STARTTS { get; set; }
+    public DateTime? ENDTS { get; set; }
+    public string STATUSFLAG { get; set; }
+    public long? RUNID { get; set; }
 }

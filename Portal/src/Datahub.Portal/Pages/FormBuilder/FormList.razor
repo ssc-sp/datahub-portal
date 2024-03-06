@@ -40,7 +40,7 @@ else
     public string ProjectAcronym { get; set; }
 
     private DatahubProjectDBContext projectContext;
-    private Datahub_Project _project;
+    private DatahubProject _project;
 
     private List<WebForm> _forms = new List<WebForm>();
 
@@ -51,20 +51,20 @@ else
 
     private List<Func<WebForm, string>> accessorFunctions = new List<Func<WebForm, string>>()
     {
-        (f => f.Title_DESC),
-        (f => f.Description_DESC)
+        (f => f.TitleDESC),
+        (f => f.DescriptionDESC)
     };
 
     private List<Func<WebForm, RenderFragment>> renderFunctions = new List<Func<WebForm, RenderFragment>>()
     {
-        (f => @<a href=@($"/w/{f.Project.Project_Acronym_CD}/forms/{f.WebForm_ID}")>@f.Title_DESC</a>),
+        (f => @<a href=@($"/w/{f.Project.ProjectAcronymCD}/forms/{f.WebFormID}")>@f.TitleDESC</a>),
         null
     };
 
     protected override async Task OnInitializedAsync()
     {
         projectContext = DbFactory.CreateDbContext();
-        _project = await projectContext.Projects.Include(p => p.WebForms).SingleOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        _project = await projectContext.Projects.Include(p => p.WebForms).SingleOrDefaultAsync(p => p.ProjectAcronymCD == ProjectAcronym);
         if (_project != null)
         {
             _forms = _project.WebForms;

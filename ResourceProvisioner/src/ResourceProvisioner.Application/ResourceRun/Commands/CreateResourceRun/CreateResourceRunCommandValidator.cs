@@ -19,6 +19,6 @@ public class CreateResourceRunCommandValidator : AbstractValidator<CreateResourc
 
         RuleFor(x => x.RequestingUserEmail)
             .EmailAddress();
-    }    
+    }
 }
 

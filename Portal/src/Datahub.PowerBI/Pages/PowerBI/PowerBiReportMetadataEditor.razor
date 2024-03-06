@@ -54,8 +54,8 @@ else
                 <MudSelectItem T="string"></MudSelectItem>
                 @foreach (var report in _siblingReports)
                 {
-                    <MudSelectItem T="string" Value="@report.Report_ID.ToString()">
-                        @report.Report_Name
+                    <MudSelectItem T="string" Value="@report.ReportID.ToString()">
+                        @report.ReportName
                     </MudSelectItem>
                 }
             </MudSelect> 
@@ -74,7 +74,7 @@ else
             ObjectType=@Metadata.Model.MetadataObjectType.PowerBIReport
             UpdateCatalog=@_includeInCatalog
             ValidateRequired
-            Name=@_report.Report_Name
+            Name=@_report.ReportName
             HideSaveButton
             CatalogLanguage=@_catalogObjectLanguage
             OnValuesChanged=@(() => StateHasChanged())
@@ -106,7 +106,7 @@ else
 
 @code {
 
-    private static string LOCALIZATION_PREFIX = $"{PowerBiManagementConstants.POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY}.POWER_BI_ADMIN";
+    private static string LOCALIZATION_PREFIX = $"{PowerBiManagementConstants.POWERBIMANAGEMENTLOCALIZATIONROOTKEY}.POWER_BI_ADMIN";
 
     [Parameter]
     public Guid PowerBiReportId { get; set; }
@@ -117,8 +117,8 @@ else
     [Parameter]
     public EventCallback<bool> OnCloseDialog { get; set; }
 
-    private PowerBi_Report _report;
-    private List<PowerBi_Report> _siblingReports;
+    private PowerBiReport _report;
+    private List<PowerBiReport> _siblingReports;
     private string _groupWithId;
 
     private string GroupWithId
@@ -156,7 +156,7 @@ else
             return;
         }
 
-        var currentTitle = _report.Report_Name;
+        var currentTitle = _report.ReportName;
         if (string.IsNullOrEmpty(currentTitle))
         {
             return;
@@ -164,15 +164,15 @@ else
 
         var titleFr = await _translationService.GetFrenchTranslation(currentTitle);
 
-        _reportMetadata.SetValue(PowerBiManagementConstants.TITLE_EN_METADATA_FIELD, currentTitle);
-        _reportMetadata.SetValue(PowerBiManagementConstants.TITLE_FR_METADATA_FIELD, titleFr);
+        _reportMetadata.SetValue(PowerBiManagementConstants.TITLEENMETADATAFIELD, currentTitle);
+        _reportMetadata.SetValue(PowerBiManagementConstants.TITLEFRMETADATAFIELD, titleFr);
 
-        var currentProjectId = _report.Workspace.Project_Id;
+        var currentProjectId = _report.Workspace.ProjectId;
         if (currentProjectId.HasValue)
         {
             var projectAdmins = "TODO";
             //var projectAdmins = GetProjectAdmins(currentProjectId.Value);
-            _reportMetadata.SetValue(PowerBiManagementConstants.CONTACT_INFO_METADATA_FIELD, projectAdmins);
+            _reportMetadata.SetValue(PowerBiManagementConstants.CONTACTINFOMETADATAFIELD, projectAdmins);
         }
 
         await Task.CompletedTask;
@@ -244,15 +244,15 @@ else
         }
     }
 
-    private async Task<List<PowerBi_Report>> GetReportsForGrouping(PowerBi_Report report)
+    private async Task<List<PowerBiReport>> GetReportsForGrouping(PowerBiReport report)
     {
-        var siblings = await _powerBiDataService.GetWorkspaceReports(report.Workspace_Id);
-        return siblings.Where(r => r.InCatalog && r.Report_ID != report.Report_ID).ToList();
+        var siblings = await _powerBiDataService.GetWorkspaceReports(report.WorkspaceId);
+        return siblings.Where(r => r.InCatalog && r.ReportID != report.ReportID).ToList();
     }
 
-    private async Task<string> GetGroupedWith(PowerBi_Report report)
+    private async Task<string> GetGroupedWith(PowerBiReport report)
     {
-        var reportId = report.Report_ID.ToString().ToLower();
+        var reportId = report.ReportID.ToString().ToLower();
         var group = await _metadataService.GetObjectCatalogGroup(reportId);
         return group.FirstOrDefault(id => !id.Equals(reportId, StringComparison.OrdinalIgnoreCase));
     }
@@ -269,8 +269,8 @@ else
     protected override async Task OnInitializedAsync()
     {
         var ctx = await _projectDbFactory.CreateDbContextAsync();
-        var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-        _projectId = project?.Project_ID ?? 0;
+        var project = await ctx.Projects.FirstOrDefaultAsync(p => p.ProjectAcronymCD == ProjectAcronym);
+        _projectId = project?.ProjectID ?? 0;
     }
 
 }

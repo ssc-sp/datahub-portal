@@ -6,7 +6,7 @@ public class ProjectCloudStorage
 {
     public int Id { get; set; }
     public int ProjectId { get; set; }
-    public virtual Datahub_Project Project { get; set; }
+    public virtual DatahubProject Project { get; set; }
     public string Provider { get; set; }
     public string Name { get; set; }
     public string ConnectionData { get; set; }

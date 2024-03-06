@@ -28,7 +28,7 @@
 }
 
 <MudStack Row>
-    <MudChip Label Color="@Color.Dark" class="project-data-sensitivity">@Localizer[_project.Data_Sensitivity]</MudChip>
+    <MudChip Label Color="@Color.Dark" class="project-data-sensitivity">@Localizer[_project.DataSensitivity]</MudChip>
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
         @if (CreditsDataExists && _projectBudget > 0)
         {
@@ -91,7 +91,7 @@
     </MudText>
 
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
-        @if ((_project?.Project_Budget ?? 0) == 0)
+        @if ((_project?.ProjectBudget ?? 0) == 0)
         {
             <MudAlert Severity="Severity.Warning">
                 <MudLink Href="@_datahubPortalConfiguration.SupportFormUrl" Underline="Underline.None">
@@ -122,12 +122,12 @@
     [Parameter]
     public string ProjectAcronym { get; set; }
 
-    private Datahub_Project _project;
+    private DatahubProject _project;
 
-    private Project_Credits _projectCredits = default;
+    private ProjectCredits _projectCredits = default;
     private decimal CurrentCredits => Convert.ToDecimal(_projectCredits.Current);
 
-    private Project_Storage _projectStorage = default;
+    private ProjectStorage _projectStorage = default;
 
     private bool CreditsDataExists => _projectCredits is not null && _projectCredits.ProjectId != 0;
 
@@ -135,7 +135,7 @@
     private bool _loading = true;
     private FieldValueContainer _projectMetadata;
 
-    private string _projectIcon => $"fas fa-{_project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
+    private string _projectIcon => $"fas fa-{_project?.ProjectIcon ?? Icon.DEFAULTPROJECTICON}";
     private string SuperUserUrl => $"{_datahubPortalConfiguration.ProjectUrlSegment}/{ProjectAcronym}/sudo";
     private string _metadataUrl => $"{_datahubPortalConfiguration.ProjectUrlSegment}/{ProjectAcronym}/metadata";
 
@@ -154,10 +154,10 @@
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
         _project = await ctx.Projects
             .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.Project_Acronym_CD == ProjectAcronym);
+            .FirstOrDefaultAsync(e => e.ProjectAcronymCD == ProjectAcronym);
 
-        _projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(e => e.ProjectId == _project.Project_ID) ?? new();
-        _projectBudget = _project.Project_Budget ?? 0;
+        _projectCredits = await ctx.ProjectCredits.FirstOrDefaultAsync(e => e.ProjectId == _project.ProjectID) ?? new();
+        _projectBudget = _project.ProjectBudget ?? 0;
         _projectMetadata = await _metadataBrokerService.GetObjectMetadataValues(ProjectAcronym);
 
         _projectStorage = await GetProjectStorage(ctx);
@@ -166,10 +166,10 @@
         StateHasChanged();
     }
 
-    private async Task<Project_Storage> GetProjectStorage(DatahubProjectDBContext ctx)
+    private async Task<ProjectStorage> GetProjectStorage(DatahubProjectDBContext ctx)
     {
-        return await ctx.Project_Storage_Avgs
-            .Where(e => e.ProjectId == _project.Project_ID)
+        return await ctx.ProjectStorageAvgs
+            .Where(e => e.ProjectId == _project.ProjectID)
             .OrderByDescending(e => e.Date)
             .FirstOrDefaultAsync();
     }
@@ -195,7 +195,7 @@
         return projectName + Localizer["is under budget"];
     }
 
-    private Color GetProtectionColor() => (_project?.Data_Sensitivity ?? "").ToUpper() switch
+    private Color GetProtectionColor() => (_project?.DataSensitivity ?? "").ToUpper() switch
     {
         "CLASSIFIED"  or
             "PROTECTED B" or
@@ -206,22 +206,22 @@
 
     private string GetProjectDataSensitivity()
     {
-        return !string.IsNullOrWhiteSpace(_project?.Data_Sensitivity) ? _project.Data_Sensitivity : "Unclassified";
+        return !string.IsNullOrWhiteSpace(_project?.DataSensitivity) ? _project.DataSensitivity : "Unclassified";
     }
 
     private void HandleEditMetadata(MouseEventArgs args)
     {
-        _navigationManager.NavigateTo($"/w/{_project.Project_Acronym_CD}/metadata");
+        _navigationManager.NavigateTo($"/w/{_project.ProjectAcronymCD}/metadata");
     }
 
     private void HandleShowCosts(MouseEventArgs args)
     {
-        _navigationManager.NavigateTo($"/w/{_project.Project_Acronym_CD}/costs");
+        _navigationManager.NavigateTo($"/w/{_project.ProjectAcronymCD}/costs");
     }
 
     private void HandleShowStorageReport(MouseEventArgs args)
     {
-        _navigationManager.NavigateTo($"/w/{_project.Project_Acronym_CD}/storage");
+        _navigationManager.NavigateTo($"/w/{_project.ProjectAcronymCD}/storage");
     }
 
     private string GetProjectDescription()

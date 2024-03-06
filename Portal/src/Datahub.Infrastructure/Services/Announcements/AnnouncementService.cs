@@ -33,7 +33,7 @@ public class AnnouncementService : IAnnouncementService
             .Include(a => a.UpdatedBy)
             .OrderByDescending(a => a.StartDateTime)
             .ToListAsync();
-        
+
         return announcements;
     }
 

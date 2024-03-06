@@ -53,7 +53,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _emails = await _context.Project_Users.Select(u => u.User_Name).Distinct().ToListAsync();
+        _emails = await _context.ProjectUsers.Select(u => u.UserName).Distinct().ToListAsync();
     }
 
     private bool IsDisabled => string.IsNullOrEmpty(_subject) || string.IsNullOrEmpty(_body);

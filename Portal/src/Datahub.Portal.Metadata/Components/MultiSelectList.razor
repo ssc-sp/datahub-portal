@@ -50,13 +50,13 @@
 
     private IEnumerable<string> GetSelectedValues()
     {
-        return (FieldValue.Value_TXT ?? string.Empty).Split(splitChar).Where(v => !string.IsNullOrEmpty(v));
+        return (FieldValue.ValueTXT ?? string.Empty).Split(splitChar).Where(v => !string.IsNullOrEmpty(v));
     }
 
     private void HandleSelectedValuesChanged(IEnumerable<string> values)
     {
         _selection = new HashSet<string>(values);
-        FieldValue.Value_TXT = string.Join(splitChar.ToString(), values);
+        FieldValue.ValueTXT = string.Join(splitChar.ToString(), values);
         OnFieldChanged.InvokeAsync(FieldValue);
     }
 
@@ -66,7 +66,7 @@
         List<string> labels = new();
         foreach (var c in FieldDefinition.Choices)
         {
-            if (selection.Contains(c.Value_TXT))
+            if (selection.Contains(c.ValueTXT))
                 labels.Add(c.Label);
         }
         return string.Join(", ", labels);
@@ -75,7 +75,7 @@
     private List<ChoiceSelectItem> GetChoices()
     {
         return FieldDefinition.Choices
-            .Select(c => new ChoiceSelectItem(c.Label, c.Value_TXT))
+            .Select(c => new ChoiceSelectItem(c.Label, c.ValueTXT))
             .OrderBy(c => c.Label)
             .ToList();
     }

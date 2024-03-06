@@ -4,7 +4,6 @@ using BlazorTemplater;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
-using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Security;
 using Datahub.Core.Templates;
 using MailKit.Net.Smtp;
@@ -18,11 +17,11 @@ namespace Datahub.Infrastructure.Services.Notification;
 public class EmailNotificationService : IEmailNotificationService
 {
 
-    public static readonly string EMAIL_CONFIGURATION_ROOT_KEY = "EmailNotification";
+    public static readonly string EMAILCONFIGURATIONROOTKEY = "EmailNotification";
 
-    public static readonly string USERNAME_TEMPLATE_KEY = "Username";
-    public static readonly string SERVICE_TEMPLATE_KEY = "Service";
-    public static readonly string DATA_PROJECT_TEMPLATE_KEY = "DataProject";
+    public static readonly string USERNAMETEMPLATEKEY = "Username";
+    public static readonly string SERVICETEMPLATEKEY = "Service";
+    public static readonly string DATAPROJECTTEMPLATEKEY = "DataProject";
 
     private EmailConfiguration _config;
 
@@ -44,7 +43,7 @@ public class EmailNotificationService : IEmailNotificationService
     {
         _localizer = localizer;
         _config = new EmailConfiguration();
-        config.Bind(EMAIL_CONFIGURATION_ROOT_KEY, _config);
+        config.Bind(EMAILCONFIGURATIONROOTKEY, _config);
         if (_config.AppDomain is null)
         {
             logger.LogCritical("No Email Configuration available");
@@ -55,7 +54,7 @@ public class EmailNotificationService : IEmailNotificationService
         _serviceAuthManager = serviceAuthManager;
     }
 
-    
+
 
     public async Task<MailboxAddress> BuildRecipient(string userIdOrAddress, string recipientName = null)
     {
@@ -150,7 +149,7 @@ public class EmailNotificationService : IEmailNotificationService
 
     public async Task EmailErrorToDatahub(string subject, string fromUser, string message, string appInsightsMessage, string stackTrace)
     {
-        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(RoleConstants.DATAHUB_ADMIN_PROJECT);
+        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(RoleConstants.DATAHUBADMINPROJECT);
         var parameters = new Dictionary<string, object>()
         {
             { "Date", $"{DateTime.UtcNow} UTC" },

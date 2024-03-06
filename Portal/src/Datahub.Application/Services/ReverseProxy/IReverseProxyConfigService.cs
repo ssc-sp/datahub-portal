@@ -6,6 +6,7 @@ public interface IReverseProxyConfigService
 {
     ReverseProxyConfig GetConfigurationFromProjects();
 
-    List<(string Acronym, RouteConfig Route, ClusterConfig Cluster)> GetAllConfigurationFromProjects();
+	List<(string Acronym, RouteConfig Route, ClusterConfig Cluster)> GetAllConfigurationFromProjects();
 }
+
 public record ReverseProxyConfig(List<RouteConfig> Routes, List<ClusterConfig> Clusters);

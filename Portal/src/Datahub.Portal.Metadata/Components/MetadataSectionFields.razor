@@ -39,7 +39,7 @@
 
         if (Fields is not null && Selection is not null)
         {
-            _options = Fields.Select(f => new FieldOption($"{f.FieldDefinitionId}", f.Name_English_TXT, Selection.Contains(f.FieldDefinitionId))).ToArray();
+            _options = Fields.Select(f => new FieldOption($"{f.FieldDefinitionId}", f.NameEnglishTXT, Selection.Contains(f.FieldDefinitionId))).ToArray();
         }
 
         _selectedIds = new(_options.Where(o => o.Selected).Select(o => o.Id));

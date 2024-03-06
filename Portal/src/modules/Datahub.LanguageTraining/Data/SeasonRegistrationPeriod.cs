@@ -7,11 +7,11 @@ public class SeasonRegistrationPeriod
 {
     [Key]
     [AeFormIgnore]
-    public int SeasonRegistrationPeriod_ID { get; set; }
-    public int Year_NUM { get; set; }
-    public byte Quarter_NUM { get; set; }
+    public int SeasonRegistrationPeriodID { get; set; }
+    public int YearNUM { get; set; }
+    public byte QuarterNUM { get; set; }
     [Required]
-    public DateTime Open_DT { get; set; }
+    public DateTime OpenDT { get; set; }
     [Required]
-    public DateTime Close_DT { get; set; }
+    public DateTime CloseDT { get; set; }
 }

@@ -32,7 +32,7 @@ public class ProjectResourcingWhitelistServiceTests
         _mockUserInformationService = new Mock<IUserInformationService>();
         _mockUserInformationService
             .Setup(f => f.GetCurrentGraphUserAsync())
-            .ReturnsAsync(new User(){Id = TestUserGraphGuid, Mail = TestUserEmail});
+            .ReturnsAsync(new User() { Id = TestUserGraphGuid, Mail = TestUserEmail });
     }
     /*
      * Test Cases:
@@ -58,12 +58,12 @@ public class ProjectResourcingWhitelistServiceTests
         var whitelistService = GetProjectResourcingWhitelistService();
         await SeedDatabase();
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
-        var project = await context.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+        var project = await context.Projects.FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectAcronym);
         Assert.That(project, Is.Not.Null);
-        var whitelist = await whitelistService.GetProjectResourceWhitelistByProjectAsync(project!.Project_ID);
+        var whitelist = await whitelistService.GetProjectResourceWhitelistByProjectAsync(project!.ProjectID);
         Assert.Multiple(() =>
         {
-            Assert.That(project.Project_Acronym_CD, Is.EqualTo(whitelist.Project.Project_Acronym_CD));
+            Assert.That(project.ProjectAcronymCD, Is.EqualTo(whitelist.Project.ProjectAcronymCD));
             Assert.That(allowStorage, Is.EqualTo(whitelist.AllowStorage));
             Assert.That(allowVMs, Is.EqualTo(whitelist.AllowVMs));
             Assert.That(allowDatabricks, Is.EqualTo(whitelist.AllowDatabricks));
@@ -79,16 +79,16 @@ public class ProjectResourcingWhitelistServiceTests
         var whitelistService = GetProjectResourcingWhitelistService();
         await SeedDatabase();
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
-        var project = await context.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+        var project = await context.Projects.FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectAcronym);
         Assert.That(project, Is.Not.Null);
-        var whitelist = await whitelistService.GetProjectResourceWhitelistByProjectAsync(project!.Project_ID);
+        var whitelist = await whitelistService.GetProjectResourceWhitelistByProjectAsync(project!.ProjectID);
         // if whitelist id is greater than 0, assert that admin user is old user
         if (whitelist.Id > 0)
         {
             Assert.Multiple(() =>
             {
-                Assert.That(whitelist.AdminLastUpdated_ID, Is.EqualTo(OldUserId));
-                Assert.That(whitelist.AdminLastUpdated_UserName, Is.EqualTo(OldUserEmail));
+                Assert.That(whitelist.AdminLastUpdatedID, Is.EqualTo(OldUserId));
+                Assert.That(whitelist.AdminLastUpdatedUserName, Is.EqualTo(OldUserEmail));
             });
         }
         // allow all resources on whitelist
@@ -99,8 +99,8 @@ public class ProjectResourcingWhitelistServiceTests
         //var whitelist = await whitelistService.GetProjectResourceWhitelistByProjectAsync(project!.Project_ID);
         Assert.Multiple(() =>
         {
-            Assert.That(whitelist.AdminLastUpdated_ID, Is.EqualTo(TestUserGraphGuid));
-            Assert.That(whitelist.AdminLastUpdated_UserName, Is.EqualTo(TestUserEmail));
+            Assert.That(whitelist.AdminLastUpdatedID, Is.EqualTo(TestUserGraphGuid));
+            Assert.That(whitelist.AdminLastUpdatedUserName, Is.EqualTo(TestUserEmail));
         });
 
     }
@@ -108,40 +108,40 @@ public class ProjectResourcingWhitelistServiceTests
     private async Task SeedDatabase()
     {
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
-        var projects = PROJECT_ACRONYMS.Select((acronym, index) => new Datahub_Project()
+        var projects = PROJECT_ACRONYMS.Select((acronym, index) => new DatahubProject()
         {
-            Project_Acronym_CD = acronym,
+            ProjectAcronymCD = acronym,
             Project_Name = PROJECT_NAMES[index],
-            Project_Status_Desc = "Active",
-            Sector_Name = "Test Sector",
+            ProjectStatusDesc = "Active",
+            SectorName = "Test Sector",
         }).ToArray();
         await context.Projects.AddRangeAsync(projects);
         await context.SaveChangesAsync();
-        var whitelists = new List<Project_Whitelist>
+        var whitelists = new List<ProjectWhitelist>
         {
             new()
             {
-                ProjectId = projects[0].Project_ID,
+                ProjectId = projects[0].ProjectID,
                 AllowStorage = true,
-                AdminLastUpdated_ID = OldUserId,
-                AdminLastUpdated_UserName = OldUserEmail,
+                AdminLastUpdatedID = OldUserId,
+                AdminLastUpdatedUserName = OldUserEmail,
                 LastUpdated = DateTime.Now.Subtract(TimeSpan.FromDays(3)),
             },
             new()
             {
-                ProjectId = projects[1].Project_ID,
+                ProjectId = projects[1].ProjectID,
                 AllowStorage = true,
                 AllowVMs = true,
                 AllowDatabricks = true,
-                AdminLastUpdated_ID = OldUserId,
-                AdminLastUpdated_UserName = OldUserEmail,
+                AdminLastUpdatedID = OldUserId,
+                AdminLastUpdatedUserName = OldUserEmail,
                 // set last updated to a few days before no
                 LastUpdated = DateTime.Now.Subtract(TimeSpan.FromDays(3)),
             }
         };
         // purposely not creating a whitelist for the third project
 
-        await context.Project_Whitelists.AddRangeAsync(whitelists);
+        await context.ProjectWhitelists.AddRangeAsync(whitelists);
         await context.SaveChangesAsync();
     }
 
@@ -150,7 +150,7 @@ public class ProjectResourcingWhitelistServiceTests
 
         var projectUserManagementService = new ProjectResourcingWhitelistService(
             _mockFactory.Object,
-            _mockUserInformationService.Object, 
+            _mockUserInformationService.Object,
             null!);
         return projectUserManagementService;
     }

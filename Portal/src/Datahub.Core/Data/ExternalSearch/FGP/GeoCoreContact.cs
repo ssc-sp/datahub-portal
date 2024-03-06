@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Datahub.Core.Data.ExternalSearch.FGP;
 
 public class GeoCoreContact
@@ -21,11 +19,11 @@ public class GeoCoreContact
 
     public class OnlineResourceInfo
     {
-        public string OnlineResource_Description { get; set; }
+        public string OnlineResourceDescription { get; set; }
         public string OnlineResource { get; set; }
-        public string OnlineResource_Name { get; set; }
-        public string OnlineResource_Protocol { get; set; }
+        public string OnlineResourceName { get; set; }
+        public string OnlineResourceProtocol { get; set; }
     }
 }
 
-public class GeoCoreContactList: List<GeoCoreContact> { }
+public class GeoCoreContactList : List<GeoCoreContact> { }

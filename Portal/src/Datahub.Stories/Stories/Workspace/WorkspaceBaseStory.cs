@@ -7,12 +7,12 @@ namespace Datahub.Stories.Stories.Workspace;
 /// <inheritdoc />
 public abstract class WorkspaceBaseStory : ComponentBase
 {
-        
+
     /// <summary>
     /// The project to display
     /// </summary>
-    protected Datahub_Project _project = null!;
-    
+    protected DatahubProject _project = null!;
+
     /// <summary>
     /// Placeholder service to get random projects
     /// </summary>

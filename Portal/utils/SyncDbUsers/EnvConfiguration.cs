@@ -10,5 +10,5 @@ public class EnvConfiguration : IAppConfig
     public string GetConnStringTemplate()
     {
         return System.Environment.GetEnvironmentVariable("dbConnStringTemplate");
-    }       
+    }
 }

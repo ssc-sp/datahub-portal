@@ -17,7 +17,7 @@ public class EmailConfiguration
 
 public interface IEmailNotificationService
 {
-    
+
     Task<string> RenderTemplate<T>(IDictionary<string, object> parameters = null) where T : Microsoft.AspNetCore.Components.IComponent;
     Task SendEmailMessage(string subject, string body, string userIdOrAddress, string recipientName = null, bool isHtml = true);
     Task SendEmailMessage(string subject, string body, IList<string> userIdsOrAddresses, bool isHtml = true);

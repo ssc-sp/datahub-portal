@@ -40,7 +40,7 @@
         if (int.TryParse(FormId, out int parsedId))
         {
             _context = DbFactory.CreateDbContext();
-            _webForm = _context.WebForms.FirstOrDefault(f => f.WebForm_ID == parsedId);
+            _webForm = _context.WebForms.FirstOrDefault(f => f.WebFormID == parsedId);
         }
     }
 

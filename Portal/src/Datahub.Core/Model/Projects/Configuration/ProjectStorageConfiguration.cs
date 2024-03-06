@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Datahub.Core.Model.Projects.Configuration;
 
-public class ProjectStorageConfiguration : IEntityTypeConfiguration<Project_Storage>
+public class ProjectStorageConfiguration : IEntityTypeConfiguration<ProjectStorage>
 {
-    public void Configure(EntityTypeBuilder<Project_Storage> builder)
+    public void Configure(EntityTypeBuilder<ProjectStorage> builder)
     {
         builder.ToTable("Project_Storage_Avgs");
 

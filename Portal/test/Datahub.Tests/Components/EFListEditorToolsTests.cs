@@ -14,8 +14,8 @@ public class EFListEditorToolsTests
 {
 
 
-    private IEnumerable<T> LoadCollectionGeneric<S,T>(ServiceProvider provider, Func<S, IEnumerable> loadSource) where S:DbContext
-    {            
+    private IEnumerable<T> LoadCollectionGeneric<S, T>(ServiceProvider provider, Func<S, IEnumerable> loadSource) where S : DbContext
+    {
         //Expression<Func<S, IEnumerable>> expression = d => d.Projects;
         //Func<S, IEnumerable> loadSource = d => d.Projects;
         //IDbContextFactory
@@ -39,11 +39,11 @@ public class EFListEditorToolsTests
         var fac = sp.GetRequiredService<IDbContextFactory<DatahubProjectDBContext>>();
         using (var ctx = fac.CreateDbContext())
         {
-            ctx.Projects.Add(new Datahub_Project() { Project_ID = 1, Project_Name = "Test1", Project_Acronym_CD = "T1" });
-            ctx.Projects.Add(new Datahub_Project() { Project_ID = 2, Project_Name = "Test2", Project_Acronym_CD = "T2" });
+            ctx.Projects.Add(new DatahubProject() { ProjectID = 1, Project_Name = "Test1", ProjectAcronymCD = "T1" });
+            ctx.Projects.Add(new DatahubProject() { ProjectID = 2, Project_Name = "Test2", ProjectAcronymCD = "T2" });
             ctx.SaveChanges();
         }
-        var data = LoadCollectionGeneric<DatahubProjectDBContext, Datahub_Project>(sp,e => e.Projects);
+        var data = LoadCollectionGeneric<DatahubProjectDBContext, DatahubProject>(sp, e => e.Projects);
         Assert.Equal(2, data.Count());
     }
 }

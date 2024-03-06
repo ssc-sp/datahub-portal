@@ -8,7 +8,7 @@
 
 @if (_project is not null)
 {
-    <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+    <AuthorizeView Roles="@RoleConstants.DATAHUBROLEADMIN">
         <Authorized>
             <div style="padding-left: 2rem;padding-right: 2rem">
                 <AeFlex Vertical>
@@ -17,20 +17,20 @@
                 <AeCard CardPosition="AeCard.CardStyle.Horizontal">
                     <Header>
                         <div style="width:180px;">
-                            <i class="@($"fad fa-{_project.Project_Icon}")" />
+                            <i class="@($"fad fa-{_project.ProjectIcon}")" />
                         </div>
                     </Header>
                     <ChildContent>
                         <AeTypography Variant="h1">@_project.ProjectName</AeTypography>
                         <AeMarkdown Content="@($"{_project.ProjectDescription}")"></AeMarkdown>
                         <AeTypography>@Localizer["Data Sensitivity"]</AeTypography>
-                        <AeTypography Variant="h2">@Localizer[_project.Data_Sensitivity]</AeTypography>
+                        <AeTypography Variant="h2">@Localizer[_project.DataSensitivity]</AeTypography>
                     </ChildContent>
                 </AeCard>
                 <AeCard>
                     <AeButton @onclick="SuggestTranslation">@Localizer["Suggest French Translation"]</AeButton>
                     <AeModelForm Model="_project"
-                             T="Datahub_Project"
+                             T="DatahubProject"
                              OnValidSubmit="HandleValidSubmit"
                              LabelForPropertyFunc="Localize"
                              CancelLabel="Cancel"
@@ -45,12 +45,12 @@
 
 @code {
     
-    private Datahub_Project _project;
+    private DatahubProject _project;
     private DatahubProjectDBContext projectContext;
 
-    private List<OrganizationLevel> _sectors = new();
-    private List<OrganizationLevel> _branches = new();
-    private List<OrganizationLevel> _divisions = new();
+    private List<DHOrganizationLevel> _sectors = new();
+    private List<DHOrganizationLevel> _branches = new();
+    private List<DHOrganizationLevel> _divisions = new();
 
     private int _sectorId = -1;
     private int _branchId = -1;
@@ -72,32 +72,32 @@
         _project = await projectContext.Projects
             .Include(p => p.Pipelines)
             .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectAcronym);
     }
 
     private async Task SuggestTranslation()
     {
-        _project.Project_Name_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Name);
-        _project.Project_Summary_Desc_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Summary_Desc);
+        _project.ProjectNameFr = await TranslationService.GetFrenchTranslation(_project.Project_Name);
+        _project.ProjectSummaryDescFr = await TranslationService.GetFrenchTranslation(_project.ProjectSummaryDesc);
     }
 
     private string Localize(string propName) => Localizer[propName ?? ""];
 
     private async Task UpdateFeatured(bool changed)
     {
-        _project.Is_Featured = changed;
+        _project.IsFeatured = changed;
         await projectContext.SaveChangesAsync();
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task HandleValidSubmit()
     {
-        _project.Last_Updated_DT = DateTime.Now;
+        _project.LastUpdatedDT = DateTime.Now;
         //update admins here
         await projectContext.SaveChangesAsync();
     }
 
-    private List<string> LocalizeChoices(IEnumerable<OrganizationLevel> levels)
+    private List<string> LocalizeChoices(IEnumerable<DHOrganizationLevel> levels)
     {
         return levels.Select(s => !_isFrench ? s.EnglishLabel : s.FrenchLabel).OrderBy(s => s).ToList();
     }
@@ -106,14 +106,14 @@
     private List<string> Branches => LocalizeChoices(_branches.Where(b => b.ParentId == _sectorId));
     private List<string> Divisions => LocalizeChoices(_divisions.Where(d => d.ParentId == _branchId));
 
-    private int GetChoiceId(List<OrganizationLevel> choices, string value, int? parentId = null)
+    private int GetChoiceId(List<DHOrganizationLevel> choices, string value, int? parentId = null)
     {
         return choices.FirstOrDefault(c => (!parentId.HasValue || c.ParentId == parentId.Value) && (c.EnglishLabel.Equals(value) || c.FrenchLabel.Equals(value)))?.Id ?? -1;
     }
 
     private void OnConfigure(IModelFormContext context)
     {
-        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Category, () => new[] 
+        context.RegisterOptionValueProperty<DatahubProject>(s => s.ProjectCategory, () => new[] 
         { 
             "Data Pipeline",
             "Data Science",
@@ -128,7 +128,7 @@
             "Dashboards"
         });
 
-        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Phase, () => new[] 
+        context.RegisterOptionValueProperty<DatahubProject>(s => s.ProjectPhase, () => new[] 
         {
             "Initiation",
             "Requirements",
@@ -139,7 +139,7 @@
             "Ongoing Maintenance and Support"
         });
 
-        context.RegisterOptionValueProperty<Datahub_Project>(p => p.Sector_Name, () => Sectors, s =>
+        context.RegisterOptionValueProperty<DatahubProject>(p => p.SectorName, () => Sectors, s =>
         {
             var id = GetChoiceId(_sectors, s);
             if (_sectorId != id)
@@ -149,7 +149,7 @@
             }
         });
 
-        context.RegisterOptionValueProperty<Datahub_Project>(p => p.Branch_Name, () => Branches, b =>
+        context.RegisterOptionValueProperty<DatahubProject>(p => p.BranchName, () => Branches, b =>
         {
             var id = GetChoiceId(_branches, b, _sectorId);
             if (_branchId != id)
@@ -159,7 +159,7 @@
             }
         });
 
-        context.RegisterOptionValueProperty<Datahub_Project>(p => p.Division_Name, () => Divisions, d =>
+        context.RegisterOptionValueProperty<DatahubProject>(p => p.DivisionName, () => Divisions, d =>
         {
             var id = GetChoiceId(_divisions, d, _branchId);
             if (_divisionId != id)
@@ -172,16 +172,16 @@
     private void RefreshBranches(IModelFormContext context)
     {
         _branchId = -1;
-        _project.Branch_Name = string.Empty;
-        context.RefreshOptions<Datahub_Project>(p => p.Branch_Name);
+        _project.BranchName = string.Empty;
+        context.RefreshOptions<DatahubProject>(p => p.BranchName);
         RefreshDivisions(context);
     }
 
     private void RefreshDivisions(IModelFormContext context)
     {
         _divisionId = -1;
-        _project.Division_Name = string.Empty;
-        context.RefreshOptions<Datahub_Project>(p => p.Division_Name);
+        _project.DivisionName = string.Empty;
+        context.RefreshOptions<DatahubProject>(p => p.DivisionName);
     }
 
     public void Dispose()

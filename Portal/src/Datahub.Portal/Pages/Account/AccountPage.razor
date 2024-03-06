@@ -58,7 +58,7 @@ else
     }
     else
     {
-        _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
+        Logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
         <HomePage/>
     }
 }
@@ -93,7 +93,7 @@ else
     private async Task HandleViewedUserChanged(PortalUser updatedUser)
     {
         _viewedPortalUser = updatedUser;
-        var success = await _userInformationService.UpdatePortalUserAsync(updatedUser);
+        var success = await UserInformationService.UpdatePortalUserAsync(updatedUser);
         if (success)
         {
             _snackbar.Add(Localizer["User information updated"], Severity.Success);

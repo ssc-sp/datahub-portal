@@ -7,7 +7,7 @@ public class StaticStorageReader
     private readonly ILogger<StaticStorageReader> logger;
     private readonly string storageConnectionString;
     private readonly BlobServiceClient blobServiceClient;
-    public const string CONTAINER_NAME = "docset";
+    public const string CONTAINERNAME = "docset";
 
     public StaticStorageReader(ILogger<StaticStorageReader> logger,
         IConfiguration config)
@@ -22,7 +22,7 @@ public class StaticStorageReader
     public async Task<string> ReadDocToString(string name)
     {
         // Create the container and return a container client object
-        BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(CONTAINER_NAME);
+        BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(CONTAINERNAME);
         var client = containerClient.GetBlobClient(name);
         if (await client.ExistsAsync())
         {

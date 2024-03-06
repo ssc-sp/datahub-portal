@@ -1,78 +1,75 @@
-using Azure.Search.Documents.Indexes;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
-using System.Linq;
 using System.Text.Json.Serialization;
+using Azure.Search.Documents.Indexes;
 using Microsoft.AspNetCore.Components.Forms;
 
 namespace Datahub.Core.Data;
 
 public class VersionMetadata
 {
-    public string folderowner { get; set; }
-    public string folderid { get; set; }
-    public string createdby { get; set; }
-    public string lastmodifiedby { get; set; }
-    public string filename { get; set; }
-    public string fileformat { get; set; }
-    public string securityclass { get; set; }
-    public string ownedby { get; set; }
-    public int filesize { get; set; }
-    public DateTime uploadeddate { get; set; }
+    public string Folderowner { get; set; }
+    public string Folderid { get; set; }
+    public string Createdby { get; set; }
+    public string Lastmodifiedby { get; set; }
+    public string Filename { get; set; }
+    public string Fileformat { get; set; }
+    public string Securityclass { get; set; }
+    public string Ownedby { get; set; }
+    public int Filesize { get; set; }
+    public DateTime Uploadeddate { get; set; }
 }
 
 public class Version
 {
-    public string versionid { get; set; }
-    public VersionMetadata metadata { get; set; }
-    public string timestamp { get; set; }
-    public int index { get; set; }
+    public string Versionid { get; set; }
+    public VersionMetadata Metadata { get; set; }
+    public string Timestamp { get; set; }
+    public int Index { get; set; }
 }
 
 /// <summary>
 /// The type of metadata (Folder needs to be less than File, for sorting)
 /// </summary>
-public enum MetadataType {
+public enum MetadataType
+{
     Folder = 1,
-    File = 2        
+    File = 2
 }
 
-public class BaseMetadata : IEquatable<BaseMetadata> , IComparable<BaseMetadata>
+public class BaseMetadata : IEquatable<BaseMetadata>, IComparable<BaseMetadata>
 {
     [JsonIgnore]
-    public MetadataType dataType { get; set; }
+    public MetadataType DataType { get; set; }
 
     [JsonIgnore]
-    public Folder parent { get; set; }
+    public Folder Parent { get; set; }
 
     [JsonIgnore]
-    public string id { get; set; }
+    public string Id { get; set; }
 
     [JsonIgnore]
-    public string name { get; set; }
+    public string Name { get; set; }
 
     [JsonIgnore]
-    public bool isShared { get; set; }
+    public bool IsShared { get; set; }
 
     [SimpleField(IsFilterable = true)]
-    public List<Activity> activities { get; set; } = new List<Activity>();
+    public List<Activity> Activities { get; set; } = new List<Activity>();
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
-    public string createdby { get; set; }
+    public string Createdby { get; set; }
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
-    public virtual string ownedby { get; set; }
+    public virtual string Ownedby { get; set; }
 
     [SimpleField(IsFilterable = true, IsSortable = true)]
-    public DateTime createdts { get; set; }
+    public DateTime Createdts { get; set; }
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
-    public string lastmodifiedby { get; set; }
+    public string Lastmodifiedby { get; set; }
 
     [SimpleField(IsFilterable = true, IsSortable = true)]
-    public DateTime lastmodifiedts { get; set; }
+    public DateTime Lastmodifiedts { get; set; }
 
     public int CompareTo(BaseMetadata other)
     {
@@ -83,10 +80,10 @@ public class BaseMetadata : IEquatable<BaseMetadata> , IComparable<BaseMetadata>
         }
 
         // Folder's go before Files
-        int cmp = ((int)this.dataType).CompareTo((int)other.dataType);
+        int cmp = ((int)this.DataType).CompareTo((int)other.DataType);
         if (cmp == 0)
         {
-            cmp = this.name.CompareTo(other.name);
+            cmp = this.Name.CompareTo(other.Name);
         }
 
         return cmp;
@@ -99,34 +96,33 @@ public class BaseMetadata : IEquatable<BaseMetadata> , IComparable<BaseMetadata>
 }
 
 public class Folder : BaseMetadata
-{       
+{
     public Folder()
     {
-        dataType = MetadataType.Folder;
+        DataType = MetadataType.Folder;
     }
 
-    public bool sortAscending {get; set;} = true;
+    public bool SortAscending { get; set; } = true;
 
-    public override string ownedby
+    public override string Ownedby
     {
         get
         {
-            return base.createdby;
+            return Createdby;
         }
         set
         {
         }
     }
 
-    public List<BaseMetadata> children { get; set; } = new List<BaseMetadata>();
-
+    public List<BaseMetadata> Children { get; set; } = new List<BaseMetadata>();
 
     [JsonIgnore]
     public List<Folder> SubFolders
     {
         get
         {
-            return children.OfType<Folder>().ToList();
+            return Children.OfType<Folder>().ToList();
         }
     }
 
@@ -135,43 +131,43 @@ public class Folder : BaseMetadata
     {
         get
         {
-            return children.OfType<FileMetaData>().ToList();
+            return Children.OfType<FileMetaData>().ToList();
         }
     }
 
     [JsonIgnore]
-    public string fullPathFromRoot
+    public string FullPathFromRoot
     {
         get
         {
-            if (parent != null)
+            if (Parent != null)
             {
-                return $"{parent.fullPathFromRoot}/{id}";
+                return $"{Parent.FullPathFromRoot}/{Id}";
             }
 
-            return id;
+            return Id;
         }
     }
 
     [JsonIgnore]
-    public string rootFolderName
+    public string RootFolderName
     {
         get
         {
-            if (parent != null)
+            if (Parent != null)
             {
-                return parent.rootFolderName;
+                return Parent.RootFolderName;
             }
 
-            return id;
+            return Id;
         }
     }
 
     public virtual void Add(BaseMetadata child, bool sort = true)
     {
-        children.Add(child);
-        child.parent = this;
-        child.isShared = this.isShared;
+        Children.Add(child);
+        child.Parent = this;
+        child.IsShared = this.IsShared;
         if (sort)
         {
             this.Sort();
@@ -179,13 +175,13 @@ public class Folder : BaseMetadata
     }
     public virtual void Add(FileMetaData file, bool sort = true)
     {
-        file.folderpath = this.fullPathFromRoot;
-        Add((BaseMetadata)file, sort);            
+        file.Folderpath = this.FullPathFromRoot;
+        Add((BaseMetadata)file, sort);
     }
 
     public void Remove(BaseMetadata child, bool sort = true)
     {
-        children.Remove(child);
+        Children.Remove(child);
         if (sort)
         {
             this.Sort();
@@ -194,12 +190,12 @@ public class Folder : BaseMetadata
 
     public void Clear()
     {
-        children.Clear();            
+        Children.Clear();
     }
 
     public void Sort()
     {
-        children.Sort((a, b) => (sortAscending) ? a.CompareTo(b) : b.CompareTo(a));
+        Children.Sort((a, b) => SortAscending ? a.CompareTo(b) : b.CompareTo(a));
     }
 }
 
@@ -210,66 +206,65 @@ public class Folder : BaseMetadata
 /// Child has no reference to its parent
 /// </summary>
 public class NonHierarchicalFolder : Folder
-{       
+{
     public NonHierarchicalFolder()
     {
-        dataType = MetadataType.Folder;
+        DataType = MetadataType.Folder;
     }
 
     [JsonIgnore]
-    public new string fullPathFromRoot
+    public new string FullPathFromRoot
     {
         get
         {
-            return "";
+            return string.Empty;
         }
     }
 
     [JsonIgnore]
-    public new string rootFolderName
+    public new string RootFolderName
     {
         get
         {
-            return id;
+            return Id;
         }
     }
 
     public new void Add(FileMetaData file, bool sort = true)
     {
-        children.Add(file);
-        file.isShared = this.isShared;
+        Children.Add(file);
+        file.IsShared = this.IsShared;
         if (sort)
         {
             this.Sort();
         }
     }
-
 }
 
 public class Customfield
 {
     [SearchableField(IsFilterable = true)]
-    public string key { get; set; }
+    public string Key { get; set; }
     [SearchableField(IsFilterable = true)]
-    public string value { get; set; }
+    public string Value { get; set; }
 }
 
 public class Sharedwith
 {
     [SearchableField(IsFilterable = true)]
-    public string userid { get; set; }
+    public string Userid { get; set; }
     [SearchableField(IsFilterable = true)]
-    public string role { get; set; }
+    public string Role { get; set; }
 }
 
 public class Activity
 {
-    public string activity { get; set; }
-    public string userid { get; set; }
-    public DateTime activityts { get; set; }
+    public string ActivityName { get; set; }
+    public string Userid { get; set; }
+    public DateTime Activityts { get; set; }
 }
 
-public class FileMetaData: BaseMetadata
+public class FileMetaData : BaseMetadata
 {
     public const string FileId = "fileid";
     public const string OwnedBy = "ownedby";
@@ -280,46 +275,46 @@ public class FileMetaData: BaseMetadata
 
     public FileMetaData()
     {
-        dataType = MetadataType.File;
+        DataType = MetadataType.File;
     }
 
-    public DateTime Modified => lastmodifiedts;
+    public DateTime Modified => Lastmodifiedts;
 
     [SimpleField(IsKey = true, IsFilterable = true)]
-    public string fileid
+    public string Fileid
     {
         get
         {
-            return base.id;
+            return Id;
         }
         set
         {
-            base.id = value;
+            Id = value;
         }
     }
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
-    public string filename
+    public string Filename
     {
         get
         {
-            return base.name;
+            return Name;
         }
         set
         {
-            base.name = value;
+            Name = value;
         }
     }
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
-    public string folderpath { get; set; }
+    public string Folderpath { get; set; }
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
-    public string fileformat
+    public string Fileformat
     {
         get
         {
-            return !string.IsNullOrWhiteSpace(filename) ? Path.GetExtension(filename).TrimStart('.') : string.Empty;
+            return !string.IsNullOrWhiteSpace(Filename) ? Path.GetExtension(Filename).TrimStart('.') : string.Empty;
         }
         set
         {
@@ -329,142 +324,120 @@ public class FileMetaData: BaseMetadata
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
     [Required(ErrorMessage = "The Security Classification field is required.")]
-    public string securityclass { get; set; }
+    public string Securityclass { get; set; }
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
-    public string description { get; set; }
+    public string Description { get; set; }
 
     [SimpleField(IsFilterable = true)]
-    public List<string> tags
-    {
-        get
-        {
-            List<string> list = string.IsNullOrWhiteSpace(this._tags) ? new List<string>() : this._tags.Split(",").ToList();
-
-            return list;
-        }
-        set
-        {
-            if (value == null || value.Count == 0)
-            {
-                this._tags = string.Empty;
-            }
-            else 
-            {
-                this._tags = string.Join(",", value);
-            }
-        }
-    }
-
-    [SimpleField(IsFilterable = true)]
-    public List<Customfield> customfields { get; set; } = new List<Customfield>();
+    public List<Customfield> Customfields { get; set; } = new List<Customfield>();
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
-    public string filesize { get; set; }
+    public string Filesize { get; set; }
 
     [SimpleField(IsFilterable = true)]
-    public List<Sharedwith> sharedwith { get; set; } = new List<Sharedwith>();
+    public List<Sharedwith> Sharedwith { get; set; } = new List<Sharedwith>();
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
-    public string isdeleted { get; set; } = "false";
+    public string Isdeleted { get; set; } = "false";
 
     [JsonIgnore]
-    public string uploadStatus { get; set; } = FileUploadStatus.None;
+    public string UploadStatus { get; set; } = FileUploadStatus.None;
 
     [JsonIgnore]
-    public long uploadedBytes { get; set; }
+    public long UploadedBytes { get; set; }
 
     [JsonIgnore]
-    public long bytesToUpload { get; set; }
+    public long BytesToUpload { get; set; }
 
     [JsonIgnore]
-    public Stream fileData { get; set; } 
+    public Stream FileData { get; set; }
 
     [JsonIgnore]
-    public Dictionary<string, string> permissionsDict { get; set; } = new Dictionary<string, string>();
+    public Dictionary<string, string> PermissionsDict { get; set; } = new Dictionary<string, string>();
 
     [JsonIgnore]
-    public string _customKey { get; set; }
+    public string CustomKey { get; set; }
 
     [JsonIgnore]
-    public string _customValue { get; set; }
+    public string CustomValue { get; set; }
 
     [JsonIgnore]
-    public string _tags { get; set; }
-        
+    public string Tags { get; set; }
+
     [JsonIgnore]
     public IBrowserFile BrowserFile { get; set; }
-      
+
     [JsonIgnore]
-    public string fullPathFromRoot
+    public string FullPathFromRoot
     {
         get
         {
-            if (parent != null)
+            if (Parent != null)
             {
-                return $"{parent.fullPathFromRoot}/{filename}";
+                return $"{Parent.FullPathFromRoot}/{Filename}";
             }
 
-            return filename;
+            return Filename;
         }
     }
 
     public void FinishUploadInfo(string status)
     {
-        this.uploadedBytes = 0;
-        this.bytesToUpload = 0;
-        if (this.fileData != null)
+        this.UploadedBytes = 0;
+        this.BytesToUpload = 0;
+        if (this.FileData != null)
         {
-            this.fileData.Close();
-            this.fileData.Dispose();
-            this.fileData = null;
+            this.FileData.Close();
+            this.FileData.Dispose();
+            this.FileData = null;
         }
-        this.uploadStatus = status;
+        this.UploadStatus = status;
     }
 }
 
 public class ExpandableItem<T>
 {
-    public T item { get; set; }
-    public bool expanded { get; set; }
-    public bool selected { get; set; }
+    public T Item { get; set; }
+    public bool Expanded { get; set; }
+    public bool Selected { get; set; }
 
-    public int level
+    public int Level
     {
         get
         {
-            if (parent != null)
+            if (Parent != null)
             {
-                return parent.level + 1;
+                return Parent.Level + 1;
             }
 
             return 0;
         }
     }
 
-    public bool hasChildren
+    public bool HasChildren
     {
         get
         {
-            return children.Count > 0;
+            return Children.Count > 0;
         }
-    }    
+    }
 
-    public ExpandableItem<T> parent { get; set; }
-    public List<ExpandableItem<T>> children  { get; set; } = new List<ExpandableItem<T>>();
+    public ExpandableItem<T> Parent { get; set; }
+    public List<ExpandableItem<T>> Children { get; set; } = new List<ExpandableItem<T>>();
 
     public void Add(ExpandableItem<T> child)
     {
-        children.Add(child);
-        child.parent = this;
+        Children.Add(child);
+        child.Parent = this;
     }
 }
-    
+
 /// <summary>
 /// Keep this clAss As it is used by retrieval api
 /// </summary>
 public class UserFiles
 {
-    public List<Folder> folders { get; set; } = new List<Folder>();
-    public List<FileMetaData> files { get; set; } = new List<FileMetaData>();
+    public List<Folder> Folders { get; set; } = new List<Folder>();
+    public List<FileMetaData> Files { get; set; } = new List<FileMetaData>();
 }

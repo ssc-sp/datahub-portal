@@ -8,39 +8,39 @@ public partial class NotificationsList
 {
     private async Task<string> GetLocalTime(SystemNotification notification)
     {
-        var timestampUtc = DateTime.SpecifyKind(notification.Generated_TS, DateTimeKind.Utc);
+        var timestampUtc = DateTime.SpecifyKind(notification.GeneratedTS, DateTimeKind.Utc);
         var localDatetime = await _timezoneService.GetLocalDateTime(timestampUtc);
         return localDatetime.ToString("yyyy-MM-dd HH:mm:ss");
     }
-    
+
     private async Task RefreshNotifications()
     {
         _isLoading = true;
         StateHasChanged();
-        _unreadNotificationCount =  await _systemNotificationService.GetNotificationCountForUser(_currentUserId, true);
+        _unreadNotificationCount = await _systemNotificationService.GetNotificationCountForUser(_currentUserId, true);
         _totalNotificationCount = await _systemNotificationService.GetNotificationCountForUser(_currentUserId, _unreadOnly);
-        _notifications = await _systemNotificationService.GetNotificationsForUser(_currentUserId, _unreadOnly, _currentPage -1);
+        _notifications = await _systemNotificationService.GetNotificationsForUser(_currentUserId, _unreadOnly, _currentPage - 1);
         _isLoading = false;
         StateHasChanged();
     }
 
     private async Task ToggleUnread(SystemNotification notification)
     {
-        await _systemNotificationService.SetReadStatus(notification.Notification_ID, !notification.Read_FLAG);
+        await _systemNotificationService.SetReadStatus(notification.NotificationID, !notification.ReadFLAG);
     }
 
     private async Task GoToActionLink(SystemNotification notification)
     {
-        var t = _systemNotificationService.SetReadStatus(notification.Notification_ID, true);
+        var t = _systemNotificationService.SetReadStatus(notification.NotificationID, true);
 
-        if (!string.IsNullOrEmpty(notification.ActionLink_URL))
+        if (!string.IsNullOrEmpty(notification.ActionLinkURL))
         {
-            _navigationManager.NavigateTo(notification.ActionLink_URL);
+            _navigationManager.NavigateTo(notification.ActionLinkURL);
         }
 
         await t;
     }
-    
+
     private async Task PageChanged(int i)
     {
         _currentPage = i;
@@ -53,7 +53,7 @@ public partial class NotificationsList
         _currentPage = 1;
         await RefreshNotifications();
     }
-    
+
     private async Task OnNotify(string userId)
     {
         if (userId == _currentUserId)
@@ -61,11 +61,11 @@ public partial class NotificationsList
             await InvokeAsync(RefreshNotifications);
         }
     }
-    
+
     private static string BuildNotificationStyle(SystemNotification notification)
     {
         return new StyleBuilder()
-            .AddStyle("border-left", $"4px solid var(--mud-palette-primary)", when: !notification.Read_FLAG)
+            .AddStyle("border-left", $"4px solid var(--mud-palette-primary)", when: !notification.ReadFLAG)
             .Build();
     }
 }

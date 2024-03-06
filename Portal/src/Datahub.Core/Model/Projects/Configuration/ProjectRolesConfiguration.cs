@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Datahub.Core.Model.Projects.Configuration;
 
-public class ProjectRolesConfiguration : IEntityTypeConfiguration<Project_Role>
+public class ProjectRolesConfiguration : IEntityTypeConfiguration<ProjectRole>
 {
-    public void Configure(EntityTypeBuilder<Project_Role> builder)
+    public void Configure(EntityTypeBuilder<ProjectRole> builder)
     {
-        builder.HasData(Project_Role.GetAll());
+        builder.HasData(ProjectRole.GetAll());
 
         builder.ToTable("Project_Roles");
 

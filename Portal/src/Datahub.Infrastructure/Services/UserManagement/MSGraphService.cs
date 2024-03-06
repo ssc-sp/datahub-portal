@@ -2,7 +2,6 @@
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
-using Datahub.Core.Services.UserManagement;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
@@ -71,8 +70,8 @@ public class MSGraphService : IMSGraphService
             {
                 requestConfiguration.QueryParameters.Filter = $"startswith(mail,'{filterText}')";
                 requestConfiguration.QueryParameters.Count = true;
-                requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");                
-            },token
+                requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");
+            }, token
             );
 
         var pageIterator = PageIterator<User, UserCollectionResponse>.CreatePageIterator(
@@ -106,7 +105,7 @@ public class MSGraphService : IMSGraphService
                 };
                 var clientCertCredential = new ClientSecretCredential(
                     _configuration.GetSection("AzureAd").GetValue<string>("TenantId"),
-                    _configuration.GetSection("AzureAd").GetValue<string>("ClientId"), 
+                    _configuration.GetSection("AzureAd").GetValue<string>("ClientId"),
                     _configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"), options);
                 var httpClient = _httpClientFactory.CreateClient();
                 _graphServiceClient = new(httpClient, clientCertCredential);
@@ -132,8 +131,8 @@ public class MSGraphService : IMSGraphService
                     requestConfiguration.QueryParameters.Filter = filter;
                 }, token
             );
-            
-            
+
+
             return user.Value == null ? null : GraphUser.Create(user.Value[0]);
         }
         catch (Exception ex)

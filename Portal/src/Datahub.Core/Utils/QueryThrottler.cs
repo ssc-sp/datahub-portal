@@ -1,34 +1,33 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Datahub.Core.Utils;
+﻿namespace Datahub.Core.Utils;
 
 /// <summary>
 /// Query throttler utility class
 /// </summary>
-public class QueryThrottler<T> where T: IComparable<T>
+/// <typeparam name="T">the type that needs to be throttled</typeparam>
+public class QueryThrottler<T>
+    where T : IComparable<T>
 {
-    private readonly TimeSpan _delay;
-    private readonly Func<T, Task> _callback;
-    private T _query;
+    private readonly TimeSpan delay;
+    private readonly Func<T, Task> callback;
+    private T query;
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="QueryThrottler{T}"/> class.
     /// Constructor
     /// </summary>
     /// <param name="delay">Wait delay between callbacks</param>
     /// <param name="callback">Callback lambda</param>
     public QueryThrottler(TimeSpan delay, Func<T, Task> callback)
     {
-        _delay = delay;
-        _callback = callback;
+        this.delay = delay;
+        this.callback = callback;
     }
 
     /// <summary>
     /// Set the query to throttle
     /// </summary>
     /// <param name="query">Query to throttle. Null queries will be ignored.</param>
-    /// <returns></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public Task SetQuery(T query)
     {
         return Task.Run(() =>
@@ -37,18 +36,18 @@ public class QueryThrottler<T> where T: IComparable<T>
             {
                 lock (this)
                 {
-                    _query = query;
+                    this.query = query;
                 }
 
-                Thread.Sleep(_delay);
+                Thread.Sleep(delay);
 
                 lock (this)
                 {
-                    if (!query.Equals(_query))
+                    if (!query.Equals(this.query))
                         return;
                 }
 
-                _ = _callback.Invoke(query);
+                _ = callback.Invoke(query);
             }
         });
     }

@@ -20,21 +20,21 @@ namespace SyncDocs
     internal class SidebarGenerator
     {
         private const string DEFAULT_FILE = "README.md";
-        
-        private static readonly List<(string, string)> CasingExceptions = new List<(string, string)> { ("Power bI","PowerBI"), ("Az copy","AzCopy"), ("Po c", "PoC") };
+
+        private static readonly List<(string, string)> CasingExceptions = new List<(string, string)> { ("Power bI", "PowerBI"), ("Az copy", "AzCopy"), ("Po c", "PoC") };
 
         private static readonly MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseYamlFrontMatter().Build();
-        
+
         internal string GenerateSidebar(string relativePath, string path, List<string> files, List<string> folders, string activeProfile)
         {
             // first sort the files
             var sorted = files.OrderBy(f => f);
             var sb = new StringBuilder();
             var entries = new Dictionary<string, DocEntry>();
-            var topEntry = new DocEntry() {  FullPath = path, Url = "/" + relativePath };
+            var topEntry = new DocEntry() { FullPath = path, Url = "/" + relativePath };
             entries.Add("", topEntry);
             foreach (var file in sorted)
-            {                
+            {
                 var diff = Path.GetRelativePath(path, file);
                 var currentPath = diff.Replace('\\', '/');
                 var url = currentPath;
@@ -43,14 +43,14 @@ namespace SyncDocs
                 {
                     url = currentPath.Substring(0, currentPath.Length - DEFAULT_FILE.Length);
                 }
-                BuildHierarchy(path, entries, currentPath, file, url,topEntry);
+                BuildHierarchy(path, entries, currentPath, file, url, topEntry);
 
                 //var depth = GetPathDepth(currentPath);
                 //if (!string.IsNullOrWhiteSpace(currentPath))
                 //    sb.AppendLine($"- [{GetTitle(file)}](/{currentPath})");
             }
             // process top level
-            WriteEntries(entries,topEntry, 0, sb, activeProfile);                            
+            WriteEntries(entries, topEntry, 0, sb, activeProfile);
             return sb.ToString();
         }
 
@@ -94,14 +94,14 @@ namespace SyncDocs
 
         private bool WriteEntries(Dictionary<string, DocEntry> entries, DocEntry parent, int level, StringBuilder sb, string activeProfile)
         {
-            var currentEntries = entries.Values.Where(e => e.Parent == parent && IsIncludeOnProfile(e,activeProfile)).OrderBy(e => e.RelativePath).ToList();
+            var currentEntries = entries.Values.Where(e => e.Parent == parent && IsIncludeOnProfile(e, activeProfile)).OrderBy(e => e.RelativePath).ToList();
             foreach (var entry in currentEntries)
             {
                 for (int i = 0; i < level; i++)
                 {
                     sb.Append("  ");
                 }
-                
+
                 if (entry.Url != null)
                 {
                     sb.AppendLine($"- [{GetTitle(entry.Url ?? entry.RelativePath ?? "")}]({entry.Url})");
@@ -125,33 +125,35 @@ namespace SyncDocs
         private void BuildHierarchy(string path, Dictionary<string, DocEntry> entries, string relativePath, string file, string url, DocEntry topEntry)
         {
             var components = relativePath.Split('/');
-            for (int il =0; il < components.Length;il++)
+            for (int il = 0; il < components.Length; il++)
             {
-                var currentPath = components[0..(il+1)].Aggregate((a, b) => a + "/" + b);
-                var parentPath = il > 0?components[0..(il)].Aggregate((a, b) => a + "/" + b):string.Empty;
+                var currentPath = components[0..(il + 1)].Aggregate((a, b) => a + "/" + b);
+                var parentPath = il > 0 ? components[0..(il)].Aggregate((a, b) => a + "/" + b) : string.Empty;
                 var filename = il == components.Length - 1 ? components[il] : null;
                 var isFinal = il == components.Length - 1;
                 if (isFinal && filename == DEFAULT_FILE)
                 {
-                    
+
                     var parent = entries[parentPath];
                     parent.Url = url;
                     parent.FileName = filename;
                     parent.FullPath = Path.Combine(path, currentPath);
-                } else if (!entries.ContainsKey(currentPath))
+                }
+                else if (!entries.ContainsKey(currentPath))
                 {
                     var entry = new DocEntry
                     {
-                        FileName = isFinal?filename:null,
+                        FileName = isFinal ? filename : null,
                         Url = isFinal ? $"{topEntry.Url}/{url}" : null,
-                        FullPath = Path.Combine(path,currentPath),
+                        FullPath = Path.Combine(path, currentPath),
                         RelativePath = currentPath
-                        
+
                     };
                     if (il >= 1)
                     {
                         entry.Parent = entries[parentPath];
-                    } else
+                    }
+                    else
                     {
                         entry.Parent = topEntry;
                     }
@@ -163,7 +165,7 @@ namespace SyncDocs
 
         public static string ToSentenceCase(string str)
         {
-            var s = Regex.Replace(str, "[a-z][A-Z]", m => $"{m.Value[0]} {char.ToLower(m.Value[1])}").Replace("-"," ").Replace("_"," ").Trim();
+            var s = Regex.Replace(str, "[a-z][A-Z]", m => $"{m.Value[0]} {char.ToLower(m.Value[1])}").Replace("-", " ").Replace("_", " ").Trim();
             s = Regex.Replace(s, " {2,}", " ");
             foreach (var item in CasingExceptions)
             {
@@ -174,7 +176,7 @@ namespace SyncDocs
 
         public int GetPathDepth(string path)
         {
-            return path.Split('/').Length -1;
+            return path.Split('/').Length - 1;
         }
 
         private string GetTitle(string file)
@@ -183,13 +185,13 @@ namespace SyncDocs
             if (string.IsNullOrEmpty(current))
                 current = Path.GetDirectoryName(file);
             if (Path.GetFileName(file) == DEFAULT_FILE)
-                current = new DirectoryInfo(Path.Combine(file,"..")).Name; 
+                current = new DirectoryInfo(Path.Combine(file, "..")).Name;
             return ToSentenceCase(current!);
         }
 
         internal string GenerateTopLevel(string path, List<string> topLevelfiles, List<string> topLevelfolders, string activeProfile)
         {
-            return GenerateSidebar("",path, topLevelfiles.Where(f => Path.GetFileName(f) == DEFAULT_FILE).ToList(), topLevelfolders, activeProfile);
+            return GenerateSidebar("", path, topLevelfiles.Where(f => Path.GetFileName(f) == DEFAULT_FILE).ToList(), topLevelfolders, activeProfile);
         }
     }
 }

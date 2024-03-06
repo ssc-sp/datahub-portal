@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Datahub.Core.Model.Achievements;
+﻿namespace Datahub.Core.Model.Achievements;
 
 public class UserAchievement
 {
@@ -10,14 +8,8 @@ public class UserAchievement
     public int Count { get; set; }
     public DateTime UnlockedAt { get; set; }
 
-    #region Navigation props
     public virtual PortalUser PortalUser { get; set; }
     public virtual Achievement Achievement { get; set; }
-    #endregion
-    
-    #region Utility functions
-    
-    public bool Earned => UnlockedAt != default;
 
-    #endregion
+    public bool Earned => UnlockedAt != default;
 }

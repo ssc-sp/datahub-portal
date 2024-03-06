@@ -36,7 +36,7 @@
                 var fieldValue = GetFieldValue(definition, Preview);
                 if (fieldValue != null)
                 {
-                    var fieldPair = _fieldPairs.BindField(definition.Field_Name_TXT, fieldValue);
+                    var fieldPair = _fieldPairs.BindField(definition.FieldNameTXT, fieldValue);
                     <MetadataFieldEditor @key=@fieldValue
                                          Preview=@Preview
                                          Required="IsFieldRequired(definition)"
@@ -102,12 +102,12 @@
     protected override void OnParametersSet()
     {
         _subjectFieldId = Definitions?.Get("subject")?.FieldDefinitionId;
-        _subject = FieldValues?.FirstOrDefault(f => f.FieldDefinitionId == _subjectFieldId)?.Value_TXT;
+        _subject = FieldValues?.FirstOrDefault(f => f.FieldDefinitionId == _subjectFieldId)?.ValueTXT;
     }
 
     private async Task FieldChanged(ObjectFieldValue field)
     {
-        if (string.IsNullOrEmpty(field.Value_TXT))
+        if (string.IsNullOrEmpty(field.ValueTXT))
         {
             // don't do this causes a re-rendering that makes 'required' fields not to render properly. 
             //FieldValues.Remove(field);
@@ -126,7 +126,7 @@
     {
         if (_subjectFieldId.HasValue && _subjectFieldId.Value == value.FieldDefinitionId)
         {
-            _subject = value.Value_TXT;
+            _subject = value.ValueTXT;
             StateHasChanged();
         }
     }
@@ -136,12 +136,12 @@
         var field = FieldValues.FirstOrDefault(f => f.FieldDefinitionId == definition.FieldDefinitionId);
         if (!preview && field is null)
         {
-            var value = !string.IsNullOrEmpty(definition.Default_Value_TXT) ? definition.Default_Value_TXT : GetSingleChoiceValue(definition);
+            var value = !string.IsNullOrEmpty(definition.DefaultValueTXT) ? definition.DefaultValueTXT : GetSingleChoiceValue(definition);
 
             field = new ObjectFieldValue() 
             { 
                 FieldDefinitionId = definition.FieldDefinitionId, 
-                Value_TXT = value
+                ValueTXT = value
             };
 
             if (!string.IsNullOrEmpty(value))
@@ -154,13 +154,13 @@
 
     private string GetCascadingValue(FieldDefinition definition)
     {
-        return FieldValues.FirstOrDefault(f => f.FieldDefinitionId == definition.CascadeParentId)?.Value_TXT;
+        return FieldValues.FirstOrDefault(f => f.FieldDefinitionId == definition.CascadeParentId)?.ValueTXT;
     }
 
     private string GetSingleChoiceValue(FieldDefinition definition)
     {
-        return definition.HasChoices && !definition.MultiSelect_FLAG && definition.Choices.Count == 1 
-            ? definition.Choices.First().Value_TXT 
+        return definition.HasChoices && !definition.MultiSelectFLAG && definition.Choices.Count == 1 
+            ? definition.Choices.First().ValueTXT 
             : null;
     }
 
@@ -191,6 +191,6 @@
 
     static bool IsValidDefinition(FieldDefinition field)
     {
-        return !string.IsNullOrWhiteSpace(field.Field_Name_TXT) && !string.IsNullOrWhiteSpace(field.Name_English_TXT);
+        return !string.IsNullOrWhiteSpace(field.FieldNameTXT) && !string.IsNullOrWhiteSpace(field.NameEnglishTXT);
     }
 }

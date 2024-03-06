@@ -22,7 +22,7 @@ namespace Datahub.Infrastructure.Services
             _auditingService = auditingService;
         }
 
-        public async Task<IEnumerable<Project_Whitelist>> GetAllProjectResourceWhitelistAsync()
+        public async Task<IEnumerable<ProjectWhitelist>> GetAllProjectResourceWhitelistAsync()
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
@@ -32,49 +32,49 @@ namespace Datahub.Infrastructure.Services
             return results.ToList();
         }
 
-        public async Task<Project_Whitelist> GetWhitelistByProjectAsync(int projectId)
+        public async Task<ProjectWhitelist> GetWhitelistByProjectAsync(int projectId)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
-            var whitelist = await context.Project_Whitelists.FirstOrDefaultAsync(x => x.Project.Project_ID == projectId);
-            return whitelist ?? new Project_Whitelist() { ProjectId = projectId };
+            var whitelist = await context.ProjectWhitelists.FirstOrDefaultAsync(x => x.Project.ProjectID == projectId);
+            return whitelist ?? new ProjectWhitelist() { ProjectId = projectId };
         }
 
-        public async Task<Project_Whitelist> GetProjectResourceWhitelistByProjectAsync(int projectId)
+        public async Task<ProjectWhitelist> GetProjectResourceWhitelistByProjectAsync(int projectId)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
-            var whitelist = await context.Project_Whitelists
+            var whitelist = await context.ProjectWhitelists
                 .Include(wl => wl.Project)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Project.Project_ID == projectId);
-            return whitelist ?? new Project_Whitelist() { ProjectId = projectId };
+                .FirstOrDefaultAsync(x => x.Project.ProjectID == projectId);
+            return whitelist ?? new ProjectWhitelist() { ProjectId = projectId };
         }
 
-        private async Task<Project_Whitelist> GetProjectResourceWhitelistByProjectAsync(
-            Datahub_Project project)
+        private async Task<ProjectWhitelist> GetProjectResourceWhitelistByProjectAsync(
+            DatahubProject project)
         {
-            var whitelist = await GetProjectResourceWhitelistByProjectAsync(project.Project_ID);
+            var whitelist = await GetProjectResourceWhitelistByProjectAsync(project.ProjectID);
             whitelist.Project = project;
             return whitelist;
         }
 
-        public async Task UpdateProjectResourceWhitelistAsync(Project_Whitelist projectResourceWhitelist)
+        public async Task UpdateProjectResourceWhitelistAsync(ProjectWhitelist projectResourceWhitelist)
         {
             var currentUser = await _userInformationService.GetCurrentGraphUserAsync();
-            
+
             projectResourceWhitelist.LastUpdated = DateTime.Now;
-            projectResourceWhitelist.AdminLastUpdated_ID = currentUser.Id;
-            projectResourceWhitelist.AdminLastUpdated_UserName = currentUser.Mail;
+            projectResourceWhitelist.AdminLastUpdatedID = currentUser.Id;
+            projectResourceWhitelist.AdminLastUpdatedUserName = currentUser.Mail;
 
             await using var context = await _contextFactory.CreateDbContextAsync();
-            
+
             // add or update whitelist
             if (projectResourceWhitelist.Id == 0)
             {
-                context.Project_Whitelists.Add(projectResourceWhitelist);
+                context.ProjectWhitelists.Add(projectResourceWhitelist);
             }
             else
             {
-                context.Project_Whitelists.Update(projectResourceWhitelist);
+                context.ProjectWhitelists.Update(projectResourceWhitelist);
             }
 
             await context.TrackSaveChangesAsync(_auditingService);

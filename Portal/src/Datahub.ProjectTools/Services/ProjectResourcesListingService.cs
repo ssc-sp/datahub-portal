@@ -44,7 +44,7 @@ public class ProjectResourcesListingService
 
     private static readonly Type[] ResourceProviders = {
         typeof(DHPublicSharing)
-    }; 
+    };
 
     public static void RegisterResources(IServiceCollection services)
     {
@@ -57,12 +57,12 @@ public class ProjectResourcesListingService
     {
         await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
         //load requests for project
-        
+
         var project = await ctx.Projects
             .AsSingleQuery()
             .Include(p => p.Resources)
             .Include(p => p.Whitelist)
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectAcronym);
 
         if (project == null)
         {
@@ -75,14 +75,14 @@ public class ProjectResourcesListingService
         using var serviceScope = _serviceProvider.CreateScope();
         var authUser = await _userInformationService.GetAuthenticatedUser();
         var output = new List<IProjectResource>();
-        var isUserAdmin = await _userInformationService.IsUserProjectAdmin(project.Project_Acronym_CD);
+        var isUserAdmin = await _userInformationService.IsUserProjectAdmin(project.ProjectAcronymCD);
         var isUserDHAdmin = await _userInformationService.IsUserDatahubAdmin();
 
         var allResourceProviders = GetAllResourceProviders(_configuration.Value);
 
         foreach (var item in allResourceProviders)
         {
-            _logger.LogDebug("Configuring {ItemName} in project {ProjectProjectId} ({ProjectProjectName})", item.Name, project.Project_ID, project.Project_Name);
+            _logger.LogDebug("Configuring {ItemName} in project {ProjectProjectId} ({ProjectProjectName})", item.Name, project.ProjectID, project.Project_Name);
             try
             {
                 if (serviceScope.ServiceProvider.GetRequiredService(item) is IProjectResource dhResource)
@@ -94,7 +94,7 @@ public class ProjectResourcesListingService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error configuring {ItemName} in project {ProjectProjectId} ({ProjectProjectName})", item.Name, project.Project_ID, project.Project_Name);
+                _logger.LogError(ex, "Error configuring {ItemName} in project {ProjectProjectId} ({ProjectProjectName})", item.Name, project.ProjectID, project.Project_Name);
             }
         }
 
@@ -106,7 +106,7 @@ public class ProjectResourcesListingService
                 var githubModules = await _githubToolsService.GetAllModules();
                 foreach (var item in githubModules)
                 {
-                    _logger.LogDebug($"Configuring {item.Name} in project {project.Project_ID} ({project.Project_Name})");
+                    _logger.LogDebug($"Configuring {item.Name} in project {project.ProjectID} ({project.Project_Name})");
                     var gitModule = serviceScope.ServiceProvider.GetRequiredService<ServiceCatalogGitModuleResource>();
                     gitModule.ConfigureGitModule(item);
                     await gitModule.InitializeAsync(project, await _userInformationService.GetUserIdString(),
@@ -116,9 +116,9 @@ public class ProjectResourcesListingService
             }
             catch
             {
-                #if !DEBUG
+#if !DEBUG
                 throw;
-                #endif
+#endif
             }
         }
 

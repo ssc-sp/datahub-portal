@@ -20,7 +20,7 @@ public abstract class QueueMessageSender<T> : IRequestHandler<T> where T : IRequ
         var storageConnectionString = _configuration["DatahubStorageConnectionString"] ?? _configuration["DatahubStorageQueue:ConnectionString"];
         var queueName = _configuration[ConfigPathOrQueueName] ?? ConfigPathOrQueueName;
 
-        if (string.IsNullOrEmpty(storageConnectionString) || string.IsNullOrEmpty(queueName)) 
+        if (string.IsNullOrEmpty(storageConnectionString) || string.IsNullOrEmpty(queueName))
         {
             throw new Exception("Invalid storage connection or queue configuration!");
         }

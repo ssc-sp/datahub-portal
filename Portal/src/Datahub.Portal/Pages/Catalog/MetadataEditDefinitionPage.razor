@@ -87,9 +87,9 @@
 
             await ctx.TrackSaveChangesAsync(AuditingService);
 
-            if (isNewDefinition && !string.IsNullOrEmpty(_form.Choices_TXT))
+            if (isNewDefinition && !string.IsNullOrEmpty(_form.ChoicesTXT))
             {
-                foreach (var choice in ParseChoices(_form.Choices_TXT, def.FieldDefinitionId))
+                foreach (var choice in ParseChoices(_form.ChoicesTXT, def.FieldDefinitionId))
                 {
                     ctx.FieldChoices.Add(choice);
                 }
@@ -122,9 +122,9 @@
         return new FieldChoice()
         {
             FieldDefinitionId = definitionId,
-            Label_English_TXT = choice.English.Trim(),
-            Label_French_TXT = choice.French.Trim(),
-            Value_TXT = choice.Id.Trim()
+            LabelEnglishTXT = choice.English.Trim(),
+            LabelFrenchTXT = choice.French.Trim(),
+            ValueTXT = choice.Id.Trim()
         };
     }
 

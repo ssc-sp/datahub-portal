@@ -28,7 +28,7 @@
 
 @if (_webanalytic != null)
 {
-    if (_webanalytic.WebAnalytics_ID > 0)
+    if (_webanalytic.WebAnalyticsID > 0)
     {
         <h2>Edit Web Analytic Owner: @(_webanalytic.Owner), URL: #@_webanalytic.URL </h2>
     }
@@ -106,7 +106,7 @@
 
     private void CreateNewProject()
     {
-        _webanalytic = new WebAnalytics() { Last_Updated_DT = DateTime.Now };
+        _webanalytic = new WebAnalytics() { LastUpdatedDT = DateTime.Now };
         StateHasChanged();
     }
 
@@ -115,11 +115,11 @@
         if (_webanalytic != null)
         {
 
-            if (_webanalytic.WebAnalytics_ID == 0)
+            if (_webanalytic.WebAnalyticsID == 0)
             {
                 _webanalytic = Context.WebAnalytics.Add(_webanalytic).Entity;
             }
-            _webanalytic.Last_Updated_DT = DateTime.Now;
+            _webanalytic.LastUpdatedDT = DateTime.Now;
             await Context.SaveChangesAsync();
             _webanalytics = Context.WebAnalytics.ToList();
             //_tombstone = null;

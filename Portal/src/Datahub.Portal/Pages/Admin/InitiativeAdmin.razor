@@ -12,7 +12,7 @@
         <CascadingValue Value="IsDataHubAdmin" Name="IsDatahubAdmin">
             <CascadingValue Value="CurrentUserEmail" Name="CurrentUserEmail">
                 <MudTabs>
-                    <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
+                    <AuthorizeView Roles=@RoleConstants.DATAHUBROLEADMIN>
                         <MudTabPanel Text=@Localizer[$"{ADMIN_SECTION_LOCALIZATION_PREFIX}.DataHubInitiativeTracker"]>
                             <MudCard Class="pa-8">
                                 <MudCardHeader>
@@ -59,7 +59,7 @@
         CurrentUserId = await _userInformationService.GetUserIdString();
         CurrentUserEmail = _user.Identity?.Name;
         CurrentUserName = _user.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
-        IsDataHubAdmin = _user.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+        IsDataHubAdmin = _user.IsInRole(RoleConstants.DATAHUBROLEADMIN);
 
     }
 

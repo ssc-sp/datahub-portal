@@ -2,15 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Datahub.Core.Data;
 using Datahub.Core.Services.Api;
-using Datahub.Core.Services.Storage;
 using Datahub.Infrastructure.Services.Storage;
-using Newtonsoft.Json;
 
 namespace Datahub.Portal.Controllers;
 
 [Route("[controller]/[action]")]
 [AllowAnonymous]
-public class PublicController: Controller
+public class PublicController : Controller
 {
     private readonly DataRetrievalService dataRetrievalService;
 
@@ -18,7 +16,7 @@ public class PublicController: Controller
     private IPublicDataFileService _pubFileService { get; set; }
 
     public PublicController(
-        ILogger<PublicController> logger, 
+        ILogger<PublicController> logger,
         IPublicDataFileService pubFileService,
         DataRetrievalService dataRetrievalService
     )
@@ -38,15 +36,15 @@ public class PublicController: Controller
     {
         var filemd = new FileMetaData()
         {
-            filename = "privacy.html",
-            name = "privacy.html"
+            Filename = "privacy.html",
+            Name = "privacy.html"
         };
 
         var project = "canmetrobo";
 
-        _logger.LogDebug($"Downloading {filemd.filename} from project {project}");
+        _logger.LogDebug($"Downloading {filemd.Filename} from project {project}");
 
-        var uri = await dataRetrievalService.GetUserDelegationSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, filemd.filename, project);
+        var uri = await dataRetrievalService.GetUserDelegationSasBlob(DataRetrievalService.DEFAULTCONTAINERNAME, filemd.Filename, project);
 
         return Redirect(uri.ToString());
     }
@@ -55,13 +53,13 @@ public class PublicController: Controller
     {
         var filemd = new FileMetaData()
         {
-            folderpath = "nrcan-rncan.gc.ca/alexander.khavich",
-            filename = "serious.gif"
+            Folderpath = "nrcan-rncan.gc.ca/alexander.khavich",
+            Filename = "serious.gif"
         };
 
-        _logger.LogDebug($"Downloading {filemd.filename}");
+        _logger.LogDebug($"Downloading {filemd.Filename}");
 
-        var uri = await dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, filemd,null);
+        var uri = await dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULTCONTAINERNAME, filemd, null);
         return Redirect(uri.ToString());
     }
 

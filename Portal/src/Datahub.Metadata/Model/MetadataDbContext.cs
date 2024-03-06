@@ -31,9 +31,9 @@ public class MetadataDbContext : DbContext
             entity.HasKey(e => e.MetadataVersionId);
             entity.Property(e => e.MetadataVersionId).ValueGeneratedOnAdd();
 
-            entity.Property(e => e.Source_TXT).HasMaxLength(32);
+            entity.Property(e => e.SourceTXT).HasMaxLength(32);
 
-            entity.Property(e => e.Version_Info_TXT).HasMaxLength(128);
+            entity.Property(e => e.VersionInfoTXT).HasMaxLength(128);
         });
 
         modelBuilder.Entity<FieldDefinition>(entity =>
@@ -46,11 +46,11 @@ public class MetadataDbContext : DbContext
             entity.HasOne(e => e.MetadataVersion)
                 .WithMany(e => e.Definitions);
 
-            entity.Property(e => e.Field_Name_TXT)
+            entity.Property(e => e.FieldNameTXT)
                 .IsRequired()
                 .HasMaxLength(128);
 
-            entity.HasIndex(e => new { e.Field_Name_TXT, e.MetadataVersionId })
+            entity.HasIndex(e => new { e.FieldNameTXT, e.MetadataVersionId })
                 .IsUnique();
         });
 
@@ -61,32 +61,32 @@ public class MetadataDbContext : DbContext
             entity.HasKey(e => e.FieldChoiceId);
             entity.Property(e => e.FieldChoiceId).ValueGeneratedOnAdd();
 
-            entity.Property(e => e.Value_TXT)
+            entity.Property(e => e.ValueTXT)
                 .IsRequired()
                 .HasMaxLength(128);
 
-            entity.Property(e => e.Cascading_Value_TXT)
+            entity.Property(e => e.CascadingValueTXT)
                 .HasMaxLength(128);
 
             entity.HasOne(e => e.FieldDefinition)
-                .WithMany(e => e.Choices);                   
+                .WithMany(e => e.Choices);
         });
 
-        modelBuilder.Entity<ObjectMetadata>(entity => 
+        modelBuilder.Entity<ObjectMetadata>(entity =>
         {
             entity.ToTable("ObjectMetadata");
 
             entity.HasKey(e => e.ObjectMetadataId);
             entity.Property(e => e.ObjectMetadataId).ValueGeneratedOnAdd();
 
-            entity.Property(e => e.ObjectId_TXT)
+            entity.Property(e => e.ObjectIdTXT)
                 .IsRequired()
                 .HasMaxLength(128);
 
             entity.HasOne(e => e.MetadataVersion)
                 .WithMany(e => e.Objects);
 
-            entity.HasIndex(e => e.ObjectId_TXT)
+            entity.HasIndex(e => e.ObjectIdTXT)
                 .IsUnique();
         });
 
@@ -112,12 +112,12 @@ public class MetadataDbContext : DbContext
             entity.HasKey(e => e.KeywordId);
             entity.Property(e => e.KeywordId).ValueGeneratedOnAdd();
 
-            entity.Property(e => e.English_TXT).HasMaxLength(128);
-            entity.HasIndex(e => e.English_TXT)
+            entity.Property(e => e.EnglishTXT).HasMaxLength(128);
+            entity.HasIndex(e => e.EnglishTXT)
                 .IsUnique();
 
-            entity.Property(e => e.French_TXT).HasMaxLength(128);
-            entity.HasIndex(e => e.French_TXT)
+            entity.Property(e => e.FrenchTXT).HasMaxLength(128);
+            entity.HasIndex(e => e.FrenchTXT)
                 .IsUnique();
 
             entity.Property(e => e.Source).HasMaxLength(64);
@@ -130,19 +130,19 @@ public class MetadataDbContext : DbContext
             entity.HasKey(e => e.ApprovalFormId);
             entity.Property(e => e.ApprovalFormId).ValueGeneratedOnAdd();
 
-            entity.Property(e => e.Department_NAME).HasMaxLength(256);
-            entity.Property(e => e.Sector_NAME).HasMaxLength(256);
-            entity.Property(e => e.Branch_NAME).HasMaxLength(256);
-            entity.Property(e => e.Division_NAME).HasMaxLength(256);
-            entity.Property(e => e.Section_NAME).HasMaxLength(256);
+            entity.Property(e => e.DepartmentNAME).HasMaxLength(256);
+            entity.Property(e => e.SectorNAME).HasMaxLength(256);
+            entity.Property(e => e.BranchNAME).HasMaxLength(256);
+            entity.Property(e => e.DivisionNAME).HasMaxLength(256);
+            entity.Property(e => e.SectionNAME).HasMaxLength(256);
 
-            entity.Property(e => e.Name_NAME).HasMaxLength(256).IsRequired();
-            entity.Property(e => e.Phone_TXT).HasMaxLength(32);
+            entity.Property(e => e.NameNAME).HasMaxLength(256).IsRequired();
+            entity.Property(e => e.PhoneTXT).HasMaxLength(32);
 
-            entity.Property(e => e.Email_EMAIL).HasMaxLength(128).IsRequired();
+            entity.Property(e => e.EmailEMAIL).HasMaxLength(128).IsRequired();
 
-            entity.Property(e => e.Dataset_Title_TXT).HasMaxLength(256).IsRequired();
-            entity.Property(e => e.Type_Of_Data_TXT).HasMaxLength(16).IsRequired();
+            entity.Property(e => e.DatasetTitleTXT).HasMaxLength(256).IsRequired();
+            entity.Property(e => e.TypeOfDataTXT).HasMaxLength(16).IsRequired();
         });
 
         modelBuilder.Entity<Subject>(entity =>
@@ -150,8 +150,8 @@ public class MetadataDbContext : DbContext
             entity.ToTable("Subjects");
             entity.HasKey(e => e.SubjectId);
 
-            entity.Property(e => e.Subject_TXT).HasMaxLength(64);
-            entity.HasIndex(e => e.Subject_TXT).IsUnique();
+            entity.Property(e => e.SubjectTXT).HasMaxLength(64);
+            entity.HasIndex(e => e.SubjectTXT).IsUnique();
         });
 
         modelBuilder.Entity<SubSubject>(entity =>
@@ -178,8 +178,8 @@ public class MetadataDbContext : DbContext
             entity.HasKey(e => e.SectionId);
             entity.Property(e => e.SectionId).ValueGeneratedOnAdd();
 
-            entity.Property(e => e.Name_English_TXT).HasMaxLength(256);
-            entity.Property(e => e.Name_French_TXT).HasMaxLength(256);
+            entity.Property(e => e.NameEnglishTXT).HasMaxLength(256);
+            entity.Property(e => e.NameFrenchTXT).HasMaxLength(256);
 
             entity.HasOne(e => e.Profile)
                 .WithMany(e => e.Sections);
@@ -208,8 +208,8 @@ public class MetadataDbContext : DbContext
             entity.HasOne(e => e.ObjectMetadata)
                 .WithMany(e => e.CatalogObjects);
 
-            entity.Property(e => e.Name_TXT).IsRequired();
-            entity.Property(e => e.SecurityClass_TXT).HasDefaultValue("Unclassified").IsRequired();
+            entity.Property(e => e.NameTXT).IsRequired();
+            entity.Property(e => e.SecurityClassTXT).HasDefaultValue("Unclassified").IsRequired();
 
             entity.HasIndex(e => e.GroupId);
         });

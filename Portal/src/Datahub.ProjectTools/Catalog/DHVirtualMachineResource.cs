@@ -1,8 +1,5 @@
 using Datahub.Core.Configuration;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services.Projects;
-using Datahub.ProjectTools.Services;
-using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph.Models;
@@ -32,7 +29,7 @@ public class DHVirtualMachineResource : ActiveGitModuleResource
         await using var projectDbContext = await _dbContextFactory.CreateDbContextAsync();
         // var serviceRequests = Project.ProjectRequestAudits;
         // var serviceTerraformTemplateName =
-            // TerraformTemplate.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
+        // TerraformTemplate.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
         // _serviceRequested = serviceRequests.Any(r => r.RequestType == serviceTerraformTemplateName && r.Is_Completed == null);
         // _serviceCreated = serviceRequests.Any(r => r.RequestType == serviceTerraformTemplateName && r.Is_Completed != null);
     }

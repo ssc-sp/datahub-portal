@@ -44,40 +44,40 @@
 
     private string AccessKeyId
     {
-        get => ConnectionData[AWS_AccesKeyId];
+        get => ConnectionData[AWSAccesKeyId];
         set
         {
-            ConnectionData[AWS_AccesKeyId] = value;
+            ConnectionData[AWSAccesKeyId] = value;
             Validate();
         }
     }
 
     private string AccessKeySecret
     {
-        get => ConnectionData[AWS_AccessKeySecret];
+        get => ConnectionData[AWSAccessKeySecret];
         set
         {
-            ConnectionData[AWS_AccessKeySecret] = value;
+            ConnectionData[AWSAccessKeySecret] = value;
             Validate();
         }
     }
 
     private string Region
     {
-        get => ConnectionData[AWS_Region];
+        get => ConnectionData[AWSRegion];
         set
         {
-            ConnectionData[AWS_Region] = value;
+            ConnectionData[AWSRegion] = value;
             Validate();
         }
     }
 
     private string BucketName
     {
-        get => ConnectionData[AWS_BucketName];
+        get => ConnectionData[AWSBucketName];
         set
         {
-            ConnectionData[AWS_BucketName] = value;
+            ConnectionData[AWSBucketName] = value;
             Validate();
         }
     }
@@ -94,9 +94,9 @@
     {
         if (ConnectionData is null) throw new InvalidDataException($"ConnectionData is null.");
 
-        if (string.IsNullOrEmpty(ConnectionData[AWS_Region]))
+        if (string.IsNullOrEmpty(ConnectionData[AWSRegion]))
         {
-            ConnectionData[AWS_Region] = DEFAULT_REGION;
+            ConnectionData[AWSRegion] = DEFAULT_REGION;
         }
 
         Validate();

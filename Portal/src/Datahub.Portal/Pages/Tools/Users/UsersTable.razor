@@ -55,8 +55,8 @@
                 @foreach(var workspace in context.Workspaces)
                 {
                     <li>
-                        <MudLink Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{workspace.Project_Acronym_CD}")">
-                            <MudText>@workspace.ProjectName <span style="@AcronymStyle">(@workspace.Project_Acronym_CD)</span></MudText>
+                        <MudLink Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{workspace.ProjectAcronymCD}")">
+                            <MudText>@workspace.ProjectName <span style="@AcronymStyle">(@workspace.ProjectAcronymCD)</span></MudText>
                         </MudLink>
                     </li>
                 }
@@ -115,7 +115,7 @@
             return true;
         if (userWorkspaces.User.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        return userWorkspaces.Workspaces.Any(x => x.Project_Acronym_CD.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) || 
+        return userWorkspaces.Workspaces.Any(x => x.ProjectAcronymCD.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) || 
                userWorkspaces.Workspaces.Any(x => x.ProjectName.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
     }
 }

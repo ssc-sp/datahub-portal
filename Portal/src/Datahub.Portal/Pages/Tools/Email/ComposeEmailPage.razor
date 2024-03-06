@@ -123,7 +123,7 @@
     protected override async Task OnInitializedAsync()
     {
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        _projects = await ctx.Projects.Select(p => new ProjectInfo(p.Project_Acronym_CD, p.ProjectName)).ToListAsync();
+        _projects = await ctx.Projects.Select(p => new ProjectInfo(p.ProjectAcronymCD, p.ProjectName)).ToListAsync();
     }
 
     private bool IsPreviewDisabled()

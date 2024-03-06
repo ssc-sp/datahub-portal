@@ -28,7 +28,7 @@ public class FieldDefinitions
         if (field == null)
             throw new ArgumentException("Null field definition!");
 
-        if (string.IsNullOrEmpty(field?.Field_Name_TXT))
+        if (string.IsNullOrEmpty(field?.FieldNameTXT))
             throw new ArgumentException("Field with empty name!");
 
         if (_fields.Count != 0)
@@ -41,13 +41,13 @@ public class FieldDefinitions
             _metadataVersionId = field.MetadataVersionId;
         }
 
-        var key = GetKey(field.Field_Name_TXT);
+        var key = GetKey(field.FieldNameTXT);
         if (_fields.ContainsKey(key))
         {
             if (_ignoreDuplicates)
                 return;
 
-            throw new ArgumentException($"Duplicated field '{field.Field_Name_TXT}' detected!");
+            throw new ArgumentException($"Duplicated field '{field.FieldNameTXT}' detected!");
         }
 
         _fields.Add(key, field);
@@ -59,7 +59,7 @@ public class FieldDefinitions
 
     public int? MapId(string fieldName) => Get(fieldName)?.FieldDefinitionId;
 
-    public IEnumerable<FieldDefinition> Fields => _fields.Values.OrderBy(f => f.Sort_Order_NUM);
+    public IEnumerable<FieldDefinition> Fields => _fields.Values.OrderBy(f => f.SortOrderNUM);
 
     public int MetadataVersion => _metadataVersionId;
 

@@ -7,6 +7,6 @@ public class BilingualText
 
     public string GetString(bool isFrench)
     {
-        return isFrench? Fr: En;
+        return isFrench ? Fr : En;
     }
 }

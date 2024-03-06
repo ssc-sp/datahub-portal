@@ -35,7 +35,7 @@ else
         {
             await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
             _numberOfSharedFiles = await dbContext.SharedDataFiles
-                .CountAsync(p => p.ProjectCode_CD == ProjectAcronym);
+                .CountAsync(p => p.ProjectCodeCD == ProjectAcronym);
         }
 
         _isInitialized = true;

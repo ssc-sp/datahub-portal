@@ -9,143 +9,143 @@ public class LanguageTrainingApplication
 {
     [Key]
     [AeFormIgnore]
-    public int Application_ID { get; set; }
+    public int ApplicationID { get; set; }
 
 
     [AeFormCategory("Employee Information", 10)]
     [Required]
     [MaxLength(200)]
-    public string NRCan_Username { get; set; }
+    public string NRCanUsername { get; set; }
     [AeFormCategory("Employee Information", 10)]
     [Required]
-    public string First_Name { get; set; }
+    public string FirstName { get; set; }
     [AeFormCategory("Employee Information", 10)]
     [Required]
-    public string Last_Name { get; set; }
+    public string LastName { get; set; }
     [AeFormCategory("Employee Information", 10)]
     [Required]
-    public string Email_Address_EMAIL { get; set; }
+    public string EmailAddressEMAIL { get; set; }
     [AeFormCategory("Employee Information", 10)]
     [AeLabel(isDropDown: true)]
     [Required]
-    public string Sector_Branch { get; set; }
+    public string SectorBranch { get; set; }
     [AeFormCategory("Employee Information", 10)]
     [Required]
     public string City { get; set; }
     [AeFormCategory("Employee Information", 10)]
     [AeLabel(isDropDown: true)]
     [Required]
-    public string Province_Territory { get; set; }
+    public string ProvinceTerritory { get; set; }
     [AeFormCategory("Employee Information", 10)]
     [AeLabel(isDropDown: true)]
     [Required]
-    public string Employment_Status { get; set; }
+    public string EmploymentStatus { get; set; }
     [AeFormCategory("Employee Information", 10)]
     [AeLabel(isDropDown: true)]
     [Required]
-    public string I_am_seeking { get; set; }
-    [AeFormCategory("Language Assessment", 20)]                
-    public bool Completed_LETP_Assessment { get; set; }
-    [AeFormCategory("Language Assessment", 20)]        
-    public bool Language_Training_Since_LETP_Assessment { get; set; }
+    public string IAmSeeking { get; set; }
     [AeFormCategory("Language Assessment", 20)]
-    [AeLabel(isDropDown: true)]        
-    public string Language_Training_Provided_By { get; set; }
-
+    public bool CompletedLETPAssessment { get; set; }
     [AeFormCategory("Language Assessment", 20)]
-    [AeLabel(isDropDown: true)]        
-    public string Last_Course_Successfully_Completed { get; set; }
-        
-    [AeFormCategory("Language Assessment", 20)]        
-    public int Completed_Training_Year { get; set; }
-        
+    public bool LanguageTrainingSinceLETPAssessment { get; set; }
     [AeFormCategory("Language Assessment", 20)]
     [AeLabel(isDropDown: true)]
-    public string Completed_Training_Session { get; set; }
-        
-    [AeFormCategory("Language Assessment", 20)]        
-    public bool Report_Sent_To_NRCan_Language_School { get; set; }
-        
-    [AeFormCategory("Language Assessment", 20)]
-    public bool Employee_Appointed_NonImperative_Basis { get; set; }
-    [AeFormCategory("Language Assessment", 20)]
-    public bool Employee_language_profile_raised { get; set; }
-    [AeFormCategory("Language Assessment", 20)]
-    public bool Employee_In_Pardp { get; set; }
-    [AeFormCategory("Language Assessment", 20)]
-    public bool Employee_professional_dev_program { get; set; }
-        
+    public string LanguageTrainingProvidedBy { get; set; }
 
-    [AeFormCategory("Language Assessment", 20)]
-    public bool Employee_talent_management_exercise { get; set; }
-    [AeFormCategory("Language Assessment", 20)]
-    public bool Employee_equity_group { get; set; }
-
-
-
-    [AeFormCategory("Language Assessment", 20)]
-        
-    public bool Second_Language_Evaluation_Results { get; set; }
     [AeFormCategory("Language Assessment", 20)]
     [AeLabel(isDropDown: true)]
-        
-    public string SLE_Results_Reading { get; set; }
+    public string LastCourseSuccessfullyCompleted { get; set; }
+
+    [AeFormCategory("Language Assessment", 20)]
+    public int CompletedTrainingYear { get; set; }
+
     [AeFormCategory("Language Assessment", 20)]
     [AeLabel(isDropDown: true)]
-        
-    public string SLE_Results_Writing { get; set; }
+    public string CompletedTrainingSession { get; set; }
+
     [AeFormCategory("Language Assessment", 20)]
-    [AeLabel(isDropDown: true)]        
-    public string SLE_Results_Oral { get; set; }
-        
+    public bool ReportSentToNRCanLanguageSchool { get; set; }
+
+    [AeFormCategory("Language Assessment", 20)]
+    public bool EmployeeAppointedNonImperativeBasis { get; set; }
+    [AeFormCategory("Language Assessment", 20)]
+    public bool EmployeeLanguageProfileRaised { get; set; }
+    [AeFormCategory("Language Assessment", 20)]
+    public bool EmployeeInPardp { get; set; }
+    [AeFormCategory("Language Assessment", 20)]
+    public bool EmployeeProfessionalDevProgram { get; set; }
+
+
+    [AeFormCategory("Language Assessment", 20)]
+    public bool EmployeeTalentManagementExercise { get; set; }
+    [AeFormCategory("Language Assessment", 20)]
+    public bool EmployeeEquityGroup { get; set; }
+
+
+
+    [AeFormCategory("Language Assessment", 20)]
+
+    public bool SecondLanguageEvaluationResults { get; set; }
+    [AeFormCategory("Language Assessment", 20)]
+    [AeLabel(isDropDown: true)]
+
+    public string SLEResultsReading { get; set; }
+    [AeFormCategory("Language Assessment", 20)]
+    [AeLabel(isDropDown: true)]
+
+    public string SLEResultsWriting { get; set; }
+    [AeFormCategory("Language Assessment", 20)]
+    [AeLabel(isDropDown: true)]
+    public string SLEResultsOral { get; set; }
+
 
     [AeFormCategory("Language Training Application", 30)]
     [AeLabel(isDropDown: true)]
     [Required]
-    public string Training_Type { get; set; }
+    public string TrainingType { get; set; }
     [AeFormCategory("Language Training Application", 30)]
-    public DateTime SLE_Test_Date { get; set; }
-    [AeFormCategory("Language Training Application", 30)]
-    [AeFormIgnore]
-    public int Year_For_Language_Training { get; set; }
+    public DateTime SLETestDate { get; set; }
     [AeFormCategory("Language Training Application", 30)]
     [AeFormIgnore]
-    public byte Quarter_NUM { get; set; }
+    public int YearForLanguageTraining { get; set; }
+    [AeFormCategory("Language Training Application", 30)]
+    [AeFormIgnore]
+    public byte QuarterNUM { get; set; }
     [Editable(false)]
     [AeFormCategory("Language Training Application", 30)]
-    public string Session_For_Language_Training { get; set; }
+    public string SessionForLanguageTraining { get; set; }
     [AeFormCategory("Language Training Application", 30)]
     [AeLabel(isDropDown: true)]
-    public string Class_For_Language_Training { get; set; }
+    public string ClassForLanguageTraining { get; set; }
 
 
     [AeFormCategory("Commitment and Approval", 40)]
     [Required]
-    public string Delegate_Manager_First_Name { get; set; }
+    public string DelegateManagerFirstName { get; set; }
     [AeFormCategory("Commitment and Approval", 40)]
     [Required]
-    public string Delegated_Manager_Last_Name { get; set; }
+    public string DelegatedManagerLastName { get; set; }
     [AeFormCategory("Commitment and Approval", 40)]
     [Required]
-    public string Delegated_Manager_Email { get; set; }
+    public string DelegatedManagerEmail { get; set; }
 
 
 
 
     [AeFormCategory("Manager Section", 50)]
-    public string Manager_First_Name { get; set; }
+    public string ManagerFirstName { get; set; }
 
     [AeFormCategory("Manager Section", 50)]
-    public string Manager_Last_Name { get; set; }
+    public string ManagerLastName { get; set; }
 
     [AeFormCategory("Manager Section", 50)]
-    public string Manager_Email_Address { get; set; }
+    public string ManagerEmailAddress { get; set; }
     [Required]
     [AeFormCategory("Manager Section", 50)]
     [AeLabel(isDropDown: true)]
-    public string Manager_Decision { get; set; }
+    public string ManagerDecision { get; set; }
 
-        
+
     [AeFormCategory("Language School Section", 60)]
     [AeLabel(isDropDown: true)]
     public string Decision { get; set; }
@@ -162,23 +162,23 @@ public class LanguageTrainingApplication
     public bool LSUDecisionSent { get; set; }
 
     [AeFormIgnore]
-    public string Last_Updated_UserId { get; set; }
+    public string LastUpdatedUserId { get; set; }
 
     [AeFormIgnore]
-    public DateTime Last_Updated_DT { get; set; }
+    public DateTime LastUpdatedDT { get; set; }
 
     [AeFormIgnore]
-    public DateTime FormSubmitted_DT { get; set; }
+    public DateTime FormSubmittedDT { get; set; }
     [AeFormIgnore]
-    public DateTime ManagerDecision_DT { get; set; }
+    public DateTime ManagerDecisionDT { get; set; }
     [AeFormIgnore]
-    public DateTime LanguageSchoolDecision_DT { get; set; }
+    public DateTime LanguageSchoolDecisionDT { get; set; }
     [AeFormIgnore]
-    public string FormSubmitted_UserId { get; set; }
+    public string FormSubmittedUserId { get; set; }
     [AeFormIgnore]
-    public string ManagerDecision_UserId { get; set; }
+    public string ManagerDecisionUserId { get; set; }
     [AeFormIgnore]
-    public string LanguageSchoolDecision_UserId { get; set; }
+    public string LanguageSchoolDecisionUserId { get; set; }
 
     [AeFormIgnore]
     [Timestamp]

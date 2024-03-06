@@ -38,7 +38,7 @@ else
                     NumberOfFiles="0"/>
                 <MudElement>
                     <MudButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary"
-                               Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{Project?.Project_Acronym_CD}")">
+                               Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{Project?.ProjectAcronymCD}")">
                         @Localizer["Open Workspace"]
                     </MudButton>
                 </MudElement>
@@ -50,7 +50,7 @@ else
 @code {
 
     [Parameter]
-    public Datahub_Project Project { get; set; }
+    public DatahubProject Project { get; set; }
 
     [Parameter]
     public EventCallback OnCreateWorkspace { get; set; }

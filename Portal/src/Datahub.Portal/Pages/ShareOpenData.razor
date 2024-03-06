@@ -616,12 +616,12 @@
         using (var ctx = dbContextFactory.CreateDbContext())
         {
             var mustRefresh = false;
-            var sharedFile = ctx.OpenDataSharedFiles.FirstOrDefault(e => e.SharedDataFile_ID == _sharedDataFileId);
+            var sharedFile = ctx.OpenDataSharedFiles.FirstOrDefault(e => e.SharedDataFileID == _sharedDataFileId);
 
-            if (sharedFile.UploadStatus_CD != _uploadStatus)
+            if (sharedFile.UploadStatusCD != _uploadStatus)
             {
-                _uploadStatus = sharedFile.UploadStatus_CD;
-                _uploadFileErrorMessage = sharedFile.UploadError_TXT;
+                _uploadStatus = sharedFile.UploadStatusCD;
+                _uploadFileErrorMessage = sharedFile.UploadErrorTXT;
                 mustRefresh = true;
             }
 
@@ -739,25 +739,25 @@
                 return;
             }
 
-            _sharedDataFileId = sharedFileInfo.SharedDataFile_ID;
-            _uploadStatus = sharedFileInfo.UploadStatus_CD;
-            _uploadFileErrorMessage = sharedFileInfo.UploadError_TXT;
+            _sharedDataFileId = sharedFileInfo.SharedDataFileID;
+            _uploadStatus = sharedFileInfo.UploadStatusCD;
+            _uploadFileErrorMessage = sharedFileInfo.UploadErrorTXT;
 
-            _approvalFormId = sharedFileInfo.ApprovalForm_ID ?? 0;
+            _approvalFormId = sharedFileInfo.ApprovalFormID ?? 0;
             await ReadSectorAndBranch();
 
-            _signedApprovalFormUrl = sharedFileInfo.SignedApprovalForm_URL;
-            _requestFilename = sharedFileInfo.Filename_TXT;
-            _publicationDateText = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
+            _signedApprovalFormUrl = sharedFileInfo.SignedApprovalFormURL;
+            _requestFilename = sharedFileInfo.FilenameTXT;
+            _publicationDateText = sharedFileInfo.PublicationDateDT?.ToShortDateString();
 
-            _requestingUser = await GetRequestUser(sharedFileInfo.RequestingUser_ID);
+            _requestingUser = await GetRequestUser(sharedFileInfo.RequestingUserID);
 
             _isOwnRequest = currentUser.Id == _requestingUser.Id;
-            _projectCode = sharedFileInfo.ProjectCode_CD;
-            _fileUrl = sharedFileInfo.FileUrl_TXT;
+            _projectCode = sharedFileInfo.ProjectCodeCD;
+            _fileUrl = sharedFileInfo.FileUrlTXT;
             _editSubmittedApproval = !string.IsNullOrEmpty(_fileUrl) && sharedFileInfo.GetOpenDataSharingStatus() == OpenDataSharingStatus.SubmitSignedPDF;
 
-            _unpublishedDate = sharedFileInfo.UnpublishDate_DT;
+            _unpublishedDate = sharedFileInfo.UnpublishDateDT;
 
             UpdateShareFileStatus(sharedFileInfo);
         }
@@ -776,7 +776,7 @@
 
     private (string, string)? GetStepPair(OpenDataSharingStatus status)
     {
-        var prefix = SharedDataFile.OPEN_DATA_SHARING_STATUS_LOCALIZATION_PREFIX;
+        var prefix = SharedDataFile.OPENDATASHARINGSTATUSLOCALIZATIONPREFIX;
         var title = $"{prefix}.{status}.Title";
         var desc = $"{prefix}.{status}.Description";
         return (Localizer[title], Localizer[desc]);
@@ -813,8 +813,8 @@
             var approvalForm = await MetadataBrokerService.GetApprovalForm(_approvalFormId);
             if (approvalForm != null)
             {
-                _approvalFormSectorId = approvalForm.Sector_ID;
-                _approvalFormBranchId = approvalForm.Branch_ID;
+                _approvalFormSectorId = approvalForm.SectorID;
+                _approvalFormBranchId = approvalForm.BranchID;
             }
         }
     }

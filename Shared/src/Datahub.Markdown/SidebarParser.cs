@@ -31,7 +31,7 @@ namespace Datahub.Markdown
                     return MarkdownHelper.ExtractIconFromURL(linkInline.Url);
             }
             return null;
-        }        
+        }
 
         private static DocItem? ProcessBlock(MarkdownObject markdownObject, int level, DocItem? currentItem, DocItem parent, Func<string, string?> mapId)
         {
@@ -58,7 +58,7 @@ namespace Datahub.Markdown
                 case LinkInline linkInline:
                     //[Microservice_Architecture](/Architecture/Microservice_Architecture.md)
                     // special case for Icon style comments
-                    if (linkInline.Url?.StartsWith("Icon")??false) return null;
+                    if (linkInline.Url?.StartsWith("Icon") ?? false) return null;
                     var itemId = mapId.Invoke(linkInline.Url ?? "");
                     var docItem = DocItem.GetItem(parent.RootSection, itemId, level, linkInline.Title, linkInline.Url);
                     parent.Children.Add(docItem);

@@ -1,5 +1,4 @@
 using BoDi;
-using System;
 using Datahub.Specs.PageObjects;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Playwright;
@@ -81,8 +80,8 @@ public class Hooks
 
     private BrowserTypeLaunchOptions GetBrowserOptions()
     {
-        var options = new BrowserTypeLaunchOptions() 
-        { 
+        var options = new BrowserTypeLaunchOptions()
+        {
             Headless = this.Headless
         };
         if (int.TryParse(_config["SlowMo"], out int slowmo))
@@ -106,7 +105,7 @@ public class Hooks
     [BeforeScenario("a11y")]
     public async Task BeforeA11yScenario(IObjectContainer container)
     {
-        await SetupScenario(container, (config, browser) 
+        await SetupScenario(container, (config, browser)
             => container.RegisterInstanceAs(new HomePageObject(config, browser)));
     }
 
@@ -120,7 +119,7 @@ public class Hooks
     [BeforeScenario("ws")]
     public async Task BeforeWsScenario(IObjectContainer container)
     {
-        await SetupScenario(container, (config, browser) => 
+        await SetupScenario(container, (config, browser) =>
         {
             container.RegisterInstanceAs(new WorkspacePageObject(new(), config, browser));
             container.RegisterInstanceAs(new WorkspaceAdminPageObject(new(), config, browser));
@@ -130,7 +129,7 @@ public class Hooks
     [BeforeScenario("res")]
     public async Task BeforeResScenario(IObjectContainer container)
     {
-        await SetupScenario(container, (config, browser) => 
+        await SetupScenario(container, (config, browser) =>
         {
             container.RegisterInstanceAs(new ResourcesPageObject(config, browser));
         });

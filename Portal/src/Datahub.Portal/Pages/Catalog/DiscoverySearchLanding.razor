@@ -74,7 +74,7 @@
 
 			<MudStack Class="mt-4">
 				<MudText Typo="Typo.h5">@Localizer["Publish"]</MudText>
-				<AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
+				<AuthorizeView Roles=@RoleConstants.DATAHUBROLEADMIN>
 					<Authorized>
 						<MudStack>
 							<MudText>@Localizer["Since you are an Admin in Datahub use the Upload button below to import a valid catalog dump file."]</MudText>
@@ -102,7 +102,7 @@
 @code {
 
 	[Parameter]
-	public List<OrganizationLevel> Sectors { get; set; } = new();
+	public List<DHOrganizationLevel> Sectors { get; set; } = new();
 
 	[Parameter]
 	public List<MetadataObjectType> ObjectTypes { get; set; } = new() { MetadataObjectType.File, MetadataObjectType.PowerBIReport };
@@ -111,14 +111,14 @@
 	public bool IsFrench { get; set; }
 
 	[Parameter]
-	public EventCallback<OrganizationLevel> OnClickSector { get; set; }
+	public EventCallback<DHOrganizationLevel> OnClickSector { get; set; }
 
 	[Parameter]
 	public EventCallback<MetadataObjectType> OnClickType { get; set; }
 
 	static Dictionary<int, string> _sectorIcons = GetSectorIcons();
 
-	private async void ClickSector(OrganizationLevel sector)
+	private async void ClickSector(DHOrganizationLevel sector)
 	{
 		await OnClickSector.InvokeAsync(sector);
 	}
@@ -142,7 +142,7 @@
 
 	private string GetConfiguredEmail()
 	{
-		return Configuration[ConfigurationConstants.CONTACT_EMAIL] ?? ConfigurationConstants.DEFAULT_EMAIL;
+		return Configuration[ConfigurationConstants.CONTACTEMAIL] ?? ConfigurationConstants.DEFAULTEMAIL;
 	}
 
 	static Dictionary<int, string> GetSectorIcons()

@@ -10,7 +10,7 @@ public class GlobalSessionManagerTests
 {
 
     [Fact]
-    public void TryAddSession_NoConfig_AcceptsUnlimitedSessions()
+    public void TryAddSessionNoConfigAcceptsUnlimitedSessions()
     {
         var config = SetupConfig(new SessionsConfig());
         GlobalSessionManager manger = new(config);
@@ -20,11 +20,11 @@ public class GlobalSessionManagerTests
         for (int i = 0; i < 100; i++)
         {
             Assert.True(manger.TryAddSession(userId));
-        }        
+        }
     }
 
     [Fact]
-    public void TryAddSession_CountedSessions_AcceptslimitedSessions()
+    public void TryAddSessionCountedSessionsAcceptslimitedSessions()
     {
         var config = SetupConfig(new SessionsConfig() { MaxSessionsPerUser = 2 });
         GlobalSessionManager manger = new(config);
@@ -43,7 +43,7 @@ public class GlobalSessionManagerTests
 
 
     [Fact]
-    public void RemoveSession_ForCountedSessions_AllowsNewSessions()
+    public void RemoveSessionForCountedSessionsAllowsNewSessions()
     {
         var config = SetupConfig(new SessionsConfig() { MaxSessionsPerUser = 2 });
         GlobalSessionManager manger = new(config);
@@ -63,7 +63,7 @@ public class GlobalSessionManagerTests
     }
 
     [Fact]
-    public void GetSessionCount_ForCountedSessions_ShouldReturnExpected()
+    public void GetSessionCountForCountedSessionsShouldReturnExpected()
     {
         var config = SetupConfig(new SessionsConfig() { MaxSessionsPerUser = 3 });
         GlobalSessionManager manger = new(config);

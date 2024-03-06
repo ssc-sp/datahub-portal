@@ -10,7 +10,7 @@ namespace Datahub.Tests.Sessions;
 public class UserCircuitCounterServiceTests
 {
     [Fact]
-    public async Task IsSessionEnabled_ForCountedSessions_ShouldReturnExpected()
+    public async Task IsSessionEnabledForCountedSessionsShouldReturnExpected()
     {
         GlobalSessionManager globalSessionManager = new(SetupConfig(new SessionsConfig() { MaxSessionsPerUser = 2 }));
         IUserInformationService userInformationService = GetUserInformationService("sample_user_id");

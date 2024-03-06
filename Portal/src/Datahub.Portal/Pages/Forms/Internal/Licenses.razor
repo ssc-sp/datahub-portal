@@ -8,7 +8,7 @@
 
 <AeFlex Vertical id="indexFlex">
 
-<h1>Power BI License Request Form for @_project.ProjectName (@_project.Project_Acronym_CD)</h1>
+<h1>Power BI License Request Form for @_project.ProjectName (@_project.ProjectAcronymCD)</h1>
 
 <p>
 Power BI is a part of Microsoft office 365 suite. It is mainly used for creating dashboards and reports, and provides platform to collaborate with team members. 
@@ -27,9 +27,9 @@ There are three ways to access Power BI
 NOTE: if you have PROTECTED B security level for your data, please contact CIOSB DataHub mailbox
 </p>
 </AeFlex>
-@if(_request.Request_ID > 0)
+@if(_request.RequestID > 0)
 {
-    <h2>Editing request @_request.Request_ID</h2>
+    <h2>Editing request @_request.RequestID</h2>
 }
 else
 {
@@ -43,20 +43,20 @@ else
     <p>
         <label>
             Power BI desktop will be used to develop models**** and reports
-            <InputCheckbox @bind-Value="_request.Desktop_Usage_Flag" />
+            <InputCheckbox @bind-Value="_request.DesktopUsageFlag" />
         </label>
 
     </p>
     <p>
         <label>
             Contact Email:
-            <InputText @bind-Value="_request.Contact_Email" />
+            <InputText @bind-Value="_request.ContactEmail" />
         </label>
     </p>
     <p>
         <label>
             Contact Name:
-            <InputText @bind-Value="_request.Contact_Name" />
+            <InputText @bind-Value="_request.ContactName" />
         </label>
     </p>
 
@@ -70,13 +70,13 @@ else
 
     public int ProjectID { get; set; }
 
-    private Datahub_Project _project;
+    private DatahubProject _project;
 
-    private PBI_License_Request _request;
+    private PBILicenseRequest _request;
     private const string EMAIL = "offline@nrcan-cnrcan.gc.ca";
     private DatahubProjectDBContext Context;
  
-    private void SetFormEdit(PBI_License_Request project)
+    private void SetFormEdit(PBILicenseRequest project)
     {
         _request = project;
     }
@@ -87,22 +87,22 @@ else
         ProjectID = Convert.ToInt32(ProjectIDParam);
         // load projects        
         _project = Context.Projects.Find(ProjectID);
-        _request = Context.PowerBI_License_Requests.SingleOrDefault(r => r.Project == _project);
+        _request = Context.PowerBILicenseRequests.SingleOrDefault(r => r.Project == _project);
         if(_request == null)
 		{
-            _request = new PBI_License_Request() { Request_ID = 0, User_ID = EMAIL, Project = _project } ;
+            _request = new PBILicenseRequest() { RequestID = 0, UserID = EMAIL, Project = _project } ;
         }
     }
 
      private async Task HandleValidSubmit()
     {
-        if(_request.Request_ID == 0)
+        if(_request.RequestID == 0)
         {
-            _request.User_ID = EMAIL;
-            Context.PowerBI_License_Requests.Add(_request);
+            _request.UserID = EMAIL;
+            Context.PowerBILicenseRequests.Add(_request);
         }
         await Context.SaveChangesAsync();
-        NavigationManager.NavigateTo("LicenseUsers/" + _request.Request_ID);
+        NavigationManager.NavigateTo("LicenseUsers/" + _request.RequestID);
     }
 
     public void Dispose() { Context.Dispose(); }

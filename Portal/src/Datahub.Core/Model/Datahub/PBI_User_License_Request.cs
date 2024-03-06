@@ -8,7 +8,7 @@ public enum PBIUserLicenseType
     FreeUser, ProUser
 }
 
-public class PBI_User_License_Request
+public class PBIUserLicenseRequest
 {
     [AeFormIgnore]
     public int ID { get; set; }
@@ -23,6 +23,5 @@ public class PBI_User_License_Request
 
     public int RequestID { get; set; }
 
-    public PBI_License_Request LicenseRequest { get; set; }
-
+    public PBILicenseRequest LicenseRequest { get; set; }
 }

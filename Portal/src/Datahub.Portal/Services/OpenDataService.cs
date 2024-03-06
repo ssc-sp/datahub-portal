@@ -89,11 +89,11 @@ public class OpenDataService : IOpenDataService
     private void SetFileShareStatus(long sharedFileId, OpenDataUploadStatus status, string errorMessage = null)
     {
         using var ctx = _dbContextFactory.CreateDbContext();
-        var sharedFile = ctx.OpenDataSharedFiles.FirstOrDefault(e => e.SharedDataFile_ID == sharedFileId);
+        var sharedFile = ctx.OpenDataSharedFiles.FirstOrDefault(e => e.SharedDataFileID == sharedFileId);
         if (sharedFile is not null)
         {
-            sharedFile.UploadStatus_CD = status;
-            sharedFile.UploadError_TXT = errorMessage;
+            sharedFile.UploadStatusCD = status;
+            sharedFile.UploadErrorTXT = errorMessage;
             // todo: use auditing service here
             ctx.SaveChanges();
         }
@@ -102,12 +102,12 @@ public class OpenDataService : IOpenDataService
     private void SetFileShareCompleted(long sharedFileId)
     {
         using var ctx = _dbContextFactory.CreateDbContext();
-        var sharedFile = ctx.OpenDataSharedFiles.FirstOrDefault(e => e.SharedDataFile_ID == sharedFileId);
+        var sharedFile = ctx.OpenDataSharedFiles.FirstOrDefault(e => e.SharedDataFileID == sharedFileId);
         if (sharedFile is not null)
         {
-            sharedFile.UploadStatus_CD = OpenDataUploadStatus.UploadCompleted;
-            sharedFile.UploadError_TXT = string.Empty;
-            sharedFile.FileStorage_CD = FileStorageType.OpenData;
+            sharedFile.UploadStatusCD = OpenDataUploadStatus.UploadCompleted;
+            sharedFile.UploadErrorTXT = string.Empty;
+            sharedFile.FileStorageCD = FileStorageType.OpenData;
             // todo: use auditing service here
             ctx.SaveChanges();
         }
@@ -117,10 +117,10 @@ public class OpenDataService : IOpenDataService
     {
         var fileGuid = Guid.Parse(fileId);
         using var ctx = _dbContextFactory.CreateDbContext();
-        var sharedFile = ctx.OpenDataSharedFiles.FirstOrDefault(e => e.File_ID  == fileGuid);
+        var sharedFile = ctx.OpenDataSharedFiles.FirstOrDefault(e => e.FileID == fileGuid);
         if (sharedFile is not null)
         {
-            sharedFile.UnpublishDate_DT = DateTime.UtcNow;
+            sharedFile.UnpublishDateDT = DateTime.UtcNow;
             ctx.SaveChanges();
         }
     }

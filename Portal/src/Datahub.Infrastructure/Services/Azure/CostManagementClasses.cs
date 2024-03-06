@@ -4,13 +4,13 @@ public class AzureServiceCost
 {
     public required string Name { get; set; }
     public required double Cost { get; set; }
-    
+
     public DateTime Date { get; set; }
 }
 
 public class AzureDailyCost
 {
-    public DateTime Date{ get; set; }
+    public DateTime Date { get; set; }
     public required double Cost { get; set; }
 }
 

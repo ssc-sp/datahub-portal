@@ -1,6 +1,6 @@
 ﻿namespace Datahub.LanguageTraining.Data;
 
-public class Language_Constants
+public class LanguageConstants
 {
     public static readonly string[] YESNO = { "Yes", "No" };
 
@@ -19,11 +19,11 @@ public class Language_Constants
         "NVT"
     };
 
-    public static readonly string[] LANGUAGE_TRAINING = { "French Language Training", "English Language Training"};
+    public static readonly string[] LANGUAGETRAINING = { "French Language Training", "English Language Training" };
 
-    public static readonly string[] LANGUAGE_TRAINING_PROVIDERS = { "NRCan Language School", "External Provider" };
+    public static readonly string[] LANGUAGETRAININGPROVIDERS = { "NRCan Language School", "External Provider" };
 
-    public static readonly string[] EMPLOYMENT_STATUS = { "Indeterminate Employee", "Term Employee" };
+    public static readonly string[] EMPLOYMENTSTATUS = { "Indeterminate Employee", "Term Employee" };
 
     public static readonly string[] SLESTATUS = { "X", "A", "B", "C", "E", "Not Applicable" };
 
@@ -32,7 +32,7 @@ public class Language_Constants
     public static readonly string[] TRAININGTYPEFRENCH = { "Group Training - Full-Time Training", "Group Training - Part-Time Training", "Individual - Coaching" };
     public static readonly string[] TRAININGTYPEENGLISH = { "Group training : Part-time (6 hours of class + 2 hours self-learning)", "Group training : Part-time (3 hours of class + 1 hour self-learning)", "Group training : Part-time (1.5 hours of class + 0 hours self-learning)*", "Private training: Coaching**" };
 
-    public static readonly string[] CLASSES_E = { "Beginner 1",
+    public static readonly string[] CLASSESE = { "Beginner 1",
         "Beginner 2",
         "Beginner 3",
         "Intermediate 1 (BBB)",
@@ -50,7 +50,7 @@ public class Language_Constants
         "Advanced 6 – Test Oral Proficiency – C level"
     };
 
-    public static readonly string[] CLASSES_F = {   "Intermediate 1 (BBB)",
+    public static readonly string[] CLASSESF = {   "Intermediate 1 (BBB)",
         "Intermediate 2 (BBB)",
         "Intermediate 3 (BBB)",
         "Intermediate 4 (BBB)",
@@ -61,10 +61,10 @@ public class Language_Constants
         "Advanced 3 (CBC)",
         "Advanced 4 (CBC)",
         "Advanced 5 (CBC)",
-        "Advanced 6 (CBC) - Test Oral Proficiency – C level"                
+        "Advanced 6 (CBC) - Test Oral Proficiency – C level"
     };
 
-    public static readonly string[] LANGUAGE_SCHOOL_SELECTION = {
+    public static readonly string[] LANGUAGESCHOOLSELECTION = {
         "Training accepted",
         "Requires LETP assessment",
         "Insufficient interest at level",

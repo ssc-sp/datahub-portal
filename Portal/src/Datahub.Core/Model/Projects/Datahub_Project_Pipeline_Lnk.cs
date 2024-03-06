@@ -2,12 +2,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Datahub.Core.Model.Projects;
 
-public class Datahub_Project_Pipeline_Lnk
+public class DatahubProjectPipelineLnk
 {
-    public int Project_ID { get; set; }
+    public int ProjectID { get; set; }
 
     [ForeignKey("Project_ID")]
-    public Datahub_Project Project { get; set; }
-    public string Process_Nm { get; set; }
-
+    public DatahubProject Project { get; set; }
+    public string ProcessNm { get; set; }
 }

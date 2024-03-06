@@ -1,9 +1,7 @@
 ﻿using Azure.Storage.Files.DataLake.Models;
 using Datahub.Core.Data;
-using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Data;
-using Datahub.Core.Services.Storage;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Portal.Model;
 using Microsoft.AspNetCore.Components;
@@ -28,11 +26,11 @@ public class DataSharingService : BaseService, IDataSharingService
         try
         {
             var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
-            var directoryClient = fileSystemClient.GetDirectoryClient(file.folderpath);
-            var fileClient = directoryClient.GetFileClient(file.filename);
+            var directoryClient = fileSystemClient.GetDirectoryClient(file.Folderpath);
+            var fileClient = directoryClient.GetFileClient(file.Filename);
 
             // STEP 1: If new owner has ACL, remove it (CUZ THEY GONNA OWN IT!)
-            if (file.sharedwith.Any(s => s.userid == newOwner.Id))
+            if (file.Sharedwith.Any(s => s.Userid == newOwner.Id))
             {
                 await RemoveSharedUsers(file, newOwner.Id);
             }
@@ -44,8 +42,8 @@ public class DataSharingService : BaseService, IDataSharingService
             };
 
             await fileClient.SetPermissionsAsync(perm, newOwner.Id);
-            file.ownedby = newOwner.Id;
-            file.lastmodifiedts = DateTime.UtcNow;
+            file.Ownedby = newOwner.Id;
+            file.Lastmodifiedts = DateTime.UtcNow;
             fileClient.SetMetadata(file.GenerateMetadata());
 
             //await _cognitiveSearchService.EditDocument(file);
@@ -54,19 +52,19 @@ public class DataSharingService : BaseService, IDataSharingService
             await AddSharedUsers(file, currentUserId, AccessPermissions.Editor);
 
             // STEP 4: Move the file to the root folder of new owner!
-            var response = await fileClient.RenameAsync($"{newOwner.RootFolder}/{file.filename}");
+            var response = await fileClient.RenameAsync($"{newOwner.RootFolder}/{file.Filename}");
             if (response.Value != null)
             {
-                _logger.LogDebug($"Changed File Owner for file: {file.folderpath}/{file.filename} from user: {currentUserId} to user: {newOwner.DisplayName} SUCCEEDED.");
+                _logger.LogDebug($"Changed File Owner for file: {file.Folderpath}/{file.Filename} from user: {currentUserId} to user: {newOwner.DisplayName} SUCCEEDED.");
                 return true;
             }
 
-            _logger.LogDebug($"Changed File Owner for file: {file.folderpath}/{file.filename} from user: {currentUserId} to user: {newOwner.DisplayName} FAILED (nothing returned).");
+            _logger.LogDebug($"Changed File Owner for file: {file.Folderpath}/{file.Filename} from user: {currentUserId} to user: {newOwner.DisplayName} FAILED (nothing returned).");
             return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Changed File Owner for file: {file.folderpath}/{file.filename} from user: {currentUserId} to user: {newOwner.DisplayName} FAILED.");
+            _logger.LogError(ex, $"Changed File Owner for file: {file.Folderpath}/{file.Filename} from user: {currentUserId} to user: {newOwner.DisplayName} FAILED.");
             throw;
         }
     }
@@ -79,13 +77,13 @@ public class DataSharingService : BaseService, IDataSharingService
             var result = await _dataLakeClientService.AssignOwnerPermissionsToFile(file, sharedUserId, permissions);
 
             var status = result ? "SUCCEEDED" : "FAILED";
-            _logger.LogDebug($"Added shared user for file: {file.folderpath}/{file.filename} for user: {sharedUserId} with role: {role} {status}.");
+            _logger.LogDebug($"Added shared user for file: {file.Folderpath}/{file.Filename} for user: {sharedUserId} with role: {role} {status}.");
 
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Added shared user for file: {file.folderpath}/{file.filename} for user: {sharedUserId} with role: {role} FAILED.");
+            _logger.LogError(ex, $"Added shared user for file: {file.Folderpath}/{file.Filename} for user: {sharedUserId} with role: {role} FAILED.");
             throw;
         }
     }
@@ -96,13 +94,13 @@ public class DataSharingService : BaseService, IDataSharingService
         {
             var result = await _dataLakeClientService.RemoveSharedUser(file, sharedUserId);
             var status = result ? "SUCCEEDED" : "FAILED";
-            _logger.LogDebug($"Removed shared user for file: {file.folderpath}/{file.filename} for user: {sharedUserId} {status}.");
+            _logger.LogDebug($"Removed shared user for file: {file.Folderpath}/{file.Filename} for user: {sharedUserId} {status}.");
 
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Removed shared user for file: {file.folderpath}/{file.filename} for user: {sharedUserId} FAILED.");
+            _logger.LogError(ex, $"Removed shared user for file: {file.Folderpath}/{file.Filename} for user: {sharedUserId} FAILED.");
             throw;
         }
     }
@@ -112,11 +110,11 @@ public class DataSharingService : BaseService, IDataSharingService
         try
         {
             await _dataLakeClientService.LoadSharedUsers(file);
-            _logger.LogDebug($"Loaded shared users for file: {file.folderpath}/{file.filename} SUCCEEDED.");
+            _logger.LogDebug($"Loaded shared users for file: {file.Folderpath}/{file.Filename} SUCCEEDED.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Loaded shared users for file: {file.folderpath}/{file.filename} FAILED.");
+            _logger.LogError(ex, $"Loaded shared users for file: {file.Folderpath}/{file.Filename} FAILED.");
             throw;
         }
     }

@@ -54,7 +54,7 @@ public class WorkspaceAppMiddleware
         if (context.User is null || string.IsNullOrEmpty(acronym))
             return false;
 
-        var wsAppRole = $"{acronym}{RoleConstants.WEBAPP_SUFFIX}";
+        var wsAppRole = $"{acronym}{RoleConstants.WEBAPPSUFFIX}";
 
         return context.User.Claims.Any(c => c.Type == ClaimTypes.Role && wsAppRole.Equals(c.Value, StringComparison.OrdinalIgnoreCase));
     }
@@ -71,7 +71,7 @@ public static class WorkspaceHttpContextEx
     {
         var urlPath = context.Request.Path.ToString();
         var columns = urlPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        
+
         if (columns.Length < 2)
             return string.Empty;
 
@@ -82,16 +82,16 @@ public static class WorkspaceHttpContextEx
                           .Select(c => c.Value[acronym.Length..])
                           .ToHashSet();
 
-        if (roles.Contains(RoleConstants.ADMIN_SUFFIX))
+        if (roles.Contains(RoleConstants.ADMINSUFFIX))
             return "admin";
 
-        if (roles.Contains(RoleConstants.WORKSPACE_LEAD_SUFFIX))
+        if (roles.Contains(RoleConstants.WORKSPACELEADSUFFIX))
             return "lead";
 
-        if (roles.Contains(RoleConstants.COLLABORATOR_SUFFIX))
+        if (roles.Contains(RoleConstants.COLLABORATORSUFFIX))
             return "collaborator";
 
-        if (roles.Contains(RoleConstants.GUEST_SUFFIX))
+        if (roles.Contains(RoleConstants.GUESTSUFFIX))
             return "guest";
 
         return "authenticated";

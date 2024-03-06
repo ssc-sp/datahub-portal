@@ -2,16 +2,16 @@
 
 public static class FieldNames
 {
-    public static string access_restrictions => nameof(access_restrictions);
+    public static string accessRestrictions => nameof(accessRestrictions);
     public static string acronym => nameof(acronym);
-    public static string description_en => nameof(description_en);
-    public static string description_fr => nameof(description_fr);
-    public static string keywords_en => nameof(keywords_en);
-    public static string keywords_fr => nameof(keywords_fr);
-    public static string name_en => nameof(name_en);
-    public static string name_fr => nameof(name_fr);
-    public static string organization_name_en => nameof(organization_name_en);
-    public static string organization_name_fr => nameof(organization_name_fr);
-    public static string security_classification => nameof(security_classification);
+    public static string descriptionEn => nameof(descriptionEn);
+    public static string descriptionFr => nameof(descriptionFr);
+    public static string keywordsEn => nameof(keywordsEn);
+    public static string keywordsFr => nameof(keywordsFr);
+    public static string nameEn => nameof(nameEn);
+    public static string nameFr => nameof(nameFr);
+    public static string organizationNameEn => nameof(organizationNameEn);
+    public static string organizationNameFr => nameof(organizationNameFr);
+    public static string securityClassification => nameof(securityClassification);
     public static string subject => nameof(subject);
 }

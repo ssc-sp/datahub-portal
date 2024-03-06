@@ -2,10 +2,10 @@
 
 namespace Datahub.PIP.Data;
 
-public class PIP_IndicatorRisks
+public class PIPIndicatorRisks
 {
     [Key]
-    public int IndicatorRisk_ID { get; set; }
-    public PIP_IndicatorAndResults Pip_Indicator { get; set; }
-    public PIP_Risks Pip_Risk { get; set; }
+    public int IndicatorRiskID { get; set; }
+    public PIPIndicatorAndResults PipIndicator { get; set; }
+    public PIPRisks PipRisk { get; set; }
 }

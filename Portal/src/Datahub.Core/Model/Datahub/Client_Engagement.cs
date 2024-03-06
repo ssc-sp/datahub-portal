@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Datahub.Core.Model.Projects;
 using Elemental.Components;
 using MudBlazor;
@@ -7,95 +6,94 @@ using AeFormCategoryAttribute = MudBlazor.Forms.AeFormCategoryAttribute;
 
 namespace Datahub.Core.Model.Datahub;
 
-public class Client_Engagement
+public class ClientEngagement
 {
     [MudBlazor.Forms.AeFormIgnoreAttribute]
     [Key]
-    public int Engagement_ID { get; set; }
+    public int EngagementID { get; set; }
 
     [AeFormCategory("Projected Engagement Details")]
     [Required]
     [MaxLength(2000)]
-    public string Engagement_Name { get; set; }
+    public string EngagementName { get; set; }
 
     [AeFormCategory("Projected Engagement Details")]
     [Required]
     [MaxLength(2000)]
-    public string Engagment_Owners { get; set; }
+    public string EngagmentOwners { get; set; }
 
     [AeFormCategory("Projected Engagement Details")]
     [Required]
     [MaxLength(2000)]
-    public string Engagment_Lead{ get; set; }
+    public string EngagmentLead { get; set; }
 
     [MudBlazor.Forms.AeFormIgnoreAttribute]
-    public Datahub_Project Project { get; set; }
+    public DatahubProject Project { get; set; }
 
     [AeFormCategory("Projected Engagement Details")]
-    public bool Is_Engagement_Active { get; set; }
+    public bool IsEngagementActive { get; set; }
 
     [AeFormCategory("Projected Engagement Details")]
-        
-    public DateTime? Engagement_Start_Date { get; set; }
+
+    public DateTime? EngagementStartDate { get; set; }
     [AeFormCategory("Projected Engagement Details")]
-    public DateTime? Requirements_Gathering_EndDate { get; set; }
+    public DateTime? RequirementsGatheringEndDate { get; set; }
     [AeFormCategory("Projected Engagement Details")]
-    public DateTime? Phase1_Development_EndDate { get; set; }
+    public DateTime? Phase1DevelopmentEndDate { get; set; }
     [AeFormCategory("Projected Engagement Details")]
-    public DateTime? Phase1_Testing_EndDate { get; set; }
+    public DateTime? Phase1TestingEndDate { get; set; }
     [AeFormCategory("Projected Engagement Details")]
-    public DateTime? Phase2_Development_EndDate { get; set; }
+    public DateTime? Phase2DevelopmentEndDate { get; set; }
     [AeFormCategory("Projected Engagement Details")]
-    public DateTime? Phase2_Testing_EndDate { get; set; }
+    public DateTime? Phase2TestingEndDate { get; set; }
     [AeFormCategory("Projected Engagement Details")]
-    public DateTime? Final_Updates_EndDate { get; set; }
+    public DateTime? FinalUpdatesEndDate { get; set; }
     [AeFormCategory("Projected Engagement Details")]
-    public DateTime? Final_Release_Date { get; set; }
+    public DateTime? FinalReleaseDate { get; set; }
     [AeFormCategory("Actual Engagement Details")]
-    public DateTime? Requirements_Gathering_ActualEndDate { get; set; }
+    public DateTime? RequirementsGatheringActualEndDate { get; set; }
     [AeFormCategory("Actual Engagement Details")]
-    public DateTime? Phase1_Development_ActualEndDate { get; set; }
+    public DateTime? Phase1DevelopmentActualEndDate { get; set; }
     [AeFormCategory("Actual Engagement Details")]
-    public DateTime? Phase1_Testing_ActualEndDate { get; set; }
+    public DateTime? Phase1TestingActualEndDate { get; set; }
     [AeFormCategory("Actual Engagement Details")]
     [AeLabel(placeholder: "Please Select")]
-    public DateTime? Phase2_Development_ActualEndDate { get; set; }
+    public DateTime? Phase2DevelopmentActualEndDate { get; set; }
     [AeFormCategory("Actual Engagement Details")]
-    public DateTime? Phase2_Testing_ActualEndDate { get; set; }
+    public DateTime? Phase2TestingActualEndDate { get; set; }
     [AeFormCategory("Actual Engagement Details")]
-    public DateTime? Actual_Release_Date { get; set; }
+    public DateTime? ActualReleaseDate { get; set; }
 
     [MudBlazor.Forms.AeFormIgnoreAttribute]
-    public string Last_Updated_UserId { get; set; }
+    public string LastUpdatedUserId { get; set; }
 
     [MudBlazor.Forms.AeFormIgnoreAttribute]
-    public DateTime Last_Updated_DT { get; set; }
+    public DateTime LastUpdatedDT { get; set; }
 
     [MudBlazor.Forms.AeFormIgnoreAttribute]
-    public string Created_UserId { get; set; }
+    public string CreatedUserId { get; set; }
 
     [MudBlazor.Forms.AeFormIgnoreAttribute]
-    public DateTime Created_DT { get; set; }
+    public DateTime CreatedDT { get; set; }
 
     [MudBlazor.Forms.AeFormIgnoreAttribute]
     [Timestamp]
     public byte[] Timestamp { get; set; }
 
+    [MudBlazor.Forms.AeFormIgnoreAttribute]
+    public bool IsRequirementsComplete => RequirementsGatheringActualEndDate != null;
+    [MudBlazor.Forms.AeFormIgnoreAttribute]
+    public bool IsPhase1DevComplete => Phase1DevelopmentActualEndDate != null;
+    [MudBlazor.Forms.AeFormIgnoreAttribute]
+    public bool IsPhase1TestComplete => Phase1TestingActualEndDate != null;
+    [MudBlazor.Forms.AeFormIgnoreAttribute]
+    public bool IsPhase2DevComplete => Phase2DevelopmentActualEndDate != null;
+    [MudBlazor.Forms.AeFormIgnoreAttribute]
+    public bool IsPhase2TestComplete => Phase2TestingActualEndDate != null;
+    [MudBlazor.Forms.AeFormIgnoreAttribute]
+    public bool IsReleased => ActualReleaseDate != null;
 
-    [MudBlazor.Forms.AeFormIgnoreAttribute]
-    public bool IsRequirementsComplete => Requirements_Gathering_ActualEndDate != null;
-    [MudBlazor.Forms.AeFormIgnoreAttribute]
-    public bool IsPhase1DevComplete => Phase1_Development_ActualEndDate != null;
-    [MudBlazor.Forms.AeFormIgnoreAttribute]
-    public bool IsPhase1TestComplete => Phase1_Testing_ActualEndDate != null;
-    [MudBlazor.Forms.AeFormIgnoreAttribute]
-    public bool IsPhase2DevComplete => Phase2_Development_ActualEndDate != null;
-    [MudBlazor.Forms.AeFormIgnoreAttribute]
-    public bool IsPhase2TestComplete => Phase2_Testing_ActualEndDate != null;
-    [MudBlazor.Forms.AeFormIgnoreAttribute]
-    public bool IsReleased => Actual_Release_Date != null;
-
-    public (Color, Severity) TimelineStatus(bool isComplete, DateTime? estimatedEndDate, DateTime? actualEndDate)
+    public (Color Color, Severity Severity) TimelineStatus(bool isComplete, DateTime? estimatedEndDate, DateTime? actualEndDate)
     {
         if (!isComplete)
         {
@@ -105,11 +103,11 @@ public class Client_Engagement
             }
             else
             {
-                var ret =  estimatedEndDate >= DateTime.Now.Date ? (Color.Success, Severity.Success) : (Color.Error, Severity.Error);
+                var ret = estimatedEndDate >= DateTime.Now.Date ? (Color.Success, Severity.Success) : (Color.Error, Severity.Error);
                 var difference = estimatedEndDate - DateTime.Now.Date;
                 if ((ret == (Color.Success, Severity.Success)) && (difference.Value.Days <= 3))
-                { 
-                    ret = (Color.Warning, Severity.Warning);  
+                {
+                    ret = (Color.Warning, Severity.Warning);
                 }
                 return ret;
             }

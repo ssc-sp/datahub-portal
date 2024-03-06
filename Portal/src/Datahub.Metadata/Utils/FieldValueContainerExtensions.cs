@@ -16,8 +16,8 @@ public static class FieldValueContainerExtensions
         var sectorChoice = fields.GetSelectedChoices("sector").FirstOrDefault();
         var branchChoice = fields.GetSelectedChoices("branch").FirstOrDefault();
 
-        _ = int.TryParse(sectorChoice?.Value_TXT ?? "0", out int sector);
-        _ = int.TryParse(branchChoice?.Value_TXT ?? "0", out int branch);
+        _ = int.TryParse(sectorChoice?.ValueTXT ?? "0", out int sector);
+        _ = int.TryParse(branchChoice?.ValueTXT ?? "0", out int branch);
 
         var subjects = fields.GetSelectedChoices("subject").ToList();
         var programs = fields.GetSelectedChoices("programs").ToList();
@@ -25,16 +25,16 @@ public static class FieldValueContainerExtensions
         var englishKeywords = fields.GetValue("keywords_en").Split(',').ToList();
         var frenchKeywords = fields.GetValue("keywords_fr").Split(',').ToList();
 
-        var englishCatalog = GetCatalogText(subjects.Select(s => s.Label_English_TXT), programs.Select(p => p.Value_TXT),
-            sectorChoice?.Label_English_TXT, branchChoice?.Label_English_TXT, objectName, englishKeywords);
+        var englishCatalog = GetCatalogText(subjects.Select(s => s.LabelEnglishTXT), programs.Select(p => p.ValueTXT),
+            sectorChoice?.LabelEnglishTXT, branchChoice?.LabelEnglishTXT, objectName, englishKeywords);
 
-        var frenchCatalog = GetCatalogText(subjects.Select(s => s.Label_French_TXT), programs.Select(p => p.Value_TXT),
-            sectorChoice?.Label_French_TXT, branchChoice?.Label_French_TXT, objectName, frenchKeywords);
+        var frenchCatalog = GetCatalogText(subjects.Select(s => s.LabelFrenchTXT), programs.Select(p => p.ValueTXT),
+            sectorChoice?.LabelFrenchTXT, branchChoice?.LabelFrenchTXT, objectName, frenchKeywords);
 
         var titleEnglish = fields.GetValue("title_translated_en", objectName);
         var titleFrench = fields.GetValue("title_translated_fr", objectName);
 
-        return new(titleEnglish, titleFrench, contact, sector, branch, englishCatalog, frenchCatalog, 
+        return new(titleEnglish, titleFrench, contact, sector, branch, englishCatalog, frenchCatalog,
             fields.GetSecurityClassification());
     }
 
@@ -46,7 +46,7 @@ public static class FieldValueContainerExtensions
         {
             "1" => ClassificationType.ProtectedA,
             "2" => ClassificationType.ProtectedB,
-            _   => ClassificationType.Unclassified
+            _ => ClassificationType.Unclassified
         };
     }
 

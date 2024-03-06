@@ -9,7 +9,6 @@ using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
-using Datahub.Core.Services.Offline;
 using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
 using Foundatio.Queues;
@@ -23,8 +22,8 @@ public class ProjectCreationTests
 {
     private IConfiguration _config;
     private const string ResourceProvisionerUrl = "https://localhost:7275";
-    private static IEnumerable<T> LoadCollectionGeneric<TS,T>(ServiceProvider provider, Func<TS, IEnumerable> loadSource) where TS:DbContext
-    {            
+    private static IEnumerable<T> LoadCollectionGeneric<TS, T>(ServiceProvider provider, Func<TS, IEnumerable> loadSource) where TS : DbContext
+    {
         //Expression<Func<S, IEnumerable>> expression = d => d.Projects;
         //Func<S, IEnumerable> loadSource = d => d.Projects;
         //IDbContextFactory
@@ -38,21 +37,21 @@ public class ProjectCreationTests
         services.AddLogging();
         services.AddPooledDbContextFactory<DatahubProjectDBContext>(options => options.UseInMemoryDatabase("datahubProjects"));
         services.AddScoped<IProjectCreationService, ProjectCreationService>();
-        
+
         //dependency for ProjectCreationService
         services.AddSingleton(Configuration);
-        
+
         services.AddScoped<IUserInformationService, OfflineUserInformationService>();
         return services.BuildServiceProvider();
     }
-    
-    [Fact (Skip = "Needs to be validated")]
-    public async Task GivenListOfProjects_CreateAcronyms()
+
+    [Fact(Skip = "Needs to be validated")]
+    public async Task GivenListOfProjectsCreateAcronyms()
     {
         // ReSharper disable StringLiteralTypo
         var projects = new[]
         {
-            "Datahub", "Datahub Core", "Datahub Core Services", "Datahub Core Services API", 
+            "Datahub", "Datahub Core", "Datahub Core Services", "Datahub Core Services API",
             "Datahub Core Services App", "Datahub Core Services App API", "Datahub Core Services Application",
         };
         var acronyms = new List<string>();
@@ -69,8 +68,8 @@ public class ProjectCreationTests
     }
 
 
-    [Fact (Skip = "Needs to be validated")]
-    public async Task GivenDatahubProjectWithoutAcronym_CreateResourcesAndAddProject()
+    [Fact(Skip = "Needs to be validated")]
+    public async Task GivenDatahubProjectWithoutAcronymCreateResourcesAndAddProject()
     {
         const string projectName = "Datahub Unit Testing";
         const string organization = "Unit Testing";
@@ -79,7 +78,7 @@ public class ProjectCreationTests
         var config = serviceProvider.GetRequiredService<IConfiguration>();
         var isAdded = await projectCreationService.CreateProjectAsync(projectName, organization);
         Assert.True(isAdded);
-        var projects = LoadCollectionGeneric<DatahubProjectDBContext, Datahub_Project>(SetupServices(), d => d.Projects);
+        var projects = LoadCollectionGeneric<DatahubProjectDBContext, DatahubProject>(SetupServices(), d => d.Projects);
         Assert.Single(projects);
         //test api success
         using IQueue<CreateResourceData> queue = new AzureStorageQueue<CreateResourceData>(new AzureStorageQueueOptions<CreateResourceData>()

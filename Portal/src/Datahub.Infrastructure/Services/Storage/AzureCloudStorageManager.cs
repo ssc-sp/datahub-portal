@@ -4,7 +4,6 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
 using Datahub.Core.Data;
-using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
@@ -102,10 +101,10 @@ public class AzureCloudStorageManager : ICloudStorageManager
     public async Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess)
     {
         // get the directory client
-        var dirClient = GetDirectoryClient(container, file.folderpath);
+        var dirClient = GetDirectoryClient(container, file.Folderpath);
 
         // create the file
-        var fileClient = dirClient.GetFileClient(file.filename);
+        var fileClient = dirClient.GetFileClient(file.Filename);
         if (fileClient is null)
             return false;
 
@@ -114,8 +113,8 @@ public class AzureCloudStorageManager : ICloudStorageManager
         {
             Metadata = new Dictionary<string, string>()
             {
-                { FileMetaData.FileId, file.id },
-                { FileMetaData.CreatedBy, file.createdby }
+                { FileMetaData.FileId, file.Id },
+                { FileMetaData.CreatedBy, file.Createdby }
             },
             ProgressHandler = new UploadProgressHandler(progess)
         };
@@ -260,13 +259,13 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
         return new()
         {
-            id = GetMetadata(metadata, METADATA_FILE_ID, Guid.NewGuid().ToString()),
-            name = fileName,
-            ownedby = GetMetadata(metadata, FileMetaData.OwnedBy),
-            createdby = GetMetadata(metadata, FileMetaData.CreatedBy),
-            lastmodifiedby = GetMetadata(metadata, FileMetaData.LastModifiedBy),
-            lastmodifiedts = props.LastModified.DateTime,
-            filesize = props.ContentLength.ToString()
+            Id = GetMetadata(metadata, METADATA_FILE_ID, Guid.NewGuid().ToString()),
+            Name = fileName,
+            Ownedby = GetMetadata(metadata, FileMetaData.OwnedBy),
+            Createdby = GetMetadata(metadata, FileMetaData.CreatedBy),
+            Lastmodifiedby = GetMetadata(metadata, FileMetaData.LastModifiedBy),
+            Lastmodifiedts = props.LastModified.DateTime,
+            Filesize = props.ContentLength.ToString()
         };
     }
 
@@ -340,8 +339,8 @@ public class AzureCloudStorageManager : ICloudStorageManager
             return new List<(string, string)>
             {
                 (ResourceSubstitutions.ProjectAcronym, projectAcronym),
-                (ResourceSubstitutions.AZAccountKey, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AZ_AccountKey)),
-                (ResourceSubstitutions.AZAccountName, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AZ_AccountName)),
+                (ResourceSubstitutions.AZAccountKey, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AZAccountKey)),
+                (ResourceSubstitutions.AZAccountName, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AZAccountName)),
                 (ResourceSubstitutions.ContainerName, container.Name)
             };
         }

@@ -90,7 +90,7 @@ else
             <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Contact Information"]: </b>@CatalogResult.Contact</AeTypography>
             @if (Project is not null)
             {
-                <AeTypography Variant="p no-margin"><b>@Localizer["Location"]: </b><DHLink DataProject="@(Project.Project_Acronym_CD)">@Project.ProjectName</DHLink></AeTypography>
+                <AeTypography Variant="p no-margin"><b>@Localizer["Location"]: </b><DHLink DataProject="@(Project.ProjectAcronymCD)">@Project.ProjectName</DHLink></AeTypography>
             }   
         </div>
         <div class="details-right">
@@ -118,7 +118,7 @@ else
     public CatalogObjectResult CatalogResult { get; init; }
 
     [Parameter]
-    public Datahub_Project Project { get; set; }
+    public DatahubProject Project { get; set; }
 
     public bool IsFrench => CatalogResult?.IsFrench == true;
 
@@ -173,7 +173,7 @@ else
 
     private string GetLabel(string label) 
     {
-        var subjects = _fieldValues.GetSelectedChoices(label).Select(s => IsFrench ? s.Label_French_TXT : s.Label_English_TXT).ToList();
+        var subjects = _fieldValues.GetSelectedChoices(label).Select(s => IsFrench ? s.LabelFrenchTXT : s.LabelEnglishTXT).ToList();
         return subjects.Any() ? subjects[0] : string.Empty;
     }
 
@@ -181,7 +181,7 @@ else
 
     private void NavigateToInitiative()
     {
-        NavigationManager.NavigateTo($"projects/{Project.Project_Acronym_CD}");
+        NavigationManager.NavigateTo($"projects/{Project.ProjectAcronymCD}");
     }
 
     private void ShowMetadataEditor()
@@ -191,7 +191,7 @@ else
                     @key=@CatalogResult.ObjectMetadataId
                     ObjectId=@CatalogResult.ObjectMetadataId.ToString() 
                     DefaultMetadataId=@CatalogResult.Location
-                    Name=@CatalogResult.Name_English
+                    Name=@CatalogResult.NameEnglish
                     Location=@CatalogResult.Location
                     SecurityClass=@SecurityClassification.GetSecurityClassification(CatalogResult.ClassificationType)
                     SaveButtonLabel=@Localizer["Save"] 
@@ -231,7 +231,7 @@ else
 
     private string GetCardAdminRoles()
     {
-        return Project is null ?  RoleConstants.DATAHUB_ROLE_ADMIN : $"{Project.Project_Acronym_CD}-admin {RoleConstants.DATAHUB_ROLE_ADMIN}";
+        return Project is null ?  RoleConstants.DATAHUBROLEADMIN : $"{Project.ProjectAcronymCD}-admin {RoleConstants.DATAHUBROLEADMIN}";
     }
 
     private void SetAllTags()
@@ -285,14 +285,14 @@ else
         return _fieldValues.Definitions.Get(field).Description;
     }
 
-    private List<FieldChoice> GetOrganizationChoices(List<OrganizationLevel> levels, bool cascades)
+    private List<FieldChoice> GetOrganizationChoices(List<DHOrganizationLevel> levels, bool cascades)
     {
         return levels.Select(l => new FieldChoice()
         {
-            Value_TXT = $"{l.Id}",
-            Cascading_Value_TXT = cascades ? $"{l.ParentId}" : null,
-            Label_English_TXT = l.EnglishLabel,
-            Label_French_TXT = l.FrenchLabel
+            ValueTXT = $"{l.Id}",
+            CascadingValueTXT = cascades ? $"{l.ParentId}" : null,
+            LabelEnglishTXT = l.EnglishLabel,
+            LabelFrenchTXT = l.FrenchLabel
         }).ToList();
     }
 

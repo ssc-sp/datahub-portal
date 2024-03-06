@@ -11,7 +11,7 @@ internal class ProxyConfig : IProxyConfig
     public ProxyConfig(IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters)
     {
         _routes = routes;
-        _clusters = clusters;        
+        _clusters = clusters;
     }
 
     public IReadOnlyList<RouteConfig> Routes => _routes;

@@ -37,7 +37,7 @@
     [Parameter]
     public bool ResourceRequested { get; set; }
     [Parameter]
-    public Datahub_Project? Project { get; set; }
+    public DatahubProject? Project { get; set; }
 
     private string Icon => GitHubModule?.Icon ?? "fa-solid fa-cloud-question";
     private string? TemplateName => GitHubModule?.Name;
@@ -50,6 +50,6 @@
         base.OnInitialized();
 
         _databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(Project);
-        _projectAcronym = Project?.Project_Acronym_CD;
+        _projectAcronym = Project?.ProjectAcronymCD;
     }
 }

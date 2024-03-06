@@ -16,7 +16,7 @@
         }
     </Logo>
     <ToolActionsList>
-        <ViewStorageButton ProjectAcronym="@Project?.Project_Acronym_CD" />
+        <ViewStorageButton ProjectAcronym="@Project?.ProjectAcronymCD" />
         <ViewSharedFilesButton />
         @* Hide for POC Stage 2 *@
         @* <CostEstimatorButton TemplateName="@TemplateName"/> *@
@@ -33,7 +33,7 @@
     [Parameter]
     public bool ResourceRequested { get; set; }
     [Parameter]
-    public Datahub_Project? Project { get; set; }
+    public DatahubProject? Project { get; set; }
     
     private string Icon => GitHubModule?.Icon ?? "fa-solid fa-cloud-question";
     private string? TemplateName => GitHubModule?.Name;

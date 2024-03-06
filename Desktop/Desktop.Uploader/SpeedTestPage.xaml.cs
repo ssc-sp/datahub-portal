@@ -1,8 +1,6 @@
 
 using SpeedTestSharp.Client;
 using SpeedTestSharp.Enums;
-using Datahub.Maui.Uploader;
-using SpeedTestSharp.DataTypes.External;
 using Datahub.Maui.Uploader.Resources;
 
 namespace Datahub.Maui.Uploader;
@@ -12,8 +10,8 @@ public partial class SpeedTestPage : ContentPage
     private readonly SpeedTestResults speedTestResults;
 
     public SpeedTestPage(SpeedTestResults speedTestResults)
-	{
-		InitializeComponent();
+    {
+        InitializeComponent();
         this.speedTestResults = speedTestResults;
     }
 
@@ -32,7 +30,7 @@ public partial class SpeedTestPage : ContentPage
             SkipBtn.IsEnabled = false;
             SpeedTestActivity.IsRunning = true;
             ISpeedTestClient speedTestClient = new SpeedTestClient();
-            var result = await speedTestClient.TestSpeedAsync(SpeedUnit.Mbps,testDownload:false,testLatency:false);
+            var result = await speedTestClient.TestSpeedAsync(SpeedUnit.Mbps, testDownload: false, testLatency: false);
             speedTestResults.UploadSpeedMbps = result.UploadSpeed;
             SkipBtn.Text = "Continue";
             speedTestResults.DownloadSpeedMpbs = result.DownloadSpeed;

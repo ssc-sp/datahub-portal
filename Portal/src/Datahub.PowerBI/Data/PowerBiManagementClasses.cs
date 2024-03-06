@@ -6,17 +6,17 @@ namespace Datahub.PowerBI.Data;
 
 public class PowerBiManagementConstants
 {
-    public const string POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY = "POWER_BI_MANAGEMENT";
-    public const string SANDBOX_WORKSPACE_SUFFIX = "[Development]";
+    public const string POWERBIMANAGEMENTLOCALIZATIONROOTKEY = "POWER_BI_MANAGEMENT";
+    public const string SANDBOXWORKSPACESUFFIX = "[Development]";
 
-    public const string TITLE_EN_METADATA_FIELD = "title_translated_en";
-    public const string TITLE_FR_METADATA_FIELD = "title_translated_fr";
-    public const string CONTACT_INFO_METADATA_FIELD = "contact_information";
+    public const string TITLEENMETADATAFIELD = "title_translated_en";
+    public const string TITLEFRMETADATAFIELD = "title_translated_fr";
+    public const string CONTACTINFOMETADATAFIELD = "contact_information";
 }
 
 public class PowerBiAdminDatasetTreeItem
 {
-    public PowerBiAdminDatasetTreeItem(Dataset pbiDataset, PowerBi_DataSet dbDataset, Guid? workspaceId)
+    public PowerBiAdminDatasetTreeItem(Dataset pbiDataset, PowerBiDataSet dbDataset, Guid? workspaceId)
     {
         _dbDataset = dbDataset;
         _pbiDataset = pbiDataset;
@@ -27,13 +27,13 @@ public class PowerBiAdminDatasetTreeItem
         }
         else
         {
-            _datasetId = dbDataset.DataSet_ID;
+            _datasetId = dbDataset.DataSetID;
         }
 
         _pbiDatasetName = pbiDataset?.Name;
-        _dbDatasetName = dbDataset?.DataSet_Name;
+        _dbDatasetName = dbDataset?.DataSetName;
         _pbiWorkspaceId = workspaceId;
-        _dbWorkspaceId = dbDataset?.Workspace_Id;
+        _dbWorkspaceId = dbDataset?.WorkspaceId;
     }
 
     private Guid _datasetId;
@@ -45,7 +45,7 @@ public class PowerBiAdminDatasetTreeItem
     private int? _projectId;
 
     private readonly Dataset _pbiDataset;
-    private readonly PowerBi_DataSet _dbDataset;
+    private readonly PowerBiDataSet _dbDataset;
 
     public bool IsInPowerBi => _pbiDataset != null;
     public bool IsInDb => _dbDataset != null;
@@ -91,22 +91,22 @@ public class PowerBiAdminDatasetTreeItem
     public bool IsLinkedToProject => _projectId != null;
 
     public Guid AnyWorkspaceId => _pbiWorkspaceId ?? _dbWorkspaceId ?? Guid.Empty;
-    public PowerBi_DataSetDefinition Definition => new(_datasetId, _pbiDatasetName ?? _dbDatasetName, AnyWorkspaceId);
+    public PowerBiDataSetDefinition Definition => new(_datasetId, _pbiDatasetName ?? _dbDatasetName, AnyWorkspaceId);
     public PowerBiAdminTreeItem ManagementTreeItem => new(DbDatasetName, PowerBiAdminTreeItemType.Dataset, DatasetId, _projectId);
 }
 
 public class PowerBiAdminReportTreeItem
 {
-    public PowerBiAdminReportTreeItem(Report pbiReport, PowerBi_Report dbReport, Guid? workspaceId)
+    public PowerBiAdminReportTreeItem(Report pbiReport, PowerBiReport dbReport, Guid? workspaceId)
     {
         _pbiReport = pbiReport;
         _dbReport = dbReport;
 
-        _reportId = pbiReport?.Id ?? dbReport?.Report_ID ?? Guid.Empty;
+        _reportId = pbiReport?.Id ?? dbReport?.ReportID ?? Guid.Empty;
         _pbiReportName = pbiReport?.Name;
-        _dbReportName = dbReport?.Report_Name;
+        _dbReportName = dbReport?.ReportName;
         _pbiWorkspaceId = workspaceId;
-        _dbWorkspaceId = dbReport?.Workspace_Id;
+        _dbWorkspaceId = dbReport?.WorkspaceId;
     }
 
     private Guid _reportId;
@@ -118,7 +118,7 @@ public class PowerBiAdminReportTreeItem
     private int? _projectId;
 
     private readonly Report _pbiReport;
-    private readonly PowerBi_Report _dbReport;
+    private readonly PowerBiReport _dbReport;
 
     public bool IsInPowerBi => _pbiReport != null;
     public bool IsInDb => _dbReport != null;
@@ -178,24 +178,24 @@ public class PowerBiAdminReportTreeItem
         }
     }
 
-    public Guid AnyWorkspaceId => _pbiWorkspaceId ??_dbWorkspaceId ?? Guid.Empty;
-    public PowerBi_ReportDefinition Definition => new(_reportId, _pbiReportName ?? _dbReportName, AnyWorkspaceId);
+    public Guid AnyWorkspaceId => _pbiWorkspaceId ?? _dbWorkspaceId ?? Guid.Empty;
+    public PowerBiReportDefinition Definition => new(_reportId, _pbiReportName ?? _dbReportName, AnyWorkspaceId);
     public PowerBiAdminTreeItem ManagementTreeItem => new(DbReportName, PowerBiAdminTreeItemType.Report, ReportId, _projectId);
 
     public bool InCatalog { get; set; }
-    public List<PowerBi_Report> SiblingReports { get; set; } = new();
+    public List<PowerBiReport> SiblingReports { get; set; } = new();
 }
 
 public class PowerBiAdminWorkspaceTreeItem
 {
-    public PowerBiAdminWorkspaceTreeItem(Group pbiWorkspace, PowerBi_Workspace dbWorkspace)
+    public PowerBiAdminWorkspaceTreeItem(Group pbiWorkspace, PowerBiWorkspace dbWorkspace)
     {
         _dbWorkspace = dbWorkspace;
         _pbiWorkspace = pbiWorkspace;
 
         // should never be empty, since at least one workspace will be provided
-        _workspaceId = pbiWorkspace?.Id ?? dbWorkspace?.Workspace_ID ?? Guid.Empty;
-        _dbWorkspaceName = dbWorkspace?.Workspace_Name;
+        _workspaceId = pbiWorkspace?.Id ?? dbWorkspace?.WorkspaceID ?? Guid.Empty;
+        _dbWorkspaceName = dbWorkspace?.WorkspaceName;
         _pbiWorkspaceName = pbiWorkspace?.Name;
         RevertProjectAssignment();
     }
@@ -207,7 +207,7 @@ public class PowerBiAdminWorkspaceTreeItem
     private int? _projectId;
 
     private readonly Group _pbiWorkspace;
-    private readonly PowerBi_Workspace _dbWorkspace;
+    private readonly PowerBiWorkspace _dbWorkspace;
 
     private List<PowerBiAdminDatasetTreeItem> _datasets = new();
     private List<PowerBiAdminReportTreeItem> _reports = new();
@@ -219,12 +219,12 @@ public class PowerBiAdminWorkspaceTreeItem
     public bool ChildrenNeedUpdate => Datasets.Any(d => d.NeedsUpdate) || Reports.Any(r => r.NeedsUpdate);
     private bool _nameWasChanged => PbiWorkspaceName != null && DbWorkspaceName != null && PbiWorkspaceName != DbWorkspaceName;
 
-    public bool ProjectAssignmentChanged => _dbWorkspace == null || _dbWorkspace.Sandbox_Flag != _sandboxFlag || _dbWorkspace.Project_Id != _projectId;
+    public bool ProjectAssignmentChanged => _dbWorkspace == null || _dbWorkspace.SandboxFlag != _sandboxFlag || _dbWorkspace.ProjectId != _projectId;
 
     public void RevertProjectAssignment()
     {
-        _sandboxFlag = _dbWorkspace?.Sandbox_Flag ?? false;
-        _projectId = _dbWorkspace?.Project_Id;
+        _sandboxFlag = _dbWorkspace?.SandboxFlag ?? false;
+        _projectId = _dbWorkspace?.ProjectId;
     }
 
     public Guid WorkspaceId
@@ -241,7 +241,7 @@ public class PowerBiAdminWorkspaceTreeItem
 
     public string PbiWorkspaceName
     {
-        get => _pbiWorkspaceName; 
+        get => _pbiWorkspaceName;
         set => _pbiWorkspaceName = value;
     }
 
@@ -269,7 +269,7 @@ public class PowerBiAdminWorkspaceTreeItem
         private set => _reports = value;
     }
 
-    public PowerBi_WorkspaceDefinition Definition => new(_workspaceId, _pbiWorkspaceName ?? _dbWorkspaceName, _sandboxFlag, _projectId);
+    public PowerBiWorkspaceDefinition Definition => new(_workspaceId, _pbiWorkspaceName ?? _dbWorkspaceName, _sandboxFlag, _projectId);
     public PowerBiAdminTreeItem ManagementTreeItem => new(DbWorkspaceName, PowerBiAdminTreeItemType.Workspace, WorkspaceId, _projectId);
 }
 
@@ -331,23 +331,23 @@ public class PowerBiAdminGroupUser
 
     public override string ToString()
     {
-        return $"{UserEmail}{(IsAdmin? " (admin)": string.Empty)}";
+        return $"{UserEmail}{(IsAdmin ? " (admin)" : string.Empty)}";
     }
 }
 
 public class PowerBiAdminWorkspaceName
 {
-    public PowerBiAdminWorkspaceName(Datahub_Project project)
+    public PowerBiAdminWorkspaceName(DatahubProject project)
     {
-        _originalBranch = project.Branch_Name;
+        _originalBranch = project.BranchName;
         _originalName = project.ProjectName;
 
-        ProjectAcronym = project.Project_Acronym_CD;
+        ProjectAcronym = project.ProjectAcronymCD;
         Branch = _originalBranch;
         Name = _originalName;
     }
 
-        
+
 
     private readonly string _originalBranch;
     private readonly string _originalName;
@@ -364,5 +364,5 @@ public class PowerBiAdminWorkspaceName
         Branch = _originalBranch;
     }
     public string ProductionName => $"{Branch} - {ProjectAcronym} - {Name}";
-    public string SandboxName => $"{ProductionName} {PowerBiManagementConstants.SANDBOX_WORKSPACE_SUFFIX}";
+    public string SandboxName => $"{ProductionName} {PowerBiManagementConstants.SANDBOXWORKSPACESUFFIX}";
 }

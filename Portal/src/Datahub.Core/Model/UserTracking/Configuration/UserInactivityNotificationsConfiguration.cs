@@ -9,7 +9,7 @@ namespace Datahub.Core.Model.UserTracking.Configuration
         {
             builder.ToTable("UserInactivityNotifications");
 
-            builder.HasKey(e => e.User_ID);
+            builder.HasKey(e => e.UserID);
 
             builder.Property(e => e.NotificationDate)
                 .IsRequired();

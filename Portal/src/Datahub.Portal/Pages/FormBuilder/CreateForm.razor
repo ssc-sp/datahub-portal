@@ -28,13 +28,13 @@ else
     public string ProjectAcronym { get; set; }
 
     private DatahubProjectDBContext projectContext;
-    private Datahub_Project _project;
+    private DatahubProject _project;
     private WebForm _form;
 
     protected override async Task OnInitializedAsync()
     {
         projectContext = DbFactory.CreateDbContext();
-        _project = projectContext.Projects.Include(p => p.WebForms).Single(p => p.Project_Acronym_CD == ProjectAcronym);
+        _project = projectContext.Projects.Include(p => p.WebForms).Single(p => p.ProjectAcronymCD == ProjectAcronym);
         _form = await DoCreateForm();
     }
 
@@ -50,7 +50,7 @@ else
         var result = await projectContext.WebForms.AddAsync(_form);
         _form = result.Entity;
         await projectContext.SaveChangesAsync();
-        NavManager.NavigateTo($"/w/{ProjectAcronym}/forms/{_form.WebForm_ID}");
+        NavManager.NavigateTo($"/w/{ProjectAcronym}/forms/{_form.WebFormID}");
     }
     public void Dispose() { projectContext.Dispose(); }
 }

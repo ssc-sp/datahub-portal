@@ -10,12 +10,9 @@ using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 using System.Net;
-using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Projects;
 using Datahub.Application.Services.Security;
-using Datahub.Core.Data;
-using Datahub.Core.Services.Security;
 using Datahub.Functions.Services;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Validators;
@@ -32,7 +29,7 @@ var host = new HostBuilder()
     .ConfigureServices((hostContext, services) =>
     {
         var config = hostContext.Configuration;
-        
+
         var connectionString = config["datahub_mssql_project"];
         if (connectionString is not null)
         {
@@ -63,7 +60,7 @@ var host = new HostBuilder()
         services.AddScoped<EmailValidator>();
 
         services.AddDatahubConfigurationFromFunctionFormat(config);
-       
+
 
     })
     .Build();

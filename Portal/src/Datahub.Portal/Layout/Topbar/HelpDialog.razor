@@ -159,7 +159,7 @@
     private string _ticketDescription = "";
     private string _ticketOrg = "";
     private int _ticketPreferredLanguage = 1;
-    private List<Datahub_Project_User> _userRoles;
+    private List<DatahubProjectUser> _userRoles;
     private IJSObjectReference _module;
 
     // This dictionary is used to generate checkboxes in the help request
@@ -291,7 +291,7 @@
 
     // Retrieve the list of workspaces
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        _userRoles = await dbContext.Project_Users
+        _userRoles = await dbContext.ProjectUsers
             .Include(u => u.Role)
             .Include(u => u.Project)
             .ThenInclude(p => p.Users)

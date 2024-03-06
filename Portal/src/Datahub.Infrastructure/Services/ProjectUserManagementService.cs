@@ -1,16 +1,12 @@
 using System.Linq.Dynamic.Core;
-using System.Transactions;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
-using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -84,27 +80,27 @@ public class ProjectUserManagementService : IProjectUserManagementService
     {
         // get all the distinct projects that have been modified
         var projectAcronyms = projectUserUpdateCommands
-            .Select(p => p.ProjectUser.Project.Project_Acronym_CD)
+            .Select(p => p.ProjectUser.Project.ProjectAcronymCD)
             .Distinct()
             .Union(projectUserAddUserCommands
                 .Select(p => p.ProjectAcronym)
                 .Distinct())
             .ToList();
-        
+
         var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
         // update each project
         foreach (var projectAcronym in projectAcronyms)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
-            
+
             var project = await context.Projects
                 .Include(p => p.Users)
                 .ThenInclude(u => u.PortalUser)
-                .FirstAsync(p => p.Project_Acronym_CD == projectAcronym);
-            
-            project.Last_Updated_DT = DateTime.Now;
-            project.Last_Updated_UserId = requesterUserId;
+                .FirstAsync(p => p.ProjectAcronymCD == projectAcronym);
+
+            project.LastUpdatedDT = DateTime.Now;
+            project.LastUpdatedUserId = requesterUserId;
             context.Projects.Update(project);
             await context.SaveChangesAsync();
 
@@ -117,8 +113,8 @@ public class ProjectUserManagementService : IProjectUserManagementService
         await using var context = await _contextFactory.CreateDbContextAsync();
         foreach (var projectUserUpdateCommand in projectUserUpdateCommands)
         {
-            var userToUpdate = await context.Project_Users
-                .FirstOrDefaultAsync(pu => pu.ProjectUser_ID == projectUserUpdateCommand.ProjectUser.ProjectUser_ID);
+            var userToUpdate = await context.ProjectUsers
+                .FirstOrDefaultAsync(pu => pu.ProjectUserID == projectUserUpdateCommand.ProjectUser.ProjectUserID);
 
             if (userToUpdate == null)
             {
@@ -131,8 +127,8 @@ public class ProjectUserManagementService : IProjectUserManagementService
             //}
             //else
             //{
-                userToUpdate.RoleId = projectUserUpdateCommand.NewRoleId;
-                context.Update(userToUpdate);
+            userToUpdate.RoleId = projectUserUpdateCommand.NewRoleId;
+            context.Update(userToUpdate);
             //}
         }
 
@@ -143,7 +139,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
     {
         foreach (var projectUserAddUserCommand in projectUserAddUserCommands)
         {
-            if (projectUserAddUserCommand.RoleId == (int)Project_Role.RoleNames.Remove)
+            if (projectUserAddUserCommand.RoleId == (int)ProjectRole.RoleNames.Remove)
             {
                 throw new InvalidOperationException("Cannot remove a user that is not already a member of the project");
             }
@@ -162,7 +158,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
 
             await using var context = await _contextFactory.CreateDbContextAsync();
             var project = await context.Projects
-                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym);
+                .FirstOrDefaultAsync(p => p.ProjectAcronymCD == projectUserAddUserCommand.ProjectAcronym);
 
             // Verify that the project exists
             if (project == null)
@@ -171,8 +167,8 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 throw new ProjectNotFoundException($"Project {projectUserAddUserCommand.ProjectAcronym} not found");
             }
 
-            var projectUser = await context.Project_Users
-                .FirstOrDefaultAsync(u => u.Project.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym
+            var projectUser = await context.ProjectUsers
+                .FirstOrDefaultAsync(u => u.Project.ProjectAcronymCD == projectUserAddUserCommand.ProjectAcronym
                                           && u.PortalUser.GraphGuid == projectUserAddUserCommand.GraphGuid);
 
             // Double check that the user is not already a member of the project
@@ -185,15 +181,15 @@ public class ProjectUserManagementService : IProjectUserManagementService
             else
             {
 
-                var newProjectUser = new Datahub_Project_User()
+                var newProjectUser = new DatahubProjectUser()
                 {
-                    Project_ID = project.Project_ID,
+                    ProjectID = project.ProjectID,
                     PortalUserId = portalUser.Id,
                     ApprovedPortalUserId = currentUser.Id,
-                    Approved_DT = DateTime.UtcNow,
+                    ApprovedDT = DateTime.UtcNow,
                     RoleId = projectUserAddUserCommand.RoleId,
                 };
-                await context.Project_Users.AddAsync(newProjectUser);
+                await context.ProjectUsers.AddAsync(newProjectUser);
             }
 
             context.Attach(currentUser);
@@ -203,15 +199,15 @@ public class ProjectUserManagementService : IProjectUserManagementService
         }
     }
 
-    public async Task<List<Datahub_Project_User>> GetProjectUsersAsync(string projectAcronym)
+    public async Task<List<DatahubProjectUser>> GetProjectUsersAsync(string projectAcronym)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        return await context.Project_Users
+        return await context.ProjectUsers
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
             .Include(u => u.Role)
-            .Where(u => u.Project.Project_Acronym_CD == projectAcronym)
+            .Where(u => u.Project.ProjectAcronymCD == projectAcronym)
             .Where(u => u.PortalUser != null)
             .ToListAsync();
     }

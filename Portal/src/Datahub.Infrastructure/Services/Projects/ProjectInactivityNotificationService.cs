@@ -3,7 +3,6 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Octokit;
 
 namespace Datahub.Infrastructure.Services.Projects
 {
@@ -21,7 +20,7 @@ namespace Datahub.Infrastructure.Services.Projects
             using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
             var notification = new ProjectInactivityNotifications
             {
-                Project_ID = projectId,
+                ProjectID = projectId,
                 NotificationDate = notificationDate,
                 DaysBeforeDeletion = daysBeforeDeletion,
                 SentTo = sentTo

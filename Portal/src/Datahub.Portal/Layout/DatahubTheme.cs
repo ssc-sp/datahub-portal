@@ -11,9 +11,9 @@ public abstract class DatahubTheme
             Default =
             {
                 FontFamily = new[] { "Open Sans", "sans-serif" },
-                FontSize = "0.9rem",        
+                FontSize = "0.9rem",
                 LineHeight = 1.75,
-            }, 
+            },
             H1 = new H1()
             {
                 LineHeight = 1.25,

@@ -1,6 +1,5 @@
 ﻿using Datahub.Core.DataTransfers;
 using Datahub.Maui.Uploader.Resources;
-using Datahub.Core.DataTransfers;
 using Datahub.Maui.Uploader.Models;
 
 namespace Datahub.Maui.Uploader

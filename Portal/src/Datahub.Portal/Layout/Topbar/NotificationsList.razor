@@ -75,11 +75,11 @@
                         <MudCard Outlined>
                             <MudCardContent>
                                 <MudText>
-                                    @(_userLanguageIsFrench ? notification.NotificationTextFr_TXT : notification.NotificationTextEn_TXT)
+                                    @(_userLanguageIsFrench ? notification.NotificationTextFrTXT : notification.NotificationTextEnTXT)
                                 </MudText>
                             </MudCardContent>
 
-                            @if (!string.IsNullOrEmpty(notification.ActionLink_URL))
+                            @if (!string.IsNullOrEmpty(notification.ActionLinkURL))
                             {
                                 <MudCardActions>
                                     <MudStack Row Justify="Justify.SpaceBetween">
@@ -88,12 +88,12 @@
                                             EndIcon="@Icons.Material.Filled.Send"
                                             Variant="Variant.Filled"
                                             Color="Color.Primary">
-                                            @Localizer[notification.ActionLink_Key ?? $"{LocalizationPrefix}.DefaultActionLinkText"]
+                                            @Localizer[notification.ActionLinkKey ?? $"{LocalizationPrefix}.DefaultActionLinkText"]
                                         </MudButton>
                                         <MudButton
                                             OnClick="@(async () => await ToggleUnread(notification))"
                                             Variant="Variant.Text">
-                                            @(notification.Read_FLAG ? @Localizer[$"{LocalizationPrefix}.MarkUnread"] : @Localizer[$"{LocalizationPrefix}.MarkRead"])
+                                            @(notification.ReadFLAG ? @Localizer[$"{LocalizationPrefix}.MarkUnread"] : @Localizer[$"{LocalizationPrefix}.MarkRead"])
                                         </MudButton>
                                     </MudStack>
                                 </MudCardActions>

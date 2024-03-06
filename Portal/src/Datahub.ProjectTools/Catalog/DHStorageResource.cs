@@ -1,13 +1,12 @@
 ﻿using Datahub.Core.Configuration;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services.Projects;
 using Datahub.ProjectTools.Catalog.ResourceCards;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace Datahub.ProjectTools.Catalog;
 
-public class DHStorageResource: ActiveGitModuleResource
+public class DHStorageResource : ActiveGitModuleResource
 {
     private readonly IDbContextFactory<DatahubProjectDBContext> dbFactoryProject;
     private readonly bool _isServiceConfigured;
@@ -48,6 +47,6 @@ public class DHStorageResource: ActiveGitModuleResource
 
     public override string[] GetTags()
     {
-        return new[] { "Cloud Storage", "Azure"};
+        return new[] { "Cloud Storage", "Azure" };
     }
 }

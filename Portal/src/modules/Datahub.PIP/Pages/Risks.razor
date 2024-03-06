@@ -18,7 +18,7 @@
 
 <h2>Selected Program</h2>
 <AeTable Accessors="accessorFunctionsPip"
-         T="PIP_Tombstone"
+         T="PIPTombstone"
          Dataset="_tombstones"
          Headers="pipheaders"
          GridTemplateColumns="4fr 8fr"
@@ -34,7 +34,7 @@
 
 
         <AePaginatedTable Accessors="accessorFunctions"
-                 T="PIP_Risks"
+                 T="PIPRisks"
                  Dataset="_risks"
                  Renderers="GetRenderers()"
                  ColorAccessor="getColor"
@@ -74,9 +74,9 @@
     </AeFlex>
 @if (_risk != null)
 {
-        @if (_risk.Risks_ID > 0)
+        @if (_risk.RisksID > 0)
         {
-            <h2>Editing Risk @_risk.Risk_Id_TXT</h2>
+            <h2>Editing Risk @_risk.RiskIdTXT</h2>
         }
         else
         {
@@ -84,7 +84,7 @@
         }
 
         <AeModelForm Model="_risk"
-                     T="PIP_Risks"
+                     T="PIPRisks"
                      OnValidSubmit="HandleValidSubmit"
                      OnCancel="ClearForm"
                      CancelLabel="Cancel"
@@ -112,10 +112,10 @@
     [Parameter]
     public string tombstone { get; set; }
     private const string PROJECTACRONYM = "PIP";
-    private List<PIP_Risks> _risks;
-    private PIP_Risks _risk;
-    private List<PIP_Tombstone> _tombstones;
-    private PIP_Tombstone _tombstone;
+    private List<PIPRisks> _risks;
+    private PIPRisks _risk;
+    private List<PIPTombstone> _tombstones;
+    private PIPTombstone _tombstone;
     private string SubmitLabel = "Save";
     private Microsoft.Graph.Models.User CurrentUser;
     private string navigationUrl = string.Empty;
@@ -144,18 +144,18 @@
         CurrentUser = await UserInformationService.GetCurrentGraphUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(CurrentUser.Id, PROJECTACRONYM);
         // load projects
-        _tombstones = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).ToList();
+        _tombstones = Context.Tombstones.Where(p => p.TombstoneID == Convert.ToInt32(tombstone)).ToList();
         _tombstone = _tombstones[0];
-        _risks = Context.Risks.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted).ToList();
+        _risks = Context.Risks.Where(p => p.PIPTombstone.TombstoneID == _tombstone.TombstoneID && !p.IsDeleted).ToList();
     }
 
     
-     private List<Func<PIP_Risks, RenderFragment>> GetRenderers()
+     private List<Func<PIPRisks, RenderFragment>> GetRenderers()
     {
 
         if (_isUserAdmin)
         {
-        return new List<Func<PIP_Risks, RenderFragment>>
+        return new List<Func<PIPRisks, RenderFragment>>
             {
                 null,
                 null,
@@ -164,11 +164,11 @@
                 null,
                 null,
                 risk => 
-            @<div class="help icon-container" @onclick="() => DeleteRecord(risk.Risks_ID)"><i class="far fa-trash-alt"></i></div>
+            @<div class="help icon-container" @onclick="() => DeleteRecord(risk.RisksID)"><i class="far fa-trash-alt"></i></div>
             };
         }
        
-        return new List<Func<PIP_Risks, RenderFragment>>
+        return new List<Func<PIPRisks, RenderFragment>>
             {
                 null,
                 null,
@@ -191,7 +191,7 @@
         }
 
         _risk = null;
-        _risks = Context.Risks.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted).ToList();
+        _risks = Context.Risks.Where(p => p.PIPTombstone.TombstoneID == _tombstone.TombstoneID && !p.IsDeleted).ToList();
         await UI.ToggleModal();        
 
         StateHasChanged();
@@ -211,10 +211,10 @@
         _submittingApproval = true;
         if (isConfirmed && _risk != null)
         {
-            _risk.Last_Updated_DT = DateTime.Now;
-            _risk.Date_Updated_DT = DateTime.Now;
-            _risk.Last_Updated_UserId = CurrentUser.Id;
-            if (_risk.Risks_ID == 0)
+            _risk.LastUpdatedDT = DateTime.Now;
+            _risk.DateUpdatedDT = DateTime.Now;
+            _risk.LastUpdatedUserId = CurrentUser.Id;
+            if (_risk.RisksID == 0)
             {
                 _risk = Context.Risks.Add(_risk).Entity;
             }
@@ -256,23 +256,23 @@
 
     private async Task GoToPreviousSheet()
     {
-        navigationUrl = $"/pip/programs/{_tombstone.Tombstone_ID}";
+        navigationUrl = $"/pip/programs/{_tombstone.TombstoneID}";
         if (_risk == null || !Context.ChangeTracker.HasChanges())
             NavigationManager.NavigateTo(navigationUrl);
         else
             await HandleValidSubmit(); 
     }
 
-    private async Task<PIP_Risks> ClearForm()
+    private async Task<PIPRisks> ClearForm()
     {
         _risk = null;
         StateHasChanged();
-        return await Task.FromResult((PIP_Risks)null);
+        return await Task.FromResult((PIPRisks)null);
     }
 
   
 
-    private async Task SetFormEdit(PIP_Risks risk)
+    private async Task SetFormEdit(PIPRisks risk)
     {
         if (Context.ChangeTracker.HasChanges())
         {
@@ -283,14 +283,14 @@
         else
         {
             _risk = risk;
-            _risk.Last_Updated_UserName = await MSGraphService.GetUserName(_risk.Last_Updated_UserId, CancellationToken.None);
+            _risk.LastUpdatedUserName = await MSGraphService.GetUserName(_risk.LastUpdatedUserId, CancellationToken.None);
 
             SubmitLabel = "Save";
             StateHasChanged();
         }
     }
 
-    private string getColor(PIP_Risks current)
+    private string getColor(PIPRisks current)
     {
         if (current == _risk)
         {
@@ -299,14 +299,14 @@
         return "";
     }
 
-    private List<Func<PIP_Risks, string>> accessorFunctions = new List<Func<PIP_Risks, string>>
+    private List<Func<PIPRisks, string>> accessorFunctions = new List<Func<PIPRisks, string>>
 {
-        new Func<PIP_Risks, string>(p => { return p.Risk_Title; }),
-        new Func<PIP_Risks, string>(p => { return p.Risk_Description_TXT; }),
-        new Func<PIP_Risks, string>(p => { return p.Risk_Id_TXT; }),
-        new Func<PIP_Risks, string>(p => { return p.InherentLevel1.ToString(); }),
-        new Func<PIP_Risks, string>(p => { return p.InherentLevel2.ToString(); }),
-        new Func<PIP_Risks, string>(p => { return p.InherentLevel3.ToString(); }),
+        new Func<PIPRisks, string>(p => { return p.RiskTitle; }),
+        new Func<PIPRisks, string>(p => { return p.RiskDescriptionTXT; }),
+        new Func<PIPRisks, string>(p => { return p.RiskIdTXT; }),
+        new Func<PIPRisks, string>(p => { return p.InherentLevel1.ToString(); }),
+        new Func<PIPRisks, string>(p => { return p.InherentLevel2.ToString(); }),
+        new Func<PIPRisks, string>(p => { return p.InherentLevel3.ToString(); }),
         null,
     };
 
@@ -315,10 +315,10 @@
         "Title","Lead Sector"
     };
 
-    private List<Func<PIP_Tombstone, string>> accessorFunctionsPip = new List<Func<PIP_Tombstone, string>>
+    private List<Func<PIPTombstone, string>> accessorFunctionsPip = new List<Func<PIPTombstone, string>>
 {
-        new Func<PIP_Tombstone, string>(p => { return p.Program_Title; }),
-        new Func<PIP_Tombstone, string>(p => { return p.Lead_Sector; }),
+        new Func<PIPTombstone, string>(p => { return p.ProgramTitle; }),
+        new Func<PIPTombstone, string>(p => { return p.LeadSector; }),
     };
 
     private List<string> headers = new List<string>
@@ -328,7 +328,7 @@
 
     private void CreateNewRisk()
     {
-        _risk = new PIP_Risks() { PIP_Tombstone = _tombstone, Last_Updated_DT = DateTime.Now };
+        _risk = new PIPRisks() { PIPTombstone = _tombstone, LastUpdatedDT = DateTime.Now };
         StateHasChanged();
     }
 
@@ -344,15 +344,15 @@
 
     private void OnConfigure(IModelFormContext context)
     {
-        context.RegisterOptionValueProperty<PIP_Risks>(r => r.Risk_Category, () => new[] { "Strategic", "Operational" });
+        context.RegisterOptionValueProperty<PIPRisks>(r => r.RiskCategory, () => new[] { "Strategic", "Operational" });
 
-        context.RegisterOptionValueProperty<PIP_Risks>(r => r.Risk_Trend_TXT, () => new[] { "↑ increasing risk",
+        context.RegisterOptionValueProperty<PIPRisks>(r => r.RiskTrendTXT, () => new[] { "↑ increasing risk",
                                                                     "→ stable, risk is being managed",
                                                                     "↓ decreasing risk",
                                                                     "N/A"
                                                                  });
 
-        context.RegisterOptionValueProperty<PIP_Risks>(r => r.Relevant_Corporate_Priorities_TXT, () => new[] {"Accelerate development and adoption of clean technology and transition to a net-zero future in a post-pandemic economic recovery",
+        context.RegisterOptionValueProperty<PIPRisks>(r => r.RelevantCorporatePrioritiesTXT, () => new[] {"Accelerate development and adoption of clean technology and transition to a net-zero future in a post-pandemic economic recovery",
                                                                     "Improve market access and competitiveness for Canada’s resource sectors",
                                                                     "Advance reconciliation, build relationships and share economic benefits with Indigenous peoples",
                                                                     "Promote a diverse and inclusive workforce while supporting resource communities",
@@ -360,7 +360,7 @@
                                                                     "N/A"
                                                                  });
 
-        context.RegisterOptionValueProperty<PIP_Risks>(r => r.Relevant_Corporate_Risks_TXT, () => new[] { "1. Competitiveness of Natural Resources Sectors and Trade ",
+        context.RegisterOptionValueProperty<PIPRisks>(r => r.RelevantCorporateRisksTXT, () => new[] { "1. Competitiveness of Natural Resources Sectors and Trade ",
                                                                                 "2. Safety and Security of Energy Infrastructure",
                                                                                 "3. Innovation, Science and Clean Technology",
                                                                                 "4. Climate Change Adaptation and Mitigation",
@@ -371,23 +371,23 @@
                                                                                 "N/A"
                                                                  });
         
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Impact1, () => PIP_Constants.FIVE_OPTIONS_MANDATORY);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Impact2, () => PIP_Constants.FIVE_OPTIONS_MANDATORY);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Impact3, () => PIP_Constants.FIVE_OPTIONS_MANDATORY);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Likelihood1, () => PIP_Constants.FIVE_OPTIONS_MANDATORY);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Likelihood2, () => PIP_Constants.FIVE_OPTIONS_MANDATORY);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Likelihood3, () => PIP_Constants.FIVE_OPTIONS_MANDATORY);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Ongoing_Monitoring_Activities_TXT, () => PIP_Constants.ONGOING_ACTIVITIES);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Ongoing_Monitoring_Activities_TXT2, () => PIP_Constants.ONGOING_ACTIVITIES);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Ongoing_Monitoring_Activities_TXT3, () => PIP_Constants.ONGOING_ACTIVITIES);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Ongoing_Monitoring_Timeframe_TXT, () => PIP_Constants.ONGOING_ACTIVITIES_TIMEFRAME);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Ongoing_Monitoring_Timeframe2_TXT, () => PIP_Constants.ONGOING_ACTIVITIES_TIMEFRAME);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Ongoing_Monitoring_Timeframe3_TXT, () => PIP_Constants.ONGOING_ACTIVITIES_TIMEFRAME);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Strategy_Timeline1, () => PIP_Constants.TIMELINE);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Strategy_Timeline2, () => PIP_Constants.TIMELINE);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Strategy_Timeline3, () => PIP_Constants.TIMELINE);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Strategy_Timeline4, () => PIP_Constants.TIMELINE);
-        context.RegisterOptionValueProperty<PIP_Risks>(p => p.Strategy_Timeline5, () => PIP_Constants.TIMELINE);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.Impact1, () => PIPConstants.FIVEOPTIONSMANDATORY);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.Impact2, () => PIPConstants.FIVEOPTIONSMANDATORY);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.Impact3, () => PIPConstants.FIVEOPTIONSMANDATORY);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.Likelihood1, () => PIPConstants.FIVEOPTIONSMANDATORY);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.Likelihood2, () => PIPConstants.FIVEOPTIONSMANDATORY);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.Likelihood3, () => PIPConstants.FIVEOPTIONSMANDATORY);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.OngoingMonitoringActivitiesTXT, () => PIPConstants.ONGOINGACTIVITIES);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.OngoingMonitoringActivitiesTXT2, () => PIPConstants.ONGOINGACTIVITIES);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.OngoingMonitoringActivitiesTXT3, () => PIPConstants.ONGOINGACTIVITIES);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.OngoingMonitoringTimeframeTXT, () => PIPConstants.ONGOINGACTIVITIESTIMEFRAME);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.OngoingMonitoringTimeframe2TXT, () => PIPConstants.ONGOINGACTIVITIESTIMEFRAME);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.OngoingMonitoringTimeframe3TXT, () => PIPConstants.ONGOINGACTIVITIESTIMEFRAME);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.StrategyTimeline1, () => PIPConstants.TIMELINE);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.StrategyTimeline2, () => PIPConstants.TIMELINE);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.StrategyTimeline3, () => PIPConstants.TIMELINE);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.StrategyTimeline4, () => PIPConstants.TIMELINE);
+        context.RegisterOptionValueProperty<PIPRisks>(p => p.StrategyTimeline5, () => PIPConstants.TIMELINE);
     }
 
     public void Dispose() { Context.Dispose(); }

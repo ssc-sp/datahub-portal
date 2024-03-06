@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Datahub.PIP.Data;
 
-public class PIP_FiscalYears
+public class PIPFiscalYears
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
     [Required]

@@ -7,5 +7,5 @@ internal class ConfigParams
     public IEnumerable<string> GetExcludedFolders()
     {
         return (Excluded ?? "").Split(",", StringSplitOptions.RemoveEmptyEntries).Where(s => !string.IsNullOrEmpty(s));
-    }        
+    }
 }

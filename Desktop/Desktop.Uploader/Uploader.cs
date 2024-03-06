@@ -1,11 +1,7 @@
 ﻿using Azure.Storage.Blobs.Specialized;
 using Azure.Storage.Blobs;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.Maui.Uploader
 {
@@ -15,7 +11,7 @@ namespace Datahub.Maui.Uploader
             BlobContainerClient blobContainerClient,
             string localFilePath,
             string targetName,
-            int blockSize, int maxBlockSize, Func<double,Task> progressFunction, 
+            int blockSize, int maxBlockSize, Func<double, Task> progressFunction,
             Func<int, Task> updateBlockSize, CancellationToken cancellationToken)
         {
 
@@ -39,7 +35,7 @@ namespace Datahub.Maui.Uploader
             while (bytesLeft > 0)
             {
                 if (cancellationToken.IsCancellationRequested) { return false; }
-                if (lastBlock.HasValue && DateTime.Now - lastBlock >  TimeSpan.FromSeconds(1))
+                if (lastBlock.HasValue && DateTime.Now - lastBlock > TimeSpan.FromSeconds(1))
                 {
                     blockSize = Math.Max(blockSize / 2, 1 * 1000 * 1000);//don't go lower than 1Mib block
                     if (updateBlockSize != null)
@@ -76,7 +72,8 @@ namespace Datahub.Maui.Uploader
                     try
                     {
                         await blobClient.StageBlockAsync(blockID, stream, cancellationToken: cancellationToken);
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         return false;
                     }

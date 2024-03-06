@@ -21,7 +21,7 @@
 @using MudBlazor.Forms;
 @page "/datahub/initiatives"
 
-<Datahub.Core.Components.Form.MudFormTemplate T="Datahub_Project"
+<Datahub.Core.Components.Form.MudFormTemplate T="DatahubProject"
                                               U="DatahubProjectDBContext"
                                               Metadata="@_formMetadata"
                                               HandleSubmit="HandleValidSubmit"
@@ -37,18 +37,18 @@
 
 @code {
 
-    private FormMetadata<Datahub_Project> _formMetadata = new();
+    private FormMetadata<DatahubProject> _formMetadata = new();
 
-    private List<Datahub_Project> _projects;
-    private Dictionary<string, List<Datahub_Project>> _tabbedProjects;
+    private List<DatahubProject> _projects;
+    private Dictionary<string, List<DatahubProject>> _tabbedProjects;
 
-    private Datahub_Project _project;// = new Datahub_Project();
+    private DatahubProject _project;// = new Datahub_Project();
     private DatahubProjectDBContext Context;
     private string _searchFilter = string.Empty;
-    private Dictionary<string, Func<Datahub_Project, string>> _sortAccessors = new();
-    private List<Organization_Level> _sectors = new();
-    private List<Organization_Level> _branches = new();
-    private List<Organization_Level> _divisions = new();
+    private Dictionary<string, Func<DatahubProject, string>> _sortAccessors = new();
+    private List<Core.Model.Datahub.OrganizationLevel> _sectors = new();
+    private List<Core.Model.Datahub.OrganizationLevel> _branches = new();
+    private List<Core.Model.Datahub.OrganizationLevel> _divisions = new();
     private List<string> _headers = new();
     private bool _isFrench;
 
@@ -78,7 +78,7 @@
 
     }
 
-    private void SetFormEdit(Datahub_Project project)
+    private void SetFormEdit(DatahubProject project)
     {
         _project = project;
         StateHasChanged();
@@ -89,7 +89,7 @@
         _projects = Context.Projects.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Include(r => r.Comments).ToList();
 
         //SET Non-db Dropdowns
-        _projects.ForEach(c => { if (c.Project_Status != null) { c.Project_Status_Values = Project_Constants.Project_Status.Where(p => p.Id == c.Project_Status.GetValueOrDefault()).SingleOrDefault(); } });
+        _projects.ForEach(c => { if (c.ProjectStatus != null) { c.ProjectStatusValues = ProjectConstants.Project_Status.Where(p => p.Id == c.ProjectStatus.GetValueOrDefault()).SingleOrDefault(); } });
 
 
         var projects = _projects;
@@ -101,13 +101,13 @@
                     return true;
                 if (!string.IsNullOrWhiteSpace(project.ProjectName) && project.ProjectName.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
                     return true;
-                if (!string.IsNullOrWhiteSpace(project.Project_Acronym_CD) && project.Project_Acronym_CD.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(project.ProjectAcronymCD) && project.ProjectAcronymCD.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
                     return true;
-                if (!string.IsNullOrWhiteSpace(project.Contact_List) && project.Contact_List.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(project.ContactList) && project.ContactList.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
                     return true;
-                if (project.Sector is not null && project.Sector.Org_Name_E.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                if (project.Sector is not null && project.Sector.OrgNameE.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
                     return true;
-                if (project.Sector is not null && project.Sector.Org_Name_F.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                if (project.Sector is not null && project.Sector.OrgNameF.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
                     return true;
                 return false;
             }).ToList();
@@ -138,28 +138,28 @@
     private void LoadSortExpressions()
     {
         _sortAccessors.Add("status", t => t.GetProjectStatus());
-        _sortAccessors.Add("sector", t => t.Sector?.Full_Acronym_E ?? "");
-        _sortAccessors.Add("initiative", t => t.Project_Acronym_CD);
+        _sortAccessors.Add("sector", t => t.Sector?.FullAcronymE ?? "");
+        _sortAccessors.Add("initiative", t => t.ProjectAcronymCD);
         _sortAccessors.Add("name", t => t.ProjectName);
-        _sortAccessors.Add("lastcontact", t => t?.Last_Contact_DT?.ToShortDateString());
+        _sortAccessors.Add("lastcontact", t => t?.LastContactDT?.ToShortDateString());
     }
 
 
 
-    private List<Func<Datahub_Project, string>> accessorFunctions = new List<Func<Datahub_Project, string>>
+    private List<Func<DatahubProject, string>> accessorFunctions = new List<Func<DatahubProject, string>>
     {
-        new Func<Datahub_Project, string>(p => { return p.GetProjectStatus() ?? "N/A"; }),
-        new Func<Datahub_Project, string>(p => { return p.Sector?.Full_Acronym_E ?? "N/A"; }),
-        new Func<Datahub_Project, string>(p => { return p.Project_Acronym_CD ?? "N/A"; }),
-        new Func<Datahub_Project, string>(p => { return p.ProjectName ?? "N/A"; }),
-        new Func<Datahub_Project, string>(p => { return p?.Last_Contact_DT?.ToShortDateString(); }),
-        new Func<Datahub_Project, string>(p => { return ShortenContactList(p?.Contact_List); }),
-        new Func<Datahub_Project, string>(p => { return p.Comments.OrderByDescending(d => d.Comment_Date_DT).FirstOrDefault()?.Comment_Date_DT.ToShortDateString() ?? string.Empty; }),
+        new Func<DatahubProject, string>(p => { return p.GetProjectStatus() ?? "N/A"; }),
+        new Func<DatahubProject, string>(p => { return p.Sector?.FullAcronymE ?? "N/A"; }),
+        new Func<DatahubProject, string>(p => { return p.ProjectAcronymCD ?? "N/A"; }),
+        new Func<DatahubProject, string>(p => { return p.ProjectName ?? "N/A"; }),
+        new Func<DatahubProject, string>(p => { return p?.LastContactDT?.ToShortDateString(); }),
+        new Func<DatahubProject, string>(p => { return ShortenContactList(p?.ContactList); }),
+        new Func<DatahubProject, string>(p => { return p.Comments.OrderByDescending(d => d.CommentDateDT).FirstOrDefault()?.CommentDateDT.ToShortDateString() ?? string.Empty; }),
         null,
         null
     };
 
-    private List<Func<Datahub_Project, RenderFragment>> renderFunctions => new()
+    private List<Func<DatahubProject, RenderFragment>> renderFunctions => new()
     {
         null,
         null,
@@ -182,18 +182,18 @@
 
 
 
-    private RenderFragment GetCommentIcon(Datahub_Project p)
+    private RenderFragment GetCommentIcon(DatahubProject p)
     {
         return @<MudIconButton @onclick="() => OpenComments(p)" Icon="@Icons.Material.Filled.InsertComment" Color="Color.Default" />;
     }
-    private RenderFragment GetMetadataFragment(Datahub_Project p)
+    private RenderFragment GetMetadataFragment(DatahubProject p)
     {
         if (p != null && !p.MetadataAdded.HasValue)
             return@<a @onclick="() => RequestEnterMetadata(p)" style="cursor: pointer;">@DataLocalizer["Request"]</a>;
         return @<span>&nbsp;</span>;
     }
 
-    private async Task OpenComments(Datahub_Project p)
+    private async Task OpenComments(DatahubProject p)
     {
         var parameters = new DialogParameters();
         parameters.Add("Project", p);
@@ -208,34 +208,34 @@
         }
     }
 
-    private bool DisabledSuggestTranslation => string.IsNullOrEmpty(_project?.Project_Name) || string.IsNullOrEmpty(_project?.Project_Summary_Desc);
+    private bool DisabledSuggestTranslation => string.IsNullOrEmpty(_project?.Project_Name) || string.IsNullOrEmpty(_project?.ProjectSummaryDesc);
 
     public async Task SuggestTranslation()
     {
         if (!string.IsNullOrEmpty(_project.Project_Name))
         {
-            _project.Project_Name_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Name);
+            _project.ProjectNameFr = await TranslationService.GetFrenchTranslation(_project.Project_Name);
         }
-        if (!string.IsNullOrEmpty(_project.Project_Summary_Desc))
+        if (!string.IsNullOrEmpty(_project.ProjectSummaryDesc))
         {
-            _project.Project_Summary_Desc_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Summary_Desc);
+            _project.ProjectSummaryDescFr = await TranslationService.GetFrenchTranslation(_project.ProjectSummaryDesc);
         }
     }
 
-    private async Task RequestEnterMetadata(Datahub_Project p)
+    private async Task RequestEnterMetadata(DatahubProject p)
     {
         var ctx = await DbFactory.CreateDbContextAsync();
 
-        var appForm = await ctx.OnboardingApps.FirstOrDefaultAsync(e => e.Application_ID == p.OnboardingApplicationId);
+        var appForm = await ctx.OnboardingApps.FirstOrDefaultAsync(e => e.ApplicationID == p.OnboardingApplicationId);
         appForm ??= GetOnboardingApplicationFromProject(p);
 
         if (appForm is not null)
         {
             OnboardingParameters onboardingParameters = new()
                 {
-                    AppUrl = $"/w/{p.Project_Acronym_CD}/metadata",
+                    AppUrl = $"/w/{p.ProjectAcronymCD}/metadata",
                     App = appForm,
-                    AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(RoleConstants.DATAHUB_ADMIN_PROJECT)
+                    AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(RoleConstants.DATAHUBADMINPROJECT)
                 };
 
             await EmailService.SendOnboardingMetadataEditRequest(onboardingParameters);
@@ -245,18 +245,18 @@
         }
     }
 
-    private OnboardingApp GetOnboardingApplicationFromProject(Datahub_Project p)
+    private OnboardingApp GetOnboardingApplicationFromProject(DatahubProject p)
     {
         // cannot contact the admin
-        if (string.IsNullOrEmpty(p.Project_Admin))
+        if (string.IsNullOrEmpty(p.ProjectAdmin))
             return null;
 
         // return a temp app form
         return new()
             {
-                Product_Name = p.ProjectName,
-                Client_Email = p.Project_Admin,
-                Client_Contact_Name = "{p.Project_Acronym_CD} Admin"
+                ProductName = p.ProjectName,
+                ClientEmail = p.ProjectAdmin,
+                ClientContactName = "{p.Project_Acronym_CD} Admin"
             };
     }
 
@@ -265,12 +265,12 @@
 
         if (_project != null)
         {
-            if (_project.Project_ID == 0)
+            if (_project.ProjectID == 0)
             {
                 _project = Context.Projects.Add(_project).Entity;
             }
-            _project.Last_Updated_DT = DateTime.Now;
-            _project.Project_Status = _project.Project_Status_Values?.Id ?? null;
+            _project.LastUpdatedDT = DateTime.Now;
+            _project.ProjectStatus = _project.ProjectStatusValues?.Id ?? null;
             await Context.SaveChangesAsync();
             LoadData(_searchFilter);
             _project = null;
@@ -284,48 +284,48 @@
 
         //context.RegisterOptionValueProperty<FundCenter, FiscalYear>(l => l.FiscalYear, p => p?.Year ?? "N/A", () => _fiscalYears);
         //ntext.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Sector, p => p?.FundCenterNameEnglish ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
-        context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Sector, p => p?.Org_Name_E ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
-        context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Branch, p => p?.Org_Name_E ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
-        context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Division, p => p?.Org_Name_E ?? "N/A", () => GetDivisions());
-        context.RegisterOptionValueProperty<Datahub_Project, DropDownContainer>(l => l.Project_Status_Values, p => p?.EnglishText ?? "-", () => Project_Constants.Project_Status);
+        context.RegisterOptionValueProperty<DatahubProject, Core.Model.Datahub.OrganizationLevel>(l => l.Sector, p => p?.OrgNameE ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
+        context.RegisterOptionValueProperty<DatahubProject, Core.Model.Datahub.OrganizationLevel>(l => l.Branch, p => p?.OrgNameE ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
+        context.RegisterOptionValueProperty<DatahubProject, Core.Model.Datahub.OrganizationLevel>(l => l.Division, p => p?.OrgNameE ?? "N/A", () => GetDivisions());
+        context.RegisterOptionValueProperty<DatahubProject, DropDownContainer>(l => l.ProjectStatusValues, p => p?.EnglishText ?? "-", () => ProjectConstants.Project_Status);
         //context.RegisterFieldNotes<FundCenter>(f => f.AttritionRate, @"Identify the attrition % for your division. This % will be applied to all forecasted salaries on the SFT Forecast page. Attrition represents an estimated percentage of salary costs currently forecasted that will likely not materialize due to unplanned vacancies (the gap between unplanned departure and replacement of an employee).");
     }
 
     private void CreateNewProject()
     {
         //var defaultBranch = _sectorLookup.Where(s => s.SectorId == 1).First().Branches.Where(b => b.BranchId == 1).First();
-        _project = new Datahub_Project() { Last_Updated_DT = DateTime.Now };
+        _project = new DatahubProject() { LastUpdatedDT = DateTime.Now };
         RefreshBranches(null, null);
         RefreshDivisions(null, null);
         StateHasChanged();
     }
 
-    private List<Organization_Level> GetSectors()
+    private List<Core.Model.Datahub.OrganizationLevel> GetSectors()
     {
         if (!_sectors.Any())
-            _sectors = Context.Organization_Levels.Where(l => l.Org_Level == "3").ToList();
+            _sectors = Context.OrganizationLevels.Where(l => l.OrgLevel == "3").ToList();
         return _sectors;
     }
 
-    private List<Organization_Level> GetBranches()
+    private List<Core.Model.Datahub.OrganizationLevel> GetBranches()
     {
         RefreshBranches(_project.Sector, null);
         return _branches;
     }
 
-    private List<Organization_Level> GetDivisions()
+    private List<Core.Model.Datahub.OrganizationLevel> GetDivisions()
     {
         RefreshDivisions(_project.Branch, null);
         return _divisions;
     }
 
 
-    private void RefreshDivisions(Organization_Level branch, MudBlazor.Forms.IModelFormContext context)
+    private void RefreshDivisions(Core.Model.Datahub.OrganizationLevel branch, MudBlazor.Forms.IModelFormContext context)
     {
         if (branch is not null)
         {
             _divisions.Clear();
-            _divisions = Context.Organization_Levels.Where(b => b.Superior_OrgId == branch.Organization_ID).ToList();
+            _divisions = Context.OrganizationLevels.Where(b => b.SuperiorOrgId == branch.OrganizationID).ToList();
             //_divisions.Insert(0, null);
         }
         else
@@ -335,16 +335,16 @@
 
         if (context is not null)
         {
-            context.RefreshOptions<Datahub_Project>(f => f.Division);
+            context.RefreshOptions<DatahubProject>(f => f.Division);
         }
     }
 
-    private void RefreshBranches(Organization_Level sector, MudBlazor.Forms.IModelFormContext context)
+    private void RefreshBranches(Core.Model.Datahub.OrganizationLevel sector, MudBlazor.Forms.IModelFormContext context)
     {
         if (sector is not null)
         {
             _branches.Clear();
-            _branches = Context.Organization_Levels.Where(b => b.Superior_OrgId == sector.Organization_ID).ToList();
+            _branches = Context.OrganizationLevels.Where(b => b.SuperiorOrgId == sector.OrganizationID).ToList();
             //_branches.Insert(0, null);
         }
         else
@@ -354,7 +354,7 @@
 
         if (context is not null)
         {
-            context.RefreshOptions<Datahub_Project>(f => f.Branch);
+            context.RefreshOptions<DatahubProject>(f => f.Branch);
         }
     }
 

@@ -17,7 +17,7 @@
 
         <AeFlex>
 
-        <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN" Context="hidden_in_dev">
+        <AuthorizeView Roles="@RoleConstants.DATAHUBROLEADMIN" Context="hidden_in_dev">
                 <AeCard class="facard1">
                     <Header>
                         <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.OpenDataTitle"]</AeTypography>
@@ -83,9 +83,9 @@ else
     {
         var filemd = new FileMetaData()
             {
-                fileid = FileId,
-                filename = Filename,
-                folderpath = Folderpath
+                Fileid = FileId,
+                Filename = Filename,
+                Folderpath = Folderpath
             };
 
         await _publicDataService.CreateDataSharingRequest(filemd, ProjectCode, _user, true);
@@ -96,9 +96,9 @@ else
     {
         var filemd = new FileMetaData()
             {
-                fileid = FileId,
-                filename = Filename,
-                folderpath = Folderpath
+                Fileid = FileId,
+                Filename = Filename,
+                Folderpath = Folderpath
             };
 
         await _publicDataService.CreateDataSharingRequest(filemd, ProjectCode, _user);
@@ -141,7 +141,7 @@ else
         var existingPublicFile = await fileInfoTask;
         if (existingPublicFile != null)
         {
-            if (existingPublicFile.IsOpenDataRequest_FLAG)
+            if (existingPublicFile.IsOpenDataRequestFLAG)
             {
                 await NavManager.NavigateTo(OpenDataSharingUrl, true);
             }

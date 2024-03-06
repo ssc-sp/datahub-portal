@@ -3,7 +3,6 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
-using Datahub.Infrastructure.Services.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -70,7 +69,7 @@ public class DataLakeClientService
     public async Task<DataLakeFileSystemClient> GetDataLakeFileSystemClient()
     {
         await CheckClients();
-        return dataLakeFileSystemClient;            
+        return dataLakeFileSystemClient;
     }
 
     public async Task<bool> AssignOwnerPermissionsToFile(FileMetaData file, string userId, string permissions)
@@ -97,7 +96,7 @@ public class DataLakeClientService
         {
             await LoadSharedUsers(file);
 
-            file.lastmodifiedts = DateTime.UtcNow;
+            file.Lastmodifiedts = DateTime.UtcNow;
             fileClient.SetMetadata(file.GenerateMetadata());
             //await _cognitiveSearchService.EditDocument(file);
 
@@ -122,7 +121,7 @@ public class DataLakeClientService
 
         await LoadSharedUsers(file);
 
-        file.lastmodifiedts = DateTime.UtcNow;
+        file.Lastmodifiedts = DateTime.UtcNow;
         fileClient.SetMetadata(file.GenerateMetadata());
         //await _cognitiveSearchService.EditDocument(file);
 
@@ -134,14 +133,14 @@ public class DataLakeClientService
         var accessControlTuple = await GetAccessControlList(file);
         var accessControlList = accessControlTuple.Item1;
 
-        file.sharedwith.Clear();
+        file.Sharedwith.Clear();
 
-        foreach (var item in accessControlList.Where(i => i.AccessControlType == AccessControlType.User && !string.IsNullOrEmpty(i.EntityId) && i.EntityId != file.ownedby))
+        foreach (var item in accessControlList.Where(i => i.AccessControlType == AccessControlType.User && !string.IsNullOrEmpty(i.EntityId) && i.EntityId != file.Ownedby))
         {
             Sharedwith sharedwith = new Sharedwith();
-            sharedwith.userid = item.EntityId;
-            sharedwith.role = item.Permissions.HasFlag(RolePermissions.Write) ? "Editor" : "Viewer";
-            file.sharedwith.Add(sharedwith);
+            sharedwith.Userid = item.EntityId;
+            sharedwith.Role = item.Permissions.HasFlag(RolePermissions.Write) ? "Editor" : "Viewer";
+            file.Sharedwith.Add(sharedwith);
         }
     }
 
@@ -149,8 +148,8 @@ public class DataLakeClientService
     {
         await CheckClients();
 
-        DataLakeDirectoryClient directoryClient = dataLakeFileSystemClient.GetDirectoryClient(fileMetadata.folderpath);
-        DataLakeFileClient fileClient = directoryClient.GetFileClient(fileMetadata.filename);
+        DataLakeDirectoryClient directoryClient = dataLakeFileSystemClient.GetDirectoryClient(fileMetadata.Folderpath);
+        DataLakeFileClient fileClient = directoryClient.GetFileClient(fileMetadata.Filename);
         PathAccessControl fileAccessControl = await fileClient.GetAccessControlAsync();
 
         return (fileAccessControl.AccessControlList.ToList(), fileClient);
@@ -169,5 +168,5 @@ public class DataLakeClientService
         }
 
     }
-        
+
 }

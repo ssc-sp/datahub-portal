@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Threading.Tasks;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Microsoft.Graph.Models;
-using Microsoft.Graph;
 
 namespace Datahub.Core.Services.Api;
 
@@ -31,7 +27,7 @@ public interface IPublicDataFileService
     Task UpdateOpenDataSignedApprovalFormUrl(Guid fileId, string url);
     Task<List<SharedDataFile>> GetAllSharedDataForProject(string projectCode);
     Task<bool> IsUserProjectDataApprover(string projectCode, string userId);
-    Task<Datahub_Project> GetProjectWithUsers(string projectCode);
+    Task<DatahubProject> GetProjectWithUsers(string projectCode);
     Task CancelPublicDataShare(Guid fileId);
     string GetOpenDataApprovalFormPdfUrl(int approvalFormId);
     string GetPublicSharedFileUrl(string fileId);

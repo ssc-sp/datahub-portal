@@ -1,24 +1,24 @@
-<div id="@($"{FileMetaDataExtensions.GetFolderIdForJS(Folder.item.id)}Div")" class="folder-item @(IsSelected ? "selected" : "")" >
+<div id="@($"{FileMetaDataExtensions.GetFolderIdForJS(Folder.Item.Id)}Div")" class="folder-item @(IsSelected ? "selected" : "")" >
         <div class="grid-item" style="cursor: pointer; @IndentStyleCss" @onclick="() => SelectFolderEmit()">
             <i class="far fa-folder"></i>
         </div>
         <div class="grid-item" @onclick="() => SelectFolderEmit()" style="cursor: pointer;">
             <div class="textcontent">
-                @Folder.item.name
+                @Folder.Item.Name
             </div>
         </div>
         <div class="grid-item">
-            @if (Folder.hasChildren)
+            @if (Folder.HasChildren)
             {
                 <i class="@ExpandImageClass" @onclick="() => ToggleExpanded()" @onclick:stopPropagation="true"></i>
             }
         </div>
     </div>
 
-    @if (Folder.hasChildren & Folder.expanded)
+    @if (Folder.HasChildren & Folder.Expanded)
     {
-        <div id="@($"{FileMetaDataExtensions.GetFolderIdForJS(Folder.item.id)}Content")" class="folder-list nested">
-            @foreach (var childFolder in Folder.children)
+        <div id="@($"{FileMetaDataExtensions.GetFolderIdForJS(Folder.Item.Id)}Content")" class="folder-list nested">
+            @foreach (var childFolder in Folder.Children)
             {
                 <FolderView Folder="childFolder" SelectedFolder="SelectedFolder" SelectFolder="SelectFolder"/>
             }
@@ -40,7 +40,7 @@
     {
         get
         {
-            return SelectedFolder != null && SelectedFolder.Equals(Folder.item);
+            return SelectedFolder != null && SelectedFolder.Equals(Folder.Item);
         }
     }
 
@@ -48,7 +48,7 @@
     {
         get
         {
-            return Folder.expanded ? "fas fa-chevron-down" : "fas fa-chevron-right";
+            return Folder.Expanded ? "fas fa-chevron-down" : "fas fa-chevron-right";
         }
     }
 
@@ -56,9 +56,9 @@
     {
         get
         {
-            if (Folder.level > 0)
+            if (Folder.Level > 0)
             {
-                return $"padding-inline-start: {Folder.level * 40}px;";
+                return $"padding-inline-start: {Folder.Level * 40}px;";
             }
 
             return "";
@@ -66,13 +66,13 @@
     }
     private void ToggleExpanded()
     {
-        Folder.expanded = !Folder.expanded;
+        Folder.Expanded = !Folder.Expanded;
         StateHasChanged();
     }
 
     private void SelectFolderEmit()
     {
-        SelectFolder?.Invoke(Folder.item);
+        SelectFolder?.Invoke(Folder.Item);
         StateHasChanged();
     }
 }

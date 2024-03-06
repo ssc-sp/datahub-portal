@@ -120,8 +120,7 @@
 										 @bind-Expanded=@_sectorFilterSectionOpen
 										 Icon=@FilterIconClass>
 								<NestedList>
-									<CheckboxList 
-										T=OrganizationLevel
+									<CheckboxList T=DHOrganizationLevel
 										Options=@(_allSectors)
 										OptionLabelFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
 										OptionSortFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
@@ -286,7 +285,7 @@
 	private List<MetadataObjectType> _pbiDataTypes = new() { MetadataObjectType.PowerBIWorkspace, MetadataObjectType.PowerBIReport, MetadataObjectType.PowerBIDataset };
 
 	private HashSet<CatalogObjectLanguage> _filteredLanguageTypes = new();
-	private HashSet<OrganizationLevel> _filteredSectors = new();
+	private HashSet<DHOrganizationLevel> _filteredSectors = new();
 	private HashSet<MetadataObjectType> _filteredDataTypes = new();
 	private HashSet<ClassificationType> _filteredClassificationTypes = new();
 
@@ -297,7 +296,7 @@
 	private bool _excludeIncompleteCatalogs;
 	private CheckboxList<CatalogObjectLanguage> _languageTypeFilter;
 	private CheckboxList<ClassificationType> _classificationTypeFilter;
-	private CheckboxList<OrganizationLevel> _sectorFilter;
+	private CheckboxList<DHOrganizationLevel> _sectorFilter;
 
 	private int _filterSector = NO_FILTER_SELECTED;
 	private int _filterBranch = NO_FILTER_SELECTED;
@@ -307,11 +306,11 @@
 	private bool _dataTypeFilterSectionOpen = false;
 	private bool _sectorFilterSectionOpen = false;
 
-	private List<OrganizationLevel> _allSectors = new();
-	private Dictionary<int, OrganizationLevel> _sectors = new();
-	private Dictionary<int, OrganizationLevel> _branches = new();
+	private List<DHOrganizationLevel> _allSectors = new();
+	private Dictionary<int, DHOrganizationLevel> _sectors = new();
+	private Dictionary<int, DHOrganizationLevel> _branches = new();
 
-	private Dictionary<string, Datahub_Project> _projects = new();
+	private Dictionary<string, DatahubProject> _projects = new();
 
 	private List<CatalogObjectResult> _currentGroup = new();
 
@@ -383,11 +382,11 @@
 
 	private void ParseSectorAndBranches()
 	{
-		var sectors = new HashSet<OrganizationLevel>();
+		var sectors = new HashSet<DHOrganizationLevel>();
 		var values = (QuerySectors ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries);
 		foreach (var v in values)
 		{
-			if (int.TryParse(v, out int ordValue) && _sectors.TryGetValue(ordValue, out OrganizationLevel s))
+			if (int.TryParse(v, out int ordValue) && _sectors.TryGetValue(ordValue, out DHOrganizationLevel s))
 			{
 				sectors.Add(s);
 			}
@@ -401,10 +400,10 @@
 	private async Task LoadProjects()
 	{
 		using var ctx = await DatahubProjectDbFactory.CreateDbContextAsync();
-		_projects = await ctx.Projects.ToDictionaryAsync(p => p.Project_Acronym_CD);
+		_projects = await ctx.Projects.ToDictionaryAsync(p => p.ProjectAcronymCD);
 	}
 
-	private Datahub_Project GetProject(CatalogObjectResult result)
+	private DatahubProject GetProject(CatalogObjectResult result)
 	{
 		if (result.DataType == MetadataObjectType.File && _projects.ContainsKey(result.Location))
 			return _projects[result.Location];
@@ -426,7 +425,7 @@
 
 	private string GetLocalizedLanguageType(CatalogObjectLanguage value) => Localizer[$"DISCOVERY-LANGUAGE-TYPES.{value}"];
 
-	private async Task UpdateSectorFilter(IEnumerable<OrganizationLevel> filteredTypes)
+	private async Task UpdateSectorFilter(IEnumerable<DHOrganizationLevel> filteredTypes)
 	{
 		_filteredSectors = filteredTypes.ToHashSet();
 		_filterSector = _filteredSectors.Count == 1 ? filteredTypes.ToList()[0].Id : NO_FILTER_SELECTED;
@@ -434,7 +433,7 @@
 		await UpdateFilter();
 	}
 
-	private async Task SelectSector(OrganizationLevel sector)
+	private async Task SelectSector(DHOrganizationLevel sector)
 	{
 		_filteredSectors.Clear();
 		_filteredSectors.Add(sector);
@@ -504,7 +503,7 @@
 			var fieldValues = result.Metadata;
 
 			// name
-			if (string.IsNullOrEmpty(result.Name_English))
+			if (string.IsNullOrEmpty(result.NameEnglish))
 				return false;
 
 			// contact
@@ -559,7 +558,7 @@
 
 	private string GetBranch(CatalogObjectResult result, bool french) => GetLabel(_branches.GetValueOrDefault(result.Branch), french);
 
-	private string GetLabel(OrganizationLevel orgLevel, bool french) => (french ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
+	private string GetLabel(DHOrganizationLevel orgLevel, bool french) => (french ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
 
 	// renderer functions
 	private Action GetButtonAction(CatalogObjectResult result) => result.DataType switch
@@ -598,7 +597,7 @@
 
 	private RenderFragment RenderPowerBiReportFragment(CatalogObjectResult result) =>
 		@<MudStack Row AlignItems=@AlignItems.Center>
-			<InternalPublishedPowerBIReportLinks ReportID=@result.MetadataObjectId_TXT />
+			<InternalPublishedPowerBIReportLinks ReportID=@result.MetadataObjectIdTXT />
 			@RenderGenericDownloadButton(result)
 		</MudStack>;
 
@@ -608,7 +607,7 @@
 		_ => RenderGenericDownloadButton(result)
 	};
 
-	private async Task DownloadDatasetUrl(CatalogObjectResult result) => await RedirectAndDownload(result.IsFrench ? result.Url_French : result.Url_English);
+	private async Task DownloadDatasetUrl(CatalogObjectResult result) => await RedirectAndDownload(result.IsFrench ? result.UrlFrench : result.UrlEnglish);
 
 	private string GetButtonText(CatalogObjectResult result)
 	{
@@ -628,18 +627,18 @@
 
 	private async Task ViewPowerBIReport(CatalogObjectResult result)
 	{
-		if (Guid.TryParse(result.MetadataObjectId_TXT, out var guid))
+		if (Guid.TryParse(result.MetadataObjectIdTXT, out var guid))
 		{
 			var report = await PowerBiDataService.GetReportById(guid);
 			// TODO this url template is also used in DHLink; should only be in raw form in one place
 			if (report is not null)
-				NavigationManager.NavigateTo($"/powerbi-report/{report.Workspace_Id}/{report.Report_ID}");
+				NavigationManager.NavigateTo($"/powerbi-report/{report.WorkspaceId}/{report.ReportID}");
 		}
 	}
 
 	private async Task DownloadFile(CatalogObjectResult result)
 	{
-		var uri = await RetrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileName: result.Name_English, projectUploadCode: result.Location);
+		var uri = await RetrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULTCONTAINERNAME, fileName: result.NameEnglish, projectUploadCode: result.Location);
 		await Task.Run(() => RedirectAndDownload(uri.ToString()));
 	}
 
@@ -872,7 +871,7 @@
 		await UpdateFilter();
 	}
 
-	private List<OrganizationLevel> GetFilteredBranches()
+	private List<DHOrganizationLevel> GetFilteredBranches()
 	{
 		return _branches.Values
 			.Where(b => b.ParentId == _filterSector)

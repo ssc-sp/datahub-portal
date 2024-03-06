@@ -3,7 +3,6 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
-using Datahub.ProjectTools.Services;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -47,9 +46,9 @@ public class TerraformOutputHandlerTests
     [Test]
     public async Task ShouldProcessAzureStorageBlobOutputVariables()
     {
-        var project = new Datahub_Project()
+        var project = new DatahubProject()
         {
-            Project_Acronym_CD = "STORAGE"
+            ProjectAcronymCD = "STORAGE"
         };
         _context.Projects.Add(project);
         await _context.SaveChangesAsync();
@@ -62,14 +61,14 @@ public class TerraformOutputHandlerTests
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
 
-        var storageResource = new Project_Resources2
+        var storageResource = new ProjectResources2
         {
             Project = project,
             RequestedBy = currentPortalUser,
             ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)
         };
 
-        _context.Project_Resources2.Add(storageResource);
+        _context.ProjectResources2.Add(storageResource);
         await _context.SaveChangesAsync();
 
 
@@ -86,7 +85,7 @@ public class TerraformOutputHandlerTests
                 deserializeOptions);
         await _terraformOutputHandler.ProcessAzureStorageBlob(outputVariables!);
 
-        var processedResource = await _context.Project_Resources2.FirstOrDefaultAsync(r => r.Project == project);
+        var processedResource = await _context.ProjectResources2.FirstOrDefaultAsync(r => r.Project == project);
 
         Assert.That(processedResource, Is.Not.Null);
         Assert.That(processedResource!.CreatedAt, Is.Not.Null);
@@ -118,9 +117,9 @@ public class TerraformOutputHandlerTests
     [Test]
     public async Task ShouldProcessAzureDatabricksOutputVariables()
     {
-        var project = new Datahub_Project()
+        var project = new DatahubProject()
         {
-            Project_Acronym_CD = "DATABRICKS"
+            ProjectAcronymCD = "DATABRICKS"
         };
 
         _context.Projects.Add(project);
@@ -134,13 +133,13 @@ public class TerraformOutputHandlerTests
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
 
-        var databricksResource = new Project_Resources2
+        var databricksResource = new ProjectResources2
         {
             Project = project,
             RequestedBy = currentPortalUser,
             ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)
         };
-        _context.Project_Resources2.Add(databricksResource);
+        _context.ProjectResources2.Add(databricksResource);
         await _context.SaveChangesAsync();
 
         // stub in fake databricks workspace id and url
@@ -160,7 +159,7 @@ public class TerraformOutputHandlerTests
 
         await _terraformOutputHandler.ProcessAzureDatabricks(outputVariables!);
 
-        var processedResource = await _context.Project_Resources2.FirstOrDefaultAsync(r => r.Project == project);
+        var processedResource = await _context.ProjectResources2.FirstOrDefaultAsync(r => r.Project == project);
 
         Assert.That(processedResource, Is.Not.Null);
         Assert.That(processedResource!.CreatedAt, Is.Not.Null);
@@ -187,9 +186,9 @@ public class TerraformOutputHandlerTests
     [Test]
     public async Task ShouldProcessAzureWebAppOutputVariables()
     {
-        var project = new Datahub_Project()
+        var project = new DatahubProject()
         {
-            Project_Acronym_CD = "WEBAPP"
+            ProjectAcronymCD = "WEBAPP"
         };
 
         _context.Projects.Add(project);
@@ -203,14 +202,14 @@ public class TerraformOutputHandlerTests
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
 
-        var webAppResource = new Project_Resources2
+        var webAppResource = new ProjectResources2
         {
             Project = project,
             RequestedBy = currentPortalUser,
             ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService)
         };
 
-        _context.Project_Resources2.Add(webAppResource);
+        _context.ProjectResources2.Add(webAppResource);
         await _context.SaveChangesAsync();
 
         var terraformOutput = TerraformOutputHelper.GetExpectedTerraformOutput(project);
@@ -225,7 +224,7 @@ public class TerraformOutputHandlerTests
 
         await _terraformOutputHandler.ProcessAzureWebApp(outputVariables!);
 
-        var processedResource = await _context.Project_Resources2.FirstOrDefaultAsync(r => r.Project == project);
+        var processedResource = await _context.ProjectResources2.FirstOrDefaultAsync(r => r.Project == project);
 
         Assert.That(processedResource, Is.Not.Null);
         Assert.That(processedResource!.CreatedAt, Is.Not.Null);
@@ -248,19 +247,19 @@ public class TerraformOutputHandlerTests
 
         var updatedProject = await _context.Projects
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == project.Project_Acronym_CD);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == project.ProjectAcronymCD);
 
         Assert.That(updatedProject, Is.Not.Null);
-        Assert.That(updatedProject!.WebApp_URL, Is.EqualTo(webAppHostname.Value));
+        Assert.That(updatedProject!.WebAppURL, Is.EqualTo(webAppHostname.Value));
         Assert.That(updatedProject!.WebAppEnabled, Is.True);
     }
 
     [Test]
     public async Task ShouldProcessAzurePostgresOutputVariables()
     {
-        var project = new Datahub_Project()
+        var project = new DatahubProject()
         {
-            Project_Acronym_CD = "POSTGRES"
+            ProjectAcronymCD = "POSTGRES"
         };
 
         _context.Projects.Add(project);
@@ -274,14 +273,14 @@ public class TerraformOutputHandlerTests
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
 
-        var postgresResource = new Project_Resources2
+        var postgresResource = new ProjectResources2
         {
             Project = project,
             RequestedBy = currentPortalUser,
             ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)
         };
 
-        _context.Project_Resources2.Add(postgresResource);
+        _context.ProjectResources2.Add(postgresResource);
         await _context.SaveChangesAsync();
 
         var terraformOutput = TerraformOutputHelper.GetExpectedTerraformOutput(project);
@@ -296,7 +295,7 @@ public class TerraformOutputHandlerTests
 
         await _terraformOutputHandler.ProcessAzurePostgres(outputVariables!);
 
-        var processedResource = await _context.Project_Resources2.FirstOrDefaultAsync(r => r.Project == project);
+        var processedResource = await _context.ProjectResources2.FirstOrDefaultAsync(r => r.Project == project);
 
         Assert.That(processedResource, Is.Not.Null);
         Assert.That(processedResource!.CreatedAt, Is.Not.Null);
@@ -332,10 +331,10 @@ public class TerraformOutputHandlerTests
     [Ignore("Needs to be fixed")]
     public async Task ShouldProcessWorkspaceTemplateOutputVariables()
     {
-        var project = new Datahub_Project()
+        var project = new DatahubProject()
         {
-            Project_Acronym_CD = "NEWWORKSPACE",
-            Resources = new List<Project_Resources2>()
+            ProjectAcronymCD = "NEWWORKSPACE",
+            Resources = new List<ProjectResources2>()
         };
 
         _context.Projects.Add(project);
@@ -355,18 +354,18 @@ public class TerraformOutputHandlerTests
         {
             PropertyNameCaseInsensitive = true
         };
-        
+
         var outputVariables =
             JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(terraformOutput,
                 deserializeOptions);
-        
+
         await _terraformOutputHandler.ProcessWorkspaceStatus(outputVariables!);
-        
+
         var updatedProject = await _context.Projects
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == project.Project_Acronym_CD);
-        
-        
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == project.ProjectAcronymCD);
+
+
         Assert.That(updatedProject, Is.Not.Null);
     }
 }

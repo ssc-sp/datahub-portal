@@ -100,7 +100,7 @@
 
     [Parameter] public string WorkspaceAcronym { get; set; }
 
-    private Datahub_Project _project;
+    private DatahubProject _project;
     private int? _projectId;
     private string _projectName;
 
@@ -121,11 +121,11 @@
         _project = await projectContext.Projects
             .Include(p => p.Users)
             .AsSingleQuery()
-            .Where(p => p.Project_Acronym_CD == WorkspaceAcronym)
+            .Where(p => p.ProjectAcronymCD == WorkspaceAcronym)
             .FirstOrDefaultAsync();
 
         _projectName = _project?.ProjectName;
-        _projectId = _project?.Project_ID;
+        _projectId = _project?.ProjectID;
         containersLoaded = false;
         try
         {
@@ -204,7 +204,7 @@
     private async Task<List<ProjectCloudStorage>> GetCloudStorages()
     {
         await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
-        return await ctx.ProjectCloudStorages.AsNoTracking().Where(e => e.ProjectId == _project.Project_ID).ToListAsync();
+        return await ctx.ProjectCloudStorages.AsNoTracking().Where(e => e.ProjectId == _project.ProjectID).ToListAsync();
     }
 
     private async Task<DialogResult> ShowCloudStorageDialog(CloudStorageProviderType cloudStorageProvider, ProjectCloudStorage settings)

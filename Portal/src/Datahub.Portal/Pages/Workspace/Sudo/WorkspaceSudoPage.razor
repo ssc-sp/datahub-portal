@@ -26,7 +26,7 @@
                     @Localizer["Workspace Version"]
                 </MudText>
                 <MudText Typo="Typo.body2" Style="font-size: 0.7rem; font-family: Consolas,sans-serif;">
-                    Project ID: @_project.Project_ID [@(_project.Version ?? Localizer["v0.0.0"])]
+                    Project ID: @_project.ProjectID [@(_project.Version ?? Localizer["v0.0.0"])]
                 </MudText>
             </MudStack>
             <MudStack>
@@ -64,7 +64,7 @@
     [Parameter]
     public string WorkspaceAcronym { get; set; }
 
-    private Datahub_Project _project;
+    private DatahubProject _project;
 
     protected override async Task OnInitializedAsync()
     {
@@ -86,7 +86,7 @@
         var context = await _dbContextFactory.CreateDbContextAsync();
         _project = await context.Projects
             .Include(p => p.Resources)
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+            .FirstOrDefaultAsync(p => p.ProjectAcronymCD == WorkspaceAcronym);
 
         _expectedTerraformOutput =  $"```json\n{TerraformOutputHelper.GetExpectedTerraformOutput(_project)}\n```";
     }

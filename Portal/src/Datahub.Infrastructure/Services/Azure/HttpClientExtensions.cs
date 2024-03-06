@@ -1,10 +1,7 @@
 ﻿using Polly;
 using Polly.Contrib.WaitAndRetry;
-using System;
 using System.Net;
-using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Datahub.Infrastructure.Services.Azure;
 
@@ -26,7 +23,7 @@ public static class HttpClientExtensions
         return await ExecuteQueryAsync<ResponseType>(httpClient, HttpMethod.Get, url, accessToken, content, cancellationToken);
     }
 
-    static async Task<ResponseType?> ExecuteQueryAsync<ResponseType>(HttpClient httpClient, HttpMethod method, 
+    static async Task<ResponseType?> ExecuteQueryAsync<ResponseType>(HttpClient httpClient, HttpMethod method,
         string url, string? accessToken, HttpContent? content, CancellationToken ct) where ResponseType : class
     {
         var httpRequest = new HttpRequestMessage(method, url);

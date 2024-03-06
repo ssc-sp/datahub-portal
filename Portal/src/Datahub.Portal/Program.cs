@@ -13,7 +13,7 @@ public class Program
             //    serviceCollection.AddSingleton(new ResourceManager("Datahub.Portal.Resources", typeof(Startup).GetTypeInfo().Assembly));
             //})  
             .Build();
-           
+
         host.Run();
 
     }
@@ -63,7 +63,7 @@ public class Program
             })
             .ConfigureWebHostDefaults(webBuilder =>
             {
-                webBuilder.UseStartup<Startup>();                    
+                webBuilder.UseStartup<Startup>();
                 webBuilder.ConfigureAppConfiguration((ctx, cb) =>
                 {
                     if (!ctx.HostingEnvironment.IsDevelopment()) // you'll have to find the right method to check that

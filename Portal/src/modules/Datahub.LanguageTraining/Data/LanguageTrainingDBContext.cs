@@ -6,7 +6,7 @@ namespace Datahub.LanguageTraining.Data;
 public class LanguageTrainingDBContext : DbContext
 {
     public LanguageTrainingDBContext(DbContextOptions<LanguageTrainingDBContext> options) : base(options)
-    { 
+    {
     }
 
     public DbSet<LanguageTrainingApplication> LanguageTrainingApplications { get; set; } = null!;
@@ -15,7 +15,7 @@ public class LanguageTrainingDBContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<SeasonRegistrationPeriod>()
-            .HasIndex(e => new { e.Year_NUM, e.Quarter_NUM })
+            .HasIndex(e => new { e.YearNUM, e.QuarterNUM })
             .IsUnique();
     }
 

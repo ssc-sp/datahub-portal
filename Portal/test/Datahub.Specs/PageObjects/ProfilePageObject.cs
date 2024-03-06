@@ -17,19 +17,19 @@ public class ProfilePageObject : BasePageObject
 
     public async Task ClickAppearanceSettingsButtonAsync()
     {
-        await Page.GetByRole(AriaRole.Link, new () {Name = "Appearance"}).ClickAsync();
+        await Page.GetByRole(AriaRole.Link, new() { Name = "Appearance" }).ClickAsync();
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
     }
-    
+
     public async Task ClickNotificationSettingsButtonAsync()
     {
-        await Page.GetByRole(AriaRole.Link, new () {Name = "Notifications"}).ClickAsync();
+        await Page.GetByRole(AriaRole.Link, new() { Name = "Notifications" }).ClickAsync();
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
     }
 
     public async Task ClickAchievementsButtonAsync()
     {
-        await Page.GetByRole(AriaRole.Link, new () {Name = "View All Achievements"}).ClickAsync();
+        await Page.GetByRole(AriaRole.Link, new() { Name = "View All Achievements" }).ClickAsync();
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
     }
 }

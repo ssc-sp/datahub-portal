@@ -112,7 +112,7 @@ else
         // if user has no admin roles, add Datahub Admin as a requirement (at least one role must be specified for AuthorizedView)
         if (_authorizedRoles.Count < 1)
         {
-            _authorizedRoles.Add(RoleConstants.DATAHUB_ROLE_ADMIN);
+            _authorizedRoles.Add(RoleConstants.DATAHUBROLEADMIN);
         }
 
         _user = await _userInformationService.GetAuthenticatedUser();
@@ -120,7 +120,7 @@ else
         CurrentUserId = await _userInformationService.GetUserIdString();
         CurrentUserEmail = _user.Identity?.Name;
         CurrentUserName = _user.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
-        IsDataHubAdmin = _user.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+        IsDataHubAdmin = _user.IsInRole(RoleConstants.DATAHUBROLEADMIN);
 
         _adminCards = GenerateAdminCards();
 

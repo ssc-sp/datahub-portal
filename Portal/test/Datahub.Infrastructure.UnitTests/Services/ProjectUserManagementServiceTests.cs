@@ -10,14 +10,10 @@ using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
 using Datahub.Infrastructure.Services;
-using Datahub.Shared.Entities;
-using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using Moq;
 
 namespace Datahub.Infrastructure.UnitTests.Services;
@@ -88,15 +84,15 @@ public class ProjectUserManagementServiceTests
             .Setup(f => f.GetUserAsync(It.Is<string>(s => _testUserIds.Contains(s) || s == TestUserGraphGuid),
                 CancellationToken.None))
             .Returns((string id, CancellationToken _) => Task.FromResult(new GraphUser
-                {
-                    mailAddress = new MailAddress(TestUserEmail),
-                    Id = id,
-                })
+            {
+                MailAddress = new MailAddress(TestUserEmail),
+                Id = id,
+            })
             );
 
         _mockRequestManagementService = new Mock<IRequestManagementService>();
         _mockRequestManagementService
-            .Setup(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(), It.IsAny<string>(),
+            .Setup(f => f.HandleTerraformRequestServiceAsync(It.IsAny<DatahubProject>(), It.IsAny<string>(),
                 It.IsAny<PortalUser>()))
             .ReturnsAsync(true);
 
@@ -132,40 +128,40 @@ public class ProjectUserManagementServiceTests
 
         Assert.That(result, Is.True);
 
-        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<DatahubProject>(),
             It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
     }
 
     #region ProjectUserAddUserCommand
 
     [Test]
-    [TestCase((int)Project_Role.RoleNames.WorkspaceLead, Ignore = "Needs to be validated")]
-    [TestCase((int)Project_Role.RoleNames.Admin, Ignore = "Needs to be validated")]
-    [TestCase((int)Project_Role.RoleNames.Collaborator, Ignore = "Needs to be validated")]
-    [TestCase((int)Project_Role.RoleNames.Guest, Ignore = "Needs to be validated")]
-    [TestCase((int)Project_Role.RoleNames.Remove, Ignore = "Needs to be validated")]
+    [TestCase((int)ProjectRole.RoleNames.WorkspaceLead, Ignore = "Needs to be validated")]
+    [TestCase((int)ProjectRole.RoleNames.Admin, Ignore = "Needs to be validated")]
+    [TestCase((int)ProjectRole.RoleNames.Collaborator, Ignore = "Needs to be validated")]
+    [TestCase((int)ProjectRole.RoleNames.Guest, Ignore = "Needs to be validated")]
+    [TestCase((int)ProjectRole.RoleNames.Remove, Ignore = "Needs to be validated")]
     public async Task ShouldProcessAddExistingUserCommandTest(int roleId)
     {
-        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<DatahubProject>(),
             It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
 
         var projectUserManagementService = GetProjectUserManagementService();
 
-        var existingProjectUser = await _dbContext.Project_Users
+        var existingProjectUser = await _dbContext.ProjectUsers
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
             .FirstAsync();
 
         var foreignProject = await _dbContext.Projects
-            .FirstAsync(p => existingProjectUser.Project.Project_Acronym_CD != p.Project_Acronym_CD);
+            .FirstAsync(p => existingProjectUser.Project.ProjectAcronymCD != p.ProjectAcronymCD);
 
         var command = new ProjectUserAddUserCommand
         {
             DisplayName = existingProjectUser.PortalUser.DisplayName,
             Email = existingProjectUser.PortalUser.Email,
             GraphGuid = existingProjectUser.PortalUser.GraphGuid,
-            ProjectAcronym = foreignProject.Project_Acronym_CD,
+            ProjectAcronym = foreignProject.ProjectAcronymCD,
             RoleId = roleId,
         };
 
@@ -174,16 +170,16 @@ public class ProjectUserManagementServiceTests
                 new List<ProjectUserUpdateCommand>(),
                 new List<ProjectUserAddUserCommand> { command }, "");
 
-        if (roleId == (int)Project_Role.RoleNames.Remove)
+        if (roleId == (int)ProjectRole.RoleNames.Remove)
         {
             Assert.That(result, Is.False);
-            _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<DatahubProject>(),
                 It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
         }
         else
         {
             Assert.That(result, Is.True);
-            _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<DatahubProject>(),
                 It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Once);
         }
     }
@@ -194,7 +190,7 @@ public class ProjectUserManagementServiceTests
     {
         var projectUserManagementService = GetProjectUserManagementService();
 
-        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<DatahubProject>(),
             It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
         _mockUserEnrollmentService.Verify(f => f.SendUserDatahubPortalInvite(It.IsAny<string?>(), It.IsAny<string?>()),
             Times.Never);
@@ -206,8 +202,8 @@ public class ProjectUserManagementServiceTests
             DisplayName = TestUserEmail,
             Email = TestUserEmail,
             GraphGuid = ProjectUserAddUserCommand.NEW_USER_GUID,
-            ProjectAcronym = firstProject.Project_Acronym_CD,
-            RoleId = (int)Project_Role.RoleNames.Collaborator,
+            ProjectAcronym = firstProject.ProjectAcronymCD,
+            RoleId = (int)ProjectRole.RoleNames.Collaborator,
         };
 
         var result =
@@ -219,18 +215,18 @@ public class ProjectUserManagementServiceTests
 
         _mockUserEnrollmentService.Verify(f => f.SendUserDatahubPortalInvite(It.IsAny<string?>(), It.IsAny<string?>()),
             Times.Once);
-        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<DatahubProject>(),
             It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Once);
 
-        var projectUser = _dbContext.Project_Users
+        var projectUser = _dbContext.ProjectUsers
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
             .First(u => u.PortalUser.GraphGuid == TestUserGraphGuid);
 
         Assert.Multiple(() =>
         {
-            Assert.That(projectUser.Project.Project_Acronym_CD, Is.EqualTo(firstProject.Project_Acronym_CD));
-            Assert.That(projectUser.RoleId, Is.EqualTo((int)Project_Role.RoleNames.Collaborator));
+            Assert.That(projectUser.Project.ProjectAcronymCD, Is.EqualTo(firstProject.ProjectAcronymCD));
+            Assert.That(projectUser.RoleId, Is.EqualTo((int)ProjectRole.RoleNames.Collaborator));
             Assert.That(projectUser.PortalUser.Email, Is.EqualTo(TestUserEmail));
         });
     }
@@ -241,10 +237,10 @@ public class ProjectUserManagementServiceTests
     {
         var projectUserManagementService = GetProjectUserManagementService();
 
-        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<DatahubProject>(),
             It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
 
-        var existingProjectUser = await _dbContext.Project_Users
+        var existingProjectUser = await _dbContext.ProjectUsers
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
@@ -256,7 +252,7 @@ public class ProjectUserManagementServiceTests
             Email = existingProjectUser.PortalUser.Email,
             GraphGuid = existingProjectUser.PortalUser.GraphGuid,
             ProjectAcronym = "AbsolutelyNotARealProject",
-            RoleId = (int)Project_Role.RoleNames.Collaborator,
+            RoleId = (int)ProjectRole.RoleNames.Collaborator,
         };
 
         var result =
@@ -265,7 +261,7 @@ public class ProjectUserManagementServiceTests
                 new List<ProjectUserAddUserCommand> { command }, "");
 
         Assert.That(result, Is.False);
-        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<DatahubProject>(),
             It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
     }
 
@@ -275,25 +271,25 @@ public class ProjectUserManagementServiceTests
     {
         var projectUserManagementService = GetProjectUserManagementService();
 
-        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<DatahubProject>(),
             It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
 
-        var existingProjectUser = await _dbContext.Project_Users
+        var existingProjectUser = await _dbContext.ProjectUsers
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
             .FirstAsync();
 
         var datahubProject = await _dbContext.Projects
-            .FirstAsync(p => existingProjectUser.Project.Project_Acronym_CD == p.Project_Acronym_CD);
+            .FirstAsync(p => existingProjectUser.Project.ProjectAcronymCD == p.ProjectAcronymCD);
 
         var command = new ProjectUserAddUserCommand
         {
             DisplayName = existingProjectUser.PortalUser.DisplayName,
             Email = existingProjectUser.PortalUser.Email,
             GraphGuid = existingProjectUser.PortalUser.GraphGuid,
-            ProjectAcronym = datahubProject.Project_Acronym_CD,
-            RoleId = (int)Project_Role.RoleNames.Collaborator,
+            ProjectAcronym = datahubProject.ProjectAcronymCD,
+            RoleId = (int)ProjectRole.RoleNames.Collaborator,
         };
 
         var result =
@@ -303,7 +299,7 @@ public class ProjectUserManagementServiceTests
 
         Assert.That(result, Is.False);
 
-        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<DatahubProject>(),
             It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
     }
 
@@ -312,19 +308,19 @@ public class ProjectUserManagementServiceTests
     #region ProjectUserUpdateCommand
 
     [Test]
-    [TestCase((int)Project_Role.RoleNames.WorkspaceLead, Ignore = "Needs to be validated")]
-    [TestCase((int)Project_Role.RoleNames.Admin, Ignore = "Needs to be validated")]
-    [TestCase((int)Project_Role.RoleNames.Collaborator, Ignore = "Needs to be validated")]
-    [TestCase((int)Project_Role.RoleNames.Guest, Ignore = "Needs to be validated")]
-    [TestCase((int)Project_Role.RoleNames.Remove, Ignore = "Needs to be validated")]
+    [TestCase((int)ProjectRole.RoleNames.WorkspaceLead, Ignore = "Needs to be validated")]
+    [TestCase((int)ProjectRole.RoleNames.Admin, Ignore = "Needs to be validated")]
+    [TestCase((int)ProjectRole.RoleNames.Collaborator, Ignore = "Needs to be validated")]
+    [TestCase((int)ProjectRole.RoleNames.Guest, Ignore = "Needs to be validated")]
+    [TestCase((int)ProjectRole.RoleNames.Remove, Ignore = "Needs to be validated")]
     public async Task ShouldProcessUpdateUserCommandTest(int roleId)
     {
         var projectUserManagementService = GetProjectUserManagementService();
 
-        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<DatahubProject>(),
             It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
 
-        var existingProjectUser = await _dbContext.Project_Users
+        var existingProjectUser = await _dbContext.ProjectUsers
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
@@ -343,15 +339,15 @@ public class ProjectUserManagementServiceTests
 
         Assert.That(result, Is.True);
 
-        if (roleId == (int)Project_Role.RoleNames.Remove)
+        if (roleId == (int)ProjectRole.RoleNames.Remove)
         {
             // double check that the project user is gone
-            var projectUser = await _dbContext.Project_Users
+            var projectUser = await _dbContext.ProjectUsers
                 .AsNoTracking()
                 .Include(u => u.PortalUser).Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.PortalUser.GraphGuid == existingProjectUser.PortalUser.GraphGuid);
 
-            Assert.That(projectUser.Role.Id, Is.EqualTo((int)Project_Role.RoleNames.Remove));
+            Assert.That(projectUser.Role.Id, Is.EqualTo((int)ProjectRole.RoleNames.Remove));
         }
 
         //_mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
@@ -369,7 +365,7 @@ public class ProjectUserManagementServiceTests
     {
         var projectUserManagementService = GetProjectUserManagementService();
 
-        var seededProjectUsers = await _dbContext.Project_Users
+        var seededProjectUsers = await _dbContext.ProjectUsers
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
@@ -378,12 +374,12 @@ public class ProjectUserManagementServiceTests
         foreach (var seededProject in seededProjectUsers.Select(u => u.Project).Distinct())
         {
             var projectUsers =
-                await projectUserManagementService.GetProjectUsersAsync(seededProject.Project_Acronym_CD);
+                await projectUserManagementService.GetProjectUsersAsync(seededProject.ProjectAcronymCD);
 
             Assert.That(projectUsers, Is.Not.Null);
             Assert.That(projectUsers,
                 Has.Count.EqualTo(seededProjectUsers.Count(u =>
-                    u.Project.Project_Acronym_CD == seededProject.Project_Acronym_CD)));
+                    u.Project.ProjectAcronymCD == seededProject.ProjectAcronymCD)));
         }
     }
 
@@ -391,7 +387,7 @@ public class ProjectUserManagementServiceTests
 
     //
     // [Test]
-    
+
     // public async Task ShouldAddUserToProject()
     // {
     //     var projectUserManagementService = GetProjectUserManagementService();
@@ -443,7 +439,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // public async Task ShouldThrowException_WhenProjectNotFoundOnUserAdd()
     // {
     //     const string nonExistentProjectAcronym = "NOTFOUND";
@@ -460,7 +456,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // public async Task ShouldDoNothing_WhenUserAlreadyAdded()
     // {
     //     var projectUserManagementService = GetProjectUserManagementService();
@@ -479,7 +475,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // public async Task ShouldRemoveUserFromProject()
     // {
     //     var projectUserManagementService = GetProjectUserManagementService();
@@ -496,7 +492,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // public async Task ShouldThrowException_WhenProjectNotFoundOnUserRemove()
     // {
     //     const string nonExistentProjectAcronym = "NOTFOUND";
@@ -513,7 +509,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // public async Task ShouldDoNothing_WhenUserAlreadyRemoved()
     // {
     //     var projectUserManagementService = GetProjectUserManagementService();
@@ -529,7 +525,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // [TestCase(ProjectMemberRole.Collaborator, ProjectMemberRole.Admin)]
     // [TestCase(ProjectMemberRole.Collaborator, ProjectMemberRole.WorkspaceLead)]
     // [TestCase(ProjectMemberRole.Admin, ProjectMemberRole.Collaborator)]
@@ -556,7 +552,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // public async Task ShouldThrowException_WhenProjectNotFoundOnUserUpdate()
     // {
     //     const string nonExistentProjectAcronym = "NOTFOUND";
@@ -574,7 +570,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // public async Task ShouldThrowException_WhenUserNotFoundOnUserUpdate()
     // {
     //     const string nonExistentUserId = "THIS_IS_NOT_AN_ID";
@@ -591,7 +587,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // [TestCase(ProjectMemberRole.Collaborator, ProjectMemberRole.Collaborator)]
     // [TestCase(ProjectMemberRole.Admin, ProjectMemberRole.Admin)]
     // [TestCase(ProjectMemberRole.WorkspaceLead, ProjectMemberRole.WorkspaceLead)]
@@ -622,7 +618,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // [TestCase(11, 0)]
     // [TestCase(12, 10)]
     // [TestCase(0, 11)]
@@ -649,7 +645,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // [TestCase(ProjectMemberRole.Remove)]
     // [TestCase(ProjectMemberRole.Collaborator)]
     // [TestCase(ProjectMemberRole.Admin)]
@@ -689,7 +685,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // [TestCase(ProjectMemberRole.Collaborator, ProjectMemberRole.Admin)]
     // [TestCase(ProjectMemberRole.Collaborator, ProjectMemberRole.WorkspaceLead)]
     // [TestCase(ProjectMemberRole.Admin, ProjectMemberRole.Collaborator)]
@@ -725,7 +721,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // [TestCase(ProjectMemberRole.Collaborator)]
     // [TestCase(ProjectMemberRole.Admin)]
     // [TestCase(ProjectMemberRole.WorkspaceLead)]
@@ -750,7 +746,7 @@ public class ProjectUserManagementServiceTests
     // // each test case should have 5 roles to match 5 user ids set in Testings.cs
     // // there are 16 possible combinations of roles, and one extra test case to test for remove all
     // [Test]
-    
+
     // [TestCase(new[] {ProjectMemberRole.Admin, ProjectMemberRole.Admin, ProjectMemberRole.Collaborator, ProjectMemberRole.Remove, ProjectMemberRole.Remove}, 
     //     new[] {ProjectMemberRole.Collaborator, ProjectMemberRole.Remove, ProjectMemberRole.Admin, ProjectMemberRole.Collaborator, ProjectMemberRole.WorkspaceLead})]
     // [TestCase(new[] {ProjectMemberRole.Admin, ProjectMemberRole.Admin, ProjectMemberRole.Collaborator, ProjectMemberRole.Collaborator, ProjectMemberRole.Remove}, 
@@ -789,7 +785,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // [TestCase(ProjectMemberRole.Remove)]
     // [TestCase(ProjectMemberRole.Collaborator)]
     // [TestCase(ProjectMemberRole.Admin)]
@@ -836,7 +832,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // public async Task ShouldSendTerraformVariableUpdateOnUserAdd()
     // {
     //     var projectUserManagementService = GetProjectUserManagementService();
@@ -852,7 +848,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // public async Task ShouldSendTerraformVariableUpdateOnUserRemove()
     // {
     //     var projectUserManagementService = GetProjectUserManagementService();
@@ -868,7 +864,7 @@ public class ProjectUserManagementServiceTests
     // }
     //
     // [Test]
-    
+
     // public async Task ShouldSendTerraformVariableUpdateOnUserUpdated()
     // {
     //     
@@ -890,12 +886,12 @@ public class ProjectUserManagementServiceTests
         const int usersPerProject = 10;
 
         var projects = Enumerable.Range(1, count)
-            .Select(i => new Datahub_Project
+            .Select(i => new DatahubProject
             {
                 Project_Name = $"Project {i}",
-                Project_Acronym_CD = $"{i}",
-                Project_Status_Desc = "Active",
-                Sector_Name = $"Sector {i}",
+                ProjectAcronymCD = $"{i}",
+                ProjectStatusDesc = "Active",
+                SectorName = $"Sector {i}",
             })
             .ToList();
 
@@ -909,14 +905,14 @@ public class ProjectUserManagementServiceTests
             })
             .ToList();
 
-        var projectUsers = users.Select(u => new Datahub_Project_User()
-            {
-                PortalUser = u,
-                Project = projects[u.Id % count],
-                RoleId = u.Id % 2 == 0
-                    ? (int)Project_Role.RoleNames.WorkspaceLead
-                    : (int)Project_Role.RoleNames.Collaborator
-            })
+        var projectUsers = users.Select(u => new DatahubProjectUser()
+        {
+            PortalUser = u,
+            Project = projects[u.Id % count],
+            RoleId = u.Id % 2 == 0
+                    ? (int)ProjectRole.RoleNames.WorkspaceLead
+                    : (int)ProjectRole.RoleNames.Collaborator
+        })
             .ToList();
 
         context.AddRange(projects);

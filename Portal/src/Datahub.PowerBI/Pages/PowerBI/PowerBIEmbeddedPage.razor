@@ -55,12 +55,12 @@ else
 
     private bool ErrorLoadingReport = false;
 
-    private PowerBi_Report dbReport = null;
+    private PowerBiReport dbReport = null;
 
-    private PowerBi_Workspace dbWorkspace => dbReport?.Workspace;
-    private Datahub_Project project => dbWorkspace?.Project;
-    private string projectAcronym => project?.Project_Acronym_CD;
-    private string reportTitle => dbReport?.Report_Name;
+    private PowerBiWorkspace dbWorkspace => dbReport?.Workspace;
+    private DatahubProject project => dbWorkspace?.Project;
+    private string projectAcronym => project?.ProjectAcronymCD;
+    private string reportTitle => dbReport?.ReportName;
 
     protected override async Task OnInitializedAsync()
     {

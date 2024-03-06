@@ -17,18 +17,18 @@ public class AchivementEngineTests
     }
 
     [Fact]
-    public async Task EvaluateAchivements_WithNoPrevAchivements_ReturnsExpectedNewAchivement()
+    public async Task EvaluateAchivementsWithNoPrevAchivementsReturnsExpectedNewAchivement()
     {
         var emptySet = new HashSet<string>();
 
         var result = await _achivementEngine.Evaluate(TelemetryEvents.UserLogin, emptySet).ToListAsync();
-        
+
         Assert.NotNull(result);
         Assert.Contains("DHA-001", result);
     }
 
     [Fact]
-    public async Task EvaluateAchivements_WithExistingAchivements_ReturnsNone()
+    public async Task EvaluateAchivementsWithExistingAchivementsReturnsNone()
     {
         var achivements = new HashSet<string>() { "DHA-001", "STR-002" };
 
@@ -44,7 +44,7 @@ public class AchivementEngineTests
     }
 
     [Fact]
-    public async Task EvaluateAchivements_GivenMissingChildren_ReturnsParentAchivement()
+    public async Task EvaluateAchivementsGivenMissingChildrenReturnsParentAchivement()
     {
         var achivements = new HashSet<string>() { "STR-001", "STR-002", "STR-003", "STR-004", "STR-005" };
 
@@ -56,7 +56,7 @@ public class AchivementEngineTests
     }
 
     [Fact]
-    public async Task EvaluateAchivements_GivenUrl_ReturnsExpectedAchivement()
+    public async Task EvaluateAchivementsGivenUrlReturnsExpectedAchivement()
     {
         var achivements = new HashSet<string>() { "STR-001" };
 

@@ -36,21 +36,21 @@ public class PowerBiServiceApi
 
     private string urlPowerBiServiceApiRoot { get; }
 
-    public const string POWERBI_ROOT_URL = "https://api.powerbi.com/";
+    public const string POWERBIROOTURL = "https://api.powerbi.com/";
 
     public string InternalPublicationGroupId { get; private set; }
 
     public PowerBiServiceApi(ITokenAcquisition tokenAcquisition, ILogger<PowerBiServiceApi> logger, IConfiguration config)
     {
         //IConfiguration configuration, 
-        this.urlPowerBiServiceApiRoot = POWERBI_ROOT_URL;
+        this.urlPowerBiServiceApiRoot = POWERBIROOTURL;
         this.tokenAcquisition = tokenAcquisition;
         this.logger = logger;
         InternalPublicationGroupId = config.GetSection(POWER_BI_CONFIG_SECTION_KEY).GetValue<string>(POWER_BI_INTERNAL_PUBLICATION_GROUP_ID_CONFIG_KEY);
     }
 
 
-    public static readonly string[] REQUIRED_READ_SCOPES = new string[] {
+    public static readonly string[] REQUIREDREADSCOPES = new string[] {
         //"https://analysis.windows.net/powerbi/api/Group.Read.All",
         "https://analysis.windows.net/powerbi/api/Dashboard.Read.All",
         //"https://analysis.windows.net/powerbi/api/Report.Read.All",
@@ -61,18 +61,21 @@ public class PowerBiServiceApi
 
     public async Task<string> GetAccessTokenAsync()
     {
-        return await this.tokenAcquisition.GetAccessTokenForUserAsync(REQUIRED_READ_SCOPES);
+        return await this.tokenAcquisition.GetAccessTokenForUserAsync(REQUIREDREADSCOPES);
     }
 
     public async Task<EmbedToken> GetEmbedTokenAsync(int durationMinutes, string datasetId, params Guid[] reports)
     {
         using var client = await GetPowerBiClientAsync();
         var ds = new GenerateTokenRequestV2Dataset(datasetId);
-        var tkReports =  reports.Select(r => new GenerateTokenRequestV2Report() {  AllowEdit = false, Id = r}).ToList();
+        var tkReports = reports.Select(r => new GenerateTokenRequestV2Report() { AllowEdit = false, Id = r }).ToList();
         return await client.EmbedToken.GenerateTokenAsync(
-            new GenerateTokenRequestV2() { Reports = tkReports, 
-                Datasets = new[] {ds},
-                LifetimeInMinutes = durationMinutes });
+            new GenerateTokenRequestV2()
+            {
+                Reports = tkReports,
+                Datasets = new[] { ds },
+                LifetimeInMinutes = durationMinutes
+            });
     }
 
     public async Task<PowerBIClient> GetPowerBiClientAsync()
@@ -124,11 +127,12 @@ public class PowerBiServiceApi
                     var datasets = (await client.Datasets.GetDatasetsInGroupAsync(workspace.Id)).Value;
                     var cReports = (await client.Reports.GetReportsInGroupAsync(workspace.Id)).Value;
                     allDataSets.AddRange(datasets.Select(e => (workspace, e, cReports.Where(r => r.DatasetId == e.Id || r.ReportType == "PaginatedReport").ToList())));
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
                     logger.LogWarning(ex, $"Cannot read datasets and reports in workspace {workspace.Id}");
                 }
-                    
+
             }
             // my workspace
             //var datasetsRef = await client.Datasets.GetDatasetsAsync();
@@ -138,7 +142,7 @@ public class PowerBiServiceApi
             //var groupRequest = new GroupCreationRequest() {  Name = "Test-APICreate"};
             //var newWorkspace = await client.Groups.CreateGroupAsync(groupRequest, true);
         }
-        return allDataSets.Select(tp => new PowerBIDatasetElements(tp.Item1,tp.Item2,tp.Item3)).ToList();
+        return allDataSets.Select(tp => new PowerBIDatasetElements(tp.Item1, tp.Item2, tp.Item3)).ToList();
     }
 
     public async Task<List<PowerBiWorkspaceDataset>> GetWorkspaceDatasetsAsync(Guid? workspaceId = null)
@@ -147,7 +151,7 @@ public class PowerBiServiceApi
         var workspaceIds = workspaceId.HasValue ? new List<Guid> { workspaceId.Value } : (await client.Groups.GetGroupsAsync()).Value.Select(w => w.Id);
 
         var result = new List<PowerBiWorkspaceDataset>();
-            
+
         foreach (var id in workspaceIds)
         {
             try
@@ -172,7 +176,7 @@ public class PowerBiServiceApi
 
         var result = new List<PowerBiWorkspaceReport>();
 
-        foreach(var id in workspaceIds)
+        foreach (var id in workspaceIds)
         {
             try
             {
@@ -191,7 +195,7 @@ public class PowerBiServiceApi
     public async Task<string> GetEmbeddedViewModel(string appWorkspaceId = "")
     {
         using PowerBIClient pbiClient = await GetPowerBiClientAsync();
-            
+
         Object viewModel;
         if (string.IsNullOrEmpty(appWorkspaceId))
         {
@@ -277,7 +281,7 @@ public class PowerBiServiceApi
                 return u;
             }
         }));
-            
+
         return errorUsers.Where(u => u != null).ToList();
     }
 

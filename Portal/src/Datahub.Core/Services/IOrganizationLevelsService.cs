@@ -1,17 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace Datahub.Core.Services;
+﻿namespace Datahub.Core.Services;
 
 public interface IOrganizationLevelsService
 {
-    Task<List<OrganizationLevel>> GetBranches();
-    Task<List<OrganizationLevel>> GetDivisions();
-    Task<List<OrganizationLevel>> GetSectors();
-    Task<List<OrganizationLevel>> GetSections();
+    Task<List<DHOrganizationLevel>> GetBranches();
+    Task<List<DHOrganizationLevel>> GetDivisions();
+    Task<List<DHOrganizationLevel>> GetSectors();
+    Task<List<DHOrganizationLevel>> GetSections();
 
-    Task<OrganizationLevel> GetSector(int sectorId);
-    Task<OrganizationLevel> GetBranch(int branchId);
+    Task<DHOrganizationLevel> GetSector(int sectorId);
+    Task<DHOrganizationLevel> GetBranch(int branchId);
 }
 
-public record OrganizationLevel(int Id, int ParentId, string EnglishLabel, string FrenchLabel, string EnglishAcronym, string FrenchAcronym);
+public record DHOrganizationLevel(int Id, int ParentId, string EnglishLabel, string FrenchLabel, string EnglishAcronym, string FrenchAcronym);

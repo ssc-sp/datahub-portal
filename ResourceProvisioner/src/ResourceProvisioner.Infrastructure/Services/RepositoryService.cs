@@ -35,11 +35,11 @@ public class RepositoryService : IRepositoryService
 
         _semaphore = new SemaphoreSlim(1, 1);
     }
-    
+
     public async Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command)
     {
         await _semaphore.WaitAsync();
-        
+
         var user = command.RequestingUserEmail ?? throw new NullReferenceException("Requesting user's email is null");
         _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
         await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym!);
@@ -57,8 +57,8 @@ public class RepositoryService : IRepositoryService
         var pullRequestValueObject =
             await CreateInfrastructurePullRequest(command.Workspace.Acronym!, user);
 
-                        
-        if(!string.IsNullOrEmpty(_resourceProvisionerConfiguration.InfrastructureRepository.AutoApproveUserOid))
+
+        if (!string.IsNullOrEmpty(_resourceProvisionerConfiguration.InfrastructureRepository.AutoApproveUserOid))
         {
             _logger.LogInformation("Auto-approving pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
             await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId);
@@ -67,7 +67,7 @@ public class RepositoryService : IRepositoryService
         {
             _logger.LogInformation("Auto-approve user OID not set, skipping auto-approve");
         }
-        
+
         var pullRequestMessage = new PullRequestUpdateMessage
         {
             PullRequestValueObject = pullRequestValueObject,
@@ -83,16 +83,16 @@ public class RepositoryService : IRepositoryService
     {
         var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
         var modulePath = Path.Combine(repositoryPath, _resourceProvisionerConfiguration.ModuleRepository.ModulePathPrefix);
-        
+
         // check if module path exists
-        if(!Directory.Exists(modulePath))
+        if (!Directory.Exists(modulePath))
         {
             _logger.LogInformation("Module path {ModulePath} does not exist, fetching module repository", modulePath);
             await FetchModuleRepository();
         }
-        
+
         var versions = Directory.GetDirectories(modulePath)
-            .Select(x => 
+            .Select(x =>
                 new Version(x
                     .Replace('/', Path.DirectorySeparatorChar)
                     .Split(Path.DirectorySeparatorChar)
@@ -274,7 +274,7 @@ public class RepositoryService : IRepositoryService
 
         var pullRequestId =
             data?["pullRequestId"]?.ToString();
-        
+
         // TODO: Test this!
         if (string.IsNullOrWhiteSpace(pullRequestId))
         {
@@ -287,7 +287,7 @@ public class RepositoryService : IRepositoryService
                 throw new Exception($"Could not get pull request id for {workspaceAcronym}");
             }
         }
-        
+
         var pullRequestUrl = BuildPullRequestUrl(pullRequestId);
         _logger.LogInformation("Infrastructure pull request url is {PullRequestUrl}", pullRequestUrl);
 
@@ -303,7 +303,7 @@ public class RepositoryService : IRepositoryService
         _logger.LogInformation("Patching auto-approve infrastructure pull request to {Url}", patchUrl);
         var httpClient = _httpClientFactory.CreateClient("InfrastructureHttpClient");
         var response = await httpClient.PatchAsync(patchUrl, patchContent);
-        
+
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Could not auto-approve infrastructure pull request {PullRequestUrl}", patchUrl);
@@ -314,7 +314,7 @@ public class RepositoryService : IRepositoryService
         {
             _logger.LogInformation("Infrastructure pull request {PullRequestUrl} auto-approved", patchUrl);
         }
-        
+
     }
 
     private StringContent BuildPullRequestPatchBody()
@@ -330,7 +330,7 @@ public class RepositoryService : IRepositoryService
         var patchBody = new StringContent(JsonSerializer.Serialize(patchData), Encoding.UTF8, "application/json");
         return patchBody;
     }
-    
+
     private string BuildPullRequestUrl(string pullRequestId)
     {
         return $"{_resourceProvisionerConfiguration.InfrastructureRepository.PullRequestBrowserUrl}/{pullRequestId}";
@@ -380,7 +380,7 @@ public class RepositoryService : IRepositoryService
         //     var latestVersion = versions.Max();
         //     terraformWorkspace.Version = $"v{latestVersion!.ToString()}";
         // }
-        
+
         // new behavior to always update the version
         var versions = await GetModuleVersions();
         var latestVersion = versions.Max();
@@ -441,12 +441,12 @@ public class RepositoryService : IRepositoryService
         _logger.LogInformation("Pull request already exists, fetching pull request id");
         var url =
             $"{_resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}?searchCriteria.status=active&searchCriteria.sourceRefName=refs/heads/{workspaceAcronym}&api-version={_resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
-        
+
         using var httpClient = _httpClientFactory.CreateClient("InfrastructureHttpClient");
         var response = await httpClient.GetAsync(url);
         var content = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<JsonNode>(content);
-        
+
         return data?["value"]?
             .AsArray()
             .FirstOrDefault(node => node?["sourceRefName"]?.ToString() == $"refs/heads/{workspaceAcronym}")?

@@ -79,7 +79,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        _currentUser = await UserInformationService.GetCurrentPortalUserAsync();
     }
 
     protected override async Task OnParametersSetAsync()

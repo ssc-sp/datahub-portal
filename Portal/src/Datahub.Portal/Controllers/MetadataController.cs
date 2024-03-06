@@ -18,7 +18,7 @@ namespace Datahub.Portal.Controllers
             _logger = logger;
             _metadataBrokerService = metadataBrokerService;
         }
-        
+
         [HttpGet]
         [Route("definitions/get")]
         public async Task<IActionResult> GetMetadataDefinitions()

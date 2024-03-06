@@ -20,7 +20,7 @@ public class DatahubCatalogSearch : IDatahubCatalogSearch
     public async Task<List<CatalogObject>> SearchCatalog(DatahubSearchRequest query)
     {
         var searchEngine = GetSearchEngine(query.French);
-        
+
         var results = searchEngine
             .SearchDocuments(query.Text, query.MaxResults)
             .Select(int.Parse)
@@ -40,11 +40,11 @@ public class DatahubCatalogSearch : IDatahubCatalogSearch
         var docId = await UpsertCatalogObject(value);
 
         var engSearchEngine = GetSearchEngine(french: false);
-        engSearchEngine.AddDocument(docId.ToString(), value.Name_English, value.Desc_English);
+        engSearchEngine.AddDocument(docId.ToString(), value.NameEnglish, value.DescEnglish);
         engSearchEngine.FlushIndexes();
 
         var frenchSearchEngine = GetSearchEngine(french: true);
-        frenchSearchEngine.AddDocument(docId.ToString(), value.Name_French, value.Desc_French);
+        frenchSearchEngine.AddDocument(docId.ToString(), value.NameFrench, value.DescFrench);
         frenchSearchEngine.FlushIndexes();
     }
 
@@ -55,10 +55,10 @@ public class DatahubCatalogSearch : IDatahubCatalogSearch
         var existing = await ctx.CatalogObjects.FirstOrDefaultAsync(e => e.ObjectType == value.ObjectType && e.ObjectId == value.ObjectId);
         if (existing != null)
         {
-            existing.Name_English = value.Name_English;
-            existing.Name_French = value.Name_French;
-            existing.Desc_English = value.Desc_English;
-            existing.Desc_French = value.Desc_French;
+            existing.NameEnglish = value.NameEnglish;
+            existing.NameFrench = value.NameFrench;
+            existing.DescEnglish = value.DescEnglish;
+            existing.DescFrench = value.DescFrench;
         }
         else
         {
@@ -71,7 +71,7 @@ public class DatahubCatalogSearch : IDatahubCatalogSearch
 
     private ILanguageCatalogSearch GetSearchEngine(bool french)
     {
-        return french ? _catalogSearchEngine.GetDatahubFrenchSearchEngine(GetFrenchDocuments) 
+        return french ? _catalogSearchEngine.GetDatahubFrenchSearchEngine(GetFrenchDocuments)
                       : _catalogSearchEngine.GetDatahubEnglishSearchEngine(GetEnglishDocuments);
     }
 
@@ -87,6 +87,6 @@ public class DatahubCatalogSearch : IDatahubCatalogSearch
         return ctx.CatalogObjects.Select(GetFrenchDocument).ToList();
     }
 
-    static CatalogDocument GetEnglishDocument(CatalogObject e) => new CatalogDocument(e.Id.ToString(), e.Name_English, e.Desc_English);
-    static CatalogDocument GetFrenchDocument(CatalogObject e) => new CatalogDocument(e.Id.ToString(), e.Name_French, e.Desc_French);
+    static CatalogDocument GetEnglishDocument(CatalogObject e) => new CatalogDocument(e.Id.ToString(), e.NameEnglish, e.DescEnglish);
+    static CatalogDocument GetFrenchDocument(CatalogObject e) => new CatalogDocument(e.Id.ToString(), e.NameFrench, e.DescFrench);
 }

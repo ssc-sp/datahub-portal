@@ -65,7 +65,7 @@
 
     private const int MaxWorkspaceCount = 3;
 
-    private List<Datahub_Project_User> _userRoles;
+    private List<DatahubProjectUser> _userRoles;
     private int _numberOfRemainingWorkspaces;
 
     private string _chipStyle = new StyleBuilder()
@@ -82,7 +82,7 @@
         _isCurrentUser = userId == portalUser.GraphGuid;
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        _userRoles = await dbContext.Project_Users
+        _userRoles = await dbContext.ProjectUsers
             .Include(u => u.Role)
             .Include(u => u.Project)
             .ThenInclude(p => p.Users)
@@ -90,7 +90,7 @@
             .Where(u => u.PortalUser.GraphGuid == userId)
             .ToListAsync();
 
-        _numberOfRemainingWorkspaces = MaxWorkspaceCount - _userRoles.Count(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead);
+        _numberOfRemainingWorkspaces = MaxWorkspaceCount - _userRoles.Count(u => u.RoleId == (int)ProjectRole.RoleNames.WorkspaceLead);
     }
 
     private async Task ShowProjectDialog()

@@ -1,8 +1,6 @@
 ﻿using Moq;
-using System.Collections.Generic;
 using Datahub.Functions.Services;
 using Microsoft.Extensions.Logging;
-using Datahub.Infrastructure.Queues.Messages;
 
 [TestFixture]
 public class EmailServiceTests
@@ -18,7 +16,7 @@ public class EmailServiceTests
     }
 
     [Test]
-    public void BuildEmail_ReturnsEmailRequestMessage_WhenTemplateExists()
+    public void BuildEmailReturnsEmailRequestMessageWhenTemplateExists()
     {
         var template = "test_template.html";
         var sendTo = new List<string> { "test@example.com" };
@@ -34,7 +32,7 @@ public class EmailServiceTests
     }
 
     [Test]
-    public void BuildEmail_ReturnsNull_WhenTemplateDoesNotExist()
+    public void BuildEmailReturnsNullWhenTemplateDoesNotExist()
     {
         var template = "nonExistentTemplate";
         var sendTo = new List<string> { "test@example.com" };
@@ -48,7 +46,7 @@ public class EmailServiceTests
     }
 
     [Test]
-    public void PopulateTemplate_ReplacesPlaceholders_WithArgsValues()
+    public void PopulateTemplateReplacesPlaceholdersWithArgsValues()
     {
         var template = "Hello, {name}!";
         var args = new Dictionary<string, string> { { "{name}", "John" } };

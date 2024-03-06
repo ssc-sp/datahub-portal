@@ -12,7 +12,7 @@ namespace Datahub.Tests.MetadataTests;
 public class MetadataDefinitionsTests
 {
     [Fact]
-    public void Add_NullField_ShouldThrow()
+    public void AddNullFieldShouldThrow()
     {
         FieldDefinitions definitions = new();
         FieldDefinition field = null!;
@@ -20,7 +20,7 @@ public class MetadataDefinitionsTests
     }
 
     [Fact]
-    public void Add_FieldWithEmptyId_ShouldThrow()
+    public void AddFieldWithEmptyIdShouldThrow()
     {
         FieldDefinitions definitions = new();
         FieldDefinition field = new();
@@ -28,35 +28,35 @@ public class MetadataDefinitionsTests
     }
 
     [Fact]
-    public void Add_FieldWithDuplicatedId_ShouldSucceedWhenIgnoringDuplicates()
+    public void AddFieldWithDuplicatedIdShouldSucceedWhenIgnoringDuplicates()
     {
         FieldDefinitions definitions = new(ignoreDuplicates: true);
 
-        FieldDefinition field1 = new() { Field_Name_TXT = "field_one" };
+        FieldDefinition field1 = new() { FieldNameTXT = "field_one" };
         definitions.Add(field1);
 
-        FieldDefinition field2 = new() { Field_Name_TXT = "field_one" };
+        FieldDefinition field2 = new() { FieldNameTXT = "field_one" };
         definitions.Add(field2);
     }
 
     [Fact]
-    public void Add_FieldWithDuplicatedId_ShouldThrowWhenNotIgnoringDuplicates()
+    public void AddFieldWithDuplicatedIdShouldThrowWhenNotIgnoringDuplicates()
     {
         FieldDefinitions definitions = new(ignoreDuplicates: false);
 
-        FieldDefinition field1 = new() { Field_Name_TXT = "field_one" };
+        FieldDefinition field1 = new() { FieldNameTXT = "field_one" };
         definitions.Add(field1);
 
-        FieldDefinition field2 = new() { Field_Name_TXT = "field_one" };
+        FieldDefinition field2 = new() { FieldNameTXT = "field_one" };
         Assert.Throws<ArgumentException>(() => definitions.Add(field2));
     }
 
     [Fact]
-    public void Get_WithExistingId_ShouldReturnExpected()
+    public void GetWithExistingIdShouldReturnExpected()
     {
         FieldDefinitions definitions = new();
         var fieldId = "known_id";
-        FieldDefinition field = new() { Field_Name_TXT = fieldId };
+        FieldDefinition field = new() { FieldNameTXT = fieldId };
         definitions.Add(field);
 
         var expected = field;
@@ -66,11 +66,11 @@ public class MetadataDefinitionsTests
     }
 
     [Fact]
-    public void Get_WithNonExistingId_ShouldReturnNull()
+    public void GetWithNonExistingIdShouldReturnNull()
     {
         FieldDefinitions definitions = new();
         var fieldId = "known_id";
-        FieldDefinition field = new() { Field_Name_TXT = fieldId };
+        FieldDefinition field = new() { FieldNameTXT = fieldId };
         definitions.Add(field);
 
         var actual = definitions.Get("unknow_id");
@@ -79,19 +79,19 @@ public class MetadataDefinitionsTests
     }
 
     [Fact]
-    public void GetField_WithWithMultipleFields_ShouldReturnExpectedCountAndOrder()
+    public void GetFieldWithWithMultipleFieldsShouldReturnExpectedCountAndOrder()
     {
         FieldDefinitions definitions = new();
-        FieldDefinition field1 = new() { Field_Name_TXT = "F1", Sort_Order_NUM = 2 };
-        FieldDefinition field2 = new() { Field_Name_TXT = "F2", Sort_Order_NUM = 3 };
-        FieldDefinition field3 = new() { Field_Name_TXT = "F3", Sort_Order_NUM = 1 };
+        FieldDefinition field1 = new() { FieldNameTXT = "F1", SortOrderNUM = 2 };
+        FieldDefinition field2 = new() { FieldNameTXT = "F2", SortOrderNUM = 3 };
+        FieldDefinition field3 = new() { FieldNameTXT = "F3", SortOrderNUM = 1 };
         definitions.Add(field1);
         definitions.Add(field2);
         definitions.Add(field3);
 
         var fields = definitions.Fields.ToList();
         var expected = 3;
-            
+
         Assert.Equal(expected, fields.Count);
         Assert.Equal(fields[0], field3);
         Assert.Equal(fields[1], field1);
@@ -99,14 +99,14 @@ public class MetadataDefinitionsTests
     }
 
     [Fact]
-    public void MetadataVersion_WithMultipleFields_ShouldReturnExpectedValue()
+    public void MetadataVersionWithMultipleFieldsShouldReturnExpectedValue()
     {
         var expected = 1;
 
         FieldDefinitions definitions = new();
-        FieldDefinition field1 = new() { MetadataVersionId = expected, Field_Name_TXT = "F1", Sort_Order_NUM = 2 };
-        FieldDefinition field2 = new() { MetadataVersionId = expected, Field_Name_TXT = "F2", Sort_Order_NUM = 3 };
-        FieldDefinition field3 = new() { MetadataVersionId = expected, Field_Name_TXT = "F3", Sort_Order_NUM = 1 };
+        FieldDefinition field1 = new() { MetadataVersionId = expected, FieldNameTXT = "F1", SortOrderNUM = 2 };
+        FieldDefinition field2 = new() { MetadataVersionId = expected, FieldNameTXT = "F2", SortOrderNUM = 3 };
+        FieldDefinition field3 = new() { MetadataVersionId = expected, FieldNameTXT = "F3", SortOrderNUM = 1 };
         definitions.Add(field1);
         definitions.Add(field2);
         definitions.Add(field3);
@@ -117,7 +117,7 @@ public class MetadataDefinitionsTests
     }
 
     [Fact]
-    public void AddField_WithMultipleMetadatVersions_ShouldThrow()
+    public void AddFieldWithMultipleMetadatVersionsShouldThrow()
     {
         Assert.Throws<ArgumentException>(() =>
         {
@@ -126,9 +126,9 @@ public class MetadataDefinitionsTests
 
             FieldDefinitions definitions = new();
 
-            FieldDefinition field1 = new() { MetadataVersionId = versionId, Field_Name_TXT = "F1", Sort_Order_NUM = 2 };
-            FieldDefinition field2 = new() { MetadataVersionId = versionId, Field_Name_TXT = "F2", Sort_Order_NUM = 3 };
-            FieldDefinition field3 = new() { MetadataVersionId = otherVersionId, Field_Name_TXT = "F3", Sort_Order_NUM = 1 };
+            FieldDefinition field1 = new() { MetadataVersionId = versionId, FieldNameTXT = "F1", SortOrderNUM = 2 };
+            FieldDefinition field2 = new() { MetadataVersionId = versionId, FieldNameTXT = "F2", SortOrderNUM = 3 };
+            FieldDefinition field3 = new() { MetadataVersionId = otherVersionId, FieldNameTXT = "F3", SortOrderNUM = 1 };
 
             definitions.Add(field1);
             definitions.Add(field2);

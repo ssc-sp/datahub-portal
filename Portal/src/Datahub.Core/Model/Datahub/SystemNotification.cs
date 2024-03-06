@@ -1,32 +1,30 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Datahub.Core.Model.Datahub;
 
 public class SystemNotification
 {
     [Key]
-    public long Notification_ID { get; set; }
+    public long NotificationID { get; set; }
 
     [Required]
     [StringLength(200)]
-    public string ReceivingUser_ID { get; set; }
+    public string ReceivingUserID { get; set; }
 
     [Required]
-    public DateTime Generated_TS { get; set; }
+    public DateTime GeneratedTS { get; set; }
 
-    public bool Read_FLAG { get; set; }
-
-    [Required]
-    public string NotificationTextEn_TXT { get; set; }
+    public bool ReadFLAG { get; set; }
 
     [Required]
-    public string NotificationTextFr_TXT { get; set; }
+    public string NotificationTextEnTXT { get; set; }
+
+    [Required]
+    public string NotificationTextFrTXT { get; set; }
 
     [StringLength(512)]
-    public string ActionLink_URL { get; set; }
+    public string ActionLinkURL { get; set; }
 
     [StringLength(128)]
-    public string ActionLink_Key {  get; set; }
-
+    public string ActionLinkKey { get; set; }
 }

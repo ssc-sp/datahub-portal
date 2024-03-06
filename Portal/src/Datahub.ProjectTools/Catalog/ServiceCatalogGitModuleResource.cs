@@ -1,5 +1,4 @@
-﻿using Datahub.Application.Services;
-using Datahub.Core.Model.Datahub;
+﻿using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services.UserManagement;
 using Datahub.ProjectTools.Catalog.ResourceCards;
@@ -14,7 +13,7 @@ public class ServiceCatalogGitModuleResource : IProjectResource
 {
     private GitHubModule _currentModule;
     private GitHubModuleDescriptor _descriptor;
-    private Datahub_Project _project;
+    private DatahubProject _project;
     private bool _serviceRequested;
     private bool _serviceCreated;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject;
@@ -31,21 +30,21 @@ public class ServiceCatalogGitModuleResource : IProjectResource
         switch (_currentModule.Name)
         {
             case TerraformTemplate.AzureStorageBlob:
-            {
-                var resourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
-                return _project.Resources
-                    .Where(r => r.ResourceType == resourceType)
-                    .Select(_ => (typeof(StorageResourceCard), GetActiveParameters(TerraformTemplate.AzureStorageBlob)))
-                    .ToArray();
-            }
+                {
+                    var resourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
+                    return _project.Resources
+                        .Where(r => r.ResourceType == resourceType)
+                        .Select(_ => (typeof(StorageResourceCard), GetActiveParameters(TerraformTemplate.AzureStorageBlob)))
+                        .ToArray();
+                }
             case TerraformTemplate.AzureDatabricks:
-            {
-                var resourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-                return _project.Resources
-                    .Where(r => r.ResourceType == resourceType)
-                    .Select(_ => (typeof(DatabricksResourceCard), GetActiveParameters(TerraformTemplate.AzureDatabricks)))
-                    .ToArray();
-            }
+                {
+                    var resourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
+                    return _project.Resources
+                        .Where(r => r.ResourceType == resourceType)
+                        .Select(_ => (typeof(DatabricksResourceCard), GetActiveParameters(TerraformTemplate.AzureDatabricks)))
+                        .ToArray();
+                }
             default:
                 return Array.Empty<(Type type, IDictionary<string, object> parameters)>();
         }
@@ -86,20 +85,20 @@ public class ServiceCatalogGitModuleResource : IProjectResource
             { nameof(ServiceCatalogTerraformResource.Descriptor), _descriptor },
             { nameof(ServiceCatalogTerraformResource.GitHubModule), _currentModule},
             { nameof(ServiceCatalogTerraformResource.IsIconSvg), false },
-            { nameof(ServiceCatalogTerraformResource.ResourceRequested),_serviceRequested },            
-            { nameof(ServiceCatalogTerraformResource.ResourceCreated),_serviceCreated },            
+            { nameof(ServiceCatalogTerraformResource.ResourceRequested),_serviceRequested },
+            { nameof(ServiceCatalogTerraformResource.ResourceCreated),_serviceCreated },
             { nameof(ServiceCatalogTerraformResource.Project), _project },
             { nameof(ServiceCatalogTerraformResource.IsResourceWhitelisted), GetWhitelistStatus()}
         };
     public string[] GetTags() => _descriptor.Tags;
 
-    public async Task<bool> InitializeAsync(Datahub_Project project, string? userId, User graphUser, bool isProjectAdmin)
+    public async Task<bool> InitializeAsync(DatahubProject project, string? userId, User graphUser, bool isProjectAdmin)
     {
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
         _project = project;
         // var serviceRequests = project.ProjectRequestAudits;
         // _serviceRequested = serviceRequests.Any(r => r.RequestType == TerraformTemplate.GetTerraformServiceType(_currentModule.Name) && r.Is_Completed == null);
-        
+
         // TODO: Check if service is created off a request GUID down the road
         // _serviceCreated = serviceRequests.Any(r => r.RequestType == TerraformTemplate.GetTerraformServiceType(_currentModule.Name) && r.Is_Completed != null);
         return true;
@@ -113,10 +112,10 @@ public class ServiceCatalogGitModuleResource : IProjectResource
         if (_cultureService.IsFrench)
             _descriptor = frDescriptor;
     }
-    
+
     private bool GetWhitelistStatus()
     {
-        var whitelist = _project.Whitelist ?? new Project_Whitelist();
+        var whitelist = _project.Whitelist ?? new ProjectWhitelist();
         return _currentModule.Name switch
         {
             TerraformTemplate.AzureDatabricks => whitelist.AllowDatabricks,
@@ -126,5 +125,5 @@ public class ServiceCatalogGitModuleResource : IProjectResource
             _ => true
         };
     }
-    
+
 }

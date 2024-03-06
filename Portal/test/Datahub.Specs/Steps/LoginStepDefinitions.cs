@@ -5,14 +5,14 @@ namespace Datahub.Specs.Steps
     [Binding]
     public class LoginStepDefinitions
     {
-        
+
         private readonly LoginPageObject _loginPageObject;
-        
+
         public LoginStepDefinitions(LoginPageObject loginPageObject)
         {
             _loginPageObject = loginPageObject;
         }
-        
+
         [Given(@"an unregistered user navigates to the login page")]
         public async Task GivenAnUnregisteredUserNavigatesToTheLoginPage()
         {

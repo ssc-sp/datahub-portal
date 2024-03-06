@@ -108,7 +108,7 @@
                                                     <option value="-1">@Localizer[$"{LOCALIZATION_PREFIX}.Unassigned"]</option>
                                                     @foreach (var project in AvailableProjects)
                                                     {
-                                                        <option value=@project.Project_ID>@project.ProjectName</option>
+                                                        <option value=@project.ProjectID>@project.ProjectName</option>
                                                     }
                                                 </select>
                                             </AeFlex>
@@ -263,7 +263,7 @@
                                                     <option value=""></option>
                                                     @foreach(var report in ReportBeingEdited.SiblingReports)
                                                     {
-                                                        <option value="@report.Report_ID.ToString()">@report.Report_Name</option>
+                                                        <option value="@report.ReportID.ToString()">@report.ReportName</option>
                                                     }
                                                 </select>
                                             </AeFlex>
@@ -348,7 +348,7 @@
             </AeCard>
         </div>
         <div class="admin-list">
-            <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
+            <AuthorizeView Roles=@RoleConstants.DATAHUBROLEADMIN>
                 <Authorized>
                     <AeCard>
                         <Header>
@@ -420,7 +420,7 @@
 </div>
 
 @code {
-    private static readonly string LOCALIZATION_PREFIX = $"{PowerBiManagementConstants.POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY}.POWER_BI_ADMIN";
+    private static readonly string LOCALIZATION_PREFIX = $"{PowerBiManagementConstants.POWERBIMANAGEMENTLOCALIZATIONROOTKEY}.POWER_BI_ADMIN";
 
     [Parameter]
     public string ProjectAcronym { get; set; }
@@ -452,7 +452,7 @@
 
     private SuccessIndicator _bulkImportInd;
 
-    private List<Datahub_Project> AvailableProjects { get; set; } = new();
+    private List<DatahubProject> AvailableProjects { get; set; } = new();
 
     private string _tempLastClickedItem { get; set; }
     private string _tempLastClickedType { get; set; }
@@ -505,8 +505,8 @@
     private QueryThrottler<string> _userSearchThrottler;
     private bool _isSearchingUsers = false;
 
-    private string GetProjectMetadataUid(int projectId) => AvailableProjects.FirstOrDefault(p => p.Project_ID == projectId)?.Project_Acronym_CD;
-    private string GetProjectAdmins(int projectId) => AvailableProjects.FirstOrDefault(p => p.Project_ID == projectId)?.Project_Admin;
+    private string GetProjectMetadataUid(int projectId) => AvailableProjects.FirstOrDefault(p => p.ProjectID == projectId)?.ProjectAcronymCD;
+    private string GetProjectAdmins(int projectId) => AvailableProjects.FirstOrDefault(p => p.ProjectID == projectId)?.ProjectAdmin;
 
     private string GetPowerBiWorkspaceUrl(Guid workspaceId) => $"https://app.powerbi.com/groups/{workspaceId.ToString()}";
 
@@ -547,10 +547,10 @@
         var dbWorkspacesList = await _powerBiDataService.GetAllWorkspaces();
 
         PowerBiWorkspacesById = pbiWorkspaces.ToDictionary(w => w.Id);
-        var dbWorkspaceDict = dbWorkspacesList.ToDictionary(w => w.Workspace_ID);
+        var dbWorkspaceDict = dbWorkspacesList.ToDictionary(w => w.WorkspaceID);
 
         var allWorkspaceIds = pbiWorkspaces.Select(w => w.Id)
-            .Concat(dbWorkspacesList.Select(w => w.Workspace_ID))
+            .Concat(dbWorkspacesList.Select(w => w.WorkspaceID))
             .Distinct();
 
         var treeItems = allWorkspaceIds.Select(id =>
@@ -583,7 +583,7 @@
         PowerBiDatasetsById = pbiDatasets.ToDictionary(d => Guid.Parse(d.Dataset.Id), d => d.Dataset);
         var pbiDatasetIds = PowerBiDatasetsById.Keys.ToHashSet();
         var dbDatasets = await _powerBiDataService.GetAllDatasets();
-        var dbDatasetDict = dbDatasets.ToDictionary(d => d.DataSet_ID);
+        var dbDatasetDict = dbDatasets.ToDictionary(d => d.DataSetID);
 
         var results = pbiDatasets.Select(d =>
         {
@@ -592,7 +592,7 @@
             return new PowerBiAdminDatasetTreeItem(d.Dataset, dbDataset, d.WorkspaceId);
         })
         .Concat(dbDatasets
-            .Where(d => !pbiDatasetIds.Contains(d.DataSet_ID))
+            .Where(d => !pbiDatasetIds.Contains(d.DataSetID))
             .Select(d => new PowerBiAdminDatasetTreeItem(null, d, null)))
         .ToList();
 
@@ -605,7 +605,7 @@
         PowerBiReportsById = pbiReports.ToDictionary(t => t.Report.Id, t => t.Report);
         var pbiReportIds = PowerBiReportsById.Keys.ToHashSet();
         var dbReports = await _powerBiDataService.GetAllReports();
-        var dbReportDict = dbReports.ToDictionary(d => d.Report_ID);
+        var dbReportDict = dbReports.ToDictionary(d => d.ReportID);
 
         var results = pbiReports.Select(d =>
         {
@@ -614,7 +614,7 @@
             return new PowerBiAdminReportTreeItem(d.Report, dbReport, d.WorkspaceId);
         })
         .Concat(dbReports
-            .Where(r => !pbiReportIds.Contains(r.Report_ID))
+            .Where(r => !pbiReportIds.Contains(r.ReportID))
             .Select(r => new PowerBiAdminReportTreeItem(null, r, null)))
         .ToList();
 
@@ -665,7 +665,7 @@
                 ReportBeingEdited.SiblingReports = await GetReportsForGrouping(report);
                 IncludeCurrentItemInCatalog = report.InCatalog;
                 _groupWithId = await GetGroupedWidth(report);
-                _catalogObjectLanguage = await _metadataService.GetCatalogObjectLanguage(report.Report_ID.ToString()) ?? CatalogObjectLanguage.Bilingual;
+                _catalogObjectLanguage = await _metadataService.GetCatalogObjectLanguage(report.ReportID.ToString()) ?? CatalogObjectLanguage.Bilingual;
             }
         }
 
@@ -675,15 +675,15 @@
         await Task.CompletedTask;
     }
 
-    private async Task<List<PowerBi_Report>> GetReportsForGrouping(PowerBi_Report report)
+    private async Task<List<PowerBiReport>> GetReportsForGrouping(PowerBiReport report)
     {
-        var siblings = await _powerBiDataService.GetWorkspaceReports(report.Workspace_Id);
-        return siblings.Where(r => r.InCatalog && r.Report_ID != report.Report_ID).ToList();
+        var siblings = await _powerBiDataService.GetWorkspaceReports(report.WorkspaceId);
+        return siblings.Where(r => r.InCatalog && r.ReportID != report.ReportID).ToList();
     }
 
-    private async Task<string> GetGroupedWidth(PowerBi_Report report)
+    private async Task<string> GetGroupedWidth(PowerBiReport report)
     {
-        var reportId = report.Report_ID.ToString().ToLower();
+        var reportId = report.ReportID.ToString().ToLower();
         var group = await _metadataService.GetObjectCatalogGroup(reportId);
         return group.FirstOrDefault(id => !id.Equals(reportId, StringComparison.OrdinalIgnoreCase));
     }
@@ -726,25 +726,25 @@
             case PowerBiAdminTreeItemType.Workspace:
                 var workspaceId = WorkspaceBeingEdited.WorkspaceId;
                 var workspace = await _powerBiDataService.GetWorkspaceById(workspaceId, true);
-                itemsToDelete.Add(string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Workspace"], workspace.Workspace_Name));
-                itemsToDelete.AddRange(workspace.Reports.Select(r => string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Report"], r.Report_Name)));
-                itemsToDelete.AddRange(workspace.Datasets.Select(d => string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Dataset"], d.DataSet_Name)));
+                itemsToDelete.Add(string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Workspace"], workspace.WorkspaceName));
+                itemsToDelete.AddRange(workspace.Reports.Select(r => string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Report"], r.ReportName)));
+                itemsToDelete.AddRange(workspace.Datasets.Select(d => string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Dataset"], d.DataSetName)));
                 break;
             case PowerBiAdminTreeItemType.Report:
                 var reportId = ReportBeingEdited.ReportId;
                 var datasetxId = ReportBeingEdited.DatasetId;
                 var report = await _powerBiDataService.GetReportById(reportId);
-                var datasetx = datasetxId.HasValue? await _powerBiDataService.GetDatasetById(datasetxId.Value) : await Task.FromResult(default(PowerBi_DataSet));
-                itemsToDelete.Add(string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Report"], report.Report_Name));
+                var datasetx = datasetxId.HasValue? await _powerBiDataService.GetDatasetById(datasetxId.Value) : await Task.FromResult(default(PowerBiDataSet));
+                itemsToDelete.Add(string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Report"], report.ReportName));
                 if (datasetx != null)
                 {
-                    itemsToDelete.Add(string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Dataset"], datasetx.DataSet_Name));
+                    itemsToDelete.Add(string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Dataset"], datasetx.DataSetName));
                 }
                 break;
             case PowerBiAdminTreeItemType.Dataset:
                 var datasetId = DatasetBeingEdited.DatasetId;
                 var dataset = await _powerBiDataService.GetDatasetById(datasetId);
-                itemsToDelete.Add(string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Dataset"], dataset.DataSet_Name));
+                itemsToDelete.Add(string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Dataset"], dataset.DataSetName));
                 break;
             default:
                 break;
@@ -822,9 +822,9 @@
             var workspace = await _powerBiDataService.GetWorkspaceById(workspaceId.Value, true);
 
             var catalogItemIds = workspace.Datasets
-                .Select(d => d.DataSet_ID)
-                .Concat(workspace.Reports.Select(r => r.Report_ID))
-                .Append(workspace.Workspace_ID)
+                .Select(d => d.DataSetID)
+                .Concat(workspace.Reports.Select(r => r.ReportID))
+                .Append(workspace.WorkspaceID)
                 .Select(g => g.ToString());
 
             await _powerBiDataService.DeleteWorkspace(workspaceId.Value);
@@ -1024,13 +1024,13 @@
 
         var titleFr = await _translationService.GetFrenchTranslation(currentTitle);
 
-        metadataEditor.SetValue(PowerBiManagementConstants.TITLE_EN_METADATA_FIELD, currentTitle);
-        metadataEditor.SetValue(PowerBiManagementConstants.TITLE_FR_METADATA_FIELD, titleFr);
+        metadataEditor.SetValue(PowerBiManagementConstants.TITLEENMETADATAFIELD, currentTitle);
+        metadataEditor.SetValue(PowerBiManagementConstants.TITLEFRMETADATAFIELD, titleFr);
 
         var currentProjectId = GetCurrentPowerBiObjectProjectId();
         if (currentProjectId.HasValue)
         {
-            metadataEditor.SetValue(PowerBiManagementConstants.CONTACT_INFO_METADATA_FIELD, GetProjectAdmins(currentProjectId.Value));
+            metadataEditor.SetValue(PowerBiManagementConstants.CONTACTINFOMETADATAFIELD, GetProjectAdmins(currentProjectId.Value));
         }
 
         await Task.CompletedTask;
@@ -1059,9 +1059,9 @@
         // get reportdefs if they need update
         // get dataset defs if they need update
 
-        var workspacesToAdd = new List<PowerBi_WorkspaceDefinition>();
-        var datasetsToAdd = new List<PowerBi_DataSetDefinition>();
-        var reportsToAdd = new List<PowerBi_ReportDefinition>();
+        var workspacesToAdd = new List<PowerBiWorkspaceDefinition>();
+        var datasetsToAdd = new List<PowerBiDataSetDefinition>();
+        var reportsToAdd = new List<PowerBiReportDefinition>();
 
         foreach (var w in WorkspacesToBeUpdated)
         {
@@ -1095,7 +1095,7 @@
 
         if (!string.IsNullOrEmpty(ProjectAcronym))
         {
-            AvailableProjects = await ctx.Projects.Where(p => p.Project_Acronym_CD.ToLower() == ProjectAcronym.ToLower()).ToListAsync();
+            AvailableProjects = await ctx.Projects.Where(p => p.ProjectAcronymCD.ToLower() == ProjectAcronym.ToLower()).ToListAsync();
         }
         else
         {

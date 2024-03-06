@@ -5,7 +5,6 @@ using Markdig;
 using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
 using Octokit;
-using YamlDotNet.Serialization;
 
 namespace Datahub.ProjectTools.Services;
 #nullable enable
@@ -27,11 +26,11 @@ public record GitHubModule(string Name, string Path,
     List<GitHubModuleDescriptor> Descriptors,
     GitHubModuleStatus Status);
 
-public record GitHubModuleDescriptor(string Language, 
-    string Title, 
-    string? CatalogSubtitle, 
-    string? CatalogDescription, 
-    string? ResourceDescription, 
+public record GitHubModuleDescriptor(string Language,
+    string Title,
+    string? CatalogSubtitle,
+    string? CatalogDescription,
+    string? ResourceDescription,
     string? ActionURL,
     string? ActionDescription,
     string[]? Tags);
@@ -163,7 +162,7 @@ public class GitHubToolsService
         var moduleStatus = Enum.TryParse<GitHubModuleStatus>(status, true, out var moduleStatusEnum)
             ? moduleStatusEnum
             : GitHubModuleStatus.Stable;
-        
+
         return new GitHubModule(dir.Name,
             dir.Path,
             yaml.GetValueOrDefault("dhcard"),
@@ -229,26 +228,26 @@ public class GitHubToolsService
             switch (item)
             {
                 case HeadingBlock heading:
-                {
-                    currentHeader = null;
-                    if (heading.Inline?.FirstChild != null && heading.Level == level)
                     {
-                        currentHeader = heading.Inline?.FirstChild?.ToString();
-                    }
+                        currentHeader = null;
+                        if (heading.Inline?.FirstChild != null && heading.Level == level)
+                        {
+                            currentHeader = heading.Inline?.FirstChild?.ToString();
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case ParagraphBlock paragraph when currentHeader != null:
-                {
-                    var value = paragraph!.Inline?.FirstChild?.ToString();
-                    if (value != null)
                     {
-                        result[currentHeader] = value;
-                    }
+                        var value = paragraph!.Inline?.FirstChild?.ToString();
+                        if (value != null)
+                        {
+                            result[currentHeader] = value;
+                        }
 
-                    currentHeader = null;
-                    break;
-                }
+                        currentHeader = null;
+                        break;
+                    }
             }
         }
 
@@ -260,8 +259,8 @@ public class GitHubToolsService
         var yamlBlock = document
             .Descendants<YamlFrontMatterBlock>()
             .FirstOrDefault();
-        
-        if(yamlBlock is null)
+
+        if (yamlBlock is null)
         {
             errors.Add(new RepositoryDescriptorErrors(
                 module.Path,
@@ -269,7 +268,7 @@ public class GitHubToolsService
             ));
             return new Dictionary<string, string>();
         }
-        
+
         var yaml = yamlBlock
             .Lines
             .Lines

@@ -1,8 +1,6 @@
-﻿using System;
-using System.Linq.Dynamic.Core;
+﻿using System.Linq.Dynamic.Core;
 using System.Text.Json;
 using Datahub.Application.Services;
-using Datahub.Application.Services.Projects;
 using Datahub.Core.Model.Datahub;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
@@ -80,7 +78,7 @@ namespace Datahub.Functions
                 if (email != null)
                 {
                     await _mediator.Send(email, ct);
-                    
+
                     // send notification to db
                     await _userInactivityNotificationService.AddInactivityNotification(user.Id, _dateProvider.Today,
                         daysUntilLocked!.Value, daysUntilDeleted!.Value, ct);

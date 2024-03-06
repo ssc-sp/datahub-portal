@@ -1,21 +1,14 @@
-﻿using Datahub.Core.Data.ResourceProvisioner;
-using Datahub.Core.Model.Datahub;
+﻿using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
-using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Projects;
-using Datahub.Core.Services.Security;
-using Datahub.Metadata.DTO;
-using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System.Transactions;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Enums;
-using Datahub.Shared.Exceptions;
 
 namespace Datahub.ProjectTools.Services;
 
@@ -39,10 +32,10 @@ public class RequestManagementService : IRequestManagementService
     }
 
 
-    public async Task HandleUserUpdatesToExternalPermissions(Datahub_Project project, PortalUser currentPortalUser)
+    public async Task HandleUserUpdatesToExternalPermissions(DatahubProject project, PortalUser currentPortalUser)
     {
         var workspaceDefinition =
-            await _resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD, currentPortalUser.Email);
+            await _resourceMessagingService.GetWorkspaceDefinition(project.ProjectAcronymCD, currentPortalUser.Email);
         await _resourceMessagingService.SendToUserQueue(workspaceDefinition);
     }
 
@@ -53,7 +46,7 @@ public class RequestManagementService : IRequestManagementService
     /// <param name="requestingUser">The requesting user.</param>
     /// <param name="requestedTemplate">The requested template.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    private async Task ProcessRequest(Datahub_Project project, PortalUser requestingUser,
+    private async Task ProcessRequest(DatahubProject project, PortalUser requestingUser,
         TerraformTemplate requestedTemplate)
     {
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
@@ -70,18 +63,18 @@ public class RequestManagementService : IRequestManagementService
         {
             _logger.LogInformation(
                 "Project resource already exists for project {Acronym} and resource type {ServiceType}",
-                project.Project_Acronym_CD, requestedTemplate.Name);
+                project.ProjectAcronymCD, requestedTemplate.Name);
             return;
         }
 
-        resource = new Project_Resources2
+        resource = new ProjectResources2
         {
-            ProjectId = project.Project_ID,
+            ProjectId = project.ProjectID,
             RequestedById = requestingUser.Id,
             ResourceType = TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name)
         };
 
-        await ctx.Project_Resources2.AddAsync(resource);
+        await ctx.ProjectResources2.AddAsync(resource);
         await ctx.TrackSaveChangesAsync(_datahubAuditingService);
     }
 
@@ -92,7 +85,7 @@ public class RequestManagementService : IRequestManagementService
     /// <param name="terraformTemplate">The Terraform template.</param>
     /// <param name="requestingUser">The user making the request.</param>
     /// <returns>True if the Terraform request was handled successfully; otherwise, false.</returns>
-    public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project datahubProject, string terraformTemplate,
+    public async Task<bool> HandleTerraformRequestServiceAsync(DatahubProject datahubProject, string terraformTemplate,
         PortalUser requestingUser)
     {
         using var scope = new TransactionScope(
@@ -104,7 +97,7 @@ public class RequestManagementService : IRequestManagementService
                 .Include(p => p.Resources)
                 .Include(p => p.Users)
                 .ThenInclude(u => u.PortalUser)
-                .FirstOrDefaultAsync(p => p.Project_ID == datahubProject.Project_ID);
+                .FirstOrDefaultAsync(p => p.ProjectID == datahubProject.ProjectID);
 
             if (project == null)
             {
@@ -130,7 +123,7 @@ public class RequestManagementService : IRequestManagementService
                 .ToList();
 
             var workspaceDefinition =
-                await _resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
+                await _resourceMessagingService.GetWorkspaceDefinition(project.ProjectAcronymCD,
                     requestingUser.Email);
             workspaceDefinition.Templates = allTemplates;
 
@@ -141,20 +134,20 @@ public class RequestManagementService : IRequestManagementService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating resource {TerraformTemplate} for {DatahubProjectProjectAcronymCd}",
-                terraformTemplate, datahubProject.Project_Acronym_CD);
+                terraformTemplate, datahubProject.ProjectAcronymCD);
             return false;
         }
     }
 
-    public static Role GetTerraformUserRole(Datahub_Project_User projectUser)
+    public static Role GetTerraformUserRole(DatahubProjectUser projectUser)
     {
         return projectUser.RoleId switch
         {
-            (int)Project_Role.RoleNames.Remove => Role.Removed,
-            (int)Project_Role.RoleNames.WorkspaceLead => Role.Owner,
-            (int)Project_Role.RoleNames.Admin => Role.Admin,
-            (int)Project_Role.RoleNames.Collaborator => Role.User,
-            (int)Project_Role.RoleNames.Guest => Role.Guest,
+            (int)ProjectRole.RoleNames.Remove => Role.Removed,
+            (int)ProjectRole.RoleNames.WorkspaceLead => Role.Owner,
+            (int)ProjectRole.RoleNames.Admin => Role.Admin,
+            (int)ProjectRole.RoleNames.Collaborator => Role.User,
+            (int)ProjectRole.RoleNames.Guest => Role.Guest,
             _ => Role.Guest
         };
     }

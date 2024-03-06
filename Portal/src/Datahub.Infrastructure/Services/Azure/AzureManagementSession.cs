@@ -60,7 +60,7 @@ public class AzureManagementSession
     //     var response = await _httpClient.PostAsync<CostManagementResponse>(url, _accessToken, GetStringContent(request), _cancellationToken);
     //     return GetServiceCosts(response, nameIndex: 1);
     // }
-    
+
     public async Task<List<AzureServiceCost>?> GetResourceGroupYearDailyCostByService(string[] resourceGroups)
     {
         var url = GetCostManagementRequestUrl();
@@ -76,7 +76,7 @@ public class AzureManagementSession
         {
             var rgs = string.Join(", ", resourceGroups);
             throw new Exception($"Could not read all storageAcounts from the resource groups '{rgs}'");
-        }            
+        }
 
         double capacity = 0.0;
         foreach (var account in accounts)
@@ -91,7 +91,7 @@ public class AzureManagementSession
     {
         var requestUrl = GetStorageCapacityRequestUrl(resourceGroupName, storageAccountName);
         var response = await _httpClient.GetAsync<StorageCapacityResponse>(requestUrl, _accessToken, null, _cancellationToken);
-        
+
         if (response is null)
             throw new Exception($"Cannot read Storage Capacity of {resourceGroupName}/{storageAccountName}");
 
@@ -132,8 +132,8 @@ public class AzureManagementSession
 
     static JsonSerializerOptions GetJsonSerializerOptions()
     {
-        return new() 
-        { 
+        return new()
+        {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
@@ -144,7 +144,7 @@ public class AzureManagementSession
         return $"{AzureManagementUrls.ManagementUrl}/subscriptions/{_configuration.SubscriptionId}/providers/Microsoft.CostManagement/query?api-version=2021-10-01&$top=5000";
     }
 
-    private string GetStorageCapacityRequestUrl(string resourceGroupName, string storageAccountName) 
+    private string GetStorageCapacityRequestUrl(string resourceGroupName, string storageAccountName)
     {
         var version = "2019-07-01";
 
@@ -310,7 +310,7 @@ public class AzureManagementSession
             }
         };
     }
-    
+
     static CostManagementRequest GetYearDailyCostByService(string[] resourceGroups)
     {
         var (from, to) = GetLastYearPeriod();
@@ -383,13 +383,13 @@ public class AzureManagementSession
     static List<AzureServiceCost>? GetServiceCosts(CostManagementResponse? response)
     {
         List<Column> columns = response?.Properties?.Columns.Select(c => new Column(c.Name, c.Type)).ToList();
-        
+
         int nameIndex = columns.FindIndex(c => c.Name == "ServiceName");
         int costIndex = columns.FindIndex(c => c.Name == "Cost");
         int dateIndex = columns.FindIndex(c => c.Name == "UsageDate");
-        
-        return response?.Properties?.Rows?.Select(r => new AzureServiceCost() 
-        { 
+
+        return response?.Properties?.Rows?.Select(r => new AzureServiceCost()
+        {
             Name = ParseString(r[nameIndex]),
             Cost = ParseDouble(r[costIndex]),
             Date = ParseDate(r[dateIndex])
@@ -437,6 +437,6 @@ public class AzureManagementSession
         var strValue = o.ToString();
         return DateTime.ParseExact(strValue!, "yyyyMMdd", CultureInfo.InvariantCulture).Date;
     }
-    
+
     record Column(string Name, string Type);
 }

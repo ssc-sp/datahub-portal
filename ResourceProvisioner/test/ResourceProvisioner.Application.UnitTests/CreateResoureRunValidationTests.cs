@@ -15,7 +15,7 @@ public class CreateResourceRunValidationTests
         var validator = new CreateResourceRunCommandValidator();
         validator.Validate(command).Errors.Should().NotBeEmpty();
     }
-    
+
     [Test]
     public void ShouldValidateIfMinimumFieldsAreProvided()
     {

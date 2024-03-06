@@ -3,14 +3,13 @@ using Azure.Storage.Files.DataLake.Models;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
-using Datahub.Core.Services.Storage;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.AspNetCore.Components;
 
 namespace Datahub.Portal.Services.Api;
 
 public class DataCreatorService : BaseService, IDataCreatorService
-{        
+{
     private ILogger<DataCreatorService> _logger;
     private DataLakeClientService _dataLakeClientService;
 
@@ -25,10 +24,10 @@ public class DataCreatorService : BaseService, IDataCreatorService
 
     public async Task<bool> CreateFolder(Folder folder, Folder parent, Microsoft.Graph.Models.User user)
     {
-        var folderName = $"{parent.fullPathFromRoot}/{folder.id}";
+        var folderName = $"{parent.FullPathFromRoot}/{folder.Id}";
 
         try
-        {              
+        {
             var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
 
             var directoryClient = await fileSystemClient.CreateDirectoryAsync(folderName);
@@ -77,6 +76,6 @@ public class DataCreatorService : BaseService, IDataCreatorService
         {
             _logger.LogError(ex, $"Set Folder permissions for folder: {folderName} user: {userId} FAILED.");
             throw;
-        }                
+        }
     }
 }

@@ -70,16 +70,16 @@
 
     private string GetRoles()
     {
-        var guestRole = $"{ProjectAcronym}{RoleConstants.GUEST_SUFFIX}";
-        var collaboratorRole = $"{ProjectAcronym}{RoleConstants.COLLABORATOR_SUFFIX}";
-        var adminRole = $"{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX}";
-        var workspaceLeadRole = $"{ProjectAcronym}{RoleConstants.WORKSPACE_LEAD_SUFFIX}";
-        const string datahubAdminRole = RoleConstants.DATAHUB_ROLE_ADMIN;
+        var guestRole = $"{ProjectAcronym}{RoleConstants.GUESTSUFFIX}";
+        var collaboratorRole = $"{ProjectAcronym}{RoleConstants.COLLABORATORSUFFIX}";
+        var adminRole = $"{ProjectAcronym}{RoleConstants.ADMINSUFFIX}";
+        var workspaceLeadRole = $"{ProjectAcronym}{RoleConstants.WORKSPACELEADSUFFIX}";
+        const string datahubAdminRole = RoleConstants.DATAHUBROLEADMIN;
 
         switch (AuthLevel)
         {
             case AuthLevels.Personal:
-                return $"{UserGraphId},{RoleConstants.DATAHUB_ROLE_ADMIN}";
+                return $"{UserGraphId},{RoleConstants.DATAHUBROLEADMIN}";
             case AuthLevels.WorkspaceGuest:
                 return $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubAdminRole}";
             case AuthLevels.WorkspaceCollaborator:
@@ -89,7 +89,7 @@
             case AuthLevels.WorkspaceLead:
                 return $"{workspaceLeadRole},{datahubAdminRole}";
             case AuthLevels.DatahubAdminGuestView:
-                return $"{datahubAdminRole},{RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST}";
+                return $"{datahubAdminRole},{RoleConstants.DATAHUBROLEADMINASGUEST}";
             case AuthLevels.DatahubAdmin:
                 return datahubAdminRole;
             case AuthLevels.Unauthorized:

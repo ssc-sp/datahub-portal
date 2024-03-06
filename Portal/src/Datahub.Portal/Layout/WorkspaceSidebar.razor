@@ -84,7 +84,7 @@
 
     [Parameter] public string WorkspaceAcronym { get; set; }
 
-    private Datahub_Project _project;
+    private DatahubProject _project;
 
     private readonly string _workspaceTitleStyle = new StyleBuilder()
         .AddStyle("white-space", "nowrap")
@@ -142,7 +142,7 @@
         _project = dbContext.Projects
             .AsNoTracking()
             .Include(p => p.Resources)
-            .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
+            .FirstOrDefault(p => p.ProjectAcronymCD == WorkspaceAcronym);
 
         // check the resources against what to display in the sidebar
     }
@@ -180,7 +180,7 @@
                 {
                     LinkType = DatahubLinkType.Databricks,
                     DataProject = WorkspaceAcronym,
-                    accessedTime = DateTimeOffset.Now
+                    AccessedTime = DateTimeOffset.Now
                 };
 
                 await _userLocationManagerService.RegisterNavigation(userRecentLink);
@@ -192,7 +192,7 @@
                 {
                     LinkType = DatahubLinkType.AzureWebApp,
                     DataProject = WorkspaceAcronym,
-                    accessedTime = DateTimeOffset.Now
+                    AccessedTime = DateTimeOffset.Now
                 };
 
                 await _userLocationManagerService.RegisterNavigation(userRecentLink);
@@ -206,7 +206,7 @@
         return sectionView switch
         {
             SectionViews.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(_project),
-            SectionViews.WebApp => _project.WebApp_URL,
+            SectionViews.WebApp => _project.WebAppURL,
             _ => $"{_path}/{sectionView}"
         };
     }
@@ -270,7 +270,7 @@
             SectionViews.Dashboard => true,
             SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
             SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false,
-            SectionViews.WebApp => !string.IsNullOrEmpty(_project?.WebApp_URL),
+            SectionViews.WebApp => !string.IsNullOrEmpty(_project?.WebAppURL),
             SectionViews.SqlDatabase => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)) ?? false,
             SectionViews.Repositories => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
             SectionViews.ArcGis => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis)) ?? false,
@@ -285,7 +285,7 @@
             SectionViews.Dashboard => false,
             SectionViews.Databricks => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
             SectionViews.Storage => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true,
-            SectionViews.WebApp => string.IsNullOrEmpty(_project?.WebApp_URL),
+            SectionViews.WebApp => string.IsNullOrEmpty(_project?.WebAppURL),
             SectionViews.SqlDatabase => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.CreatedAt.HasValue) ?? true,
             SectionViews.Repositories => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
             SectionViews.ArcGis => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.CreatedAt.HasValue) ?? true,

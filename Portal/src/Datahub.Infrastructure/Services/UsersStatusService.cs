@@ -16,7 +16,7 @@ namespace Datahub.Infrastructure.Services
             Policy<HttpResponseMessage>
                 .Handle<HttpRequestException>()
                 .OrResult(x => x.StatusCode == HttpStatusCode.Conflict)
-                .WaitAndRetryAsync(5, i => 
+                .WaitAndRetryAsync(5, i =>
             TimeSpan.FromSeconds(1)
         );
 
@@ -27,16 +27,16 @@ namespace Datahub.Infrastructure.Services
             _httpClientFactory = httpClientFactory;
             _datahubPortalConfiguration = datahubPortalConfiguration;
         }
-        
+
         public async Task<Dictionary<string, List<string>>?> GetUsersStatus()
         {
             var url = _datahubPortalConfiguration.DatahubGraphUsersStatusFunctionUrl;
-            
+
             var client = _httpClientFactory.CreateClient();
             var result = await _retryPolicy.ExecuteAsync(() => client.GetAsync(url));
             var resultString = await result.Content.ReadAsStringAsync();
-            
-            var resultDict = JsonConvert.DeserializeObject<Dictionary<string,List<string>>>(resultString);
+
+            var resultDict = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(resultString);
             return resultDict;
         }
     }

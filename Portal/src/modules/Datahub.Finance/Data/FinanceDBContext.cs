@@ -8,7 +8,7 @@ public class FinanceDBContext : DbContext
     { }
 
     public DbSet<HierarchyLevel> HierarchyLevels { get; set; }
-    public DbSet<FundCenter> FundCenters  { get; set; }
+    public DbSet<FundCenter> FundCenters { get; set; }
     public DbSet<FiscalYear> FiscalYears { get; set; }
     public DbSet<Forecast> Forecasts { get; set; }
     public DbSet<SummaryForecast> SummaryForecasts { get; set; }
@@ -51,5 +51,5 @@ public class FinanceDBContext : DbContext
         //.HasForeignKey<Branch>(b => b.SectorAndBranchForBranchId);
     }
 
-      
+
 }

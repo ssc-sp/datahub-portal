@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO.Compression;
-using System.IO;
+﻿using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Datahub.Core.DataTransfers
 {
@@ -17,7 +13,7 @@ namespace Datahub.Core.DataTransfers
                 throw new ArgumentNullException(nameof(credentials));
             }
             var jsonString = JsonSerializer.Serialize(credentials);
-            var utf8bytes = UTF8Encoding.UTF8.GetBytes(jsonString);
+            var utf8bytes = Encoding.UTF8.GetBytes(jsonString);
             // Create a memory stream to hold the compressed data
             using MemoryStream compressedStream = new();
             // Create a DeflateStream with CompressionMode.Compress
@@ -53,7 +49,8 @@ namespace Datahub.Core.DataTransfers
             }
         }
 
-        public static UploadCredentials DecodeCredentials(string base64) {
+        public static UploadCredentials DecodeCredentials(string base64)
+        {
             if (string.IsNullOrEmpty(base64))
             {
                 throw new ArgumentException($"'{nameof(base64)}' cannot be null or empty.", nameof(base64));
@@ -64,7 +61,8 @@ namespace Datahub.Core.DataTransfers
                 var utf8bytes = Convert.FromBase64String(trimmed);
                 var utf8string = Encoding.UTF8.GetString(Decompress(utf8bytes));
                 return JsonSerializer.Deserialize<UploadCredentials>(utf8string);
-            } catch (Exception)
+            }
+            catch (Exception)
             {
                 return null;
             }

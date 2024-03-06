@@ -141,7 +141,7 @@ public class RepositoryServiceTests
     {
         InitializeTestInfrastructureRepository();
         var mockTerraformService = SetupMockTerraformService();
-        
+
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
 
@@ -195,10 +195,10 @@ public class RepositoryServiceTests
 
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
-        
+
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration, mockTerraformService);
-        
+
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var command = GenerateTestCreateResourceRunCommand(
             workspaceAcronym, new List<string>()
@@ -273,7 +273,7 @@ public class RepositoryServiceTests
         var httpClient = new HttpClient(mockHandler.Object);
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
-        
+
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration, mockTerraformService);
 
@@ -289,7 +289,7 @@ public class RepositoryServiceTests
     public async Task ShouldBeAbleToGetModuleVersions()
     {
         var result = await _repositoryService.GetModuleVersions();
-        
+
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Is.Not.Empty);
         Assert.That(result, Is.All.InstanceOf<Version>());

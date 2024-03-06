@@ -60,7 +60,7 @@
 
         _webAppEnabled = await projectContext.Projects
             .AsNoTracking()
-            .Where(p => p.Project_Acronym_CD == ProjectAcronym)
+            .Where(p => p.ProjectAcronymCD == ProjectAcronym)
             .Select(p => p.WebAppEnabled)
             .FirstOrDefaultAsync() ?? false;
     }
@@ -92,7 +92,7 @@
 
         await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
         var project = await ctx.Projects
-            .Where(p => p.Project_Acronym_CD == ProjectAcronym)
+            .Where(p => p.ProjectAcronymCD == ProjectAcronym)
             .FirstOrDefaultAsync();
 
         project.WebAppEnabled = _webAppEnabled;

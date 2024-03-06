@@ -23,7 +23,7 @@ public partial class Testing
     internal const string TestProjectAcronym = "TEST";
     internal const string TestUserEmail = "user@email.gc.ca";
     internal const string TestUserGraphGuid = "0000-0000-0000-0000-0000";
-    internal static readonly string[] TEST_USER_IDS = Enumerable.Range(0,5).Select(_ => Guid.NewGuid().ToString()).ToArray();
+    internal static readonly string[] TEST_USER_IDS = Enumerable.Range(0, 5).Select(_ => Guid.NewGuid().ToString()).ToArray();
     internal const string TestAdminUserId = "987654321";
     internal const string OldUserEmail = "old-user@email.gc.ca";
     internal const string OldUserId = "987654321";
@@ -35,7 +35,7 @@ public partial class Testing
         _configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.Test.json", optional: true, reloadOnChange: true)
             .Build();
-        
+
         _datahubPortalConfiguration = new DatahubPortalConfiguration();
         _configuration.Bind(_datahubPortalConfiguration);
 
@@ -54,7 +54,7 @@ public partial class Testing
         var httpClient = new HttpClient(mockHandler.Object);
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
-        
+
         _userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), httpClientFactory.Object, _datahubPortalConfiguration, null);
     }
 

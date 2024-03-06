@@ -13,122 +13,122 @@ public class ApprovalForm
     /** Section: Business Partner **/
     [StringLength(256)]
     [AeFormCategory("Business Owner")]
-    public string Department_NAME { get; set; }
+    public string DepartmentNAME { get; set; }
 
     [AeFormIgnore]
-    public int Sector_ID { get; set; }
+    public int SectorID { get; set; }
 
     /** Section: Business Partner **/
     [StringLength(256)]
     [AeFormCategory("Business Owner")]
-    public string Sector_NAME { get; set; }
+    public string SectorNAME { get; set; }
 
     [AeFormIgnore]
-    public int Branch_ID { get; set; }
+    public int BranchID { get; set; }
 
     /** Section: Business Partner **/
     [StringLength(256)]
     [AeFormCategory("Business Owner")]
-    public string Branch_NAME { get; set; }
+    public string BranchNAME { get; set; }
 
     /** Section: Business Partner **/
     [StringLength(256)]
     [AeFormCategory("Business Owner")]
-    public string Division_NAME { get; set; }
+    public string DivisionNAME { get; set; }
 
     /** Section: Business Partner **/
     [StringLength(256)]
     [AeFormCategory("Business Owner")]
-    public string Section_NAME { get; set; }
+    public string SectionNAME { get; set; }
 
     /** Section: Business Partner **/
     [StringLength(256)]
     [AeFormCategory("Business Owner")]
     [Required]
-    public string Name_NAME { get; set; }
+    public string NameNAME { get; set; }
 
     /** Section: Business Partner **/
     [StringLength(32)]
     [AeFormCategory("Business Owner")]
-    public string Phone_TXT { get; set; }
+    public string PhoneTXT { get; set; }
 
     /** Section: Business Partner **/
     [StringLength(128)]
     [AeFormCategory("Business Owner")]
     [Required]
-    public string Email_EMAIL { get; set; }
+    public string EmailEMAIL { get; set; }
 
     /** Section: Source Information **/
     [Required]
     [AeFormCategory("Source Information")]
     [StringLength(256)]
-    public string Dataset_Title_TXT { get; set; }
+    public string DatasetTitleTXT { get; set; }
 
     /** Section: Source Information **/
     [Required]
     [StringLength(16)]
     [AeFormCategory("Source Information")]
-    public string Type_Of_Data_TXT { get; set; }
+    public string TypeOfDataTXT { get; set; }
 
     /** Section: Legal / Licensing / Copyright **/
     [AeFormCategory("Mandatory Release Criteria")]
-    public bool Copyright_Restrictions_FLAG { get; set; }
+    public bool CopyrightRestrictionsFLAG { get; set; }
 
     /** Section: Authority to Release **/
     [AeFormCategory("Mandatory Release Criteria")]
-    public bool Authority_To_Release_FLAG { get; set; }
+    public bool AuthorityToReleaseFLAG { get; set; }
 
     /** Section: Privacy **/
     [AeFormCategory("Mandatory Release Criteria")]
-    public bool Private_Personal_Information_FLAG { get; set; }
+    public bool PrivatePersonalInformationFLAG { get; set; }
 
     /** Section: Access to Information **/
     [AeFormCategory("Mandatory Release Criteria")]
-    public bool Subject_To_Exceptions_Or_Eclusions_FLAG { get; set; }
+    public bool SubjectToExceptionsOrEclusionsFLAG { get; set; }
 
     /** Section: Security **/
     [AeFormCategory("Mandatory Release Criteria")]
-    public bool Not_Clasified_Or_Protected_FLAG { get; set; }
+    public bool NotClasifiedOrProtectedFLAG { get; set; }
 
     /** Section: Cost **/
     [AeFormCategory("Mandatory Release Criteria")]
-    public bool Can_Be_Released_For_Free_FLAG { get; set; }
+    public bool CanBeReleasedForFreeFLAG { get; set; }
 
     /** Section: Format **/
     [AeFormCategory("Mandatory Release Criteria")]
-    public bool Machine_Readable_FLAG { get; set; }
+    public bool MachineReadableFLAG { get; set; }
 
     /** Section: Format **/
     [AeFormCategory("Mandatory Release Criteria")]
-    public bool Non_Propietary_Format_FLAG { get; set; }
+    public bool NonPropietaryFormatFLAG { get; set; }
 
     /** Section: Format **/
     [AeFormCategory("Mandatory Release Criteria")]
-    public bool Localized_Metadata_FLAG { get; set; }
+    public bool LocalizedMetadataFLAG { get; set; }
 
     /** Section: Format **/
     [AeFormIgnore]
     [AeFormCategory("Blanket Approvals")]
-    public bool Requires_Blanket_Approval_FLAG { get; set; }
+    public bool RequiresBlanketApprovalFLAG { get; set; }
 
     /** Section: Blanket Approval **/
     [AeFormCategory("Blanket Approvals")]
-    public bool Updated_On_Going_Basis_FLAG { get; set; }
+    public bool UpdatedOnGoingBasisFLAG { get; set; }
 
     /** Section: Blanket Approval **/
     [AeFormCategory("Blanket Approvals")]
-    public bool Collection_Of_Datasets_FLAG { get; set; }
+    public bool CollectionOfDatasetsFLAG { get; set; }
 
     /** Section: Blanket Approval **/
     [AeFormCategory("Blanket Approvals")]
-    public bool Approval_InSitu_FLAG { get; set; }
+    public bool ApprovalInSituFLAG { get; set; }
 
     /** Section: Blanket Approval **/
     [AeFormCategory("Blanket Approvals")]
     [AeFormIgnore]
-    public bool Approval_Other_FLAG { get; set; }
+    public bool ApprovalOtherFLAG { get; set; }
 
     /** Section: Blanket Approval **/
     [AeFormCategory("Blanket Approvals")]
-    public string Approval_Other_TXT { get; set; }
+    public string ApprovalOtherTXT { get; set; }
 }

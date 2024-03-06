@@ -1,6 +1,5 @@
 ﻿using Datahub.Core.Configuration;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services.Projects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -27,8 +26,8 @@ public class DHPowerBIResource : ActiveGitModuleResource
         await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
         // var serviceRequests = Project.ProjectRequestAudits;
         // _powerBiServiceRequested = serviceRequests.Any(r => r.RequestType == IRequestManagementService.POWERBI && r.Is_Completed == null);
-        _powerBiServiceCreated = !string.IsNullOrEmpty(Project.PowerBI_URL);
-        Parameters.Add(nameof(PowerBI.Project), Project);            
+        _powerBiServiceCreated = !string.IsNullOrEmpty(Project.PowerBIURL);
+        Parameters.Add(nameof(PowerBI.Project), Project);
     }
 
     protected override string Title => "Power BI Workspace";

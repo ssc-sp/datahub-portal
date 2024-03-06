@@ -16,9 +16,9 @@
 
     <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
 
-    <div>@Localizer[$"{LOCALIZATION_PREFIX}.Filename"]: @SharedFile.Filename_TXT</div>
+    <div>@Localizer[$"{LOCALIZATION_PREFIX}.Filename"]: @SharedFile.FilenameTXT</div>
     <div>@Localizer[$"{LOCALIZATION_PREFIX}.RequestingUser"]: @_userDisplayName</div>
-    <div>@Localizer[$"{LOCALIZATION_PREFIX}.SubmissionDate"]: @SharedFile.SubmittedDate_DT?.ToShortDateString()</div>
+    <div>@Localizer[$"{LOCALIZATION_PREFIX}.SubmissionDate"]: @SharedFile.SubmittedDateDT?.ToShortDateString()</div>
 
     <AeButton OnClickEvent=@DownloadFile>@Localizer[$"{LOCALIZATION_PREFIX}.DownloadFile"]</AeButton>
 
@@ -55,10 +55,10 @@
                 <ValidationMessage For="() => formData.ExpirationDate" />
             }
         }
-        else if (SharedFile.ExpirationDate_DT.HasValue)
+        else if (SharedFile.ExpirationDateDT.HasValue)
         {
             <label>@Localizer[$"{LOCALIZATION_PREFIX}.ExpirationDate"]</label>
-            <div>@SharedFile.ExpirationDate_DT?.ToShortDateString()</div>
+            <div>@SharedFile.ExpirationDateDT?.ToShortDateString()</div>
         }
     </EditForm>
 
@@ -109,7 +109,7 @@
     private async Task DenyRequest()
     {
         processing = true;
-        await PublicFileService.DenyPublicUrlShare(SharedFile.File_ID);
+        await PublicFileService.DenyPublicUrlShare(SharedFile.FileID);
         // await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
         processing = false;
     }
@@ -120,19 +120,19 @@
         {
             processing = true;
             var expirationDate = formData.EnableTempSharing ? formData.ExpirationDate : null;
-            var project = await PublicFileService.GetProjectWithUsers(SharedFile.ProjectCode_CD);
-            var publicUrl = PublicFileService.GetPublicSharedFileUrl(SharedFile.File_ID.ToString());
-            await PublicFileService.SaveTempSharingExpiryDate(SharedFile.File_ID, expirationDate);
+            var project = await PublicFileService.GetProjectWithUsers(SharedFile.ProjectCodeCD);
+            var publicUrl = PublicFileService.GetPublicSharedFileUrl(SharedFile.FileID.ToString());
+            await PublicFileService.SaveTempSharingExpiryDate(SharedFile.FileID, expirationDate);
             var notificationKey = formData.PublicationDate.HasValue ? 
                 "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.PublicUrlShareApprovedLater" : 
                 "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.PublicUrlShareApproved";
-            await PublicFileService.ApprovePublicUrlShare(SharedFile.File_ID, formData.PublicationDate);
+            await PublicFileService.ApprovePublicUrlShare(SharedFile.FileID, formData.PublicationDate);
             var tasks = new List<Task>()
                 {
-                    EmailNotificationService.SendFileSharingApproved(SharedFile, project.ProjectInfo, publicUrl, SharedFile.RequestingUser_ID),
-                    SystemNotificationService.CreateSystemNotificationWithLink(SharedFile.RequestingUser_ID,
-                        $"/share/public/{SharedFile.File_ID}", "SYSTEM-NOTIFICATION.ViewSharingStatus",
-                        notificationKey, SharedFile.Filename_TXT, new BilingualStringArgument(project.ProjectInfo.ProjectNameEn, project.ProjectInfo.ProjectNameFr),
+                    EmailNotificationService.SendFileSharingApproved(SharedFile, project.ProjectInfo, publicUrl, SharedFile.RequestingUserID),
+                    SystemNotificationService.CreateSystemNotificationWithLink(SharedFile.RequestingUserID,
+                        $"/share/public/{SharedFile.FileID}", "SYSTEM-NOTIFICATION.ViewSharingStatus",
+                        notificationKey, SharedFile.FilenameTXT, new BilingualStringArgument(project.ProjectInfo.ProjectNameEn, project.ProjectInfo.ProjectNameFr),
                         formData.PublicationDate?.ToShortDateString())
                 };
             await Task.WhenAll(tasks);
@@ -147,8 +147,8 @@
         editContext = new(formData);
         editContext.OnValidationRequested += HandleValiadationRequested;
         validationMessageStore = new(editContext);
-        _userDisplayName = await GraphService.GetUserName(SharedFile.RequestingUser_ID, CancellationToken.None);
-        formData.ExpirationDate = SharedFile.ExpirationDate_DT;
+        _userDisplayName = await GraphService.GetUserName(SharedFile.RequestingUserID, CancellationToken.None);
+        formData.ExpirationDate = SharedFile.ExpirationDateDT;
         formData.EnableTempSharing = formData.ExpirationDate.HasValue;
     }
 

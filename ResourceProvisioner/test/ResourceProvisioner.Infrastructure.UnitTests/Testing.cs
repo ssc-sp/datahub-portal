@@ -5,7 +5,6 @@ using ResourceProvisioner.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 using Moq;
 using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
@@ -50,11 +49,11 @@ public class Testing
 
         _resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
         _configuration.Bind(_resourceProvisionerConfiguration);
-        
+
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
-        
-        
+
+
         var services = new ServiceCollection();
         services.AddLogging(configure => configure.AddConsole());
         services.AddSingleton<ITerraformService, TerraformService>();
@@ -63,12 +62,12 @@ public class Testing
         services.AddSingleton(_configuration);
         services.AddSingleton(_resourceProvisionerConfiguration);
         var serviceProvider = services.BuildServiceProvider();
-        
+
         _terraformService = serviceProvider.GetRequiredService<ITerraformService>();
         _repositoryService = serviceProvider.GetRequiredService<IRepositoryService>();
 
         // _terraformService = new TerraformService(Mock.Of<ILogger<TerraformService>>(),
-            // _resourceProvisionerConfiguration, _configuration, _repositoryService);
+        // _resourceProvisionerConfiguration, _configuration, _repositoryService);
 
         // _repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
         //     _resourceProvisionerConfiguration, _terraformService);
@@ -112,10 +111,10 @@ public class Testing
     {
         var versions = await _repositoryService.GetModuleVersions();
         var latestVersion = versions.Max();
-        
-        if(latestVersion == null)
+
+        if (latestVersion == null)
             throw new Exception("No versions found for module repository");
-        
+
         var workspace = new TerraformWorkspace
         {
             Acronym = workspaceAcronym,
@@ -149,7 +148,7 @@ public class Testing
     {
         return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
     }
-    
+
     internal static CreateResourceRunCommand GenerateTestCreateResourceRunCommand(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true, string version = "latest")
     {
         return new CreateResourceRunCommand
@@ -186,7 +185,7 @@ public class Testing
                 ObjectId = Guid.NewGuid().ToString(),
                 Role = Role.Owner
             }));
-        
+
         users.AddRange(Enumerable.Range(0, numberOfAdmins)
             .Select(i => new TerraformUser
             {
@@ -194,7 +193,7 @@ public class Testing
                 ObjectId = Guid.NewGuid().ToString(),
                 Role = Role.Admin
             }));
-        
+
         users.AddRange(Enumerable.Range(0, numberOfUsers)
             .Select(i => new TerraformUser
             {
@@ -202,7 +201,7 @@ public class Testing
                 ObjectId = Guid.NewGuid().ToString(),
                 Role = Role.User
             }));
-        
+
         users.AddRange(Enumerable.Range(0, numberOfGuests)
             .Select(i => new TerraformUser
             {

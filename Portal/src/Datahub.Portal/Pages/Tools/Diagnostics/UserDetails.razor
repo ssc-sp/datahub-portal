@@ -73,9 +73,9 @@ else
     private List<Claim> _roles;
     private Dictionary<string, List<Claim>> _groupedRoles;
 
-    private IEnumerable<Project_Role> _projectRoles = Project_Role
+    private IEnumerable<ProjectRole> _projectRoles = ProjectRole
         .GetAll()
-        .Where(r => r.Id != (int) Project_Role.RoleNames.Remove);
+        .Where(r => r.Id != (int) ProjectRole.RoleNames.Remove);
 
     protected override async Task OnInitializedAsync()
     {

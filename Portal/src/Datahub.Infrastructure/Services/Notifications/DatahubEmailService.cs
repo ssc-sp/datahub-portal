@@ -23,19 +23,19 @@ public class DatahubEmailService : IDatahubEmailService
     public async Task<bool> SendAll(string sender, string subject, string body)
     {
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        var recipients = await ctx.Project_Users.Select(u => u.User_Name).Distinct().ToListAsync();
+        var recipients = await ctx.ProjectUsers.Select(u => u.UserName).Distinct().ToListAsync();
         return await SendMessage(ToList(sender), default, recipients, subject, body);
     }
 
     public async Task<bool> SendToProjects(string sender, List<string> projects, string subject, string body)
     {
         var projectSet = new HashSet<string>(projects);
-        
+
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        var recipients = await ctx.Project_Users
+        var recipients = await ctx.ProjectUsers
            .Include(e => e.Project)
-           .Where(e => projectSet.Contains(e.Project.Project_Acronym_CD))
-           .Select(e => e.User_Name)
+           .Where(e => projectSet.Contains(e.Project.ProjectAcronymCD))
+           .Select(e => e.UserName)
            .Distinct()
            .ToListAsync();
 
@@ -68,6 +68,6 @@ public class DatahubEmailService : IDatahubEmailService
         {
             _logger.LogError(ex.Message, ex);
             return false;
-        }        
+        }
     }
 }

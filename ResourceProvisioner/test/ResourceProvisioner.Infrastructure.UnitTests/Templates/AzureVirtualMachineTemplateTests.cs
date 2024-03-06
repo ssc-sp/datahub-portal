@@ -1,9 +1,6 @@
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using Datahub.Shared.Entities;
 using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
-using ResourceProvisioner.Infrastructure.Services;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Templates;
 
@@ -49,9 +46,9 @@ public class AzureVirtualMachineTemplateTests
 
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureVirtualMachine);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
-        
+
         await _terraformService.CopyTemplateAsync(module, workspace);
-        
+
         // assert that no new files were created
         Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
         var newFileCount = Directory.GetFiles(moduleDestinationPath, "*", SearchOption.AllDirectories).Length;
