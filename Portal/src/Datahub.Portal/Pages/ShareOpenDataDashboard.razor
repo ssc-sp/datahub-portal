@@ -118,7 +118,7 @@
             var fieldValue = fields.FirstOrDefault(fv => fv.FieldDefinitionId == definition.FieldDefinitionId);
             if (fieldValue != null)
             {
-                DateTime.TryParse(fieldValue.ValueTXT, out date);
+                DateTime.TryParse(fieldValue.Value_TXT, out date);
             }
         }
         return date;

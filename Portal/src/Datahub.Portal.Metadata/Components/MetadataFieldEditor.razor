@@ -63,10 +63,10 @@
         }
         else
         {
-            if (!FieldDefinition.MultiSelectFLAG)
+            if (!FieldDefinition.MultiSelect_FLAG)
             {
                 var oneChoice = FieldDefinition.Choices.Count == 1;
-                var allowEmptyOption = !oneChoice && string.IsNullOrEmpty(FieldDefinition.DefaultValueTXT);
+                var allowEmptyOption = !oneChoice && string.IsNullOrEmpty(FieldDefinition.Default_Value_TXT);
 
                 <MudSelect T="string"
                            Label=@FieldDefinition.Name
@@ -145,9 +145,9 @@
         if (_cascadingValue != CascadingValue)
         {
             _cascadingValue = CascadingValue;
-            if (!string.IsNullOrEmpty(FieldValue.ValueTXT))
+            if (!string.IsNullOrEmpty(FieldValue.Value_TXT))
             {
-                FieldValue.ValueTXT = string.Empty;
+                FieldValue.Value_TXT = string.Empty;
                 await OnFieldChanged.InvokeAsync(FieldValue);
             }
         }
@@ -155,12 +155,12 @@
 
     private string BoundValue
     {
-        get => FieldValue.ValueTXT;
+        get => FieldValue.Value_TXT;
         set
         {
-            if (value != FieldValue.ValueTXT)
+            if (value != FieldValue.Value_TXT)
             {
-                FieldValue.ValueTXT = value;
+                FieldValue.Value_TXT = value;
                 OnFieldChanged.InvokeAsync(FieldValue);
                 StateHasChanged();
             }
@@ -171,21 +171,21 @@
     {
         get
         {
-            return DateTime.TryParse(FieldValue.ValueTXT, out DateTime date) ? date : DateTime.Today;
+            return DateTime.TryParse(FieldValue.Value_TXT, out DateTime date) ? date : DateTime.Today;
         }
         set 
         {
             var txtDate = value?.ToShortDateString() ?? "";
-            FieldValue.ValueTXT = txtDate;
+            FieldValue.Value_TXT = txtDate;
             OnFieldChanged.InvokeAsync(FieldValue);
         }
     }
 
-    private string ChoiceDisplay => !FieldDefinition.MultiSelectFLAG ? GetChoiceLabel(FieldValue.ValueTXT) : GetMultiChoiceLabels(FieldValue.ValueTXT);
+    private string ChoiceDisplay => !FieldDefinition.MultiSelect_FLAG ? GetChoiceLabel(FieldValue.Value_TXT) : GetMultiChoiceLabels(FieldValue.Value_TXT);
 
     private string GetChoiceLabel(string name)
     {
-        return FieldDefinition.Choices.FirstOrDefault(c => c.ValueTXT == name)?.Label;
+        return FieldDefinition.Choices.FirstOrDefault(c => c.Value_TXT == name)?.Label;
     }
 
     private string GetMultiChoiceLabels(string values)
@@ -203,7 +203,7 @@
 
     private bool IsEnglishField()
     {
-        return FieldDefinition.FieldNameTXT.EndsWith("_en");
+        return FieldDefinition.Field_Name_TXT.EndsWith("_en");
     }
 
     private bool CanAcceptTranslation()
@@ -211,27 +211,27 @@
         if (Preview || IsKeywordField())
             return false;
 
-        return FieldPair?.GetPaired(FieldValue) is not null && string.IsNullOrEmpty(FieldValue.ValueTXT);
+        return FieldPair?.GetPaired(FieldValue) is not null && string.IsNullOrEmpty(FieldValue.Value_TXT);
     }
 
     private bool TranslatePairDisabled()
     {
         var otherField = FieldPair?.GetPaired(FieldValue);
-        return string.IsNullOrEmpty(otherField?.ValueTXT);
+        return string.IsNullOrEmpty(otherField?.Value_TXT);
     }
 
     private string GetTranslationHint()
     {
         var otherField = FieldPair?.GetPaired(FieldValue);
         var message = Localizer["Suggest translation for:"];
-        return $"{message} \"{otherField?.ValueTXT}\"";
+        return $"{message} \"{otherField?.Value_TXT}\"";
     }
 
     private async void HandleTranslateField()
     {
         try
         {
-            var pairedText = FieldPair?.GetPaired(FieldValue)?.ValueTXT;
+            var pairedText = FieldPair?.GetPaired(FieldValue)?.Value_TXT;
             if (!string.IsNullOrEmpty(pairedText))
             {
                 var translation = IsEnglishField() 
@@ -253,7 +253,7 @@
     {
         if (FieldDefinition.IsEmailField)
         {
-            return Regex.IsMatch(FieldValue.ValueTXT, @"^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$") ? null : Localizer["Invalid email address"];
+            return Regex.IsMatch(FieldValue.Value_TXT, @"^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$") ? null : Localizer["Invalid email address"];
         }
 
         return null;
@@ -262,8 +262,8 @@
     private List<ChoiceSelectItem> GetChoices()
     {
         return FieldDefinition.Choices
-            .Where(c => c.CascadingValueTXT == "*" || c.CascadingValueTXT == CascadingValue)
-            .Select(c => new ChoiceSelectItem(c.Label, c.ValueTXT))
+            .Where(c => c.Cascading_Value_TXT == "*" || c.Cascading_Value_TXT == CascadingValue)
+            .Select(c => new ChoiceSelectItem(c.Label, c.Value_TXT))
             .OrderBy(c => c.Label)
             .ToList();
     }

@@ -74,7 +74,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _keywordList = new List<string>(SplitKeyword(FieldValue?.ValueTXT));
+        _keywordList = new List<string>(SplitKeyword(FieldValue?.Value_TXT));
         _suggestionThrottler = new QueryThrottler<string>(TimeSpan.FromSeconds(0.5), TriggerAutoCompleteAsync);
 
         FieldPair.OnKeywordPicked += OnKeywordPicked;
@@ -240,7 +240,7 @@
 
     private void UpdateField()
     {
-        FieldValue.ValueTXT = JoinKeywords(_keywordList);
+        FieldValue.Value_TXT = JoinKeywords(_keywordList);
         OnFieldChanged.InvokeAsync(FieldValue);
     }
 

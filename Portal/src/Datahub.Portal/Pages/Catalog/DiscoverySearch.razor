@@ -503,7 +503,7 @@
 			var fieldValues = result.Metadata;
 
 			// name
-			if (string.IsNullOrEmpty(result.NameEnglish))
+			if (string.IsNullOrEmpty(result.Name_English))
 				return false;
 
 			// contact
@@ -597,7 +597,7 @@
 
 	private RenderFragment RenderPowerBiReportFragment(CatalogObjectResult result) =>
 		@<MudStack Row AlignItems=@AlignItems.Center>
-			<InternalPublishedPowerBIReportLinks ReportID=@result.MetadataObjectIdTXT />
+			<InternalPublishedPowerBIReportLinks ReportID=@result.MetadataObjectId_TXT />
 			@RenderGenericDownloadButton(result)
 		</MudStack>;
 
@@ -607,7 +607,7 @@
 		_ => RenderGenericDownloadButton(result)
 	};
 
-	private async Task DownloadDatasetUrl(CatalogObjectResult result) => await RedirectAndDownload(result.IsFrench ? result.UrlFrench : result.UrlEnglish);
+	private async Task DownloadDatasetUrl(CatalogObjectResult result) => await RedirectAndDownload(result.IsFrench ? result.Url_French : result.Url_English);
 
 	private string GetButtonText(CatalogObjectResult result)
 	{
@@ -627,7 +627,7 @@
 
 	private async Task ViewPowerBIReport(CatalogObjectResult result)
 	{
-		if (Guid.TryParse(result.MetadataObjectIdTXT, out var guid))
+		if (Guid.TryParse(result.MetadataObjectId_TXT, out var guid))
 		{
 			var report = await PowerBiDataService.GetReportById(guid);
 			// TODO this url template is also used in DHLink; should only be in raw form in one place
@@ -638,7 +638,7 @@
 
 	private async Task DownloadFile(CatalogObjectResult result)
 	{
-		var uri = await RetrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULTCONTAINERNAME, fileName: result.NameEnglish, projectUploadCode: result.Location);
+		var uri = await RetrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULTCONTAINERNAME, fileName: result.Name_English, projectUploadCode: result.Location);
 		await Task.Run(() => RedirectAndDownload(uri.ToString()));
 	}
 

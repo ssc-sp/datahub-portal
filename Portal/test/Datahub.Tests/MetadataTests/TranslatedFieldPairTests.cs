@@ -103,6 +103,6 @@ public class TranslatedFieldPairsTests
 
     static ObjectFieldValue CreateFieldValue(int definitionId, string value)
     {
-        return new() { FieldDefinitionId = definitionId, ValueTXT = value };
+        return new() { FieldDefinitionId = definitionId, Value_TXT = value };
     }
 }

@@ -173,7 +173,7 @@ else
 
     private string GetLabel(string label) 
     {
-        var subjects = _fieldValues.GetSelectedChoices(label).Select(s => IsFrench ? s.LabelFrenchTXT : s.LabelEnglishTXT).ToList();
+        var subjects = _fieldValues.GetSelectedChoices(label).Select(s => IsFrench ? s.Label_French_TXT : s.Label_English_TXT).ToList();
         return subjects.Any() ? subjects[0] : string.Empty;
     }
 
@@ -191,7 +191,7 @@ else
                     @key=@CatalogResult.ObjectMetadataId
                     ObjectId=@CatalogResult.ObjectMetadataId.ToString() 
                     DefaultMetadataId=@CatalogResult.Location
-                    Name=@CatalogResult.NameEnglish
+                    Name=@CatalogResult.Name_English
                     Location=@CatalogResult.Location
                     SecurityClass=@SecurityClassification.GetSecurityClassification(CatalogResult.ClassificationType)
                     SaveButtonLabel=@Localizer["Save"] 
@@ -289,10 +289,10 @@ else
     {
         return levels.Select(l => new FieldChoice()
         {
-            ValueTXT = $"{l.Id}",
-            CascadingValueTXT = cascades ? $"{l.ParentId}" : null,
-            LabelEnglishTXT = l.EnglishLabel,
-            LabelFrenchTXT = l.FrenchLabel
+            Value_TXT = $"{l.Id}",
+            Cascading_Value_TXT = cascades ? $"{l.ParentId}" : null,
+            Label_English_TXT = l.EnglishLabel,
+            Label_French_TXT = l.FrenchLabel
         }).ToList();
     }
 

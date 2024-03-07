@@ -813,8 +813,8 @@
             var approvalForm = await MetadataBrokerService.GetApprovalForm(_approvalFormId);
             if (approvalForm != null)
             {
-                _approvalFormSectorId = approvalForm.SectorID;
-                _approvalFormBranchId = approvalForm.BranchID;
+                _approvalFormSectorId = approvalForm.Sector_ID;
+                _approvalFormBranchId = approvalForm.Branch_ID;
             }
         }
     }

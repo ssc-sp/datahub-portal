@@ -45,54 +45,54 @@ public class OpenDataApprovalController : Controller
     {
         return new()
         {
-            { "Department", form.DepartmentNAME },
-            { "Sector", form.SectorNAME },
-            { "Branch", form.BranchNAME },
-            { "Division", form.DivisionNAME },
-            { "Section", form.SectionNAME },
-            { "Name", form.NameNAME},
-            { "Phone", form.PhoneTXT },
-            { "Email", form.EmailEMAIL },
-            { "Title", form.DatasetTitleTXT },
-            { "Data", GetCheckBox("Data" == form.TypeOfDataTXT) },
-            { "Info", GetCheckBox("Info" == form.TypeOfDataTXT) },
+            { "Department", form.Department_NAME },
+            { "Sector", form.Sector_NAME },
+            { "Branch", form.Branch_NAME },
+            { "Division", form.Division_NAME },
+            { "Section", form.Section_NAME },
+            { "Name", form.Name_NAME},
+            { "Phone", form.Phone_TXT },
+            { "Email", form.Email_EMAIL },
+            { "Title", form.Dataset_Title_TXT },
+            { "Data", GetCheckBox("Data" == form.Type_Of_Data_TXT) },
+            { "Info", GetCheckBox("Info" == form.Type_Of_Data_TXT) },
 
-            { "Legal1", GetCheckBox(form.CopyrightRestrictionsFLAG) },
-            { "Legal2", GetCheckBox(!form.CopyrightRestrictionsFLAG) },
+            { "Legal1", GetCheckBox(form.Copyright_Restrictions_FLAG) },
+            { "Legal2", GetCheckBox(!form.Copyright_Restrictions_FLAG) },
 
-            { "Auth1", GetCheckBox(form.AuthorityToReleaseFLAG) },
-            { "Auth2", GetCheckBox(!form.AuthorityToReleaseFLAG) },
+            { "Auth1", GetCheckBox(form.Authority_To_Release_FLAG) },
+            { "Auth2", GetCheckBox(!form.Authority_To_Release_FLAG) },
 
-            { "Privacy1", GetCheckBox(form.PrivatePersonalInformationFLAG) },
-            { "Privacy2", GetCheckBox(!form.PrivatePersonalInformationFLAG) },
+            { "Privacy1", GetCheckBox(form.Private_Personal_Information_FLAG) },
+            { "Privacy2", GetCheckBox(!form.Private_Personal_Information_FLAG) },
 
-            { "Access1", GetCheckBox(form.SubjectToExceptionsOrEclusionsFLAG) },
-            { "Access2", GetCheckBox(!form.SubjectToExceptionsOrEclusionsFLAG) },
+            { "Access1", GetCheckBox(form.Subject_To_Exceptions_Or_Eclusions_FLAG) },
+            { "Access2", GetCheckBox(!form.Subject_To_Exceptions_Or_Eclusions_FLAG) },
 
-            { "Security1", GetCheckBox(form.NotClasifiedOrProtectedFLAG) },
-            { "Security2", GetCheckBox(!form.NotClasifiedOrProtectedFLAG) },
+            { "Security1", GetCheckBox(form.Not_Clasified_Or_Protected_FLAG) },
+            { "Security2", GetCheckBox(!form.Not_Clasified_Or_Protected_FLAG) },
 
-            { "Cost1", GetCheckBox(form.CanBeReleasedForFreeFLAG) },
-            { "Cost2", GetCheckBox(!form.CanBeReleasedForFreeFLAG) },
+            { "Cost1", GetCheckBox(form.Can_Be_Released_For_Free_FLAG) },
+            { "Cost2", GetCheckBox(!form.Can_Be_Released_For_Free_FLAG) },
 
-            { "FormatA1", GetCheckBox(form.MachineReadableFLAG) },
-            { "FormatA2", GetCheckBox(!form.MachineReadableFLAG) },
+            { "FormatA1", GetCheckBox(form.Machine_Readable_FLAG) },
+            { "FormatA2", GetCheckBox(!form.Machine_Readable_FLAG) },
 
-            { "FormatB1", GetCheckBox(form.NonPropietaryFormatFLAG) },
-            { "FormatB2", GetCheckBox(!form.NonPropietaryFormatFLAG) },
+            { "FormatB1", GetCheckBox(form.Non_Propietary_Format_FLAG) },
+            { "FormatB2", GetCheckBox(!form.Non_Propietary_Format_FLAG) },
 
-            { "FormatC1", GetCheckBox(form.LocalizedMetadataFLAG) },
-            { "FormatC2", GetCheckBox(!form.LocalizedMetadataFLAG) },
+            { "FormatC1", GetCheckBox(form.Localized_Metadata_FLAG) },
+            { "FormatC2", GetCheckBox(!form.Localized_Metadata_FLAG) },
 
-            { "BlkApprov01", GetCheckBox(form.RequiresBlanketApprovalFLAG) },
-            { "BlkApprov02", GetCheckBox(!form.RequiresBlanketApprovalFLAG) },
+            { "BlkApprov01", GetCheckBox(form.Requires_Blanket_Approval_FLAG) },
+            { "BlkApprov02", GetCheckBox(!form.Requires_Blanket_Approval_FLAG) },
 
-            { "BlkApprov1", GetCheckBox(form.UpdatedOnGoingBasisFLAG) },
-            { "BlkApprov2", GetCheckBox(form.CollectionOfDatasetsFLAG) },
-            { "BlkApprov3", GetCheckBox(form.ApprovalInSituFLAG) },
-            { "BlkApprov4", GetCheckBox(form.ApprovalOtherFLAG) },
+            { "BlkApprov1", GetCheckBox(form.Updated_On_Going_Basis_FLAG) },
+            { "BlkApprov2", GetCheckBox(form.Collection_Of_Datasets_FLAG) },
+            { "BlkApprov3", GetCheckBox(form.Approval_InSitu_FLAG) },
+            { "BlkApprov4", GetCheckBox(form.Approval_Other_FLAG) },
 
-            { "BlkApprovOther", form.ApprovalOtherTXT }
+            { "BlkApprovOther", form.Approval_Other_TXT }
         };
     }
 

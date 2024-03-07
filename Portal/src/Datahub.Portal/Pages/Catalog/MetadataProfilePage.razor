@@ -115,8 +115,8 @@
         using var ctx = ContextFactory.CreateDbContext();        
 
         _fieldDefinitions = await ctx.FieldDefinitions
-            .OrderBy(d => d.SortOrderNUM)
-            .Where(f => !string.IsNullOrEmpty(f.NameEnglishTXT))
+            .OrderBy(d => d.Sort_Order_NUM)
+            .Where(f => !string.IsNullOrEmpty(f.Name_English_TXT))
             .ToListAsync();
 
         // load or create new profile
@@ -196,8 +196,8 @@
         {
             ListId = GetListId(),
             SectionId = section.SectionId,
-            English = section.NameEnglishTXT,
-            French = section.NameFrenchTXT,
+            English = section.Name_English_TXT,
+            French = section.Name_French_TXT,
             Fields = fields
         };
     }
@@ -242,7 +242,7 @@
                         { 
                             SectionId = section.SectionId, 
                             FieldDefinitionId = fieldId, 
-                            RequiredFLAG = true 
+                            Required_FLAG = true 
                         });    
                     }
                 }
@@ -250,8 +250,8 @@
                 {
                     var section = _profile.Sections.FirstOrDefault(ps => ps.SectionId == s.SectionId);
 
-                    section.NameEnglishTXT = s.English;
-                    section.NameFrenchTXT = s.French;
+                    section.Name_English_TXT = s.English;
+                    section.Name_French_TXT = s.French;
                     ctx.Sections.Update(section);
                     await ctx.SaveChangesAsync();
 
@@ -262,7 +262,7 @@
                     HashSet<int> newFields = new(s.Fields.Except(oldFields));
                     foreach (var fieldId in newFields)
                     {
-                        ctx.SectionFields.Add(new SectionField() { SectionId = section.SectionId, FieldDefinitionId = fieldId, RequiredFLAG = true });    
+                        ctx.SectionFields.Add(new SectionField() { SectionId = section.SectionId, FieldDefinitionId = fieldId, Required_FLAG = true });    
                     }
 
                     HashSet<int> removedFields = new(oldFields.Except(s.Fields));
@@ -296,8 +296,8 @@
         return new MetadataSection()
         {
             ProfileId = profileId,
-            NameEnglishTXT = option.English,
-            NameFrenchTXT = option.French
+            Name_English_TXT = option.English,
+            Name_French_TXT = option.French
         };
     }
 }

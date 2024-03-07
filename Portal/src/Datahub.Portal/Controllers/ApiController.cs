@@ -279,10 +279,10 @@ public class ApiController : Controller
     {
         Datahub.Metadata.Model.ApprovalForm approvalForm = new()
         {
-            NameNAME = name,
-            EmailEMAIL = email,
-            DatasetTitleTXT = title,
-            TypeOfDataTXT = "Data"
+            Name_NAME = name,
+            Email_EMAIL = email,
+            Dataset_Title_TXT = title,
+            Type_Of_Data_TXT = "Data"
         };
         return await _metadataBrokerService.SaveApprovalForm(approvalForm);
     }
@@ -317,7 +317,7 @@ public class ApiController : Controller
             var definition = fieldDefinitions.Get(field.Name);
             if (definition is not null && definition.HasChoices)
             {
-                var choices = definition.Choices.Select(c => new FieldChoice(c.ValueTXT, c.LabelEnglishTXT, c.LabelFrenchTXT)).ToList();
+                var choices = definition.Choices.Select(c => new FieldChoice(c.Value_TXT, c.Label_English_TXT, c.Label_French_TXT)).ToList();
                 yield return new FieldChoices(field.Name, choices);
             }
         }

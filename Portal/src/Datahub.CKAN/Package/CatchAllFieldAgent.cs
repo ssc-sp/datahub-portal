@@ -16,7 +16,7 @@ class CatchAllFieldAgent : FieldAgent
         _multiselect = multiselect;
     }
 
-    public override bool Matches(FieldDefinition definition) => _multiselect == definition.MultiSelectFLAG;
+    public override bool Matches(FieldDefinition definition) => _multiselect == definition.MultiSelect_FLAG;
 
     public override (bool append, FieldAgent agent) Instantiate(string fieldName, string fieldValue)
     {

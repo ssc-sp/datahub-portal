@@ -54,7 +54,7 @@ public class CatalogImportService
                 // create ObjectMetadata
                 ObjectMetadata objMetadata = new()
                 {
-                    ObjectIdTXT = entry.id,
+                    ObjectId_TXT = entry.id,
                     MetadataVersionId = 2
                 };
 
@@ -90,17 +90,17 @@ public class CatalogImportService
                 {
                     ObjectMetadataId = objMetadata.ObjectMetadataId,
                     DataType = MetadataObjectType.DatasetUrl,
-                    NameTXT = entry.nameEn,
-                    NameFrenchTXT = entry.nameFr,
-                    UrlEnglishTXT = entry.urlEn,
-                    UrlFrenchTXT = entry.urlFr,
-                    SecurityClassTXT = entry.classification ?? "Unclassified",
-                    ClassificationType = GetClassificationType(entry.classification),
-                    SectorNUM = sector?.Id ?? 0,
-                    BranchNUM = 0, // no branch for now
-                    ContactTXT = graphUser?.Mail ?? entry.contact,
-                    SearchEnglishTXT = GetCatalogText(GetSubjects(entry, true), GetPrograms(entry), sector?.NameEnglish ?? "", string.Empty, entry.nameEn, entry.keywordsEn),
-                    SearchFrenchTXT = GetCatalogText(GetSubjects(entry, false), GetPrograms(entry), sector?.NameFrench ?? "", string.Empty, entry.nameFr, entry.keywordsFr),
+                    Name_TXT = entry.nameEn,
+                    Name_French_TXT = entry.nameFr,
+                    Url_English_TXT = entry.urlEn,
+                    Url_French_TXT = entry.urlFr,
+                    SecurityClass_TXT = entry.classification ?? "Unclassified",
+                    Classification_Type = GetClassificationType(entry.classification),
+                    Sector_NUM = sector?.Id ?? 0,
+                    Branch_NUM = 0, // no branch for now
+                    Contact_TXT = graphUser?.Mail ?? entry.contact,
+                    Search_English_TXT = GetCatalogText(GetSubjects(entry, true), GetPrograms(entry), sector?.NameEnglish ?? "", string.Empty, entry.nameEn, entry.keywordsEn),
+                    Search_French_TXT = GetCatalogText(GetSubjects(entry, false), GetPrograms(entry), sector?.NameFrench ?? "", string.Empty, entry.nameFr, entry.keywordsFr),
                 };
 
                 metadataCtx.CatalogObjects.Add(catalogObj);
@@ -134,7 +134,7 @@ public class CatalogImportService
 
     static bool ObjectMetadataExists(MetadataDbContext ctx, string id)
     {
-        return ctx.ObjectMetadataSet.Any(e => e.ObjectIdTXT == id);
+        return ctx.ObjectMetadataSet.Any(e => e.ObjectId_TXT == id);
     }
 
     static async Task<CatalogEntrySector> GetSector(DatahubProjectDBContext ctx, string department)
@@ -167,9 +167,9 @@ public class CatalogImportService
         List<string> values = new();
         foreach (var subject in subjects.Select(s => s.nameEn))
         {
-            var found = choices.FirstOrDefault(c => c.LabelEnglishTXT.Equals(subject, StringComparison.InvariantCultureIgnoreCase));
+            var found = choices.FirstOrDefault(c => c.Label_English_TXT.Equals(subject, StringComparison.InvariantCultureIgnoreCase));
             if (found != null)
-                values.Add(found.ValueTXT);
+                values.Add(found.Value_TXT);
         }
 
         return string.Join("|", values);

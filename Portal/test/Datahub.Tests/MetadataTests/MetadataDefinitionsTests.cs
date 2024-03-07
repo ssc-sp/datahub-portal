@@ -32,10 +32,10 @@ public class MetadataDefinitionsTests
     {
         FieldDefinitions definitions = new(ignoreDuplicates: true);
 
-        FieldDefinition field1 = new() { FieldNameTXT = "field_one" };
+        FieldDefinition field1 = new() { Field_Name_TXT = "field_one" };
         definitions.Add(field1);
 
-        FieldDefinition field2 = new() { FieldNameTXT = "field_one" };
+        FieldDefinition field2 = new() { Field_Name_TXT = "field_one" };
         definitions.Add(field2);
     }
 
@@ -44,10 +44,10 @@ public class MetadataDefinitionsTests
     {
         FieldDefinitions definitions = new(ignoreDuplicates: false);
 
-        FieldDefinition field1 = new() { FieldNameTXT = "field_one" };
+        FieldDefinition field1 = new() { Field_Name_TXT = "field_one" };
         definitions.Add(field1);
 
-        FieldDefinition field2 = new() { FieldNameTXT = "field_one" };
+        FieldDefinition field2 = new() { Field_Name_TXT = "field_one" };
         Assert.Throws<ArgumentException>(() => definitions.Add(field2));
     }
 
@@ -56,7 +56,7 @@ public class MetadataDefinitionsTests
     {
         FieldDefinitions definitions = new();
         var fieldId = "known_id";
-        FieldDefinition field = new() { FieldNameTXT = fieldId };
+        FieldDefinition field = new() { Field_Name_TXT = fieldId };
         definitions.Add(field);
 
         var expected = field;
@@ -70,7 +70,7 @@ public class MetadataDefinitionsTests
     {
         FieldDefinitions definitions = new();
         var fieldId = "known_id";
-        FieldDefinition field = new() { FieldNameTXT = fieldId };
+        FieldDefinition field = new() { Field_Name_TXT = fieldId };
         definitions.Add(field);
 
         var actual = definitions.Get("unknow_id");
@@ -82,9 +82,9 @@ public class MetadataDefinitionsTests
     public void GetFieldWithWithMultipleFieldsShouldReturnExpectedCountAndOrder()
     {
         FieldDefinitions definitions = new();
-        FieldDefinition field1 = new() { FieldNameTXT = "F1", SortOrderNUM = 2 };
-        FieldDefinition field2 = new() { FieldNameTXT = "F2", SortOrderNUM = 3 };
-        FieldDefinition field3 = new() { FieldNameTXT = "F3", SortOrderNUM = 1 };
+        FieldDefinition field1 = new() { Field_Name_TXT = "F1", Sort_Order_NUM = 2 };
+        FieldDefinition field2 = new() { Field_Name_TXT = "F2", Sort_Order_NUM = 3 };
+        FieldDefinition field3 = new() { Field_Name_TXT = "F3", Sort_Order_NUM = 1 };
         definitions.Add(field1);
         definitions.Add(field2);
         definitions.Add(field3);
@@ -104,9 +104,9 @@ public class MetadataDefinitionsTests
         var expected = 1;
 
         FieldDefinitions definitions = new();
-        FieldDefinition field1 = new() { MetadataVersionId = expected, FieldNameTXT = "F1", SortOrderNUM = 2 };
-        FieldDefinition field2 = new() { MetadataVersionId = expected, FieldNameTXT = "F2", SortOrderNUM = 3 };
-        FieldDefinition field3 = new() { MetadataVersionId = expected, FieldNameTXT = "F3", SortOrderNUM = 1 };
+        FieldDefinition field1 = new() { MetadataVersionId = expected, Field_Name_TXT = "F1", Sort_Order_NUM = 2 };
+        FieldDefinition field2 = new() { MetadataVersionId = expected, Field_Name_TXT = "F2", Sort_Order_NUM = 3 };
+        FieldDefinition field3 = new() { MetadataVersionId = expected, Field_Name_TXT = "F3", Sort_Order_NUM = 1 };
         definitions.Add(field1);
         definitions.Add(field2);
         definitions.Add(field3);
@@ -126,9 +126,9 @@ public class MetadataDefinitionsTests
 
             FieldDefinitions definitions = new();
 
-            FieldDefinition field1 = new() { MetadataVersionId = versionId, FieldNameTXT = "F1", SortOrderNUM = 2 };
-            FieldDefinition field2 = new() { MetadataVersionId = versionId, FieldNameTXT = "F2", SortOrderNUM = 3 };
-            FieldDefinition field3 = new() { MetadataVersionId = otherVersionId, FieldNameTXT = "F3", SortOrderNUM = 1 };
+            FieldDefinition field1 = new() { MetadataVersionId = versionId, Field_Name_TXT = "F1", Sort_Order_NUM = 2 };
+            FieldDefinition field2 = new() { MetadataVersionId = versionId, Field_Name_TXT = "F2", Sort_Order_NUM = 3 };
+            FieldDefinition field3 = new() { MetadataVersionId = otherVersionId, Field_Name_TXT = "F3", Sort_Order_NUM = 1 };
 
             definitions.Add(field1);
             definitions.Add(field2);

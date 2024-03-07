@@ -16,7 +16,7 @@ public class FieldValueContainerTests
         var definitions = GetDefinitions(("name", true), ("ignored", false), ("expected", true));
         var container = GetFieldValueContainer(definitions, ("name", "any name"), ("expected", "any value"));
 
-        var actual = container.ValidateRequired(f => f.RequiredFLAG);
+        var actual = container.ValidateRequired(f => f.Required_FLAG);
 
         Assert.True(actual);
     }
@@ -27,7 +27,7 @@ public class FieldValueContainerTests
         var definitions = GetDefinitions(("name", true), ("not_ignored", true), ("expected", true));
         var container = GetFieldValueContainer(definitions, ("name", "any name"), ("expected", "any value"));
 
-        var actual = container.ValidateRequired(f => f.RequiredFLAG);
+        var actual = container.ValidateRequired(f => f.Required_FLAG);
 
         Assert.False(actual);
     }
@@ -43,12 +43,12 @@ public class FieldValueContainerTests
             ("topic_category", "environment"));
 
         var expected = "Sample file";
-        var actual = container["title_translated_en"].ValueTXT;
+        var actual = container["title_translated_en"].Value_TXT;
         Assert.Equal(actual, expected);
 
         expected = "Expected name";
         container.SetValue("name", expected);
-        actual = container["name"].ValueTXT;
+        actual = container["name"].Value_TXT;
         Assert.Equal(actual, expected);
     }
 
@@ -66,11 +66,11 @@ public class FieldValueContainerTests
         Assert.True(choices.Length == 2);
 
         var expected = "agriculture";
-        var actual = choices[0].ValueTXT;
+        var actual = choices[0].Value_TXT;
         Assert.Equal(actual, expected);
 
         expected = "law";
-        actual = choices[1].ValueTXT;
+        actual = choices[1].Value_TXT;
         Assert.Equal(actual, expected);
     }
 
@@ -82,10 +82,10 @@ public class FieldValueContainerTests
         definitions.Add(fields.Select(f => new FieldDefinition()
         {
             FieldDefinitionId = id++,
-            FieldNameTXT = f.name,
-            RequiredFLAG = f.required,
-            EnglishDESC = f.name,
-            FrenchDESC = f.name
+            Field_Name_TXT = f.name,
+            Required_FLAG = f.required,
+            English_DESC = f.name,
+            French_DESC = f.name
         }));
         return definitions;
     }
@@ -96,7 +96,7 @@ public class FieldValueContainerTests
         {
             FieldDefinition = definitions.Get(fv.name),
             FieldDefinitionId = definitions.Get(fv.name).FieldDefinitionId,
-            ValueTXT = fv.value
+            Value_TXT = fv.value
         }));
     }
 }

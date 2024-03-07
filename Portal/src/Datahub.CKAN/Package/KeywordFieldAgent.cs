@@ -13,7 +13,7 @@ class KeywordFieldAgent : FieldAgent
 
     public override bool Matches(FieldDefinition definition)
     {
-        return definition.FieldNameTXT.StartsWith(KeywordPrefix, StringComparison.InvariantCulture);
+        return definition.Field_Name_TXT.StartsWith(KeywordPrefix, StringComparison.InvariantCulture);
     }
 
     public override (bool append, FieldAgent agent) Instantiate(string fieldName, string fieldValue)

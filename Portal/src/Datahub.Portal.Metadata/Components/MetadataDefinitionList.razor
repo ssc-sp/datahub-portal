@@ -58,7 +58,7 @@
 
         _fieldDefinitions = await ctx.FieldDefinitions
             .Include(d => d.Choices)
-            .OrderBy(d => d.SortOrderNUM)
+            .OrderBy(d => d.Sort_Order_NUM)
             .ToListAsync();
 
         ApplyFilter();
@@ -80,10 +80,10 @@
         }
     }
 
-    private string GetOrder(FieldDefinition result) => result.SortOrderNUM.ToString();
-    private string GetName(FieldDefinition result) => result.FieldNameTXT;
-    private string GetNameEnglish(FieldDefinition result) => result.NameEnglishTXT;
-    private string GetNameFrench(FieldDefinition result) => result.NameFrenchTXT;
+    private string GetOrder(FieldDefinition result) => result.Sort_Order_NUM.ToString();
+    private string GetName(FieldDefinition result) => result.Field_Name_TXT;
+    private string GetNameEnglish(FieldDefinition result) => result.Name_English_TXT;
+    private string GetNameFrench(FieldDefinition result) => result.Name_French_TXT;
 
     private RenderFragment GetHasChoices(FieldDefinition result) 
         => result.HasChoices ? @<span>Yes</span> : @<span>No</span>;
@@ -131,7 +131,7 @@
         else
         {
             _filteredDefinitions = _fieldDefinitions
-                .Where(d => d.FieldNameTXT.Contains(_lastSearch) || d.NameEnglishTXT.Contains(_lastSearch) || d.NameFrenchTXT.Contains(_lastSearch))
+                .Where(d => d.Field_Name_TXT.Contains(_lastSearch) || d.Name_English_TXT.Contains(_lastSearch) || d.Name_French_TXT.Contains(_lastSearch))
                 .ToList();
         }        
     }

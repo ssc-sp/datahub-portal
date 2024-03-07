@@ -60,7 +60,7 @@ public class CatalogDigestTests
         return new()
         {
             FieldDefinitionId = id,
-            FieldNameTXT = name,
+            Field_Name_TXT = name,
             Choices = choices.ToList()
         };
     }
@@ -68,8 +68,8 @@ public class CatalogDigestTests
     static FieldChoice MakeChoice(int defId, string value, string enLabel = null, string frLabel = null) => new()
     {
         FieldDefinitionId = defId,
-        ValueTXT = value,
-        LabelEnglishTXT = enLabel ?? value,
-        LabelFrenchTXT = frLabel ?? value
+        Value_TXT = value,
+        Label_English_TXT = enLabel ?? value,
+        Label_French_TXT = frLabel ?? value
     };
 }

@@ -78,7 +78,7 @@ if (metadataCtx is not null && projectCtx is not null && InputFileExists(args))
         // create ObjectMetadata
         ObjectMetadata objMetadata = new()
         {
-            ObjectIdTXT = entry.id,
+            ObjectId_TXT = entry.id,
             MetadataVersionId = 2
         };
 
@@ -107,16 +107,16 @@ if (metadataCtx is not null && projectCtx is not null && InputFileExists(args))
         {
             ObjectMetadataId = objMetadata.ObjectMetadataId,
             DataType = MetadataObjectType.DatasetUrl,
-            NameTXT = entry.nameEn,
-            NameFrenchTXT = entry.nameFr,
-            LocationTXT = entry.urlEn,
-            SecurityClassTXT = entry.securityClass ?? "Unclassified",
-            SectorNUM = sector?.Id ?? 0,
-            BranchNUM = 0, // no branch for now
-            ContactTXT = graphUser?.Mail ?? entry.contact,
-            SearchEnglishTXT = GetCatalogText(GetSubjects(entry, true), GetPrograms(entry),
+            Name_TXT = entry.nameEn,
+            Name_French_TXT = entry.nameFr,
+            Location_TXT = entry.urlEn,
+            SecurityClass_TXT = entry.securityClass ?? "Unclassified",
+            Sector_NUM = sector?.Id ?? 0,
+            Branch_NUM = 0, // no branch for now
+            Contact_TXT = graphUser?.Mail ?? entry.contact,
+            Search_English_TXT = GetCatalogText(GetSubjects(entry, true), GetPrograms(entry),
                 sector?.NameEnglish ?? "", string.Empty, entry.nameEn, entry.keywordsEn),
-            SearchFrenchTXT = GetCatalogText(GetSubjects(entry, false), GetPrograms(entry),
+            Search_French_TXT = GetCatalogText(GetSubjects(entry, false), GetPrograms(entry),
                 sector?.NameFrench ?? "", string.Empty, entry.nameFr, entry.keywordsFr),
         };
 
@@ -139,7 +139,7 @@ static bool InputFileExists(string[] args) => args.Length > 0 && File.Exists(arg
 
 static bool ObjectMetadataExists(MetadataDbContext ctx, string id)
 {
-    return ctx.ObjectMetadataSet.Any(e => e.ObjectIdTXT == id);
+    return ctx.ObjectMetadataSet.Any(e => e.ObjectId_TXT == id);
 }
 
 static Microsoft.Graph.GraphServiceClient PrepareAuthenticatedClient(string tenantId, string clientId, string clientSecret)
@@ -237,9 +237,9 @@ string GetSubjectValues(FieldDefinitions definitions, List<CatalogIngestTool.Sub
     List<string> values = new();
     foreach (var subject in subjects.Select(s => s.nameEn))
     {
-        var found = choices.FirstOrDefault(c => c.LabelEnglishTXT.Equals(subject, StringComparison.InvariantCultureIgnoreCase));
+        var found = choices.FirstOrDefault(c => c.Label_English_TXT.Equals(subject, StringComparison.InvariantCultureIgnoreCase));
         if (found != null)
-            values.Add(found.ValueTXT);
+            values.Add(found.Value_TXT);
     }
 
     return String.Join("|", values);

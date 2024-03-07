@@ -221,10 +221,10 @@
         var values = await MetadataBrokerService.GetObjectMetadataValues(objectId, DefaultMetadataId);
         foreach (var fv in values)
         {
-            var fieldName = fv.FieldDefinition.FieldNameTXT;
+            var fieldName = fv.FieldDefinition.Field_Name_TXT;
             if (string.IsNullOrEmpty(_fieldValues.GetValue(fieldName)))
             {
-                _fieldValues.SetValue(fieldName, fv.ValueTXT);
+                _fieldValues.SetValue(fieldName, fv.Value_TXT);
             }
         }
         await InvokeAsync(StateHasChanged);
@@ -357,7 +357,7 @@
     {
         foreach (var definition in _definitions.Fields)
         {
-            switch (definition.FieldNameTXT)
+            switch (definition.Field_Name_TXT)
             {
                 case "sector":
                     definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSectors(), false).ToList();
@@ -381,20 +381,20 @@
         {
             yield return new FieldChoice()
             {
-                ValueTXT = $"0",
-                CascadingValueTXT = "*",
-                LabelEnglishTXT = "-",
-                LabelFrenchTXT = "-"
+                Value_TXT = $"0",
+                Cascading_Value_TXT = "*",
+                Label_English_TXT = "-",
+                Label_French_TXT = "-"
             };
         }        
         foreach (var l in levels)
         {
             yield return new FieldChoice()
             {
-                ValueTXT = $"{l.Id}",
-                CascadingValueTXT = cascades ? $"{l.ParentId}" : null,
-                LabelEnglishTXT = l.EnglishLabel,
-                LabelFrenchTXT = l.FrenchLabel
+                Value_TXT = $"{l.Id}",
+                Cascading_Value_TXT = cascades ? $"{l.ParentId}" : null,
+                Label_English_TXT = l.EnglishLabel,
+                Label_French_TXT = l.FrenchLabel
             };
         }
     }

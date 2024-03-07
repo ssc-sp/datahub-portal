@@ -27,7 +27,7 @@ public class FieldValueContainer : List<ObjectFieldValue>
     public string ObjectId { get; init; }
     public FieldDefinitions Definitions { get; init; }
     public ObjectFieldValue this[string fieldName] => GetFieldValueByName(fieldName);
-    public string GetValue(string fieldName, string defaultValue = "") => this[fieldName]?.ValueTXT ?? defaultValue;
+    public string GetValue(string fieldName, string defaultValue = "") => this[fieldName]?.Value_TXT ?? defaultValue;
 
     public bool IsNew => MetadataId == 0;
 
@@ -43,10 +43,10 @@ public class FieldValueContainer : List<ObjectFieldValue>
         if (definition?.Choices is null)
             yield break;
 
-        var choiceValues = (fieldValue?.ValueTXT ?? "").Split(ChoiceSeparator, StringSplitOptions.RemoveEmptyEntries);
+        var choiceValues = (fieldValue?.Value_TXT ?? "").Split(ChoiceSeparator, StringSplitOptions.RemoveEmptyEntries);
         foreach (var choiceValue in choiceValues)
         {
-            var choice = definition.Choices.FirstOrDefault(c => choiceValue == c.ValueTXT);
+            var choice = definition.Choices.FirstOrDefault(c => choiceValue == c.Value_TXT);
             if (choice is not null)
                 yield return choice;
         }
@@ -56,7 +56,7 @@ public class FieldValueContainer : List<ObjectFieldValue>
     {
         var map = this.ToDictionary(fv => fv.FieldDefinitionId);
 
-        var findValidValue = (int id) => map.TryGetValue(id, out ObjectFieldValue value) && !string.IsNullOrEmpty(value.ValueTXT);
+        var findValidValue = (int id) => map.TryGetValue(id, out ObjectFieldValue value) && !string.IsNullOrEmpty(value.Value_TXT);
         var passRequired = (FieldDefinition f) => !isRequired.Invoke(f) || findValidValue(f.FieldDefinitionId);
 
         return Definitions.Fields.All(passRequired);
@@ -74,11 +74,11 @@ public class FieldValueContainer : List<ObjectFieldValue>
         var fieldValueObj = this.FirstOrDefault(v => v.FieldDefinitionId == definition.FieldDefinitionId);
         if (fieldValueObj is not null)
         {
-            fieldValueObj.ValueTXT = fieldValue;
+            fieldValueObj.Value_TXT = fieldValue;
         }
         else
         {
-            fieldValueObj = new() { FieldDefinitionId = definition.FieldDefinitionId, ValueTXT = fieldValue };
+            fieldValueObj = new() { FieldDefinitionId = definition.FieldDefinitionId, Value_TXT = fieldValue };
             Add(fieldValueObj);
         }
 
@@ -93,5 +93,5 @@ public class FieldValueContainer : List<ObjectFieldValue>
         return definitionId.HasValue ? this.FirstOrDefault(v => v.FieldDefinitionId == definitionId.Value) : null;
     }
 
-    public IEnumerable<string> GetAllFieldNames() => Definitions?.Fields.Select(f => f.FieldNameTXT);
+    public IEnumerable<string> GetAllFieldNames() => Definitions?.Fields.Select(f => f.Field_Name_TXT);
 }
