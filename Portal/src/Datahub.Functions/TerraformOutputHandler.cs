@@ -175,11 +175,13 @@ public class TerraformOutputHandler
 
         var appServiceId = outputVariables[TerraformVariables.OutputAzureAppServiceId];
         var appServiceHostName = outputVariables[TerraformVariables.OutputAzureAppServiceHostName];
-
+        var appServiceRg = outputVariables[TerraformVariables.OutputAzureResourceGroupName];
+        
         var jsonContent = new JsonObject
         {
             ["app_service_id"] = appServiceId.Value,
             ["app_service_hostname"] = appServiceHostName.Value,
+            ["app_service_rg"] = appServiceRg.Value
         };
 
         projectResource.CreatedAt = DateTime.UtcNow;

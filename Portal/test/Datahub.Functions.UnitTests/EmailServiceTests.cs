@@ -1,6 +1,7 @@
 ﻿using Moq;
+using System.Collections.Generic;
 using Datahub.Functions.Services;
-using Microsoft.Extensions.Logging;
+namespace Datahub.Functions.UnitTests;
 
 [TestFixture]
 public class EmailServiceTests

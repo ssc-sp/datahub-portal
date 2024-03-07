@@ -40,21 +40,11 @@ namespace Datahub.Functions
 
             if (bug != null)
             {
-                // We set up the title and description to be submitted in the issue.
-
-
-                // Retrieve ADO information
-                string devOpsUrl = _config.AdoConfig.URL;
-
-                // Preemptively build the post url
-                var url = devOpsUrl.Replace("{organization}", _config.AdoConfig.OrgName).Replace("{project}", _config.AdoConfig.ProjectName)
-                    .Replace("{workItemTypeName}", "Issue");
-
                 // Build the ADO issue
                 var issue = await CreateIssue(bug);
 
                 // Post the issue to ADO and parse the response
-                var workItem = await PostIssue(issue, url);
+                var workItem = await PostIssue(issue);
 
                 // Build the email
                 var email = BuildEmail(bug, workItem);
@@ -135,7 +125,7 @@ namespace Datahub.Functions
             return body;
         }
 
-        public async Task<WorkItem> PostIssue(JsonPatchDocument body, string postUrl)
+        public async Task<WorkItem> PostIssue(JsonPatchDocument body)
         {
             var clientProvider = new AdoClientProvider(_config);
             var client = await clientProvider.GetWorkItemClient();

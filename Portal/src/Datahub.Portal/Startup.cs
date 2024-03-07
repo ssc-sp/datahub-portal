@@ -63,6 +63,7 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
+using Datahub.Application.Services.WebApp;
 using Datahub.Infrastructure.Services.Api;
 using Datahub.Infrastructure.Services.Metadata;
 using Datahub.Infrastructure.Services.Notification;
@@ -404,6 +405,9 @@ public class Startup
 
             services.AddScoped<UpdateProjectMonthlyCostService>();
             services.AddScoped<IProjectCreationService, ProjectCreationService>();
+
+            services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
+            
             services.AddDatahubApplicationServices(Configuration);
             services.AddDatahubInfrastructureServices(Configuration);
 
