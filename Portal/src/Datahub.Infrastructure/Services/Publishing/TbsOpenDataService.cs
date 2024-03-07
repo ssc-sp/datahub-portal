@@ -183,12 +183,12 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
     public async Task<string?> GetApiKeyForWorkspace(string workspaceAcronym)
     {
-        return await _keyvaultUserService.GetSecretAsync(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY);
+        return await _keyvaultUserService.GetSecretAsync(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY_SECRET_NAME);
     }
 
     public async Task SetApiKeyForWorkspace(string workspaceAcronym, string apiKey)
     {
-        await _keyvaultUserService.StoreSecret(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY, apiKey);
+        await _keyvaultUserService.StoreSecret(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY_SECRET_NAME, apiKey);
     }
 
     public async Task<bool> IsWorkspaceReadyForSubmission(string workspaceAcronym)
