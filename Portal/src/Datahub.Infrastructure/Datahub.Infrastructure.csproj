@@ -16,6 +16,7 @@
       <PackageReference Include="Azure.Storage.Queues" Version="12.16.0" />
       <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
 	  <PackageReference Include="AWSSDK.S3" Version="3.7.203.10" />
+	  <PackageReference Include="Yarp.Telemetry.Consumption" Version="2.1.0" />
       
 	  <!--<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.*" />-->
 	  

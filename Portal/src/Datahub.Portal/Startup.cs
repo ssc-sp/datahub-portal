@@ -74,6 +74,7 @@ using Yarp.ReverseProxy.Configuration;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
+using Datahub.Infrastructure.Services.ReverseProxy;
 using Datahub.Infrastructure.Services.WebApp;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
@@ -235,6 +236,7 @@ public class Startup
 
         if (ReverseProxyEnabled())
         {
+            services.AddTelemetryConsumer<YarpTelemetryConsumer>();
             services.AddReverseProxy()
                     .AddTransforms(builderContext =>
                     {
@@ -247,7 +249,7 @@ public class Startup
                             transformContext.ProxyRequest.Headers.Add("role", transformContext.HttpContext.GetWorkspaceRole());
                             await Task.CompletedTask;
                         });
-                    });
+                    });            
         }
     }
 
