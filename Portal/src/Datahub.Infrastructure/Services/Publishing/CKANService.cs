@@ -18,6 +18,8 @@ public class CKANService : ICKANService
     private const string PACKAGE_PATCH_ACTION = "package_patch";
     private const string RESOURCE_CREATE_ACTION = "resource_create";
 
+    private const string HTTP_CLIENT_NAME = "CkanService";
+
     private static HashSet<string> KnownFileTypes { get; }
 
     static CKANService()
@@ -79,13 +81,13 @@ public class CKANService : ICKANService
     static string TransformResourceType(string resourceType) => resourceType?.ToLowerInvariant();
     #endregion
 
-    readonly HttpClient _httpClient;
+    readonly IHttpClientFactory _httpClientFactory;
     readonly CkanConfiguration _ckanConfiguration;
     readonly string _apiKey;
 
-    public CKANService(HttpClient httpClient, CkanConfiguration ckanConfiguration, string apiKey = null)
+    public CKANService(IHttpClientFactory httpClientFactory, CkanConfiguration ckanConfiguration, string apiKey = null)
     {
-        _httpClient = httpClient;
+        _httpClientFactory = httpClientFactory;
         _ckanConfiguration = ckanConfiguration;
         _apiKey = string.IsNullOrEmpty(apiKey) ? _ckanConfiguration.ApiKey : apiKey;
     }
@@ -213,6 +215,8 @@ public class CKANService : ICKANService
     #nullable enable
     private async Task<CKANApiResult> DoRequestAsync(HttpMethod method, string action, HttpContent? content = null, Dictionary<string,object>? parameters = null)
     {
+        var httpClient = _httpClientFactory.CreateClient(HTTP_CLIENT_NAME);
+
         try
         {
             // this is to avoid developing on the VPN (test mode should be off in prod)
@@ -241,7 +245,7 @@ public class CKANService : ICKANService
             };
             httpRequest.Headers.Add("X-CKAN-API-Key", apiKey);
 
-            using var response = await _httpClient.SendAsync(httpRequest);
+            using var response = await httpClient.SendAsync(httpRequest);
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
             var ckanResult = JsonSerializer.Deserialize<CKANResult>(jsonResponse, SerializationOptions);
