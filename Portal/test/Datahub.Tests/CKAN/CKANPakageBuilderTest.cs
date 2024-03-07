@@ -1,4 +1,4 @@
-﻿using Datahub.CKAN.Package;
+﻿using Datahub.Infrastructure.Services.Publishing.Package;
 using Datahub.Metadata.DTO;
 using Newtonsoft.Json;
 using System.Collections.Generic;
