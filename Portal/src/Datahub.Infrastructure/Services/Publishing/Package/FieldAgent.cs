@@ -1,7 +1,7 @@
 ﻿using Datahub.Metadata.Model;
 using System.Collections.Generic;
 
-namespace Datahub.CKAN.Package;
+namespace Datahub.Infrastructure.Services.Publishing.Package;
 
 abstract class FieldAgent
 {

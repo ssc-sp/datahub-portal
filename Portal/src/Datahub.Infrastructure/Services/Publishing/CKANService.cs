@@ -1,7 +1,7 @@
 ﻿using Datahub.Application.Configuration;
 using Datahub.Application.Services.Publishing;
-using Datahub.CKAN.Package;
 using Datahub.Core.Model.Datahub;
+using Datahub.Infrastructure.Services.Publishing.Package;
 using Datahub.Metadata.DTO;
 using System.Net.Mime;
 using System.Text;
