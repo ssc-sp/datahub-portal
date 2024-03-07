@@ -58,8 +58,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Tests", "Portal\tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.CatalogSearch", "Portal\src\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj", "{213E0A3B-D933-4E81-AFD5-AA2D0B1CC3F8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.CKAN", "Portal\src\Datahub.CKAN\Datahub.CKAN.csproj", "{2B7CB3D4-519A-4815-89E0-C601F6A2244C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Core", "Portal\src\Datahub.Core\Datahub.Core.csproj", "{6C2D8F35-4EFA-4474-9973-FE6B2881E59A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDBUsersConsole", "Portal\utils\SyncDBUsersConsole\SyncDBUsersConsole.csproj", "{053A3E9E-A3A4-4207-88F3-983E9EA328B2}"
@@ -103,10 +101,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A8C7
 	ProjectSection(SolutionItems) = preProject
 		bleach.ps1 = bleach.ps1
 		scripts\ConfigureAZCert.ps1 = scripts\ConfigureAZCert.ps1
+		scripts\find-translations.ps1 = scripts\find-translations.ps1
 		scripts\fix_CS8981.ps1 = scripts\fix_CS8981.ps1
 		scripts\initLocalDev.ps1 = scripts\initLocalDev.ps1
 		scripts\merge_fork.ps1 = scripts\merge_fork.ps1
-		scripts\find-translations.ps1 = scripts\find-translations.ps1
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Specs", "Portal\test\Datahub.Specs\Datahub.Specs.csproj", "{D07C3009-6F0F-486D-91E1-0084B4B4FF46}"
@@ -143,9 +141,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Stories", "Portal\s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure.Offline", "Portal\src\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj", "{E84F619D-E105-4E1A-BD92-DF22DDAE966F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.SpecflowTests", "Portal\test\Datahub.SpecflowTests\Datahub.SpecflowTests.csproj", "{D84C8789-E77F-438A-A0B6-7DB1695B9C17}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.SpecflowTests", "Portal\test\Datahub.SpecflowTests\Datahub.SpecflowTests.csproj", "{D84C8789-E77F-438A-A0B6-7DB1695B9C17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.MissingTranslations", "Portal\utils\Datahub.MissingTranslations\Datahub.MissingTranslations.csproj", "{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.MissingTranslations", "Portal\utils\Datahub.MissingTranslations\Datahub.MissingTranslations.csproj", "{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -209,10 +207,6 @@ Global
 		{213E0A3B-D933-4E81-AFD5-AA2D0B1CC3F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{213E0A3B-D933-4E81-AFD5-AA2D0B1CC3F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{213E0A3B-D933-4E81-AFD5-AA2D0B1CC3F8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2B7CB3D4-519A-4815-89E0-C601F6A2244C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2B7CB3D4-519A-4815-89E0-C601F6A2244C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2B7CB3D4-519A-4815-89E0-C601F6A2244C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2B7CB3D4-519A-4815-89E0-C601F6A2244C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6C2D8F35-4EFA-4474-9973-FE6B2881E59A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6C2D8F35-4EFA-4474-9973-FE6B2881E59A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C2D8F35-4EFA-4474-9973-FE6B2881E59A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -346,7 +340,6 @@ Global
 		{346091EA-1E82-4220-9387-C181BF5E1019} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 		{693C3DC6-CF30-4942-80EA-EEC8ABB87DD3} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 		{213E0A3B-D933-4E81-AFD5-AA2D0B1CC3F8} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
-		{2B7CB3D4-519A-4815-89E0-C601F6A2244C} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{6C2D8F35-4EFA-4474-9973-FE6B2881E59A} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{053A3E9E-A3A4-4207-88F3-983E9EA328B2} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 		{98EFDF2F-5223-4D92-BFE8-43EC52896E00} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
@@ -380,9 +373,9 @@ Global
 		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{57703cec-08b9-40b8-b5e2-064a196b1587}*SharedItemsImports = 5
