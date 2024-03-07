@@ -20,6 +20,12 @@ public class WorkspaceWebAppManagementServiceTests
         await Task.Delay(1000);
     }
     
+    [TearDown]
+    public async Task Teardown()
+    {
+        await _service.Stop(TestWebAppId);
+    }
+    
 
     [Test]
     public async Task Start_ShouldReturnTrue_WhenWebAppStartsSuccessfully()
