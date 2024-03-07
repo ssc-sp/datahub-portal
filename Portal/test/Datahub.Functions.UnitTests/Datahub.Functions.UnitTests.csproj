@@ -28,4 +28,10 @@
       <ProjectReference Include="..\..\src\Datahub.Functions\Datahub.Functions.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Include="appsettings.Test.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
