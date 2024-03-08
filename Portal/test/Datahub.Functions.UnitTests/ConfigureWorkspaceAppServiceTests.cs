@@ -1,14 +1,8 @@
-﻿using Datahub.Application.Configuration;
-using Datahub.Application.Services.Security;
-using Datahub.Core.Data;
-using Datahub.Core.Model.Datahub;
-using Datahub.Infrastructure.Services.Security;
-using Datahub.Shared.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+﻿using Datahub.Shared.Entities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NSubstitute;
+
+using static Datahub.Functions.UnitTests.Testing;
 
 namespace Datahub.Functions.UnitTests;
 
@@ -16,10 +10,6 @@ namespace Datahub.Functions.UnitTests;
 public class ConfigureWorkspaceAppServiceTests
 {
     private readonly ILogger<ConfigureWorkspaceAppService> _logger;
-    private readonly IKeyVaultService _keyVaultService;
-    private readonly AzureConfig _azureConfig;
-    private readonly IConfiguration _configuration;
-    private readonly IDbContextFactory<DatahubProjectDBContext> _dbContext;
     private readonly ConfigureWorkspaceAppService _configureWorkspaceAppService;
 
     private const string ListPipelineUrlTemplate =
@@ -27,50 +17,38 @@ public class ConfigureWorkspaceAppServiceTests
 
     public ConfigureWorkspaceAppServiceTests()
     {
-        IOptions<APITarget> options = Substitute.For<IOptions<APITarget>>();
-        DatahubPortalConfiguration portalConfiguration = new DatahubPortalConfiguration();
-        _configuration = new ConfigurationBuilder().AddJsonFile("appsettings.Test.json").Build();
-        options.Value.Returns(new APITarget());
-        options.Value.KeyVaultName.Returns(_configuration["KeyVaultName"]);
-        portalConfiguration.AzureAd = _configuration.GetSection("AzureAd").Get<AzureAd>();
-        portalConfiguration.PortalRunAsManagedIdentity = "false";
-
         _logger = Substitute.For<ILogger<ConfigureWorkspaceAppService>>();
-        _keyVaultService = new KeyVaultCoreService(options, Substitute.For<ILogger<KeyVaultCoreService>>(),
-            portalConfiguration);
-        _azureConfig = Substitute.For<AzureConfig>();
-        _dbContext = Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
-        _configureWorkspaceAppService = new ConfigureWorkspaceAppService(_logger, _keyVaultService, _azureConfig,
+        _configureWorkspaceAppService = new ConfigureWorkspaceAppService(_logger, _azureConfig,
             _dbContext);
-        _configureWorkspaceAppService._httpClient = Substitute.For<HttpClient>();
+    }
+    
+    [SetUp]
+    public void Setup()
+    {
+        _azureConfig.AdoConfig.ListPipelineUrlTemplate = ListPipelineUrlTemplate;
     }
 
     [Test]
-    public async Task GetPipelineUrlByName_ShouldReturnCorrectUrl_GivenCorrectName()
+    public async Task GetPipelineIdByName_ShouldReturnCorrectId_GivenCorrectName()
     {
-        // Arrange
-        _azureConfig.AdoConfig.ListPipelineUrlTemplate.Returns(ListPipelineUrlTemplate);
-
         // Act
-        var url = await _configureWorkspaceAppService.GetPipelineUrlByName("fsdh.wiki");
-        var correct_url =
-            "https://dev.azure.com/DataSolutionsDonnees/FSDH%20SSC/_apis/pipelines/10/runs?api-version=7.1-preview.1";
+        var id = await _configureWorkspaceAppService.GetPipelineIdByName("fsdh.wiki");
+        var correct_id = 10;
 
         // Assert
-        Assert.That(url, Is.EqualTo(correct_url));
+        Assert.That(id, Is.EqualTo(correct_id));
     }
 
     [Test]
-    public async Task GetPipelineUrlByName_ShouldThrowError_GivenIncorrectUrl()
+    public async Task GetPipelineIdByName_ShouldThrowError_GivenIncorrectUrl()
     {
         // Arrange
-        _azureConfig.AdoConfig.ListPipelineUrlTemplate.Returns(
-            ListPipelineUrlTemplate);
+        _azureConfig.AdoConfig.ListPipelineUrlTemplate = "https://INVALID_URL.com"; 
 
         // Act
         try
         {
-            await _configureWorkspaceAppService.GetPipelineUrlByName("");
+            await _configureWorkspaceAppService.GetPipelineIdByName("");
             Assert.Fail();
         }
         catch (ArgumentException e)
@@ -80,16 +58,15 @@ public class ConfigureWorkspaceAppServiceTests
     }
 
     [Test]
-    public async Task GetPipelineUrlByName_ShouldThrowError_WhenIncorrectPipelineUrl()
+    public async Task GetPipelineIdByName_ShouldThrowError_WhenIncorrectPipelineUrl()
     {
         // Arrange
-        _azureConfig.AdoConfig.ListPipelineUrlTemplate.Returns(
-            "wrong url!");
+        _azureConfig.AdoConfig.ListPipelineUrlTemplate = "https://INVALID_URL.com";
 
         // Act
         try
         {
-            await _configureWorkspaceAppService.GetPipelineUrlByName("");
+            await _configureWorkspaceAppService.GetPipelineIdByName("");
             Assert.Fail();
         }
         catch (Exception e)
@@ -102,16 +79,16 @@ public class ConfigureWorkspaceAppServiceTests
     public async Task PostPipelineRun_ShouldReturnGoodResponse_GivenGoodUrlAndConfiguration()
     {
         // Arrange
-        var appServiceConfiguration = new AppServiceConfiguration("test", "test", "test");
-        var pipelineUrl = await _configureWorkspaceAppService.GetPipelineUrlByName("fsdh.wiki");
+        var appServiceConfiguration = new AppServiceConfiguration("test", "test", "test", id: "/test");
+        var pipelineId = await _configureWorkspaceAppService.GetPipelineIdByName("fsdh.wiki");
         var projectAcronym = "TEST";
 
         // Act
         var response =
-            await _configureWorkspaceAppService.PostPipelineRun(pipelineUrl, appServiceConfiguration, projectAcronym);
+            await _configureWorkspaceAppService.PostPipelineRun(pipelineId, appServiceConfiguration, projectAcronym);
 
         // Assert
-        Assert.Equals(response.IsSuccessStatusCode, true);
+        Assert.That(response.IsSuccessStatusCode, Is.EqualTo(true));
     }
 
     [Test]
@@ -119,13 +96,13 @@ public class ConfigureWorkspaceAppServiceTests
     {
         // Arrange
         var appServiceConfiguration = new AppServiceConfiguration("test", "test", "test");
-        var pipelineUrl = "wrong url!";
+        var pipelineId = int.MaxValue;
         var projectAcronym = "TEST";
 
         // Act
         try
         {
-            await _configureWorkspaceAppService.PostPipelineRun(pipelineUrl, appServiceConfiguration, projectAcronym);
+            await _configureWorkspaceAppService.PostPipelineRun(pipelineId, appServiceConfiguration, projectAcronym);
             Assert.Fail();
         }
         catch (Exception e)
