@@ -9,30 +9,29 @@ namespace Datahub.Core.Model.Onboarding;
 public class ProjectCreationDetails
 {
     /// <summary>
-    /// The id of the project creation details.
+    /// Gets or sets the id of the project creation details.
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    /// The id of the project that the user has created.
+    /// Gets or sets the id of the project that the user has created.
     /// </summary>
     public int ProjectId { get; set; }
 
     /// <summary>
-    /// The joined string of the features that the user is interested in.
+    /// Gets or sets the joined string of the features that the user is interested in.
     /// </summary>
     public string InterestedFeatures { get; set; }
 
     /// <summary>
-    /// The id of the user that is creating the details for the project.
+    /// Gets or sets the id of the user that is creating the details for the project.
     /// </summary>
     public int CreatedById { get; set; }
 
     /// <summary>
-    /// The date and time that the project creation details were created.
+    /// Gets or sets the date and time that the project creation details were created.
     /// </summary>
     public DateTime CreatedAt { get; set; }
-
 
     #region Navigation
 

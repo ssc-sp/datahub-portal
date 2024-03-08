@@ -32,7 +32,6 @@ public interface IDatahubAuditingService
     Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, params (string key, string value)[] details) =>
         TrackDataEvent(objectId, table, changeType, false, details);
 
-
     /// <summary>
     /// Track security related change event.
     /// </summary>

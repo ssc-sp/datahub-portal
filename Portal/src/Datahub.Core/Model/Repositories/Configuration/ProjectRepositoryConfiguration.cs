@@ -39,6 +39,5 @@ public class ProjectRepositoryConfiguration : IEntityTypeConfiguration<ProjectRe
         builder.Property(e => e.Path)
             .IsRequired()
             .HasMaxLength(256);
-
     }
 }

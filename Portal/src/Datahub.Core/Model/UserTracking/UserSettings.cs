@@ -13,5 +13,4 @@ public class UserSettings
     public bool HideAchievements { get; set; }
     public bool HideAlerts { get; set; }
     public List<string> HiddenAlerts { get; set; }
-
 }

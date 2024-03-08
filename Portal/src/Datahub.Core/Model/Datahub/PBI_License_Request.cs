@@ -29,7 +29,6 @@ public class PBI_License_Request
     [AeLabel("Contact Name")]
     public string Contact_Name { get; set; }
 
-
     public Datahub_Project Project { get; set; }
 
     [AeFormIgnore]

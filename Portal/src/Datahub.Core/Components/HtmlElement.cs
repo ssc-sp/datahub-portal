@@ -11,7 +11,6 @@ public class HtmlElement : ComponentBase
     public Dictionary<string, object> InputAttributesWithoutClass { get; set; }
     protected string _inputClass => InputAttributes != null && InputAttributes.ContainsKey("class") ? InputAttributes["class"] as string : string.Empty;
 
-
     protected override void OnInitialized()
     {
         base.OnInitialized();

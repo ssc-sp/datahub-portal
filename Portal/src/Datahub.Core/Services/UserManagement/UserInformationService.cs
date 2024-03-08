@@ -176,7 +176,6 @@ public class UserInformationService : IUserInformationService
         return _currentUser;
     }
 
-
     private void PrepareAuthenticatedClient()
     {
         //if (graphServiceClient != null) return;
@@ -223,7 +222,6 @@ public class UserInformationService : IUserInformationService
             PrepareAuthenticatedClient();
             _currentUser = await _graphServiceClient.Users[userId].GetAsync();
 
-
             return _currentUser;
         }
         catch (ServiceException e)
@@ -250,7 +248,6 @@ public class UserInformationService : IUserInformationService
     {
         _serviceAuthManager.SetViewingAsGuest((await GetCurrentGraphUserAsync()).Id, isGuest);
     }
-
 
     public Task<bool> IsViewingAsVisitor()
     {
@@ -288,7 +285,6 @@ public class UserInformationService : IUserInformationService
         if (await IsUserInDataHubAdminRole())
             return true;
         return (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}{RoleConstants.WORKSPACE_LEAD_SUFFIX}");
-
     }
 
     public async Task<bool> IsUserDatahubAdmin()

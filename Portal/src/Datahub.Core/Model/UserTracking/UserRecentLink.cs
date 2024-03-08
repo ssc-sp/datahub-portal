@@ -38,7 +38,6 @@ public record UserRecentLink
 
     public int UserId { get; set; }
 
-
     public string ToTitle()
     {
         return LinkType switch

@@ -32,5 +32,4 @@ public class Organization_Level
     public List<Datahub_Project> Branches { get; set; }
     //[ForeignKey("DivisionId")]
     public List<Datahub_Project> Divisions { get; set; }
-
 }

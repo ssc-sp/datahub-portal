@@ -38,8 +38,6 @@ public class Project_Resources2
     public string InputJsonContent { get; set; } = "{}";
 }
 
-
-
 public static class ProjectResourceConstants
 {
     public const string SERVICE_TYPE_POSTGRES = "psql";

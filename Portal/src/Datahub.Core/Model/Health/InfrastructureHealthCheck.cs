@@ -3,47 +3,46 @@ namespace Datahub.Core.Model.Health;
 public class InfrastructureHealthCheck
 {
     /// <summary>
-    /// The database id of the health check
+    /// Gets or sets the database id of the health check
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    /// The group of the health check
+    /// Gets or sets the group of the health check
     ///
     /// Example: Datahub Core, Datahub Queues, Workspace Acronyms
     /// </summary>
     public string Group { get; set; }
 
     /// <summary>
-    /// The name of the resource, a bit more specific than the group
+    /// Gets or sets the name of the resource, a bit more specific than the group
     ///
     /// Example: Portal Database, Portal Web App, Portal Storage Account
     /// </summary>
     public string Name { get; set; }
 
     /// <summary>
-    /// The url of the resource, if applicable, to open directly into Azure Portal
+    /// Gets or sets the url of the resource, if applicable, to open directly into Azure Portal
     /// </summary>
     public string Url { get; set; }
 
     /// <summary>
-    /// The resource type of what is being checked
+    /// Gets or sets the resource type of what is being checked
     /// </summary>
     public InfrastructureHealthResourceType ResourceType { get; set; }
 
     /// <summary>
-    /// The status of the health check
+    /// Gets or sets the status of the health check
     /// </summary>
     public InfrastructureHealthStatus Status { get; set; }
 
     /// <summary>
-    /// The time the health check was performed
+    /// Gets or sets the time the health check was performed
     ///
     /// Note: This is in UTC and is automatically set by the database if not set
     /// </summary>
     public DateTime HealthCheckTimeUtc { get; set; }
 }
-
 
 /// <summary>
 /// The different statuses of the health check
@@ -57,7 +56,6 @@ public enum InfrastructureHealthStatus
     Degraded,
     Unhealthy
 }
-
 
 /// <summary>
 /// The different resource types that can be checked

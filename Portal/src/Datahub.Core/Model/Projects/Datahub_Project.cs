@@ -59,7 +59,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeLabel(isDropDown: true, placeholder: " ")]
     public string Sector_Name { get; set; }
 
-
     [StringLength(200)]
     [AeLabel(isDropDown: true, placeholder: " ")]
     [AeFormIgnore]
@@ -68,7 +67,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeLabel(isDropDown: true, placeholder: " ")]
     [AeFormIgnore]
     public string Division_Name { get; set; }
-
 
     [AeFormCategory("Initiative Information")]
     public string Contact_List { get; set; }
@@ -131,7 +129,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeFormCategory("Initiative Information")]
     [MudForm(IsDropDown = true)]
     public DropDownContainer Project_Status_Values { get; set; }
-
 
     [AeFormCategory("Initiative Information")]
     [AeLabel(isDropDown: true)]
@@ -239,7 +236,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
                 return Users.Select(x => x.PortalUser.LastLoginDateTime).Max();
             }
             return Last_Updated_DT;
-
         }
     }
 
@@ -263,8 +259,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeFormIgnore]
     [StringLength(128)]
     public string WebApp_URL { get; set; }
-
-
 
     [AeFormIgnore]
     [StringLength(16)]
@@ -324,7 +318,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
             return Project_ID.CompareTo(other.Project_ID);
         return Project_Acronym_CD.CompareTo(other.Project_Acronym_CD);
     }
-
 
     public string GetProjectStatus()
     {

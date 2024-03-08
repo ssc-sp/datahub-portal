@@ -3,5 +3,4 @@
 public class PowerBiTarget
 {
     public string SPI { get; set; }
-
 }

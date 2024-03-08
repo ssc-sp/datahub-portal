@@ -34,7 +34,6 @@ public class RepositoryInfoDto
         Branch = projectRepository.Branch;
         HeadCommitId = projectRepository.HeadCommitId;
         IsPublic = projectRepository.IsPublic;
-
     }
 
     public string RepositoryName => Path.Split('/').Last();

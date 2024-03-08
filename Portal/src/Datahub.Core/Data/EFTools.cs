@@ -51,7 +51,6 @@ public static class EFTools
         {
             logger.LogCritical(ex, $"Error initializing database {GetInfo(context.Database)}-{typeof(T).Name}");
         }
-
     }
 
     public static string GetConnectionString(this IConfiguration configuration, IWebHostEnvironment environment, string name)
@@ -99,7 +98,6 @@ public static class EFTools
         }
     }
 
-
     private static string GetInfo(DatabaseFacade db)
     {
         if (db.IsRelational()) return $"{db.GetDbConnection().Database}";
@@ -129,5 +127,4 @@ public static class EFTools
             //}
         }
     }
-
 }

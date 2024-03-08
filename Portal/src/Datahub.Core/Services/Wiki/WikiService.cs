@@ -63,7 +63,6 @@ public class WikiService : IWikiService
             _logger.LogError(ex, "Cannot load page url: {FullUrl}", fullUrl);
             return null;
         }
-
     }
 
     private static IList<LinkInline> GetListedLinks(string inputMarkdown)

@@ -649,7 +649,6 @@ public class MetadataBrokerService : IMetadataBrokerService
             {
                 await tran.RollbackAsync();
             }
-
         }
         catch (Exception)
         {

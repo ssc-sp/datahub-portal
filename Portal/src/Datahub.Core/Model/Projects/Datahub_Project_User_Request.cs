@@ -21,5 +21,4 @@ public class Datahub_Project_User_Request
 
     [Timestamp]
     public byte[] Timestamp { get; set; }
-
 }

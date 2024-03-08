@@ -117,7 +117,6 @@ public class Folder : BaseMetadata
 
     public List<BaseMetadata> children { get; set; } = new List<BaseMetadata>();
 
-
     [JsonIgnore]
     public List<Folder> SubFolders
     {
@@ -240,7 +239,6 @@ public class NonHierarchicalFolder : Folder
             this.Sort();
         }
     }
-
 }
 
 public class Customfield

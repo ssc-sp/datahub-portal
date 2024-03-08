@@ -18,6 +18,5 @@ namespace Datahub.Core.Services
         Task<string> GetUserLanguage();
         Task<bool> IsFrench();
         Task<UserSettings?> GetUserSettingsAsync();
-
     }
 }

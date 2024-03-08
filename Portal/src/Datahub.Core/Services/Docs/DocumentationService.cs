@@ -94,8 +94,6 @@ public class DocumentationService
         return new Uri(_docsRoot + relLink).AbsoluteUri;
     }
 
-
-
     private string CleanupCharacters(string input)
     {
         var deAccented = new string(input?.Normalize(NormalizationForm.FormD)
@@ -134,7 +132,6 @@ public class DocumentationService
 
                 doc.Content = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, doc.GetMarkdownFileName());
                 BuildPreview(doc);
-
             }
             else
             {
@@ -192,7 +189,6 @@ public class DocumentationService
             throw new InvalidOperationException("Cannot load sidebar and content");
         cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
         AddStatusMessage("Finished loading sidebars");
-
     }
 
     public DocItem? LoadPage(string id, bool isFrench)
@@ -326,7 +322,6 @@ public class DocumentationService
         if (parameters != null)
             builder.Query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
 
-
         var res = await GetRetryPolicy().ExecuteAsync(async () =>
         {
             //builder.Query = "search=usa";
@@ -342,10 +337,7 @@ public class DocumentationService
         }
 
         return JsonNode.Parse(await res.Content.ReadAsStreamAsync());
-
     }
-
-
 
     private async Task<string?> LoadDocs(string url, bool useCache = true, bool skipFrontMatter = true)
     {

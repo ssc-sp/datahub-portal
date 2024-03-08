@@ -45,7 +45,6 @@ public class SharedDataFile
     public static readonly string PUBLIC_URL_SHARING_STATUS_LOCALIZATION_PREFIX = SHARING_STATUS_LOCALIZATION_PREFIX + ".PublicUrl";
     public static readonly string OPEN_DATA_SHARING_STATUS_LOCALIZATION_PREFIX = SHARING_STATUS_LOCALIZATION_PREFIX + ".OpenData";
 
-
     [Key]
     public long SharedDataFile_ID { get; set; }
 

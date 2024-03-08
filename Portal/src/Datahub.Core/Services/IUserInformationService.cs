@@ -10,7 +10,6 @@ public interface IUserInformationService
     Task<User> GetCurrentGraphUserAsync();
     Task<User> GetGraphUserAsync(string userId);
 
-
     /// <summary>
     /// Gets the current portal user asynchronously. Will contain the <see cref="UserSettings"/> object.
     /// </summary>

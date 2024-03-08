@@ -15,7 +15,6 @@ public class PowerBi_Workspace
 
     public int? Project_Id { get; set; }
 
-
     public Datahub_Project Project { get; set; }
 
     public IList<PowerBi_Report> Reports { get; set; }
@@ -29,7 +28,6 @@ public class PowerBi_Report
 {
     [Key]
     public Guid Report_ID { get; set; }
-
 
     public string Report_Name { get; set; }
 
@@ -56,7 +54,6 @@ public class PowerBi_DataSet
 
     public PowerBi_Workspace Workspace { get; set; }
 }
-
 
 public class ExternalPowerBiReport
 {

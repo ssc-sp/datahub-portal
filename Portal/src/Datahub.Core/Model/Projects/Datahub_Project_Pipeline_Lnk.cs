@@ -9,5 +9,4 @@ public class Datahub_Project_Pipeline_Lnk
     [ForeignKey("Project_ID")]
     public Datahub_Project Project { get; set; }
     public string Process_Nm { get; set; }
-
 }

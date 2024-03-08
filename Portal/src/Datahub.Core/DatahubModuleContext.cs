@@ -30,6 +30,4 @@ public class DatahubModuleContext
         var resetDb = configuration.GetSection("InitialSetup")?.GetValue<bool>("ResetDB", false) ?? false;
         EFTools.InitializeDatabase<T>(logger, configuration, serviceProvider, resetDb, migrate, deleteInOffline);
     }
-
-
 }

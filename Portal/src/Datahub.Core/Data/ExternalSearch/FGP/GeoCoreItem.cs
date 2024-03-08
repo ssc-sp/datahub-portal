@@ -22,7 +22,6 @@ public class GeoCoreItem
     public string GraphicOverview { get; set; } // TODO lots of processing (same)
     public string Contact { get; set; } // TODO lots of processing (same)
 
-
     private GeoCoreOptionsList _optionsList = null;
     private GeoCoreContactList _contactList = null;
     private GeoCoreGraphicOverviewList _graphicsList = null;
@@ -74,12 +73,10 @@ public class GeoCoreItem
         return result;
     }
 
-
     public string GetGeoCaUrl(string lang = "en")
     {
         return $"https://app.geo.ca/result?id={Id}&lang={lang}";
     }
-
 
     /*
 "id": "000183ed-8864-42f0-ae43-c4313a860720",

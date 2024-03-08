@@ -282,8 +282,6 @@ namespace Datahub.Core.Services.UserManagement
                     context.UserSettings.Update(userSetting);
                 }
 
-
-
                 if (await context.SaveChangesAsync() > 0)
                     return true;
 

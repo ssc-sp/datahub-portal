@@ -87,27 +87,27 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<DocumentationResource> DocumentationResources { get; set; }
 
     /// <summary>
-    /// Table for storing any additional details when users go through the self registration process
+    /// Gets or sets table for storing any additional details when users go through the self registration process
     /// </summary>
     public DbSet<SelfRegistrationDetails> SelfRegistrationDetails { get; set; }
 
     /// <summary>
-    /// Table for storing any additional details when users go through the project creation process
+    /// Gets or sets table for storing any additional details when users go through the project creation process
     /// </summary>
     public DbSet<ProjectCreationDetails> ProjectCreationDetails { get; set; }
 
     /// <summary>
-    /// Cataloged objects
+    /// Gets or sets cataloged objects
     /// </summary>
     public DbSet<CatalogObject> CatalogObjects { get; set; }
 
     /// <summary>
-    /// Table for storing the cloud storage associcated to a project
+    /// Gets or sets table for storing the cloud storage associcated to a project
     /// </summary>
     public DbSet<ProjectCloudStorage> ProjectCloudStorages { get; set; }
 
     /// <summary>
-    /// Table for storing the infrastructure health checks
+    /// Gets or sets table for storing the infrastructure health checks
     /// </summary>
     public DbSet<InfrastructureHealthCheck> InfrastructureHealthChecks { get; set; }
 
@@ -161,7 +161,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             });
             //var permissions = context.Project_Users_Requests.Add(new Datahub_)
         }
-
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -203,7 +202,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasOne<PowerBi_Workspace>(d => d.Workspace)
             .WithMany(w => w.Datasets)
             .HasForeignKey(d => d.Workspace_Id);
-
 
         modelBuilder.Entity<Datahub_Project>()
             .HasOne(w => w.Sector)
@@ -272,7 +270,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
         modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
-
 
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {

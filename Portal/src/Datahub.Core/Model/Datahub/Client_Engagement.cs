@@ -80,7 +80,6 @@ public class Client_Engagement
     [Timestamp]
     public byte[] Timestamp { get; set; }
 
-
     [MudBlazor.Forms.AeFormIgnoreAttribute]
     public bool IsRequirementsComplete => Requirements_Gathering_ActualEndDate != null;
     [MudBlazor.Forms.AeFormIgnoreAttribute]

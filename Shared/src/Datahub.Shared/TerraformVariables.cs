@@ -60,7 +60,6 @@ public static class TerraformVariables
     /// </summary>
     public const string AllowSourceIp = "allow_source_ip";
 
-
     public const string MapType = "map";
     public const string ListAnyType = "list(any)";
 }

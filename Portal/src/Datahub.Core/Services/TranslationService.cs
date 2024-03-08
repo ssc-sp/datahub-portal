@@ -1,7 +1,6 @@
 ﻿using DeepL;
 using Microsoft.Extensions.Configuration;
 
-
 namespace Datahub.Core.Services;
 
 public class TranslationService
