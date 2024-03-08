@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace Datahub.Core.Services.Achievements;
+﻿namespace Datahub.Core.Services.Achievements;
 
 public interface IPortalUserTelemetryService
 {

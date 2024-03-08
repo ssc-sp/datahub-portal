@@ -1,8 +1,5 @@
 ﻿using Datahub.Core.Configuration;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services.Projects;
-using Datahub.ProjectTools.Services;
-using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 

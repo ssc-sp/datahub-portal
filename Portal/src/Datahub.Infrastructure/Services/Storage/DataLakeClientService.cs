@@ -3,7 +3,6 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
-using Datahub.Infrastructure.Services.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

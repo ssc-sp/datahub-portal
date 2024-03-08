@@ -1,14 +1,4 @@
-﻿using Datahub.Core.Services.Docs;
-using Datahub.Markdown;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
-using System.Net.Http;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using Datahub.Markdown;
 using Xunit;
 
 

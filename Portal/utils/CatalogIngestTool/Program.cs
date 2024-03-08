@@ -13,10 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
-using Microsoft.Graph.Auth;
 using Microsoft.Graph.Models;
-using Microsoft.Identity.Client;
 using Newtonsoft.Json;
 using GraphServiceClient = Microsoft.Graph.GraphServiceClient;
 

@@ -3,7 +3,6 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Octokit;
 
 namespace Datahub.Infrastructure.Services.Projects
 {

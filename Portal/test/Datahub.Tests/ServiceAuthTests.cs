@@ -1,5 +1,4 @@
 ﻿using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;

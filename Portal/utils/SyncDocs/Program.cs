@@ -9,8 +9,6 @@
 using SyncDocs;
 using Microsoft.Extensions.Configuration;
 using CommandLine;
-using Microsoft.Extensions.Options;
-using System.Runtime.CompilerServices;
 
 const string SIDEBAR = "_sidebar.md";
 const string SIDEBAR_META = "_sidebar.md.yaml";

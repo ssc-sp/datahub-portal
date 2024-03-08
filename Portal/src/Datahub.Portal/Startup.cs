@@ -32,7 +32,6 @@ using Datahub.Infrastructure.Services.Projects;
 using Datahub.LanguageTraining.Services;
 using Datahub.M365Forms.Services;
 using Datahub.Metadata.Model;
-using Datahub.Portal.Data.Forms.WebAnalytics;
 using Datahub.Portal.Middleware;
 using Datahub.Portal.Services;
 using Datahub.Portal.Services.Api;

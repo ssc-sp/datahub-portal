@@ -1,8 +1,6 @@
 
 using SpeedTestSharp.Client;
 using SpeedTestSharp.Enums;
-using Datahub.Maui.Uploader;
-using SpeedTestSharp.DataTypes.External;
 using Datahub.Maui.Uploader.Resources;
 
 namespace Datahub.Maui.Uploader;

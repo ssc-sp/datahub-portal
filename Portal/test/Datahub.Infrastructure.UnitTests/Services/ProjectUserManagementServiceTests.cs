@@ -10,14 +10,10 @@ using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
 using Datahub.Infrastructure.Services;
-using Datahub.Shared.Entities;
-using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using Moq;
 
 namespace Datahub.Infrastructure.UnitTests.Services;

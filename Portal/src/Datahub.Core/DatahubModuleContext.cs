@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Datahub.Core.Data;
-using System;
 using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Core;

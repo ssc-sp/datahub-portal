@@ -1,5 +1,3 @@
-using System;
-
 namespace Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
 
 public static class ResourceSubstitutions

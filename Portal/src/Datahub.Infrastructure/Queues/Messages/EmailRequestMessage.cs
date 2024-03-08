@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Datahub.Infrastructure.Queues.Messages;

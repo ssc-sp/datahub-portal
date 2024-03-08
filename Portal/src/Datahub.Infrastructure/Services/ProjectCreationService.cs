@@ -2,7 +2,6 @@
 using System.Transactions;
 using Datahub.Application.Services;
 using Datahub.Core.Data;
-using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
@@ -11,12 +10,10 @@ using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Services.Security;
-using Datahub.ProjectTools.Services;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Models;
 
 namespace Datahub.Infrastructure.Services;
 

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Datahub.Maui.Uploader.Components
+﻿namespace Datahub.Maui.Uploader.Components
 {
 	public class HyperlinkLabel : Label
 	{

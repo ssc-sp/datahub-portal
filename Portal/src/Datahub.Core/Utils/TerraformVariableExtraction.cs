@@ -1,7 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;

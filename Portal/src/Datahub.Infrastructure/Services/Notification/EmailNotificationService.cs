@@ -4,7 +4,6 @@ using BlazorTemplater;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
-using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Security;
 using Datahub.Core.Templates;
 using MailKit.Net.Smtp;

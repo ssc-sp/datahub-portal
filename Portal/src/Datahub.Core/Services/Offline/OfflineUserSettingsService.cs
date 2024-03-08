@@ -1,11 +1,9 @@
 ﻿#nullable enable
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Datahub.Core.Model.UserTracking;
 
 namespace Datahub.Core.Services.Offline
 {
-    public class OfflineUserSettingsService : IUserSettingsService
+	public class OfflineUserSettingsService : IUserSettingsService
     {
         public Task<bool> HasUserAcceptedTAC()
         {

@@ -1,7 +1,5 @@
 ﻿using Datahub.Core.Model.Achievements;
 using RulesEngine.Models;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Datahub.Core.Services.Achievements;
 

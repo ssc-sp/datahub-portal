@@ -1,16 +1,12 @@
 using System.Linq.Dynamic.Core;
-using System.Transactions;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
-using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

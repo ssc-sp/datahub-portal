@@ -1,4 +1,3 @@
-using System.Collections;
 using Datahub.Application.Commands;
 using Datahub.Core.Model.Projects;
 

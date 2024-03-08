@@ -1,16 +1,8 @@
-﻿using Datahub.Core.Services.Notification;
-using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
-using Datahub.Core.Utils;
+﻿using Datahub.Core.Services.Security;
 using Datahub.ProjectTools.Templates;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Projects;

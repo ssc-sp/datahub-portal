@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Datahub.Core.Data;
 
 // ReSharper disable StringLiteralTypoE

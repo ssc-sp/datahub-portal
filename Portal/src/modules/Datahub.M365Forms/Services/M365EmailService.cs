@@ -1,5 +1,4 @@
 ﻿using Datahub.Application.Services.Notification;
-using Datahub.Core.Services.Notification;
 using Datahub.M365Forms.Data;
 using Datahub.M365Forms.Templates;
 using Microsoft.Extensions.Logging;

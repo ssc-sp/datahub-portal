@@ -1,6 +1,3 @@
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
 using System.Web;
 using Datahub.Core.Data.ExternalSearch.FGP;
 using Datahub.Core.Data.ExternalSearch.OpenData;

@@ -1,7 +1,5 @@
 using Datahub.Specs.PageObjects;
 using FluentAssertions;
-using Microsoft.Playwright;
-using Playwright.Axe;
 
 namespace Datahub.Specs.Steps;
 

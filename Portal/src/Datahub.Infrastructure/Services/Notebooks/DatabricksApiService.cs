@@ -2,7 +2,6 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Application.Services.Notebooks;
-using Datahub.Core.Data;
 using Datahub.Core.Data.Databricks;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Repositories;

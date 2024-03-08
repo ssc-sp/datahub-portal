@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Datahub.Shared.Entities;
 
 namespace Datahub.Core.Data.ResourceProvisioner;

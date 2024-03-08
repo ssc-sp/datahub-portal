@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Datahub.Core.Model.Datahub;
 
 public static class ExtensionTypeReference

@@ -4,7 +4,6 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
 using Datahub.Core.Data;
-using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;

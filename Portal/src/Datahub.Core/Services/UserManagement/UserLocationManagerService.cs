@@ -1,9 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Datahub.Core.Components;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.UserTracking;

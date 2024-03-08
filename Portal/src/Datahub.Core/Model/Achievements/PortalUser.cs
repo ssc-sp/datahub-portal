@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Datahub.Core.Model.UserTracking;
-using System.Linq;
-using Datahub.Core.Model.Projects;
+﻿using Datahub.Core.Model.UserTracking;
 
 namespace Datahub.Core.Model.Achievements;
 

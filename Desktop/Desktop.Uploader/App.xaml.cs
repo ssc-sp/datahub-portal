@@ -1,6 +1,4 @@
-﻿using Datahub.Core.DataTransfers;
-using Datahub.Maui.Uploader;
-namespace Datahub.Maui.Uploader
+﻿namespace Datahub.Maui.Uploader
 {
 	public partial class App : Application
 	{

@@ -1,8 +1,5 @@
-﻿using Datahub.Core.Data;
-using Datahub.Core.Services;
-using Datahub.Core.Services.Security;
+﻿using Datahub.Core.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Datahub.Portal.Pages.Project

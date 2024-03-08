@@ -1,11 +1,5 @@
-﻿using Azure.Storage.Blobs;
-using Datahub.Maui.Uploader.Resources;
-using System;
+﻿using Datahub.Maui.Uploader.Resources;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.Maui.Uploader.IO
 {

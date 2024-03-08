@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Datahub.Core.Model.Documentation;
+﻿namespace Datahub.Core.Model.Documentation;
 
 public class DocumentationResource
 {

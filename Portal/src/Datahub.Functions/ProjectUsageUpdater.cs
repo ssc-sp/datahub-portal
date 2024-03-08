@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Azure.Storage.Queues.Models;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Projects;

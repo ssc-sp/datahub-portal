@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO.Compression;
-using System.IO;
+﻿using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Datahub.Core.DataTransfers
 {
-    public class CredentialEncoder
+	public class CredentialEncoder
     {
         public static string EncodeCredentials(UploadCredentials credentials)
         {

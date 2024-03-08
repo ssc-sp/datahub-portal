@@ -1,7 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
 namespace Datahub.Core.Model.Projects;
 
 public class Project_Role

@@ -1,15 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Net.Mail;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Net.Mail;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
-using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
 using Microsoft.Graph.Models;
@@ -17,10 +12,8 @@ using System.Security.Claims;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Services.Security;
-using UserSettings = Datahub.Core.Model.UserTracking.UserSettings;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.CatalogSearch;
-using Datahub.Core.Model.Catalog;
 using Azure.Identity;
 
 namespace Datahub.Core.Services.UserManagement;

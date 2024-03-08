@@ -1,5 +1,3 @@
-using System;
-
 namespace Datahub.Core.Model.Health;
 
 public class InfrastructureHealthCheck

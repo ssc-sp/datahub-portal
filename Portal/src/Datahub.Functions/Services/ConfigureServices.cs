@@ -1,5 +1,4 @@
 using Datahub.Application.Configuration;
-using Datahub.Core.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

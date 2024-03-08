@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Datahub.Core.DataTransfers;
-using System.Threading.Tasks;
-
-namespace Datahub.Core.DataTransfers.UnitTests
+﻿namespace Datahub.Core.DataTransfers.UnitTests
 {
 	public class DataTransferTests
 	{

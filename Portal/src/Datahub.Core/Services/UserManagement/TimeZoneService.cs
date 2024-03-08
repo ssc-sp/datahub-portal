@@ -1,6 +1,4 @@
 ﻿using Microsoft.JSInterop;
-using System;
-using System.Threading.Tasks;
 
 namespace Datahub.Core.Services.UserManagement;
 

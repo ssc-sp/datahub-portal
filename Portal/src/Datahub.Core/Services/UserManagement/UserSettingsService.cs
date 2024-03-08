@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Datahub.Core.Model.Datahub;
+﻿using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.UserTracking;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +6,7 @@ using Microsoft.Extensions.Logging;
 #nullable enable
 namespace Datahub.Core.Services.UserManagement
 {
-    public class UserSettingsService : IUserSettingsService
+	public class UserSettingsService : IUserSettingsService
     {
         private readonly IUserInformationService _userInformationService;
         private readonly IDbContextFactory<DatahubProjectDBContext> _datahubContextFactory;

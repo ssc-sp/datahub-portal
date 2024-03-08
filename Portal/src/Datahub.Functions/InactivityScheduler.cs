@@ -1,5 +1,4 @@
-﻿using System;
-using Datahub.Core.Model.Datahub;
+﻿using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Queues.Messages;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;

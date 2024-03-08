@@ -1,7 +1,6 @@
 ﻿using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.ProjectTools.Services;
 using Datahub.Shared.Entities;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;

@@ -1,5 +1,4 @@
-﻿using Microsoft.Graph;
-using Datahub.Core.Data;
+﻿using Datahub.Core.Data;
 using Datahub.Core.Services.Storage;
 using Microsoft.Graph.Models;
 

@@ -1,5 +1,4 @@
 ﻿using Markdig.Syntax;
-using Markdig;
 using Octokit;
 using System.Collections.Generic;
 using System.Linq;

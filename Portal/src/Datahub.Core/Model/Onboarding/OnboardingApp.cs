@@ -1,5 +1,4 @@
 ﻿using Elemental.Components;
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Datahub.Core.Model.Onboarding;
