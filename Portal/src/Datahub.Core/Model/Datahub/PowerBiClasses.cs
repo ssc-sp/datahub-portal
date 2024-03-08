@@ -17,11 +17,11 @@ public class PowerBi_Workspace
 
     public int? Project_Id { get; set; }
 
-        
+
     public Datahub_Project Project { get; set; }
-        
+
     public IList<PowerBi_Report> Reports { get; set; }
-        
+
     public IList<PowerBi_DataSet> Datasets { get; set; }
 }
 
@@ -32,7 +32,7 @@ public class PowerBi_Report
     [Key]
     public Guid Report_ID { get; set; }
 
-        
+
     public string Report_Name { get; set; }
 
     public Guid Workspace_Id { get; set; }
@@ -61,12 +61,12 @@ public class PowerBi_DataSet
 
 
 public class ExternalPowerBiReport
-{ 
+{
     [Key]
     public int ExternalPowerBiReport_ID { get; set; }
     [StringLength(200)]
-    public string RequestingUser { get; set; }        
-    public bool Is_Created { get; set; } 
+    public string RequestingUser { get; set; }
+    public bool Is_Created { get; set; }
     public DateTime End_Date { get; set; }
     public string Token { get; set; }
     public string Url { get; set; }

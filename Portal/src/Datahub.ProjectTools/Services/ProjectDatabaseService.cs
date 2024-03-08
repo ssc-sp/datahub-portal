@@ -4,21 +4,21 @@ namespace Datahub.ProjectTools.Services;
 
 public class ProjectDatabaseService : IProjectDatabaseService
 {
-    private readonly string POSTGRES_AZ_RESOURCE = "https://ossrdbms-aad.database.windows.net";
+	private readonly string POSTGRES_AZ_RESOURCE = "https://ossrdbms-aad.database.windows.net";
 
-    public async Task<string> GetPostgresToken()
-    {
-        var tokenProvider = new AzureServiceTokenProvider();
-        var token = await tokenProvider.GetAccessTokenAsync(POSTGRES_AZ_RESOURCE);
-        return token;
-    }
+	public async Task<string> GetPostgresToken()
+	{
+		var tokenProvider = new AzureServiceTokenProvider();
+		var token = await tokenProvider.GetAccessTokenAsync(POSTGRES_AZ_RESOURCE);
+		return token;
+	}
 
-    public async Task<AppAuthenticationResult> GetPostgresAuthenticationObject()
-    {
-        var tokenProvider = new AzureServiceTokenProvider();
-        var token = await tokenProvider.GetAuthenticationResultAsync(POSTGRES_AZ_RESOURCE);
-        return token;
-    }
+	public async Task<AppAuthenticationResult> GetPostgresAuthenticationObject()
+	{
+		var tokenProvider = new AzureServiceTokenProvider();
+		var token = await tokenProvider.GetAuthenticationResultAsync(POSTGRES_AZ_RESOURCE);
+		return token;
+	}
 
-    public bool IsServiceAvailable => true;
+	public bool IsServiceAvailable => true;
 }

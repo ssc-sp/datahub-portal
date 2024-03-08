@@ -8,24 +8,24 @@ namespace Datahub.Specs.Steps;
 [Binding]
 public class ResourcesStepDefinitions
 {
-    private readonly ResourcesPageObject _resPageObject;
+	private readonly ResourcesPageObject _resPageObject;
 
-    public ResourcesStepDefinitions(ResourcesPageObject resPageObject)
-    {
-        _resPageObject = resPageObject;
-    }
+	public ResourcesStepDefinitions(ResourcesPageObject resPageObject)
+	{
+		_resPageObject = resPageObject;
+	}
 
-    [Given(@"the user is on the resource page")]
-    public async Task GivenTheUserIsOnTheResourcePage()
-    {
-        await _resPageObject.NavigateAsync();
-        await _resPageObject.ValidateLocationAsync();
-    }
+	[Given(@"the user is on the resource page")]
+	public async Task GivenTheUserIsOnTheResourcePage()
+	{
+		await _resPageObject.NavigateAsync();
+		await _resPageObject.ValidateLocationAsync();
+	}
 
-    [Then(@"the resource page should be without accessibility errors")]
-    public async Task ThenTheResourcePageShouldBeWithoutAccessibilityErrors()
-    {
-        var axeResults = await _resPageObject.RunAxe();
-        axeResults.Violations.Should().BeEmpty();
-    }
+	[Then(@"the resource page should be without accessibility errors")]
+	public async Task ThenTheResourcePageShouldBeWithoutAccessibilityErrors()
+	{
+		var axeResults = await _resPageObject.RunAxe();
+		axeResults.Violations.Should().BeEmpty();
+	}
 }

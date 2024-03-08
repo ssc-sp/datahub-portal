@@ -16,78 +16,78 @@ using Xunit;
 
 namespace Datahub.Tests.Docs
 {
-    public class DocsServiceTests
-    {
-        private DocumentationService _service;
+	public class DocsServiceTests
+	{
+		private DocumentationService _service;
 
-        public DocsServiceTests()
-        {
-            var builder = new ConfigurationBuilder().AddJsonFile($"testsettings.json", optional: true);
-            var config = builder.Build();
+		public DocsServiceTests()
+		{
+			var builder = new ConfigurationBuilder().AddJsonFile($"testsettings.json", optional: true);
+			var config = builder.Build();
 
-            var services = new ServiceCollection();
-            services.AddSingleton<DocumentationService>();
-            services.AddSingleton<ILoggerFactory, NullLoggerFactory>();
-            services.AddSingleton<IConfiguration>(config);
-            var provider = services.BuildServiceProvider();
-            using var logFactory = LoggerFactory.Create(builder => builder.AddConsole());
-            var logger = logFactory.CreateLogger<DocumentationService>();
-            var mockFactory = new Mock<IHttpClientFactory>();
-            var httpClient = new HttpClient();
+			var services = new ServiceCollection();
+			services.AddSingleton<DocumentationService>();
+			services.AddSingleton<ILoggerFactory, NullLoggerFactory>();
+			services.AddSingleton<IConfiguration>(config);
+			var provider = services.BuildServiceProvider();
+			using var logFactory = LoggerFactory.Create(builder => builder.AddConsole());
+			var logger = logFactory.CreateLogger<DocumentationService>();
+			var mockFactory = new Mock<IHttpClientFactory>();
+			var httpClient = new HttpClient();
 
-            //httpClient.BaseAddress = new Uri("http://nonexisting.domain"); //New code
+			//httpClient.BaseAddress = new Uri("http://nonexisting.domain"); //New code
 
-            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpClient);
-            // Arrange
-            var memCache = new MemoryCache(new MemoryCacheOptions());
-            var me = new Mock<IWebHostEnvironment>();
-            me.Setup(e => e.EnvironmentName).Returns(Environments.Development);
-            _service = new DocumentationService(config, logger, mockFactory.Object, me.Object, memCache);
-        }
+			mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpClient);
+			// Arrange
+			var memCache = new MemoryCache(new MemoryCacheOptions());
+			var me = new Mock<IWebHostEnvironment>();
+			me.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+			_service = new DocumentationService(config, logger, mockFactory.Object, me.Object, memCache);
+		}
 
-        [Fact]
-        public async Task TestReadLastCommitTS()
-        {
-            var lastCommit = await _service.GetLastRepoCommitTS();
-            Assert.NotNull(lastCommit);
-        }
+		[Fact]
+		public async Task TestReadLastCommitTS()
+		{
+			var lastCommit = await _service.GetLastRepoCommitTS();
+			Assert.NotNull(lastCommit);
+		}
 
-        [Fact]
-        public void GivenIcon_ReadMudblazorIcon()
-        {
-            var iconData = DocItemHelper.GetMudblazorMaterialIcon("Outlined", "Workspaces");
-            Assert.NotNull(iconData);
-        }
+		[Fact]
+		public void GivenIcon_ReadMudblazorIcon()
+		{
+			var iconData = DocItemHelper.GetMudblazorMaterialIcon("Outlined", "Workspaces");
+			Assert.NotNull(iconData);
+		}
 
 
-        [Fact]
-        public void TestCompareCultureStrings()
-        {
-            Assert.True(MarkdownTools.CompareCulture("en-us", "en"));
-            Assert.True(MarkdownTools.CompareCulture("en-ca", "EN"));
-            Assert.True(MarkdownTools.CompareCulture("fr-ca", "FR"));
-            Assert.False(MarkdownTools.CompareCulture("fr-ca", "en"));
-        }
+		[Fact]
+		public void TestCompareCultureStrings()
+		{
+			Assert.True(MarkdownTools.CompareCulture("en-us", "en"));
+			Assert.True(MarkdownTools.CompareCulture("en-ca", "EN"));
+			Assert.True(MarkdownTools.CompareCulture("fr-ca", "FR"));
+			Assert.False(MarkdownTools.CompareCulture("fr-ca", "en"));
+		}
 
-        [Fact (Skip = "Needs to be validated")]
-        public async Task Test1LoadEnglishSidebar()
-        {
-            var root = await _service.LoadResourceTree(DocumentationGuideRootSection.UserGuide,"en");
-            Assert.NotNull(root);
-            Assert.True(root.Children.Count > 5);
-        }
+		[Fact(Skip = "Needs to be validated")]
+		public async Task Test1LoadEnglishSidebar()
+		{
+			var root = await _service.LoadResourceTree(DocumentationGuideRootSection.UserGuide, "en");
+			Assert.NotNull(root);
+			Assert.True(root.Children.Count > 5);
+		}
 
-        [Fact (Skip = "Needs to be validated")]
-        public async Task TestLoadPage()
-        {
-            var root = await _service.LoadResourceTree(DocumentationGuideRootSection.UserGuide, "en");
-            Assert.NotNull(root);
-            Assert.True(root.Children.Count > 5);
-            var pageId = root.Children[5].Id!;
-            var loadedPage = _service.LoadPage(pageId, false);
-            Assert.NotNull(loadedPage);
-            var parent = _service.GetParent(loadedPage);
-            Assert.NotNull(parent);
-        }
-    }
+		[Fact(Skip = "Needs to be validated")]
+		public async Task TestLoadPage()
+		{
+			var root = await _service.LoadResourceTree(DocumentationGuideRootSection.UserGuide, "en");
+			Assert.NotNull(root);
+			Assert.True(root.Children.Count > 5);
+			var pageId = root.Children[5].Id!;
+			var loadedPage = _service.LoadPage(pageId, false);
+			Assert.NotNull(loadedPage);
+			var parent = _service.GetParent(loadedPage);
+			Assert.NotNull(parent);
+		}
+	}
 }

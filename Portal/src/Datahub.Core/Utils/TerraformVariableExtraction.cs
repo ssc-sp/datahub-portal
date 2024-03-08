@@ -65,12 +65,12 @@ public static class TerraformVariableExtraction
         var appServiceTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService);
         var appServiceResource = project?.Resources?.FirstOrDefault(r =>
             r.ResourceType == appServiceTemplateName);
-        
+
         if (appServiceResource == null)
         {
             throw new Exception("App service resource not found in the project");
         }
-        
+
         return ExtractAppServiceConfiguration(appServiceResource);
     }
 
@@ -87,12 +87,6 @@ public static class TerraformVariableExtraction
         var appServiceGitRepo = ExtractStringVariable(
             projectResource?.InputJsonContent,
             "app_service_git_repo");
-        var appServiceGitRepoVisibility = bool.TryParse(ExtractStringVariable(
-            projectResource?.InputJsonContent,
-            "app_service_git_repo_visibility"), out var visibility) && visibility;
-        var appServiceGitTokenSecretName = ExtractStringVariable(
-            projectResource?.InputJsonContent,
-            "app_service_git_token_secret_name");
         var appServiceComposePath = ExtractStringVariable(
             projectResource?.InputJsonContent,
             "app_service_compose_path");
@@ -103,7 +97,7 @@ public static class TerraformVariableExtraction
             projectResource?.JsonContent,
             "app_service_host_name");
         return new AppServiceConfiguration(appServiceFramework, appServiceGitRepo, appServiceComposePath, appServiceId,
-            appServiceHostName, appServiceGitRepoVisibility, appServiceGitTokenSecretName);
+            appServiceHostName);
     }
 
     /// <summary>
@@ -114,9 +108,9 @@ public static class TerraformVariableExtraction
     /// <returns>A list of string, corresponding to the keys of the environment variables stored in the workspace keyvault</returns>
     public static IList<string> ExtractEnvironmentVariableKeys(Project_Resources2 projectResources)
     {
-     var envVarsString = ExtractStringVariable(projectResources?.InputJsonContent, "environment_variables_keys") ?? "[]";
-     var envVars = JsonSerializer.Deserialize<List<string>>(envVarsString);
-     return envVars ?? new List<string>();
+        var envVarsString = ExtractStringVariable(projectResources?.InputJsonContent, "environment_variables_keys") ?? "[]";
+        var envVars = JsonSerializer.Deserialize<List<string>>(envVarsString);
+        return envVars ?? new List<string>();
     }
 
     /// <summary>

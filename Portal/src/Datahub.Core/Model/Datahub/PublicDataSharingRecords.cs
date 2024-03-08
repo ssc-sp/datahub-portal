@@ -35,7 +35,7 @@ public enum OpenDataUploadStatus
 {
     NotStarted,
     UploadingFile,
-    RecordCreated,        
+    RecordCreated,
     UploadCompleted,
     Failed
 }
@@ -55,7 +55,7 @@ public class SharedDataFile
     public bool IsOpenDataRequest_FLAG { get; set; } = false;
 
     public string Filename_TXT { get; set; }
-        
+
     public string FolderPath_TXT { get; set; }
     public string ProjectCode_CD { get; set; }
     public bool IsProjectBased => !string.IsNullOrEmpty(ProjectCode_CD);
@@ -63,7 +63,7 @@ public class SharedDataFile
     [Required]
     [StringLength(200)]
     public string RequestingUser_ID { get; set; }
-        
+
     [StringLength(200)]
     public string ApprovingUser_ID { get; set; }
 
@@ -126,7 +126,7 @@ public class SharedDataFile
 }
 
 [Table("OpenDataSharedFile")]
-public class OpenDataSharedFile: SharedDataFile
+public class OpenDataSharedFile : SharedDataFile
 {
     public int? ApprovalForm_ID { get; set; }
     public string SignedApprovalForm_URL { get; set; }

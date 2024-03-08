@@ -192,7 +192,8 @@ public class WikiService : IWikiService
 
         var rootSidebar = await LoadSidebar();
         var rootLinks = GetListedLinks(rootSidebar);
-        if (rootLinks != null) {
+        if (rootLinks != null)
+        {
             var enLink = rootLinks[0];
             var frLink = rootLinks[1];
 
@@ -200,9 +201,11 @@ public class WikiService : IWikiService
             FrenchLanguageRoot = await PopulateResourceLanguageRoot(frLink);
 
             await AddErrorMessage("Finished loading resources");
-        } else {
+        }
+        else
+        {
             _logger.LogWarning($"No data found for root sidebar {rootSidebar}");
-        }        
+        }
     }
 
     private static string BuildSidebarName(IList<string> folders = null)

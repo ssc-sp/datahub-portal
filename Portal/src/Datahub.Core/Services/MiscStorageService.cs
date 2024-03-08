@@ -18,9 +18,8 @@ public class MiscStorageService : IMiscStorageService
 
     public MiscStorageService(
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        ILogger<MiscStorageService> logger, 
-        IDatahubAuditingService auditingService
-    )
+        ILogger<MiscStorageService> logger,
+        IDatahubAuditingService auditingService)
     {
         _dbContextFactory = dbContextFactory;
         _logger = logger;

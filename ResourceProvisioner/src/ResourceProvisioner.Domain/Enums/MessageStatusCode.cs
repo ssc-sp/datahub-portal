@@ -5,8 +5,8 @@ namespace ResourceProvisioner.Domain.Enums;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum MessageStatusCode
 {
-    Success,
-    Error,
-    NoChangesDetected,
-    Partial
+	Success,
+	Error,
+	NoChangesDetected,
+	Partial
 }

@@ -21,28 +21,28 @@ namespace Datahub.Infrastructure;
 
 public static class ConfigureServices
 {
-    public static IServiceCollection AddDatahubInfrastructureServices(this IServiceCollection services,
-        IConfiguration configuration)
-    {
-        //services.AddMediatR(typeof(QueueMessageSender<>)); v11 mediatr code
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
-        services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
-        services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
-        services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
-        services.AddScoped<CloudStorageManagerFactory>();
-        services.AddSingleton<IResourceMessagingService, ResourceMessagingService>();
-        services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
-        services.AddScoped<IAnnouncementService, AnnouncementService>();
-        services.AddScoped<IDatahubEmailService, DatahubEmailService>();
-        services.AddScoped<IDatabricksApiService, DatabricksApiService>();
-        services.AddScoped<IUsersStatusService,UsersStatusService>();
-        services.AddSingleton<IDatahubCatalogSearch, DatahubCatalogSearch>();
+	public static IServiceCollection AddDatahubInfrastructureServices(this IServiceCollection services,
+		IConfiguration configuration)
+	{
+		//services.AddMediatR(typeof(QueueMessageSender<>)); v11 mediatr code
+		services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
+		services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
+		services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
+		services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
+		services.AddScoped<CloudStorageManagerFactory>();
+		services.AddSingleton<IResourceMessagingService, ResourceMessagingService>();
+		services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
+		services.AddScoped<IAnnouncementService, AnnouncementService>();
+		services.AddScoped<IDatahubEmailService, DatahubEmailService>();
+		services.AddScoped<IDatabricksApiService, DatabricksApiService>();
+		services.AddScoped<IUsersStatusService, UsersStatusService>();
+		services.AddSingleton<IDatahubCatalogSearch, DatahubCatalogSearch>();
 
-        if (configuration.GetValue<bool>("ReverseProxy:Enabled"))
-        {
-            services.AddTransient<IReverseProxyConfigService, ReverseProxyConfigService>();
-            services.AddSingleton<IProxyConfigProvider, ProxyConfigProvider>();
-        }
-        return services;
-    }
+		if (configuration.GetValue<bool>("ReverseProxy:Enabled"))
+		{
+			services.AddTransient<IReverseProxyConfigService, ReverseProxyConfigService>();
+			services.AddSingleton<IProxyConfigProvider, ProxyConfigProvider>();
+		}
+		return services;
+	}
 }

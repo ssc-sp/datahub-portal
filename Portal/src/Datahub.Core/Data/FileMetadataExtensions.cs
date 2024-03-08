@@ -13,7 +13,7 @@ public static class FileMetaDataExtensions
     {
         if (metadata?.Count > 0)
         {
-            foreach(string propertyName in fileMetadata.GetMetadataProperties().Where(p => !string.IsNullOrWhiteSpace(p.key)).Select( p => p.key))
+            foreach (string propertyName in fileMetadata.GetMetadataProperties().Where(p => !string.IsNullOrWhiteSpace(p.key)).Select(p => p.key))
             {
                 if (metadata.ContainsKey(propertyName))
                 {
@@ -76,7 +76,7 @@ public static class FileMetaDataExtensions
         return total;
     }
 
-        
+
     private static Type fileType = typeof(FileMetaData);
 
     public static string GetMetadataPropertyValue(this FileMetaData fileMetadata, string propertyName)
@@ -109,7 +109,7 @@ public static class FileMetaDataExtensions
 
         return metadata;
     }
-        
+
     public static List<(string key, bool inSearch, bool isVisible)> GetMetadataProperties(this FileMetaData fileMetadata)
     {
         return new List<(string key, bool inSearch, bool isVisible)>
@@ -147,7 +147,7 @@ public static class FileMetaDataExtensions
     {
         if (!string.IsNullOrWhiteSpace(id))
         {
-            return Regex.Replace(id, @"[^a-zA-Z0-9]", "");
+            return Regex.Replace(id, @"[^a-zA-Z0-9]", string.Empty);
         }
 
         return string.Empty;

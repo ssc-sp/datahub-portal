@@ -8,13 +8,13 @@ namespace Datahub.M365Forms;
 
 public class M365FormsModule : IDatahubModule
 {
-    public void ConfigureDatabases(IServiceCollection serviceProvider, IConfiguration configuration)
-    {
-        serviceProvider.ConfigureDbContext<M365FormsDBContext>(configuration, "datahub_mssql_m365forms", configuration.GetDriver());
-    }
+	public void ConfigureDatabases(IServiceCollection serviceProvider, IConfiguration configuration)
+	{
+		serviceProvider.ConfigureDbContext<M365FormsDBContext>(configuration, "datahub_mssql_m365forms", configuration.GetDriver());
+	}
 
-    public void InitializeDatabases(DatahubModuleContext ctx, IConfiguration configuration)
-    {
-        ctx.InitializeDatabase<M365FormsDBContext>(configuration); 
-    }
+	public void InitializeDatabases(DatahubModuleContext ctx, IConfiguration configuration)
+	{
+		ctx.InitializeDatabase<M365FormsDBContext>(configuration);
+	}
 }

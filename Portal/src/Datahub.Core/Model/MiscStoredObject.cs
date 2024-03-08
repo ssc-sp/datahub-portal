@@ -10,7 +10,7 @@ public class MiscStoredObject
 
     public string Id { get; set; }
     public string TypeName { get; set; }
-        
+
     [Required]
     public string JsonContent { get; set; }
 }

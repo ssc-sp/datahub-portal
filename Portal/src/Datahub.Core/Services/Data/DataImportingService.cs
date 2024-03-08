@@ -45,7 +45,7 @@ public class DataImportingService
                             || propertyType == typeof(double?)
                             || propertyType == typeof(double))
                         {
-                            arrayValue = arrayValue.Replace(",", "");
+                            arrayValue = arrayValue.Replace(",", string.Empty);
                             if (propertyType == typeof(double) || propertyType == typeof(double?))
                             {
                                 double outValue;

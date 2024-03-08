@@ -17,197 +17,197 @@ namespace Datahub.Portal.Services.Api;
 /// </summary>
 public class DataUpdatingService : BaseService
 {
-    private readonly ILogger<DataUpdatingService> _logger;
-    private readonly IHttpClientFactory _httpClient;
-    private readonly IUserInformationService _userInformationService;
-    private readonly DataLakeClientService _dataLakeClientService;
-    private readonly DataRetrievalService _dataRetrievalService;
+	private readonly ILogger<DataUpdatingService> _logger;
+	private readonly IHttpClientFactory _httpClient;
+	private readonly IUserInformationService _userInformationService;
+	private readonly DataLakeClientService _dataLakeClientService;
+	private readonly DataRetrievalService _dataRetrievalService;
 
-    public DataUpdatingService(ILogger<DataUpdatingService> logger,
-        IHttpClientFactory clientFactory,
-        IUserInformationService userInformationService,
-        DataLakeClientService dataLakeClientService,
-        DataRetrievalService dataRetrievalService,
-        NavigationManager navigationManager)
-        : base(navigationManager)
-    {
-        _logger = logger;
-        _httpClient = clientFactory;
-        _userInformationService = userInformationService;
-        _dataLakeClientService = dataLakeClientService;
-        _dataRetrievalService = dataRetrievalService;
-    }
+	public DataUpdatingService(ILogger<DataUpdatingService> logger,
+		IHttpClientFactory clientFactory,
+		IUserInformationService userInformationService,
+		DataLakeClientService dataLakeClientService,
+		DataRetrievalService dataRetrievalService,
+		NavigationManager navigationManager)
+		: base(navigationManager)
+	{
+		_logger = logger;
+		_httpClient = clientFactory;
+		_userInformationService = userInformationService;
+		_dataLakeClientService = dataLakeClientService;
+		_dataRetrievalService = dataRetrievalService;
+	}
 
-    public async Task<bool> RenameFolder(Folder folder, string newFolderName, Microsoft.Graph.Models.User currentUser)
-    {
-        try
-        {
-            // Rename this folder
-            var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
-            var directoryClient = fileSystemClient.GetDirectoryClient(folder.fullPathFromRoot);
-            var respsonse = await directoryClient.RenameAsync($"{folder.parent.fullPathFromRoot}/{newFolderName}");
+	public async Task<bool> RenameFolder(Folder folder, string newFolderName, Microsoft.Graph.Models.User currentUser)
+	{
+		try
+		{
+			// Rename this folder
+			var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
+			var directoryClient = fileSystemClient.GetDirectoryClient(folder.fullPathFromRoot);
+			var respsonse = await directoryClient.RenameAsync($"{folder.parent.fullPathFromRoot}/{newFolderName}");
 
-            folder.name = newFolderName;
-            folder.id = newFolderName;
+			folder.name = newFolderName;
+			folder.id = newFolderName;
 
-            // Because we may have files in this or sub folders of this folder
-            // We need to update their folderpaths...
-            //folder = await myDataService.GetFolderStructure(folder, currentUser, false);
+			// Because we may have files in this or sub folders of this folder
+			// We need to update their folderpaths...
+			//folder = await myDataService.GetFolderStructure(folder, currentUser, false);
 
-            await UpdateFilesWithNewFolderPath(fileSystemClient, folder, currentUser);
+			await UpdateFilesWithNewFolderPath(fileSystemClient, folder, currentUser);
 
-            _logger.LogDebug($"Renamed folder: {folder.fullPathFromRoot} to {folder.parent.fullPathFromRoot}/{newFolderName} for user: {currentUser.DisplayName} SUCCEEDED.");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Renamed folder: {folder.fullPathFromRoot} to {folder.parent.fullPathFromRoot}/{newFolderName} for user: {currentUser.DisplayName} FAILED.");
-            throw;
-        }
-    }
-        
-    public async Task RenameStorageBlob(string oldName, string newName, string projectAcronym, string containerName)
-    {
-        var connectionString = await _dataRetrievalService.GetProjectConnectionString(projectAcronym.ToLower());
-        var container = CloudStorageAccount.Parse(connectionString)
-            .CreateCloudBlobClient()
-            .GetContainerReference(containerName);
+			_logger.LogDebug($"Renamed folder: {folder.fullPathFromRoot} to {folder.parent.fullPathFromRoot}/{newFolderName} for user: {currentUser.DisplayName} SUCCEEDED.");
+			return true;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, $"Renamed folder: {folder.fullPathFromRoot} to {folder.parent.fullPathFromRoot}/{newFolderName} for user: {currentUser.DisplayName} FAILED.");
+			throw;
+		}
+	}
 
-        var source = (CloudBlockBlob) await container.GetBlobReferenceFromServerAsync(oldName);
-        var target = container.GetBlockBlobReference(newName);
+	public async Task RenameStorageBlob(string oldName, string newName, string projectAcronym, string containerName)
+	{
+		var connectionString = await _dataRetrievalService.GetProjectConnectionString(projectAcronym.ToLower());
+		var container = CloudStorageAccount.Parse(connectionString)
+			.CreateCloudBlobClient()
+			.GetContainerReference(containerName);
 
-        if (source is null)
-        {
-            throw new Exception($"Could not find blob: {oldName}");
-        }
-            
-        await target.StartCopyAsync(source);
+		var source = (CloudBlockBlob)await container.GetBlobReferenceFromServerAsync(oldName);
+		var target = container.GetBlockBlobReference(newName);
 
-        while (target.CopyState.Status == CopyStatus.Pending)
-            await Task.Delay(100);
+		if (source is null)
+		{
+			throw new Exception($"Could not find blob: {oldName}");
+		}
 
-        if (target.CopyState.Status != CopyStatus.Success)
-            throw new Exception("Rename failed: " + target.CopyState.Status);
+		await target.StartCopyAsync(source);
 
-        await source.DeleteAsync();
-    }
+		while (target.CopyState.Status == CopyStatus.Pending)
+			await Task.Delay(100);
 
-    public async Task<bool> RenameFile(FileMetaData file, string newFileName, Microsoft.Graph.Models.User currentUser)
-    {
-        var oldFile = $"{file.folderpath}/{file.filename}";
-        try
-        {
-            // Same folder, new file name
-            return await RenameDataLakeFile(file, file.folderpath, newFileName, currentUser);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Rename file from: {oldFile} to: {file.folderpath}/{newFileName} User: {currentUser.DisplayName} FAILED.");
-            throw;
-        }
-    }
+		if (target.CopyState.Status != CopyStatus.Success)
+			throw new Exception("Rename failed: " + target.CopyState.Status);
 
-    public async Task<bool> MoveFile(FileMetaData file, string newParentFolder, Microsoft.Graph.Models.User currentUser)
-    {
-        var oldFile = $"{file.folderpath}/{file.filename}";
-        try
-        {
-            // new folder path, same filename
-            return await RenameDataLakeFile(file, newParentFolder, file.filename, currentUser);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Move file from: {oldFile} to: {newParentFolder}/{file.filename} User: {currentUser.DisplayName} FAILED.");
-            throw;
-        }
-    }
+		await source.DeleteAsync();
+	}
 
-    protected async Task UpdateFilesWithNewFolderPath(DataLakeFileSystemClient fileSystemClient, Folder folder, Microsoft.Graph.Models.User currentUser)
-    {
-        if (folder != null)
-        {
-            try
-            {
-                var directoryClient = fileSystemClient.GetDirectoryClient(folder.fullPathFromRoot);
+	public async Task<bool> RenameFile(FileMetaData file, string newFileName, Microsoft.Graph.Models.User currentUser)
+	{
+		var oldFile = $"{file.folderpath}/{file.filename}";
+		try
+		{
+			// Same folder, new file name
+			return await RenameDataLakeFile(file, file.folderpath, newFileName, currentUser);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, $"Rename file from: {oldFile} to: {file.folderpath}/{newFileName} User: {currentUser.DisplayName} FAILED.");
+			throw;
+		}
+	}
 
-                // Iterate thru files and alter folderpath to crrect values
-                foreach (var file in folder.AllFiles)
-                {
-                    var fileClient = directoryClient.GetFileClient(file.filename);
-                    UpdateFileFolderPath(fileClient, file, currentUser);
-                }
+	public async Task<bool> MoveFile(FileMetaData file, string newParentFolder, Microsoft.Graph.Models.User currentUser)
+	{
+		var oldFile = $"{file.folderpath}/{file.filename}";
+		try
+		{
+			// new folder path, same filename
+			return await RenameDataLakeFile(file, newParentFolder, file.filename, currentUser);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, $"Move file from: {oldFile} to: {newParentFolder}/{file.filename} User: {currentUser.DisplayName} FAILED.");
+			throw;
+		}
+	}
 
-                // Iterate down sub folders
-                foreach (Folder subFolder in folder.SubFolders)
-                {
-                    await UpdateFilesWithNewFolderPath(fileSystemClient, subFolder, currentUser);
-                }
+	protected async Task UpdateFilesWithNewFolderPath(DataLakeFileSystemClient fileSystemClient, Folder folder, Microsoft.Graph.Models.User currentUser)
+	{
+		if (folder != null)
+		{
+			try
+			{
+				var directoryClient = fileSystemClient.GetDirectoryClient(folder.fullPathFromRoot);
 
-                _logger.LogDebug($"UpdateFilesWithNewFolderPath folder: {folder.fullPathFromRoot} for user: {currentUser.DisplayName} SUCCEEDED.");
-            }
-            catch (Exception ex)
-            {
-                // We eat thhis exception, possible other folders/files will succeed!
-                _logger.LogError(ex, $"UpdateFilesWithNewFolderPath folder: {folder.fullPathFromRoot} for user: {currentUser.DisplayName} FAILED.");
-            }
-        }
-    }
+				// Iterate thru files and alter folderpath to crrect values
+				foreach (var file in folder.AllFiles)
+				{
+					var fileClient = directoryClient.GetFileClient(file.filename);
+					UpdateFileFolderPath(fileClient, file, currentUser);
+				}
 
-    private void UpdateFileFolderPath(DataLakeFileClient fileClient, FileMetaData file, Microsoft.Graph.Models.User currentUser)
-    {
-        var oldFolderpath = file.folderpath;
+				// Iterate down sub folders
+				foreach (Folder subFolder in folder.SubFolders)
+				{
+					await UpdateFilesWithNewFolderPath(fileSystemClient, subFolder, currentUser);
+				}
 
-        try
-        {
-            file.lastmodifiedts = DateTime.UtcNow;
-            file.lastmodifiedby = currentUser.Id;
-            file.folderpath = file.parent.fullPathFromRoot;
+				_logger.LogDebug($"UpdateFilesWithNewFolderPath folder: {folder.fullPathFromRoot} for user: {currentUser.DisplayName} SUCCEEDED.");
+			}
+			catch (Exception ex)
+			{
+				// We eat thhis exception, possible other folders/files will succeed!
+				_logger.LogError(ex, $"UpdateFilesWithNewFolderPath folder: {folder.fullPathFromRoot} for user: {currentUser.DisplayName} FAILED.");
+			}
+		}
+	}
 
-            fileClient.SetMetadata(file.GenerateMetadata());
+	private void UpdateFileFolderPath(DataLakeFileClient fileClient, FileMetaData file, Microsoft.Graph.Models.User currentUser)
+	{
+		var oldFolderpath = file.folderpath;
 
-            //await _cognitiveSearchService.EditDocument(file);
+		try
+		{
+			file.lastmodifiedts = DateTime.UtcNow;
+			file.lastmodifiedby = currentUser.Id;
+			file.folderpath = file.parent.fullPathFromRoot;
 
-            _logger.LogDebug($"File's parent folder path changed from: {oldFolderpath} to: {file.parent.fullPathFromRoot} User: {currentUser.DisplayName} SUCCEEDED.");
-        }
-        catch (Exception ex)
-        {
-            // We eat thhis exception, possible other files will succeed!
-            _logger.LogError(ex, $"File's parent folder path changed from: {oldFolderpath} to: {file.parent.fullPathFromRoot} User: {currentUser.DisplayName} FAILED.");
-        }
-    }
+			fileClient.SetMetadata(file.GenerateMetadata());
 
-    protected async Task<bool> RenameDataLakeFile(FileMetaData file, string newFolderPath, string newFileName, Microsoft.Graph.Models.User currentUser)
-    {
-        try
-        {
-            // Get the original file!
-            var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
-            var directoryClient = fileSystemClient.GetDirectoryClient(file.folderpath);
-            var fileClient = directoryClient.GetFileClient(file.filename);
+			//await _cognitiveSearchService.EditDocument(file);
 
-            var response = await fileClient.RenameAsync($"{newFolderPath}/{newFileName}");
-            if (response.Value != null)
-            {
-                _logger.LogDebug($"Renamed file from: {file.folderpath}/{file.filename} to: {newFolderPath}/{newFileName} User: {currentUser.DisplayName} SUCCEEDED.");
+			_logger.LogDebug($"File's parent folder path changed from: {oldFolderpath} to: {file.parent.fullPathFromRoot} User: {currentUser.DisplayName} SUCCEEDED.");
+		}
+		catch (Exception ex)
+		{
+			// We eat thhis exception, possible other files will succeed!
+			_logger.LogError(ex, $"File's parent folder path changed from: {oldFolderpath} to: {file.parent.fullPathFromRoot} User: {currentUser.DisplayName} FAILED.");
+		}
+	}
 
-                // File renamed update our metadata
-                file.folderpath = newFolderPath;
-                file.filename = newFileName;
-                file.lastmodifiedts = DateTime.UtcNow;
-                file.lastmodifiedby = currentUser.Id;
-                response.Value.SetMetadata(file.GenerateMetadata());
+	protected async Task<bool> RenameDataLakeFile(FileMetaData file, string newFolderPath, string newFileName, Microsoft.Graph.Models.User currentUser)
+	{
+		try
+		{
+			// Get the original file!
+			var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
+			var directoryClient = fileSystemClient.GetDirectoryClient(file.folderpath);
+			var fileClient = directoryClient.GetFileClient(file.filename);
 
-                //await _cognitiveSearchService.EditDocument(file);
-            }
+			var response = await fileClient.RenameAsync($"{newFolderPath}/{newFileName}");
+			if (response.Value != null)
+			{
+				_logger.LogDebug($"Renamed file from: {file.folderpath}/{file.filename} to: {newFolderPath}/{newFileName} User: {currentUser.DisplayName} SUCCEEDED.");
 
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Renamed file from: {file.folderpath}/{file.filename} to: {newFolderPath}/{newFileName} User: {currentUser.DisplayName} FAILED.");
-            throw;
-        }
-    }
+				// File renamed update our metadata
+				file.folderpath = newFolderPath;
+				file.filename = newFileName;
+				file.lastmodifiedts = DateTime.UtcNow;
+				file.lastmodifiedby = currentUser.Id;
+				response.Value.SetMetadata(file.GenerateMetadata());
 
-        
+				//await _cognitiveSearchService.EditDocument(file);
+			}
+
+			return true;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, $"Renamed file from: {file.folderpath}/{file.filename} to: {newFolderPath}/{newFileName} User: {currentUser.DisplayName} FAILED.");
+			throw;
+		}
+	}
+
+
 }

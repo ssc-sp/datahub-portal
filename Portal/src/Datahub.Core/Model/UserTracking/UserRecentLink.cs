@@ -6,7 +6,7 @@ using Datahub.Core.Model.Projects;
 namespace Datahub.Core.Model.UserTracking;
 
 public record UserRecentLink
-{ 
+{
     public int Id { get; set; }
 
     public DatahubLinkType LinkType { get; set; }
@@ -28,16 +28,16 @@ public record UserRecentLink
 
     public string PBIWorkspaceId { get; set; }
 
-    public DateTimeOffset accessedTime{ get; set; }
-    
+    public DateTimeOffset accessedTime { get; set; }
+
     public string ExternalUrl { get; set; }
-    
+
     public string ResourceArticleId { get; set; }
-    
+
     public string ResourceArticleTitle { get; set; }
-        
+
     public PortalUser User { get; set; }
-        
+
     public int UserId { get; set; }
 
 

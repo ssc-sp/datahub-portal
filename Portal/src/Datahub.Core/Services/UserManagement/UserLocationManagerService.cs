@@ -35,7 +35,7 @@ public class UserLocationManagerService
 
             //remove existing entry for the same LinkType and DataProject if it exists
             var existingEntity = await efCoreDatahubContext.UserRecentLinks
-                .FirstOrDefaultAsync(l => l.UserId == user.Id && l.LinkType == link.LinkType && 
+                .FirstOrDefaultAsync(l => l.UserId == user.Id && l.LinkType == link.LinkType &&
                     (l.LinkType == DatahubLinkType.DataProject || l.DataProject == link.DataProject));
 
             // if the link is new, we need to add it to the database
@@ -95,7 +95,7 @@ public class UserLocationManagerService
     {
         await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
 
-        var allowedLinks = new HashSet<DatahubLinkType>() 
+        var allowedLinks = new HashSet<DatahubLinkType>()
         {
             DatahubLinkType.DataProject,
             DatahubLinkType.Storage,

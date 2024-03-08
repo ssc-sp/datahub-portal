@@ -4,45 +4,45 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Portal.Migrations.Forms.PIP
 {
-    public partial class RemoveFKSagain : Migration
-    {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "FiscalYearId",
-                table: "Tombstones");
+	public partial class RemoveFKSagain : Migration
+	{
+		protected override void Up(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.DropColumn(
+				name: "FiscalYearId",
+				table: "Tombstones");
 
-            migrationBuilder.DropColumn(
-                name: "FiscalYearId",
-                table: "Risks");
+			migrationBuilder.DropColumn(
+				name: "FiscalYearId",
+				table: "Risks");
 
-            migrationBuilder.DropColumn(
-                name: "FiscalYearId",
-                table: "IndicatorAndResults");
-        }
+			migrationBuilder.DropColumn(
+				name: "FiscalYearId",
+				table: "IndicatorAndResults");
+		}
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<int>(
-                name: "FiscalYearId",
-                table: "Tombstones",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
+		protected override void Down(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.AddColumn<int>(
+				name: "FiscalYearId",
+				table: "Tombstones",
+				type: "int",
+				nullable: false,
+				defaultValue: 0);
 
-            migrationBuilder.AddColumn<int>(
-                name: "FiscalYearId",
-                table: "Risks",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
+			migrationBuilder.AddColumn<int>(
+				name: "FiscalYearId",
+				table: "Risks",
+				type: "int",
+				nullable: false,
+				defaultValue: 0);
 
-            migrationBuilder.AddColumn<int>(
-                name: "FiscalYearId",
-                table: "IndicatorAndResults",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
-        }
-    }
+			migrationBuilder.AddColumn<int>(
+				name: "FiscalYearId",
+				table: "IndicatorAndResults",
+				type: "int",
+				nullable: false,
+				defaultValue: 0);
+		}
+	}
 }

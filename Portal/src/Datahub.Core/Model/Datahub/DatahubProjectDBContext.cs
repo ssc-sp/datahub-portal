@@ -38,7 +38,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<Datahub_Project_User_Request> Project_Users_Requests { get; set; }
     public DbSet<Datahub_Project_Pipeline_Lnk> Project_Pipeline_Links { get; set; }
     public DbSet<Organization_Level> Organization_Levels { get; set; }
-    public DbSet<OnboardingApp> OnboardingApps {  get; set; }
+    public DbSet<OnboardingApp> OnboardingApps { get; set; }
 
     public DbSet<Project_Resources2> Project_Resources2 { get; set; }
 
@@ -66,40 +66,40 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<ExternalPowerBiReport> ExternalPowerBiReports { get; set; }
 
     public DbSet<Client_Engagement> Client_Engagements { get; set; }
-        
+
     public DbSet<Achievements.Achievement> Achievements { get; set; }
     public DbSet<Achievements.PortalUser> PortalUsers { get; set; }
     public DbSet<Achievements.UserAchievement> UserAchievements { get; set; }
     public DbSet<Achievements.TelemetryEvent> TelemetryEvents { get; set; }
-    
+
     public DbSet<UserTracking.UserSettings> UserSettings { get; set; }
 
     public DbSet<UserTracking.UserRecentLink> UserRecentLinks { get; set; }
 
     public DbSet<Announcement> Announcements { get; set; }
-    
+
     public DbSet<ProjectRepository> ProjectRepositories { get; set; }
-    
+
     public DbSet<Project_Role> Project_Roles { get; set; }
 
     public DbSet<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
-    
+
     public DbSet<UserInactivityNotifications> UserInactivityNotifications { get; set; }
-    
+
     public DbSet<DocumentationResource> DocumentationResources { get; set; }
-    
+
     /// <summary>
     /// Table for storing any additional details when users go through the self registration process
     /// </summary>
     public DbSet<SelfRegistrationDetails> SelfRegistrationDetails { get; set; }
-    
+
     /// <summary>
     /// Table for storing any additional details when users go through the project creation process
     /// </summary>
     public DbSet<ProjectCreationDetails> ProjectCreationDetails { get; set; }
 
     /// <summary>
-    /// Cataloged objects 
+    /// Cataloged objects
     /// </summary>
     public DbSet<CatalogObject> CatalogObjects { get; set; }
 
@@ -156,10 +156,10 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             {
                 PortalUser = new PortalUser()
                 {
-                    GraphGuid = initialSetup.GetValue<string>("AdminGUID"), 
+                    GraphGuid = initialSetup.GetValue<string>("AdminGUID"),
                 },
                 Project = p1,
-                RoleId = (int) Project_Role.RoleNames.Admin
+                RoleId = (int)Project_Role.RoleNames.Admin
             });
             //var permissions = context.Project_Users_Requests.Add(new Datahub_)
         }
@@ -261,7 +261,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         modelBuilder.Entity<PublicDataFile>()
             .HasIndex(e => e.File_ID)
             .IsUnique();
-            
+
         modelBuilder.Entity<SharedDataFile>()
             .HasIndex(e => e.File_ID)
             .IsUnique();
@@ -271,11 +271,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
         modelBuilder.Entity<SpatialObjectShare>()
             .ToTable("SpatialObjectShares");
-            
+
         modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
-        
-        
+
+
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
             // SQLite does not have proper support for DateTimeOffset via Entity Framework Core, see the limitations

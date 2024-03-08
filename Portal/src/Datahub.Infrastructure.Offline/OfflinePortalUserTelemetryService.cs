@@ -5,18 +5,18 @@ namespace Datahub.Infrastructure.Offline;
 
 public class OfflinePortalUserTelemetryService : IPortalUserTelemetryService
 {
-    public event EventHandler<AchievementsEarnedEventArgs>? OnAchievementsEarned;
+	public event EventHandler<AchievementsEarnedEventArgs>? OnAchievementsEarned;
 
-    private readonly ILogger<OfflinePortalUserTelemetryService> _logger;
+	private readonly ILogger<OfflinePortalUserTelemetryService> _logger;
 
-    public OfflinePortalUserTelemetryService(ILogger<OfflinePortalUserTelemetryService> logger)
-    {
-        _logger = logger;
-    }
+	public OfflinePortalUserTelemetryService(ILogger<OfflinePortalUserTelemetryService> logger)
+	{
+		_logger = logger;
+	}
 
-    public Task LogTelemetryEvent(string eventName)
-    {
-        _logger.LogInformation("Logging Telemetry Event: {EventName}", eventName);
-        return Task.CompletedTask;
-    }
+	public Task LogTelemetryEvent(string eventName)
+	{
+		_logger.LogInformation("Logging Telemetry Event: {EventName}", eventName);
+		return Task.CompletedTask;
+	}
 }

@@ -27,59 +27,59 @@ namespace Datahub.Infrastructure.Offline;
 
 public static class ConfigureServices
 {
-        
-    public static IServiceCollection AddDatahubOfflineInfrastructureServices(this IServiceCollection services, DatahubPortalConfiguration? portalConfiguration = null)
-    {
-        portalConfiguration ??= new DatahubPortalConfiguration();
-        services.AddSingleton<CultureService>();
-        services.AddDatahubLocalization(portalConfiguration);
-        
-        services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
-        services.AddScoped<IDatahubAuditingService, OfflineDatahubTelemetryAuditingService>();
-        services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
-        services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
-        services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
-        services.AddScoped<IPortalUserTelemetryService, OfflinePortalUserTelemetryService>();
-        services.AddScoped<IUserInformationService, OfflineUserInformationService>();
-        services.AddSingleton<IDatahubCatalogSearch, OfflineDatahubCatalogSearch>();
-        services.AddScoped<IKeyVaultService, OfflineKeyVaultService>();
-        services.AddScoped<IProjectUserManagementService, OfflineProjectUserManagementService>();
-        services.AddScoped<IDatabricksApiService, OfflineDatabricksApiService>();
-        
-        services.AddBlazoredLocalStorage();
-        
-        
-        return services;
-    }
 
-    public static IServiceCollection AddDatahubLocalization(this IServiceCollection services, DatahubPortalConfiguration portalConfiguration)
-    {
-        var supportedCultures = new HashSet<CultureInfo>
-        {
-            new("en-CA"),
-            new("fr-CA")
-        };
+	public static IServiceCollection AddDatahubOfflineInfrastructureServices(this IServiceCollection services, DatahubPortalConfiguration? portalConfiguration = null)
+	{
+		portalConfiguration ??= new DatahubPortalConfiguration();
+		services.AddSingleton<CultureService>();
+		services.AddDatahubLocalization(portalConfiguration);
 
-        services.AddJsonLocalization(options =>
-        {
-            options.CacheDuration = TimeSpan.FromMinutes(15);
-            options.ResourcesPath = portalConfiguration.CultureSettings.ResourcesPath;
-            options.AdditionalResourcePaths = portalConfiguration.CultureSettings.AdditionalResourcePaths;
-            options.UseBaseName = false;
-            options.IsAbsolutePath = true;
-            options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
-            options.MissingTranslationLogBehavior = MissingTranslationLogBehavior.Ignore;
-            options.FileEncoding = Encoding.GetEncoding("UTF-8");
-            options.SupportedCultureInfos = supportedCultures;
-        });
+		services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
+		services.AddScoped<IDatahubAuditingService, OfflineDatahubTelemetryAuditingService>();
+		services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
+		services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
+		services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
+		services.AddScoped<IPortalUserTelemetryService, OfflinePortalUserTelemetryService>();
+		services.AddScoped<IUserInformationService, OfflineUserInformationService>();
+		services.AddSingleton<IDatahubCatalogSearch, OfflineDatahubCatalogSearch>();
+		services.AddScoped<IKeyVaultService, OfflineKeyVaultService>();
+		services.AddScoped<IProjectUserManagementService, OfflineProjectUserManagementService>();
+		services.AddScoped<IDatabricksApiService, OfflineDatabricksApiService>();
 
-        services.Configure<RequestLocalizationOptions>(options =>
-        {
-            options.DefaultRequestCulture = new RequestCulture(supportedCultures.First());
-            options.SupportedCultures = supportedCultures.ToList();
-            options.SupportedUICultures = supportedCultures.ToList();
-        });
+		services.AddBlazoredLocalStorage();
 
-        return services;
-    }
+
+		return services;
+	}
+
+	public static IServiceCollection AddDatahubLocalization(this IServiceCollection services, DatahubPortalConfiguration portalConfiguration)
+	{
+		var supportedCultures = new HashSet<CultureInfo>
+		{
+			new("en-CA"),
+			new("fr-CA")
+		};
+
+		services.AddJsonLocalization(options =>
+		{
+			options.CacheDuration = TimeSpan.FromMinutes(15);
+			options.ResourcesPath = portalConfiguration.CultureSettings.ResourcesPath;
+			options.AdditionalResourcePaths = portalConfiguration.CultureSettings.AdditionalResourcePaths;
+			options.UseBaseName = false;
+			options.IsAbsolutePath = true;
+			options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
+			options.MissingTranslationLogBehavior = MissingTranslationLogBehavior.Ignore;
+			options.FileEncoding = Encoding.GetEncoding("UTF-8");
+			options.SupportedCultureInfos = supportedCultures;
+		});
+
+		services.Configure<RequestLocalizationOptions>(options =>
+		{
+			options.DefaultRequestCulture = new RequestCulture(supportedCultures.First());
+			options.SupportedCultures = supportedCultures.ToList();
+			options.SupportedUICultures = supportedCultures.ToList();
+		});
+
+		return services;
+	}
 }

@@ -19,200 +19,200 @@ namespace Datahub.Infrastructure.Services;
 
 public class ProjectUserManagementService : IProjectUserManagementService
 {
-    private readonly IUserInformationService _userInformationService;
-    private readonly IMSGraphService _msGraphService;
-    private readonly IRequestManagementService _requestManagementService;
-    private readonly ILogger<ProjectUserManagementService> _logger;
-    private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
-    private readonly ServiceAuthManager _serviceAuthManager;
-    private readonly IUserEnrollmentService _userEnrollmentService;
-    private readonly IDatahubAuditingService _datahubAuditingService;
+	private readonly IUserInformationService _userInformationService;
+	private readonly IMSGraphService _msGraphService;
+	private readonly IRequestManagementService _requestManagementService;
+	private readonly ILogger<ProjectUserManagementService> _logger;
+	private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
+	private readonly ServiceAuthManager _serviceAuthManager;
+	private readonly IUserEnrollmentService _userEnrollmentService;
+	private readonly IDatahubAuditingService _datahubAuditingService;
 
-    public ProjectUserManagementService(
-        ILogger<ProjectUserManagementService> logger,
-        IDbContextFactory<DatahubProjectDBContext> contextFactory,
-        IUserInformationService userInformationService,
-        IMSGraphService msGraphService,
-        IRequestManagementService requestManagementService,
-        ServiceAuthManager serviceAuthManager,
-        IUserEnrollmentService userEnrollmentService,
-        IDatahubAuditingService datahubAuditingService)
-    {
-        _serviceAuthManager = serviceAuthManager;
-        _userInformationService = userInformationService;
-        _msGraphService = msGraphService;
-        _requestManagementService = requestManagementService;
-        _logger = logger;
-        _contextFactory = contextFactory;
-        _userEnrollmentService = userEnrollmentService;
-        _datahubAuditingService = datahubAuditingService;
-    }
+	public ProjectUserManagementService(
+		ILogger<ProjectUserManagementService> logger,
+		IDbContextFactory<DatahubProjectDBContext> contextFactory,
+		IUserInformationService userInformationService,
+		IMSGraphService msGraphService,
+		IRequestManagementService requestManagementService,
+		ServiceAuthManager serviceAuthManager,
+		IUserEnrollmentService userEnrollmentService,
+		IDatahubAuditingService datahubAuditingService)
+	{
+		_serviceAuthManager = serviceAuthManager;
+		_userInformationService = userInformationService;
+		_msGraphService = msGraphService;
+		_requestManagementService = requestManagementService;
+		_logger = logger;
+		_contextFactory = contextFactory;
+		_userEnrollmentService = userEnrollmentService;
+		_datahubAuditingService = datahubAuditingService;
+	}
 
-    public async Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands,
-        List<ProjectUserAddUserCommand> projectUserAddUserCommands, string requesterUserId)
-    {
-        // if there are no commands, return true
-        if (!projectUserUpdateCommands.Any() && !projectUserAddUserCommands.Any())
-        {
-            return true;
-        }
+	public async Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands,
+		List<ProjectUserAddUserCommand> projectUserAddUserCommands, string requesterUserId)
+	{
+		// if there are no commands, return true
+		if (!projectUserUpdateCommands.Any() && !projectUserAddUserCommands.Any())
+		{
+			return true;
+		}
 
-        try
-        {
-            if (projectUserAddUserCommands.Any())
-            {
-                await AddNewUsersToProjectAsync(projectUserAddUserCommands);
-            }
+		try
+		{
+			if (projectUserAddUserCommands.Any())
+			{
+				await AddNewUsersToProjectAsync(projectUserAddUserCommands);
+			}
 
-            if (projectUserUpdateCommands.Any())
-            {
-                await UpdateProjectUsersAsync(projectUserUpdateCommands);
-            }
+			if (projectUserUpdateCommands.Any())
+			{
+				await UpdateProjectUsersAsync(projectUserUpdateCommands);
+			}
 
-            await PropagateUserUpdatesToExternalPermissions(projectUserUpdateCommands, projectUserAddUserCommands, requesterUserId);
-            return true;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error updating project users");
-            return false;
-        }
-    }
+			await PropagateUserUpdatesToExternalPermissions(projectUserUpdateCommands, projectUserAddUserCommands, requesterUserId);
+			return true;
+		}
+		catch (Exception e)
+		{
+			_logger.LogError(e, "Error updating project users");
+			return false;
+		}
+	}
 
-    private async Task PropagateUserUpdatesToExternalPermissions(IEnumerable<ProjectUserUpdateCommand> projectUserUpdateCommands,
-        IEnumerable<ProjectUserAddUserCommand> projectUserAddUserCommands, string requesterUserId)
-    {
-        // get all the distinct projects that have been modified
-        var projectAcronyms = projectUserUpdateCommands
-            .Select(p => p.ProjectUser.Project.Project_Acronym_CD)
-            .Distinct()
-            .Union(projectUserAddUserCommands
-                .Select(p => p.ProjectAcronym)
-                .Distinct())
-            .ToList();
-        
-        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+	private async Task PropagateUserUpdatesToExternalPermissions(IEnumerable<ProjectUserUpdateCommand> projectUserUpdateCommands,
+		IEnumerable<ProjectUserAddUserCommand> projectUserAddUserCommands, string requesterUserId)
+	{
+		// get all the distinct projects that have been modified
+		var projectAcronyms = projectUserUpdateCommands
+			.Select(p => p.ProjectUser.Project.Project_Acronym_CD)
+			.Distinct()
+			.Union(projectUserAddUserCommands
+				.Select(p => p.ProjectAcronym)
+				.Distinct())
+			.ToList();
 
-        // update each project
-        foreach (var projectAcronym in projectAcronyms)
-        {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-            
-            var project = await context.Projects
-                .Include(p => p.Users)
-                .ThenInclude(u => u.PortalUser)
-                .FirstAsync(p => p.Project_Acronym_CD == projectAcronym);
-            
-            project.Last_Updated_DT = DateTime.Now;
-            project.Last_Updated_UserId = requesterUserId;
-            context.Projects.Update(project);
-            await context.SaveChangesAsync();
+		var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
-            await _requestManagementService.HandleUserUpdatesToExternalPermissions(project, currentUser);
-        }
-    }
+		// update each project
+		foreach (var projectAcronym in projectAcronyms)
+		{
+			await using var context = await _contextFactory.CreateDbContextAsync();
 
-    private async Task UpdateProjectUsersAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands)
-    {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        foreach (var projectUserUpdateCommand in projectUserUpdateCommands)
-        {
-            var userToUpdate = await context.Project_Users
-                .FirstOrDefaultAsync(pu => pu.ProjectUser_ID == projectUserUpdateCommand.ProjectUser.ProjectUser_ID);
+			var project = await context.Projects
+				.Include(p => p.Users)
+				.ThenInclude(u => u.PortalUser)
+				.FirstAsync(p => p.Project_Acronym_CD == projectAcronym);
 
-            if (userToUpdate == null)
-            {
-                throw new InvalidOperationException("Cannot update a user that is not already a member of the project");
-            }
+			project.Last_Updated_DT = DateTime.Now;
+			project.Last_Updated_UserId = requesterUserId;
+			context.Projects.Update(project);
+			await context.SaveChangesAsync();
 
-            //if (projectUserUpdateCommand.NewRoleId == (int)Project_Role.RoleNames.Remove)
-            //{
-            //    context.Project_Users.Remove(userToUpdate);
-            //}
-            //else
-            //{
-                userToUpdate.RoleId = projectUserUpdateCommand.NewRoleId;
-                context.Update(userToUpdate);
-            //}
-        }
+			await _requestManagementService.HandleUserUpdatesToExternalPermissions(project, currentUser);
+		}
+	}
 
-        await context.TrackSaveChangesAsync(_datahubAuditingService);
-    }
+	private async Task UpdateProjectUsersAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands)
+	{
+		await using var context = await _contextFactory.CreateDbContextAsync();
+		foreach (var projectUserUpdateCommand in projectUserUpdateCommands)
+		{
+			var userToUpdate = await context.Project_Users
+				.FirstOrDefaultAsync(pu => pu.ProjectUser_ID == projectUserUpdateCommand.ProjectUser.ProjectUser_ID);
 
-    private async Task AddNewUsersToProjectAsync(List<ProjectUserAddUserCommand> projectUserAddUserCommands)
-    {
-        foreach (var projectUserAddUserCommand in projectUserAddUserCommands)
-        {
-            if (projectUserAddUserCommand.RoleId == (int)Project_Role.RoleNames.Remove)
-            {
-                throw new InvalidOperationException("Cannot remove a user that is not already a member of the project");
-            }
+			if (userToUpdate == null)
+			{
+				throw new InvalidOperationException("Cannot update a user that is not already a member of the project");
+			}
 
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+			//if (projectUserUpdateCommand.NewRoleId == (int)Project_Role.RoleNames.Remove)
+			//{
+			//    context.Project_Users.Remove(userToUpdate);
+			//}
+			//else
+			//{
+			userToUpdate.RoleId = projectUserUpdateCommand.NewRoleId;
+			context.Update(userToUpdate);
+			//}
+		}
 
-            if (projectUserAddUserCommand.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID)
-            {
-                projectUserAddUserCommand.GraphGuid =
-                    await _userEnrollmentService.SendUserDatahubPortalInvite(projectUserAddUserCommand.Email,
-                        currentUser.DisplayName);
-                await _userInformationService.CreatePortalUserAsync(projectUserAddUserCommand.GraphGuid);
-            }
+		await context.TrackSaveChangesAsync(_datahubAuditingService);
+	}
 
-            var portalUser = await _userInformationService.GetPortalUserAsync(projectUserAddUserCommand.GraphGuid);
+	private async Task AddNewUsersToProjectAsync(List<ProjectUserAddUserCommand> projectUserAddUserCommands)
+	{
+		foreach (var projectUserAddUserCommand in projectUserAddUserCommands)
+		{
+			if (projectUserAddUserCommand.RoleId == (int)Project_Role.RoleNames.Remove)
+			{
+				throw new InvalidOperationException("Cannot remove a user that is not already a member of the project");
+			}
 
-            await using var context = await _contextFactory.CreateDbContextAsync();
-            var project = await context.Projects
-                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym);
+			var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
-            // Verify that the project exists
-            if (project == null)
-            {
-                _logger.LogError("Project {ProjectAcronym} not found", projectUserAddUserCommand.ProjectAcronym);
-                throw new ProjectNotFoundException($"Project {projectUserAddUserCommand.ProjectAcronym} not found");
-            }
+			if (projectUserAddUserCommand.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID)
+			{
+				projectUserAddUserCommand.GraphGuid =
+					await _userEnrollmentService.SendUserDatahubPortalInvite(projectUserAddUserCommand.Email,
+						currentUser.DisplayName);
+				await _userInformationService.CreatePortalUserAsync(projectUserAddUserCommand.GraphGuid);
+			}
 
-            var projectUser = await context.Project_Users
-                .FirstOrDefaultAsync(u => u.Project.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym
-                                          && u.PortalUser.GraphGuid == projectUserAddUserCommand.GraphGuid);
+			var portalUser = await _userInformationService.GetPortalUserAsync(projectUserAddUserCommand.GraphGuid);
 
-            // Double check that the user is not already a member of the project
-            if (projectUser is not null)
-            {
-                projectUser.RoleId = projectUserAddUserCommand.RoleId;
-                _logger.LogInformation("Changing role of removed user {GraphGuid} of project {ProjectAcronym}",
-                    projectUserAddUserCommand.GraphGuid, projectUserAddUserCommand.ProjectAcronym);
-            }
-            else
-            {
+			await using var context = await _contextFactory.CreateDbContextAsync();
+			var project = await context.Projects
+				.FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym);
 
-                var newProjectUser = new Datahub_Project_User()
-                {
-                    Project_ID = project.Project_ID,
-                    PortalUserId = portalUser.Id,
-                    ApprovedPortalUserId = currentUser.Id,
-                    Approved_DT = DateTime.UtcNow,
-                    RoleId = projectUserAddUserCommand.RoleId,
-                };
-                await context.Project_Users.AddAsync(newProjectUser);
-            }
+			// Verify that the project exists
+			if (project == null)
+			{
+				_logger.LogError("Project {ProjectAcronym} not found", projectUserAddUserCommand.ProjectAcronym);
+				throw new ProjectNotFoundException($"Project {projectUserAddUserCommand.ProjectAcronym} not found");
+			}
 
-            context.Attach(currentUser);
-            context.Attach(portalUser);
+			var projectUser = await context.Project_Users
+				.FirstOrDefaultAsync(u => u.Project.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym
+										  && u.PortalUser.GraphGuid == projectUserAddUserCommand.GraphGuid);
 
-            await context.TrackSaveChangesAsync(_datahubAuditingService);
-        }
-    }
+			// Double check that the user is not already a member of the project
+			if (projectUser is not null)
+			{
+				projectUser.RoleId = projectUserAddUserCommand.RoleId;
+				_logger.LogInformation("Changing role of removed user {GraphGuid} of project {ProjectAcronym}",
+					projectUserAddUserCommand.GraphGuid, projectUserAddUserCommand.ProjectAcronym);
+			}
+			else
+			{
 
-    public async Task<List<Datahub_Project_User>> GetProjectUsersAsync(string projectAcronym)
-    {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        return await context.Project_Users
-            .AsNoTracking()
-            .Include(u => u.Project)
-            .Include(u => u.PortalUser)
-            .Include(u => u.Role)
-            .Where(u => u.Project.Project_Acronym_CD == projectAcronym)
-            .Where(u => u.PortalUser != null)
-            .ToListAsync();
-    }
+				var newProjectUser = new Datahub_Project_User()
+				{
+					Project_ID = project.Project_ID,
+					PortalUserId = portalUser.Id,
+					ApprovedPortalUserId = currentUser.Id,
+					Approved_DT = DateTime.UtcNow,
+					RoleId = projectUserAddUserCommand.RoleId,
+				};
+				await context.Project_Users.AddAsync(newProjectUser);
+			}
+
+			context.Attach(currentUser);
+			context.Attach(portalUser);
+
+			await context.TrackSaveChangesAsync(_datahubAuditingService);
+		}
+	}
+
+	public async Task<List<Datahub_Project_User>> GetProjectUsersAsync(string projectAcronym)
+	{
+		await using var context = await _contextFactory.CreateDbContextAsync();
+		return await context.Project_Users
+			.AsNoTracking()
+			.Include(u => u.Project)
+			.Include(u => u.PortalUser)
+			.Include(u => u.Role)
+			.Where(u => u.Project.Project_Acronym_CD == projectAcronym)
+			.Where(u => u.PortalUser != null)
+			.ToListAsync();
+	}
 }

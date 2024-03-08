@@ -5,9 +5,9 @@ namespace Datahub.Infrastructure.Queues.MessageHandlers;
 
 public class PongMessageHandler : QueueMessageSender<PongMessage>
 {
-    public PongMessageHandler(IConfiguration configuration) : base(configuration)
-    {
-    }
+	public PongMessageHandler(IConfiguration configuration) : base(configuration)
+	{
+	}
 
-    protected override string ConfigPathOrQueueName => "pong-queue";
+	protected override string ConfigPathOrQueueName => "pong-queue";
 }

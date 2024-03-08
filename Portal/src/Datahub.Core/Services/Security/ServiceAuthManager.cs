@@ -25,8 +25,7 @@ public class ServiceAuthManager
 
     private ConcurrentDictionary<string, bool> _viewingAsGuest = new();
 
-    public ServiceAuthManager(IMemoryCache serviceAuthCache, IDbContextFactory<DatahubProjectDBContext> dbFactory
-        )
+    public ServiceAuthManager(IMemoryCache serviceAuthCache, IDbContextFactory<DatahubProjectDBContext> dbFactory)
     {
         this.serviceAuthCache = serviceAuthCache;
         this.dbFactory = dbFactory;

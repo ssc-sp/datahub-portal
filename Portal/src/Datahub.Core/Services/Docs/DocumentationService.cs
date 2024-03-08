@@ -28,7 +28,7 @@ namespace Datahub.Core.Services.Docs;
 
 #nullable enable
 
-public class DocumentationService 
+public class DocumentationService
 {
     private readonly string _docsRoot;
     private readonly string _docsEditPrefix;
@@ -44,13 +44,13 @@ public class DocumentationService
     private DocItem cachedDocs;
     private readonly IMemoryCache _cache;
 
-    public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger, 
+    public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger,
         IHttpClientFactory httpClientFactory, IWebHostEnvironment environment,
         IMemoryCache docCache)
     {
         //!ctx.HostingEnvironment.IsDevelopment()
-        
-        var branch = environment.IsProduction()? "main": "next";
+
+        var branch = environment.IsProduction() ? "main" : "next";
         _docsRoot = config.GetValue(DOCS_ROOT_CONFIG_KEY, $"https://raw.githubusercontent.com/ssc-sp/datahub-docs/{branch}/")!;
         _docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, $"https://github.com/ssc-sp/datahub-docs/edit/{branch}/")!;
         _logger = logger;
@@ -187,7 +187,7 @@ public class DocumentationService
 
     private async Task LoadResourceTree(DocumentationGuideRootSection guide, bool useCache = true)
     {
-        var fileMappings = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, FILE_MAPPINGS, null,useCache);
+        var fileMappings = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, FILE_MAPPINGS, null, useCache);
         _docFileMappings = new DocumentationFileMapper(fileMappings);
 
         _statusMessages = new List<TimeStampedStatus>();
@@ -201,7 +201,7 @@ public class DocumentationService
         frOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_FR, useCache), _docFileMappings.GetFrenchDocumentId);
         if (frOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
-        cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden,"Cached");
+        cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
         AddStatusMessage("Finished loading sidebars");
 
     }
@@ -225,7 +225,7 @@ public class DocumentationService
             inCachePage = cachedDocs.LocatePath(path);
             if (inCachePage != null)
                 return inCachePage;
-            var itemId = (isFrench? _docFileMappings?.GetFrenchDocumentId(path): _docFileMappings?.GetEnglishDocumentId(path))?? MarkdownTools.GetIDFromString(path);
+            var itemId = (isFrench ? _docFileMappings?.GetFrenchDocumentId(path) : _docFileMappings?.GetEnglishDocumentId(path)) ?? MarkdownTools.GetIDFromString(path);
             var docItem = DocItem.GetItem(DocumentationGuideRootSection.Hidden, itemId, searchRoot.Level + 1, path, path);
 
             cachedDocs.Children.Add(docItem);
@@ -270,7 +270,7 @@ public class DocumentationService
         StringBuilder sb = new();
 
         sb.Append(_docsRoot);
-        
+
         if (allFolders.Count > 0)
         {
             foreach (var f in allFolders)
@@ -284,7 +284,7 @@ public class DocumentationService
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="guide"></param>
     /// <param name="name"></param>
@@ -294,7 +294,7 @@ public class DocumentationService
     private async Task<string?> LoadDocsPage(DocumentationGuideRootSection guide, string? name, string? locale = "", bool useCache = true)
     {
         if (name is null) return null;
-        return await LoadDocs(BuildURL(guide, locale??string.Empty, name), useCache);
+        return await LoadDocs(BuildURL(guide, locale ?? string.Empty, name), useCache);
     }
 
     private const string LAST_COMMIT_TS = "LAST_COMMIT_TS";
@@ -338,7 +338,8 @@ public class DocumentationService
             builder.Query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
 
 
-        var res = await GetRetryPolicy().ExecuteAsync(async () => {
+        var res = await GetRetryPolicy().ExecuteAsync(async () =>
+        {
             //builder.Query = "search=usa";
             var request = new HttpRequestMessage() { RequestUri = builder.Uri, Method = HttpMethod.Get };
             //public const string USER_AGENT = ;
@@ -367,7 +368,7 @@ public class DocumentationService
         {
             var content = await httpClient.GetStringAsync(url);
             if (skipFrontMatter)
-            {                 
+            {
                 content = MarkdownHelper.RemoveFrontMatter(content);
             }
             // Set cache options.
@@ -387,7 +388,7 @@ public class DocumentationService
             return default(string);
         }
     }
-    
+
     public async Task<DocItem?> LoadResourceTree(DocumentationGuideRootSection guide, string locale, bool useCache = true)
     {
         if (enOutline == null || frOutline == null)
@@ -395,7 +396,7 @@ public class DocumentationService
             await LoadResourceTree(guide, useCache);
         }
 
-        var result = MarkdownTools.CompareCulture(locale,"fr") ? frOutline : enOutline;
+        var result = MarkdownTools.CompareCulture(locale, "fr") ? frOutline : enOutline;
         return result;
     }
 

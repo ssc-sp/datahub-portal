@@ -53,7 +53,7 @@ namespace Datahub.Core.Services.UserManagement
                         $"User: {currentUser.DisplayName} with user id: {currentUser.Id} is not in DB to register TAC.");
                     return false;
                 }
-                
+
                 userSetting.AcceptedDate = DateTime.UtcNow;
                 context.UserSettings.Update(userSetting);
 
@@ -144,10 +144,10 @@ namespace Datahub.Core.Services.UserManagement
                         currentUser.DisplayName, currentUser.Id);
                     return false;
                 }
-                
+
                 if (userSetting.HiddenAlerts == null)
                     userSetting.HiddenAlerts = new List<string>();
-                
+
                 userSetting.HiddenAlerts.Add(alertKey);
                 context.UserSettings.Update(userSetting);
 
@@ -277,7 +277,7 @@ namespace Datahub.Core.Services.UserManagement
 
                 if (userSetting == null)
                 {
-                    userSetting = new UserSettings { PortalUserId = currentUser.Id, UserName = currentUser.DisplayName, Language = language};
+                    userSetting = new UserSettings { PortalUserId = currentUser.Id, UserName = currentUser.DisplayName, Language = language };
                     context.UserSettings.Add(userSetting);
                 }
                 else
@@ -285,9 +285,9 @@ namespace Datahub.Core.Services.UserManagement
                     userSetting.Language = language;
                     context.UserSettings.Update(userSetting);
                 }
-                
-                
-                
+
+
+
                 if (await context.SaveChangesAsync() > 0)
                     return true;
 
@@ -315,10 +315,10 @@ namespace Datahub.Core.Services.UserManagement
                 context.UserSettings.Update(userSetting);
                 await context.SaveChangesAsync();
             }
-            
+
             if (Thread.CurrentThread.CurrentCulture.Name.Equals(language, StringComparison.OrdinalIgnoreCase))
                 return false;
-            
+
             var uri = new Uri(_navigationManager.Uri).GetComponents(UriComponents.PathAndQuery,
                 UriFormat.Unescaped);
             var query = $"?culture={Uri.EscapeDataString(language)}&" +
@@ -341,7 +341,7 @@ namespace Datahub.Core.Services.UserManagement
             var lang = await GetUserLanguage();
             return !lang.ToLower().Contains("en");
         }
-        
+
         public async Task<UserSettings?> GetUserSettingsAsync()
         {
             try

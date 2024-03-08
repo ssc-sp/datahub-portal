@@ -29,15 +29,15 @@ public class TerraformTemplate
             Name = name,
         };
     }
-    
+
     public static TerraformTemplate GetTemplateByName(string name)
     {
         var templateName = name.ToLower();
         if (templateName.StartsWith("terraform:"))
         {
-            templateName = templateName.Replace("terraform:", "");
+            templateName = templateName.Replace("terraform:", string.Empty);
         }
-        
+
         return templateName switch
         {
             NewProjectTemplate => LatestFromName(NewProjectTemplate),
@@ -48,7 +48,7 @@ public class TerraformTemplate
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }
-    
+
     public static List<TerraformTemplate> LatestFromNameWithDependencies(string name)
     {
         return name switch

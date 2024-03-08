@@ -52,7 +52,7 @@ public class GeoCoreItem
         }
     }
 
-    public GeoCoreContact FirstContact => ContactList.Count > 0? ContactList[0]: null;
+    public GeoCoreContact FirstContact => ContactList.Count > 0 ? ContactList[0] : null;
 
     public GeoCoreGraphicOverviewList GraphicOverviewList
     {
@@ -66,21 +66,21 @@ public class GeoCoreItem
         }
     }
 
-    public GeoCoreGraphicOverview FirstGraphicOverview => GraphicOverviewList.Count > 0? GraphicOverviewList[0]: null;
+    public GeoCoreGraphicOverview FirstGraphicOverview => GraphicOverviewList.Count > 0 ? GraphicOverviewList[0] : null;
 
-    private T DecodeEscapedJson<T> (string content)
+    private T DecodeEscapedJson<T>(string content)
     {
-        var decoded = content.Replace("\\\"\"", "\"").Replace("\"\"","");
+        var decoded = content.Replace("\\\"\"", "\"").Replace("\"\"", string.Empty);
         var result = JsonConvert.DeserializeObject<T>(decoded);
         return result;
     }
 
 
-    public string GetGeoCaUrl(string lang="en")
+    public string GetGeoCaUrl(string lang = "en")
     {
         return $"https://app.geo.ca/result?id={Id}&lang={lang}";
     }
-        
+
 
     /*
 "id": "000183ed-8864-42f0-ae43-c4313a860720",

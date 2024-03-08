@@ -14,7 +14,7 @@ public enum DbDriver
     SqlServer, Sqlite, SqlLocalDB, Memory, Azure
 }
 public static class EFTools
-{        
+{
 
     public static void InitializeDatabase<T>(ILogger logger, IConfiguration configuration, IServiceProvider serviceProvider, bool offline, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
     {
@@ -57,7 +57,7 @@ public static class EFTools
 
     public static string GetConnectionString(this IConfiguration configuration, IWebHostEnvironment environment, string name)
     {
-            
+
         return configuration.GetConnectionString(name) ?? throw new ArgumentNullException($"ASPNETCORE_CONNECTION STRING ({name}) in Enviroment ({environment.EnvironmentName}).");
     }
 
@@ -78,7 +78,7 @@ public static class EFTools
         {
             throw new InvalidProgramException($"Cannot configure {typeof(T).Name} - no connection string for '{connectionStringName}':{connectionString}");
         }
-        
+
         switch (dbDriver)
         {
             case DbDriver.Memory:

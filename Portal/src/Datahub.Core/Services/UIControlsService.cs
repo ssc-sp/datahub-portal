@@ -40,7 +40,7 @@ public class UIControlsService
         {
             CurrentModalRenderFragment = (CurrentModalRenderFragment == modalRenderFragment) ? null : modalRenderFragment;
             NotifyModalChange();
-        });            
+        });
     }
 
     public void ShowErrorModal()
@@ -53,10 +53,10 @@ public class UIControlsService
         var parameters = new DialogParameters();
         parameters.Add("Content", contentFragment);
 
-        var options = new DialogOptions() 
-        { 
-            MaxWidth = MaxWidth.Medium, 
-            FullWidth = true, 
+        var options = new DialogOptions()
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
             CloseButton = true,
             CloseOnEscapeKey = true,
             DisableBackdropClick = true

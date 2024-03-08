@@ -5,5 +5,5 @@ namespace ResourceProvisioner.Domain.Messages;
 
 public class PullRequestUpdateMessage : BaseUpdateMessage
 {
-    public PullRequestValueObject? PullRequestValueObject { get; set; }
+	public PullRequestValueObject? PullRequestValueObject { get; set; }
 }

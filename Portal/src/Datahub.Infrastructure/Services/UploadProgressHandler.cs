@@ -2,12 +2,12 @@
 
 class UploadProgressHandler : IProgress<long>
 {
-    private readonly Action<long> _onProgress;
+	private readonly Action<long> _onProgress;
 
-    public UploadProgressHandler(Action<long> onProgress)
-    {
-        _onProgress = onProgress;
-    }
+	public UploadProgressHandler(Action<long> onProgress)
+	{
+		_onProgress = onProgress;
+	}
 
-    public void Report(long value) => _onProgress.Invoke(value);
+	public void Report(long value) => _onProgress.Invoke(value);
 }

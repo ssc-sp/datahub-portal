@@ -22,50 +22,50 @@ using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Services.Security;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWorkerDefaults()
-    .ConfigureAppConfiguration(builder =>
-    {
-        builder.AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .Build();
-    })
-    .ConfigureServices((hostContext, services) =>
-    {
-        var config = hostContext.Configuration;
-        
-        var connectionString = config["datahub_mssql_project"];
-        if (connectionString is not null)
-        {
-            services.AddPooledDbContextFactory<DatahubProjectDBContext>(options =>
-                options.UseSqlServer(connectionString));
-            services.AddDbContextPool<DatahubProjectDBContext>(options => options.UseSqlServer(connectionString));
-        }
+	.ConfigureFunctionsWorkerDefaults()
+	.ConfigureAppConfiguration(builder =>
+	{
+		builder.AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
+			.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+			.Build();
+	})
+	.ConfigureServices((hostContext, services) =>
+	{
+		var config = hostContext.Configuration;
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
+		var connectionString = config["datahub_mssql_project"];
+		if (connectionString is not null)
+		{
+			services.AddPooledDbContextFactory<DatahubProjectDBContext>(options =>
+				options.UseSqlServer(connectionString));
+			services.AddDbContextPool<DatahubProjectDBContext>(options => options.UseSqlServer(connectionString));
+		}
 
-        services.AddHttpClient(AzureManagementService.ClientName).AddPolicyHandler(
-            Policy<HttpResponseMessage>
-                .Handle<HttpRequestException>()
-                .OrResult(x => x.StatusCode == HttpStatusCode.TooManyRequests)
-                .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(2), 5)));
+		services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
 
-        services.AddSingleton<AzureConfig>();
-        services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
-        services.AddSingleton<AzureManagementService>();
-        services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
-        services.AddSingleton<IEmailService, EmailService>();
-        services.AddScoped<ProjectUsageService>();
-        services.AddScoped<QueuePongService>();
-        services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
-        services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
-        services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
-        services.AddScoped<IDateProvider, DateProvider>();
-        services.AddScoped<EmailValidator>();
+		services.AddHttpClient(AzureManagementService.ClientName).AddPolicyHandler(
+			Policy<HttpResponseMessage>
+				.Handle<HttpRequestException>()
+				.OrResult(x => x.StatusCode == HttpStatusCode.TooManyRequests)
+				.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(2), 5)));
 
-        services.AddDatahubConfigurationFromFunctionFormat(config);
-       
+		services.AddSingleton<AzureConfig>();
+		services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
+		services.AddSingleton<AzureManagementService>();
+		services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
+		services.AddSingleton<IEmailService, EmailService>();
+		services.AddScoped<ProjectUsageService>();
+		services.AddScoped<QueuePongService>();
+		services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
+		services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
+		services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
+		services.AddScoped<IDateProvider, DateProvider>();
+		services.AddScoped<EmailValidator>();
 
-    })
-    .Build();
+		services.AddDatahubConfigurationFromFunctionFormat(config);
+
+
+	})
+	.Build();
 
 host.Run();

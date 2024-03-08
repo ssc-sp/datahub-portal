@@ -20,7 +20,7 @@ namespace Datahub.Core.Model.Projects;
 
 public enum ProjectStatus
 {
-    OnHold = 0, 
+    OnHold = 0,
     InProgress = 1,
     Support = 2,
     Closed = 3
@@ -163,10 +163,10 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     [AeFormIgnore]
     public string Last_Updated_UserId { get; set; }
-    
+
     [AeFormIgnore]
     public DateTime? Deleted_DT { get; set; }
-    
+
     [AeFormIgnore]
     public bool IsDeleted => Deleted_DT != null && Deleted_DT < DateTime.UtcNow;
 
@@ -177,9 +177,9 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public List<Client_Engagement> Client_Engagements { get; set; }
 
     public Project_Credits Credits { get; set; }
-    
+
     public Project_Whitelist Whitelist { get; set; }
-    
+
     public List<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
 
     [StringLength(400)]
@@ -223,7 +223,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public IList<Project_Resources2> Resources { get; set; }
 
     public IList<PowerBi_Workspace> PowerBi_Workspaces { get; set; }
-    
+
     public List<ProjectRepository> Repositories { get; set; }
 
     [AeFormIgnore]
@@ -245,10 +245,10 @@ public class Datahub_Project : IComparable<Datahub_Project>
                 return Users.Select(x => x.PortalUser.LastLoginDateTime).Max();
             }
             return Last_Updated_DT;
-            
+
         }
     }
-    
+
     [AeFormIgnore]
     public DateTime? OperationalWindow { get; set; }
 
@@ -270,8 +270,8 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [StringLength(128)]
     public string WebApp_URL { get; set; }
 
-    
-    
+
+
     [AeFormIgnore]
     [StringLength(16)]
     public string Version { get; set; } = TerraformWorkspace.DefaultVersion;
@@ -279,7 +279,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeFormIgnore]
     [StringLength(150)]
     public string GitRepo_URL { get; set; }
-    
+
     public List<ProjectCloudStorage> CloudStorages { get; set; }
 
     [AeFormIgnore]

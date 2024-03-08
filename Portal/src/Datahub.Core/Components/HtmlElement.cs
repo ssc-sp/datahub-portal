@@ -13,7 +13,7 @@ public class HtmlElement : ComponentBase
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object> InputAttributes { get; set; }
     public Dictionary<string, object> InputAttributesWithoutClass { get; set; }
-    protected string _inputClass => InputAttributes != null && InputAttributes.ContainsKey("class") ? InputAttributes["class"] as string : "";
+    protected string _inputClass => InputAttributes != null && InputAttributes.ContainsKey("class") ? InputAttributes["class"] as string : string.Empty;
 
 
     protected override void OnInitialized()

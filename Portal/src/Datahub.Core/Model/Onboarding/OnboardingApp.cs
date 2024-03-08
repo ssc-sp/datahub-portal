@@ -15,11 +15,11 @@ public class OnboardingApp
     [StringLength(2000)]
     public string Client_Sector { get; set; }
     [StringLength(2000)]
-    [AeFormCategory("Client Information", 10)]        
+    [AeFormCategory("Client Information", 10)]
     [AeLabel(isDropDown: true, placeholder: "[Select your Branch]")]
     public string Client_Branch { get; set; }
     [StringLength(2000)]
-    [AeFormCategory("Client Information", 10)]        
+    [AeFormCategory("Client Information", 10)]
     [AeLabel(isDropDown: true, placeholder: "[Select your Division]")]
     public string Client_Division { get; set; }
     [StringLength(200)]
@@ -64,7 +64,7 @@ public class OnboardingApp
     [AeLabel(isDropDown: true)]
     public string Project_Engagement_Category { get; set; }
 
-    [AeFormCategory("Product Information", 20)]        
+    [AeFormCategory("Product Information", 20)]
     public string Project_Engagement_Category_Other { get; set; }
 
 
@@ -78,7 +78,7 @@ public class OnboardingApp
     [AeFormCategory("Additional Information", 30)]
     [AeLabel(placeholder: "[Enter any additional information/comments regarding your product or questions for the DataHub team]")]
     public string Questions_for_the_DataHub_Team { get; set; }
-        
+
 
     [AeFormIgnore]
     public bool NotificationsSent { get; set; }
@@ -96,5 +96,5 @@ public class OnboardingApp
     [AeFormIgnore]
     public DateTime? ProjectCreatedDate { get; set; }
 
-       
+
 }

@@ -24,7 +24,7 @@ public class PBI_License_Request
     [Required]
     [AeLabel("Contact Email")]
     public string Contact_Email { get; set; }
-        
+
     [StringLength(200)]
     [Required]
     [AeLabel("Contact Name")]

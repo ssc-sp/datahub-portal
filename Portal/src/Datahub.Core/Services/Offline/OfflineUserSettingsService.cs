@@ -66,7 +66,7 @@ namespace Datahub.Core.Services.Offline
         {
             return Task.FromResult(false);
         }
-        
+
         public Task<UserSettings?> GetUserSettingsAsync()
         {
             return Task.FromResult<UserSettings?>(null);

@@ -21,10 +21,10 @@ public interface IUserInformationService
     Task<PortalUser> GetCurrentPortalUserAsync();
 
     Task<PortalUser> GetPortalUserAsync(string userGraphId);
-    
+
     Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync();
     Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId);
-    
+
     Task<User> GetAnonymousGraphUserAsync();
     Task<string> GetUserIdString();
     Task<string> GetDisplayName();

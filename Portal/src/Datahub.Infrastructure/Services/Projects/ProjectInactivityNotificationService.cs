@@ -7,26 +7,26 @@ using Octokit;
 
 namespace Datahub.Infrastructure.Services.Projects
 {
-    public class ProjectInactivityNotificationService : IProjectInactivityNotificationService
-    {
-        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
+	public class ProjectInactivityNotificationService : IProjectInactivityNotificationService
+	{
+		private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 
-        public ProjectInactivityNotificationService(IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
-        {
-            _dbContextFactory = dbContextFactory;
-        }
+		public ProjectInactivityNotificationService(IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+		{
+			_dbContextFactory = dbContextFactory;
+		}
 
-        public async Task<EntityEntry<ProjectInactivityNotifications>> AddInactivityNotification(int projectId, DateTime notificationDate, int daysBeforeDeletion, string sentTo, CancellationToken ct)
-        {
-            using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
-            var notification = new ProjectInactivityNotifications
-            {
-                Project_ID = projectId,
-                NotificationDate = notificationDate,
-                DaysBeforeDeletion = daysBeforeDeletion,
-                SentTo = sentTo
-            };
-            return ctx.ProjectInactivityNotifications.Add(notification);
-        }
-    }
+		public async Task<EntityEntry<ProjectInactivityNotifications>> AddInactivityNotification(int projectId, DateTime notificationDate, int daysBeforeDeletion, string sentTo, CancellationToken ct)
+		{
+			using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
+			var notification = new ProjectInactivityNotifications
+			{
+				Project_ID = projectId,
+				NotificationDate = notificationDate,
+				DaysBeforeDeletion = daysBeforeDeletion,
+				SentTo = sentTo
+			};
+			return ctx.ProjectInactivityNotifications.Add(notification);
+		}
+	}
 }

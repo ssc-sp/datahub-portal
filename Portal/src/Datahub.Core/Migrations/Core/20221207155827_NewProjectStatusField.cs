@@ -18,7 +18,7 @@ namespace Datahub.Core.Migrations.Core
                 nullable: false,
                 defaultValue: 0);
 
-         
+
         }
 
         /// <inheritdoc />

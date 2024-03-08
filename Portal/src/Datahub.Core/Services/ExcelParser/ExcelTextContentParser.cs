@@ -11,6 +11,6 @@ public class ExcelTextContentParser : IExcelContentParser
 
     public Task<IList<String[]>> GetRows(String input) =>
         Task.FromResult<IList<String[]>>(input.Split("\r\n", StringSplitOptions.RemoveEmptyEntries).Select(x =>
-            x.Split("\t").Select(y => y ?? String.Empty).ToArray()
-        ).ToList());
+            x.Split("\t").Select(y => y ?? String.Empty).ToArray())
+        .ToList());
 }

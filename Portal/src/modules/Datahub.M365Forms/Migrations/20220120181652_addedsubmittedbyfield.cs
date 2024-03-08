@@ -4,22 +4,22 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.M365Forms.Migrations
 {
-    public partial class Addedsubmittedbyfield : Migration
-    {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<string>(
-                name: "SubmittedBy",
-                table: "M365FormsApplications",
-                type: "nvarchar(max)",
-                nullable: true);
-        }
+	public partial class Addedsubmittedbyfield : Migration
+	{
+		protected override void Up(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.AddColumn<string>(
+				name: "SubmittedBy",
+				table: "M365FormsApplications",
+				type: "nvarchar(max)",
+				nullable: true);
+		}
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "SubmittedBy",
-                table: "M365FormsApplications");
-        }
-    }
+		protected override void Down(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.DropColumn(
+				name: "SubmittedBy",
+				table: "M365FormsApplications");
+		}
+	}
 }

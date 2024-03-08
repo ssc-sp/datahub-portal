@@ -14,12 +14,12 @@ using Xunit;
 
 namespace Datahub.Tests.Docs
 {
-    public class MarkdownTests
-    {
-        [Fact]
-        public void GivenMarkdown_RemoveFrontmatter()
-        {
-            var md = @"---
+	public class MarkdownTests
+	{
+		[Fact]
+		public void GivenMarkdown_RemoveFrontmatter()
+		{
+			var md = @"---
 remarks: Automatically translated with DeepL
 source: /Banners/Landing.md
 ---
@@ -32,7 +32,7 @@ Le DataHub est une plateforme d'entreprise permettant de stocker, de travailler 
 
 [En savoir plus]()
 ";
-            var expected = @"
+			var expected = @"
 _(draft documentation, please review)_
 
 ## Qu'est-ce que le DataHub ?
@@ -41,20 +41,20 @@ Le DataHub est une plateforme d'entreprise permettant de stocker, de travailler 
 
 [En savoir plus]()
 ";
-            var cleaned = MarkdownHelper.RemoveFrontMatter(md);
-            Assert.DoesNotContain("---", cleaned);
-            Assert.Equal(expected, cleaned);
+			var cleaned = MarkdownHelper.RemoveFrontMatter(md);
+			Assert.DoesNotContain("---", cleaned);
+			Assert.Equal(expected, cleaned);
 
-        }
-
-
+		}
 
 
-        [Fact]
-        public void GivenSidebarLine_ExtractIcon()
-        {
-            var line = "- Learn [](Icon:LibraryBooks)";
-            Assert.Equal("LibraryBooks", MarkdownHelper.ExtractIconFromComments(line));
-        }
-    }
+
+
+		[Fact]
+		public void GivenSidebarLine_ExtractIcon()
+		{
+			var line = "- Learn [](Icon:LibraryBooks)";
+			Assert.Equal("LibraryBooks", MarkdownHelper.ExtractIconFromComments(line));
+		}
+	}
 }

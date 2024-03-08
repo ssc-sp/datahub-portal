@@ -2,8 +2,8 @@
 
 public interface IAzureServicePrincipalConfig
 {
-    string SubscriptionId { get; }
-    string TenantId { get; }
-    string ClientId { get; }
-    string ClientSecret { get; }
+	string SubscriptionId { get; }
+	string TenantId { get; }
+	string ClientId { get; }
+	string ClientSecret { get; }
 }

@@ -27,6 +27,6 @@ public class SystemNotification
     public string ActionLink_URL { get; set; }
 
     [StringLength(128)]
-    public string ActionLink_Key {  get; set; }
+    public string ActionLink_Key { get; set; }
 
 }

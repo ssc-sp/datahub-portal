@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Azure.Storage.Queues.Models;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Utils;
 using Datahub.Functions.Providers;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Entities;
@@ -15,179 +16,162 @@ using Microsoft.Extensions.Logging;
 
 namespace Datahub.Functions
 {
-    public class ConfigureWorkspaceAppService
-    {
-        private readonly ILogger<ConfigureWorkspaceAppService> _logger;
-        private readonly AzureConfig _config;
-        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContext;
+	public class ConfigureWorkspaceAppService
+	{
+		private readonly ILogger<ConfigureWorkspaceAppService> _logger;
+		private readonly AzureConfig _config;
+		private readonly IDbContextFactory<DatahubProjectDBContext> _dbContext;
 
-        public ConfigureWorkspaceAppService(ILogger<ConfigureWorkspaceAppService> logger,
-            AzureConfig config, IDbContextFactory<DatahubProjectDBContext> dbContext)
-        {
-            _logger = logger;
-            _config = config;
-            _dbContext = dbContext;
-        }
+		public ConfigureWorkspaceAppService(ILogger<ConfigureWorkspaceAppService> logger,
+			AzureConfig config, IDbContextFactory<DatahubProjectDBContext> dbContext)
+		{
+			_logger = logger;
+			_config = config;
+			_dbContext = dbContext;
+		}
 
-        [Function(nameof(ConfigureWorkspaceAppService))]
-        public async Task Run(
-            [QueueTrigger("workspace-app-service-configuration", Connection = "DatahubStorageConnectionString")]
-            QueueMessage message)
-        {
-            _logger.LogInformation($"C# Queue trigger function processed: {message.MessageText}");
+		[Function(nameof(ConfigureWorkspaceAppService))]
+		public async Task Run(
+			[QueueTrigger("workspace-app-service-configuration", Connection = "DatahubStorageConnectionString")]
+			QueueMessage message)
+		{
+			_logger.LogInformation($"C# Queue trigger function processed: {message.MessageText}");
 
-            var appServiceConfigurationMessage =
-                JsonSerializer.Deserialize<WorkspaceAppServiceConfigurationMessage>(message.MessageText)!;
+			var appServiceConfigurationMessage =
+				JsonSerializer.Deserialize<WorkspaceAppServiceConfigurationMessage>(message.MessageText)!;
 
-            var projectAcronym = appServiceConfigurationMessage.ProjectAcronym;
-            var configuration = appServiceConfigurationMessage.Configuration;
+			var projectAcronym = appServiceConfigurationMessage.ProjectAcronym;
 
-            await ConfigureAppService(projectAcronym, configuration);
-        }
+			await ConfigureAppService(appServiceConfigurationMessage, projectAcronym);
+		}
 
-        private async Task ConfigureAppService(string projectAcronym, AppServiceConfiguration configuration)
-        {
-            var pipelineId = await GetPipelineIdByName(_config.AdoConfig.AppServiceConfigPipeline);
-            await PostPipelineRun(pipelineId, configuration, projectAcronym);
-        }
+		private async Task ConfigureAppService(WorkspaceAppServiceConfigurationMessage appServiceConfigurationMessage,
+			string projectAcronym)
+		{
+			var pipelineId = await GetPipelineIdByName(_config.AdoConfig.AppServiceConfigPipeline);
+			var appServiceConfiguration = await GetAppServiceConfiguration(projectAcronym);
+			await PostPipelineRun(pipelineId, appServiceConfiguration, projectAcronym);
+		}
 
-        private async Task<HttpClient> ConfigureHttpClient()
-        {
-            var adoProvider = new AdoClientProvider(_config);
-            return await adoProvider.GetPipelineClient();
-        }
+		private async Task<HttpClient> ConfigureHttpClient()
+		{
+			var adoProvider = new AdoClientProvider(_config);
+			return await adoProvider.GetPipelineClient();
+		}
 
-        // private async Task<AppServiceConfiguration> GetAppServiceConfiguration(string projectAcronym)
-        // {
-        //     using var ctx = await _dbContext.CreateDbContextAsync();
-        //     var project = ctx.Projects.AsNoTracking().Include(p => p.Resources)
-        //         .FirstOrDefault(p => p.Project_Acronym_CD == projectAcronym);
-        //
-        //     if (project is null)
-        //     {
-        //         _logger.LogError("Project with acronym {ProjectAcronymValue} not found, could not configure web app",
-        //             projectAcronym);
-        //         throw new Exception($"Project with acronym {projectAcronym} not found, could not configure web app");
-        //     }
-        //
-        //     var appServiceConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(project);
-        //
-        //     if (appServiceConfiguration is null)
-        //     {
-        //         _logger.LogError(
-        //             "App service configuration not found for project acronym {ProjectAcronymValue}, could not configure web app",
-        //             projectAcronym);
-        //         throw new Exception(
-        //             $"App service configuration not found for project acronym {projectAcronym}, could not configure web app");
-        //     }
-        //
-        //     return appServiceConfiguration;
-        // }
+		private async Task<AppServiceConfiguration> GetAppServiceConfiguration(string projectAcronym)
+		{
+			using var ctx = await _dbContext.CreateDbContextAsync();
+			var project = ctx.Projects.AsNoTracking().Include(p => p.Resources)
+				.FirstOrDefault(p => p.Project_Acronym_CD == projectAcronym);
 
-        internal async Task<int> GetPipelineIdByName(string pipelineName)
-        {
-            var httpClient = await ConfigureHttpClient();
-            var url = _config.AdoConfig.ListPipelineUrlTemplate.Replace("{organization}", _config.AdoConfig.OrgName)
-                .Replace("{project}", _config.AdoConfig.ProjectName);
-            
-            var response = new HttpResponseMessage();
-            
-            try
-            {
-                response = await httpClient.GetAsync(url);
-            }
-            catch (HttpRequestException e)
-            {
-                _logger.LogError("Invalid Pipeline URL");
-                throw new ArgumentException($"Invalid Pipeline URL");
-            }
+			if (project is null)
+			{
+				_logger.LogError("Project with acronym {ProjectAcronymValue} not found, could not configure web app",
+					projectAcronym);
+				throw new Exception($"Project with acronym {projectAcronym} not found, could not configure web app");
+			}
 
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogError("Request to list pipelines failed");
-                throw new ArgumentException($"Request to list pipelines failed");
-            }
+			var appServiceConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(project);
 
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var pipelines = JsonSerializer.Deserialize<PipelinesResponse>(responseContent)!.value;
-            var pipeline = pipelines.FirstOrDefault(p => p.name == pipelineName);
+			if (appServiceConfiguration is null)
+			{
+				_logger.LogError(
+					"App service configuration not found for project acronym {ProjectAcronymValue}, could not configure web app",
+					projectAcronym);
+				throw new Exception(
+					$"App service configuration not found for project acronym {projectAcronym}, could not configure web app");
+			}
 
-            if (pipeline is null)
-            {
-                _logger.LogError("Pipeline {PipelineName} not found", pipelineName);
-                throw new Exception($"Pipeline {pipelineName} not found");
-            }
+			return appServiceConfiguration;
+		}
 
-            return pipeline.id;
-        }
+		internal async Task<int> GetPipelineIdByName(string pipelineName)
+		{
+			var httpClient = await ConfigureHttpClient();
+			var url = _config.AdoConfig.ListPipelineUrlTemplate.Replace("{organization}", _config.AdoConfig.OrgName)
+				.Replace("{project}", _config.AdoConfig.ProjectName);
+			var response = await httpClient.GetAsync(url);
 
-        internal JsonObject GetPipelineBody(AppServiceConfiguration appServiceConfiguration)
-        {
-            var gitUrl = appServiceConfiguration.GitRepo;
-            if (appServiceConfiguration.IsGitRepoPrivate && !string.IsNullOrWhiteSpace(appServiceConfiguration.GitToken))
-            {
-                gitUrl = gitUrl.Replace("https://", $"https://{appServiceConfiguration.GitToken}@");
-            }
-            
-            return new JsonObject
-            {
-                ["resources"] = new JsonObject
-                {
-                    ["repositories"] = new JsonObject
-                    {
-                        ["self"] = new JsonObject
-                        {
-                            ["refName"] = "refs/heads/main"
-                        }
-                    }
-                },
-                ["templateParameters"] = new JsonObject
-                {
-                    ["webAppId"] = appServiceConfiguration.Id,
-                    ["gitUrl"] = gitUrl,
-                    ["composePath"] = appServiceConfiguration.ComposePath
-                }
-            };
-        }
+			if (!response.IsSuccessStatusCode)
+			{
+				_logger.LogError("Error listing pipelines");
+				throw new Exception($"Error listing pipelines");
+			}
 
-        internal async Task<HttpResponseMessage> PostPipelineRun(int pipelineId,
-            AppServiceConfiguration appServiceConfiguration,
-            string projectAcronym)
-        {
-            var httpClient = await ConfigureHttpClient();
-            var body = GetPipelineBody(appServiceConfiguration);
-            var json = JsonSerializer.Serialize(body);
-            var pipelineUrl = _config.AdoConfig.PostPipelineRunUrlTemplate
-                .Replace("{organization}", _config.AdoConfig.OrgName)
-                .Replace("{project}", _config.AdoConfig.ProjectName)
-                .Replace("{pipelineId}", pipelineId.ToString());
+			var responseContent = await response.Content.ReadAsStringAsync();
+			var pipelines = JsonSerializer.Deserialize<PipelinesResponse>(responseContent)!.value;
+			var pipeline = pipelines.FirstOrDefault(p => p.name == pipelineName);
 
-            _logger.LogInformation(
-                "Sending configuration request to pipeline url {PipelineUrl} with body {RequestBody}", pipelineUrl,
-                body.ToString());
+			if (pipeline is null)
+			{
+				_logger.LogError("Pipeline {PipelineName} not found", pipelineName);
+				throw new ArgumentException($"Pipeline {pipelineName} not found");
+			}
 
-            var response =
-                await httpClient.PostAsync(pipelineUrl, new StringContent(json, Encoding.UTF8, "application/json"));
+			return pipeline.id;
+		}
 
-            var content = await response.Content.ReadAsStringAsync();
+		internal JsonObject GetPipelineBody(AppServiceConfiguration appServiceConfiguration)
+		{
+			return new JsonObject
+			{
+				["resources"] = new JsonObject
+				{
+					["repositories"] = new JsonObject
+					{
+						["self"] = new JsonObject
+						{
+							["refName"] = "refs/heads/main"
+						}
+					}
+				},
+				["templateParameters"] = new JsonObject
+				{
+					["webAppId"] = appServiceConfiguration.Id,
+					["gitUrl"] = appServiceConfiguration.GitRepo,
+					["composePath"] = appServiceConfiguration.ComposePath
+				}
+			};
+		}
 
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogError(
-                    "Error configuring web app for project acronym {ProjectAcronymValue}, could not configure web app",
-                    projectAcronym);
-                throw new Exception(
-                    $"Error configuring web app for project acronym {projectAcronym}, could not configure web app");
-            }
+		internal async Task<HttpResponseMessage> PostPipelineRun(int pipelineId,
+			AppServiceConfiguration appServiceConfiguration,
+			string projectAcronym)
+		{
+			var httpClient = await ConfigureHttpClient();
+			var body = GetPipelineBody(appServiceConfiguration);
+			var json = JsonSerializer.Serialize(body);
+			var pipelineUrl = _config.AdoConfig.PostPipelineRunUrlTemplate.Replace("{organization}", _config.AdoConfig.OrgName)
+				.Replace("{project}", _config.AdoConfig.ProjectName)
+				.Replace("{pipelineId}", pipelineId.ToString());
 
-            _logger.LogInformation("Web app configured for project acronym {ProjectAcronymValue}",
-                projectAcronym);
+			_logger.LogInformation(
+				"Sending configuration request to pipeline url {PipelineUrl} with body {RequestBody}", pipelineUrl,
+				body.ToString());
 
-            return response;
-        }
+			var response =
+				await httpClient.PostAsync(pipelineUrl, new StringContent(json, Encoding.UTF8, "application/json"));
 
-        private record PipelinesResponse(int count, Pipeline[] value);
+			var content = await response.Content.ReadAsStringAsync();
 
-        private record Pipeline(string name, string url, int id);
-    }
+			if (!response.IsSuccessStatusCode)
+			{
+				_logger.LogError(
+					"Error configuring web app for project acronym {ProjectAcronymValue}, could not configure web app",
+					projectAcronym);
+				throw new Exception(
+					$"Error configuring web app for project acronym {projectAcronym}, could not configure web app");
+			}
+
+			_logger.LogInformation("Web app configured for project acronym {ProjectAcronymValue}",
+				projectAcronym);
+
+			return response;
+		}
+
+		private record PipelinesResponse(int count, Pipeline[] value);
+
+		private record Pipeline(string name, string url, int id);
+	}
 }

@@ -7,7 +7,7 @@ public class Icon
     public string Name { get; init; }
     public string Color { get; init; }
     public string HexColor { get; init; }
-        
+
     public static readonly string DEFAULT_PROJECT_ICON = "swatchbook";
 
     public static readonly Icon HOME = new()
@@ -16,7 +16,7 @@ public class Icon
         Color = "blue",
         HexColor = Colors.Blue.Default,
     };
-        
+
     public static readonly Icon PROFILE = new()
     {
         //Name = "fad fa-user-astronaut",
@@ -40,7 +40,7 @@ public class Icon
     };
 
     public static readonly Icon TOOLS = new()
-    {            
+    {
         Name = "fad fa-tools",
         Color = "orange",
         HexColor = Colors.Orange.Default,
@@ -86,7 +86,7 @@ public class Icon
         Color = "yellow",
         HexColor = Colors.Green.Darken1,
     };
-    
+
     public static readonly Icon RESOURCE_ARTICLE = new()
     {
         Name = "fad fa-book",
