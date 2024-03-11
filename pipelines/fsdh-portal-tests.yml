@@ -56,15 +56,16 @@ steps:
       publishTestResults: true
       arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
       
-  - task: reportgenerator@4
-    displayName: 'Generate code coverage report'
-    inputs:
-      reports: '$(Build.SourcesDirectory)/Portal/test/**/coverage.cobertura.xml'
-      targetdir: '$(Build.SourcesDirectory)/Portal/test/CoverageResults'
+  - script: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator -reports:$(Agent.WorkFolder)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage -reporttypes:'HtmlInline_AzurePipelines;Cobertura'
+        # IMPORTANT - set `disable.coverage.autogenerate` to true if you want to use older reportgenerator version
+        echo "##vso[task.setvariable variable=disable.coverage.autogenerate;]true"
+    displayName: Create code coverage report
       
   - task: PublishCodeCoverageResults@1
-    displayName: 'Publish code coverage results'
+    displayName: 'Publish code coverage report'
     inputs:
       codeCoverageTool: 'Cobertura'
-      summaryFileLocation: '$(Build.SourcesDirectory)/Portal/test/CoverageResults/Cobertura.xml'
-      reportDirectory: '$(Build.SourcesDirectory)/Portal/test/CoverageResults'
+      summaryFileLocation: '$(Build.SourcesDirectory)/Portal/test/CodeCoverage/Cobertura.xml'
+      reportDirectory: '$(Build.SourcesDirectory)/Portal/test/CodeCoverage'
