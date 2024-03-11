@@ -4,7 +4,6 @@ namespace Datahub.Core.Model.Projects;
 
 public class Datahub_Project_User_Request
 {
-
     [Key]
     public int ProjectUserRequest_ID { get; set; }
 

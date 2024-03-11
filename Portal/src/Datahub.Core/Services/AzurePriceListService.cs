@@ -8,7 +8,6 @@ public class AzurePriceListService : IAzurePriceListService
 {
     private static class AzureSkuIds
     {
-
         // block blob v2, canada east
         /*
         public static readonly string HOT_LRS_BLOCK_SKU_ID = "DZH318Z0BPH7/007C";

@@ -129,7 +129,6 @@ public class DocumentationService
         {
             if (doc.Title is not null)
             {
-
                 doc.Content = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, doc.GetMarkdownFileName());
                 BuildPreview(doc);
             }

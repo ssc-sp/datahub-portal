@@ -6,6 +6,7 @@ public interface IPortalUserTelemetryService
     /// Event raised when new achievements are achieved
     /// </summary>
     event EventHandler<AchievementsEarnedEventArgs> OnAchievementsEarned;
+
     /// <summary>
     /// Report a telemetry event
     /// </summary>

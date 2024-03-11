@@ -1,6 +1,5 @@
 ﻿namespace Datahub.Core.DataTransfers
 {
-
 	public record UploadCredentials
     {
         public string WorkspaceCode { get; set; }

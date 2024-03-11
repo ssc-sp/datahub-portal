@@ -9,7 +9,6 @@ namespace Datahub.Core;
 
 public class DatahubModuleContext
 {
-
     private IServiceProvider serviceProvider;
 
     private bool offline;

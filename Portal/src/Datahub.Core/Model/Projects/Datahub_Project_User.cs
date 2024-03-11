@@ -6,7 +6,6 @@ namespace Datahub.Core.Model.Projects;
 
 public class Datahub_Project_User
 {
-
     [AeFormIgnore]
     [Key]
     public int ProjectUser_ID { get; set; }

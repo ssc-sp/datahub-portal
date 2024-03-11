@@ -23,3 +23,5 @@ using System.Diagnostics.CodeAnalysis;
     Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1009",
     Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
+[assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1027",
+	Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]

@@ -93,7 +93,7 @@ public class Client_Engagement
     [MudBlazor.Forms.AeFormIgnoreAttribute]
     public bool IsReleased => Actual_Release_Date != null;
 
-    public (Color, Severity) TimelineStatus(bool isComplete, DateTime? estimatedEndDate, DateTime? actualEndDate)
+    public (Color Color, Severity Severity) TimelineStatus(bool isComplete, DateTime? estimatedEndDate, DateTime? actualEndDate)
     {
         if (!isComplete)
         {

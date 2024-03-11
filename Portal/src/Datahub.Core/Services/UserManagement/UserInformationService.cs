@@ -181,7 +181,6 @@ public class UserInformationService : IUserInformationService
         //if (graphServiceClient != null) return;
         try
         {
-
             //see https://learn.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=csharp
             // using Azure.Identity;
             var options = new ClientSecretCredentialOptions

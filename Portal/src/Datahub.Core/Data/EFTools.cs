@@ -14,7 +14,6 @@ public enum DbDriver
 }
 public static class EFTools
 {
-
     public static void InitializeDatabase<T>(ILogger logger, IConfiguration configuration, IServiceProvider serviceProvider, bool offline, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
     {
         var factory = serviceProvider.GetService(typeof(IDbContextFactory<T>)) as IDbContextFactory<T>;
@@ -34,7 +33,6 @@ public static class EFTools
             }
             else
             {
-
                 if (migrate)
                 {
                     context.Database.Migrate();
@@ -55,7 +53,6 @@ public static class EFTools
 
     public static string GetConnectionString(this IConfiguration configuration, IWebHostEnvironment environment, string name)
     {
-
         return configuration.GetConnectionString(name) ?? throw new ArgumentNullException($"ASPNETCORE_CONNECTION STRING ({name}) in Enviroment ({environment.EnvironmentName}).");
     }
 
