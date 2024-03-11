@@ -13,6 +13,8 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
       testRunTitle: 'Datahub Function Unit Tests'
+      publishTestResults: true
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Infrastructure Unit Tests'
@@ -21,6 +23,8 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Infrastructure.UnitTests/Datahub.Infrastructure.UnitTests.csproj'
       testRunTitle: 'Datahub Infrastructure Unit Tests'
+      publishTestResults: true
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Specflow Tests'
@@ -29,6 +33,8 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.SpecflowTests/Datahub.SpecflowTests.csproj'
       testRunTitle: 'Datahub Specflow Tests'
+      publishTestResults: true
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Specs Tests'
@@ -37,6 +43,8 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Specs/Datahub.Specs.csproj'
       testRunTitle: 'Datahub Specs Tests'
+      publishTestResults: true
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Unit Tests'
@@ -45,3 +53,18 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Tests/Datahub.Tests.csproj'
       testRunTitle: 'Datahub Unit Tests'
+      publishTestResults: true
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+      
+  - task: reportgenerator@4
+    displayName: 'Generate code coverage report'
+    inputs:
+      reports: '$(Build.SourcesDirectory)/Portal/test/**/coverage.cobertura.xml'
+      targetdir: '$(Build.SourcesDirectory)/Portal/test/CoverageResults'
+      
+  - task: PublishCodeCoverageResults@1
+    displayName: 'Publish code coverage results'
+    inputs:
+      codeCoverageTool: 'Cobertura'
+      summaryFileLocation: '$(Build.SourcesDirectory)/Portal/test/CoverageResults/Cobertura.xml'
+      reportDirectory: '$(Build.SourcesDirectory)/Portal/test/CoverageResults'
