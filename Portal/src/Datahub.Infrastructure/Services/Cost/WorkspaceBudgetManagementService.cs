@@ -1,4 +1,5 @@
-﻿using Azure;
+﻿using System.Runtime.CompilerServices;
+using Azure;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
@@ -7,6 +8,8 @@ using Azure.ResourceManager.Consumption;
 using Azure.ResourceManager.CostManagement;
 using Datahub.Application.Services.Azure;
 using Microsoft.Extensions.Logging;
+
+[assembly: InternalsVisibleTo("Datahub.Infrastructure.UnitTests")]
 
 namespace Datahub.Infrastructure.Services.Cost
 {

@@ -2,6 +2,7 @@
 {
     public interface IWorkspaceCostManagementService
     {
+        public Task UpdateWorkspaceUsageAsync(int projectId);
         public Task<List<DailyServiceCost>> GetCostByPeriodAsync(string workspaceAcronym, DateTime date);
 
         public Task<List<DailyServiceCost>> GetCostByPeriodAsync(string workspaceAcronym, DateTime startDate,
@@ -9,8 +10,8 @@
 
         public Task<List<DailyServiceCost>> GetAllCostsAsync(string workspaceAcronym);
 
-        public Task<List<DailyServiceCost>> GroupBySource(List<DailyServiceCost> costs);
-        public Task<List<DailyServiceCost>> GroupByDate(List<DailyServiceCost> costs);
+        public List<DailyServiceCost> GroupBySource(List<DailyServiceCost> costs);
+        public List<DailyServiceCost> GroupByDate(List<DailyServiceCost> costs);
     }
 
     public struct DailyServiceCost
@@ -18,6 +19,13 @@
         public decimal Amount { get; set; }
         public string Source { get; set; }
         public DateTime Date { get; set; }
+        public override bool Equals(object? obj)
+        {
+            return obj is DailyServiceCost cost &&
+                   Amount == cost.Amount &&
+                   Source == cost.Source &&
+                   Date == cost.Date;
+        }
     }
 
     public struct FiscalYear

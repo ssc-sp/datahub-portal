@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.CostManagement;
@@ -6,10 +8,14 @@ using Azure.ResourceManager.CostManagement.Models;
 using Datahub.Application.Services.Azure;
 using Datahub.Application.Services.Budget;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.Crypto.Prng;
+
+[assembly: InternalsVisibleTo("Datahub.Infrastructure.UnitTests")]
 
 namespace Datahub.Infrastructure.Services.Cost
 {
@@ -25,6 +31,30 @@ namespace Datahub.Infrastructure.Services.Cost
             _logger = logger;
             _dbContextFactory = dbContextFactory;
             _armClient = armClientProvider.GetClient();
+        }
+
+        public async Task UpdateWorkspaceUsageAsync(int projectId)
+        {
+            using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_ID == projectId);
+            if (project is null)
+            {
+                _logger.LogError($"Could not find project with id {projectId}");
+                return;
+            }
+            
+            var projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(c => c.ProjectId == projectId);
+            if (projectCredits is null)
+            {
+                projectCredits = new Project_Credits()
+                {
+                    ProjectId = projectId
+                };
+            }
+
+            var costs = await GetAllCostsAsync(project.Project_Acronym_CD);
+            
+            
         }
 
         public async Task<List<DailyServiceCost>> GetCostByPeriodAsync(string workspaceAcronym, DateTime date)
@@ -46,50 +76,47 @@ namespace Datahub.Infrastructure.Services.Cost
             return await QueryWorkspaceCosts(workspaceAcronym, DateTime.MinValue, DateTime.Today);
         }
 
-        public Task<List<DailyServiceCost>> GroupBySource(List<DailyServiceCost> costs)
+        public List<DailyServiceCost> GroupBySource(List<DailyServiceCost> costs)
         {
-            var newCosts = new List<DailyServiceCost>();
-            costs.ForEach(c => newCosts.Add(
-                new DailyServiceCost()
-                {
-                    Amount = c.Amount,
-                    Source = c.Source,
-                    Date = c.Date;
-                }));
+            return costs.GroupBy(c => c.Source).Select(g => new DailyServiceCost()
+            {
+                Amount = g.Sum(c => c.Amount),
+                Source = g.Key,
+                Date = g.Min(c => c.Date)
+            }).ToList();
         }
 
-        public Task<List<DailyServiceCost>> GroupByDate(List<DailyServiceCost> costs)
+        public List<DailyServiceCost> GroupByDate(List<DailyServiceCost> costs)
         {
-            throw new NotImplementedException();
+            return costs.GroupBy(c => c.Date).Select(g => new DailyServiceCost()
+            {
+                Amount = g.Sum(c => c.Amount),
+                Source = "Day",
+                Date = g.Key
+            }).ToList();
         }
 
-        private async Task<List<DailyServiceCost>> QueryWorkspaceCosts(string workspaceAcronym, DateTime startDate,
+        internal async Task<List<DailyServiceCost>> QueryWorkspaceCosts(string workspaceAcronym, DateTime startDate,
             DateTime endDate)
         {
             var rgNames = await GetResourceGroupNames(workspaceAcronym);
+            var workspaceCosts = new List<DailyServiceCost>();
+            
             rgNames.ForEach(async rg =>
             {
                 var queryResult = await QueryResourceGroupCosts(rg, startDate, endDate);
                 var dailyCosts = await ParseQueryResult(queryResult);
+                workspaceCosts.AddRange(dailyCosts);
             });
+
+            workspaceCosts.OrderBy(c => c.Date);
+
+            return workspaceCosts;
         }
 
-        private async Task<List<DailyServiceCost>> ParseQueryResult(QueryResult queryResult)
-        {
-            var costs = new List<DailyServiceCost>();
-            var lstDailyCosts = new List<DailyServiceCost>();
-            var cols = queryResult.Columns.ToList().Select(c => c.Name).ToList();
-            queryResult.Rows.ToList().ForEach(r =>
-            {
-                lstDailyCosts.Add(new DailyServiceCost()
-                {
-                    Amount = r[cols.FindIndex(c => c == "Cost")].ToString();
-                });
-            });
-            return costs;
-        }
+        
 
-        private async Task<QueryResult> QueryResourceGroupCosts(string rgName, DateTime startDate, DateTime endDate)
+        internal async Task<QueryResult> QueryResourceGroupCosts(string rgName, DateTime startDate, DateTime endDate)
         {
             var scope = new ResourceIdentifier(rgName);
             var dataset = new QueryDataset();
@@ -110,7 +137,7 @@ namespace Datahub.Infrastructure.Services.Cost
             return response.Value;
         }
 
-        private async Task<List<string>> GetResourceGroupNames(string workspaceAcronym)
+        internal async Task<List<string>> GetResourceGroupNames(string workspaceAcronym)
         {
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
@@ -146,7 +173,7 @@ namespace Datahub.Infrastructure.Services.Cost
             return rgNames;
         }
 
-        private string ParseDbkResourceGroup(string jsonContent)
+        internal string ParseDbkResourceGroup(string jsonContent)
         {
             var content = JsonSerializer.Deserialize<RgNameObject>(jsonContent);
             var dbk = content.resource_group_name.Split("_").Select((s, idx) => idx == 1 ? "dbk" : s);
@@ -154,13 +181,31 @@ namespace Datahub.Infrastructure.Services.Cost
             return dbkRg;
         }
 
-        private string ParseResourceGroup(string jsonContent)
+        internal string ParseResourceGroup(string jsonContent)
         {
             var content = JsonSerializer.Deserialize<RgNameObject>(jsonContent);
             return content?.resource_group_name;
         }
 
-
-        private record RgNameObject(string resource_group_name);
+        internal async Task<List<DailyServiceCost>> ParseQueryResult(QueryResult queryResult)
+        {
+            var lstDailyCosts = new List<DailyServiceCost>();
+            
+            var cols = queryResult.Columns.ToList().Select(c => c.Name).ToList();
+            
+            queryResult.Rows.ToList().ForEach(r =>
+            {
+                lstDailyCosts.Add(new DailyServiceCost()
+                {
+                    Amount = decimal.Parse(r[cols.FindIndex(c => c == "Cost")].ToString()),
+                    Source = r[cols.FindIndex(c => c == "ServiceName")].ToString(),
+                    Date = DateTime.Parse(r[cols.FindIndex(c => c == "UsageDate")].ToString())
+                });
+            });
+            
+            return lstDailyCosts;
+        }
+        
+        internal record RgNameObject(string resource_group_name);
     }
 }
