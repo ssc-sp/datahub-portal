@@ -5,6 +5,8 @@ using System.Net.Http;
 
 namespace Datahub.Infrastructure.Services.Publishing;
 
+//TODO remove this class along with the old OpenDataService
+
 public class CKANServiceFactory
 {
     readonly DatahubPortalConfiguration _config;
