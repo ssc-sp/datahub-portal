@@ -61,8 +61,8 @@ namespace Datahub.Functions
 		{
 			using var ctx = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-			// load from details from db
-			var details = await GetProjectDetails(ctx, projectId, cancellationToken);
+            // load details from db
+            var details = await GetProjectDetails(ctx, projectId, cancellationToken);
 
 			if (details?.Credits is null)
 			{
@@ -95,32 +95,33 @@ namespace Datahub.Functions
 
 				await ctx.SaveChangesAsync(cancellationToken);
 
-				_logger.LogWarning("Notifiying {0}% comsumed for workspace {1}", notificationPerc, details.ProjectAcro);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogWarning("The ProjectUsageNotifier was unable the update the DB or send the email, check the next log.");
-				_logger.LogError(ex.Message, ex);
-			}
-		}
+                _logger.LogWarning("Notifiying {0}% consumed for workspace {1}", notificationPerc, details.ProjectAcro);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("The ProjectUsageNotifier was unable the update the DB or send the email, check the next log.");
+                _logger.LogError(ex.Message, ex);
+            }
+        }
 
-		private async Task<ProjectNotificationDetails?> GetProjectDetails(DatahubProjectDBContext ctx, int projectId,
-			CancellationToken cancellationToken)
-		{
-			var project = await ctx.Projects
-				.Where(e => e.Project_ID == projectId)
-				.Include(e => e.Credits)
-				.Include(e => e.Users)
-				.AsSingleQuery()
-				.FirstOrDefaultAsync(cancellationToken);
+        private async Task<ProjectNotificationDetails?> GetProjectDetails(DatahubProjectDBContext ctx, int projectId, 
+            CancellationToken cancellationToken)
+        {
+            var project = await ctx.Projects
+                .Where(e => e.Project_ID == projectId)
+                .Include(e => e.Credits)
+                .Include(e => e.Users)
+                .ThenInclude(e => e.PortalUser)
+                .AsSingleQuery()
+                .FirstOrDefaultAsync(cancellationToken);
 
 			if (project is null)
 				return default;
 
-			var contacts = project.Users
-				.Select(u => u.User_Name)
-				.Where(_emailValidator.IsValidEmail)
-				.ToList();
+            var contacts = project.Users
+                .Select(u => u.PortalUser.Email)
+                .Where(_emailValidator.IsValidEmail)
+                .ToList();
 
 			var budget = Convert.ToDouble(project.Project_Budget);
 
