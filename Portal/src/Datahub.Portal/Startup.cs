@@ -461,7 +461,6 @@ public class Startup
 
         services.AddSingleton<ServiceAuthManager>();
 
-        services.AddSingleton<CKANServiceFactory>();
         services.AddSingleton<IOpenDataService, OpenDataService>();
         
         services.AddScoped<ITbsOpenDataService, TbsOpenDataService>();

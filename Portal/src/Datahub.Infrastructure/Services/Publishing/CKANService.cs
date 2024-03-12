@@ -85,12 +85,14 @@ public class CKANService : ICKANService
     readonly CkanConfiguration _ckanConfiguration;
     readonly string _apiKey;
 
-    public CKANService(IHttpClientFactory httpClientFactory, CkanConfiguration ckanConfiguration, string apiKey = null)
+    public CKANService(IHttpClientFactory httpClientFactory, CkanConfiguration ckanConfiguration, string? apiKey = null)
     {
         _httpClientFactory = httpClientFactory;
         _ckanConfiguration = ckanConfiguration;
         _apiKey = string.IsNullOrEmpty(apiKey) ? _ckanConfiguration.ApiKey : apiKey;
     }
+
+    public static ICKANService CreateService(IHttpClientFactory httpClientFactory, CkanConfiguration ckanConfiguration, string? apiKey = null) => new CKANService(httpClientFactory, ckanConfiguration, apiKey);
 
     private bool IsTestMode => _ckanConfiguration.TestMode;
 

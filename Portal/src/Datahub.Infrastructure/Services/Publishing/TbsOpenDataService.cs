@@ -14,7 +14,6 @@ using Microsoft.EntityFrameworkCore;
 namespace Datahub.Infrastructure.Services.Publishing;
 
 public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        CKANServiceFactory ckanServiceFactory,
         IMetadataBrokerService metadataBrokerService,
         IProjectStorageConfigurationService projectStorageConfigService,
         CloudStorageManagerFactory cloudStorageManagerFactory,
@@ -24,7 +23,6 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
         DatahubPortalConfiguration config) : ITbsOpenDataService
 {
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = dbContextFactory;
-    private readonly CKANServiceFactory _ckanServiceFactory = ckanServiceFactory;
     private readonly IMetadataBrokerService _metadataBrokerService = metadataBrokerService;
     private readonly IProjectStorageConfigurationService _projectStorageConfigService = projectStorageConfigService;
     private readonly CloudStorageManagerFactory _cloudStorageManagerFactory = cloudStorageManagerFactory;
@@ -58,7 +56,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
             throw new OpenDataPublishingException($"TBS OpenGov API Key not found for workspacce {workspaceAcronym}");
         }
 
-        return await Task.FromResult(_ckanServiceFactory.CreateService(apiKey));
+        return CKANService.CreateService(_httpClientFactory, _config.CKAN, apiKey);
     }
 
     private async Task ApplyWorkspaceOwnerOrgToMetadata(FieldValueContainer submissionMetadata, string workspaceAcronym)
