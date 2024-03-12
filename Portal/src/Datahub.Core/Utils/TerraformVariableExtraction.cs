@@ -1,7 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
@@ -65,12 +63,12 @@ public static class TerraformVariableExtraction
         var appServiceTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService);
         var appServiceResource = project?.Resources?.FirstOrDefault(r =>
             r.ResourceType == appServiceTemplateName);
-        
+
         if (appServiceResource == null)
         {
             throw new Exception("App service resource not found in the project");
         }
-        
+
         return ExtractAppServiceConfiguration(appServiceResource);
     }
 
@@ -108,9 +106,9 @@ public static class TerraformVariableExtraction
     /// <returns>A list of string, corresponding to the keys of the environment variables stored in the workspace keyvault</returns>
     public static IList<string> ExtractEnvironmentVariableKeys(Project_Resources2 projectResources)
     {
-     var envVarsString = ExtractStringVariable(projectResources?.InputJsonContent, "environment_variables_keys") ?? "[]";
-     var envVars = JsonSerializer.Deserialize<List<string>>(envVarsString);
-     return envVars ?? new List<string>();
+        var envVarsString = ExtractStringVariable(projectResources?.InputJsonContent, "environment_variables_keys") ?? "[]";
+        var envVars = JsonSerializer.Deserialize<List<string>>(envVarsString);
+        return envVars ?? new List<string>();
     }
 
     /// <summary>
@@ -153,7 +151,6 @@ public static class TerraformVariableExtraction
             workspace?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent,
             "postgres_db_name");
     }
-
 
     /// <summary>
     /// Extracts the username secret name from the given Azure Postgres workspace.

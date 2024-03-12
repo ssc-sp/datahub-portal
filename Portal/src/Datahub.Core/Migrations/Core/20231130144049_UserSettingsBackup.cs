@@ -1,12 +1,11 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Core.Migrations.Core
 {
-    /// <inheritdoc />
-    public partial class UserSettingsBackup : Migration
+	/// <inheritdoc />
+	public partial class UserSettingsBackup : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -33,7 +32,7 @@ namespace Datahub.Core.Migrations.Core
             migrationBuilder.DropPrimaryKey(
                 name: "PK_UserSettings",
                 table: "UserSettings");
-            
+
             migrationBuilder.Sql("TRUNCATE TABLE UserSettings");
 
             migrationBuilder.AlterColumn<int>(

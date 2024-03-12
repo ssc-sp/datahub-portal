@@ -4,21 +4,21 @@
 
 namespace Datahub.Metadata.Migrations
 {
-    public partial class AddingCatalogObjectGroupingIndex : Migration
-    {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.CreateIndex(
-                name: "IX_CatalogObjects_GroupId",
-                table: "CatalogObjects",
-                column: "GroupId");
-        }
+	public partial class AddingCatalogObjectGroupingIndex : Migration
+	{
+		protected override void Up(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.CreateIndex(
+				name: "IX_CatalogObjects_GroupId",
+				table: "CatalogObjects",
+				column: "GroupId");
+		}
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropIndex(
-                name: "IX_CatalogObjects_GroupId",
-                table: "CatalogObjects");
-        }
-    }
+		protected override void Down(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.DropIndex(
+				name: "IX_CatalogObjects_GroupId",
+				table: "CatalogObjects");
+		}
+	}
 }

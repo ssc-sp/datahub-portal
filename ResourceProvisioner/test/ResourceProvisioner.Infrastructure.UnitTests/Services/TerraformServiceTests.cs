@@ -8,36 +8,36 @@ namespace ResourceProvisioner.Infrastructure.UnitTests.Services;
 using static Testing;
 public class TerraformServiceTests
 {
-    [SetUp]
-    public void RunBeforeEachTest()
-    {
-        var localModuleClonePath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
-        var localInfrastructureClonePath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
-        
-        VerifyDirectoryDoesNotExist(localModuleClonePath);
-        VerifyDirectoryDoesNotExist(localInfrastructureClonePath);
-    }
-    
-    [Test]
-    public void ShouldThrowExceptionWhenProjectNotInitialized()
-    {
-        var moduleDestinationPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _resourceProvisionerConfiguration.InfrastructureRepository.LocalPath);
-        var module = new TerraformTemplate()
-        {
-            Name = "azure-storage-blob",
-        };
-        
-        Assert.That(Directory.Exists(moduleDestinationPath), Is.False);
-        Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
-        {
-            await _terraformService.CopyTemplateAsync(module, TestingWorkspace);
-        });
-    }
-    
-    [Test]
-    public void ShouldParseTerraformVariables()
-    {
-        var variableJson = @"{
+	[SetUp]
+	public void RunBeforeEachTest()
+	{
+		var localModuleClonePath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
+		var localInfrastructureClonePath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
+
+		VerifyDirectoryDoesNotExist(localModuleClonePath);
+		VerifyDirectoryDoesNotExist(localInfrastructureClonePath);
+	}
+
+	[Test]
+	public void ShouldThrowExceptionWhenProjectNotInitialized()
+	{
+		var moduleDestinationPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _resourceProvisionerConfiguration.InfrastructureRepository.LocalPath);
+		var module = new TerraformTemplate()
+		{
+			Name = "azure-storage-blob",
+		};
+
+		Assert.That(Directory.Exists(moduleDestinationPath), Is.False);
+		Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
+		{
+			await _terraformService.CopyTemplateAsync(module, TestingWorkspace);
+		});
+	}
+
+	[Test]
+	public void ShouldParseTerraformVariables()
+	{
+		var variableJson = @"{
   ""variable"": {
     ""datahub_rg_name"": {
       ""type"": ""string"",
@@ -53,16 +53,16 @@ public class TerraformServiceTests
   }
 }
 ";
-        var variables = TerraformService.ParseVariableDefinitions(variableJson);
-        
-        Assert.That(variables["datahub_rg_name"].Item1, Is.EqualTo("string"));
-        Assert.That(variables["datahub_rg_name"].Item2, Is.False);
-        
-        Assert.That(variables["location"].Item1, Is.EqualTo("string"));
-        Assert.That(variables["location"].Item2, Is.False);
-        
-        Assert.That(variables["no_default"].Item1, Is.EqualTo("string"));
-        Assert.That(variables["no_default"].Item2, Is.True);
-    }
+		var variables = TerraformService.ParseVariableDefinitions(variableJson);
+
+		Assert.That(variables["datahub_rg_name"].Item1, Is.EqualTo("string"));
+		Assert.That(variables["datahub_rg_name"].Item2, Is.False);
+
+		Assert.That(variables["location"].Item1, Is.EqualTo("string"));
+		Assert.That(variables["location"].Item2, Is.False);
+
+		Assert.That(variables["no_default"].Item1, Is.EqualTo("string"));
+		Assert.That(variables["no_default"].Item2, Is.True);
+	}
 
 }

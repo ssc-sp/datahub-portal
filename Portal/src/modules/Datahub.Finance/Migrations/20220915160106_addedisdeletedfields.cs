@@ -4,34 +4,34 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Finance.Migrations
 {
-    public partial class Addedisdeletedfields : Migration
-    {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<bool>(
-                name: "Is_Deleted",
-                table: "SummaryForecasts",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
+	public partial class Addedisdeletedfields : Migration
+	{
+		protected override void Up(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.AddColumn<bool>(
+				name: "Is_Deleted",
+				table: "SummaryForecasts",
+				type: "bit",
+				nullable: false,
+				defaultValue: false);
 
-            migrationBuilder.AddColumn<bool>(
-                name: "Is_Deleted",
-                table: "Forecasts",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
-        }
+			migrationBuilder.AddColumn<bool>(
+				name: "Is_Deleted",
+				table: "Forecasts",
+				type: "bit",
+				nullable: false,
+				defaultValue: false);
+		}
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "Is_Deleted",
-                table: "SummaryForecasts");
+		protected override void Down(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.DropColumn(
+				name: "Is_Deleted",
+				table: "SummaryForecasts");
 
-            migrationBuilder.DropColumn(
-                name: "Is_Deleted",
-                table: "Forecasts");
-        }
-    }
+			migrationBuilder.DropColumn(
+				name: "Is_Deleted",
+				table: "Forecasts");
+		}
+	}
 }

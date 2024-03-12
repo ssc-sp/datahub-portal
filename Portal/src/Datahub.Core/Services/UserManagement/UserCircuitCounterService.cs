@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace Datahub.Core.Services.UserManagement;
+﻿namespace Datahub.Core.Services.UserManagement;
 
 public class UserCircuitCounterService : IDisposable, IUserCircuitCounterService
 {

@@ -4,12 +4,7 @@ using Datahub.Metadata.Model;
 using Datahub.Metadata.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Entities = Datahub.Metadata.Model;
 
 namespace Datahub.Core.Services.Metadata;
@@ -654,7 +649,6 @@ public class MetadataBrokerService : IMetadataBrokerService
             {
                 await tran.RollbackAsync();
             }
-
         }
         catch (Exception)
         {
@@ -840,7 +834,7 @@ public class MetadataBrokerService : IMetadataBrokerService
     private async Task SyncDefinitions(MetadataDTO metadataDto)
     {
         using var ctx = await _contextFactory.CreateDbContextAsync();
-        
+
         var versionId = await CreateVersion(ctx);
         var definitions = await GetLatestMetadataDefinition(ctx);
 
@@ -929,7 +923,7 @@ public class MetadataBrokerService : IMetadataBrokerService
     private void UpdateCatalogIndex(string docId, string title, string content, bool isFrench)
     {
         var catalogSearch = isFrench ? _catalogSearchEngine.GetMetadataFrenchSearchEngine() : _catalogSearchEngine.GetMetadataEnglishSearchEngine();
-        catalogSearch.AddDocument(docId, (title ?? "").ToLower(), (content ?? "").ToLower());
+        catalogSearch.AddDocument(docId, (title ?? string.Empty).ToLower(), (content ?? string.Empty).ToLower());
         catalogSearch.FlushIndexes();
     }
 

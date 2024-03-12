@@ -5,9 +5,9 @@ namespace Datahub.Infrastructure.Queues.MessageHandlers;
 
 public class ProjectUsageNotificationSender : QueueMessageSender<ProjectUsageNotificationMessage>
 {
-    public ProjectUsageNotificationSender(IConfiguration configuration) : base(configuration)
-    {
-    }
+	public ProjectUsageNotificationSender(IConfiguration configuration) : base(configuration)
+	{
+	}
 
-    protected override string ConfigPathOrQueueName => "QueueProjectUsageNotification";
+	protected override string ConfigPathOrQueueName => "QueueProjectUsageNotification";
 }

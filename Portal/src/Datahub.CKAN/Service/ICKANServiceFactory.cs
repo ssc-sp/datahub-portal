@@ -2,6 +2,6 @@
 
 public interface ICKANServiceFactory
 {
-    ICKANService CreateService();
-    bool IsStaging();
+	ICKANService CreateService();
+	bool IsStaging();
 }

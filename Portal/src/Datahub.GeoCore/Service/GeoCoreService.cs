@@ -6,61 +6,61 @@ namespace Datahub.GeoCore.Service;
 
 internal class GeoCoreService : IGeoCoreService
 {
-    readonly HttpClient _httpClient;
-    readonly GeoCoreConfiguration _config;
+	readonly HttpClient _httpClient;
+	readonly GeoCoreConfiguration _config;
 
-    public GeoCoreService(HttpClient httpClient, IOptions<GeoCoreConfiguration> config)
-    {
-        _httpClient = httpClient;
-        _config = config.Value;
-    }
-        
-    public async Task<GeoCoreResult> PublishDataset(string jsonData)
-    {
-        var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
-        return await PostRequestAsync($"new?source_key={_config.SourceKey}", content);
-    }
+	public GeoCoreService(HttpClient httpClient, IOptions<GeoCoreConfiguration> config)
+	{
+		_httpClient = httpClient;
+		_config = config.Value;
+	}
 
-    public async Task<ShemaValidatorResult> ValidateJson(string data)
-    {
-        return await Task.FromResult(ShemaValidatorUtil.Validate(data));
-    }
+	public async Task<GeoCoreResult> PublishDataset(string jsonData)
+	{
+		var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+		return await PostRequestAsync($"new?source_key={_config.SourceKey}", content);
+	}
 
-    public string GetDatasetUrl(string datasetId, string lang)
-    {
-        return $"{_config.DatasetBaseUrl}?id={datasetId}&lang={lang}";
-    }
+	public async Task<ShemaValidatorResult> ValidateJson(string data)
+	{
+		return await Task.FromResult(ShemaValidatorUtil.Validate(data));
+	}
 
-    private async Task<GeoCoreResult> PostRequestAsync(string path, HttpContent content)
-    {
-        try
-        {
-            // this is to avoid developing on the VPN (test mode should be off in prod)
-            if (_config.TestMode)
-                return new GeoCoreResult(true, Guid.NewGuid().ToString(), "");
+	public string GetDatasetUrl(string datasetId, string lang)
+	{
+		return $"{_config.DatasetBaseUrl}?id={datasetId}&lang={lang}";
+	}
 
-            content.Headers.Add("x-api-key", _config.ApiKey);
+	private async Task<GeoCoreResult> PostRequestAsync(string path, HttpContent content)
+	{
+		try
+		{
+			// this is to avoid developing on the VPN (test mode should be off in prod)
+			if (_config.TestMode)
+				return new GeoCoreResult(true, Guid.NewGuid().ToString(), "");
 
-            var response = await _httpClient.PostAsync($"{_config.BaseUrl}/{path}", content);
-            response.EnsureSuccessStatusCode();
+			content.Headers.Add("x-api-key", _config.ApiKey);
 
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            var apiResult = JsonSerializer.Deserialize<GeoCoreApiResult>(jsonResponse, GetSerializationOptions());
+			var response = await _httpClient.PostAsync($"{_config.BaseUrl}/{path}", content);
+			response.EnsureSuccessStatusCode();
 
-            var succeeded = apiResult?.StatusCode == 200;
-            var errorMessage = succeeded ? string.Empty : "Request failed!";
-            return new GeoCoreResult(succeeded, apiResult?.Body ?? "", errorMessage);
-        }
-        catch (Exception ex)
-        {
-            return new GeoCoreResult(false, "", ex.Message);
-        }
-    }
+			var jsonResponse = await response.Content.ReadAsStringAsync();
+			var apiResult = JsonSerializer.Deserialize<GeoCoreApiResult>(jsonResponse, GetSerializationOptions());
 
-    static JsonSerializerOptions GetSerializationOptions() => new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
+			var succeeded = apiResult?.StatusCode == 200;
+			var errorMessage = succeeded ? string.Empty : "Request failed!";
+			return new GeoCoreResult(succeeded, apiResult?.Body ?? "", errorMessage);
+		}
+		catch (Exception ex)
+		{
+			return new GeoCoreResult(false, "", ex.Message);
+		}
+	}
+
+	static JsonSerializerOptions GetSerializationOptions() => new()
+	{
+		PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+	};
 }
 
 /// <summary>
@@ -68,6 +68,6 @@ internal class GeoCoreService : IGeoCoreService
 /// </summary>
 class GeoCoreApiResult
 {
-    public int StatusCode { get; set; }
-    public string? Body { get; set; }
+	public int StatusCode { get; set; }
+	public string? Body { get; set; }
 }

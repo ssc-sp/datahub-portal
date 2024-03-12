@@ -10,25 +10,25 @@ namespace Datahub.Specs.Steps;
 public sealed class HomeStepDefinitions
 {
 
-    private readonly HomePageObject _homePageObject;
+	private readonly HomePageObject _homePageObject;
 
-    public HomeStepDefinitions(HomePageObject homePageObject)
-    {
-        _homePageObject = homePageObject;
-    }
+	public HomeStepDefinitions(HomePageObject homePageObject)
+	{
+		_homePageObject = homePageObject;
+	}
 
-    [Then(@"the user is on the home page")]
-    public async Task ThenTheUserIsOnTheHomePage()
-    {
-        await _homePageObject.NavigateAsync();
-        await _homePageObject.ValidateLocationAsync();
-    }
+	[Then(@"the user is on the home page")]
+	public async Task ThenTheUserIsOnTheHomePage()
+	{
+		await _homePageObject.NavigateAsync();
+		await _homePageObject.ValidateLocationAsync();
+	}
 
-    [Then(@"there should be no accessibility errors")]
-    public async Task ThenThereShouldBeNoAccessibilityErrors()
-    {
-        await _homePageObject.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-        var axeResults = await _homePageObject.Page.RunAxe();
-        axeResults.Violations.Should().BeEmpty();
-    }
+	[Then(@"there should be no accessibility errors")]
+	public async Task ThenThereShouldBeNoAccessibilityErrors()
+	{
+		await _homePageObject.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+		var axeResults = await _homePageObject.Page.RunAxe();
+		axeResults.Violations.Should().BeEmpty();
+	}
 }

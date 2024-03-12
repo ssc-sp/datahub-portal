@@ -2,10 +2,6 @@
 using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Datahub.Core.Services.Achievements;
 
@@ -80,6 +76,6 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
         {
             OnAchievementsEarned?.Invoke(this, new AchievementsEarnedEventArgs(newAchievements, portalUser.UserSettings.HideAchievements));
             await _auditingService.TrackEvent("Achivements", ("Codes", string.Join(", ", newAchievements)));
-        }        
+        }
     }
 }

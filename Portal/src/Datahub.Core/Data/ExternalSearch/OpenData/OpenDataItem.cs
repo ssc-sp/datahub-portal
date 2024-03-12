@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
@@ -16,7 +15,7 @@ public class OpenDataItem
     public BilingualText Org_Title_At_Publication { get; set; }
     public BilingualText Notes_Translated { get; set; }
     public string Notes { get; set; }
-        
+
     public string Url { get; set; }
     private BilingualText _urlDecoded;
     public BilingualText UrlDecoded

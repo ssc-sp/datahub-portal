@@ -8,22 +8,22 @@ namespace Datahub.Tests;
 
 public class QueryThrottlerTest
 {
-    [Fact]
-    public async void QueryThrottler_CallbackIsInvoked()
-    {
-        var expected = "expected query";
-        var actual = string.Empty;
+	[Fact]
+	public async void QueryThrottler_CallbackIsInvoked()
+	{
+		var expected = "expected query";
+		var actual = string.Empty;
 
-        QueryThrottler<string> target = new(TimeSpan.FromMilliseconds(1), async (s) => 
-        {
-            actual = s;
-            await Task.FromResult(0);
-        });
+		QueryThrottler<string> target = new(TimeSpan.FromMilliseconds(1), async (s) =>
+		{
+			actual = s;
+			await Task.FromResult(0);
+		});
 
-        await target.SetQuery(expected);
+		await target.SetQuery(expected);
 
-        Assert.Equal(actual, expected);
-    }
+		Assert.Equal(actual, expected);
+	}
 
     [Fact (Skip = "Not working")]
     public async void QueryThrottler_CallbackWithNewerQuery()
@@ -33,70 +33,70 @@ public class QueryThrottlerTest
         var expectedCount = 1;
         var actualCount = 0;
 
-        QueryThrottler<string> target = new(TimeSpan.FromMilliseconds(200), async (s) =>
-        {
-            actual = s;
-            actualCount++;
-            await Task.FromResult(0);
-        });
+		QueryThrottler<string> target = new(TimeSpan.FromMilliseconds(200), async (s) =>
+		{
+			actual = s;
+			actualCount++;
+			await Task.FromResult(0);
+		});
 
-        _ = Task.Run(async () =>
-        {
-            await target.SetQuery("dummy");
-        });
-            
+		_ = Task.Run(async () =>
+		{
+			await target.SetQuery("dummy");
+		});
 
-        Thread.Sleep(TimeSpan.FromMilliseconds(100));
 
-        await target.SetQuery(expected);
-            
-        Assert.Equal(actualCount, expectedCount);
-        Assert.Equal(actual, expected);
-    }
+		Thread.Sleep(TimeSpan.FromMilliseconds(100));
 
-    [Fact]
-    public async void QueryThrottler_CallbackWithBothQueries()
-    {
-        var expected = "expected query";
-        var actual = string.Empty;
-        var expectedCount = 2;
-        var actualCount = 0;
+		await target.SetQuery(expected);
 
-        QueryThrottler<string> target = new(TimeSpan.FromMilliseconds(200), async (s) =>
-        {
-            actual = s;
-            actualCount++;
-            await Task.FromResult(0);
-        });
+		Assert.Equal(actualCount, expectedCount);
+		Assert.Equal(actual, expected);
+	}
 
-        _ = target.SetQuery("dummy");
+	[Fact]
+	public async void QueryThrottler_CallbackWithBothQueries()
+	{
+		var expected = "expected query";
+		var actual = string.Empty;
+		var expectedCount = 2;
+		var actualCount = 0;
 
-        Thread.Sleep(TimeSpan.FromMilliseconds(250));
+		QueryThrottler<string> target = new(TimeSpan.FromMilliseconds(200), async (s) =>
+		{
+			actual = s;
+			actualCount++;
+			await Task.FromResult(0);
+		});
 
-        await target.SetQuery(expected);
+		_ = target.SetQuery("dummy");
 
-        Assert.Equal(actualCount, expectedCount);
-        Assert.Equal(actual, expected);
-    }
+		Thread.Sleep(TimeSpan.FromMilliseconds(250));
 
-    [Fact]
-    public async void QueryThrottler_NullQueriesShouldBeIgnored()
-    {
-        var expected = string.Empty;
-        var actual = string.Empty;
-        var actualCount = 0;
-        var expectedCount = 0;
+		await target.SetQuery(expected);
 
-        QueryThrottler<string> target = new(System.TimeSpan.FromMilliseconds(1), async (s) =>
-        {
-            actual = s;
-            actualCount++;
-            await Task.FromResult(0);
-        });
+		Assert.Equal(actualCount, expectedCount);
+		Assert.Equal(actual, expected);
+	}
 
-        await target.SetQuery(null);
+	[Fact]
+	public async void QueryThrottler_NullQueriesShouldBeIgnored()
+	{
+		var expected = string.Empty;
+		var actual = string.Empty;
+		var actualCount = 0;
+		var expectedCount = 0;
 
-        Assert.Equal(actualCount, expectedCount);
-        Assert.Equal(actual, expected);
-    }
+		QueryThrottler<string> target = new(System.TimeSpan.FromMilliseconds(1), async (s) =>
+		{
+			actual = s;
+			actualCount++;
+			await Task.FromResult(0);
+		});
+
+		await target.SetQuery(null);
+
+		Assert.Equal(actualCount, expectedCount);
+		Assert.Equal(actual, expected);
+	}
 }

@@ -16,37 +16,37 @@ namespace Datahub.Stories.Utils;
 /// </summary>
 public static class ConfigureServices
 {
-    /// <summary>
-    /// This method is used to add the services required by the Blazing Story application.
-    /// </summary>
-    /// <param name="services"></param>
-    /// <param name="configuration"></param>
-    /// <returns></returns>
-    public static IServiceCollection AddDatahubBlazingStoryServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddDatahubApplicationServices(configuration);
-        services.AddDatahubOfflineInfrastructureServices();
-        
-        services.AddTransient<IAuthenticationSchemeProvider, MockSchemeProvider>();
-        services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
-        services.AddSingleton<ServiceAuthManager>();
-        services.AddScoped<UserLocationManagerService>();
-        services.AddMudMarkdownServices();
-        
-        // Add the EF Core DbContexts
-        services.AddDbContextFactory<DatahubProjectDBContext>(options =>
-        {
-            options.UseSqlite(configuration.GetConnectionString("DatahubProjectDBContext"));
-        });
-        
-        services.AddDbContextFactory<MetadataDbContext>(options =>
-        {
-            options.UseSqlite(configuration.GetConnectionString("DatahubMetadataDBContext"));
-        });
+	/// <summary>
+	/// This method is used to add the services required by the Blazing Story application.
+	/// </summary>
+	/// <param name="services"></param>
+	/// <param name="configuration"></param>
+	/// <returns></returns>
+	public static IServiceCollection AddDatahubBlazingStoryServices(this IServiceCollection services, IConfiguration configuration)
+	{
+		services.AddDatahubApplicationServices(configuration);
+		services.AddDatahubOfflineInfrastructureServices();
 
-        services.AddScoped<PlaceholderService>();
+		services.AddTransient<IAuthenticationSchemeProvider, MockSchemeProvider>();
+		services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
+		services.AddSingleton<ServiceAuthManager>();
+		services.AddScoped<UserLocationManagerService>();
+		services.AddMudMarkdownServices();
 
-        return services;
-    }
-        
+		// Add the EF Core DbContexts
+		services.AddDbContextFactory<DatahubProjectDBContext>(options =>
+		{
+			options.UseSqlite(configuration.GetConnectionString("DatahubProjectDBContext"));
+		});
+
+		services.AddDbContextFactory<MetadataDbContext>(options =>
+		{
+			options.UseSqlite(configuration.GetConnectionString("DatahubMetadataDBContext"));
+		});
+
+		services.AddScoped<PlaceholderService>();
+
+		return services;
+	}
+
 }

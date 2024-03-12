@@ -1,13 +1,9 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Datahub.Core.Utils;
+﻿namespace Datahub.Core.Utils;
 
 /// <summary>
 /// Query throttler utility class
 /// </summary>
-public class QueryThrottler<T> where T: IComparable<T>
+public class QueryThrottler<T> where T : IComparable<T>
 {
     private readonly TimeSpan _delay;
     private readonly Func<T, Task> _callback;

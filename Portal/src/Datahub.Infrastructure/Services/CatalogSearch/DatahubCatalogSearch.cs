@@ -8,85 +8,85 @@ namespace Datahub.Infrastructure.Services.CatalogSearch;
 
 public class DatahubCatalogSearch : IDatahubCatalogSearch
 {
-    private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
-    private readonly ICatalogSearchEngine _catalogSearchEngine;
+	private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
+	private readonly ICatalogSearchEngine _catalogSearchEngine;
 
-    public DatahubCatalogSearch(IDbContextFactory<DatahubProjectDBContext> contextFactory, ICatalogSearchEngine catalogSearchEngine)
-    {
-        _contextFactory = contextFactory;
-        _catalogSearchEngine = catalogSearchEngine;
-    }
+	public DatahubCatalogSearch(IDbContextFactory<DatahubProjectDBContext> contextFactory, ICatalogSearchEngine catalogSearchEngine)
+	{
+		_contextFactory = contextFactory;
+		_catalogSearchEngine = catalogSearchEngine;
+	}
 
-    public async Task<List<CatalogObject>> SearchCatalog(DatahubSearchRequest query)
-    {
-        var searchEngine = GetSearchEngine(query.French);
-        
-        var results = searchEngine
-            .SearchDocuments(query.Text, query.MaxResults)
-            .Select(int.Parse)
-            .ToHashSet();
-        if (results.Count == 0)
-            return new List<CatalogObject>();
+	public async Task<List<CatalogObject>> SearchCatalog(DatahubSearchRequest query)
+	{
+		var searchEngine = GetSearchEngine(query.French);
 
-        await using var ctx = await _contextFactory.CreateDbContextAsync();
+		var results = searchEngine
+			.SearchDocuments(query.Text, query.MaxResults)
+			.Select(int.Parse)
+			.ToHashSet();
+		if (results.Count == 0)
+			return new List<CatalogObject>();
 
-        var catalogHits = await ctx.CatalogObjects.Where(e => results.Contains(e.Id)).ToListAsync();
+		await using var ctx = await _contextFactory.CreateDbContextAsync();
 
-        return catalogHits;
-    }
+		var catalogHits = await ctx.CatalogObjects.Where(e => results.Contains(e.Id)).ToListAsync();
 
-    public async Task AddCatalogObject(CatalogObject value)
-    {
-        var docId = await UpsertCatalogObject(value);
+		return catalogHits;
+	}
 
-        var engSearchEngine = GetSearchEngine(french: false);
-        engSearchEngine.AddDocument(docId.ToString(), value.Name_English, value.Desc_English);
-        engSearchEngine.FlushIndexes();
+	public async Task AddCatalogObject(CatalogObject value)
+	{
+		var docId = await UpsertCatalogObject(value);
 
-        var frenchSearchEngine = GetSearchEngine(french: true);
-        frenchSearchEngine.AddDocument(docId.ToString(), value.Name_French, value.Desc_French);
-        frenchSearchEngine.FlushIndexes();
-    }
+		var engSearchEngine = GetSearchEngine(french: false);
+		engSearchEngine.AddDocument(docId.ToString(), value.Name_English, value.Desc_English);
+		engSearchEngine.FlushIndexes();
 
-    private async Task<int> UpsertCatalogObject(CatalogObject value)
-    {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+		var frenchSearchEngine = GetSearchEngine(french: true);
+		frenchSearchEngine.AddDocument(docId.ToString(), value.Name_French, value.Desc_French);
+		frenchSearchEngine.FlushIndexes();
+	}
 
-        var existing = await ctx.CatalogObjects.FirstOrDefaultAsync(e => e.ObjectType == value.ObjectType && e.ObjectId == value.ObjectId);
-        if (existing != null)
-        {
-            existing.Name_English = value.Name_English;
-            existing.Name_French = value.Name_French;
-            existing.Desc_English = value.Desc_English;
-            existing.Desc_French = value.Desc_French;
-        }
-        else
-        {
-            ctx.CatalogObjects.Add(value);
-        }
-        await ctx.SaveChangesAsync();
+	private async Task<int> UpsertCatalogObject(CatalogObject value)
+	{
+		using var ctx = await _contextFactory.CreateDbContextAsync();
 
-        return (existing ?? value).Id;
-    }
+		var existing = await ctx.CatalogObjects.FirstOrDefaultAsync(e => e.ObjectType == value.ObjectType && e.ObjectId == value.ObjectId);
+		if (existing != null)
+		{
+			existing.Name_English = value.Name_English;
+			existing.Name_French = value.Name_French;
+			existing.Desc_English = value.Desc_English;
+			existing.Desc_French = value.Desc_French;
+		}
+		else
+		{
+			ctx.CatalogObjects.Add(value);
+		}
+		await ctx.SaveChangesAsync();
 
-    private ILanguageCatalogSearch GetSearchEngine(bool french)
-    {
-        return french ? _catalogSearchEngine.GetDatahubFrenchSearchEngine(GetFrenchDocuments) 
-                      : _catalogSearchEngine.GetDatahubEnglishSearchEngine(GetEnglishDocuments);
-    }
+		return (existing ?? value).Id;
+	}
 
-    private IEnumerable<CatalogDocument> GetEnglishDocuments()
-    {
-        using var ctx = _contextFactory.CreateDbContext();
-        return ctx.CatalogObjects.Select(GetEnglishDocument).ToList();
-    }
+	private ILanguageCatalogSearch GetSearchEngine(bool french)
+	{
+		return french ? _catalogSearchEngine.GetDatahubFrenchSearchEngine(GetFrenchDocuments)
+					  : _catalogSearchEngine.GetDatahubEnglishSearchEngine(GetEnglishDocuments);
+	}
 
-    private IEnumerable<CatalogDocument> GetFrenchDocuments()
-    {
-        using var ctx = _contextFactory.CreateDbContext();
-        return ctx.CatalogObjects.Select(GetFrenchDocument).ToList();
-    }
+	private IEnumerable<CatalogDocument> GetEnglishDocuments()
+	{
+		using var ctx = _contextFactory.CreateDbContext();
+		return ctx.CatalogObjects.Select(GetEnglishDocument).ToList();
+	}
 
-    static CatalogDocument GetEnglishDocument(CatalogObject e) => new CatalogDocument(e.Id.ToString(), e.Name_English, e.Desc_English);
-    static CatalogDocument GetFrenchDocument(CatalogObject e) => new CatalogDocument(e.Id.ToString(), e.Name_French, e.Desc_French);
+	private IEnumerable<CatalogDocument> GetFrenchDocuments()
+	{
+		using var ctx = _contextFactory.CreateDbContext();
+		return ctx.CatalogObjects.Select(GetFrenchDocument).ToList();
+	}
+
+	static CatalogDocument GetEnglishDocument(CatalogObject e) => new CatalogDocument(e.Id.ToString(), e.Name_English, e.Desc_English);
+	static CatalogDocument GetFrenchDocument(CatalogObject e) => new CatalogDocument(e.Id.ToString(), e.Name_French, e.Desc_French);
 }

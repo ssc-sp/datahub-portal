@@ -4,42 +4,42 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Portal.Migrations.Forms.PIP
 {
-    public partial class Addedcurrentuserforpip : Migration
-    {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<string>(
-                name: "EditingUserId",
-                table: "Tombstones",
-                type: "nvarchar(max)",
-                nullable: true);
+	public partial class Addedcurrentuserforpip : Migration
+	{
+		protected override void Up(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.AddColumn<string>(
+				name: "EditingUserId",
+				table: "Tombstones",
+				type: "nvarchar(max)",
+				nullable: true);
 
-            migrationBuilder.AddColumn<string>(
-                name: "EditingUserId",
-                table: "Risks",
-                type: "nvarchar(max)",
-                nullable: true);
+			migrationBuilder.AddColumn<string>(
+				name: "EditingUserId",
+				table: "Risks",
+				type: "nvarchar(max)",
+				nullable: true);
 
-            migrationBuilder.AddColumn<string>(
-                name: "EditingUserId",
-                table: "IndicatorAndResults",
-                type: "nvarchar(max)",
-                nullable: true);
-        }
+			migrationBuilder.AddColumn<string>(
+				name: "EditingUserId",
+				table: "IndicatorAndResults",
+				type: "nvarchar(max)",
+				nullable: true);
+		}
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "EditingUserId",
-                table: "Tombstones");
+		protected override void Down(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.DropColumn(
+				name: "EditingUserId",
+				table: "Tombstones");
 
-            migrationBuilder.DropColumn(
-                name: "EditingUserId",
-                table: "Risks");
+			migrationBuilder.DropColumn(
+				name: "EditingUserId",
+				table: "Risks");
 
-            migrationBuilder.DropColumn(
-                name: "EditingUserId",
-                table: "IndicatorAndResults");
-        }
-    }
+			migrationBuilder.DropColumn(
+				name: "EditingUserId",
+				table: "IndicatorAndResults");
+		}
+	}
 }

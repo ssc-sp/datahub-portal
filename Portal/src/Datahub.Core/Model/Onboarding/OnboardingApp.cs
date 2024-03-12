@@ -1,5 +1,4 @@
 ﻿using Elemental.Components;
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Datahub.Core.Model.Onboarding;
@@ -15,11 +14,11 @@ public class OnboardingApp
     [StringLength(2000)]
     public string Client_Sector { get; set; }
     [StringLength(2000)]
-    [AeFormCategory("Client Information", 10)]        
+    [AeFormCategory("Client Information", 10)]
     [AeLabel(isDropDown: true, placeholder: "[Select your Branch]")]
     public string Client_Branch { get; set; }
     [StringLength(2000)]
-    [AeFormCategory("Client Information", 10)]        
+    [AeFormCategory("Client Information", 10)]
     [AeLabel(isDropDown: true, placeholder: "[Select your Division]")]
     public string Client_Division { get; set; }
     [StringLength(200)]
@@ -41,11 +40,9 @@ public class OnboardingApp
     [AeLabel(placeholder: "[Firstname.Lastname@nrcan-rncan.gc.ca]")]
     public string Additional_Contact_Email_EMAIL { get; set; }
 
-
     [AeFormCategory("Product Information", 20)]
     [AeLabel(placeholder: "[Enter the name of your product]")]
     public string Product_Name { get; set; }
-
 
     [AeFormCategory("Product Information", 20)]
     [AeLabel(placeholder: "[Provide a brief summary/description of your product]")]
@@ -59,26 +56,20 @@ public class OnboardingApp
     [AeLabel(placeholder: "[Provide any anticipated timelines or deadlines for onboarding to DataHub]")]
     public string Onboarding_Timeline { get; set; }
 
-
     [AeFormCategory("Product Information", 20)]
     [AeLabel(isDropDown: true)]
     public string Project_Engagement_Category { get; set; }
 
-    [AeFormCategory("Product Information", 20)]        
+    [AeFormCategory("Product Information", 20)]
     public string Project_Engagement_Category_Other { get; set; }
-
-
 
     [AeFormCategory("Product Information", 20)]
     [AeLabel(isDropDown: true)]
     public string Data_Security_Level { get; set; }
 
-
-
     [AeFormCategory("Additional Information", 30)]
     [AeLabel(placeholder: "[Enter any additional information/comments regarding your product or questions for the DataHub team]")]
     public string Questions_for_the_DataHub_Team { get; set; }
-        
 
     [AeFormIgnore]
     public bool NotificationsSent { get; set; }
@@ -95,6 +86,4 @@ public class OnboardingApp
 
     [AeFormIgnore]
     public DateTime? ProjectCreatedDate { get; set; }
-
-       
 }

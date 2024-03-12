@@ -5,6 +5,6 @@ namespace ResourceProvisioner.Domain.Events;
 
 public class RepositoryUpdateEvent : BaseEvent
 {
-    public MessageStatusCode StatusCode { get; set; }
-    public string Message { get; set; }
+	public MessageStatusCode StatusCode { get; set; }
+	public string Message { get; set; }
 }

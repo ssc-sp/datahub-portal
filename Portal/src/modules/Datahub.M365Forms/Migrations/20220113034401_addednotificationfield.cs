@@ -4,23 +4,23 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.M365Forms.Migrations
 {
-    public partial class Addednotificationfield : Migration
-    {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<bool>(
-                name: "NotificationsSent",
-                table: "M365FormsApplications",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
-        }
+	public partial class Addednotificationfield : Migration
+	{
+		protected override void Up(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.AddColumn<bool>(
+				name: "NotificationsSent",
+				table: "M365FormsApplications",
+				type: "bit",
+				nullable: false,
+				defaultValue: false);
+		}
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "NotificationsSent",
-                table: "M365FormsApplications");
-        }
-    }
+		protected override void Down(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.DropColumn(
+				name: "NotificationsSent",
+				table: "M365FormsApplications");
+		}
+	}
 }

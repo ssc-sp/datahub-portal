@@ -8,95 +8,95 @@ namespace Datahub.CKAN.Package;
 
 public class PackageGenerator
 {
-    readonly List<FieldAgent> _fieldAgents;
+	readonly List<FieldAgent> _fieldAgents;
 
-    public PackageGenerator()
-    {
-        _fieldAgents = new()
-        {
-            new KeywordFieldAgent(),
-            new TranslatedFieldAgent(),
-            new CatchAllFieldAgent(string.Empty, string.Empty, true),
-            new CatchAllFieldAgent(string.Empty, string.Empty, false)
-        };
-    }
+	public PackageGenerator()
+	{
+		_fieldAgents = new()
+		{
+			new KeywordFieldAgent(),
+			new TranslatedFieldAgent(),
+			new CatchAllFieldAgent(string.Empty, string.Empty, true),
+			new CatchAllFieldAgent(string.Empty, string.Empty, false)
+		};
+	}
 
-    public Dictionary<string, object> GeneratePackage(FieldValueContainer fieldValues, bool allFields, string url = null, bool @private = false)
-    {
-        if (fieldValues == null)
-            throw new ArgumentNullException(nameof(fieldValues));
+	public Dictionary<string, object> GeneratePackage(FieldValueContainer fieldValues, bool allFields, string url = null, bool @private = false)
+	{
+		if (fieldValues == null)
+			throw new ArgumentNullException(nameof(fieldValues));
 
-        Dictionary<string, object> dict = new();
+		Dictionary<string, object> dict = new();
 
-        // package id
-        dict["id"] = fieldValues.ObjectId;
+		// package id
+		dict["id"] = fieldValues.ObjectId;
 
-        // package name
-        dict["name"] = fieldValues.ObjectId;
+		// package name
+		dict["name"] = fieldValues.ObjectId;
 
-        // take title english for general title
-        dict["title"] = fieldValues["title_translated_en"]?.Value_TXT ?? string.Empty;
+		// take title english for general title
+		dict["title"] = fieldValues["title_translated_en"]?.Value_TXT ?? string.Empty;
 
-        // private
-        dict["private"] = @private;
+		// private
+		dict["private"] = @private;
 
-        // state is active
-        dict["state"] = "active";
+		// state is active
+		dict["state"] = "active";
 
-        // type is dataset
-        dict["type"] = "dataset";
+		// type is dataset
+		dict["type"] = "dataset";
 
-        dict["restrictions"] = "unrestricted";
-        dict["owner_org"] = "9391E0A2-9717-4755-B548-4499C21F917B";
-        dict["date_published"] = fieldValues["date_published"]?.Value_TXT ?? DateTime.UtcNow.ToString("yyyy-MM-dd");
+		dict["restrictions"] = "unrestricted";
+		dict["owner_org"] = "9391E0A2-9717-4755-B548-4499C21F917B";
+		dict["date_published"] = fieldValues["date_published"]?.Value_TXT ?? DateTime.UtcNow.ToString("yyyy-MM-dd");
 
-        var requiredFields = fieldValues.Where(f => allFields || f.FieldDefinition?.Required_FLAG == true);
-        var agents = InstantiateAgents(requiredFields).ToList();
-        foreach (var agent in agents)
-        {
-            agent.RenderField(dict);
-        }
+		var requiredFields = fieldValues.Where(f => allFields || f.FieldDefinition?.Required_FLAG == true);
+		var agents = InstantiateAgents(requiredFields).ToList();
+		foreach (var agent in agents)
+		{
+			agent.RenderField(dict);
+		}
 
-        if (!string.IsNullOrEmpty(url))
-        {
-            // resources (just the url)
-            dict["resources"] = new object[]
-            {
-                new Dictionary<string, object>()
-                {
-                    { "name_translated", dict["title_translated"] },
-                    { "resource_type", "dataset" },
-                    { "url", url },
-                    { "language", new string[] { "en", "fr" } },
-                    { "format", "other" }
-                }
-            };
-        }
+		if (!string.IsNullOrEmpty(url))
+		{
+			// resources (just the url)
+			dict["resources"] = new object[]
+			{
+				new Dictionary<string, object>()
+				{
+					{ "name_translated", dict["title_translated"] },
+					{ "resource_type", "dataset" },
+					{ "url", url },
+					{ "language", new string[] { "en", "fr" } },
+					{ "format", "other" }
+				}
+			};
+		}
 
-        // open government licence - canada
-        dict["license_id"] = "ca-ogl-lgo";
+		// open government licence - canada
+		dict["license_id"] = "ca-ogl-lgo";
 
-        // ready to publish
-        dict["ready_to_publish"] = "true";
-        dict["imso_approval"] = "false";
+		// ready to publish
+		dict["ready_to_publish"] = "true";
+		dict["imso_approval"] = "false";
 
-        return dict;
-    }
+		return dict;
+	}
 
-    private IEnumerable<FieldAgent> InstantiateAgents(IEnumerable<ObjectFieldValue> fieldValues)
-    {
-        foreach (var fv in fieldValues)
-        {
-            var definition = fv.FieldDefinition;
-            var matchingAgent = _fieldAgents.FirstOrDefault(a => a.Matches(definition));
-            if (matchingAgent != null)
-            {
-                var (append, agent) = matchingAgent.Instantiate(definition.Field_Name_TXT, fv.Value_TXT);
-                if (append)
-                {
-                    yield return agent;
-                }
-            }                
-        }
-    }
+	private IEnumerable<FieldAgent> InstantiateAgents(IEnumerable<ObjectFieldValue> fieldValues)
+	{
+		foreach (var fv in fieldValues)
+		{
+			var definition = fv.FieldDefinition;
+			var matchingAgent = _fieldAgents.FirstOrDefault(a => a.Matches(definition));
+			if (matchingAgent != null)
+			{
+				var (append, agent) = matchingAgent.Instantiate(definition.Field_Name_TXT, fv.Value_TXT);
+				if (append)
+				{
+					yield return agent;
+				}
+			}
+		}
+	}
 }

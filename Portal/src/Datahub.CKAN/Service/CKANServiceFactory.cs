@@ -5,16 +5,16 @@ namespace Datahub.CKAN.Service;
 
 public class CKANServiceFactory : ICKANServiceFactory
 {
-    readonly IOptions<CKANConfiguration> _ckanConfiguration;
-    readonly IHttpClientFactory _httpClientFactory;
+	readonly IOptions<CKANConfiguration> _ckanConfiguration;
+	readonly IHttpClientFactory _httpClientFactory;
 
-    public CKANServiceFactory(IHttpClientFactory httpClientFactory, IOptions<CKANConfiguration> ckanConfiguration)
-    {
-        _ckanConfiguration = ckanConfiguration;
-        _httpClientFactory = httpClientFactory;
-    }
+	public CKANServiceFactory(IHttpClientFactory httpClientFactory, IOptions<CKANConfiguration> ckanConfiguration)
+	{
+		_ckanConfiguration = ckanConfiguration;
+		_httpClientFactory = httpClientFactory;
+	}
 
-    public ICKANService CreateService() => new CKANService(_httpClientFactory.CreateClient("DatahubApp"), _ckanConfiguration);
+	public ICKANService CreateService() => new CKANService(_httpClientFactory.CreateClient("DatahubApp"), _ckanConfiguration);
 
-    public bool IsStaging() => (_ckanConfiguration.Value.BaseUrl ?? "").Contains("staging");
+	public bool IsStaging() => (_ckanConfiguration.Value.BaseUrl ?? "").Contains("staging");
 }

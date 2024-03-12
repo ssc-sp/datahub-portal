@@ -5,20 +5,20 @@ namespace ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun
 
 public class CreateResourceRunCommandValidator : AbstractValidator<CreateResourceRunCommand>
 {
-    public CreateResourceRunCommandValidator()
-    {
-        RuleFor(x => x.Workspace)
-            .NotNull()
-            .SetValidator(new WorkspaceValidator());
+	public CreateResourceRunCommandValidator()
+	{
+		RuleFor(x => x.Workspace)
+			.NotNull()
+			.SetValidator(new WorkspaceValidator());
 
-        RuleFor(x => x.Templates)
-            .NotEmpty();
+		RuleFor(x => x.Templates)
+			.NotEmpty();
 
-        RuleForEach(x => x.Templates)
-            .SetValidator(new TerraformTemplateValidator());
+		RuleForEach(x => x.Templates)
+			.SetValidator(new TerraformTemplateValidator());
 
-        RuleFor(x => x.RequestingUserEmail)
-            .EmailAddress();
-    }    
+		RuleFor(x => x.RequestingUserEmail)
+			.EmailAddress();
+	}
 }
 

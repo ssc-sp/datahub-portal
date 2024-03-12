@@ -1,5 +1,4 @@
 using System.Net.Mail;
-using Microsoft.Graph;
 using Microsoft.Graph.Models;
 
 namespace Datahub.Core.Data;
@@ -10,25 +9,25 @@ namespace Datahub.Core.Data;
 public class GraphUser
 {
     /// <summary>
-    /// User Id
+    /// Gets or sets user Id
     /// </summary>
     /// <value></value>
-    public string Id { get; set; } 
+    public string Id { get; set; }
 
     /// <summary>
-    /// Name of user
+    /// Gets or sets name of user
     /// </summary>
     /// <value></value>
-    public string DisplayName { get; set; } 
-        
-    /// <summary>
-    /// Mail Address
-    /// </summary>
-    /// <value></value>
-    public MailAddress mailAddress { get; set; }     
+    public string DisplayName { get; set; }
 
     /// <summary>
-    /// The user's email address
+    /// Gets or sets mail Address
+    /// </summary>
+    /// <value></value>
+    public MailAddress mailAddress { get; set; }
+
+    /// <summary>
+    /// Gets the user's email address
     /// </summary>
     /// <value></value>
     public string Mail
@@ -40,7 +39,7 @@ public class GraphUser
     }
 
     /// <summary>
-    /// The user's email address
+    /// Gets the user's email address
     /// </summary>
     /// <value></value>
     public string UserName
@@ -52,7 +51,7 @@ public class GraphUser
     }
 
     /// <summary>
-    /// The user's email domain
+    /// Gets the user's email domain
     /// </summary>
     /// <value></value>
     public string Domain
@@ -65,7 +64,7 @@ public class GraphUser
 
     public string RootFolder
     {
-        get 
+        get
         {
             return $"{Domain}/{UserName}";
         }
@@ -81,7 +80,7 @@ public class GraphUser
     public static GraphUser Create(User user)
     {
         var email = user.Mail ?? "unknown@unknown.com";
-        var instance = new GraphUser() 
+        var instance = new GraphUser()
         {
             Id = user.Id,
             DisplayName = user.DisplayName,

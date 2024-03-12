@@ -23,12 +23,12 @@ namespace Datahub.Core.Migrations.Core
                 oldClrType: typeof(string),
                 oldType: "nvarchar(64)",
                 oldMaxLength: 64);
-            
+
             migrationBuilder.AddPrimaryKey(
                 name: "PK_UserSettingsBackup",
                 table: "UserSettingsBackup",
                 column: "UserId");
-            
+
         }
 
         /// <inheritdoc />
@@ -37,7 +37,7 @@ namespace Datahub.Core.Migrations.Core
             migrationBuilder.DropPrimaryKey(
                 name: "PK_UserSettingsBackup",
                 table: "UserSettingsBackup");
-            
+
             migrationBuilder.AlterColumn<string>(
                 name: "UserId",
                 table: "UserSettingsBackup",
@@ -47,12 +47,12 @@ namespace Datahub.Core.Migrations.Core
                 oldClrType: typeof(int),
                 oldType: "int",
                 oldMaxLength: 64);
-            
+
             migrationBuilder.AddPrimaryKey(
                 name: "PK_UserSettingsBackup",
                 table: "UserSettingsBackup",
                 column: "UserId");
-            
+
         }
     }
 }

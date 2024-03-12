@@ -1,6 +1,5 @@
 ﻿#nullable disable
 
-using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Core.Migrations.Core;
