@@ -196,9 +196,9 @@ public class AzureDatabricksTemplateTests
 				[TerraformVariables.DatabricksProjectGuests] = new JsonArray(),
 				[TerraformVariables.AzureDatabricksEnterpriseOid] = _resourceProvisionerConfiguration.Terraform
 					.Variables
-					.azureDatabricksEnterpriseOid,
+					.azure_databricks_enterprise_oid,
 				[TerraformVariables.AzureLogWorkspaceId] =
-					_resourceProvisionerConfiguration.Terraform.Variables.logWorkspaceId,
+					_resourceProvisionerConfiguration.Terraform.Variables.log_workspace_id,
 			};
 		}
 
@@ -245,9 +245,9 @@ public class AzureDatabricksTemplateTests
 				.ToArray<JsonNode>()
 			),
 			[TerraformVariables.AzureDatabricksEnterpriseOid] =
-				_resourceProvisionerConfiguration.Terraform.Variables.azureDatabricksEnterpriseOid,
+				_resourceProvisionerConfiguration.Terraform.Variables.azure_databricks_enterprise_oid,
 			[TerraformVariables.AzureLogWorkspaceId] =
-				_resourceProvisionerConfiguration.Terraform.Variables.logWorkspaceId,
+				_resourceProvisionerConfiguration.Terraform.Variables.log_workspace_id,
 		};
 	}
 }

@@ -81,10 +81,10 @@
 		<PackageReference Include="System.Runtime.Caching" Version="8.0.*" />
 		<PackageReference Include="Tewr.Blazor.FileReader" Version="3.3.2.23201" />
 
-		<PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
+		<!--<PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
+		</PackageReference>-->
 	</ItemGroup>
 	<ItemGroup>
 		<Content Update="i18n\SharedResources.fr.json">

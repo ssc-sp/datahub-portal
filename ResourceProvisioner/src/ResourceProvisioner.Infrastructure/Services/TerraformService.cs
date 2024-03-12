@@ -291,11 +291,11 @@ public class TerraformService : ITerraformService
 			TerraformVariables.BackendResourceGroupName => _resourceProvisionerConfiguration.Terraform.Backend
 				.ResourceGroupName,
 			TerraformVariables.BackendStorageAccountName =>
-				$"{_resourceProvisionerConfiguration.Terraform.Variables.resourcePrefix}{_resourceProvisionerConfiguration.Terraform.Variables.environmentName}terraformbackend",
+				$"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}{_resourceProvisionerConfiguration.Terraform.Variables.environment_name}terraformbackend",
 			TerraformVariables.BackendContainerName =>
-				$"{_resourceProvisionerConfiguration.Terraform.Variables.resourcePrefix}-project-states",
+				$"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-project-states",
 			TerraformVariables.BackendKeyName =>
-				$"{_resourceProvisionerConfiguration.Terraform.Variables.resourcePrefix}-{workspaceName}.tfstate",
+				$"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-{workspaceName}.tfstate",
 			_ => throw new MissingTerraformVariableException(
 				$"Missing variable {variableName}:<string> in configuration")
 		});

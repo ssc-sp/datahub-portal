@@ -46,20 +46,20 @@ public class ConfigurationBindingTests
 		// assert that Variables is not null
 		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables, Is.Not.Null);
 		// assert each property is not null
-		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.azSubscriptionId, Is.Not.Null);
-		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.azTenantId, Is.Not.Null);
-		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.environmentClassification, Is.Not.Null);
-		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.environmentName, Is.Not.Null);
-		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.azLocation, Is.Not.Null);
-		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.resourcePrefix, Is.Not.Null);
+		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id, Is.Not.Null);
+		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.az_tenant_id, Is.Not.Null);
+		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.environment_classification, Is.Not.Null);
+		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.environment_name, Is.Not.Null);
+		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.az_location, Is.Not.Null);
+		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix, Is.Not.Null);
 
 
 		// assert that common_tags is not null
-		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.commonTags, Is.Not.Null);
+		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.common_tags, Is.Not.Null);
 		// assert each property is not null
-		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.commonTags.Sector, Is.Not.Null);
-		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.commonTags.Environment, Is.Not.Null);
-		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.commonTags.ClientOrganization, Is.Not.Null);
+		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.common_tags.Sector, Is.Not.Null);
+		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.common_tags.Environment, Is.Not.Null);
+		Assert.That(_resourceProvisionerConfiguration.Terraform.Variables.common_tags.ClientOrganization, Is.Not.Null);
 
 
 

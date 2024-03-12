@@ -11,7 +11,7 @@ public interface IPortalUserTelemetryService
     /// Report a telemetry event
     /// </summary>
     /// <param name="eventName">Name, use TelemetryEvents constants</param>
-    /// <see cref="TelemetryEvents"/>
+    /// <see href="TelemetryEvents"/>
     /// <returns></returns>
     Task LogTelemetryEvent(string eventName);
 }
