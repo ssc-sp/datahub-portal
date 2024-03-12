@@ -1,18 +1,43 @@
 ﻿@* DHSteps.razor *@
-@* TODO: implement with Mud components *@
 
 @typeparam T
 
-<AeSteps T=@T
-    StepItems=@StepItems
-    CurrentStepState=@CurrentStepStateFuncInternal
-    StepTitle=@StepTitleFunc
-    StepMessage=@StepMessageFunc
-    Alignment=@AlignmentInternal
->
 
-    <PassedIcon><MudIcon Icon=@Icons.Material.Filled.Check /></PassedIcon>
-</AeSteps>
+ <MudTimeline TimelineOrientation=@Orientation TimelinePosition=@Position >
+     @foreach(var (index, item) in StepItems.Select((x,i) => (i,x)))
+    {
+        var dotAppearance = StepStatusIcon(item);
+        <MudTimelineItem 
+            Size=@Size.Large
+            Variant=@Variant.Filled
+            Icon=@dotAppearance.Icon 
+            Color=@dotAppearance.Colour>
+
+            <ItemDot>
+                @if (string.IsNullOrEmpty(dotAppearance.Icon))
+                {
+                    <MudText Typo=@Typo.h3 Align=@Align.Center>@(index+1)</MudText>
+                }
+                else
+                {
+                    <MudIcon Icon=@dotAppearance.Icon Size=@Size.Large />
+                }
+            </ItemDot>
+
+            <ChildContent>
+                
+                <MudText Typo=@Typo.h4>@StepTitleFunc(item)</MudText>
+                @if (!Collapsed)
+                {
+                    <MudText Typo=@Typo.caption>@StepMessageFunc(item)</MudText>
+                }
+            </ChildContent>
+
+        </MudTimelineItem>
+    }
+</MudTimeline>
+
+
 
 @code {
 
@@ -31,15 +56,12 @@
     [Parameter]
     public bool Collapsed { get; set; }
 
-    private AeSteps<T>.StepAlignment AlignmentInternal => Collapsed ? AeSteps<T>.StepAlignment.Horizontal : AeSteps<T>.StepAlignment.Vertical;
-
-    private AeSteps<T>.StepState CurrentStepStateFuncInternal(T t) => CurrentStepStateFunc(t) switch
+    private StepDotAppearance StepStatusIcon(T stepItem) => CurrentStepStateFunc(stepItem) switch
     {
-        StepState.Queued => AeSteps<T>.StepState.Queued,
-        StepState.Running => AeSteps<T>.StepState.Running,
-        StepState.Passed => AeSteps<T>.StepState.Passed,
-        StepState.Failed => AeSteps<T>.StepState.Failed,
-        _ => AeSteps<T>.StepState.Queued
+        StepState.Running => new(Icons.Material.Filled.DirectionsWalk, Color.Primary),
+        StepState.Passed => new(Icons.Material.Filled.Check, Color.Success),
+        StepState.Failed => new(Icons.Material.Filled.Close, Color.Error),
+        _ => new(string.Empty, Color.Default)
     };
 
     public enum StepState
@@ -49,4 +71,9 @@
         Passed,
         Failed
     }
+
+    private record StepDotAppearance(string Icon, Color Colour);
+
+    private TimelineOrientation Orientation => Collapsed ? TimelineOrientation.Horizontal : TimelineOrientation.Vertical;
+    private TimelinePosition Position => Collapsed ? TimelinePosition.Top : TimelinePosition.Left;
 }
