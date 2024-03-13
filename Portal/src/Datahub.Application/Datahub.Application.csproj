@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
+      <ProjectReference Include="..\Datahub.CKAN\Datahub.CKAN.csproj" />
     </ItemGroup>
 
     <ItemGroup>

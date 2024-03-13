@@ -6,6 +6,7 @@
 @using Datahub.Portal.Pages.Workspace.Dashboard
 @using Datahub.Portal.Pages.Workspace.Database
 @using Datahub.Portal.Pages.Workspace.Metadata
+@using Datahub.Portal.Pages.Workspace.Publishing
 @using Datahub.Portal.Pages.Workspace.Reports
 @using Datahub.Portal.Pages.Workspace.Repositories
 @using Datahub.Portal.Pages.Workspace.Settings
@@ -13,6 +14,7 @@
 @using Datahub.Portal.Pages.Workspace.Sudo
 @using Datahub.Portal.Pages.Workspace.Toolbox
 @using Datahub.Portal.Pages.Workspace.Users
+@using Datahub.Portal.Pages.Workspace.WebApp
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject UserLocationManagerService _userLocationManagerService
@@ -20,6 +22,7 @@
 
 @attribute [Route(PageRoutes.WorkspaceDefault)]
 @attribute [Route(PageRoutes.Workspace)]
+@attribute [Route(PageRoutes.WorkspaceSubSection)]
 
 <PageTitle>
     @Localizer["SSC Datahub - Workspace - {0}", WorkspaceAcronymParam ?? ""]
@@ -37,11 +40,16 @@
         { "WorkspaceAcronym", WorkspaceAcronymParam }
     };
 
+    if (!string.IsNullOrEmpty(SubSection))
+    {
+        parameters.Add("SubSection", SubSection);
+    }
+
     if (containsKey)
     {
         <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(Section)" ProjectAcronym="@WorkspaceAcronymParam">
             <Authorized>
-                <DynamicComponent Type="@_sectionComponents[Section]" Parameters="@parameters"/>
+                <DynamicComponent Type=@GetDynamicComponentType() Parameters="@parameters"/>
             </Authorized>
             <NotAuthorized>
                 <NotAuthorizedMessage/>
@@ -77,12 +85,17 @@
     [Parameter]
     public string Section { get; set; } = WorkspaceSidebar.SectionViews.Dashboard;
 
+    [Parameter]
+    public string SubSection { get; set; } = string.Empty;
+
     private readonly Dictionary<string, Type> _sectionComponents = new()
     {
         { WorkspaceSidebar.SectionViews.Dashboard, typeof(WorkspaceDashboard) },
         { WorkspaceSidebar.SectionViews.Storage, typeof(FileExplorerPage) },
+        { WorkspaceSidebar.SectionViews.Publishing, typeof(PublishingDashboard) },
         { WorkspaceSidebar.SectionViews.Repositories, typeof(RepositoryManagementPage) },
         { WorkspaceSidebar.SectionViews.SqlDatabase, typeof(WorkspaceDatabasePage) },
+        { WorkspaceSidebar.SectionViews.WebApp, typeof(WorkspaceWebAppPage)},
         { WorkspaceSidebar.SectionViews.Users, typeof(WorkspaceUsersPage) },
         { WorkspaceSidebar.SectionViews.Metadata, typeof(WorkspaceMetadataPage) },
         { WorkspaceSidebar.SectionViews.Toolbox, typeof(WorkspaceToolboxPage) },
@@ -90,6 +103,19 @@
         { WorkspaceSidebar.SectionViews.Sudo, typeof(WorkspaceSudoPage) },
         { WorkspaceSidebar.SectionViews.Settings, typeof(WorkspaceSettingsPage) }
     };
+
+    private Type GetDynamicComponentType()
+    {
+        var defaultSectionType = _sectionComponents[Section];
+
+        return (Section, SubSection) switch
+        {
+            (WorkspaceSidebar.SectionViews.Publishing, "") => defaultSectionType,
+            (WorkspaceSidebar.SectionViews.Publishing, null) => defaultSectionType,
+            (WorkspaceSidebar.SectionViews.Publishing, _) => typeof(PublishingSubmissionPage),
+            _ => defaultSectionType
+        };
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -121,6 +147,7 @@
         return Section switch
         {
             WorkspaceSidebar.SectionViews.Dashboard => DatahubLinkType.DataProject,
+            WorkspaceSidebar.SectionViews.Publishing => DatahubLinkType.PublishingDashboard,
             WorkspaceSidebar.SectionViews.Storage => DatahubLinkType.Storage,
             WorkspaceSidebar.SectionViews.Repositories => DatahubLinkType.Repository,
             _ => DatahubLinkType.DataProject

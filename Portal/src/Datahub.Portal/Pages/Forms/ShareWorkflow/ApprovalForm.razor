@@ -1,4 +1,5 @@
 ﻿@using System.Linq
+@using Datahub.Core.Model.Achievements;
 @using Forms = MudBlazor.Forms
 
 
@@ -10,13 +11,15 @@
                  OnConfigure="OnConfigure"
                  CancelLabel="@CancelLabel"
                  SubmitLabel="@SubmitLabel"
+                 Variant=@Variant.Outlined
                  LabelForPropertyFunc="@GetDataLabel"
+                 ModelFormStyle=@Forms.ModelFormStyle.Compact
                  LabelsOnTop />
     
     @if (!_validMandatoryCheckboxes)
     {
         <MudAlert Severity="Severity.Warning">
-            @(new MarkupString(Localizer["OPENDATA-WIZARD.MustAcknowledgeMandatoryReleaseCriteria"]))
+            @(new MarkupString(Localizer["You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting."]))
         </MudAlert>
     }    
 </MudItem>
@@ -40,6 +43,9 @@
 
     [Parameter]
     public GraphUser User { get; set; }
+
+    [Parameter]
+    public PortalUser PortalUser { get; set; }
 
     private List<OrganizationLevel> _sectors = new(); 
     private List<OrganizationLevel> _branches = new(); 
@@ -75,10 +81,9 @@
             // create a new form
             _approvalForm = new()
             {
-                Department_NAME = "Natural Resources Canada / Ressources Naturelles Canada",
                 Type_Of_Data_TXT = "Data",
-                Name_NAME = User?.DisplayName,
-                Email_EMAIL = User?.Mail,
+                Name_NAME = User?.DisplayName ?? PortalUser?.DisplayName,
+                Email_EMAIL = User?.Mail ?? PortalUser?.Email,
                 Dataset_Title_TXT = DatasetTitle ?? string.Empty
             };
         }
@@ -146,43 +151,6 @@
     private void OnConfigure(Forms.IModelFormContext context)
     {
         context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Type_Of_Data_TXT, () => new string[] { "Data", "Info" });
-
-        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Sector_NAME, () => Sectors, s => 
-        {
-            var id = GetChoiceId(_sectors, s);
-            if (_sectorId != id)
-            {
-                _sectorId = id;
-                _approvalForm.Sector_ID = id;
-                RefreshBranches(context);
-            }
-        });
-
-        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Branch_NAME, () => Branches, b =>
-        {
-            var id = GetChoiceId(_branches, b, _sectorId);
-            if (_branchId != id)
-            {
-                _branchId = id;
-                _approvalForm.Branch_ID = id;
-                RefreshDivisions(context);
-            }
-        });
-
-        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Division_NAME, () => Divisions, d =>
-        {
-            var id = GetChoiceId(_divisions, d, _branchId);
-            if (_divisionId != id)
-            {
-                _divisionId = id;
-                RefreshSections(context);
-            }
-        });
-
-        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Section_NAME, () => Sections, s =>
-        {
-            _sectionId = GetChoiceId(_sections, s, _divisionId);
-        });
     }
 
     private void RefreshBranches(Forms.IModelFormContext context)
