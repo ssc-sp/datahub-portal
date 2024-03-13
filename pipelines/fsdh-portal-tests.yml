@@ -14,7 +14,7 @@ steps:
       projects: 'Portal/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
       testRunTitle: 'Datahub Function Unit Tests'
       publishTestResults: true
-      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+      arguments:  '--collect "Code coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Infrastructure Unit Tests'
@@ -24,7 +24,7 @@ steps:
       projects: 'Portal/test/Datahub.Infrastructure.UnitTests/Datahub.Infrastructure.UnitTests.csproj'
       testRunTitle: 'Datahub Infrastructure Unit Tests'
       publishTestResults: true
-      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+      arguments:  '--collect "Code coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Specflow Tests'
@@ -34,7 +34,7 @@ steps:
       projects: 'Portal/test/Datahub.SpecflowTests/Datahub.SpecflowTests.csproj'
       testRunTitle: 'Datahub Specflow Tests'
       publishTestResults: true
-      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+      arguments:  '--collect "Code coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Specs Tests'
@@ -44,7 +44,7 @@ steps:
       projects: 'Portal/test/Datahub.Specs/Datahub.Specs.csproj'
       testRunTitle: 'Datahub Specs Tests'
       publishTestResults: true
-      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+      arguments:  '--collect "Code coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Unit Tests'
@@ -54,7 +54,7 @@ steps:
       projects: 'Portal/test/Datahub.Tests/Datahub.Tests.csproj'
       testRunTitle: 'Datahub Unit Tests'
       publishTestResults: true
-      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+      arguments:  '--collect "Code coverage"'
       
   - script: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
