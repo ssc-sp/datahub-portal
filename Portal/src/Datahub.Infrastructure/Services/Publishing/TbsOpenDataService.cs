@@ -248,4 +248,23 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
     {
         return $"{_config.CkanConfiguration.DatasetUrl}/{submission.UniqueId}";
     }
+
+    public async Task<string> TestConnectivity()
+    {
+        using var httpClient = _httpClientFactory.CreateClient();
+        var apiUrl = $"{_config.CkanConfiguration.ApiUrl}/action/organization_list";
+        try
+        {
+            using var response = await httpClient.GetAsync(apiUrl);
+            return $"{(int)response.StatusCode} - {response.ReasonPhrase}";
+        }
+        catch (HttpRequestException e)
+        {
+            return $"HttpRequestException: Status {e.StatusCode} - Exception: {e}";
+        }
+        catch (Exception e)
+        {
+            return $"Other exception: {e}";
+        }
+    }
 }
