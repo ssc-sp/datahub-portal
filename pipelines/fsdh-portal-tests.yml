@@ -58,7 +58,7 @@ steps:
       
   - script: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:$(Agent.WorkFolder)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage -reporttypes:'HtmlInline_AzurePipelines;Cobertura'
+        reportgenerator -reports:$(Agent.WorkFolder)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/Portal/test/CodeCoverage -reporttypes:'HtmlInline_AzurePipelines;Cobertura'
         # IMPORTANT - set `disable.coverage.autogenerate` to true if you want to use older reportgenerator version
         echo "##vso[task.setvariable variable=disable.coverage.autogenerate;]true"
     displayName: Create code coverage report
