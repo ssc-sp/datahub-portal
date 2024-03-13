@@ -1,29 +1,20 @@
 ﻿using Datahub.Core.Services.Wiki;
 using Datahub.Shared.Annotations;
-using Markdig;
-using Markdig.Syntax;
-using Markdig.Syntax.Inlines;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Polly.Extensions.Http;
 using Polly;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
-using static System.Net.WebRequestMethods;
-using Microsoft.Graph.Models;
-using static MudBlazor.CategoryTypes;
 using Datahub.Markdown;
 using Datahub.Markdown.Model;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Components;
+using System.Net.Http;
 
 namespace Datahub.Core.Services.Docs;
 
@@ -53,29 +44,28 @@ public class DocumentationService
     private readonly IMemoryCache _cache;
 
     // New for blob storage
-    private readonly BlobServiceClient _blobServiceClient;
+    private NavigationManager _navigationManager;
     private readonly string _containerName;
     private readonly string _blobRoot;
 
     public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger, 
         IHttpClientFactory httpClientFactory, IWebHostEnvironment environment,
-        IMemoryCache docCache)
+        IMemoryCache docCache, NavigationManager navigationManager)
     {
         //!ctx.HostingEnvironment.IsDevelopment()
-        
-        var branch = environment.IsProduction()? "main": "next";
+
+        var branch = environment.IsProduction() ? "main" : "next";
         _docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, $"https://github.com/ssc-sp/datahub-docs/edit/{branch}/")!;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
+        _navigationManager = navigationManager;
         _statusMessages = new List<TimeStampedStatus>();
         _cache = docCache;
         cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
 
         // New for blob storage
         var storageAccount = config["Media:AccountName"];
-        var connectionString = config["Media:StorageConnectionString"];
         _containerName = "docs";
-        _blobServiceClient = new BlobServiceClient(connectionString);
         _blobRoot = $"https://{storageAccount}.blob.core.windows.net/{_containerName}";
     }
 
@@ -446,33 +436,31 @@ public class DocumentationService
     }
 
     /// <summary>
-    /// Loads the documentation page with the specified path from the blob storage.
+    /// Loads the documentation page with the specified path using the API endpoint api/docs/{path}.
     /// </summary>
     /// <param name="path">The path of the page to load.</param>
     /// <returns>The loaded documentation page if found, otherwise null.</returns>
     private async Task<string?> LoadDocs(string path)
     {
-        try
+        var client = _httpClientFactory.CreateClient();
+        var res = await GetRetryPolicy().ExecuteAsync(async () =>
         {
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
-            var blobClient = blobContainerClient.GetBlobClient(path);
+            var request = new HttpRequestMessage() { RequestUri = new Uri($"{_navigationManager.BaseUri}/api/docs/{path}"), Method = HttpMethod.Get };
+            client.DefaultRequestHeaders.Add("User-Agent", "DataHub");
+            return await client.SendAsync(request);
+        });
 
-            if (await blobClient.ExistsAsync())
-            {
-                var response = await blobClient.DownloadContentAsync();
-                var content = response.Value.Content.ToString();
-                content = MarkdownHelper.RemoveFrontMatter(content);
-                return content;
-            }
-            else
-            {
-                return null;
-            }
-        }
-        catch (Exception e)
+        if (res.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            AddStatusMessage($"Error loading {path}: {e.Message}");
-            return e.Message;
+            return await res.Content.ReadAsStringAsync();
+        }
+        else if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Received status code {res.StatusCode}");
         }
     }
     
