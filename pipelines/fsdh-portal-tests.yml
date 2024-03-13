@@ -13,7 +13,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
       testRunTitle: 'Datahub Function Unit Tests'
-      arguments:  '--collect "Code coverage"'
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Infrastructure Unit Tests'
@@ -22,7 +22,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Infrastructure.UnitTests/Datahub.Infrastructure.UnitTests.csproj'
       testRunTitle: 'Datahub Infrastructure Unit Tests'
-      arguments:  '--collect "Code coverage"'
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Specflow Tests'
@@ -31,7 +31,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.SpecflowTests/Datahub.SpecflowTests.csproj'
       testRunTitle: 'Datahub Specflow Tests'
-      arguments:  '--collect "Code coverage"'
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Specs Tests'
@@ -40,7 +40,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Specs/Datahub.Specs.csproj'
       testRunTitle: 'Datahub Specs Tests'
-      arguments:  '--collect "Code coverage"'
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Unit Tests'
