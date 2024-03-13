@@ -17,7 +17,7 @@
 
 @if (_updateInProgress)
 {
-    <DHLoadingInitializer />
+    <DHLoadingInitializer/>
 }
 
 <MudStack Spacing="8" Class="mb-16">
@@ -29,34 +29,36 @@
     </MudStack>
 
     <MudGrid>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym">
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin" ProjectAcronym="@WorkspaceAcronym">
             <Authorized>
                 <MudItem xs="12" sm="6">
-                    <SettingsField Label="@Localizer["Workspace Budget"]" Description="@Localizer["The amount of credits allocated to your workspace. Please contact your workspace lead if you wish to modify your budget."]">
-                        <MudTextField T="decimal" Format="F2" Disabled="false" Variant="Variant.Outlined" Margin="Margin.Dense" Value="@_budget" ValueChanged="@OnBudgetChanged" />
+                    <SettingsField Label="@Localizer["Workspace Budget"]" Description="@Localizer["The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget."]">
+                        <MudTextField T="decimal" Format="F2" Disabled="false" Variant="Variant.Outlined" Margin="Margin.Dense" Value="@_budget" ValueChanged="@OnBudgetChanged"/>
                     </SettingsField>
                 </MudItem>
                 <MudItem xs="0" sm="6"/>
-                
+
                 @if (_isChanged)
                 {
-                    <MudStack Row AlignItems="AlignItems.Center">
-                        <MudElement>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="@SaveChanges">
-                                @Localizer["Save Changes"]
-                            </MudButton>
-                        </MudElement>
-                        <MudAlert Severity="Severity.Info" Class="my-3">
-                            <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
-                        </MudAlert>
-                    </MudStack>
+                    <MudItem xs="12">
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudElement>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="@SaveChanges">
+                                    @Localizer["Save Changes"]
+                                </MudButton>
+                            </MudElement>
+                            <MudAlert Severity="Severity.Info">
+                                <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
+                            </MudAlert>
+                        </MudStack>
+                    </MudItem>
                 }
 
-                <MudDivider />
+                <MudDivider/>
 
                 <MudItem xs="12" sm="6" Class="mt-16">
                     <SettingsField Label="@Localizer["Delete Workspace"]" Description="@Localizer["Delete your workspace and all associated data. This action cannot be undone."]">
-                    <MudButton Disabled="false" Variant="Variant.Filled" Color="Color.Error">
+                        <MudButton Disabled="false" Variant="Variant.Filled" Color="Color.Error">
                             @Localizer["Delete Workspace"]
                         </MudButton>
                     </SettingsField>
@@ -66,13 +68,13 @@
 
             <NotAuthorized>
                 <MudItem xs="12" sm="6">
-                    <SettingsField Label="@Localizer["Workspace Budget"]" Description="@Localizer["The amount of credits allocated to your workspace. Please contact your workspace lead if you wish to modify your budget."]">
-                        <MudTextField T="decimal" Format="F2" Disabled="true" Variant="Variant.Outlined" Margin="Margin.Dense" Value="@_budget" ValueChanged="@OnBudgetChanged" />
+                    <SettingsField Label="@Localizer["Workspace Budget"]" Description="@Localizer["The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget."]">
+                        <MudTextField T="decimal" Format="F2" Disabled="true" Variant="Variant.Outlined" Margin="Margin.Dense" Value="@_budget" ValueChanged="@OnBudgetChanged"/>
                     </SettingsField>
                 </MudItem>
-                <MudItem xs="0" sm="6" />
+                <MudItem xs="0" sm="6"/>
 
-                <MudDivider />
+                <MudDivider/>
 
                 <MudItem xs="12" sm="6" Class="mt-16">
                     <SettingsField Label="@Localizer["Delete Workspace"]" Description="@Localizer["Delete your workspace and all associated data. This action cannot be undone."]">
@@ -81,10 +83,10 @@
                         </MudButton>
                     </SettingsField>
                 </MudItem>
-                <MudItem xs="0" sm="6" />
+                <MudItem xs="0" sm="6"/>
             </NotAuthorized>
         </DatahubAuthView>
-            
+
     </MudGrid>
 
 </MudStack>
@@ -136,13 +138,16 @@
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
             await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.AzurePostgres, currentUser);
 
+            _snackbar.Add(Localizer["Changes saved"], Severity.Info);
             _isChanged = false;
         }
         else
         {
             _snackbar.Add(Localizer["No changes to save"], Severity.Info);
         }
+
         _updateInProgress = false;
         StateHasChanged();
     }
+
 }
