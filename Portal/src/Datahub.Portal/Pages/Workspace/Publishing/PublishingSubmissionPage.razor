@@ -42,7 +42,7 @@
 
     private System.Threading.Timer _fileStatusTimer;
 
-    private bool IsPublishingEnabled => _config.CKAN.IsFeatureEnabled;
+    private bool IsPublishingEnabled => _config.CkanConfiguration.IsFeatureEnabled;
 
     private long? SubmissionId => long.TryParse(SubSection, out var result) ? result : default;
     private bool ValidSubmissionId => SubmissionId.HasValue;
