@@ -13,17 +13,29 @@
         />
     </div>
 
-    <AePaginatedTable 
-        @ref=@_table
-        Accessors=@_accessorFunctions 
-        T=@FieldDefinition
-        Dataset=@_filteredDefinitions
-        Headers=@_headers
-        Renderers=@_renderFunctions
-        Page="@_lastClicked"
-        PageSize=@_pageSize
-        GridTemplateColumns="1fr 3fr 3fr 3fr 2fr 1fr"
-    />
+    <MudTable T=@FieldDefinition
+        Items=@_filteredDefinitions
+        >
+        <HeaderContent>
+            <MudTh>@Localizer["Order"]</MudTh>
+            <MudTh>@Localizer["ID"]</MudTh>
+            <MudTh>@Localizer["English Name"]</MudTh>
+            <MudTh>@Localizer["French Name"]</MudTh>
+            <MudTh>@Localizer["Has Choices?"]</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd>@GetOrder(context)</MudTd>
+            <MudTd>@GetName(context)</MudTd>
+            <MudTd>@GetNameEnglish(context)</MudTd>
+            <MudTd>@GetNameFrench(context)</MudTd>
+            <MudTd>@GetHasChoices(context)</MudTd>
+            <MudTd>@GetEditFragment(context)</MudTd>
+        </RowTemplate>
+
+    </MudTable>
+
     @if (_table != null)
     {
         <AePagination 
@@ -44,9 +56,6 @@
     private List<FieldDefinition> _filteredDefinitions = new();
 
     private IPageableComponent _table;
-    private List<string> _headers = new();
-    private List<Func<FieldDefinition, RenderFragment>> _renderFunctions = new();
-    private List<Func<FieldDefinition, string>> _accessorFunctions = new();
     private int _pageSize = 8;
     private int _lastClicked = 0;
     private string _lastSearch;
@@ -62,10 +71,6 @@
             .ToListAsync();
 
         ApplyFilter();
-
-        _accessorFunctions = new() { GetOrder, GetName, GetNameEnglish, GetNameFrench, null, null };
-        _headers = new() { Localizer["Order"], Localizer["ID"], Localizer["English Name"], Localizer["French Name"], Localizer["Has Choices?"], string.Empty };
-        _renderFunctions = new() { null, null, null, null, GetHasChoices, GetEditFragment };
 
         _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
     }

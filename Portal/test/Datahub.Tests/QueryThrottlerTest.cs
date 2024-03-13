@@ -25,7 +25,7 @@ public class QueryThrottlerTest
         Assert.Equal(actual, expected);
     }
 
-    [Fact (Skip = "Not working")]
+    [Fact]
     public async void QueryThrottler_CallbackWithNewerQuery()
     {
         var expected = "expected query";
