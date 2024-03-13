@@ -246,6 +246,6 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
     public string DerivePublishUrl(TbsOpenGovSubmission submission)
     {
-        return $"{_config.CKAN.DatasetUrl}/{submission.UniqueId}";
+        return $"{_config.CkanConfiguration.DatasetUrl}/{submission.UniqueId}";
     }
 }

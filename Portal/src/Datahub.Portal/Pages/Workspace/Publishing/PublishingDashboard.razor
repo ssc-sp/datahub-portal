@@ -88,7 +88,7 @@
     private bool _initialized = false;
 
     private bool ShowPublishingProcessTable => _initialized;
-    private bool IsPublishingEnabled => _config.CKAN.IsFeatureEnabled;
+    private bool IsPublishingEnabled => _config.CkanConfiguration.IsFeatureEnabled;
 
     private string _tbsOpenGovApiKey;
     private bool _showTbsOpenGovApiKey = false;
