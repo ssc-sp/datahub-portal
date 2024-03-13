@@ -822,7 +822,7 @@ public class MetadataBrokerService : IMetadataBrokerService
                .Join(ctx.ObjectMetadataSet, e => e.ObjectMetadataId, e => e.ObjectMetadataId, (v, o) => new NameValuePair(o.ObjectId_TXT, v.Value_TXT))
                .ToListAsync();
 
-            return pairs.Select(p => p with { Value = mapper(p.Value) }).ToList();
+            return pairs.Where(p => !string.IsNullOrEmpty(p.Value)).Select(p => p with { Value = mapper(p.Value) })?.ToList();
         }
         catch (Exception ex)
         {
