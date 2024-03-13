@@ -46,36 +46,56 @@
             <MudText>@Localizer["Please wait"]</MudText>
         }
 
-        <MudCard>
-            <MudCardHeader>
-                <MudText Typo=@Typo.h3>@Localizer["Admin Tools"]</MudText>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudTextField 
-                    InputType=@_tbsOpenGovApiKeyFieldType 
-                    Label=@Localizer["OpenGov API Key"] 
-                    @bind-Value=@_tbsOpenGovApiKey
-                    Adornment=@Adornment.End
-                    AdornmentIcon=@_tbsOpenGovApiKeyFieldIcon
-                    OnAdornmentClick=@(() => _showTbsOpenGovApiKey = !_showTbsOpenGovApiKey) />
+        <DatahubAuthView AuthLevel=@DatahubAuthView.AuthLevels.WorkspaceAdmin ProjectAcronym=@WorkspaceAcronym>
+
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo=@Typo.h3>@Localizer["Admin Tools"]</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTextField 
+                        InputType=@_tbsOpenGovApiKeyFieldType 
+                        Label=@Localizer["OpenGov API Key"] 
+                        @bind-Value=@_tbsOpenGovApiKey
+                        Adornment=@Adornment.End
+                        AdornmentIcon=@_tbsOpenGovApiKeyFieldIcon
+                        OnAdornmentClick=@(() => _showTbsOpenGovApiKey = !_showTbsOpenGovApiKey) />
             
-                <ObjectMetadataEditor @ref=@_tbsWorkspaceOrgEditor
-                    @key=@WorkspaceAcronym
-                    ObjectId=@WorkspaceAcronym
-                    ObjectType=@Datahub.Metadata.Model.MetadataObjectType.DataInitiative
-                    ProfileName="opengov_ext"
-                    UpdateCatalog=@false
-                    SecurityClass=@Core.SecurityClassification.Unclassified
-                    ValidateRequired=@false
-                    HideSaveButton
-                    DisableTranslation
-                    />
-            </MudCardContent>
-            <MudCardActions>
-                <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@UpdateSettings >@Localizer["Update"]</MudButton>
-                <MudButton OnClick=@ResetSettings >@Localizer["Reset"]</MudButton>
-            </MudCardActions>
-        </MudCard>
+                    <ObjectMetadataEditor @ref=@_tbsWorkspaceOrgEditor
+                        @key=@WorkspaceAcronym
+                        ObjectId=@WorkspaceAcronym
+                        ObjectType=@Datahub.Metadata.Model.MetadataObjectType.DataInitiative
+                        ProfileName="opengov_ext"
+                        UpdateCatalog=@false
+                        SecurityClass=@Core.SecurityClassification.Unclassified
+                        ValidateRequired=@false
+                        HideSaveButton
+                        DisableTranslation
+                        />
+
+                    <DatahubAuthView AuthLevel=@DatahubAuthView.AuthLevels.DatahubAdmin>
+                        <MudCard>
+                            <MudCardHeader>@Localizer["Connectivity test"]</MudCardHeader>
+
+                            <MudCardContent>
+                                <MudTextField Value=@_connectivityTestResult ReadOnly />
+                            </MudCardContent>
+                            
+                            <MudCardActions>
+                                <MudButton OnClick=@TestConnectivity>@Localizer["Test"]</MudButton>
+                            </MudCardActions>
+                        </MudCard>
+
+                    </DatahubAuthView>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@UpdateSettings >@Localizer["Update"]</MudButton>
+                    <MudButton OnClick=@ResetSettings >@Localizer["Reset"]</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </DatahubAuthView>
+
+        
     </MudStack>
 }
 
@@ -94,6 +114,8 @@
     private bool _showTbsOpenGovApiKey = false;
     private InputType _tbsOpenGovApiKeyFieldType => _showTbsOpenGovApiKey? InputType.Text : InputType.Password;
     private string _tbsOpenGovApiKeyFieldIcon => _showTbsOpenGovApiKey? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+
+    private string _connectivityTestResult = string.Empty;
 
     private ObjectMetadataEditor _tbsWorkspaceOrgEditor;
 
@@ -137,6 +159,11 @@
         }
 
         await Task.CompletedTask;
+    }
+
+    private async Task TestConnectivity()
+    {
+        _connectivityTestResult = await _tbsService.TestConnectivity();
     }
 
     protected override async Task OnInitializedAsync()
