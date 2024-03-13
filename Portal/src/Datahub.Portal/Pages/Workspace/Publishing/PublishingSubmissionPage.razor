@@ -41,8 +41,6 @@
     [Parameter]
     public string SubSection { get; set; }
 
-    private System.Threading.Timer _fileStatusTimer;
-
     private bool IsPublishingEnabled => _config.CKAN.IsFeatureEnabled;
 
     private long? SubmissionId => long.TryParse(SubSection, out var result) ? result : default;
@@ -94,26 +92,28 @@
         {
             _consentHandler.HandleException(e);
         }
-        
+
         await LoadSubmission();
 
-        _fileStatusTimer = new System.Threading.Timer(async (object? stateInfo) =>
-        {
-            var numRefreshed = await PublishingService.RefreshFileUploadStatuses(_submission);
-            if (numRefreshed > 0)
-            {
-                await InvokeAsync(StateHasChanged);
-            }
-        }, new System.Threading.AutoResetEvent(false), 2000, 2000);
+        PublishingService.FileUploadStatusUpdated += OnFileStatusUpdated;
 
         await base.OnInitializedAsync();
     }
 
+    private async Task OnFileStatusUpdated(OpenDataPublishFile file)
+    {
+        var matchingFile = _submission?.Files?.FirstOrDefault(f => f.Id == file.Id);
+        if (matchingFile != null)
+        {
+            matchingFile.UploadStatus = file.UploadStatus;
+            matchingFile.UploadMessage = file.UploadMessage;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
     public void Dispose()
     {
-        if (_fileStatusTimer != null)
-        {
-            _fileStatusTimer.Dispose();
-        }
+        PublishingService.FileUploadStatusUpdated -= OnFileStatusUpdated;
     }
 }
