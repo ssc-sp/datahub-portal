@@ -1,9 +1,11 @@
-﻿using Datahub.CKAN.Service;
+﻿using Datahub.Application.Services.Publishing;
 using Datahub.Core.Model.Datahub;
 using Datahub.Metadata.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Portal.Services;
+
+//TODO remove this class
 
 public class OpenDataService : IOpenDataService
 {
@@ -39,7 +41,7 @@ public class OpenDataService : IOpenDataService
                 SetFileShareStatus(sharedRecordId, OpenDataUploadStatus.RecordCreated);
 
                 // publish to open data resource
-                result = await ckanService.AddResourcePackage(fileId, fileName, stream);
+                result = await ckanService.AddResourcePackageOld(fileId, fileName, stream);
                 if (result.Succeeded)
                 {
                     // record successfull uploaded

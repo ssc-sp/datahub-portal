@@ -65,7 +65,7 @@ namespace Datahub.Functions
         {
             using var ctx = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-            // load details from db
+            // load from details from db
             var details = await GetProjectDetails(ctx, projectId, cancellationToken);
 
             if (details?.Credits is null)
@@ -99,7 +99,7 @@ namespace Datahub.Functions
 
                 await ctx.SaveChangesAsync(cancellationToken);
 
-                _logger.LogWarning("Notifiying {0}% consumed for workspace {1}", notificationPerc, details.ProjectAcro);
+                _logger.LogWarning("Notifiying {0}% comsumed for workspace {1}", notificationPerc, details.ProjectAcro);
             }
             catch (Exception ex)
             {
@@ -115,7 +115,6 @@ namespace Datahub.Functions
                 .Where(e => e.Project_ID == projectId)
                 .Include(e => e.Credits)
                 .Include(e => e.Users)
-                .ThenInclude(e => e.PortalUser)
                 .AsSingleQuery()
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -123,7 +122,7 @@ namespace Datahub.Functions
                 return default;
 
             var contacts = project.Users
-                .Select(u => u.PortalUser.Email)
+                .Select(u => u.User_Name)
                 .Where(_emailValidator.IsValidEmail)
                 .ToList();
 

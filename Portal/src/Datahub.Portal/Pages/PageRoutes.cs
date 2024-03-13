@@ -9,7 +9,8 @@ public static class PageRoutes
     public const string WorkspacePrefix = "w";
     public const string WorkspaceDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}";
     public const string Workspace = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{{Section}}";
-    
+    public const string WorkspaceSubSection = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{{Section}}/{{SubSection}}";
+
     public const string AccountPrefix = "account";
     public const string AccountDefault = $"/{AccountPrefix}/";
     public const string Account = $"/{AccountPrefix}/{{Section}}";
@@ -21,10 +22,6 @@ public static class PageRoutes
     public const string ToolPrefix = "tool";
     public const string ToolDefault = $"/{ToolPrefix}/";
     public const string Tool = $"/{ToolPrefix}/{{Section}}";
-
-    public const string WebAppPrefix = "webapp";
-    public const string WebAppDefault = $"/{WebAppPrefix}/";
-    public const string WebApp = $"/{WorkspacePrefix}/{WebAppPrefix}/{{Section}}";
 
     public const string Logout = "/signout-oidc";
     public const string TermsAndConditions = "/terms-and-conditions";
