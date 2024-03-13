@@ -1,0 +1,99 @@
+﻿@* EditFileInformationDialog.razor *@
+
+<MudDialog>
+    <TitleContent>
+        @if (Submission.Files.Any())
+        {
+            <MudSelect 
+                T=@OpenDataPublishFile
+                ToStringFunc=@GetLabelForFile
+                @bind-Value=@_currentFile
+                Label=@MudDialog.Title
+            >
+            @foreach(var f in Submission.Files)
+                {
+                    <MudSelectItem Value=@f />
+                }
+            </MudSelect>
+        }
+        else
+        {
+            <MudText Typo=@Typo.h6>@MudDialog.Title</MudText>
+        }
+    </TitleContent>
+
+    <DialogContent>
+        @if (_currentFile != null)
+        {
+            <ObjectMetadataEditor @ref=@CurrentEditor
+                @key=@_currentFile.FileId
+                ObjectId=@_currentFile.FileId
+                ObjectType=@Datahub.Metadata.Model.MetadataObjectType.File
+                ProfileName=@TbsOpenGovSubmission.RESOURCE_METADATA_PROFILE_NAME
+                UpdateCatalog=@false
+                SecurityClass=@Core.SecurityClassification.Unclassified
+                SaveButtonLabel=@Localizer["Save"]
+                HideSaveButton
+                DisableTranslation
+                />
+        }
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick=@Cancel>@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick=@Submit>@Localizer["Update"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+    @code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public OpenDataSubmission Submission { get; set; }
+
+    [Parameter]
+    public OpenDataPublishFile InitialFile { get; set; }
+
+    private OpenDataPublishFile _currentFile;
+
+    private Dictionary<OpenDataPublishFile, ObjectMetadataEditor> _editors = new Dictionary<OpenDataPublishFile, ObjectMetadataEditor>();
+
+    private ObjectMetadataEditor CurrentEditor
+    {
+        get => _editors[_currentFile];
+        set => _editors[_currentFile] = value;
+    }
+
+    private string GetFilePurposeLabel(string filePurpose) => Localizer[$"{Submission.LocalizationPrefix}.FileTypes.{filePurpose}"];
+
+    private string GetLabelForFile(OpenDataPublishFile file) => file == null ? string.Empty : string.IsNullOrEmpty(file.FilePurpose) ?
+        file.FileName :
+        $"{file.FileName} - ({GetFilePurposeLabel(file.FilePurpose)})";
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        // check that all fields are valid for every touched file
+        var result = _editors.ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value.ValidProfileFields());
+
+        foreach (var file in _editors.Keys)
+        {
+            var editor = _editors[file];
+            var saveResult = await editor.SaveChanges();
+            result[file.Id] = result[file.Id] && saveResult;
+        }
+
+        MudDialog.Close(result);
+    }
+
+
+    protected override void OnInitialized()
+    {
+        _currentFile = InitialFile ?? Submission.Files.FirstOrDefault();
+
+        base.OnInitialized();
+    }
+}
