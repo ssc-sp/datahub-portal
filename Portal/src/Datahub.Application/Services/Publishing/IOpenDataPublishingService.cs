@@ -17,6 +17,6 @@ namespace Datahub.Application.Services.Publishing
         Task<OpenDataSubmission> CreateOpenDataSubmission(OpenDataSubmissionBasicInfo openDataSubmissionBasicInfo);
         Task AddFilesToSubmission(OpenDataSubmission openDataSubmission, IEnumerable<FileMetaData> files, int? containerId, string containerName);
         Task<OpenDataPublishFile> UpdateFileUploadStatus(OpenDataPublishFile file, OpenDataPublishFileUploadStatus status, string? uploadMessage = null);
-        Task<int> RefreshFileUploadStatuses(OpenDataSubmission? submission);
+        event Func<OpenDataPublishFile, Task> FileUploadStatusUpdated;
     }
 }

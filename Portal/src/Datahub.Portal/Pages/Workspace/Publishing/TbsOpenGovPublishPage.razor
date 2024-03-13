@@ -335,9 +335,7 @@
         file.UploadStatus = OpenDataPublishFileUploadStatus.InProgress;
         await InvokeAsync(StateHasChanged);
 
-        var updatedFile = await _tbsService.UploadFile(file);
-        UpdateFileStatus(file, updatedFile);
-        await InvokeAsync(StateHasChanged);
+        _ = await _tbsService.UploadFile(file);
     }
 
     private void UpdateFileStatus(OpenDataPublishFile file, OpenDataPublishFile updatedFile)

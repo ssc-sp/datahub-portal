@@ -14,6 +14,7 @@ namespace Datahub.Infrastructure.Services.Publishing
         private readonly IUserInformationService _userService = userService;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = dbContextFactory;
 
+        public event Func<OpenDataPublishFile, Task>? FileUploadStatusUpdated;
 
         public async Task<List<OpenDataSubmission>> GetAvailableOpenDataSubmissionsForWorkspaceAsync(int workspaceId)
         {
@@ -206,47 +207,9 @@ namespace Datahub.Infrastructure.Services.Publishing
 
             await ctx.SaveChangesAsync();
 
-            return await Task.FromResult(existingFile);
-        }
+            FileUploadStatusUpdated?.Invoke(existingFile);
 
-        public async Task<int> RefreshFileUploadStatuses(OpenDataSubmission? submission)
-        {
-            if (submission == null)
-            {
-                return await Task.FromResult(0);
-            }
-
-            var filesToUpdate = submission.Files
-                .Where(f => f.UploadStatus == OpenDataPublishFileUploadStatus.InProgress)
-                .Select(f => f.Id);
-
-            if (filesToUpdate.Any())
-            {
-                int numUpdated = 0;
-
-                await using var ctx = await _dbContextFactory.CreateDbContextAsync();
-                var updatedFiles = await ctx.OpenDataPublishFiles
-                    .Where(f => filesToUpdate.Contains(f.Id))
-                    .AsNoTracking()
-                    .ToListAsync();
-
-                foreach (var f in updatedFiles)
-                {
-                    var loadedFile = submission.Files.FirstOrDefault(lf => lf.Id == f.Id);
-                    if (loadedFile != null && loadedFile.UploadStatus != f.UploadStatus)
-                    {
-                        loadedFile.UploadStatus = f.UploadStatus;
-                        loadedFile.UploadMessage = f.UploadMessage;
-                        numUpdated++;
-                    }
-                }
-
-                return await Task.FromResult(numUpdated);
-            }
-            else
-            {
-                return await Task.FromResult(0);
-            }
+            return existingFile;
         }
     }
 }
