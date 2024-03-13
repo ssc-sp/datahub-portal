@@ -69,7 +69,7 @@ public class CKANPakageBuilderTest
         expected = "ca-ogl-lgo";
         Assert.Equal(dict["license_id"].ToString(), expected);
 
-        expected = "true";
+        expected = "false";
         Assert.Equal(dict["ready_to_publish"].ToString(), expected);
 
         expected = "false";

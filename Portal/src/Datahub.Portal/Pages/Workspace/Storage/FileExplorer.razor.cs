@@ -1,7 +1,13 @@
+using Datahub.Application.Services.Publishing;
+using Datahub.Core.Components;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Datahub;
+using Datahub.Portal.Layout;
+using Datahub.Portal.Pages.Workspace.Publishing;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
+using MudBlazor;
 
 namespace Datahub.Portal.Pages.Workspace.Storage;
 
@@ -206,6 +212,56 @@ public partial class FileExplorer
         await _module.InvokeVoidAsync("downloadFile", uri.ToString());
     }
     
+    private async Task HandlePublishFiles(IEnumerable<FileMetaData> files)
+    {
+        if (!_config.CKAN.IsFeatureEnabled)
+        {
+            await Task.CompletedTask;
+            return;
+        }
+
+        var dialogParams = new DialogParameters<PublishNewDatasetDialog>
+        {
+            { x => x.IsFileExplorerDialog, true },
+            { x => x.WorkspaceId, ProjectId },
+            { x => x.Files, files }
+        };
+
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialog = await _dialogService.ShowAsync<PublishNewDatasetDialog>(Localizer["Add Files To Dataset"], dialogParams, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            // if adding to an existing submission, result.Data will have that submission
+            var submission = result.Data as OpenDataSubmission;
+            if (submission == null)
+            {
+                // if creating a new one, result.Data will have the basic info to create it
+                var submissionInfo = result.Data as OpenDataSubmissionBasicInfo;
+                if (submissionInfo == null)
+                {
+                    throw new OpenDataPublishingException("Could not get submission information");
+                }
+                
+                submission = await _publishingService.CreateOpenDataSubmission(submissionInfo);
+            }
+
+            // if it's still null here, something has gone wrong
+            if (submission == null)
+            {
+                throw new OpenDataPublishingException("No available submission provided or created");
+            }
+
+            var addedFiles = await _publishingService.AddFilesToSubmission(submission, files, Container.Id, ContainerName);
+
+            _navManager.NavigateTo($"/{PageRoutes.WorkspacePrefix}/{ProjectAcronym}/{WorkspaceSidebar.SectionViews.Publishing}/{submission.Id}");
+        }
+
+        await Task.CompletedTask;
+    }
+
     private string GetDirectoryName(string path)
     {
         var lastIndex = path.TrimEnd('/').LastIndexOf("/", StringComparison.Ordinal);

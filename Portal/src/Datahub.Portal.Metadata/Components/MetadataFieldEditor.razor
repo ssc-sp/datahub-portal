@@ -38,6 +38,7 @@
                                    HelperText=@FieldDefinition.Description 
                                    Variant="Variant.Outlined"
                                    DateFormat="yyyy-MM-dd"
+                                   RequiredError=@RequiredErrorText
                                    Margin="Margin.Dense" />
                 }
                 else
@@ -54,7 +55,7 @@
                                   AdornmentIcon=@Icons.Material.Filled.GTranslate
                                   AdornmentAriaLabel=@(canTranslate ? GetTranslationHint() : Localizer["Reset"])
                                   OnAdornmentClick=@HandleTranslateField
-                                  RequiredError=@(FieldDefinition.Description ?? Localizer["Required"])
+                                  RequiredError=@RequiredErrorText
                                   Variant="Variant.Outlined"
                                   Validation="@Validate()"
                                   Margin="Margin.Dense"/>
@@ -75,6 +76,7 @@
                            Required=@Required
                            Variant="Variant.Outlined"
                            HelperText=@FieldDefinition.Description
+                           RequiredError=@RequiredErrorText
                            AnchorOrigin="Origin.BottomCenter"
                            AdornmentIcon=@Icons.Material.Filled.ArrowDropDown
                            Margin="Margin.Dense">
@@ -95,6 +97,7 @@
                 <MultiSelectList FieldDefinition="FieldDefinition" 
                                  FieldValue="FieldValue" 
                                  Required=@Required
+                                 RequiredError=@RequiredErrorText
                                  OnFieldChanged="OnFieldChanged" />
             }
         }
@@ -129,6 +132,9 @@
 
     [Parameter]
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
+
+    [Parameter]
+    public bool DisableTranslation { get; set; }
 
     [Parameter]
     public string CascadingValue { get; set; }
@@ -206,9 +212,12 @@
         return FieldDefinition.Field_Name_TXT.EndsWith("_en");
     }
 
+    private string LocalRequired => Localizer["Required"];
+    private string RequiredErrorText => string.IsNullOrEmpty(FieldDefinition.Description) ? LocalRequired : $"{LocalRequired} - {FieldDefinition.Description}";
+
     private bool CanAcceptTranslation()
     {
-        if (Preview || IsKeywordField())
+        if (Preview || IsKeywordField() || DisableTranslation)
             return false;
 
         return FieldPair?.GetPaired(FieldValue) is not null && string.IsNullOrEmpty(FieldValue.Value_TXT);

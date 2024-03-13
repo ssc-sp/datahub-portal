@@ -1,18 +1,19 @@
 ﻿using Datahub.Application.Services.Security;
+using Datahub.Core.Services.Security;
+using Datahub.Functions;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Infrastructure.Services.Security;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using NSubstitute;
-
-namespace Datahub.Functions.UnitTests;
 
 [TestFixture]
 public class BugReportTests
 {
     private ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
+    private IKeyVaultService _keyVaultService = Substitute.For<IKeyVaultService>();
     private IMediator _mediator = Substitute.For<IMediator>();
     private IConfiguration _config = Substitute.For<IConfiguration>();
     
@@ -52,10 +53,10 @@ public class BugReportTests
     public void BuildEmail_WithValidInputs_ReturnsEmailRequestMessage()
     {
         // Arrange
-        var response = new WorkItem()
+        var response = new Dictionary<string, object>
         {
-            Id = 0,
-            Url = "Test Url"
+            { "url", "Test Url" },
+            { "id", "Test Id" }
         };
 
         // Act
