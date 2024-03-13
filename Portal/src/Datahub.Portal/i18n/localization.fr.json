@@ -2570,5 +2570,7 @@
   "IP Address (192.168.2.1)": "Adresse IP (192.168.2.1)",
   "Delete IP Address": "Supprimer l'adresse IP",
   "Invalid IP address format (e.g. 192.168.2.1)": "Format d'adresse IP non valide (p. ex. 192.168.2.1)",
+  "The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget.": "Le montant de crédits alloué à votre espace de travail. Veuillez contacter les administrateurs du Datahub si vous souhaitez modifier votre budget.",
+  "Changes saved": "Modifications enregistrées",
   "You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting.": "Vous devez reconnaître et cocher toutes les cases des <b>Critères obligatoires de libération</b> avant de soumettre votre demande."
 }
