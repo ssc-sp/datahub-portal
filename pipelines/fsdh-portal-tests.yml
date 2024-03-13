@@ -54,7 +54,7 @@ steps:
       projects: 'Portal/test/Datahub.Tests/Datahub.Tests.csproj'
       testRunTitle: 'Datahub Unit Tests'
       publishTestResults: true
-      arguments:  '--collect "Code coverage"'
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
       
   - script: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
