@@ -49,7 +49,7 @@ public class DatahubPortalConfiguration
 
     public GithubConfig Github { get; set; } = new();
 
-    public CkanConfiguration CKAN { get; set; } = new();
+    public CkanConfiguration CkanConfiguration { get; set; } = new();
 }
 
 public class Achievements
