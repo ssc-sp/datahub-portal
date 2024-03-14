@@ -214,7 +214,7 @@ public partial class FileExplorer
     
     private async Task HandlePublishFiles(IEnumerable<FileMetaData> files)
     {
-        if (!_config.CKAN.IsFeatureEnabled)
+        if (!_config.CkanConfiguration.IsFeatureEnabled)
         {
             await Task.CompletedTask;
             return;
