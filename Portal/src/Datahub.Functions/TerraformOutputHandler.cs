@@ -5,15 +5,12 @@ using Datahub.Application.Services;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
-using Datahub.Core.Services.Projects;
 using Datahub.Infrastructure.Services;
-using Datahub.ProjectTools.Services;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Datahub.Functions;
@@ -158,12 +155,12 @@ public class TerraformOutputHandler
 
     internal async Task ProcessAzureWebApp(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
-        if(!outputVariables.ContainsKey(TerraformVariables.OutputAzureAppServiceStatus))
+        if (!outputVariables.ContainsKey(TerraformVariables.OutputAzureAppServiceStatus))
         {
             _logger.LogInformation("Azure App Service status not found in output variables");
             return;
         }
-        
+
         var azureAppServiceStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureAppServiceStatus].Value);
         if (!azureAppServiceStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
@@ -178,11 +175,13 @@ public class TerraformOutputHandler
 
         var appServiceId = outputVariables[TerraformVariables.OutputAzureAppServiceId];
         var appServiceHostName = outputVariables[TerraformVariables.OutputAzureAppServiceHostName];
-
+        var appServiceRg = outputVariables[TerraformVariables.OutputAzureResourceGroupName];
+        
         var jsonContent = new JsonObject
         {
             ["app_service_id"] = appServiceId.Value,
             ["app_service_hostname"] = appServiceHostName.Value,
+            ["app_service_rg"] = appServiceRg.Value
         };
 
         projectResource.CreatedAt = DateTime.UtcNow;
@@ -196,12 +195,12 @@ public class TerraformOutputHandler
 
     internal async Task ProcessAzureDatabricks(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
-        if(!outputVariables.ContainsKey(TerraformVariables.OutputAzureDatabricksStatus))
+        if (!outputVariables.ContainsKey(TerraformVariables.OutputAzureDatabricksStatus))
         {
             _logger.LogInformation("Azure Databricks status not found in output variables");
             return;
         }
-        
+
         var databricksStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureDatabricksStatus].Value);
         if (!databricksStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
         {
@@ -237,7 +236,7 @@ public class TerraformOutputHandler
             _logger.LogInformation("Azure storage blob status not found in output variables");
             return;
         }
-        
+
         var storageBlobStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
         if (!storageBlobStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
@@ -279,24 +278,24 @@ public class TerraformOutputHandler
             _logger.LogInformation("Azure Postgres status not found in output variables");
             return;
         }
-        
+
         var postgresStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzurePostgresStatus].Value);
         if (!postgresStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
         {
             _logger.LogError("Azure Postgres status is not completed. Status: {Status}", postgresStatus);
             return;
         }
-        
+
         var projectResource = await GetProjectResource(outputVariables,
             TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres));
-        
+
         var postgresId = outputVariables[TerraformVariables.OutputAzurePostgresId];
         var postgresDns = outputVariables[TerraformVariables.OutputAzurePostgresDns];
         var postgresDbName = outputVariables[TerraformVariables.OutputAzurePostgresDatabaseName];
         var postgresSecretNameAdmin = outputVariables[TerraformVariables.OutputAzurePostgresSecretNameAdmin];
         var postgresSecretNamePassword = outputVariables[TerraformVariables.OutputAzurePostgresSecretNamePassword];
         var postgresServerName = outputVariables[TerraformVariables.OutputAzurePostgresServerName];
-        
+
         var jsonContent = new JsonObject
         {
             ["postgres_id"] = postgresId.Value,
@@ -306,10 +305,10 @@ public class TerraformOutputHandler
             ["postgres_secret_name_password"] = postgresSecretNamePassword.Value,
             ["postgres_server_name"] = postgresServerName.Value
         };
-        
+
         projectResource.CreatedAt = DateTime.UtcNow;
         projectResource.JsonContent = jsonContent.ToString();
-        
+
         await _projectDbContext.SaveChangesAsync();
     }
 
@@ -344,10 +343,10 @@ public class TerraformOutputHandler
         {
             _logger.LogInformation("Workspace version not found in output variables");
         }
-        
+
         var projectResource = await GetProjectResource(outputVariables,
             TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
-        
+
         projectResource.CreatedAt = DateTime.UtcNow;
 
         await _projectDbContext.SaveChangesAsync();

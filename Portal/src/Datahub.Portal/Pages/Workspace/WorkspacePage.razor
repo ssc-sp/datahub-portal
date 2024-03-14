@@ -14,6 +14,7 @@
 @using Datahub.Portal.Pages.Workspace.Sudo
 @using Datahub.Portal.Pages.Workspace.Toolbox
 @using Datahub.Portal.Pages.Workspace.Users
+@using Datahub.Portal.Pages.Workspace.WebApp
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject UserLocationManagerService _userLocationManagerService
@@ -94,6 +95,7 @@
         { WorkspaceSidebar.SectionViews.Publishing, typeof(PublishingDashboard) },
         { WorkspaceSidebar.SectionViews.Repositories, typeof(RepositoryManagementPage) },
         { WorkspaceSidebar.SectionViews.SqlDatabase, typeof(WorkspaceDatabasePage) },
+        { WorkspaceSidebar.SectionViews.WebApp, typeof(WorkspaceWebAppPage)},
         { WorkspaceSidebar.SectionViews.Users, typeof(WorkspaceUsersPage) },
         { WorkspaceSidebar.SectionViews.Metadata, typeof(WorkspaceMetadataPage) },
         { WorkspaceSidebar.SectionViews.Toolbox, typeof(WorkspaceToolboxPage) },
