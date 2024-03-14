@@ -56,7 +56,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
             throw new OpenDataPublishingException($"TBS OpenGov API Key not found for workspacce {workspaceAcronym}");
         }
 
-        return CKANService.CreateService(_httpClientFactory, _config.CKAN, apiKey);
+        return CKANService.CreateService(_httpClientFactory, _config.CkanConfiguration, apiKey);
     }
 
     private async Task ApplyWorkspaceOwnerOrgToMetadata(FieldValueContainer submissionMetadata, string workspaceAcronym)
@@ -244,6 +244,25 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
     public string DerivePublishUrl(TbsOpenGovSubmission submission)
     {
-        return $"{_config.CKAN.DatasetUrl}/{submission.UniqueId}";
+        return $"{_config.CkanConfiguration.DatasetUrl}/{submission.UniqueId}";
+    }
+
+    public async Task<string> TestConnectivity()
+    {
+        using var httpClient = _httpClientFactory.CreateClient();
+        var apiUrl = $"{_config.CkanConfiguration.ApiUrl}/action/organization_list";
+        try
+        {
+            using var response = await httpClient.GetAsync(apiUrl);
+            return $"{(int)response.StatusCode} - {response.ReasonPhrase}";
+        }
+        catch (HttpRequestException e)
+        {
+            return $"HttpRequestException: Status {e.StatusCode} - Exception: {e}";
+        }
+        catch (Exception e)
+        {
+            return $"Other exception: {e}";
+        }
     }
 }
