@@ -1,6 +1,4 @@
-﻿using J2N.Collections.ObjectModel;
-
-namespace Datahub.Shared.Entities
+﻿namespace Datahub.Shared.Entities
 {
     public class AppServiceConfiguration
     {
