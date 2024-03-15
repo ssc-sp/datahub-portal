@@ -26,7 +26,7 @@ public class Client_Engagement
     [AeFormCategory("Projected Engagement Details")]
     [Required]
     [MaxLength(2000)]
-    public string Engagment_Lead{ get; set; }
+    public string Engagment_Lead { get; set; }
 
     [MudBlazor.Forms.AeFormIgnoreAttribute]
     public Datahub_Project Project { get; set; }
@@ -104,7 +104,7 @@ public class Client_Engagement
             }
             else
             {
-                var ret =  estimatedEndDate >= DateTime.Now.Date ? (Color.Success, Severity.Success) : (Color.Error, Severity.Error);
+                var ret = estimatedEndDate >= DateTime.Now.Date ? (Color.Success, Severity.Success) : (Color.Error, Severity.Error);
                 var difference = estimatedEndDate - DateTime.Now.Date;
                 if ((ret == (Color.Success, Severity.Success)) && (difference.Value.Days <= 3))
                 {

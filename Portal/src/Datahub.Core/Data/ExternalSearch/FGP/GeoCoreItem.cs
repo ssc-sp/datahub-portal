@@ -51,7 +51,7 @@ public class GeoCoreItem
         }
     }
 
-    public GeoCoreContact FirstContact => ContactList.Count > 0? ContactList[0]: null;
+    public GeoCoreContact FirstContact => ContactList.Count > 0? ContactList[0] : null;
 
     public GeoCoreGraphicOverviewList GraphicOverviewList
     {
@@ -65,7 +65,7 @@ public class GeoCoreItem
         }
     }
 
-    public GeoCoreGraphicOverview FirstGraphicOverview => GraphicOverviewList.Count > 0? GraphicOverviewList[0]: null;
+    public GeoCoreGraphicOverview FirstGraphicOverview => GraphicOverviewList.Count > 0? GraphicOverviewList[0] : null;
 
     private T DecodeEscapedJson<T> (string content)
     {

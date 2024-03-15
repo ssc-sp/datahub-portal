@@ -28,7 +28,7 @@ public class WebForm_Field
 
     [Required]
     [StringLength(8)]
-    [AeLabel(label: "Extension", isDropDown:true, validValues: new []
+    [AeLabel(label: "Extension", isDropDown: true, validValues: new []
     {
         "NONE", "AMT", "AMTL", "AMTR", "CD", "CNT", "DT", "DESC", "DUR", "URL", "EMAIL", "NT", "FCTR", "ID", "FLAG",
         "MULT", "NAME", "NUM", "PCT", "QTY", "RT", "RTO", "SID", "TXT", "IND", "TIME", "TS", "VAL"
@@ -40,7 +40,7 @@ public class WebForm_Field
 
     [Required]
     [StringLength(8)]
-    [AeLabel(label: "Field Type", isDropDown:true, validValues: new []
+    [AeLabel(label: "Field Type", isDropDown: true, validValues: new []
     {
         "Text", "Integer", "Decimal", "Boolean", "Dropdown", "Date", "Time", "Money"
     })]

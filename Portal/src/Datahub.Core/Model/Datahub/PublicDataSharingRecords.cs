@@ -125,7 +125,7 @@ public class SharedDataFile
 }
 
 [Table("OpenDataSharedFile")]
-public class OpenDataSharedFile: SharedDataFile
+public class OpenDataSharedFile : SharedDataFile
 {
     public int? ApprovalForm_ID { get; set; }
     public string SignedApprovalForm_URL { get; set; }

@@ -1,6 +1,6 @@
-﻿using Elemental.Components;
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Elemental.Components;
 
 namespace Datahub.Core.Model.Onboarding;
 

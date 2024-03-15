@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using System;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
-using Microsoft.CSharp.RuntimeBinder;
 
 namespace Datahub.Core.Data;
 
@@ -15,14 +15,15 @@ public enum DbDriver
 }
 public static class EFTools
 {
-
-    public static void InitializeDatabase<T>(ILogger logger, IConfiguration configuration, IServiceProvider serviceProvider, bool offline, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
+    public static void InitializeDatabase<T>(ILogger logger, IConfiguration configuration, IServiceProvider serviceProvider, bool offline, bool migrate = true, bool ensureDeleteinOffline = true)
+        where T : DbContext
     {
         var factory = serviceProvider.GetService(typeof(IDbContextFactory<T>)) as IDbContextFactory<T>;
         InitializeDatabase<T>(logger, configuration, factory, offline, migrate, ensureDeleteinOffline);
     }
 
-    public static void InitializeDatabase<T>(ILogger logger, IConfiguration configuration, IDbContextFactory<T> factory, bool resetDB, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
+    public static void InitializeDatabase<T>(ILogger logger, IConfiguration configuration, IDbContextFactory<T> factory, bool resetDB, bool migrate = true, bool ensureDeleteinOffline = true)
+        where T : DbContext
     {
         using var context = factory.CreateDbContext();
         try
@@ -35,7 +36,6 @@ public static class EFTools
             }
             else
             {
-
                 if (migrate)
                 {
                     context.Database.Migrate();
@@ -56,7 +56,6 @@ public static class EFTools
 
     public static string GetConnectionString(this IConfiguration configuration, IWebHostEnvironment environment, string name)
     {
-
         return configuration.GetConnectionString(name) ?? throw new ArgumentNullException($"ASPNETCORE_CONNECTION STRING ({name}) in Enviroment ({environment.EnvironmentName}).");
     }
 
@@ -70,7 +69,8 @@ public static class EFTools
         _ => DbDriver.Azure
     };
 
-    public static void ConfigureDbContext<T>(this IServiceCollection services, IConfiguration configuration, string connectionStringName, DbDriver dbDriver) where T : DbContext
+    public static void ConfigureDbContext<T>(this IServiceCollection services, IConfiguration configuration, string connectionStringName, DbDriver dbDriver)
+        where T : DbContext
     {
         var connectionString = configuration.GetConnectionString(connectionStringName);
         if (string.IsNullOrWhiteSpace(connectionStringName) || string.IsNullOrWhiteSpace(connectionString))
@@ -105,7 +105,8 @@ public static class EFTools
         return "NA";
     }
 
-    private static void CreateAndSeedDB<T>(ILogger logger, T context, IConfiguration configuration) where T : DbContext
+    private static void CreateAndSeedDB<T>(ILogger logger, T context, IConfiguration configuration)
+        where T : DbContext
     {
         if (context.Database.EnsureCreated())
         {

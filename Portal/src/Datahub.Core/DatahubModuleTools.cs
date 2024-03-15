@@ -1,13 +1,14 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace Datahub.Core;
 
 public static class DatahubModuleTools
 {
-    public static void AddModule<T>(this IServiceCollection services, IConfiguration configuration) where T:IDatahubModule
+    public static void AddModule<T>(this IServiceCollection services, IConfiguration configuration)
+        where T : IDatahubModule
     {
         services.AddModule(typeof(T), configuration);
     }
@@ -26,7 +27,8 @@ public static class DatahubModuleTools
         module.InitializeDatabases(context, settings);
     }
 
-    public static void ConfigureModule<T>(this IApplicationBuilder builder) where T : IDatahubModule
+    public static void ConfigureModule<T>(this IApplicationBuilder builder)
+        where T : IDatahubModule
     {
         builder.ConfigureModule(typeof(T));
     }

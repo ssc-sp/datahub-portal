@@ -1,10 +1,10 @@
-﻿using Datahub.CatalogSearch;
+﻿using System.Text.Json;
+using Datahub.CatalogSearch;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using Datahub.Metadata.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using Entities = Datahub.Metadata.Model;
 
 namespace Datahub.Core.Services.Metadata;
@@ -295,7 +295,7 @@ public class MetadataBrokerService : IMetadataBrokerService
                 catalogObject.Search_French_TXT = frenchText;
                 catalogObject.Language = language;
                 catalogObject.ProjectId = projectId;
-            };
+            }
 
             if (catalogObject.CatalogObjectId == 0)
                 ctx.CatalogObjects.Add(catalogObject);
@@ -734,6 +734,7 @@ public class MetadataBrokerService : IMetadataBrokerService
     /// <summary>
     /// GetProjectCatalogItems will only list Files and Power BI reports for now.
     /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task<List<CatalogObjectResult>> GetProjectCatalogItems(int projectId)
     {
         using var ctx = await contextFactory.CreateDbContextAsync();

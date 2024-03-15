@@ -3,7 +3,8 @@
 /// <summary>
 /// Query throttler utility class
 /// </summary>
-public class QueryThrottler<T> where T : IComparable<T>
+public class QueryThrottler<T>
+    where T : IComparable<T>
 {
     private readonly TimeSpan delay;
     private readonly Func<T, Task> callback;

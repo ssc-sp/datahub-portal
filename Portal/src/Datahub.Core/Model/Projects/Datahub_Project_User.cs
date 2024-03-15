@@ -7,7 +7,6 @@ namespace Datahub.Core.Model.Projects;
 
 public class Datahub_Project_User
 {
-
     [AeFormIgnore]
     [Key]
     public int ProjectUser_ID { get; set; }
@@ -27,7 +26,7 @@ public class Datahub_Project_User
     #region Deprecated
     [Obsolete("Use PortalUser reference instead")]
     [StringLength(200)]
-    public string User_Name {  get; set; }
+    public string User_Name { get; set; }
 
     [Obsolete("Use Role reference instead")]
     public bool IsDataApprover { get; set; }

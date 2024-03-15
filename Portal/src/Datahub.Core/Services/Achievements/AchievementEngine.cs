@@ -1,7 +1,7 @@
-﻿using Datahub.Core.Model.Achievements;
-using RulesEngine.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Datahub.Core.Model.Achievements;
+using RulesEngine.Models;
 
 namespace Datahub.Core.Services.Achievements;
 

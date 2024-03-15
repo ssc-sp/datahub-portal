@@ -1,5 +1,5 @@
-﻿using Datahub.Core.Model.Achievements;
-using System.Security.Claims;
+﻿using System.Security.Claims;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Services.UserManagement;
 using Microsoft.Graph.Models;
 

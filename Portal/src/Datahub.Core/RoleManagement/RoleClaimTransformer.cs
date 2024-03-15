@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using System;
+﻿using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Datahub.Core.Data;
 using Datahub.Core.Services.Security;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Logging;
 
 namespace Datahub.Core.RoleManagement;
 

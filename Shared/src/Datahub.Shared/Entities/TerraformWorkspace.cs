@@ -1,14 +1,12 @@
 #nullable enable
 
-using System.Text.Json.Nodes;
-
 // This is actually required by some projects
 // ReSharper disable once RedundantUsingDirective
 using System.Collections.Generic;
-using Datahub.Shared.Enums;
-
 // This is needed, even if your IDE says it isn't
 using System.Linq;
+using System.Text.Json.Nodes;
+using Datahub.Shared.Enums;
 
 namespace Datahub.Shared.Entities;
 

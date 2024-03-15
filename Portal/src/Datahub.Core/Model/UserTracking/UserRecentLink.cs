@@ -28,7 +28,7 @@ public record UserRecentLink
 
     public string PBIWorkspaceId { get; set; }
 
-    public DateTimeOffset accessedTime{ get; set; }
+    public DateTimeOffset accessedTime { get; set; }
 
     public string ExternalUrl { get; set; }
 

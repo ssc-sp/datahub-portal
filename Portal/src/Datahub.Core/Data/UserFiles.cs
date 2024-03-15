@@ -1,10 +1,10 @@
-using Azure.Search.Documents.Indexes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
+using Azure.Search.Documents.Indexes;
 using Microsoft.AspNetCore.Components.Forms;
 
 namespace Datahub.Core.Data;
@@ -106,7 +106,7 @@ public class Folder : BaseMetadata
         dataType = MetadataType.Folder;
     }
 
-    public bool sortAscending {get; set;} = true;
+    public bool sortAscending { get; set; } = true;
 
     public override string ownedby
     {
@@ -268,7 +268,7 @@ public class Activity
     public DateTime activityts { get; set; }
 }
 
-public class FileMetaData: BaseMetadata
+public class FileMetaData : BaseMetadata
 {
     public const string FileId = "fileid";
     public const string OwnedBy = "ownedby";
@@ -450,7 +450,7 @@ public class ExpandableItem<T>
     }
 
     public ExpandableItem<T> parent { get; set; }
-    public List<ExpandableItem<T>> children  { get; set; } = new List<ExpandableItem<T>>();
+    public List<ExpandableItem<T>> children { get; set; } = new List<ExpandableItem<T>>();
 
     public void Add(ExpandableItem<T> child)
     {

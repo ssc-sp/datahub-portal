@@ -34,7 +34,6 @@ public class WebForm
 
 public class WebForm_DBCodes
 {
-
     [Key]
     [Required]
     [MaxLength(10)]
