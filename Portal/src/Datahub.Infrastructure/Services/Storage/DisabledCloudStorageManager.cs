@@ -78,7 +78,7 @@ namespace Datahub.Infrastructure.Services.Storage
             throw new NotImplementedException();
         }
 
-        public List<(string Placeholder, string Substitution)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
+        public List<(string Placeholder, string Replacement)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
         {
             return new List<(string, string)>();
         }
