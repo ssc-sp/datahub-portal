@@ -3,7 +3,6 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
 using Datahub.Infrastructure.Services.Security;
-using DocumentFormat.OpenXml.Office2019.Excel.RichData;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
