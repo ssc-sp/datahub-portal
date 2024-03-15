@@ -112,7 +112,7 @@ public class Folder : BaseMetadata
     {
         get
         {
-            return base.createdby;
+            return this.createdby;
         }
         set
         {
@@ -289,11 +289,11 @@ public class FileMetaData : BaseMetadata
     {
         get
         {
-            return base.id;
+            return this.id;
         }
         set
         {
-            base.id = value;
+            this.id = value;
         }
     }
 
@@ -302,11 +302,11 @@ public class FileMetaData : BaseMetadata
     {
         get
         {
-            return base.name;
+            return this.name;
         }
         set
         {
-            base.name = value;
+            this.name = value;
         }
     }
 

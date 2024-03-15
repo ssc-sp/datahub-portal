@@ -11,21 +11,21 @@ public class Project_Role
     public string Description { get; set; }
 
     /// <summary>
-    /// This should be used to determine if the user is at least an admin or not.
+    /// Gets a value indicating whether this should be used to determine if the user is at least an admin or not.
     /// Note: If you are looking to show or hide UI elements off this, use the "DatahubAuthView" instead.
     /// Note: This will not work inside EF Core Queries
     /// </summary>
     public bool IsAtLeastAdmin => Id is (int)RoleNames.Admin or (int)RoleNames.WorkspaceLead;
 
     /// <summary>
-    /// This should be used to determine if the user is at least a collaborator or not.
+    /// Gets a value indicating whether this should be used to determine if the user is at least a collaborator or not.
     /// Note: If you are looking to show or hide UI elements off this, use the "DatahubAuthView" instead.
     /// Note: This will not work inside EF Core Queries
     /// </summary>
     public bool IsAtLeastCollaborator => Id is (int)RoleNames.Collaborator || IsAtLeastAdmin;
 
     /// <summary>
-    /// This should be used to determine if the user is at least a guest or not.
+    /// Gets a value indicating whether this should be used to determine if the user is at least a guest or not.
     /// Note: If you are looking to show or hide UI elements off this, use the "DatahubAuthView" instead.
     /// Note: This will not work inside EF Core Queries
     /// </summary>

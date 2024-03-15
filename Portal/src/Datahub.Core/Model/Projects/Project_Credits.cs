@@ -5,47 +5,47 @@ namespace Datahub.Core.Model.Projects;
 public class Project_Credits
 {
     /// <summary>
-    /// Row key
+    /// Gets or sets row key
     /// </summary>
     public int Id { get; set; }
     /// <summary>
-    /// Project table (FK)
+    /// Gets or sets project table (FK)
     /// </summary>
     public int ProjectId { get; set; }
     /// <summary>
-    /// Project instance
+    /// Gets or sets project instance
     /// </summary>
     public virtual Datahub_Project Project { get; set; }
     /// <summary>
-    /// Last updated (once a day)
+    /// Gets or sets last updated (once a day)
     /// </summary>
     public DateTime? LastUpdate { get; set; }
     /// <summary>
-    /// Current credits consumed.
+    /// Gets or sets current credits consumed.
     /// </summary>
     public double Current { get; set; }
     /// <summary>
-    /// JSON serialized cost per service (ServiceName, Cost)
+    /// Gets or sets jSON serialized cost per service (ServiceName, Cost)
     /// </summary>
     public string CurrentPerService { get; set; }
     /// <summary>
-    /// JSON serialized cost per day (Date, Cost)
+    /// Gets or sets jSON serialized cost per day (Date, Cost)
     /// </summary>
     public string CurrentPerDay { get; set; }
     /// <summary>
-    /// Current credits yesterday.
+    /// Gets or sets current credits yesterday.
     /// </summary>
     public double YesterdayCredits { get; set; }
     /// <summary>
-    /// JSON serialized cost per service yesterday (ServiceName, Cost)
+    /// Gets or sets jSON serialized cost per service yesterday (ServiceName, Cost)
     /// </summary>
     public string YesterdayPerService { get; set; }
     /// <summary>
-    /// Consumed notification date
+    /// Gets or sets consumed notification date
     /// </summary>
     public DateTime? LastNotified { get; set; }
     /// <summary>
-    /// Consume notification percent
+    /// Gets or sets consume notification percent
     /// </summary>
     public int? PercNotified { get; set; }
 }
