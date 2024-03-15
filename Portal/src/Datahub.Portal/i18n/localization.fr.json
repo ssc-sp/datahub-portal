@@ -2572,5 +2572,6 @@
   "Invalid IP address format (e.g. 192.168.2.1)": "Format d'adresse IP non valide (p. ex. 192.168.2.1)",
   "The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget.": "Le montant de crédits alloué à votre espace de travail. Veuillez contacter les administrateurs du Datahub si vous souhaitez modifier votre budget.",
   "Changes saved": "Modifications enregistrées",
-  "You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting.": "Vous devez reconnaître et cocher toutes les cases des <b>Critères obligatoires de libération</b> avant de soumettre votre demande."
+  "You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting.": "Vous devez reconnaître et cocher toutes les cases des <b>Critères obligatoires de libération</b> avant de soumettre votre demande.",
+  "The final publishing step is currently disabled in this environment. In production, you will be able to press the button below and make your publication available on the Open Data registry.": "L'étape de publication finale est présentement désactivée dans cet environnement. En production, vous pourrez appuyer sur le bouton ci-dessous et rendre votre publication disponible sur le registre Open Data."
 }
