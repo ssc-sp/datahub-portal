@@ -35,7 +35,7 @@ public class TerraformTemplate
         var templateName = name.ToLower();
         if (templateName.StartsWith("terraform:"))
         {
-            templateName = templateName.Replace("terraform:", "");
+            templateName = templateName.Replace("terraform:", string.Empty);
         }
 
         return templateName switch
