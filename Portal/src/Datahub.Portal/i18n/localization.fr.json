@@ -109,6 +109,7 @@
   "Access the project Workspace in the Power BI Service": "Accéder à l'espace de travail de l'espace de travail dans le service Power BI",
   "Access the storage account for this project to upload, download and share datasets with all project members.": "Accédez au compte de stockage de ce projet pour charger, télécharger et partager des ensembles de données avec tous les membres du projet.",
   "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members.": "Accédez aux comptes de stockage de l'espace de travail pour télécharger, télécharger et partager des ensembles de données avec tous les membres de l'espace de travail.",
+  "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data.": "Accédez aux comptes de stockage de l'espace de travail pour télécharger, télécharger et partager des ensembles de données avec tous les membres de l'espace de travail. Les ensembles de données stockés dans l'espace de travail peuvent aussi être publiés sur Open Data.",
   "Access to Information and Privacy Secretariat": "Secrétariat de l'accès à l'information et de la protection des renseignements personnels",
   "Access to high-performance, massively parallel and specialized GPU compute instances for speeding up your algorithms and model training.": "Accès à des instances de calcul avec unité de traitement graphique spécialisé, massivement parallèles et hautement performantes pour accélérer la formation sur les algorithmes et vos modèles.",
   "Access token for the private repository - Do not edit to reuse exciting token": "Jeton d'accès pour le dépôt privé - Ne pas changer pour réutiliser le jeton existant",
@@ -2647,5 +2648,7 @@
   "Invalid IP address format (e.g. 192.168.2.1)": "Format d'adresse IP non valide (p. ex. 192.168.2.1)",
   "The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget.": "Le montant de crédits alloué à votre espace de travail. Veuillez contacter les administrateurs du Datahub si vous souhaitez modifier votre budget.",
   "Changes saved": "Modifications enregistrées",
-  "You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting.": "Vous devez reconnaître et cocher toutes les cases des <b>Critères obligatoires de libération</b> avant de soumettre votre demande."
+  "You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting.": "Vous devez reconnaître et cocher toutes les cases des <b>Critères obligatoires de libération</b> avant de soumettre votre demande.",
+  "The final publishing step is currently disabled in this environment. In production, you will be able to press the button below and make your publication available on the Open Data registry.": "L'étape de publication finale est présentement désactivée dans cet environnement. En production, vous pourrez appuyer sur le bouton ci-dessous et rendre votre publication disponible sur le registre Open Data.",
+  "Open Publishing Dashboard": "Ouvrir le tableau de bord de publication"
 }
