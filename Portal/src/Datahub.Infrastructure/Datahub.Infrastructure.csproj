@@ -28,7 +28,6 @@
       <ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
       <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
       <ProjectReference Include="..\Datahub.ProjectTools\Datahub.ProjectTools.csproj" />
-      <ProjectReference Include="..\Datahub.CKAN\Datahub.CKAN.csproj" />
     </ItemGroup>
 
 </Project>

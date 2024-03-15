@@ -1,6 +1,7 @@
 ﻿using Datahub.Application.Configuration;
 using Datahub.Application.Services.Publishing;
-using Datahub.CKAN.Package;
+using Datahub.Core.Model.Datahub;
+using Datahub.Infrastructure.Services.Publishing.Package;
 using Datahub.Metadata.DTO;
 using System.Net.Mime;
 using System.Text;
@@ -16,6 +17,8 @@ public class CKANService : ICKANService
     private const string PACKAGE_SHOW_ACTION = "package_show";
     private const string PACKAGE_PATCH_ACTION = "package_patch";
     private const string RESOURCE_CREATE_ACTION = "resource_create";
+
+    private const string HTTP_CLIENT_NAME = "CkanService";
 
     private static HashSet<string> KnownFileTypes { get; }
 
@@ -45,7 +48,21 @@ public class CKANService : ICKANService
         var fileExt = ext[1..].ToUpper();
         return KnownFileTypes.Contains(fileExt) ? fileExt : defaultFormat;
     }
-    
+
+    private static CKANApiResult DeserializePackageResult(CKANApiResult result)
+    {
+        if (result.Succeeded)
+        {
+            var ckanPackageJson = result.CkanObject?.ToString();
+            if (!string.IsNullOrEmpty(ckanPackageJson))
+            {
+                return new CKANApiResult(result.Succeeded, result.ErrorMessage, JsonSerializer.Deserialize<CkanPackageBasic>(ckanPackageJson, SerializationOptions));
+            }
+        }
+
+        return result;
+    }
+
     public static string NewMultipartBoundary() => $"------ {DateTime.Now.Ticks:x} --------";
     
     private static CkanPackageBasic CreateTestPackageBasic(string id) => new()
@@ -57,26 +74,25 @@ public class CKANService : ICKANService
         ReadyToPublish = "false"
     };
 
-    static JsonSerializerOptions GetSerializationOptions() => new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
+    static readonly JsonSerializerOptions SerializationOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
 
     // initial version only uses "dataset" and "guide" types; if multi-word types are added, they will need to be
     // converted to snake_case. e.g. "GeospatialMaterial" => "geospatial_material"
     static string TransformResourceType(string resourceType) => resourceType?.ToLowerInvariant();
     #endregion
 
-    readonly HttpClient _httpClient;
+    readonly IHttpClientFactory _httpClientFactory;
     readonly CkanConfiguration _ckanConfiguration;
     readonly string _apiKey;
 
-    public CKANService(HttpClient httpClient, CkanConfiguration ckanConfiguration, string apiKey = null)
+    public CKANService(IHttpClientFactory httpClientFactory, CkanConfiguration ckanConfiguration, string? apiKey = null)
     {
-        _httpClient = httpClient;
+        _httpClientFactory = httpClientFactory;
         _ckanConfiguration = ckanConfiguration;
         _apiKey = string.IsNullOrEmpty(apiKey) ? _ckanConfiguration.ApiKey : apiKey;
     }
+
+    public static ICKANService CreateService(IHttpClientFactory httpClientFactory, CkanConfiguration ckanConfiguration, string? apiKey = null) => new CKANService(httpClientFactory, ckanConfiguration, apiKey);
 
     private bool IsTestMode => _ckanConfiguration.TestMode;
 
@@ -86,7 +102,7 @@ public class CKANService : ICKANService
         var packageData = (new PackageGenerator()).GeneratePackage(fieldValues, allFields, url);
 
         // generate json from package
-        var jsonData = JsonSerializer.Serialize(packageData, GetSerializationOptions());
+        var jsonData = JsonSerializer.Serialize(packageData, SerializationOptions);
 
         var content = new StringContent(jsonData, Encoding.UTF8, MediaTypeNames.Application.Json);
 
@@ -119,16 +135,7 @@ public class CKANService : ICKANService
             result = await CreatePackage(fieldValues, allFields, null);
         }
 
-        if (result.Succeeded) 
-        {
-            var ckanPackageJson = result.CkanObject?.ToString();
-            if (!string.IsNullOrEmpty(ckanPackageJson))
-            {
-                return new CKANApiResult(result.Succeeded, result.ErrorMessage, CkanPackageBasic.Deserialize(ckanPackageJson));
-            }
-        }
-
-        return result;
+        return DeserializePackageResult(result);
     }
 
     public async Task<CKANApiResult> UpdatePackageAttributes(string packageId, IDictionary<string, string> attributes)
@@ -146,16 +153,7 @@ public class CKANService : ICKANService
 
         var result = await DoRequestAsync(HttpMethod.Post, PACKAGE_PATCH_ACTION, content);
 
-        if (result.Succeeded)
-        {
-            var packageJson = result.CkanObject?.ToString();
-            if (!string.IsNullOrEmpty(packageJson))
-            {
-                return new CKANApiResult(result.Succeeded, result.ErrorMessage, CkanPackageBasic.Deserialize(packageJson));
-            }
-        }
-
-        return result;
+        return DeserializePackageResult(result);
     }
 
     public async Task<CKANApiResult> AddResourcePackage(string packageId, string filename, string filePurpose, FieldValueContainer metadata, Stream fileContentStream, long? contentLength = null)
@@ -219,6 +217,8 @@ public class CKANService : ICKANService
     #nullable enable
     private async Task<CKANApiResult> DoRequestAsync(HttpMethod method, string action, HttpContent? content = null, Dictionary<string,object>? parameters = null)
     {
+        var httpClient = _httpClientFactory.CreateClient(HTTP_CLIENT_NAME);
+
         try
         {
             // this is to avoid developing on the VPN (test mode should be off in prod)
@@ -247,10 +247,10 @@ public class CKANService : ICKANService
             };
             httpRequest.Headers.Add("X-CKAN-API-Key", apiKey);
 
-            using var response = await _httpClient.SendAsync(httpRequest);
+            using var response = await httpClient.SendAsync(httpRequest);
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            var ckanResult = JsonSerializer.Deserialize<CKANResult>(jsonResponse, GetSerializationOptions());
+            var ckanResult = JsonSerializer.Deserialize<CKANResult>(jsonResponse, SerializationOptions);
 
             if (ckanResult == null)
             {
@@ -298,7 +298,7 @@ public class CKANService : ICKANService
         Dictionary<string, object> packageData = new() { { "id", packageId } };
 
         // generate json from package
-        var jsonData = JsonSerializer.Serialize(packageData, GetSerializationOptions());
+        var jsonData = JsonSerializer.Serialize(packageData, SerializationOptions);
 
         var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
 

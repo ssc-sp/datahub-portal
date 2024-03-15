@@ -3,6 +3,7 @@
 @using System.Text.Json
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Services.Api
+@using Datahub.Portal.Pages.Workspace.Publishing
 @inject IUserInformationService UserInformationService
 @inject CustomNavigation NavManager
 @inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
@@ -32,7 +33,7 @@
             {
                 <AeCard>
                     <AeTypography Variant="h3">@StepTitle(SpatialObjectShareStatus.FillApprovalForm)</AeTypography>
-                    <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm 
+                    <ApprovalForm 
                     ApprovalFormId=@ApprovalFormId 
                     OnSubmitForm=@UpdateApprovalFormId 
                     User=@_requestingUser/>
@@ -225,7 +226,7 @@
 
     static bool IsValidObjectId(string id) => Guid.TryParse(id, out Guid ignore);
 
-    private async Task UpdateApprovalFormId(Forms.ShareWorkflow.ApprovalFormSubmitArgs args)
+    private async Task UpdateApprovalFormId(ApprovalFormSubmitArgs args)
     {
         await UpdateCurrentStatus(SpatialObjectShareStatus.SubmitApprovalForm);
         _editSubmittedApproval = false;

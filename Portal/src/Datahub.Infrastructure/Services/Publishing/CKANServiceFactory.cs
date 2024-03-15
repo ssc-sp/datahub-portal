@@ -5,7 +5,9 @@ using System.Net.Http;
 
 namespace Datahub.Infrastructure.Services.Publishing;
 
-public class CKANServiceFactory : ICKANServiceFactory
+//TODO remove this class along with the old OpenDataService
+
+public class CKANServiceFactory
 {
     readonly DatahubPortalConfiguration _config;
     readonly IHttpClientFactory _httpClientFactory;
@@ -17,7 +19,7 @@ public class CKANServiceFactory : ICKANServiceFactory
     }
 
     public ICKANService CreateService() => CreateService(null);
-    public ICKANService CreateService(string apiKey) => new CKANService(_httpClientFactory.CreateClient("CkanClient"), _config.CkanConfiguration, apiKey);
+    public ICKANService CreateService(string apiKey) => new CKANService(_httpClientFactory, _config.CkanConfiguration, apiKey);
 
     public bool IsStaging() => (_config.CkanConfiguration.BaseUrl ?? "").Contains("staging");
 }

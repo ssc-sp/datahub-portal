@@ -1,8 +1,8 @@
 ﻿using Datahub.Application.Configuration;
+using Datahub.Application.Exceptions;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Publishing;
 using Datahub.Application.Services.Security;
-using Datahub.CKAN.Package;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Metadata;
 using Datahub.Core.Storage;
@@ -14,7 +14,6 @@ using Microsoft.EntityFrameworkCore;
 namespace Datahub.Infrastructure.Services.Publishing;
 
 public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        ICKANServiceFactory ckanServiceFactory,
         IMetadataBrokerService metadataBrokerService,
         IProjectStorageConfigurationService projectStorageConfigService,
         CloudStorageManagerFactory cloudStorageManagerFactory,
@@ -24,7 +23,6 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
         DatahubPortalConfiguration config) : ITbsOpenDataService
 {
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = dbContextFactory;
-    private readonly ICKANServiceFactory _ckanServiceFactory = ckanServiceFactory;
     private readonly IMetadataBrokerService _metadataBrokerService = metadataBrokerService;
     private readonly IProjectStorageConfigurationService _projectStorageConfigService = projectStorageConfigService;
     private readonly CloudStorageManagerFactory _cloudStorageManagerFactory = cloudStorageManagerFactory;
@@ -58,7 +56,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
             throw new OpenDataPublishingException($"TBS OpenGov API Key not found for workspacce {workspaceAcronym}");
         }
 
-        return await Task.FromResult(_ckanServiceFactory.CreateService(apiKey));
+        return CKANService.CreateService(_httpClientFactory, _config.CkanConfiguration, apiKey);
     }
 
     private async Task ApplyWorkspaceOwnerOrgToMetadata(FieldValueContainer submissionMetadata, string workspaceAcronym)
@@ -183,12 +181,12 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
     public async Task<string?> GetApiKeyForWorkspace(string workspaceAcronym)
     {
-        return await _keyvaultUserService.GetSecretAsync(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY);
+        return await _keyvaultUserService.GetSecretAsync(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY_SECRET_NAME);
     }
 
     public async Task SetApiKeyForWorkspace(string workspaceAcronym, string apiKey)
     {
-        await _keyvaultUserService.StoreSecret(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY, apiKey);
+        await _keyvaultUserService.StoreSecret(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY_SECRET_NAME, apiKey);
     }
 
     public async Task<bool> IsWorkspaceReadyForSubmission(string workspaceAcronym)

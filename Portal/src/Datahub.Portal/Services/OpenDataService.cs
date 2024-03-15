@@ -1,5 +1,6 @@
 ﻿using Datahub.Application.Services.Publishing;
 using Datahub.Core.Model.Datahub;
+using Datahub.Infrastructure.Services.Publishing;
 using Datahub.Metadata.DTO;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,11 +10,11 @@ namespace Datahub.Portal.Services;
 
 public class OpenDataService : IOpenDataService
 {
-    readonly ICKANServiceFactory _serviceFactory;
+    readonly CKANServiceFactory _serviceFactory;
     readonly IHttpClientFactory _httpClientFactory;
     readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 
-    public OpenDataService(IHttpClientFactory httpClientFactory, IDbContextFactory<DatahubProjectDBContext> dbContextFactory, ICKANServiceFactory serviceFactory)
+    public OpenDataService(IHttpClientFactory httpClientFactory, IDbContextFactory<DatahubProjectDBContext> dbContextFactory, CKANServiceFactory serviceFactory)
     {
         _serviceFactory = serviceFactory;
         _dbContextFactory = dbContextFactory;

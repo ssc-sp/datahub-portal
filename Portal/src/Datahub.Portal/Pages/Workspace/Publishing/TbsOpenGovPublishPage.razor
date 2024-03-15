@@ -65,10 +65,10 @@
                 </MudCardHeader>
 
                 <MudCardContent>
-                    <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm ApprovalFormId=@_approvalFormId
-                                                                           OnSubmitForm=@UpdateApprovalFormId
-                                                                           DatasetTitle=@Submission.DatasetTitle
-                                                                           PortalUser=@_requestingUser />
+                    <ApprovalForm ApprovalFormId=@_approvalFormId
+                        OnSubmitForm=@UpdateApprovalFormId
+                        DatasetTitle=@Submission.DatasetTitle
+                        PortalUser=@_requestingUser />
                 </MudCardContent>
             </MudCard>
         }
@@ -335,9 +335,7 @@
         file.UploadStatus = OpenDataPublishFileUploadStatus.InProgress;
         await InvokeAsync(StateHasChanged);
 
-        var updatedFile = await _tbsService.UploadFile(file);
-        UpdateFileStatus(file, updatedFile);
-        await InvokeAsync(StateHasChanged);
+        _ = await _tbsService.UploadFile(file);
     }
 
     private void UpdateFileStatus(OpenDataPublishFile file, OpenDataPublishFile updatedFile)
@@ -362,7 +360,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task UpdateApprovalFormId(Forms.ShareWorkflow.ApprovalFormSubmitArgs args)
+    private async Task UpdateApprovalFormId(ApprovalFormSubmitArgs args)
     {
         _approvalFormId = args.FormId;
 

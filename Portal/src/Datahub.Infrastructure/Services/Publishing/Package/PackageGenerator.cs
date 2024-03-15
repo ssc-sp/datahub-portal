@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Datahub.CKAN.Package;
+namespace Datahub.Infrastructure.Services.Publishing.Package;
 
 public class PackageGenerator
 {
