@@ -1,15 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Net.Mail;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Net.Mail;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
-using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
 using Microsoft.Graph.Models;
@@ -17,38 +12,36 @@ using System.Security.Claims;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Services.Security;
-using UserSettings = Datahub.Core.Model.UserTracking.UserSettings;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.CatalogSearch;
-using Datahub.Core.Model.Catalog;
 using Azure.Identity;
 
 namespace Datahub.Core.Services.UserManagement;
 
 public class UserInformationService : IUserInformationService
 {
-    private readonly ILogger<UserInformationService> _logger;
-    private GraphServiceClient _graphServiceClient;
-    private readonly AuthenticationStateProvider _authenticationStateProvider;
-    private readonly NavigationManager _navigationManager;
+    private readonly ILogger<UserInformationService> logger;
+    private GraphServiceClient graphServiceClient;
+    private readonly AuthenticationStateProvider authenticationStateProvider;
+    private readonly NavigationManager navigationManager;
 
-    private readonly IConfiguration _configuration;
-    private readonly ServiceAuthManager _serviceAuthManager;
+    private readonly IConfiguration configuration;
+    private readonly ServiceAuthManager serviceAuthManager;
 
-    private readonly IDbContextFactory<DatahubProjectDBContext> _datahubContextFactory;
+    private readonly IDbContextFactory<DatahubProjectDBContext> datahubContextFactory;
 
-    private readonly CultureService _cultureService;
-    private readonly IDatahubCatalogSearch _datahubCatalogSearch;
+    private readonly CultureService cultureService;
+    private readonly IDatahubCatalogSearch datahubCatalogSearch;
 
-    private ClaimsPrincipal _authenticatedUser;
+    private ClaimsPrincipal authenticatedUser;
 
     public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated;
 
-    private User _currentUser;
+    private User currentUser;
 
     private static User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
 
-    private bool _isViewingAsVisitor;
+    private bool isViewingAsVisitor;
 
     public UserInformationService(
         ILogger<UserInformationService> logger,
@@ -58,21 +51,21 @@ public class UserInformationService : IUserInformationService
         IDatahubCatalogSearch datahubCatalogSearch,
         IDbContextFactory<DatahubProjectDBContext> datahubContextFactory, CultureService cultureService)
     {
-        _logger = logger;
-        _authenticationStateProvider = authenticationStateProvider;
-        _navigationManager = navigationManager;
-        _configuration = configureOptions;
-        this._serviceAuthManager = serviceAuthManager;
-        _datahubContextFactory = datahubContextFactory;
-        _cultureService = cultureService;
-        _datahubCatalogSearch = datahubCatalogSearch;
+        this.logger = logger;
+        this.authenticationStateProvider = authenticationStateProvider;
+        this.navigationManager = navigationManager;
+        configuration = configureOptions;
+        this.serviceAuthManager = serviceAuthManager;
+        this.datahubContextFactory = datahubContextFactory;
+        this.cultureService = cultureService;
+        this.datahubCatalogSearch = datahubCatalogSearch;
     }
 
     public async Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
     {
-        if (_authenticationStateProvider == null || forceReload)
-            _authenticatedUser = (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
-        return _authenticatedUser;
+        if (authenticationStateProvider == null || forceReload)
+            authenticatedUser = (await authenticationStateProvider.GetAuthenticationStateAsync()).User;
+        return authenticatedUser;
     }
 
     public async Task<string> GetUserIdString()
@@ -84,13 +77,13 @@ public class UserInformationService : IUserInformationService
     public async Task<string> GetUserEmail()
     {
         await CheckUser();
-        return _currentUser.Mail;
+        return currentUser.Mail;
     }
 
     public async Task<string> GetDisplayName()
     {
         await CheckUser();
-        return _currentUser.DisplayName;
+        return currentUser.DisplayName;
     }
 
     public async Task<string> GetUserEmailDomain()
@@ -98,12 +91,12 @@ public class UserInformationService : IUserInformationService
         await CheckUser();
         try
         {
-            MailAddress email = new MailAddress(_currentUser.Mail);
+            MailAddress email = new MailAddress(currentUser.Mail);
             return email.Host.ToLower();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Cannot parse email from {CurrentUserMail}", _currentUser?.Mail);
+            logger.LogError(ex, "Cannot parse email from {CurrentUserMail}", currentUser?.Mail);
             return "?";
         }
     }
@@ -113,12 +106,12 @@ public class UserInformationService : IUserInformationService
         await CheckUser();
         try
         {
-            var email = new MailAddress(_currentUser.Mail);
+            var email = new MailAddress(currentUser.Mail);
             return email.User.ToLower();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Cannot parse email from {CurrentUserMail}", _currentUser?.Mail);
+            logger.LogError(ex, "Cannot parse email from {CurrentUserMail}", currentUser?.Mail);
             return "?";
         }
     }
@@ -132,7 +125,7 @@ public class UserInformationService : IUserInformationService
 
     public async Task<bool> IsUserWithoutInitiatives()
     {
-        if (_isViewingAsVisitor)
+        if (isViewingAsVisitor)
             return true;
         var claims = (await GetAuthenticatedUser()).Claims.Where(c => c.Type == ClaimTypes.Role).ToList();
 
@@ -141,7 +134,7 @@ public class UserInformationService : IUserInformationService
 
     private async Task GetUserAsyncInternal()
     {
-        if (_currentUser != null) return;
+        if (currentUser != null) return;
         try
         {
             var email = (await GetAuthenticatedUser())?.Identity?.Name;
@@ -152,7 +145,7 @@ public class UserInformationService : IUserInformationService
             }
 
             PrepareAuthenticatedClient();
-            _currentUser = await _graphServiceClient.Users[userId].GetAsync();
+            currentUser = await graphServiceClient.Users[userId].GetAsync();
         }
         catch (ServiceException e)
         {
@@ -172,7 +165,7 @@ public class UserInformationService : IUserInformationService
     private string GetOid()
     {
         // ReSharper disable once ConstantConditionalAccessQualifier
-        return (_authenticatedUser?.Claims?
+        return (authenticatedUser?.Claims?
                     .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier") ??
                 throw new InvalidOperationException("Cannot access user claims")).Value;
     }
@@ -180,16 +173,14 @@ public class UserInformationService : IUserInformationService
     public async Task<User> GetCurrentGraphUserAsync()
     {
         await CheckUser();
-        return _currentUser;
+        return currentUser;
     }
-
 
     private void PrepareAuthenticatedClient()
     {
         //if (graphServiceClient != null) return;
         try
         {
-
             //see https://learn.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=csharp
             // using Azure.Identity;
             var options = new ClientSecretCredentialOptions
@@ -197,14 +188,14 @@ public class UserInformationService : IUserInformationService
                 AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
             };
             var clientCertCredential = new ClientSecretCredential(
-                _configuration.GetSection("AzureAd").GetValue<string>("TenantId"),
-                _configuration.GetSection("AzureAd").GetValue<string>("ClientId"),
-                _configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"), options);
-            _graphServiceClient = new(clientCertCredential);
+                configuration.GetSection("AzureAd").GetValue<string>("TenantId"),
+                configuration.GetSection("AzureAd").GetValue<string>("ClientId"),
+                configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"), options);
+            graphServiceClient = new(clientCertCredential);
         }
         catch (Exception e)
         {
-            _logger.LogError($"Error preparing authentication client: {e.Message}");
+            logger.LogError($"Error preparing authentication client: {e.Message}");
             Console.WriteLine($"Error preparing authentication client: {e.Message}");
             throw;
         }
@@ -212,7 +203,7 @@ public class UserInformationService : IUserInformationService
 
     private async Task CheckUser()
     {
-        if (_currentUser == null)
+        if (currentUser == null)
         {
             await GetUserAsyncInternal();
         }
@@ -228,51 +219,49 @@ public class UserInformationService : IUserInformationService
         try
         {
             PrepareAuthenticatedClient();
-            _currentUser = await _graphServiceClient.Users[userId].GetAsync();
+            currentUser = await graphServiceClient.Users[userId].GetAsync();
 
-
-            return _currentUser;
+            return currentUser;
         }
         catch (ServiceException e)
         {
             if (e.InnerException is MsalUiRequiredException ||
                 e.InnerException is MicrosoftIdentityWebChallengeUserException)
                 throw;
-            _logger.LogError(e, "Error Loading User");
+            logger.LogError(e, "Error Loading User");
             return null;
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error Loading User");
+            logger.LogError(e, "Error Loading User");
             return null;
         }
     }
 
     public async Task<bool> IsViewingAsGuest()
     {
-        return _serviceAuthManager.GetViewingAsGuest((await GetCurrentGraphUserAsync()).Id);
+        return serviceAuthManager.GetViewingAsGuest((await GetCurrentGraphUserAsync()).Id);
     }
 
     public async Task SetViewingAsGuest(bool isGuest)
     {
-        _serviceAuthManager.SetViewingAsGuest((await GetCurrentGraphUserAsync()).Id, isGuest);
+        serviceAuthManager.SetViewingAsGuest((await GetCurrentGraphUserAsync()).Id, isGuest);
     }
-
 
     public Task<bool> IsViewingAsVisitor()
     {
-        return Task.FromResult(_isViewingAsVisitor);
+        return Task.FromResult(isViewingAsVisitor);
     }
 
     public Task SetViewingAsVisitor(bool isVisitor)
     {
-        _isViewingAsVisitor = isVisitor;
+        isViewingAsVisitor = isVisitor;
         return Task.CompletedTask;
     }
 
     private async Task<bool> IsUserInDataHubAdminRole()
     {
-        if ((await IsViewingAsGuest()) || _isViewingAsVisitor)
+        if ((await IsViewingAsGuest()) || isViewingAsVisitor)
             return false;
         return await IsUserDatahubAdmin();
     }
@@ -295,7 +284,6 @@ public class UserInformationService : IUserInformationService
         if (await IsUserInDataHubAdminRole())
             return true;
         return (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}{RoleConstants.WORKSPACE_LEAD_SUFFIX}");
-
     }
 
     public async Task<bool> IsUserDatahubAdmin()
@@ -319,19 +307,19 @@ public class UserInformationService : IUserInformationService
     /// <returns>Portal User</returns>
     public async Task CreatePortalUserAsync(string userGraphId)
     {
-        await using var ctx = await _datahubContextFactory.CreateDbContextAsync();
+        await using var ctx = await datahubContextFactory.CreateDbContextAsync();
         var exists = await ctx.PortalUsers
             .FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
 
         if (exists is not null)
         {
-            _logger.LogInformation("User with GraphId: {GraphId} already exists", userGraphId);
+            logger.LogInformation("User with GraphId: {GraphId} already exists", userGraphId);
             return;
         }
 
         try
         {
-            var graphUser = await _graphServiceClient.Users[userGraphId].GetAsync();
+            var graphUser = await graphServiceClient.Users[userGraphId].GetAsync();
             var portalUser = new PortalUser
             {
                 GraphGuid = userGraphId,
@@ -341,7 +329,7 @@ public class UserInformationService : IUserInformationService
 
             ctx.PortalUsers.Add(portalUser);
             await ctx.SaveChangesAsync();
-            _logger.LogInformation("Created new Portal User with GraphId: {GraphId}", userGraphId);
+            logger.LogInformation("Created new Portal User with GraphId: {GraphId}", userGraphId);
 
             var catalogObject = new Core.Model.Catalog.CatalogObject()
             {
@@ -353,11 +341,11 @@ public class UserInformationService : IUserInformationService
                 Desc_French = graphUser.Department
             };
 
-            await _datahubCatalogSearch.AddCatalogObject(catalogObject);
+            await datahubCatalogSearch.AddCatalogObject(catalogObject);
         }
         catch (Exception e)
         {
-            _logger.LogError(e,
+            logger.LogError(e,
                 "Error Loading User from Graph with GraphId: {GraphId}. It's possible they no longer exist",
                 userGraphId);
         }
@@ -365,7 +353,7 @@ public class UserInformationService : IUserInformationService
 
     private async Task UpdatePortalUserLastLogin(string userGraphId)
     {
-        await using var ctx = await _datahubContextFactory.CreateDbContextAsync();
+        await using var ctx = await datahubContextFactory.CreateDbContextAsync();
         var portalUser = await ctx.PortalUsers.FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
 
         if (portalUser is not null)
@@ -375,13 +363,13 @@ public class UserInformationService : IUserInformationService
         }
         else
         {
-            _logger.LogWarning("User with GraphId: {GraphId} does not exist", userGraphId);
+            logger.LogWarning("User with GraphId: {GraphId} does not exist", userGraphId);
         }
     }
 
     private async Task UpdatePortalUserFirstLogin(string userGraphId)
     {
-        await using var ctx = await _datahubContextFactory.CreateDbContextAsync();
+        await using var ctx = await datahubContextFactory.CreateDbContextAsync();
         var portalUser = await ctx.PortalUsers.FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
 
         if (portalUser is not null)
@@ -391,7 +379,7 @@ public class UserInformationService : IUserInformationService
         }
         else
         {
-            _logger.LogWarning("User with GraphId: {GraphId} does not exist", userGraphId);
+            logger.LogWarning("User with GraphId: {GraphId} does not exist", userGraphId);
         }
     }
 
@@ -419,7 +407,7 @@ public class UserInformationService : IUserInformationService
     {
         try
         {
-            await using var ctx = await _datahubContextFactory.CreateDbContextAsync();
+            await using var ctx = await datahubContextFactory.CreateDbContextAsync();
 
             ctx.PortalUsers.Attach(updatedUser);
             ctx.Entry(updatedUser).State = EntityState.Modified;
@@ -430,7 +418,7 @@ public class UserInformationService : IUserInformationService
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error updating portal user");
+            logger.LogError(e, "Error updating portal user");
             return false;
         }
     }
@@ -444,7 +432,7 @@ public class UserInformationService : IUserInformationService
     public async Task<PortalUser> GetPortalUserAsync(string userGraphId)
     {
         PortalUser portalUser;
-        await using (var ctx = await _datahubContextFactory.CreateDbContextAsync())
+        await using (var ctx = await datahubContextFactory.CreateDbContextAsync())
         {
             portalUser = await ctx.PortalUsers
                 .AsNoTracking()
@@ -457,10 +445,10 @@ public class UserInformationService : IUserInformationService
             }
         }
 
-        _logger.LogInformation("User with GraphId: {GraphId} does not exist", userGraphId);
+        logger.LogInformation("User with GraphId: {GraphId} does not exist", userGraphId);
         await CreatePortalUserAsync(userGraphId);
 
-        await using (var ctx = await _datahubContextFactory.CreateDbContextAsync())
+        await using (var ctx = await datahubContextFactory.CreateDbContextAsync())
         {
             portalUser = await ctx.PortalUsers
                 .AsNoTracking()
@@ -492,7 +480,7 @@ public class UserInformationService : IUserInformationService
 
     public async Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId)
     {
-        await using var ctx = await _datahubContextFactory.CreateDbContextAsync();
+        await using var ctx = await datahubContextFactory.CreateDbContextAsync();
 
         var portalUser = await ctx.PortalUsers
             .AsNoTracking()

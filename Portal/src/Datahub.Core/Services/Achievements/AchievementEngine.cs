@@ -7,11 +7,11 @@ namespace Datahub.Core.Services.Achievements;
 
 public class AchievementEngine
 {
-    private readonly List<AchievementRule> _rules;
+    private readonly List<AchievementRule> rules;
 
     public AchievementEngine(IEnumerable<Achievement> achievements)
     {
-        _rules = achievements.Select(CreateAchievementRule).ToList();
+        rules = achievements.Select(CreateAchievementRule).ToList();
     }
 
     public async IAsyncEnumerable<string> Evaluate(string currentMetric, IEnumerable<string> ownedAchivements)
@@ -20,7 +20,7 @@ public class AchievementEngine
         HashSet<string> earnedSet = new(ownedAchivements);
 
         // filter the rules (only non achieved achivements)
-        var filteredRules = _rules.Where(r => !earnedSet.Contains(r.AchivementId)).ToList();
+        var filteredRules = rules.Where(r => !earnedSet.Contains(r.AchivementId)).ToList();
 
         // create the rule engine
         var engine = CreateRulesEngine(filteredRules);

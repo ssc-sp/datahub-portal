@@ -31,9 +31,9 @@ public class Project_Role
     /// </summary>
     public bool IsAtLeastGuest => Id is (int)RoleNames.Guest || IsAtLeastCollaborator;
 
-    public static IEnumerable<Project_Role> GetAll() => _roles.Value;
+    public static IEnumerable<Project_Role> GetAll() => roles.Value;
 
-    private static Lazy<IEnumerable<Project_Role>> _roles = new(CreateRoles);
+    private static Lazy<IEnumerable<Project_Role>> roles = new(CreateRoles);
 
     private static IEnumerable<Project_Role> CreateRoles()
     {

@@ -1,24 +1,13 @@
 ﻿using Datahub.Core.Services.Wiki;
 using Datahub.Shared.Annotations;
-using Markdig;
-using Markdig.Syntax;
-using Markdig.Syntax.Inlines;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Polly.Extensions.Http;
 using Polly;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
-using static System.Net.WebRequestMethods;
-using Microsoft.Graph.Models;
-using static MudBlazor.CategoryTypes;
 using Datahub.Markdown;
 using Datahub.Markdown.Model;
 using Microsoft.AspNetCore.Hosting;
@@ -28,35 +17,35 @@ namespace Datahub.Core.Services.Docs;
 
 #nullable enable
 
-public class DocumentationService 
+public class DocumentationService
 {
-    private readonly string _docsRoot;
-    private readonly string _docsEditPrefix;
-    private readonly ILogger<DocumentationService> _logger;
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly string docsRoot;
+    private readonly string docsEditPrefix;
+    private readonly ILogger<DocumentationService> logger;
+    private readonly IHttpClientFactory httpClientFactory;
 
     private const string DOCS_ROOT_CONFIG_KEY = "docsURL";
     private const string DOCS_EDIT_URL_CONFIG_KEY = "EditdocsURLPrefix";
-    private DocumentationFileMapper _docFileMappings = null!;
-    private IList<TimeStampedStatus> _statusMessages;
+    private DocumentationFileMapper docFileMappings = null!;
+    private IList<TimeStampedStatus> statusMessages;
     private DocItem? enOutline;
     private DocItem? frOutline;
     private DocItem cachedDocs;
-    private readonly IMemoryCache _cache;
+    private readonly IMemoryCache cache;
 
-    public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger, 
+    public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger,
         IHttpClientFactory httpClientFactory, IWebHostEnvironment environment,
         IMemoryCache docCache)
     {
         //!ctx.HostingEnvironment.IsDevelopment()
-        
-        var branch = environment.IsProduction()? "main": "next";
-        _docsRoot = config.GetValue(DOCS_ROOT_CONFIG_KEY, $"https://raw.githubusercontent.com/ssc-sp/datahub-docs/{branch}/")!;
-        _docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, $"https://github.com/ssc-sp/datahub-docs/edit/{branch}/")!;
-        _logger = logger;
-        _httpClientFactory = httpClientFactory;
-        _statusMessages = new List<TimeStampedStatus>();
-        _cache = docCache;
+
+        var branch = environment.IsProduction() ? "main" : "next";
+        docsRoot = config.GetValue(DOCS_ROOT_CONFIG_KEY, $"https://raw.githubusercontent.com/ssc-sp/datahub-docs/{branch}/")!;
+        docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, $"https://github.com/ssc-sp/datahub-docs/edit/{branch}/")!;
+        this.logger = logger;
+        this.httpClientFactory = httpClientFactory;
+        statusMessages = new List<TimeStampedStatus>();
+        cache = docCache;
         cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
     }
 
@@ -64,7 +53,7 @@ public class DocumentationService
     {
         try
         {
-            var cache = _cache as MemoryCache;
+            var cache = this.cache as MemoryCache;
             if (cache != null)
             {
                 //https://stackoverflow.com/questions/49176244/asp-net-core-clear-cache-from-imemorycache-set-by-set-method-of-cacheextensions/49425102#49425102
@@ -74,17 +63,17 @@ public class DocumentationService
 
                 await LoadResourceTree(DocumentationGuideRootSection.UserGuide);
 
-                _logger.LogInformation("Document cache has been cleared");
+                logger.LogInformation("Document cache has been cleared");
                 return true;
             }
             else
             {
-                _logger.LogWarning("Could not clear the cache.");
+                logger.LogWarning("Could not clear the cache.");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.Message, ex);
+            logger.LogError(ex.Message, ex);
         }
         return false;
     }
@@ -92,7 +81,7 @@ public class DocumentationService
     private void AddStatusMessage(string message)
     {
         var error = new TimeStampedStatus(DateTime.UtcNow, message);
-        _statusMessages.Add(error);
+        statusMessages.Add(error);
     }
 
     public string BuildAbsoluteURL(string relLink)
@@ -102,10 +91,8 @@ public class DocumentationService
             throw new ArgumentNullException(nameof(relLink));
         }
 
-        return new Uri(_docsRoot + relLink).AbsoluteUri;
+        return new Uri(docsRoot + relLink).AbsoluteUri;
     }
-
-
 
     private string CleanupCharacters(string input)
     {
@@ -142,10 +129,8 @@ public class DocumentationService
         {
             if (doc.Title is not null)
             {
-
                 doc.Content = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, doc.GetMarkdownFileName());
                 BuildPreview(doc);
-
             }
             else
             {
@@ -187,23 +172,22 @@ public class DocumentationService
 
     private async Task LoadResourceTree(DocumentationGuideRootSection guide, bool useCache = true)
     {
-        var fileMappings = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, FILE_MAPPINGS, null,useCache);
-        _docFileMappings = new DocumentationFileMapper(fileMappings);
+        var fileMappings = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, FILE_MAPPINGS, null, useCache);
+        docFileMappings = new DocumentationFileMapper(fileMappings);
 
-        _statusMessages = new List<TimeStampedStatus>();
+        statusMessages = new List<TimeStampedStatus>();
 
         AddStatusMessage("Loading resources");
 
-        enOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_EN, useCache), _docFileMappings.GetEnglishDocumentId);
+        enOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_EN, useCache), docFileMappings.GetEnglishDocumentId);
         if (enOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
 
-        frOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_FR, useCache), _docFileMappings.GetFrenchDocumentId);
+        frOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_FR, useCache), docFileMappings.GetFrenchDocumentId);
         if (frOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
-        cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden,"Cached");
+        cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
         AddStatusMessage("Finished loading sidebars");
-
     }
 
     public DocItem? LoadPage(string id, bool isFrench)
@@ -225,7 +209,7 @@ public class DocumentationService
             inCachePage = cachedDocs.LocatePath(path);
             if (inCachePage != null)
                 return inCachePage;
-            var itemId = (isFrench? _docFileMappings?.GetFrenchDocumentId(path): _docFileMappings?.GetEnglishDocumentId(path))?? MarkdownTools.GetIDFromString(path);
+            var itemId = (isFrench ? docFileMappings?.GetFrenchDocumentId(path) : docFileMappings?.GetEnglishDocumentId(path)) ?? MarkdownTools.GetIDFromString(path);
             var docItem = DocItem.GetItem(DocumentationGuideRootSection.Hidden, itemId, searchRoot.Level + 1, path, path);
 
             cachedDocs.Children.Add(docItem);
@@ -269,8 +253,8 @@ public class DocumentationService
 
         StringBuilder sb = new();
 
-        sb.Append(_docsRoot);
-        
+        sb.Append(docsRoot);
+
         if (allFolders.Count > 0)
         {
             foreach (var f in allFolders)
@@ -284,7 +268,7 @@ public class DocumentationService
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="guide"></param>
     /// <param name="name"></param>
@@ -294,7 +278,7 @@ public class DocumentationService
     private async Task<string?> LoadDocsPage(DocumentationGuideRootSection guide, string? name, string? locale = "", bool useCache = true)
     {
         if (name is null) return null;
-        return await LoadDocs(BuildURL(guide, locale??string.Empty, name), useCache);
+        return await LoadDocs(BuildURL(guide, locale ?? string.Empty, name), useCache);
     }
 
     private const string LAST_COMMIT_TS = "LAST_COMMIT_TS";
@@ -302,7 +286,7 @@ public class DocumentationService
 
     public async Task<DateTime?> GetLastRepoCommitTS(bool useCache = true)
     {
-        if (_cache.TryGetValue(LAST_COMMIT_TS, out DateTime? lastTS) && useCache)
+        if (cache.TryGetValue(LAST_COMMIT_TS, out DateTime? lastTS) && useCache)
             if (lastTS.HasValue) return lastTS.Value;
         var node = await ReadURL(new Dictionary<string, string>() { { "path", "UserGuide/_sidebar.md" }, { "sha", "main" }, });
         var lastCommit = (DateTime?)node?[0]?["commit"]?["author"]?["date"];
@@ -313,10 +297,10 @@ public class DocumentationService
                 .SetAbsoluteExpiration(DateTime.Now.AddHours(1));
 
             // Save data in cache.
-            _cache.Set(LAST_COMMIT_TS, lastCommit.Value, cacheEntryOptions);
+            cache.Set(LAST_COMMIT_TS, lastCommit.Value, cacheEntryOptions);
             return lastCommit.Value;
         }
-        _logger.LogWarning($"Cannot load last commit timestamp for user docs");
+        logger.LogWarning($"Cannot load last commit timestamp for user docs");
         return null;
     }
 
@@ -331,14 +315,14 @@ public class DocumentationService
 
     public async Task<JsonNode?> ReadURL(Dictionary<string, string>? parameters = null)
     {
-        var client = _httpClientFactory.CreateClient();
+        var client = httpClientFactory.CreateClient();
 
         var builder = new UriBuilder(new Uri(COMMIT_API_URL));
         if (parameters != null)
             builder.Query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
 
-
-        var res = await GetRetryPolicy().ExecuteAsync(async () => {
+        var res = await GetRetryPolicy().ExecuteAsync(async () =>
+        {
             //builder.Query = "search=usa";
             var request = new HttpRequestMessage() { RequestUri = builder.Uri, Method = HttpMethod.Get };
             //public const string USER_AGENT = ;
@@ -352,22 +336,19 @@ public class DocumentationService
         }
 
         return JsonNode.Parse(await res.Content.ReadAsStreamAsync());
-
     }
-
-
 
     private async Task<string?> LoadDocs(string url, bool useCache = true, bool skipFrontMatter = true)
     {
-        if (_cache.TryGetValue(url, out var docContent) && useCache)
+        if (cache.TryGetValue(url, out var docContent) && useCache)
             return docContent as string;
 
-        var httpClient = _httpClientFactory.CreateClient();
+        var httpClient = httpClientFactory.CreateClient();
         try
         {
             var content = await httpClient.GetStringAsync(url);
             if (skipFrontMatter)
-            {                 
+            {
                 content = MarkdownHelper.RemoveFrontMatter(content);
             }
             // Set cache options.
@@ -376,18 +357,18 @@ public class DocumentationService
                 .SetAbsoluteExpiration(DateTime.Now.AddHours(1));
 
             // Save data in cache.
-            _cache.Set(url, content, cacheEntryOptions);
+            cache.Set(url, content, cacheEntryOptions);
             return content;
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error loading {url}", url);
+            logger.LogError(e, "Error loading {url}", url);
             AddStatusMessage($"Error loading {url}");
 
             return default(string);
         }
     }
-    
+
     public async Task<DocItem?> LoadResourceTree(DocumentationGuideRootSection guide, string locale, bool useCache = true)
     {
         if (enOutline == null || frOutline == null)
@@ -395,7 +376,7 @@ public class DocumentationService
             await LoadResourceTree(guide, useCache);
         }
 
-        var result = MarkdownTools.CompareCulture(locale,"fr") ? frOutline : enOutline;
+        var result = MarkdownTools.CompareCulture(locale, "fr") ? frOutline : enOutline;
         return result;
     }
 
@@ -404,18 +385,18 @@ public class DocumentationService
         return await LoadDocsPage(DocumentationGuideRootSection.RootFolder, card.GetMarkdownFileName());
     }
 
-    public string GetEditUrl(DocItem card) => $"{_docsEditPrefix}{card.GetMarkdownFileName()}";
+    public string GetEditUrl(DocItem card) => $"{docsEditPrefix}{card.GetMarkdownFileName()}";
 
     public void RemoveFromCache(DocItem item)
     {
         if (item.GetMarkdownFileName != null)
         {
             var path = BuildURL(item.RootSection, null, item.GetMarkdownFileName()!);
-            _cache.Remove(path);
+            cache.Remove(path);
         }
     }
 
-    public IReadOnlyList<TimeStampedStatus> GetErrorList() => _statusMessages.AsReadOnly();
+    public IReadOnlyList<TimeStampedStatus> GetErrorList() => statusMessages.AsReadOnly();
 
     public void LogNotFoundError(string pageName, string resourceRoot) => AddStatusMessage($"{pageName} was not found in {resourceRoot} cache");
 

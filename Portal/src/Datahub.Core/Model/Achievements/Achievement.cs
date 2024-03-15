@@ -41,9 +41,9 @@ public class Achievement
 
     #region Seeding
 
-    public static IEnumerable<Achievement> GetAll() => _achievements.Value;
+    public static IEnumerable<Achievement> GetAll() => achievements.Value;
 
-    static Lazy<IEnumerable<Achievement>> _achievements = new(CreateAchievements);
+    static Lazy<IEnumerable<Achievement>> achievements = new(CreateAchievements);
 
     public static IEnumerable<Achievement> CreateAchievements()
     {

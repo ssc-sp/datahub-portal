@@ -1,9 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Datahub.Core.Components;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.UserTracking;
@@ -12,30 +8,29 @@ namespace Datahub.Core.Services.UserManagement;
 
 public class UserLocationManagerService
 {
-    private readonly ILogger<UserLocationManagerService> _logger;
-    private readonly IUserInformationService _userInformationService;
-    private readonly IDbContextFactory<DatahubProjectDBContext> _portalContext;
-
+    private readonly ILogger<UserLocationManagerService> logger;
+    private readonly IUserInformationService userInformationService;
+    private readonly IDbContextFactory<DatahubProjectDBContext> portalContext;
 
     public UserLocationManagerService(ILogger<UserLocationManagerService> logger,
         IUserInformationService userInformationService,
         IDbContextFactory<DatahubProjectDBContext> portalContext)
     {
-        _logger = logger;
-        _userInformationService = userInformationService;
-        _portalContext = portalContext;
+        this.logger = logger;
+        this.userInformationService = userInformationService;
+        this.portalContext = portalContext;
     }
 
     public async Task RegisterNavigation(UserRecentLink link)
     {
         try
         {
-            var user = await _userInformationService.GetCurrentPortalUserAsync();
-            await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
+            var user = await userInformationService.GetCurrentPortalUserAsync();
+            await using var efCoreDatahubContext = await portalContext.CreateDbContextAsync();
 
             //remove existing entry for the same LinkType and DataProject if it exists
             var existingEntity = await efCoreDatahubContext.UserRecentLinks
-                .FirstOrDefaultAsync(l => l.UserId == user.Id && l.LinkType == link.LinkType && 
+                .FirstOrDefaultAsync(l => l.UserId == user.Id && l.LinkType == link.LinkType &&
                     (l.LinkType == DatahubLinkType.DataProject || l.DataProject == link.DataProject));
 
             // if the link is new, we need to add it to the database
@@ -87,15 +82,15 @@ public class UserLocationManagerService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Cannot update navigation");
+            logger.LogWarning(ex, "Cannot update navigation");
         }
     }
 
     public async Task<ICollection<UserRecentLink>> GetRecentLinks(string userId, int maxRecentLinks)
     {
-        await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
+        await using var efCoreDatahubContext = await portalContext.CreateDbContextAsync();
 
-        var allowedLinks = new HashSet<DatahubLinkType>() 
+        var allowedLinks = new HashSet<DatahubLinkType>()
         {
             DatahubLinkType.DataProject,
             DatahubLinkType.Storage,
