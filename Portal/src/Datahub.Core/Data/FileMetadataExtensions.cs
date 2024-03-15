@@ -146,7 +146,7 @@ public static class FileMetaDataExtensions
     {
         if (!string.IsNullOrWhiteSpace(id))
         {
-            return Regex.Replace(id, @"[^a-zA-Z0-9]", "");
+            return Regex.Replace(id, @"[^a-zA-Z0-9]", string.Empty);
         }
 
         return string.Empty;

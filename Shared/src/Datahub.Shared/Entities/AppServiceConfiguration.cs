@@ -24,7 +24,7 @@
         private static AppServiceConfiguration SHINY_CONFIG =
             new(SHINY, "https://github.com/ssc-sp/datahub-infra.git", "dev/docker/shiny-app/");
         private static AppServiceConfiguration CUSTOM_CONFIG =
-            new(CUSTOM, "", "");
+            new(CUSTOM, string.Empty, string.Empty);
 
         public const string SHINY = "Shiny";
         public const string CUSTOM = "Docker compose";

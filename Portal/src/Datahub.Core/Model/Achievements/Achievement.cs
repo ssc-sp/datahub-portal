@@ -34,7 +34,7 @@ public class Achievement
 
     #region Utility functions
 
-    public string[] GetRules() => (ConcatenatedRules ?? "").Split(RuleSeparator);
+    public string[] GetRules() => (ConcatenatedRules ?? string.Empty).Split(RuleSeparator);
     public bool IsTrophy() => Id.EndsWith("-000");
 
     #endregion

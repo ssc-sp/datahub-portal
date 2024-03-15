@@ -221,7 +221,7 @@ public class NonHierarchicalFolder : Folder
     {
         get
         {
-            return "";
+            return string.Empty;
         }
     }
 
