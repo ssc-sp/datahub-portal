@@ -13,7 +13,8 @@ namespace Datahub.Core.Services.UserManagement
         private readonly ILogger<UserSettingsService> logger;
         private readonly NavigationManager navigationManager;
 
-        public UserSettingsService(IUserInformationService userInformationService,
+        public UserSettingsService(
+            IUserInformationService userInformationService,
             IDbContextFactory<DatahubProjectDBContext> datahubContextFactory, ILogger<UserSettingsService> logger, NavigationManager navigationManager)
         {
             this.userInformationService = userInformationService;
@@ -313,7 +314,8 @@ namespace Datahub.Core.Services.UserManagement
             if (Thread.CurrentThread.CurrentCulture.Name.Equals(language, StringComparison.OrdinalIgnoreCase))
                 return false;
 
-            var uri = new Uri(navigationManager.Uri).GetComponents(UriComponents.PathAndQuery,
+            var uri = new Uri(navigationManager.Uri).GetComponents(
+                UriComponents.PathAndQuery,
                 UriFormat.Unescaped);
             var query = $"?culture={Uri.EscapeDataString(language)}&" +
                         $"redirectionUri={Uri.EscapeDataString(uri)}";

@@ -5,8 +5,8 @@ namespace Datahub.Core.Utils;
 
 public class BlobClientUtils
 {
-    readonly string connectionString;
-    readonly string containerName;
+    private readonly string connectionString;
+    private readonly string containerName;
 
     public BlobClientUtils(string connectionString, string containerName)
     {

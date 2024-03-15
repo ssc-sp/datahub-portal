@@ -345,7 +345,8 @@ public class UserInformationService : IUserInformationService
         }
         catch (Exception e)
         {
-            logger.LogError(e,
+            logger.LogError(
+                e,
                 "Error Loading User from Graph with GraphId: {GraphId}. It's possible they no longer exist",
                 userGraphId);
         }

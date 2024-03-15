@@ -89,7 +89,7 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
         }
     }
 
-    static Dictionary<string, string> AppendDetails(Dictionary<string, string> dictionary, (string Key, string Value)[] properties)
+    private static Dictionary<string, string> AppendDetails(Dictionary<string, string> dictionary, (string Key, string Value)[] properties)
     {
         foreach (var (key, value) in properties)
         {

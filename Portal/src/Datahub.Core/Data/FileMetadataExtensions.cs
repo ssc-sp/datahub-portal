@@ -109,9 +109,9 @@ public static class FileMetaDataExtensions
         return metadata;
     }
 
-    public static List<(string key, bool inSearch, bool isVisible)> GetMetadataProperties(this FileMetaData fileMetadata)
+    public static List<(string Key, bool InSearch, bool IsVisible)> GetMetadataProperties(this FileMetaData fileMetadata)
     {
-        return new List<(string key, bool inSearch, bool isVisible)>
+        return new List<(string Key, bool InSearch, bool IsVisible)>
         {
             ("activities", true, false),
             ("fileid", true, false),
@@ -134,9 +134,9 @@ public static class FileMetaDataExtensions
         };
     }
 
-    public static List<(string username, string verb, string filename, string location, string timeSince)> GetActivity(this FileMetaData fileMetadata)
+    public static List<(string Username, string Verb, string Filename, string Location, string TimeSince)> GetActivity(this FileMetaData fileMetadata)
     {
-        return new List<(string username, string verb, string filename, string location, string timeSince)>()
+        return new List<(string Username, string Verb, string Filename, string Location, string TimeSince)>()
         {
             (fileMetadata.createdby, "created", fileMetadata.filename, "Root", fileMetadata.createdts.ToShortDateString())
         };

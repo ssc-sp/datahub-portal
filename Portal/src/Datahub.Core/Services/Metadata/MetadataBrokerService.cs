@@ -331,7 +331,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         return await GetLatestMetadataDefinition(ctx);
     }
 
-    const int MaxKeywordResults = 50;
+    private const int MaxKeywordResults = 50;
 
     public async Task<List<CatalogObjectResult>> SearchCatalog(CatalogSearchRequest request, Func<CatalogObjectResult, bool> validateResult)
     {
@@ -481,7 +481,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         return objectMetadata;
     }
 
-    const string DefaultSource = "default";
+    private const string DefaultSource = "default";
 
     private async Task<FieldDefinitions> GetLatestMetadataDefinition(MetadataDbContext ctx)
     {
@@ -512,7 +512,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         return definitions;
     }
 
-    static IEnumerable<ObjectFieldValue> CloneFieldValues(IEnumerable<ObjectFieldValue> values)
+    private static IEnumerable<ObjectFieldValue> CloneFieldValues(IEnumerable<ObjectFieldValue> values)
     {
         return values.Select(v => v.Clone());
     }
@@ -826,7 +826,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         }
     }
 
-    static async Task<FieldDefinition> FindDefinition(MetadataDbContext ctx, string fieldName)
+    private static async Task<FieldDefinition> FindDefinition(MetadataDbContext ctx, string fieldName)
     {
         return await ctx.FieldDefinitions
             .Where(f => f.Field_Name_TXT == fieldName)

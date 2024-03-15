@@ -2,8 +2,8 @@
 
 public class UserCircuitCounterService : IDisposable, IUserCircuitCounterService
 {
-    readonly IGlobalSessionManager sessionManager;
-    readonly IUserInformationService userInformationService;
+    private readonly IGlobalSessionManager sessionManager;
+    private readonly IUserInformationService userInformationService;
     private string sessionId;
     private bool? enabled;
 

@@ -65,12 +65,12 @@ public static class TerraformVariableExtraction
         var appServiceTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService);
         var appServiceResource = project?.Resources?.FirstOrDefault(r =>
             r.ResourceType == appServiceTemplateName);
-        
+
         if (appServiceResource == null)
         {
             throw new Exception("App service resource not found in the project");
         }
-        
+
         return ExtractAppServiceConfiguration(appServiceResource);
     }
 

@@ -221,7 +221,7 @@ public class AzurePriceListService : IAzurePriceListService
         StringBuilder sb = new();
 
         sb.Append($"{API_BASE_URL}?currencyCode='CAD'&$filter=");
-        foreach (var it in skuIds.Select((sku,index) => (sku, index)))
+        foreach (var it in skuIds.Select((sku, index) => (sku, index)))
         {
             if (it.index > 0)
             {

@@ -17,7 +17,8 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
     private readonly ILogger<PortalUserTelemetryService> logger;
     private readonly IDatahubAuditingService auditingService;
 
-    public PortalUserTelemetryService(ILogger<PortalUserTelemetryService> logger,
+    public PortalUserTelemetryService(
+        ILogger<PortalUserTelemetryService> logger,
         IAchievementEngineFactory engineFactory,
         IDbContextFactory<DatahubProjectDBContext> contextFactory,
         IUserInformationService userInformationService,
