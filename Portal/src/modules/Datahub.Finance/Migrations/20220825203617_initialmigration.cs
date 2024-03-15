@@ -1,11 +1,10 @@
-using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Finance.Migrations
 {
-    public partial class Initialmigration : Migration
+	public partial class Initialmigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

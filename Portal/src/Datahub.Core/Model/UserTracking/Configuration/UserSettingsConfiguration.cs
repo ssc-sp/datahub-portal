@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Datahub.Core.Model.UserTracking.Configuration
 {
-    public class UserSettingsConfiguration : IEntityTypeConfiguration<UserSettings>
+	public class UserSettingsConfiguration : IEntityTypeConfiguration<UserSettings>
     {
         public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<UserSettings> builder)
         {

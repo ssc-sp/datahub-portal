@@ -1,4 +1,3 @@
-using System;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
 

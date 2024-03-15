@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Datahub.Core.Data.CostEstimators;
+﻿namespace Datahub.Core.Data.CostEstimators;
 
 public class StorageCostEstimatorResult
 {

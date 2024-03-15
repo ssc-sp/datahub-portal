@@ -1,5 +1,4 @@
-﻿using System;
-using Datahub.Core.Model.Achievements;
+﻿using Datahub.Core.Model.Achievements;
 
 namespace Datahub.Core.Services.Achievements;
 

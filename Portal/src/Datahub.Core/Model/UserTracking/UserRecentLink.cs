@@ -1,7 +1,5 @@
-using System;
 using Datahub.Core.Components;
 using Datahub.Core.Model.Achievements;
-using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Model.UserTracking;
 

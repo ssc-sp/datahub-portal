@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Datahub.Shared.Entities;
 
 namespace Datahub.Core.Data.ResourceProvisioner;
@@ -37,6 +36,7 @@ public record CreateResourceData
     }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="CreateResourceData"/> class.
     /// New Project Template that is used for the new project pull request
     /// </summary>
     /// <param name="projectName"></param>

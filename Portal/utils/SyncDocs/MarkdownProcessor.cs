@@ -10,7 +10,6 @@ using System.Text;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using Datahub.Shared.Annotations;
-using static System.Collections.Specialized.BitVector32;
 namespace SyncDocs;
 
 internal class MarkdownProcessor

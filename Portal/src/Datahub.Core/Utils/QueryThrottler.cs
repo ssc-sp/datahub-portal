@@ -11,6 +11,7 @@ public class QueryThrottler<T>
     private T query;
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="QueryThrottler{T}"/> class.
     /// Constructor
     /// </summary>
     /// <param name="delay">Wait delay between callbacks</param>
@@ -25,7 +26,7 @@ public class QueryThrottler<T>
     /// Set the query to throttle
     /// </summary>
     /// <param name="query">Query to throttle. Null queries will be ignored.</param>
-    /// <returns></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public Task SetQuery(T query)
     {
         return Task.Run(() =>

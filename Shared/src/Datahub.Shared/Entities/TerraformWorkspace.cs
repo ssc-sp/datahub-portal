@@ -2,9 +2,7 @@
 
 // This is actually required by some projects
 // ReSharper disable once RedundantUsingDirective
-using System.Collections.Generic;
 // This is needed, even if your IDE says it isn't
-using System.Linq;
 using System.Text.Json.Nodes;
 using Datahub.Shared.Enums;
 

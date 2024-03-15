@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Datahub.Shared.Enums;
 
 namespace Datahub.Shared.Entities;

@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace Datahub.Core.Model.Projects
+﻿namespace Datahub.Core.Model.Projects
 {
-    public class ProjectInactivityNotifications
+	public class ProjectInactivityNotifications
     {
         public int Project_ID { get; set; }
         public Datahub_Project Project { get; set; }

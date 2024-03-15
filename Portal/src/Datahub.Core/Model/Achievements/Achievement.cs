@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Datahub.Core.Model.Achievements;
+﻿namespace Datahub.Core.Model.Achievements;
 
 public class Achievement
 {

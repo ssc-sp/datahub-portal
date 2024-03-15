@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Datahub.Core.Model.Achievements;
+﻿using Datahub.Core.Model.Achievements;
 namespace Datahub.Core.Model.UserTracking;
 
 public class UserSettings

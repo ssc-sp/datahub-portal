@@ -1,14 +1,9 @@
 ﻿using Datahub.Core.Data;
 using Datahub.Core.Storage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.Infrastructure.Services.Storage
 {
-    public class DisabledCloudStorageManager : ICloudStorageManager
+	public class DisabledCloudStorageManager : ICloudStorageManager
     {
         private const string DISABLED_TEXT = "---";
         private readonly CloudStorageProviderType _provider;

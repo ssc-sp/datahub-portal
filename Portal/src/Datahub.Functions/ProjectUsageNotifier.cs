@@ -1,6 +1,4 @@
 using System.Text.Json;
-using System.Text.RegularExpressions;
-using Azure.Storage.Queues.Models;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Functions.Services;
@@ -8,15 +6,13 @@ using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Datahub.Functions
 {
-    public class ProjectUsageNotifier
+	public class ProjectUsageNotifier
     {
         private readonly IMediator _mediator;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
