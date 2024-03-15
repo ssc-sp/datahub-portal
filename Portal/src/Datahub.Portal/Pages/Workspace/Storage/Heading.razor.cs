@@ -152,7 +152,7 @@ public partial class Heading
             ButtonAction.Rename   => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator || SelectedItems.Count > 1,
             ButtonAction.NewFolder => !_currentUserRole.IsAtLeastCollaborator,
             ButtonAction.DeleteFolder => Files.Any() || Folders.Any() || CurrentFolder == "/" || !_currentUserRole.IsAtLeastCollaborator,
-            ButtonAction.Publish => !_openDataPublishingService.IsPublishingFeatureEnabled() || _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
+            ButtonAction.Publish => !_config.CkanConfiguration.IsFeatureEnabled || _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
             _ => false
         };
     }

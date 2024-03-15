@@ -1,5 +1,7 @@
-@using Datahub.Core.Model.Datahub
+﻿@using Datahub.Core.Model.Datahub
 @using Datahub.Core.Model.Projects
+
+@* TODO: remove this file after dealing with stuff that depends on it *@
 
 <ToolCard Title="@Descriptor?.Title" 
           Description="@Descriptor?.ResourceDescription"
@@ -18,7 +20,7 @@
     <ToolActionsList>
         <ViewStorageButton ProjectAcronym="@Project?.Project_Acronym_CD" />
         <ViewSharedFilesButton ProjectAcronym=@Project?.Project_Acronym_CD />
-        <ViewPublishingDashboardButton ProjectAcronym=@Project?.Project_Acronym_CD />
+        @* <ViewPublishingDashboardButton ProjectAcronym=@Project?.Project_Acronym_CD /> *@
         @* Hide for POC Stage 2 *@
         @* <CostEstimatorButton TemplateName="@TemplateName"/> *@
     </ToolActionsList>

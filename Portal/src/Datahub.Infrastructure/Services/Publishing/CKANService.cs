@@ -1,18 +1,13 @@
-﻿using Datahub.CKAN.Package;
+﻿using Datahub.Application.Configuration;
+using Datahub.Application.Services.Publishing;
+using Datahub.CKAN.Package;
 using Datahub.Metadata.DTO;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Web;
 
-namespace Datahub.CKAN.Service;
+namespace Datahub.Infrastructure.Services.Publishing;
 
 public class CKANService : ICKANService
 {
@@ -73,13 +68,13 @@ public class CKANService : ICKANService
     #endregion
 
     readonly HttpClient _httpClient;
-    readonly CKANConfiguration _ckanConfiguration;
+    readonly CkanConfiguration _ckanConfiguration;
     readonly string _apiKey;
 
-    public CKANService(HttpClient httpClient, IOptions<CKANConfiguration> ckanConfiguration, string apiKey = null)
+    public CKANService(HttpClient httpClient, CkanConfiguration ckanConfiguration, string apiKey = null)
     {
         _httpClient = httpClient;
-        _ckanConfiguration = ckanConfiguration.Value;
+        _ckanConfiguration = ckanConfiguration;
         _apiKey = string.IsNullOrEmpty(apiKey) ? _ckanConfiguration.ApiKey : apiKey;
     }
 
@@ -97,7 +92,7 @@ public class CKANService : ICKANService
 
         var result = await PostRequestAsync(PACKAGE_CREATE_ACTION, content);
 
-        return await Task.FromResult(result);
+        return result;
     }
 
     private async Task<CKANApiResult> FetchPackage(string packageId)
@@ -129,11 +124,11 @@ public class CKANService : ICKANService
             var ckanPackageJson = result.CkanObject?.ToString();
             if (!string.IsNullOrEmpty(ckanPackageJson))
             {
-                return await Task.FromResult(new CKANApiResult(result.Succeeded, result.ErrorMessage, CkanPackageBasic.Deserialize(ckanPackageJson)));
+                return new CKANApiResult(result.Succeeded, result.ErrorMessage, CkanPackageBasic.Deserialize(ckanPackageJson));
             }
         }
 
-        return await Task.FromResult(result);
+        return result;
     }
 
     public async Task<CKANApiResult> UpdatePackageAttributes(string packageId, IDictionary<string, string> attributes)
@@ -156,11 +151,11 @@ public class CKANService : ICKANService
             var packageJson = result.CkanObject?.ToString();
             if (!string.IsNullOrEmpty(packageJson))
             {
-                return await Task.FromResult(new CKANApiResult(result.Succeeded, result.ErrorMessage, CkanPackageBasic.Deserialize(packageJson)));
+                return new CKANApiResult(result.Succeeded, result.ErrorMessage, CkanPackageBasic.Deserialize(packageJson));
             }
         }
 
-        return await Task.FromResult(result);
+        return result;
     }
 
     public async Task<CKANApiResult> AddResourcePackage(string packageId, string filename, string filePurpose, FieldValueContainer metadata, Stream fileContentStream, long? contentLength = null)
@@ -198,7 +193,7 @@ public class CKANService : ICKANService
 
         var result = await DoRequestAsync(HttpMethod.Post, RESOURCE_CREATE_ACTION, content);
 
-        return await Task.FromResult(result);
+        return result;
     }
 
     private static string GetCkanErrorMessage(CKANResult result)
