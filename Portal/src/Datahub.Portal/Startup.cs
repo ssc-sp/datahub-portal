@@ -4,7 +4,6 @@ using Blazored.LocalStorage;
 using Datahub.Application;
 using Datahub.Application.Services;
 using Datahub.CatalogSearch;
-using Datahub.CKAN.Service;
 using Datahub.Core;
 using Datahub.Core.Configuration;
 using Datahub.Core.Data;
@@ -64,6 +63,7 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
+using Datahub.Application.Services.WebApp;
 using Datahub.Infrastructure.Services.Api;
 using Datahub.Infrastructure.Services.Metadata;
 using Datahub.Infrastructure.Services.Notification;
@@ -75,6 +75,8 @@ using Datahub.Application.Services.Publishing;
 using Datahub.Infrastructure.Services.Publishing;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
+using Datahub.Infrastructure.Services.ReverseProxy;
+using Datahub.Infrastructure.Services.WebApp;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -178,7 +180,6 @@ public class Startup
         services.Configure<DataProjectsConfiguration>(Configuration.GetSection("DataProjectsConfiguration"));
         services.Configure<APITarget>(Configuration.GetSection("APITargets"));
         services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
-        services.Configure<CKANConfiguration>(Configuration.GetSection("CKAN"));
         services.Configure<GeoCoreConfiguration>(Configuration.GetSection("GeoCore"));
         services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
         services.AddScoped<IPortalVersionService, PortalVersionService>();
@@ -235,6 +236,7 @@ public class Startup
 
         if (ReverseProxyEnabled())
         {
+            services.AddTelemetryConsumer<YarpTelemetryConsumer>();
             services.AddReverseProxy()
                     .AddTransforms(builderContext =>
                     {
@@ -247,7 +249,7 @@ public class Startup
                             transformContext.ProxyRequest.Headers.Add("role", transformContext.HttpContext.GetWorkspaceRole());
                             await Task.CompletedTask;
                         });
-                    });
+                    });            
         }
     }
 
@@ -407,6 +409,9 @@ public class Startup
 
             services.AddScoped<UpdateProjectMonthlyCostService>();
             services.AddScoped<IProjectCreationService, ProjectCreationService>();
+
+            services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
+            
             services.AddDatahubApplicationServices(Configuration);
             services.AddDatahubInfrastructureServices(Configuration);
 
@@ -463,7 +468,7 @@ public class Startup
 
         services.AddSingleton<ServiceAuthManager>();
 
-        services.AddCKANService();
+        services.AddSingleton<ICKANServiceFactory, CKANServiceFactory>();
         services.AddSingleton<IOpenDataService, OpenDataService>();
         
         services.AddScoped<ITbsOpenDataService, TbsOpenDataService>();

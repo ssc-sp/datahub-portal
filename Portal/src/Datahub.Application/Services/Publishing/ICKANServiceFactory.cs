@@ -1,4 +1,4 @@
-﻿namespace Datahub.CKAN.Service;
+﻿namespace Datahub.Application.Services.Publishing;
 
 public interface ICKANServiceFactory
 {

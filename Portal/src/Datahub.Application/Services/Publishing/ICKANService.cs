@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Datahub.CKAN.Service;
+namespace Datahub.Application.Services.Publishing;
 
 public interface ICKANService
 {
