@@ -23,7 +23,7 @@ public class FormMetadata<T>
 
     public IList<string> MarkDownContentFooter { get; set; }
 
-    public IList<Func<T, (string, string)>> NavigateUrls { get; set; }
+    public IList<Func<T, (string Description, string Url)>> NavigateUrls { get; set; }
     public IList<(Delegate Label, Delegate Choices)> FilterProperties { get; set; }
     public bool AllowSearch { get; set; }
 

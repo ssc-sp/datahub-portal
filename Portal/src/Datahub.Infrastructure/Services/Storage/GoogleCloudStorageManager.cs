@@ -292,7 +292,7 @@ namespace Datahub.Infrastructure.Services.Storage
             }
         }
 
-        public List<(string, string)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
+        public List<(string Placeholder, string Substitution)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
         {
             return new List<(string, string)>
         {

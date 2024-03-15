@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace Datahub.Core.DataTransfers
 {
-	public class CredentialEncoder
+    public class CredentialEncoder
     {
         public static string EncodeCredentials(UploadCredentials credentials)
         {

@@ -2,7 +2,6 @@
 
 public class NotifierService
 {
-
     // Can be called from anywhere
     public async Task Update(string key, bool reloadData)
     {

@@ -2,7 +2,7 @@
 
 namespace Datahub.Core.Model.Datahub
 {
-	public class OpenDataPublishFile
+    public class OpenDataPublishFile
     {
         public long Id { get; set; }
         public long SubmissionId { get; set; }

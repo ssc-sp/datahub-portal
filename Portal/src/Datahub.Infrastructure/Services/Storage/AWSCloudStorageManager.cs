@@ -279,7 +279,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
 
 	static bool IsRoot(string path) => string.IsNullOrEmpty(path) || path == "/";
 
-	public List<(string, string)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
+	public List<(string Placeholder, string Substitution)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
 	{
 		return new List<(string, string)>
 		{

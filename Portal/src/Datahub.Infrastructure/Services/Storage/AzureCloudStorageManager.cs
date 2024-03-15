@@ -323,7 +323,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return result;
     }
 
-    public List<(string, string)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
+    public List<(string Placeholder, string Substitution)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
     {
         if (_inboxAccount)
         {

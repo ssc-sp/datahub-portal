@@ -42,7 +42,7 @@ public class WikiService : IWikiService
         await InvokeNotifyRefreshErrors();
     }
 
-    public async Task<string> LoadPage(string name, List<(string, string)> substitutions = null)
+    public async Task<string> LoadPage(string name, List<(string Placeholder, string Substitution)> substitutions = null)
     {
         string nameTrimmed = name.TrimStart('/');
 
@@ -54,7 +54,7 @@ public class WikiService : IWikiService
 
             var result = substitutions == null ?
                 content :
-                substitutions.Aggregate(content, (current, s) => current.Replace(s.Item1, s.Item2));
+                substitutions.Aggregate(content, (current, s) => current.Replace(s.Placeholder, s.Substitution));
 
             return result;
         }
@@ -285,4 +285,3 @@ public class WikiService : IWikiService
 
     public async Task LogNoArticleSpecifiedError(string url, string resourceRoot) => await AddErrorMessage($"Embedded resource on page {url} does not specify a page name in {resourceRoot}");
 }
-

@@ -152,7 +152,6 @@ public static class TerraformVariableExtraction
             "postgres_db_name");
     }
 
-
     /// <summary>
     /// Extracts the username secret name from the given Azure Postgres workspace.
     /// </summary>

@@ -98,4 +98,3 @@ public class AchievementEngine
 }
 
 internal record AchievementRule(string AchivementId, bool IsMeta, Rule Rule);
-

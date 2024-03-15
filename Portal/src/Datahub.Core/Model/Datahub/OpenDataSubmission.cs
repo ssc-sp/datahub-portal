@@ -4,7 +4,7 @@ using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Model.Datahub
 {
-	public enum OpenDataPublishProcessType
+    public enum OpenDataPublishProcessType
     {
         TbsOpenGovPublishing = 1,
     }

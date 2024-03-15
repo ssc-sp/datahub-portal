@@ -19,13 +19,14 @@ namespace Datahub.Core.Services.Docs;
 
 public class DocumentationService
 {
+    private const string DOCS_ROOT_CONFIG_KEY = "docsURL";
+    private const string DOCS_EDIT_URL_CONFIG_KEY = "EditdocsURLPrefix";
+
     private readonly string docsRoot;
     private readonly string docsEditPrefix;
     private readonly ILogger<DocumentationService> logger;
     private readonly IHttpClientFactory httpClientFactory;
 
-    private const string DOCS_ROOT_CONFIG_KEY = "docsURL";
-    private const string DOCS_EDIT_URL_CONFIG_KEY = "EditdocsURLPrefix";
     private DocumentationFileMapper docFileMappings = null!;
     private IList<TimeStampedStatus> statusMessages;
     private DocItem? enOutline;
@@ -58,7 +59,7 @@ public class DocumentationService
             {
                 //https://stackoverflow.com/questions/49176244/asp-net-core-clear-cache-from-imemorycache-set-by-set-method-of-cacheextensions/49425102#49425102
                 //this weird trick removes all the entries
-                var percentage = 1.0;//100%
+                var percentage = 1.0; //100%
                 cache.Compact(percentage);
 
                 await LoadResourceTree(DocumentationGuideRootSection.UserGuide);
@@ -274,7 +275,7 @@ public class DocumentationService
     /// <param name="name"></param>
     /// <param name="locale">Leave empty for "en", "fr" has its own folder</param>
     /// <param name="useCache"></param>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     private async Task<string?> LoadDocsPage(DocumentationGuideRootSection guide, string? name, string? locale = "", bool useCache = true)
     {
         if (name is null) return null;

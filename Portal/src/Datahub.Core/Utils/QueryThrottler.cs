@@ -3,6 +3,7 @@
 /// <summary>
 /// Query throttler utility class
 /// </summary>
+/// <typeparam name="T">Type of query to throttle</typeparam>
 public class QueryThrottler<T>
     where T : IComparable<T>
 {
