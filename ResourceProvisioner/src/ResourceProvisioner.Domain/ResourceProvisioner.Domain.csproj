@@ -7,7 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Entities" />
+      <Compile Remove="Entities\**" />
+      <EmbeddedResource Remove="Entities\**" />
+      <None Remove="Entities\**" />
     </ItemGroup>
 
     <Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />

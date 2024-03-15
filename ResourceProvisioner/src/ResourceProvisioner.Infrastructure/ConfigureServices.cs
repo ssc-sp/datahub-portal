@@ -1,7 +1,9 @@
 ﻿using System.Text;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ResourceProvisioner.Application.Services;
+using ResourceProvisioner.Infrastructure.Helpers;
 using ResourceProvisioner.Infrastructure.Services;
 
 namespace ResourceProvisioner.Infrastructure;
@@ -22,6 +24,16 @@ public static class ConfigureServices
         });
         
         services.AddSingleton<ITerraformService, TerraformService>();
+        services.AddMassTransit(x =>
+        {
+            x.AddConsumer<ForwardingConsumer>();
+            x.UsingInMemory((context, cfg) =>
+            {
+                cfg.ConfigureEndpoints(context);
+                cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
+            });
+        });
+
 
         return services;
     }
