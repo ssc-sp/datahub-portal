@@ -36,7 +36,7 @@ public enum MetadataType
     File = 2
 }
 
-public class BaseMetadata : IEquatable<BaseMetadata> , IComparable<BaseMetadata>
+public class BaseMetadata : IEquatable<BaseMetadata>, IComparable<BaseMetadata>
 {
     [JsonIgnore]
     public MetadataType dataType { get; set; }

@@ -276,8 +276,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
         modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
-        
-        
+
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
             // SQLite does not have proper support for DateTimeOffset via Entity Framework Core, see the limitations

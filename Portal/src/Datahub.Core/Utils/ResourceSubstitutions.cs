@@ -1,6 +1,6 @@
 namespace Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
 
-public static class ResourceSubstitutions 
+public static class ResourceSubstitutions
 {
     public const string SasUri = "<sas_uri>";
     public const string DesktopCode = "<desktop_code>";

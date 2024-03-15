@@ -4,7 +4,7 @@ namespace Datahub.Core.Services.Wiki;
 
 public interface IWikiService
 {
-    Task<string> LoadPage(string name, List<(string, string)> substitutions = null);
+    Task<string> LoadPage(string name, List<(string Placeholder, string Substitution)> substitutions = null);
     Task<MarkdownLanguageRoot> LoadLanguageRoot(bool isFrench);
     Task<string> LoadResourcePage(MarkdownCard card);
     string GetEditUrl(MarkdownCard card);

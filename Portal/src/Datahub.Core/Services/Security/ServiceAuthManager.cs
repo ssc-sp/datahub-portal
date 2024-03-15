@@ -11,10 +11,11 @@ namespace Datahub.Core.Services.Security;
 
 public class ServiceAuthManager
 {
-    private IMemoryCache serviceAuthCache;
-    private readonly IDbContextFactory<DatahubProjectDBContext> dbFactory;
     private const int AUTH_KEY = 1;
     private const int PROJECT_ADMIN_KEY = 2;
+    
+    private IMemoryCache serviceAuthCache;
+    private readonly IDbContextFactory<DatahubProjectDBContext> dbFactory;
 
     private ConcurrentDictionary<string, bool> viewingAsGuest = new();
 

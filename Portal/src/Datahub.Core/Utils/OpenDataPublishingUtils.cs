@@ -2,7 +2,7 @@
 
 namespace Datahub.Core.Utils
 {
-	public record OpenDataPublishingStepStatus<T>(T Step, bool Started, bool Completed);
+    public record OpenDataPublishingStepStatus<T>(T Step, bool Started, bool Completed);
 
     public static class OpenDataPublishingUtils
     {

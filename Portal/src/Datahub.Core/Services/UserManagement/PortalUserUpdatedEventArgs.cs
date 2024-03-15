@@ -10,5 +10,4 @@ public class PortalUserUpdatedEventArgs : EventArgs
         {
             UpdatedUser = updatedUser;
         }
-
 }

@@ -10,7 +10,7 @@ public static class FileMetaDataExtensions
     {
         if (metadata?.Count > 0)
         {
-            foreach(string propertyName in fileMetadata.GetMetadataProperties().Where(p => !string.IsNullOrWhiteSpace(p.Key)).Select(p => p.Key))
+            foreach (string propertyName in fileMetadata.GetMetadataProperties().Where(p => !string.IsNullOrWhiteSpace(p.Key)).Select(p => p.Key))
             {
                 if (metadata.ContainsKey(propertyName))
                 {

@@ -47,7 +47,7 @@ public class UserLocationManagerService
                 if (existingEntity.ResourceArticleId == link.ResourceArticleId)
                 {
                     // if it is, we need to update the accessed time
-                    existingEntity.accessedTime = link.accessedTime;
+                    existingEntity.AccessedTime = link.AccessedTime;
                 }
                 else
                 {
@@ -62,7 +62,7 @@ public class UserLocationManagerService
             {
                 if (existingEntity.DataProject == link.DataProject)
                 {
-                    existingEntity.accessedTime = link.accessedTime;
+                    existingEntity.AccessedTime = link.AccessedTime;
                 }
                 else
                 {
@@ -76,7 +76,7 @@ public class UserLocationManagerService
             else
             {
                 // we need to update the accessed time
-                existingEntity.accessedTime = link.accessedTime;
+                existingEntity.AccessedTime = link.AccessedTime;
             }
 
             await efCoreDatahubContext.SaveChangesAsync();
@@ -103,7 +103,7 @@ public class UserLocationManagerService
             .AsNoTracking()
             .Include(l => l.User)
             .Where(l => l.User.GraphGuid == userId && (l.DataProject != null || l.ResourceArticleId != null) && allowedLinks.Contains(l.LinkType))
-            .OrderByDescending(l => l.accessedTime)
+            .OrderByDescending(l => l.AccessedTime)
             .Take(maxRecentLinks)
             .ToList();
     }

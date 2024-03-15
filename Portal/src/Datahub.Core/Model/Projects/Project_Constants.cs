@@ -2,7 +2,7 @@
 
 namespace Datahub.Core.Model.Projects
 {
-	public class Project_Constants
+    public class Project_Constants
     {
         public static List<DropDownContainer> Project_Status = new List<DropDownContainer>()
         {

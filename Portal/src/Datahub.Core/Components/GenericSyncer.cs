@@ -1,6 +1,6 @@
 ﻿namespace Datahub.Core.Components
 {
-	public class GenericSyncer
+    public class GenericSyncer
     {
         public event Action Notify;
         public event Func<Task> NotifyAsync;

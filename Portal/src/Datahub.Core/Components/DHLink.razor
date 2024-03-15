@@ -119,7 +119,7 @@
             link.ResourceArticleTitle = ResourceArticleName;
             link.Name = Name;
         }
-        link.accessedTime = DateTimeOffset.Now;
+        link.AccessedTime = DateTimeOffset.Now;
 
         await UserLocationManagerService.RegisterNavigation(link);
         switch (LinkType)

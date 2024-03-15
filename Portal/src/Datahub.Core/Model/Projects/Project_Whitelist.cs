@@ -1,6 +1,6 @@
 namespace Datahub.Core.Model.Projects
 {
-	public class Project_Whitelist
+    public class Project_Whitelist
     {
         public int Id { get; set; }
         public int ProjectId { get; set; }

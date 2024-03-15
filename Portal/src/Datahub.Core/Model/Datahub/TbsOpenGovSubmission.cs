@@ -3,7 +3,7 @@ using Datahub.Core.Utils;
 
 namespace Datahub.Core.Model.Datahub
 {
-	public class TbsOpenGovSubmission : OpenDataSubmission
+    public class TbsOpenGovSubmission : OpenDataSubmission
     {
         public const string DATASET_FILE_TYPE = "Dataset";
         public const string GUIDE_FILE_TYPE = "Guide";

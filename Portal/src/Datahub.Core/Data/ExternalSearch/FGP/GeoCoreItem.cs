@@ -68,7 +68,7 @@ public class GeoCoreItem
 
     private T DecodeEscapedJson<T>(string content)
     {
-        var decoded = content.Replace("\\\"\"", "\"").Replace("\"\"",string.Empty);
+        var decoded = content.Replace("\\\"\"", "\"").Replace("\"\"", string.Empty);
         var result = JsonConvert.DeserializeObject<T>(decoded);
         return result;
     }
