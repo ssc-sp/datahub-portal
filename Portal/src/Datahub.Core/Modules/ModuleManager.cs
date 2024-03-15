@@ -26,7 +26,6 @@ public class ModuleManager
         }
     }
 
-
     public void LoadModules(string filterString = "*")
     {
         var filters = filterString.Split(',', StringSplitOptions.RemoveEmptyEntries);

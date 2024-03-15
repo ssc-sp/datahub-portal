@@ -27,13 +27,13 @@ public class Achievement
     public string ConcatenatedRules { get; set; }
 
     #region Navigation props
-    
+
     public virtual ICollection<UserAchievement> UserAchievements { get; set; }
-    
+
     #endregion
 
     #region Utility functions
-    
+
     public string[] GetRules() => (ConcatenatedRules ?? "").Split(RuleSeparator);
     public bool IsTrophy() => Id.EndsWith("-000");
 
@@ -43,7 +43,7 @@ public class Achievement
 
     public static IEnumerable<Achievement> GetAll() => _achievements.Value;
 
-    static Lazy<IEnumerable<Achievement>> _achievements = new(CreateAchievements); 
+    static Lazy<IEnumerable<Achievement>> _achievements = new(CreateAchievements);
 
     public static IEnumerable<Achievement> CreateAchievements()
     {
@@ -52,7 +52,7 @@ public class Achievement
             #region `DHA` Datahub Achievements
             new Achievement
             (
-                "DHA-001", "Collaboration Connoisseur", "Logged in to DataHub", 1, 
+                "DHA-001", "Collaboration Connoisseur", "Logged in to DataHub", 1,
                 // rules
                 $"""Utils.MatchMetric("{TelemetryEvents.UserLogin}", currentMetric)"""
             ),
@@ -81,7 +81,7 @@ public class Achievement
                 $"""Utils.MatchMetric("{TelemetryEvents.UserLoginMultipleDays}", currentMetric)"""
             ),
             #endregion
-            
+
             #region `STR` Storage Explorer Achievements
             new Achievement
             (

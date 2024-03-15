@@ -8,7 +8,7 @@ public class ProjectUsersConfiguration : IEntityTypeConfiguration<Datahub_Projec
     public void Configure(EntityTypeBuilder<Datahub_Project_User> builder)
     {
         builder.ToTable("Project_Users");
-        
+
         builder.HasKey(e => e.ProjectUser_ID);
 
         // builder.HasOne(e => e.PortalUser)
@@ -20,12 +20,12 @@ public class ProjectUsersConfiguration : IEntityTypeConfiguration<Datahub_Projec
         //     .WithMany()
         //     .HasForeignKey(e => e.ApprovedPortalUserId)
         //     .OnDelete(DeleteBehavior.NoAction);
-        
+
         // builder.HasOne(e => e.Role)
         //     .WithMany()
         //     .HasForeignKey(e => e.RoleId)
         //     .OnDelete(DeleteBehavior.NoAction);
-        
+
         builder.HasOne(e => e.Project)
             .WithMany(e => e.Users)
             .HasForeignKey(e => e.Project_ID)

@@ -17,7 +17,7 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
         _telemetryClient = new TelemetryClient(telemetryConfig.Value);
         _userInformationService = userInformationService;
     }
-        
+
     /// <inheritdoc>
     public async Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, bool anonymous, params (string key, string value)[] details)
     {

@@ -76,7 +76,6 @@ public static class FileMetaDataExtensions
         return total;
     }
 
-        
     private static Type fileType = typeof(FileMetaData);
 
     public static string GetMetadataPropertyValue(this FileMetaData fileMetadata, string propertyName)
@@ -109,7 +108,7 @@ public static class FileMetaDataExtensions
 
         return metadata;
     }
-        
+
     public static List<(string key, bool inSearch, bool isVisible)> GetMetadataProperties(this FileMetaData fileMetadata)
     {
         return new List<(string key, bool inSearch, bool isVisible)>

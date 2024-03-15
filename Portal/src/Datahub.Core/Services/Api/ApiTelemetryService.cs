@@ -26,7 +26,7 @@ public class ApiTelemetryService
     }
     public ApiTelemetryService()
     {
-    }                
+    }
 
     public void LogMetric(string metricName, double value, string filename)
     {

@@ -80,6 +80,6 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
         {
             OnAchievementsEarned?.Invoke(this, new AchievementsEarnedEventArgs(newAchievements, portalUser.UserSettings.HideAchievements));
             await _auditingService.TrackEvent("Achivements", ("Codes", string.Join(", ", newAchievements)));
-        }        
+        }
     }
 }

@@ -13,19 +13,19 @@ public class GraphUser
     /// User Id
     /// </summary>
     /// <value></value>
-    public string Id { get; set; } 
+    public string Id { get; set; }
 
     /// <summary>
     /// Name of user
     /// </summary>
     /// <value></value>
-    public string DisplayName { get; set; } 
-        
+    public string DisplayName { get; set; }
+
     /// <summary>
     /// Mail Address
     /// </summary>
     /// <value></value>
-    public MailAddress mailAddress { get; set; }     
+    public MailAddress mailAddress { get; set; }
 
     /// <summary>
     /// The user's email address
@@ -65,7 +65,7 @@ public class GraphUser
 
     public string RootFolder
     {
-        get 
+        get
         {
             return $"{Domain}/{UserName}";
         }
@@ -81,7 +81,7 @@ public class GraphUser
     public static GraphUser Create(User user)
     {
         var email = user.Mail ?? "unknown@unknown.com";
-        var instance = new GraphUser() 
+        var instance = new GraphUser()
         {
             Id = user.Id,
             DisplayName = user.DisplayName,

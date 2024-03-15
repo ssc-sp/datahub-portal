@@ -5,7 +5,8 @@ using Elemental.Components;
 
 namespace Datahub.Core.Model.Projects;
 
-public class Datahub_Project_User {
+public class Datahub_Project_User
+{
 
     [AeFormIgnore]
     [Key]
@@ -27,12 +28,12 @@ public class Datahub_Project_User {
     [Obsolete("Use PortalUser reference instead")]
     [StringLength(200)]
     public string User_Name {  get; set; }
-    
+
     [Obsolete("Use Role reference instead")]
     public bool IsDataApprover { get; set; }
     [Obsolete("Use Role reference instead")]
     public bool IsAdmin { get; set; }
-    
+
     [Obsolete("Use PortalUser reference instead")]
     [StringLength(200)]
     public string User_ID { get; set; }
