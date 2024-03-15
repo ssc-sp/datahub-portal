@@ -28,7 +28,7 @@ public static class TerraformVariableExtraction
     /// Extracts the databricks url from a Datahub Project. Be sure to include the project resources in the project object.
     /// </summary>
     /// <param name="project"></param>
-    /// <returns></returns>
+    /// <returns>Databricks url of the project</returns>
     public static string? ExtractDatabricksUrl(Datahub_Project? project)
     {
         var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);

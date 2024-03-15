@@ -12,8 +12,9 @@ namespace Datahub.Core.Services.Metadata;
 public class MetadataBrokerService : IMetadataBrokerService
 {
     private const int MaxKeywordResults = 50;
+    private const string DefaultSource = "default";
 
-	private readonly IDbContextFactory<MetadataDbContext> contextFactory;
+    private readonly IDbContextFactory<MetadataDbContext> contextFactory;
     private readonly ILogger<MetadataBrokerService> logger;
     private readonly IDatahubAuditingService auditingService;
     private readonly ICatalogSearchEngine catalogSearchEngine;
@@ -481,8 +482,6 @@ public class MetadataBrokerService : IMetadataBrokerService
         return objectMetadata;
     }
 
-    private const string DefaultSource = "default";
-
     private async Task<FieldDefinitions> GetLatestMetadataDefinition(MetadataDbContext ctx)
     {
         var latestVersion = await ctx
@@ -734,6 +733,7 @@ public class MetadataBrokerService : IMetadataBrokerService
     /// <summary>
     /// GetProjectCatalogItems will only list Files and Power BI reports for now.
     /// </summary>
+    /// <param name="projectId">ID of the workspace</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task<List<CatalogObjectResult>> GetProjectCatalogItems(int projectId)
     {

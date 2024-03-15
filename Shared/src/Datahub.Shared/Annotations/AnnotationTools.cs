@@ -11,7 +11,7 @@ public static class AnnotationTools
     /// the items in your enum.
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
+    /// <returns>Value of the Description annotation</returns>
     public static string GetStringValue(this Enum value)
     {
         // Get the type
