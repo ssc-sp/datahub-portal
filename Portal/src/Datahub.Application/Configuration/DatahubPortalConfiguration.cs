@@ -48,6 +48,8 @@ public class DatahubPortalConfiguration
 	public ReverseProxy ReverseProxy { get; set; } = new();
 
     public GithubConfig Github { get; set; } = new();
+
+	public CkanConfiguration CkanConfiguration { get; set; } = new();
 }
 
 public class Achievements
@@ -244,4 +246,30 @@ public class GithubConfig
     public string ClientId { get; set; } = "";
     public string ClientSecret { get; set; } = "";
     public string RepoPrefix { get; set; } = "fsdh-";
+}
+
+public class CkanConfiguration
+{
+	public bool Enabled { get; set; } = false;
+	public string BaseUrl { get; set; } = "https://registry-staging.open.canada.ca/";
+	public bool TestMode { get; set; } = true;
+	public bool PublishingEnabled { get; set; } = false;
+
+	// ApiKey is now a per-project secret, but this property is still referenced by legacy code
+	// it will be removed when cleaning up the old code
+	public string ApiKey { get; set; } = string.Empty;
+
+	private Uri BaseUri => new(BaseUrl);
+	public string ApiUrl => new Uri(BaseUri, "api").ToString();
+	public string DatasetUrl => new Uri(BaseUri, "dataset").ToString();
+
+	public bool IsFeatureEnabled
+	{
+		get
+		{
+			var baseUrlConfigured = !string.IsNullOrEmpty(BaseUrl);
+
+			return Enabled && baseUrlConfigured;
+		}
+	}
 }
