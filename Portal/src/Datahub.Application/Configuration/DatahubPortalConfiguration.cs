@@ -253,6 +253,7 @@ public class CkanConfiguration
     public bool Enabled { get; set; } = false;
     public string BaseUrl { get; set; } = "https://registry-staging.open.canada.ca/";
     public bool TestMode { get; set; } = true;
+    public bool PublishingEnabled { get; set; } = false;
 
     // ApiKey is now a per-project secret, but this property is still referenced by legacy code
     // it will be removed when cleaning up the old code
