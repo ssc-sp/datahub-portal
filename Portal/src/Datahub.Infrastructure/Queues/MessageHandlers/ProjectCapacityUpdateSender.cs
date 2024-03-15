@@ -5,9 +5,9 @@ namespace Datahub.Infrastructure.Queues.MessageHandlers;
 
 public class ProjectCapacityUpdateSender : QueueMessageSender<ProjectCapacityUpdateMessage>
 {
-    public ProjectCapacityUpdateSender(IConfiguration configuration) : base(configuration)
-    {
-    }
+	public ProjectCapacityUpdateSender(IConfiguration configuration) : base(configuration)
+	{
+	}
 
-    protected override string ConfigPathOrQueueName => "QueueProjectCapacityUpdate";
+	protected override string ConfigPathOrQueueName => "QueueProjectCapacityUpdate";
 }

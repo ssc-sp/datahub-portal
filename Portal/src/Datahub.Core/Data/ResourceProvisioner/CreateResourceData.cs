@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Datahub.Shared.Entities;
 
 namespace Datahub.Core.Data.ResourceProvisioner;
@@ -43,6 +42,7 @@ public record CreateResourceData
     /// <param name="sector"></param>
     /// <param name="organization"></param>
     /// <param name="requestingUserEmail"></param>
+    /// <param name="budgetAmount"></param>
     private CreateResourceData(string projectName, string acronym, string sector, string organization,
         string requestingUserEmail, double budgetAmount)
     {

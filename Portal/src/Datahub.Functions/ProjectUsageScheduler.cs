@@ -1,7 +1,6 @@
 ﻿using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.ProjectTools.Services;
 using Datahub.Shared.Entities;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
@@ -14,130 +13,130 @@ namespace Datahub.Functions;
 
 public class ProjectUsageScheduler
 {
-    private readonly ILogger<ProjectUsageScheduler> _logger;
-    private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-    private readonly IMediator _mediator;
+	private readonly ILogger<ProjectUsageScheduler> _logger;
+	private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
+	private readonly IMediator _mediator;
 
-    public ProjectUsageScheduler(ILoggerFactory loggerFactory,
-        IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IMediator mediator)
-    {
-        _logger = loggerFactory.CreateLogger<ProjectUsageScheduler>();
-        _dbContextFactory = dbContextFactory;
-        _mediator = mediator;
-    }
+	public ProjectUsageScheduler(ILoggerFactory loggerFactory,
+		IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IMediator mediator)
+	{
+		_logger = loggerFactory.CreateLogger<ProjectUsageScheduler>();
+		_dbContextFactory = dbContextFactory;
+		_mediator = mediator;
+	}
 
-    [Function("ProjectUsageScheduler")]
-    public async Task Run([TimerTrigger("%ProjectUsageCRON%")] TimerInfo timerInfo)
-    {
-        await RunScheduler();
-    }
+	[Function("ProjectUsageScheduler")]
+	public async Task Run([TimerTrigger("%ProjectUsageCRON%")] TimerInfo timerInfo)
+	{
+		await RunScheduler();
+	}
 
 #if DEBUG
-    [Function("ProjectUsageSchedulerHttp")]
-    public async Task RunHttp(
-        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestData req)
-    {
-        await RunScheduler();
-    }
+	[Function("ProjectUsageSchedulerHttp")]
+	public async Task RunHttp(
+		[HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestData req)
+	{
+		await RunScheduler();
+	}
 #endif
 
-    private async Task RunScheduler()
-    {
-        using var ctx = await _dbContextFactory.CreateDbContextAsync();
+	private async Task RunScheduler()
+	{
+		using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
-        // set to keep track of already schedule projects
-        HashSet<int> scheduled = new();
-        var timeout = 0;
+		// set to keep track of already schedule projects
+		HashSet<int> scheduled = new();
+		var timeout = 0;
 
-        var resources = await GetProjectResources(ctx);
-        var sortedResources = resources.OrderBy(r => r.LastUpdate).Take(1000);
-        
-        foreach (var resource in sortedResources)
-        {
-            if (scheduled.Contains(resource.ProjectId))
-                continue;
+		var resources = await GetProjectResources(ctx);
+		var sortedResources = resources.OrderBy(r => r.LastUpdate).Take(1000);
 
-            var message = TryDeserializeMessage(resource, timeout);
-            if (message is null)
-            {
-                _logger.LogWarning(
-                    $"Invalid resource json found in project {resource.ProjectId}:\n{resource.JsonContent}");
-                continue;
-            }
+		foreach (var resource in sortedResources)
+		{
+			if (scheduled.Contains(resource.ProjectId))
+				continue;
 
-            // track project id
-            scheduled.Add(message.ProjectId);
+			var message = TryDeserializeMessage(resource, timeout);
+			if (message is null)
+			{
+				_logger.LogWarning(
+					$"Invalid resource json found in project {resource.ProjectId}:\n{resource.JsonContent}");
+				continue;
+			}
 
-            // send/post the message
-            await _mediator.Send(message);
+			// track project id
+			scheduled.Add(message.ProjectId);
 
-            var capacityMessage = ConvertToCapacityUpdateMessage(message, timeout);
+			// send/post the message
+			await _mediator.Send(message);
 
-            // send/post the message,
-            await _mediator.Send(capacityMessage);
-        }
+			var capacityMessage = ConvertToCapacityUpdateMessage(message, timeout);
 
-        _logger.LogInformation($"{scheduled.Count} projects scheduled!");
-    }
+			// send/post the message,
+			await _mediator.Send(capacityMessage);
+		}
 
-    private ProjectUsageUpdateMessage? TryDeserializeMessage(ProjectResourceData resource, int timeout)
-    {
-        try
-        {
-            var content = JsonSerializer.Deserialize<DBResourceContent>(resource.JsonContent);
-            if (string.IsNullOrEmpty(content?.resource_group_name))
-                return default;
+		_logger.LogInformation($"{scheduled.Count} projects scheduled!");
+	}
 
-            return new ProjectUsageUpdateMessage(resource.ProjectId, content.resource_group_name, resource.Databricks,
-                timeout);
-        }
-        catch
-        {
-            _logger.LogInformation(
-                $"Found project {resource.ProjectId} with invalid JsonContent:\n{resource.JsonContent}");
-            return default;
-        }
-    }
+	private ProjectUsageUpdateMessage? TryDeserializeMessage(ProjectResourceData resource, int timeout)
+	{
+		try
+		{
+			var content = JsonSerializer.Deserialize<DBResourceContent>(resource.JsonContent);
+			if (string.IsNullOrEmpty(content?.resource_group_name))
+				return default;
 
-    private async Task<List<ProjectResourceData>> GetProjectResources(DatahubProjectDBContext ctx)
-    {
-        var databrickProjects = new HashSet<int>();
+			return new ProjectUsageUpdateMessage(resource.ProjectId, content.resource_group_name, resource.Databricks,
+				timeout);
+		}
+		catch
+		{
+			_logger.LogInformation(
+				$"Found project {resource.ProjectId} with invalid JsonContent:\n{resource.JsonContent}");
+			return default;
+		}
+	}
 
-        var terraformServiceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-        var storageBlobType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
+	private async Task<List<ProjectResourceData>> GetProjectResources(DatahubProjectDBContext ctx)
+	{
+		var databrickProjects = new HashSet<int>();
 
-        var projects = new List<Project_Resources2>();
-        await foreach (var res in ctx.Project_Resources2.AsAsyncEnumerable())
-        {
-            if (res.ResourceType == terraformServiceType)
-            {
-                databrickProjects.Add(res.ProjectId);
-            }
+		var terraformServiceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
+		var storageBlobType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
 
-            if (res.ResourceType == storageBlobType)
-            {
-                projects.Add(res);
-            }
-        }
+		var projects = new List<Project_Resources2>();
+		await foreach (var res in ctx.Project_Resources2.AsAsyncEnumerable())
+		{
+			if (res.ResourceType == terraformServiceType)
+			{
+				databrickProjects.Add(res.ProjectId);
+			}
 
-        return projects.Select(p => new ProjectResourceData(p.ProjectId, p.JsonContent,
-            databrickProjects.Contains(p.ProjectId), GetLastUpdate(ctx, p.ProjectId))).ToList();
-    }
+			if (res.ResourceType == storageBlobType)
+			{
+				projects.Add(res);
+			}
+		}
 
-    private DateTime GetLastUpdate(DatahubProjectDBContext ctx, int projectId)
-    {
-        var lastUpdate = ctx.Project_Credits.Where(u => u.ProjectId == projectId).Select(u => u.LastUpdate)
-            .FirstOrDefault();
+		return projects.Select(p => new ProjectResourceData(p.ProjectId, p.JsonContent,
+			databrickProjects.Contains(p.ProjectId), GetLastUpdate(ctx, p.ProjectId))).ToList();
+	}
 
-        return lastUpdate ?? DateTime.MinValue;
-    }
+	private DateTime GetLastUpdate(DatahubProjectDBContext ctx, int projectId)
+	{
+		var lastUpdate = ctx.Project_Credits.Where(u => u.ProjectId == projectId).Select(u => u.LastUpdate)
+			.FirstOrDefault();
 
-    static ProjectCapacityUpdateMessage ConvertToCapacityUpdateMessage(ProjectUsageUpdateMessage message, int timeout)
-    {
-        return new(message.ProjectId, message.ResourceGroup, message.Databricks, timeout);
-    }
+		return lastUpdate ?? DateTime.MinValue;
+	}
 
-    record DBResourceContent(string resource_group_name);
+	static ProjectCapacityUpdateMessage ConvertToCapacityUpdateMessage(ProjectUsageUpdateMessage message, int timeout)
+	{
+		return new(message.ProjectId, message.ResourceGroup, message.Databricks, timeout);
+	}
 
-    record ProjectResourceData(int ProjectId, string JsonContent, bool Databricks, DateTime LastUpdate);
+	record DBResourceContent(string resource_group_name);
+
+	record ProjectResourceData(int ProjectId, string JsonContent, bool Databricks, DateTime LastUpdate);
 }

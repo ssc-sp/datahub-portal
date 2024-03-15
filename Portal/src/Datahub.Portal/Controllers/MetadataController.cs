@@ -6,30 +6,30 @@ using System.Text.Json;
 
 namespace Datahub.Portal.Controllers
 {
-    [Route("[controller]")]
-    [AllowAnonymous]
-    public class MetadataController : Controller
-    {
-        private readonly ILogger<MetadataController> _logger;
-        private readonly IMetadataBrokerService _metadataBrokerService;
+	[Route("[controller]")]
+	[AllowAnonymous]
+	public class MetadataController : Controller
+	{
+		private readonly ILogger<MetadataController> _logger;
+		private readonly IMetadataBrokerService _metadataBrokerService;
 
-        public MetadataController(ILogger<MetadataController> logger, IMetadataBrokerService metadataBrokerService)
-        {
-            _logger = logger;
-            _metadataBrokerService = metadataBrokerService;
-        }
-        
-        [HttpGet]
-        [Route("definitions/get")]
-        public async Task<IActionResult> GetMetadataDefinitions()
-        {
-            var profiles = await _metadataBrokerService.GetProfiles();
-            var fieldDefinitions = await _metadataBrokerService.GetFieldDefinitions();
+		public MetadataController(ILogger<MetadataController> logger, IMetadataBrokerService metadataBrokerService)
+		{
+			_logger = logger;
+			_metadataBrokerService = metadataBrokerService;
+		}
 
-            var metadataDto = MetadataDTO.Create(profiles, fieldDefinitions.Fields);
-            JsonSerializerOptions options = new() { WriteIndented = true };
+		[HttpGet]
+		[Route("definitions/get")]
+		public async Task<IActionResult> GetMetadataDefinitions()
+		{
+			var profiles = await _metadataBrokerService.GetProfiles();
+			var fieldDefinitions = await _metadataBrokerService.GetFieldDefinitions();
 
-            return new JsonResult(metadataDto, options);
-        }
-    }
+			var metadataDto = MetadataDTO.Create(profiles, fieldDefinitions.Fields);
+			JsonSerializerOptions options = new() { WriteIndented = true };
+
+			return new JsonResult(metadataDto, options);
+		}
+	}
 }

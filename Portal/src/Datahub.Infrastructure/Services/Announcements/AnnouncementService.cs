@@ -10,83 +10,83 @@ namespace Datahub.Infrastructure.Services.Announcements;
 
 public class AnnouncementService : IAnnouncementService
 {
-    private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
-    private readonly IDbContextFactory<DatahubProjectDBContext> _datahubProjectDbFactory;
-    private readonly IDatahubAuditingService _auditingService;
-    private readonly ILogger<AnnouncementService> _logger;
+	private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
+	private readonly IDbContextFactory<DatahubProjectDBContext> _datahubProjectDbFactory;
+	private readonly IDatahubAuditingService _auditingService;
+	private readonly ILogger<AnnouncementService> _logger;
 
-    public AnnouncementService(DatahubPortalConfiguration datahubPortalConfiguration, IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        IDatahubAuditingService auditingService, ILogger<AnnouncementService> logger)
-    {
-        _datahubPortalConfiguration = datahubPortalConfiguration;
-        _datahubProjectDbFactory = datahubProjectDbFactory;
-        _logger = logger;
-        _auditingService = auditingService;
-    }
-    public async Task<List<Announcement>> GetAnnouncementsAsync()
-    {
-        _logger.LogInformation("Getting announcements");
-        await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
-        var announcements = await context.Announcements
-            .AsNoTracking()
-            .Include(a => a.CreatedBy)
-            .Include(a => a.UpdatedBy)
-            .OrderByDescending(a => a.StartDateTime)
-            .ToListAsync();
-        
-        return announcements;
-    }
+	public AnnouncementService(DatahubPortalConfiguration datahubPortalConfiguration, IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
+		IDatahubAuditingService auditingService, ILogger<AnnouncementService> logger)
+	{
+		_datahubPortalConfiguration = datahubPortalConfiguration;
+		_datahubProjectDbFactory = datahubProjectDbFactory;
+		_logger = logger;
+		_auditingService = auditingService;
+	}
+	public async Task<List<Announcement>> GetAnnouncementsAsync()
+	{
+		_logger.LogInformation("Getting announcements");
+		await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
+		var announcements = await context.Announcements
+			.AsNoTracking()
+			.Include(a => a.CreatedBy)
+			.Include(a => a.UpdatedBy)
+			.OrderByDescending(a => a.StartDateTime)
+			.ToListAsync();
 
-    public async Task<Announcement?> GetAnnouncementAsync(int id)
-    {
-        _logger.LogInformation("Getting announcement with id {Id}", id);
-        await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
-        var article = await context.Announcements
-            .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.Id == id);
+		return announcements;
+	}
 
-        return article;
-    }
+	public async Task<Announcement?> GetAnnouncementAsync(int id)
+	{
+		_logger.LogInformation("Getting announcement with id {Id}", id);
+		await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
+		var article = await context.Announcements
+			.AsNoTracking()
+			.FirstOrDefaultAsync(e => e.Id == id);
 
-    public async Task<bool> SaveAnnouncementAsync(Announcement announcement)
-    {
-        try
-        {
-            await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
-            if (announcement.Id == 0)
-            {
-                context.Announcements.Add(announcement);
-            }
-            else
-            {
-                context.Announcements.Update(announcement);
-            }
-            await context.TrackSaveChangesAsync(_auditingService);
-            return true;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error saving announcement");
-            return false;
-        }
-    }
+		return article;
+	}
 
-    public Task<bool> DeleteAnnouncementAsync(int id)
-    {
-        throw new NotImplementedException();
-    }
+	public async Task<bool> SaveAnnouncementAsync(Announcement announcement)
+	{
+		try
+		{
+			await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
+			if (announcement.Id == 0)
+			{
+				context.Announcements.Add(announcement);
+			}
+			else
+			{
+				context.Announcements.Update(announcement);
+			}
+			await context.TrackSaveChangesAsync(_auditingService);
+			return true;
+		}
+		catch (Exception e)
+		{
+			_logger.LogError(e, "Error saving announcement");
+			return false;
+		}
+	}
 
-    public async Task<List<AnnouncementPreview>> GetActivePreviews(bool isFrench)
-    {
-        await using var ctx = await _datahubProjectDbFactory.CreateDbContextAsync();
+	public Task<bool> DeleteAnnouncementAsync(int id)
+	{
+		throw new NotImplementedException();
+	}
 
-        var today = DateTime.Now.Date;
+	public async Task<List<AnnouncementPreview>> GetActivePreviews(bool isFrench)
+	{
+		await using var ctx = await _datahubProjectDbFactory.CreateDbContextAsync();
 
-        var articles = await ctx.Announcements
-            .Where(e => !e.ForceHidden && today > e.StartDateTime && (!e.EndDateTime.HasValue || today < e.EndDateTime.Value))
-            .Select(e => new AnnouncementPreview(e.Id, isFrench ? e.PreviewFr : e.PreviewEn))
-            .ToListAsync();
+		var today = DateTime.Now.Date;
 
-        return articles;
-    }
+		var articles = await ctx.Announcements
+			.Where(e => !e.ForceHidden && today > e.StartDateTime && (!e.EndDateTime.HasValue || today < e.EndDateTime.Value))
+			.Select(e => new AnnouncementPreview(e.Id, isFrench ? e.PreviewFr : e.PreviewEn))
+			.ToListAsync();
+
+		return articles;
+	}
 }

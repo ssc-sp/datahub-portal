@@ -10,43 +10,43 @@ namespace Datahub.Portal.Pages.Workspace.Database;
 /// </summary>
 public partial class WhitelistIPAddressData
 {
-    private string _name;
+	private string _name;
 
-    public WhitelistIPAddressData()
-    {
-    }
+	public WhitelistIPAddressData()
+	{
+	}
 
-    public WhitelistIPAddressData(PostgreSqlFlexibleServerFirewallRuleData firewallRuleData)
-    {
-        Name = firewallRuleData.Name;
-        StartIPAddress = firewallRuleData.StartIPAddress;
-        EndIPAddress = firewallRuleData.EndIPAddress;
-    }
+	public WhitelistIPAddressData(PostgreSqlFlexibleServerFirewallRuleData firewallRuleData)
+	{
+		Name = firewallRuleData.Name;
+		StartIPAddress = firewallRuleData.StartIPAddress;
+		EndIPAddress = firewallRuleData.EndIPAddress;
+	}
 
-    public string Name
-    {
-        get => _name;
-        set
-        {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("Name cannot be null or whitespace.", nameof(value));
+	public string Name
+	{
+		get => _name;
+		set
+		{
+			if (string.IsNullOrWhiteSpace(value))
+				throw new ArgumentException("Name cannot be null or whitespace.", nameof(value));
 
-            const int maxLength = 63;
-            
-            var trimmedName = value.Length > maxLength ? value.Substring(0, maxLength) : value;
+			const int maxLength = 63;
 
-            // replace all non-alphanumeric characters with empty string
-            trimmedName = AzureFirewallNamingRegex().Replace(trimmedName, "");
-            trimmedName = trimmedName.Trim("-_ ".ToCharArray());
-            _name = trimmedName;
-        }
-    }
+			var trimmedName = value.Length > maxLength ? value.Substring(0, maxLength) : value;
 
-    public IPAddress StartIPAddress { get; set; }
-    public IPAddress EndIPAddress { get; set; }
+			// replace all non-alphanumeric characters with empty string
+			trimmedName = AzureFirewallNamingRegex().Replace(trimmedName, "");
+			trimmedName = trimmedName.Trim("-_ ".ToCharArray());
+			_name = trimmedName;
+		}
+	}
 
-    public PostgreSqlFlexibleServerFirewallRuleData FlexibleFirewallRuleData => new(StartIPAddress, EndIPAddress);
+	public IPAddress StartIPAddress { get; set; }
+	public IPAddress EndIPAddress { get; set; }
 
-    [GeneratedRegex(@"[^a-zA-Z0-9\-_]")]
-    private static partial Regex AzureFirewallNamingRegex();
+	public PostgreSqlFlexibleServerFirewallRuleData FlexibleFirewallRuleData => new(StartIPAddress, EndIPAddress);
+
+	[GeneratedRegex(@"[^a-zA-Z0-9\-_]")]
+	private static partial Regex AzureFirewallNamingRegex();
 }

@@ -1,8 +1,5 @@
-﻿using System;
-using Datahub.Core.Model.Achievements;
-using Microsoft.Graph;
+﻿using Datahub.Core.Model.Achievements;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Datahub.Core.Services.UserManagement;
 using Microsoft.Graph.Models;
 
@@ -13,7 +10,6 @@ public interface IUserInformationService
     Task<User> GetCurrentGraphUserAsync();
     Task<User> GetGraphUserAsync(string userId);
 
-
     /// <summary>
     /// Gets the current portal user asynchronously. Will contain the <see cref="UserSettings"/> object.
     /// </summary>
@@ -21,10 +17,10 @@ public interface IUserInformationService
     Task<PortalUser> GetCurrentPortalUserAsync();
 
     Task<PortalUser> GetPortalUserAsync(string userGraphId);
-    
+
     Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync();
     Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId);
-    
+
     Task<User> GetAnonymousGraphUserAsync();
     Task<string> GetUserIdString();
     Task<string> GetDisplayName();

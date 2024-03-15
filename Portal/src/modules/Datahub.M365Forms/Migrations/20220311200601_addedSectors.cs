@@ -4,24 +4,24 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.M365Forms.Migrations
 {
-    public partial class AddedSectors : Migration
-    {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<string>(
-                name: "Client_Sector",
-                table: "M365FormsApplications",
-                type: "nvarchar(2000)",
-                maxLength: 2000,
-                nullable: false,
-                defaultValue: "");
-        }
+	public partial class AddedSectors : Migration
+	{
+		protected override void Up(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.AddColumn<string>(
+				name: "Client_Sector",
+				table: "M365FormsApplications",
+				type: "nvarchar(2000)",
+				maxLength: 2000,
+				nullable: false,
+				defaultValue: "");
+		}
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "Client_Sector",
-                table: "M365FormsApplications");
-        }
-    }
+		protected override void Down(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.DropColumn(
+				name: "Client_Sector",
+				table: "M365FormsApplications");
+		}
+	}
 }

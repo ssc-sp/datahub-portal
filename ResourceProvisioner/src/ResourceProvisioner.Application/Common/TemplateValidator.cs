@@ -5,12 +5,12 @@ namespace ResourceProvisioner.Application.Common;
 
 public class TerraformTemplateValidator : AbstractValidator<TerraformTemplate>
 {
-    public TerraformTemplateValidator()
-    {
-        RuleFor(x => x.Name)
-            .NotEmpty()
-            .MaximumLength(200);
-        
+	public TerraformTemplateValidator()
+	{
+		RuleFor(x => x.Name)
+			.NotEmpty()
+			.MaximumLength(200);
 
-    }
+
+	}
 }

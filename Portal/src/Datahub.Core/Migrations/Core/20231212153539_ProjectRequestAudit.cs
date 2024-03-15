@@ -1,12 +1,11 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Core.Migrations.Core
 {
-    /// <inheritdoc />
-    public partial class ProjectRequestAudit : Migration
+	/// <inheritdoc />
+	public partial class ProjectRequestAudit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

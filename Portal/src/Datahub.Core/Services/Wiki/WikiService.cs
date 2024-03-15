@@ -1,16 +1,10 @@
 ﻿using Datahub.Markdown.Model;
-using Markdig;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.Core.Services.Wiki;
 
@@ -69,7 +63,6 @@ public class WikiService : IWikiService
             _logger.LogError(ex, "Cannot load page url: {FullUrl}", fullUrl);
             return null;
         }
-
     }
 
     private static IList<LinkInline> GetListedLinks(string inputMarkdown)
@@ -192,7 +185,8 @@ public class WikiService : IWikiService
 
         var rootSidebar = await LoadSidebar();
         var rootLinks = GetListedLinks(rootSidebar);
-        if (rootLinks != null) {
+        if (rootLinks != null)
+        {
             var enLink = rootLinks[0];
             var frLink = rootLinks[1];
 
@@ -200,9 +194,11 @@ public class WikiService : IWikiService
             FrenchLanguageRoot = await PopulateResourceLanguageRoot(frLink);
 
             await AddErrorMessage("Finished loading resources");
-        } else {
+        }
+        else
+        {
             _logger.LogWarning($"No data found for root sidebar {rootSidebar}");
-        }        
+        }
     }
 
     private static string BuildSidebarName(IList<string> folders = null)

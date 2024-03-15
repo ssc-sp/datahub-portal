@@ -1,11 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace Datahub.Core.Services;
+﻿namespace Datahub.Core.Services;
 
 public class NotifierService
 {
-
     // Can be called from anywhere
     public async Task Update(string key, bool reloadData)
     {

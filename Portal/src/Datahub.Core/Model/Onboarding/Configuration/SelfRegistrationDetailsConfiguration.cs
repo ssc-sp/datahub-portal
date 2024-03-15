@@ -1,4 +1,3 @@
-using Datahub.Core.Model.Projects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

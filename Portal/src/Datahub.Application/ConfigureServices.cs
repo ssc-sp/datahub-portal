@@ -6,12 +6,12 @@ namespace Datahub.Application;
 
 public static class ConfigureServices
 {
-    public static IServiceCollection AddDatahubApplicationServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        var datahubConfiguration = new DatahubPortalConfiguration();
-        configuration.Bind(datahubConfiguration);
-        services.AddSingleton(datahubConfiguration);
+	public static IServiceCollection AddDatahubApplicationServices(this IServiceCollection services, IConfiguration configuration)
+	{
+		var datahubConfiguration = new DatahubPortalConfiguration();
+		configuration.Bind(datahubConfiguration);
+		services.AddSingleton(datahubConfiguration);
 
-        return services;
-    }
+		return services;
+	}
 }

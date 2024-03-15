@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
 using Microsoft.CSharp.RuntimeBinder;
 
 namespace Datahub.Core.Data;
@@ -14,8 +13,7 @@ public enum DbDriver
     SqlServer, Sqlite, SqlLocalDB, Memory, Azure
 }
 public static class EFTools
-{        
-
+{
     public static void InitializeDatabase<T>(ILogger logger, IConfiguration configuration, IServiceProvider serviceProvider, bool offline, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
     {
         var factory = serviceProvider.GetService(typeof(IDbContextFactory<T>)) as IDbContextFactory<T>;
@@ -35,7 +33,6 @@ public static class EFTools
             }
             else
             {
-
                 if (migrate)
                 {
                     context.Database.Migrate();
@@ -52,12 +49,10 @@ public static class EFTools
         {
             logger.LogCritical(ex, $"Error initializing database {GetInfo(context.Database)}-{typeof(T).Name}");
         }
-
     }
 
     public static string GetConnectionString(this IConfiguration configuration, IWebHostEnvironment environment, string name)
     {
-            
         return configuration.GetConnectionString(name) ?? throw new ArgumentNullException($"ASPNETCORE_CONNECTION STRING ({name}) in Enviroment ({environment.EnvironmentName}).");
     }
 
@@ -78,7 +73,7 @@ public static class EFTools
         {
             throw new InvalidProgramException($"Cannot configure {typeof(T).Name} - no connection string for '{connectionStringName}':{connectionString}");
         }
-        
+
         switch (dbDriver)
         {
             case DbDriver.Memory:
@@ -99,7 +94,6 @@ public static class EFTools
                 throw new ArgumentException("Invalid DB driver");
         }
     }
-
 
     private static string GetInfo(DatabaseFacade db)
     {
@@ -130,5 +124,4 @@ public static class EFTools
             //}
         }
     }
-
 }

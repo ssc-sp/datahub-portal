@@ -2,5 +2,5 @@
 
 public interface IGeoCoreServiceFactory
 {
-    IGeoCoreService CreateService();
+	IGeoCoreService CreateService();
 }

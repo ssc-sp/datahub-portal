@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -7,19 +6,19 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Core.Migrations.Core
 {
-    /// <inheritdoc />
-    public partial class MergeChanges : Migration
+	/// <inheritdoc />
+	public partial class MergeChanges : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            
+
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            
+
         }
     }
 }

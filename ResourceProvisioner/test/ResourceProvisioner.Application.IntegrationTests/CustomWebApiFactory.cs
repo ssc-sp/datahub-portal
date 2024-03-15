@@ -6,22 +6,22 @@ namespace ResourceProvisioner.Application.IntegrationTests;
 
 internal class CustomWebApiFactory : WebApplicationFactory<Program>
 {
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-    {
-        builder.ConfigureAppConfiguration(configurationBuilder =>
-        {
-            var integrationConfig = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.Test.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables()
-                .Build();
+	protected override void ConfigureWebHost(IWebHostBuilder builder)
+	{
+		builder.ConfigureAppConfiguration(configurationBuilder =>
+		{
+			var integrationConfig = new ConfigurationBuilder()
+				.AddJsonFile("appsettings.Test.json", optional: true, reloadOnChange: true)
+				.AddEnvironmentVariables()
+				.Build();
 
-            configurationBuilder.AddConfiguration(integrationConfig);
-        });
+			configurationBuilder.AddConfiguration(integrationConfig);
+		});
 
-        builder.ConfigureServices((builder, services) =>
-        {
-            // services.Remove<IUserAccessorService>()
-            //     .AddScoped(_ => Mock.Of<IUserAccessorService>(x => x.GetUserId() == GetCurrentUserId()));
-        });
-    }
+		builder.ConfigureServices((builder, services) =>
+		{
+			// services.Remove<IUserAccessorService>()
+			//     .AddScoped(_ => Mock.Of<IUserAccessorService>(x => x.GetUserId() == GetCurrentUserId()));
+		});
+	}
 }

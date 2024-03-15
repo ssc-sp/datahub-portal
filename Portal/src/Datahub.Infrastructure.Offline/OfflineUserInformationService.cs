@@ -11,215 +11,215 @@ namespace Datahub.Infrastructure.Offline;
 
 public class OfflineUserInformationService : IUserInformationService
 {
-    public static readonly Guid UserGuid = new Guid(); 
+	public static readonly Guid UserGuid = new Guid();
 
-    readonly ILogger<IUserInformationService> _logger;
-    private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
-    
-    private User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
+	readonly ILogger<IUserInformationService> _logger;
+	private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
 
-    public OfflineUserInformationService(ILogger<IUserInformationService> logger, IDbContextFactory<DatahubProjectDBContext> contextFactory)
-    {
-        _logger = logger;
-        _contextFactory = contextFactory;
-    }
+	private User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
 
-    public Task<User> GetCurrentGraphUserAsync()
-    {
-        return Task.FromResult(new User
-        {
-            DisplayName = "Offline User",
-            Id = UserGuid.ToString(),
-            UserPrincipalName = "me@me.com",
-            Mail = "nabeel.bader@nrcan-rncan.gc.ca"
-        });
-    }
+	public OfflineUserInformationService(ILogger<IUserInformationService> logger, IDbContextFactory<DatahubProjectDBContext> contextFactory)
+	{
+		_logger = logger;
+		_contextFactory = contextFactory;
+	}
 
-    public Task<string> GetDisplayName()
-    {
-        return Task.FromResult("Me");
-    }
+	public Task<User> GetCurrentGraphUserAsync()
+	{
+		return Task.FromResult(new User
+		{
+			DisplayName = "Offline User",
+			Id = UserGuid.ToString(),
+			UserPrincipalName = "me@me.com",
+			Mail = "nabeel.bader@nrcan-rncan.gc.ca"
+		});
+	}
 
-    public Task<string> GetUserEmail()
-    {
-        return Task.FromResult("me@me.com");
-    }
+	public Task<string> GetDisplayName()
+	{
+		return Task.FromResult("Me");
+	}
 
-    public Task<string> GetUserEmailDomain()
-    {
-        return Task.FromResult("me@me.com");
-    }
+	public Task<string> GetUserEmail()
+	{
+		return Task.FromResult("me@me.com");
+	}
 
-    public Task<string> GetUserEmailPrefix()
-    {
-        return Task.FromResult("");
-    }
+	public Task<string> GetUserEmailDomain()
+	{
+		return Task.FromResult("me@me.com");
+	}
 
-    public Task<User> GetAnonymousGraphUserAsync()
-    {
-        return Task.FromResult(AnonymousUser);
-    }
+	public Task<string> GetUserEmailPrefix()
+	{
+		return Task.FromResult("");
+	}
 
-    public Task<string> GetUserIdString()
-    {
-        return Task.FromResult(UserGuid.ToString());
-    }
+	public Task<User> GetAnonymousGraphUserAsync()
+	{
+		return Task.FromResult(AnonymousUser);
+	}
 
-    public Task<string> GetUserLanguage()
-    {
-        return Task.FromResult("en-CA");
-    }
+	public Task<string> GetUserIdString()
+	{
+		return Task.FromResult(UserGuid.ToString());
+	}
 
-    public Task<string> GetUserRootFolder()
-    {
-        return Task.FromResult("/");
-    }
+	public Task<string> GetUserLanguage()
+	{
+		return Task.FromResult("en-CA");
+	}
 
-    public Task<bool> IsFrench()
-    {
-        return Task.FromResult(false);
-    }
+	public Task<string> GetUserRootFolder()
+	{
+		return Task.FromResult("/");
+	}
 
-    public Task<bool> RegisterUserLanguage(string language)
-    {
-        return Task.FromResult(true);
-    }
-        
-    public bool SetLanguage(string language)
-    {
-        return true;
-    }
+	public Task<bool> IsFrench()
+	{
+		return Task.FromResult(false);
+	}
 
-    public Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId)
-    {
-        throw new NotImplementedException();
-    }
+	public Task<bool> RegisterUserLanguage(string language)
+	{
+		return Task.FromResult(true);
+	}
 
-    public Task<User> GetGraphUserAsync(string userId)
-    {
-        return Task.FromResult(new User
-        {
-            DisplayName = "Offline User random",
-            Id = userId,
-            UserPrincipalName = "me@me.com"
-        });
-    }
+	public bool SetLanguage(string language)
+	{
+		return true;
+	}
 
-    public async Task<PortalUser> GetCurrentPortalUserAsync()
-    {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        
-        // get yan
-        // var yan = await context.PortalUsers.FirstOrDefaultAsync(u => u.DisplayName == "Yannick Robert");
-        // return yan;
-        
-        // get total number of users
-        var totalUsers = await context.PortalUsers.CountAsync();
-        
-        // return a random one
-        var randomUser = await context.PortalUsers.Skip(new Random().Next(0, totalUsers)).FirstOrDefaultAsync();
-        
-        return randomUser!;
-    }
+	public Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId)
+	{
+		throw new NotImplementedException();
+	}
 
-    public async Task<PortalUser> GetPortalUserAsync(string userGraphId)
-    {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        
-        return (await context.PortalUsers.FirstOrDefaultAsync(u => u.GraphGuid == userGraphId))!;
-    }
+	public Task<User> GetGraphUserAsync(string userId)
+	{
+		return Task.FromResult(new User
+		{
+			DisplayName = "Offline User random",
+			Id = userId,
+			UserPrincipalName = "me@me.com"
+		});
+	}
 
-    public async Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync()
-    {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        
-        // get total number of users
-        var totalUsers = await context.PortalUsers.CountAsync();
-        
-        // return a random one
-        var randomUser = await context.PortalUsers
-            .Include(u => u.Achievements)
-                .ThenInclude(a => a.Achievement)
-            .Skip(new Random().Next(0, totalUsers))
-            .FirstOrDefaultAsync();
-        
-        return randomUser!;
-    }
+	public async Task<PortalUser> GetCurrentPortalUserAsync()
+	{
+		await using var context = await _contextFactory.CreateDbContextAsync();
 
-    public Task<bool> IsUserWithoutInitiatives()
-    {
-        return Task.FromResult(false);
-    }
+		// get yan
+		// var yan = await context.PortalUsers.FirstOrDefaultAsync(u => u.DisplayName == "Yannick Robert");
+		// return yan;
 
-    public Task<bool> IsViewingAsGuest()
-    {
-        return Task.FromResult(false);
-    }
+		// get total number of users
+		var totalUsers = await context.PortalUsers.CountAsync();
 
-    public Task SetViewingAsGuest(bool isGuest)
-    {
-        // do nothing
-        return Task.Delay(0);
-    }
+		// return a random one
+		var randomUser = await context.PortalUsers.Skip(new Random().Next(0, totalUsers)).FirstOrDefaultAsync();
 
-    public Task<bool> IsViewingAsVisitor()
-    {
-        return Task.FromResult(false);
-    }
+		return randomUser!;
+	}
 
-    public Task SetViewingAsVisitor(bool isVisitor)
-    {
-        return Task.CompletedTask;
-    }
+	public async Task<PortalUser> GetPortalUserAsync(string userGraphId)
+	{
+		await using var context = await _contextFactory.CreateDbContextAsync();
 
-    public Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
-    {
-        return Task.FromResult(new ClaimsPrincipal());
-    }
+		return (await context.PortalUsers.FirstOrDefaultAsync(u => u.GraphGuid == userGraphId))!;
+	}
 
-    public Task<bool> IsUserProjectAdmin(string projectAcronym)
-    {
-        return Task.FromResult(false);
-    }
+	public async Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync()
+	{
+		await using var context = await _contextFactory.CreateDbContextAsync();
 
-    public Task<bool> IsUserProjectWorkspaceLead(string projectAcronym)
-    {
-        return Task.FromResult(false);
-    }
+		// get total number of users
+		var totalUsers = await context.PortalUsers.CountAsync();
 
-    public Task<bool> IsUserDatahubAdmin()
-    {
-        return Task.FromResult(false);
-    }
+		// return a random one
+		var randomUser = await context.PortalUsers
+			.Include(u => u.Achievements)
+				.ThenInclude(a => a.Achievement)
+			.Skip(new Random().Next(0, totalUsers))
+			.FirstOrDefaultAsync();
 
-    public Task<bool> IsUserProjectMember(string projectAcronym)
-    {
-        return Task.FromResult(false);
-    }
+		return randomUser!;
+	}
 
-    public Task RegisterAuthenticatedPortalUser()
-    {
-        return Task.FromResult(true);
-    }
+	public Task<bool> IsUserWithoutInitiatives()
+	{
+		return Task.FromResult(false);
+	}
 
-    public Task CreatePortalUserAsync(string userGraphId)
-    {
-        throw new NotImplementedException();
-    }
+	public Task<bool> IsViewingAsGuest()
+	{
+		return Task.FromResult(false);
+	}
 
-    public Task<PortalUser> GetAuthenticatedPortalUser()
-    {
-        return Task.FromResult(new PortalUser(){GraphGuid = AnonymousUser.Id});
-    }
-    
-    public Task<bool> UpdatePortalUserAsync(PortalUser updatedUser)
-    {
-        PortalUserUpdated?.Invoke(this, new PortalUserUpdatedEventArgs(updatedUser));
-        throw new NotImplementedException();
-    }
-    public event EventHandler<PortalUserUpdatedEventArgs>? PortalUserUpdated;
-    public Task<bool> IsDailyLogin()
-    {
-        return Task.FromResult(false);
-    }
+	public Task SetViewingAsGuest(bool isGuest)
+	{
+		// do nothing
+		return Task.Delay(0);
+	}
+
+	public Task<bool> IsViewingAsVisitor()
+	{
+		return Task.FromResult(false);
+	}
+
+	public Task SetViewingAsVisitor(bool isVisitor)
+	{
+		return Task.CompletedTask;
+	}
+
+	public Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
+	{
+		return Task.FromResult(new ClaimsPrincipal());
+	}
+
+	public Task<bool> IsUserProjectAdmin(string projectAcronym)
+	{
+		return Task.FromResult(false);
+	}
+
+	public Task<bool> IsUserProjectWorkspaceLead(string projectAcronym)
+	{
+		return Task.FromResult(false);
+	}
+
+	public Task<bool> IsUserDatahubAdmin()
+	{
+		return Task.FromResult(false);
+	}
+
+	public Task<bool> IsUserProjectMember(string projectAcronym)
+	{
+		return Task.FromResult(false);
+	}
+
+	public Task RegisterAuthenticatedPortalUser()
+	{
+		return Task.FromResult(true);
+	}
+
+	public Task CreatePortalUserAsync(string userGraphId)
+	{
+		throw new NotImplementedException();
+	}
+
+	public Task<PortalUser> GetAuthenticatedPortalUser()
+	{
+		return Task.FromResult(new PortalUser() { GraphGuid = AnonymousUser.Id });
+	}
+
+	public Task<bool> UpdatePortalUserAsync(PortalUser updatedUser)
+	{
+		PortalUserUpdated?.Invoke(this, new PortalUserUpdatedEventArgs(updatedUser));
+		throw new NotImplementedException();
+	}
+	public event EventHandler<PortalUserUpdatedEventArgs>? PortalUserUpdated;
+	public Task<bool> IsDailyLogin()
+	{
+		return Task.FromResult(false);
+	}
 }

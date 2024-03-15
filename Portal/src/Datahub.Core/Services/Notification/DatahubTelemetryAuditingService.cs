@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.ApplicationInsights;
+﻿using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Options;
 
@@ -17,8 +14,8 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
         _telemetryClient = new TelemetryClient(telemetryConfig.Value);
         _userInformationService = userInformationService;
     }
-        
-    /// <inheritdoc>
+
+    /// <inheritdoc/>
     public async Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, bool anonymous, params (string key, string value)[] details)
     {
         var properties = new Dictionary<string, string>
@@ -32,7 +29,7 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
         _telemetryClient.Flush();
     }
 
-    /// <inheritdoc>
+    /// <inheritdoc/>
     public async Task TrackSecurityEvent(string scope, string table, AuditChangeType changeType, params (string key, string value)[] details)
     {
         var properties = new Dictionary<string, string>
@@ -46,7 +43,7 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
         _telemetryClient.Flush();
     }
 
-    /// <inheritdoc>
+    /// <inheritdoc/>
     public async Task TrackAdminEvent(string scope, string table, AuditChangeType changeType, params (string key, string value)[] details)
     {
         var properties = new Dictionary<string, string>
@@ -60,7 +57,7 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
         _telemetryClient.Flush();
     }
 
-    /// <inheritdoc>
+    /// <inheritdoc/>
     public async Task TrackException(Exception exception, params (string key, string value)[] details)
     {
         var properties = new Dictionary<string, string>();
@@ -69,7 +66,7 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
         _telemetryClient.Flush();
     }
 
-    /// <inheritdoc>
+    /// <inheritdoc/>
     public async Task TrackEvent(string name, params (string key, string value)[] details)
     {
         var properties = new Dictionary<string, string>();

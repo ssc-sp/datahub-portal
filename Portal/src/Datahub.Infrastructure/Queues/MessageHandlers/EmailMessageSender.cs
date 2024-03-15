@@ -1,14 +1,13 @@
 ﻿using Datahub.Infrastructure.Queues.Messages;
-using MediatR;
 using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Infrastructure.Queues.MessageHandlers;
 
 public class EmailMessageSender : QueueMessageSender<EmailRequestMessage>
 {
-    public EmailMessageSender(IConfiguration configuration) : base(configuration)
-    {
-    }
+	public EmailMessageSender(IConfiguration configuration) : base(configuration)
+	{
+	}
 
-    protected override string ConfigPathOrQueueName => "email-notification";
+	protected override string ConfigPathOrQueueName => "email-notification";
 }

@@ -2,7 +2,7 @@
 
 public interface IAppConfig
 {
-    string GetConnectionString();
-    string GetConnStringTemplate();
-        
+	string GetConnectionString();
+	string GetConnStringTemplate();
+
 }

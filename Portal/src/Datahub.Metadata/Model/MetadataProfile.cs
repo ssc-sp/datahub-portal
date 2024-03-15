@@ -7,7 +7,7 @@ namespace Datahub.Metadata.Model;
 /// </summary>
 public class MetadataProfile
 {
-    public int ProfileId { get; set; }
-    public string Name { get; set; }
-    public virtual ICollection<MetadataSection> Sections { get; set; }
+	public int ProfileId { get; set; }
+	public string Name { get; set; }
+	public virtual ICollection<MetadataSection> Sections { get; set; }
 }

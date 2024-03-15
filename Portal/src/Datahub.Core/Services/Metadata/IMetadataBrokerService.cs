@@ -1,9 +1,5 @@
 ﻿using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 using Entities = Datahub.Metadata.Model;
 
 namespace Datahub.Core.Services.Metadata;
@@ -55,5 +51,4 @@ public record CatalogSearchRequest
     List<ClassificationType> Classifications,
     List<MetadataObjectType> ObjectTypes,
     List<int> Sectors,
-    List<int> Branches
-);
+    List<int> Branches);

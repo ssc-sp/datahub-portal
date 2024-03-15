@@ -13,21 +13,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
-using Microsoft.Graph.Auth;
 using Microsoft.Graph.Models;
-using Microsoft.Identity.Client;
 using Newtonsoft.Json;
 using GraphServiceClient = Microsoft.Graph.GraphServiceClient;
 
 #region Config
 
 var config = new ConfigurationBuilder()
-     .SetBasePath(System.IO.Directory.GetCurrentDirectory())
-     .AddJsonFile($"appsettings.Development.json")
-     .Build();
+	 .SetBasePath(System.IO.Directory.GetCurrentDirectory())
+	 .AddJsonFile($"appsettings.Development.json")
+	 .Build();
 
-string projectDbConnectionString  = config[nameof(projectDbConnectionString)]!;
+string projectDbConnectionString = config[nameof(projectDbConnectionString)]!;
 string metadataDbConnectionString = config[nameof(metadataDbConnectionString)]!;
 string tenantId = config["TenantId"]!;
 string clientId = config["ClientId"]!;
@@ -60,76 +57,76 @@ var metadataBroker = serviceProvider.GetService<IMetadataBrokerService>();
 
 if (metadataCtx is not null && projectCtx is not null && InputFileExists(args))
 {
-    Dictionary<string, User> userCache = new();
+	Dictionary<string, User> userCache = new();
 
-    Console.WriteLine($"Loading file '{args[0]}'...");
+	Console.WriteLine($"Loading file '{args[0]}'...");
 
-    // Load json data
-    var json = File.ReadAllText(args[0]);
-    Entry[] entries = JsonConvert.DeserializeObject<Entry[]>(json) ?? Array.Empty<Entry>();
+	// Load json data
+	var json = File.ReadAllText(args[0]);
+	Entry[] entries = JsonConvert.DeserializeObject<Entry[]>(json) ?? Array.Empty<Entry>();
 
-    Console.WriteLine($"Processing file {entries?.Length} rows..");
+	Console.WriteLine($"Processing file {entries?.Length} rows..");
 
-    var sw = Stopwatch.StartNew();
+	var sw = Stopwatch.StartNew();
 
-    foreach (var entry in entries!)
-    {
-        // check there is no ObjectMetadata entry already (continue if so..)
-        if (ObjectMetadataExists(metadataCtx, entry.id))
-            continue;
+	foreach (var entry in entries!)
+	{
+		// check there is no ObjectMetadata entry already (continue if so..)
+		if (ObjectMetadataExists(metadataCtx, entry.id))
+			continue;
 
-        // create ObjectMetadata
-        ObjectMetadata objMetadata = new()
-        {
-            ObjectId_TXT = entry.id,
-            MetadataVersionId = 2
-        };
+		// create ObjectMetadata
+		ObjectMetadata objMetadata = new()
+		{
+			ObjectId_TXT = entry.id,
+			MetadataVersionId = 2
+		};
 
-        // save metadata object entry
-        metadataCtx.ObjectMetadataSet.Add(objMetadata);
-        metadataCtx.SaveChanges();
+		// save metadata object entry
+		metadataCtx.ObjectMetadataSet.Add(objMetadata);
+		metadataCtx.SaveChanges();
 
-        var graphUser = await GetGraphUser(graphClient, entry.contact, userCache);
-        var sector = await GetSector(projectCtx, graphUser?.Department);
+		var graphUser = await GetGraphUser(graphClient, entry.contact, userCache);
+		var sector = await GetSector(projectCtx, graphUser?.Department);
 
-        // save dataset metadata
-        var fieldValues = await metadataBroker!.GetObjectMetadataValues(objMetadata.ObjectMetadataId);
-        var subjectValues = GetSubjectValues(fieldValues.Definitions, entry.subjects) ?? "";
+		// save dataset metadata
+		var fieldValues = await metadataBroker!.GetObjectMetadataValues(objMetadata.ObjectMetadataId);
+		var subjectValues = GetSubjectValues(fieldValues.Definitions, entry.subjects) ?? "";
 
-        fieldValues.SetValue("sector", $"{sector?.Id ?? 0}");
-        fieldValues.SetValue("collection", "primary");
-        fieldValues.SetValue("title_translated_en", entry.name_en);
-        fieldValues.SetValue("title_translated_fr", entry.name_fr);
-        fieldValues.SetValue("contact_information", graphUser?.Mail ?? entry.contact);
-        fieldValues.SetValue("subject", subjectValues);
-        fieldValues.SetValue("keywords_en", String.Join(",", entry.keywords_en));
-        fieldValues.SetValue("keywords_fr", String.Join(",", entry.keywords_fr));
-        await metadataBroker.SaveMetadata(fieldValues, true);
+		fieldValues.SetValue("sector", $"{sector?.Id ?? 0}");
+		fieldValues.SetValue("collection", "primary");
+		fieldValues.SetValue("title_translated_en", entry.name_en);
+		fieldValues.SetValue("title_translated_fr", entry.name_fr);
+		fieldValues.SetValue("contact_information", graphUser?.Mail ?? entry.contact);
+		fieldValues.SetValue("subject", subjectValues);
+		fieldValues.SetValue("keywords_en", String.Join(",", entry.keywords_en));
+		fieldValues.SetValue("keywords_fr", String.Join(",", entry.keywords_fr));
+		await metadataBroker.SaveMetadata(fieldValues, true);
 
-        var catalogObj = new CatalogObject()
-        {
-            ObjectMetadataId = objMetadata.ObjectMetadataId,
-            DataType = MetadataObjectType.DatasetUrl,
-            Name_TXT = entry.name_en,
-            Name_French_TXT = entry.name_fr,
-            Location_TXT = entry.url_en,
-            SecurityClass_TXT = entry.securityClass ?? "Unclassified",
-            Sector_NUM = sector?.Id ?? 0,
-            Branch_NUM = 0, // no branch for now
-            Contact_TXT = graphUser?.Mail ?? entry.contact,
-            Search_English_TXT = GetCatalogText(GetSubjects(entry, true), GetPrograms(entry), 
-                sector?.Name_English ?? "", string.Empty, entry.name_en, entry.keywords_en),
-            Search_French_TXT = GetCatalogText(GetSubjects(entry, false), GetPrograms(entry), 
-                sector?.Name_French ?? "", string.Empty, entry.name_fr, entry.keywords_fr),
-        };
+		var catalogObj = new CatalogObject()
+		{
+			ObjectMetadataId = objMetadata.ObjectMetadataId,
+			DataType = MetadataObjectType.DatasetUrl,
+			Name_TXT = entry.name_en,
+			Name_French_TXT = entry.name_fr,
+			Location_TXT = entry.url_en,
+			SecurityClass_TXT = entry.securityClass ?? "Unclassified",
+			Sector_NUM = sector?.Id ?? 0,
+			Branch_NUM = 0, // no branch for now
+			Contact_TXT = graphUser?.Mail ?? entry.contact,
+			Search_English_TXT = GetCatalogText(GetSubjects(entry, true), GetPrograms(entry),
+				sector?.Name_English ?? "", string.Empty, entry.name_en, entry.keywords_en),
+			Search_French_TXT = GetCatalogText(GetSubjects(entry, false), GetPrograms(entry),
+				sector?.Name_French ?? "", string.Empty, entry.name_fr, entry.keywords_fr),
+		};
 
-        metadataCtx.CatalogObjects.Add(catalogObj);
-        metadataCtx.SaveChanges();
-    }
+		metadataCtx.CatalogObjects.Add(catalogObj);
+		metadataCtx.SaveChanges();
+	}
 
-    sw.Stop();
+	sw.Stop();
 
-    Console.WriteLine($"Processing time: {sw.Elapsed}");
+	Console.WriteLine($"Processing time: {sw.Elapsed}");
 }
 
 Console.WriteLine($"Done...");
@@ -142,110 +139,110 @@ static bool InputFileExists(string[] args) => args.Length > 0 && File.Exists(arg
 
 static bool ObjectMetadataExists(MetadataDbContext ctx, string id)
 {
-    return ctx.ObjectMetadataSet.Any(e => e.ObjectId_TXT == id);
+	return ctx.ObjectMetadataSet.Any(e => e.ObjectId_TXT == id);
 }
 
 static Microsoft.Graph.GraphServiceClient PrepareAuthenticatedClient(string tenantId, string clientId, string clientSecret)
 {
 
-    //see https://learn.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=csharp
-    // using Azure.Identity;
-    var options = new ClientSecretCredentialOptions
-    {
-        AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
-    };
-    var clientCertCredential = new ClientSecretCredential(
-        tenantId,
-        clientId,
-        clientSecret, options);
+	//see https://learn.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=csharp
+	// using Azure.Identity;
+	var options = new ClientSecretCredentialOptions
+	{
+		AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
+	};
+	var clientCertCredential = new ClientSecretCredential(
+		tenantId,
+		clientId,
+		clientSecret, options);
 
-    GraphServiceClient graphServiceClient = new(clientCertCredential);
+	GraphServiceClient graphServiceClient = new(clientCertCredential);
 
-    return graphServiceClient;
+	return graphServiceClient;
 }
 
 static async Task<User?> GetGraphUser(GraphServiceClient graphClient, string userName, Dictionary<string, Microsoft.Graph.Models.User> userCache)
 {
-    if (userCache.ContainsKey(userName))
-        return userCache[userName];
+	if (userCache.ContainsKey(userName))
+		return userCache[userName];
 
-    var users = await graphClient.Users.GetAsync(
-        requestConfiguration =>
-        {
-            requestConfiguration.QueryParameters.Search = $"\"onPremisesSamAccountName:{userName}\"";
-            requestConfiguration.QueryParameters.Select = new[] { "mail","department"};
-            requestConfiguration.QueryParameters.Count = true;
-            requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");
-        });
+	var users = await graphClient.Users.GetAsync(
+		requestConfiguration =>
+		{
+			requestConfiguration.QueryParameters.Search = $"\"onPremisesSamAccountName:{userName}\"";
+			requestConfiguration.QueryParameters.Select = new[] { "mail", "department" };
+			requestConfiguration.QueryParameters.Count = true;
+			requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");
+		});
 
-    var found = users?.Value?.FirstOrDefault();
-    if (found is not null)
-        userCache[userName] = found!;
+	var found = users?.Value?.FirstOrDefault();
+	if (found is not null)
+		userCache[userName] = found!;
 
-    return found;
+	return found;
 }
 
 static async Task<Sector> GetSector(DatahubProjectDBContext ctx, string? department)
 {
-    var engAcronym = (department ?? "").Split('.').FirstOrDefault();
-    if (!string.IsNullOrEmpty(engAcronym))
-    {
-        var orgLevel = await ctx.Organization_Levels.FirstOrDefaultAsync(e => e.Full_Acronym_E == engAcronym);
-        if (orgLevel is not null)
-        {
-            return new Sector()
-            {
-                Id = orgLevel.Organization_ID,
-                Name_English = orgLevel.Org_Name_E,
-                Name_French = orgLevel.Org_Name_F
-            };
-        }
-    }
-    return new Sector();
+	var engAcronym = (department ?? "").Split('.').FirstOrDefault();
+	if (!string.IsNullOrEmpty(engAcronym))
+	{
+		var orgLevel = await ctx.Organization_Levels.FirstOrDefaultAsync(e => e.Full_Acronym_E == engAcronym);
+		if (orgLevel is not null)
+		{
+			return new Sector()
+			{
+				Id = orgLevel.Organization_ID,
+				Name_English = orgLevel.Org_Name_E,
+				Name_French = orgLevel.Org_Name_F
+			};
+		}
+	}
+	return new Sector();
 }
 
 static IEnumerable<string> GetSubjects(Entry entry, bool eng)
 {
-    return entry.subjects is not null ? entry.subjects.Select(s => eng ? s.name_en : s.name_fr) : new List<string>();
+	return entry.subjects is not null ? entry.subjects.Select(s => eng ? s.name_en : s.name_fr) : new List<string>();
 }
 
 static IEnumerable<string> GetPrograms(Entry entry)
 {
-    return (entry.programs ?? "").Split('/', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).Where(s => !string.IsNullOrEmpty(s));
+	return (entry.programs ?? "").Split('/', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).Where(s => !string.IsNullOrEmpty(s));
 }
 
 static string GetCatalogText(IEnumerable<string> subjects, IEnumerable<string> programs, string sector, string branch, string objectName, IEnumerable<string> keywords)
 {
-    return new StringBuilder()
-      .AppendJoin(' ', keywords)
-      .Append(' ')
-      .AppendJoin(' ', subjects)
-      .Append(' ')
-      .AppendJoin(' ', programs.Where(p => p != "none"))
-      .Append(' ')
-      .Append($"{sector} {branch} {objectName}")
-      .ToString()
-      .ToLower()
-      .Trim();
+	return new StringBuilder()
+	  .AppendJoin(' ', keywords)
+	  .Append(' ')
+	  .AppendJoin(' ', subjects)
+	  .Append(' ')
+	  .AppendJoin(' ', programs.Where(p => p != "none"))
+	  .Append(' ')
+	  .Append($"{sector} {branch} {objectName}")
+	  .ToString()
+	  .ToLower()
+	  .Trim();
 }
 
 string GetSubjectValues(FieldDefinitions definitions, List<CatalogIngestTool.Subject> subjects)
 {
-    var subjectField = definitions.Get("subject");
+	var subjectField = definitions.Get("subject");
 
-    var choices = subjectField?.Choices.ToList();
-    if (choices == null)
-        return "";
+	var choices = subjectField?.Choices.ToList();
+	if (choices == null)
+		return "";
 
-    List<string> values = new();
-    foreach (var subject in subjects.Select(s => s.name_en))
-    {
-        var found = choices.FirstOrDefault(c => c.Label_English_TXT.Equals(subject, StringComparison.InvariantCultureIgnoreCase));
-        if (found != null)
-            values.Add(found.Value_TXT);
-    }
+	List<string> values = new();
+	foreach (var subject in subjects.Select(s => s.name_en))
+	{
+		var found = choices.FirstOrDefault(c => c.Label_English_TXT.Equals(subject, StringComparison.InvariantCultureIgnoreCase));
+		if (found != null)
+			values.Add(found.Value_TXT);
+	}
 
-    return String.Join("|", values);
+	return String.Join("|", values);
 }
 
 
@@ -253,31 +250,31 @@ string GetSubjectValues(FieldDefinitions definitions, List<CatalogIngestTool.Sub
 
 namespace CatalogIngestTool
 {
-    class DummyDatahubAuditingService : IDatahubAuditingService
-    {
-        public Task TrackAdminEvent(string scope, string source, AuditChangeType changeType, params (string key, string value)[] details)
-        {
-            return Task.CompletedTask;
-        }
+	class DummyDatahubAuditingService : IDatahubAuditingService
+	{
+		public Task TrackAdminEvent(string scope, string source, AuditChangeType changeType, params (string key, string value)[] details)
+		{
+			return Task.CompletedTask;
+		}
 
-        public Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, bool anonymous, params (string key, string value)[] details)
-        {
-            return Task.CompletedTask;
-        }
+		public Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, bool anonymous, params (string key, string value)[] details)
+		{
+			return Task.CompletedTask;
+		}
 
-        public Task TrackException(Exception exception, params (string key, string value)[] details)
-        {
-            return Task.CompletedTask;
-        }
+		public Task TrackException(Exception exception, params (string key, string value)[] details)
+		{
+			return Task.CompletedTask;
+		}
 
-        public Task TrackSecurityEvent(string scope, string table, AuditChangeType changeType, params (string key, string value)[] details)
-        {
-            return Task.CompletedTask;
-        }
+		public Task TrackSecurityEvent(string scope, string table, AuditChangeType changeType, params (string key, string value)[] details)
+		{
+			return Task.CompletedTask;
+		}
 
-        public Task TrackEvent(string message, params (string key, string value)[] details)
-        {
-            return Task.CompletedTask;
-        }
-    }
+		public Task TrackEvent(string message, params (string key, string value)[] details)
+		{
+			return Task.CompletedTask;
+		}
+	}
 }

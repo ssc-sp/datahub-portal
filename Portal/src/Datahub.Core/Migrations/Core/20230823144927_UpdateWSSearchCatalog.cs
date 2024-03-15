@@ -12,8 +12,8 @@ namespace Datahub.Core.Migrations.Core
         {
             migrationBuilder.Sql(@"
                 DELETE FROM CatalogObjects
-                WHERE ObjectType = 1");  
-            
+                WHERE ObjectType = 1");
+
             migrationBuilder.Sql(@"
                 INSERT INTO CatalogObjects(ObjectType, ObjectId, Name_English, Name_French, Desc_English, Desc_French)
                 SELECT 1 as ObjectType, Project_Acronym_CD as ObjectId, Project_Name as Name_English, Project_Name_Fr as Name_French, Project_Summary_Desc as Desc_English, Project_Summary_Desc_Fr as Desc_French 

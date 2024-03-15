@@ -2,7 +2,7 @@
 
 public enum CatalogObjectLanguage
 {
-    Bilingual,
-    English,
-    French
+	Bilingual,
+	English,
+	French
 }

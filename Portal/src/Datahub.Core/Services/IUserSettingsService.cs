@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Datahub.Core.Model.UserTracking;
+﻿using Datahub.Core.Model.UserTracking;
 #nullable enable
 
 namespace Datahub.Core.Services
 {
-    public interface IUserSettingsService
+	public interface IUserSettingsService
     {
         Task<bool> HasUserAcceptedTAC();
         Task<bool> RegisterUserTAC();
@@ -21,6 +18,5 @@ namespace Datahub.Core.Services
         Task<string> GetUserLanguage();
         Task<bool> IsFrench();
         Task<UserSettings?> GetUserSettingsAsync();
-        
     }
 }

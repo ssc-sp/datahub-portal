@@ -1,8 +1,5 @@
 ﻿using Elemental.Components;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Datahub.Core.Services.Data;
 
@@ -45,7 +42,7 @@ public class DataImportingService
                             || propertyType == typeof(double?)
                             || propertyType == typeof(double))
                         {
-                            arrayValue = arrayValue.Replace(",", "");
+                            arrayValue = arrayValue.Replace(",", string.Empty);
                             if (propertyType == typeof(double) || propertyType == typeof(double?))
                             {
                                 double outValue;

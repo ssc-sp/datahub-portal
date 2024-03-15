@@ -1,9 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Datahub.Core.Components;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.UserTracking;
@@ -15,7 +11,6 @@ public class UserLocationManagerService
     private readonly ILogger<UserLocationManagerService> _logger;
     private readonly IUserInformationService _userInformationService;
     private readonly IDbContextFactory<DatahubProjectDBContext> _portalContext;
-
 
     public UserLocationManagerService(ILogger<UserLocationManagerService> logger,
         IUserInformationService userInformationService,
@@ -35,7 +30,7 @@ public class UserLocationManagerService
 
             //remove existing entry for the same LinkType and DataProject if it exists
             var existingEntity = await efCoreDatahubContext.UserRecentLinks
-                .FirstOrDefaultAsync(l => l.UserId == user.Id && l.LinkType == link.LinkType && 
+                .FirstOrDefaultAsync(l => l.UserId == user.Id && l.LinkType == link.LinkType &&
                     (l.LinkType == DatahubLinkType.DataProject || l.DataProject == link.DataProject));
 
             // if the link is new, we need to add it to the database
@@ -95,7 +90,7 @@ public class UserLocationManagerService
     {
         await using var efCoreDatahubContext = await _portalContext.CreateDbContextAsync();
 
-        var allowedLinks = new HashSet<DatahubLinkType>() 
+        var allowedLinks = new HashSet<DatahubLinkType>()
         {
             DatahubLinkType.DataProject,
             DatahubLinkType.Storage,

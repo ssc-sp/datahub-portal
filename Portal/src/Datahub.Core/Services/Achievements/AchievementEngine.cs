@@ -1,7 +1,5 @@
 ﻿using Datahub.Core.Model.Achievements;
 using RulesEngine.Models;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Datahub.Core.Services.Achievements;
 
@@ -55,9 +53,9 @@ public class AchievementEngine
 
     static RulesEngine.RulesEngine CreateRulesEngine(List<AchievementRule> rules)
     {
-        var rulesEngineSettings = new ReSettings 
-        { 
-            CustomTypes = new[] { typeof(Utils) } 
+        var rulesEngineSettings = new ReSettings
+        {
+            CustomTypes = new[] { typeof(Utils) }
         };
         return new RulesEngine.RulesEngine(CreateWorkflows(rules).ToArray(), rulesEngineSettings);
     }

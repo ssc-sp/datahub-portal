@@ -7,20 +7,20 @@ using ResourceProvisioner.Infrastructure;
 
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWorkerDefaults()
-    .ConfigureAppConfiguration(builder =>
-    {
-        builder.AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .Build();
-    })
-    .ConfigureServices((hostContext, services) =>
-    {
-        services.AddApplicationServices(hostContext.Configuration);
-        services.AddInfrastructureServices(hostContext.Configuration);
-        services.AddScoped<CreateResourceRunCommandHandler>();
+	.ConfigureFunctionsWorkerDefaults()
+	.ConfigureAppConfiguration(builder =>
+	{
+		builder.AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
+			.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+			.Build();
+	})
+	.ConfigureServices((hostContext, services) =>
+	{
+		services.AddApplicationServices(hostContext.Configuration);
+		services.AddInfrastructureServices(hostContext.Configuration);
+		services.AddScoped<CreateResourceRunCommandHandler>();
 
-    })
-    .Build();
+	})
+	.Build();
 
 host.Run();

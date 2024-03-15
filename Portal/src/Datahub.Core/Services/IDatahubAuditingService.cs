@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Threading.Tasks;
 
 namespace Datahub.Core.Services;
 
@@ -31,9 +29,8 @@ public interface IDatahubAuditingService
     /// <param name="table">Data table where the the change occurred</param>
     /// <param name="changeType">Change type: New, Edit or Delete</param>
     /// <param name="details">Extra details (optional)</param>
-    Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, params (string key, string value)[] details) => 
+    Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, params (string key, string value)[] details) =>
         TrackDataEvent(objectId, table, changeType, false, details);
-
 
     /// <summary>
     /// Track security related change event.
@@ -85,23 +82,23 @@ public static class IDatahubAuditingServiceExtensions
             {
                 if (entry.State == EntityState.Added)
                     await auditService.TrackDataEvent(
-                        entry.DebugView.ShortView, 
-                        entry.Entity.GetType().Name, 
+                        entry.DebugView.ShortView,
+                        entry.Entity.GetType().Name,
                         AuditChangeType.New,
                         anonymous);
 
                 if (entry.State == EntityState.Modified)
                     await auditService.TrackDataEvent(
-                        entry.DebugView.ShortView, 
-                        entry.Entity.GetType().Name, 
+                        entry.DebugView.ShortView,
+                        entry.Entity.GetType().Name,
                         AuditChangeType.Edit,
                         anonymous,
                         ("changeDetails", entry.DebugView.LongView));
 
                 if (entry.State == EntityState.Deleted)
                     await auditService.TrackDataEvent(
-                        entry.DebugView.ShortView, 
-                        entry.Entity.GetType().Name, 
+                        entry.DebugView.ShortView,
+                        entry.Entity.GetType().Name,
                         AuditChangeType.Delete,
                         anonymous);
             }

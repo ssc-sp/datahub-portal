@@ -8,13 +8,13 @@ namespace Datahub.PIP;
 
 public class PIPFormsModule : IDatahubModule
 {
-    public void ConfigureDatabases(IServiceCollection serviceProvider, IConfiguration configuration)
-    {
-        serviceProvider.ConfigureDbContext<PIPDBContext>(configuration, "datahub_mssql_pip", configuration.GetDriver());
-    }
+	public void ConfigureDatabases(IServiceCollection serviceProvider, IConfiguration configuration)
+	{
+		serviceProvider.ConfigureDbContext<PIPDBContext>(configuration, "datahub_mssql_pip", configuration.GetDriver());
+	}
 
-    public void InitializeDatabases(DatahubModuleContext ctx, IConfiguration configuration)
-    {
-        ctx.InitializeDatabase<PIPDBContext>(configuration);
-    }
+	public void InitializeDatabases(DatahubModuleContext ctx, IConfiguration configuration)
+	{
+		ctx.InitializeDatabase<PIPDBContext>(configuration);
+	}
 }
