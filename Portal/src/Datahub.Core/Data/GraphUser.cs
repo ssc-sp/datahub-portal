@@ -1,5 +1,4 @@
 using System.Net.Mail;
-using Microsoft.Graph;
 using Microsoft.Graph.Models;
 
 namespace Datahub.Core.Data;
@@ -9,37 +8,37 @@ namespace Datahub.Core.Data;
 /// </summary>
 public class GraphUser
 {
-	/// <summary>
-	/// Gets or sets user Id
-	/// </summary>
-	/// <value>
-	/// User Id
-	/// </value>
-	public string Id { get; set; }
+    /// <summary>
+    /// Gets or sets user Id
+    /// </summary>
+    /// <value>
+    /// User Id
+    /// </value>
+    public string Id { get; set; }
 
-	/// <summary>
-	/// Gets or sets name of user
-	/// </summary>
-	/// <value>
-	/// Name of user
-	/// </value>
-	public string DisplayName { get; set; }
+    /// <summary>
+    /// Gets or sets name of user
+    /// </summary>
+    /// <value>
+    /// Name of user
+    /// </value>
+    public string DisplayName { get; set; }
 
-	/// <summary>
-	/// Gets or sets mail Address
-	/// </summary>
-	/// <value>
-	/// Mail Address
-	/// </value>
-	public MailAddress mailAddress { get; set; }
+    /// <summary>
+    /// Gets or sets mail Address
+    /// </summary>
+    /// <value>
+    /// Mail Address
+    /// </value>
+    public MailAddress mailAddress { get; set; }
 
-	/// <summary>
-	/// Gets the user's email address
-	/// </summary>
-	/// <value>
-	/// The user's email address
-	/// </value>
-	public string Mail
+    /// <summary>
+    /// Gets the user's email address
+    /// </summary>
+    /// <value>
+    /// The user's email address
+    /// </value>
+    public string Mail
     {
         get
         {
@@ -47,13 +46,13 @@ public class GraphUser
         }
     }
 
-	/// <summary>
-	/// Gets the user's email address
-	/// </summary>
-	/// <value>
-	/// The user's email address
-	/// </value>
-	public string UserName
+    /// <summary>
+    /// Gets the user's email address
+    /// </summary>
+    /// <value>
+    /// The user's email address
+    /// </value>
+    public string UserName
     {
         get
         {
@@ -61,13 +60,13 @@ public class GraphUser
         }
     }
 
-	/// <summary>
-	/// Gets the user's email domain
-	/// </summary>
-	/// <value>
-	/// The user's email domain
-	/// </value>
-	public string Domain
+    /// <summary>
+    /// Gets the user's email domain
+    /// </summary>
+    /// <value>
+    /// The user's email domain
+    /// </value>
+    public string Domain
     {
         get
         {

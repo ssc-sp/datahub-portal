@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Datahub.Core.Model.Datahub;
+﻿using Datahub.Core.Model.Datahub;
 
 namespace Datahub.Core.Services.Notification;
 

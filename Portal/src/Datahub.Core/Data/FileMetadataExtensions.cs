@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
@@ -13,7 +10,7 @@ public static class FileMetaDataExtensions
     {
         if (metadata?.Count > 0)
         {
-            foreach(string propertyName in fileMetadata.GetMetadataProperties().Where(p => !string.IsNullOrWhiteSpace(p.key)).Select( p => p.key))
+            foreach(string propertyName in fileMetadata.GetMetadataProperties().Where(p => !string.IsNullOrWhiteSpace(p.Key)).Select(p => p.Key))
             {
                 if (metadata.ContainsKey(propertyName))
                 {
@@ -101,7 +98,7 @@ public static class FileMetaDataExtensions
     public static Dictionary<string, string> GenerateMetadata(this FileMetaData fileMetadata)
     {
         Dictionary<string, string> metadata = new Dictionary<string, string>();
-        FileMetaDataExtensions.GetMetadataProperties(null).Where(p => !string.IsNullOrWhiteSpace(p.key)).Select(p => p.key).ToList().ForEach(propertyName =>
+        FileMetaDataExtensions.GetMetadataProperties(null).Where(p => !string.IsNullOrWhiteSpace(p.Key)).Select(p => p.Key).ToList().ForEach(propertyName =>
         {
             metadata.Add(propertyName, fileMetadata.GetMetadataPropertyValue(propertyName));
         });

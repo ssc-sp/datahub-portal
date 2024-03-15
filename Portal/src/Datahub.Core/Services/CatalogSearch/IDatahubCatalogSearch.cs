@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Datahub.Core.Model.Catalog;
+﻿using Datahub.Core.Model.Catalog;
 
 namespace Datahub.Core.Services.CatalogSearch;
 

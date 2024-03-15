@@ -1,4 +1,3 @@
-using System.Linq;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 

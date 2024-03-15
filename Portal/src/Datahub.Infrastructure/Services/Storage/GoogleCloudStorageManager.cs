@@ -6,19 +6,13 @@ using Google;
 using Google.Api.Gax;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Storage.v1.Data;
-using Google.Apis.Upload;
 using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using GObject = Google.Apis.Storage.v1.Data.Object;
 
 namespace Datahub.Infrastructure.Services.Storage
 {
-    public class GoogleCloudStorageManager : ICloudStorageManager
+	public class GoogleCloudStorageManager : ICloudStorageManager
     {
         private const int PAGE_SIZE = 100;
         private const string EMPTY_FOLDER_CONTENT_TYPE = "text/plain";

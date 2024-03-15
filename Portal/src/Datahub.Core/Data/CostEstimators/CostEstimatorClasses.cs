@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Datahub.Core.Data.CostEstimators;
+﻿namespace Datahub.Core.Data.CostEstimators;
 
 public record class EstimatorResultLine(int NumberOfOperations, decimal Cost);
 public record class EstimatorResultLineDecimal(decimal NumberOfOperations, decimal Cost);

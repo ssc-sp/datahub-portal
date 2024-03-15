@@ -13,10 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
-using Microsoft.Graph.Auth;
 using Microsoft.Graph.Models;
-using Microsoft.Identity.Client;
 using Newtonsoft.Json;
 using GraphServiceClient = Microsoft.Graph.GraphServiceClient;
 
@@ -253,7 +250,7 @@ string GetSubjectValues(FieldDefinitions definitions, List<CatalogIngestTool.Sub
 
 namespace CatalogIngestTool
 {
-    class DummyDatahubAuditingService : IDatahubAuditingService
+	class DummyDatahubAuditingService : IDatahubAuditingService
     {
         public Task TrackAdminEvent(string scope, string source, AuditChangeType changeType, params (string key, string value)[] details)
         {

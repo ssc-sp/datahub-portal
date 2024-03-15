@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Datahub.Core.Data;
 using Datahub.Core.Services.Security;
 using Microsoft.AspNetCore.Authentication;

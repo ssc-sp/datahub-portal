@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Datahub.Core.Components;
-using Datahub.Core.Model.Datahub;
-using Microsoft.Graph.Models.Security;
+﻿using Datahub.Core.Model.Datahub;
 
 namespace Datahub.Core.Utils
 {
-    public record OpenDataPublishingStepStatus<T>(T Step, bool Started, bool Completed);
+	public record OpenDataPublishingStepStatus<T>(T Step, bool Started, bool Completed);
 
     public static class OpenDataPublishingUtils
     {

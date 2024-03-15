@@ -274,7 +274,7 @@ public class DocumentationService
     /// <param name="name"></param>
     /// <param name="locale">Leave empty for "en", "fr" has its own folder</param>
     /// <param name="useCache"></param>
-    /// <returns></returns>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     private async Task<string?> LoadDocsPage(DocumentationGuideRootSection guide, string? name, string? locale = "", bool useCache = true)
     {
         if (name is null) return null;

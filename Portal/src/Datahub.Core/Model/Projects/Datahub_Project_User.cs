@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using Datahub.Core.Model.Achievements;
 using Elemental.Components;

@@ -1,15 +1,11 @@
 ﻿using Azure.Storage.Blobs.Specialized;
 using Azure.Storage.Blobs;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.Maui.Uploader
 {
-    internal class Uploader
+	internal class Uploader
     {
         public static async Task<bool> UploadBlocksAsync(
             BlobContainerClient blobContainerClient,

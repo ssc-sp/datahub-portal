@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Datahub.Core.Model.CloudStorage;
+﻿using Datahub.Core.Model.CloudStorage;
 
 namespace Datahub.Core.Model.Datahub
 {
-    public class OpenDataPublishFile
+	public class OpenDataPublishFile
     {
         public long Id { get; set; }
         public long SubmissionId { get; set; }

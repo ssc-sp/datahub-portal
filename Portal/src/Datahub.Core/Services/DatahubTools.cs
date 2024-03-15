@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Datahub.Core.Services;
+﻿namespace Datahub.Core.Services;
 
 public class DatahubTools
 {

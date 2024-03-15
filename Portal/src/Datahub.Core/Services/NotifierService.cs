@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace Datahub.Core.Services;
+﻿namespace Datahub.Core.Services;
 
 public class NotifierService
 {
