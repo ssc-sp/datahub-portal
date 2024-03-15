@@ -7,6 +7,7 @@
   <Rules AnalyzerId="Microsoft.CodeAnalysis.ExternalAccess.FSharp" RuleNamespace="Microsoft.CodeAnalysis.ExternalAccess.FSharp">
     <Rule Id="FS1108" Action="None" />
     <Rule Id="FS1123" Action="None" />
+    <Rule Id="FS1124" Action="Warning" />
     <Rule Id="FS1128" Action="None" />
     <Rule Id="FS1136" Action="None" />
     <Rule Id="FS1520" Action="None" />

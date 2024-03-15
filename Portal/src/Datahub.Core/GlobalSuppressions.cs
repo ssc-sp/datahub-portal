@@ -31,4 +31,7 @@ using System.Diagnostics.CodeAnalysis;
 	Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "*",
 	Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
-
+[assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1300",
+	Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
+[assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1300",
+	Justification = "Json mappings", Scope = "namespaceanddescendants", Target = "Datahub.Core.Data")]

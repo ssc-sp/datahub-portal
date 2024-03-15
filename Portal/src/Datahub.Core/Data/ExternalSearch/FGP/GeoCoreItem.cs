@@ -67,7 +67,7 @@ public class GeoCoreItem
 
     public GeoCoreGraphicOverview FirstGraphicOverview => GraphicOverviewList.Count > 0 ? GraphicOverviewList[0] : null;
 
-    private T DecodeEscapedJson<T> (string content)
+    private T DecodeEscapedJson<T>(string content)
     {
         var decoded = content.Replace("\\\"\"", "\"").Replace("\"\"",string.Empty);
         var result = JsonConvert.DeserializeObject<T>(decoded);

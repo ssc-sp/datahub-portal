@@ -32,7 +32,7 @@ public class ApiTelemetryService
     {
         var dict = new Dictionary<string, string>();
         dict.Add("filename", filename);
-		Client.TrackMetric(metricName, value, dict);
+        Client.TrackMetric(metricName, value, dict);
     }
 
     public void LogFileUploadSize(long filesize, string filename)

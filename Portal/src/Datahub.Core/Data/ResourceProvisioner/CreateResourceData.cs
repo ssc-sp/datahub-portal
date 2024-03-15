@@ -20,7 +20,8 @@ public record CreateResourceData
         return new CreateResourceData(projectName, acronym, sector, organization, requestingUserEmail, budgetAmount);
     }
 
-    public static CreateResourceData ResourceRunTemplate(TerraformWorkspace workspace,
+    public static CreateResourceData ResourceRunTemplate(
+        TerraformWorkspace workspace,
         List<TerraformTemplate> resourceTemplates, string requestingUserEmail)
     {
         // TODO: Validation

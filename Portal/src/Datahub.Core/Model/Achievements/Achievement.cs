@@ -5,7 +5,7 @@ namespace Datahub.Core.Model.Achievements;
 
 public class Achievement
 {
-    const char RuleSeparator = '\n';
+    private const char RuleSeparator = '\n';
 
     private Achievement()
     {
@@ -43,7 +43,7 @@ public class Achievement
 
     public static IEnumerable<Achievement> GetAll() => achievements.Value;
 
-    static Lazy<IEnumerable<Achievement>> achievements = new(CreateAchievements);
+    private static Lazy<IEnumerable<Achievement>> achievements = new(CreateAchievements);
 
     public static IEnumerable<Achievement> CreateAchievements()
     {

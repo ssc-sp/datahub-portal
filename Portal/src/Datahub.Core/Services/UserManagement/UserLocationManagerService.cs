@@ -12,7 +12,8 @@ public class UserLocationManagerService
     private readonly IUserInformationService userInformationService;
     private readonly IDbContextFactory<DatahubProjectDBContext> portalContext;
 
-    public UserLocationManagerService(ILogger<UserLocationManagerService> logger,
+    public UserLocationManagerService(
+        ILogger<UserLocationManagerService> logger,
         IUserInformationService userInformationService,
         IDbContextFactory<DatahubProjectDBContext> portalContext)
     {

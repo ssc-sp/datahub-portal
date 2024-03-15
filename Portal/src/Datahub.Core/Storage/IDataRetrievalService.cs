@@ -7,8 +7,8 @@ namespace Datahub.Application.Services.Storage;
 
 public interface IDataRetrievalService
 {
-    string getBlobContainerName();
-    Task<string> getStorageConnString();
+    string GetBlobContainerName();
+    Task<string> GetStorageConnString();
     Task<string> GetProjectConnectionString(string accountName);
     Task<Datahub.Core.Data.Folder> GetProjectFileList(string container, string project, User user);
     Task<BlobContainerClient> GetBlobContainerClient(string project, string containerName);

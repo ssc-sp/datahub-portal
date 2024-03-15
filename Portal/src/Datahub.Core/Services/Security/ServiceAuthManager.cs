@@ -168,7 +168,8 @@ public class ServiceAuthManager
                 }
                 else
                 {
-                    allProjectAdmins.Add(admin.Project.Project_Acronym_CD,
+                    allProjectAdmins.Add(
+                        admin.Project.Project_Acronym_CD,
                         new List<string> { admin.PortalUser.GraphGuid });
                 }
             }
@@ -181,8 +182,9 @@ public class ServiceAuthManager
 
     public async Task<ImmutableList<(Project_Role, Datahub_Project)>> GetUserAuthorizations(string userGraphId)
     {
-        if (serviceAuthCache.TryGetValue(AUTH_KEY,
-                out Dictionary<string, List<(Project_Role, Datahub_Project)>> usersAuthorization))
+        if (serviceAuthCache.TryGetValue(
+            AUTH_KEY,
+            out Dictionary<string, List<(Project_Role, Datahub_Project)>> usersAuthorization))
         {
             if (usersAuthorization.TryGetValue(userGraphId, out var userAuths))
             {
