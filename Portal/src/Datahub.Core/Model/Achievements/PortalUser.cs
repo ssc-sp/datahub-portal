@@ -1,4 +1,9 @@
-﻿using Datahub.Core.Model.UserTracking;
+﻿using System;
+using System.Collections.Generic;
+using Datahub.Core.Model.UserTracking;
+using System.Linq;
+using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Datahub;
 
 namespace Datahub.Core.Model.Achievements;
 
@@ -11,18 +16,20 @@ public class PortalUser
     public DateTime? FirstLoginDateTime { get; set; }
     public DateTime? LastLoginDateTime { get; set; }
     public string BannerPictureUrl { get; set; }
-    public string ProfilePictureUrl { get; set; }
-    public List<UserInactivityNotifications> InactivityNotifications { get; set; }
+    public string ProfilePictureUrl { get; set;}
+    public List<UserInactivityNotifications> InactivityNotifications  { get; set; }
 
     #region Navigation props
     public ICollection<UserAchievement> Achievements { get; set; }
     public ICollection<TelemetryEvent> TelemetryEvents { get; set; }
     public ICollection<UserRecentLink> RecentLinks { get; set; }
     public UserSettings UserSettings { get; set; }
+
+    public ICollection<OpenDataSubmission> OpenDataSubmissions { get; set; }
     #endregion
-
+    
     #region Utility functions
-
+    
     public IEnumerable<UserAchievement> GetUserAchievements()
     {
         return Achievements?
@@ -31,7 +38,7 @@ public class PortalUser
                    .ToList()
                ?? new List<UserAchievement>();
     }
-
+    
     public IEnumerable<Achievement> GetUnEarnedAchievements()
     {
         return Achievement.GetAll()

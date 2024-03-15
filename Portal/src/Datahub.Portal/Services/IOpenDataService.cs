@@ -1,4 +1,4 @@
-﻿using Datahub.CKAN.Service;
+﻿using Datahub.Application.Services.Publishing;
 using Datahub.Metadata.DTO;
 
 namespace Datahub.Portal.Services;

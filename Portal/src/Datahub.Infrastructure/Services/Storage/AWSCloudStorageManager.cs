@@ -11,283 +11,284 @@ namespace Datahub.Infrastructure.Services.Storage;
 
 public class AWSCloudStorageManager : ICloudStorageManager
 {
-	private readonly string _containerName;
-	private readonly string _accessKeyId;
-	private readonly string _secretAccessKey;
-	private readonly string _region;
-	private readonly string _bucketName;
+    private readonly string _containerName;
+    private readonly string _accessKeyId;
+    private readonly string _secretAccessKey;
+    private readonly string _region;
+    private readonly string _bucketName;
 
-	public AWSCloudStorageManager(string containerName, string accessKeyId, string secretAccessKey, string region, string bucketName)
-	{
-		_containerName = containerName;
-		_accessKeyId = accessKeyId;
-		_secretAccessKey = secretAccessKey;
-		_region = region;
-		_bucketName = bucketName;
-	}
+    public AWSCloudStorageManager(string containerName, string accessKeyId, string secretAccessKey, string region, string bucketName)
+    {
+        _containerName = containerName;
+        _accessKeyId = accessKeyId;
+        _secretAccessKey = secretAccessKey;
+        _region = region;
+        _bucketName = bucketName;
+    }
 
-	private async Task TestConnection()
-	{
-		using var s3Client = GetClient();
-		var request = new ListObjectsV2Request()
-		{
-			BucketName = _bucketName,
-			MaxKeys = 1
-		};
-		await s3Client.ListObjectsV2Async(request);
-	}
+    private async Task TestConnection()
+    {
+        using var s3Client = GetClient();
+        var request = new ListObjectsV2Request()
+        {
+            BucketName = _bucketName,
+            MaxKeys = 1
+        };
+        await s3Client.ListObjectsV2Async(request);
+    }
 
-	public async Task<List<string>> GetContainersAsync()
-	{
-		await TestConnection();
-		return await Task.FromResult(new List<string>() { _containerName });
-	}
+    public async Task<List<string>> GetContainersAsync()
+    {
+        await TestConnection();
+        return await Task.FromResult(new List<string>() { _containerName });
+    }
 
-	public async Task<DfsPage> GetDfsPagesAsync(string container, string folderPath, string? continuationToken = null)
-	{
-		var folders = new List<string>();
-		var files = new List<FileMetaData>();
+    public async Task<DfsPage> GetDfsPagesAsync(string container, string folderPath, string? continuationToken = null)
+    {
+        var folders = new List<string>();
+        var files = new List<FileMetaData>();
 
-		// correct folder path
-		folderPath = ToAWSFolder(folderPath);
+        // correct folder path
+        folderPath = ToAWSFolder(folderPath);
 
-		// ignore the container
-		using var s3Client = GetClient();
+        // ignore the container
+        using var s3Client = GetClient();
 
-		var request = new ListObjectsV2Request()
-		{
-			BucketName = _bucketName
-		};
+        var request = new ListObjectsV2Request()
+        {
+            BucketName = _bucketName
+        };
+ 
+        ListObjectsV2Response response;
+        do
+        {
+            response = await s3Client.ListObjectsV2Async(request);
+            foreach (S3Object entry in response.S3Objects)
+            {
+                var (belongsToFolder, isFolder, relativePath) = AnalyseFolderItem(folderPath, entry.Key);
+                
+                if (!belongsToFolder || string.IsNullOrEmpty(relativePath))
+                {
+                    continue;
+                }
 
-		ListObjectsV2Response response;
-		do
-		{
-			response = await s3Client.ListObjectsV2Async(request);
-			foreach (S3Object entry in response.S3Objects)
-			{
-				var (belongsToFolder, isFolder, relativePath) = AnalyseFolderItem(folderPath, entry.Key);
+                if (isFolder)
+                {
+                    folders.Add(RemoveSlash(entry.Key));
+                    continue;
+                }
 
-				if (!belongsToFolder || string.IsNullOrEmpty(relativePath))
-				{
-					continue;
-				}
+                FileMetaData fileMetaData = new()
+                {
+                    id = entry.ETag,
+                    name = relativePath,
+                    folderpath = folderPath,
+                    lastmodifiedts = entry.LastModified,
+                    filesize = entry.Size.ToString()
+                };
 
-				if (isFolder)
-				{
-					folders.Add(RemoveSlash(entry.Key));
-					continue;
-				}
+                files.Add(fileMetaData);               
+            }
 
-				FileMetaData fileMetaData = new()
-				{
-					id = entry.ETag,
-					name = relativePath,
-					lastmodifiedts = entry.LastModified,
-					filesize = entry.Size.ToString()
-				};
+            request.ContinuationToken = response.NextContinuationToken;
 
-				files.Add(fileMetaData);
-			}
+        } while (response.IsTruncated);
 
-			request.ContinuationToken = response.NextContinuationToken;
+        return new DfsPage(folders, files, continuationToken!);
+    }
 
-		} while (response.IsTruncated);
+    public async Task<bool> CreateFolderAsync(string container, string currentWorkingDirectory, string folderName)
+    {
+        using var s3Client = GetClient();
+        try
+        {
+            if (string.IsNullOrEmpty(folderName))
+                return false;
 
-		return new DfsPage(folders, files, continuationToken!);
-	}
+            var request = new PutObjectRequest()
+            {
+                BucketName = _bucketName,
+                Key = ToAWSFolder(folderName),
+                InputStream = new MemoryStream()
+            };
+            await s3Client.PutObjectAsync(request);
 
-	public async Task<bool> CreateFolderAsync(string container, string currentWorkingDirectory, string folderName)
-	{
-		using var s3Client = GetClient();
-		try
-		{
-			if (string.IsNullOrEmpty(folderName))
-				return false;
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
-			var request = new PutObjectRequest()
-			{
-				BucketName = _bucketName,
-				Key = ToAWSFolder(folderName),
-				InputStream = new MemoryStream()
-			};
-			await s3Client.PutObjectAsync(request);
+    public Task<bool> DeleteFileAsync(string container, string filePath)
+    {
+        return DeleteObjectAsync(filePath);
+    }
 
-			return true;
-		}
-		catch
-		{
-			return false;
-		}
-	}
+    public Task<bool> DeleteFolderAsync(string container, string folderPath)
+    {
+        return DeleteObjectAsync(ToAWSFolder(folderPath));
+    }
 
-	public Task<bool> DeleteFileAsync(string container, string filePath)
-	{
-		return DeleteObjectAsync(filePath);
-	}
+    public Task<Uri> DownloadFileAsync(string container, string filePath)
+    {
+        using var s3Client = GetClient();
 
-	public Task<bool> DeleteFolderAsync(string container, string folderPath)
-	{
-		return DeleteObjectAsync(ToAWSFolder(folderPath));
-	}
+        var urlRequest = new GetPreSignedUrlRequest
+        {
+            BucketName = _bucketName,
+            Key = filePath,
+            Expires = DateTime.UtcNow.AddDays(1),
+            Verb = HttpVerb.GET
+        };
 
-	public Task<Uri> DownloadFileAsync(string container, string filePath)
-	{
-		using var s3Client = GetClient();
+        var url = s3Client.GetPreSignedURL(urlRequest);
+        Uri uri = new Uri(url);
 
-		var urlRequest = new GetPreSignedUrlRequest
-		{
-			BucketName = _bucketName,
-			Key = filePath,
-			Expires = DateTime.UtcNow.AddDays(1),
-			Verb = HttpVerb.GET
-		};
+        return Task.FromResult(uri);
+    }
 
-		var url = s3Client.GetPreSignedURL(urlRequest);
-		Uri uri = new Uri(url);
+    public async Task<bool> FileExistsAsync(string container, string filePath)
+    {
+        using var s3Client = GetClient();
+        try
+        {
+            var response = await s3Client.GetObjectAsync(new GetObjectRequest()
+            {
+                BucketName = _bucketName,
+                Key = filePath
+            });
+            return true;
+        }
+        catch (Amazon.S3.AmazonS3Exception ex)
+        {
+            if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return false;
 
-		return Task.FromResult(uri);
-	}
+            //status wasn't not found, so throw the exception
+            throw;
+        }
+    }
 
-	public async Task<bool> FileExistsAsync(string container, string filePath)
-	{
-		using var s3Client = GetClient();
-		try
-		{
-			var response = await s3Client.GetObjectAsync(new GetObjectRequest()
-			{
-				BucketName = _bucketName,
-				Key = filePath
-			});
-			return true;
-		}
-		catch (Amazon.S3.AmazonS3Exception ex)
-		{
-			if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-				return false;
+    public Task<Uri> GenerateSasTokenAsync(string container, int days)
+    {
+        // not supported
+        return Task.FromResult(new Uri("http://none"));
+    }
 
-			//status wasn't not found, so throw the exception
-			throw;
-		}
-	}
+    public Task<StorageMetadata> GetStorageMetadataAsync(string container)
+    {
+        StorageMetadata metadata = new()
+        {
+            Container = container
+        };
+        return Task.FromResult(metadata);
+    }
 
-	public Task<Uri> GenerateSasTokenAsync(string container, int days)
-	{
-		// not supported
-		return Task.FromResult(new Uri("http://none"));
-	}
+    public Task<bool> RenameFileAsync(string container, string oldFilePath, string newFilePath)
+    {
+        // not supported for now..
+        return Task.FromResult(false);
+    }
 
-	public Task<StorageMetadata> GetStorageMetadataAsync(string container)
-	{
-		StorageMetadata metadata = new()
-		{
-			Container = container
-		};
-		return Task.FromResult(metadata);
-	}
+    public bool AzCopyEnabled => false;
+    public bool DatabrickEnabled => true;
 
-	public Task<bool> RenameFileAsync(string container, string oldFilePath, string newFilePath)
-	{
-		// not supported for now..
-		return Task.FromResult(false);
-	}
+    public CloudStorageProviderType ProviderType => CloudStorageProviderType.AWS;
 
-	public bool AzCopyEnabled => false;
-	public bool DatabrickEnabled => true;
+    public string DisplayName => _containerName;
 
-	public CloudStorageProviderType ProviderType => CloudStorageProviderType.AWS;
+    private const long MaxFileSize = 10 * 1024 * 1024 * 1024L; // 10GB
 
-	public string DisplayName => _containerName;
+    public async Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess)
+    {
+        using var s3Client = GetClient();
+        try
+        {
+            var stream = file.BrowserFile.OpenReadStream(MaxFileSize);
 
-	private const long MaxFileSize = 10 * 1024 * 1024 * 1024L; // 10GB
+            var transferUtility = new TransferUtility(s3Client);
 
-	public async Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess)
-	{
-		using var s3Client = GetClient();
-		try
-		{
-			var stream = file.BrowserFile.OpenReadStream(MaxFileSize);
+            var fullPath = IsRoot(file.folderpath) ? file.filename : $"{file.folderpath}{file.filename}";
+            await transferUtility.UploadAsync(stream, _bucketName, fullPath);
 
-			var transferUtility = new TransferUtility(s3Client);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
-			var fullPath = IsRoot(file.folderpath) ? file.filename : $"{file.folderpath}{file.filename}";
-			await transferUtility.UploadAsync(stream, _bucketName, fullPath);
+    private AmazonS3Client GetClient() => new(_accessKeyId, _secretAccessKey, RegionEndpoint.GetBySystemName(_region));
 
-			return true;
-		}
-		catch
-		{
-			return false;
-		}
-	}
+    private async Task<bool> DeleteObjectAsync(string filePath)
+    {
+        using var s3Client = GetClient();
+        try
+        {
+            var request = new DeleteObjectRequest()
+            {
+                BucketName = _bucketName,
+                Key = filePath
+            };
+            var response = await s3Client.DeleteObjectAsync(request);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
-	private AmazonS3Client GetClient() => new(_accessKeyId, _secretAccessKey, RegionEndpoint.GetBySystemName(_region));
+    static (bool Belongs, bool IsFolder, string relativePath) AnalyseFolderItem(string folderPath, string path)
+    {
+        var isRoot = IsRoot(folderPath);
+        if (!isRoot && !path.StartsWith(folderPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return (false, false, path);
+        }
 
-	private async Task<bool> DeleteObjectAsync(string filePath)
-	{
-		using var s3Client = GetClient();
-		try
-		{
-			var request = new DeleteObjectRequest()
-			{
-				BucketName = _bucketName,
-				Key = filePath
-			};
-			var response = await s3Client.DeleteObjectAsync(request);
-			return true;
-		}
-		catch
-		{
-			return false;
-		}
-	}
+        var pathLength = path.Length;
+        var relativeStart = isRoot ? 0 : folderPath.Length;
 
-	static (bool Belongs, bool IsFolder, string relativePath) AnalyseFolderItem(string folderPath, string path)
-	{
-		var isRoot = IsRoot(folderPath);
-		if (!isRoot && !path.StartsWith(folderPath, StringComparison.OrdinalIgnoreCase))
-		{
-			return (false, false, path);
-		}
+        for (var i = relativeStart; i < pathLength; i++)
+        {
+            if (path[i] == '/')
+            {
+                var isLastChar = i == pathLength - 1;
+                return (isLastChar, isLastChar, path.Substring(relativeStart, pathLength - relativeStart - 1));
+            }
+        }
 
-		var pathLength = path.Length;
-		var relativeStart = isRoot ? 0 : folderPath.Length;
+        return (true, false, path[relativeStart..]);
+    }
 
-		for (var i = relativeStart; i < pathLength; i++)
-		{
-			if (path[i] == '/')
-			{
-				var isLastChar = i == pathLength - 1;
-				return (isLastChar, isLastChar, path.Substring(relativeStart, pathLength - relativeStart - 1));
-			}
-		}
+    static string ToAWSFolder(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return "/";
 
-		return (true, false, path[relativeStart..]);
-	}
+        if (!path.EndsWith("/"))
+            return $"{path}/";
 
-	static string ToAWSFolder(string path)
-	{
-		if (string.IsNullOrEmpty(path))
-			return "/";
+        return path;
+    }
 
-		if (!path.EndsWith("/"))
-			return $"{path}/";
+    static string RemoveSlash(string path) => path.EndsWith('/') ? path[..^1] : path;
 
-		return path;
-	}
+    static bool IsRoot(string path) => string.IsNullOrEmpty(path) || path == "/";
 
-	static string RemoveSlash(string path) => path.EndsWith('/') ? path[..^1] : path;
-
-	static bool IsRoot(string path) => string.IsNullOrEmpty(path) || path == "/";
-
-	public List<(string, string)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
-	{
-		return new List<(string, string)>
-		{
-			(ResourceSubstitutions.ProjectAcronym, projectAcronym),
-			(ResourceSubstitutions.AWSS3Bucket, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_BucketName)),
-			(ResourceSubstitutions.AWSAccessKey, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_AccesKeyId)),
-			(ResourceSubstitutions.AWSAccessKeySecret, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_AccessKeySecret)),
-			(ResourceSubstitutions.AWSRegion, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_Region))
-		};
-	}
+    public List<(string, string)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
+    {
+        return new List<(string, string)>
+        {
+            (ResourceSubstitutions.ProjectAcronym, projectAcronym),
+            (ResourceSubstitutions.AWSS3Bucket, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_BucketName)),
+            (ResourceSubstitutions.AWSAccessKey, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_AccesKeyId)),
+            (ResourceSubstitutions.AWSAccessKeySecret, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_AccessKeySecret)),
+            (ResourceSubstitutions.AWSRegion, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_Region))
+        };
+    }
 }

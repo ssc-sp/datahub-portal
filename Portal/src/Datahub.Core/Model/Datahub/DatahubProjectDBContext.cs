@@ -1,4 +1,6 @@
-﻿using Datahub.Core.Data;
+﻿using System;
+using System.Linq;
+using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Announcements;
 using Datahub.Core.Model.Catalog;
@@ -36,7 +38,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<Datahub_Project_User_Request> Project_Users_Requests { get; set; }
     public DbSet<Datahub_Project_Pipeline_Lnk> Project_Pipeline_Links { get; set; }
     public DbSet<Organization_Level> Organization_Levels { get; set; }
-    public DbSet<OnboardingApp> OnboardingApps { get; set; }
+    public DbSet<OnboardingApp> OnboardingApps {  get; set; }
 
     public DbSet<Project_Resources2> Project_Resources2 { get; set; }
 
@@ -64,50 +66,56 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<ExternalPowerBiReport> ExternalPowerBiReports { get; set; }
 
     public DbSet<Client_Engagement> Client_Engagements { get; set; }
-
+        
     public DbSet<Achievements.Achievement> Achievements { get; set; }
     public DbSet<Achievements.PortalUser> PortalUsers { get; set; }
     public DbSet<Achievements.UserAchievement> UserAchievements { get; set; }
     public DbSet<Achievements.TelemetryEvent> TelemetryEvents { get; set; }
-
+    
     public DbSet<UserTracking.UserSettings> UserSettings { get; set; }
 
     public DbSet<UserTracking.UserRecentLink> UserRecentLinks { get; set; }
 
     public DbSet<Announcement> Announcements { get; set; }
-
+    
     public DbSet<ProjectRepository> ProjectRepositories { get; set; }
-
+    
     public DbSet<Project_Role> Project_Roles { get; set; }
 
     public DbSet<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
-
+    
     public DbSet<UserInactivityNotifications> UserInactivityNotifications { get; set; }
-
+    
     public DbSet<DocumentationResource> DocumentationResources { get; set; }
-
+    
     /// <summary>
-    /// Gets or sets table for storing any additional details when users go through the self registration process
+    /// Table for storing any additional details when users go through the self registration process
     /// </summary>
     public DbSet<SelfRegistrationDetails> SelfRegistrationDetails { get; set; }
-
+    
     /// <summary>
-    /// Gets or sets table for storing any additional details when users go through the project creation process
+    /// Table for storing any additional details when users go through the project creation process
     /// </summary>
     public DbSet<ProjectCreationDetails> ProjectCreationDetails { get; set; }
 
     /// <summary>
-    /// Gets or sets cataloged objects
+    /// Cataloged objects 
     /// </summary>
     public DbSet<CatalogObject> CatalogObjects { get; set; }
 
     /// <summary>
-    /// Gets or sets table for storing the cloud storage associcated to a project
+    /// Table for storing the cloud storage associcated to a project
     /// </summary>
     public DbSet<ProjectCloudStorage> ProjectCloudStorages { get; set; }
 
+    public DbSet<OpenDataSubmission> OpenDataSubmissions { get; set; }
+
+    public DbSet<OpenDataPublishFile> OpenDataPublishFiles { get; set; }
+
+    public DbSet<TbsOpenGovSubmission> TbsOpenGovSubmissions { get; set; }
+
     /// <summary>
-    /// Gets or sets table for storing the infrastructure health checks
+    /// Table for storing the infrastructure health checks
     /// </summary>
     public DbSet<InfrastructureHealthCheck> InfrastructureHealthChecks { get; set; }
 
@@ -154,13 +162,14 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             {
                 PortalUser = new PortalUser()
                 {
-                    GraphGuid = initialSetup.GetValue<string>("AdminGUID"),
+                    GraphGuid = initialSetup.GetValue<string>("AdminGUID"), 
                 },
                 Project = p1,
-                RoleId = (int)Project_Role.RoleNames.Admin
+                RoleId = (int) Project_Role.RoleNames.Admin
             });
             //var permissions = context.Project_Users_Requests.Add(new Datahub_)
         }
+
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -202,6 +211,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasOne<PowerBi_Workspace>(d => d.Workspace)
             .WithMany(w => w.Datasets)
             .HasForeignKey(d => d.Workspace_Id);
+
 
         modelBuilder.Entity<Datahub_Project>()
             .HasOne(w => w.Sector)
@@ -257,7 +267,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         modelBuilder.Entity<PublicDataFile>()
             .HasIndex(e => e.File_ID)
             .IsUnique();
-
+            
         modelBuilder.Entity<SharedDataFile>()
             .HasIndex(e => e.File_ID)
             .IsUnique();
@@ -267,10 +277,42 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
         modelBuilder.Entity<SpatialObjectShare>()
             .ToTable("SpatialObjectShares");
-
+            
         modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
 
+        modelBuilder.Entity<OpenDataSubmission>()
+            .HasMany<OpenDataPublishFile>(p => p.Files)
+            .WithOne(f => f.Submission)
+            .HasForeignKey(f => f.SubmissionId);
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .HasOne<Datahub_Project>(p => p.Project)
+            .WithMany(p => p.PublishingSubmissions)
+            .HasForeignKey(p => p.ProjectId);
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .HasOne<PortalUser>(p => p.RequestingUser)
+            .WithMany(p => p.OpenDataSubmissions)
+            .HasForeignKey(p => p.RequestingUserId);
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .Property(s => s.UniqueId)
+            .IsRequired();
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .HasIndex(s => s.UniqueId)
+            .IsUnique();
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .UseTptMappingStrategy();
+
+        modelBuilder.Entity<OpenDataPublishFile>()
+            .HasOne<ProjectCloudStorage>(f => f.Storage)
+            .WithMany(s => s.PublishingSubmissionFiles)
+            .HasForeignKey(f => f.ProjectStorageId);
+        
+        
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
             // SQLite does not have proper support for DateTimeOffset via Entity Framework Core, see the limitations

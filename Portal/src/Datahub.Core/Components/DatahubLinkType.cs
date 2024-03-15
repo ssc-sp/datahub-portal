@@ -20,4 +20,6 @@ public enum DatahubLinkType
     ExternalUrl,
     ResourceArticle,
     AzureWebApp,
+    PublishingDashboard,
+    PublishingSubmission
 }

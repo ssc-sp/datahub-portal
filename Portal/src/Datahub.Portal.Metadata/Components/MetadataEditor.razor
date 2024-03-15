@@ -46,6 +46,7 @@
                                          Subject=@_subject
                                          FieldPair=@fieldPair
                                          CascadingValue=@GetCascadingValue(definition)
+                                         DisableTranslation=@DisableTranslation
                                          OnFieldChanged=@FieldChanged />
                     _totalFields++;
                 }
@@ -84,12 +85,15 @@
     [Parameter]
     public bool HideTranslationNote { get; set; }
 
+    [Parameter]
+    public bool DisableTranslation { get; set; }
+
     private HashSet<int> _requiredFieldIds = new(); 
     private int _totalFields = 0;
     
     private int? _subjectFieldId;
     private string _subject { get; set; }
-    private bool _showTranslationNote => !Preview && !HideTranslationNote;
+    private bool _showTranslationNote => !Preview && !(HideTranslationNote || DisableTranslation);
 
     private TranslatedFieldPairs _fieldPairs;
 

@@ -2,14 +2,15 @@
 
 public enum MetadataObjectType : byte
 {
-	File,
-	PowerBIWorkspace,
-	PowerBIDataset,
-	PowerBIReport,
-	FileUrl,
-	GeoObject,
-	Database,
-	DatasetUrl,
-	DataInitiative,
-	Databricks
+    File,
+    PowerBIWorkspace,
+    PowerBIDataset,
+    PowerBIReport,
+    FileUrl,
+    GeoObject,
+    Database,
+    DatasetUrl,
+    DataInitiative,
+    Databricks,
+    TbsOpenGovSubmission
 }

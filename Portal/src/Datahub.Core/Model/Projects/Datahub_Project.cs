@@ -217,6 +217,8 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     public List<ProjectRepository> Repositories { get; set; }
 
+    public IList<OpenDataSubmission> PublishingSubmissions { get; set; }
+
     [AeFormIgnore]
     public int OnboardingApplicationId { get; set; }
 
