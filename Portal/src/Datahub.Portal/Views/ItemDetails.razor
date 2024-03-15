@@ -111,7 +111,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        foreach (string propertyName in FileMetaDataExtensions.GetMetadataProperties(null).Where(p => p.isVisible).Select(p => p.key))
+        foreach (string propertyName in FileMetaDataExtensions.GetMetadataProperties(null).Where(p => p.IsVisible).Select(p => p.Key))
         {
             var propertyValue = await GetPropertyDisplayValue(propertyName);
             if (!string.IsNullOrEmpty(propertyValue))

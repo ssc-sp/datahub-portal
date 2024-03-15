@@ -1,4 +1,5 @@
-﻿using Datahub.Application.Services.Publishing;
+﻿using Datahub.Application.Configuration;
+using Datahub.Application.Services.Publishing;
 using Datahub.CKAN.Package;
 using Datahub.Metadata.DTO;
 using System.Net.Mime;
