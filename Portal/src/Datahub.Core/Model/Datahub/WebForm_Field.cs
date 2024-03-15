@@ -29,8 +29,8 @@ public class WebForm_Field
     [Required]
     [StringLength(8)]
     [AeLabel(label: "Extension", isDropDown: true, validValues:
-	[
-		"NONE", "AMT", "AMTL", "AMTR", "CD", "CNT", "DT", "DESC", "DUR", "URL", "EMAIL", "NT", "FCTR", "ID", "FLAG",
+    [
+        "NONE", "AMT", "AMTL", "AMTR", "CD", "CNT", "DT", "DESC", "DUR", "URL", "EMAIL", "NT", "FCTR", "ID", "FLAG",
         "MULT", "NAME", "NUM", "PCT", "QTY", "RT", "RTO", "SID", "TXT", "IND", "TIME", "TS", "VAL"
     ])]
     public string Extension_CD { get; set; } = "NONE";
@@ -41,8 +41,8 @@ public class WebForm_Field
     [Required]
     [StringLength(8)]
     [AeLabel(label: "Field Type", isDropDown: true, validValues:
-	[
-		"Text", "Integer", "Decimal", "Boolean", "Dropdown", "Date", "Time", "Money"
+    [
+        "Text", "Integer", "Decimal", "Boolean", "Dropdown", "Date", "Time", "Money"
     ])]
     public string Type_CD { get; set; } = "Text";
 

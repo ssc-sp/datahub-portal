@@ -66,7 +66,7 @@ public class MiscStorageService : IMiscStorageService
     {
         try
         {
-            var _ = JsonConvert.DeserializeObject<T>(obj.JsonContent);
+            _ = JsonConvert.DeserializeObject<T>(obj.JsonContent);
         }
         catch (JsonSerializationException ex)
         {

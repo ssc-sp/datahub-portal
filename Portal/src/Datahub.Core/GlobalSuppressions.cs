@@ -24,14 +24,14 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1009",
     Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1027",
-	Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
+    Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1122",
-	Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
+    Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1600",
-	Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
+    Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "*",
-	Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
+    Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1300",
-	Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
+    Justification = "Generated code", Scope = "namespaceanddescendants", Target = "Datahub.Core.Migrations")]
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1300",
-	Justification = "Json mappings", Scope = "namespaceanddescendants", Target = "Datahub.Core.Data")]
+    Justification = "Json mappings", Scope = "namespaceanddescendants", Target = "Datahub.Core.Data")]

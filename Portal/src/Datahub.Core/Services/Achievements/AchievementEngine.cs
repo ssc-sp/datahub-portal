@@ -7,18 +7,18 @@ namespace Datahub.Core.Services.Achievements;
 
 public class AchievementEngine
 {
-	private const string AchievementWorkflow = nameof(AchievementWorkflow);
+    private const string AchievementWorkflow = nameof(AchievementWorkflow);
 
-	private const string MetaAchievementWorkflow = nameof(MetaAchievementWorkflow);
+    private const string MetaAchievementWorkflow = nameof(MetaAchievementWorkflow);
 
-	private readonly List<AchievementRule> rules;
+    private readonly List<AchievementRule> rules;
 
-	public AchievementEngine(IEnumerable<Achievement> achievements)
+    public AchievementEngine(IEnumerable<Achievement> achievements)
     {
         rules = achievements.Select(CreateAchievementRule).ToList();
     }
 
-	public async IAsyncEnumerable<string> Evaluate(string currentMetric, IEnumerable<string> ownedAchivements)
+    public async IAsyncEnumerable<string> Evaluate(string currentMetric, IEnumerable<string> ownedAchivements)
     {
         // create a set with the owned achievements (SET)
         HashSet<string> earnedSet = new(ownedAchivements);
@@ -52,12 +52,12 @@ public class AchievementEngine
         }
     }
 
-	private static IEnumerable<string> ExtractAchivements(List<RuleResultTree> response)
+    private static IEnumerable<string> ExtractAchivements(List<RuleResultTree> response)
     {
         return response.Where(r => r.IsSuccess).Select(r => r.Rule.RuleName);
     }
 
-	private static RulesEngine.RulesEngine CreateRulesEngine(List<AchievementRule> rules)
+    private static RulesEngine.RulesEngine CreateRulesEngine(List<AchievementRule> rules)
     {
         var rulesEngineSettings = new ReSettings
         {
@@ -66,7 +66,7 @@ public class AchievementEngine
         return new RulesEngine.RulesEngine(CreateWorkflows(rules).ToArray(), rulesEngineSettings);
     }
 
-	private static IEnumerable<Workflow> CreateWorkflows(List<AchievementRule> rules)
+    private static IEnumerable<Workflow> CreateWorkflows(List<AchievementRule> rules)
     {
         var achievementRules = rules.Where(r => !r.IsMeta).Select(r => r.Rule).ToList();
         if (achievementRules.Any())
@@ -81,12 +81,12 @@ public class AchievementEngine
         }
     }
 
-	private static AchievementRule CreateAchievementRule(Achievement achievement)
+    private static AchievementRule CreateAchievementRule(Achievement achievement)
     {
         return new(achievement.Id, achievement.IsTrophy(), CreateRule(achievement));
     }
 
-	private static Rule CreateRule(Achievement achievement)
+    private static Rule CreateRule(Achievement achievement)
     {
         return new Rule()
         {
