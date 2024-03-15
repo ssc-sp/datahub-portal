@@ -128,7 +128,7 @@ namespace SyncDocs
             for (int il =0; il < components.Length;il++)
             {
                 var currentPath = components[0..(il+1)].Aggregate((a, b) => a + "/" + b);
-                var parentPath = il > 0?components[0..(il)].Aggregate((a, b) => a + "/" + b):string.Empty;
+                var parentPath = il > 0?components[0..il].Aggregate((a, b) => a + "/" + b):string.Empty;
                 var filename = il == components.Length - 1 ? components[il] : null;
                 var isFinal = il == components.Length - 1;
                 if (isFinal && filename == DEFAULT_FILE)

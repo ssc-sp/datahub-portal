@@ -42,7 +42,7 @@ public class DataLakeClientService
     public async Task<StorageSharedKeyCredential> GetSharedKeyCredential(string project)
     {
         var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        envName = (envName != null ? envName.ToLower() : "dev");
+        envName = envName != null ? envName.ToLower() : "dev";
         if (envName.Equals("development"))
         {
             envName = "dev";

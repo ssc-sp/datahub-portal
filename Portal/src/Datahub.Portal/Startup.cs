@@ -93,10 +93,10 @@ public class Startup
     private readonly IWebHostEnvironment _currentEnvironment;
     private ModuleManager moduleManager = new ModuleManager();
 
-    private bool ResetDB => ((bool)Configuration.GetSection("InitialSetup")?.GetValue("ResetDB", false));
+    private bool ResetDB => (bool)Configuration.GetSection("InitialSetup")?.GetValue("ResetDB", false);
 
     private bool EnsureDeleteinOffline =>
-        ((bool)Configuration.GetSection("InitialSetup")?.GetValue("EnsureDeleteinOffline", false));
+        (bool)Configuration.GetSection("InitialSetup")?.GetValue("EnsureDeleteinOffline", false);
 
     private bool Offline => Configuration.GetValue("Offline", false);
 

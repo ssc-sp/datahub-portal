@@ -296,8 +296,8 @@ public class UserInformationService : IUserInformationService
         if (string.IsNullOrWhiteSpace(projectAcronym))
             throw new ArgumentException("projectAcronym expected");
 
-        return ((await IsUserProjectAdmin(projectAcronym)) ||
-                (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}"));
+        return (await IsUserProjectAdmin(projectAcronym)) ||
+                (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}");
     }
 
     /// <summary>

@@ -30,7 +30,7 @@ namespace Datahub.Maui.Uploader
             ArrayList blockIDArrayList = new ArrayList();
             byte[] buffer;
 
-            var bytesLeft = (fileStream.Length - fileStream.Position);
+            var bytesLeft = fileStream.Length - fileStream.Position;
             DateTime? lastBlock = null;
             while (bytesLeft > 0)
             {
@@ -60,7 +60,7 @@ namespace Datahub.Maui.Uploader
                 {
                     buffer = new byte[bytesLeft];
                     await fileStream.ReadAsync(buffer, 0, Convert.ToInt32(bytesLeft));
-                    bytesLeft = (fileStream.Length - fileStream.Position);
+                    bytesLeft = fileStream.Length - fileStream.Position;
                 }
 
                 using (var stream = new MemoryStream(buffer))
@@ -77,7 +77,7 @@ namespace Datahub.Maui.Uploader
                         return false;
                     }
                 }
-                bytesLeft = (fileStream.Length - fileStream.Position);
+                bytesLeft = fileStream.Length - fileStream.Position;
                 if (progressFunction != null)
                     await progressFunction.Invoke(fileStream.Position * 1.0 / fileStream.Length);
                 lastBlock = DateTime.Now;

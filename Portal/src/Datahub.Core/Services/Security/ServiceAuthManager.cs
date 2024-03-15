@@ -13,7 +13,7 @@ public class ServiceAuthManager
 {
     private const int AUTH_KEY = 1;
     private const int PROJECT_ADMIN_KEY = 2;
-    
+
     private IMemoryCache serviceAuthCache;
     private readonly IDbContextFactory<DatahubProjectDBContext> dbFactory;
 

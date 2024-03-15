@@ -183,7 +183,7 @@ public class AzurePriceListService : IAzurePriceListService
         public static readonly List<string> GeoReplication = new() { GEO_REPLICATION_V2_DATA_TRANSFER };
     }
 
-    private readonly Dictionary<string, int> MeasurementUnitConversions = new()
+    private static readonly Dictionary<string, int> MeasurementUnitConversions = new()
     {
         { "10K", 10000 },
         { "10K/Month", 10000 },
@@ -197,7 +197,7 @@ public class AzurePriceListService : IAzurePriceListService
     private static readonly string SAVED_STORAGE_PRICE_LIST_ID = "StoragePriceList";
     private static readonly string SAVED_COMPUTE_PRICE_LIST_ID = "ComputePriceList";
 
-    private static readonly UnitPrice zeroPrice = new(0.0M, 1);
+    private static readonly UnitPrice ZeroPrice = new(0.0M, 1);
 
     private readonly IHttpClientFactory httpClientFactory;
     private readonly IMiscStorageService miscStorageService;
@@ -237,7 +237,7 @@ public class AzurePriceListService : IAzurePriceListService
 
         if (correspondingItem == null)
         {
-            return zeroPrice;
+            return ZeroPrice;
         }
         else
         {
@@ -293,7 +293,7 @@ public class AzurePriceListService : IAzurePriceListService
                     Capacity = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.DataStored),
                     DataRetrieval = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.DataRetrieval),
                     DataWrite = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.DataWrite),
-                    GeoReplication = (kvp.Key.Item2 == DataRedundancyType.GRS) ? geoRepPrice : zeroPrice,
+                    GeoReplication = (kvp.Key.Item2 == DataRedundancyType.GRS) ? geoRepPrice : ZeroPrice,
                     ListCreateOperations = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.ListAndCreateContainer),
                     OtherOperations = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.OtherOperations),
                     ReadOperations = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.ReadOperations),

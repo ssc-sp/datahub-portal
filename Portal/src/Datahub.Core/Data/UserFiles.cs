@@ -195,7 +195,7 @@ public class Folder : BaseMetadata
 
     public void Sort()
     {
-        children.Sort((a, b) => (sortAscending) ? a.CompareTo(b) : b.CompareTo(a));
+        children.Sort((a, b) => sortAscending ? a.CompareTo(b) : b.CompareTo(a));
     }
 }
 
