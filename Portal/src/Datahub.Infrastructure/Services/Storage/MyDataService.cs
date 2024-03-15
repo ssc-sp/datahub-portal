@@ -147,7 +147,7 @@ public class MyDataService
             options.IncludeTotalCount = true;
 
             // Build our list of fields to retrieve from files
-            foreach (string propertyName in FileMetaDataExtensions.GetMetadataProperties(null).Where(p => !string.IsNullOrWhiteSpace(p.key) && p.inSearch).Select(p => p.key))
+            foreach (string propertyName in FileMetaDataExtensions.GetMetadataProperties(null).Where(p => !string.IsNullOrWhiteSpace(p.Key) && p.InSearch).Select(p => p.Key))
             {
                 options.Select.Add(propertyName);
             }

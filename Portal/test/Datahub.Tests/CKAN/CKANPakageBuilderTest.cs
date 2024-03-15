@@ -22,7 +22,7 @@ public class CKANPakageBuilderTest
         var fieldValues = FieldDefinitionHelper.LoadFields(_fieldDefinitions);
         Assert.NotNull(fieldValues);
 
-        var dict = (new PackageGenerator()).GeneratePackage(fieldValues, true, "https://localhost");
+        var dict = new PackageGenerator().GeneratePackage(fieldValues, true, "https://localhost");
 
         var expected = fieldValues.ObjectId;
 

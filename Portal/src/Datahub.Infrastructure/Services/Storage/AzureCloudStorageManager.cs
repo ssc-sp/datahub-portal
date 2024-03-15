@@ -4,7 +4,6 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
 using Datahub.Core.Data;
-using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
@@ -324,7 +323,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return result;
     }
 
-    public List<(string, string)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
+    public List<(string Placeholder, string Replacement)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
     {
         if (_inboxAccount)
         {

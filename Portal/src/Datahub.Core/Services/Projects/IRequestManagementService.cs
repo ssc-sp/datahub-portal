@@ -1,11 +1,7 @@
 ﻿using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
-using Datahub.Shared.Entities;
 namespace Datahub.Core.Services.Projects;
 
 public record ProjectResourceFormParams(FieldDefinitions FieldDefinitions, MetadataProfile Profile);

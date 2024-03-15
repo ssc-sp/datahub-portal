@@ -1,9 +1,6 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 
 namespace Datahub.Core.Data;
 
@@ -13,7 +10,7 @@ public static class FileMetaDataExtensions
     {
         if (metadata?.Count > 0)
         {
-            foreach(string propertyName in fileMetadata.GetMetadataProperties().Where(p => !string.IsNullOrWhiteSpace(p.key)).Select( p => p.key))
+            foreach (string propertyName in fileMetadata.GetMetadataProperties().Where(p => !string.IsNullOrWhiteSpace(p.Key)).Select(p => p.Key))
             {
                 if (metadata.ContainsKey(propertyName))
                 {
@@ -76,7 +73,6 @@ public static class FileMetaDataExtensions
         return total;
     }
 
-        
     private static Type fileType = typeof(FileMetaData);
 
     public static string GetMetadataPropertyValue(this FileMetaData fileMetadata, string propertyName)
@@ -102,17 +98,17 @@ public static class FileMetaDataExtensions
     public static Dictionary<string, string> GenerateMetadata(this FileMetaData fileMetadata)
     {
         Dictionary<string, string> metadata = new Dictionary<string, string>();
-        FileMetaDataExtensions.GetMetadataProperties(null).Where(p => !string.IsNullOrWhiteSpace(p.key)).Select(p => p.key).ToList().ForEach(propertyName =>
+        FileMetaDataExtensions.GetMetadataProperties(null).Where(p => !string.IsNullOrWhiteSpace(p.Key)).Select(p => p.Key).ToList().ForEach(propertyName =>
         {
             metadata.Add(propertyName, fileMetadata.GetMetadataPropertyValue(propertyName));
         });
 
         return metadata;
     }
-        
-    public static List<(string key, bool inSearch, bool isVisible)> GetMetadataProperties(this FileMetaData fileMetadata)
+
+    public static List<(string Key, bool InSearch, bool IsVisible)> GetMetadataProperties(this FileMetaData fileMetadata)
     {
-        return new List<(string key, bool inSearch, bool isVisible)>
+        return new List<(string Key, bool InSearch, bool IsVisible)>
         {
             ("activities", true, false),
             ("fileid", true, false),
@@ -135,9 +131,9 @@ public static class FileMetaDataExtensions
         };
     }
 
-    public static List<(string username, string verb, string filename, string location, string timeSince)> GetActivity(this FileMetaData fileMetadata)
+    public static List<(string Username, string Verb, string Filename, string Location, string TimeSince)> GetActivity(this FileMetaData fileMetadata)
     {
-        return new List<(string username, string verb, string filename, string location, string timeSince)>()
+        return new List<(string Username, string Verb, string Filename, string Location, string TimeSince)>()
         {
             (fileMetadata.createdby, "created", fileMetadata.filename, "Root", fileMetadata.createdts.ToShortDateString())
         };
@@ -147,7 +143,7 @@ public static class FileMetaDataExtensions
     {
         if (!string.IsNullOrWhiteSpace(id))
         {
-            return Regex.Replace(id, @"[^a-zA-Z0-9]", "");
+            return Regex.Replace(id, @"[^a-zA-Z0-9]", string.Empty);
         }
 
         return string.Empty;

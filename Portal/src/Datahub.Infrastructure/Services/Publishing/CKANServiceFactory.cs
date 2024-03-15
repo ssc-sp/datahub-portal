@@ -1,7 +1,5 @@
 ﻿using Datahub.Application.Configuration;
 using Datahub.Application.Services.Publishing;
-using Microsoft.Extensions.Options;
-using System.Net.Http;
 
 namespace Datahub.Infrastructure.Services.Publishing;
 

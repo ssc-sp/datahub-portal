@@ -1,11 +1,10 @@
-using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Portal.Migrations.Forms.PIP
 {
-    public partial class Filetrackingfields : Migration
+	public partial class Filetrackingfields : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

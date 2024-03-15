@@ -7,8 +7,8 @@ namespace Datahub.Application.Services.Storage;
 
 public interface IDataRetrievalService
 {
-    string getBlobContainerName();
-    Task<string> getStorageConnString();
+    string GetBlobContainerName();
+    Task<string> GetStorageConnString();
     Task<string> GetProjectConnectionString(string accountName);
     Task<Datahub.Core.Data.Folder> GetProjectFileList(string container, string project, User user);
     Task<BlobContainerClient> GetBlobContainerClient(string project, string containerName);
@@ -23,7 +23,7 @@ public interface IDataRetrievalService
     Task<StorageMetadata> GetStorageMetadata(string project);
     Task<List<string>> ListContainers(string projectAcronym, User user);
     Task<List<FileMetaData>> GetStorageBlobFiles(string projectAcronym, string container, User user);
-    Task<(List<string>, List<FileMetaData>, string)> GetStorageBlobPagesAsync(string projectAcronym, string containerName, User user, string prefix, string continuationToken = default);
+    Task<(List<string> A, List<FileMetaData> B, string C)> GetStorageBlobPagesAsync(string projectAcronym, string containerName, User user, string prefix, string continuationToken = default);
     Task<List<string>> GetProjectContainersAsync(string projectAcronymParam, User user);
     Task<bool> StorageBlobExistsAsync(string filename, string projectAcronym, string containerName);
 }

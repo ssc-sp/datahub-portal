@@ -1,12 +1,9 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Datahub.Portal.Controllers
 {
-    [Route("[controller]")]
+	[Route("[controller]")]
     [AllowAnonymous]
     public class E2EController : Controller
     {

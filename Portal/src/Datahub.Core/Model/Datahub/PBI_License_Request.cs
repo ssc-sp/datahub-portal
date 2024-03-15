@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Datahub.Core.Model.Projects;
 using Elemental.Components;
 
@@ -24,12 +23,11 @@ public class PBI_License_Request
     [Required]
     [AeLabel("Contact Email")]
     public string Contact_Email { get; set; }
-        
+
     [StringLength(200)]
     [Required]
     [AeLabel("Contact Name")]
     public string Contact_Name { get; set; }
-
 
     public Datahub_Project Project { get; set; }
 
