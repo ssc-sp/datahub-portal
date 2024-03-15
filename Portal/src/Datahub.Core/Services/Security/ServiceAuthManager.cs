@@ -180,7 +180,7 @@ public class ServiceAuthManager
         return allProjectAdmins;
     }
 
-    public async Task<ImmutableList<(Project_Role, Datahub_Project)>> GetUserAuthorizations(string userGraphId)
+    public async Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetUserAuthorizations(string userGraphId)
     {
         if (serviceAuthCache.TryGetValue(
             AUTH_KEY,

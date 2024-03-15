@@ -389,7 +389,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         if (containsKeywords)
         {
             // build dictionary<objectId, index>
-            var sortMap = hits.Distinct().Select((Id, Index) => new { Id, Index }).ToDictionary(p => p.Id, p => p.Index);
+            var sortMap = hits.Distinct().Select((id, index) => new { Id=id, Index=index }).ToDictionary(p => p.Id, p => p.Index);
             // sort results
             results = results.Select(r => new { Index = sortMap[r.CatalogObjectId], Result = r })
                              .OrderBy(p => p.Index)

@@ -18,7 +18,7 @@ public interface IMetadataBrokerService
     Task<Entities.ObjectMetadata> GetMetadata(long objectMetadataId);
     Task<Entities.ObjectMetadata> GetMetadata(string objectId);
     Task<bool> CreateChildMetadata(string parentId, string childId, Entities.MetadataObjectType dataType, string location, bool includeCatalog);
-    Task<Entities.ApprovalForm> GetApprovalForm(int ApprovalFormId);
+    Task<Entities.ApprovalForm> GetApprovalForm(int approvalFormId);
     Task DeleteApprovalForm(int approvalFormId);
     Task<int> SaveApprovalForm(Entities.ApprovalForm form);
     Task<List<string>> GetSuggestedEnglishKeywords(string text, int max);

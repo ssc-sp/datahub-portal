@@ -6,16 +6,16 @@ namespace Datahub.Core.Utils;
 
 public class FieldCodeGenerator
 {
-	private const char ChoiceSeparator = '|';
+    private const char ChoiceSeparator = '|';
 
-	private readonly Func<string, int> sectionMapper;
+    private readonly Func<string, int> sectionMapper;
 
-	public FieldCodeGenerator(Func<string, int> sectionMapper)
+    public FieldCodeGenerator(Func<string, int> sectionMapper)
     {
         this.sectionMapper = sectionMapper;
     }
 
-	public string GetFormattedFieldName(WebForm_Field field)
+    public string GetFormattedFieldName(WebForm_Field field)
     {
         if (string.IsNullOrEmpty(field.Field_DESC))
             return string.Empty;
@@ -24,18 +24,18 @@ public class FieldCodeGenerator
         return Regex.Replace(deDashed, "[^A-Za-z0-9_]+", "_", RegexOptions.Compiled);
     }
 
-	public string GenerateSQLName(WebForm_Field field)
+    public string GenerateSQLName(WebForm_Field field)
     {
         var formatted = GetFormattedFieldName(field);
         return "NONE".Equals(field.Extension_CD) ? formatted : $"{formatted}_{field.Extension_CD}";
     }
 
-	public string GenerateJSON(WebForm_Field field)
+    public string GenerateJSON(WebForm_Field field)
     {
         return $"{Quote(GenerateSQLName(field))}: {Quote(System.Web.HttpUtility.JavaScriptStringEncode(field.Field_DESC))}";
     }
 
-	public string GenerateCSharp(WebForm_Field field)
+    public string GenerateCSharp(WebForm_Field field)
     {
         StringBuilder sb = new();
 
@@ -73,7 +73,7 @@ public class FieldCodeGenerator
         return sb.ToString();
     }
 
-	private static void TryRenderLabel(StringBuilder sb, WebForm_Field field)
+    private static void TryRenderLabel(StringBuilder sb, WebForm_Field field)
     {
         var isDropdown = "Dropdown".Equals(field.Type_CD);
         var hasPlaceHolder = !string.IsNullOrEmpty(field.Description_DESC);
@@ -103,7 +103,7 @@ public class FieldCodeGenerator
         }
     }
 
-	private static string GetValidValues(string choices)
+    private static string GetValidValues(string choices)
     {
         if (string.IsNullOrEmpty(choices))
             return string.Empty;
@@ -118,5 +118,5 @@ public class FieldCodeGenerator
         return $"validValues: new [] {{ {validValues} }}";
     }
 
-	private static string Quote(string value) => $"\"{value.Replace("\"", "\"")}\"";
+    private static string Quote(string value) => $"\"{value.Replace("\"", "\"")}\"";
 }
