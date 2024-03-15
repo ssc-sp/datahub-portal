@@ -445,13 +445,15 @@ public class DocumentationService
         var client = _httpClientFactory.CreateClient();
         var res = await GetRetryPolicy().ExecuteAsync(async () =>
         {
-            var request = new HttpRequestMessage() { RequestUri = new Uri($"{_navigationManager.BaseUri}/api/docs/{path}"), Method = HttpMethod.Get };
+            var request = new HttpRequestMessage() { RequestUri = new Uri($"{_navigationManager.Uri}api/docs/{path}"), Method = HttpMethod.Get };
             client.DefaultRequestHeaders.Add("User-Agent", "DataHub");
             return await client.SendAsync(request);
         });
 
         if (res.StatusCode == System.Net.HttpStatusCode.OK)
         {
+            var content = await res.Content.ReadAsStringAsync();
+            content = MarkdownHelper.RemoveFrontMatter(content);
             return await res.Content.ReadAsStringAsync();
         }
         else if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
