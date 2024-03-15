@@ -9,7 +9,7 @@
         var dotAppearance = StepStatusIcon(item);
         <MudTimelineItem 
             Size=@Size.Large
-            Variant=@Variant.Filled
+            Variant=@dotAppearance.Variant
             Icon=@dotAppearance.Icon 
             Color=@dotAppearance.Colour>
 
@@ -58,10 +58,10 @@
 
     private StepDotAppearance StepStatusIcon(T stepItem) => CurrentStepStateFunc(stepItem) switch
     {
-        StepState.Running => new(Icons.Material.Filled.DirectionsWalk, Color.Primary),
-        StepState.Passed => new(Icons.Material.Filled.Check, Color.Success),
-        StepState.Failed => new(Icons.Material.Filled.Close, Color.Error),
-        _ => new(string.Empty, Color.Default)
+        StepState.Running => new(string.Empty, Color.Primary, Variant.Filled),
+        StepState.Passed => new(Icons.Material.Filled.Check, Color.Success, Variant.Filled),
+        StepState.Failed => new(Icons.Material.Filled.Close, Color.Error, Variant.Filled),
+        _ => new(string.Empty, Color.Default, Variant.Outlined)
     };
 
     public enum StepState
@@ -72,7 +72,7 @@
         Failed
     }
 
-    private record StepDotAppearance(string Icon, Color Colour);
+    private record StepDotAppearance(string Icon, Color Colour, Variant Variant);
 
     private TimelineOrientation Orientation => Collapsed ? TimelineOrientation.Horizontal : TimelineOrientation.Vertical;
     private TimelinePosition Position => Collapsed ? TimelinePosition.Top : TimelinePosition.Left;
