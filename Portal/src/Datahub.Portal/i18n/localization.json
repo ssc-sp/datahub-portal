@@ -52,6 +52,7 @@
   "Access the Databricks notebooks for the workspace to write, execute and share analytics with all workspace members": "Access the Databricks notebooks for the workspace to write, execute and share analytics with all workspace members",
   "Access the connection details for the IoT devices connected to this project": "Access the connection details for the IoT devices connected to this project",
   "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members.": "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members.",
+  "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data.": "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data.",
   "Account Key": "Account Key",
   "Account Kind": "Account Kind",
   "Account locked": "Account locked",
@@ -1630,5 +1631,6 @@
   "Invalid IP address format (e.g. 192.168.2.1)": "Invalid IP address format (e.g. 192.168.2.1)",
   "The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget.": "The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget.",
   "Changes saved": "Changes saved",
-  "Azure API Management": "Azure API Management"
+  "Azure API Management": "Azure API Management",
+  "Open Publishing Dashboard": "Open Publishing Dashboard"
 }
