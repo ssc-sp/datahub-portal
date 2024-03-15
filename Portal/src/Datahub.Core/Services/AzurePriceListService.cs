@@ -1,11 +1,11 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Datahub.Core.Data.CostEstimators;
+using Newtonsoft.Json;
 
 namespace Datahub.Core.Services;
 
@@ -13,7 +13,6 @@ public class AzurePriceListService : IAzurePriceListService
 {
     private static class AzureSkuIds
     {
-
         // block blob v2, canada east
         /*
         public static readonly string HOT_LRS_BLOCK_SKU_ID = "DZH318Z0BPH7/007C";

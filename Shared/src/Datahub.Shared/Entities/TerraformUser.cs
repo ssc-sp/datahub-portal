@@ -1,5 +1,5 @@
-using Datahub.Shared.Enums;
 using System.Collections.Generic;
+using Datahub.Shared.Enums;
 
 namespace Datahub.Shared.Entities;
 

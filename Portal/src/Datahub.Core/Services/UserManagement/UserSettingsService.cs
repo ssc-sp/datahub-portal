@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 #nullable enable
 namespace Datahub.Core.Services.UserManagement
 {
-	public class UserSettingsService : IUserSettingsService
+    public class UserSettingsService : IUserSettingsService
     {
         private readonly IUserInformationService userInformationService;
         private readonly IDbContextFactory<DatahubProjectDBContext> datahubContextFactory;

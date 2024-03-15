@@ -1,11 +1,11 @@
-﻿using Datahub.Core.Components;
-using Datahub.Core.Model.Datahub;
-using Microsoft.Graph.Models.Security;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Datahub.Core.Components;
+using Datahub.Core.Model.Datahub;
+using Microsoft.Graph.Models.Security;
 
 namespace Datahub.Core.Utils
 {

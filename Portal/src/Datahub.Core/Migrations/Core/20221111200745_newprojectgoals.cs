@@ -9,7 +9,6 @@ public partial class Newprojectgoals : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-
         migrationBuilder.AddColumn<string>(
             name: "Project_Goal",
             table: "Projects",

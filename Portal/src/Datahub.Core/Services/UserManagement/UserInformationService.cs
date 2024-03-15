@@ -1,20 +1,20 @@
 ﻿using System.Net.Mail;
+using System.Security.Claims;
+using Azure.Identity;
+using Datahub.Core.Data;
+using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Services.CatalogSearch;
+using Datahub.Core.Services.Security;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
-using Microsoft.Graph.Models;
-using System.Security.Claims;
-using Datahub.Core.Data;
-using Datahub.Core.Model.Achievements;
-using Datahub.Core.Services.Security;
-using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services.CatalogSearch;
-using Azure.Identity;
 
 namespace Datahub.Core.Services.UserManagement;
 

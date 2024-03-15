@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B6CC5ED1-A990-4AC7-89C7-B0F62FFEEC26}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		Analyzers.ruleset = Analyzers.ruleset
 		bleach.ps1 = bleach.ps1
 		COPYRIGHT.md = COPYRIGHT.md
 		dh-portal.ps1 = dh-portal.ps1
@@ -14,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		LICENSE.md = LICENSE.md
 		nuget.config = nuget.config
 		README.md = README.md
+		stylecop.json = stylecop.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{48CAB0F7-CFCC-443B-B71D-E015878CE5B7}"
@@ -103,10 +105,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A8C7
 	ProjectSection(SolutionItems) = preProject
 		bleach.ps1 = bleach.ps1
 		scripts\ConfigureAZCert.ps1 = scripts\ConfigureAZCert.ps1
+		scripts\find-translations.ps1 = scripts\find-translations.ps1
 		scripts\fix_CS8981.ps1 = scripts\fix_CS8981.ps1
 		scripts\initLocalDev.ps1 = scripts\initLocalDev.ps1
 		scripts\merge_fork.ps1 = scripts\merge_fork.ps1
-		scripts\find-translations.ps1 = scripts\find-translations.ps1
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Specs", "Portal\test\Datahub.Specs\Datahub.Specs.csproj", "{D07C3009-6F0F-486D-91E1-0084B4B4FF46}"
@@ -143,9 +145,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Stories", "Portal\s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure.Offline", "Portal\src\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj", "{E84F619D-E105-4E1A-BD92-DF22DDAE966F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.SpecflowTests", "Portal\test\Datahub.SpecflowTests\Datahub.SpecflowTests.csproj", "{D84C8789-E77F-438A-A0B6-7DB1695B9C17}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.SpecflowTests", "Portal\test\Datahub.SpecflowTests\Datahub.SpecflowTests.csproj", "{D84C8789-E77F-438A-A0B6-7DB1695B9C17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.MissingTranslations", "Portal\utils\Datahub.MissingTranslations\Datahub.MissingTranslations.csproj", "{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.MissingTranslations", "Portal\utils\Datahub.MissingTranslations\Datahub.MissingTranslations.csproj", "{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -380,9 +382,9 @@ Global
 		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{57703cec-08b9-40b8-b5e2-064a196b1587}*SharedItemsImports = 5

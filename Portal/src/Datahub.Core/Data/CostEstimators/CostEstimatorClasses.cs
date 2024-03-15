@@ -37,7 +37,7 @@ public interface IAzurePriceAPIItemContainer
     IList<AzurePriceAPIItem> Items { get; set; }
 }
 
-public class AzurePriceAPIResult: IAzurePriceAPIItemContainer
+public class AzurePriceAPIResult : IAzurePriceAPIItemContainer
 {
     public string BillingCurrency { get; set; }
     public int Count { get; set; }

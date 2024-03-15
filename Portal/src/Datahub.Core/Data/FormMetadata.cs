@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Components;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Components;
 
 namespace Datahub.Core.Data;
 
@@ -12,7 +12,7 @@ public class FormMetadata<T>
     public string UserId { get; set; }
     public string TableDisclaimer { get; set; }
     public List<T> DataSet { get; set; }
-    public Dictionary<string, List<T>> TabbedDataSets {get; set;}
+    public Dictionary<string, List<T>> TabbedDataSets { get; set; }
 
     public IList<Func<T, string>> AccessorFunctions { get; set; }
 

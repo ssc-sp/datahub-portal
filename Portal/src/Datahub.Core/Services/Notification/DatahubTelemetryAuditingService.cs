@@ -18,8 +18,8 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
         this.userInformationService = userInformationService;
     }
 
-    /// <inheritdoc>
-    public async Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, bool anonymous, params (string key, string value)[] details)
+    /// <inheritdoc/>
+    public async Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, bool anonymous, params (string Key, string Value)[] details)
     {
         var properties = new Dictionary<string, string>
         {
@@ -32,8 +32,8 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
         telemetryClient.Flush();
     }
 
-    /// <inheritdoc>
-    public async Task TrackSecurityEvent(string scope, string table, AuditChangeType changeType, params (string key, string value)[] details)
+    /// <inheritdoc/>
+    public async Task TrackSecurityEvent(string scope, string table, AuditChangeType changeType, params (string Key, string Value)[] details)
     {
         var properties = new Dictionary<string, string>
         {
@@ -46,8 +46,8 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
         telemetryClient.Flush();
     }
 
-    /// <inheritdoc>
-    public async Task TrackAdminEvent(string scope, string table, AuditChangeType changeType, params (string key, string value)[] details)
+    /// <inheritdoc/>
+    public async Task TrackAdminEvent(string scope, string table, AuditChangeType changeType, params (string Key, string Value)[] details)
     {
         var properties = new Dictionary<string, string>
         {
@@ -60,8 +60,8 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
         telemetryClient.Flush();
     }
 
-    /// <inheritdoc>
-    public async Task TrackException(Exception exception, params (string key, string value)[] details)
+    /// <inheritdoc/>
+    public async Task TrackException(Exception exception, params (string Key, string Value)[] details)
     {
         var properties = new Dictionary<string, string>();
         await AppendIdentity(properties);
@@ -69,8 +69,8 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
         telemetryClient.Flush();
     }
 
-    /// <inheritdoc>
-    public async Task TrackEvent(string name, params (string key, string value)[] details)
+    /// <inheritdoc/>
+    public async Task TrackEvent(string name, params (string Key, string Value)[] details)
     {
         var properties = new Dictionary<string, string>();
         await AppendIdentity(properties);
@@ -89,7 +89,7 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
         }
     }
 
-    static Dictionary<string, string> AppendDetails(Dictionary<string, string> dictionary, (string key, string value)[] properties)
+    static Dictionary<string, string> AppendDetails(Dictionary<string, string> dictionary, (string Key, string Value)[] properties)
     {
         foreach (var (key, value) in properties)
         {

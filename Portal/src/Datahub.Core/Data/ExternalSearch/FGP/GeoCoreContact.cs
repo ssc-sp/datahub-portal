@@ -28,4 +28,4 @@ public class GeoCoreContact
     }
 }
 
-public class GeoCoreContactList: List<GeoCoreContact> { }
+public class GeoCoreContactList : List<GeoCoreContact> { }

@@ -1,12 +1,12 @@
-﻿using Datahub.Core.Model.Achievements;
-using Datahub.Core.Model.CloudStorage;
-using Datahub.Core.Model.Projects;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.CloudStorage;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Model.Datahub
 {

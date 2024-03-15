@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Datahub.Core.Model.Onboarding.Configuration;
 
-public class ProjectCreationDetailsConfiguration: IEntityTypeConfiguration<ProjectCreationDetails>
+public class ProjectCreationDetailsConfiguration : IEntityTypeConfiguration<ProjectCreationDetails>
 {
     public void Configure(EntityTypeBuilder<ProjectCreationDetails> builder)
     {
