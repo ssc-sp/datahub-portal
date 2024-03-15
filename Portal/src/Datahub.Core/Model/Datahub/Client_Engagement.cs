@@ -35,7 +35,7 @@ public class Client_Engagement
     public bool Is_Engagement_Active { get; set; }
 
     [AeFormCategory("Projected Engagement Details")]
-        
+
     public DateTime? Engagement_Start_Date { get; set; }
     [AeFormCategory("Projected Engagement Details")]
     public DateTime? Requirements_Gathering_EndDate { get; set; }
@@ -81,7 +81,6 @@ public class Client_Engagement
     [Timestamp]
     public byte[] Timestamp { get; set; }
 
-
     [MudBlazor.Forms.AeFormIgnoreAttribute]
     public bool IsRequirementsComplete => Requirements_Gathering_ActualEndDate != null;
     [MudBlazor.Forms.AeFormIgnoreAttribute]
@@ -108,8 +107,8 @@ public class Client_Engagement
                 var ret =  estimatedEndDate >= DateTime.Now.Date ? (Color.Success, Severity.Success) : (Color.Error, Severity.Error);
                 var difference = estimatedEndDate - DateTime.Now.Date;
                 if ((ret == (Color.Success, Severity.Success)) && (difference.Value.Days <= 3))
-                { 
-                    ret = (Color.Warning, Severity.Warning);  
+                {
+                    ret = (Color.Warning, Severity.Warning);
                 }
                 return ret;
             }

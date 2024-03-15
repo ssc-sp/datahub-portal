@@ -10,7 +10,7 @@ public class ProjectCreationDetailsConfiguration: IEntityTypeConfiguration<Proje
         builder.ToTable("ProjectCreationDetails");
 
         builder.HasKey(e => e.Id);
-        
+
         builder.HasOne(e => e.Project)
             .WithMany()
             .HasForeignKey(e => e.ProjectId)
@@ -20,7 +20,7 @@ public class ProjectCreationDetailsConfiguration: IEntityTypeConfiguration<Proje
             .WithMany()
             .HasForeignKey(e => e.CreatedById)
             .OnDelete(DeleteBehavior.NoAction);
-        
+
         builder.Property(e => e.InterestedFeatures)
             .IsRequired(false)
             .HasMaxLength(128);

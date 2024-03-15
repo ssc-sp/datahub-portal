@@ -18,12 +18,11 @@ namespace Datahub.Core.Utils
         public static OpenDataPublishingStepStatus<T> NotStarted<T>(T step) => new(step, false, false);
         public static OpenDataPublishingStepStatus<T> Incomplete<T>(T step) => new(step, true, false);
         public static OpenDataPublishingStepStatus<T> Complete<T>(T step) => new(step, true, true);
-
     }
-    
+
     public static class TbsOpenGovPublishingUtils
     {
-        public static OpenDataPublishingStepStatus<TbsOpenGovSubmission.ProcessSteps> CheckStepStatus(TbsOpenGovSubmission submission, TbsOpenGovSubmission.ProcessSteps step) => 
+        public static OpenDataPublishingStepStatus<TbsOpenGovSubmission.ProcessSteps> CheckStepStatus(TbsOpenGovSubmission submission, TbsOpenGovSubmission.ProcessSteps step) =>
         step switch
         {
             TbsOpenGovSubmission.ProcessSteps.AwaitingMetadata => submission.MetadataComplete ?
@@ -84,9 +83,9 @@ namespace Datahub.Core.Utils
             }
 
             // IMSO approval is not uploaded so not included in this check
-            var relevantPurposes = new HashSet<string>() 
-            { 
-                TbsOpenGovSubmission.DATASET_FILE_TYPE, 
+            var relevantPurposes = new HashSet<string>()
+            {
+                TbsOpenGovSubmission.DATASET_FILE_TYPE,
                 TbsOpenGovSubmission.GUIDE_FILE_TYPE
             };
             var relevantFiles = files.Where(f => relevantPurposes.Contains(f.FilePurpose));
@@ -108,9 +107,9 @@ namespace Datahub.Core.Utils
         private static OpenDataPublishingStepStatus<TbsOpenGovSubmission.ProcessSteps> DetermineAwaitingFilesStatus(TbsOpenGovSubmission submission)
         {
             var files = submission.Files;
-            var requiredPurposes = new HashSet<string>() 
-            { 
-                TbsOpenGovSubmission.DATASET_FILE_TYPE, 
+            var requiredPurposes = new HashSet<string>()
+            {
+                TbsOpenGovSubmission.DATASET_FILE_TYPE,
                 TbsOpenGovSubmission.GUIDE_FILE_TYPE
             };
 
@@ -134,6 +133,5 @@ namespace Datahub.Core.Utils
                 return OpenDataPublishingUtils.Incomplete(TbsOpenGovSubmission.ProcessSteps.AwaitingFiles);
             }
         }
-
     }
 }

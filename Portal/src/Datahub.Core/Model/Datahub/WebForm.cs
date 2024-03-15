@@ -9,7 +9,7 @@ namespace Datahub.Core.Model.Datahub;
 public class WebForm
 {
     [AeFormIgnore]
-    [Key] 
+    [Key]
     public int WebForm_ID { get; set; }
 
     [StringLength(100)]
@@ -31,8 +31,6 @@ public class WebForm
     [AeFormIgnore]
     public int Project_ID { get; set; }
 }
-
-    
 
 public class WebForm_DBCodes
 {

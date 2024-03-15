@@ -18,7 +18,7 @@ public class ComputeCostEstimatorResult
     private decimal Cost(EstimatorResultLineDecimal l) => l?.Cost ?? 0.0000M;
     public decimal TotalCost => Cost(VmHours) + Cost(Dbu);
 }
-    
+
 public enum ComputeCostMachineType
 {
     DS3,

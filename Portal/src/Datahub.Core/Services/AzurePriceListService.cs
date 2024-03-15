@@ -35,7 +35,7 @@ public class AzurePriceListService : IAzurePriceListService
         public static readonly string COOL_GRS_BLOCK_SKU_ID = "DZH318Z0BPH7/007D";
         public static readonly string ARCHIVE_LRS_BLOCK_SKU_ID = "DZH318Z0BPH7/007M";
         public static readonly string ARCHIVE_GRS_BLOCK_SKU_ID = "DZH318Z0BPH7/007L";
-            
+
         // geo replication v2, canada central
         public static readonly string GEO_REPLICATION_SKU_ID = "DZH318Z0BZ26/0021";
 
@@ -46,7 +46,6 @@ public class AzurePriceListService : IAzurePriceListService
 
         // Standard all-purpose compute DBU, Canada central
         public static readonly string STANDARD_ALL_PURPOSE_COMPUTE_DBU_SKU_ID = "DZH318Z0BWQJ/004Z";
-
 
         public static readonly Dictionary<(AccessTierType, DataRedundancyType), string> StorageSkuMaps = new()
         {
@@ -128,13 +127,11 @@ public class AzurePriceListService : IAzurePriceListService
 
         public static readonly string GEO_REPLICATION_V2_DATA_TRANSFER = "ea8e044b-900e-4137-b26f-7e41eecef1b6";
 
-
         public static readonly string STANDARD_DS3_V2_METER_ID = "121219c8-4963-475a-b861-2cfe6667b9c2";
         public static readonly string STANDARD_DS4_V2_METER_ID = "72cbc933-fe63-4de0-a60d-f37c66dc7d4f";
         public static readonly string STANDARD_DS5_V2_METER_ID = "60596994-ce9c-470c-a8ee-853b694a3037";
 
         public static readonly string STANDARD_ALL_PURPOSE_COMPUTE_DBU_METER_ID = "1c96d414-32bd-4360-acbf-48f233d03005";
-
 
         public static readonly List<string> DataStored = new()
         {
@@ -159,7 +156,7 @@ public class AzurePriceListService : IAzurePriceListService
             ARCHIVE_GRS_WRITE_OPS,
             ARCHIVE_LRS_WRITE_OPS
         };
-            
+
         public static readonly List<string> ListAndCreateContainer = new()
         {
             GRS_LIST_CREATE_CONTAINER_OPS,
@@ -190,7 +187,6 @@ public class AzurePriceListService : IAzurePriceListService
         public static readonly List<string> OtherOperations = new() { ALL_OTHER_OPS };
 
         public static readonly List<string> GeoReplication = new() { GEO_REPLICATION_V2_DATA_TRANSFER };
-
     }
 
     private readonly Dictionary<string, int> MeasurementUnitConversions = new()
@@ -213,7 +209,7 @@ public class AzurePriceListService : IAzurePriceListService
     private readonly IMiscStorageService _miscStorageService;
 
     public AzurePriceListService(
-        IHttpClientFactory httpClientFactory, 
+        IHttpClientFactory httpClientFactory,
         IMiscStorageService miscStorageService
     )
     {
@@ -322,7 +318,7 @@ public class AzurePriceListService : IAzurePriceListService
         var yesterday = DateTime.UtcNow - TimeSpan.FromDays(1);
 
         var priceGrid = await FetchSavedStoragePriceGrid();
-            
+
         if (priceGrid == null || priceGrid.LastUpdatedUtc <= yesterday)
         {
             var apiPriceList = await GenerateStoragePriceListFromApi();

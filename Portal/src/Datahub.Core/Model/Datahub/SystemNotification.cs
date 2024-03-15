@@ -28,5 +28,4 @@ public class SystemNotification
 
     [StringLength(128)]
     public string ActionLink_Key {  get; set; }
-
 }

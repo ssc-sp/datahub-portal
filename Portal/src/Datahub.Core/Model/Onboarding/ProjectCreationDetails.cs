@@ -13,7 +13,7 @@ public class ProjectCreationDetails
     /// The id of the project creation details.
     /// </summary>
     public int Id { get; set; }
-    
+
     /// <summary>
     /// The id of the project that the user has created.
     /// </summary>
@@ -23,17 +23,16 @@ public class ProjectCreationDetails
     /// The joined string of the features that the user is interested in.
     /// </summary>
     public string InterestedFeatures { get; set; }
-    
+
     /// <summary>
     /// The id of the user that is creating the details for the project.
     /// </summary>
     public int CreatedById { get; set; }
-    
+
     /// <summary>
     /// The date and time that the project creation details were created.
     /// </summary>
     public DateTime CreatedAt { get; set; }
-
 
     #region Navigation
 
