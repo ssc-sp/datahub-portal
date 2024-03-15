@@ -58,7 +58,7 @@ public static class EFTools
         return configuration.GetConnectionString(name) ?? throw new ArgumentNullException($"ASPNETCORE_CONNECTION STRING ({name}) in Enviroment ({environment.EnvironmentName}).");
     }
 
-    public static DbDriver GetDriver(this IConfiguration configuration) => (configuration.GetValue(typeof(string), "DbDriver", "azure").ToString().ToLowerInvariant()) switch
+    public static DbDriver GetDriver(this IConfiguration configuration) => configuration.GetValue(typeof(string), "DbDriver", "azure").ToString().ToLowerInvariant() switch
     {
         "sqlite" => DbDriver.Sqlite,
         "memory" => DbDriver.Memory,

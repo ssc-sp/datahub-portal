@@ -77,7 +77,7 @@ public class PowerBiServiceApi
 
     public async Task<PowerBIClient> GetPowerBiClientAsync()
     {
-        var tokenCredentials = new TokenCredentials((await GetAccessTokenAsync()), "Bearer");
+        var tokenCredentials = new TokenCredentials(await GetAccessTokenAsync(), "Bearer");
         return new PowerBIClient(new Uri(urlPowerBiServiceApiRoot), tokenCredentials);
     }
 

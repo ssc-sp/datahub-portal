@@ -228,7 +228,7 @@ namespace Datahub.Maui.Uploader
             if (currentSpeedMbps > 0)
             {
                 var remaining = totalUploadSize - (uploaded + (currentSize ?? 0) * progress);
-                var seconds = (remaining * 1.0 / 1024 / 1000) / currentSpeedMbps;
+                var seconds = remaining * 1.0 / 1024 / 1000 / currentSpeedMbps;
                 var ts = TimeSpan.FromSeconds(seconds);
                 var friendly = fileUtils.ToFriendlyFormat(ts);
                 LbUploadStatus.Text = $"{currentProgress * 100:F2} % - {friendly} remaining - {currentSpeedMbps:F2} Mbps - {filesCompleted}/{totalFiles} files";

@@ -10,17 +10,17 @@ namespace Datahub.Core.Services.Wiki;
 
 public class WikiService : IWikiService
 {
-    private readonly string wikiRoot;
-    private readonly string wikiEditPrefix;
-    private readonly ILogger<WikiService> _logger;
-    private readonly IHttpClientFactory httpClientFactory;
-
     private const string WIKIROOT_CONFIG_KEY = "WikiURL";
     private const string WIKI_EDIT_URL_CONFIG_KEY = "EditWikiURLPrefix";
 
+    private readonly string wikiRoot;
+    private readonly string wikiEditPrefix;
+    private readonly ILogger<WikiService> logger;
+    private readonly IHttpClientFactory httpClientFactory;
+
     //TODO: use proper caching
-    private MarkdownLanguageRoot EnglishLanguageRoot;
-    private MarkdownLanguageRoot FrenchLanguageRoot;
+    private MarkdownLanguageRoot englishLanguageRoot;
+    private MarkdownLanguageRoot frenchLanguageRoot;
 
     private IList<TimeStampedStatus> errorList;
 
@@ -30,7 +30,7 @@ public class WikiService : IWikiService
     {
         wikiRoot = config[WIKIROOT_CONFIG_KEY];
         wikiEditPrefix = config[WIKI_EDIT_URL_CONFIG_KEY];
-        _logger = logger;
+        this.logger = logger;
         this.httpClientFactory = httpClientFactory;
         errorList = new List<TimeStampedStatus>();
     }
@@ -60,7 +60,7 @@ public class WikiService : IWikiService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Cannot load page url: {FullUrl}", fullUrl);
+            logger.LogError(ex, "Cannot load page url: {FullUrl}", fullUrl);
             return null;
         }
     }
@@ -190,14 +190,14 @@ public class WikiService : IWikiService
             var enLink = rootLinks[0];
             var frLink = rootLinks[1];
 
-            EnglishLanguageRoot = await PopulateResourceLanguageRoot(enLink);
-            FrenchLanguageRoot = await PopulateResourceLanguageRoot(frLink);
+            englishLanguageRoot = await PopulateResourceLanguageRoot(enLink);
+            frenchLanguageRoot = await PopulateResourceLanguageRoot(frLink);
 
             await AddErrorMessage("Finished loading resources");
         }
         else
         {
-            _logger.LogWarning($"No data found for root sidebar {rootSidebar}");
+            logger.LogWarning($"No data found for root sidebar {rootSidebar}");
         }
     }
 
@@ -252,7 +252,7 @@ public class WikiService : IWikiService
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error loading {url}", url);
+            logger.LogError(e, "Error loading {url}", url);
             await AddErrorMessage($"Error loading {url}");
 
             return await Task.FromResult(default(string));
@@ -261,12 +261,12 @@ public class WikiService : IWikiService
 
     public async Task<MarkdownLanguageRoot> LoadLanguageRoot(bool isFrench)
     {
-        if (EnglishLanguageRoot == null || FrenchLanguageRoot == null)
+        if (englishLanguageRoot == null || frenchLanguageRoot == null)
         {
             await LoadResourceTree();
         }
 
-        var result = isFrench ? FrenchLanguageRoot : EnglishLanguageRoot;
+        var result = isFrench ? frenchLanguageRoot : englishLanguageRoot;
         return await Task.FromResult(result);
     }
 

@@ -82,7 +82,7 @@ public class CKANService : ICKANService
     public async Task<CKANApiResult> CreatePackage(FieldValueContainer fieldValues, bool allFields, string url)
     {
         // generate the dictionary
-        var packageData = (new PackageGenerator()).GeneratePackage(fieldValues, allFields, url);
+        var packageData = new PackageGenerator().GeneratePackage(fieldValues, allFields, url);
 
         // generate json from package
         var jsonData = JsonSerializer.Serialize(packageData, GetSerializationOptions());

@@ -11,7 +11,9 @@ namespace Datahub.Core.Services.Metadata;
 
 public class MetadataBrokerService : IMetadataBrokerService
 {
-    private readonly IDbContextFactory<MetadataDbContext> contextFactory;
+    private const int MaxKeywordResults = 50;
+
+	private readonly IDbContextFactory<MetadataDbContext> contextFactory;
     private readonly ILogger<MetadataBrokerService> logger;
     private readonly IDatahubAuditingService auditingService;
     private readonly ICatalogSearchEngine catalogSearchEngine;
@@ -330,8 +332,6 @@ public class MetadataBrokerService : IMetadataBrokerService
         using var ctx = contextFactory.CreateDbContext();
         return await GetLatestMetadataDefinition(ctx);
     }
-
-    private const int MaxKeywordResults = 50;
 
     public async Task<List<CatalogObjectResult>> SearchCatalog(CatalogSearchRequest request, Func<CatalogObjectResult, bool> validateResult)
     {

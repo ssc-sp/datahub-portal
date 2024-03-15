@@ -58,5 +58,4 @@ public static class ProjectResourceConstants
         SERVICE_TYPE_POWERBI,
         SERVICE_TYPE_STORAGE
     };
-
 }

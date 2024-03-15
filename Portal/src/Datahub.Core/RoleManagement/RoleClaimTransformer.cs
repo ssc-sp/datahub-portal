@@ -29,7 +29,7 @@ public class RoleClaimTransformer : IClaimsTransformation
             }
             else
             {
-                var claims = ((ClaimsIdentity)principal.Identity);
+                var claims = (ClaimsIdentity)principal.Identity;
                 if (claims is null)
                     return principal;
 
