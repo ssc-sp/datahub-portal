@@ -129,7 +129,7 @@ public class UserInformationService : IUserInformationService
             return true;
         var claims = (await GetAuthenticatedUser()).Claims.Where(c => c.Type == ClaimTypes.Role).ToList();
 
-        return !claims.Any() || claims.Count == 1 && claims[0].Value == "default";
+        return !claims.Any() || (claims.Count == 1 && claims[0].Value == "default");
     }
 
     private async Task GetUserAsyncInternal()

@@ -269,7 +269,7 @@ public class DocumentationService
     }
 
     /// <summary>
-    ///
+    /// Loads the documentation page from the given guide and name.
     /// </summary>
     /// <param name="guide"></param>
     /// <param name="name"></param>

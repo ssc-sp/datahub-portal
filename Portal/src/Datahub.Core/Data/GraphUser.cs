@@ -88,7 +88,7 @@ public class GraphUser
     /// Static ctor to create from GraphUser
     /// </summary>
     /// <param name="user"></param>
-    /// <returns></returns>
+    /// <returns>GraphUser</returns>
     public static GraphUser Create(User user)
     {
         var email = user.Mail ?? "unknown@unknown.com";
