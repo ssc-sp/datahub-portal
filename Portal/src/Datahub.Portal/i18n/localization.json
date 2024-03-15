@@ -1632,5 +1632,6 @@
   "The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget.": "The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget.",
   "Changes saved": "Changes saved",
   "Azure API Management": "Azure API Management",
+  "The final publishing step is currently disabled in this environment. In production, you will be able to press the button below and make your publication available on the Open Data registry.": "The final publishing step is currently disabled in this environment. In production, you will be able to press the button below and make your publication available on the Open Data registry.",
   "Open Publishing Dashboard": "Open Publishing Dashboard"
 }
