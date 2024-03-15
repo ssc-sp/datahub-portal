@@ -209,8 +209,7 @@ public class AzurePriceListService : IAzurePriceListService
 
     public AzurePriceListService(
         IHttpClientFactory httpClientFactory,
-        IMiscStorageService miscStorageService
-    )
+        IMiscStorageService miscStorageService)
     {
         this.httpClientFactory = httpClientFactory;
         this.miscStorageService = miscStorageService;
