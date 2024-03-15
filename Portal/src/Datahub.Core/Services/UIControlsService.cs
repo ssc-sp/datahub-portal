@@ -1,8 +1,6 @@
 using Datahub.Core.Components;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using System;
-using System.Threading.Tasks;
 
 namespace Datahub.Core.Services;
 
@@ -16,12 +14,12 @@ public class UIControlsService
     public event Action OnModalChange;
     public event Action OnErrorModalShow;
 
-    private IDialogService _dialogService;
-    private IDialogReference _dialogReference = null;
+    private IDialogService dialogService;
+    private IDialogReference dialogReference = null;
 
     public UIControlsService(IDialogService dialogService)
     {
-        _dialogService = dialogService;
+        this.dialogService = dialogService;
     }
 
     private void NotifyRightSidebarChange() => OnRightSidebarChange?.Invoke();
@@ -40,7 +38,7 @@ public class UIControlsService
         {
             CurrentModalRenderFragment = (CurrentModalRenderFragment == modalRenderFragment) ? null : modalRenderFragment;
             NotifyModalChange();
-        });            
+        });
     }
 
     public void ShowErrorModal()
@@ -53,21 +51,21 @@ public class UIControlsService
         var parameters = new DialogParameters();
         parameters.Add("Content", contentFragment);
 
-        var options = new DialogOptions() 
-        { 
-            MaxWidth = MaxWidth.Medium, 
-            FullWidth = true, 
+        var options = new DialogOptions()
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
             CloseButton = true,
             CloseOnEscapeKey = true,
             DisableBackdropClick = true
         };
 
-        _dialogReference = _dialogService.Show<DialogModalFrame>(dialogTitle, parameters, options);
+        dialogReference = dialogService.Show<DialogModalFrame>(dialogTitle, parameters, options);
     }
 
     public void HideDialog()
     {
-        _dialogReference?.Close();
-        _dialogReference = default;
+        dialogReference?.Close();
+        dialogReference = default;
     }
 }

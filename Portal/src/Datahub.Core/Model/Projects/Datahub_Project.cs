@@ -250,17 +250,17 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeFormIgnore]
     public DateTime? OperationalWindow { get; set; }
 
-    private bool _hasCostRecovery;
+    private bool hasCostRecovery;
     [AeFormIgnore]
     public bool HasCostRecovery
     {
         get
         {
-            return _hasCostRecovery || (Project_ID <= 42);
+            return hasCostRecovery || (Project_ID <= 42);
         }
         set
         {
-            _hasCostRecovery = value;
+            hasCostRecovery = value;
         }
     }
 

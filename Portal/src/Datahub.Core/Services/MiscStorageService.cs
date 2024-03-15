@@ -1,10 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Datahub.Core.Model;
 using Datahub.Core.Model.Datahub;
 
@@ -12,19 +8,18 @@ namespace Datahub.Core.Services;
 
 public class MiscStorageService : IMiscStorageService
 {
-    private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-    private readonly ILogger<MiscStorageService> _logger;
-    private readonly IDatahubAuditingService _auditingService;
+    private readonly IDbContextFactory<DatahubProjectDBContext> dbContextFactory;
+    private readonly ILogger<MiscStorageService> logger;
+    private readonly IDatahubAuditingService auditingService;
 
     public MiscStorageService(
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        ILogger<MiscStorageService> logger, 
-        IDatahubAuditingService auditingService
-    )
+        ILogger<MiscStorageService> logger,
+        IDatahubAuditingService auditingService)
     {
-        _dbContextFactory = dbContextFactory;
-        _logger = logger;
-        _auditingService = auditingService;
+        this.dbContextFactory = dbContextFactory;
+        this.logger = logger;
+        this.auditingService = auditingService;
     }
 
     private static string GetTypeName<T>() => typeof(T).ToString();
@@ -46,7 +41,7 @@ public class MiscStorageService : IMiscStorageService
 
     public async Task<T> GetObject<T>(string id)
     {
-        using var ctx = _dbContextFactory.CreateDbContext();
+        using var ctx = dbContextFactory.CreateDbContext();
 
         var rawObject = await GetRawObject<T>(ctx, id);
 
@@ -60,7 +55,7 @@ public class MiscStorageService : IMiscStorageService
 
     public async Task<IEnumerable<T>> GetAllObjects<T>()
     {
-        using var ctx = _dbContextFactory.CreateDbContext();
+        using var ctx = dbContextFactory.CreateDbContext();
 
         var rawObjects = await GetAllRawObjects<T>(ctx);
         return rawObjects
@@ -75,14 +70,14 @@ public class MiscStorageService : IMiscStorageService
         }
         catch (JsonSerializationException ex)
         {
-            _logger.LogError(ex, "Type {} cannot be deserialized.", GetTypeName<T>());
+            logger.LogError(ex, "Type {} cannot be deserialized.", GetTypeName<T>());
             throw;
         }
     }
 
     public async Task SaveObject<T>(T obj, string id)
     {
-        using var ctx = _dbContextFactory.CreateDbContext();
+        using var ctx = dbContextFactory.CreateDbContext();
 
         var genericObject = await GetRawObject<T>(ctx, id);
 
@@ -99,12 +94,12 @@ public class MiscStorageService : IMiscStorageService
             ctx.MiscStoredObjects.Update(genericObject);
         }
 
-        await ctx.TrackSaveChangesAsync(_auditingService);
+        await ctx.TrackSaveChangesAsync(auditingService);
     }
 
     public async Task SaveObjects<T>(IEnumerable<T> objects, Func<T, string> idGenerator)
     {
-        using var ctx = _dbContextFactory.CreateDbContext();
+        using var ctx = dbContextFactory.CreateDbContext();
 
         var allExistingObjects = (await GetAllRawObjects<T>(ctx)).ToDictionary(o => o.Id);
 
@@ -130,6 +125,6 @@ public class MiscStorageService : IMiscStorageService
         ctx.MiscStoredObjects.UpdateRange(updatedObjects);
         ctx.MiscStoredObjects.AddRange(createdObjects);
 
-        await ctx.TrackSaveChangesAsync(_auditingService);
+        await ctx.TrackSaveChangesAsync(auditingService);
     }
 }

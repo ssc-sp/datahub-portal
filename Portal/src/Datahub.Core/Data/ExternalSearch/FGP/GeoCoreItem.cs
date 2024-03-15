@@ -23,19 +23,19 @@ public class GeoCoreItem
     public string GraphicOverview { get; set; } // TODO lots of processing (same)
     public string Contact { get; set; } // TODO lots of processing (same)
 
-    private GeoCoreOptionsList _optionsList = null;
-    private GeoCoreContactList _contactList = null;
-    private GeoCoreGraphicOverviewList _graphicsList = null;
+    private GeoCoreOptionsList optionsList = null;
+    private GeoCoreContactList contactList = null;
+    private GeoCoreGraphicOverviewList graphicsList = null;
 
     public GeoCoreOptionsList OptionsList
     {
         get
         {
-            if (_optionsList == null)
+            if (optionsList == null)
             {
-                _optionsList = DecodeEscapedJson<GeoCoreOptionsList>(Options);
+                optionsList = DecodeEscapedJson<GeoCoreOptionsList>(Options);
             }
-            return _optionsList;
+            return optionsList;
         }
     }
 
@@ -43,11 +43,11 @@ public class GeoCoreItem
     {
         get
         {
-            if (_contactList == null)
+            if (contactList == null)
             {
-                _contactList = DecodeEscapedJson<GeoCoreContactList>(Contact);
+                contactList = DecodeEscapedJson<GeoCoreContactList>(Contact);
             }
-            return _contactList;
+            return contactList;
         }
     }
 
@@ -57,11 +57,11 @@ public class GeoCoreItem
     {
         get
         {
-            if (_graphicsList == null)
+            if (graphicsList == null)
             {
-                _graphicsList = DecodeEscapedJson<GeoCoreGraphicOverviewList>(GraphicOverview);
+                graphicsList = DecodeEscapedJson<GeoCoreGraphicOverviewList>(GraphicOverview);
             }
-            return _graphicsList;
+            return graphicsList;
         }
     }
 

@@ -205,16 +205,16 @@ public class AzurePriceListService : IAzurePriceListService
 
     private static readonly UnitPrice zeroPrice = new(0.0M, 1);
 
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IMiscStorageService _miscStorageService;
+    private readonly IHttpClientFactory httpClientFactory;
+    private readonly IMiscStorageService miscStorageService;
 
     public AzurePriceListService(
         IHttpClientFactory httpClientFactory,
         IMiscStorageService miscStorageService
     )
     {
-        _httpClientFactory = httpClientFactory;
-        _miscStorageService = miscStorageService;
+        this.httpClientFactory = httpClientFactory;
+        this.miscStorageService = miscStorageService;
     }
 
     private static string BuildApiUrl(string skuId) => $"{API_BASE_URL}?currencyCode='CAD'&$filter=skuId eq '{skuId}'";
@@ -260,7 +260,7 @@ public class AzurePriceListService : IAzurePriceListService
 
     private async Task<AzurePriceAPIResult> GetAzureApiResult(string url)
     {
-        using var httpClient = _httpClientFactory.CreateClient();
+        using var httpClient = httpClientFactory.CreateClient();
 
         using var response = await httpClient.GetAsync(url);
 
@@ -275,11 +275,11 @@ public class AzurePriceListService : IAzurePriceListService
         return new(result.Items.Where(i => i.SkuId == skuId).ToList());
     }
 
-    private async Task<SavedStorageCostPriceGrid> FetchSavedStoragePriceGrid() => await _miscStorageService.GetObject<SavedStorageCostPriceGrid>(SAVED_STORAGE_PRICE_LIST_ID);
-    private async Task<ComputeCostEstimatorPrices> FetchSavedComputePriceList() => await _miscStorageService.GetObject<ComputeCostEstimatorPrices>(SAVED_COMPUTE_PRICE_LIST_ID);
+    private async Task<SavedStorageCostPriceGrid> FetchSavedStoragePriceGrid() => await miscStorageService.GetObject<SavedStorageCostPriceGrid>(SAVED_STORAGE_PRICE_LIST_ID);
+    private async Task<ComputeCostEstimatorPrices> FetchSavedComputePriceList() => await miscStorageService.GetObject<ComputeCostEstimatorPrices>(SAVED_COMPUTE_PRICE_LIST_ID);
 
-    private async Task SaveStoragePriceGrid(SavedStorageCostPriceGrid priceGrid) => await _miscStorageService.SaveObject(priceGrid, SAVED_STORAGE_PRICE_LIST_ID);
-    private async Task SaveComputePriceList(ComputeCostEstimatorPrices priceGrid) => await _miscStorageService.SaveObject(priceGrid, SAVED_COMPUTE_PRICE_LIST_ID);
+    private async Task SaveStoragePriceGrid(SavedStorageCostPriceGrid priceGrid) => await miscStorageService.SaveObject(priceGrid, SAVED_STORAGE_PRICE_LIST_ID);
+    private async Task SaveComputePriceList(ComputeCostEstimatorPrices priceGrid) => await miscStorageService.SaveObject(priceGrid, SAVED_COMPUTE_PRICE_LIST_ID);
 
     private async Task<Dictionary<string, StorageCostEstimatorPriceList>> GenerateStoragePriceListFromApi()
     {

@@ -9,19 +9,19 @@ public class ApiTelemetryService
     public const string  FileUploadSizeMetricName = "FIleUploadSize";
     public const string  FileUploadTimeMetricName = "FIleUploadTime";
     public const string  FileUploadBPMSMetricName = "FIleUploadBPMS";
-    private TelemetryConfiguration _config = TelemetryConfiguration.CreateDefault();
+    private TelemetryConfiguration config = TelemetryConfiguration.CreateDefault();
 
-    private TelemetryClient _client;
+    private TelemetryClient client;
     protected TelemetryClient client
     {
         get
         {
-            if (_client == null)
+            if (client == null)
             {
-                _client = new TelemetryClient(_config);
+                client = new TelemetryClient(config);
             }
 
-            return _client;
+            return client;
         }
     }
     public ApiTelemetryService()
