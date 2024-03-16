@@ -4,12 +4,12 @@ namespace Datahub.Infrastructure.Offline
 {
     public class OfflineWorkspaceBudgetManagementService : IWorkspaceBudgetManagementService
     {
-        public Task CreateArmClient(string TenantId, string InfraClientId, string InfraClientSecret)
+        public Task<decimal> GetBudgetAmountAsync(string budgetId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<decimal> GetBudgetAmountAsync(string budgetId)
+        public Task<decimal> GetWorkspaceBudgetAmountAsync(string workspaceAcronym)
         {
             throw new NotImplementedException();
         }
@@ -19,7 +19,22 @@ namespace Datahub.Infrastructure.Offline
             throw new NotImplementedException();
         }
 
+        public Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<decimal> GetBudgetSpentAsync(string budgetId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<decimal> GetWorkspaceBudgetSpentAsync(string workspaceAcronym)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<(bool, decimal)> UpdateWorkspaceBudgetSpentAsync(string workspaceAcronym)
         {
             throw new NotImplementedException();
         }
