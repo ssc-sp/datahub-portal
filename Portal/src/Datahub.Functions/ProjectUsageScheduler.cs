@@ -48,12 +48,12 @@ public class ProjectUsageScheduler
     private async Task RunScheduler()
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        
+
         var timeout = 0;
 
         var projects = ctx.Projects.ToList();
         var sortedProjects = projects.OrderBy(p => GetLastUpdate(ctx, p.Project_ID)).ToList();
-        var subscriptionCosts = await _workspaceCostMgmtService.QuerySubscriptionCosts(_azConfig.SubscriptionId,
+        var subscriptionCosts = await _workspaceCostMgmtService.QuerySubscriptionCosts(
             DateTime.UtcNow.Date.AddYears(-2), DateTime.UtcNow.Date);
 
         if (subscriptionCosts is null)
@@ -64,7 +64,6 @@ public class ProjectUsageScheduler
 
         foreach (var resource in sortedProjects)
         {
-
             var usageMessage = new ProjectUsageUpdateMessage(resource.Project_Acronym_CD, subscriptionCosts, timeout);
 
             // send/post the message
