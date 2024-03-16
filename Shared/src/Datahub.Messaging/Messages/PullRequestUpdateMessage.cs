@@ -1,7 +1,6 @@
-using ResourceProvisioner.Domain.Common;
-using ResourceProvisioner.Domain.ValueObjects;
+using Datahub.Shared.Entities;
 
-namespace ResourceProvisioner.Domain.Messages;
+namespace Datahub.Shared.Messaging;
 
 public class PullRequestUpdateMessage : BaseUpdateMessage
 {

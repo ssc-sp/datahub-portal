@@ -18,6 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformUser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformWorkspace.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformTemplate.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\PullRequestValueObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceAppData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceDefinition.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Enums\TerraformRole.cs" />

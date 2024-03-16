@@ -3,11 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Entities;
-using ResourceProvisioner.Domain.Enums;
-using ResourceProvisioner.Domain.Events;
 using ResourceProvisioner.Domain.Exceptions;
-using ResourceProvisioner.Domain.Messages;
-using ResourceProvisioner.Domain.ValueObjects;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using ResourceProvisioner.Application.Config;
@@ -15,6 +11,7 @@ using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Infrastructure.Common;
 using Version = System.Version;
+using Datahub.Shared.Messaging;
 
 namespace ResourceProvisioner.Infrastructure.Services;
 

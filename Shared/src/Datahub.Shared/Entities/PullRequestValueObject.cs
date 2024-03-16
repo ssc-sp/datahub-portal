@@ -1,4 +1,4 @@
-namespace ResourceProvisioner.Domain.ValueObjects;
+namespace Datahub.Shared.Entities;
 
 public class PullRequestValueObject
 {

@@ -1,8 +1,7 @@
 ﻿using MediatR;
 using Newtonsoft.Json;
-using ResourceProvisioner.Domain.Common;
 
-namespace ResourceProvisioner.Infrastructure.Helpers;
+namespace Datahub.Shared.Messaging;
 
 public class ForwardableAdapter<TRequest> : IForwardableMessage where TRequest : IRequest
 {

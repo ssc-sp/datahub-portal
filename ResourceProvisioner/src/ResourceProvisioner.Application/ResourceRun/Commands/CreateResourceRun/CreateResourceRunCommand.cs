@@ -1,5 +1,5 @@
 using Datahub.Shared.Entities;
-using ResourceProvisioner.Domain.Messages;
+using Datahub.Shared.Messaging;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using ResourceProvisioner.Application.Services;

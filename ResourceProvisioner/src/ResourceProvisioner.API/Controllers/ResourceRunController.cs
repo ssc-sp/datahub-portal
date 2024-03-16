@@ -1,6 +1,6 @@
+using Datahub.Shared.Messaging;
 using Microsoft.AspNetCore.Mvc;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
-using ResourceProvisioner.Domain.Messages;
 
 namespace ResourceProvisioner.API.Controllers;
 
