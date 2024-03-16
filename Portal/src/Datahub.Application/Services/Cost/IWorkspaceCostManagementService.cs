@@ -17,7 +17,7 @@
         /// <param name="startDate">The start date of the query</param>
         /// <param name="endDate">The end date of the query</param>
         /// <returns>A List containing all daily service costs. A daily service cost is a cost caused by one service during one day.</returns>
-        public Task<List<DailyServiceCost>?> QuerySubscriptionCosts(string subId, DateTime startDate,
+        public Task<List<DailyServiceCost>?> QuerySubscriptionCosts(DateTime startDate,
             DateTime endDate);
 
         /// <summary>

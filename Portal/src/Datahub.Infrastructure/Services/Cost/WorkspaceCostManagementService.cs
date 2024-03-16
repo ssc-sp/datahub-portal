@@ -106,10 +106,10 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <param name="startDate">The start date of the query</param>
         /// <param name="endDate">The end date of the query</param>
         /// <returns>A List containing all daily service costs. A daily service cost is a cost caused by one service during one day.</returns>
-        public async Task<List<DailyServiceCost>?> QuerySubscriptionCosts(string subId, DateTime startDate,
+        public async Task<List<DailyServiceCost>?> QuerySubscriptionCosts(DateTime startDate,
             DateTime endDate)
         {
-            var queryResult = await QueryScopeCosts(subId, startDate, endDate);
+            var queryResult = await QueryScopeCosts(_armClient.GetDefaultSubscription().Id.SubscriptionId, startDate, endDate);
             return (queryResult is null) ? null : await ParseQueryResult(queryResult);
         }
 
