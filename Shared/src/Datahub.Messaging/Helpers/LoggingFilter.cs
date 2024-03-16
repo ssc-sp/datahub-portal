@@ -1,7 +1,7 @@
 ﻿using MassTransit;
 using Microsoft.Extensions.Logging;
 
-namespace ResourceProvisioner.Infrastructure.Helpers;
+namespace Datahub.Shared.Messaging;
 
 public class LoggingFilter<T> : IFilter<ConsumeContext<T>> where T : class
 {

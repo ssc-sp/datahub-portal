@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>3048fbbe-0d41-4ff0-8ffc-4c0a1daf9274</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Datahub.Messaging</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\MessageStatusCode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Exceptions\MissingTerraformVariableException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Exceptions\NoChangesDetectedException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Exceptions\ProjectNotInitializedException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ForwardableAdapter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\LoggingFilter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IForwardableMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\BaseEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\BaseUpdateMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\PullRequestUpdateMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\RepositoryUpdateEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\AzureQueueService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\AzureServiceBusForwarder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\ForwardingConsumer.cs" />
+  </ItemGroup>
+</Project>
