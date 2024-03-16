@@ -1,34 +1,35 @@
-﻿using Datahub.Infrastructure.Queues.MessageHandlers;
+﻿using Datahub.Application.Services.Budget;
+using Datahub.Infrastructure.Queues.MessageHandlers;
 using MediatR;
 
 namespace Datahub.Infrastructure.Queues.Messages;
 
 public class ProjectUsageUpdateMessageBase
 {
-    public ProjectUsageUpdateMessageBase(int projectId, string resourceGroup, bool databricks, int timeout)
+    public ProjectUsageUpdateMessageBase(string projectAcronym, List<DailyServiceCost> subCosts, int timeout)
     {
-        ProjectId = projectId;
-        ResourceGroup = resourceGroup;
-        Databricks = databricks;
+        ProjectAcronym = projectAcronym;
+        SubscriptionCosts = subCosts;
         Timeout = timeout;
     }
 
-    public int ProjectId { get; }
-    public string ResourceGroup { get; }
-    public bool Databricks { get; }
+    public string ProjectAcronym { get; }
+    public List<DailyServiceCost> SubscriptionCosts { get; }
     public int Timeout { get; }
 }
 
 public class ProjectUsageUpdateMessage : ProjectUsageUpdateMessageBase, IRequest, IMessageTimeout
 {
-    public ProjectUsageUpdateMessage(int projectId, string resourceGroup, bool databricks, int timeout) : base(projectId, resourceGroup, databricks, timeout)
+    public ProjectUsageUpdateMessage(string projectAcronym, List<DailyServiceCost> subCosts, int timeout) : base(projectAcronym,
+        subCosts, timeout)
     {
     }
 }
 
 public class ProjectCapacityUpdateMessage : ProjectUsageUpdateMessageBase, IRequest, IMessageTimeout
 {
-    public ProjectCapacityUpdateMessage(int projectId, string resourceGroup, bool databricks, int timeout) : base(projectId, resourceGroup, databricks, timeout)
+    public ProjectCapacityUpdateMessage(string projectAcronym, int timeout) : base(projectAcronym, new List<DailyServiceCost>(),
+        timeout)
     {
     }
 }

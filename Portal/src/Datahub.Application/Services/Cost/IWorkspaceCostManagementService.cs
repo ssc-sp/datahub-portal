@@ -2,41 +2,93 @@
 {
     public interface IWorkspaceCostManagementService
     {
-        public Task UpdateWorkspaceUsageAsync(int projectId);
-        public Task<List<DailyServiceCost>> GetCostByPeriodAsync(string workspaceAcronym, DateTime date);
-
-        public Task<List<DailyServiceCost>> GetCostByPeriodAsync(string workspaceAcronym, DateTime startDate,
+        /// <summary>
+        /// Updates the Project_Costs and Project_Credits for the given workspace acronym.
+        /// </summary>
+        /// <param name="subCosts">The costs at the subscription level</param>
+        /// <param name="workspaceAcronym">The workspace acronym</param>
+        /// <returns>(bool, decimal), a tuple representing whether a rollover is needed according to this update and the amount of costs captured in the last fiscal year</returns>
+        public Task<(bool, decimal)> UpdateWorkspaceCostAsync(List<DailyServiceCost> subCosts, string workspaceAcronym);
+        
+        /// <summary>
+        /// Queries the costs for the given subscription id within the given date range.
+        /// </summary>
+        /// <param name="subId">Subscription id, i.e. "/subscription/<...>"</param>
+        /// <param name="startDate">The start date of the query</param>
+        /// <param name="endDate">The end date of the query</param>
+        /// <returns>A List containing all daily service costs. A daily service cost is a cost caused by one service during one day.</returns>
+        public Task<List<DailyServiceCost>?> QuerySubscriptionCosts(string subId, DateTime startDate,
             DateTime endDate);
 
-        public Task<List<DailyServiceCost>> GetAllCostsAsync(string workspaceAcronym);
-
+        /// <summary>
+        /// Gets the costs for the given workspace acronym from the given list of subscription level costs
+        /// </summary>
+        /// <param name="subCosts">Costs at the subscription level</param>
+        /// <param name="workspaceAcronym">Workspace acronym</param>
+        /// <returns>List of daily service costs for the workspace. A daily service cost is a cost caused by one service during one day.</returns>
+        public Task<List<DailyServiceCost>> GetWorkspaceCosts(List<DailyServiceCost> subCosts, string workspaceAcronym);
+        
+        /// <summary>
+        /// Groups the costs given by source. By executing this, you lose date information
+        /// </summary>
+        /// <param name="costs">The costs to group</param>
+        /// <returns>The grouped costs</returns>
         public List<DailyServiceCost> GroupBySource(List<DailyServiceCost> costs);
+        
+        /// <summary>
+        /// Groups the costs given by date. By executing this, you lose source information
+        /// </summary>
+        /// <param name="costs">The costs to group</param>
+        /// <returns>The grouped costs</returns>
         public List<DailyServiceCost> GroupByDate(List<DailyServiceCost> costs);
+        
+        /// <summary>
+        /// Filters the given costs to be only within the current fiscal year
+        /// </summary>
+        /// <param name="costs">The costs to filter</param>
+        /// <returns>The filtered costs, which are all in the current fiscal year</returns>
+        public List<DailyServiceCost> FilterCurrentFiscalYear(List<DailyServiceCost> costs);
+        
+        /// <summary>
+        /// Filters the given costs to be only within the last fiscal year
+        /// </summary>
+        /// <param name="costs">The costs to filter</param>
+        /// <returns>The filtered costs, which are all in the last fiscal year</returns>
+        public List<DailyServiceCost> FilterLastFiscalYear(List<DailyServiceCost> costs);
+        
+        /// <summary>
+        /// Filters the given costs to be only within a date range
+        /// </summary>
+        /// <param name="costs">The costs to filter</param>
+        /// <param name="startDate">The start of the date range</param>
+        /// <param name="endDate">The end of the date range</param>
+        /// <returns>The filtered costs, which should be between the dates provided, inclusively</returns>
+        public List<DailyServiceCost> FilterDateRange(List<DailyServiceCost> costs, DateTime startDate,
+            DateTime endDate);
+
+        /// <summary>
+        /// Filters the given costs to be only from a given date
+        /// </summary>
+        /// <param name="costs">The costs to filter</param>
+        /// <param name="date">The date of interest</param>
+        /// <returns>The filtered costs, which should be only from the given date</returns>
+        public List<DailyServiceCost> FilterDateRange(List<DailyServiceCost> costs, DateTime date);
     }
 
     public struct DailyServiceCost
     {
         public decimal Amount { get; set; }
         public string Source { get; set; }
+        public string ResourceGroupName { get; set; }
         public DateTime Date { get; set; }
+
         public override bool Equals(object? obj)
         {
             return obj is DailyServiceCost cost &&
                    Amount == cost.Amount &&
                    Source == cost.Source &&
-                   Date == cost.Date;
+                   Date == cost.Date &&
+                   ResourceGroupName == cost.ResourceGroupName;
         }
-    }
-
-    public struct FiscalYear
-    {
-        public FiscalYear(int startYear, int endYear)
-        {
-            StartDate = new DateTime(startYear, 3, 1);
-            EndDate = new DateTime(endYear, 2, 31);
-        }
-
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
     }
 }

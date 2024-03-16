@@ -18,6 +18,7 @@ public partial class Testing
     internal static IConfiguration _configuration = null!;
     internal static IUserEnrollmentService _userEnrollmentService = null!;
     internal static DatahubPortalConfiguration _datahubPortalConfiguration = null!;
+    internal static ILoggerFactory _loggerFactory;
 
 
     internal const string TestProjectAcronym = "TEST";
@@ -25,6 +26,10 @@ public partial class Testing
     internal const string TestUserGraphGuid = "0000-0000-0000-0000-0000";
     internal static readonly string[] TEST_USER_IDS = Enumerable.Range(0,5).Select(_ => Guid.NewGuid().ToString()).ToArray();
     internal const string TestAdminUserId = "987654321";
+    internal const string TestResourceGroupId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b/resourceGroups/fsdh-static-test-rg";
+    internal const string SubscriptionId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b";
+    internal const string TestBudgetId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b/resourceGroups/fsdh-static-test-rg/providers/Microsoft.Consumption/budgets/fsdh-test-budget";
+    internal const string TestStorageAccountId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b/resourceGroups/fsdh-static-test-rg/providers/Microsoft.Storage/storageAccounts/fsdhteststorageaccount";
     internal const string OldUserEmail = "old-user@email.gc.ca";
     internal const string OldUserId = "987654321";
     internal static readonly string[] PROJECT_ACRONYMS = Enumerable.Range(1, 3).Select(i => $"TEST{i}").ToArray();
@@ -38,6 +43,7 @@ public partial class Testing
         
         _datahubPortalConfiguration = new DatahubPortalConfiguration();
         _configuration.Bind(_datahubPortalConfiguration);
+        _loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 
         var expectedDatahubPortalInviteResponse = ExpectedDatahubPortalInviteResponse();
         var mockHandler = new Mock<HttpMessageHandler>();
@@ -74,5 +80,6 @@ public partial class Testing
     [OneTimeTearDown]
     public void RunAfterAnyTests()
     {
+        _loggerFactory.Dispose();
     }
 }

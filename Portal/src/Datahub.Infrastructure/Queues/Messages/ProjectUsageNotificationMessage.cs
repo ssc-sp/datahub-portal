@@ -1,3 +1,3 @@
 ﻿using MediatR;
 namespace Datahub.Infrastructure.Queues.Messages;
-public record ProjectUsageNotificationMessage(int ProjectId) : IRequest;
+public record ProjectUsageNotificationMessage(string ProjectAcronym) : IRequest;

@@ -17,6 +17,7 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.2" />
 		<PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="2.13.4" />
 		<PackageReference Include="Microsoft.PowerBI.JavaScript" Version="2.22.4" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
