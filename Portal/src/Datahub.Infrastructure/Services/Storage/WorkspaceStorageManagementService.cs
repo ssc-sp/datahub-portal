@@ -18,14 +18,12 @@ namespace Datahub.Infrastructure.Services.Storage
         private readonly ArmClient _armClient;
         private readonly ILogger<WorkspaceStorageManagementService> _logger;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-        private string SubscriptionId { get; set; }
 
         public WorkspaceStorageManagementService(ArmClient armClient, ILogger<WorkspaceStorageManagementService> logger, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
         {
             _armClient = armClient;
             _logger = logger;
             _dbContextFactory = dbContextFactory;
-            SubscriptionId = _armClient.GetDefaultSubscription().Id.SubscriptionId;
         }
 
         public async Task<double> GetStorageCapacity(string workspaceAcronym)
@@ -114,12 +112,6 @@ namespace Datahub.Infrastructure.Services.Storage
 
         internal async Task<List<string>> GetStorageAccountIds(string workspaceAcronym)
         {
-            if (SubscriptionId is null)
-            {
-                _logger.LogError("SubscriptionId must be set to determine storage ids for workspaces.");
-                throw new Exception("SubscriptionId must be set to determine storage ids for workspaces.");
-            }
-
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
             var projectResources = ctx.Project_Resources2.Include(p => p.Project)
                 .Where(p => p.Project.Project_Acronym_CD == workspaceAcronym).ToList();
@@ -129,7 +121,7 @@ namespace Datahub.Infrastructure.Services.Storage
             
             rgNames.ForEach(async rg =>
             {
-                var rgId = $"/subscriptions/{SubscriptionId}/resourceGroups/{rg}";
+                var rgId = $"/subscriptions/{_armClient.GetDefaultSubscription().Id.SubscriptionId}/resourceGroups/{rg}";
                 var resourceId = new ResourceIdentifier(rgId);
                 var resourceGroup = _armClient.GetResourceGroupResource(resourceId);
                 if (resourceGroup == null)

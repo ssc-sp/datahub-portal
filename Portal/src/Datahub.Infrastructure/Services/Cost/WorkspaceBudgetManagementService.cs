@@ -20,7 +20,6 @@ namespace Datahub.Infrastructure.Services.Cost
         private ArmClient _armClient;
         private readonly ILogger<WorkspaceBudgetManagementService> _logger;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-        public string SubscriptionId { get; set; }
 
         public WorkspaceBudgetManagementService(ILogger<WorkspaceBudgetManagementService> logger, ArmClient armClient, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
         {
@@ -132,11 +131,6 @@ namespace Datahub.Infrastructure.Services.Cost
 
         internal async Task<string> GetBudgetIdForWorkspace(string workspaceAcronym)
         {
-            if (SubscriptionId is null)
-            {
-                _logger.LogError("SubscriptionId must be set to determine budget ids for workspaces.");
-                throw new Exception("SubscriptionId must be set to determine budget ids for workspaces.");
-            }
             
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
             var projectResources = ctx.Project_Resources2.Include(p => p.Project)
@@ -145,7 +139,7 @@ namespace Datahub.Infrastructure.Services.Cost
             var blobResource = projectResources.First(r => r.ResourceType == blobType);
             var resourceGroupName = ParseResourceGroup(blobResource.JsonContent);
             var budgetId =
-                $"/subscription/{SubscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Consumption/budgets/{resourceGroupName}-budget";
+                $"/subscription/{_armClient.GetDefaultSubscription().Id.SubscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Consumption/budgets/{resourceGroupName}-budget";
             return budgetId;
         }
 

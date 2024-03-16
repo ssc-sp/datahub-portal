@@ -4,11 +4,14 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
+using NSubstitute;
 
 namespace Datahub.Infrastructure.UnitTests;
 
@@ -18,6 +21,11 @@ public partial class Testing
     internal static IConfiguration _configuration = null!;
     internal static IUserEnrollmentService _userEnrollmentService = null!;
     internal static DatahubPortalConfiguration _datahubPortalConfiguration = null!;
+    internal static DatahubProjectDBContext _dbContext =
+                new (new DbContextOptions<DatahubProjectDBContext>());
+
+    internal static IDbContextFactory<DatahubProjectDBContext> _dbContextFactory =
+        Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
     internal static ILoggerFactory _loggerFactory;
 
 
@@ -44,7 +52,7 @@ public partial class Testing
         _datahubPortalConfiguration = new DatahubPortalConfiguration();
         _configuration.Bind(_datahubPortalConfiguration);
         _loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-
+        
         var expectedDatahubPortalInviteResponse = ExpectedDatahubPortalInviteResponse();
         var mockHandler = new Mock<HttpMessageHandler>();
         mockHandler.Protected()

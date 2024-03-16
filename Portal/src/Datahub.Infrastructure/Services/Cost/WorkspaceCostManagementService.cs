@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Azure;
 using Azure.Core;
@@ -223,26 +224,73 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <param name="endDate">The end date</param>
         /// <returns>Returns the result of the query or null if the query was throttled.</returns>
         /// <exception cref="Exception">Throws exception if the query was incorrect</exception>
-        internal async Task<QueryResult?> QueryScopeCosts(string scopeId, DateTime startDate, DateTime endDate)
+        internal async Task<List<QueryResult>?> QueryScopeCosts(string scopeId, DateTime startDate, DateTime endDate)
         {
+            using var ctx = await _dbContextFactory.CreateDbContextAsync();
             var scope = new ResourceIdentifier(scopeId);
             var dataset = new QueryDataset();
             var queryTimePeriod = new QueryTimePeriod(startDate, endDate);
             var filter1 = new QueryFilter();
-            filter1.Dimensions = new QueryComparisonExpression("ResourceGroupName", , )
+            var allAcronyms = ctx.Projects.AsNoTracking().Select(p => p.Project_Acronym_CD.ToUpper()).ToList();
+
+            filter1.Tags = new QueryComparisonExpression("project_cd", QueryOperatorType.In, allAcronyms);
+            dataset.Filter = filter1;
+
             dataset.Granularity = GranularityType.Daily;
+
             dataset.Grouping.Add(new QueryGrouping(QueryColumnType.Dimension, "ServiceName"));
             dataset.Grouping.Add(new QueryGrouping(QueryColumnType.Dimension, "ResourceGroupName"));
-            dataset.Filter.And.Add(new QueryFilter("Cost", new QueryComparisonExpression, 0));
-            dataset.Aggregation.Add("Cost", new QueryAggregation("Cost", FunctionType.Sum));
-            var query = new QueryDefinition(ExportType.ActualCost, TimeframeType.Custom, dataset);
 
+            dataset.Aggregation.Add("Cost", new QueryAggregation("Cost", FunctionType.Sum));
+
+            var query = new QueryDefinition(ExportType.ActualCost, TimeframeType.Custom, dataset);
             query.TimePeriod = queryTimePeriod;
+
             Response<QueryResult> response = null;
+            QueryResult result = null;
+            var queryResults = new List<QueryResult> { };
 
             try
             {
                 response = await _armClient.UsageQueryAsync(scope, query);
+
+                if (!response.HasValue)
+                {
+                    _logger.LogError($"Could not get cost data for scope {scopeId}");
+                    throw new Exception($"Could not get cost data for scope {scopeId}");
+                }
+
+                result = response!.Value;
+                queryResults.Add(result);
+                
+                // Working on pagination
+                // var client = new HttpClient();
+                // while (!string.IsNullOrWhiteSpace(result.NextLink))
+                // {
+                //     var url = new UriBuilder(result.NextLink);
+                //     var skipToken = result.NextLink.Split("skipToken=")[1];
+                //     var obj = new JsonObject
+                //     {
+                //         { "options", new JsonObject()
+                //         {
+                //             {"$skipToken", skipToken}  
+                //         } }
+                //     };
+                //     var bodyStr = JsonSerializer.Serialize(obj);
+                //     bodyStr.As
+                //     var httpResponse = await client.PostAsync(result.NextLink, );
+                //     var content = await httpResponse.Content.ReadAsStringAsync();
+                //     response = JsonSerializer.Deserialize<Response<QueryResult>>(content);
+                //
+                //     if (!response.HasValue)
+                //     {
+                //         _logger.LogError($"Could not get cost data for scope {scopeId}");
+                //         throw new Exception($"Could not get cost data for scope {scopeId}");
+                //     }
+                //
+                //     result = response!.Value;
+                //     queryResults.Add(result);
+                // }
             }
             catch (RequestFailedException e)
             {
@@ -250,13 +298,7 @@ namespace Datahub.Infrastructure.Services.Cost
                 return null;
             }
 
-            if (!response.HasValue)
-            {
-                _logger.LogError($"Could not get cost data for scope {scopeId}");
-                throw new Exception($"Could not get cost data for scope {scopeId}");
-            }
-
-            return response.Value;
+            return queryResults;
         }
 
         internal async Task<List<string>> GetResourceGroupNames(string workspaceAcronym)
@@ -334,23 +376,27 @@ namespace Datahub.Infrastructure.Services.Cost
             return content?.resource_group_name;
         }
 
-        internal async Task<List<DailyServiceCost>> ParseQueryResult(QueryResult queryResult)
+        internal async Task<List<DailyServiceCost>> ParseQueryResult(List<QueryResult> queryResults)
         {
             var lstDailyCosts = new List<DailyServiceCost>();
 
-            var cols = queryResult.Columns.ToList().Select(c => c.Name).ToList();
-
-            queryResult.Rows.ToList().ForEach(r =>
+            queryResults.ForEach(queryResult =>
             {
-                lstDailyCosts.Add(new DailyServiceCost()
+                var cols = queryResult.Columns.ToList().Select(c => c.Name).ToList();
+                CultureInfo provider = CultureInfo.InvariantCulture;
+
+                queryResult.Rows.ToList().ForEach(r =>
                 {
-                    Amount = decimal.Parse(r[cols.FindIndex(c => c == "Cost")].ToString()),
-                    Source = r[cols.FindIndex(c => c == "ServiceName")].ToString(),
-                    Date = DateTime.Parse(r[cols.FindIndex(c => c == "UsageDate")].ToString()),
-                    ResourceGroupName = r[cols.FindIndex(c => c == "ResourceGroupName")].ToString()
+                    lstDailyCosts.Add(new DailyServiceCost()
+                    {
+                        Amount = decimal.Parse(r[cols.FindIndex(c => c == "Cost")].ToString()),
+                        Source = r[cols.FindIndex(c => c == "ServiceName")].ToString(),
+                        Date = DateTime.ParseExact(r[cols.FindIndex(c => c == "UsageDate")].ToString(), "yyyyMMdd",
+                            provider),
+                        ResourceGroupName = r[cols.FindIndex(c => c == "ResourceGroupName")].ToString()
+                    });
                 });
             });
-
             return lstDailyCosts;
         }
 
