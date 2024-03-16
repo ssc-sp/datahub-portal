@@ -1,8 +1,8 @@
 using System.Text.Json;
-using Azure.Storage.Queues.Models;
+using Datahub.Application.Services.Budget;
+using Datahub.Application.Services.Storage;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
-using Datahub.Infrastructure.Services.Projects;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -12,16 +12,21 @@ namespace Datahub.Functions;
 public class ProjectUsageUpdater
 {
     private readonly ILogger<ProjectUsageUpdater> _logger;
-    private readonly ProjectUsageService _usageService;
     private readonly IMediator _mediator;
     private readonly QueuePongService _pongService;
+    private readonly IWorkspaceCostManagementService _workspaceCostMgmtService;
+    private readonly IWorkspaceBudgetManagementService _workspaceBudgetMgmtService;
+    private readonly IWorkspaceStorageManagementService _workspaceStorageMgmtService;
+    
 
-    public ProjectUsageUpdater(ILoggerFactory loggerFactory, ProjectUsageService usageService, IMediator mediator, QueuePongService pongService)
+    public ProjectUsageUpdater(ILoggerFactory loggerFactory, IMediator mediator, QueuePongService pongService, IWorkspaceCostManagementService workspaceCostMgmtService, IWorkspaceBudgetManagementService workspaceBudgetMgmtService, IWorkspaceStorageManagementService workspaceStorageMgmtService)
     {
         _logger = loggerFactory.CreateLogger<ProjectUsageUpdater>();
-        _usageService = usageService;
         _mediator = mediator;
         _pongService = pongService;
+        _workspaceCostMgmtService = workspaceCostMgmtService;
+        _workspaceBudgetMgmtService = workspaceBudgetMgmtService;
+        _workspaceStorageMgmtService = workspaceStorageMgmtService;
     }
 
     [Function("ProjectUsageUpdater")]
@@ -35,15 +40,39 @@ public class ProjectUsageUpdater
         // deserialize message
         var message = DeserializeQueueMessage(queueItem);
 
-        // get resource groups
-        var resourceGroups = EnumerateResourceGroups(message).ToArray();
+        _logger.LogInformation("Querying cost management...");
+        var (costRollover, spentAmount) =
+            await _workspaceCostMgmtService.UpdateWorkspaceCostAsync(message.SubscriptionCosts, message.ProjectAcronym);
+        _logger.LogInformation("Querying budget...");
+        var (budgetRollover, budgetSpentAmount) =
+            await _workspaceBudgetMgmtService.UpdateWorkspaceBudgetSpentAsync(message.ProjectAcronym);
 
-        // update the usage
-        if (!await _usageService.UpdateProjectUsage(message.ProjectId, resourceGroups, cancellationToken))
-            return;
+        // The query to cost checks if the last update was outside of the current fiscal year, if so that means we are in a new fiscal year
+        // The query to budget checks if the amount spent captured by the budget is less than previously. If so, that means the budget was renewed.
+        if (costRollover && budgetRollover)
+        {
+            _logger.LogInformation($"Budget rollover initiated.");
+            var currentBudget = await _workspaceBudgetMgmtService.GetWorkspaceBudgetAmountAsync(message.ProjectAcronym);
+            _logger.LogInformation($"Spend captured by cost management: {spentAmount}");
+            _logger.LogInformation($"Spend captured by budget : {budgetSpentAmount}");
+            
+            // Checking if the two captured costs are within 5% of each other to ensure that the rollover is valid
+            var relativeDifference = (budgetSpentAmount - spentAmount) / (budgetSpentAmount);
+            if ( relativeDifference <= (decimal)0.05)
+            {
+                _logger.LogInformation($"Executing rollover for {message.ProjectAcronym}");
+                await _workspaceBudgetMgmtService.SetWorkspaceBudgetAmountAsync(message.ProjectAcronym,
+                    currentBudget - budgetSpentAmount);
+                // Generate fiscal year report here?
+            }
+            else
+            {
+                _logger.LogWarning($"Aborted rollover due to large difference between captured spend and captured costs ({relativeDifference:P})");
+            }
+        }
 
         // queue the usage notification message
-        await _mediator.Send(new ProjectUsageNotificationMessage(message.ProjectId), cancellationToken);
+        await _mediator.Send(new ProjectUsageNotificationMessage(message.ProjectAcronym), cancellationToken);
     }
 
     [Function("ProjectCapacityUsageUpdater")]
@@ -57,15 +86,12 @@ public class ProjectUsageUpdater
         // deserialize message
         var message = DeserializeQueueMessage(queueItem);
 
-        // get resource groups
-        var resourceGroups = EnumerateResourceGroups(message).ToArray();
-
-        // update the usage
-        var capacityUsed = await _usageService.UpdateProjectCapacity(message.ProjectId, resourceGroups, cancellationToken);
+        // update the capacity
+        _logger.LogInformation("Querying storage capacity...");
+        var capacityUsed = await _workspaceStorageMgmtService.UpdateStorageCapacity(message.ProjectAcronym);
 
         // log capacity found
-        var groups = string.Join(", ", resourceGroups);
-        _logger.LogInformation($"Used storage capacity for: '{groups}' is {capacityUsed}.");
+        _logger.LogInformation($"Used storage capacity for: '{message.ProjectAcronym}' is {capacityUsed}.");
     }
 
     static ProjectUsageUpdateMessage DeserializeQueueMessage(string text)
@@ -73,25 +99,11 @@ public class ProjectUsageUpdater
         var message = JsonSerializer.Deserialize<ProjectUsageUpdateMessage>(text);
         
         // verify message 
-        if (message is null || message.ProjectId <= 0 || string.IsNullOrEmpty(message.ResourceGroup))
+        if (message is null || string.IsNullOrEmpty(message.ProjectAcronym) )
         {
             throw new Exception($"Invalid queue message:\n{text}");
         }
 
         return message;
-    }
-
-    /// <summary>
-    /// Given: fsdh_proj_die1_dev_rg
-    /// </summary>
-    /// <returns>[fsdh_proj_die1_dev_rg, fsdh-dbk-die1-dev-rg]</returns>
-    static IEnumerable<string> EnumerateResourceGroups(ProjectUsageUpdateMessageBase message)
-    {
-        yield return message.ResourceGroup;
-        if (message.Databricks)
-        {
-            var parts = message.ResourceGroup.Split('_').Select((s, idx) => idx == 1 ? "dbk" : s);
-            yield return string.Join("-", parts);
-        }
     }
 }

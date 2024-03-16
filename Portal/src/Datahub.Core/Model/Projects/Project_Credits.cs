@@ -21,9 +21,13 @@ public class Project_Credits
     /// </summary>
     public DateTime? LastUpdate { get; set; }
     /// <summary>
-    /// Current credits consumed.
+    /// Current credits consumed, according to cost management.
     /// </summary>
     public double Current { get; set; }
+    /// <summary>
+    /// Current credits consumed, according to azure budget
+    /// </summary>
+    public double BudgetCurrentSpent { get; set; }
     /// <summary>
     /// JSON serialized cost per service (ServiceName, Cost)
     /// </summary>
