@@ -125,9 +125,12 @@ public class MetadataBrokerService : IMetadataBrokerService
                 }
                 else
                 {
-                    // add new value
-                    editedValue.ObjectMetadataId = current.ObjectMetadataId;
-                    ctx.ObjectFieldValues.Add(editedValue);
+                    // add new value if not null or empty
+                    if (!string.IsNullOrEmpty(editedValue.Value_TXT))
+                    {
+                        editedValue.ObjectMetadataId = current.ObjectMetadataId;
+                        ctx.ObjectFieldValues.Add(editedValue);
+                    }
                 }
             }
 
@@ -819,7 +822,7 @@ public class MetadataBrokerService : IMetadataBrokerService
                .Join(ctx.ObjectMetadataSet, e => e.ObjectMetadataId, e => e.ObjectMetadataId, (v, o) => new NameValuePair(o.ObjectId_TXT, v.Value_TXT))
                .ToListAsync();
 
-            return pairs.Select(p => p with { Value = mapper(p.Value) }).ToList();
+            return pairs.Where(p => !string.IsNullOrEmpty(p.Value)).Select(p => p with { Value = mapper(p.Value) })?.ToList();
         }
         catch (Exception ex)
         {

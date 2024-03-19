@@ -1,5 +1,6 @@
 ﻿using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
+using Datahub.Metadata.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,19 +13,21 @@ public class PackageGenerator
 
     public PackageGenerator()
     {
-        _fieldAgents = new()
-        {
+        _fieldAgents =
+        [
             new KeywordFieldAgent(),
             new TranslatedFieldAgent(),
             new CatchAllFieldAgent(string.Empty, string.Empty, true),
             new CatchAllFieldAgent(string.Empty, string.Empty, false)
-        };
+        ];
     }
 
     public Dictionary<string, object> GeneratePackage(FieldValueContainer fieldValues, bool allFields, string url = null, bool @private = false)
     {
         if (fieldValues == null)
+        {
             throw new ArgumentNullException(nameof(fieldValues));
+        }
 
         Dictionary<string, object> dict = new();
 
@@ -47,7 +50,7 @@ public class PackageGenerator
         dict["type"] = "dataset";
 
         dict["restrictions"] = "unrestricted";
-        dict["owner_org"] = "9391E0A2-9717-4755-B548-4499C21F917B";
+        dict["owner_org"] = fieldValues[FieldNames.opengov_owner_org]?.Value_TXT; 
         dict["date_published"] = fieldValues["date_published"]?.Value_TXT ?? DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         var requiredFields = fieldValues.Where(f => allFields || f.FieldDefinition?.Required_FLAG == true);
@@ -77,7 +80,7 @@ public class PackageGenerator
         dict["license_id"] = "ca-ogl-lgo";
 
         // ready to publish
-        dict["ready_to_publish"] = "true";
+        dict["ready_to_publish"] = "false";
         dict["imso_approval"] = "false";
 
         return dict;
