@@ -246,7 +246,7 @@ public class DocumentationService
         if (enOutline is null)
             throw new InvalidOperationException($"Cannot load sidebar and content");
 
-        frOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, $"{SIDEBAR}", LOCALE_FR, useCache), _docFileMappings.GetFrenchDocumentId);
+        frOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_FR, useCache), _docFileMappings.GetFrenchDocumentId);
         if (frOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
         cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");

@@ -16,7 +16,8 @@ public partial class Heading
         Rename,
         AzSync,
         DeleteFolder,
-        NewFolder
+        NewFolder,
+        Publish
     }
     
     private async Task HandleUpload()
@@ -40,6 +41,18 @@ public partial class Heading
             await OnFileDownload.InvokeAsync(download);
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserDownloadFile);
         }
+    }
+
+    private async Task HandlePublish()
+    {
+        if (IsActionDisabled(ButtonAction.Publish)) return;
+
+        var publishFiles = SelectedItems
+            .Select(sel => Files?.FirstOrDefault(f => f.name == sel))
+            .Where(f => f is not null);
+
+        await OnPublishFiles.InvokeAsync(publishFiles);
+        //TODO telemetry
     }
 
     private async Task HandleAzSyncDown()
@@ -139,6 +152,7 @@ public partial class Heading
             ButtonAction.Rename   => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator || SelectedItems.Count > 1,
             ButtonAction.NewFolder => !_currentUserRole.IsAtLeastCollaborator,
             ButtonAction.DeleteFolder => Files.Any() || Folders.Any() || CurrentFolder == "/" || !_currentUserRole.IsAtLeastCollaborator,
+            ButtonAction.Publish => !_config.CkanConfiguration.IsFeatureEnabled || _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
             _ => false
         };
     }

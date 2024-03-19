@@ -15,6 +15,7 @@
                Variant="Variant.Outlined"
                AnchorOrigin="Origin.BottomCenter"
                AdornmentIcon=@Icons.Material.Filled.ArrowDropDown
+               RequiredError=@RequiredError
                Margin="Margin.Dense">
 
         @foreach (var c in GetChoices())
@@ -37,6 +38,9 @@
 
     [Parameter]
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
+
+    [Parameter]
+    public string RequiredError { get; set; }
 
     private HashSet<string> _selection;
 
