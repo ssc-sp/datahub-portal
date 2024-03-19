@@ -60,9 +60,7 @@ public class DocumentationService
     public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger, 
         IHttpClientFactory httpClientFactory, IWebHostEnvironment environment,
         IMemoryCache docCache)
-    {
-        //!ctx.HostingEnvironment.IsDevelopment()
-        
+    {        
         var branch = environment.IsProduction()? "main": "next";
         _docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, $"https://github.com/ssc-sp/datahub-docs/edit/{branch}/")!;
         _logger = logger;
@@ -157,7 +155,6 @@ public class DocumentationService
 
     /// <summary>
     /// Retrieves the path of a given resource by traversing up the resource hierarchy and appending the cleaned-up titles of each parent resource.
-    /// TODO: Confirm if this actually gets used anywhere. Remove if not.
     /// </summary>
     /// <param name="resource">The resource for which to retrieve the path.</param>
     /// <returns>A list of strings representing the path of the resource.</returns>
@@ -454,15 +451,15 @@ public class DocumentationService
     {
         try
         {
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
-            var blobClient = blobContainerClient.GetBlobClient(path);
+            var storageContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+            var documentBlobClient = storageContainerClient.GetBlobClient(path);
 
-            if (await blobClient.ExistsAsync())
+            if (await documentBlobClient.ExistsAsync())
             {
-                var response = await blobClient.DownloadContentAsync();
-                var content = response.Value.Content.ToString();
-                content = MarkdownHelper.RemoveFrontMatter(content);
-                return content;
+                var documentResponse = await documentBlobClient.DownloadContentAsync();
+                var documentContent = documentResponse.Value.Content.ToString();
+                documentContent = MarkdownHelper.RemoveFrontMatter(documentContent);
+                return documentContent;
             }
             else
             {
