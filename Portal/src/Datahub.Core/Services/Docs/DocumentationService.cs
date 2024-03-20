@@ -352,7 +352,7 @@ public class DocumentationService
     private async Task<string?> LoadDocsPage(DocumentationGuideRootSection guide, string? name, string? locale = "", bool useCache = true)
     {
         if (name is null) return null;
-        return await LoadDocs(BuildPath(guide, locale ?? string.Empty, name), useCache);
+        return await LoadDocs(BuildPath(guide, locale ?? string.Empty, name));
     }
 
     /// <summary>
