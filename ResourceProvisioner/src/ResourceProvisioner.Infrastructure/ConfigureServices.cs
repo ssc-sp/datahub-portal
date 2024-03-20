@@ -26,7 +26,8 @@ public static class ConfigureServices
         services.AddSingleton<ITerraformService, TerraformService>();
         services.AddScoped<AzureServiceBusForwarder>(provider =>
         {
-            var storageConnectionString = configuration["DatahubStorageConnectionString"] ?? configuration["DatahubStorageQueue:ConnectionString"];
+            var storageConnectionString = configuration["DatahubStorageConnectionString"] 
+                ?? configuration["DatahubStorageQueue:ConnectionString"];
             return new AzureServiceBusForwarder(storageConnectionString);
         });
         services.AddMassTransit(x =>

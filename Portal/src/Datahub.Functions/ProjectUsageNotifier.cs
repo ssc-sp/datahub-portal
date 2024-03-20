@@ -5,6 +5,8 @@ using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
+using MassTransit;
+using MassTransit.Transports;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
@@ -22,12 +24,13 @@ namespace Datahub.Functions
         private readonly QueuePongService _pongService;
         private readonly EmailValidator _emailValidator;
         private readonly IEmailService _emailService;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public ProjectUsageNotifier(ILoggerFactory loggerFactory, AzureConfig config, IMediator mediator, 
+        public ProjectUsageNotifier(ILoggerFactory loggerFactory, AzureConfig config, IPublishEndpoint publishEndpoint, 
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory, QueuePongService pongService, EmailValidator emailValidator, IEmailService emailService)
         {
             _logger = loggerFactory.CreateLogger<ProjectUsageNotifier>();
-            _mediator = mediator;
+            _publishEndpoint = publishEndpoint;
             _dbContextFactory = dbContextFactory;
             _notificationPercents = ParseNotificationPercents(config.NotificationPercents ?? "25,50,80,100");
             _pongService = pongService;
@@ -86,7 +89,7 @@ namespace Datahub.Functions
             try
             {
                 var notificationEmail = GetNotificationEmail(details.ProjectAcro, notificationPerc, details.Contacts);
-                await _mediator.Send(notificationEmail, cancellationToken);
+                await _publishEndpoint.Publish(notificationEmail, cancellationToken);
 
                 details.Credits.PercNotified = notificationPerc;
                 details.Credits.LastNotified = DateTime.UtcNow;

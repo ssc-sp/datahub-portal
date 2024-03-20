@@ -17,6 +17,8 @@ using Datahub.Functions.Services;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Services.Security;
+using MassTransit;
+using Datahub.Shared.Messaging;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -60,6 +62,21 @@ var host = new HostBuilder()
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();
+        services.AddScoped<AzureServiceBusForwarder>(provider =>
+        {
+            var storageConnectionString = config["DatahubStorageConnectionString"]
+                ?? config["DatahubStorageQueue:ConnectionString"];
+            return new AzureServiceBusForwarder(storageConnectionString);
+        });
+        services.AddMassTransit(x =>
+        {
+            x.AddConsumer<ForwardingConsumer>();
+            x.UsingInMemory((context, cfg) =>
+            {
+                cfg.ConfigureEndpoints(context);
+                cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
+            });
+        });
 
         services.AddDatahubConfigurationFromFunctionFormat(config);
        

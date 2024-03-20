@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using NSubstitute;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Datahub.Functions.UnitTests;
 
@@ -27,7 +28,7 @@ public class BugReportTests
         _logger = _loggerFactory.CreateLogger<BugReport>();
         _azureConfig = new AzureConfig(_config);
         _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
-        _bugReport = new BugReport(_logger, _azureConfig, _emailService, _mediator);
+        _bugReport = new BugReport(_logger, _azureConfig, _emailService, _publishEndpoint );
         _bugReportMessage = new BugReportMessage(
             UserName: "Test",
             UserEmail: "example@email.com",
@@ -44,6 +45,18 @@ public class BugReportTests
             BugReportType: BugReportTypes.SupportRequest,
             Description: "Test report"
         );
+    }
+
+    [Test]
+    [Ignore("Need to fix")]
+    public async Task PublishBugReport_ShouldInvoiceMassTransit()
+    {
+        QueueMessage qm = QueuesModelFactory.QueueMessage(
+            messageId: "bug-report",
+            popReceipt: "",
+            messageText: JsonSerializer.Serialize(_bugReportMessage),
+            dequeueCount: 0);
+        await _bugReport.Run(qm);
     }
 
     [Test]
