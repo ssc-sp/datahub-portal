@@ -52,7 +52,7 @@
   "Access the Databricks notebooks for the workspace to write, execute and share analytics with all workspace members": "Access the Databricks notebooks for the workspace to write, execute and share analytics with all workspace members",
   "Access the connection details for the IoT devices connected to this project": "Access the connection details for the IoT devices connected to this project",
   "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members.": "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members.",
-  "Access token for the private repository - Do not edit to reuse exciting token": "Access token for the private repository - Do not edit to reuse exciting token",
+  "Access token for the private repository - Do not edit to reuse existing token": "Access token for the private repository - Do not edit to reuse existing token",
   "Access tokens are required for private repos": "Access tokens are required for private repos",
   "Account": "Account",
   "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data.": "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data.",
