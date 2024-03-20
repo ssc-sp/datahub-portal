@@ -75,7 +75,7 @@ public abstract class BasePageObject
 
     public async Task ValidateLocationAsync(string? expectedPath = null)
     {
-        Page.Url.Should().EndWith($"/{(expectedPath ?? Path)}");
+        Page.Url.Should().EndWith($"/{expectedPath ?? Path}");
         (await IsErrorPage()).Should().BeFalse();
     }
 }

@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-
 namespace Datahub.Core.Model.Datahub;
 
 public static class ExtensionTypeReference
 {
-    public readonly static Dictionary<string, string> ClassWords = new Dictionary<string, string>()
+    public static readonly Dictionary<string, string> ClassWords = new Dictionary<string, string>()
     {
         { "NONE", "None" },
         { "AMT", "Amount" },
@@ -36,7 +34,7 @@ public static class ExtensionTypeReference
         { "VAL", "Value" }
     };
 
-    public readonly static Dictionary<string, string> Definitions = new Dictionary<string, string>()
+    public static readonly Dictionary<string, string> Definitions = new Dictionary<string, string>()
     {
         { "NONE", "-" },
         { "AMT", "A numeric measurement of monetary value. An amount attribute can be specified as an integer, may include decimal positions and may have a positive or negative value. For example, $23,943.00, $99, -$14.00." },

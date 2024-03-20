@@ -1,5 +1,3 @@
-using System;
-
 namespace Datahub.Core.Model.Projects
 {
     public class Project_Whitelist
@@ -10,14 +8,13 @@ namespace Datahub.Core.Model.Projects
 
         public string AdminLastUpdated_ID { get; set; }
         public string AdminLastUpdated_UserName { get; set; }
-        
+
         public DateTime LastUpdated { get; set; }
-        
+
         public bool AllowStorage { get; set; }
         public bool AllowDatabricks { get; set; }
         public bool AllowVMs { get; set; }
-        
-        
+
         public bool IsEqual(Project_Whitelist other)
         {
             return other != null &&

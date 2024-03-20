@@ -13,14 +13,14 @@ namespace Datahub.Core.Migrations.Core
         {
             migrationBuilder.DropTable(
                 name: "UserSettingsBackup");
-            
+
             migrationBuilder.AddColumn<int>(
                 name: "PortalUserId",
                 table: "UserSettings",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
-            
+
             migrationBuilder.RenameColumn(
                 name: "UserId",
                 table: "UserSettings",
@@ -29,7 +29,7 @@ namespace Datahub.Core.Migrations.Core
             migrationBuilder.Sql(
                 "UPDATE UserSettings SET PortalUserId = (SELECT Id FROM PortalUsers WHERE PortalUsers.GraphGuid = UserSettings.UserGuid)"
             );
-            
+
             migrationBuilder.AddPrimaryKey(
                 name: "PK_UserSettings",
                 table: "UserSettings",
@@ -59,7 +59,7 @@ namespace Datahub.Core.Migrations.Core
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
-            
+
             migrationBuilder.DropForeignKey(
                 name: "FK_UserSettings_PortalUsers_PortalUserId",
                 table: "UserSettings");
@@ -81,7 +81,6 @@ namespace Datahub.Core.Migrations.Core
                 name: "PK_UserSettings",
                 table: "UserSettings",
                 column: "UserId");
-            
         }
     }
 }

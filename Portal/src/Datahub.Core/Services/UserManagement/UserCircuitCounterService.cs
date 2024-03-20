@@ -1,43 +1,40 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace Datahub.Core.Services.UserManagement;
+﻿namespace Datahub.Core.Services.UserManagement;
 
 public class UserCircuitCounterService : IDisposable, IUserCircuitCounterService
 {
-    readonly IGlobalSessionManager _sessionManager;
-    readonly IUserInformationService _userInformationService;
-    private string _sessionId;
-    private bool? _enabled;
+    private readonly IGlobalSessionManager sessionManager;
+    private readonly IUserInformationService userInformationService;
+    private string sessionId;
+    private bool? enabled;
 
     public UserCircuitCounterService(IGlobalSessionManager sessionManager, IUserInformationService userInformationService)
     {
-        _sessionManager = sessionManager;
-        _userInformationService = userInformationService;
-        _enabled = null;
+        this.sessionManager = sessionManager;
+        this.userInformationService = userInformationService;
+        enabled = null;
     }
 
     public async Task<bool> IsSessionEnabled()
     {
-        if (_enabled is null)
+        if (enabled is null)
         {
-            _sessionId = await _userInformationService.GetUserIdString();
-            _enabled = _sessionManager.TryAddSession(_sessionId);
+            sessionId = await userInformationService.GetUserIdString();
+            enabled = sessionManager.TryAddSession(sessionId);
         }
-        return _enabled.Value;
+        return enabled.Value;
     }
 
     public int GetSessionCount()
     {
-        return _sessionManager.GetSessionCount(_sessionId);
+        return sessionManager.GetSessionCount(sessionId);
     }
 
     public void Dispose()
     {
-        if (_enabled == true)
+        if (enabled == true)
         {
-            _sessionManager.RemoveSession(_sessionId);
-            _sessionId = null;
+            sessionManager.RemoveSession(sessionId);
+            sessionId = null;
         }
     }
 }

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Datahub.Markdown.Model;
+﻿namespace Datahub.Markdown.Model;
 
 public abstract class AbstractMarkdownPage
 {
