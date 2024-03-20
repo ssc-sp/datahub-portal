@@ -112,7 +112,7 @@
   "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data.": "Accédez aux comptes de stockage de l'espace de travail pour télécharger, télécharger et partager des ensembles de données avec tous les membres de l'espace de travail. Les ensembles de données stockés dans l'espace de travail peuvent aussi être publiés sur Open Data.",
   "Access to Information and Privacy Secretariat": "Secrétariat de l'accès à l'information et de la protection des renseignements personnels",
   "Access to high-performance, massively parallel and specialized GPU compute instances for speeding up your algorithms and model training.": "Accès à des instances de calcul avec unité de traitement graphique spécialisé, massivement parallèles et hautement performantes pour accélérer la formation sur les algorithmes et vos modèles.",
-  "Access token for the private repository - Do not edit to reuse exciting token": "Jeton d'accès pour le dépôt privé - Ne pas changer pour réutiliser le jeton existant",
+  "Access token for the private repository - Do not edit to reuse existing token": "Jeton d'accès pour le dépôt privé - Ne pas changer pour réutiliser le jeton existant",
   "Access tokens are required for private repos": "Les jetons d'accès sont nécessaires pour les dépôts privés",
   "Account": "Compte",
   "Account Key": "Clé du compte",
