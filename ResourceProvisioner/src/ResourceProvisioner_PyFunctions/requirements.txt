@@ -11,3 +11,4 @@ azure-mgmt-keyvault==10.3.0
 azure-mgmt-storage==21.1.0
 msgraph-sdk==1.0.0
 databricks-sdk==0.9.0
+
