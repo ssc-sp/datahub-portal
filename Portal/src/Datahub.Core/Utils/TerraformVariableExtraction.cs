@@ -58,15 +58,15 @@ public static class TerraformVariableExtraction
     /// </summary>
     /// <param name="project">The Datahub Project to find the app service config from</param>
     /// <returns>The AppServiceConfiguration object containing the configuration info of the app service</returns>
-    public static AppServiceConfiguration ExtractAppServiceConfiguration(Datahub_Project? project)
+    public static AppServiceConfiguration? ExtractAppServiceConfiguration(Datahub_Project? project)
     {
         var appServiceTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService);
         var appServiceResource = project?.Resources?.FirstOrDefault(r =>
             r.ResourceType == appServiceTemplateName);
-
-        if (appServiceResource == null)
-        {
-            throw new Exception("App service resource not found in the project");
+        
+        if (appServiceResource == null) {
+            // TODO: Might be worth logging but this class seems to have all static functions and no logger.
+            return null;
         }
 
         return ExtractAppServiceConfiguration(appServiceResource);
