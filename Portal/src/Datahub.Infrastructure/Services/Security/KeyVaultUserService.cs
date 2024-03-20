@@ -7,17 +7,11 @@ using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Datahub.Infrastructure.Services.Security
 {
-    public class KeyVaultUserService : IDisposable, IKeyVaultUserService
+	public class KeyVaultUserService : IDisposable, IKeyVaultUserService
     {
         private readonly ITokenAcquisition _tokenAcquisition;
         private readonly IUserInformationService _userInfoService;

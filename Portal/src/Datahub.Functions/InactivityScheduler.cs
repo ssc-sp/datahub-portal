@@ -1,5 +1,4 @@
-﻿using System;
-using Datahub.Core.Model.Datahub;
+﻿using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Queues.Messages;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
@@ -9,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Datahub.Functions
 {
-    public class InactivityScheduler
+	public class InactivityScheduler
     {
         
         private readonly ILogger<InactivityScheduler> _logger;

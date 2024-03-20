@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Datahub.LanguageTraining.Data
+﻿namespace Datahub.LanguageTraining.Data
 {
-    public class LanguageTrainingParameters
+	public class LanguageTrainingParameters
     {
         public string? ApplicationId;
         public string? AppUrl;

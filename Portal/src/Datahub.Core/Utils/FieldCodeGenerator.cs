@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 using Datahub.Core.Model.Datahub;
 
@@ -8,28 +6,28 @@ namespace Datahub.Core.Utils;
 
 public class FieldCodeGenerator
 {
-    readonly Func<string, int> _sectionMapper;
+    private const char ChoiceSeparator = '|';
 
-    const char ChoiceSeparator = '|';
+    private readonly Func<string, int> sectionMapper;
 
     public FieldCodeGenerator(Func<string, int> sectionMapper)
     {
-        _sectionMapper = sectionMapper;
+        this.sectionMapper = sectionMapper;
     }
 
     public string GetFormattedFieldName(WebForm_Field field)
     {
-        if (string.IsNullOrEmpty(field.Field_DESC)) 
+        if (string.IsNullOrEmpty(field.Field_DESC))
             return string.Empty;
 
-        var deDashed = field.Field_DESC.Replace("-", "");
+        var deDashed = field.Field_DESC.Replace("-", string.Empty);
         return Regex.Replace(deDashed, "[^A-Za-z0-9_]+", "_", RegexOptions.Compiled);
     }
 
     public string GenerateSQLName(WebForm_Field field)
     {
         var formatted = GetFormattedFieldName(field);
-        return "NONE".Equals(field.Extension_CD) ? formatted : $"{ formatted }_{ field.Extension_CD }";
+        return "NONE".Equals(field.Extension_CD) ? formatted : $"{formatted}_{field.Extension_CD}";
     }
 
     public string GenerateJSON(WebForm_Field field)
@@ -56,8 +54,8 @@ public class FieldCodeGenerator
         // AeFormCategory
         if (!string.IsNullOrEmpty(field.Section_DESC))
         {
-            var sectionIndex = _sectionMapper?.Invoke(field.Section_DESC) ?? 1;
-            sb.AppendLine($"[AeFormCategory({ Quote(field.Section_DESC) }, { sectionIndex })]");
+            var sectionIndex = sectionMapper?.Invoke(field.Section_DESC) ?? 1;
+            sb.AppendLine($"[AeFormCategory({Quote(field.Section_DESC)}, {sectionIndex})]");
         }
 
         // AeLabel
@@ -70,19 +68,19 @@ public class FieldCodeGenerator
         }
 
         var fieldType = FormFieldTypeReference.EFTypes[field.Type_CD];
-        sb.AppendLine($"public { fieldType } { GenerateSQLName(field) } {{ get; set; }}");
+        sb.AppendLine($"public {fieldType} {GenerateSQLName(field)} {{ get; set; }}");
 
         return sb.ToString();
     }
 
-    static void TryRenderLabel(StringBuilder sb, WebForm_Field field)
+    private static void TryRenderLabel(StringBuilder sb, WebForm_Field field)
     {
         var isDropdown = "Dropdown".Equals(field.Type_CD);
         var hasPlaceHolder = !string.IsNullOrEmpty(field.Description_DESC);
         if (isDropdown || hasPlaceHolder)
         {
             sb.Append("[AeLabel(");
-                
+
             if (isDropdown)
                 sb.Append("isDropDown: true");
 
@@ -92,7 +90,7 @@ public class FieldCodeGenerator
                     sb.Append(", ");
 
                 var placeholder = Quote($"[{field.Description_DESC}]");
-                sb.Append($"placeholder: { placeholder }");
+                sb.Append($"placeholder: {placeholder}");
             }
 
             var validValues = GetValidValues(field.Choices_TXT);
@@ -102,10 +100,10 @@ public class FieldCodeGenerator
             }
 
             sb.Append(")]\n");
-        }            
+        }
     }
 
-    static string GetValidValues(string choices)
+    private static string GetValidValues(string choices)
     {
         if (string.IsNullOrEmpty(choices))
             return string.Empty;
@@ -117,8 +115,8 @@ public class FieldCodeGenerator
 
         var validValues = string.Join(", ", splitChoices.Select(Quote));
 
-        return $"validValues: new [] {{ { validValues } }}";
+        return $"validValues: new [] {{ {validValues} }}";
     }
 
-    static string Quote(string value) => $"\"{ value.Replace("\"", "\"") }\"";
+    private static string Quote(string value) => $"\"{value.Replace("\"", "\"")}\"";
 }
