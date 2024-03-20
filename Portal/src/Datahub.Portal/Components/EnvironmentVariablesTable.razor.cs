@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Microsoft.JSInterop;
 using MudBlazor;
-using Octokit;
 
 namespace Datahub.Portal.Components
 {
@@ -113,26 +112,21 @@ namespace Datahub.Portal.Components
 
         private async Task CreateOrUpdateEnvironmentVariable((string Key, string Value) item)
         {
+            var existingItem = envVars.FirstOrDefault(x => x.Key == item.Key);
+            if (existingItem.Key != default)
+            {
+                envVars.Remove(existingItem);
+            }
             envVars.Add(item);
         }
 
         private void BackupItem(object item)
         {
-            var e = item as (string Key, string Value)?;
-            if (e is not null)
+            _elementBeforeEdit = new()
             {
-                _elementBeforeEdit = new() 
-                {
-                    Key = e?.Key,
-                    Value = e?.Value
-                };
-                
-                _logger.LogInformation($"Item has been backed up: {_elementBeforeEdit.Key}");
-            }
-            else
-            {
-                _logger.LogInformation("Unable to backup item.");
-            }
+                Key = (((string Key, string Value))item).Key,
+                Value = (((string Key, string Value))item).Value
+            };
         }
 
         private void HandleRowEditCancel(object element)
