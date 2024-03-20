@@ -1,8 +1,5 @@
-﻿using System;
+﻿using System.Security.Claims;
 using Datahub.Core.Model.Achievements;
-using Microsoft.Graph;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using Datahub.Core.Services.UserManagement;
 using Microsoft.Graph.Models;
 
@@ -13,7 +10,6 @@ public interface IUserInformationService
     Task<User> GetCurrentGraphUserAsync();
     Task<User> GetGraphUserAsync(string userId);
 
-
     /// <summary>
     /// Gets the current portal user asynchronously. Will contain the <see cref="UserSettings"/> object.
     /// </summary>
@@ -21,10 +17,10 @@ public interface IUserInformationService
     Task<PortalUser> GetCurrentPortalUserAsync();
 
     Task<PortalUser> GetPortalUserAsync(string userGraphId);
-    
+
     Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync();
     Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId);
-    
+
     Task<User> GetAnonymousGraphUserAsync();
     Task<string> GetUserIdString();
     Task<string> GetDisplayName();
@@ -55,12 +51,12 @@ public static class UserInformationServiceConstants
     public static readonly string ANONYMOUS_USER_NAME = "Anonymous User";
     public static readonly string ANONYMOUS_USER_EMAIL = "anyone@example.com";
 
-    private static User _anonymousUser;
+    private static User anonymousUser;
     public static User GetAnonymousUser()
     {
-        if (_anonymousUser == null)
+        if (anonymousUser == null)
         {
-            _anonymousUser = new User()
+            anonymousUser = new User()
             {
                 Id = ANONYMOUS_USER_ID,
                 Mail = ANONYMOUS_USER_EMAIL,
@@ -68,6 +64,6 @@ public static class UserInformationServiceConstants
                 UserPrincipalName = ANONYMOUS_USER_EMAIL
             };
         }
-        return _anonymousUser;
+        return anonymousUser;
     }
 }

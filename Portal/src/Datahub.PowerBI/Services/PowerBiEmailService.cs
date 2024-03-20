@@ -1,20 +1,11 @@
-﻿using Datahub.Core.Services.Notification;
-using Datahub.Core.Utils;
-using Datahub.PowerBI.Data;
+﻿using Datahub.PowerBI.Data;
 using Datahub.PowerBI.Templates;
-using Datahub.ProjectTools.Templates;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Datahub.Application.Services.Notification;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Datahub.PowerBI.Services
 {
-    public class PowerBiEmailService
+	public class PowerBiEmailService
     {
         private ILogger<PowerBiEmailService> _logger;
 

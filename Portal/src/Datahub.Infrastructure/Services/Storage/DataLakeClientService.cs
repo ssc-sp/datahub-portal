@@ -3,7 +3,6 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
-using Datahub.Infrastructure.Services.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -43,7 +42,7 @@ public class DataLakeClientService
     public async Task<StorageSharedKeyCredential> GetSharedKeyCredential(string project)
     {
         var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        envName = (envName != null ? envName.ToLower() : "dev");
+        envName = envName != null ? envName.ToLower() : "dev";
         if (envName.Equals("development"))
         {
             envName = "dev";

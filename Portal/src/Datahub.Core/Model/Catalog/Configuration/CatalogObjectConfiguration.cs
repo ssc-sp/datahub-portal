@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace Datahub.Core.Model.Catalog.Configuration;
 

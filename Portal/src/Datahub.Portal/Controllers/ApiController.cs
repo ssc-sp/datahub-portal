@@ -2,8 +2,6 @@
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Metadata;
-using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
 using Datahub.GeoCore.Service;
 using Datahub.Metadata.DTO;
 using Datahub.Portal.Model;
@@ -17,7 +15,6 @@ using System.Text.Json;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Projects;
-using Datahub.Infrastructure.Services.Security;
 
 namespace Datahub.Portal.Controllers;
 

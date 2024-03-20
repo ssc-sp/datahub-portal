@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Datahub.Maui.Uploader.Components
+﻿namespace Datahub.Maui.Uploader.Components
 {
-    public class HyperlinkLabel : Label
+	public class HyperlinkLabel : Label
     {
         public static readonly BindableProperty UrlProperty = BindableProperty.Create(nameof(Url), typeof(string), typeof(HyperlinkLabel), null);
 

@@ -2,12 +2,11 @@
 using Markdig.Extensions.Yaml;
 using Markdig.Renderers.Roundtrip;
 using Markdig.Syntax;
-using System.IO;
 using System.Text.RegularExpressions;
 
 namespace Datahub.Markdown
 {
-    public static class MarkdownHelper
+	public static class MarkdownHelper
     {
         internal static readonly MarkdownPipeline pipeline = new MarkdownPipelineBuilder()
             .UseYamlFrontMatter().EnableTrackTrivia().Build();
