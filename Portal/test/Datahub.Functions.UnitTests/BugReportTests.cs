@@ -1,20 +1,23 @@
-﻿using Datahub.Application.Services.Security;
+﻿using Azure.Storage.Queues.Models;
+using Datahub.Application.Services.Security;
 using Datahub.Core.Services.Security;
 using Datahub.Functions;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services.Security;
+using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 [TestFixture]
 public class BugReportTests
 {
     private ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
     private IKeyVaultService _keyVaultService = Substitute.For<IKeyVaultService>();
-    private IMediator _mediator = Substitute.For<IMediator>();
+    private IPublishEndpoint _publishEndpoint = Substitute.For<IPublishEndpoint>();
     private IConfiguration _config = Substitute.For<IConfiguration>();
     
     private BugReport _bugReport;
@@ -29,7 +32,7 @@ public class BugReportTests
         _logger = _loggerFactory.CreateLogger<BugReport>();
         _azureConfig = new AzureConfig(_config);
         _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
-        _bugReport = new BugReport(_logger, _azureConfig, _emailService, _mediator);
+        _bugReport = new BugReport(_logger, _azureConfig, _emailService, _publishEndpoint );
         _bugReportMessage = new BugReportMessage(
             UserName: "Test",
             UserEmail: "example@email.com",
@@ -46,6 +49,18 @@ public class BugReportTests
             BugReportType: BugReportTypes.SupportRequest,
             Description: "Test report"
         );
+    }
+
+    [Test]
+    [Ignore("Need to fix")]
+    public async Task PublishBugReport_ShouldInvoiceMassTransit()
+    {
+        QueueMessage qm = QueuesModelFactory.QueueMessage(
+            messageId: "bug-report",
+            popReceipt: "",
+            messageText: JsonSerializer.Serialize(_bugReportMessage),
+            dequeueCount: 0);
+        await _bugReport.Run(qm);
     }
 
     [Test]

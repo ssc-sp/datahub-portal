@@ -21,6 +21,7 @@ using Azure.Storage.Blobs;
 using MudBlazor;
 using AngleSharp.Common;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using MassTransit;
 
 namespace Datahub.Functions;
 
@@ -32,7 +33,7 @@ public class CheckInfrastructureStatus
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
     private readonly DatahubPortalConfiguration _portalConfiguration;
-    private readonly IMediator _mediator;
+    private readonly IPublishEndpoint _publishEndpoint;
     private readonly ProjectStorageConfigurationService _projectStorageConfigurationService;
     private const string workspaceKeyCheck = "project-cmk";
     private const string coreKeyCheck = "datahubportal-client-id";
@@ -44,7 +45,7 @@ public class CheckInfrastructureStatus
         IHttpClientFactory httpClientFactory,
         DatahubPortalConfiguration portalConfiguration,
         IConfiguration configuration,
-        IMediator mediator,
+        IPublishEndpoint publishEndpoint,
         ProjectStorageConfigurationService projectStorageConfigurationService)
     {
         _logger = loggerFactory.CreateLogger<CheckInfrastructureStatus>();
@@ -53,7 +54,7 @@ public class CheckInfrastructureStatus
         _httpClientFactory = httpClientFactory;
         _portalConfiguration = portalConfiguration;
         _configuration = configuration;
-        _mediator = mediator;
+        _publishEndpoint = publishEndpoint;
         _projectStorageConfigurationService = projectStorageConfigurationService;
     }
 
@@ -165,7 +166,7 @@ public class CheckInfrastructureStatus
                 Description: $"The infrastructure health check for {request.Name} failed. Please investigate."
             );
 
-            await _mediator.Send(bugReport);
+            await _publishEndpoint.Publish(bugReport);
         }
 
         await StoreResult(result);

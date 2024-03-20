@@ -6,7 +6,7 @@ using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using FluentAssertions;
-using MediatR;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -19,7 +19,7 @@ namespace Datahub.Functions.UnitTests
         private UserInactivityNotifier _sut;
 
         private readonly IDateProvider _dateProvider = Substitute.For<IDateProvider>();
-        private readonly IMediator _mediator = Substitute.For<IMediator>();
+        private readonly IPublishEndpoint _publishEndpoint = Substitute.For<IPublishEndpoint>();
         private readonly ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
 
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory =
@@ -40,10 +40,10 @@ namespace Datahub.Functions.UnitTests
         public void Setup()
         {
             _azConfig = new AzureConfig(_config);
-            _pongService = new QueuePongService(_mediator);
+            _pongService = new QueuePongService(_publishEndpoint);
             _emailValidator = new EmailValidator();
             _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
-            _sut = new UserInactivityNotifier(_mediator, _loggerFactory, _dbContextFactory, _dateProvider, _azConfig,
+            _sut = new UserInactivityNotifier(_publishEndpoint, _loggerFactory, _dbContextFactory, _dateProvider, _azConfig,
                 _pongService, _emailValidator, _userInactivityNotificationService, _emailService);
         }
 

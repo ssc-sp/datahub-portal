@@ -12,6 +12,8 @@ using Datahub.Infrastructure.Services.Notebooks;
 using Datahub.Infrastructure.Services.Notifications;
 using Datahub.Infrastructure.Services.ReverseProxy;
 using Datahub.Infrastructure.Services.Storage;
+using Datahub.Shared.Messaging;
+using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +39,21 @@ public static class ConfigureServices
         services.AddScoped<IDatabricksApiService, DatabricksApiService>();
         services.AddScoped<IUsersStatusService,UsersStatusService>();
         services.AddSingleton<IDatahubCatalogSearch, DatahubCatalogSearch>();
+        services.AddScoped<AzureServiceBusForwarder>(provider =>
+        {
+            var storageConnectionString = configuration["DatahubStorageConnectionString"]
+                ?? configuration["DatahubStorageQueue:ConnectionString"];
+            return new AzureServiceBusForwarder(storageConnectionString);
+        });
+        services.AddMassTransit(x =>
+        {
+            x.AddConsumer<ForwardingConsumer>();
+            x.UsingInMemory((context, cfg) =>
+            {
+                cfg.ConfigureEndpoints(context);
+                cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
+            });
+        });
 
         if (configuration.GetValue<bool>("ReverseProxy:Enabled"))
         {

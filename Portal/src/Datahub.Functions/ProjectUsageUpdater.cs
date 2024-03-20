@@ -3,6 +3,7 @@ using Azure.Storage.Queues.Models;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Projects;
+using MassTransit;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -12,15 +13,15 @@ namespace Datahub.Functions;
 public class ProjectUsageUpdater
 {
     private readonly ILogger<ProjectUsageUpdater> _logger;
-    private readonly ProjectUsageService _usageService;
-    private readonly IMediator _mediator;
+    private readonly ProjectUsageService _usageService; 
     private readonly QueuePongService _pongService;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public ProjectUsageUpdater(ILoggerFactory loggerFactory, ProjectUsageService usageService, IMediator mediator, QueuePongService pongService)
+    public ProjectUsageUpdater(ILoggerFactory loggerFactory, ProjectUsageService usageService, IPublishEndpoint publishEndpoint, QueuePongService pongService)
     {
         _logger = loggerFactory.CreateLogger<ProjectUsageUpdater>();
         _usageService = usageService;
-        _mediator = mediator;
+        _publishEndpoint = publishEndpoint;
         _pongService = pongService;
     }
 
@@ -43,7 +44,7 @@ public class ProjectUsageUpdater
             return;
 
         // queue the usage notification message
-        await _mediator.Send(new ProjectUsageNotificationMessage(message.ProjectId), cancellationToken);
+        await _publishEndpoint.Publish(new ProjectUsageNotificationMessage(message.ProjectId), cancellationToken);
     }
 
     [Function("ProjectCapacityUsageUpdater")]

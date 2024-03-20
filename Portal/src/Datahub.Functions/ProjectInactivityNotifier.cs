@@ -8,6 +8,7 @@ using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Shared.Entities;
+using MassTransit;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
@@ -16,8 +17,8 @@ using Microsoft.Extensions.Logging;
 namespace Datahub.Functions
 {
     public class ProjectInactivityNotifier
-    {
-        private readonly IMediator _mediator;
+    { 
+        private readonly IPublishEndpoint _publishEndpoint;
         private readonly ILogger<ProjectUsageNotifier> _logger;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
         private readonly IResourceMessagingService _resourceMessagingService;
@@ -29,14 +30,13 @@ namespace Datahub.Functions
         private readonly QueuePongService _pongService;
         private readonly EmailValidator _emailValidator;
 
-        public ProjectInactivityNotifier(ILoggerFactory loggerFactory, IMediator mediator,
+        public ProjectInactivityNotifier(ILoggerFactory loggerFactory, IPublishEndpoint publishEndpoint,
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory, QueuePongService pongService,
             IProjectInactivityNotificationService projectInactivityNotificationService,
             IResourceMessagingService resourceMessagingService, EmailValidator emailValidator,
             IDateProvider dateProvider, AzureConfig config, IEmailService emailService)
         {
-            _logger = loggerFactory.CreateLogger<ProjectUsageNotifier>();
-            _mediator = mediator;
+            _logger = loggerFactory.CreateLogger<ProjectUsageNotifier>(); 
             _dbContextFactory = dbContextFactory;
             _pongService = pongService;
             _projectInactivityNotificationService = projectInactivityNotificationService;
@@ -45,6 +45,7 @@ namespace Datahub.Functions
             _dateProvider = dateProvider;
             _config = config;
             _emailService = emailService;
+            _publishEndpoint = publishEndpoint;
         }
 
         [Function("ProjectInactivityNotifier")]
@@ -87,7 +88,7 @@ namespace Datahub.Functions
             // if email is not null, send email
             if (email != null)
             {
-                await _mediator.Send(email, ct);
+                await _publishEndpoint.Publish(email, ct);
 
                 // add notification to db
                 var sentTo = string.Join(",", contacts);
