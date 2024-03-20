@@ -63,8 +63,9 @@ public static class TerraformVariableExtraction
         var appServiceTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService);
         var appServiceResource = project?.Resources?.FirstOrDefault(r =>
             r.ResourceType == appServiceTemplateName);
-        
-        if (appServiceResource == null) {
+
+        if (appServiceResource == null)
+        {
             // TODO: Might be worth logging but this class seems to have all static functions and no logger.
             return null;
         }
