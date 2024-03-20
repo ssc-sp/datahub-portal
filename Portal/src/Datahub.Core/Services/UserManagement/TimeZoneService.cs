@@ -1,6 +1,4 @@
 ﻿using Microsoft.JSInterop;
-using System;
-using System.Threading.Tasks;
 
 namespace Datahub.Core.Services.UserManagement;
 
@@ -9,22 +7,22 @@ namespace Datahub.Core.Services.UserManagement;
 /// </summary>
 public sealed class TimeZoneService
 {
-    private readonly IJSRuntime _jsRuntime;
+    private readonly IJSRuntime jsRuntime;
 
-    private TimeSpan? _userOffset;
+    private TimeSpan? userOffset;
 
     public TimeZoneService(IJSRuntime jsRuntime)
     {
-        _jsRuntime = jsRuntime;
+        this.jsRuntime = jsRuntime;
     }
 
     public async ValueTask<DateTimeOffset> GetLocalDateTime(DateTimeOffset dateTime)
     {
-        if (_userOffset == null)
+        if (userOffset == null)
         {
-            int offsetInMinutes = await _jsRuntime.InvokeAsync<int>("blazorGetTimezoneOffset");
-            _userOffset = TimeSpan.FromMinutes(-offsetInMinutes);
+            int offsetInMinutes = await jsRuntime.InvokeAsync<int>("blazorGetTimezoneOffset");
+            userOffset = TimeSpan.FromMinutes(-offsetInMinutes);
         }
-        return dateTime.ToOffset(_userOffset.Value);
+        return dateTime.ToOffset(userOffset.Value);
     }
 }

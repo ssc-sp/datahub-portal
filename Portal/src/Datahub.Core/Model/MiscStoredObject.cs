@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Datahub.Core.Model;
 
@@ -10,7 +9,7 @@ public class MiscStoredObject
 
     public string Id { get; set; }
     public string TypeName { get; set; }
-        
+
     [Required]
     public string JsonContent { get; set; }
 }
