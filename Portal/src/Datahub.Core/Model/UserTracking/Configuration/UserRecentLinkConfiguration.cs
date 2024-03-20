@@ -17,6 +17,5 @@ namespace Datahub.Core.Model.UserTracking.Configuration
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
-
     }
 }

@@ -1,23 +1,14 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.Maui.Platform;
-using Datahub.Maui.Uploader;
-using Datahub.Core.DataTransfers;
 using Datahub.Maui.Uploader.Models;
 using Datahub.Maui.Uploader.IO;
-using System.Threading;
-using Windows.Storage.Pickers;
 using CommunityToolkit.Maui.Storage;
-using CommunityToolkit.Maui.Alerts;
-using CommunityToolkit.Maui.Core;
-using SpeedTestSharp.DataTypes.External;
 using Datahub.Maui.Uploader.Resources;
-using CommunityToolkit.Maui.Storage;
-using CommunityToolkit.Maui.Alerts;
 
 namespace Datahub.Maui.Uploader
 {
 
-    public class LocalItemInfo
+	public class LocalItemInfo
     {
         public LocalItemInfo(string name, bool isDirectory, long? bytes, string status)
         {
@@ -237,7 +228,7 @@ namespace Datahub.Maui.Uploader
             if (currentSpeedMbps > 0)
             {
                 var remaining = totalUploadSize - (uploaded + (currentSize ?? 0) * progress);
-                var seconds = (remaining * 1.0 / 1024 / 1000) / currentSpeedMbps;
+                var seconds = remaining * 1.0 / 1024 / 1000 / currentSpeedMbps;
                 var ts = TimeSpan.FromSeconds(seconds);
                 var friendly = fileUtils.ToFriendlyFormat(ts);
                 LbUploadStatus.Text = $"{currentProgress * 100:F2} % - {friendly} remaining - {currentSpeedMbps:F2} Mbps - {filesCompleted}/{totalFiles} files";

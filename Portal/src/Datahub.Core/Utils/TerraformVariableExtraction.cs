@@ -1,7 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
@@ -30,7 +28,7 @@ public static class TerraformVariableExtraction
     /// Extracts the databricks url from a Datahub Project. Be sure to include the project resources in the project object.
     /// </summary>
     /// <param name="project"></param>
-    /// <returns></returns>
+    /// <returns>Databricks url of the project</returns>
     public static string? ExtractDatabricksUrl(Datahub_Project? project)
     {
         var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
@@ -60,17 +58,18 @@ public static class TerraformVariableExtraction
     /// </summary>
     /// <param name="project">The Datahub Project to find the app service config from</param>
     /// <returns>The AppServiceConfiguration object containing the configuration info of the app service</returns>
-    public static AppServiceConfiguration ExtractAppServiceConfiguration(Datahub_Project? project)
+    public static AppServiceConfiguration? ExtractAppServiceConfiguration(Datahub_Project? project)
     {
         var appServiceTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService);
         var appServiceResource = project?.Resources?.FirstOrDefault(r =>
             r.ResourceType == appServiceTemplateName);
-        
+
         if (appServiceResource == null)
         {
-            throw new Exception("App service resource not found in the project");
+            // TODO: Might be worth logging but this class seems to have all static functions and no logger.
+            return null;
         }
-        
+
         return ExtractAppServiceConfiguration(appServiceResource);
     }
 
@@ -153,7 +152,6 @@ public static class TerraformVariableExtraction
             workspace?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent,
             "postgres_db_name");
     }
-
 
     /// <summary>
     /// Extracts the username secret name from the given Azure Postgres workspace.

@@ -19,7 +19,7 @@ public class ProjectResourcingWhitelistServiceTests
 
         var optionsBuilder =
             new DbContextOptionsBuilder<DatahubProjectDBContext>()
-                .UseInMemoryDatabase((new Guid()).ToString());
+                .UseInMemoryDatabase(new Guid().ToString());
         // create a mock factory to return the db context when CreateDbContextAsync is called
         var context = new DatahubProjectDBContext(optionsBuilder.Options);
         context.Database.EnsureDeleted();

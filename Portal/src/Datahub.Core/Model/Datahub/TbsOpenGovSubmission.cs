@@ -1,10 +1,5 @@
-﻿using Datahub.Core.Utils;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Datahub.Core.Utils;
 
 namespace Datahub.Core.Model.Datahub
 {
@@ -47,7 +42,7 @@ namespace Datahub.Core.Model.Datahub
         public DateTime? OpenGovPublicationDate { get; set; }
 
         [NotMapped]
-        public bool ImsoApproved => Files?.Any(f => f.FilePurpose == IMSO_APPROVAL_FILE_TYPE) ?? false && 
+        public bool ImsoApproved => Files?.Any(f => f.FilePurpose == IMSO_APPROVAL_FILE_TYPE) ?? false &&
             OpenDataPublishingUtils.IsDateSetAndPassed(ImsoApprovedDate);
         [NotMapped]
         public bool ImsoApprovalRequested => OpenDataPublishingUtils.IsDateSetAndPassed(ImsoApprovalRequestDate);

@@ -1,40 +1,25 @@
-﻿using Datahub.Core.Services.Wiki;
-using Datahub.Shared.Annotations;
-using Markdig;
-using Markdig.Syntax;
-using Markdig.Syntax.Inlines;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Polly.Extensions.Http;
-using Polly;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net.Http;
+﻿using System.Globalization;
 using System.Text;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
-using static System.Net.WebRequestMethods;
-using Microsoft.Graph.Models;
-using static MudBlazor.CategoryTypes;
+using Datahub.Core.Services.Wiki;
 using Datahub.Markdown;
 using Datahub.Markdown.Model;
+using Datahub.Shared.Annotations;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Azure.Storage.Blobs;
+using Microsoft.Extensions.Logging;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace Datahub.Core.Services.Docs;
 
 #nullable enable
 
-public class DocumentationService 
+public class DocumentationService
 {
-    private readonly string _docsEditPrefix;
-    private readonly ILogger<DocumentationService> _logger;
-    private readonly IHttpClientFactory _httpClientFactory;
-
     private const string DOCS_ROOT_CONFIG_KEY = "docsURL";
     private const string DOCS_EDIT_URL_CONFIG_KEY = "EditdocsURLPrefix";
 
@@ -45,36 +30,42 @@ public class DocumentationService
     private const string LAST_COMMIT_TS = "LAST_COMMIT_TS";
     public const string COMMIT_API_URL = "https://api.github.com/repos/ssc-sp/datahub-docs/commits";
 
-    private DocumentationFileMapper _docFileMappings = null!;
-    private IList<TimeStampedStatus> _statusMessages;
+    private readonly string docsEditPrefix;
+    private readonly ILogger<DocumentationService> logger;
+    private readonly IHttpClientFactory httpClientFactory;
+
+    private DocumentationFileMapper docFileMappings = null!;
+    private IList<TimeStampedStatus> statusMessages;
     private DocItem? enOutline;
     private DocItem? frOutline;
     private DocItem cachedDocs;
-    private readonly IMemoryCache _cache;
+    private readonly IMemoryCache cache;
 
     // New for blob storage
-    private readonly BlobServiceClient _blobServiceClient;
-    private readonly string _containerName;
-    private readonly string _blobRoot;
+    private readonly BlobServiceClient blobServiceClient;
+    private readonly string containerName;
+    private readonly string blobRoot;
 
-    public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger, 
+    public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger,
         IHttpClientFactory httpClientFactory, IWebHostEnvironment environment,
         IMemoryCache docCache)
-    {        
-        var branch = environment.IsProduction()? "main": "next";
-        _docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, $"https://github.com/ssc-sp/datahub-docs/edit/{branch}/")!;
-        _logger = logger;
-        _httpClientFactory = httpClientFactory;
-        _statusMessages = new List<TimeStampedStatus>();
-        _cache = docCache;
+    {
+        //!ctx.HostingEnvironment.IsDevelopment()
+
+        var branch = environment.IsProduction() ? "main" : "next";
+        docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, $"https://github.com/ssc-sp/datahub-docs/edit/{branch}/")!;
+        this.logger = logger;
+        this.httpClientFactory = httpClientFactory;
+        statusMessages = new List<TimeStampedStatus>();
+        cache = docCache;
         cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
 
         // New for blob storage
         var storageAccount = config["Media:AccountName"];
         var connectionString = config["Media:StorageConnectionString"];
-        _containerName = "docs";
-        _blobServiceClient = new BlobServiceClient(connectionString);
-        _blobRoot = $"https://{storageAccount}.blob.core.windows.net/{_containerName}";
+        containerName = "docs";
+        blobServiceClient = new BlobServiceClient(connectionString);
+        blobRoot = $"https://{storageAccount}.blob.core.windows.net/{containerName}";
     }
 
     /// <summary>
@@ -85,7 +76,7 @@ public class DocumentationService
     {
         try
         {
-            var cache = _cache as MemoryCache;
+            var cache = this.cache as MemoryCache;
             if (cache != null)
             {
                 // Clear all entries from the memory cache
@@ -95,17 +86,17 @@ public class DocumentationService
                 // Reload the resource tree
                 await LoadResourceTree(DocumentationGuideRootSection.UserGuide);
 
-                _logger.LogInformation("Document cache has been cleared");
+                logger.LogInformation("Document cache has been cleared");
                 return true;
             }
             else
             {
-                _logger.LogWarning("Could not clear the cache.");
+                logger.LogWarning("Could not clear the cache.");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.Message, ex);
+            logger.LogError(ex.Message, ex);
         }
         return false;
     }
@@ -117,7 +108,7 @@ public class DocumentationService
     private void AddStatusMessage(string message)
     {
         var error = new TimeStampedStatus(DateTime.UtcNow, message);
-        _statusMessages.Add(error);
+        statusMessages.Add(error);
     }
 
     /// <summary>
@@ -132,7 +123,7 @@ public class DocumentationService
             throw new ArgumentNullException(nameof(relLink));
         }
 
-        return new Uri(_blobRoot + relLink).AbsoluteUri;
+        return new Uri(blobRoot + relLink).AbsoluteUri;
     }
 
 
@@ -236,17 +227,17 @@ public class DocumentationService
     private async Task LoadResourceTree(DocumentationGuideRootSection guide, bool useCache = true)
     {
         var fileMappings = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, FILE_MAPPINGS, null, useCache);
-        _docFileMappings = new DocumentationFileMapper(fileMappings);
+        docFileMappings = new DocumentationFileMapper(fileMappings);
 
-        _statusMessages = new List<TimeStampedStatus>();
+        statusMessages = new List<TimeStampedStatus>();
 
         AddStatusMessage("Loading resources");
 
-        enOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_EN, useCache), _docFileMappings.GetEnglishDocumentId);
+        enOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_EN, useCache), docFileMappings.GetEnglishDocumentId);
         if (enOutline is null)
             throw new InvalidOperationException($"Cannot load sidebar and content");
 
-        frOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_FR, useCache), _docFileMappings.GetFrenchDocumentId);
+        frOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_FR, useCache), docFileMappings.GetFrenchDocumentId);
         if (frOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
         cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
@@ -284,7 +275,7 @@ public class DocumentationService
             inCachePage = cachedDocs.LocatePath(path);
             if (inCachePage != null)
                 return inCachePage;
-            var itemId = (isFrench ? _docFileMappings?.GetFrenchDocumentId(path) : _docFileMappings?.GetEnglishDocumentId(path)) ?? MarkdownTools.GetIDFromString(path);
+            var itemId = (isFrench ? docFileMappings?.GetFrenchDocumentId(path) : docFileMappings?.GetEnglishDocumentId(path)) ?? MarkdownTools.GetIDFromString(path);
             var docItem = DocItem.GetItem(DocumentationGuideRootSection.Hidden, itemId, searchRoot.Level + 1, path, path);
 
             cachedDocs.Children.Add(docItem);
@@ -351,17 +342,17 @@ public class DocumentationService
     }
 
     /// <summary>
-    /// Loads the documentation page with the specified name from the specified guide and locale.
+    /// Loads the documentation page from the given guide and name.
     /// </summary>
-    /// <param name="guide">The documentation guide to load the page from.</param>
-    /// <param name="name">The name of the page to load.</param>
-    /// <param name="locale">The locale of the page to load.</param>
-    /// <param name="useCache">A boolean value indicating whether to use the cache.</param>
-    /// <returns>The loaded documentation page if found, otherwise null.</returns>
+    /// <param name="guide"></param>
+    /// <param name="name"></param>
+    /// <param name="locale">Leave empty for "en", "fr" has its own folder</param>
+    /// <param name="useCache"></param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     private async Task<string?> LoadDocsPage(DocumentationGuideRootSection guide, string? name, string? locale = "", bool useCache = true)
     {
         if (name is null) return null;
-        return await LoadDocs(BuildPath(guide, locale??string.Empty, name));
+        return await LoadDocs(BuildURL(guide, locale ?? string.Empty, name), useCache);
     }
 
     /// <summary>
@@ -372,7 +363,7 @@ public class DocumentationService
     public async Task<DateTime?> GetLastRepoCommitTS(bool useCache = true)
     {
         // Check if the last commit timestamp is already in the cache
-        if (_cache.TryGetValue(LAST_COMMIT_TS, out DateTime? lastTS) && useCache)
+        if (cache.TryGetValue(LAST_COMMIT_TS, out DateTime? lastTS) && useCache)
         {
             if (lastTS.HasValue)
             {
@@ -391,13 +382,11 @@ public class DocumentationService
                 // Keep in cache for this time, reset time if accessed.
                 .SetAbsoluteExpiration(DateTime.Now.AddHours(1));
 
-            // Save the last commit timestamp in the cache
-            _cache.Set(LAST_COMMIT_TS, lastCommit.Value, cacheEntryOptions);
-
+            // Save data in cache.
+            cache.Set(LAST_COMMIT_TS, lastCommit.Value, cacheEntryOptions);
             return lastCommit.Value;
         }
-
-        _logger.LogWarning($"Cannot load last commit timestamp for user docs");
+        logger.LogWarning($"Cannot load last commit timestamp for user docs");
         return null;
     }
 
@@ -405,12 +394,14 @@ public class DocumentationService
     /// Retrieves the retry policy for handling transient HTTP errors and not found status codes.
     /// </summary>
     /// <returns>The retry policy.</returns>
-    static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+    private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
     {
         return HttpPolicyExtensions
             .HandleTransientHttpError()
             .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
-            .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+            .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(
+                2,
+                retryAttempt)));
     }
 
     /// <summary>
@@ -420,7 +411,7 @@ public class DocumentationService
     /// <returns>The JSON response as a <see cref="JsonNode"/> object.</returns>
     public async Task<JsonNode?> ReadURL(Dictionary<string, string>? parameters = null)
     {
-        var client = _httpClientFactory.CreateClient();
+        var client = httpClientFactory.CreateClient();
 
         var builder = new UriBuilder(new Uri(COMMIT_API_URL));
         if (parameters != null)
@@ -451,7 +442,7 @@ public class DocumentationService
     {
         try
         {
-            var storageContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+            var storageContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
             var documentBlobClient = storageContainerClient.GetBlobClient(path);
 
             if (await documentBlobClient.ExistsAsync())
@@ -506,7 +497,7 @@ public class DocumentationService
     /// </summary>
     /// <param name="card">The DocItem representing the resource page.</param>
     /// <returns>The edit URL for the resource page.</returns>
-    public string GetEditUrl(DocItem card) => $"{_docsEditPrefix}{card.GetMarkdownFileName()}";
+    public string GetEditUrl(DocItem card) => $"{docsEditPrefix}{card.GetMarkdownFileName()}";
 
     /// <summary>
     /// Removes the specified DocItem from the cache.
@@ -517,7 +508,7 @@ public class DocumentationService
         if (item.GetMarkdownFileName != null)
         {
             var path = BuildPath(item.RootSection, null, item.GetMarkdownFileName()!);
-            _cache.Remove(path);
+            cache.Remove(path);
         }
     }
 
@@ -525,7 +516,7 @@ public class DocumentationService
     /// Retrieves the list of error messages.
     /// </summary>
     /// <returns>The list of error messages.</returns>
-    public IReadOnlyList<TimeStampedStatus> GetErrorList() => _statusMessages.AsReadOnly();
+    public IReadOnlyList<TimeStampedStatus> GetErrorList() => statusMessages.AsReadOnly();
 
     /// <summary>
     /// Logs a not found error for the specified page name and resource root.

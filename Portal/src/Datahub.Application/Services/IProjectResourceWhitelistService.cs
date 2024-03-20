@@ -1,9 +1,8 @@
-using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 
 namespace Datahub.Application.Services
 {
-    public interface IProjectResourceWhitelistService
+	public interface IProjectResourceWhitelistService
     {
         public Task<IEnumerable<Project_Whitelist>> GetAllProjectResourceWhitelistAsync();
         public Task<Project_Whitelist> GetWhitelistByProjectAsync(int id);

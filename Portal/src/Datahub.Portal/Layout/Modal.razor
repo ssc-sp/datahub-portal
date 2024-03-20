@@ -12,7 +12,7 @@
 
 @code {
 
-    private string _classname => $"page-modal {(_currentModalRenderFragment == null ? "hidden" : "")} {_inputClass}";
+    private string _classname => $"page-modal {(_currentModalRenderFragment == null ? "hidden" : "")} {InputClass}";
     private RenderFragment _currentModalRenderFragment;
 
     protected override void OnInitialized()

@@ -1,5 +1,4 @@
-﻿using Datahub.Application.Services.Security;
-using Datahub.Functions.Services;
+﻿using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
 using MediatR;
 using Microsoft.Extensions.Configuration;

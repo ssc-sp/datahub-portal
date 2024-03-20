@@ -1,6 +1,5 @@
 ﻿using Datahub.Infrastructure.Services.Azure;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Datahub.Functions;
 

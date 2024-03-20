@@ -21,15 +21,15 @@
 
     public static class AppServiceTemplates
     {
-        private static AppServiceConfiguration SHINY_CONFIG =
+        private static readonly AppServiceConfiguration SHINY_CONFIG =
             new(SHINY, "https://github.com/ssc-sp/datahub-infra.git", "dev/docker/shiny-app/");
-        private static AppServiceConfiguration CUSTOM_CONFIG =
-            new(CUSTOM, "", "");
+        private static readonly AppServiceConfiguration CUSTOM_CONFIG =
+            new(CUSTOM, string.Empty, string.Empty);
 
         public const string SHINY = "Shiny";
         public const string CUSTOM = "Docker compose";
 
-        public static List<string> TEMPLATES = [SHINY, CUSTOM];
+        public static readonly List<string> TEMPLATES = [SHINY, CUSTOM];
 
         public static AppServiceConfiguration GetTemplateConfiguration(string template)
         {

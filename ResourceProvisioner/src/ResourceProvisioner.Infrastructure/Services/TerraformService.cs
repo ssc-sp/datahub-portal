@@ -286,7 +286,7 @@ public class TerraformService : ITerraformService
 
     private string ComputeBackendConfigValue(string workspaceName, string variableName)
     {
-        return (variableName switch
+        return variableName switch
         {
             TerraformVariables.BackendResourceGroupName => _resourceProvisionerConfiguration.Terraform.Backend
                 .ResourceGroupName,
@@ -298,7 +298,7 @@ public class TerraformService : ITerraformService
                 $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-{workspaceName}.tfstate",
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<string> in configuration")
-        });
+        };
     }
 
     private Dictionary<string, (string, bool)> GetRequiredTemplateVariables(string templatePath)

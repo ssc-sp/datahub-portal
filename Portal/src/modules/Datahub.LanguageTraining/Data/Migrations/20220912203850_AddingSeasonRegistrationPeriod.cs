@@ -1,11 +1,10 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Portal.Migrations
 {
-    public partial class AddingSeasonRegistrationPeriod : Migration
+	public partial class AddingSeasonRegistrationPeriod : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

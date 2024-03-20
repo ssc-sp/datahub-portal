@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Datahub.Core.Model.Projects;
 using Elemental.Components;
@@ -9,7 +8,7 @@ namespace Datahub.Core.Model.Datahub;
 public class WebForm
 {
     [AeFormIgnore]
-    [Key] 
+    [Key]
     public int WebForm_ID { get; set; }
 
     [StringLength(100)]
@@ -32,11 +31,8 @@ public class WebForm
     public int Project_ID { get; set; }
 }
 
-    
-
 public class WebForm_DBCodes
 {
-
     [Key]
     [Required]
     [MaxLength(10)]

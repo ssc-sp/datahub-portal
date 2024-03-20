@@ -31,7 +31,6 @@ using Datahub.Infrastructure.Services.Projects;
 using Datahub.LanguageTraining.Services;
 using Datahub.M365Forms.Services;
 using Datahub.Metadata.Model;
-using Datahub.Portal.Data.Forms.WebAnalytics;
 using Datahub.Portal.Middleware;
 using Datahub.Portal.Services;
 using Datahub.Portal.Services.Api;
@@ -94,10 +93,10 @@ public class Startup
     private readonly IWebHostEnvironment _currentEnvironment;
     private ModuleManager moduleManager = new ModuleManager();
 
-    private bool ResetDB => ((bool)Configuration.GetSection("InitialSetup")?.GetValue("ResetDB", false));
+    private bool ResetDB => (bool)Configuration.GetSection("InitialSetup")?.GetValue("ResetDB", false);
 
     private bool EnsureDeleteinOffline =>
-        ((bool)Configuration.GetSection("InitialSetup")?.GetValue("EnsureDeleteinOffline", false));
+        (bool)Configuration.GetSection("InitialSetup")?.GetValue("EnsureDeleteinOffline", false);
 
     private bool Offline => Configuration.GetValue("Offline", false);
 

@@ -3,9 +3,7 @@ using Markdig.Extensions.Yaml;
 using Markdig.Renderers.Roundtrip;
 using Markdig;
 using Markdig.Syntax;
-using static System.Net.Mime.MediaTypeNames;
 using System.Text.RegularExpressions;
-using System.ComponentModel.DataAnnotations;
 
 namespace SyncDocs;
 
