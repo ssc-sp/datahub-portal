@@ -36,18 +36,10 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />
 		<ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
-		<ProjectReference Include="..\Datahub.CKAN\Datahub.CKAN.csproj" />
 		<ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
-		<ProjectReference Include="..\Datahub.GeoCore\Datahub.GeoCore.csproj" />
 		<ProjectReference Include="..\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj" />
 		<ProjectReference Include="..\Datahub.Infrastructure\Datahub.Infrastructure.csproj" />
 		<ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
 		<ProjectReference Include="..\Datahub.Portal.Metadata\Datahub.Portal.Metadata.csproj" />
-		<ProjectReference Include="..\Datahub.PowerBI\Datahub.PowerBI.csproj" />
-		<ProjectReference Include="..\Datahub.ProjectTools\Datahub.ProjectTools.csproj" />
-		<ProjectReference Include="..\modules\Datahub.Finance\Datahub.Finance.csproj" />
-		<ProjectReference Include="..\modules\Datahub.LanguageTraining\Datahub.LanguageTraining.csproj" />
-		<ProjectReference Include="..\modules\Datahub.M365Forms\Datahub.M365Forms.csproj" />
-		<ProjectReference Include="..\modules\Datahub.PIP\Datahub.PIP.csproj" />
 	</ItemGroup>
 </Project>
