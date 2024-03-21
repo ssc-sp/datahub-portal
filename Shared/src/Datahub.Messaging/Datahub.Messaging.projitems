@@ -15,6 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Exceptions\ProjectNotInitializedException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\ForwardableAdapter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\LoggingFilter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IQueueMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IForwardableMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\BaseEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\BaseUpdateMessage.cs" />

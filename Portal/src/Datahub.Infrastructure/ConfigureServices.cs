@@ -35,15 +35,10 @@ public static class ConfigureServices
         services.AddScoped<IDatabricksApiService, DatabricksApiService>();
         services.AddScoped<IUsersStatusService,UsersStatusService>();
         services.AddSingleton<IDatahubCatalogSearch, DatahubCatalogSearch>();
-        services.AddScoped<AzureServiceBusForwarder>(provider =>
-        {
-            var storageConnectionString = configuration["DatahubStorageConnectionString"]
-                ?? configuration["DatahubStorageQueue:ConnectionString"];
-            return new AzureServiceBusForwarder(storageConnectionString);
-        });
+
         services.AddMassTransit(x =>
         {
-            x.AddConsumer<ForwardingConsumer>();
+            x.AddConsumer<QueueMessageConsumer>();
             x.UsingInMemory((context, cfg) =>
             {
                 cfg.ConfigureEndpoints(context);
