@@ -34,26 +34,26 @@ public class BugReportTests
         _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
         _bugReport = new BugReport(_logger, _azureConfig, _emailService, _publishEndpoint );
         _bugReportMessage = new BugReportMessage(
-            UserName: "Test",
-            UserEmail: "example@email.com",
-            UserOrganization: "ssc-spc",
-            PortalLanguage: "en",
-            PreferredLanguage: "en",
-            Timezone: "EST",
-            Workspaces: "DIE1",
-            Topics: "Test",
-            URL: "google.com",
-            UserAgent: "test",
-            Resolution: "1920x1080",
-            LocalStorage: "{}",
-            BugReportType: BugReportTypes.SupportRequest,
-            Description: "Test report"
+            userName: "Test",
+            userEmail: "example@email.com",
+            userOrganization: "ssc-spc",
+            portalLanguage: "en",
+            preferredLanguage: "en",
+            timezone: "EST",
+            workspaces: "DIE1",
+            topics: "Test",
+            url: "google.com",
+            userAgent: "test",
+            resolution: "1920x1080",
+            localStorage: "{}",
+            bugReportType: BugReportTypes.SupportRequest,
+            description: "Test report"
         );
     }
 
     [Test]
     [Ignore("Need to fix")]
-    public async Task PublishBugReport_ShouldInvoiceMassTransit()
+    public async Task PublishBugReport_ShouldInvokeMassTransit()
     {
         QueueMessage qm = QueuesModelFactory.QueueMessage(
             messageId: "bug-report",

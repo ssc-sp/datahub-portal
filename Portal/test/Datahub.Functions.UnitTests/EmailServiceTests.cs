@@ -1,20 +1,34 @@
 ﻿using Moq;
-using System.Collections.Generic;
 using Datahub.Functions.Services;
 using Microsoft.Extensions.Logging;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Functions;
+using Datahub.Infrastructure.Services;
+using Newtonsoft.Json;
+using NSubstitute;
+using Microsoft.Extensions.Configuration;
+using MassTransit;
 
 [TestFixture]
 public class EmailServiceTests
 {
     private Mock<ILogger<EmailService>> _mockLogger;
+    private readonly ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
+    private IConfiguration _config = Substitute.For<IConfiguration>();
+    private readonly IPublishEndpoint _publishEndpoint = Substitute.For<IPublishEndpoint>();
+    private AzureConfig _azureConfig;
     private EmailService _emailService;
+    private QueuePongService _pongService;
+    private EmailNotificationSender _notificationHandler;
 
     [SetUp]
     public void Setup()
     {
         _mockLogger = new Mock<ILogger<EmailService>>();
         _emailService = new EmailService(_mockLogger.Object);
+        _azureConfig = new AzureConfig(_config);
+        _pongService = new QueuePongService(_publishEndpoint);
+        _notificationHandler = new EmailNotificationSender(_loggerFactory, _azureConfig, _publishEndpoint, _pongService);
     }
 
     [Test]
@@ -56,5 +70,26 @@ public class EmailServiceTests
         var result = _emailService.PopulateTemplate(template, args);
 
         Assert.AreEqual("Hello, John!", result);
+    }
+
+
+    [Test]
+    public async Task EmailNotificationHandler_ShouldInvokeMassTransit()
+    {
+        var message = new  
+        { 
+            to = new List<string> { "test@test.test"}, 
+            subject = "test", 
+            body = "test" 
+        };
+        var request = JsonConvert.SerializeObject(message);
+        await _notificationHandler.Run(request);
+        Assert.IsTrue(_publishEndpoint.ReceivedCalls().Count() == 1);
+    }
+
+    [OneTimeTearDown]
+    public void TearDown()
+    {
+        _loggerFactory?.Dispose();
     }
 }

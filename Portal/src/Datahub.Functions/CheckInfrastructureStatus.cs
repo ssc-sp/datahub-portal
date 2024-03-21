@@ -150,20 +150,20 @@ public class CheckInfrastructureStatus
         if (result.Check.Status == InfrastructureHealthStatus.Unhealthy)
         {
             var bugReport = new BugReportMessage(
-                UserName: "Datahub Portal",
-                UserEmail: "",
-                UserOrganization: "",
-                PortalLanguage: "",
-                PreferredLanguage: "",
-                Timezone: "",
-                Workspaces: "",
-                Topics: "",
-                URL: "",
-                UserAgent: "",
-                Resolution: "",
-                LocalStorage: "",
-                BugReportType: BugReportTypes.InfrastructureError,
-                Description: $"The infrastructure health check for {request.Name} failed. Please investigate."
+                userName: "Datahub Portal",
+                userEmail: "",
+                userOrganization: "",
+                portalLanguage: "",
+                preferredLanguage: "",
+                timezone: "",
+                workspaces: "",
+                topics: "",
+                url: "",
+                userAgent: "",
+                resolution: "",
+                localStorage: "",
+                bugReportType: BugReportTypes.InfrastructureError,
+                description: $"The infrastructure health check for {request.Name} failed. Please investigate."
             );
 
             await _publishEndpoint.Publish(bugReport);
