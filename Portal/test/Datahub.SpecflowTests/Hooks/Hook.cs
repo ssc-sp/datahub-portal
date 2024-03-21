@@ -5,7 +5,6 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Projects;
 using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
-using Datahub.ProjectTools.Services;
 using Datahub.Shared.Entities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;

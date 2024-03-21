@@ -2,7 +2,6 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Utils;
-using Datahub.ProjectTools.Services;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
 using Foundatio.Queues;
