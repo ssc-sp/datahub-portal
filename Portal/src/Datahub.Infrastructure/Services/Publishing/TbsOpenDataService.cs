@@ -2,7 +2,6 @@
 using Datahub.Application.Services;
 using Datahub.Application.Services.Publishing;
 using Datahub.Application.Services.Security;
-using Datahub.CKAN.Package;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Metadata;
 using Datahub.Core.Storage;
