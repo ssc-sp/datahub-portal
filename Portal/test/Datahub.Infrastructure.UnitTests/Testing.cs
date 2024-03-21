@@ -26,6 +26,7 @@ public partial class Testing
     internal static readonly string[] TEST_USER_IDS = Enumerable.Range(0,5).Select(_ => Guid.NewGuid().ToString()).ToArray();
     internal const string TestAdminUserId = "987654321";
     internal const string OldUserEmail = "old-user@email.gc.ca";
+    internal const string GuestUserEmail = "user@email.gov.uk";
     internal const string OldUserId = "987654321";
     internal static readonly string[] PROJECT_ACRONYMS = Enumerable.Range(1, 3).Select(i => $"TEST{i}").ToArray();
     internal static readonly string[] PROJECT_NAMES = Enumerable.Range(1, 3).Select(i => $"Test Project {i}").ToArray();
@@ -51,13 +52,21 @@ public partial class Testing
                 Content = expectedDatahubPortalInviteResponse
             });
 
-        var httpClient = new HttpClient(mockHandler.Object);
         var httpClientFactory = new Mock<IHttpClientFactory>();
-        httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
+        httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(
+            () => new HttpClient(mockHandler.Object));
         
         _userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), httpClientFactory.Object, _datahubPortalConfiguration, null);
     }
 
+    public static void SetDatahubGraphInviteFunctionUrl(string value)
+    {
+        _datahubPortalConfiguration.DatahubGraphInviteFunctionUrl = value;
+    }
+    public static void SetAllowedUserEmailDomains(string[] value)
+    {
+        _datahubPortalConfiguration.AllowedUserEmailDomains = value;
+    }
     private static StringContent ExpectedDatahubPortalInviteResponse()
     {
         var data = new JsonObject
