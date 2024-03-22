@@ -126,7 +126,6 @@ public class DocumentationService
         return new Uri(blobRoot + relLink).AbsoluteUri;
     }
 
-
     /// <summary>
     /// Cleans up the characters in the input string by normalizing and replacing spaces with hyphens.
     /// </summary>
@@ -417,7 +416,6 @@ public class DocumentationService
         if (parameters != null)
             builder.Query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
 
-
         var res = await GetRetryPolicy().ExecuteAsync(async () =>
         {
             var request = new HttpRequestMessage() { RequestUri = builder.Uri, Method = HttpMethod.Get };
@@ -463,7 +461,7 @@ public class DocumentationService
             return e.Message;
         }
     }
-    
+
     /// <summary>
     /// Loads the resource tree for the given documentation guide and locale.
     /// </summary>
