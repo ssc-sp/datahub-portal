@@ -1,5 +1,4 @@
 ﻿using Datahub.Core.Services;
-using Microsoft.Graph;
 using Microsoft.Graph.Models;
 
 namespace Datahub.Portal.Services.Offline;

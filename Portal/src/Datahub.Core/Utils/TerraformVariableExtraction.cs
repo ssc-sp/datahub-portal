@@ -1,7 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
@@ -30,14 +28,14 @@ public static class TerraformVariableExtraction
     /// Extracts the databricks url from a Datahub Project. Be sure to include the project resources in the project object.
     /// </summary>
     /// <param name="project"></param>
-    /// <returns></returns>
+    /// <returns>Databricks url of the project</returns>
     public static string? ExtractDatabricksUrl(Datahub_Project? project)
     {
         var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-        var databricksUrlVariable =  ExtractStringVariable(
+        var databricksUrlVariable = ExtractStringVariable(
             project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent,
             "workspace_url");
-        
+
         return FormatDatabricksUrl(databricksUrlVariable);
     }
 
@@ -48,11 +46,70 @@ public static class TerraformVariableExtraction
     /// <returns>The extracted Databricks URL or null if not found.</returns>
     public static string? ExtractDatabricksUrl(Project_Resources2? projectResource)
     {
-        var databricksUrlVariable =  ExtractStringVariable(
+        var databricksUrlVariable = ExtractStringVariable(
             projectResource?.JsonContent,
             "workspace_url");
-        
+
         return FormatDatabricksUrl(databricksUrlVariable);
+    }
+
+    /// <summary>
+    /// Extracts the app service configuration from a Datahub Project.
+    /// </summary>
+    /// <param name="project">The Datahub Project to find the app service config from</param>
+    /// <returns>The AppServiceConfiguration object containing the configuration info of the app service</returns>
+    public static AppServiceConfiguration? ExtractAppServiceConfiguration(Datahub_Project? project)
+    {
+        var appServiceTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService);
+        var appServiceResource = project?.Resources?.FirstOrDefault(r =>
+            r.ResourceType == appServiceTemplateName);
+
+        if (appServiceResource == null)
+        {
+            // TODO: Might be worth logging but this class seems to have all static functions and no logger.
+            return null;
+        }
+
+        return ExtractAppServiceConfiguration(appServiceResource);
+    }
+
+    /// <summary>
+    /// Extracts the app service configuration from a project resource.
+    /// </summary>
+    /// <param name="projectResource">The project resource</param>
+    /// <returns>The AppServiceConfiguration object containing the configuration info of the app service</returns>
+    public static AppServiceConfiguration ExtractAppServiceConfiguration(Project_Resources2? projectResource)
+    {
+        var appServiceFramework = ExtractStringVariable(
+            projectResource?.InputJsonContent,
+            "app_service_framework");
+        var appServiceGitRepo = ExtractStringVariable(
+            projectResource?.InputJsonContent,
+            "app_service_git_repo");
+        var appServiceComposePath = ExtractStringVariable(
+            projectResource?.InputJsonContent,
+            "app_service_compose_path");
+        var appServiceId = ExtractStringVariable(
+            projectResource?.JsonContent,
+            "app_service_id");
+        var appServiceHostName = ExtractStringVariable(
+            projectResource?.JsonContent,
+            "app_service_host_name");
+        return new AppServiceConfiguration(appServiceFramework, appServiceGitRepo, appServiceComposePath, appServiceId,
+            appServiceHostName);
+    }
+
+    /// <summary>
+    /// Extracts the environment variable keys from a project resource. This is made generic,
+    /// so that it can be used on any resource
+    /// </summary>
+    /// <param name="projectResources">The project resource to get the environment variables from</param>
+    /// <returns>A list of string, corresponding to the keys of the environment variables stored in the workspace keyvault</returns>
+    public static IList<string> ExtractEnvironmentVariableKeys(Project_Resources2 projectResources)
+    {
+     var envVarsString = ExtractStringVariable(projectResources?.InputJsonContent, "environment_variables_keys") ?? "[]";
+     var envVars = JsonSerializer.Deserialize<List<string>>(envVarsString);
+     return envVars ?? new List<string>();
     }
 
     /// <summary>
@@ -67,7 +124,7 @@ public static class TerraformVariableExtraction
             databricksUrlVariable = $"https://{databricksUrlVariable}";
         }
 
-        return databricksUrlVariable;        
+        return databricksUrlVariable;
     }
 
     /// <summary>
@@ -95,7 +152,6 @@ public static class TerraformVariableExtraction
             workspace?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent,
             "postgres_db_name");
     }
-
 
     /// <summary>
     /// Extracts the username secret name from the given Azure Postgres workspace.
@@ -141,10 +197,10 @@ public static class TerraformVariableExtraction
 
         var jsonContent =
             JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);
-        
+
         if (!jsonContent?.ContainsKey(variableName) ?? true)
             return null;
-        
+
         var variable = jsonContent?[variableName];
 
         return variable;

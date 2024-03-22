@@ -1,15 +1,8 @@
-﻿using Markdig.Extensions.Yaml;
-using Markdig.Renderers.Roundtrip;
-using Markdig.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Markdig.Syntax;
 
 namespace Datahub.Markdown
 {
-    public class ExternalPageMarkdown
+	public class ExternalPageMarkdown
     {
         public static bool IsExternalMarkdown(string input)
         {

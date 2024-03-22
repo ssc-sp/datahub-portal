@@ -1,4 +1,3 @@
-using Datahub.Application.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Playwright;
 using FluentAssertions;

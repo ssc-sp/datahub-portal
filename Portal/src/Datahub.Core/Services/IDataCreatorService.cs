@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-using Datahub.Core.Data;
-using Microsoft.Graph.Models;
+﻿using Microsoft.Graph.Models;
 
 namespace Datahub.Core.Services;
 

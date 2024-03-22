@@ -1,5 +1,3 @@
-using System;
-
 namespace Datahub.Core.Data.ExternalSearch.OpenData;
 
 public class OpenDataOrganization

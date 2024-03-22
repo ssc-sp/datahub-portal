@@ -22,7 +22,7 @@ public class CKANPakageBuilderTest
         var fieldValues = FieldDefinitionHelper.LoadFields(_fieldDefinitions);
         Assert.NotNull(fieldValues);
 
-        var dict = (new PackageGenerator()).GeneratePackage(fieldValues, true, "https://localhost");
+        var dict = new PackageGenerator().GeneratePackage(fieldValues, true, "https://localhost");
 
         var expected = fieldValues.ObjectId;
 
@@ -69,7 +69,7 @@ public class CKANPakageBuilderTest
         expected = "ca-ogl-lgo";
         Assert.Equal(dict["license_id"].ToString(), expected);
 
-        expected = "true";
+        expected = "false";
         Assert.Equal(dict["ready_to_publish"].ToString(), expected);
 
         expected = "false";

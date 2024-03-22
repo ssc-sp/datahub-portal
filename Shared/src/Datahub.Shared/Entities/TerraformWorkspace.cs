@@ -1,14 +1,10 @@
 #nullable enable
 
-using System.Text.Json.Nodes;
-
 // This is actually required by some projects
 // ReSharper disable once RedundantUsingDirective
-using System.Collections.Generic;
-using Datahub.Shared.Enums;
-
 // This is needed, even if your IDE says it isn't
-using System.Linq;
+using System.Text.Json.Nodes;
+using Datahub.Shared.Enums;
 
 namespace Datahub.Shared.Entities;
 
@@ -18,14 +14,14 @@ public class TerraformWorkspace
     public string? Name { get; set; }
     public string? Acronym { get; set; }
     public double BudgetAmount { get; set; } = 100;
-    
+
     public string Version { get; set; } = DefaultVersion;
 
     // TODO: Move this into the storage module
     public int StorageSizeLimitInTB { get; set; } = 5;
     public TerraformOrganization? TerraformOrganization { get; set; }
     public IEnumerable<TerraformUser>? Users { get; set; }
-    
+
     public JsonNode ToUserList()
     {
         var users = new JsonArray();

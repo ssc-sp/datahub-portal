@@ -1,0 +1,74 @@
+﻿@* PublishingFileControl.razor *@
+
+@if (File != null)
+{
+    @if (File.UploadStatus == OpenDataPublishFileUploadStatus.NotStarted || string.IsNullOrEmpty(File.FilePurpose))
+    {
+        <MudText>@_notStartedMessageInternal</MudText>
+    }
+    else if (File.UploadStatus == OpenDataPublishFileUploadStatus.ReadyToUpload)
+    {
+        <MudStack Row AlignItems=@AlignItems.Center>
+            <MudButton OnClick=@UploadClicked Color=@Color.Primary Variant=@Variant.Filled Disabled=@_disableButtonInternal>@_uploadButtonLabelInternal</MudButton>
+            <MudText>@Localizer["Ready to upload"]</MudText>
+        </MudStack>
+    }
+    else if (File.UploadStatus == OpenDataPublishFileUploadStatus.InProgress)
+    {
+        <MudStack Row AlignItems=@AlignItems.Center>
+            <MudProgressCircular Size=@Size.Small Indeterminate />
+            <MudText>@Localizer["Uploading"]</MudText>
+        </MudStack>
+    } 
+    else if (File.UploadStatus == OpenDataPublishFileUploadStatus.Completed)
+    {
+        <MudStack Row AlignItems=@AlignItems.Center>
+            <MudIcon Icon=@Icons.Material.Filled.Check Color=@Color.Success Size=@Size.Medium />
+            <MudText>@Localizer["Upload complete"]</MudText>
+        </MudStack>
+    }
+    else if (File.UploadStatus == OpenDataPublishFileUploadStatus.Failed)
+    {
+        <MudStack Row AlignItems=@AlignItems.Center>
+            <MudIcon Icon=@Icons.Material.Filled.Cancel Color=@Color.Error Size=@Size.Medium />
+            <MudText>@Localizer["Upload failed"]</MudText>
+            @* TODO: expand/popup to show error *@
+        </MudStack>
+    }
+}
+else
+{
+    <MudText>@Localizer["No file specified"]</MudText>
+}
+
+@code {
+
+    [Parameter]
+    public OpenDataPublishFile File { get; set; }
+
+    [Parameter]
+    public bool CanPublish { get; set; }
+
+    [Parameter]
+    public EventCallback<OpenDataPublishFile> OnUploadHandler { get; set; }
+
+    [Parameter]
+    public string NotStartedMessage { get; set; }
+
+    [Parameter]
+    public string UploadButtonLabel { get; set; }
+
+    private string _notStartedMessageInternal => string.IsNullOrEmpty(NotStartedMessage) ? Localizer["File is not ready to upload"] : NotStartedMessage;
+    private string _uploadButtonLabelInternal => string.IsNullOrEmpty(UploadButtonLabel) ? Localizer["Upload"] : UploadButtonLabel;
+
+    private bool _disableButtonInternal => !CanPublish;
+
+    private async Task UploadClicked()
+    {
+        if (OnUploadHandler.HasDelegate)
+        {
+            await OnUploadHandler.InvokeAsync(File);
+        }
+    }
+
+}

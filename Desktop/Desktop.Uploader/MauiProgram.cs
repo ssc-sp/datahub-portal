@@ -1,7 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Datahub.Maui.Uploader;
-using System.Text;
-using System.Globalization;
 using Datahub.Maui.Uploader.Models;
 using Datahub.Maui.Uploader.IO;
 using CommunityToolkit.Maui;
@@ -9,7 +6,7 @@ using CommunityToolkit.Maui.Storage;
 
 namespace Datahub.Maui.Uploader
 {
-    public static class MauiProgram
+	public static class MauiProgram
     {
         public static MauiApp CreateMauiApp()
         {

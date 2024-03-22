@@ -1,5 +1,3 @@
-using System;
-
 namespace Datahub.Shared.Exceptions;
 
 public class ProjectNotFoundException : Exception

@@ -1,5 +1,4 @@
 using Datahub.Specs.PageObjects;
-using Microsoft.Playwright;
 
 namespace Datahub.Specs.Steps;
 
