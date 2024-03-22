@@ -53,6 +53,33 @@ public class MediaController : Controller
         return Redirect(sasUrl);
     }
 
+    /// <summary>
+    /// Redirect the video mp4 to the azure storage blob and return the video stream.
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("api/docs/{**filePath}")]
+    [Authorize]
+    public IActionResult GetDocs(string filePath)
+    {
+        if (_datahubPortalConfiguration?.Media?.StorageConnectionString is null)
+            return Unauthorized("No token available");
+        var blobReference = CloudStorageAccount.Parse(_datahubPortalConfiguration.Media.StorageConnectionString)
+            .CreateCloudBlobClient()
+            .GetContainerReference("docs")
+            .GetBlockBlobReference(filePath);
+
+        var sasToken = blobReference
+            .GetSharedAccessSignature(new SharedAccessBlobPolicy
+            {
+                Permissions = SharedAccessBlobPermissions.Read,
+                SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-5),
+                SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(5)
+            });
+
+        var sasUrl = blobReference.Uri + sasToken;
+        return Redirect(sasUrl);
+    }
+
     [HttpPost("api/media/upload")]
     //[Authorize]
     public async Task<IActionResult> PostMedia()
