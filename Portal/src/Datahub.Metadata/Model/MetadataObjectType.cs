@@ -11,5 +11,6 @@ public enum MetadataObjectType : byte
     Database,
     DatasetUrl,
     DataInitiative,
-    Databricks
+    Databricks,
+    TbsOpenGovSubmission
 }

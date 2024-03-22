@@ -1,9 +1,8 @@
-using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Portal.Migrations
 {
-    public partial class Initialmigration : Migration
+	public partial class Initialmigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

@@ -9,7 +9,6 @@ public partial class PowerBiEmbededData : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-
         migrationBuilder.CreateTable(
             name: "ExternalPowerBiReports",
             columns: table => new

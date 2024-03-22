@@ -3,7 +3,6 @@ using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
-using Datahub.Infrastructure.Services.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

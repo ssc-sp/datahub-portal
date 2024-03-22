@@ -1,16 +1,11 @@
-﻿using Datahub.Core.Services;
-using Datahub.Markdown;
+﻿using Datahub.Markdown;
 using SyncDocs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace Datahub.Tests.Docs
 {
-    public class ExternalMdTests
+	public class ExternalMdTests
     {
 
         public const string MD_EXT_LINK = """

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Datahub.Shared.Entities;
 
 public class WorkspaceDefinition

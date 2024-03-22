@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Datahub.Core.Utils;
 
@@ -13,7 +11,7 @@ public static class ClassMapperExtension
         foreach (var sourceProp in sourceProps)
         {
             var destProp = destProps.FirstOrDefault(p => p.CanWrite && p.Name == sourceProp.Name && p.PropertyType == sourceProp.PropertyType);
-                
+
             if (validate && destProp == null)
                 throw new Exception($"Cannot find source property {sourceProp.Name} in destination instance!");
 

@@ -1,0 +1,79 @@
+﻿@* DHSteps.razor *@
+
+@typeparam T
+
+
+ <MudTimeline TimelineOrientation=@Orientation TimelinePosition=@Position >
+     @foreach(var (index, item) in StepItems.Select((x,i) => (i,x)))
+    {
+        var dotAppearance = StepStatusIcon(item);
+        <MudTimelineItem 
+            Size=@Size.Large
+            Variant=@dotAppearance.Variant
+            Icon=@dotAppearance.Icon 
+            Color=@dotAppearance.Colour>
+
+            <ItemDot>
+                @if (string.IsNullOrEmpty(dotAppearance.Icon))
+                {
+                    <MudText Typo=@Typo.h3 Align=@Align.Center>@(index+1)</MudText>
+                }
+                else
+                {
+                    <MudIcon Icon=@dotAppearance.Icon Size=@Size.Large />
+                }
+            </ItemDot>
+
+            <ChildContent>
+                
+                <MudText Typo=@Typo.h4>@StepTitleFunc(item)</MudText>
+                @if (!Collapsed)
+                {
+                    <MudText Typo=@Typo.caption>@StepMessageFunc(item)</MudText>
+                }
+            </ChildContent>
+
+        </MudTimelineItem>
+    }
+</MudTimeline>
+
+
+
+@code {
+
+    [Parameter]
+    public List<T> StepItems { get; set; }
+
+    [Parameter]
+    public Func<T, StepState> CurrentStepStateFunc { get; set; }
+
+    [Parameter]
+    public Func<T, string> StepTitleFunc { get; set; }
+
+    [Parameter]
+    public Func<T, string> StepMessageFunc { get; set; }
+
+    [Parameter]
+    public bool Collapsed { get; set; }
+
+    private StepDotAppearance StepStatusIcon(T stepItem) => CurrentStepStateFunc(stepItem) switch
+    {
+        StepState.Running => new(string.Empty, Color.Primary, Variant.Filled),
+        StepState.Passed => new(Icons.Material.Filled.Check, Color.Success, Variant.Filled),
+        StepState.Failed => new(Icons.Material.Filled.Close, Color.Error, Variant.Filled),
+        _ => new(string.Empty, Color.Default, Variant.Outlined)
+    };
+
+    public enum StepState
+    {
+        Queued,
+        Running,
+        Passed,
+        Failed
+    }
+
+    private record StepDotAppearance(string Icon, Color Colour, Variant Variant);
+
+    private TimelineOrientation Orientation => Collapsed ? TimelineOrientation.Horizontal : TimelineOrientation.Vertical;
+    private TimelinePosition Position => Collapsed ? TimelinePosition.Top : TimelinePosition.Left;
+}

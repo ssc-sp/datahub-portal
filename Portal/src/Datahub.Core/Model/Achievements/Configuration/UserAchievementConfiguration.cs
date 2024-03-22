@@ -8,7 +8,7 @@ public class UserAchievementConfiguration : IEntityTypeConfiguration<UserAchieve
     public void Configure(EntityTypeBuilder<UserAchievement> builder)
     {
         builder.ToTable("UserAchievements");
-        
+
         builder.HasKey(e => e.Id);
 
         builder.Property(e => e.Id)
