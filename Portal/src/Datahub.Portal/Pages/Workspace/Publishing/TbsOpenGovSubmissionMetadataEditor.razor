@@ -1,0 +1,109 @@
+﻿@* TbsOpenGovSubmissionMetadataEditor.razor *@
+
+@using Datahub.Core.Model.Achievements
+@using Datahub.Metadata.DTO
+@using Datahub.Metadata.Utils
+@inject IUserInformationService _userService;
+@inject IMetadataBrokerService _metadataService;
+
+@if (_initialized)
+{
+    <MudText Typo=@Typo.caption>@Localizer["Fields marked with * are required"]</MudText>
+    <ObjectMetadataEditor @ref=@_editor
+        @key=@ObjectId
+        ObjectId=@ObjectId
+        ObjectType=@Datahub.Metadata.Model.MetadataObjectType.TbsOpenGovSubmission
+        ProfileName=@TbsOpenGovSubmission.PUBLICATION_METADATA_PROFILE_NAME
+        Location=@ProjectAcronym
+        UpdateCatalog=@false
+        SecurityClass=@Core.SecurityClassification.Unclassified
+        DefaultMetadataId=@ProjectAcronym
+        OnNewMetadataCreated=@OnNewMetadataCreated
+        OnExistingMetadataLoaded=@OnNewMetadataCreated
+        ValidateRequired=@false
+        HideSaveButton
+        DisableTranslation
+        />
+
+    <MudButton OnClick=@SaveChanges>@Localizer["Save"]</MudButton>
+}
+
+@code {
+    [Parameter]
+    public TbsOpenGovSubmission Submission { get; set; }
+
+    [Parameter]
+    public EventCallback OnMetadataUpdated { get; set; }
+
+    static readonly ISet<string> INHERITED_FIELDS_TO_REMOVE = new HashSet<string> ()
+    {
+        FieldNames.name_en,
+        FieldNames.name_fr,
+        FieldNames.organization_name,
+        FieldNames.description_en,
+        FieldNames.description_fr,
+        FieldNames.creator,
+        FieldNames.contact_email
+    };
+
+    private PortalUser _reqUser;
+    private bool _initialized = false;
+    private FieldValueContainer _workspaceMetadata = null;
+
+    private ObjectMetadataEditor _editor;
+    private string ObjectId => Submission.UniqueId;
+    private string ProjectAcronym => Submission.Project.Project_Acronym_CD;
+
+    private async Task OnNewMetadataCreated()
+    {
+        var isFrench = _reqUser.UserSettings.Language?.Contains(CultureService.French) ?? false;
+        var titleField = isFrench ? FieldNames.title_translated_fr : FieldNames.title_translated_en;
+        if (string.IsNullOrEmpty(_editor.GetValue(titleField)))
+        {
+            _editor.SetValue(titleField, Submission.DatasetTitle);
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private async Task LoadWorkspaceMetadata()
+    {
+        if (_workspaceMetadata != null)
+        {
+            await Task.CompletedTask;
+        }
+
+        _workspaceMetadata = await _metadataService.GetObjectMetadataValues(ProjectAcronym);
+    }
+
+    private async Task SaveChanges()
+    {
+        foreach (var fieldName in INHERITED_FIELDS_TO_REMOVE)
+        {
+            var existingValue = _editor.GetValue(fieldName);
+            if (!string.IsNullOrEmpty(existingValue))
+            {
+                _editor.SetValue(fieldName, null);
+            }
+        }
+
+        await _editor.SaveChanges();
+
+        Submission.MetadataComplete = _editor.ValidProfileFields();
+        if (OnMetadataUpdated.HasDelegate)
+        {
+            await OnMetadataUpdated.InvokeAsync();
+        }
+
+        await Task.CompletedTask;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // get requesting user including UserSettings (for language)
+        _reqUser = await _userService.GetPortalUserAsync(Submission.RequestingUser.GraphGuid);
+        _initialized = true;
+
+        await base.OnInitializedAsync();
+    }
+}

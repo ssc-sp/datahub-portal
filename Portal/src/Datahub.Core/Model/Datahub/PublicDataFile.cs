@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Datahub.Core.Model.Datahub;
@@ -7,13 +6,13 @@ public class PublicDataFile
 {
     [Key]
     public long PublicDataFile_ID { get; set; }
-        
+
     public Guid File_ID { get; set; }
 
     [Required]
     [StringLength(256)]
     public string Filename_TXT { get; set; }
-        
+
     [StringLength(1024)]
     public string FolderPath_TXT { get; set; }
 
@@ -21,7 +20,7 @@ public class PublicDataFile
     public string ProjectCode_CD { get; set; }
 
     public bool IsProjectBased => ProjectCode_CD != null;
-        
+
     [Required]
     [StringLength(200)]
     public string RequestingUser_ID { get; set; }
@@ -38,5 +37,5 @@ public class PublicDataFile
     public DateTime? ApprovedDate_DT { get; set; }
 
     // Publication may be immediately after approval, or specified for a future date
-    public DateTime? PublicationDate_DT { get; set; } 
+    public DateTime? PublicationDate_DT { get; set; }
 }

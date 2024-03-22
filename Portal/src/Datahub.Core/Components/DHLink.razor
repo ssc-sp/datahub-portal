@@ -1,3 +1,4 @@
+@using Datahub.Core.Model.Datahub;
 @using Datahub.Core.Services.UserManagement;
 @using Microsoft.Extensions.Logging 
 @using System.Text.RegularExpressions
@@ -20,7 +21,7 @@
 
 @code {
 
-    private string _classname => $"{Variant} {_inputClass}";
+    private string _classname => $"{Variant} {InputClass}";
 
     [Parameter]
     public DatahubLinkType LinkType { get; set; } = DatahubLinkType.Undefined;
@@ -41,7 +42,7 @@
 
     [Parameter]
     public string WebFormsURL { get; set; }
-    
+
     [Parameter]
     public string AzureWebAppUrl { get; set; }
 
@@ -59,11 +60,14 @@
 
     [Parameter]
     public string PBIWorkspaceId { get; set; } = null;
-    
+
     [Parameter]
     public string ResourceArticleId { get; set; } = null;
     [Parameter]
     public string ResourceArticleName { get; set; } = null;
+
+    [Parameter]
+    public long? PublishingSubmissionId { get; set; }
 
     [Parameter]
     public UserRecentLink UserRecentLink { get; set; }
@@ -90,11 +94,13 @@
                     LinkType = DatahubLinkType.Databricks;
                 else if (WebFormsURL != null)
                     LinkType = DatahubLinkType.WebForm;
+                else if (PublishingSubmissionId.HasValue)
+                    LinkType = DatahubLinkType.PublishingSubmission;
                 else if (DataProject != null)
                     LinkType = DatahubLinkType.DataProject;
-                else if(ExternalUrl != null)
+                else if (ExternalUrl != null)
                     LinkType = DatahubLinkType.ExternalUrl;
-                else if(AzureWebAppUrl != null)
+                else if (AzureWebAppUrl != null)
                     LinkType = DatahubLinkType.AzureWebApp;
                 else if (ResourceArticleId != null)
                     LinkType = DatahubLinkType.ResourceArticle;
@@ -113,7 +119,7 @@
             link.ResourceArticleTitle = ResourceArticleName;
             link.Name = Name;
         }
-        link.accessedTime = DateTimeOffset.Now;
+        link.AccessedTime = DateTimeOffset.Now;
 
         await UserLocationManagerService.RegisterNavigation(link);
         switch (LinkType)
@@ -173,6 +179,12 @@
                 break;
             case DatahubLinkType.ResourceArticle:
                 NavigationManager.NavigateTo($"/resources/{link.ResourceArticleId}");
+                break;
+            case DatahubLinkType.PublishingDashboard:
+                NavigationManager.NavigateTo($"/w/{link.DataProject}/publishing");
+                break;
+            case DatahubLinkType.PublishingSubmission:
+                NavigationManager.NavigateTo($"/w/{link.DataProject}/publishing/{PublishingSubmissionId}");
                 break;
             case DatahubLinkType.Undefined:
             default:

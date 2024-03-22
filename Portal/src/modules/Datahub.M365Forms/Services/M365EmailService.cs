@@ -1,12 +1,11 @@
 ﻿using Datahub.Application.Services.Notification;
-using Datahub.Core.Services.Notification;
 using Datahub.M365Forms.Data;
 using Datahub.M365Forms.Templates;
 using Microsoft.Extensions.Logging;
 
 namespace Datahub.M365Forms.Services
 {
-    public class M365EmailService
+	public class M365EmailService
     {
         private ILogger<M365EmailService> _logger;
 

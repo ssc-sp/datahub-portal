@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using System;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using System.Security.Claims;
 using Datahub.Core.Data;
 using Datahub.Core.Services.Security;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Logging;
 
 namespace Datahub.Core.RoleManagement;
 
@@ -32,7 +29,7 @@ public class RoleClaimTransformer : IClaimsTransformation
             }
             else
             {
-                var claims = ((ClaimsIdentity)principal.Identity);
+                var claims = (ClaimsIdentity)principal.Identity;
                 if (claims is null)
                     return principal;
 

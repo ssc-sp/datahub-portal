@@ -74,7 +74,7 @@
             LinkType = DatahubLinkType.ResourceArticle,
             ResourceArticleId = DocumentItem.Id,
             ResourceArticleTitle = DocumentItem.Title,
-            accessedTime = DateTimeOffset.Now,
+            AccessedTime = DateTimeOffset.Now,
         };
         await UserLocationManagerService.RegisterNavigation(userRecentLink);
     }

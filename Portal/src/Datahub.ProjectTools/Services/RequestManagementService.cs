@@ -1,21 +1,14 @@
-﻿using Datahub.Core.Data.ResourceProvisioner;
-using Datahub.Core.Model.Datahub;
+﻿using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
-using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Projects;
-using Datahub.Core.Services.Security;
-using Datahub.Metadata.DTO;
-using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System.Transactions;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Enums;
-using Datahub.Shared.Exceptions;
 
 namespace Datahub.ProjectTools.Services;
 
@@ -80,7 +73,7 @@ public class RequestManagementService : IRequestManagementService
             RequestedById = requestingUser.Id,
             ResourceType = TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name)
         };
-
+        
         await ctx.Project_Resources2.AddAsync(resource);
         await ctx.TrackSaveChangesAsync(_datahubAuditingService);
     }
@@ -158,6 +151,8 @@ public class RequestManagementService : IRequestManagementService
             _ => Role.Guest
         };
     }
+    
+    
 
     // public static FieldValueContainer BuildFieldValues(FieldDefinitions fieldDefinitions,
     //     Dictionary<string, string> existingValues, string objectId = null)

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-
-namespace Datahub.Markdown.Model;
+﻿namespace Datahub.Markdown.Model;
 
 #nullable enable
 

@@ -1,22 +1,11 @@
-﻿using Datahub.Core.Services.Notification;
-using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
-using Datahub.LanguageTraining.Data;
+﻿using Datahub.LanguageTraining.Data;
 using Datahub.LanguageTraining.Templates;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Datahub.Application.Services.Notification;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Datahub.LanguageTraining.Services
 {
-    public class LanguageEmailService
+	public class LanguageEmailService
     {
         private ILogger<LanguageEmailService> _logger;
 

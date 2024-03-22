@@ -17,10 +17,6 @@ using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MediatR;
-using Azure.Storage.Blobs;
-using MudBlazor;
-using AngleSharp.Common;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Datahub.Functions;
 

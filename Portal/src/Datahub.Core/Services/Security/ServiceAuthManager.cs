@@ -1,32 +1,25 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Primitives;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
-using Datahub.Core.Services.UserManagement;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Primitives;
 
 namespace Datahub.Core.Services.Security;
 
 public class ServiceAuthManager
 {
-    private IMemoryCache serviceAuthCache;
-    private readonly IDbContextFactory<DatahubProjectDBContext> dbFactory;
     private const int AUTH_KEY = 1;
     private const int PROJECT_ADMIN_KEY = 2;
 
-    private ConcurrentDictionary<string, bool> _viewingAsGuest = new();
+    private IMemoryCache serviceAuthCache;
+    private readonly IDbContextFactory<DatahubProjectDBContext> dbFactory;
 
-    public ServiceAuthManager(IMemoryCache serviceAuthCache, IDbContextFactory<DatahubProjectDBContext> dbFactory
-        )
+    private ConcurrentDictionary<string, bool> viewingAsGuest = new();
+
+    public ServiceAuthManager(IMemoryCache serviceAuthCache, IDbContextFactory<DatahubProjectDBContext> dbFactory)
     {
         this.serviceAuthCache = serviceAuthCache;
         this.dbFactory = dbFactory;
@@ -40,17 +33,17 @@ public class ServiceAuthManager
 
     public void SetViewingAsGuest(string userId, bool isGuest)
     {
-        _viewingAsGuest.AddOrUpdate(userId, isGuest, (k, v) => isGuest);
+        viewingAsGuest.AddOrUpdate(userId, isGuest, (k, v) => isGuest);
     }
 
     public bool GetViewingAsGuest(string userId)
     {
-        return _viewingAsGuest.ContainsKey(userId) && _viewingAsGuest[userId];
+        return viewingAsGuest.ContainsKey(userId) && viewingAsGuest[userId];
     }
 
     public List<string> GetAdminProjectRoles(string userId)
     {
-        if (userId != null && _viewingAsGuest.ContainsKey(userId) && _viewingAsGuest[userId])
+        if (userId != null && viewingAsGuest.ContainsKey(userId) && viewingAsGuest[userId])
         {
             return new List<string>();
         }
@@ -60,7 +53,7 @@ public class ServiceAuthManager
         return projects;
     }
 
-    private static CancellationTokenSource _resetCacheToken = new CancellationTokenSource();
+    private static CancellationTokenSource resetCacheToken = new CancellationTokenSource();
 
     public static readonly Regex Email_Extractor = new Regex(".*<(.*@.*)>", RegexOptions.Compiled);
 
@@ -116,7 +109,7 @@ public class ServiceAuthManager
 
         var options = new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.Normal)
             .SetAbsoluteExpiration(TimeSpan.FromHours(1));
-        options.AddExpirationToken(new CancellationChangeToken(_resetCacheToken.Token));
+        options.AddExpirationToken(new CancellationChangeToken(resetCacheToken.Token));
 
         return isProjectAdmin;
     }
@@ -176,7 +169,8 @@ public class ServiceAuthManager
                 }
                 else
                 {
-                    allProjectAdmins.Add(admin.Project.Project_Acronym_CD,
+                    allProjectAdmins.Add(
+                        admin.Project.Project_Acronym_CD,
                         new List<string> { admin.PortalUser.GraphGuid });
                 }
             }
@@ -187,10 +181,11 @@ public class ServiceAuthManager
         return allProjectAdmins;
     }
 
-    public async Task<ImmutableList<(Project_Role, Datahub_Project)>> GetUserAuthorizations(string userGraphId)
+    public async Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetUserAuthorizations(string userGraphId)
     {
-        if (serviceAuthCache.TryGetValue(AUTH_KEY,
-                out Dictionary<string, List<(Project_Role, Datahub_Project)>> usersAuthorization))
+        if (serviceAuthCache.TryGetValue(
+            AUTH_KEY,
+            out Dictionary<string, List<(Project_Role, Datahub_Project)>> usersAuthorization))
         {
             if (usersAuthorization.TryGetValue(userGraphId, out var userAuths))
             {

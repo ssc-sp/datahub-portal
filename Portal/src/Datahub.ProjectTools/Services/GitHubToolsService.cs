@@ -5,7 +5,6 @@ using Markdig;
 using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
 using Octokit;
-using YamlDotNet.Serialization;
 
 namespace Datahub.ProjectTools.Services;
 #nullable enable
