@@ -277,6 +277,37 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
 
+        modelBuilder.Entity<OpenDataSubmission>()
+            .HasMany<OpenDataPublishFile>(p => p.Files)
+            .WithOne(f => f.Submission)
+            .HasForeignKey(f => f.SubmissionId);
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .HasOne<Datahub_Project>(p => p.Project)
+            .WithMany(p => p.PublishingSubmissions)
+            .HasForeignKey(p => p.ProjectId);
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .HasOne<PortalUser>(p => p.RequestingUser)
+            .WithMany(p => p.OpenDataSubmissions)
+            .HasForeignKey(p => p.RequestingUserId);
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .Property(s => s.UniqueId)
+            .IsRequired();
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .HasIndex(s => s.UniqueId)
+            .IsUnique();
+
+        modelBuilder.Entity<OpenDataSubmission>()
+            .UseTptMappingStrategy();
+
+        modelBuilder.Entity<OpenDataPublishFile>()
+            .HasOne<ProjectCloudStorage>(f => f.Storage)
+            .WithMany(s => s.PublishingSubmissionFiles)
+            .HasForeignKey(f => f.ProjectStorageId);
+
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
             // SQLite does not have proper support for DateTimeOffset via Entity Framework Core, see the limitations
