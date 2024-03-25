@@ -1,5 +1,4 @@
-﻿<Router AppAssembly="@typeof(Program).Assembly"
-        AdditionalAssemblies=@_additionalAssemblies>
+﻿<Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
         <CascadingAuthenticationState>
             @if (routeData?.PageType.Namespace?.StartsWith(PublicPageNamespace) ?? false)
@@ -45,16 +44,6 @@
 
 
 @code {
-
-    private IEnumerable<System.Reflection.Assembly> _additionalAssemblies = new[]
-    {
-        typeof(Datahub.LanguageTraining.LanguageTrainingModule).Assembly,
-        typeof(Datahub.Finance.FinanceModule).Assembly,
-        typeof(Datahub.M365Forms.M365FormsModule).Assembly,
-        typeof(Datahub.PIP.PIPFormsModule).Assembly,
-        typeof(Datahub.PowerBI.Data.PowerBISettings).Assembly        
-
-    };
 
     private const string InternalPublicPageNamespace = "Datahub.Portal.Pages.InternalPublic";
     private const string PublicPageNamespace = "Datahub.Portal.Pages.Public";

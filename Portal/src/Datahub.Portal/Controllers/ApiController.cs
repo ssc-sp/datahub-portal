@@ -2,7 +2,6 @@
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Metadata;
-using Datahub.GeoCore.Service;
 using Datahub.Metadata.DTO;
 using Datahub.Portal.Model;
 using Microsoft.AspNetCore.Authorization;
@@ -28,12 +27,11 @@ public class ApiController : Controller
     private readonly IMetadataBrokerService _metadataBrokerService;
     private readonly IPublicDataFileService _publicDataService;
     private readonly IMSGraphService _msGraphService;
-    private readonly IGeoCoreServiceFactory _geoCoreServiceFactory;
 
     public ApiController(ILogger<ApiController> logger, 
         IDbContextFactory<DatahubProjectDBContext> contextFactory, IKeyVaultService keyVaultService, 
         IMetadataBrokerService metadataBrokerService, IPublicDataFileService publicDataService, 
-        IMSGraphService msGraphService, IGeoCoreServiceFactory geoCoreServiceFactory)
+        IMSGraphService msGraphService)
     {
         _logger = logger;
         _contextFactory = contextFactory;
@@ -41,7 +39,6 @@ public class ApiController : Controller
         _metadataBrokerService = metadataBrokerService;
         _publicDataService = publicDataService;
         _msGraphService = msGraphService;
-        _geoCoreServiceFactory = geoCoreServiceFactory;
     }
 
     /* TBD!
@@ -185,52 +182,6 @@ public class ApiController : Controller
         var fieldChoices = EnumerateOpenDataShareRequestFields(fieldDefinitions).ToList();
 
         return Ok(fieldChoices);
-    }
-
-    [HttpPost]
-    [Route("spatial/submit")]
-    public async Task<IActionResult> StartSharingFgp()
-    {
-        // [authorization] Signed JWT with the claims including the UserName 
-        var authHeader = GetAuthorizationToken();
-
-        //// get the api use record
-        var apiUser = await GetApiUserAsync(authHeader);
-        if (apiUser is null || IsDisabledOrExpired(apiUser))
-            return Unauthorized();
-
-        // read request json
-        var requestJson = await ReadRequestAsString();
-
-        // validate json
-        var validationResult = await ValidateGeoCoreRequestJson(requestJson);
-        if (!validationResult.Valid)
-            return BadRequest($"Invalid request JSON '{validationResult.ErrorMessages}'");
-
-        // parse the bear minimun data to create the approval form
-        var requestSummary = ParseGeoData(requestJson);
-        if (requestSummary is null)
-            return BadRequest();
-
-        // verify required email
-        var emailContact = GetGeoCoreContactEmail(requestSummary);
-        if (string.IsNullOrEmpty(emailContact))
-            return BadRequest("Missing email-contact in the request");
-
-        // get the user id from the email contact
-        var userId = await _msGraphService.GetUserIdFromEmailAsync(emailContact, CancellationToken.None);
-        if (userId is null)
-            return BadRequest($"Invalid email contact '{emailContact}'");
-
-        // save a pre-filled approval form and retrieve the form id
-        var approvalFormId = await SaveApprovalForm(requestSummary.title_en, emailContact, $"{requestSummary.title_en } / {requestSummary.title_en}");
-
-        // save and store json request
-        var shareId = await SaveGeoData(requestJson, approvalFormId, emailContact);
-
-        var url = _publicDataService.GetPublicSharedUrl($"/share/spatial/{shareId}");
-
-        return Ok(url);
     }
 
     private string GetAuthorizationToken() => Request.Headers["DH-Auth-Key"]!;
@@ -381,12 +332,6 @@ public class ApiController : Controller
         {
             return await reader.ReadToEndAsync();
         }
-    }
-
-    private async Task<ShemaValidatorResult> ValidateGeoCoreRequestJson(string data)
-    {
-        var service = _geoCoreServiceFactory.CreateService();
-        return await service.ValidateJson(data);
     }
 
     private GeoDataShareRequest? ParseGeoData(string data)

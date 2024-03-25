@@ -3,8 +3,7 @@ from azure.identity import ClientSecretCredential
 from azure.mgmt.keyvault import KeyVaultManagementClient
 from azure.mgmt.keyvault.models import AccessPolicyEntry, VaultAccessPolicyParameters, SecretPermissions
 import os
-import asyncio
-import requests
+import lib.constants as constants
 
 def get_keyvault_client(subscription_id, tenant_id) -> KeyVaultManagementClient:
     """
@@ -104,8 +103,8 @@ def synchronize_access_policies(client:KeyVaultManagementClient, environment_nam
     return keyvault_poller.result() 
 
 def get_kv_reference(environment_name, definition_json):
-    rg_name = f"fsdh_proj_{definition_json['Workspace']['Acronym']}_{environment_name}_rg"
-    vault_name = f"fsdh-proj-{definition_json['Workspace']['Acronym']}-{environment_name}-kv"
+    rg_name = f"{constants.RESOURCE_PREFIX}_proj_{definition_json['Workspace']['Acronym']}_{environment_name}_rg"
+    vault_name = f"{constants.RESOURCE_PREFIX}-proj-{definition_json['Workspace']['Acronym']}-{environment_name}-kv"
     return rg_name,vault_name   
 
 
