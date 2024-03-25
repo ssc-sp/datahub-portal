@@ -1,4 +1,5 @@
-﻿using Datahub.Application.Services.Publishing;
+﻿using Datahub.Application.Configuration;
+using Datahub.Application.Services.Publishing;
 using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Services.Publishing;
 using Datahub.Metadata.DTO;
@@ -14,11 +15,11 @@ public class OpenDataService : IOpenDataService
     readonly IHttpClientFactory _httpClientFactory;
     readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 
-    public OpenDataService(IHttpClientFactory httpClientFactory, IDbContextFactory<DatahubProjectDBContext> dbContextFactory, CKANServiceFactory serviceFactory)
+    public OpenDataService(IHttpClientFactory httpClientFactory, IDbContextFactory<DatahubProjectDBContext> dbContextFactory, DatahubPortalConfiguration config)
     {
-        _serviceFactory = serviceFactory;
         _dbContextFactory = dbContextFactory;
         _httpClientFactory = httpClientFactory;
+        _serviceFactory = new CKANServiceFactory(httpClientFactory, config);
     }
 
     public async Task<CKANApiResult> PublishFileAsUrl(FieldValueContainer fileMetadata, bool allFields, string url)
