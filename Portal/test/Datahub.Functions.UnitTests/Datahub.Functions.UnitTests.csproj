@@ -32,9 +32,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="appsettings.Test.json">
+      <None Include="appsettings.Test.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
+      </None>
     </ItemGroup>
 
 </Project>
