@@ -2,7 +2,6 @@
 @using Datahub.Application.Validators
 @using Datahub.Core.Model.Projects
 
-
 <MudDialog ClassContent="pa-6" ClassActions="pa-6">
     <DialogContent>
         <MudForm @bind-IsValid="@_success">
@@ -12,7 +11,7 @@
             <MudLink Href="@PageRoutes.ResourceDefault">
                 @Localizer["Learn more about configuring a web application"]
             </MudLink>
-            <MudSelect Class="mt-6" Label=@Localizer["Select a web framework"]   @bind-Value="_selectedFramework">
+            <MudSelect Class="mt-6" Label=@Localizer["Select a web framework"]    @bind-Value="_selectedFramework">
                 @foreach (string framework in AppServiceTemplates.TEMPLATES)
                 {
                     <MudSelectItem Value="@framework" Label="@framework"/>
@@ -25,18 +24,18 @@
                         <MudTextField Class="mt-2" Label=@Localizer["Enter git repo URL"] Value="_gitRepoUrl" TextChanged="@((string s) => CheckForPrivateRepo(s))" HelperText="@Localizer["Must be a valid URL, i.e. https://*.git"]" Placeholder="https://gitprovider.com/me/myrepo.git" Validation="@GitRepoValidator()" Required="true" RequiredError=@Localizer["Git repository is necessary"]/>
                     </MudItem>
                     <MudItem xs="3">
-                        <MudSelect Label="@Localizer["Repo visibility"]" @bind-Value="@_repoVisibility" Placeholder="@RepoVisibilities.Public.ToString()">
-                            <MudSelectItem Label=@Localizer["Public"] Value=@RepoVisibilities.Public.ToString()/>
-                            <MudSelectItem Label=@Localizer["Private"] Value=@RepoVisibilities.Private.ToString()/>
+                        <MudSelect T="bool" Label="@Localizer["Repo visibility"]" @bind-Value="@_isRepoPrivate" ToStringFunc="@Converter">
+                            <MudSelectItem Value="@(false)"/>
+                            <MudSelectItem Value="@(true)"/>
                         </MudSelect>
                     </MudItem>
                 </MudGrid>
-                @if (_repoVisibility == RepoVisibilities.Private.ToString())
+                @if (_isRepoPrivate)
                 {
-                    <MudTextField Label=@Localizer["Enter access token"]   @bind-Value="_accessToken" HelperText="@Localizer["Access token for the private repository"]" Placeholder="********" Required="true" RequiredError=@Localizer["Access tokens are required for private repos"]/>
+                    <MudTextField Label=@Localizer["Enter access token"]    @bind-Value="_accessToken" HelperText="@Localizer["Access token for the private repository - Do not edit to reuse existing token"]" Placeholder="********" Required="true" RequiredError=@Localizer["Access tokens are required for private repos"]/>
                 }
 
-                <MudTextField Label=@Localizer["Enter Docker compose file path"]   @bind-Value="_dockerComposeFilePath" HelperText="@Localizer["Path from the base of your repo to the desired compose file, including the compose file"]" Placeholder="path/to/compose.yaml" Required="true" RequiredError=@Localizer["Path to docker compose is necessary, file name must be included"]/>
+                <MudTextField Label=@Localizer["Enter Docker compose file path"]    @bind-Value="_dockerComposeFilePath" HelperText="@Localizer["Path from the base of your repo to the desired compose file, including the compose file"]" Placeholder="path/to/compose.yaml" Required="true" RequiredError=@Localizer["Path to docker compose is necessary, file name must be included"]/>
             }
             <MudExpansionPanels Elevation="1" Class="mt-4">
                 <MudExpansionPanel IsInitiallyExpanded="false">
@@ -75,26 +74,31 @@
     [Parameter] public Project_Resources2 Resource { get; set; }
     private EnvironmentVariablesTable envVarTable { get; set; }
 
-    private enum RepoVisibilities
-    {
-        Public,
-        Private
-    }
-
+    
     private string _selectedFramework;
     private string _gitRepoUrl;
     private string _dockerComposeFilePath;
-    private string _repoVisibility = RepoVisibilities.Public.ToString();
+    private string _repoVisibility;
+    private bool _isRepoPrivate; 
     private string _accessToken;
+    private string _fullToken;
     private bool _success;
 
     private Func<string, string> GitRepoValidator() => value => Localizer["{0}", new GitRepoValidator().Validate(value).Errors.Select(e => e.ErrorMessage).FirstOrDefault()];
+    private string Converter(bool value) => value ? Localizer["Private"] : Localizer["Public"];
 
     protected override void OnInitialized()
     {
         _selectedFramework = Configuration.Framework ?? "";
         _gitRepoUrl = Configuration.GitRepo ?? "";
+        _isRepoPrivate = Configuration.IsGitRepoPrivate;
+        _fullToken = Configuration.GitToken ?? "";
         _dockerComposeFilePath = Configuration.ComposePath ?? "";
+
+        if (!string.IsNullOrWhiteSpace(_fullToken))
+        {
+            _accessToken = _fullToken.Substring(0, 6) + "********";
+        }
     }
 
     void Submit()
@@ -106,6 +110,18 @@
             config.Framework = _selectedFramework;
             config.GitRepo = _gitRepoUrl;
             config.ComposePath = _dockerComposeFilePath;
+            config.IsGitRepoPrivate = _isRepoPrivate;
+            if (_isRepoPrivate)
+            {
+                if (_accessToken.Contains("*"))
+                {
+                    config.GitToken = _fullToken;
+                }
+                else
+                {
+                    config.GitToken = _accessToken;
+                }
+            }
         }
         else
         {
@@ -119,7 +135,7 @@
     {
         if (value.Contains("@"))
         {
-            _repoVisibility = RepoVisibilities.Private.ToString();
+            _isRepoPrivate = true; 
             _accessToken = value.Split("@")[0].Split("https://")[1];
             _gitRepoUrl = value.Replace(_accessToken + "@", "");
         }
@@ -128,5 +144,6 @@
             _gitRepoUrl = value;
         }
     }
+    
 
 }

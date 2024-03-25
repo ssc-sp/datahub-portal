@@ -44,5 +44,10 @@ namespace Datahub.Infrastructure.Offline.Security
         {
             throw new NotImplementedException();
         }
+
+        public Task StoreOrUpdateSecret(string acronym, string name, string secretValue, int monthValidity = 12)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
