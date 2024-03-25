@@ -90,7 +90,7 @@ public static class TerraformVariableExtraction
         var appServiceGitRepoVisibility = bool.TryParse(
             ExtractStringVariable(
             projectResource?.InputJsonContent,
-            "app_service_git_repo_visibility"), 
+            "app_service_git_repo_visibility"),
             out var visibility) && visibility;
         var appServiceGitTokenSecretName = ExtractStringVariable(
             projectResource?.InputJsonContent,
