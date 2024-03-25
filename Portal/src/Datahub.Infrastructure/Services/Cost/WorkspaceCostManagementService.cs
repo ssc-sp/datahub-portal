@@ -109,7 +109,7 @@ namespace Datahub.Infrastructure.Services.Cost
         public async Task<List<DailyServiceCost>?> QuerySubscriptionCosts(DateTime startDate,
             DateTime endDate)
         {
-            var queryResult = await QueryScopeCosts(_armClient.GetDefaultSubscription().Id.SubscriptionId, startDate, endDate);
+            var queryResult = await QueryScopeCosts(_armClient.GetDefaultSubscription().Id, startDate, endDate);
             return (queryResult is null) ? null : await ParseQueryResult(queryResult);
         }
 
@@ -231,7 +231,7 @@ namespace Datahub.Infrastructure.Services.Cost
             var dataset = new QueryDataset();
             var queryTimePeriod = new QueryTimePeriod(startDate, endDate);
             var filter1 = new QueryFilter();
-            var allAcronyms = ctx.Projects.AsNoTracking().Select(p => p.Project_Acronym_CD.ToUpper()).ToList();
+            var allAcronyms = new[] { "DIE1", "DIE2" };//ctx.Projects.AsNoTracking().Select(p => p.Project_Acronym_CD.ToUpper()).ToList();
 
             filter1.Tags = new QueryComparisonExpression("project_cd", QueryOperatorType.In, allAcronyms);
             dataset.Filter = filter1;
@@ -263,34 +263,10 @@ namespace Datahub.Infrastructure.Services.Cost
                 result = response!.Value;
                 queryResults.Add(result);
                 
-                // Working on pagination
-                // var client = new HttpClient();
-                // while (!string.IsNullOrWhiteSpace(result.NextLink))
-                // {
-                //     var url = new UriBuilder(result.NextLink);
-                //     var skipToken = result.NextLink.Split("skipToken=")[1];
-                //     var obj = new JsonObject
-                //     {
-                //         { "options", new JsonObject()
-                //         {
-                //             {"$skipToken", skipToken}  
-                //         } }
-                //     };
-                //     var bodyStr = JsonSerializer.Serialize(obj);
-                //     bodyStr.As
-                //     var httpResponse = await client.PostAsync(result.NextLink, );
-                //     var content = await httpResponse.Content.ReadAsStringAsync();
-                //     response = JsonSerializer.Deserialize<Response<QueryResult>>(content);
-                //
-                //     if (!response.HasValue)
-                //     {
-                //         _logger.LogError($"Could not get cost data for scope {scopeId}");
-                //         throw new Exception($"Could not get cost data for scope {scopeId}");
-                //     }
-                //
-                //     result = response!.Value;
-                //     queryResults.Add(result);
-                // }
+                while (!string.IsNullOrWhiteSpace(result.NextLink))
+                {
+
+                }
             }
             catch (RequestFailedException e)
             {
