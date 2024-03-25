@@ -33,7 +33,7 @@ public partial class Testing
     internal const string OldUserId = "987654321";
 
     internal const string TestWebAppId =
-        "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b/resourcegroups/fsdh-dev-rg/providers/Microsoft.Web/sites/fsdh-dev-test-web-app";
+        "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b/resourcegroups/fsdh-static-test-rg/providers/Microsoft.Web/sites/fsdh-dev-test-web-app";
     internal static readonly string[] PROJECT_ACRONYMS = Enumerable.Range(1, 3).Select(i => $"TEST{i}").ToArray();
     internal static readonly string[] PROJECT_NAMES = Enumerable.Range(1, 3).Select(i => $"Test Project {i}").ToArray();
     [OneTimeSetUp]
