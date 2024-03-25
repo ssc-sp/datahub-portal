@@ -34,7 +34,7 @@ namespace Datahub.Infrastructure.UnitTests.Services
             var expectedAmount = 0;
             
             // Act
-            var actualAmount = await _sut.QuerySubscriptionCosts(SubscriptionId, startDate, endDate);
+            var actualAmount = await _sut.QuerySubscriptionCosts(startDate, endDate);
             _logger.LogInformation(actualAmount?.ToString());
 
             if (actualAmount is null)
