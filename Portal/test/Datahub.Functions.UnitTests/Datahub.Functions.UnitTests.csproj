@@ -14,9 +14,9 @@
         <PackageReference Include="FluentAssertions" Version="7.0.0-alpha.3" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.*" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
         <PackageReference Include="NSubstitute" Version="5.*" />
-        <PackageReference Include="NUnit" Version="3.*"/>
+        <PackageReference Include="NUnit" Version="3.*" />
 		<PackageReference Include="Moq" Version="4.*" />
         <PackageReference Include="NUnit3TestAdapter" Version="4.*"/>
         <PackageReference Include="NUnit.Analyzers" Version="3.*"/>
@@ -29,6 +29,12 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\Datahub.Functions\Datahub.Functions.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="appsettings.Test.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>
