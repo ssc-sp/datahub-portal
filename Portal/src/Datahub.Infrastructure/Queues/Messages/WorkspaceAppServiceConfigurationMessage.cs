@@ -1,8 +1,10 @@
-﻿using MediatR;
+﻿using Datahub.Shared.Entities;
+using MediatR;
 
 namespace Datahub.Infrastructure.Queues.Messages
 {
     public record WorkspaceAppServiceConfigurationMessage(
-        string ProjectAcronym
+        string ProjectAcronym,
+        AppServiceConfiguration Configuration
         ) : IRequest;
 }
