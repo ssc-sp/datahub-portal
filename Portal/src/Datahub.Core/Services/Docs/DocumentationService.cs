@@ -29,10 +29,12 @@ public class DocumentationService
     public const string FILE_MAPPINGS = "filemappings.json";
     private const string LAST_COMMIT_TS = "LAST_COMMIT_TS";
     public const string COMMIT_API_URL = "https://api.github.com/repos/ssc-sp/datahub-docs/commits";
+    private const string CONTAINER_NAME = "docs";
 
     private readonly string docsEditPrefix;
     private readonly ILogger<DocumentationService> logger;
     private readonly IHttpClientFactory httpClientFactory;
+    private readonly IConfiguration config;
 
     private DocumentationFileMapper docFileMappings = null!;
     private IList<TimeStampedStatus> statusMessages;
@@ -40,11 +42,6 @@ public class DocumentationService
     private DocItem? frOutline;
     private DocItem cachedDocs;
     private readonly IMemoryCache cache;
-
-    // New for blob storage
-    private readonly BlobServiceClient blobServiceClient;
-    private readonly string containerName;
-    private readonly string blobRoot;
 
     public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger,
         IHttpClientFactory httpClientFactory, IWebHostEnvironment environment,
@@ -54,18 +51,12 @@ public class DocumentationService
 
         var branch = environment.IsProduction() ? "main" : "next";
         docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, $"https://github.com/ssc-sp/datahub-docs/edit/{branch}/")!;
+        this.config = config;
         this.logger = logger;
         this.httpClientFactory = httpClientFactory;
         statusMessages = new List<TimeStampedStatus>();
         cache = docCache;
         cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
-
-        // New for blob storage
-        var storageAccount = config["Media:AccountName"];
-        var connectionString = config["Media:StorageConnectionString"];
-        containerName = "docs";
-        blobServiceClient = new BlobServiceClient(connectionString);
-        blobRoot = $"https://{storageAccount}.blob.core.windows.net/{containerName}";
     }
 
     /// <summary>
@@ -123,7 +114,7 @@ public class DocumentationService
             throw new ArgumentNullException(nameof(relLink));
         }
 
-        return new Uri(blobRoot + relLink).AbsoluteUri;
+        return new Uri($"https://raw.githubusercontent.com/ssc-sp/datahub-docs/next/{relLink}").AbsoluteUri;
     }
 
     /// <summary>
@@ -432,7 +423,7 @@ public class DocumentationService
     }
 
     /// <summary>
-    /// Loads the documentation page with the specified path from the blob storage.
+    /// Loads the documentation page with a specified path from the standard blob storage.
     /// </summary>
     /// <param name="path">The path of the page to load.</param>
     /// <returns>The loaded documentation page if found, otherwise null.</returns>
@@ -440,7 +431,29 @@ public class DocumentationService
     {
         try
         {
-            var storageContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            var connectionString = config["Media:StorageConnectionString"];
+            BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
+
+            return await LoadDocs(path, blobServiceClient);
+        }
+        catch (Exception e)
+        {
+            AddStatusMessage($"Error loading {path}: {e.Message}");
+            return e.Message;
+        }
+    }
+
+    /// <summary>
+    /// Loads the documentation page with the specified path from the given blob storage.
+    /// </summary>
+    /// <param name="path">The path of the page to load.</param>
+    /// <param name="blobServiceClient">The blob service client to use for loading the documentation page.</param>
+    /// <returns>The loaded documentation page content if found, otherwise null.</returns>
+    private async Task<string?> LoadDocs(string path, BlobServiceClient blobServiceClient)
+    {
+        try
+        {
+            var storageContainerClient = blobServiceClient.GetBlobContainerClient(CONTAINER_NAME);
             var documentBlobClient = storageContainerClient.GetBlobClient(path);
 
             if (await documentBlobClient.ExistsAsync())
