@@ -4,7 +4,6 @@
     {
         public string Framework { get; set; } = string.Empty;
         public string GitRepo { get; set; } = string.Empty;
-        
         public bool IsGitRepoPrivate { get; set; } = false;
         public string GitTokenSecretName { get; set; } = "app-service-git-token";
         public string GitToken { get; set; } = string.Empty;
