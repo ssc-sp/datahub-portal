@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Datahub.Shared.Configuration;
 
 namespace ResourceProvisioner.Application.Config;
 
@@ -26,6 +27,7 @@ public class InfrastructureRepositoryConfiguration
     public string ApiVersion { get; set; }
     public string MainBranch { get; set; }
     public string AutoApproveUserOid { get; set; }
+    public AzureDevOpsConfiguration AzureDevOpsConfiguration { get; set; } = new(); 
 }
 
 public class ModuleRepositoryConfiguration

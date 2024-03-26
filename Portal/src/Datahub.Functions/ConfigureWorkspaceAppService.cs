@@ -7,6 +7,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Utils;
 using Datahub.Functions.Providers;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Clients;
 using Datahub.Shared.Entities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
@@ -48,14 +49,14 @@ namespace Datahub.Functions
         private async Task ConfigureAppService(WorkspaceAppServiceConfigurationMessage appServiceConfigurationMessage,
             string projectAcronym)
         {
-            var pipelineId = await GetPipelineIdByName(_config.AdoConfig.AppServiceConfigPipeline);
+            var pipelineId = await GetPipelineIdByName(_config.AzureDevOpsConfiguration.AppServiceConfigPipeline);
             var appServiceConfiguration = await GetAppServiceConfiguration(projectAcronym);
             await PostPipelineRun(pipelineId, appServiceConfiguration, projectAcronym);
         }
 
         private async Task<HttpClient> ConfigureHttpClient()
         {
-            var adoProvider = new AdoClientProvider(_config);
+            var adoProvider = new AzureDevOpsClient(_config.AzureDevOpsConfiguration);
             return await adoProvider.GetPipelineClient();
         }
 
@@ -89,8 +90,8 @@ namespace Datahub.Functions
         internal async Task<int> GetPipelineIdByName(string pipelineName)
         {
             var httpClient = await ConfigureHttpClient();
-            var url = _config.AdoConfig.ListPipelineUrlTemplate.Replace("{organization}", _config.AdoConfig.OrgName)
-                .Replace("{project}", _config.AdoConfig.ProjectName);
+            var url = _config.AzureDevOpsConfiguration.ListPipelineUrlTemplate.Replace("{organization}", _config.AzureDevOpsConfiguration.OrganizationName)
+                .Replace("{project}", _config.AzureDevOpsConfiguration.ProjectName);
             var response = await httpClient.GetAsync(url);
 
             if (!response.IsSuccessStatusCode)
@@ -142,8 +143,8 @@ namespace Datahub.Functions
             var httpClient = await ConfigureHttpClient();
             var body = GetPipelineBody(appServiceConfiguration);
             var json = JsonSerializer.Serialize(body); 
-            var pipelineUrl = _config.AdoConfig.PostPipelineRunUrlTemplate.Replace("{organization}", _config.AdoConfig.OrgName)
-                .Replace("{project}", _config.AdoConfig.ProjectName)
+            var pipelineUrl = _config.AzureDevOpsConfiguration.PostPipelineRunUrlTemplate.Replace("{organization}", _config.AzureDevOpsConfiguration.OrganizationName)
+                .Replace("{project}", _config.AzureDevOpsConfiguration.ProjectName)
                 .Replace("{pipelineId}", pipelineId.ToString());
             
             _logger.LogInformation(
