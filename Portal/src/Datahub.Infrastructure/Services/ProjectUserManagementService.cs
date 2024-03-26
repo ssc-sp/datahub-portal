@@ -191,8 +191,13 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 };
                 await context.Project_Users.AddAsync(newProjectUser);
             }
+           
+            // If current user is not the user being added to the project
+            if (projectUser.PortalUserId != currentUser.Id)
+            {
+                context.Attach(currentUser);
+            }
 
-            context.Attach(currentUser);
             context.Attach(portalUser);
 
             await context.TrackSaveChangesAsync(_datahubAuditingService);
