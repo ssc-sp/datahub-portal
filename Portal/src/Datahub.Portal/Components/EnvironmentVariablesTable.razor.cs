@@ -1,18 +1,13 @@
-﻿using Datahub.Core.Data;
-using Datahub.Core.Model.Achievements;
-using Datahub.Core.Model.Projects;
+﻿using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
-using Datahub.Infrastructure.Services.Security;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Web;
 using Microsoft.JSInterop;
 using MudBlazor;
-using Octokit;
 
 namespace Datahub.Portal.Components
 {
-    public partial class EnvironmentVariablesTable
+	public partial class EnvironmentVariablesTable
     {
         private bool FilterFunc((string Key, string Value) item)
         {

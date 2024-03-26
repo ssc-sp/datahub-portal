@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Datahub.Core.Model.Projects
+﻿namespace Datahub.Core.Model.Projects
 {
     public class ProjectInactivityNotifications
     {

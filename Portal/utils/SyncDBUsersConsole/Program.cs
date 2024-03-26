@@ -14,7 +14,7 @@ class Program
            
         try
         {
-            var projects = await (new ProjectFactory(new ConsoleConfiguration(), projectCode)).GetUsersFromProjects().ConfigureAwait(false);
+            var projects = await new ProjectFactory(new ConsoleConfiguration(), projectCode).GetUsersFromProjects().ConfigureAwait(false);
             if (projects == null)
             {
                 Console.WriteLine("No projects found");
@@ -23,11 +23,11 @@ class Program
             {
                 foreach (var project in projects)
                 {
-                    var logs = await (new DatabaseUsersCreator(project)).Create();
+                    var logs = await new DatabaseUsersCreator(project).Create();
                     Console.WriteLine(string.Join("\n", logs));
                 }
             }
-            var token = await (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/");
+            var token = await new AzureServiceTokenProvider().GetAccessTokenAsync("https://database.windows.net/");
             Console.WriteLine($"{token}\n");
 
 

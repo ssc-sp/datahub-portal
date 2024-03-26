@@ -25,5 +25,4 @@ public record DataProjectsConfiguration
     public bool VirtualMachines { get; set; } = false;
 
     public bool EnableGitModuleRepository { get; set; } = true;
-
 }

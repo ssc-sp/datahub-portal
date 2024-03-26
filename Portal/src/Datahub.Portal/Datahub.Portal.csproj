@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 	<PropertyGroup>
-		<Version>3.9.0</Version>
+		<Version>3.11.1</Version>
 		<TargetFramework>net8.0</TargetFramework>
 		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -22,6 +22,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
 		<PackageReference Include="MiniProfiler.AspNetCore.Mvc" Version="4.3.8" />
 		<PackageReference Include="MiniProfiler.EntityFrameworkCore" Version="4.3.8" />
+		<PackageReference Include="Octokit" Version="10.0.0" />
 		<PackageReference Include="PSC.Blazor.Components.MarkdownEditor" Version="2.0.11" />
 		<PackageReference Include="MudBlazor" Version="6.10.0" />
 	</ItemGroup>
@@ -37,16 +38,9 @@
 		<ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />
 		<ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
 		<ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
-		<ProjectReference Include="..\Datahub.GeoCore\Datahub.GeoCore.csproj" />
 		<ProjectReference Include="..\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj" />
 		<ProjectReference Include="..\Datahub.Infrastructure\Datahub.Infrastructure.csproj" />
 		<ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
 		<ProjectReference Include="..\Datahub.Portal.Metadata\Datahub.Portal.Metadata.csproj" />
-		<ProjectReference Include="..\Datahub.PowerBI\Datahub.PowerBI.csproj" />
-		<ProjectReference Include="..\Datahub.ProjectTools\Datahub.ProjectTools.csproj" />
-		<ProjectReference Include="..\modules\Datahub.Finance\Datahub.Finance.csproj" />
-		<ProjectReference Include="..\modules\Datahub.LanguageTraining\Datahub.LanguageTraining.csproj" />
-		<ProjectReference Include="..\modules\Datahub.M365Forms\Datahub.M365Forms.csproj" />
-		<ProjectReference Include="..\modules\Datahub.PIP\Datahub.PIP.csproj" />
 	</ItemGroup>
 </Project>
