@@ -1,14 +1,9 @@
 ﻿using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.Application.Services.Publishing
 {
-    public interface IOpenDataPublishingService
+	public interface IOpenDataPublishingService
     {
         Task<List<OpenDataSubmission>> GetOpenDataSubmissionsAsync(int workspaceId);
         Task<OpenDataSubmission> GetOpenDataSubmissionAsync(long submissionId);
@@ -18,7 +13,6 @@ namespace Datahub.Application.Services.Publishing
         Task<int> AddFilesToSubmission(OpenDataSubmission openDataSubmission, IEnumerable<FileMetaData> files, int? containerId, string containerName);
         Task<OpenDataPublishFile> UpdateFileUploadStatus(OpenDataPublishFile file, OpenDataPublishFileUploadStatus status, string? uploadMessage = null);
         Task<int> RefreshFileUploadStatuses(OpenDataSubmission? submission);
-        bool IsPublishingFeatureEnabled();
     }
 
     public class OpenDataPublishingException : Exception

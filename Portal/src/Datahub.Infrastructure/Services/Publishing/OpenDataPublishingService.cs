@@ -1,26 +1,18 @@
 ﻿using Datahub.Application.Services.Publishing;
-using Datahub.CKAN.Service;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Utils;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.Infrastructure.Services.Publishing
 {
     public class OpenDataPublishingService(IUserInformationService userService,
-            IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-            IOptions<CKANConfiguration> ckanConfiguration) : IOpenDataPublishingService
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory) : IOpenDataPublishingService
     {
         private readonly IUserInformationService _userService = userService;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = dbContextFactory;
-        private readonly IOptions<CKANConfiguration> _ckanConfiguration = ckanConfiguration;
+
 
         public async Task<List<OpenDataSubmission>> GetAvailableOpenDataSubmissionsForWorkspaceAsync(int workspaceId)
         {
@@ -240,7 +232,7 @@ namespace Datahub.Infrastructure.Services.Publishing
                     .Where(f => filesToUpdate.Contains(f.Id))
                     .AsNoTracking()
                     .ToListAsync();
-                
+
                 foreach (var f in updatedFiles)
                 {
                     var loadedFile = submission.Files.FirstOrDefault(lf => lf.Id == f.Id);
@@ -258,16 +250,6 @@ namespace Datahub.Infrastructure.Services.Publishing
             {
                 return await Task.FromResult(0);
             }
-        }
-
-        public bool IsPublishingFeatureEnabled()
-        {
-            var ckanBaseUrlConfigured = !string.IsNullOrEmpty(_ckanConfiguration?.Value?.BaseUrl);
-            var ckanEnabled = _ckanConfiguration?.Value?.Enabled ?? false;
-
-            // other considerations may be added later
-
-            return ckanEnabled && ckanBaseUrlConfigured;
         }
     }
 }

@@ -8,12 +8,12 @@ internal class ProjectCloudStorageConfiguration : IEntityTypeConfiguration<Proje
     public void Configure(EntityTypeBuilder<ProjectCloudStorage> builder)
     {
         builder.ToTable("Project_Cloud_Storages");
-        
+
         builder.HasKey(x => x.Id);
         builder.Property(e => e.Id).ValueGeneratedOnAdd();
 
         builder.Property(e => e.Provider)
-               .HasMaxLength(16) 
+               .HasMaxLength(16)
                .HasDefaultValue("Azure")
                .IsRequired();
 

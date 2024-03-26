@@ -21,7 +21,7 @@ public class ProjectFactory
     {
         using (SqlConnection connection = new SqlConnection(this.configuration.GetConnectionString()/*System.Environment.GetEnvironmentVariable("projectDbConnectionString")*/))
         {
-            connection.AccessToken = await (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/");
+            connection.AccessToken = await new AzureServiceTokenProvider().GetAccessTokenAsync("https://database.windows.net/");
             connection.Open();
 
             var cmdSQL = @"WITH 
