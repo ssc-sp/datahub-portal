@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-using Datahub.Core.Data;
-using Microsoft.Graph;
+﻿using Datahub.Core.Data;
 using Microsoft.Graph.Models;
 using Folder = Datahub.Core.Data.Folder;
 

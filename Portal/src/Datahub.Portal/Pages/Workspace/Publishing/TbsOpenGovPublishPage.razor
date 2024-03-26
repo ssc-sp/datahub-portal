@@ -8,6 +8,7 @@
 @inject IOpenDataPublishingService _publishingService
 @inject ITbsOpenDataService _tbsService;
 @inject NavigationManager _navManager;
+@inject DatahubPortalConfiguration _config;
 
 @implements IDisposable
 
@@ -162,8 +163,8 @@
                 <MudCardActions>
                     <MudButton 
                         Variant=@Variant.Filled 
-                        Color=@Color.Primary 
-                        Disabled=@(!HasFileSelectedForPurpose(TbsOpenGovSubmission.IMSO_APPROVAL_FILE_TYPE))
+                        Color=@Color.Primary
+                        Disabled=@SubmitImsoButtonDisabled
                         OnClick=@SubmitImsoApprovalDocument
                     >@Localizer["Submit"]</MudButton>
                 </MudCardActions>
@@ -178,10 +179,22 @@
                     <MudText Typo=@Typo.h3>@Localizer["Ready to Publish"]</MudText>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudText>@Localizer["Please press the button below to publish your submission on the Open Data Registry."]</MudText>
+                    @if (PublishingEnabled)
+                    {
+                        <MudText>@Localizer["Please press the button below to publish your submission on the Open Data Registry."]</MudText>
+                    }
+                    else
+                    {
+                        <MudAlert Severity=@Severity.Warning>@Localizer["The final publishing step is currently disabled in this environment. In production, you will be able to press the button below and make your publication available on the Open Data registry."]</MudAlert>
+                    }
                 </MudCardContent>
                 <MudCardActions>
-                    <MudButton Variant=@Variant.Filled Color=@Color.Primary OnClick=@PublishSubmission>@Localizer["Publish"]</MudButton>
+                    <MudButton 
+                        Variant=@Variant.Filled 
+                        Color=@Color.Primary 
+                        OnClick=@PublishSubmission
+                        Disabled=@PublishButtonDisabled
+                        >@Localizer["Publish"]</MudButton>
                 </MudCardActions>
             </MudCard>
         }
@@ -238,6 +251,9 @@
 
     private bool _canBeSubmitted = false;
     private bool ShowSubmissionWarning => SubmissionLoaded && !_canBeSubmitted;
+    private bool SubmitImsoButtonDisabled => !(_canBeSubmitted && HasFileSelectedForPurpose(TbsOpenGovSubmission.IMSO_APPROVAL_FILE_TYPE));
+    private bool PublishingEnabled => _config.CkanConfiguration.PublishingEnabled;
+    private bool PublishButtonDisabled => !(_canBeSubmitted && PublishingEnabled);
 
     private bool ShowMetadataEntryForm => true; //TODO
     private bool ShowOpenGovCriteriaForm => _stepStates[StatusEnum.AwaitingApprovalCriteria] == DHSteps<StatusEnum>.StepState.Running;
@@ -262,7 +278,7 @@
 
     private DHSteps<StatusEnum>.StepState GetCurrentStepState(StatusEnum s) => _stepStates[s];
     private StatusEnum? _currentStep;
-    private (string, string)? GetStepInfo(StatusEnum s) => s == _currentStep || !_timelineCollapsed ? _stepInfo[s] : new(string.Empty, string.Empty);
+    private (string, string)? GetStepInfo(StatusEnum s) => _stepStates[s] == DHSteps<StatusEnum>.StepState.Running || !_timelineCollapsed ? _stepInfo[s] : new(string.Empty, string.Empty);
     private string GetStepTitle(StatusEnum s) => GetStepInfo(s)?.Item1;
     private string GetStepDescription(StatusEnum s) => GetStepInfo(s)?.Item2;
 

@@ -18,6 +18,5 @@ namespace Datahub.Core.Model.Datahub
         // unfortunately these are stringly-typed booleans (e.g. "imso_approval":"false" instead of "imso_approval":false) and can't be auto-deserialized to bool
         public string ReadyToPublish { get; set; }
         public string ImsoApproval { get; set; }
-
     }
 }

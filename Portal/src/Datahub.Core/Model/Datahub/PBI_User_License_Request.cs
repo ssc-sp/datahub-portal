@@ -24,5 +24,4 @@ public class PBI_User_License_Request
     public int RequestID { get; set; }
 
     public PBI_License_Request LicenseRequest { get; set; }
-
 }

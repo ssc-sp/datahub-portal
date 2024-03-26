@@ -16,7 +16,7 @@ class KeywordFieldAgent : FieldAgent
         return definition.Field_Name_TXT.StartsWith(KeywordPrefix, StringComparison.InvariantCulture);
     }
 
-    public override (bool append, FieldAgent agent) Instantiate(string fieldName, string fieldValue)
+    public override (bool Append, FieldAgent Agent) Instantiate(string fieldName, string fieldValue)
     {
         var append = _languages.Count == 0;
 

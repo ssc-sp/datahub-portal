@@ -3,6 +3,7 @@ from databricks.sdk.service.iam import ComplexValue
 from databricks.sdk.service.workspace import AzureKeyVaultSecretScopeMetadata
 from databricks.sdk.service.workspace import ScopeBackendType
 import lib.azkeyvault_utils as azkv_utils
+import lib.constants as constants
 import os
 
 WORKSPACE_KV_SCOPE_NAME = "dh-workspace"

@@ -1,44 +1,42 @@
-﻿using Datahub.CatalogSearch;
+﻿using System.Text.Json;
+using Datahub.CatalogSearch;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using Datahub.Metadata.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Entities = Datahub.Metadata.Model;
 
 namespace Datahub.Core.Services.Metadata;
 
 public class MetadataBrokerService : IMetadataBrokerService
 {
-    private readonly IDbContextFactory<MetadataDbContext> _contextFactory;
-    private readonly ILogger<MetadataBrokerService> _logger;
-    private readonly IDatahubAuditingService _auditingService;
-    private readonly ICatalogSearchEngine _catalogSearchEngine;
+    private const int MaxKeywordResults = 50;
+    private const string DefaultSource = "default";
+
+    private readonly IDbContextFactory<MetadataDbContext> contextFactory;
+    private readonly ILogger<MetadataBrokerService> logger;
+    private readonly IDatahubAuditingService auditingService;
+    private readonly ICatalogSearchEngine catalogSearchEngine;
 
     public MetadataBrokerService(IDbContextFactory<MetadataDbContext> contextFactory, ILogger<MetadataBrokerService> logger,
         IDatahubAuditingService auditingService, ICatalogSearchEngine catalogSearchEngine)
     {
-        _contextFactory = contextFactory;
-        _logger = logger;
-        _auditingService = auditingService;
-        _catalogSearchEngine = catalogSearchEngine;
+        this.contextFactory = contextFactory;
+        this.logger = logger;
+        this.auditingService = auditingService;
+        this.catalogSearchEngine = catalogSearchEngine;
     }
 
     public async Task<List<Entities.MetadataProfile>> GetProfiles()
     {
-        using var ctx = _contextFactory.CreateDbContext();
+        using var ctx = contextFactory.CreateDbContext();
         return await GetProfiles(ctx);
     }
 
     public async Task<MetadataProfile> GetProfile(string name)
     {
-        using var ctx = _contextFactory.CreateDbContext();
+        using var ctx = contextFactory.CreateDbContext();
         return await ctx.Profiles
                         .Include(p => p.Sections)
                         .ThenInclude(s => s.Fields)
@@ -48,7 +46,7 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     public async Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId, string defaultMetadataId)
     {
-        using var ctx = _contextFactory.CreateDbContext();
+        using var ctx = contextFactory.CreateDbContext();
 
         // retrieve the object metadata
         var objectMetadata = await GetObjectMetadata(ctx, objectMetadataId);
@@ -64,7 +62,7 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     public async Task<FieldValueContainer> GetObjectMetadataValues(string objectId, string defaultMetadataId)
     {
-        using var ctx = _contextFactory.CreateDbContext();
+        using var ctx = contextFactory.CreateDbContext();
 
         // retrieve the object metadata
         var objectMetadata = await GetObjectMetadata(ctx, objectId);
@@ -89,7 +87,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         var objectId = fieldValues.ObjectId;
         var metadataVersionId = fieldValues.Definitions.MetadataVersion;
 
-        using var ctx = _contextFactory.CreateDbContext();
+        using var ctx = contextFactory.CreateDbContext();
 
         var transation = ctx.Database.BeginTransaction();
         try
@@ -144,7 +142,7 @@ public class MetadataBrokerService : IMetadataBrokerService
             }
 
             // save the changes
-            await ctx.TrackSaveChangesAsync(_auditingService, anonymous);
+            await ctx.TrackSaveChangesAsync(auditingService, anonymous);
 
             transation.Commit();
 
@@ -162,7 +160,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         try
         {
             // read child catalog
-            using var ctx = await _contextFactory.CreateDbContextAsync();
+            using var ctx = await contextFactory.CreateDbContextAsync();
             if (await CatalogExists(ctx, childId))
                 return false;
 
@@ -184,26 +182,26 @@ public class MetadataBrokerService : IMetadataBrokerService
             childCatalog.Location_TXT = location;
 
             ctx.CatalogObjects.Add(childCatalog);
-            await ctx.TrackSaveChangesAsync(_auditingService);
+            await ctx.TrackSaveChangesAsync(auditingService);
 
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Create Child Metadata failed!");
+            logger.LogError(ex, "Create Child Metadata failed!");
             return false;
         }
     }
 
     public async Task<Entities.ApprovalForm> GetApprovalForm(int approvalFormId)
     {
-        using var ctx = _contextFactory.CreateDbContext();
+        using var ctx = contextFactory.CreateDbContext();
         return await GetApprovalFormEntity(ctx, approvalFormId);
     }
 
     public async Task<int> SaveApprovalForm(ApprovalForm form)
     {
-        using var ctx = _contextFactory.CreateDbContext();
+        using var ctx = contextFactory.CreateDbContext();
 
         // this is calculated field to simplify the doc generation
         UpdateRequiresBlanketApproval(form);
@@ -218,7 +216,7 @@ public class MetadataBrokerService : IMetadataBrokerService
             ctx.ApprovalForms.Update(form);
         }
 
-        await ctx.TrackSaveChangesAsync(_auditingService);
+        await ctx.TrackSaveChangesAsync(auditingService);
 
         return form.ApprovalFormId;
     }
@@ -231,7 +229,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         }
         else
         {
-            using var ctx = _contextFactory.CreateDbContext();
+            using var ctx = contextFactory.CreateDbContext();
             return await ctx.Keywords
                 .Where(e => e.English_TXT.StartsWith(text))
                 .OrderByDescending(e => e.Frequency)
@@ -249,7 +247,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         }
         else
         {
-            using var ctx = _contextFactory.CreateDbContext();
+            using var ctx = contextFactory.CreateDbContext();
             return await ctx.Keywords
                 .Where(e => e.French_TXT.StartsWith(text))
                 .OrderByDescending(e => e.Frequency)
@@ -277,7 +275,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         string location, int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText,
         CatalogObjectLanguage language, int? projectId, bool anonymous = false)
     {
-        using var ctx = _contextFactory.CreateDbContext();
+        using var ctx = contextFactory.CreateDbContext();
 
         var transation = ctx.Database.BeginTransaction();
         try
@@ -300,14 +298,14 @@ public class MetadataBrokerService : IMetadataBrokerService
                 catalogObject.Search_French_TXT = frenchText;
                 catalogObject.Language = language;
                 catalogObject.ProjectId = projectId;
-            };
+            }
 
             if (catalogObject.CatalogObjectId == 0)
                 ctx.CatalogObjects.Add(catalogObject);
             else
                 ctx.CatalogObjects.Update(catalogObject);
 
-            await ctx.TrackSaveChangesAsync(_auditingService, anonymous);
+            await ctx.TrackSaveChangesAsync(auditingService, anonymous);
 
             transation.Commit();
 
@@ -320,7 +318,7 @@ public class MetadataBrokerService : IMetadataBrokerService
             }
             catch (Exception ex)
             {
-                _logger.LogError("Indexing catalog object failed!", ex);
+                logger.LogError("Indexing catalog object failed!", ex);
             }
         }
         catch (Exception)
@@ -332,17 +330,15 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     public async Task<FieldDefinitions> GetFieldDefinitions()
     {
-        using var ctx = _contextFactory.CreateDbContext();
+        using var ctx = contextFactory.CreateDbContext();
         return await GetLatestMetadataDefinition(ctx);
     }
 
-    const int MaxKeywordResults = 50;
-
     public async Task<List<CatalogObjectResult>> SearchCatalog(CatalogSearchRequest request, Func<CatalogObjectResult, bool> validateResult)
     {
-        _logger.LogInformation(">>> SearchCatalog start...");
+        logger.LogInformation(">>> SearchCatalog start...");
 
-        using var ctx = _contextFactory.CreateDbContext();
+        using var ctx = contextFactory.CreateDbContext();
 
         var query = ctx.CatalogObjects
             .Include(e => e.ObjectMetadata)
@@ -355,7 +351,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         List<long> hits = new();
         if (containsKeywords)
         {
-            var kwSearch = request.IsFrench ? _catalogSearchEngine.GetMetadataFrenchSearchEngine() : _catalogSearchEngine.GetMetadataEnglishSearchEngine();
+            var kwSearch = request.IsFrench ? catalogSearchEngine.GetMetadataFrenchSearchEngine() : catalogSearchEngine.GetMetadataEnglishSearchEngine();
 
             hits = kwSearch.SearchDocuments(string.Join(" ", request.Keywords.Select(s => s.ToLower())), MaxKeywordResults)
                            .Select(long.Parse)
@@ -394,7 +390,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         if (containsKeywords)
         {
             // build dictionary<objectId, index>
-            var sortMap = hits.Distinct().Select((Id, Index) => new { Id, Index }).ToDictionary(p => p.Id, p => p.Index);
+            var sortMap = hits.Distinct().Select((id, index) => new { Id=id, Index=index }).ToDictionary(p => p.Id, p => p.Index);
             // sort results
             results = results.Select(r => new { Index = sortMap[r.CatalogObjectId], Result = r })
                              .OrderBy(p => p.Index)
@@ -402,7 +398,7 @@ public class MetadataBrokerService : IMetadataBrokerService
                              .ToList();
         }
 
-        _logger.LogInformation("<<< SearchCatalog end...");
+        logger.LogInformation("<<< SearchCatalog end...");
 
         // return grouped results
         var uiLanguage = request.IsFrench ? CatalogObjectLanguage.French : CatalogObjectLanguage.English;
@@ -411,7 +407,7 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     public async Task<List<CatalogObjectResult>> GetCatalogGroup(Guid groupId)
     {
-        using var ctx = _contextFactory.CreateDbContext();
+        using var ctx = contextFactory.CreateDbContext();
 
         var definitions = await GetLatestMetadataDefinition(ctx);
         var group = await ctx.CatalogObjects
@@ -443,7 +439,7 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     private async Task<Subject> GetSubject(string subjectId)
     {
-        using var ctx = _contextFactory.CreateDbContext();
+        using var ctx = contextFactory.CreateDbContext();
 
         return await ctx.Subjects
             .Include(e => e.SubSubjects)
@@ -481,12 +477,10 @@ public class MetadataBrokerService : IMetadataBrokerService
         };
 
         ctx.ObjectMetadataSet.Add(objectMetadata);
-        await ctx.TrackSaveChangesAsync(_auditingService);
+        await ctx.TrackSaveChangesAsync(auditingService);
 
         return objectMetadata;
     }
-
-    const string DefaultSource = "default";
 
     private async Task<FieldDefinitions> GetLatestMetadataDefinition(MetadataDbContext ctx)
     {
@@ -517,28 +511,28 @@ public class MetadataBrokerService : IMetadataBrokerService
         return definitions;
     }
 
-    static IEnumerable<ObjectFieldValue> CloneFieldValues(IEnumerable<ObjectFieldValue> values)
+    private static IEnumerable<ObjectFieldValue> CloneFieldValues(IEnumerable<ObjectFieldValue> values)
     {
         return values.Select(v => v.Clone());
     }
 
     public async Task DeleteApprovalForm(int approvalFormId)
     {
-        using var ctx = _contextFactory.CreateDbContext();
+        using var ctx = contextFactory.CreateDbContext();
         var approvalForm = await GetApprovalFormEntity(ctx, approvalFormId);
         ctx.ApprovalForms.Remove(approvalForm);
-        await ctx.TrackSaveChangesAsync(_auditingService);
+        await ctx.TrackSaveChangesAsync(auditingService);
     }
 
     public async Task<ObjectMetadata> GetMetadata(long objectMetadataId)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        using var ctx = await contextFactory.CreateDbContextAsync();
         return await ctx.ObjectMetadataSet.FirstOrDefaultAsync(m => m.ObjectMetadataId == objectMetadataId);
     }
 
     public async Task<ObjectMetadata> GetMetadata(string objectId)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        using var ctx = await contextFactory.CreateDbContextAsync();
         return await ctx.ObjectMetadataSet.FirstOrDefaultAsync(m => m.ObjectId_TXT == objectId);
     }
 
@@ -572,7 +566,7 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     public async Task<CatalogObjectResult> GetCatalogObjectByMetadataId(long metadataId)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        using var ctx = await contextFactory.CreateDbContextAsync();
 
         var definitions = await GetLatestMetadataDefinition(ctx);
         var result = await ctx.CatalogObjects.Where(c => c.ObjectMetadataId == metadataId)
@@ -586,7 +580,7 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     public async Task<CatalogObjectResult> GetCatalogObjectByObjectId(string objectId)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        using var ctx = await contextFactory.CreateDbContextAsync();
 
         var definitions = await GetLatestMetadataDefinition(ctx);
         var result = await ctx.CatalogObjects.Where(c => c.ObjectMetadata.ObjectId_TXT == objectId)
@@ -600,7 +594,7 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     public async Task<bool> IsObjectCatalogued(string objectId)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        using var ctx = await contextFactory.CreateDbContextAsync();
 
         var count = await ctx.CatalogObjects.CountAsync(o => o.ObjectMetadata.ObjectId_TXT == objectId);
 
@@ -609,7 +603,7 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     public async Task DeleteFromCatalog(string objectId)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        using var ctx = await contextFactory.CreateDbContextAsync();
 
         var existingObjects = await ctx.CatalogObjects
             .Where(o => o.ObjectMetadata.ObjectId_TXT == objectId)
@@ -632,13 +626,13 @@ public class MetadataBrokerService : IMetadataBrokerService
                 ctx.CatalogObjects.Remove(catalogObject);
             }
 
-            await ctx.TrackSaveChangesAsync(_auditingService);
+            await ctx.TrackSaveChangesAsync(auditingService);
         }
     }
 
     public async Task DeleteMultipleFromCatalog(IEnumerable<string> objectIds)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        using var ctx = await contextFactory.CreateDbContextAsync();
         using var tran = await ctx.Database.BeginTransactionAsync();
 
         var existingObjects = await ctx.CatalogObjects
@@ -650,14 +644,13 @@ public class MetadataBrokerService : IMetadataBrokerService
             if (existingObjects?.Count > 0)
             {
                 ctx.CatalogObjects.RemoveRange(existingObjects);
-                await ctx.TrackSaveChangesAsync(_auditingService);
+                await ctx.TrackSaveChangesAsync(auditingService);
                 await tran.CommitAsync();
             }
             else
             {
                 await tran.RollbackAsync();
             }
-
         }
         catch (Exception)
         {
@@ -669,7 +662,7 @@ public class MetadataBrokerService : IMetadataBrokerService
     {
         var groupId = Guid.NewGuid();
 
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        using var ctx = await contextFactory.CreateDbContextAsync();
 
         // collect entries to update
         var updateList = new List<CatalogObject>();
@@ -699,14 +692,14 @@ public class MetadataBrokerService : IMetadataBrokerService
             catalogObject.GroupId = groupId;
         }
 
-        await ctx.TrackSaveChangesAsync(_auditingService);
+        await ctx.TrackSaveChangesAsync(auditingService);
 
         return groupId;
     }
 
     public async Task<List<string>> GetObjectCatalogGroup(string objectId)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        using var ctx = await contextFactory.CreateDbContextAsync();
 
         var metadata = await ctx.ObjectMetadataSet
                                 .Include(e => e.CatalogObjects)
@@ -730,7 +723,7 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     public async Task<CatalogObjectLanguage?> GetCatalogObjectLanguage(string objectId)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        using var ctx = await contextFactory.CreateDbContextAsync();
 
         var catalogObject = await ctx.CatalogObjects.FirstOrDefaultAsync(e => e.ObjectMetadata.ObjectId_TXT == objectId);
 
@@ -740,9 +733,11 @@ public class MetadataBrokerService : IMetadataBrokerService
     /// <summary>
     /// GetProjectCatalogItems will only list Files and Power BI reports for now.
     /// </summary>
+    /// <param name="projectId">ID of the workspace</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task<List<CatalogObjectResult>> GetProjectCatalogItems(int projectId)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        using var ctx = await contextFactory.CreateDbContextAsync();
 
         var definitions = await GetLatestMetadataDefinition(ctx);
         List<MetadataObjectType> listedTypes = new() { MetadataObjectType.File, MetadataObjectType.PowerBIReport };
@@ -758,7 +753,7 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     public async Task<ClassificationType?> GetObjectClassification(string objectId)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        using var ctx = await contextFactory.CreateDbContextAsync();
 
         var defId = await GetSecurityClassificationId(ctx);
         var rowValue = await ctx.ObjectFieldValues
@@ -785,17 +780,17 @@ public class MetadataBrokerService : IMetadataBrokerService
             await SyncDefinitions(metadata);
             await SyncProfiles(metadata);
 
-            _logger.LogInformation($"Test {metadata.Profiles.Count}");
+            logger.LogInformation($"Test {metadata.Profiles.Count}");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to sync the Metadata");
+            logger.LogError(ex, "Failed to sync the Metadata");
         }
     }
 
     public async Task<List<FieldChoice>> GetFieldChoices(string fieldName)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        using var ctx = await contextFactory.CreateDbContextAsync();
 
         var fieldDefinition = await FindDefinition(ctx, fieldName);
         if (fieldDefinition is null)
@@ -808,7 +803,7 @@ public class MetadataBrokerService : IMetadataBrokerService
     {
         try
         {
-            using var ctx = await _contextFactory.CreateDbContextAsync();
+            using var ctx = await contextFactory.CreateDbContextAsync();
 
             var fieldDefinition = await FindDefinition(ctx, fieldName);
             if (fieldDefinition is null || fieldDefinition.Choices.Count == 0)
@@ -826,12 +821,12 @@ public class MetadataBrokerService : IMetadataBrokerService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.Message, ex);
+            logger.LogError(ex.Message, ex);
             throw;
         }
     }
 
-    static async Task<FieldDefinition> FindDefinition(MetadataDbContext ctx, string fieldName)
+    private static async Task<FieldDefinition> FindDefinition(MetadataDbContext ctx, string fieldName)
     {
         return await ctx.FieldDefinitions
             .Where(f => f.Field_Name_TXT == fieldName)
@@ -842,8 +837,8 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     private async Task SyncDefinitions(MetadataDTO metadataDto)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
-        
+        using var ctx = await contextFactory.CreateDbContextAsync();
+
         var versionId = await CreateVersion(ctx);
         var definitions = await GetLatestMetadataDefinition(ctx);
 
@@ -864,7 +859,7 @@ public class MetadataBrokerService : IMetadataBrokerService
             }
         }
 
-        await ctx.TrackSaveChangesAsync(_auditingService);
+        await ctx.TrackSaveChangesAsync(auditingService);
     }
 
     private async Task<int> CreateVersion(MetadataDbContext ctx)
@@ -874,14 +869,14 @@ public class MetadataBrokerService : IMetadataBrokerService
         {
             version = new() { Source_TXT = DefaultSource };
             ctx.MetadataVersions.Add(version);
-            await ctx.TrackSaveChangesAsync(_auditingService);
+            await ctx.TrackSaveChangesAsync(auditingService);
         }
         return version.MetadataVersionId;
     }
 
     private async Task SyncProfiles(MetadataDTO metadataDto)
     {
-        using var ctx = await _contextFactory.CreateDbContextAsync();
+        using var ctx = await contextFactory.CreateDbContextAsync();
 
         var definitions = await GetLatestMetadataDefinition(ctx);
         var profiles = await GetProfiles(ctx);
@@ -897,20 +892,20 @@ public class MetadataBrokerService : IMetadataBrokerService
             ctx.Profiles.Add(profile);
         }
 
-        await ctx.TrackSaveChangesAsync(_auditingService);
+        await ctx.TrackSaveChangesAsync(auditingService);
     }
 
-    private int? _securityClassificationId = null;
+    private int? securityClassificationId = null;
     private async Task<int> GetSecurityClassificationId(MetadataDbContext ctx)
     {
-        if (_securityClassificationId is null)
+        if (securityClassificationId is null)
         {
-            _securityClassificationId = await ctx.FieldDefinitions
+            securityClassificationId = await ctx.FieldDefinitions
                 .Where(e => e.Field_Name_TXT == "security_classification")
                 .Select(e => e.FieldDefinitionId)
                 .FirstOrDefaultAsync();
         }
-        return _securityClassificationId.Value;
+        return securityClassificationId.Value;
     }
 
     private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
@@ -931,8 +926,8 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     private void UpdateCatalogIndex(string docId, string title, string content, bool isFrench)
     {
-        var catalogSearch = isFrench ? _catalogSearchEngine.GetMetadataFrenchSearchEngine() : _catalogSearchEngine.GetMetadataEnglishSearchEngine();
-        catalogSearch.AddDocument(docId, (title ?? "").ToLower(), (content ?? "").ToLower());
+        var catalogSearch = isFrench ? catalogSearchEngine.GetMetadataFrenchSearchEngine() : catalogSearchEngine.GetMetadataEnglishSearchEngine();
+        catalogSearch.AddDocument(docId, (title ?? string.Empty).ToLower(), (content ?? string.Empty).ToLower());
         catalogSearch.FlushIndexes();
     }
 

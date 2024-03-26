@@ -14,9 +14,10 @@ using static Testing;
 public class UserEnrollmentServiceTests
 {
     [Test]
-    [Ignore("Needs to be validated")]
     public async Task UserCanEnrollWithDataHubTest()
     {
+        SetDatahubGraphInviteFunctionUrl("http://localhost");
+
         var result = await _userEnrollmentService.SendUserDatahubPortalInvite(TestUserEmail, default);
 
         Assert.That(result, Is.Not.Null.Or.Empty);
@@ -24,9 +25,22 @@ public class UserEnrollmentServiceTests
     }
 
     [Test]
-    [TestCase("fake@email.com", Ignore = "Needs to be validated")]
-    [TestCase("fake@canada.com", Ignore = "Needs to be validated")]
-    [TestCase("fake@gc.canada.ca", Ignore = "Needs to be validated")]
+    public async Task UserCanEnrollWithWhitelistedEmail()
+    {
+        string[] whiteList = [".gov.au", ".gov.uk"]; 
+        SetDatahubGraphInviteFunctionUrl("http://localhost");
+        SetAllowedUserEmailDomains(whiteList);
+
+        var result = await _userEnrollmentService.SendUserDatahubPortalInvite(GuestUserEmail, default);
+
+        Assert.That(result, Is.Not.Null.Or.Empty);
+        Assert.That(result, Is.EqualTo(TestUserGraphGuid));
+    }
+
+    [Test]
+    [TestCase("fake@email.com")]
+    [TestCase("fake@canada.com")]
+    [TestCase("fake@gc.canada.ca")]
     public Task UserCanNotEnrollWithoutAGovernmentEmailTest(string? email)
     {
         Assert.ThrowsAsync<InvalidOperationException>(async () =>

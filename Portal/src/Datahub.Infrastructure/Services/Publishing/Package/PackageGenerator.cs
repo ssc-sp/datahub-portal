@@ -1,19 +1,16 @@
 ﻿using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using Datahub.Metadata.Utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Datahub.Infrastructure.Services.Publishing.Package;
 
 public class PackageGenerator
 {
-    readonly List<FieldAgent> _fieldAgents;
+    private readonly List<FieldAgent> fieldAgents;
 
     public PackageGenerator()
     {
-        _fieldAgents =
+        fieldAgents =
         [
             new KeywordFieldAgent(),
             new TranslatedFieldAgent(),
@@ -50,7 +47,7 @@ public class PackageGenerator
         dict["type"] = "dataset";
 
         dict["restrictions"] = "unrestricted";
-        dict["owner_org"] = fieldValues[FieldNames.opengov_owner_org]?.Value_TXT; 
+        dict["owner_org"] = fieldValues[FieldNames.opengov_owner_org]?.Value_TXT;
         dict["date_published"] = fieldValues["date_published"]?.Value_TXT ?? DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         var requiredFields = fieldValues.Where(f => allFields || f.FieldDefinition?.Required_FLAG == true);
@@ -91,7 +88,7 @@ public class PackageGenerator
         foreach (var fv in fieldValues)
         {
             var definition = fv.FieldDefinition;
-            var matchingAgent = _fieldAgents.FirstOrDefault(a => a.Matches(definition));
+            var matchingAgent = fieldAgents.FirstOrDefault(a => a.Matches(definition));
             if (matchingAgent != null)
             {
                 var (append, agent) = matchingAgent.Instantiate(definition.Field_Name_TXT, fv.Value_TXT);
@@ -99,7 +96,7 @@ public class PackageGenerator
                 {
                     yield return agent;
                 }
-            }                
+            }
         }
     }
 }

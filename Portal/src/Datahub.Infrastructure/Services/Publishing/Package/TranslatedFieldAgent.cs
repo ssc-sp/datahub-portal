@@ -1,31 +1,30 @@
 ﻿using Datahub.Metadata.Model;
-using System.Collections.Generic;
 
 namespace Datahub.Infrastructure.Services.Publishing.Package;
 
-class TranslatedFieldAgent : FieldAgent
+internal class TranslatedFieldAgent : FieldAgent
 {
-    readonly Dictionary<string, Dictionary<string, string>> _fields = new();
+    private readonly Dictionary<string, Dictionary<string, string>> fields = new();
 
     public override bool Matches(FieldDefinition definition)
     {
-        var fieldName = definition.Field_Name_TXT ?? "";
+        var fieldName = definition.Field_Name_TXT ?? string.Empty;
         return fieldName.EndsWith("_en") || fieldName.EndsWith("_fr");
     }
 
-    public override (bool append, FieldAgent agent) Instantiate(string fieldName, string fieldValue)
+    public override (bool Append, FieldAgent Agent) Instantiate(string fieldName, string fieldValue)
     {
-        var append = _fields.Count == 0;
+        var append = fields.Count == 0;
         var fieldNameRoot = fieldName.Substring(0, fieldName.Length - 3);
         var fieldLanguage = fieldName.Substring(fieldName.Length - 2);
 
-        if (_fields.ContainsKey(fieldNameRoot))
+        if (fields.ContainsKey(fieldNameRoot))
         {
-            _fields[fieldNameRoot][fieldLanguage] = fieldValue;
+            fields[fieldNameRoot][fieldLanguage] = fieldValue;
         }
         else
         {
-            _fields[fieldNameRoot] = new() { [fieldLanguage] = fieldValue };
+            fields[fieldNameRoot] = new() { [fieldLanguage] = fieldValue };
         }
 
         return (append, this);
@@ -33,7 +32,7 @@ class TranslatedFieldAgent : FieldAgent
 
     public override void RenderField(IDictionary<string, object> data)
     {
-        foreach (var kv in _fields)
+        foreach (var kv in fields)
         {
             data[kv.Key] = kv.Value;
         }

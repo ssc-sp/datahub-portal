@@ -1,6 +1,4 @@
 ﻿#nullable enable
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Datahub.Core.Model.UserTracking;
 
 namespace Datahub.Core.Services.Offline
@@ -66,7 +64,7 @@ namespace Datahub.Core.Services.Offline
         {
             return Task.FromResult(false);
         }
-        
+
         public Task<UserSettings?> GetUserSettingsAsync()
         {
             return Task.FromResult<UserSettings?>(null);

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Datahub.Core.Model.Achievements;
+﻿namespace Datahub.Core.Model.Achievements;
 
 public class TelemetryEvent
 {

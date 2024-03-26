@@ -23,25 +23,17 @@ using Datahub.Core.Services.Security;
 using Datahub.Core.Services.Storage;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Services.Wiki;
-using Datahub.GeoCore.Service;
 using Datahub.Infrastructure;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Azure;
 using Datahub.Infrastructure.Services.Projects;
-using Datahub.LanguageTraining.Services;
-using Datahub.M365Forms.Services;
 using Datahub.Metadata.Model;
-using Datahub.Portal.Data.Forms.WebAnalytics;
 using Datahub.Portal.Middleware;
 using Datahub.Portal.Services;
 using Datahub.Portal.Services.Api;
 using Datahub.Portal.Services.Auth;
 using Datahub.Portal.Services.Notification;
 using Datahub.Portal.Services.Offline;
-using Datahub.PowerBI.Services;
-using Datahub.PowerBI.Services.Offline;
-using Datahub.ProjectTools.Services;
-using Datahub.ProjectTools.Services.Offline;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpLogging;
@@ -94,10 +86,10 @@ public class Startup
     private readonly IWebHostEnvironment _currentEnvironment;
     private ModuleManager moduleManager = new ModuleManager();
 
-    private bool ResetDB => ((bool)Configuration.GetSection("InitialSetup")?.GetValue("ResetDB", false));
+    private bool ResetDB => (bool)Configuration.GetSection("InitialSetup")?.GetValue("ResetDB", false);
 
     private bool EnsureDeleteinOffline =>
-        ((bool)Configuration.GetSection("InitialSetup")?.GetValue("EnsureDeleteinOffline", false));
+        (bool)Configuration.GetSection("InitialSetup")?.GetValue("EnsureDeleteinOffline", false);
 
     private bool Offline => Configuration.GetValue("Offline", false);
 
@@ -180,10 +172,8 @@ public class Startup
         services.Configure<DataProjectsConfiguration>(Configuration.GetSection("DataProjectsConfiguration"));
         services.Configure<APITarget>(Configuration.GetSection("APITargets"));
         services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
-        services.Configure<GeoCoreConfiguration>(Configuration.GetSection("GeoCore"));
         services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
         services.AddScoped<IPortalVersionService, PortalVersionService>();
-        services.AddProjectResources();
 
         services.AddScoped<CatalogImportService>();
         services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
@@ -394,8 +384,6 @@ public class Startup
             services.AddScoped<IUserSettingsService, UserSettingsService>();
             services.AddSingleton<IMSGraphService, MSGraphService>();
 
-            services.AddScoped<IProjectDatabaseService, ProjectDatabaseService>();
-
             services.AddScoped<IDataSharingService, DataSharingService>();
             services.AddScoped<IDataCreatorService, DataCreatorService>();
             services.AddScoped<DataRetrievalService>();
@@ -403,9 +391,6 @@ public class Startup
 
             services.AddScoped<IAzurePriceListService, AzurePriceListService>();
             services.AddScoped<IPublicDataFileService, PublicDataFileService>();
-
-            services.AddScoped<PowerBiServiceApi>();
-            services.AddScoped<IPowerBiDataService, PowerBiDataService>();
 
             services.AddScoped<UpdateProjectMonthlyCostService>();
             services.AddScoped<IProjectCreationService, ProjectCreationService>();
@@ -427,9 +412,6 @@ public class Startup
             services.AddScoped<IUserInformationService, OfflineUserInformationService>();
             services.AddScoped<IUserSettingsService, OfflineUserSettingsService>();
             services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
-            services.AddScoped<IPowerBiDataService, OfflinePowerBiDataService>();
-
-            services.AddScoped<IProjectDatabaseService, OfflineProjectDatabaseService>();
 
             services.AddScoped<IDataSharingService, OfflineDataSharingService>();
             services.AddScoped<IDataCreatorService, OfflineDataCreatorService>();
@@ -452,17 +434,12 @@ public class Startup
         services.AddScoped<DataImportingService>();
         services.AddSingleton<DatahubTools>();
         services.AddSingleton<TranslationService>();
-        services.AddSingleton<GitHubToolsService>();
 
         services.AddScoped<NotificationsService>();
         services.AddScoped<NotifierService>();
 
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
         services.AddScoped<PortalEmailService>();
-        services.AddScoped<ProjectToolsEmailService>();
-        services.AddScoped<LanguageEmailService>();
-        services.AddScoped<PowerBiEmailService>();
-        services.AddScoped<M365EmailService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
         services.AddSingleton<IPropagationService, PropagationService>();
 
@@ -472,8 +449,6 @@ public class Startup
         
         services.AddScoped<ITbsOpenDataService, TbsOpenDataService>();
         services.AddScoped<IOpenDataPublishingService, OpenDataPublishingService>();
-
-        services.AddGeoCoreService();
 
         services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
         services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();

@@ -3,11 +3,10 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Octokit;
 
 namespace Datahub.Infrastructure.Services.Projects
 {
-    public class ProjectInactivityNotificationService : IProjectInactivityNotificationService
+	public class ProjectInactivityNotificationService : IProjectInactivityNotificationService
     {
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 

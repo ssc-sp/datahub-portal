@@ -1,11 +1,10 @@
 ﻿using Datahub.Metadata.Model;
-using System.Collections.Generic;
 
 namespace Datahub.Infrastructure.Services.Publishing.Package;
 
-abstract class FieldAgent
+internal abstract class FieldAgent
 {
     public abstract bool Matches(FieldDefinition definition);
-    public abstract (bool append, FieldAgent agent) Instantiate(string fieldName, string fieldValue);
+    public abstract (bool Append, FieldAgent Agent) Instantiate(string fieldName, string fieldValue);
     public abstract void RenderField(IDictionary<string, object> data);
 }

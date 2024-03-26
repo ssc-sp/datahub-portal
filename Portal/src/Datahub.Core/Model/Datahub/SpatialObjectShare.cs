@@ -9,7 +9,7 @@ public class SpatialObjectShare
     [Key]
     [StringLength(40)]
     public string GeoObjectShare_ID { get; set; }
-        
+
     [Required]
     public string Json_TXT { get; set; }
 
