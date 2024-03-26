@@ -86,6 +86,14 @@ public static class TerraformVariableExtraction
         var appServiceGitRepo = ExtractStringVariable(
             projectResource?.InputJsonContent,
             "app_service_git_repo");
+        var appServiceGitRepoVisibility = bool.TryParse(
+            ExtractStringVariable(
+            projectResource?.InputJsonContent,
+            "app_service_git_repo_visibility"),
+            out var visibility) && visibility;
+        var appServiceGitTokenSecretName = ExtractStringVariable(
+            projectResource?.InputJsonContent,
+            "app_service_git_token_secret_name");
         var appServiceComposePath = ExtractStringVariable(
             projectResource?.InputJsonContent,
             "app_service_compose_path");
@@ -96,7 +104,7 @@ public static class TerraformVariableExtraction
             projectResource?.JsonContent,
             "app_service_host_name");
         return new AppServiceConfiguration(appServiceFramework, appServiceGitRepo, appServiceComposePath, appServiceId,
-            appServiceHostName);
+            appServiceHostName, appServiceGitRepoVisibility, appServiceGitTokenSecretName);
     }
 
     /// <summary>
