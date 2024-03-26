@@ -19,14 +19,6 @@
         /// <returns>A List containing all daily service costs. A daily service cost is a cost caused by one service during one day.</returns>
         public Task<List<DailyServiceCost>?> QuerySubscriptionCosts(DateTime startDate,
             DateTime endDate);
-
-        /// <summary>
-        /// Gets the costs for the given workspace acronym from the given list of subscription level costs
-        /// </summary>
-        /// <param name="subCosts">Costs at the subscription level</param>
-        /// <param name="workspaceAcronym">Workspace acronym</param>
-        /// <returns>List of daily service costs for the workspace. A daily service cost is a cost caused by one service during one day.</returns>
-        public Task<List<DailyServiceCost>> GetWorkspaceCosts(List<DailyServiceCost> subCosts, string workspaceAcronym);
         
         /// <summary>
         /// Groups the costs given by source. By executing this, you lose date information
@@ -48,6 +40,14 @@
         /// <param name="costs">The costs to filter</param>
         /// <returns>The filtered costs, which are all in the current fiscal year</returns>
         public List<DailyServiceCost> FilterCurrentFiscalYear(List<DailyServiceCost> costs);
+        
+        /// <summary>
+        /// Filters the costs for the given workspace acronym from the given list of subscription level costs
+        /// </summary>
+        /// <param name="subCosts">Costs at the subscription level</param>
+        /// <param name="workspaceAcronym">Workspace acronym</param>
+        /// <returns>List of daily service costs for the workspace. A daily service cost is a cost caused by one service during one day.</returns>
+        public Task<List<DailyServiceCost>> FilterWorkspaceCosts(List<DailyServiceCost> subCosts, string workspaceAcronym);
         
         /// <summary>
         /// Filters the given costs to be only within the last fiscal year
@@ -82,13 +82,14 @@
         public string ResourceGroupName { get; set; }
         public DateTime Date { get; set; }
 
-        public override bool Equals(object? obj)
+        public bool Equals(DailyServiceCost other)
         {
-            return obj is DailyServiceCost cost &&
-                   Amount == cost.Amount &&
-                   Source == cost.Source &&
-                   Date == cost.Date &&
-                   ResourceGroupName == cost.ResourceGroupName;
+            return Amount == other.Amount && Source == other.Source && ResourceGroupName == other.ResourceGroupName && Date.Equals(other.Date);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Amount, Source, ResourceGroupName, Date);
         }
     }
 }

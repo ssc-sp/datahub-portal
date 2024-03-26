@@ -28,7 +28,13 @@ namespace Datahub.Infrastructure.Services.Cost
             _dbContextFactory = dbContextFactory;
         }
 
-        public async Task<decimal> GetBudgetAmountAsync(string budgetId)
+        /// <summary>
+        /// Gets the budget amount for the given budget id.
+        /// </summary>
+        /// <param name="budgetId">The budget identifier</param>
+        /// <returns>The budget total amount</returns>
+        /// <exception cref="Exception">Throws an exception if the budget could not be found</exception>
+        internal async Task<decimal> GetBudgetAmountAsync(string budgetId)
         {
             var budget = await GetBudgetAzureResource(budgetId);
             if (!budget.HasData)
@@ -40,13 +46,24 @@ namespace Datahub.Infrastructure.Services.Cost
             return budget.Data.Amount!.Value;
         }
 
+        /// <summary>
+        /// Gets the budget amount for the given workspace acronym.
+        /// </summary>
+        /// <param name="workspaceAcronym">The workspace acronym</param>
+        /// <returns>The total budget amount</returns>
         public async Task<decimal> GetWorkspaceBudgetAmountAsync(string workspaceAcronym)
         {
             var budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
             return await GetBudgetAmountAsync(budgetId);
         }
 
-        public async Task SetBudgetAmountAsync(string budgetId, decimal amount)
+        /// <summary>
+        /// Set the budget amount for the given budget id.
+        /// </summary>
+        /// <param name="budgetId">The budget identifier</param>
+        /// <param name="amount">The amount to set the budget to</param>
+        /// <exception cref="Exception">Throws an error if the budget could not be found</exception>
+        internal async Task SetBudgetAmountAsync(string budgetId, decimal amount)
         {
             var budget = await GetBudgetAzureResource(budgetId);
             if (!budget.HasData)
@@ -59,13 +76,39 @@ namespace Datahub.Infrastructure.Services.Cost
             await budget.UpdateAsync(WaitUntil.Completed, budget.Data);
         }
         
-        public async Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount)
+        /// <summary>
+        /// Sets the budget amount for the given workspace acronym.
+        /// </summary>
+        /// <param name="workspaceAcronym">The workspace acronym</param>
+        /// <param name="amount">The total budget amount to set</param>
+        /// <returns></returns>
+        public async Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount, bool rollover = false)
         {
             var budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
             await SetBudgetAmountAsync(budgetId, amount);
+            if (rollover)
+            {
+                using var ctx = await _dbContextFactory.CreateDbContextAsync();
+                var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
+                if (project is null)
+                {
+                    _logger.LogError($"Could not find project with acronym {workspaceAcronym}");
+                    throw new Exception($"Could not find project with acronym {workspaceAcronym}");
+                }
+                var projectCredits = await ctx.Project_Credits
+                    .FirstAsync(p => p.ProjectId == project.Project_ID);
+                if (projectCredits is null)
+                {
+                    _logger.LogError($"Could not find project credits for project with acronym {workspaceAcronym}");
+                    throw new Exception($"Could not find project credits for project with acronym {workspaceAcronym}");
+                }
+                projectCredits.LastRollover = DateTime.UtcNow;
+                ctx.Project_Credits.Update(projectCredits);
+                await ctx.SaveChangesAsync();
+            }
         }
         
-        public async Task<decimal> GetBudgetSpentAsync(string budgetId)
+        internal async Task<decimal> GetBudgetSpentAsync(string budgetId)
         {
             var budget = await GetBudgetAzureResource(budgetId);
             if (!budget.HasData)
@@ -76,15 +119,24 @@ namespace Datahub.Infrastructure.Services.Cost
             return budget.Data.CurrentSpend.Amount!.Value;
         }
         
+        /// <summary>
+        /// Get the amount of budget spent for the given workspace acronym.
+        /// </summary>
+        /// <param name="workspaceAcronym">The workspace acronym</param>
+        /// <returns>The amount of budget spent</returns>
         public async Task<decimal> GetWorkspaceBudgetSpentAsync(string workspaceAcronym)
         {
             var budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
             return await GetBudgetSpentAsync(budgetId);
         }
 
+        /// <summary>
+        /// Updates the amount of budget spent saved in the Project_Credits table for a given workspace acronym.
+        /// </summary>
+        /// <param name="workspaceAcronym">The workspace acronym</param>
+        /// <returns>A tuple of whether or not the budget spent has decreased (indicating a budget reset), and the budget spent before the reset</returns>
         public async Task<(bool, decimal)> UpdateWorkspaceBudgetSpentAsync(string workspaceAcronym)
         {
-            var budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
             var projectCredits = await ctx.Project_Credits
@@ -108,6 +160,12 @@ namespace Datahub.Infrastructure.Services.Cost
             return (currentSpent < beforeUpdateBudgetSpent, beforeUpdateBudgetSpent);
         }
 
+        /// <summary>
+        /// Gets the azure budget resource for the given budget id.
+        /// </summary>
+        /// <param name="budgetId">The budget identifier</param>
+        /// <returns>The consumption budget resource</returns>
+        /// <exception cref="Exception">Throws an exception if the budget with given id does not exist or if it could not be read</exception>
         internal async Task<ConsumptionBudgetResource> GetBudgetAzureResource(string budgetId)
         {
             var budgetIdentifier = new ResourceIdentifier(budgetId);
@@ -129,6 +187,11 @@ namespace Datahub.Infrastructure.Services.Cost
             return response.Value;
         }
 
+        /// <summary>
+        /// Gets the budget id for the given workspace acronym.
+        /// </summary>
+        /// <param name="workspaceAcronym">The workspace acronym</param>
+        /// <returns>The budget id</returns>
         internal async Task<string> GetBudgetIdForWorkspace(string workspaceAcronym)
         {
             
@@ -143,6 +206,11 @@ namespace Datahub.Infrastructure.Services.Cost
             return budgetId;
         }
 
+        /// <summary>
+        /// Gets the resource group name from the json content of the blob storage resource
+        /// </summary>
+        /// <param name="jsonContent">Project_Resource.JsonContent of the blob storage resource of a workspace</param>
+        /// <returns>The resource group name of the workspace</returns>
         internal string ParseResourceGroup(string jsonContent)
         {
             var content = JsonSerializer.Deserialize<RgNameObject>(jsonContent);

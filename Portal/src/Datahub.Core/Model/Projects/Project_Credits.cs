@@ -21,6 +21,10 @@ public class Project_Credits
     /// </summary>
     public DateTime? LastUpdate { get; set; }
     /// <summary>
+    /// Last rollover date
+    /// </summary>
+    public DateTime? LastRollover { get; set; }
+    /// <summary>
     /// Current credits consumed, according to cost management.
     /// </summary>
     public double Current { get; set; }

@@ -59,6 +59,7 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Datahub.Infrastructure.Offline;
@@ -157,11 +158,15 @@ public class Startup
             builder.AddClient<ArmClient, ArmClientOptions>(options =>
             {
                 options.Diagnostics.IsLoggingEnabled=true;
+                options.Retry.Mode = RetryMode.Exponential;
+                options.Retry.MaxRetries = 5;
+                options.Retry.Delay = TimeSpan.FromSeconds(2);
                 var tenantId = Configuration.GetSection("AzureAd").GetValue<string>("TenantId");
                 var clientId = Configuration.GetSection("AzureAd").GetValue<string>("ClientId");
                 var clientSecret = Configuration.GetSection("AzureAd").GetValue<string>("ClientSecret");
+                var subscriptionId = Configuration.GetSection("AzureAd").GetValue<string>("SubscriptionId");
                 var creds = new ClientSecretCredential(tenantId, clientId, clientSecret);
-                var client = new ArmClient(creds);
+                var client = new ArmClient(creds, subscriptionId, options);
                 return client;
             });
         });

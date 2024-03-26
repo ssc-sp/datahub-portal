@@ -35,7 +35,8 @@ public partial class Testing
     internal static readonly string[] TEST_USER_IDS = Enumerable.Range(0,5).Select(_ => Guid.NewGuid().ToString()).ToArray();
     internal const string TestAdminUserId = "987654321";
     internal const string TestResourceGroupId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b/resourceGroups/fsdh-static-test-rg";
-    internal const string SubscriptionId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b";
+    internal const string SubscriptionId = "bc4bcb08-d617-49f4-b6af-69d6f10c240b";
+    internal const string SubscriptionResourceId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b";
     internal const string TestBudgetId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b/resourceGroups/fsdh-static-test-rg/providers/Microsoft.Consumption/budgets/fsdh-test-budget";
     internal const string TestStorageAccountId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b/resourceGroups/fsdh-static-test-rg/providers/Microsoft.Storage/storageAccounts/fsdhteststorageaccount";
     internal const string OldUserEmail = "old-user@email.gc.ca";
