@@ -84,7 +84,7 @@
     else if (_isProvisioned)
     {
         <MudText>
-            @Localizer["This web application is not configured yet. Please configure it by clicking the \"Configure\" button at the top right of the page."]
+            @Localizer["This web application is not configured yet. Please configure it by clicking the 'Configure' button at the top right of the page."]
         </MudText>
     }
     else
@@ -128,9 +128,6 @@
         {
             await _keyVaultUserService.Authenticate();
             _isElevated = true;
-            _resource = await _webAppMgmtService.GetResource(WorkspaceAcronym);
-            await HydrateValues();
-            _webAppState = await _webAppMgmtService.GetState(_webAppId);
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
         {
@@ -141,6 +138,9 @@
             _logger.LogError(e, "Failed to get consent from user");
         }
 
+        _resource = await _webAppMgmtService.GetResource(WorkspaceAcronym);
+        await HydrateValues();
+        _webAppState = await _webAppMgmtService.GetState(_webAppId);
         StateHasChanged();
     }
 
@@ -193,6 +193,7 @@
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync();
         var resource = await _webAppMgmtService.GetResource(ctx, WorkspaceAcronym);
+        _appConfiguration.GitToken = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, _appConfiguration.GitTokenSecretName);
 
         var dialogOptions = new DialogOptions()
         {
@@ -220,6 +221,7 @@
                 var envVars = resultData?.EnvVars;
 
                 await _webAppMgmtService.SaveConfiguration(WorkspaceAcronym, config!);
+                await SetGitToken(config);
                 await SaveEnvironmentVariableKeys(envVars);
                 await SetEnvironmentVariableValues(envVars);
                 await _webAppMgmtService.Configure(WorkspaceAcronym, config);
@@ -254,8 +256,15 @@
     {
         foreach (var envVar in envVars)
         {
-            await _keyVaultUserService.StoreSecret(WorkspaceAcronym, envVar.Key, envVar.Value);
+            await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, envVar.Key, envVar.Value);
         }
     }
 
+    private async Task SetGitToken(AppServiceConfiguration config)
+    {
+        if (!string.IsNullOrWhiteSpace(config.GitToken))
+        {
+            await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, config.GitTokenSecretName, config.GitToken);
+        }
+    }
 }
