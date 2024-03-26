@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ResourceProvisioner.Application.Config;
 using TechTalk.SpecFlow;
 using Xunit;
 
@@ -19,14 +20,17 @@ namespace ResourceProvisioner.SpecflowTests.Steps
             _scenarioContext = scenarioContext;
         }
 
-
-        [Given(@"a service principal")]
-        public void GivenAServicePrincipal()
+        [Given(@"service principal credentials are available")]
+        public void GivenServicePrincipalCredentialsAreAvailable()
         {
-            // load service principal from configuration
+            var resourceProvisionerConfiguration = _scenarioContext.Get<ResourceProvisionerConfiguration>();
             
-            
-            
+            Assert.NotNull(resourceProvisionerConfiguration);
+            Assert.NotNull(resourceProvisionerConfiguration.InfrastructureRepository);
+            Assert.NotNull(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
+            Assert.NotNull(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientId);
+            Assert.NotNull(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientSecret);
+            Assert.NotNull(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.TenantId);
         }
     }
 }

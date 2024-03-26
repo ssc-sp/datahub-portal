@@ -2,6 +2,7 @@
 using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Clients;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -88,8 +89,8 @@ namespace Datahub.Functions
 
         public async Task<JsonPatchDocument> CreateIssue(BugReportMessage bug)
         {
-            var organization = _config.AdoConfig.OrgName;
-            var project = _config.AdoConfig.ProjectName;
+            var organization = _config.AzureDevOpsConfiguration.OrganizationName;
+            var project = _config.AzureDevOpsConfiguration.ProjectName;
             
             var title = $"{bug.Topics} in {bug.Workspaces}";
             var description =
@@ -127,9 +128,9 @@ namespace Datahub.Functions
 
         public async Task<WorkItem> PostIssue(JsonPatchDocument body)
         {
-            var clientProvider = new AdoClientProvider(_config);
+            var clientProvider = new AzureDevOpsClient(_config.AzureDevOpsConfiguration);
             var client = await clientProvider.GetWorkItemClient();
-            var workItem = await client.CreateWorkItemAsync(body, _config.AdoConfig.ProjectName, "Issue");
+            var workItem = await client.CreateWorkItemAsync(body, _config.AzureDevOpsConfiguration.ProjectName, "Issue");
 
             if (workItem is null)
             {

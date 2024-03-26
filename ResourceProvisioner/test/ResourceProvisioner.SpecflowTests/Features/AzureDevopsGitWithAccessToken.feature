@@ -3,6 +3,6 @@ Feature: Azure Devops Git with Access Token
 
 @infra-sp
 Scenario: Service Principal can get access token
-	Given a service principal
+	Given service principal credentials are available
 	When it requests an access token
 	Then it should get a valid access token

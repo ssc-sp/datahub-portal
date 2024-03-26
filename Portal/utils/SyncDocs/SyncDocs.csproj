@@ -34,9 +34,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\ResourceProvisioner\src\ResourceProvisioner.Domain\ResourceProvisioner.Domain.csproj" />
     <ProjectReference Include="..\..\..\Shared\src\Datahub.Markdown\Datahub.Markdown.csproj" />
   </ItemGroup>
-
-  <Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
 
 </Project>
