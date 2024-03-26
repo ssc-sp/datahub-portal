@@ -1,8 +1,6 @@
-﻿using System;
-using System.Linq.Dynamic.Core;
+﻿using System.Linq.Dynamic.Core;
 using System.Text.Json;
 using Datahub.Application.Services;
-using Datahub.Application.Services.Projects;
 using Datahub.Core.Model.Datahub;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
@@ -16,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Datahub.Functions
 {
-    public class UserInactivityNotifier
+	public class UserInactivityNotifier
     {
         private readonly IMediator _mediator;
         private readonly ILogger<UserInactivityNotifier> _logger;

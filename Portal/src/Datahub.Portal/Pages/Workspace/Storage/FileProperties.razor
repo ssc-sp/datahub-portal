@@ -84,8 +84,8 @@
             return;
 
         _properties = File.GetMetadataProperties()
-            .Where(p => p.isVisible)
-            .Select(p => (p.key, Value: File.GetMetadataPropertyValue(p.key)))
+            .Where(p => p.IsVisible)
+            .Select(p => (p.Key, Value: File.GetMetadataPropertyValue(p.Key)))
             .ToList();
 
         if (!string.IsNullOrEmpty(StorageAccountMetadata?.Url))

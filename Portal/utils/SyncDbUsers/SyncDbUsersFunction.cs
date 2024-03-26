@@ -40,7 +40,7 @@ public static class SyncDbUsersFunction
             //
             //response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
             var content = new StringBuilder();
-            var projects = await (new ProjectFactory(new EnvConfiguration())).GetUsersFromProjects().ConfigureAwait(false);
+            var projects = await new ProjectFactory(new EnvConfiguration()).GetUsersFromProjects().ConfigureAwait(false);
 
             content.AppendLine($"{System.Environment.GetEnvironmentVariable("projectDbConnectionString")}\n");
 
@@ -52,7 +52,7 @@ public static class SyncDbUsersFunction
             {
                 foreach (var project in projects)
                 {
-                    var logs = await (new DatabaseUsersCreator(project)).Create();
+                    var logs = await new DatabaseUsersCreator(project).Create();
                     foreach (var log in logs)
                     {
                         content.AppendLine($"{log}\n");
@@ -60,7 +60,7 @@ public static class SyncDbUsersFunction
                 }
             }
 
-            var token = await (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/");
+            var token = await new AzureServiceTokenProvider().GetAccessTokenAsync("https://database.windows.net/");
             content.AppendLine($"{token}\n");
 
             return new OkObjectResult(content.ToString());

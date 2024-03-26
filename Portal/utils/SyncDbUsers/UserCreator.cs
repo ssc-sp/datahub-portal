@@ -25,7 +25,7 @@ public class DatabaseUsersCreator
 
         using (var connection = new SqlConnection(project.DBConnString))
         {
-            connection.AccessToken = await (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/");
+            connection.AccessToken = await new AzureServiceTokenProvider().GetAccessTokenAsync("https://database.windows.net/");
 
             logging.Add($"--- Connecting to {connection.Database} ---------");
 

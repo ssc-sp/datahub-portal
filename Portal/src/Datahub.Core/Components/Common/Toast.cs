@@ -8,5 +8,4 @@ public class Toast
     public float Progress { get; set; }
 
     public string Icon { get; set; } = "fa-file-alt";
-
 }

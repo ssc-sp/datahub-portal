@@ -1,100 +1,112 @@
-﻿using Datahub.Core.Services.Wiki;
-using Datahub.Shared.Annotations;
-using Markdig;
-using Markdig.Syntax;
-using Markdig.Syntax.Inlines;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Polly.Extensions.Http;
-using Polly;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net.Http;
+﻿using System.Globalization;
 using System.Text;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
-using static System.Net.WebRequestMethods;
-using Microsoft.Graph.Models;
-using static MudBlazor.CategoryTypes;
+using Datahub.Core.Services.Wiki;
 using Datahub.Markdown;
 using Datahub.Markdown.Model;
+using Datahub.Shared.Annotations;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Azure.Storage.Blobs;
+using Microsoft.Extensions.Logging;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace Datahub.Core.Services.Docs;
 
 #nullable enable
 
-public class DocumentationService 
+public class DocumentationService
 {
-    private readonly string _docsRoot;
-    private readonly string _docsEditPrefix;
-    private readonly ILogger<DocumentationService> _logger;
-    private readonly IHttpClientFactory _httpClientFactory;
-
     private const string DOCS_ROOT_CONFIG_KEY = "docsURL";
     private const string DOCS_EDIT_URL_CONFIG_KEY = "EditdocsURLPrefix";
-    private DocumentationFileMapper _docFileMappings = null!;
-    private IList<TimeStampedStatus> _statusMessages;
+
+    public const string LOCALE_EN = "";
+    public const string LOCALE_FR = "fr";
+    public const string SIDEBAR = "_sidebar.md";
+    public const string FILE_MAPPINGS = "filemappings.json";
+    private const string LAST_COMMIT_TS = "LAST_COMMIT_TS";
+    public const string COMMIT_API_URL = "https://api.github.com/repos/ssc-sp/datahub-docs/commits";
+    private const string CONTAINER_NAME = "docs";
+
+    private readonly string docsEditPrefix;
+    private readonly ILogger<DocumentationService> logger;
+    private readonly IHttpClientFactory httpClientFactory;
+    private readonly IConfiguration config;
+
+    private DocumentationFileMapper docFileMappings = null!;
+    private IList<TimeStampedStatus> statusMessages;
     private DocItem? enOutline;
     private DocItem? frOutline;
     private DocItem cachedDocs;
-    private readonly IMemoryCache _cache;
+    private readonly IMemoryCache cache;
 
-    public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger, 
+    public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger,
         IHttpClientFactory httpClientFactory, IWebHostEnvironment environment,
         IMemoryCache docCache)
     {
         //!ctx.HostingEnvironment.IsDevelopment()
-        
-        var branch = environment.IsProduction()? "main": "next";
-        _docsRoot = config.GetValue(DOCS_ROOT_CONFIG_KEY, $"https://raw.githubusercontent.com/ssc-sp/datahub-docs/{branch}/")!;
-        _docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, "https://github.com/ssc-sp/datahub-docs/edit/{branch}/")!;
-        _logger = logger;
-        _httpClientFactory = httpClientFactory;
-        _statusMessages = new List<TimeStampedStatus>();
-        _cache = docCache;
+
+        var branch = environment.IsProduction() ? "main" : "next";
+        docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, $"https://github.com/ssc-sp/datahub-docs/edit/{branch}/")!;
+        this.config = config;
+        this.logger = logger;
+        this.httpClientFactory = httpClientFactory;
+        statusMessages = new List<TimeStampedStatus>();
+        cache = docCache;
         cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
     }
 
+    /// <summary>
+    /// Invalidates the cache by removing all entries from the memory cache and reloading the resource tree.
+    /// </summary>
+    /// <returns>A boolean value indicating whether the cache was successfully invalidated.</returns>
     public async Task<bool> InvalidateCache()
     {
         try
         {
-            var cache = _cache as MemoryCache;
+            var cache = this.cache as MemoryCache;
             if (cache != null)
             {
-                //https://stackoverflow.com/questions/49176244/asp-net-core-clear-cache-from-imemorycache-set-by-set-method-of-cacheextensions/49425102#49425102
-                //this weird trick removes all the entries
-                var percentage = 1.0;//100%
+                // Clear all entries from the memory cache
+                var percentage = 1.0; // 100%
                 cache.Compact(percentage);
 
+                // Reload the resource tree
                 await LoadResourceTree(DocumentationGuideRootSection.UserGuide);
 
-                _logger.LogInformation("Document cache has been cleared");
+                logger.LogInformation("Document cache has been cleared");
                 return true;
             }
             else
             {
-                _logger.LogWarning("Could not clear the cache.");
+                logger.LogWarning("Could not clear the cache.");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.Message, ex);
+            logger.LogError(ex.Message, ex);
         }
         return false;
     }
 
+    /// <summary>
+    /// Adds a status message to the list of time-stamped status messages.
+    /// </summary>
+    /// <param name="message">The message to add.</param>
     private void AddStatusMessage(string message)
     {
         var error = new TimeStampedStatus(DateTime.UtcNow, message);
-        _statusMessages.Add(error);
+        statusMessages.Add(error);
     }
 
+    /// <summary>
+    /// Builds the absolute URL for a relative link by combining it with the blob root URL. Used for images within markdown.
+    /// </summary>
+    /// <param name="relLink">The relative link.</param>
+    /// <returns>The absolute URL.</returns>
     public string BuildAbsoluteURL(string relLink)
     {
         if (relLink is null)
@@ -102,11 +114,14 @@ public class DocumentationService
             throw new ArgumentNullException(nameof(relLink));
         }
 
-        return new Uri(_docsRoot + relLink).AbsoluteUri;
+        return new Uri($"https://raw.githubusercontent.com/ssc-sp/datahub-docs/next/{relLink}").AbsoluteUri;
     }
 
-
-
+    /// <summary>
+    /// Cleans up the characters in the input string by normalizing and replacing spaces with hyphens.
+    /// </summary>
+    /// <param name="input">The input string to be cleaned up.</param>
+    /// <returns>The cleaned up string.</returns>
     private string CleanupCharacters(string input)
     {
         var deAccented = new string(input?.Normalize(NormalizationForm.FormD)
@@ -119,6 +134,11 @@ public class DocumentationService
         return deSpaced;
     }
 
+    /// <summary>
+    /// Retrieves the path of a given resource by traversing up the resource hierarchy and appending the cleaned-up titles of each parent resource.
+    /// </summary>
+    /// <param name="resource">The resource for which to retrieve the path.</param>
+    /// <returns>A list of strings representing the path of the resource.</returns>
     private IList<string> GetPath(AbstractMarkdownPage resource)
     {
         if (resource is null)
@@ -131,6 +151,11 @@ public class DocumentationService
         return parentPath;
     }
 
+    /// <summary>
+    /// Builds the documentation content and previews for a given DocItem.
+    /// </summary>
+    /// <param name="doc">The DocItem to build the content and previews for.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task BuildDocAndPreviews(DocItem doc)
     {
         if (doc.DocType == DocItemType.External)
@@ -142,14 +167,11 @@ public class DocumentationService
         {
             if (doc.Title is not null)
             {
-
                 doc.Content = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, doc.GetMarkdownFileName());
                 BuildPreview(doc);
-
             }
             else
             {
-                //top level node
                 doc.Content = null;
                 doc.Preview = String.Join(" ,", doc.Children.Select(d => d.Title));
             }
@@ -160,6 +182,10 @@ public class DocumentationService
         }
     }
 
+    /// <summary>
+    /// Builds the preview content for a given DocItem.
+    /// </summary>
+    /// <param name="doc">The DocItem to build the preview content for.</param>
     private void BuildPreview(DocItem doc)
     {
         if (string.IsNullOrEmpty(doc.Content))
@@ -182,30 +208,38 @@ public class DocumentationService
         }
     }
 
-    public const string LOCALE_EN = "";
-    public const string LOCALE_FR = "fr";
-
+    /// <summary>
+    /// Loads the resource tree for the given documentation guide.
+    /// </summary>
+    /// <param name="guide">The documentation guide to load the resource tree for.</param>
+    /// <param name="useCache">A boolean value indicating whether to use the cache.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadResourceTree(DocumentationGuideRootSection guide, bool useCache = true)
     {
-        var fileMappings = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, FILE_MAPPINGS, null,useCache);
-        _docFileMappings = new DocumentationFileMapper(fileMappings);
+        var fileMappings = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, FILE_MAPPINGS, null, useCache);
+        docFileMappings = new DocumentationFileMapper(fileMappings);
 
-        _statusMessages = new List<TimeStampedStatus>();
+        statusMessages = new List<TimeStampedStatus>();
 
         AddStatusMessage("Loading resources");
 
-        enOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_EN, useCache), _docFileMappings.GetEnglishDocumentId);
+        enOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_EN, useCache), docFileMappings.GetEnglishDocumentId);
         if (enOutline is null)
-            throw new InvalidOperationException("Cannot load sidebar and content");
+            throw new InvalidOperationException($"Cannot load sidebar and content");
 
-        frOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, $"{SIDEBAR}", LOCALE_FR, useCache), _docFileMappings.GetFrenchDocumentId);
+        frOutline = SidebarParser.ParseSidebar(guide, await LoadDocsPage(guide, SIDEBAR, LOCALE_FR, useCache), docFileMappings.GetFrenchDocumentId);
         if (frOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
-        cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden,"Cached");
+        cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
         AddStatusMessage("Finished loading sidebars");
-
     }
 
+    /// <summary>
+    /// Loads the page with the specified ID from the resource tree.
+    /// </summary>
+    /// <param name="id">The ID of the page to load.</param>
+    /// <param name="isFrench">A boolean value indicating whether the page is in French.</param>
+    /// <returns>The loaded DocItem if found, otherwise null.</returns>
     public DocItem? LoadPage(string id, bool isFrench)
     {
         var searchRoot = isFrench ? frOutline : enOutline;
@@ -214,6 +248,12 @@ public class DocumentationService
         return searchRoot.LocateID(id);
     }
 
+    /// <summary>
+    /// Loads the page with the specified path from the resource tree.
+    /// </summary>
+    /// <param name="path">The path of the page to load.</param>
+    /// <param name="isFrench">A boolean value indicating whether the page is in French.</param>
+    /// <returns>The loaded DocItem if found, otherwise null.</returns>
     public async Task<DocItem?> LoadPageFromPath(string path, bool isFrench)
     {
         var searchRoot = isFrench ? frOutline : enOutline;
@@ -225,7 +265,7 @@ public class DocumentationService
             inCachePage = cachedDocs.LocatePath(path);
             if (inCachePage != null)
                 return inCachePage;
-            var itemId = (isFrench? _docFileMappings?.GetFrenchDocumentId(path): _docFileMappings?.GetEnglishDocumentId(path))?? MarkdownTools.GetIDFromString(path);
+            var itemId = (isFrench ? docFileMappings?.GetFrenchDocumentId(path) : docFileMappings?.GetEnglishDocumentId(path)) ?? MarkdownTools.GetIDFromString(path);
             var docItem = DocItem.GetItem(DocumentationGuideRootSection.Hidden, itemId, searchRoot.Level + 1, path, path);
 
             cachedDocs.Children.Add(docItem);
@@ -235,6 +275,12 @@ public class DocumentationService
         return inCachePage;
     }
 
+    /// <summary>
+    /// Retrieves the parent of a given DocItem in the resource tree.
+    /// </summary>
+    /// <param name="docItem">The DocItem for which to retrieve the parent.</param>
+    /// <param name="currentNode">The current node being traversed in the resource tree.</param>
+    /// <returns>The parent DocItem if found, otherwise null.</returns>
     public DocItem? GetParent(DocItem docItem, DocItem? currentNode = null)
     {
         if (docItem == enOutline || docItem == frOutline)
@@ -256,21 +302,23 @@ public class DocumentationService
         return null;
     }
 
-    public const string SIDEBAR = "_sidebar.md";
-    public const string FILE_MAPPINGS = "filemappings.json";
-
-    private string BuildURL(DocumentationGuideRootSection guide, string? locale, string name, IList<string>? folders = null)
+    /// <summary>
+    /// Builds the path for a documentation resource based on the guide, locale, name, and optional folders.
+    /// </summary>
+    /// <param name="guide">The documentation guide.</param>
+    /// <param name="locale">The locale of the resource.</param>
+    /// <param name="name">The name of the resource.</param>
+    /// <param name="folders">Optional folders within the resource.</param>
+    /// <returns>The built path.</returns>
+    private string BuildPath(DocumentationGuideRootSection guide, string? locale, string name, IList<string>? folders = null)
     {
         var allFolders = new List<string>();
-        //sb.Append($"{(string.IsNullOrEmpty(locale) ? string.Empty : (locale + '/'))}{guide.GetStringValue()}/");
         if (!string.IsNullOrEmpty(locale)) allFolders.Add(locale);
         if (!string.IsNullOrEmpty(guide.GetStringValue())) allFolders.Add(guide.GetStringValue());
         if (folders != null) allFolders.AddRange(folders);
 
         StringBuilder sb = new();
 
-        sb.Append(_docsRoot);
-        
         if (allFolders.Count > 0)
         {
             foreach (var f in allFolders)
@@ -284,64 +332,84 @@ public class DocumentationService
     }
 
     /// <summary>
-    /// 
+    /// Loads the documentation page from the given guide and name.
     /// </summary>
     /// <param name="guide"></param>
     /// <param name="name"></param>
     /// <param name="locale">Leave empty for "en", "fr" has its own folder</param>
     /// <param name="useCache"></param>
-    /// <returns></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     private async Task<string?> LoadDocsPage(DocumentationGuideRootSection guide, string? name, string? locale = "", bool useCache = true)
     {
         if (name is null) return null;
-        return await LoadDocs(BuildURL(guide, locale??string.Empty, name), useCache);
+        return await LoadDocs(BuildPath(guide, locale ?? string.Empty, name));
     }
 
-    private const string LAST_COMMIT_TS = "LAST_COMMIT_TS";
-    public const string COMMIT_API_URL = "https://api.github.com/repos/ssc-sp/datahub-docs/commits";
-
+    /// <summary>
+    /// Retrieves the last commit timestamp for the repository.
+    /// </summary>
+    /// <param name="useCache">A boolean value indicating whether to use the cache.</param>
+    /// <returns>The last commit timestamp if available, otherwise null.</returns>
     public async Task<DateTime?> GetLastRepoCommitTS(bool useCache = true)
     {
-        if (_cache.TryGetValue(LAST_COMMIT_TS, out DateTime? lastTS) && useCache)
-            if (lastTS.HasValue) return lastTS.Value;
+        // Check if the last commit timestamp is already in the cache
+        if (cache.TryGetValue(LAST_COMMIT_TS, out DateTime? lastTS) && useCache)
+        {
+            if (lastTS.HasValue)
+            {
+                return lastTS.Value;
+            }
+        }
+
+        // Read the commit information from the API
         var node = await ReadURL(new Dictionary<string, string>() { { "path", "UserGuide/_sidebar.md" }, { "sha", "main" }, });
         var lastCommit = (DateTime?)node?[0]?["commit"]?["author"]?["date"];
+
         if (lastCommit.HasValue)
         {
+            // Set the cache entry options
             var cacheEntryOptions = new MemoryCacheEntryOptions()
                 // Keep in cache for this time, reset time if accessed.
                 .SetAbsoluteExpiration(DateTime.Now.AddHours(1));
 
             // Save data in cache.
-            _cache.Set(LAST_COMMIT_TS, lastCommit.Value, cacheEntryOptions);
+            cache.Set(LAST_COMMIT_TS, lastCommit.Value, cacheEntryOptions);
             return lastCommit.Value;
         }
-        _logger.LogWarning($"Cannot load last commit timestamp for user docs");
+        logger.LogWarning($"Cannot load last commit timestamp for user docs");
         return null;
     }
 
-    static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+    /// <summary>
+    /// Retrieves the retry policy for handling transient HTTP errors and not found status codes.
+    /// </summary>
+    /// <returns>The retry policy.</returns>
+    private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
     {
         return HttpPolicyExtensions
             .HandleTransientHttpError()
             .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
-            .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2,
-                                                                        retryAttempt)));
+            .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(
+                2,
+                retryAttempt)));
     }
 
+    /// <summary>
+    /// Reads the URL with the specified parameters and returns the JSON response.
+    /// </summary>
+    /// <param name="parameters">The optional parameters to include in the URL.</param>
+    /// <returns>The JSON response as a <see cref="JsonNode"/> object.</returns>
     public async Task<JsonNode?> ReadURL(Dictionary<string, string>? parameters = null)
     {
-        var client = _httpClientFactory.CreateClient();
+        var client = httpClientFactory.CreateClient();
 
         var builder = new UriBuilder(new Uri(COMMIT_API_URL));
         if (parameters != null)
             builder.Query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
 
-
-        var res = await GetRetryPolicy().ExecuteAsync(async () => {
-            //builder.Query = "search=usa";
+        var res = await GetRetryPolicy().ExecuteAsync(async () =>
+        {
             var request = new HttpRequestMessage() { RequestUri = builder.Uri, Method = HttpMethod.Get };
-            //public const string USER_AGENT = ;
             client.DefaultRequestHeaders.Add("User-Agent", "DataHub");
             return await client.SendAsync(request);
         });
@@ -352,42 +420,68 @@ public class DocumentationService
         }
 
         return JsonNode.Parse(await res.Content.ReadAsStreamAsync());
-
     }
 
-
-
-    private async Task<string?> LoadDocs(string url, bool useCache = true, bool skipFrontMatter = true)
+    /// <summary>
+    /// Loads the documentation page with a specified path from the standard blob storage.
+    /// </summary>
+    /// <param name="path">The path of the page to load.</param>
+    /// <returns>The loaded documentation page if found, otherwise null.</returns>
+    private async Task<string?> LoadDocs(string path)
     {
-        if (_cache.TryGetValue(url, out var docContent) && useCache)
-            return docContent as string;
-
-        var httpClient = _httpClientFactory.CreateClient();
         try
         {
-            var content = await httpClient.GetStringAsync(url);
-            if (skipFrontMatter)
-            {                 
-                content = MarkdownHelper.RemoveFrontMatter(content);
-            }
-            // Set cache options.
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
-                // Keep in cache for this time, reset time if accessed.
-                .SetAbsoluteExpiration(DateTime.Now.AddHours(1));
+            var connectionString = config["Media:StorageConnectionString"];
+            BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
 
-            // Save data in cache.
-            _cache.Set(url, content, cacheEntryOptions);
-            return content;
+            return await LoadDocs(path, blobServiceClient);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error loading {url}", url);
-            AddStatusMessage($"Error loading {url}");
-
-            return default(string);
+            AddStatusMessage($"Error loading {path}: {e.Message}");
+            return e.Message;
         }
     }
-    
+
+    /// <summary>
+    /// Loads the documentation page with the specified path from the given blob storage.
+    /// </summary>
+    /// <param name="path">The path of the page to load.</param>
+    /// <param name="blobServiceClient">The blob service client to use for loading the documentation page.</param>
+    /// <returns>The loaded documentation page content if found, otherwise null.</returns>
+    private async Task<string?> LoadDocs(string path, BlobServiceClient blobServiceClient)
+    {
+        try
+        {
+            var storageContainerClient = blobServiceClient.GetBlobContainerClient(CONTAINER_NAME);
+            var documentBlobClient = storageContainerClient.GetBlobClient(path);
+
+            if (await documentBlobClient.ExistsAsync())
+            {
+                var documentResponse = await documentBlobClient.DownloadContentAsync();
+                var documentContent = documentResponse.Value.Content.ToString();
+                documentContent = MarkdownHelper.RemoveFrontMatter(documentContent);
+                return documentContent;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        catch (Exception e)
+        {
+            AddStatusMessage($"Error loading {path}: {e.Message}");
+            return e.Message;
+        }
+    }
+
+    /// <summary>
+    /// Loads the resource tree for the given documentation guide and locale.
+    /// </summary>
+    /// <param name="guide">The documentation guide to load the resource tree for.</param>
+    /// <param name="locale">The locale of the resource tree.</param>
+    /// <param name="useCache">A boolean value indicating whether to use the cache.</param>
+    /// <returns>The loaded resource tree if successful, otherwise null.</returns>
     public async Task<DocItem?> LoadResourceTree(DocumentationGuideRootSection guide, string locale, bool useCache = true)
     {
         if (enOutline == null || frOutline == null)
@@ -395,30 +489,58 @@ public class DocumentationService
             await LoadResourceTree(guide, useCache);
         }
 
-        var result = MarkdownTools.CompareCulture(locale,"fr") ? frOutline : enOutline;
+        var result = MarkdownTools.CompareCulture(locale, "fr") ? frOutline : enOutline;
         return result;
     }
 
+    /// <summary>
+    /// Loads the resource page for the given DocItem.
+    /// </summary>
+    /// <param name="card">The DocItem representing the resource page.</param>
+    /// <returns>The loaded resource page if found, otherwise null.</returns>
     public async Task<string?> LoadResourcePage(DocItem card)
     {
         return await LoadDocsPage(DocumentationGuideRootSection.RootFolder, card.GetMarkdownFileName());
     }
 
-    public string GetEditUrl(DocItem card) => $"{_docsEditPrefix}{card.GetMarkdownFileName()}";
+    /// <summary>
+    /// Retrieves the edit URL for the given DocItem.
+    /// </summary>
+    /// <param name="card">The DocItem representing the resource page.</param>
+    /// <returns>The edit URL for the resource page.</returns>
+    public string GetEditUrl(DocItem card) => $"{docsEditPrefix}{card.GetMarkdownFileName()}";
 
+    /// <summary>
+    /// Removes the specified DocItem from the cache.
+    /// </summary>
+    /// <param name="item">The DocItem to remove from the cache.</param>
     public void RemoveFromCache(DocItem item)
     {
         if (item.GetMarkdownFileName != null)
         {
-            var path = BuildURL(item.RootSection, null, item.GetMarkdownFileName()!);
-            _cache.Remove(path);
+            var path = BuildPath(item.RootSection, null, item.GetMarkdownFileName()!);
+            cache.Remove(path);
         }
     }
 
-    public IReadOnlyList<TimeStampedStatus> GetErrorList() => _statusMessages.AsReadOnly();
+    /// <summary>
+    /// Retrieves the list of error messages.
+    /// </summary>
+    /// <returns>The list of error messages.</returns>
+    public IReadOnlyList<TimeStampedStatus> GetErrorList() => statusMessages.AsReadOnly();
 
+    /// <summary>
+    /// Logs a not found error for the specified page name and resource root.
+    /// </summary>
+    /// <param name="pageName">The name of the page.</param>
+    /// <param name="resourceRoot">The resource root.</param>
     public void LogNotFoundError(string pageName, string resourceRoot) => AddStatusMessage($"{pageName} was not found in {resourceRoot} cache");
 
+    /// <summary>
+    /// Logs a no article specified error for the specified URL and resource root.
+    /// </summary>
+    /// <param name="url">The URL of the page.</param>
+    /// <param name="resourceRoot">The resource root.</param>
     public void LogNoArticleSpecifiedError(string url, string resourceRoot) => AddStatusMessage($"Embedded resource on page {url} does not specify a page name in {resourceRoot}");
 }
 

@@ -1,5 +1,4 @@
-﻿using Datahub.CKAN.Service;
-using Datahub.Core.Model.Datahub;
+﻿using Datahub.Core.Model.Datahub;
 
 namespace Datahub.Application.Services.Publishing;
 
@@ -15,4 +14,5 @@ public interface ITbsOpenDataService
     Task<CKANApiResult> UpdatePackageImsoApproval(TbsOpenGovSubmission submission, bool imsoApproved);
     Task<CKANApiResult> UpdatePackagePublication(TbsOpenGovSubmission submission, bool published);
     string DerivePublishUrl(TbsOpenGovSubmission submission);
+    Task<string> TestConnectivity();
 }

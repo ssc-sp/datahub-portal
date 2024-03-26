@@ -1,16 +1,12 @@
 using System.Linq.Dynamic.Core;
-using System.Transactions;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.Security;
-using Datahub.Core.Services.UserManagement;
-using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -195,8 +191,13 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 };
                 await context.Project_Users.AddAsync(newProjectUser);
             }
+           
+            // If current user is not the user being added to the project
+            if (projectUser.PortalUserId != currentUser.Id)
+            {
+                context.Attach(currentUser);
+            }
 
-            context.Attach(currentUser);
             context.Attach(portalUser);
 
             await context.TrackSaveChangesAsync(_datahubAuditingService);

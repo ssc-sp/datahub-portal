@@ -1,10 +1,6 @@
-using Azure.Search.Documents.Indexes;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
-using System.Linq;
 using System.Text.Json.Serialization;
+using Azure.Search.Documents.Indexes;
 using Microsoft.AspNetCore.Components.Forms;
 
 namespace Datahub.Core.Data;
@@ -34,12 +30,13 @@ public class Version
 /// <summary>
 /// The type of metadata (Folder needs to be less than File, for sorting)
 /// </summary>
-public enum MetadataType {
+public enum MetadataType
+{
     Folder = 1,
-    File = 2        
+    File = 2
 }
 
-public class BaseMetadata : IEquatable<BaseMetadata> , IComparable<BaseMetadata>
+public class BaseMetadata : IEquatable<BaseMetadata>, IComparable<BaseMetadata>
 {
     [JsonIgnore]
     public MetadataType dataType { get; set; }
@@ -99,19 +96,19 @@ public class BaseMetadata : IEquatable<BaseMetadata> , IComparable<BaseMetadata>
 }
 
 public class Folder : BaseMetadata
-{       
+{
     public Folder()
     {
         dataType = MetadataType.Folder;
     }
 
-    public bool sortAscending {get; set;} = true;
+    public bool sortAscending { get; set; } = true;
 
     public override string ownedby
     {
         get
         {
-            return base.createdby;
+            return this.createdby;
         }
         set
         {
@@ -119,7 +116,6 @@ public class Folder : BaseMetadata
     }
 
     public List<BaseMetadata> children { get; set; } = new List<BaseMetadata>();
-
 
     [JsonIgnore]
     public List<Folder> SubFolders
@@ -180,7 +176,7 @@ public class Folder : BaseMetadata
     public virtual void Add(FileMetaData file, bool sort = true)
     {
         file.folderpath = this.fullPathFromRoot;
-        Add((BaseMetadata)file, sort);            
+        Add((BaseMetadata)file, sort);
     }
 
     public void Remove(BaseMetadata child, bool sort = true)
@@ -194,12 +190,12 @@ public class Folder : BaseMetadata
 
     public void Clear()
     {
-        children.Clear();            
+        children.Clear();
     }
 
     public void Sort()
     {
-        children.Sort((a, b) => (sortAscending) ? a.CompareTo(b) : b.CompareTo(a));
+        children.Sort((a, b) => sortAscending ? a.CompareTo(b) : b.CompareTo(a));
     }
 }
 
@@ -210,7 +206,7 @@ public class Folder : BaseMetadata
 /// Child has no reference to its parent
 /// </summary>
 public class NonHierarchicalFolder : Folder
-{       
+{
     public NonHierarchicalFolder()
     {
         dataType = MetadataType.Folder;
@@ -221,7 +217,7 @@ public class NonHierarchicalFolder : Folder
     {
         get
         {
-            return "";
+            return string.Empty;
         }
     }
 
@@ -243,7 +239,6 @@ public class NonHierarchicalFolder : Folder
             this.Sort();
         }
     }
-
 }
 
 public class Customfield
@@ -269,7 +264,7 @@ public class Activity
     public DateTime activityts { get; set; }
 }
 
-public class FileMetaData: BaseMetadata
+public class FileMetaData : BaseMetadata
 {
     public const string FileId = "fileid";
     public const string OwnedBy = "ownedby";
@@ -290,11 +285,11 @@ public class FileMetaData: BaseMetadata
     {
         get
         {
-            return base.id;
+            return this.id;
         }
         set
         {
-            base.id = value;
+            this.id = value;
         }
     }
 
@@ -303,11 +298,11 @@ public class FileMetaData: BaseMetadata
     {
         get
         {
-            return base.name;
+            return this.name;
         }
         set
         {
-            base.name = value;
+            this.name = value;
         }
     }
 
@@ -349,7 +344,7 @@ public class FileMetaData: BaseMetadata
             {
                 this._tags = string.Empty;
             }
-            else 
+            else
             {
                 this._tags = string.Join(",", value);
             }
@@ -378,7 +373,7 @@ public class FileMetaData: BaseMetadata
     public long bytesToUpload { get; set; }
 
     [JsonIgnore]
-    public Stream fileData { get; set; } 
+    public Stream fileData { get; set; }
 
     [JsonIgnore]
     public Dictionary<string, string> permissionsDict { get; set; } = new Dictionary<string, string>();
@@ -391,10 +386,10 @@ public class FileMetaData: BaseMetadata
 
     [JsonIgnore]
     public string _tags { get; set; }
-        
+
     [JsonIgnore]
     public IBrowserFile BrowserFile { get; set; }
-      
+
     [JsonIgnore]
     public string fullPathFromRoot
     {
@@ -448,10 +443,10 @@ public class ExpandableItem<T>
         {
             return children.Count > 0;
         }
-    }    
+    }
 
     public ExpandableItem<T> parent { get; set; }
-    public List<ExpandableItem<T>> children  { get; set; } = new List<ExpandableItem<T>>();
+    public List<ExpandableItem<T>> children { get; set; } = new List<ExpandableItem<T>>();
 
     public void Add(ExpandableItem<T> child)
     {
@@ -459,7 +454,7 @@ public class ExpandableItem<T>
         child.parent = this;
     }
 }
-    
+
 /// <summary>
 /// Keep this clAss As it is used by retrieval api
 /// </summary>

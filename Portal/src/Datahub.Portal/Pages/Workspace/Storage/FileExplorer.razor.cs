@@ -1,5 +1,4 @@
 using Datahub.Application.Services.Publishing;
-using Datahub.Core.Components;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
@@ -214,7 +213,7 @@ public partial class FileExplorer
     
     private async Task HandlePublishFiles(IEnumerable<FileMetaData> files)
     {
-        if (!_publishingService.IsPublishingFeatureEnabled())
+        if (!_config.CkanConfiguration.IsFeatureEnabled)
         {
             await Task.CompletedTask;
             return;

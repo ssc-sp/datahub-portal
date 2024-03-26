@@ -50,6 +50,10 @@
     private bool _initialized = false;
     private FieldValueContainer _workspaceMetadata = null;
 
+    private ObjectMetadataEditor _editor;
+    private string ObjectId => Submission.UniqueId;
+    private string ProjectAcronym => Submission.Project.Project_Acronym_CD;
+
     private async Task OnNewMetadataCreated()
     {
         var isFrench = _reqUser.UserSettings.Language?.Contains(CultureService.French) ?? false;
@@ -93,10 +97,6 @@
 
         await Task.CompletedTask;
     }
-
-    private ObjectMetadataEditor _editor;
-    private string ObjectId => Submission.UniqueId;
-    private string ProjectAcronym => Submission.Project.Project_Acronym_CD;
 
     protected override async Task OnInitializedAsync()
     {

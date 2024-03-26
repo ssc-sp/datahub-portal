@@ -57,7 +57,7 @@
             throw new InvalidOperationException($"Do not specify both '{nameof(Authorized)}' and '{nameof(ChildContent)}'.");
         }
 
-        if (string.IsNullOrWhiteSpace(ProjectAcronym) && AuthLevel is AuthLevels.WorkspaceCollaborator or AuthLevels.WorkspaceAdmin)
+        if (string.IsNullOrWhiteSpace(ProjectAcronym) && AuthLevel is AuthLevels.WorkspaceCollaborator or AuthLevels.WorkspaceAdmin or AuthLevels.WorkspaceLead)
         {
             throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
         }
