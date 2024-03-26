@@ -20,7 +20,9 @@ public class InfrastructureRepositoryConfiguration
     public string Url { get; set; }
     public string LocalPath { get; set; }
     public string ProjectPathPrefix { get; set; }
+    [Obsolete("Use Azure Devops Configuration instead")]
     public string Username { get; set; }
+    [Obsolete("Use Azure Devops Configuration instead")]
     public string Password { get; set; }
     public string PullRequestUrl { get; set; }
     public string PullRequestBrowserUrl { get; set; }

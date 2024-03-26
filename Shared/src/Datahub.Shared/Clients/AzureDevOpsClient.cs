@@ -14,7 +14,9 @@ public class AzureDevOpsClient(AzureDevOpsConfiguration config)
     /// <summary>
     /// Represents the Azure DevOps scope used for authentication and authorization.
     /// </summary>
-    private const string AzureDevOpsScope = "499b84ac-1321-427f-aa17-267ca6975798/.default";
+    public const string AzureDevopsScope = "499b84ac-1321-427f-aa17-267ca6975798";
+
+    private static string AzureDevOpsScopeDefault => $"{AzureDevopsScope}/.default";
 
     public async Task<WorkItemTrackingHttpClient> GetWorkItemClient()
     {
@@ -45,13 +47,13 @@ public class AzureDevOpsClient(AzureDevOpsConfiguration config)
         var aadCredentials = new VssAadCredential(aadToken);
         return aadCredentials;
     }
-    private async Task<AccessToken> GetAccessToken()
+    public async Task<AccessToken> GetAccessToken()
     {
         var credentials = new ClientSecretCredential(config.TenantId, config.ClientId,
             config.ClientSecret);
         var accessToken =
             await credentials.GetTokenAsync(new TokenRequestContext([
-                AzureDevOpsScope
+                AzureDevOpsScopeDefault
             ]));
         return accessToken;
     }
