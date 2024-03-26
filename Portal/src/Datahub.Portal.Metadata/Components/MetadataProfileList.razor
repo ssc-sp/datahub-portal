@@ -4,27 +4,26 @@
 @using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
 
-<div>
-    <MudTable T=@ProfileSummary
-        Items=@_profiles
-        >
-        <HeaderContent>
-            <MudTh>@Localizer["Name"]</MudTh>
-            <MudTh>@Localizer["Sections"]</MudTh>
-            <MudTh></MudTh>
-        </HeaderContent>
 
-        <RowTemplate>
-            <MudTd>@GetProfileName(context)</MudTd>
-            <MudTd>@GetProfileSections(context)</MudTd>
-            <MudTd>@GetEditProfileFragment(context)</MudTd>
-        </RowTemplate>
+<MudTable T=@ProfileSummary
+    Items=@_profiles>
 
-    </MudTable>
-    <div style="margin-top: 16px;">
-        <AeButton To="/metadata/newprofile">@Localizer["Add Profile"]</AeButton>
-    </div>
-</div>
+    <HeaderContent>
+        <MudTh>@Localizer["Name"]</MudTh>
+        <MudTh>@Localizer["Sections"]</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd>@GetProfileName(context)</MudTd>
+        <MudTd>@GetProfileSections(context)</MudTd>
+        <MudTd>@GetEditProfileFragment(context)</MudTd>
+    </RowTemplate>
+
+</MudTable>
+
+<MudButton Href="/metadata/newprofile" Variant=@Variant.Filled Color=@Color.Primary Class="mt-4">@Localizer["Add Profile"]</MudButton>
+
 
 @code {
 
