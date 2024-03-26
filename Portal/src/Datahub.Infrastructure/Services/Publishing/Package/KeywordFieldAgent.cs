@@ -1,12 +1,15 @@
 ﻿using Datahub.Metadata.Model;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Datahub.CKAN.Package;
+namespace Datahub.Infrastructure.Services.Publishing.Package;
 
-internal class KeywordFieldAgent : FieldAgent
+class KeywordFieldAgent : FieldAgent
 {
-    private const string KeywordPrefix = "keywords_";
+    const string KeywordPrefix = "keywords_";
 
-    private readonly Dictionary<string, string[]> languages = new();
+    readonly Dictionary<string, string[]> _languages = new();
 
     public override bool Matches(FieldDefinition definition)
     {
@@ -15,16 +18,16 @@ internal class KeywordFieldAgent : FieldAgent
 
     public override (bool Append, FieldAgent Agent) Instantiate(string fieldName, string fieldValue)
     {
-        var append = languages.Count == 0;
+        var append = _languages.Count == 0;
 
         var language = fieldName.Substring(KeywordPrefix.Length);
-        languages[language] = fieldValue.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(k => k.Trim()).ToArray();
+        _languages[language] = fieldValue.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(k => k.Trim()).ToArray();
 
         return (append, this);
     }
 
     public override void RenderField(IDictionary<string, object> data)
     {
-        data["keywords"] = languages;
+        data["keywords"] = _languages;
     }
 }
