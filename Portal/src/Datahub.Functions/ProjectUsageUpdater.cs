@@ -49,7 +49,7 @@ public class ProjectUsageUpdater
 
         // The query to cost checks if the last update was outside of the current fiscal year, if so that means we are in a new fiscal year
         // The query to budget checks if the amount spent captured by the budget is less than previously. If so, that means the budget was renewed.
-        if (costRollover && budgetRollover)
+        if (message.ForceRollover || (costRollover && budgetRollover))
         {
             _logger.LogInformation($"Budget rollover initiated.");
             var currentBudget = await _workspaceBudgetMgmtService.GetWorkspaceBudgetAmountAsync(message.ProjectAcronym);

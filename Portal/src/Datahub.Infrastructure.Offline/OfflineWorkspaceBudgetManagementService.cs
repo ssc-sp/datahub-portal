@@ -4,27 +4,12 @@ namespace Datahub.Infrastructure.Offline
 {
     public class OfflineWorkspaceBudgetManagementService : IWorkspaceBudgetManagementService
     {
-        public Task<decimal> GetBudgetAmountAsync(string budgetId)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<decimal> GetWorkspaceBudgetAmountAsync(string workspaceAcronym)
         {
             throw new NotImplementedException();
         }
 
-        public Task SetBudgetAmountAsync(string budgetId, decimal amount)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<decimal> GetBudgetSpentAsync(string budgetId)
+        public Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount, bool rollover = false)
         {
             throw new NotImplementedException();
         }

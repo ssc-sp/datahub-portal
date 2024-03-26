@@ -41,11 +41,13 @@ public class ProjectUsageScheduler
         [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]
         HttpRequestData req)
     {
-        await RunScheduler();
+        var body = await req.ReadAsStringAsync();
+        var manualRollover = body.Contains("manualRollover");
+        await RunScheduler(manualRollover);
     }
 #endif
 
-    private async Task RunScheduler()
+    private async Task RunScheduler(bool manualRollover = false)
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
@@ -54,7 +56,7 @@ public class ProjectUsageScheduler
         var projects = ctx.Projects.ToList();
         var sortedProjects = projects.OrderBy(p => GetLastUpdate(ctx, p.Project_ID)).ToList();
         var subscriptionCosts = await _workspaceCostMgmtService.QuerySubscriptionCosts(
-            DateTime.UtcNow.Date.AddYears(-2), DateTime.UtcNow.Date);
+            DateTime.UtcNow.Date.AddDays(-7), DateTime.UtcNow.Date);
 
         if (subscriptionCosts is null)
         {
@@ -64,12 +66,12 @@ public class ProjectUsageScheduler
 
         foreach (var resource in sortedProjects)
         {
-            var usageMessage = new ProjectUsageUpdateMessage(resource.Project_Acronym_CD, subscriptionCosts, timeout);
+            var usageMessage = new ProjectUsageUpdateMessage(resource.Project_Acronym_CD, subscriptionCosts, timeout, manualRollover);
 
             // send/post the message
             await _mediator.Send(usageMessage);
 
-            var capacityMessage = ConvertToCapacityUpdateMessage(usageMessage, timeout);
+            var capacityMessage = ConvertToCapacityUpdateMessage(usageMessage, timeout, manualRollover);
 
             // send/post the message,
             await _mediator.Send(capacityMessage);
@@ -86,8 +88,8 @@ public class ProjectUsageScheduler
         return lastUpdate ?? DateTime.MinValue;
     }
 
-    static ProjectCapacityUpdateMessage ConvertToCapacityUpdateMessage(ProjectUsageUpdateMessage message, int timeout)
+    static ProjectCapacityUpdateMessage ConvertToCapacityUpdateMessage(ProjectUsageUpdateMessage message, int timeout, bool manualRollover)
     {
-        return new(message.ProjectAcronym, timeout);
+        return new(message.ProjectAcronym, timeout, manualRollover);
     }
 }

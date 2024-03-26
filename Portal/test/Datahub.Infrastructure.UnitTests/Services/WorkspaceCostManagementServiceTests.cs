@@ -1,4 +1,5 @@
-﻿using Azure.Identity;
+﻿using Azure.Core;
+using Azure.Identity;
 using Azure.ResourceManager;
 using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Services.Cost;
@@ -21,7 +22,16 @@ namespace Datahub.Infrastructure.UnitTests.Services
             _logger = _loggerFactory.CreateLogger<WorkspaceCostManagementServiceTests>();
 
             var credentials = new ClientSecretCredential(_datahubPortalConfiguration.AzureAd.TenantId, _datahubPortalConfiguration.AzureAd.ClientId, _datahubPortalConfiguration.AzureAd.ClientSecret);
-            var armClient = new ArmClient(credentials);
+            var armClientOptions = new ArmClientOptions
+            {
+                Retry =
+                {
+                    Mode = RetryMode.Exponential,
+                    MaxRetries = 5,
+                    Delay = TimeSpan.FromSeconds(2)
+                }
+            };
+            var armClient = new ArmClient(credentials, SubscriptionId, armClientOptions);
             _sut = new WorkspaceCostManagementService(armClient, _loggerFactory.CreateLogger<WorkspaceCostManagementService>(), _dbContextFactory);
         }
         
@@ -29,8 +39,8 @@ namespace Datahub.Infrastructure.UnitTests.Services
         public async Task QueryResourceGroupCost_ShouldReturnRightAmount()
         {
             // Arrange
-            var startDate = new DateTime(2024, 1, 1);
-            var endDate = new DateTime(2024, 1, 31);
+            var startDate = new DateTime(2023, 1, 1);
+            var endDate = new DateTime(2024, 1, 1);
             var expectedAmount = 0;
             
             // Act

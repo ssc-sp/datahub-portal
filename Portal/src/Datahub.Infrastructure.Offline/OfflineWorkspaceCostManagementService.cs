@@ -9,12 +9,7 @@ namespace Datahub.Infrastructure.Offline
             throw new NotImplementedException();
         }
 
-        public Task<List<DailyServiceCost>?> QuerySubscriptionCosts(string subId, DateTime startDate, DateTime endDate)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<DailyServiceCost>> GetWorkspaceCosts(List<DailyServiceCost> subCosts, string workspaceAcronym)
+        public Task<List<DailyServiceCost>?> QuerySubscriptionCosts(DateTime startDate, DateTime endDate)
         {
             throw new NotImplementedException();
         }
@@ -30,6 +25,11 @@ namespace Datahub.Infrastructure.Offline
         }
 
         public List<DailyServiceCost> FilterCurrentFiscalYear(List<DailyServiceCost> costs)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<DailyServiceCost>> FilterWorkspaceCosts(List<DailyServiceCost> subCosts, string workspaceAcronym)
         {
             throw new NotImplementedException();
         }
