@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using Azure.Core;
 using Datahub.Shared.Clients;
+using LibGit2Sharp;
 using ResourceProvisioner.Application.Config;
+using ResourceProvisioner.Application.Services;
 using TechTalk.SpecFlow;
 using Xunit;
 
@@ -14,7 +16,8 @@ namespace ResourceProvisioner.SpecflowTests.Steps
     [Binding]
     public sealed class AzureDevopsGitWithAccessTokenStepDefinitions(
         ScenarioContext scenarioContext,
-        ResourceProvisionerConfiguration resourceProvisionerConfiguration)
+        ResourceProvisionerConfiguration resourceProvisionerConfiguration,
+        IRepositoryService repositoryService)
     {
         // For additional details on SpecFlow step definitions see https://go.specflow.org/doc-stepdef
 
@@ -63,6 +66,26 @@ namespace ResourceProvisioner.SpecflowTests.Steps
             
             // Check if the token is for the correct audience
             Assert.Equal(AzureDevOpsClient.AzureDevopsScope, token.Audiences.First());
+        }
+        
+        [Given(@"the cloned repository does not exist")]
+        public void GivenTheClonedRepositoryDoesNotExist()
+        {
+            var expectedClonePath = Path.Join(Environment.CurrentDirectory, resourceProvisionerConfiguration.InfrastructureRepository.LocalPath);
+            Assert.False(Directory.Exists(expectedClonePath));
+        }
+
+        [When(@"it tries to clone Azure Devops Git repository")]
+        public async Task WhenItTriesToCloneAzureDevopsGitRepository()
+        {
+            await repositoryService.FetchInfrastructureRepository();
+        }
+
+        [Then(@"the cloned repository should exist")]
+        public void ThenTheClonedRepositoryShouldExist()
+        {
+            var expectedClonePath = Path.Join(Environment.CurrentDirectory, resourceProvisionerConfiguration.InfrastructureRepository.LocalPath);
+            Assert.True(Directory.Exists(expectedClonePath));
         }
     }
 }
