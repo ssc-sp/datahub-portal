@@ -14,6 +14,7 @@
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0"/>
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0"/>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0"/>
+        <PackageReference Include="NSubstitute" Version="5.1.0" />
         <PackageReference Include="SpecFlow.Plus.LivingDocPlugin" Version="3.9.57"/>
         <PackageReference Include="SpecFlow.xUnit" Version="3.9.22"/>
         <PackageReference Include="xunit" Version="2.4.1"/>
@@ -26,6 +27,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\ResourceProvisioner.Application\ResourceProvisioner.Application.csproj"/>
+        <ProjectReference Include="..\..\src\ResourceProvisioner.Infrastructure\ResourceProvisioner.Infrastructure.csproj" />
     </ItemGroup>
 
     <ItemGroup>

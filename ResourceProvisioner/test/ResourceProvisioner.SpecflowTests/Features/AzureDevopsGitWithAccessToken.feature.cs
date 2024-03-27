@@ -19,12 +19,14 @@ namespace ResourceProvisioner.SpecflowTests.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    [Xunit.TraitAttribute("Category", "infra-repository")]
     public partial class AzureDevopsGitWithAccessTokenFeature : object, Xunit.IClassFixture<AzureDevopsGitWithAccessTokenFeature.FixtureData>, System.IDisposable
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
         
-        private string[] _featureTags = ((string[])(null));
+        private string[] _featureTags = new string[] {
+                "infra-repository"};
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
@@ -41,7 +43,8 @@ namespace ResourceProvisioner.SpecflowTests.Features
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
             TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Azure Devops Git with Access Token", "\tAccess Azure Devops private git repository using access token on a service princ" +
-                    "ipal", ProgrammingLanguage.CSharp, ((string[])(null)));
+                    "ipal", ProgrammingLanguage.CSharp, new string[] {
+                        "infra-repository"});
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -84,11 +87,9 @@ namespace ResourceProvisioner.SpecflowTests.Features
         [Xunit.SkippableFactAttribute(DisplayName="Service Principal can get access token")]
         [Xunit.TraitAttribute("FeatureTitle", "Azure Devops Git with Access Token")]
         [Xunit.TraitAttribute("Description", "Service Principal can get access token")]
-        [Xunit.TraitAttribute("Category", "infra-sp")]
         public virtual void ServicePrincipalCanGetAccessToken()
         {
-            string[] tagsOfScenario = new string[] {
-                    "infra-sp"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Service Principal can get access token", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 5
@@ -119,6 +120,50 @@ this.ScenarioInitialize(scenarioInfo);
 #line hidden
 #line 8
  testRunner.Then("it should get a valid access token", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Service Principal can access Azure Devops Git")]
+        [Xunit.TraitAttribute("FeatureTitle", "Azure Devops Git with Access Token")]
+        [Xunit.TraitAttribute("Description", "Service Principal can access Azure Devops Git")]
+        public virtual void ServicePrincipalCanAccessAzureDevopsGit()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Service Principal can access Azure Devops Git", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 10
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 11
+ testRunner.Given("service principal credentials are available", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 12
+ testRunner.And("the cloned repository does not exist", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 13
+ testRunner.When("it tries to clone Azure Devops Git repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 14
+ testRunner.Then("the cloned repository should exist", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
