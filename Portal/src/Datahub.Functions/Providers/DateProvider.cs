@@ -1,4 +1,6 @@
-﻿namespace Datahub.Functions.Providers
+﻿using Datahub.Infrastructure.Services;
+
+namespace Datahub.Functions.Providers
 {
     public class DateProvider : IDateProvider
     {

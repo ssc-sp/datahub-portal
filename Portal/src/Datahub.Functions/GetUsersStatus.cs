@@ -5,6 +5,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph.Models;
+using Datahub.Infrastructure.Services;
 
 namespace Datahub.Functions
 {

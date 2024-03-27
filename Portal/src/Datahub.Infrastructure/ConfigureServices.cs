@@ -6,6 +6,7 @@ using Datahub.Application.Services.ReverseProxy;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
+using Datahub.Infrastructure.Services.Azure;
 using Datahub.Infrastructure.Services.CatalogSearch;
 using Datahub.Infrastructure.Services.Notebooks;
 using Datahub.Infrastructure.Services.Notifications;
@@ -22,8 +23,13 @@ public static class ConfigureServices
     public static IServiceCollection AddDatahubInfrastructureServices(this IServiceCollection services,
         IConfiguration configuration)
     {
+        var whereAmI = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
         //services.AddMediatR(typeof(QueueMessageSender<>)); v11 mediatr code
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
+
+        services.AddSingleton<AzureConfig>();
+        services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>(); 
         services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
         services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
         services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
@@ -38,12 +44,28 @@ public static class ConfigureServices
 
         services.AddMassTransit(x =>
         {
-            x.AddConsumer<QueueMessageConsumer>();
-            x.UsingInMemory((context, cfg) =>
+            x.AddConsumer<EmailNotificationConsumer>();
+            if (whereAmI == "Development")
             {
-                cfg.ConfigureEndpoints(context);
-                cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
-            });
+                x.UsingInMemory((context, cfg) =>
+                {
+                    cfg.ConfigureEndpoints(context);
+                    cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
+                });
+            }
+            else
+            {
+                x.UsingAzureServiceBus((context, cfg) =>
+                {
+                    var serviceBusConnectingString = configuration["DatahubServiceBusConnectionString"]
+                        ?? configuration["DatahubServiceBus:ConnectionString"];
+                    cfg.ReceiveEndpoint("email-notification", e =>
+                    {
+                        e.ConfigureConsumer<EmailNotificationConsumer>(context);
+                    });
+                    cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
+                });
+            }
         });
 
         if (configuration.GetValue<bool>("ReverseProxy:Enabled"))

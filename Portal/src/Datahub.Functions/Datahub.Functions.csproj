@@ -8,6 +8,10 @@
         <UserSecretsId>7085b673-23cc-4759-933a-5a22d1004411</UserSecretsId>
     </PropertyGroup>
     <ItemGroup>
+      <Compile Remove="AzureConfig.cs" />
+      <Compile Remove="EmailNotificationConsumer.cs" />
+    </ItemGroup>
+    <ItemGroup>
       <Content Include="EmailTemplates\cost_alert.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
