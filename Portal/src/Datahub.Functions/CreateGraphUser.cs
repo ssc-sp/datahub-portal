@@ -12,6 +12,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Functions.Services;
 using MassTransit;
+using Datahub.Infrastructure.Services;
 
 namespace Datahub.Functions;
 

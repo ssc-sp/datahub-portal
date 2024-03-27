@@ -4,6 +4,7 @@ using Datahub.Core.Services.Security;
 using Datahub.Functions;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Security;
 using MassTransit;
 using MediatR;
