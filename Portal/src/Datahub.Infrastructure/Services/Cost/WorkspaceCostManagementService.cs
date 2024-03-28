@@ -72,7 +72,7 @@ namespace Datahub.Infrastructure.Services.Cost
             {
                 var projectCost = await ctx.Project_Costs.FirstAsync(c => c.Date == date);
                 var thatDateQueryCosts = FilterDateRange(queryWorkspaceCosts, date);
-                
+
                 if (projectCost is null)
                 {
                     var thatDateByService = GroupBySource(thatDateQueryCosts);
@@ -114,8 +114,9 @@ namespace Datahub.Infrastructure.Services.Cost
 
             // Get the last update time to check if a rollover is needed and the total costs incurred in the last fiscal year
             var beforeUpdate = projectCredits.LastUpdate ?? DateTime.UtcNow;
+            var lastRollover = projectCredits.LastRollover ?? DateTime.UtcNow;
             var workspaceLastFYTotal = workspaceLastFYCosts.Sum(c => c.Amount);
-            
+
             // Update the Project_Credits entry
             projectCredits.Current = (double)workspaceCurrentFYCosts.Sum(c => c.Amount);
             projectCredits.YesterdayCredits = (double)workspaceYesterdayCosts.Sum(c => c.Amount);
@@ -124,22 +125,21 @@ namespace Datahub.Infrastructure.Services.Cost
             projectCredits.YesterdayPerService = JsonSerializer.Serialize(GroupBySource(workspaceYesterdayCosts));
             projectCredits.LastUpdate = DateTime.UtcNow;
             ctx.Project_Credits.Update(projectCredits);
-            
+
             await ctx.SaveChangesAsync();
 
             // Return whether a rollover is needed and the total costs incurred in the last fiscal year (the last full FY)
-            return (RolloverNeeded(beforeUpdate), workspaceLastFYTotal);
+            return (RolloverNeeded(beforeUpdate, lastRollover), workspaceLastFYTotal);
         }
 
         /// <summary>
         /// Queries the costs for the given subscription id within the given date range. The date range cannot be more than a year.
         /// </summary>
-        /// <param name="subId">Subscription id, i.e. "/subscription/<...>"</param>
         /// <param name="startDate">The start date of the query</param>
         /// <param name="endDate">The end date of the query</param>
         /// <returns>A List containing all daily service costs. A daily service cost is a cost caused by one service during one day.</returns>
         public async Task<List<DailyServiceCost>?> QuerySubscriptionCosts(DateTime startDate,
-            DateTime endDate)
+            DateTime endDate, bool mock = false)
         {
             if (startDate > endDate)
             {
@@ -147,13 +147,13 @@ namespace Datahub.Infrastructure.Services.Cost
                 throw new Exception("Start date is after end date");
             }
 
-            if (endDate-startDate > TimeSpan.FromDays(365))
+            if (endDate - startDate > TimeSpan.FromDays(365))
             {
-                _logger.LogError("Querying more than a year of data is not allowed.");
+                _logger.LogError("Querying more than a year of data is not allowed");
                 throw new Exception("Querying more than a year of data is not allowed.");
             }
-            
-            var queryResult = await QueryScopeCosts(_armClient.GetDefaultSubscription().Id, startDate, endDate);
+
+            var queryResult = await QueryScopeCosts(_armClient.GetDefaultSubscription().Id, startDate, endDate, mock);
             return queryResult;
         }
 
@@ -240,11 +240,16 @@ namespace Datahub.Infrastructure.Services.Cost
         /// </summary>
         /// <param name="subCosts">Costs at the subscription level</param>
         /// <param name="workspaceAcronym">Workspace acronym</param>
+        /// <param name="rgNames">Optional list of resource group names to filter with</param>
         /// <returns>List of daily service costs for the workspace. A daily service cost is a cost caused by one service during one day.</returns>
         public async Task<List<DailyServiceCost>> FilterWorkspaceCosts(List<DailyServiceCost> subCosts,
-            string workspaceAcronym)
+            string workspaceAcronym, List<string>? rgNames = null)
         {
-            var rgNames = await GetResourceGroupNames(workspaceAcronym);
+            if (rgNames is null)
+            {
+                rgNames = await GetResourceGroupNames(workspaceAcronym);
+            }
+
             var workspaceCosts = new List<DailyServiceCost>();
 
             subCosts.ForEach(c =>
@@ -293,18 +298,23 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <param name="scopeId">The id of the scope. e.g. /subscription/<...> </param>
         /// <param name="startDate">The start date</param>
         /// <param name="endDate">The end date</param>
+        /// <param name="mock">Boolean to perform a "mock" request</param>
         /// <returns>Returns the result of the query or null if the query was throttled.</returns>
         /// <exception cref="Exception">Throws exception if the query was incorrect</exception>
         internal async Task<List<DailyServiceCost>?> QueryScopeCosts(string scopeId, DateTime startDate,
-            DateTime endDate)
+            DateTime endDate, bool mock = false)
         {
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
             var scope = new ResourceIdentifier(scopeId);
             var dataset = new QueryDataset();
             var queryTimePeriod = new QueryTimePeriod(startDate, endDate);
             var filter1 = new QueryFilter();
-            var allAcronyms = new[]
-                { "DIE1", "DIE2" }; //ctx.Projects.AsNoTracking().Select(p => p.Project_Acronym_CD.ToUpper()).ToList();
+            
+            var allAcronyms = new List<string> { "DIE1", "DIE2" };
+            if (!mock)
+            {
+                allAcronyms = ctx.Projects.AsNoTracking().Select(p => p.Project_Acronym_CD.ToUpper()).ToList();
+            }
 
             filter1.Tags = new QueryComparisonExpression("project_cd", QueryOperatorType.In, allAcronyms);
             dataset.Filter = filter1;
@@ -433,14 +443,15 @@ namespace Datahub.Infrastructure.Services.Cost
         }
 
         /// <summary>
-        /// Verifies if the last update was outside of the current fiscal year.
+        /// Verifies if the last update and last rollover were outside of the current fiscal year.
         /// </summary>
         /// <param name="lastUpdate">The datetime of the last update</param>
+        /// <param name="lastRollover">The datetime of the last rollover</param>
         /// <returns>true if the last update is outside the current fiscal year, false otherwise</returns>
-        internal bool RolloverNeeded(DateTime lastUpdate)
+        internal bool RolloverNeeded(DateTime lastUpdate, DateTime lastRollover)
         {
             var (currFiscalYearStart, _) = GetCurrentFiscalYear();
-            return lastUpdate < currFiscalYearStart;
+            return (lastUpdate < currFiscalYearStart && lastRollover < currFiscalYearStart);
         }
 
         /// <summary>

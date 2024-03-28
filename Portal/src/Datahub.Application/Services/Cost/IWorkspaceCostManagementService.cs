@@ -9,16 +9,16 @@
         /// <param name="workspaceAcronym">The workspace acronym</param>
         /// <returns>(bool, decimal), a tuple representing whether a rollover is needed according to this update and the amount of costs captured in the last fiscal year</returns>
         public Task<(bool, decimal)> UpdateWorkspaceCostAsync(List<DailyServiceCost> subCosts, string workspaceAcronym);
-        
+
         /// <summary>
         /// Queries the costs for the given subscription id within the given date range.
         /// </summary>
-        /// <param name="subId">Subscription id, i.e. "/subscription/<...>"</param>
         /// <param name="startDate">The start date of the query</param>
         /// <param name="endDate">The end date of the query</param>
+        /// <param name="mock">Boolean to perform a "mock" request</param>
         /// <returns>A List containing all daily service costs. A daily service cost is a cost caused by one service during one day.</returns>
         public Task<List<DailyServiceCost>?> QuerySubscriptionCosts(DateTime startDate,
-            DateTime endDate);
+            DateTime endDate, bool mock = false);
         
         /// <summary>
         /// Groups the costs given by source. By executing this, you lose date information
@@ -40,14 +40,15 @@
         /// <param name="costs">The costs to filter</param>
         /// <returns>The filtered costs, which are all in the current fiscal year</returns>
         public List<DailyServiceCost> FilterCurrentFiscalYear(List<DailyServiceCost> costs);
-        
+
         /// <summary>
         /// Filters the costs for the given workspace acronym from the given list of subscription level costs
         /// </summary>
         /// <param name="subCosts">Costs at the subscription level</param>
         /// <param name="workspaceAcronym">Workspace acronym</param>
+        /// <param name="rgNames">Optional resource group names to filter with</param>
         /// <returns>List of daily service costs for the workspace. A daily service cost is a cost caused by one service during one day.</returns>
-        public Task<List<DailyServiceCost>> FilterWorkspaceCosts(List<DailyServiceCost> subCosts, string workspaceAcronym);
+        public Task<List<DailyServiceCost>> FilterWorkspaceCosts(List<DailyServiceCost> subCosts, string workspaceAcronym, List<string>? rgNames = null);
         
         /// <summary>
         /// Filters the given costs to be only within the last fiscal year
