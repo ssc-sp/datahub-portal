@@ -82,6 +82,7 @@ var host = new HostBuilder()
                 {
                     var serviceBusConnectingString = config["DatahubServiceBusConnectionString"]
                         ?? config["DatahubServiceBus:ConnectionString"];
+                    cfg.Host(serviceBusConnectingString);
                     cfg.ReceiveEndpoint("email-notification", e =>
                     {
                         e.ConfigureConsumer<EmailNotificationConsumer>(context);
