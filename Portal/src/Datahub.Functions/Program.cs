@@ -62,20 +62,32 @@ var host = new HostBuilder()
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();
-        services.AddScoped<AzureServiceBusForwarder>(provider =>
-        {
-            var storageConnectionString = config["DatahubStorageConnectionString"]
-                ?? config["DatahubStorageQueue:ConnectionString"];
-            return new AzureServiceBusForwarder(storageConnectionString);
-        });
+
         services.AddMassTransit(x =>
         {
-            x.AddConsumer<ForwardingConsumer>();
-            x.UsingInMemory((context, cfg) =>
+            x.AddConsumer<EmailNotificationConsumer>();
+            if (whereAmI == "Development")
             {
-                cfg.ConfigureEndpoints(context);
-                cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
-            });
+                x.UsingInMemory((context, cfg) =>
+                {
+                    cfg.ConfigureEndpoints(context);
+                    cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
+                });
+            }
+            else
+            {
+                x.UsingAzureServiceBus((context, cfg) =>
+                {
+                    var serviceBusConnectingString = config["DatahubServiceBusConnectionString"]
+                        ?? config["DatahubServiceBus:ConnectionString"];
+                    cfg.Host(serviceBusConnectingString);
+                    cfg.ReceiveEndpoint("email-notification", e =>
+                    {
+                        e.ConfigureConsumer<EmailNotificationConsumer>(context);
+                    });
+                    cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
+                });
+            }
         });
 
         services.AddDatahubConfigurationFromFunctionFormat(config);

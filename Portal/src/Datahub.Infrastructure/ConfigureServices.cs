@@ -59,6 +59,8 @@ public static class ConfigureServices
                 {
                     var serviceBusConnectingString = configuration["DatahubServiceBusConnectionString"]
                         ?? configuration["DatahubServiceBus:ConnectionString"];
+
+                    cfg.Host(serviceBusConnectingString);
                     cfg.ReceiveEndpoint("email-notification", e =>
                     {
                         e.ConfigureConsumer<EmailNotificationConsumer>(context);
