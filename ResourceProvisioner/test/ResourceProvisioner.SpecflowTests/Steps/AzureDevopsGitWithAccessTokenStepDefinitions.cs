@@ -8,6 +8,7 @@ using Datahub.Shared.Clients;
 using LibGit2Sharp;
 using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.Services;
+using ResourceProvisioner.Infrastructure.Common;
 using TechTalk.SpecFlow;
 using Xunit;
 
@@ -72,6 +73,10 @@ namespace ResourceProvisioner.SpecflowTests.Steps
         public void GivenTheClonedRepositoryDoesNotExist()
         {
             var expectedClonePath = Path.Join(Environment.CurrentDirectory, resourceProvisionerConfiguration.InfrastructureRepository.LocalPath);
+            if (Directory.Exists(expectedClonePath))
+            {
+                DirectoryUtils.VerifyDirectoryDoesNotExist(expectedClonePath);
+            }
             Assert.False(Directory.Exists(expectedClonePath));
         }
 
