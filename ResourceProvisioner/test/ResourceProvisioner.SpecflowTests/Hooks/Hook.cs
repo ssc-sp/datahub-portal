@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.Services;
+using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
 
 namespace ResourceProvisioner.SpecflowTests.Hooks;
@@ -42,5 +43,19 @@ public class Hooks
         objectContainer.RegisterInstanceAs(resourceProvisionerConfiguration);
         objectContainer.RegisterInstanceAs<ITerraformService>(terraformService);
         objectContainer.RegisterInstanceAs<IRepositoryService>(repositoryService);
+    }
+    
+    [AfterScenario("infra-repository")]
+    public void AfterScenarioRequiringInfraRepository(IObjectContainer objectContainer)
+    {
+        var resourceProvisionerConfiguration = objectContainer.Resolve<ResourceProvisionerConfiguration>();
+        var expectedClonePath = Path.Join(Environment.CurrentDirectory, resourceProvisionerConfiguration.InfrastructureRepository.LocalPath);
+        DirectoryUtils.VerifyDirectoryDoesNotExist(expectedClonePath);
+        
+        if (objectContainer.Resolve<IRepositoryService>() is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+        
     }
 }
