@@ -286,12 +286,19 @@ public class TerraformService : ITerraformService
 
     private string ComputeBackendConfigValue(string workspaceName, string variableName)
     {
+        string rpa = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric
+            .Replace("_", "")
+            .Replace("-", "")
+            .ToLower();
+        string env = _resourceProvisionerConfiguration.Terraform.Variables.environment_name;
+        string suffix = _resourceProvisionerConfiguration.Terraform.Variables.resource_suffix;
+        if (string.IsNullOrEmpty(suffix)) suffix = "ent" == env ? "tfbackend" : "terraformbackend";
         return variableName switch
         {
             TerraformVariables.BackendResourceGroupName => _resourceProvisionerConfiguration.Terraform.Backend
                 .ResourceGroupName,
             TerraformVariables.BackendStorageAccountName =>
-                $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}{_resourceProvisionerConfiguration.Terraform.Variables.environment_name}terraformbackend",
+                $"{rpa}{env}{suffix}",
             TerraformVariables.BackendContainerName =>
                 $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-project-states",
             TerraformVariables.BackendKeyName =>
@@ -327,4 +334,43 @@ public class TerraformService : ITerraformService
                 property => (property.Value?["type"]?.ToString() ?? "", property.Value?["default"]?.ToString() == null)
             ) ?? new Dictionary<string, (string, bool)>();
     }
+
+    public async Task DestroySpecificResourcesAsync(TerraformWorkspace terraformWorkspace, string resourceIdentifier)
+    {
+        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+
+        Directory.SetCurrentDirectory(projectPath);
+
+        if (!await ExecuteShellCommand("terraform init")) {
+            _logger.LogError("Terraform init failed.");
+            return;
+        }
+
+        var destroyCmd = $"terraform destroy -auto-approve -target={resourceIdentifier}";
+        if (!await ExecuteShellCommand(destroyCmd)) {
+            _logger.LogError($"Terraform destroy failed for {resourceIdentifier}.");
+        }
+
+        _logger.LogInformation("Successfully destroyed specified resources.");
+    }
+    private async Task<bool> ExecuteShellCommand(string command)
+    {
+        using var process = new System.Diagnostics.Process
+        {
+            StartInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/c {command}",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            }
+        };
+
+        process.Start();
+        await process.WaitForExitAsync();
+
+        return process.ExitCode == 0;
+    }
+
 }
