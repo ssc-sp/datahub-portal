@@ -1,6 +1,5 @@
 ﻿using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Queues.Messages;
-using MassTransit;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -14,13 +13,13 @@ namespace Datahub.Functions
         
         private readonly ILogger<InactivityScheduler> _logger;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-        private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IMediator _mediator;
 
-        public InactivityScheduler(ILoggerFactory loggerFactory, IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IPublishEndpoint publishEndpoint)
+        public InactivityScheduler(ILoggerFactory loggerFactory, IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IMediator mediator)
         {
             _logger = loggerFactory.CreateLogger<InactivityScheduler>();
             _dbContextFactory = dbContextFactory;
-            _publishEndpoint = publishEndpoint;
+            _mediator = mediator;
         }
         
         [Function("InactivityScheduler")]
@@ -47,7 +46,7 @@ namespace Datahub.Functions
             foreach (var project in projects)
             {
                 var message = DeserializeProjectMessage(project);
-                await _publishEndpoint.Publish(message);
+                await _mediator.Send(message);
             }
         }
         
@@ -58,7 +57,7 @@ namespace Datahub.Functions
             foreach (var user in users)
             {
                 var message = DeserializeUserMessage(user);
-                await _publishEndpoint.Publish(message);
+                await _mediator.Send(message);
             }
         }
 

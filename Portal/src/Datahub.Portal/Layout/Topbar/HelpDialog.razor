@@ -228,20 +228,20 @@
         
     // We create the bug report message and send it to the queue.
         var bugReport = new BugReportMessage(
-            userName: _ticketName,
-            userEmail: _ticketEmail,
-            userOrganization: _ticketOrg,
-            portalLanguage: _ticketPortalLanguage,
-            preferredLanguage: _ticketPreferredLanguage == 1 ? "en" : "fr",
-            timezone: timezone,
-            workspaces: workspaces,
-            topics: topics,
-            url: url,
-            userAgent: useragent,
-            resolution: resolution,
-            localStorage: localStorageData,
-            bugReportType: BugReportTypes.SupportRequest,
-            description: _ticketDescription
+            UserName: _ticketName,
+            UserEmail: _ticketEmail,
+            UserOrganization: _ticketOrg,
+            PortalLanguage: _ticketPortalLanguage,
+            PreferredLanguage: _ticketPreferredLanguage == 1 ? "en" : "fr",
+            Timezone: timezone,
+            Workspaces: workspaces,
+            Topics: topics,
+            URL: url,
+            UserAgent: useragent,
+            Resolution: resolution,
+            LocalStorage: localStorageData,
+            BugReportType: BugReportTypes.SupportRequest,
+            Description: _ticketDescription
         );
 
         await _mediatr.Send(bugReport);

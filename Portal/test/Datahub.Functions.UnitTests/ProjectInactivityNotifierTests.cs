@@ -8,7 +8,6 @@ using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Shared.Entities;
 using FluentAssertions;
-using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,7 +21,7 @@ public class ProjectInactivityNotifierTests
     private ProjectInactivityNotifier _sut;
 
     private readonly IDateProvider _dateProvider = Substitute.For<IDateProvider>();
-    private readonly IPublishEndpoint _publishEndpoint = Substitute.For<IPublishEndpoint>();
+    private readonly IMediator _mediator = Substitute.For<IMediator>();
     private readonly ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
 
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory =
@@ -45,10 +44,10 @@ public class ProjectInactivityNotifierTests
     public void Setup()
     {
         _azConfig = new AzureConfig(_config);
-        _pongService = new QueuePongService(_publishEndpoint);
+        _pongService = new QueuePongService(_mediator);
         _emailValidator = new EmailValidator();
         _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
-        _sut = new ProjectInactivityNotifier(_loggerFactory, _publishEndpoint, _dbContextFactory, _pongService,
+        _sut = new ProjectInactivityNotifier(_loggerFactory, _mediator, _dbContextFactory, _pongService,
             _projectInactivityNotificationService, _resourceMessagingService, _emailValidator, _dateProvider, _azConfig, _emailService);
     }
 

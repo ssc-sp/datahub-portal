@@ -7,8 +7,6 @@ using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
-using MassTransit;
-using MassTransit.Transports;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +16,7 @@ namespace Datahub.Functions
 {
 	public class UserInactivityNotifier
     {
-        private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IMediator _mediator;
         private readonly ILogger<UserInactivityNotifier> _logger;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
         private readonly IUserInactivityNotificationService _userInactivityNotificationService;
@@ -29,11 +27,11 @@ namespace Datahub.Functions
         private readonly QueuePongService _pongService;
         private readonly EmailValidator _emailValidator;
 
-        public UserInactivityNotifier(IPublishEndpoint publishEndpoint, ILoggerFactory loggerFactory,
+        public UserInactivityNotifier(IMediator mediator, ILoggerFactory loggerFactory,
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IDateProvider dateProvider, AzureConfig config,
             QueuePongService pongService, EmailValidator emailValidator, IUserInactivityNotificationService userInactivityNotificationService, IEmailService emailService)
         {
-            _publishEndpoint = publishEndpoint;
+            _mediator = mediator;
             _logger = loggerFactory.CreateLogger<UserInactivityNotifier>();
             _dbContextFactory = dbContextFactory;
             _dateProvider = dateProvider;
@@ -79,7 +77,7 @@ namespace Datahub.Functions
 
                 if (email != null)
                 {
-                    await _publishEndpoint.Publish(email, ct);
+                    await _mediator.Send(email, ct);
                     
                     // send notification to db
                     await _userInactivityNotificationService.AddInactivityNotification(user.Id, _dateProvider.Today,

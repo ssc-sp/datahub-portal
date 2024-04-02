@@ -12,5 +12,4 @@ public class PullRequestValueObject
         Url = url;
         PullRequestId = id;
     }
-
 }

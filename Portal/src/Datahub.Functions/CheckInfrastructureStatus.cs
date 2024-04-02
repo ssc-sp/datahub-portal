@@ -28,7 +28,7 @@ public class CheckInfrastructureStatus
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
     private readonly DatahubPortalConfiguration _portalConfiguration;
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IMediator _mediator;
     private readonly ProjectStorageConfigurationService _projectStorageConfigurationService;
     private const string workspaceKeyCheck = "project-cmk";
     private const string coreKeyCheck = "datahubportal-client-id";
@@ -40,7 +40,7 @@ public class CheckInfrastructureStatus
         IHttpClientFactory httpClientFactory,
         DatahubPortalConfiguration portalConfiguration,
         IConfiguration configuration,
-        IPublishEndpoint publishEndpoint,
+        IMediator mediator,
         ProjectStorageConfigurationService projectStorageConfigurationService)
     {
         _logger = loggerFactory.CreateLogger<CheckInfrastructureStatus>();
@@ -49,7 +49,7 @@ public class CheckInfrastructureStatus
         _httpClientFactory = httpClientFactory;
         _portalConfiguration = portalConfiguration;
         _configuration = configuration;
-        _publishEndpoint = publishEndpoint;
+        _mediator = mediator;
         _projectStorageConfigurationService = projectStorageConfigurationService;
     }
 
@@ -145,23 +145,23 @@ public class CheckInfrastructureStatus
         if (result.Check.Status == InfrastructureHealthStatus.Unhealthy)
         {
             var bugReport = new BugReportMessage(
-                userName: "Datahub Portal",
-                userEmail: "",
-                userOrganization: "",
-                portalLanguage: "",
-                preferredLanguage: "",
-                timezone: "",
-                workspaces: "",
-                topics: "",
-                url: "",
-                userAgent: "",
-                resolution: "",
-                localStorage: "",
-                bugReportType: BugReportTypes.InfrastructureError,
-                description: $"The infrastructure health check for {request.Name} failed. Please investigate."
+                UserName: "Datahub Portal",
+                UserEmail: "",
+                UserOrganization: "",
+                PortalLanguage: "",
+                PreferredLanguage: "",
+                Timezone: "",
+                Workspaces: "",
+                Topics: "",
+                URL: "",
+                UserAgent: "",
+                Resolution: "",
+                LocalStorage: "",
+                BugReportType: BugReportTypes.InfrastructureError,
+                Description: $"The infrastructure health check for {request.Name} failed. Please investigate."
             );
 
-            await _publishEndpoint.Publish(bugReport);
+            await _mediator.Send(bugReport);
         }
 
         await StoreResult(result);

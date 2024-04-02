@@ -2,7 +2,6 @@
 using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Entities;
-using MassTransit;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -16,14 +15,14 @@ public class ProjectUsageScheduler
 {
     private readonly ILogger<ProjectUsageScheduler> _logger;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IMediator _mediator;
 
     public ProjectUsageScheduler(ILoggerFactory loggerFactory,
-        IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IPublishEndpoint publishEndpoint)
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IMediator mediator)
     {
         _logger = loggerFactory.CreateLogger<ProjectUsageScheduler>();
         _dbContextFactory = dbContextFactory;
-        _publishEndpoint = publishEndpoint;
+        _mediator = mediator;
     }
 
     [Function("ProjectUsageScheduler")]
@@ -69,12 +68,12 @@ public class ProjectUsageScheduler
             scheduled.Add(message.ProjectId);
 
             // send/post the message
-            await _publishEndpoint.Publish(message);
+            await _mediator.Send(message);
 
             var capacityMessage = ConvertToCapacityUpdateMessage(message, timeout);
 
             // send/post the message,
-            await _publishEndpoint.Publish(capacityMessage);
+            await _mediator.Send(capacityMessage);
         }
 
         _logger.LogInformation($"{scheduled.Count} projects scheduled!");
