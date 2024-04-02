@@ -10,7 +10,6 @@ using Microsoft.Graph.Models;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Functions.Services;
-using Datahub.Infrastructure.Services;
 
 namespace Datahub.Functions;
 
