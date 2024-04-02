@@ -1,7 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using Azure.Core;
 using Azure.Identity;
-using Datahub.Infrastructure.Services;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.VisualStudio.Services.Client;
 using Microsoft.VisualStudio.Services.Common;

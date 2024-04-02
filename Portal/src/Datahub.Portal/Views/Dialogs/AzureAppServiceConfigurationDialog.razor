@@ -2,7 +2,6 @@
 @using Datahub.Application.Validators
 @using Datahub.Core.Model.Projects
 
-
 <MudDialog ClassContent="pa-6" ClassActions="pa-6">
     <DialogContent>
         <MudForm @bind-IsValid="@_success">
@@ -75,11 +74,6 @@
     [Parameter] public Project_Resources2 Resource { get; set; }
     private EnvironmentVariablesTable envVarTable { get; set; }
 
-    private enum RepoVisibilities
-    {
-        Public,
-        Private
-    }
     
     private string _selectedFramework;
     private string _gitRepoUrl;

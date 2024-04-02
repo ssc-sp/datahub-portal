@@ -118,21 +118,11 @@ namespace Datahub.Portal.Components
 
         private void BackupItem(object item)
         {
-            var e = item as (string Key, string Value)?;
-            if (e is not null)
-            {
             _elementBeforeEdit = new()
             {
                 Key = (((string Key, string Value))item).Key,
                 Value = (((string Key, string Value))item).Value
             };
-                
-                _logger.LogInformation($"Item has been backed up: {_elementBeforeEdit.Key}");
-            }
-            else
-            {
-                _logger.LogInformation("Unable to backup item.");
-            }
         }
 
         private void HandleRowEditCancel(object element)

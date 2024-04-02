@@ -19,6 +19,7 @@ using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Services.Security;
 using MassTransit;
 using Datahub.Shared.Messaging;
+using AzureConfig = Datahub.Functions.AzureConfig;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()

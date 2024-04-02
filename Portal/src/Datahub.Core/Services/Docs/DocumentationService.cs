@@ -9,6 +9,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Azure.Storage.Blobs;
+using Microsoft.Extensions.Logging;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace Datahub.Core.Services.Docs;
 
@@ -18,8 +22,22 @@ public class DocumentationService
 {
     private const string DOCS_ROOT_CONFIG_KEY = "docsURL";
     private const string DOCS_EDIT_URL_CONFIG_KEY = "EditdocsURLPrefix";
-    private DocumentationFileMapper _docFileMappings = null!;
-    private IList<TimeStampedStatus> _statusMessages;
+
+    public const string LOCALE_EN = "";
+    public const string LOCALE_FR = "fr";
+    public const string SIDEBAR = "_sidebar.md";
+    public const string FILE_MAPPINGS = "filemappings.json";
+    private const string LAST_COMMIT_TS = "LAST_COMMIT_TS";
+    public const string COMMIT_API_URL = "https://api.github.com/repos/ssc-sp/datahub-docs/commits";
+    private const string CONTAINER_NAME = "docs";
+
+    private readonly string docsEditPrefix;
+    private readonly ILogger<DocumentationService> logger;
+    private readonly IHttpClientFactory httpClientFactory;
+    private readonly IConfiguration config;
+
+    private DocumentationFileMapper docFileMappings = null!;
+    private IList<TimeStampedStatus> statusMessages;
     private DocItem? enOutline;
     private DocItem? frOutline;
     private DocItem cachedDocs;
@@ -30,14 +48,14 @@ public class DocumentationService
         IMemoryCache docCache)
     {
         //!ctx.HostingEnvironment.IsDevelopment()
-        
-        var branch = environment.IsProduction()? "main": "next";
-        _docsRoot = config.GetValue(DOCS_ROOT_CONFIG_KEY, $"https://raw.githubusercontent.com/ssc-sp/datahub-docs/{branch}/")!;
-        _docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, "https://github.com/ssc-sp/datahub-docs/edit/{branch}/")!;
-        _logger = logger;
-        _httpClientFactory = httpClientFactory;
-        _statusMessages = new List<TimeStampedStatus>();
-        _cache = docCache;
+
+        var branch = environment.IsProduction() ? "main" : "next";
+        docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, $"https://github.com/ssc-sp/datahub-docs/edit/{branch}/")!;
+        this.config = config;
+        this.logger = logger;
+        this.httpClientFactory = httpClientFactory;
+        statusMessages = new List<TimeStampedStatus>();
+        cache = docCache;
         cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
     }
 
@@ -52,9 +70,8 @@ public class DocumentationService
             var cache = this.cache as MemoryCache;
             if (cache != null)
             {
-                //https://stackoverflow.com/questions/49176244/asp-net-core-clear-cache-from-imemorycache-set-by-set-method-of-cacheextensions/49425102#49425102
-                //this weird trick removes all the entries
-                var percentage = 1.0;//100%
+                // Clear all entries from the memory cache
+                var percentage = 1.0; // 100%
                 cache.Compact(percentage);
 
                 // Reload the resource tree
@@ -97,11 +114,14 @@ public class DocumentationService
             throw new ArgumentNullException(nameof(relLink));
         }
 
-        return new Uri(_docsRoot + relLink).AbsoluteUri;
+        return new Uri($"https://raw.githubusercontent.com/ssc-sp/datahub-docs/next/{relLink}").AbsoluteUri;
     }
 
-
-
+    /// <summary>
+    /// Cleans up the characters in the input string by normalizing and replacing spaces with hyphens.
+    /// </summary>
+    /// <param name="input">The input string to be cleaned up.</param>
+    /// <returns>The cleaned up string.</returns>
     private string CleanupCharacters(string input)
     {
         var deAccented = new string(input?.Normalize(NormalizationForm.FormD)
@@ -299,8 +319,6 @@ public class DocumentationService
 
         StringBuilder sb = new();
 
-        sb.Append(_docsRoot);
-        
         if (allFolders.Count > 0)
         {
             foreach (var f in allFolders)
@@ -324,7 +342,7 @@ public class DocumentationService
     private async Task<string?> LoadDocsPage(DocumentationGuideRootSection guide, string? name, string? locale = "", bool useCache = true)
     {
         if (name is null) return null;
-        return await LoadDocs(BuildURL(guide, locale??string.Empty, name), useCache);
+        return await LoadDocs(BuildPath(guide, locale ?? string.Empty, name));
     }
 
     /// <summary>
@@ -334,8 +352,16 @@ public class DocumentationService
     /// <returns>The last commit timestamp if available, otherwise null.</returns>
     public async Task<DateTime?> GetLastRepoCommitTS(bool useCache = true)
     {
-        if (_cache.TryGetValue(LAST_COMMIT_TS, out DateTime? lastTS) && useCache)
-            if (lastTS.HasValue) return lastTS.Value;
+        // Check if the last commit timestamp is already in the cache
+        if (cache.TryGetValue(LAST_COMMIT_TS, out DateTime? lastTS) && useCache)
+        {
+            if (lastTS.HasValue)
+            {
+                return lastTS.Value;
+            }
+        }
+
+        // Read the commit information from the API
         var node = await ReadURL(new Dictionary<string, string>() { { "path", "UserGuide/_sidebar.md" }, { "sha", "main" }, });
         var lastCommit = (DateTime?)node?[0]?["commit"]?["author"]?["date"];
 
@@ -354,7 +380,11 @@ public class DocumentationService
         return null;
     }
 
-    static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+    /// <summary>
+    /// Retrieves the retry policy for handling transient HTTP errors and not found status codes.
+    /// </summary>
+    /// <returns>The retry policy.</returns>
+    private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
     {
         return HttpPolicyExtensions
             .HandleTransientHttpError()
@@ -377,9 +407,8 @@ public class DocumentationService
         if (parameters != null)
             builder.Query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
 
-
-        var res = await GetRetryPolicy().ExecuteAsync(async () => {
-            //builder.Query = "search=usa";
+        var res = await GetRetryPolicy().ExecuteAsync(async () =>
+        {
             var request = new HttpRequestMessage() { RequestUri = builder.Uri, Method = HttpMethod.Get };
             client.DefaultRequestHeaders.Add("User-Agent", "DataHub");
             return await client.SendAsync(request);
@@ -393,39 +422,66 @@ public class DocumentationService
         return JsonNode.Parse(await res.Content.ReadAsStreamAsync());
     }
 
-
-
-    private async Task<string?> LoadDocs(string url, bool useCache = true, bool skipFrontMatter = true)
+    /// <summary>
+    /// Loads the documentation page with a specified path from the standard blob storage.
+    /// </summary>
+    /// <param name="path">The path of the page to load.</param>
+    /// <returns>The loaded documentation page if found, otherwise null.</returns>
+    private async Task<string?> LoadDocs(string path)
     {
-        if (_cache.TryGetValue(url, out var docContent) && useCache)
-            return docContent as string;
-
-        var httpClient = _httpClientFactory.CreateClient();
         try
         {
-            var content = await httpClient.GetStringAsync(url);
-            if (skipFrontMatter)
-            {                 
-                content = MarkdownHelper.RemoveFrontMatter(content);
-            }
-            // Set cache options.
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
-                // Keep in cache for this time, reset time if accessed.
-                .SetAbsoluteExpiration(DateTime.Now.AddHours(1));
+            var connectionString = config["Media:StorageConnectionString"];
+            BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
 
-            // Save data in cache.
-            _cache.Set(url, content, cacheEntryOptions);
-            return content;
+            return await LoadDocs(path, blobServiceClient);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error loading {url}", url);
-            AddStatusMessage($"Error loading {url}");
-
-            return default(string);
+            AddStatusMessage($"Error loading {path}: {e.Message}");
+            return e.Message;
         }
     }
-    
+
+    /// <summary>
+    /// Loads the documentation page with the specified path from the given blob storage.
+    /// </summary>
+    /// <param name="path">The path of the page to load.</param>
+    /// <param name="blobServiceClient">The blob service client to use for loading the documentation page.</param>
+    /// <returns>The loaded documentation page content if found, otherwise null.</returns>
+    private async Task<string?> LoadDocs(string path, BlobServiceClient blobServiceClient)
+    {
+        try
+        {
+            var storageContainerClient = blobServiceClient.GetBlobContainerClient(CONTAINER_NAME);
+            var documentBlobClient = storageContainerClient.GetBlobClient(path);
+
+            if (await documentBlobClient.ExistsAsync())
+            {
+                var documentResponse = await documentBlobClient.DownloadContentAsync();
+                var documentContent = documentResponse.Value.Content.ToString();
+                documentContent = MarkdownHelper.RemoveFrontMatter(documentContent);
+                return documentContent;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        catch (Exception e)
+        {
+            AddStatusMessage($"Error loading {path}: {e.Message}");
+            return e.Message;
+        }
+    }
+
+    /// <summary>
+    /// Loads the resource tree for the given documentation guide and locale.
+    /// </summary>
+    /// <param name="guide">The documentation guide to load the resource tree for.</param>
+    /// <param name="locale">The locale of the resource tree.</param>
+    /// <param name="useCache">A boolean value indicating whether to use the cache.</param>
+    /// <returns>The loaded resource tree if successful, otherwise null.</returns>
     public async Task<DocItem?> LoadResourceTree(DocumentationGuideRootSection guide, string locale, bool useCache = true)
     {
         if (enOutline == null || frOutline == null)
@@ -447,7 +503,12 @@ public class DocumentationService
         return await LoadDocsPage(DocumentationGuideRootSection.RootFolder, card.GetMarkdownFileName());
     }
 
-    public string GetEditUrl(DocItem card) => $"{_docsEditPrefix}{card.GetMarkdownFileName()}";
+    /// <summary>
+    /// Retrieves the edit URL for the given DocItem.
+    /// </summary>
+    /// <param name="card">The DocItem representing the resource page.</param>
+    /// <returns>The edit URL for the resource page.</returns>
+    public string GetEditUrl(DocItem card) => $"{docsEditPrefix}{card.GetMarkdownFileName()}";
 
     /// <summary>
     /// Removes the specified DocItem from the cache.
@@ -457,12 +518,16 @@ public class DocumentationService
     {
         if (item.GetMarkdownFileName != null)
         {
-            var path = BuildURL(item.RootSection, null, item.GetMarkdownFileName()!);
-            _cache.Remove(path);
+            var path = BuildPath(item.RootSection, null, item.GetMarkdownFileName()!);
+            cache.Remove(path);
         }
     }
 
-    public IReadOnlyList<TimeStampedStatus> GetErrorList() => _statusMessages.AsReadOnly();
+    /// <summary>
+    /// Retrieves the list of error messages.
+    /// </summary>
+    /// <returns>The list of error messages.</returns>
+    public IReadOnlyList<TimeStampedStatus> GetErrorList() => statusMessages.AsReadOnly();
 
     /// <summary>
     /// Logs a not found error for the specified page name and resource root.

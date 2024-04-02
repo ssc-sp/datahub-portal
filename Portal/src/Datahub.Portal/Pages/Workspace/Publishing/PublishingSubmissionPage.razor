@@ -41,8 +41,6 @@
     [Parameter]
     public string SubSection { get; set; }
 
-    private System.Threading.Timer _fileStatusTimer;
-
     private bool IsPublishingEnabled => _config.CkanConfiguration.IsFeatureEnabled;
 
     private long? SubmissionId => long.TryParse(SubSection, out var result) ? result : default;
@@ -110,7 +108,6 @@
             matchingFile.UploadStatus = file.UploadStatus;
             matchingFile.UploadMessage = file.UploadMessage;
         }
-        }, new System.Threading.AutoResetEvent(false), 2000, 2000);
 
         await InvokeAsync(StateHasChanged);
     }

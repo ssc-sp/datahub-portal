@@ -128,9 +128,6 @@
         {
             await _keyVaultUserService.Authenticate();
             _isElevated = true;
-            _resource = await _webAppMgmtService.GetResource(WorkspaceAcronym);
-            await HydrateValues();
-            _webAppState = await _webAppMgmtService.GetState(_webAppId);
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
         {

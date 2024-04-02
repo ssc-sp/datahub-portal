@@ -184,17 +184,13 @@ namespace Datahub.Infrastructure.Services.Publishing
             });
 
             submission.Files ??= new List<OpenDataPublishFile>();
-            var addedFiles = 0;
             
             foreach (var file in additionalFiles)
             {
                 submission.Files.Add(file);
-                addedFiles++;
             }
 
             await ctx.SaveChangesAsync();
-
-            return await Task.FromResult(addedFiles);
         }
 
         public async Task<OpenDataPublishFile> UpdateFileUploadStatus(OpenDataPublishFile file, OpenDataPublishFileUploadStatus status, string? uploadMessage = null)
