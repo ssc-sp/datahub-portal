@@ -2,7 +2,6 @@
 using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Infrastructure.Services;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;

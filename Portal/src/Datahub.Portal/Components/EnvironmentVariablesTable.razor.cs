@@ -108,6 +108,11 @@ namespace Datahub.Portal.Components
 
         private async Task CreateOrUpdateEnvironmentVariable((string Key, string Value) item)
         {
+            var existingItem = envVars.FirstOrDefault(x => x.Key == item.Key);
+            if (existingItem.Key != default)
+            {
+                envVars.Remove(existingItem);
+            }
             envVars.Add(item);
         }
 
@@ -116,11 +121,11 @@ namespace Datahub.Portal.Components
             var e = item as (string Key, string Value)?;
             if (e is not null)
             {
-                _elementBeforeEdit = new() 
-                {
-                    Key = e?.Key,
-                    Value = e?.Value
-                };
+            _elementBeforeEdit = new()
+            {
+                Key = (((string Key, string Value))item).Key,
+                Value = (((string Key, string Value))item).Value
+            };
                 
                 _logger.LogInformation($"Item has been backed up: {_elementBeforeEdit.Key}");
             }

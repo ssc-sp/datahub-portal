@@ -28,6 +28,7 @@
               CancelEditTooltip="@Localizer["Cancel edit"]"
               IsEditRowSwitchingBlocked="true"
               EditTrigger="TableEditTrigger.EditButton"
+              EditButtonPosition="TableEditButtonPosition.Start"
               OnCommitEditClick="@HandleCommitEditClicked"
               ApplyButtonPosition="TableApplyButtonPosition.Start"
               EditButtonPosition="TableEditButtonPosition.Start"
@@ -68,7 +69,9 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="@Localizer["Key"]">@context.Key</MudTd>
-            <MudTd DataLabel="@Localizer["Value"]">@context.Value</MudTd>
+            <MudTd DataLabel="@Localizer["Value"]">
+                <code>@context.Value</code>
+            </MudTd>
             <MudTd>
                 <MudTooltip Text="@Localizer["Delete environment variable"]">
                     <MudIconButton Size="Size.Small" Icon="@SidebarIcons.Delete" aria-label="@(Localizer["Delete"])"
@@ -76,14 +79,12 @@
                 </MudTooltip>
             </MudTd>
         </RowTemplate>
-        <RowEditingTemplate>
+        <RowEditingTemplate >
             <MudTd DataLabel="@Localizer["Key"]">
-                <MudTextField @bind-Value="@context.Key" Required/>
+                <MudTextField Value="@context.Key" Required/>
             </MudTd>
             <MudTd DataLabel="@Localizer["Value"]">
-                <code>
-                    <MudTextField @bind-Value="@context.Value" Required/>
-                </code>
+                <MudTextField Value="@context.Value" Required/>
             </MudTd>
             <MudTd/>
         </RowEditingTemplate>
@@ -148,6 +149,8 @@ else
 
     private string _filterString = default;
     private (string Key, string Value) _selectedItem = default;
+    private string _editKey = default;
+    private string _editValue = default;
     private (string Key, string Value) _elementBeforeEdit = default;
     public List<(string Key, string Value)> envVars = new();
     private bool _show = false;

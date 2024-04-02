@@ -71,6 +71,8 @@ namespace Datahub.Infrastructure.Services.WebApp
             var inputJson = JsonSerializer.Deserialize<Dictionary<string, dynamic>>(projectResource.InputJsonContent);
             inputJson["app_service_framework"] = config.Framework;
             inputJson["app_service_git_repo"] = config.GitRepo;
+            inputJson["app_service_git_repo_visibility"] = config.IsGitRepoPrivate.ToString();
+            inputJson["app_service_git_token_secret_name"] = config.GitTokenSecretName;
             inputJson["app_service_compose_path"] = config.ComposePath;
             var jsonObject = JsonSerializer.Serialize(inputJson);
             projectResource.InputJsonContent = jsonObject;
@@ -80,7 +82,7 @@ namespace Datahub.Infrastructure.Services.WebApp
 
         public async Task Configure(string workspaceAcronym, AppServiceConfiguration configuration)
         {
-            var message = new WorkspaceAppServiceConfigurationMessage(workspaceAcronym);
+            var message = new WorkspaceAppServiceConfigurationMessage(workspaceAcronym, configuration);
             await _mediatr.Send(message);
         }
 

@@ -86,7 +86,6 @@
       <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
       <ProjectReference Include="..\Datahub.Infrastructure\Datahub.Infrastructure.csproj" />
       <ProjectReference Include="..\Datahub.Portal\Datahub.Portal.csproj" />
-      <ProjectReference Include="..\Datahub.ProjectTools\Datahub.ProjectTools.csproj" />
     </ItemGroup>
 
     <ItemGroup>

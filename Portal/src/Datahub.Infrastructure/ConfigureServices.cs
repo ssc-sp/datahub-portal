@@ -4,7 +4,6 @@ using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Notifications;
 using Datahub.Application.Services.ReverseProxy;
 using Datahub.Core.Services.CatalogSearch;
-using Datahub.Infrastructure.Queues.MessageHandlers;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
 using Datahub.Infrastructure.Services.Azure;

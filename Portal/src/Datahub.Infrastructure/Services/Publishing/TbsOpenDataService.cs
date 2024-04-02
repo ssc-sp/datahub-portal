@@ -1,4 +1,5 @@
 ﻿using Datahub.Application.Configuration;
+using Datahub.Application.Exceptions;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Publishing;
 using Datahub.Application.Services.Security;
@@ -58,7 +59,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
             throw new OpenDataPublishingException($"TBS OpenGov API Key not found for workspacce {workspaceAcronym}");
         }
 
-        return await Task.FromResult(_ckanServiceFactory.CreateService(apiKey));
+        return CKANService.CreateService(_httpClientFactory, _config.CkanConfiguration, apiKey);
     }
 
     private async Task ApplyWorkspaceOwnerOrgToMetadata(FieldValueContainer submissionMetadata, string workspaceAcronym)
@@ -183,12 +184,12 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
     public async Task<string?> GetApiKeyForWorkspace(string workspaceAcronym)
     {
-        return await _keyvaultUserService.GetSecretAsync(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY);
+        return await _keyvaultUserService.GetSecretAsync(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY_SECRET_NAME);
     }
 
     public async Task SetApiKeyForWorkspace(string workspaceAcronym, string apiKey)
     {
-        await _keyvaultUserService.StoreSecret(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY, apiKey);
+        await _keyvaultUserService.StoreSecret(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY_SECRET_NAME, apiKey);
     }
 
     public async Task<bool> IsWorkspaceReadyForSubmission(string workspaceAcronym)
