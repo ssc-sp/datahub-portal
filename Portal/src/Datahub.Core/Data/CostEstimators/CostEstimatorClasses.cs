@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Datahub.Core.Data.CostEstimators;
+﻿namespace Datahub.Core.Data.CostEstimators;
 
 public record class EstimatorResultLine(int NumberOfOperations, decimal Cost);
 public record class EstimatorResultLineDecimal(decimal NumberOfOperations, decimal Cost);
-    
+
 public record class UnitPrice(decimal BasePrice, int Units);
-    
+
 public class AzurePriceAPIItem
 {
     public string MeterId { get; set; }
@@ -37,7 +34,7 @@ public interface IAzurePriceAPIItemContainer
     IList<AzurePriceAPIItem> Items { get; set; }
 }
 
-public class AzurePriceAPIResult: IAzurePriceAPIItemContainer
+public class AzurePriceAPIResult : IAzurePriceAPIItemContainer
 {
     public string BillingCurrency { get; set; }
     public int Count { get; set; }

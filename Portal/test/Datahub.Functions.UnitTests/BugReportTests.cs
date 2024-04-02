@@ -1,24 +1,19 @@
-﻿using Azure.Storage.Queues.Models;
-using Datahub.Application.Services.Security;
-using Datahub.Core.Services.Security;
-using Datahub.Functions;
-using Datahub.Functions.Services;
+﻿using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
-using Datahub.Infrastructure.Services.Security;
-using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using NSubstitute;
-using JsonSerializer = System.Text.Json.JsonSerializer;
+
+namespace Datahub.Functions.UnitTests;
 
 [TestFixture]
 public class BugReportTests
 {
     private ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
-    private IKeyVaultService _keyVaultService = Substitute.For<IKeyVaultService>();
-    private IPublishEndpoint _publishEndpoint = Substitute.For<IPublishEndpoint>();
+    private IMediator _mediator = Substitute.For<IMediator>();
     private IConfiguration _config = Substitute.For<IConfiguration>();
     
     private BugReport _bugReport;
@@ -33,35 +28,23 @@ public class BugReportTests
         _logger = _loggerFactory.CreateLogger<BugReport>();
         _azureConfig = new AzureConfig(_config);
         _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
-        _bugReport = new BugReport(_logger, _azureConfig, _emailService, _publishEndpoint );
+        _bugReport = new BugReport(_logger, _azureConfig, _emailService, _mediator);
         _bugReportMessage = new BugReportMessage(
-            userName: "Test",
-            userEmail: "example@email.com",
-            userOrganization: "ssc-spc",
-            portalLanguage: "en",
-            preferredLanguage: "en",
-            timezone: "EST",
-            workspaces: "DIE1",
-            topics: "Test",
-            url: "google.com",
-            userAgent: "test",
-            resolution: "1920x1080",
-            localStorage: "{}",
-            bugReportType: BugReportTypes.SupportRequest,
-            description: "Test report"
+            UserName: "Test",
+            UserEmail: "example@email.com",
+            UserOrganization: "ssc-spc",
+            PortalLanguage: "en",
+            PreferredLanguage: "en",
+            Timezone: "EST",
+            Workspaces: "DIE1",
+            Topics: "Test",
+            URL: "google.com",
+            UserAgent: "test",
+            Resolution: "1920x1080",
+            LocalStorage: "{}",
+            BugReportType: BugReportTypes.SupportRequest,
+            Description: "Test report"
         );
-    }
-
-    [Test]
-    [Ignore("Need to fix")]
-    public async Task PublishBugReport_ShouldInvokeMassTransit()
-    {
-        QueueMessage qm = QueuesModelFactory.QueueMessage(
-            messageId: "bug-report",
-            popReceipt: "",
-            messageText: JsonSerializer.Serialize(_bugReportMessage),
-            dequeueCount: 0);
-        await _bugReport.Run(qm);
     }
 
     [Test]
@@ -69,10 +52,10 @@ public class BugReportTests
     public void BuildEmail_WithValidInputs_ReturnsEmailRequestMessage()
     {
         // Arrange
-        var response = new Dictionary<string, object>
+        var response = new WorkItem()
         {
-            { "url", "Test Url" },
-            { "id", "Test Id" }
+            Id = 0,
+            Url = "Test Url"
         };
 
         // Act

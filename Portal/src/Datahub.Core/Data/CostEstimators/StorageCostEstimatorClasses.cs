@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Datahub.Core.Data.CostEstimators;
+﻿namespace Datahub.Core.Data.CostEstimators;
 
 public class StorageCostEstimatorResult
 {
@@ -17,7 +14,7 @@ public class StorageCostEstimatorResult
     public bool HasValues => (WriteOperations ?? ListCreateOperations ?? ReadOperations ?? OtherOperations ?? DataRetrieval ?? DataWrite ?? GeoReplication) != null;
     public decimal TotalCost => Cost(WriteOperations) + Cost(ListCreateOperations) + Cost(ReadOperations) +
                                 Cost(OtherOperations) + Cost(DataRetrieval) + Cost(DataWrite) + Cost(GeoReplication);
-}    
+}
 public class StorageCostEstimatorPriceList
 {
     public UnitPrice Capacity { get; set; }
@@ -48,6 +45,6 @@ public enum DataRedundancyType
 public class SavedStorageCostPriceGrid
 {
     public DateTime LastUpdatedUtc { get; set; }
-        
+
     public Dictionary<string, StorageCostEstimatorPriceList> PriceLists { get; set; }
 }

@@ -1,8 +1,6 @@
 ﻿using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Documentation;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

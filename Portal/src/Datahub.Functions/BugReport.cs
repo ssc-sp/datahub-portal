@@ -1,22 +1,14 @@
-﻿using System;
-using System.Net.Http.Headers;
-using System.Text;
-using Azure.Storage.Queues.Models;
-using Datahub.Application.Services.Security;
-using Datahub.Core.Services.Security;
+﻿using Azure.Storage.Queues.Models;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
-using Datahub.Infrastructure.Services.Security;
-using MassTransit;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
-using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Datahub.Functions
@@ -26,15 +18,15 @@ namespace Datahub.Functions
         private readonly ILogger<BugReport> _logger;
         private readonly AzureConfig _config;
         private readonly IEmailService _emailService;
-        private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IMediator _mediator;
 
         public BugReport(ILogger<BugReport> logger, AzureConfig config,
-            IEmailService emailService, IPublishEndpoint publishEndpoint)
+            IEmailService emailService, IMediator mediator)
         {
             _logger = logger;
             _config = config;
             _emailService = emailService;
-            _publishEndpoint = publishEndpoint;
+            _mediator = mediator;
         }
 
         [Function("BugReport")]
@@ -49,28 +41,18 @@ namespace Datahub.Functions
 
             if (bug != null)
             {
-                // We set up the title and description to be submitted in the issue.
-
-
-                // Retrieve ADO information
-                string devOpsUrl = _config.AdoConfig.URL;
-
-                // Preemptively build the post url
-                var url = devOpsUrl.Replace("{organization}", _config.AdoConfig.OrgName).Replace("{project}", _config.AdoConfig.ProjectName)
-                    .Replace("{workItemTypeName}", "Issue");
-
                 // Build the ADO issue
                 var issue = await CreateIssue(bug);
 
                 // Post the issue to ADO and parse the response
-                var workItem = await PostIssue(issue, url);
+                var workItem = await PostIssue(issue);
 
                 // Build the email
                 var email = BuildEmail(bug, workItem);
 
                 if (email is not null)
                 {
-                    await _publishEndpoint.Publish(email);
+                    await _mediator.Send(email);
                 }
                 else
                 {
@@ -144,7 +126,7 @@ namespace Datahub.Functions
             return body;
         }
 
-        public async Task<WorkItem> PostIssue(JsonPatchDocument body, string postUrl)
+        public async Task<WorkItem> PostIssue(JsonPatchDocument body)
         {
             var clientProvider = new AdoClientProvider(_config);
             var client = await clientProvider.GetWorkItemClient();

@@ -1,9 +1,8 @@
 ﻿using System.Text.RegularExpressions;
-using FluentValidation;
 
 namespace Datahub.Functions.Validators
 {
-    public class EmailValidator
+	public class EmailValidator
     {
         public bool IsValidEmail(string email)
         {

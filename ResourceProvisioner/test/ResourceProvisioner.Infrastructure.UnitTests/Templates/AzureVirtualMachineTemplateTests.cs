@@ -1,9 +1,6 @@
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using Datahub.Shared.Entities;
 using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
-using ResourceProvisioner.Infrastructure.Services;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Templates;
 

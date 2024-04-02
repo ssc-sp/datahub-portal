@@ -22,7 +22,10 @@
 		<PackageReference Include="Moq" Version="4.*" />
         <PackageReference Include="NUnit3TestAdapter" Version="4.*" />
         <PackageReference Include="NUnit.Analyzers" Version="3.*" />
-        <PackageReference Include="coverlet.collector" Version="6.*" />
+        <PackageReference Include="coverlet.collector" Version="6.0.1">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
 
     </ItemGroup>
 

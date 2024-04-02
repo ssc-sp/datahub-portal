@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Datahub.Core.Data.ExternalSearch.FGP;
 
 public class GeoCoreContact
@@ -28,4 +26,4 @@ public class GeoCoreContact
     }
 }
 
-public class GeoCoreContactList: List<GeoCoreContact> { }
+public class GeoCoreContactList : List<GeoCoreContact> { }

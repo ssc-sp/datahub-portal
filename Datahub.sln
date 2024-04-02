@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B6CC5ED1-A990-4AC7-89C7-B0F62FFEEC26}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		Analyzers.ruleset = Analyzers.ruleset
 		bleach.ps1 = bleach.ps1
 		COPYRIGHT.md = COPYRIGHT.md
 		dh-portal.ps1 = dh-portal.ps1
@@ -14,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		LICENSE.md = LICENSE.md
 		nuget.config = nuget.config
 		README.md = README.md
+		stylecop.json = stylecop.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{48CAB0F7-CFCC-443B-B71D-E015878CE5B7}"
@@ -146,8 +148,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.SpecflowTests", "Portal\test\Datahub.SpecflowTests\Datahub.SpecflowTests.csproj", "{D84C8789-E77F-438A-A0B6-7DB1695B9C17}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.MissingTranslations", "Portal\utils\Datahub.MissingTranslations\Datahub.MissingTranslations.csproj", "{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}"
-EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Datahub.Messaging", "Shared\src\Datahub.Messaging\Datahub.Messaging.shproj", "{3048FBBE-0D41-4FF0-8FFC-4C0A1DAF9274}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -380,20 +380,20 @@ Global
 		{E84F619D-E105-4E1A-BD92-DF22DDAE966F} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{D84C8789-E77F-438A-A0B6-7DB1695B9C17} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A} = {73AC16BF-F514-4081-8C74-63C6399260E0}
-		{3048FBBE-0D41-4FF0-8FFC-4C0A1DAF9274} = {839AFC95-740D-4C44-8F05-254250306841}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_ConfirmAddLanguageFile = True
-		RESX_AutoCreateNewLanguageFiles = True
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
+		RESX_AutoCreateNewLanguageFiles = True
+		RESX_ConfirmAddLanguageFile = True
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Shared\src\Datahub.Messaging\Datahub.Messaging.projitems*{3048fbbe-0d41-4ff0-8ffc-4c0a1daf9274}*SharedItemsImports = 13
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{57703cec-08b9-40b8-b5e2-064a196b1587}*SharedItemsImports = 5
 		Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{79da8e04-5655-493a-80e4-37a07fbec90e}*SharedItemsImports = 13
+		Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems*{99e69964-bb4a-4830-9c4d-6e1608356ec4}*SharedItemsImports = 5
 		Shared\src\Datahub.Messaging\Datahub.Messaging.projitems*{bea40233-6741-43ae-ba63-8d1ada261420}*SharedItemsImports = 5
+		Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems*{c694124a-399c-4fd6-b795-d9ace5ebecdc}*SharedItemsImports = 13
 		Shared\src\Datahub.Messaging\Datahub.Messaging.projitems*{cf8de3c8-8b81-4569-8075-aad80b478b5f}*SharedItemsImports = 5
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{cf8de3c8-8b81-4569-8075-aad80b478b5f}*SharedItemsImports = 5
 	EndGlobalSection

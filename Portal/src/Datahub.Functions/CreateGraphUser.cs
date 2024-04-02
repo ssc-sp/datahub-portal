@@ -7,11 +7,9 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
-using Microsoft.Kiota.Abstractions;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Functions.Services;
-using MassTransit;
 using Datahub.Infrastructure.Services;
 
 namespace Datahub.Functions;
@@ -20,14 +18,14 @@ public class CreateGraphUser
 {
     private readonly ILogger _logger;
     private readonly AzureConfig _configuration;
+    private readonly IMediator _mediator;
     private readonly IEmailService _emailService;
-    private readonly IPublishEndpoint _publishEndpoint;
 
-    public CreateGraphUser(ILoggerFactory loggerFactory, AzureConfig configuration, IPublishEndpoint publishEndpoint, IEmailService emailService)
+    public CreateGraphUser(ILoggerFactory loggerFactory, AzureConfig configuration, IMediator mediator, IEmailService emailService)
     {
         _logger = loggerFactory.CreateLogger<CreateGraphUser>();
         _configuration = configuration;
-        _publishEndpoint = publishEndpoint;
+        _mediator = mediator;
         _emailService = emailService;
     }
     
@@ -196,7 +194,7 @@ public class CreateGraphUser
             new Dictionary<string, string>());
         if (email is not null)
         {
-            await _publishEndpoint.Publish(email);
+            await _mediator.Send(email);
         }
     }
 
@@ -215,7 +213,7 @@ public class CreateGraphUser
             Body = body
         };
         
-        await _publishEndpoint.Publish(notificationEmail);
+        await _mediator.Send(notificationEmail);
     }
 
     record CreateUserRequest(string email, string mockInvite, string inviter);

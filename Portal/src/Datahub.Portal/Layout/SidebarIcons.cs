@@ -15,6 +15,7 @@ public static class SidebarIcons
     public const string Dashboard = "fa-light fa-table-layout";
     public const string Databricks = SvgIcons.Databricks;
     public const string Storage = "fa-light fa-hard-drive";
+    public const string Publishing = "fa-light fa-bullhorn";
     public const string WebApp = "fa-light fa-browser";
     public const string SqlDatabase = "fa-light fa-database";
     public const string Repositories = "fa-light fa-book-bookmark";
@@ -42,7 +43,17 @@ public static class SidebarIcons
     public const string CreateNew = "fa-light fa-layer-plus";
     
     // Other Icons
+    public const string External = "fa-light fa-arrow-up-right-from-square";
     public const string Search = "fa-light fa-search";
     public const string Edit = "fa-light fa-edit";
     public const string Delete = "fa-light fa-trash";
+    public const string Brackets = "fa-light fa-brackets-curly";
+    public const string Plus = "fa-light fa-plus";
+    public const string Start = "fa-solid fa-play";
+    public const string Stop = "fa-solid fa-stop";
+    public const string Restart = "fa-light fa-rotate-right";
+    public const string Gear = "fa-light fa-gear";
+    public const string Circle = "fa-solid fa-circle";
+    public const string Show = "fa-light fa-eye";
+    public const string Hide = "fa-light fa-eye-slash";
 }

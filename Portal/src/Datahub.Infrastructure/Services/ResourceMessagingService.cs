@@ -1,6 +1,5 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
-using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Utils;
 using Datahub.ProjectTools.Services;
@@ -106,7 +105,8 @@ public class ResourceMessagingService : IResourceMessagingService
             Templates = templates,
             AppData = new WorkspaceAppData
             {
-                DatabricksHostUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project)
+                DatabricksHostUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project),
+                AppServiceConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(project)
             },
             RequestingUserEmail = requestingUserEmail,
         };

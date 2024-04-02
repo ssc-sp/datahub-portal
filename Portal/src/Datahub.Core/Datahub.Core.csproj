@@ -3,6 +3,8 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<CodeAnalysisRuleSet>..\..\..\Analyzers.ruleset</CodeAnalysisRuleSet>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -27,6 +29,7 @@
 		<PackageReference Include="AElemental.Blazor.Theme" Version="1.6.22173.2" />
 		<PackageReference Include="AngleSharp" Version="1.0.4" />
 		<PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="4.0.1" />
+		<PackageReference Include="Azure.Identity" Version="1.10.3" />
 		<PackageReference Include="Azure.Search.Documents" Version="11.4.0" />
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.18.0" />
 		<PackageReference Include="Azure.Storage.Files.DataLake" Version="12.16.0" />
@@ -74,6 +77,11 @@
 		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
 		<PackageReference Include="System.Runtime.Caching" Version="8.0.*" />
 		<PackageReference Include="Tewr.Blazor.FileReader" Version="3.3.2.23201" />
+
+		<PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.*">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 	<ItemGroup>
 		<Content Update="i18n\SharedResources.fr.json">

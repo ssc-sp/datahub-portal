@@ -1,34 +1,33 @@
-﻿using Moq;
+﻿using Datahub.Core.Model.Datahub;
 using Datahub.Functions.Services;
+using Datahub.Infrastructure.Services.Notifications;
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
-using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Functions;
-using Datahub.Infrastructure.Services;
+using Moq;
 using Newtonsoft.Json;
 using NSubstitute;
-using Microsoft.Extensions.Configuration;
-using MassTransit;
+
+namespace Datahub.Functions.UnitTests;
 
 [TestFixture]
 public class EmailServiceTests
 {
-    private Mock<ILogger<EmailService>> _mockLogger;
-    private readonly ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
-    private IConfiguration _config = Substitute.For<IConfiguration>();
-    private readonly IPublishEndpoint _publishEndpoint = Substitute.For<IPublishEndpoint>();
-    private AzureConfig _azureConfig;
     private EmailService _emailService;
-    private QueuePongService _pongService;
-    private EmailNotificationSender _notificationHandler;
-
+    private DatahubEmailService _datahubEmailService;
+    private ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
+    private ILogger<EmailService> _mockEmailLogger;
+    private ILogger<DatahubEmailService> _mockEmailServiceLogger;
+    private IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
+    private readonly IPublishEndpoint _publishEndpoint = Substitute.For<IPublishEndpoint>();
     [SetUp]
     public void Setup()
     {
-        _mockLogger = new Mock<ILogger<EmailService>>();
-        _emailService = new EmailService(_mockLogger.Object);
-        _azureConfig = new AzureConfig(_config);
-        _pongService = new QueuePongService(_publishEndpoint);
-        _notificationHandler = new EmailNotificationSender(_loggerFactory, _azureConfig, _publishEndpoint, _pongService);
+        _mockEmailLogger = _loggerFactory.CreateLogger<EmailService>();
+        _mockEmailServiceLogger = _loggerFactory.CreateLogger<DatahubEmailService>();
+        _emailService = new EmailService(_mockEmailLogger);
+        _datahubEmailService = new DatahubEmailService(_mockEmailServiceLogger, _publishEndpoint, _dbContextFactory);
     }
 
     [Test]
@@ -81,9 +80,8 @@ public class EmailServiceTests
             to = new List<string> { "test@test.test"}, 
             subject = "test", 
             body = "test" 
-        };
-        var request = JsonConvert.SerializeObject(message);
-        await _notificationHandler.Run(request);
+        }; 
+        await _datahubEmailService.SendToRecipients("test@ssc.gc.ca",message.to,message.subject,message.body);
         Assert.IsTrue(_publishEndpoint.ReceivedCalls().Count() == 1);
     }
 

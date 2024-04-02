@@ -1,15 +1,15 @@
 ﻿using Datahub.Infrastructure.Queues.Messages;
-using MassTransit;
+using MediatR;
 
 namespace Datahub.Infrastructure.Services;
 
 public class QueuePongService
 {
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IMediator _mediator;
 
-    public QueuePongService(IPublishEndpoint publishEndpoint)
+    public QueuePongService(IMediator mediator)
     {
-        _publishEndpoint = publishEndpoint;
+        _mediator = mediator;
     }
 
     const string PING = "PING:";
@@ -19,7 +19,7 @@ public class QueuePongService
         var isPing = (message ?? "").StartsWith(PING, StringComparison.OrdinalIgnoreCase);
         if (isPing)
         {
-            await _publishEndpoint.Publish(new PongMessage(message![PING.Length..].Trim()));
+            await _mediator.Send(new PongMessage(message![PING.Length..].Trim()));
         }
         return isPing;
     }

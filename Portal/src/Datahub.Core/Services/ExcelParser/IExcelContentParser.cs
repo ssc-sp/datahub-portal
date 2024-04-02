@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace Datahub.Core.Services.ExcelParser;
+﻿namespace Datahub.Core.Services.ExcelParser;
 
 public interface IExcelContentParser
 {

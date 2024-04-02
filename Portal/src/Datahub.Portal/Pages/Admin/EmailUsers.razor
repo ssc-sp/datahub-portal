@@ -1,10 +1,10 @@
 ﻿@page "/admin/emailusers"
 
 @using Infrastructure.Queues.Messages
-@using MassTransit
+@using MediatR
 
 @inject DatahubProjectDBContext _context
-@inject IPublishEndpoint _publishEndpoint
+@inject IMediator _mediator
 
 <AuthorizeView>
     <Authorized>
@@ -62,7 +62,7 @@
     {
         foreach (var message in GetMessages())
         {
-            await _publishEndpoint.Publish(message);
+            await _mediator.Send(message);
         }
         
         _subject = string.Empty;
