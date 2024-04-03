@@ -392,22 +392,25 @@ public class RepositoryService : IRepositoryService
     {
         try
         {
-            await _terraformService.CopyTemplateAsync(template, terraformWorkspace);
-            await _terraformService.ExtractVariables(template, terraformWorkspace);
-            switch (template.Name)
-            {
-                case TerraformTemplate.NewProjectTemplate:
-                    await _terraformService.ExtractBackendConfig(terraformWorkspace.Acronym!);
-                    break;
-                case TerraformTemplate.VariableUpdate:
-                    await _terraformService.ExtractAllVariables(terraformWorkspace);
-                    break;
+            if (template.Status == "delete") { await DeleteTemplateAsync(template, terraformWorkspace); }
+            else {
+                await _terraformService.CopyTemplateAsync(template, terraformWorkspace);
+                await _terraformService.ExtractVariables(template, terraformWorkspace);
+                switch (template.Name) {
+                    case TerraformTemplate.NewProjectTemplate:
+                        // Constructs the project.tfbackend file for the given acronym of the project 
+                        // from the configuration and the workspace acronym using static logic
+                        await _terraformService.ExtractBackendConfig(terraformWorkspace.Acronym!);
+                        break;
+                    case TerraformTemplate.VariableUpdate:
+                        //for each template of the workspace, reconstructs all the variable values required
+                        //by the template and writes it into the variables file 
+                        await _terraformService.ExtractAllVariables(terraformWorkspace);
+                        break;
+                }
             }
-
             await CommitTerraformTemplate(template, requestingUsername);
-
-            return new RepositoryUpdateEvent()
-            {
+            return new RepositoryUpdateEvent() {
                 Message =
                     $"Successfully created resource run for [{terraformWorkspace.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.Success
@@ -435,6 +438,28 @@ public class RepositoryService : IRepositoryService
         }
     }
 
+    private async Task DeleteTemplateAsync(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
+    {
+        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+        var templatePath = Path.Combine(projectPath, template.Name + ".tf");
+
+        if (File.Exists(templatePath))
+        {
+            File.Delete(templatePath);
+            _logger.LogInformation($"Template {template.Name} deleted successfully from {projectPath}.");
+
+            // Create new .tf file with output indicating deletion
+            var deletionIndicatorContent = @"output ""azure_storage_blob_status"" {
+  value = ""deleted""
+}";
+            await File.WriteAllTextAsync(templatePath, deletionIndicatorContent);
+            _logger.LogInformation($"Deletion indicator added for {template.Name} in {projectPath}.");
+        }
+        else
+        {
+            _logger.LogWarning($"Template {template.Name} not found in {projectPath}. No action taken.");
+        }
+    }
 
     private async Task<string> GetExistingPullRequestId(string workspaceAcronym)
     {
