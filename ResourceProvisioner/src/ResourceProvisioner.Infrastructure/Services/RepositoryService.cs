@@ -246,12 +246,16 @@ public class RepositoryService : IRepositoryService
     public async Task PushInfrastructureRepository(string workspaceAcronym)
     {
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
+        
+        var azureDevOpsClient =
+            new AzureDevOpsClient(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
+        var accessToken = await azureDevOpsClient.GetAccessToken();
         var options = new PushOptions
         {
             CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
             {
-                Username = _resourceProvisionerConfiguration.InfrastructureRepository.Username,
-                Password = _resourceProvisionerConfiguration.InfrastructureRepository.Password
+                Username = _resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientId,
+                Password = accessToken.Token
             },
         };
 
