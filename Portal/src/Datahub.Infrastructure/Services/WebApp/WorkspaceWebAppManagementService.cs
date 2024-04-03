@@ -103,6 +103,19 @@ namespace Datahub.Infrastructure.Services.WebApp
             return response.Value;
         }
 
+        private SiteInstanceResource GetSiteInstanceResource(string webAppId)
+        {
+            var resourceIdentifier = new ResourceIdentifier(webAppId);
+            var webAppResource = _armClient.GetWebSiteResource(resourceIdentifier);
+            var siteInstanceResource = _armClient.GetSiteInstanceResource(resourceIdentifier);
+            if (siteInstanceResource == null)
+            {
+                throw new Exception($"Web app with id {webAppId} not found.");
+            }
+
+            return siteInstanceResource;
+        }
+
         public async Task<Project_Resources2> GetResource(DatahubProjectDBContext context, string workspaceAcronym)
         {
             var workspace = await context.Projects

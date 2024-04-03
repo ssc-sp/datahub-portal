@@ -17,6 +17,9 @@ using Datahub.Functions.Services;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Services.Security;
+using MassTransit;
+using Datahub.Shared.Messaging;
+using AzureConfig = Datahub.Functions.AzureConfig;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -29,7 +32,8 @@ var host = new HostBuilder()
     .ConfigureServices((hostContext, services) =>
     {
         var config = hostContext.Configuration;
-        
+        var whereAmI = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
         var connectionString = config["datahub_mssql_project"];
         if (connectionString is not null)
         {
@@ -58,6 +62,33 @@ var host = new HostBuilder()
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();
+
+        services.AddMassTransit(x =>
+        {
+            x.AddConsumer<EmailNotificationConsumer>();
+            if (whereAmI == "Development")
+            {
+                x.UsingInMemory((context, cfg) =>
+                {
+                    cfg.ConfigureEndpoints(context);
+                    cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
+                });
+            }
+            else
+            {
+                x.UsingAzureServiceBus((context, cfg) =>
+                {
+                    var serviceBusConnectingString = config["DatahubServiceBusConnectionString"]
+                        ?? config["DatahubServiceBus:ConnectionString"];
+                    cfg.Host(serviceBusConnectingString);
+                    cfg.ReceiveEndpoint("email-notification", e =>
+                    {
+                        e.ConfigureConsumer<EmailNotificationConsumer>(context);
+                    });
+                    cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
+                });
+            }
+        });
 
         services.AddDatahubConfigurationFromFunctionFormat(config);
        

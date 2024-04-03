@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace ResourceProvisioner.Domain.Enums;
+namespace Datahub.Shared.Messaging;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum MessageStatusCode

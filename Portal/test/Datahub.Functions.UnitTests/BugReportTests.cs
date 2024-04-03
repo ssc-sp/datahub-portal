@@ -1,5 +1,6 @@
 ﻿using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Infrastructure.Services;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

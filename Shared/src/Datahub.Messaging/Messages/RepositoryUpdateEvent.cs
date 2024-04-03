@@ -1,8 +1,4 @@
-using ResourceProvisioner.Domain.Common;
-using ResourceProvisioner.Domain.Enums;
-
-namespace ResourceProvisioner.Domain.Events;
-
+namespace Datahub.Shared.Messaging;
 public class RepositoryUpdateEvent : BaseEvent
 {
     public MessageStatusCode StatusCode { get; set; }

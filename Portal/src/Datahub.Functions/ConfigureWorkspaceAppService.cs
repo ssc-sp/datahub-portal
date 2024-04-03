@@ -6,6 +6,7 @@ using Azure.Storage.Queues.Models;
 using Datahub.Core.Model.Datahub;
 using Datahub.Functions.Providers;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Infrastructure.Services;
 using Datahub.Shared.Entities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;

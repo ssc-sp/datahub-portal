@@ -1,4 +1,4 @@
-namespace ResourceProvisioner.Domain.ValueObjects;
+namespace Datahub.Shared.Entities;
 
 public class PullRequestValueObject
 {
@@ -12,5 +12,4 @@ public class PullRequestValueObject
         Url = url;
         PullRequestId = id;
     }
-
 }

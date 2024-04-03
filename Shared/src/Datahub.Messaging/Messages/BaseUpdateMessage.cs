@@ -1,7 +1,6 @@
 using Datahub.Shared.Entities;
-using ResourceProvisioner.Domain.Events;
 
-namespace ResourceProvisioner.Domain.Common;
+namespace Datahub.Shared.Messaging;
 
 public class BaseUpdateMessage
 {
