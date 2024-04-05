@@ -199,7 +199,7 @@ public class NewProjectTemplateTests
         };
 
         var expectedConfiguration = @"resource_group_name = ""fsdh-core-test-rg""
-storage_account_name = ""fsdhtesttfbackend""
+storage_account_name = ""fsdhtestterraformbackend""
 container_name = ""fsdh-project-states""
 key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
 ";
