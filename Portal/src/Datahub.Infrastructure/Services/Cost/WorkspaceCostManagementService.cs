@@ -39,14 +39,15 @@ namespace Datahub.Infrastructure.Services.Cost
             _armClient = armClient;
         }
 
-        /// <summary>
+        /// <summary>   
         /// Updates the Project_Costs and Project_Credits for the given workspace acronym.
         /// </summary>
         /// <param name="subCosts">The costs at the subscription level</param>
         /// <param name="workspaceAcronym">The workspace acronym</param>
+        /// <param name="rgNames">Optional list of resource groups to filter by instead of workspace acronym, for testing purposes</param>
         /// <returns>(bool, decimal), a tuple representing whether a rollover is needed according to this update and the amount of costs captured in the last fiscal year</returns>
         public async Task<(bool, decimal)> UpdateWorkspaceCostAsync(List<DailyServiceCost> subCosts,
-            string workspaceAcronym)
+            string workspaceAcronym, List<string>? rgNames = null)
         {
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
@@ -59,7 +60,7 @@ namespace Datahub.Infrastructure.Services.Cost
             // Get the costs for the workspace both from the query and the database
             // The costs from the query are the costs from the last several days
             // The costs from the database are all costs existing for a workspace
-            var queryWorkspaceCosts = await FilterWorkspaceCosts(subCosts, workspaceAcronym);
+            var queryWorkspaceCosts = rgNames is null ? await FilterWorkspaceCosts(subCosts, workspaceAcronym) : await FilterWorkspaceCosts(subCosts, workspaceAcronym, rgNames);
 
             // We get the dates from the query and exclude today
             var dates = queryWorkspaceCosts.Select(c => c.Date).Distinct().ToList();
@@ -68,28 +69,31 @@ namespace Datahub.Infrastructure.Services.Cost
             // For each of these dates (at most 7 days), we verify that the database contains the costs for that day
             // to ensure resilience against query failures
             // We add these costs to the database if they do not exist
-            dates.ForEach(async date =>
+            foreach (var date in dates)
             {
-                var projectCost = await ctx.Project_Costs.FirstAsync(c => c.Date == date);
-                var thatDateQueryCosts = FilterDateRange(queryWorkspaceCosts, date);
-
-                if (projectCost is null)
+                var projectCost = await ctx.Project_Costs.FirstOrDefaultAsync(c => c.Date == date);
+                if (projectCost is not null)
                 {
-                    var thatDateByService = GroupBySource(thatDateQueryCosts);
-                    thatDateByService.ForEach(c =>
-                    {
-                        var cost = new Datahub_Project_Costs()
-                        {
-                            CadCost = (double)c.Amount,
-                            CloudProvider = "azure",
-                            Date = c.Date,
-                            Project_ID = project.Project_ID,
-                            ServiceName = c.Source
-                        };
-                        ctx.Project_Costs.Add(cost);
-                    });
+                    continue;
                 }
-            });
+
+                var thatDateQueryCosts = FilterDateRange(queryWorkspaceCosts, date);
+                var thatDateByService = GroupBySource(thatDateQueryCosts);
+                thatDateByService.ForEach(c =>
+                {
+                    var cost = new Datahub_Project_Costs()
+                    {
+                        CadCost = (double)c.Amount,
+                        CloudProvider = "azure",
+                        Date = c.Date,
+                        Project_ID = project.Project_ID,
+                        ServiceName = c.Source
+                    };
+                    ctx.Project_Costs.Add(cost);
+                });
+            }
+
+            await ctx.SaveChangesAsync();
 
             // At this point, the costs in the database (Project_Costs) include all times excluding today.
             // To get the totals for the current fiscal year (Project_Credits), we just take the costs in the database in the current fiscal year
@@ -135,10 +139,12 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <summary>
         /// Queries the costs for the given subscription id within the given date range. The date range cannot be more than a year.
         /// </summary>
+        /// <param name="subscriptionId">The id of the subscription to query for, should be like "subscription/...", set to null to use default ID</param>
         /// <param name="startDate">The start date of the query</param>
         /// <param name="endDate">The end date of the query</param>
+        /// <param name="mock">Boolean to mock the query if needed</param>
         /// <returns>A List containing all daily service costs. A daily service cost is a cost caused by one service during one day.</returns>
-        public async Task<List<DailyServiceCost>?> QuerySubscriptionCosts(DateTime startDate,
+        public async Task<List<DailyServiceCost>?> QuerySubscriptionCosts(string? subscriptionId, DateTime startDate,
             DateTime endDate, bool mock = false)
         {
             if (startDate > endDate)
@@ -152,8 +158,13 @@ namespace Datahub.Infrastructure.Services.Cost
                 _logger.LogError("Querying more than a year of data is not allowed");
                 throw new Exception("Querying more than a year of data is not allowed.");
             }
+            
+            if (subscriptionId is null)
+            {
+                subscriptionId = _armClient.GetDefaultSubscription().Id;
+            }
 
-            var queryResult = await QueryScopeCosts(_armClient.GetDefaultSubscription().Id, startDate, endDate, mock);
+            var queryResult = await QueryScopeCosts(subscriptionId, startDate, endDate, mock);
             return queryResult;
         }
 
@@ -309,7 +320,7 @@ namespace Datahub.Infrastructure.Services.Cost
             var dataset = new QueryDataset();
             var queryTimePeriod = new QueryTimePeriod(startDate, endDate);
             var filter1 = new QueryFilter();
-            
+
             var allAcronyms = new List<string> { "DIE1", "DIE2" };
             if (!mock)
             {
@@ -372,7 +383,11 @@ namespace Datahub.Infrastructure.Services.Cost
             catch (RequestFailedException e)
             {
                 _logger.LogError(e, $"Could not get cost data for scope {scopeId}");
-                return null;
+                if (e.Status == 429)
+                {
+                    return null;
+                }
+                throw new Exception($"Could not get cost data for scope {scopeId}");
             }
 
             return ParseQueryResult(queryResults);

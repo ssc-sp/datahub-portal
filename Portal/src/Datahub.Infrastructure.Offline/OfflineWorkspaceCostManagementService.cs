@@ -4,12 +4,12 @@ namespace Datahub.Infrastructure.Offline
 {
     public class OfflineWorkspaceCostManagementService : IWorkspaceCostManagementService
     {
-        public Task<(bool, decimal)> UpdateWorkspaceCostAsync(List<DailyServiceCost> subCosts, string workspaceAcronym)
+        public Task<(bool, decimal)> UpdateWorkspaceCostAsync(List<DailyServiceCost> subCosts, string workspaceAcronym, List<string> rgNames = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<DailyServiceCost>?> QuerySubscriptionCosts(DateTime startDate, DateTime endDate)
+        public Task<List<DailyServiceCost>?> QuerySubscriptionCosts(string? subscriptionId, DateTime startDate, DateTime endDate, bool mock = false)
         {
             throw new NotImplementedException();
         }
@@ -29,7 +29,7 @@ namespace Datahub.Infrastructure.Offline
             throw new NotImplementedException();
         }
 
-        public Task<List<DailyServiceCost>> FilterWorkspaceCosts(List<DailyServiceCost> subCosts, string workspaceAcronym)
+        public Task<List<DailyServiceCost>> FilterWorkspaceCosts(List<DailyServiceCost> subCosts, string workspaceAcronym, List<string>? rgNames = null)
         {
             throw new NotImplementedException();
         }

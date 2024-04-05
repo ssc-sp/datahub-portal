@@ -7,17 +7,19 @@
         /// </summary>
         /// <param name="subCosts">The costs at the subscription level</param>
         /// <param name="workspaceAcronym">The workspace acronym</param>
+        /// <param name="rgNames">Optional list of resource group names to use when filtering instead of workspace acronym. For testing purposes</param>
         /// <returns>(bool, decimal), a tuple representing whether a rollover is needed according to this update and the amount of costs captured in the last fiscal year</returns>
-        public Task<(bool, decimal)> UpdateWorkspaceCostAsync(List<DailyServiceCost> subCosts, string workspaceAcronym);
+        public Task<(bool, decimal)> UpdateWorkspaceCostAsync(List<DailyServiceCost> subCosts, string workspaceAcronym, List<string> rgNames = null);
 
         /// <summary>
         /// Queries the costs for the given subscription id within the given date range.
         /// </summary>
+        /// <param name="subscriptionId">The subscription id to query costs at. Should be like "subscription/...", set to null to use default ID</param>
         /// <param name="startDate">The start date of the query</param>
         /// <param name="endDate">The end date of the query</param>
         /// <param name="mock">Boolean to perform a "mock" request</param>
         /// <returns>A List containing all daily service costs. A daily service cost is a cost caused by one service during one day.</returns>
-        public Task<List<DailyServiceCost>?> QuerySubscriptionCosts(DateTime startDate,
+        public Task<List<DailyServiceCost>?> QuerySubscriptionCosts(string? subscriptionId, DateTime startDate,
             DateTime endDate, bool mock = false);
         
         /// <summary>

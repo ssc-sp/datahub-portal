@@ -4,12 +4,12 @@ namespace Datahub.Infrastructure.Offline
 {
     public class OfflineWorkspaceStorageManagementService : IWorkspaceStorageManagementService
     {
-        public Task<double> GetStorageCapacity(string workspaceAcronym)
+        public Task<double> GetStorageCapacity(string workspaceAcronym, List<string>? storageAccountId = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<double> UpdateStorageCapacity(string workspaceAcronym)
+        public Task<double> UpdateStorageCapacity(string workspaceAcronym, List<string>? storageAccountId = null)
         {
             throw new NotImplementedException();
         }
