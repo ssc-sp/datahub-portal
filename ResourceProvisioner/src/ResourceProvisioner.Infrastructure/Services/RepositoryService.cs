@@ -441,26 +441,29 @@ public class RepositoryService : IRepositoryService
     private async Task DeleteTemplateAsync(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
     {
         var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
-        var templatePath = Path.Combine(projectPath, template.Name + ".tf");
+        var searchPattern = template.Name + "*.*"; // Pattern to match <templateName>*.*
+        var matchingFiles = Directory.GetFiles(projectPath, searchPattern);
 
-        if (File.Exists(templatePath))
+        if (matchingFiles.Length > 0)
         {
-            File.Delete(templatePath);
-            _logger.LogInformation($"Template {template.Name} deleted successfully from {projectPath}.");
+            foreach (var filePath in matchingFiles) {
+                File.Delete(filePath);
+                _logger.LogInformation($"Deleted file: {filePath}");
+            }
 
-            // Create new .tf file with output indicating deletion
+            // Once all files are deleted, create a new .tf file with output indicating deletion
+            var deletionIndicatorFilePath = Path.Combine(projectPath, template.Name + ".tf");
             var deletionIndicatorContent = @"output ""azure_storage_blob_status"" {
   value = ""deleted""
 }";
-            await File.WriteAllTextAsync(templatePath, deletionIndicatorContent);
+            await File.WriteAllTextAsync(deletionIndicatorFilePath, deletionIndicatorContent);
             _logger.LogInformation($"Deletion indicator added for {template.Name} in {projectPath}.");
         }
         else
         {
-            _logger.LogWarning($"Template {template.Name} not found in {projectPath}. No action taken.");
+            _logger.LogWarning($"No matching files found for template {template.Name} in {projectPath}.");
         }
     }
-
     private async Task<string> GetExistingPullRequestId(string workspaceAcronym)
     {
         _logger.LogInformation("Pull request already exists, fetching pull request id");
