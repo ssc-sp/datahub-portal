@@ -6,6 +6,11 @@ namespace Datahub.Infrastructure.Offline;
 
 public class OfflineDatabricksApiService : IDatabricksApiService
 {
+    public Task<bool> AddAdminToDatabricsWorkspaceAsync(string projectAcronym, string accessToken, string databricksUserId)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<List<ProjectRepository>> ListDisplayedWorkspaceRepositoriesAsync(string projectAcronym)
     {
         return Task.FromResult(new List<ProjectRepository>());

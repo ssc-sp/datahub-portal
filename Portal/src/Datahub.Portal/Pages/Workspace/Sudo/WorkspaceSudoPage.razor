@@ -1,11 +1,17 @@
 @using System.Text.Json
 @using Datahub.Application.Services
+@using Datahub.Application.Services.Notebooks
 @using Datahub.Core.Model.Projects
+@using Microsoft.Identity.Web
 
 @inject IResourceMessagingService _resourceMessagingService
+@inject IDatabricksApiService _databricksApiService
 @inject IProjectCreationService _projectCreationService
 @inject IUserInformationService _userInformationService
+@inject ITokenAcquisition _tokenAcquisition
+@inject ILogger<WorkspaceSudoPage> _logger
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ISnackbar _snackbar
 
 @* @page "/w/{ProjectAcronymParam}/sudo" *@
 
@@ -42,6 +48,37 @@
                 </MudText>
                 <DHMarkdown Content="@_expectedTerraformOutput" LinkRewriter="RewriteLink"/>
             </MudStack>
+            <MudStack>
+                <MudText Typo="Typo.h2">
+                    @Localizer["Admin Shortcuts"]
+                </MudText>
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudPaper Outlined Class="pt-4 px-6 pb-6">
+                            <MudStack Style="height: 150px;">
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <MudIcon Icon="@SidebarIcons.Api" Class="mr-2" />
+                                    <MudText Typo="Typo.h3">
+                                        @Localizer["Admin Add to Databricks"]
+                                    </MudText>
+                                </MudStack>
+                                <MudText>
+                                    @Localizer["Admin Add to Databricks Text"]
+                                </MudText>
+                                <MudSpacer />
+                                <MudStack Row>
+                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary"
+                                               OnClick="@(async () => await AddToDatabricksAdmins())">
+                                        @Localizer["Admin Add to Databricks"]
+                                        <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
+                                    </MudButton>
+                                </MudStack>
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+
+                </MudGrid>
+            </MudStack>
         </MudStack>
     </Authorized>
     <NotAuthorized>
@@ -63,6 +100,11 @@
 
     [Parameter]
     public string WorkspaceAcronym { get; set; }
+
+    private static readonly string[] DatabricksScopes =
+    {
+        "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/user_impersonation"
+    };
 
     private Datahub_Project _project;
 
@@ -94,5 +136,35 @@
     private static string RewriteLink(string link)
     {
         return link;
+    }
+
+    private async Task AddToDatabricksAdmins()
+    {
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            _logger.LogInformation("Adding user {currentUser} to workspace {WorkspaceAcronym}", WorkspaceAcronym);
+
+            var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(DatabricksScopes);
+
+            var success = await _databricksApiService.AddAdminToDatabricsWorkspaceAsync(WorkspaceAcronym, accessToken, "TODO");
+            if (success)
+            {
+                _snackbar.Add(Localizer["You was successfully added as an administrator"], Severity.Success);
+            }
+            else
+            {
+                _snackbar.Add(Localizer["Failed to add you as an administrator"], Severity.Error);
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error adding tool {Tool} to workspace {WorkspaceAcronym}", WorkspaceAcronym);
+            //_snackbar.Add(Localizer["Error adding {0} to your workspace", GetLabel(tool)], Severity.Error);
+        }
     }
 }

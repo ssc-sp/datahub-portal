@@ -27,4 +27,13 @@ public interface IDatabricksApiService
     /// <param name="repositoryInfoDto"></param>
     /// <returns></returns>
     public Task<bool> UpdateWorkspaceRepository(string projectAcronym, RepositoryInfoDto repositoryInfoDto);
+
+    /// <summary>
+    /// Adds provider user as an admin to Databricks admin group
+    /// </summary>
+    /// <param name="projectAcronym"></param>
+    /// <param name="accessToken"></param>
+    /// <param name="databricksUserId"></param>
+    /// <returns></returns>
+    public Task<bool> AddAdminToDatabricsWorkspaceAsync(string projectAcronym, string accessToken, string databricksUserId);
 }
