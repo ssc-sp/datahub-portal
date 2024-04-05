@@ -289,7 +289,6 @@ public class TerraformService : ITerraformService
         string rpa = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric;
         string env = _resourceProvisionerConfiguration.Terraform.Variables.environment_name;
         string suffix = _resourceProvisionerConfiguration.Terraform.Variables.resource_suffix;
-        if (string.IsNullOrEmpty(suffix)) suffix = "ent" == env ? "tfbackend" : "terraformbackend";
         return variableName switch
         {
             TerraformVariables.BackendResourceGroupName => _resourceProvisionerConfiguration.Terraform.Backend
