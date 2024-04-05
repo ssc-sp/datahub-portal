@@ -34,8 +34,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\ResourceProvisioner\src\ResourceProvisioner.Domain\ResourceProvisioner.Domain.csproj" />
     <ProjectReference Include="..\..\..\Shared\src\Datahub.Markdown\Datahub.Markdown.csproj" />
+    <ProjectReference Include="..\..\src\Datahub.Core\Datahub.Core.csproj" />
   </ItemGroup>
 
 </Project>
