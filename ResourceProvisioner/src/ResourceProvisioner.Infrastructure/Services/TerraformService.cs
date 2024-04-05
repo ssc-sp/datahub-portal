@@ -334,43 +334,4 @@ public class TerraformService : ITerraformService
                 property => (property.Value?["type"]?.ToString() ?? "", property.Value?["default"]?.ToString() == null)
             ) ?? new Dictionary<string, (string, bool)>();
     }
-
-    public async Task DestroySpecificResourcesAsync(TerraformWorkspace terraformWorkspace, string resourceIdentifier)
-    {
-        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
-
-        Directory.SetCurrentDirectory(projectPath);
-
-        if (!await ExecuteShellCommand("terraform init")) {
-            _logger.LogError("Terraform init failed.");
-            return;
-        }
-
-        var destroyCmd = $"terraform destroy -auto-approve -target={resourceIdentifier}";
-        if (!await ExecuteShellCommand(destroyCmd)) {
-            _logger.LogError($"Terraform destroy failed for {resourceIdentifier}.");
-        }
-
-        _logger.LogInformation("Successfully destroyed specified resources.");
-    }
-    private async Task<bool> ExecuteShellCommand(string command)
-    {
-        using var process = new System.Diagnostics.Process
-        {
-            StartInfo = new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = "cmd.exe",
-                Arguments = $"/c {command}",
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            }
-        };
-
-        process.Start();
-        await process.WaitForExitAsync();
-
-        return process.ExitCode == 0;
-    }
-
 }
