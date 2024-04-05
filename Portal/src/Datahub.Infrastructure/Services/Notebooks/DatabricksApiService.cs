@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Application.Services.Notebooks;
@@ -133,6 +134,24 @@ public class DatabricksApiService : IDatabricksApiService
         return true;
     }
 
+    public async Task<bool> AddAdminToDatabricsWorkspaceAsync(string projectAcronym, string accessToken, string databricksUserId)
+    {
+        var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym);
+
+        // Use the access token to call a protected web API.
+        var httpClient = _httpClientFactory.CreateClient();
+        var queryUrl = $"{workspaceDatabricksUrl}/api/2.0/preview/scim/v2/Users/{databricksUserId}";
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        var patchContent = BuildPatchBody(databricksUserId);        
+
+        using var response = await httpClient.PatchAsync(queryUrl, patchContent);
+
+        response.EnsureSuccessStatusCode();
+
+        return response.StatusCode == System.Net.HttpStatusCode.OK;
+    }
+
     private async Task<Dictionary<string, bool>> GetWorkspaceRepositoryVisibilitiesAsync(string projectAcronym)
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
@@ -172,5 +191,29 @@ public class DatabricksApiService : IDatabricksApiService
         }
 
         return databricksUrl;
+    }
+
+    private StringContent BuildPatchBody(string databricksUserId)
+    {
+        _logger.LogInformation($"Building request patch body for adding user {databricksUserId} to databricks admin group");
+
+        var patchData = new UserPatchRequest
+        {
+            Schemas = ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
+            Operations = 
+            [
+                new UserPatchOperation
+                {
+                    Op="add",
+                    Path="admins",
+                    Value = new DatabricksUser
+                    { 
+                        id = databricksUserId
+                    }
+                }
+            ]
+        };
+        var patchBody = new StringContent(JsonSerializer.Serialize(patchData), Encoding.UTF8, "application/json");
+        return patchBody;
     }
 }
