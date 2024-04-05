@@ -83,6 +83,8 @@ public class NewProjectTemplateTests
             ["environment_name"] = _configuration["Terraform:Variables:environment_name"],
             ["az_location"] = _configuration["Terraform:Variables:az_location"],
             ["resource_prefix"] = _configuration["Terraform:Variables:resource_prefix"],
+            ["resource_prefix_alphanumeric"] = _configuration["Terraform:Variables:resource_prefix_alphanumeric"],
+            ["resource_suffix"] = _configuration["Terraform:Variables:resource_suffix"],
             ["project_cd"] = "ShouldExtractNewProjectTemplateVariables",
             ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
             ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
@@ -142,6 +144,8 @@ public class NewProjectTemplateTests
             ["environment_name"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_name,
             ["az_location"] = _resourceProvisionerConfiguration.Terraform.Variables.az_location,
             ["resource_prefix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix,
+            ["resource_prefix_alphanumeric"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric,
+            ["resource_suffix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_suffix,
             ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
             ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
             ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aad_admin_group_oid,
@@ -195,7 +199,7 @@ public class NewProjectTemplateTests
         };
 
         var expectedConfiguration = @"resource_group_name = ""fsdh-core-test-rg""
-storage_account_name = ""fsdhtestterraformbackend""
+storage_account_name = ""fsdhtesttfbackend""
 container_name = ""fsdh-project-states""
 key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
 ";
