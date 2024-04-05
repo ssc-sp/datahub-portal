@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 [assembly: InternalsVisibleTo("Datahub.Infrastructure.UnitTests")]
+[assembly: InternalsVisibleTo("Datahub.SpecflowTests")]
 
 namespace Datahub.Infrastructure.Services.Cost
 {
@@ -21,7 +22,8 @@ namespace Datahub.Infrastructure.Services.Cost
         private readonly ILogger<WorkspaceBudgetManagementService> _logger;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 
-        public WorkspaceBudgetManagementService(ILogger<WorkspaceBudgetManagementService> logger, ArmClient armClient, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+        public WorkspaceBudgetManagementService(ArmClient armClient, ILogger<WorkspaceBudgetManagementService> logger,
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
         {
             _armClient = armClient;
             _logger = logger;
@@ -71,11 +73,11 @@ namespace Datahub.Infrastructure.Services.Cost
                 _logger.LogError($"Could not parse data from budget with id {budgetId}");
                 throw new Exception($"Could not parse data from budget with id {budgetId}");
             }
-            
+
             budget.Data.Amount = amount;
             await budget.UpdateAsync(WaitUntil.Completed, budget.Data);
         }
-        
+
         /// <summary>
         /// Sets the budget amount for the given workspace acronym.
         /// </summary>
@@ -95,6 +97,7 @@ namespace Datahub.Infrastructure.Services.Cost
                     _logger.LogError($"Could not find project with acronym {workspaceAcronym}");
                     throw new Exception($"Could not find project with acronym {workspaceAcronym}");
                 }
+
                 var projectCredits = await ctx.Project_Credits
                     .FirstAsync(p => p.ProjectId == project.Project_ID);
                 if (projectCredits is null)
@@ -102,12 +105,13 @@ namespace Datahub.Infrastructure.Services.Cost
                     _logger.LogError($"Could not find project credits for project with acronym {workspaceAcronym}");
                     throw new Exception($"Could not find project credits for project with acronym {workspaceAcronym}");
                 }
+
                 projectCredits.LastRollover = DateTime.UtcNow;
                 ctx.Project_Credits.Update(projectCredits);
                 await ctx.SaveChangesAsync();
             }
         }
-        
+
         internal async Task<decimal> GetBudgetSpentAsync(string budgetId)
         {
             var budget = await GetBudgetAzureResource(budgetId);
@@ -116,32 +120,41 @@ namespace Datahub.Infrastructure.Services.Cost
                 _logger.LogError($"Could not parse data from budget with id {budgetId}");
                 throw new Exception($"Could not parse data from budget with id {budgetId}");
             }
+
             return budget.Data.CurrentSpend.Amount!.Value;
         }
-        
+
         /// <summary>
         /// Get the amount of budget spent for the given workspace acronym.
         /// </summary>
         /// <param name="workspaceAcronym">The workspace acronym</param>
+        /// <param name="budgetId">Optional budget id to use, if not provided, will interpolate id</param>
         /// <returns>The amount of budget spent</returns>
-        public async Task<decimal> GetWorkspaceBudgetSpentAsync(string workspaceAcronym)
+        public async Task<decimal> GetWorkspaceBudgetSpentAsync(string workspaceAcronym, string? budgetId = null)
         {
-            var budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
+            if (budgetId is null)
+            {
+                budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
+            }
             return await GetBudgetSpentAsync(budgetId);
         }
 
         /// <summary>
         /// Updates the amount of budget spent saved in the Project_Credits table for a given workspace acronym.
+        /// 
+        /// A budget rollover is true when the spent budget goes down, which can only be triggered when a budget is reset.
         /// </summary>
         /// <param name="workspaceAcronym">The workspace acronym</param>
+        /// <param name="budgetId">Optional budget id to use. If not provided, will interpolate the id.</param>
         /// <returns>A tuple of whether or not the budget spent has decreased (indicating a budget reset), and the budget spent before the reset</returns>
-        public async Task<(bool, decimal)> UpdateWorkspaceBudgetSpentAsync(string workspaceAcronym)
+        public async Task<decimal> UpdateWorkspaceBudgetSpentAsync(string workspaceAcronym,
+            string? budgetId = null)
         {
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
             var projectCredits = await ctx.Project_Credits
                 .FirstAsync(p => p.ProjectId == project.Project_ID);
-            
+
             if (projectCredits is null)
             {
                 projectCredits = new Project_Credits()
@@ -151,13 +164,13 @@ namespace Datahub.Infrastructure.Services.Cost
                 ctx.Project_Credits.Add(projectCredits);
             }
 
-            var currentSpent = await GetWorkspaceBudgetSpentAsync(workspaceAcronym);
+            var currentSpent = await GetWorkspaceBudgetSpentAsync(workspaceAcronym, budgetId);
             var beforeUpdateBudgetSpent = (decimal)projectCredits.BudgetCurrentSpent;
             projectCredits.BudgetCurrentSpent = (double)currentSpent;
 
             ctx.Project_Credits.Update(projectCredits);
             await ctx.SaveChangesAsync();
-            return (currentSpent < beforeUpdateBudgetSpent, beforeUpdateBudgetSpent);
+            return beforeUpdateBudgetSpent;
         }
 
         /// <summary>
@@ -175,7 +188,7 @@ namespace Datahub.Infrastructure.Services.Cost
                 _logger.LogError($"Budget with id {budgetId} not found");
                 throw new Exception($"Budget with id {budgetId} not found");
             }
-            
+
             var response = await budget.GetAsync();
 
             if (response.Value == null)
@@ -191,18 +204,22 @@ namespace Datahub.Infrastructure.Services.Cost
         /// Gets the budget id for the given workspace acronym.
         /// </summary>
         /// <param name="workspaceAcronym">The workspace acronym</param>
+        /// <param name="rgName">Optional resource group name to use to get budget id</param>
         /// <returns>The budget id</returns>
-        internal async Task<string> GetBudgetIdForWorkspace(string workspaceAcronym)
+        internal async Task<string> GetBudgetIdForWorkspace(string workspaceAcronym, string? rgName = null)
         {
-            
-            using var ctx = await _dbContextFactory.CreateDbContextAsync();
-            var projectResources = ctx.Project_Resources2.Include(p => p.Project)
-                .Where(p => p.Project.Project_Acronym_CD == workspaceAcronym).ToList();
-            var blobType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
-            var blobResource = projectResources.First(r => r.ResourceType == blobType);
-            var resourceGroupName = ParseResourceGroup(blobResource.JsonContent);
+            if (rgName is null)
+            {
+                using var ctx = await _dbContextFactory.CreateDbContextAsync();
+                var projectResources = ctx.Project_Resources2.Include(p => p.Project)
+                    .Where(p => p.Project.Project_Acronym_CD == workspaceAcronym).ToList();
+                var blobType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
+                var blobResource = projectResources.First(r => r.ResourceType == blobType);
+                rgName = ParseResourceGroup(blobResource.JsonContent);
+            }
+
             var budgetId =
-                $"/subscription/{_armClient.GetDefaultSubscription().Id.SubscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Consumption/budgets/{resourceGroupName}-budget";
+                $"/subscription/{_armClient.GetDefaultSubscription().Id.SubscriptionId}/resourceGroups/{rgName}/providers/Microsoft.Consumption/budgets/{rgName}-budget";
             return budgetId;
         }
 
@@ -216,6 +233,7 @@ namespace Datahub.Infrastructure.Services.Cost
             var content = JsonSerializer.Deserialize<RgNameObject>(jsonContent);
             return content?.resource_group_name;
         }
+
         internal record RgNameObject(string resource_group_name);
     }
 }

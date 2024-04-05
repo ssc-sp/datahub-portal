@@ -23,7 +23,7 @@ namespace Datahub.Infrastructure.UnitTests.Services
             _logger = _loggerFactory.CreateLogger<WorkspaceBudgetManagementServiceTests>();
             var credentials = new ClientSecretCredential(_datahubPortalConfiguration.AzureAd.TenantId, _datahubPortalConfiguration.AzureAd.ClientId, _datahubPortalConfiguration.AzureAd.ClientSecret);
             var armClient = new ArmClient(credentials);
-            _sut = new WorkspaceBudgetManagementService(_loggerFactory.CreateLogger<WorkspaceBudgetManagementService>(), armClient, _dbContextFactory);
+            _sut = new WorkspaceBudgetManagementService(armClient, _loggerFactory.CreateLogger<WorkspaceBudgetManagementService>(), _dbContextFactory);
         }
 
         [Test]

@@ -55,7 +55,7 @@ public class ProjectUsageScheduler
 
         var projects = ctx.Projects.ToList();
         var sortedProjects = projects.OrderBy(p => GetLastUpdate(ctx, p.Project_ID)).ToList();
-        var subscriptionCosts = await _workspaceCostMgmtService.QuerySubscriptionCosts(
+        var subscriptionCosts = await _workspaceCostMgmtService.QuerySubscriptionCosts(null,
             DateTime.UtcNow.Date.AddDays(-7), DateTime.UtcNow.Date);
 
         if (subscriptionCosts is null)
@@ -66,7 +66,8 @@ public class ProjectUsageScheduler
 
         foreach (var resource in sortedProjects)
         {
-            var usageMessage = new ProjectUsageUpdateMessage(resource.Project_Acronym_CD, subscriptionCosts, timeout, manualRollover);
+            var usageMessage = new ProjectUsageUpdateMessage(resource.Project_Acronym_CD, subscriptionCosts, timeout,
+                manualRollover);
 
             // send/post the message
             await _mediator.Send(usageMessage);
@@ -77,6 +78,7 @@ public class ProjectUsageScheduler
             await _mediator.Send(capacityMessage);
         }
 
+        // TODO: deadman switch?
         _logger.LogInformation($"All projects scheduled for usage and capacity update");
     }
 
@@ -88,7 +90,8 @@ public class ProjectUsageScheduler
         return lastUpdate ?? DateTime.MinValue;
     }
 
-    static ProjectCapacityUpdateMessage ConvertToCapacityUpdateMessage(ProjectUsageUpdateMessage message, int timeout, bool manualRollover)
+    static ProjectCapacityUpdateMessage ConvertToCapacityUpdateMessage(ProjectUsageUpdateMessage message, int timeout,
+        bool manualRollover)
     {
         return new(message.ProjectAcronym, timeout, manualRollover);
     }

@@ -85,7 +85,7 @@ namespace Datahub.Infrastructure.UnitTests.Services
             // Act
             // This query is mocked by specifying only a couple workspaces instead of all workspaces
             // Hence the low upper bound
-            var actualAmount = await _sut.QuerySubscriptionCosts(startDate, endDate, mock: true);
+            var actualAmount = await _sut.QuerySubscriptionCosts(null, startDate, endDate, mock: true);
 
             if (actualAmount is null)
             {
@@ -110,7 +110,7 @@ namespace Datahub.Infrastructure.UnitTests.Services
             // Act
             try
             {
-                await _sut.QuerySubscriptionCosts(startDate, endDate);
+                await _sut.QuerySubscriptionCosts(null, startDate, endDate);
                 Assert.Fail("Expected exception to be thrown");
             }
             catch 
@@ -123,7 +123,7 @@ namespace Datahub.Infrastructure.UnitTests.Services
             
             try
             {
-                await _sut.QuerySubscriptionCosts(startDate, endDate);
+                await _sut.QuerySubscriptionCosts(null, startDate, endDate);
                 Assert.Fail("Expected exception to be thrown");
             }
             catch 

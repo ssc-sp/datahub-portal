@@ -26,18 +26,21 @@ namespace Datahub.Infrastructure.Services.Storage
             _dbContextFactory = dbContextFactory;
         }
 
-        public async Task<double> GetStorageCapacity(string workspaceAcronym)
+        public async Task<double> GetStorageCapacity(string workspaceAcronym, List<string>? storageAccountIds = null)
         {
-            var storageIds = await GetStorageAccountIds(workspaceAcronym);
+            if (storageAccountIds is null)
+            {
+                storageAccountIds = await GetStorageAccountIds(workspaceAcronym);
+            }
 
-            var today = DateTime.Now.Date;
+            var today = DateTime.UtcNow;
             var dateFormat = "yyyy-MM-ddTHH:00:00.000Z";
             var fromDate = today.AddDays(-1).ToString(dateFormat);
             var toDate = today.ToString(dateFormat);
             
             var totalCapacity = 0.0;
 
-            storageIds.ForEach(id =>
+            storageAccountIds.ForEach(id =>
             {
                 var storageId = new ResourceIdentifier(id);
                 var option = new ArmResourceGetMonitorMetricsOptions();
@@ -48,7 +51,7 @@ namespace Datahub.Infrastructure.Services.Storage
                 option.ValidateDimensions = false;
                 var metrics = _armClient.GetMonitorMetrics(storageId, option).ToList();
                 var timeseries = metrics[0].Timeseries.ToList()[0];
-                var timeseriesData = timeseries.Data.ToList()[0];
+                var timeseriesData = timeseries.Data.ToList().Last();
                 var average = timeseriesData.Average;
                 if (average is null)
                 {
@@ -62,7 +65,7 @@ namespace Datahub.Infrastructure.Services.Storage
             return totalCapacity;
         }
 
-        public async Task<double> UpdateStorageCapacity(string workspaceAcronym)
+        public async Task<double> UpdateStorageCapacity(string workspaceAcronym, List<string>? storageAccountIds = null)
         {
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
             var date = DateTime.UtcNow.Date;
@@ -78,9 +81,10 @@ namespace Datahub.Infrastructure.Services.Storage
             {
                 projectAverage = new Project_Storage { ProjectId = project.Project_ID };
                 ctx.Project_Storage_Avgs.Add(projectAverage);
+                await ctx.SaveChangesAsync();
             }
             
-            var capacity = await GetStorageCapacity(workspaceAcronym);
+            var capacity = await GetStorageCapacity(workspaceAcronym, storageAccountIds);
             projectAverage.AverageCapacity = capacity;
             projectAverage.Date = date;
             projectAverage.CloudProvider = "azure";

@@ -14,12 +14,12 @@ namespace Datahub.Infrastructure.Offline
             throw new NotImplementedException();
         }
 
-        public Task<decimal> GetWorkspaceBudgetSpentAsync(string workspaceAcronym)
+        public Task<decimal> GetWorkspaceBudgetSpentAsync(string workspaceAcronym, string? budgetId = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<(bool, decimal)> UpdateWorkspaceBudgetSpentAsync(string workspaceAcronym)
+        public Task<decimal> UpdateWorkspaceBudgetSpentAsync(string workspaceAcronym, string? budgetId = null)
         {
             throw new NotImplementedException();
         }
