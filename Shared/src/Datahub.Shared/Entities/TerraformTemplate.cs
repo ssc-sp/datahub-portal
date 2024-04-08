@@ -16,6 +16,7 @@ public class TerraformTemplate
     public const string AzureAPI = "azure-api";
 
     public string Name { get; set; }
+    public string Status { get; set; }
     public static TerraformTemplate Default => LatestFromName(NewProjectTemplate);
 
     public static TerraformTemplate LatestFromName(string name)
