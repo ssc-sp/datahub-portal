@@ -93,7 +93,7 @@ public class ProjectUserManagementServiceTests
         _mockRequestManagementService = new Mock<IRequestManagementService>();
         _mockRequestManagementService
             .Setup(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(), It.IsAny<string>(),
-                It.IsAny<PortalUser>()))
+                It.IsAny<PortalUser>(), false))
             .ReturnsAsync(true);
 
         _mockUserEnrollmentService = new Mock<IUserEnrollmentService>();
