@@ -31,6 +31,7 @@ public class Project_Resources2
 
     public Datahub_Project Project { get; set; }
 
+    public string Status { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int? UpdatedById { get; set; }
     public PortalUser UpdatedBy { get; set; }
