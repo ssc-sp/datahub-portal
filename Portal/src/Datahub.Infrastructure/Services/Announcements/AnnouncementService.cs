@@ -84,6 +84,7 @@ public class AnnouncementService : IAnnouncementService
 
         var articles = await ctx.Announcements
             .Where(e => !e.ForceHidden && today > e.StartDateTime && (!e.EndDateTime.HasValue || today < e.EndDateTime.Value))
+            .OrderByDescending(e => e.StartDateTime)
             .Select(e => new AnnouncementPreview(e.Id, isFrench ? e.PreviewFr : e.PreviewEn))
             .ToListAsync();
 
