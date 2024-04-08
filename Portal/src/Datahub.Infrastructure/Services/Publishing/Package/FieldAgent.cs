@@ -1,6 +1,6 @@
 ﻿using Datahub.Metadata.Model;
 
-namespace Datahub.CKAN.Package;
+namespace Datahub.Infrastructure.Services.Publishing.Package;
 
 internal abstract class FieldAgent
 {

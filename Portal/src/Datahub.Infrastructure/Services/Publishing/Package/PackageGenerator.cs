@@ -2,7 +2,7 @@
 using Datahub.Metadata.Model;
 using Datahub.Metadata.Utils;
 
-namespace Datahub.CKAN.Package;
+namespace Datahub.Infrastructure.Services.Publishing.Package;
 
 public class PackageGenerator
 {

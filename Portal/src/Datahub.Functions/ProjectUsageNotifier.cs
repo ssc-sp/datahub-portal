@@ -142,7 +142,11 @@ namespace Datahub.Functions
                 { "{perc}", perc.ToString() }
             };
 
-            List<string> bcc = new() { GetNotificationCCAddress() };
+            List<string> bcc = new();
+            if (perc > 70) // Only sends the notification to us for the 75% and 100% notifications
+            {
+                bcc.Add(GetNotificationCCAddress());
+            }
 
             return _emailService.BuildEmail("cost_alert.html", contacts, bcc, bodyArgs, subjectArgs);
         }
