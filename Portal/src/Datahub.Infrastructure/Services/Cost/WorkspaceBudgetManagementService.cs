@@ -83,10 +83,16 @@ namespace Datahub.Infrastructure.Services.Cost
         /// </summary>
         /// <param name="workspaceAcronym">The workspace acronym</param>
         /// <param name="amount">The total budget amount to set</param>
+        /// <param name="rollover">If the operation is part of a rollover. This will update the credits to keep track of rollovers</param>
+        /// <param name="budgetId">Optional budget id to use. If not provided, will interpolate</param>
         /// <returns></returns>
-        public async Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount, bool rollover = false)
+        public async Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount, bool rollover = false, string? budgetId = null)
         {
-            var budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
+            if (budgetId is null)
+            {
+                budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
+            }
+            
             await SetBudgetAmountAsync(budgetId, amount);
             if (rollover)
             {
@@ -136,6 +142,7 @@ namespace Datahub.Infrastructure.Services.Cost
             {
                 budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
             }
+
             return await GetBudgetSpentAsync(budgetId);
         }
 

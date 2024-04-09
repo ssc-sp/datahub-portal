@@ -22,8 +22,8 @@ public class ProjectUsageUpdateMessageBase
 
 public class ProjectUsageUpdateMessage : ProjectUsageUpdateMessageBase, IRequest, IMessageTimeout
 {
-    public ProjectUsageUpdateMessage(string projectAcronym, List<DailyServiceCost> subCosts, int timeout, bool forceRollover) : base(projectAcronym,
-        subCosts, timeout, forceRollover)
+    public ProjectUsageUpdateMessage(string ProjectAcronym, List<DailyServiceCost> SubscriptionCosts, int Timeout, bool ForceRollover) : base(ProjectAcronym,
+        SubscriptionCosts, Timeout, ForceRollover)
     {
     }
 }

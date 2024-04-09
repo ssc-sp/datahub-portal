@@ -9,13 +9,16 @@ namespace Datahub.Application.Services.Budget
         /// <param name="workspaceAcronym">The workspace acronym</param>
         /// <returns>The total budget amount</returns>
         public Task<decimal> GetWorkspaceBudgetAmountAsync(string workspaceAcronym);
+
         /// <summary>
         /// Sets the budget amount for the given workspace acronym.
         /// </summary>
         /// <param name="workspaceAcronym">The workspace acronym</param>
         /// <param name="amount">The total budget amount to set</param>
+        /// <param name="rollover">If the operation is part of a rollover, will update records</param>
+        /// <param name="budgetId">Optional budget ID to provide. If not provided, will interpolate budget Id for workspace</param>
         /// <returns></returns>
-        public Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount, bool rollover = false);
+        public Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount, bool rollover = false, string? budgetId = null);
 
         /// <summary>
         /// Get the amount of budget spent for the given workspace acronym.
