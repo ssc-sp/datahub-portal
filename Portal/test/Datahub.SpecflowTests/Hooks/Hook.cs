@@ -8,13 +8,13 @@ using Datahub.Application.Services.Budget;
 using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Projects;
-using Datahub.Functions;
 using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Cost;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.ProjectTools.Services;
 using Datahub.Shared.Entities;
+using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -144,6 +144,42 @@ public class Hooks
 
     [AfterScenario("WorkspaceManagement")]
     public void AfterScenarioRequiringWorkspaceManagement(IObjectContainer objectContainer, ScenarioContext scenarioContext)
+    {
+        var dbContextFactory = objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>();
+        using var context = dbContextFactory.CreateDbContext();
+        context.Database.EnsureDeleted();
+        context.Database.EnsureCreated();
+    }
+
+    [BeforeScenario("MockWorkspaceManagement")]
+    public void BeforeScenarioRequiringMockWorkspaceManagement(IObjectContainer objectContainer,
+        ScenarioContext scenarioContext)
+    {
+        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+            .UseInMemoryDatabase(databaseName: "DatahubProjectDB")
+            .Options;
+
+        var dbContextFactory = new SpecFlowDbContextFactory(options);
+
+        objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
+
+        var workspaceCostManagementService = Substitute.For<IWorkspaceCostManagementService>();
+        var workspaceBudgetManagementService = Substitute.For<IWorkspaceBudgetManagementService>();
+        var workspaceStorageManagementService = Substitute.For<IWorkspaceStorageManagementService>();
+        var loggerFactory = Substitute.For<ILoggerFactory>();
+        var mediator = Substitute.For<IMediator>();
+        var pongService = new QueuePongService(mediator);
+        
+        objectContainer.RegisterInstanceAs(workspaceCostManagementService);
+        objectContainer.RegisterInstanceAs(workspaceBudgetManagementService);
+        objectContainer.RegisterInstanceAs(workspaceStorageManagementService);
+        objectContainer.RegisterInstanceAs(loggerFactory);
+        objectContainer.RegisterInstanceAs(pongService);
+        objectContainer.RegisterInstanceAs(mediator);
+    }
+    
+    [AfterScenario("MockWorkspaceManagement")]
+    public void AfterScenarioRequiringMockWorkspaceManagement(IObjectContainer objectContainer, ScenarioContext scenarioContext)
     {
         var dbContextFactory = objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>();
         using var context = dbContextFactory.CreateDbContext();

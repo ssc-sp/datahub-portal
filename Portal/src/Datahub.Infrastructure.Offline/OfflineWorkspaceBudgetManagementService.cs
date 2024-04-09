@@ -9,7 +9,8 @@ namespace Datahub.Infrastructure.Offline
             throw new NotImplementedException();
         }
 
-        public Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount, bool rollover = false)
+        public Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount, bool rollover = false,
+            string? budgetId = null)
         {
             throw new NotImplementedException();
         }

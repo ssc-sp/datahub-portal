@@ -30,12 +30,13 @@ public class ProjectUsageUpdater
     }
 
     [Function("ProjectUsageUpdater")]
-    public async Task Run([QueueTrigger("%QueueProjectUsageUpdate%", Connection = "DatahubStorageConnectionString")] string queueItem, 
+    public async Task<bool> Run([QueueTrigger("%QueueProjectUsageUpdate%", Connection = "DatahubStorageConnectionString")] string queueItem, 
         CancellationToken cancellationToken)
     {
+        var rolledOver = false;
         // test for ping
         if (await _pongService.Pong(queueItem))
-            return;
+            return false;
 
         // deserialize message
         var message = DeserializeQueueMessage(queueItem);
@@ -56,12 +57,13 @@ public class ProjectUsageUpdater
             _logger.LogInformation($"Spend captured by budget : {budgetSpentAmount}");
             
             // Checking if the two captured costs are within 5% of each other to ensure that the rollover is valid
-            var relativeDifference = (budgetSpentAmount - spentAmount) / (budgetSpentAmount);
+            var relativeDifference = (budgetSpentAmount - spentAmount) / budgetSpentAmount;
             if ( relativeDifference <= (decimal)0.05)
             {
                 _logger.LogInformation($"Executing rollover for {message.ProjectAcronym}");
                 await _workspaceBudgetMgmtService.SetWorkspaceBudgetAmountAsync(message.ProjectAcronym,
-                    currentBudget - budgetSpentAmount);
+                    currentBudget - budgetSpentAmount, true);
+                rolledOver = true;
                 // Generate fiscal year report here?
             }
             else
@@ -72,6 +74,7 @@ public class ProjectUsageUpdater
 
         // queue the usage notification message
         await _mediator.Send(new ProjectUsageNotificationMessage(message.ProjectAcronym), cancellationToken);
+        return rolledOver;
     }
 
     [Function("ProjectCapacityUsageUpdater")]
