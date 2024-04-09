@@ -157,6 +157,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     [AeFormIgnore]
     public DateTime? Deleted_DT { get; set; }
+    public string SubscriptionId { get; set; }
 
     [AeFormIgnore]
     public bool IsDeleted => Deleted_DT != null && Deleted_DT < DateTime.UtcNow;
