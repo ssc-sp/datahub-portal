@@ -1,4 +1,5 @@
 ﻿using Datahub.Infrastructure.Services.Azure;
+using Datahub.Shared.Configuration;
 using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Functions;
@@ -7,20 +8,21 @@ public class AzureConfig : IAzureServicePrincipalConfig
 {
     private readonly IConfiguration _config;
     private readonly EmailNotification _emailConfig;
-    private readonly AdoConfig _adoConfig;
+    private readonly AzureDevOpsConfiguration _azureDevOpsConfiguration;
 
     public AzureConfig(IConfiguration config)
     {
         _config = config;
         _emailConfig = new EmailNotification();
-        _adoConfig = new AdoConfig(_config);
+        _azureDevOpsConfiguration = new AzureDevOpsConfiguration();
+
         _config.Bind("EmailNotification", _emailConfig);
-        _config.Bind("AdoConfig", _adoConfig);
+        _config.Bind("AzureDevOpsConfiguration", _azureDevOpsConfiguration);
     }
 
     public EmailNotification Email => _emailConfig;
     
-    public AdoConfig AdoConfig => _adoConfig;
+    public AzureDevOpsConfiguration AzureDevOpsConfiguration => _azureDevOpsConfiguration;
 
     public string? NotificationPercents => _config["ProjectUsageNotificationPercents"];
     
@@ -74,23 +76,4 @@ public class EmailNotification
                            !string.IsNullOrEmpty(SmtpPassword) && 
                            !string.IsNullOrEmpty(SenderAddress) &&
                            SmtpPort != 0;
-}
-
-public class AdoConfig
-{
-    public string SpClientId { get; set; } 
-    public string SpClientSecret { get; set; }
-    public string OrgName { get; set; } = "DataSolutionsDonnees";
-    public string ProjectName { get; set; } = "FSDH SSC";
-    
-    public string OrgUrl { get; set; }
-    public string ListPipelineUrlTemplate { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/pipelines?api-version=7.1-preview.1";
-    public string PostPipelineRunUrlTemplate { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/pipelines/{pipelineId}/runs?api-version=7.1-preview.1";
-    public string AppServiceConfigPipeline { get; set; } = "web-app-configuration";
-    public AdoConfig(IConfiguration _config)
-    {
-        SpClientId = _config["AdoSpClientId"] ?? "";
-        SpClientSecret = _config["AdoSpClientSecret"] ?? "";
-        OrgUrl = "https://dev.azure.com/" + OrgName;
-    }
 }

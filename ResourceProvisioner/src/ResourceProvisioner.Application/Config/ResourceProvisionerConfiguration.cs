@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Datahub.Shared.Configuration;
 
 namespace ResourceProvisioner.Application.Config;
 
@@ -19,13 +20,12 @@ public class InfrastructureRepositoryConfiguration
     public string Url { get; set; }
     public string LocalPath { get; set; }
     public string ProjectPathPrefix { get; set; }
-    public string Username { get; set; }
-    public string Password { get; set; }
     public string PullRequestUrl { get; set; }
     public string PullRequestBrowserUrl { get; set; }
     public string ApiVersion { get; set; }
     public string MainBranch { get; set; }
     public string AutoApproveUserOid { get; set; }
+    public AzureDevOpsConfiguration AzureDevOpsConfiguration { get; set; } = new(); 
 }
 
 public class ModuleRepositoryConfiguration
