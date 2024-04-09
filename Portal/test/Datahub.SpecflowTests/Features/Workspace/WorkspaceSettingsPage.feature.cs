@@ -81,40 +81,6 @@ namespace Datahub.SpecflowTests.Features
             this.TestTearDown();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Workspace lead inputs negative value for workspace budget")]
-        [Xunit.TraitAttribute("FeatureTitle", "Workspace Settings Page")]
-        [Xunit.TraitAttribute("Description", "Workspace lead inputs negative value for workspace budget")]
-        public void WorkspaceLeadInputsNegativeValueForWorkspaceBudget()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Workspace lead inputs negative value for workspace budget", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 4
-    this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 5
-        testRunner.When("a workspace lead inputs a value for the workspace budget", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 6
-        testRunner.And("the value input is negative", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 7
-        testRunner.Then("this should not be allowed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 8
-        testRunner.And("the user should be alerted to this being erroneous", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            this.ScenarioCleanup();
-        }
-        
         [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
         [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
         public class FixtureData : System.IDisposable

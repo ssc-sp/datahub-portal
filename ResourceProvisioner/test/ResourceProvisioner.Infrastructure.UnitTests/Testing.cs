@@ -44,7 +44,7 @@ public class Testing
     public void RunBeforeAnyTests()
     {
         _configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.Test.json")
+            .AddJsonFile("appsettings.test.json")
             .Build();
 
         _resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
