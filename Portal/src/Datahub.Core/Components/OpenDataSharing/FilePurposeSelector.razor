@@ -1,0 +1,104 @@
+﻿@* FilePurposeSelector.razor *@
+
+@using Datahub.Core.Model.Datahub;
+
+@implements IDisposable
+
+@if (_initialized)
+{
+    <MudSelect T=@OpenDataPublishFile
+        Label=@Label 
+        MultiSelection=@MultiSelect 
+        @bind-SelectedValues=@SelectedValues 
+        @bind-Value=@_selectedValue
+        Required=@Required
+        Clearable
+        ToStringFunc=@GetFileLabel
+    >
+        @foreach(var f in Submission.Files)
+        {
+            <MudSelectItem Value=@f Disabled=@(!IsFileSelectable(f)) />
+        }
+    </MudSelect>
+}
+
+@code {
+    [Parameter]
+    public OpenDataSubmission Submission { get; set; }
+
+    [Parameter]
+    public string FilePurpose { get; set; }
+
+    [Parameter]
+    public bool MultiSelect { get; set; } = false;
+
+    [Parameter]
+    public bool Required { get; set; }
+
+    [Parameter]
+    public GenericSyncer Syncer { get; set; }
+
+    private bool _initialized = false;
+
+    private OpenDataPublishFile _selectedValue;
+
+    private IEnumerable<OpenDataPublishFile> _selectedValues = new HashSet<OpenDataPublishFile>();
+
+    private IEnumerable<OpenDataPublishFile> SelectedValues
+    {
+        get => _selectedValues;
+        set
+        {
+            foreach (var f in _selectedValues.Except(value))
+            {
+                f.FilePurpose = string.Empty;
+            }
+
+            foreach (var f in value)
+            {
+                f.FilePurpose = FilePurpose;
+            }
+
+            _selectedValues = value.ToHashSet();
+            Syncer?.Ping();
+        }
+    }
+
+    private bool IsFileSelectable(OpenDataPublishFile file) => file.UploadStatus == OpenDataPublishFileUploadStatus.NotStarted || file.UploadStatus == OpenDataPublishFileUploadStatus.ReadyToUpload;
+
+    // if a file is already selected for another purpose, show that in the list
+    private string GetFileLabel(OpenDataPublishFile file) => file == null ? string.Empty : string.IsNullOrEmpty(file.FilePurpose) || file.FilePurpose == FilePurpose ?
+        file.FileName :
+        $"{file.FileName} - {GetFilePurposeLabel(file.FilePurpose)}";
+
+    private string GetFilePurposeLabel(string filePurpose) => Localizer[$"{Submission.LocalizationPrefix}.FileTypes.{filePurpose}"];
+    private string Label => GetFilePurposeLabel(FilePurpose);
+
+    private void RefreshSelectedFiles()
+    {
+        _selectedValue = Submission.Files.FirstOrDefault(f => f.FilePurpose == FilePurpose);
+        _selectedValues = Submission.Files.Where(f => f.FilePurpose == FilePurpose).ToHashSet();
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Submission == null)
+        {
+            return;
+        }
+
+        RefreshSelectedFiles();
+
+        if (Syncer != null) Syncer.Notify += RefreshSelectedFiles;
+
+        _initialized = true;
+
+        await base.OnInitializedAsync();
+    }
+
+    public void Dispose()
+    {
+        if (Syncer != null) Syncer.Notify -= RefreshSelectedFiles;
+    }
+}

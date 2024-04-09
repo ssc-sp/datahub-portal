@@ -15,6 +15,7 @@ public static class SidebarIcons
     public const string Dashboard = "fa-light fa-table-layout";
     public const string Databricks = SvgIcons.Databricks;
     public const string Storage = "fa-light fa-hard-drive";
+    public const string Publishing = "fa-light fa-bullhorn";
     public const string WebApp = "fa-light fa-browser";
     public const string SqlDatabase = "fa-light fa-database";
     public const string Repositories = "fa-light fa-book-bookmark";

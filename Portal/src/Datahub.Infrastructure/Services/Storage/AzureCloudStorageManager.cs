@@ -4,7 +4,6 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
 using Datahub.Core.Data;
-using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
@@ -266,7 +265,8 @@ public class AzureCloudStorageManager : ICloudStorageManager
             createdby = GetMetadata(metadata, FileMetaData.CreatedBy),
             lastmodifiedby = GetMetadata(metadata, FileMetaData.LastModifiedBy),
             lastmodifiedts = props.LastModified.DateTime,
-            filesize = props.ContentLength.ToString()
+            filesize = props.ContentLength.ToString(),
+            folderpath = client.Path
         };
     }
 
@@ -323,7 +323,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return result;
     }
 
-    public List<(string, string)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
+    public List<(string Placeholder, string Replacement)> GetSubstitutions(string projectAcronym, CloudStorageContainer container)
     {
         if (_inboxAccount)
         {

@@ -1,20 +1,14 @@
 ﻿using Datahub.Application.Services.Security;
 using Datahub.Core.Model.CloudStorage;
-using Datahub.Core.Model.Projects;
 using Datahub.Core.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using static Datahub.Infrastructure.Services.Storage.CloudStorageHelpers;
 
 namespace Datahub.Infrastructure.Services.Storage
 {
-    public class CloudStorageManagerFactory
+	public class CloudStorageManagerFactory
     {
         public CloudStorageManagerFactory(ILoggerFactory loggerFactory, IKeyVaultUserService keyVaultUserService)
         {

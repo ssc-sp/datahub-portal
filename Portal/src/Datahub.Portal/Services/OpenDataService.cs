@@ -1,21 +1,25 @@
-﻿using Datahub.CKAN.Service;
+﻿using Datahub.Application.Configuration;
+using Datahub.Application.Services.Publishing;
 using Datahub.Core.Model.Datahub;
+using Datahub.Infrastructure.Services.Publishing;
 using Datahub.Metadata.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Portal.Services;
 
+//TODO remove this class
+
 public class OpenDataService : IOpenDataService
 {
-    readonly ICKANServiceFactory _serviceFactory;
+    readonly CKANServiceFactory _serviceFactory;
     readonly IHttpClientFactory _httpClientFactory;
     readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 
-    public OpenDataService(IHttpClientFactory httpClientFactory, IDbContextFactory<DatahubProjectDBContext> dbContextFactory, ICKANServiceFactory serviceFactory)
+    public OpenDataService(IHttpClientFactory httpClientFactory, IDbContextFactory<DatahubProjectDBContext> dbContextFactory, DatahubPortalConfiguration config)
     {
-        _serviceFactory = serviceFactory;
         _dbContextFactory = dbContextFactory;
         _httpClientFactory = httpClientFactory;
+        _serviceFactory = new CKANServiceFactory(httpClientFactory, config);
     }
 
     public async Task<CKANApiResult> PublishFileAsUrl(FieldValueContainer fileMetadata, bool allFields, string url)
@@ -39,7 +43,7 @@ public class OpenDataService : IOpenDataService
                 SetFileShareStatus(sharedRecordId, OpenDataUploadStatus.RecordCreated);
 
                 // publish to open data resource
-                result = await ckanService.AddResourcePackage(fileId, fileName, stream);
+                result = await ckanService.AddResourcePackageOld(fileId, fileName, stream);
                 if (result.Succeeded)
                 {
                     // record successfull uploaded

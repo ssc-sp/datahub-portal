@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Text.Json.Nodes;
 using Datahub.Core.Model.Repositories;
 
@@ -12,7 +11,7 @@ public class RepositoryInfoDto
     public string Provider { get; set; }
     public string Branch { get; set; }
     public string HeadCommitId { get; set; }
-    
+
     public bool IsPublic { get; set; }
 
     public RepositoryInfoDto(JsonNode jsonNode)
@@ -35,8 +34,7 @@ public class RepositoryInfoDto
         Branch = projectRepository.Branch;
         HeadCommitId = projectRepository.HeadCommitId;
         IsPublic = projectRepository.IsPublic;
-        
     }
-    
+
     public string RepositoryName => Path.Split('/').Last();
 }

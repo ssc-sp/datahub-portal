@@ -3,6 +3,7 @@ from azure.mgmt.authorization import AuthorizationManagementClient
 from azure.mgmt.authorization.models import RoleAssignmentCreateParameters
 import os
 import uuid
+import lib.constants as constants
 
 CONTRIBUTOR="ba92f5b4-2d11-453d-a403-e96b0029c9fe"
 READER="acdd72a7-3385-48ef-bd42-f606fba81ae7"
@@ -33,8 +34,8 @@ def remove_existing_role(client:AuthorizationManagementClient, scope, user_objec
             client.role_assignments.delete_at_scope(scope, role.name)
 
 def get_storage_reference(environment_name, definition_json):
-    rg_name = f"fsdh_proj_{definition_json['Workspace']['Acronym']}_{environment_name}_rg"
-    sg_name = f"fsdhproj{definition_json['Workspace']['Acronym']}{environment_name}"
+    rg_name = f"{constants.RESOURCE_PREFIX}_proj_{definition_json['Workspace']['Acronym']}_{environment_name}_rg"
+    sg_name = f"{constants.RESOURCE_PREFIX}proj{definition_json['Workspace']['Acronym']}{environment_name}"
     return rg_name,sg_name
 
 def get_scope(subscription_id, resource_group_name, storage_account_name):

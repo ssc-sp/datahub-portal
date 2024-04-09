@@ -40,7 +40,11 @@ public partial class Testing
     internal const string TestBudgetId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b/resourceGroups/fsdh-static-test-rg/providers/Microsoft.Consumption/budgets/fsdh-test-budget";
     internal const string TestStorageAccountId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b/resourceGroups/fsdh-static-test-rg/providers/Microsoft.Storage/storageAccounts/fsdhteststorageaccount";
     internal const string OldUserEmail = "old-user@email.gc.ca";
+    internal const string GuestUserEmail = "user@email.gov.uk";
     internal const string OldUserId = "987654321";
+
+    internal const string TestWebAppId =
+        "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b/resourcegroups/fsdh-static-test-rg/providers/Microsoft.Web/sites/fsdh-dev-test-web-app";
     internal static readonly string[] PROJECT_ACRONYMS = Enumerable.Range(1, 3).Select(i => $"TEST{i}").ToArray();
     internal static readonly string[] PROJECT_NAMES = Enumerable.Range(1, 3).Select(i => $"Test Project {i}").ToArray();
     [OneTimeSetUp]
@@ -66,13 +70,21 @@ public partial class Testing
                 Content = expectedDatahubPortalInviteResponse
             });
 
-        var httpClient = new HttpClient(mockHandler.Object);
         var httpClientFactory = new Mock<IHttpClientFactory>();
-        httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
+        httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(
+            () => new HttpClient(mockHandler.Object));
         
         _userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), httpClientFactory.Object, _datahubPortalConfiguration, null);
     }
 
+    public static void SetDatahubGraphInviteFunctionUrl(string value)
+    {
+        _datahubPortalConfiguration.DatahubGraphInviteFunctionUrl = value;
+    }
+    public static void SetAllowedUserEmailDomains(string[] value)
+    {
+        _datahubPortalConfiguration.AllowedUserEmailDomains = value;
+    }
     private static StringContent ExpectedDatahubPortalInviteResponse()
     {
         var data = new JsonObject

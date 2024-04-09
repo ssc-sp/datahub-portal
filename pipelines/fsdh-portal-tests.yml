@@ -13,6 +13,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
       testRunTitle: 'Datahub Function Unit Tests'
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Infrastructure Unit Tests'
@@ -21,6 +22,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Infrastructure.UnitTests/Datahub.Infrastructure.UnitTests.csproj'
       testRunTitle: 'Datahub Infrastructure Unit Tests'
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Specflow Tests'
@@ -29,6 +31,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.SpecflowTests/Datahub.SpecflowTests.csproj'
       testRunTitle: 'Datahub Specflow Tests'
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Specs Tests'
@@ -37,6 +40,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Specs/Datahub.Specs.csproj'
       testRunTitle: 'Datahub Specs Tests'
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Unit Tests'
@@ -45,3 +49,18 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Tests/Datahub.Tests.csproj'
       testRunTitle: 'Datahub Unit Tests'
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+      
+  - script: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator -reports:$(Agent.WorkFolder)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/Portal/test/CodeCoverage -reporttypes:'HtmlInline_AzurePipelines;Cobertura'
+        # IMPORTANT - set `disable.coverage.autogenerate` to true if you want to use older reportgenerator version
+        echo "##vso[task.setvariable variable=disable.coverage.autogenerate;]true"
+    displayName: Create code coverage report
+      
+  - task: PublishCodeCoverageResults@1
+    displayName: 'Publish code coverage report'
+    inputs:
+      codeCoverageTool: 'Cobertura'
+      summaryFileLocation: '$(Build.SourcesDirectory)/Portal/test/CodeCoverage/Cobertura.xml'
+      reportDirectory: '$(Build.SourcesDirectory)/Portal/test/CodeCoverage'

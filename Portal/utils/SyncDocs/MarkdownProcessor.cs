@@ -7,10 +7,9 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using Datahub.Shared.Annotations;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using Datahub.Shared.Annotations;
-using static System.Collections.Specialized.BitVector32;
 namespace SyncDocs;
 
 internal class MarkdownProcessor
@@ -115,7 +114,7 @@ internal class MarkdownProcessor
         if (!File.Exists(outputFilePath) || CheckIfDraft(outputFilePath) || isSidebar)
         {
             var outputFile = await _translationService.TranslateMarkupFile(path, outputFilePath, isSidebar);
-            Console.WriteLine($"+ {(outputFile is null ? ("no client available for " + outputFilePath):(Path.GetFullPath(outputFile)))}");
+            Console.WriteLine($"+ {(outputFile is null ? ("no client available for " + outputFilePath):Path.GetFullPath(outputFile))}");
         }
     }
 

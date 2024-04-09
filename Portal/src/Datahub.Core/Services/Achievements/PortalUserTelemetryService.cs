@@ -2,50 +2,47 @@
 using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Datahub.Core.Services.Achievements;
 
 public class PortalUserTelemetryService : IPortalUserTelemetryService
 {
-    private readonly IAchievementEngineFactory _engineFactory;
-    private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
-    private readonly IUserInformationService _userInformationService;
-    private readonly ILogger<PortalUserTelemetryService> _logger;
-    private readonly IDatahubAuditingService _auditingService;
+    private readonly IAchievementEngineFactory engineFactory;
+    private readonly IDbContextFactory<DatahubProjectDBContext> contextFactory;
+    private readonly IUserInformationService userInformationService;
+    private readonly ILogger<PortalUserTelemetryService> logger;
+    private readonly IDatahubAuditingService auditingService;
 
-    public PortalUserTelemetryService(ILogger<PortalUserTelemetryService> logger,
+    public PortalUserTelemetryService(
+        ILogger<PortalUserTelemetryService> logger,
         IAchievementEngineFactory engineFactory,
         IDbContextFactory<DatahubProjectDBContext> contextFactory,
         IUserInformationService userInformationService,
         IDatahubAuditingService auditingService)
     {
-        _logger = logger;
-        _engineFactory = engineFactory;
-        _contextFactory = contextFactory;
-        _userInformationService = userInformationService;
-        _auditingService = auditingService;
+        this.logger = logger;
+        this.engineFactory = engineFactory;
+        this.contextFactory = contextFactory;
+        this.userInformationService = userInformationService;
+        this.auditingService = auditingService;
     }
 
     public event EventHandler<AchievementsEarnedEventArgs> OnAchievementsEarned;
 
     public async Task LogTelemetryEvent(string eventName)
     {
-        await using var ctx = await _contextFactory.CreateDbContextAsync();
+        await using var ctx = await contextFactory.CreateDbContextAsync();
 
-        var portalUser = await _userInformationService.GetCurrentPortalUserWithAchievementsAsync();
+        var portalUser = await userInformationService.GetCurrentPortalUserWithAchievementsAsync();
         // check the user exists
         if (portalUser is null)
         {
-            _logger.LogWarning("Logging Telemetry without a Portal User. Event: {eventName}", eventName);
+            logger.LogWarning("Logging Telemetry without a Portal User. Event: {eventName}", eventName);
             return;
         }
 
         // grab engine (cached)
-        var engine = _engineFactory.GetAchievementEngine();
+        var engine = engineFactory.GetAchievementEngine();
 
         // collect the user current achievements
         var currentAchievements = new HashSet<string>(portalUser.Achievements.Select(a => a.AchievementId));
@@ -73,13 +70,13 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
             EventDate = DateTime.UtcNow
         });
 
-        await ctx.TrackSaveChangesAsync(_auditingService);
+        await ctx.TrackSaveChangesAsync(auditingService);
 
         // report the new achievements
         if (newAchievements.Any())
         {
             OnAchievementsEarned?.Invoke(this, new AchievementsEarnedEventArgs(newAchievements, portalUser.UserSettings.HideAchievements));
-            await _auditingService.TrackEvent("Achivements", ("Codes", string.Join(", ", newAchievements)));
-        }        
+            await auditingService.TrackEvent("Achivements", ("Codes", string.Join(", ", newAchievements)));
+        }
     }
 }

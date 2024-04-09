@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Datahub.Shared.Entities;
 
 namespace Datahub.Core.Data.ResourceProvisioner;
@@ -20,7 +19,8 @@ public record CreateResourceData
         return new CreateResourceData(projectName, acronym, sector, organization, requestingUserEmail, budgetAmount);
     }
 
-    public static CreateResourceData ResourceRunTemplate(TerraformWorkspace workspace,
+    public static CreateResourceData ResourceRunTemplate(
+        TerraformWorkspace workspace,
         List<TerraformTemplate> resourceTemplates, string requestingUserEmail)
     {
         // TODO: Validation
@@ -36,6 +36,7 @@ public record CreateResourceData
     }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="CreateResourceData"/> class.
     /// New Project Template that is used for the new project pull request
     /// </summary>
     /// <param name="projectName"></param>
@@ -43,6 +44,7 @@ public record CreateResourceData
     /// <param name="sector"></param>
     /// <param name="organization"></param>
     /// <param name="requestingUserEmail"></param>
+    /// <param name="budgetAmount"></param>
     private CreateResourceData(string projectName, string acronym, string sector, string organization,
         string requestingUserEmail, double budgetAmount)
     {

@@ -13,7 +13,7 @@ namespace Datahub.Core.Migrations.Core
             migrationBuilder.DropForeignKey(
                 name: "FK_UserSettings_PortalUsers_UserId",
                 table: "UserSettings");
-            
+
             migrationBuilder.DropColumn(
                 name: "UserGuid",
                 table: "UserSettings");

@@ -1,3 +1,4 @@
+using System.Net.Mail;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -17,12 +18,6 @@ public partial class UserEnrollmentService : IUserEnrollmentService
     private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
 
-    [GeneratedRegex("^([\\w\\.\\-]+)@([\\w\\-]+)(\\.gc\\.ca)$")]
-    private static partial Regex GC_CA_Regex();
-    
-    [GeneratedRegex("^([\\w\\.\\-]+)@(canada\\.ca)$")]
-    private static partial Regex Canada_CA_Regex();
-    
     public UserEnrollmentService(
         ILogger<UserEnrollmentService> logger, 
         IHttpClientFactory httpClientFactory,
@@ -39,10 +34,26 @@ public partial class UserEnrollmentService : IUserEnrollmentService
     {
         if(email == null) return false;
         
-        var reOld = GC_CA_Regex();
-        var reNew = Canada_CA_Regex();
+        var url = _datahubPortalConfiguration.AllowedUserEmailDomains;
 
-        return reOld.IsMatch(email) || reNew.IsMatch(email);
+        foreach (var item in url)
+        {
+            if (email.ToLowerInvariant().EndsWith(item.ToLowerInvariant())) return IsValidEmail(email);
+        }
+        return false;
+    }
+
+    public bool IsValidEmail(string? email)
+    {
+        try
+        {
+            var address = new MailAddress(email).Address;
+            return true;
+        }
+        catch (FormatException)
+        {
+        }
+        return false;
     }
 
     public async Task<string> SendUserDatahubPortalInvite(string? registrationRequestEmail, string? inviterName)

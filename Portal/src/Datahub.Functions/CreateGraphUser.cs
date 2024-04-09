@@ -7,7 +7,6 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
-using Microsoft.Kiota.Abstractions;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Functions.Services;
@@ -100,19 +99,28 @@ public class CreateGraphUser
         
         var result = await SendInvitation(userEmail, graphClient);
         var groupId = _configuration.ServicePrincipalGroupID;
-            
-        log.LogInformation("Adding invited user {UserID} to group {GroupID}", result.InvitedUser.Id, groupId);
-        await AddToGroup(result.InvitedUser.Id, groupId!, graphClient, log);
-            
-        log.LogInformation("Success, {UserEmail} ({UserID}) is in group {GroupID}", userEmail,
-            result.InvitedUser.Id, groupId);
+        var message = $"Successfully invited {userEmail} and added to group {groupId}";
+
+        if (groupId != null)
+        {
+            log.LogInformation("Adding invited user {UserID} to group {GroupID}", result.InvitedUser.Id, groupId);
+            await AddToGroup(result.InvitedUser.Id, groupId!, graphClient, log);
+
+            log.LogInformation("Success, {UserEmail} ({UserID}) is in group {GroupID}", userEmail,
+                result.InvitedUser.Id, groupId);
+        }
+        else
+        {
+            log.LogInformation("No group found for invited user {UserID}", result.InvitedUser.Id);
+            message = $"Successfully invited {userEmail}";
+        }
 
         // send invite email
         await SenInvitationEmail(userEmail, inviter);
 
         var response = new JsonObject
         {
-            ["message"] = $"Successfully invited {userEmail} and added to group {groupId}",
+            ["message"] = $"{message}",
             ["data"] = new JsonObject
             {
                 ["email"] = userEmail,
