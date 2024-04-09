@@ -22,18 +22,9 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
         IKeyVaultUserService keyvaultUserService,
         DatahubPortalConfiguration config) : ITbsOpenDataService
 {
-    private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = dbContextFactory;
-    private readonly IMetadataBrokerService _metadataBrokerService = metadataBrokerService;
-    private readonly IProjectStorageConfigurationService _projectStorageConfigService = projectStorageConfigService;
-    private readonly CloudStorageManagerFactory _cloudStorageManagerFactory = cloudStorageManagerFactory;
-    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
-    private readonly IOpenDataPublishingService _publishingService = publishingService;
-    private readonly IKeyVaultUserService _keyvaultUserService = keyvaultUserService;
-    private readonly DatahubPortalConfiguration _config = config;
-
     public async Task<CKANApiResult> CreateOrFetchPackage(OpenDataSubmission submission)
     {
-        var submissionMetadata = await _metadataBrokerService.GetObjectMetadataValues(submission.UniqueId);
+        var submissionMetadata = await metadataBrokerService.GetObjectMetadataValues(submission.UniqueId);
         if (submissionMetadata == null)
         {
             throw new OpenDataPublishingException($"Metadata not found for submission with ID {submission.Id} (unique id: {submission.UniqueId})");
@@ -56,12 +47,12 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
             throw new OpenDataPublishingException($"TBS OpenGov API Key not found for workspacce {workspaceAcronym}");
         }
 
-        return CKANService.CreateService(_httpClientFactory, _config.CkanConfiguration, apiKey);
+        return CKANService.CreateService(httpClientFactory, config.CkanConfiguration, apiKey);
     }
 
     private async Task ApplyWorkspaceOwnerOrgToMetadata(FieldValueContainer submissionMetadata, string workspaceAcronym)
     {
-        var workspaceMetadata = await _metadataBrokerService.GetObjectMetadataValues(workspaceAcronym);
+        var workspaceMetadata = await metadataBrokerService.GetObjectMetadataValues(workspaceAcronym);
         if (workspaceMetadata == null)
         {
             throw new OpenDataPublishingException($"Metadata not found for workspace {workspaceAcronym}");
@@ -76,14 +67,14 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
         if (publishFile.ProjectStorageId.HasValue)
         {
-            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var storage = await ctx.ProjectCloudStorages.AsNoTracking().FirstOrDefaultAsync(s => s.Id == publishFile.ProjectStorageId);
             if (storage == null)
             {
                 throw new OpenDataPublishingException($"Project cloud storage not found with id {publishFile.ProjectStorageId} (submission {publishFile.SubmissionId})");
             }
 
-            var storageManager = await _cloudStorageManagerFactory.CreateCloudStorageManager(projectAcronym, storage);
+            var storageManager = await cloudStorageManagerFactory.CreateCloudStorageManager(projectAcronym, storage);
             if (storageManager == null)
             {
                 throw new OpenDataPublishingException($"Could not open cloud storage with id {publishFile.ProjectStorageId} (submission {publishFile.SubmissionId})");
@@ -93,8 +84,8 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
         }
         else
         {
-            var accountName = _projectStorageConfigService.GetProjectStorageAccountName(projectAcronym);
-            var accountKey = await _projectStorageConfigService.GetProjectStorageAccountKey(projectAcronym);
+            var accountName = projectStorageConfigService.GetProjectStorageAccountName(projectAcronym);
+            var accountKey = await projectStorageConfigService.GetProjectStorageAccountKey(projectAcronym);
             var storageManager = new AzureCloudStorageManager(accountName, accountKey);
             return await Task.FromResult(storageManager);
         }
@@ -110,7 +101,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
     private async Task DownloadFileContent(Uri fileUrl, Func<Stream, Task> processFile)
     {
-        var httpClient = _httpClientFactory.CreateClient();
+        var httpClient = httpClientFactory.CreateClient();
         using var response = await httpClient.GetAsync(fileUrl, HttpCompletionOption.ResponseHeadersRead);
         response.EnsureSuccessStatusCode();
         await using var fileData = await response.Content.ReadAsStreamAsync();
@@ -122,7 +113,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
     {
         try
         {
-            var updatedFile = await _publishingService.UpdateFileUploadStatus(publishFile, OpenDataPublishFileUploadStatus.InProgress);
+            var updatedFile = await publishingService.UpdateFileUploadStatus(publishFile, OpenDataPublishFileUploadStatus.InProgress);
 
             var packageApiResult = await CreateOrFetchPackage(publishFile.Submission);
 
@@ -131,7 +122,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
                 throw new OpenDataPublishingException($"Package not found for submission with ID {publishFile.Submission.Id} (unique id: {publishFile.Submission.UniqueId})");
             }
 
-            var metadata = await _metadataBrokerService.GetObjectMetadataValues(publishFile.FileId, null);
+            var metadata = await metadataBrokerService.GetObjectMetadataValues(publishFile.FileId, null);
             if (metadata == null)
             {
                 throw new OpenDataPublishingException($"Metadata not found for file {publishFile.FileName}");
@@ -151,16 +142,16 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
                     if (uploadResult.Succeeded)
                     {
-                        await _publishingService.UpdateFileUploadStatus(publishFile, OpenDataPublishFileUploadStatus.Completed);
+                        await publishingService.UpdateFileUploadStatus(publishFile, OpenDataPublishFileUploadStatus.Completed);
                     }
                     else
                     {
-                        await _publishingService.UpdateFileUploadStatus(publishFile, OpenDataPublishFileUploadStatus.Failed, uploadResult.ErrorMessage);
+                        await publishingService.UpdateFileUploadStatus(publishFile, OpenDataPublishFileUploadStatus.Failed, uploadResult.ErrorMessage);
                     }
                 }
                 catch (Exception e)
                 {
-                    await _publishingService.UpdateFileUploadStatus(publishFile, OpenDataPublishFileUploadStatus.Failed, e.Message);
+                    await publishingService.UpdateFileUploadStatus(publishFile, OpenDataPublishFileUploadStatus.Failed, e.Message);
                 }
             });
 
@@ -168,7 +159,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
         }
         catch (OpenDataPublishingException e)
         {
-            var failedFile = await _publishingService.UpdateFileUploadStatus(publishFile, OpenDataPublishFileUploadStatus.Failed, e.Message);
+            var failedFile = await publishingService.UpdateFileUploadStatus(publishFile, OpenDataPublishFileUploadStatus.Failed, e.Message);
             return await Task.FromResult(failedFile);
         }
     }
@@ -181,18 +172,18 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
     public async Task<string?> GetApiKeyForWorkspace(string workspaceAcronym)
     {
-        return await _keyvaultUserService.GetSecretAsync(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY_SECRET_NAME);
+        return await keyvaultUserService.GetSecretAsync(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY_SECRET_NAME);
     }
 
     public async Task SetApiKeyForWorkspace(string workspaceAcronym, string apiKey)
     {
-        await _keyvaultUserService.StoreSecret(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY_SECRET_NAME, apiKey);
+        await keyvaultUserService.StoreSecret(workspaceAcronym, ITbsOpenDataService.WORKSPACE_CKAN_API_KEY_SECRET_NAME, apiKey);
     }
 
     public async Task<bool> IsWorkspaceReadyForSubmission(string workspaceAcronym)
     {
         var isApiKeySetup = await IsApiKeyConfiguredForWorkspace(workspaceAcronym);
-        var workspaceMetadata = await _metadataBrokerService.GetObjectMetadataValues(workspaceAcronym);
+        var workspaceMetadata = await metadataBrokerService.GetObjectMetadataValues(workspaceAcronym);
         var isOrgSetup = !string.IsNullOrEmpty(workspaceMetadata?[FieldNames.opengov_owner_org]?.Value_TXT);
         return await Task.FromResult(isApiKeySetup && isOrgSetup);
     }
@@ -215,7 +206,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
         if (result.Succeeded)
         {
             submission.ImsoApprovedDate = imsoApproved ? DateTime.Today : null;
-            await _publishingService.UpdateTbsOpenGovSubmission(submission);
+            await publishingService.UpdateTbsOpenGovSubmission(submission);
         }
 
         return await Task.FromResult(result);
@@ -236,7 +227,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
         if (result.Succeeded)
         {
             submission.OpenGovPublicationDate = published ? pubDate : null;
-            await _publishingService.UpdateTbsOpenGovSubmission(submission);
+            await publishingService.UpdateTbsOpenGovSubmission(submission);
         }
 
         return await Task.FromResult(result);
@@ -244,13 +235,13 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
 
     public string DerivePublishUrl(TbsOpenGovSubmission submission)
     {
-        return $"{_config.CkanConfiguration.DatasetUrl}/{submission.UniqueId}";
+        return $"{config.CkanConfiguration.DatasetUrl}/{submission.UniqueId}";
     }
 
     public async Task<string> TestConnectivity()
     {
-        using var httpClient = _httpClientFactory.CreateClient();
-        var apiUrl = $"{_config.CkanConfiguration.ApiUrl}/action/organization_list";
+        using var httpClient = httpClientFactory.CreateClient();
+        var apiUrl = $"{config.CkanConfiguration.ApiUrl}/action/organization_list";
         try
         {
             using var response = await httpClient.GetAsync(apiUrl);
