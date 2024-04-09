@@ -27,7 +27,6 @@ public class ProjectUsageService
 
         // create if it does exists
         projectCredits ??= new() { ProjectId = projectId };
-
         // create session
         var session = await _azureManagementService.GetSession(ct);
         if (session is null)

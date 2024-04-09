@@ -50,6 +50,9 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Azure.Core;
+using Azure.Identity;
+using Azure.ResourceManager;
 using Datahub.Infrastructure.Offline;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Notification;
@@ -69,6 +72,7 @@ using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
 using Datahub.Infrastructure.Services.ReverseProxy;
 using Datahub.Infrastructure.Services.WebApp;
+using Microsoft.Extensions.Azure;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -142,6 +146,23 @@ public class Startup
         services.AddHttpClient();
         services.AddHttpClient<GraphServiceClient>()
             .AddPolicyHandler(GetRetryPolicy());
+        services.AddAzureClients(builder =>
+        {
+            builder.AddClient<ArmClient, ArmClientOptions>(options =>
+            {
+                options.Diagnostics.IsLoggingEnabled=true;
+                options.Retry.Mode = RetryMode.Exponential;
+                options.Retry.MaxRetries = 5;
+                options.Retry.Delay = TimeSpan.FromSeconds(2);
+                var tenantId = Configuration.GetSection("AzureAd").GetValue<string>("TenantId");
+                var clientId = Configuration.GetSection("AzureAd").GetValue<string>("ClientId");
+                var clientSecret = Configuration.GetSection("AzureAd").GetValue<string>("ClientSecret");
+                var subscriptionId = Configuration.GetSection("AzureAd").GetValue<string>("SubscriptionId");
+                var creds = new ClientSecretCredential(tenantId, clientId, clientSecret);
+                var client = new ArmClient(creds, subscriptionId, options);
+                return client;
+            });
+        });
         services.AddFileReaderService();
         services.AddBlazorDownloadFile();
         services.AddBlazoredLocalStorage();
