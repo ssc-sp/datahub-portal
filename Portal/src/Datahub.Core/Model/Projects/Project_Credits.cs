@@ -23,9 +23,19 @@ public class Project_Credits
     public DateTime? LastUpdate { get; set; }
 
     /// <summary>
+    /// Gets or sets last rollover date
+    /// </summary>
+    public DateTime? LastRollover { get; set; }
+
+    /// <summary>
     /// Gets or sets current credits consumed.
     /// </summary>
     public double Current { get; set; }
+
+    /// <summary>
+    /// Gets or sets current credits consumed, according to azure budget
+    /// </summary>
+    public double BudgetCurrentSpent { get; set; }
 
     /// <summary>
     /// Gets or sets jSON serialized cost per service (ServiceName, Cost)
