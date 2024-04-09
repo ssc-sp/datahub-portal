@@ -12,7 +12,6 @@ using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Cost;
 using Datahub.Infrastructure.Services.Storage;
-using Datahub.ProjectTools.Services;
 using Datahub.Shared.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
