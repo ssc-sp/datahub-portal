@@ -9,7 +9,8 @@ public static class PageRoutes
     public const string WorkspacePrefix = "w";
     public const string WorkspaceDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}";
     public const string Workspace = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{{Section}}";
-    
+    public const string WorkspaceSubSection = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{{Section}}/{{SubSection}}";
+
     public const string AccountPrefix = "account";
     public const string AccountDefault = $"/{AccountPrefix}/";
     public const string Account = $"/{AccountPrefix}/{{Section}}";

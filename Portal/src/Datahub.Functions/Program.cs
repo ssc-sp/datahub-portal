@@ -10,9 +10,6 @@ using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 using System.Net;
-using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Projects;
 using Datahub.Application.Services.Security;
@@ -33,6 +30,8 @@ var host = new HostBuilder()
     .ConfigureServices((hostContext, services) =>
     {
         var config = hostContext.Configuration;
+
+        hostContext.HostingEnvironment.IsDevelopment();
         
         var connectionString = config["datahub_mssql_project"];
         if (connectionString is not null)

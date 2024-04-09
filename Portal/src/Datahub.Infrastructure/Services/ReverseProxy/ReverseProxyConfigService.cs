@@ -1,7 +1,6 @@
 ﻿using Datahub.Application.Configuration;
 using Datahub.Application.Services.ReverseProxy;
 using Datahub.Core.Model.Datahub;
-using Microsoft.Extensions.Configuration;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
 

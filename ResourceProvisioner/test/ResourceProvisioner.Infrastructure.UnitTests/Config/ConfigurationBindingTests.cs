@@ -28,12 +28,20 @@ public class ConfigurationBindingTests
         Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.Url, Is.Not.Null);
         Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.LocalPath, Is.Not.Null);
         Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.ProjectPathPrefix, Is.Not.Null);
-        Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.Username, Is.Not.Null);
-        Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.Password, Is.Not.Null);
         Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl, Is.Not.Null);
         Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.PullRequestBrowserUrl, Is.Not.Null);
         Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion, Is.Not.Null);
         Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.MainBranch, Is.Not.Null);
+        
+        Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration, Is.Not.Null);
+        Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientId, Is.Not.Null);
+        Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientSecret, Is.Not.Null);
+        Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.OrganizationName, Is.Not.Null);
+        Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ProjectName, Is.Not.Null);
+        Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.TenantId, Is.Not.Null);
+        Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.AppServiceConfigPipeline, Is.Not.Null);
+        Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ListPipelineUrlTemplate, Is.Not.Null);
+        Assert.That(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.PostPipelineRunUrlTemplate, Is.Not.Null);
         
         // assert that Terraform is not null
         Assert.That(_resourceProvisionerConfiguration.Terraform, Is.Not.Null);

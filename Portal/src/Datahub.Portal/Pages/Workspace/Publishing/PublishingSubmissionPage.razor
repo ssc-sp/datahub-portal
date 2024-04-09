@@ -1,0 +1,119 @@
+﻿@* PublishingSubmissionPage.razor *@
+
+@using Datahub.Application.Exceptions
+@using Datahub.Application.Services.Publishing;
+@using Datahub.Application.Services.Security;
+@inject IUserInformationService UserService
+@inject IOpenDataPublishingService PublishingService
+@inject NavigationManager NavManager
+@inject DatahubPortalConfiguration _config
+@inject IKeyVaultUserService _kvService;
+@inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+
+@implements IDisposable
+
+@if (IsPublishingEnabled)
+{
+    @if (IsTbsSubmission)
+    {
+        <TbsOpenGovPublishPage 
+            Submission=@_tbsSubmission 
+            OnSubmissionUpdated=@UpdateTbsOpenGovSubmission
+            OnSubmissionRefreshed=@LoadSubmission
+            WorkspaceAcronym=@WorkspaceAcronym />
+    }
+    else if (ValidSubmissionId)
+    {
+        <MudProgressCircular Indeterminate Size=@Size.Large />
+    }
+    else
+    {
+        <MudText>Invalid id</MudText>
+    }
+}
+
+
+@code {
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    [Parameter]
+    public string SubSection { get; set; }
+
+    private bool IsPublishingEnabled => _config.CkanConfiguration.IsFeatureEnabled;
+
+    private long? SubmissionId => long.TryParse(SubSection, out var result) ? result : default;
+    private bool ValidSubmissionId => SubmissionId.HasValue;
+
+    private OpenDataSubmission _submission;
+    private TbsOpenGovSubmission _tbsSubmission => _submission as TbsOpenGovSubmission;
+
+    private bool IsTbsSubmission => _tbsSubmission != null;
+
+
+    private async Task UpdateTbsOpenGovSubmission()
+    {
+        _submission = await PublishingService.UpdateTbsOpenGovSubmission(_tbsSubmission);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadSubmission()
+    {
+        if (!ValidSubmissionId) return;
+
+        _submission = null;
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            _submission = await PublishingService.GetOpenDataSubmissionAsync(SubmissionId.Value);
+        }
+        catch (OpenDataPublishingException e)
+        {
+            if (e?.InnerException is FileNotFoundException)
+            {
+                //TODO log
+            }
+
+            NavManager.NavigateTo($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Publishing}");
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try 
+        {
+            await _kvService.Authenticate();
+        }
+        catch (Microsoft.Identity.Web.MicrosoftIdentityWebChallengeUserException e)
+        {
+            _consentHandler.HandleException(e);
+        }
+
+        await LoadSubmission();
+
+        PublishingService.FileUploadStatusUpdated += OnFileStatusUpdated;
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task OnFileStatusUpdated(OpenDataPublishFile file)
+    {
+        var matchingFile = _submission?.Files?.FirstOrDefault(f => f.Id == file.Id);
+        if (matchingFile != null)
+        {
+            matchingFile.UploadStatus = file.UploadStatus;
+            matchingFile.UploadMessage = file.UploadMessage;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        PublishingService.FileUploadStatusUpdated -= OnFileStatusUpdated;
+    }
+}

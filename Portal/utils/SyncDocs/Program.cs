@@ -9,8 +9,6 @@
 using SyncDocs;
 using Microsoft.Extensions.Configuration;
 using CommandLine;
-using Microsoft.Extensions.Options;
-using System.Runtime.CompilerServices;
 
 const string SIDEBAR = "_sidebar.md";
 const string SIDEBAR_META = "_sidebar.md.yaml";
@@ -53,7 +51,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
 
         if (options.Validate)
         {
-            await IteratePath(options.Path, BuildExcluder(configParams), async (_,_) => { }, markdownProcessor.ValidateFile);
+            await IteratePath(options.Path, BuildExcluder(configParams), (_,_) => Task.CompletedTask, markdownProcessor.ValidateFile);
         }
 
         if (options.Validate && markdownProcessor.ValidationErrors.Count > 0)

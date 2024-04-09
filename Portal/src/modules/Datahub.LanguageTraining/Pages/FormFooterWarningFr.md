@@ -1,2 +1,0 @@
-﻿### Notice
-**Un Plan d’évaluation et de formation linguistiques (ELPF) est une condition préalable à la formation linguistique avec l’École de langues de RNCan, et avec tout fournisseur de services externe. Veuillez soumettre une demande pour planifier une évaluation du Plan d’évaluation et de formation linguistiques avec l’École de langues de RNCan [LIEN].**

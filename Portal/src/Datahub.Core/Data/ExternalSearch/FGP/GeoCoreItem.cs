@@ -1,4 +1,3 @@
-using System;
 using Newtonsoft.Json;
 
 namespace Datahub.Core.Data.ExternalSearch.FGP;
@@ -23,20 +22,19 @@ public class GeoCoreItem
     public string GraphicOverview { get; set; } // TODO lots of processing (same)
     public string Contact { get; set; } // TODO lots of processing (same)
 
-
-    private GeoCoreOptionsList _optionsList = null;
-    private GeoCoreContactList _contactList = null;
-    private GeoCoreGraphicOverviewList _graphicsList = null;
+    private GeoCoreOptionsList optionsList = null;
+    private GeoCoreContactList contactList = null;
+    private GeoCoreGraphicOverviewList graphicsList = null;
 
     public GeoCoreOptionsList OptionsList
     {
         get
         {
-            if (_optionsList == null)
+            if (optionsList == null)
             {
-                _optionsList = DecodeEscapedJson<GeoCoreOptionsList>(Options);
+                optionsList = DecodeEscapedJson<GeoCoreOptionsList>(Options);
             }
-            return _optionsList;
+            return optionsList;
         }
     }
 
@@ -44,43 +42,41 @@ public class GeoCoreItem
     {
         get
         {
-            if (_contactList == null)
+            if (contactList == null)
             {
-                _contactList = DecodeEscapedJson<GeoCoreContactList>(Contact);
+                contactList = DecodeEscapedJson<GeoCoreContactList>(Contact);
             }
-            return _contactList;
+            return contactList;
         }
     }
 
-    public GeoCoreContact FirstContact => ContactList.Count > 0? ContactList[0]: null;
+    public GeoCoreContact FirstContact => ContactList.Count > 0 ? ContactList[0] : null;
 
     public GeoCoreGraphicOverviewList GraphicOverviewList
     {
         get
         {
-            if (_graphicsList == null)
+            if (graphicsList == null)
             {
-                _graphicsList = DecodeEscapedJson<GeoCoreGraphicOverviewList>(GraphicOverview);
+                graphicsList = DecodeEscapedJson<GeoCoreGraphicOverviewList>(GraphicOverview);
             }
-            return _graphicsList;
+            return graphicsList;
         }
     }
 
-    public GeoCoreGraphicOverview FirstGraphicOverview => GraphicOverviewList.Count > 0? GraphicOverviewList[0]: null;
+    public GeoCoreGraphicOverview FirstGraphicOverview => GraphicOverviewList.Count > 0 ? GraphicOverviewList[0] : null;
 
-    private T DecodeEscapedJson<T> (string content)
+    private T DecodeEscapedJson<T>(string content)
     {
-        var decoded = content.Replace("\\\"\"", "\"").Replace("\"\"","");
+        var decoded = content.Replace("\\\"\"", "\"").Replace("\"\"", string.Empty);
         var result = JsonConvert.DeserializeObject<T>(decoded);
         return result;
     }
 
-
-    public string GetGeoCaUrl(string lang="en")
+    public string GetGeoCaUrl(string lang = "en")
     {
         return $"https://app.geo.ca/result?id={Id}&lang={lang}";
     }
-        
 
     /*
 "id": "000183ed-8864-42f0-ae43-c4313a860720",

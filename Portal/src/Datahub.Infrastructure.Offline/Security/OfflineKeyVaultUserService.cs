@@ -1,14 +1,9 @@
 ﻿using Datahub.Application.Services.Security;
 using Datahub.Core.Model.CloudStorage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.Infrastructure.Offline.Security
 {
-    public class OfflineKeyVaultUserService : IKeyVaultUserService
+	public class OfflineKeyVaultUserService : IKeyVaultUserService
     {
         public async Task Authenticate()
         {
@@ -46,6 +41,11 @@ namespace Datahub.Infrastructure.Offline.Security
         }
 
         public Task StoreSecret(string acronym, string name, string secretValue, int monthValidity = 12)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task StoreOrUpdateSecret(string acronym, string name, string secretValue, int monthValidity = 12)
         {
             throw new NotImplementedException();
         }
