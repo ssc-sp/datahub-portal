@@ -2,6 +2,9 @@
 @using Datahub.Application.Services
 @using Datahub.Application.Services.Notebooks
 @using Datahub.Core.Model.Projects
+@using Datahub.Shared.Clients
+@using Datahub.Shared.Configuration
+@using Datahub.Shared.Entities
 @using Microsoft.Identity.Web
 
 @inject IResourceMessagingService _resourceMessagingService
@@ -59,17 +62,17 @@
                                 <MudStack Row AlignItems="AlignItems.Center">
                                     <MudIcon Icon="@SidebarIcons.Api" Class="mr-2" />
                                     <MudText Typo="Typo.h3">
-                                        @Localizer["Admin Add to Databricks"]
+                                        @Localizer["Databricks Admin"]
                                     </MudText>
                                 </MudStack>
                                 <MudText>
-                                    @Localizer["Admin Add to Databricks Text"]
+                                    @Localizer["Click here to add youself to databricks workspace admin group via REST api"]
                                 </MudText>
                                 <MudSpacer />
                                 <MudStack Row>
                                     <MudButton Variant="@Variant.Filled" Color="@Color.Primary"
                                                OnClick="@(async () => await AddToDatabricksAdmins())">
-                                        @Localizer["Admin Add to Databricks"]
+                                        @Localizer["Databricks Admin"]
                                         <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </MudButton>
                                 </MudStack>
@@ -140,16 +143,23 @@
 
     private async Task AddToDatabricksAdmins()
     {
+
+        var dataBricksUrl = await _databricksApiService.GetDatabricsWorkspaceUrlAsync(WorkspaceAcronym);
+        if (string.IsNullOrEmpty(dataBricksUrl))
+        {
+            _snackbar.Add(Localizer["Your workspace does not have Databricks"], Severity.Error);
+            return;
+        }
         await InvokeAsync(StateHasChanged);
 
         try
         {
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            _logger.LogInformation("Adding user {currentUser} to workspace {WorkspaceAcronym}", WorkspaceAcronym);
+            _logger.LogInformation("Adding user {currentUser.DisplayName} to workspace {WorkspaceAcronym}", WorkspaceAcronym);
 
-            var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(DatabricksScopes);
+            // var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(DatabricksScopes);
 
-            var success = await _databricksApiService.AddAdminToDatabricsWorkspaceAsync(WorkspaceAcronym, accessToken, "TODO");
+            var success = await _databricksApiService.AddAdminToDatabricsWorkspaceAsync(WorkspaceAcronym, currentUser);
             if (success)
             {
                 _snackbar.Add(Localizer["You was successfully added as an administrator"], Severity.Success);
