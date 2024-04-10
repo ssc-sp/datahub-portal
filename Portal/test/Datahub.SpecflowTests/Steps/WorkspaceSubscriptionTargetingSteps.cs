@@ -16,6 +16,7 @@ namespace Datahub.SpecflowTests.Steps;
 public sealed class WorkspaceSubscriptionTargetingSteps(
     IResourceMessagingService resourceMessagingService,
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+    IProjectCreationService projectCreationService,
     ScenarioContext scenarioContext)
 {
     [Given(@"a workspace that has a subscription id")]
@@ -52,8 +53,14 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
     }
 
     [Given(@"a new workspace is created")]
-    public void GivenANewWorkspaceIsCreated()
+    public async Task GivenANewWorkspaceIsCreated()
     {
-        
+        await projectCreationService.CreateProjectAsync(Testing.WORKSPACE_NAME, Testing.WORKSPACE_ACRONYM, "Unspecified");
+    }
+
+    [Then(@"the subscription id is the next available subscription id")]
+    public void ThenTheSubscriptionIdIsTheNextAvailableSubscriptionId()
+    {
+        ScenarioContext.StepIsPending();
     }
 }
