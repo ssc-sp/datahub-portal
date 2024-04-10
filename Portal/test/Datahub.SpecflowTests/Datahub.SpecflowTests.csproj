@@ -32,25 +32,4 @@
       <ProjectReference Include="..\..\src\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj" />
       <ProjectReference Include="..\..\src\Datahub.Portal\Datahub.Portal.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Compile Update="Features\Workspace\WorkspaceDatabasePage.feature.cs">
-        <DependentUpon>WorkspaceDatabasePage.feature</DependentUpon>
-        <AutoGen>true</AutoGen>
-        <DesignTime>true</DesignTime>
-        <Visible>true</Visible>
-      </Compile>
-      <Compile Update="Features\Workspace\WorkspaceSettingsPage.feature.cs">
-        <DependentUpon>WorkspaceSettingsPage.feature</DependentUpon>
-        <AutoGen>true</AutoGen>
-        <DesignTime>true</DesignTime>
-        <Visible>true</Visible>
-      </Compile>
-      <Compile Update="Features\Workspace\WorkspaceWebAppPage.feature.cs">
-        <DependentUpon>WorkspaceWebAppPage.feature</DependentUpon>
-        <AutoGen>true</AutoGen>
-        <DesignTime>true</DesignTime>
-        <Visible>true</Visible>
-      </Compile>
-    </ItemGroup>
 </Project>

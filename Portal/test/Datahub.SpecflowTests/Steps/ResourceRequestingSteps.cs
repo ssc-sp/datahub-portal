@@ -26,6 +26,7 @@ namespace Datahub.SpecflowTests.Steps
             var project = new Datahub_Project()
             {
                 Project_Acronym_CD = projectAcronym,
+                SubscriptionId = Testing.WORKSPACE_SUBSCRIPTION_GUID
             };
             
             ctx.Projects.Add(project);
@@ -44,6 +45,7 @@ namespace Datahub.SpecflowTests.Steps
             var project = new Datahub_Project()
             {
                 Project_Acronym_CD = projectAcronym,
+                SubscriptionId = Testing.WORKSPACE_SUBSCRIPTION_GUID
             };
             
             ctx.Projects.Add(project);
@@ -62,6 +64,7 @@ namespace Datahub.SpecflowTests.Steps
             var project = new Datahub_Project()
             {
                 Project_Acronym_CD = projectAcronym,
+                SubscriptionId = Testing.WORKSPACE_SUBSCRIPTION_GUID
             };
             
             var resource = new Project_Resources2()
