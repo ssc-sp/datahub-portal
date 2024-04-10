@@ -9,7 +9,6 @@ public class DatahubProjectConfiguration : IEntityTypeConfiguration<Datahub_Proj
     {
         builder.ToTable("Projects");
         builder.Property(e => e.SubscriptionId)
-            .IsRequired()
             .HasMaxLength(36);
     }
 }
