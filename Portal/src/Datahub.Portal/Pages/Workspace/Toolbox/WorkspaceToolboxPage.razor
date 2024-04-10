@@ -181,7 +181,8 @@
             return _toolCurrentDevelopmentStatusMap[tool];
         }
 
-        var toolResource = _workspace.Resources.FirstOrDefault(r => r.ResourceType.EndsWith(tool));
+        var toolResource = _workspace.Resources.FirstOrDefault(r => r.ResourceType.EndsWith(tool) 
+                                        && (r.Status == null || r.Status.ToLower() != "deleted"));
         if (toolResource == null)
         {
             return ToolStatus.Available;
