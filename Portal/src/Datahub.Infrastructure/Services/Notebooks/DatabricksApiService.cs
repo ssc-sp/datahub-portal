@@ -2,12 +2,18 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Azure.Core;
+using Azure.Identity;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Core.Data.Databricks;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Utils;
+using Datahub.Shared.Clients;
+using Datahub.Shared.Configuration;
+using Microsoft.Azure.Databricks.Client;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -15,6 +21,7 @@ namespace Datahub.Infrastructure.Services.Notebooks;
 
 public class DatabricksApiService : IDatabricksApiService
 {
+    const string SCOPE = "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default";
     private readonly ILogger<DatabricksApiService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
@@ -134,22 +141,51 @@ public class DatabricksApiService : IDatabricksApiService
         return true;
     }
 
-    public async Task<bool> AddAdminToDatabricsWorkspaceAsync(string projectAcronym, string accessToken, string databricksUserId)
+    public async Task<string> GetDatabricsWorkspaceUrlAsync(string projectAcronym)
     {
-        var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym);
+        try
+        {
+            var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym);
+            return workspaceDatabricksUrl;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    }
 
-        // Use the access token to call a protected web API.
-        var httpClient = _httpClientFactory.CreateClient();
-        var queryUrl = $"{workspaceDatabricksUrl}/api/2.0/preview/scim/v2/Users/{databricksUserId}";
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+    public async Task<bool> AddAdminToDatabricsWorkspaceAsync(string projectAcronym, PortalUser user)
+    {
+        try
+        {
+            var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym);
+            var accessToken = await GetAccessToken();
 
-        var patchContent = BuildPatchBody(databricksUserId);        
+            // Use the access token to call a protected web API.
+            var httpClient = _httpClientFactory.CreateClient();
+            var postUrl = $"{workspaceDatabricksUrl}/api/2.0/preview/scim/v2/Users";
+            var postContent = BuilPostBody(user);
+            using (var userData = await httpClient.PostAsync(postUrl, postContent))
+            {
+                var newUserData = await userData.Content.ReadAsStringAsync();
+                var databricksUser = JsonSerializer.Deserialize<dynamic>(newUserData);
+                var databricksUserId = databricksUser?.Id;
+                var queryUrl = $"{workspaceDatabricksUrl}/api/2.0/preview/scim/v2/Users/{databricksUserId}";
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
 
-        using var response = await httpClient.PatchAsync(queryUrl, patchContent);
+                var patchContent = BuildPatchBody(databricksUserId);
 
-        response.EnsureSuccessStatusCode();
+                using var response = await httpClient.PatchAsync(queryUrl, patchContent);
 
-        return response.StatusCode == System.Net.HttpStatusCode.OK;
+                response.EnsureSuccessStatusCode();
+
+                return response.StatusCode == System.Net.HttpStatusCode.OK;
+            }
+        }
+        catch(Exception ex)
+        {
+            return false;
+        }        
     }
 
     private async Task<Dictionary<string, bool>> GetWorkspaceRepositoryVisibilitiesAsync(string projectAcronym)
@@ -193,25 +229,57 @@ public class DatabricksApiService : IDatabricksApiService
         return databricksUrl;
     }
 
+    private Task<AccessToken> GetAccessToken()
+    {
+        var _config = new AzureDevOpsConfiguration();
+        var clientProvider = new AzureDevOpsClient(_config);
+        return clientProvider.GetAccessToken();
+    }
+
+    private StringContent BuilPostBody(PortalUser user)
+    {
+        _logger.LogInformation($"Building request patch body for adding user  to databricks admin group");
+
+        var newUser = new
+        {
+            schemas = new[] { "urn:ietf:params:scim:schemas:core:2.0:User" },
+            userName = user.Email,
+            name = new
+            {
+                familyName = user.DisplayName
+            },
+            emails = new[]
+            {
+                new
+                {
+                    value = user.Email,
+                    type = "work",
+                    primary = true
+                }
+            }
+        };
+        var postBody = new StringContent(JsonSerializer.Serialize(newUser), Encoding.UTF8, "application/json");
+        return postBody;
+    }
     private StringContent BuildPatchBody(string databricksUserId)
     {
         _logger.LogInformation($"Building request patch body for adding user {databricksUserId} to databricks admin group");
 
-        var patchData = new UserPatchRequest
+        var patchData = new 
         {
-            Schemas = ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
-            Operations = 
-            [
-                new UserPatchOperation
+            schemas = new[] { "urn:ietf:params:scim:api:messages:2.0:PatchOp" },
+            operations = new[]
+            {
+                new
                 {
-                    Op="add",
-                    Path="admins",
-                    Value = new DatabricksUser
-                    { 
+                    op="add",
+                    path="admins",
+                    value = new 
+                    {
                         id = databricksUserId
                     }
                 }
-            ]
+            }
         };
         var patchBody = new StringContent(JsonSerializer.Serialize(patchData), Encoding.UTF8, "application/json");
         return patchBody;
