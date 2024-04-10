@@ -35,7 +35,10 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
     [When(@"the workspace definition is requested")]
     public async Task WhenTheWorkspaceDefinitionIsRequested()
     {
-        var workspace = scenarioContext["workspace"] as Datahub_Project;
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var workspace = await ctx.Projects
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == Testing.WORKSPACE_ACRONYM);
+        
         var workspaceDefinition =  await resourceMessagingService.GetWorkspaceDefinition(workspace!.Project_Acronym_CD, string.Empty);
         scenarioContext["workspaceDefinition"] = workspaceDefinition;
     }
