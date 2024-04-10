@@ -48,7 +48,7 @@
             using var ctx = _dbContextFactory.CreateDbContext();
             var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
             var projectDatabricks = ctx.Project_Resources2
-                .Where(r => r.ProjectId == project.Project_ID)
+                .Where(r => r.ProjectId == project.Project_ID && (r.Status == null || r.Status.ToLower() != "deleted"))
                 .FirstOrDefault(r => r.ResourceType == databricksTemplateName);
 
             if (projectDatabricks is { CreatedAt: not null })
@@ -74,7 +74,8 @@
     private IEnumerable<Project_Resources2> GetDbs(Datahub_Project project)
     {
         return project.Resources
-            .Where(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)) 
+            .Where(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)
+                   && (r.Status == null || r.Status.ToLower() != "deleted"))
             .ToList();
     }
 

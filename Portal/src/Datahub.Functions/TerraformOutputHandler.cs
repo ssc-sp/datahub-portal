@@ -389,7 +389,7 @@ public class TerraformOutputHandler
         }
 
         var projectResource = project.Resources
-            .FirstOrDefault(x => x.ResourceType == terraformServiceType);
+            .FirstOrDefault(x => x.ResourceType == terraformServiceType && (x.Status == null || x.Status.ToLower() != "deleted"));
 
         if (projectResource is null)
         {
@@ -399,6 +399,7 @@ public class TerraformOutputHandler
             throw new Exception(
                 $"Project resource not found for project acronym {projectAcronym.Value} and service type {terraformServiceType}");
         }
+
 
         return projectResource;
     }
@@ -424,7 +425,9 @@ public class TerraformOutputHandler
                 throw new Exception($"Project resource not found for project acronym {projectAcronym.Value} and service type {terraformServiceType}");
             }
 
-            _projectDbContext.Project_Resources2.Remove(projectResource);
+            projectResource.Status = TerraformOutputStatus.Deleted;
+            _projectDbContext.Project_Resources2.Update(projectResource);
+
             await _projectDbContext.SaveChangesAsync();
 
             _logger.LogInformation("Project resource with service type {TerraformServiceType} deleted successfully for project acronym {ProjectAcronymValue}",

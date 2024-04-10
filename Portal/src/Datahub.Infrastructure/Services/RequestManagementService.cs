@@ -57,7 +57,8 @@ public class RequestManagementService : IRequestManagementService
             .LoadAsync();
 
         var resource = project.Resources
-            .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name));
+            .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name)
+            && (r.Status == null || r.Status.ToLower() != "deleted"));
 
         if (resource is not null)
         {

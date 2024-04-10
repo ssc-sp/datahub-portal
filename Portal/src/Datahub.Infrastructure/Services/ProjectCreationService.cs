@@ -161,7 +161,8 @@ public class ProjectCreationService : IProjectCreationService
         
         var exists = context.Project_Resources2
             .Any(r => r.ProjectId == projectId
-                      && r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
+                      && r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)
+                      && (r.Status == null || r.Status.ToLower() != "deleted"));
         
         if (exists) return;
         
