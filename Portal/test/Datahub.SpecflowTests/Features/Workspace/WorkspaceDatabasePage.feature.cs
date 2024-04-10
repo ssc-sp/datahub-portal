@@ -24,7 +24,8 @@ namespace Datahub.SpecflowTests.Features.Workspace
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
         
-        private static string[] featureTags = ((string[])(null));
+        private static string[] featureTags = new string[] {
+                "ignore"};
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
@@ -81,6 +82,96 @@ namespace Datahub.SpecflowTests.Features.Workspace
             this.TestTearDown();
         }
         
+        [Xunit.SkippableFactAttribute(DisplayName="Hide the connection info by default", Skip="Ignored")]
+        [Xunit.TraitAttribute("FeatureTitle", "Workspace Database Page")]
+        [Xunit.TraitAttribute("Description", "Hide the connection info by default")]
+        public void HideTheConnectionInfoByDefault()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Hide the connection info by default", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 5
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+ testRunner.Given("I am visiting the workspace database page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 7
+ testRunner.Then("the page should not display the connection info", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Show the connection info when the user clicks the \"Show Connection Info\" button", Skip="Ignored")]
+        [Xunit.TraitAttribute("FeatureTitle", "Workspace Database Page")]
+        [Xunit.TraitAttribute("Description", "Show the connection info when the user clicks the \"Show Connection Info\" button")]
+        public void ShowTheConnectionInfoWhenTheUserClicksTheShowConnectionInfoButton()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Show the connection info when the user clicks the \"Show Connection Info\" button", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 9
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 10
+ testRunner.Given("I am visiting the workspace database page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 11
+ testRunner.When("I click the \"Show Connection Info\" button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 12
+ testRunner.Then("the page should display the connection info", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Hide the connection info when the user clicks the \"Hide Connection Info\" button", Skip="Ignored")]
+        [Xunit.TraitAttribute("FeatureTitle", "Workspace Database Page")]
+        [Xunit.TraitAttribute("Description", "Hide the connection info when the user clicks the \"Hide Connection Info\" button")]
+        public void HideTheConnectionInfoWhenTheUserClicksTheHideConnectionInfoButton()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Hide the connection info when the user clicks the \"Hide Connection Info\" button", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 14
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 15
+ testRunner.Given("I previously clicked the \"Show Connection Info\" button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 16
+ testRunner.When("I click the \"Hide Connection Info\" button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 17
+ testRunner.Then("the page should not display the connection info", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
         [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
         [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
         public class FixtureData : System.IDisposable
@@ -88,12 +179,10 @@ namespace Datahub.SpecflowTests.Features.Workspace
             
             public FixtureData()
             {
-                WorkspaceDatabasePageFeature.FeatureSetup();
             }
             
             void System.IDisposable.Dispose()
             {
-                WorkspaceDatabasePageFeature.FeatureTearDown();
             }
         }
     }
