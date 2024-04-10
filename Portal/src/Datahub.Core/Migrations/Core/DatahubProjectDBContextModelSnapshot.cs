@@ -17,7 +17,7 @@ namespace Datahub.Core.Migrations.Core
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "8.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1523,6 +1523,10 @@ namespace Datahub.Core.Migrations.Core
                     b.Property<string>("Stage_Desc")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("SubscriptionId")
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
                     b.Property<byte[]>("Timestamp")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -1554,7 +1558,7 @@ namespace Datahub.Core.Migrations.Core
 
                     b.HasIndex("SectorId");
 
-                    b.ToTable("Projects");
+                    b.ToTable("Projects", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_ProjectApiUser", b =>
@@ -1797,6 +1801,9 @@ namespace Datahub.Core.Migrations.Core
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<double>("BudgetCurrentSpent")
+                        .HasColumnType("float");
+
                     b.Property<double>("Current")
                         .HasColumnType("float");
 
@@ -1807,6 +1814,9 @@ namespace Datahub.Core.Migrations.Core
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("LastNotified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastRollover")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("LastUpdate")
@@ -1865,6 +1875,9 @@ namespace Datahub.Core.Migrations.Core
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -2084,6 +2097,9 @@ namespace Datahub.Core.Migrations.Core
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTimeOffset>("AccessedTime")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("AzureWebAppUrl")
                         .HasColumnType("nvarchar(max)");
 
@@ -2126,9 +2142,6 @@ namespace Datahub.Core.Migrations.Core
                     b.Property<string>("WebFormsURL")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTimeOffset>("accessedTime")
-                        .HasColumnType("datetimeoffset");
-
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
@@ -2148,17 +2161,23 @@ namespace Datahub.Core.Migrations.Core
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("HideAchievements")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("HideAlerts")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Language")
                         .HasMaxLength(5)
                         .HasColumnType("nvarchar(5)");
 
                     b.Property<bool>("NotificationsEnabled")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("UserName")
                         .HasMaxLength(128)

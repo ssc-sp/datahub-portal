@@ -143,6 +143,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ResourceProvisioner_PyFunct
 		ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\workspace_data.json = ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\workspace_data.json
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceProvisioner.SpecflowTests", "ResourceProvisioner\test\ResourceProvisioner.SpecflowTests\ResourceProvisioner.SpecflowTests.csproj", "{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -282,6 +284,10 @@ Global
 		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -329,6 +335,7 @@ Global
 		{D84C8789-E77F-438A-A0B6-7DB1695B9C17} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 		{879D39ED-3C1F-4C0B-8856-6E76203CEA0A} = {40919C7D-5119-4821-9E51-96141E058E04}
+		{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B} = {40919C7D-5119-4821-9E51-96141E058E04}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_ConfirmAddLanguageFile = True
