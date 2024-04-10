@@ -358,7 +358,8 @@ public class Datahub_Project : IComparable<Datahub_Project>
                 Name = Branch_Name ?? "TODO",
                 Code = "TODO"
             },
-            Users = users
+            Users = users,
+            SubscriptionId = SubscriptionId
         };
     }
 }
