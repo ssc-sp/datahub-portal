@@ -1,5 +1,6 @@
 #nullable enable
 using System.Transactions;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Core.Data;
 using Datahub.Core.Enums;
@@ -7,6 +8,7 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Projects.Configuration;
 using Datahub.Core.Services;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Services.Security;
@@ -18,7 +20,7 @@ using Microsoft.Extensions.Logging;
 namespace Datahub.Infrastructure.Services;
 
 public class ProjectCreationService(
-    IConfiguration configuration,
+    DatahubPortalConfiguration portalConfiguration,
     IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
     ILogger<ProjectCreationService> logger,
     ServiceAuthManager serviceAuthManager,
@@ -180,7 +182,7 @@ public class ProjectCreationService(
             Project_Phase = TerraformOutputStatus.PendingApproval,
             Project_Status_Desc = "Ongoing",
             Project_Status = (int)ProjectStatus.InProgress,
-            Project_Budget = GetDefaultBudget()
+            Project_Budget = portalConfiguration.DefaultProjectBudget,
         };
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
         await db.Projects.AddAsync(project);
@@ -221,11 +223,5 @@ public class ProjectCreationService(
         };
 
         await datahubCatalogSearch.AddCatalogObject(catalogObject);
-    }
-
-    private decimal GetDefaultBudget()
-    {
-        var value = configuration.GetValue<int>("DefaultProjectBudget", 100);
-        return Convert.ToDecimal(value);
     }
 }
