@@ -108,12 +108,12 @@ public class ProjectUsageScheduler
         var projects = new List<Project_Resources2>();
         await foreach (var res in ctx.Project_Resources2.AsAsyncEnumerable())
         {
-            if (res.ResourceType == terraformServiceType)
+            if (res.ResourceType == terraformServiceType && (res.Status == null || res.Status.ToLower() != "deleted"))
             {
                 databrickProjects.Add(res.ProjectId);
             }
 
-            if (res.ResourceType == storageBlobType)
+            if (res.ResourceType == storageBlobType && (res.Status == null || res.Status.ToLower() != "deleted"))
             {
                 projects.Add(res);
             }

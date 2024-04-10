@@ -114,7 +114,8 @@ namespace Datahub.Infrastructure.Services.WebApp
 
             var projectResource = workspace.Resources
                 .FirstOrDefault(x =>
-                    x.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService));
+                    x.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService) &&
+                    (x.Status == null || x.Status.ToLower() != "deleted"));
 
             if (projectResource == null)
                 throw new Exception($"Azure App Service resource not found for workspace {workspaceAcronym}");
