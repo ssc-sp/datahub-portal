@@ -1,12 +1,21 @@
 <MudStack>
     <MudText Typo="Typo.h2">@Localizer["Workspace Reports"]</MudText>
-    
-    <WorkspaceCostingReport WorkspaceAcronym="@WorkspaceAcronym" />
-    <WorkspaceStorageReport WorkspaceAcronym="@WorkspaceAcronym" />
+
+    <MudTabs Elevation="2" ApplyEffectsToContainer="true" PanelClass="pa-6" Style="margin-bottom: 100px" Rounded="true" SliderColor="Color.Primary" Outlined="true">
+            <MudTabPanel Text="@Localizer["Costing"]" >
+                <WorkspaceCostingReport WorkspaceAcronym="@WorkspaceAcronym"/>
+            </MudTabPanel>
+            <MudTabPanel Text="@Localizer["Storage"]">
+                <WorkspaceStorageReport WorkspaceAcronym="@WorkspaceAcronym"/>
+            </MudTabPanel>
+            <MudTabPanel Text="@Localizer["Reports"]">
+                <WorkspaceReportsTable WorkspaceAcronym="@WorkspaceAcronym"/>
+            </MudTabPanel>
+    </MudTabs>
+
 </MudStack>
 
 @code {
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
-    
+    [Parameter] public string WorkspaceAcronym { get; set; }
+
 }
