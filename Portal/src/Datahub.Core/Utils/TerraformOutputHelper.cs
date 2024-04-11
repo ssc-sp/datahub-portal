@@ -12,7 +12,7 @@ public static class TerraformOutputHelper
         // var workspaceUrl = "";
 
         if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob))
-                              && (r.Status == null || r.Status.ToLower() != "deleted"))) 
+                              && (r.Status == null || r.Status.ToLower() != "deleted")))
         {
             expectedTerraformOutput =
                 string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzureStorageString());
