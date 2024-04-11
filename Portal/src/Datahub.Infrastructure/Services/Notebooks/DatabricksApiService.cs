@@ -274,6 +274,7 @@ public class DatabricksApiService : IDatabricksApiService
             userName = user.Email,
             name = new Name { familyName = user.DisplayName },
             id = "0",
+            active = true,
             emails =
             [
                 new Email { primary = true, value = user.Email, type = "work", display=user.DisplayName }
