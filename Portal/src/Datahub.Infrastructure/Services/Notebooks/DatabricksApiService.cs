@@ -20,7 +20,6 @@ namespace Datahub.Infrastructure.Services.Notebooks;
 
 public class DatabricksApiService : IDatabricksApiService
 {
-    const string DATABRICKS_SCOPE = "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default";
     private readonly ILogger<DatabricksApiService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
@@ -160,47 +159,71 @@ public class DatabricksApiService : IDatabricksApiService
         }
     }
 
-    public async Task<bool> AddAdminToDatabricsWorkspaceAsync(string projectAcronym, PortalUser user)
+    public async Task<bool> AddAdminToDatabricsWorkspaceAsync(AccessToken accessToken, string projectAcronym, PortalUser user)
     {
         try
         {
             var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym);
 
             // Use the access token to call a protected web API.
-            var accessToken = await GetAccessToken();
             var httpClient = _httpClientFactory.CreateClient();
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
 
+            // first check if user exists
+            var searchResults = await GetUserByName(accessToken, workspaceDatabricksUrl, user.DisplayName);
+            if (searchResults?.totalResults > 0)
+            {
+                var databricksUserId = searchResults.Resources[0].id;
+                // need to delete
+                await DeleteUser(accessToken, workspaceDatabricksUrl,databricksUserId);
+            }
             var postUrl = $"{workspaceDatabricksUrl}/api/2.0/preview/scim/v2/Users";
             var postContent = BuilPostBody(user);             
 
             using (var userData = await httpClient.PostAsync(postUrl, postContent))
             {
-                if (userData.StatusCode != System.Net.HttpStatusCode.OK)
+                if (userData.StatusCode != System.Net.HttpStatusCode.Created)
                 {
                     return false;
                 }
                 var newUserData = await userData.Content.ReadAsStringAsync();
-                var databricksUser = JsonSerializer.Deserialize<dynamic>(newUserData);
-                var databricksUserId = databricksUser?.Id;
-                var queryUrl = $"{workspaceDatabricksUrl}/api/2.0/preview/scim/v2/Users/{databricksUserId}";
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+                var databricksUser = JsonSerializer.Deserialize<DatabricksUser>(newUserData);
+                var databricksUserId = databricksUser?.id;
 
-                var patchContent = BuildPatchBody(databricksUserId);
-
-                using var response = await httpClient.PatchAsync(postUrl, postContent);
-
-                response.EnsureSuccessStatusCode();
-
-                return response.StatusCode == System.Net.HttpStatusCode.OK;
+                return databricksUserId != null;
             }
         }
-        catch(Exception ex)
+        catch(Exception)
         {
             return false;
         }        
     }
 
+    private async Task<DatabricksUserList?> GetUserByName(AccessToken accessToken, string workspaceDatabricksUrl, string displayName)
+    {
+        var filter = $"?filter=displayName eq {displayName}";
+        var queryUrl = $"{workspaceDatabricksUrl}/api/2.0/preview/scim/v2/Users/{filter}";
+        var httpClient = _httpClientFactory.CreateClient();
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+
+        using var response = await httpClient.GetAsync(queryUrl);
+
+        response.EnsureSuccessStatusCode();
+        var searchResults = await response.Content.ReadAsStringAsync();
+
+        return string.IsNullOrEmpty(searchResults)
+            ? new DatabricksUserList()
+            : JsonSerializer.Deserialize<DatabricksUserList>(searchResults);
+    }
+
+    private async Task DeleteUser(AccessToken accessToken, string workspaceDatabricksUrl, string databricksUserId)
+    {
+        var deleteUrl = $"{workspaceDatabricksUrl}/api/2.0/preview/scim/v2/Users/{databricksUserId}";
+        var httpClient = _httpClientFactory.CreateClient();
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token); 
+
+        using var response = await httpClient.DeleteAsync(deleteUrl);
+    }
     private async Task<Dictionary<string, bool>> GetWorkspaceRepositoryVisibilitiesAsync(string projectAcronym)
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
@@ -242,62 +265,25 @@ public class DatabricksApiService : IDatabricksApiService
         return databricksUrl;
     }
 
-    private Task<AccessToken> GetAccessToken()
-    {
-        var _config = new AzureDevOpsConfiguration();
-        _config.TenantId =_configuration.TenantId;
-        _config.ClientId = _configuration.ClientId;
-        _config.ClientSecret = _configuration.ClientSecret;
-        var clientProvider = new AzureDevOpsClient(_config);
-        return clientProvider.GetAccessToken(DATABRICKS_SCOPE);
-    }
-
     private StringContent BuilPostBody(PortalUser user)
     {
         _logger.LogInformation($"Building request patch body for adding user  to databricks admin group");
 
-        var newUser = new
+        var databricksUser = new DatabricksUser
         {
-            schemas = new[] { "urn:ietf:params:scim:schemas:core:2.0:User" },
             userName = user.Email,
-            name = new
-            {
-                familyName = user.DisplayName
-            },
-            emails = new[]
-            {
-                new
-                {
-                    value = user.Email,
-                    type = "work",
-                    primary = true
-                }
-            }
+            name = new Name { familyName = user.DisplayName },
+            id = "0",
+            emails =
+            [
+                new Email { primary = true, value = user.Email, type = "work", display=user.DisplayName }
+            ],
+            groups =
+            [
+                new Group { value="admins"} 
+            ]
         };
-        var postBody = new StringContent(JsonSerializer.Serialize(newUser), Encoding.UTF8, "application/json");
+        var postBody = new StringContent(JsonSerializer.Serialize(databricksUser), Encoding.UTF8, "application/json");
         return postBody;
-    }
-    private StringContent BuildPatchBody(string databricksUserId)
-    {
-        _logger.LogInformation($"Building request patch body for adding user {databricksUserId} to databricks admin group");
-
-        var patchData = new 
-        {
-            schemas = new[] { "urn:ietf:params:scim:api:messages:2.0:PatchOp" },
-            operations = new[]
-            {
-                new
-                {
-                    op="add",
-                    path="admins",
-                    value = new 
-                    {
-                        id = databricksUserId
-                    }
-                }
-            }
-        };
-        var patchBody = new StringContent(JsonSerializer.Serialize(patchData), Encoding.UTF8, "application/json");
-        return patchBody;
     }
 }

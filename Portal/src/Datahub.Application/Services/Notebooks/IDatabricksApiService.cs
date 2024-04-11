@@ -1,3 +1,4 @@
+using Azure.Core;
 using Datahub.Core.Data.Databricks;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Repositories;
@@ -40,7 +41,9 @@ public interface IDatabricksApiService
     /// <summary>
     /// Adds user as an admin to Databricks admin group
     /// </summary>
+    /// <param name="accessToken"></param>
     /// <param name="projectAcronym"></param> 
+    /// <param name="user"></param>
     /// <returns></returns>
-    public Task<bool> AddAdminToDatabricsWorkspaceAsync(string projectAcronym, PortalUser user);
+    public Task<bool> AddAdminToDatabricsWorkspaceAsync(AccessToken accessToken, string projectAcronym, PortalUser user);
 }

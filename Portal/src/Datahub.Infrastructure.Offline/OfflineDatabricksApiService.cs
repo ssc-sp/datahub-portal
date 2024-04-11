@@ -1,3 +1,4 @@
+using Azure.Core;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Core.Data.Databricks;
 using Datahub.Core.Model.Achievements;
@@ -21,7 +22,7 @@ public class OfflineDatabricksApiService : IDatabricksApiService
     {
         return Task.FromResult(true);
     }
-    public Task<bool> AddAdminToDatabricsWorkspaceAsync(string projectAcronym, PortalUser user)
+    public Task<bool> AddAdminToDatabricsWorkspaceAsync(AccessToken accessToken, string projectAcronym, PortalUser user)
     {
         return Task.FromResult(true);
     }
