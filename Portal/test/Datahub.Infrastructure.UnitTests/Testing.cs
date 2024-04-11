@@ -5,7 +5,9 @@ using System.Text.Json.Nodes;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Services;
+using Datahub.Infrastructure.Services.Notebooks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -20,8 +22,10 @@ public partial class Testing
 {
     internal static IConfiguration _configuration = null!;
     internal static IUserEnrollmentService _userEnrollmentService = null!;
+    internal static DatabricksApiService _databricksApiService = null!;
     internal static DatahubPortalConfiguration _datahubPortalConfiguration = null!;
     internal static IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = null!;
+    internal static IHttpClientFactory _httpClientFactory = null;
 
 
     internal const string TestProjectAcronym = "TEST";
@@ -63,8 +67,14 @@ public partial class Testing
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(
             () => new HttpClient(mockHandler.Object));
-        
-        _userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), httpClientFactory.Object, _datahubPortalConfiguration, null);
+
+        _httpClientFactory = httpClientFactory.Object;
+
+        _userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), 
+            httpClientFactory.Object, _datahubPortalConfiguration, null);
+
+        _databricksApiService = new DatabricksApiService(Mock.Of<ILogger<DatabricksApiService>>(), 
+            httpClientFactory.Object, _dbContextFactory, Mock.Of<IDatahubCatalogSearch>());
     }
 
     public static void SetDatahubGraphInviteFunctionUrl(string value)
@@ -74,6 +84,12 @@ public partial class Testing
     public static void SetAllowedUserEmailDomains(string[] value)
     {
         _datahubPortalConfiguration.AllowedUserEmailDomains = value;
+    }
+
+    public static void SetDatabricksApiService(IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+    {
+        _databricksApiService = new DatabricksApiService(Mock.Of<ILogger<DatabricksApiService>>(),
+            _httpClientFactory, dbContextFactory, Mock.Of<IDatahubCatalogSearch>());
     }
     private static StringContent ExpectedDatahubPortalInviteResponse()
     {

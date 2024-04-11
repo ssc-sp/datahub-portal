@@ -10,9 +10,6 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Utils;
-using Datahub.Infrastructure.Services.Azure;
-using Datahub.Shared.Clients;
-using Datahub.Shared.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -24,24 +21,18 @@ public class DatabricksApiService : IDatabricksApiService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
     private readonly IDatahubCatalogSearch _datahubCatalogSearch;
-    private readonly AzureManagementService _azureManagementService;
-    private readonly IAzureServicePrincipalConfig _configuration;
 
 
     public DatabricksApiService(
         ILogger<DatabricksApiService> logger,
         IHttpClientFactory httpClientFactory,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        IDatahubCatalogSearch datahubCatalogSearch,
-        IAzureServicePrincipalConfig configuration,
-        AzureManagementService azureManagementService)
+        IDatahubCatalogSearch datahubCatalogSearch)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _dbContextFactory = dbContextFactory;
         _datahubCatalogSearch = datahubCatalogSearch;
-        _configuration = configuration;
-        _azureManagementService = azureManagementService;
     }
 
 
