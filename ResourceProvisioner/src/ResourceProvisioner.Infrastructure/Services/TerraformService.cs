@@ -362,42 +362,43 @@ public class TerraformService : ITerraformService
             ) ?? new Dictionary<string, (string, bool)>();
     }
 
-    public async Task DestroySpecificResourcesAsync(TerraformWorkspace terraformWorkspace, string resourceIdentifier)
-    {
-        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+    ////TO Use later
+    //public async Task DestroySpecificResourcesAsync(TerraformWorkspace terraformWorkspace, string resourceIdentifier)
+    //{
+    //    var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
 
-        Directory.SetCurrentDirectory(projectPath);
+    //    Directory.SetCurrentDirectory(projectPath);
 
-        if (!await ExecuteShellCommand("terraform init")) {
-            _logger.LogError("Terraform init failed.");
-            return;
-        }
+    //    if (!await ExecuteShellCommand("terraform init")) {
+    //        _logger.LogError("Terraform init failed.");
+    //        return;
+    //    }
 
-        var destroyCmd = $"terraform destroy -auto-approve -target={resourceIdentifier}";
-        if (!await ExecuteShellCommand(destroyCmd)) {
-            _logger.LogError($"Terraform destroy failed for {resourceIdentifier}.");
-        }
+    //    var destroyCmd = $"terraform destroy -auto-approve -target={resourceIdentifier}";
+    //    if (!await ExecuteShellCommand(destroyCmd)) {
+    //        _logger.LogError($"Terraform destroy failed for {resourceIdentifier}.");
+    //    }
 
-        _logger.LogInformation("Successfully destroyed specified resources.");
-    }
-    private async Task<bool> ExecuteShellCommand(string command)
-    {
-        using var process = new System.Diagnostics.Process
-        {
-            StartInfo = new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = "cmd.exe",
-                Arguments = $"/c {command}",
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            }
-        };
+    //    _logger.LogInformation("Successfully destroyed specified resources.");
+    //}
+    //private async Task<bool> ExecuteShellCommand(string command)
+    //{
+    //    using var process = new System.Diagnostics.Process
+    //    {
+    //        StartInfo = new System.Diagnostics.ProcessStartInfo
+    //        {
+    //            FileName = "cmd.exe",
+    //            Arguments = $"/c {command}",
+    //            RedirectStandardOutput = true,
+    //            UseShellExecute = false,
+    //            CreateNoWindow = true,
+    //        }
+    //    };
 
-        process.Start();
-        await process.WaitForExitAsync();
+    //    process.Start();
+    //    await process.WaitForExitAsync();
 
-        return process.ExitCode == 0;
-    }
+    //    return process.ExitCode == 0;
+    //}
 
 }
