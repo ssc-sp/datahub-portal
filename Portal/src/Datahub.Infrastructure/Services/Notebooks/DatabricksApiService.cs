@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Azure.Core;
-using Azure.Identity;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Core.Data.Databricks;
 using Datahub.Core.Model.Achievements;
@@ -11,9 +10,9 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Utils;
+using Datahub.Infrastructure.Services.Azure;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
-using Microsoft.Azure.Databricks.Client;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -21,22 +20,29 @@ namespace Datahub.Infrastructure.Services.Notebooks;
 
 public class DatabricksApiService : IDatabricksApiService
 {
-    const string SCOPE = "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default";
+    const string DATABRICKS_SCOPE = "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default";
     private readonly ILogger<DatabricksApiService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
     private readonly IDatahubCatalogSearch _datahubCatalogSearch;
+    private readonly AzureManagementService _azureManagementService;
+    private readonly IAzureServicePrincipalConfig _configuration;
+
 
     public DatabricksApiService(
         ILogger<DatabricksApiService> logger,
         IHttpClientFactory httpClientFactory,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        IDatahubCatalogSearch datahubCatalogSearch)
+        IDatahubCatalogSearch datahubCatalogSearch,
+        IAzureServicePrincipalConfig configuration,
+        AzureManagementService azureManagementService)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _dbContextFactory = dbContextFactory;
         _datahubCatalogSearch = datahubCatalogSearch;
+        _configuration = configuration;
+        _azureManagementService = azureManagementService;
     }
 
 
@@ -159,14 +165,21 @@ public class DatabricksApiService : IDatabricksApiService
         try
         {
             var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym);
-            var accessToken = await GetAccessToken();
 
             // Use the access token to call a protected web API.
+            var accessToken = await GetAccessToken();
             var httpClient = _httpClientFactory.CreateClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+
             var postUrl = $"{workspaceDatabricksUrl}/api/2.0/preview/scim/v2/Users";
-            var postContent = BuilPostBody(user);
+            var postContent = BuilPostBody(user);             
+
             using (var userData = await httpClient.PostAsync(postUrl, postContent))
             {
+                if (userData.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    return false;
+                }
                 var newUserData = await userData.Content.ReadAsStringAsync();
                 var databricksUser = JsonSerializer.Deserialize<dynamic>(newUserData);
                 var databricksUserId = databricksUser?.Id;
@@ -175,7 +188,7 @@ public class DatabricksApiService : IDatabricksApiService
 
                 var patchContent = BuildPatchBody(databricksUserId);
 
-                using var response = await httpClient.PatchAsync(queryUrl, patchContent);
+                using var response = await httpClient.PatchAsync(postUrl, postContent);
 
                 response.EnsureSuccessStatusCode();
 
@@ -232,8 +245,11 @@ public class DatabricksApiService : IDatabricksApiService
     private Task<AccessToken> GetAccessToken()
     {
         var _config = new AzureDevOpsConfiguration();
+        _config.TenantId =_configuration.TenantId;
+        _config.ClientId = _configuration.ClientId;
+        _config.ClientSecret = _configuration.ClientSecret;
         var clientProvider = new AzureDevOpsClient(_config);
-        return clientProvider.GetAccessToken();
+        return clientProvider.GetAccessToken(DATABRICKS_SCOPE);
     }
 
     private StringContent BuilPostBody(PortalUser user)

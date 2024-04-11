@@ -11,7 +11,6 @@
 @inject IDatabricksApiService _databricksApiService
 @inject IProjectCreationService _projectCreationService
 @inject IUserInformationService _userInformationService
-@inject ITokenAcquisition _tokenAcquisition
 @inject ILogger<WorkspaceSudoPage> _logger
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject ISnackbar _snackbar
@@ -157,8 +156,6 @@
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
             _logger.LogInformation("Adding user {currentUser.DisplayName} to workspace {WorkspaceAcronym}", WorkspaceAcronym);
 
-            // var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(DatabricksScopes);
-
             var success = await _databricksApiService.AddAdminToDatabricsWorkspaceAsync(WorkspaceAcronym, currentUser);
             if (success)
             {
@@ -174,7 +171,6 @@
         catch (Exception e)
         {
             _logger.LogError(e, "Error adding tool {Tool} to workspace {WorkspaceAcronym}", WorkspaceAcronym);
-            //_snackbar.Add(Localizer["Error adding {0} to your workspace", GetLabel(tool)], Severity.Error);
         }
     }
 }
