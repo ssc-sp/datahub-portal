@@ -1,12 +1,18 @@
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Azure.Core;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Core.Data.Databricks;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Utils;
+using Datahub.Infrastructure.Services.Azure;
+using Datahub.Shared.Clients;
+using Datahub.Shared.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -14,21 +20,29 @@ namespace Datahub.Infrastructure.Services.Notebooks;
 
 public class DatabricksApiService : IDatabricksApiService
 {
+    const string DATABRICKS_SCOPE = "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default";
     private readonly ILogger<DatabricksApiService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
     private readonly IDatahubCatalogSearch _datahubCatalogSearch;
+    private readonly AzureManagementService _azureManagementService;
+    private readonly IAzureServicePrincipalConfig _configuration;
+
 
     public DatabricksApiService(
         ILogger<DatabricksApiService> logger,
         IHttpClientFactory httpClientFactory,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        IDatahubCatalogSearch datahubCatalogSearch)
+        IDatahubCatalogSearch datahubCatalogSearch,
+        IAzureServicePrincipalConfig configuration,
+        AzureManagementService azureManagementService)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _dbContextFactory = dbContextFactory;
         _datahubCatalogSearch = datahubCatalogSearch;
+        _configuration = configuration;
+        _azureManagementService = azureManagementService;
     }
 
 
@@ -133,6 +147,60 @@ public class DatabricksApiService : IDatabricksApiService
         return true;
     }
 
+    public async Task<string> GetDatabricsWorkspaceUrlAsync(string projectAcronym)
+    {
+        try
+        {
+            var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym);
+            return workspaceDatabricksUrl;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    }
+
+    public async Task<bool> AddAdminToDatabricsWorkspaceAsync(string projectAcronym, PortalUser user)
+    {
+        try
+        {
+            var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym);
+
+            // Use the access token to call a protected web API.
+            var accessToken = await GetAccessToken();
+            var httpClient = _httpClientFactory.CreateClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+
+            var postUrl = $"{workspaceDatabricksUrl}/api/2.0/preview/scim/v2/Users";
+            var postContent = BuilPostBody(user);             
+
+            using (var userData = await httpClient.PostAsync(postUrl, postContent))
+            {
+                if (userData.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    return false;
+                }
+                var newUserData = await userData.Content.ReadAsStringAsync();
+                var databricksUser = JsonSerializer.Deserialize<dynamic>(newUserData);
+                var databricksUserId = databricksUser?.Id;
+                var queryUrl = $"{workspaceDatabricksUrl}/api/2.0/preview/scim/v2/Users/{databricksUserId}";
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+
+                var patchContent = BuildPatchBody(databricksUserId);
+
+                using var response = await httpClient.PatchAsync(postUrl, postContent);
+
+                response.EnsureSuccessStatusCode();
+
+                return response.StatusCode == System.Net.HttpStatusCode.OK;
+            }
+        }
+        catch(Exception ex)
+        {
+            return false;
+        }        
+    }
+
     private async Task<Dictionary<string, bool>> GetWorkspaceRepositoryVisibilitiesAsync(string projectAcronym)
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
@@ -172,5 +240,64 @@ public class DatabricksApiService : IDatabricksApiService
         }
 
         return databricksUrl;
+    }
+
+    private Task<AccessToken> GetAccessToken()
+    {
+        var _config = new AzureDevOpsConfiguration();
+        _config.TenantId =_configuration.TenantId;
+        _config.ClientId = _configuration.ClientId;
+        _config.ClientSecret = _configuration.ClientSecret;
+        var clientProvider = new AzureDevOpsClient(_config);
+        return clientProvider.GetAccessToken(DATABRICKS_SCOPE);
+    }
+
+    private StringContent BuilPostBody(PortalUser user)
+    {
+        _logger.LogInformation($"Building request patch body for adding user  to databricks admin group");
+
+        var newUser = new
+        {
+            schemas = new[] { "urn:ietf:params:scim:schemas:core:2.0:User" },
+            userName = user.Email,
+            name = new
+            {
+                familyName = user.DisplayName
+            },
+            emails = new[]
+            {
+                new
+                {
+                    value = user.Email,
+                    type = "work",
+                    primary = true
+                }
+            }
+        };
+        var postBody = new StringContent(JsonSerializer.Serialize(newUser), Encoding.UTF8, "application/json");
+        return postBody;
+    }
+    private StringContent BuildPatchBody(string databricksUserId)
+    {
+        _logger.LogInformation($"Building request patch body for adding user {databricksUserId} to databricks admin group");
+
+        var patchData = new 
+        {
+            schemas = new[] { "urn:ietf:params:scim:api:messages:2.0:PatchOp" },
+            operations = new[]
+            {
+                new
+                {
+                    op="add",
+                    path="admins",
+                    value = new 
+                    {
+                        id = databricksUserId
+                    }
+                }
+            }
+        };
+        var patchBody = new StringContent(JsonSerializer.Serialize(patchData), Encoding.UTF8, "application/json");
+        return patchBody;
     }
 }

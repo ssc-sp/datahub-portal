@@ -1,4 +1,5 @@
 using Datahub.Core.Data.Databricks;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Repositories;
 
 namespace Datahub.Application.Services.Notebooks;
@@ -27,4 +28,19 @@ public interface IDatabricksApiService
     /// <param name="repositoryInfoDto"></param>
     /// <returns></returns>
     public Task<bool> UpdateWorkspaceRepository(string projectAcronym, RepositoryInfoDto repositoryInfoDto);
+
+
+    /// <summary>
+    /// Get Databricks Url for the project
+    /// </summary>
+    /// <param name="projectAcronym"></param> 
+    /// <returns>Databricks Url</returns>
+    public Task<string>GetDatabricsWorkspaceUrlAsync(string projectAcronym);
+
+    /// <summary>
+    /// Adds user as an admin to Databricks admin group
+    /// </summary>
+    /// <param name="projectAcronym"></param> 
+    /// <returns></returns>
+    public Task<bool> AddAdminToDatabricsWorkspaceAsync(string projectAcronym, PortalUser user);
 }

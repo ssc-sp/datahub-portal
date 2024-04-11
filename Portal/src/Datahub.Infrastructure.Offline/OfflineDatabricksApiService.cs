@@ -1,5 +1,6 @@
 using Datahub.Application.Services.Notebooks;
 using Datahub.Core.Data.Databricks;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Repositories;
 
 namespace Datahub.Infrastructure.Offline;
@@ -19,5 +20,13 @@ public class OfflineDatabricksApiService : IDatabricksApiService
     public Task<bool> UpdateWorkspaceRepository(string projectAcronym, RepositoryInfoDto repositoryInfoDto)
     {
         return Task.FromResult(true);
+    }
+    public Task<bool> AddAdminToDatabricsWorkspaceAsync(string projectAcronym, PortalUser user)
+    {
+        return Task.FromResult(true);
+    }
+    public Task<string> GetDatabricsWorkspaceUrlAsync(string projectAcronym)
+    {
+        return Task.FromResult(string.Empty);
     }
 }
