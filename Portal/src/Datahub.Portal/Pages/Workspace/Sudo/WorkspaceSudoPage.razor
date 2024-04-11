@@ -1,11 +1,21 @@
 @using System.Text.Json
+@using Azure.Core
 @using Datahub.Application.Services
+@using Datahub.Application.Services.Notebooks
 @using Datahub.Core.Model.Projects
+@using Datahub.Shared.Clients
+@using Datahub.Shared.Configuration
+@using Datahub.Shared.Entities
+@using Microsoft.Identity.Web
 
 @inject IResourceMessagingService _resourceMessagingService
+@inject IDatabricksApiService _databricksApiService
 @inject IProjectCreationService _projectCreationService
 @inject IUserInformationService _userInformationService
+@inject ILogger<WorkspaceSudoPage> _logger
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject DatahubPortalConfiguration _portalConfiguration
+@inject ISnackbar _snackbar
 
 @* @page "/w/{ProjectAcronymParam}/sudo" *@
 
@@ -42,6 +52,37 @@
                 </MudText>
                 <DHMarkdown Content="@_expectedTerraformOutput" LinkRewriter="RewriteLink"/>
             </MudStack>
+            <MudStack>
+                <MudText Typo="Typo.h2">
+                    @Localizer["Admin Shortcuts"]
+                </MudText>
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudPaper Outlined Class="pt-4 px-6 pb-6">
+                            <MudStack Style="height: 150px;">
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <MudIcon Icon="@SidebarIcons.Api" Class="mr-2" />
+                                    <MudText Typo="Typo.h3">
+                                        @Localizer["Databricks Admin"]
+                                    </MudText>
+                                </MudStack>
+                                <MudText>
+                                    @Localizer["Click here to add youself to databricks workspace admin group via REST api"]
+                                </MudText>
+                                <MudSpacer />
+                                <MudStack Row>
+                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary"
+                                               OnClick="@(async () => await AddToDatabricksAdmins())">
+                                        @Localizer["Databricks Admin"]
+                                        <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
+                                    </MudButton>
+                                </MudStack>
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+
+                </MudGrid>
+            </MudStack>
         </MudStack>
     </Authorized>
     <NotAuthorized>
@@ -58,11 +99,17 @@
 
 
 @code {
+    const string DATABRICKS_SCOPE = "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default";
     private string _workspaceDefinitionMarkdown;
     private string _expectedTerraformOutput;
 
     [Parameter]
     public string WorkspaceAcronym { get; set; }
+
+    private static readonly string[] DatabricksScopes =
+    {
+        "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/user_impersonation"
+    };
 
     private Datahub_Project _project;
 
@@ -94,5 +141,50 @@
     private static string RewriteLink(string link)
     {
         return link;
+    }
+
+    private Task<AccessToken> GetAccessToken()
+    {
+        var _config = new AzureDevOpsConfiguration();
+        _config.TenantId = _portalConfiguration.AzureAd.TenantId;
+        _config.ClientId = _portalConfiguration.AzureAd.InfraClientId;
+        _config.ClientSecret = _portalConfiguration.AzureAd.InfraClientSecret;
+        var clientProvider = new AzureDevOpsClient(_config);
+        return clientProvider.GetAccessToken(_config, DATABRICKS_SCOPE);
+    }
+
+    private async Task AddToDatabricksAdmins()
+    {
+
+        var dataBricksUrl = await _databricksApiService.GetDatabricsWorkspaceUrlAsync(WorkspaceAcronym);
+        if (string.IsNullOrEmpty(dataBricksUrl))
+        {
+            _snackbar.Add(Localizer["Your workspace does not have Databricks"], Severity.Error);
+            return;
+        }
+        await InvokeAsync(StateHasChanged);
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+
+        try
+        {
+            _logger.LogInformation("Adding user {DisplayName} to workspace {WorkspaceAcronym}", currentUser.DisplayName, WorkspaceAcronym);
+
+            var accessToken = await GetAccessToken();
+            var success = await _databricksApiService.AddAdminToDatabricsWorkspaceAsync(accessToken, WorkspaceAcronym, currentUser);
+            if (success)
+            {
+                _snackbar.Add(Localizer["You was successfully added as an administrator"], Severity.Success);
+            }
+            else
+            {
+                _snackbar.Add(Localizer["Failed to add you as an administrator"], Severity.Error);
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error adding user {DisplayName} as admin to workspace {WorkspaceAcronym}", currentUser.DisplayName, WorkspaceAcronym);
+        }
     }
 }
