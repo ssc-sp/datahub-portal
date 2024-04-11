@@ -79,7 +79,7 @@ public class Variables
     public string az_location { get; set; }
     public string resource_prefix { get; set; }
     public string resource_prefix_alphanumeric { get; set; }
-    public string resource_suffix { get; set; }
+    public string storage_suffix { get; set; }
     public string datahub_app_sp_oid { get; set; }
     public string azure_databricks_enterprise_oid { get; set; }
     public string log_workspace_id { get; set; } = "";

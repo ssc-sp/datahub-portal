@@ -84,7 +84,7 @@ public class NewProjectTemplateTests
             ["az_location"] = _configuration["Terraform:Variables:az_location"],
             ["resource_prefix"] = _configuration["Terraform:Variables:resource_prefix"],
             ["resource_prefix_alphanumeric"] = _configuration["Terraform:Variables:resource_prefix_alphanumeric"],
-            ["resource_suffix"] = _configuration["Terraform:Variables:resource_suffix"],
+            ["storage_suffix"] = _configuration["Terraform:Variables:storage_suffix"],
             ["project_cd"] = "ShouldExtractNewProjectTemplateVariables",
             ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
             ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
