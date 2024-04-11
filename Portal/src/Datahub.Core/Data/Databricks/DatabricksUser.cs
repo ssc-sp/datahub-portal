@@ -16,7 +16,10 @@ namespace Datahub.Core.Data.Databricks
         public string externalId { get; set; }
         public bool active { get; set; }
 
-        public DatabricksUser() { }
+        public DatabricksUser()
+        {
+            schemas = new List<string> { "urn:ietf:params:scim:schemas:core:2.0:User" };
+        }
 
         public DatabricksUser(string json)
         {
@@ -77,5 +80,14 @@ namespace Datahub.Core.Data.Databricks
         public string display { get; set; }
         public bool primary { get; set; }
         public string type { get; set; }
+    }
+
+    public class DatabricksUserList
+    {
+        public List<string> schemas { get; set; }
+        public int totalResults { get; set; }
+        public int startIndex { get; set; }
+        public int itemsPerPage { get; set; }
+        public List<DatabricksUser> Resources { get; set; }
     }
 }
