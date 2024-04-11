@@ -77,6 +77,13 @@
                                         <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;"/>
                                     </MudButton>
                                     break;
+                                case ToolStatus.SendingDelete:
+                                case ToolStatus.PendingDeleteRequest:
+                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                     @Localizer["Delete In Progress"]
+                                        <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
+                                    </MudButton>
+                                    break;
                                 case ToolStatus.UnderDevelopment:
                                     <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Under Development"]
