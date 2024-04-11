@@ -1,3 +1,4 @@
+using Datahub.Core.Enums;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 
@@ -12,14 +13,14 @@ public static class TerraformOutputHelper
         // var workspaceUrl = "";
 
         if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob))
-                              && (r.Status == null || r.Status.ToLower() != "deleted")))
+                              && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)))
         {
             expectedTerraformOutput =
                 string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzureStorageString());
         }
 
         if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks))
-                              && (r.Status == null || r.Status.ToLower() != "deleted")))
+                              && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)))
         {
             expectedTerraformOutput = string.Join(",", expectedTerraformOutput,
                 GetExpectedTerraformOutputAzureDatabricksString());
@@ -28,14 +29,14 @@ public static class TerraformOutputHelper
         }
 
         if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService))
-                              && (r.Status == null || r.Status.ToLower() != "deleted")))
+                              && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)))
         {
             expectedTerraformOutput =
                 string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzureWebAppString());
         }
 
         if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres))
-                              && (r.Status == null || r.Status.ToLower() != "deleted")))
+                              && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)))
         {
             expectedTerraformOutput =
                 string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzurePostgresString());

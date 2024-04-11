@@ -1,6 +1,7 @@
 @using Datahub.Shared.Entities
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Projects
+@using Datahub.Core.Enums
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject IRequestManagementService _requestManagementService
@@ -182,7 +183,7 @@
         }
 
         var toolResource = _workspace.Resources.FirstOrDefault(r => r.ResourceType.EndsWith(tool) 
-                                        && (r.Status == null || r.Status.ToLower() != "deleted"));
+                                        && (r.Status == null || r.Status != TerraformOutputStatus.Deleted));
         if (toolResource == null)
         {
             return ToolStatus.Available;

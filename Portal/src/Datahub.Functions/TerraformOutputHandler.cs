@@ -389,7 +389,7 @@ public class TerraformOutputHandler
         }
 
         var projectResource = project.Resources
-            .FirstOrDefault(x => x.ResourceType == terraformServiceType && (x.Status == null || x.Status.ToLower() != "deleted"));
+            .FirstOrDefault(x => x.ResourceType == terraformServiceType && (x.Status == null || x.Status != TerraformOutputStatus.Deleted));
 
         if (projectResource is null)
         {

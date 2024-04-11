@@ -8,6 +8,7 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Shared
 @using Datahub.Shared.Entities
+@using Datahub.Core.Enums
 
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -48,7 +49,7 @@
             using var ctx = _dbContextFactory.CreateDbContext();
             var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
             var projectDatabricks = ctx.Project_Resources2
-                .Where(r => r.ProjectId == project.Project_ID && (r.Status == null || r.Status.ToLower() != "deleted"))
+                .Where(r => r.ProjectId == project.Project_ID && (r.Status == null || r.Status != TerraformOutputStatus.Deleted))
                 .FirstOrDefault(r => r.ResourceType == databricksTemplateName);
 
             if (projectDatabricks is { CreatedAt: not null })
@@ -75,7 +76,7 @@
     {
         return project.Resources
             .Where(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)
-                   && (r.Status == null || r.Status.ToLower() != "deleted"))
+                   && (r.Status == null || r.Status != TerraformOutputStatus.Deleted))
             .ToList();
     }
 

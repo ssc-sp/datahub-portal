@@ -5,6 +5,7 @@
 @using Datahub.Portal.Components.User
 @using Datahub.Shared.Entities
 @using MudBlazor.Utilities
+@using Datahub.Core.Enums
 
 @inject IUserInformationService _userInformationService
 @inject UserLocationManagerService _userLocationManagerService
@@ -273,13 +274,13 @@
         return toolSection switch
         {
             SectionViews.Dashboard => true,
-            SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && (r.Status == null || r.Status.ToLower() != "deleted")) ?? false,
-            SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && (r.Status == null || r.Status.ToLower() != "deleted")) ?? false,
-            SectionViews.Publishing => _datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled && (_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && (r.Status == null || r.Status.ToLower() != "deleted")) ?? false),
-            SectionViews.WebApp => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService) && (r.Status == null || r.Status.ToLower() != "deleted")) ?? false,
-            SectionViews.SqlDatabase => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && (r.Status == null || r.Status.ToLower() != "deleted")) ?? false,
-            SectionViews.Repositories => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && (r.Status == null || r.Status.ToLower() != "deleted")) ?? false,
-            SectionViews.ArcGis => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && (r.Status == null || r.Status.ToLower() != "deleted")) ?? false,
+            SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)) ?? false,
+            SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)) ?? false,
+            SectionViews.Publishing => _datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled && (_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)) ?? false),
+            SectionViews.WebApp => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService) && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)) ?? false,
+            SectionViews.SqlDatabase => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)) ?? false,
+            SectionViews.Repositories => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)) ?? false,
+            SectionViews.ArcGis => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)) ?? false,
             _ => false
         };
     }
@@ -289,13 +290,13 @@
         return toolSection switch
         {
             SectionViews.Dashboard => false,
-            SectionViews.Databricks => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue && (r.Status == null || r.Status.ToLower() != "deleted")) ?? true,
-            SectionViews.Storage => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue && (r.Status == null || r.Status.ToLower() != "deleted")) ?? true,
-            SectionViews.Publishing => !_datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled || (!_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue && (r.Status == null || r.Status.ToLower() != "deleted")) ?? true),
+            SectionViews.Databricks => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)) ?? true,
+            SectionViews.Storage => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)) ?? true,
+            SectionViews.Publishing => !_datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled || (!_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)) ?? true),
             SectionViews.WebApp => string.IsNullOrEmpty(_project?.WebApp_URL),
-            SectionViews.SqlDatabase => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.CreatedAt.HasValue && (r.Status == null || r.Status.ToLower() != "deleted")) ?? true,
-            SectionViews.Repositories => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue && (r.Status == null || r.Status.ToLower() != "deleted")) ?? true,
-            SectionViews.ArcGis => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.CreatedAt.HasValue && (r.Status == null || r.Status.ToLower() != "deleted")) ?? true,
+            SectionViews.SqlDatabase => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.CreatedAt.HasValue && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)) ?? true,
+            SectionViews.Repositories => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)) ?? true,
+            SectionViews.ArcGis => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.CreatedAt.HasValue && (r.Status == null || r.Status != TerraformOutputStatus.Deleted)) ?? true,
             _ => true
         };
     }

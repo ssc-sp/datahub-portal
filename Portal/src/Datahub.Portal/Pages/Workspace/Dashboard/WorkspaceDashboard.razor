@@ -4,6 +4,7 @@
 @using Datahub.Portal.Pages.Project.DataProject
 @using Datahub.Application.Services.Notebooks
 @using Datahub.Portal.Pages.Workspace.Repositories
+@using Datahub.Core.Enums
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject ILogger<WorkspaceDashboard> _logger
@@ -127,7 +128,7 @@
 
         _resources = _project.Resources
             .Where(r => r.ResourceType != TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) 
-                   && (r.Status == null || r.Status.ToLower() != "deleted"))
+                   && (r.Status == null || r.Status != TerraformOutputStatus.Deleted))
             .OrderBy(r => r.ResourceType)
             .ToList();
 

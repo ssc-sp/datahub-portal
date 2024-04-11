@@ -9,6 +9,7 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Enums;
+using Datahub.Core.Enums;
 
 namespace Datahub.Infrastructure.Services;
 
@@ -47,7 +48,7 @@ public class RequestManagementService : IRequestManagementService
     /// <param name="requestedTemplate">The requested template.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     private async Task ProcessRequest(Datahub_Project project, PortalUser requestingUser,
-        TerraformTemplate requestedTemplate)
+        TerraformTemplate requestedTemplate, bool isDelete)
     {
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
         ctx.Projects.Attach(project);
@@ -58,10 +59,18 @@ public class RequestManagementService : IRequestManagementService
 
         var resource = project.Resources
             .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name)
-            && (r.Status == null || r.Status.ToLower() != "deleted"));
+            && (r.Status == null || r.Status != TerraformOutputStatus.Deleted));
 
         if (resource is not null)
         {
+            if (isDelete)
+            {
+                resource.Status = TerraformOutputStatus.Deleting;
+                ctx.Project_Resources2.Update(resource);
+                await ctx.TrackSaveChangesAsync(_datahubAuditingService);
+                return;
+            }
+
             _logger.LogInformation(
                 "Project resource already exists for project {Acronym} and resource type {ServiceType}",
                 project.Project_Acronym_CD, requestedTemplate.Name);
@@ -111,7 +120,7 @@ public class RequestManagementService : IRequestManagementService
             {
                 foreach (var template in newTemplates)
                 {
-                    await ProcessRequest(project, requestingUser, template);
+                    await ProcessRequest(project, requestingUser, template, isDelete);
                 }
             }
 
