@@ -45,8 +45,7 @@
                         </MudText>
                         <MudSpacer/>
                         <MudStack Row>
-                            @switch (_toolCurrentDevelopmentStatusMap[tool])
-                            {
+                            @switch (_toolCurrentDevelopmentStatusMap[tool]) {
                                 case ToolStatus.Available:
                                     <MudButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await AddToolToWorkspace(tool))">
                                         @Localizer["Add to Workspace"]
@@ -64,7 +63,11 @@
                                 case ToolStatus.Exists:
                                     <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Tool has been created"]
-                                        <MudIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                        <MudIcon Icon="fa-light fa-check-to-slot" Class="ml-1" Style="font-size: 0.8rem;"/>
+                                    </MudButton>
+                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await DeleteToolFromWorkspace(tool))">
+                                     @Localizer["Delete"]
+                                        <MudIcon Icon="fa-light fa-check-to-slot" Class="ml-1" Style="font-size: 0.8rem;" />
                                     </MudButton>
                                     break;
                                 case ToolStatus.Disabled:
@@ -120,7 +123,9 @@
     {
         Available,
         SendingRequest,
+        SendingDelete,
         PendingRequest,
+        PendingDeleteRequest,
         Disabled,
         UnderDevelopment,
         Exists,
@@ -176,7 +181,8 @@
             return _toolCurrentDevelopmentStatusMap[tool];
         }
 
-        var toolResource = _workspace.Resources.FirstOrDefault(r => r.ResourceType.EndsWith(tool));
+        var toolResource = _workspace.Resources.FirstOrDefault(r => r.ResourceType.EndsWith(tool) 
+                                        && (r.Status == null || r.Status.ToLower() != "deleted"));
         if (toolResource == null)
         {
             return ToolStatus.Available;
@@ -207,6 +213,29 @@
             await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, tool, currentUser);
             _logger.LogInformation("Tool {Tool} successfully added to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
             _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.PendingRequest;
+            _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(tool)], Severity.Success);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error adding tool {Tool} to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
+            _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.Error;
+            _snackbar.Add(Localizer["Error adding {0} to your workspace", GetLabel(tool)], Severity.Error);
+        }
+    }
+
+    private async Task DeleteToolFromWorkspace(string tool) 
+    {
+        _logger.LogInformation("Deleting tool {Tool} from workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
+        _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.SendingDelete;
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, tool, currentUser, true);
+            _logger.LogInformation("Tool {Tool} successfully removed from workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
+            _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.PendingDeleteRequest;
             _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(tool)], Severity.Success);
             await InvokeAsync(StateHasChanged);
         }

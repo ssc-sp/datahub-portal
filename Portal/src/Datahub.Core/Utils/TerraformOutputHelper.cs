@@ -11,13 +11,15 @@ public static class TerraformOutputHelper
         // var workspaceId = "";
         // var workspaceUrl = "";
 
-        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob))))
+        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob))
+                              && (r.Status == null || r.Status.ToLower() != "deleted")))
         {
             expectedTerraformOutput =
                 string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzureStorageString());
         }
 
-        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks))))
+        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks))
+                              && (r.Status == null || r.Status.ToLower() != "deleted")))
         {
             expectedTerraformOutput = string.Join(",", expectedTerraformOutput,
                 GetExpectedTerraformOutputAzureDatabricksString());
@@ -25,13 +27,15 @@ public static class TerraformOutputHelper
             workspaceUrl ??= TerraformVariableExtraction.ExtractDatabricksUrl(project);
         }
 
-        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService))))
+        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService))
+                              && (r.Status == null || r.Status.ToLower() != "deleted")))
         {
             expectedTerraformOutput =
                 string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzureWebAppString());
         }
 
-        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres))))
+        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres))
+                              && (r.Status == null || r.Status.ToLower() != "deleted")))
         {
             expectedTerraformOutput =
                 string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzurePostgresString());

@@ -57,7 +57,8 @@ public class RequestManagementService : IRequestManagementService
             .LoadAsync();
 
         var resource = project.Resources
-            .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name));
+            .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name)
+            && (r.Status == null || r.Status.ToLower() != "deleted"));
 
         if (resource is not null)
         {
@@ -84,9 +85,10 @@ public class RequestManagementService : IRequestManagementService
     /// <param name="datahubProject">The Datahub project.</param>
     /// <param name="terraformTemplate">The Terraform template.</param>
     /// <param name="requestingUser">The user making the request.</param>
+    /// <param name="isDelete">Specify if this is a delete request.</param>
     /// <returns>True if the Terraform request was handled successfully; otherwise, false.</returns>
     public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project datahubProject, string terraformTemplate,
-        PortalUser requestingUser)
+        PortalUser requestingUser, bool isDelete = false)
     {
         using var scope = new TransactionScope(
             TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
@@ -125,6 +127,13 @@ public class RequestManagementService : IRequestManagementService
             var workspaceDefinition =
                 await _resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
                     requestingUser.Email);
+
+            if (isDelete) {
+                foreach (var template in allTemplates) {
+                    if (template.Name == terraformTemplate) template.Status = "delete";
+                }
+            }
+            
             workspaceDefinition.Templates = allTemplates;
 
             await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
