@@ -18,15 +18,15 @@ namespace Datahub.Functions
         private readonly ILogger<BugReport> _logger;
         private readonly AzureConfig _config;
         private readonly IEmailService _emailService;
-        private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IMediator _mediator;
 
         public BugReport(ILogger<BugReport> logger, AzureConfig config,
-            IEmailService emailService, IPublishEndpoint publishEndpoint)
+            IEmailService emailService, IMediator mediator)
         {
             _logger = logger;
             _config = config;
             _emailService = emailService;
-            _publishEndpoint = publishEndpoint;
+            _mediator = mediator;
         }
 
         [Function("BugReport")]
@@ -52,7 +52,7 @@ namespace Datahub.Functions
 
                 if (email is not null)
                 {
-                    await _publishEndpoint.Publish(email);
+                    await _mediator.Send(email);
                 }
                 else
                 {
