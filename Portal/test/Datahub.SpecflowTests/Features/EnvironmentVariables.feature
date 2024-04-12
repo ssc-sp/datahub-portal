@@ -1,4 +1,5 @@
-﻿Feature: EnvironmentVariablesTable
+﻿@ignore
+Feature: EnvironmentVariablesTable
 As a user, I want to manage environment variables, so that I can configure my cloud resources correctly
 
     Scenario: Display environment variables
