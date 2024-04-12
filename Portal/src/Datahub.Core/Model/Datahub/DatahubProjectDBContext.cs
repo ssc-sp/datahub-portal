@@ -8,6 +8,7 @@ using Datahub.Core.Model.Health;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Repositories;
+using Datahub.Core.Model.Subscriptions;
 using Datahub.Core.Model.UserTracking;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -112,6 +113,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<OpenDataPublishFile> OpenDataPublishFiles { get; set; }
 
     public DbSet<TbsOpenGovSubmission> TbsOpenGovSubmissions { get; set; }
+
+    /// <summary>
+    /// Gets or sets the table for storing the Azure subscriptions
+    /// </summary>
+    public DbSet<DatahubAzureSubscription> AzureSubscriptions { get; set; }
 
     /// <summary>
     /// Gets or sets table for storing the infrastructure health checks
