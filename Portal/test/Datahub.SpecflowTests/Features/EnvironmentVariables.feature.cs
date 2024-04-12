@@ -24,7 +24,8 @@ namespace Datahub.SpecflowTests.Features
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
         
-        private static string[] featureTags = ((string[])(null));
+        private static string[] featureTags = new string[] {
+                "ignore"};
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
@@ -81,7 +82,7 @@ namespace Datahub.SpecflowTests.Features
             this.TestTearDown();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Display environment variables")]
+        [Xunit.SkippableFactAttribute(DisplayName="Display environment variables", Skip="Ignored")]
         [Xunit.TraitAttribute("FeatureTitle", "EnvironmentVariablesTable")]
         [Xunit.TraitAttribute("Description", "Display environment variables")]
         public void DisplayEnvironmentVariables()
@@ -89,7 +90,7 @@ namespace Datahub.SpecflowTests.Features
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Display environment variables", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 4
+#line 5
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -99,20 +100,20 @@ namespace Datahub.SpecflowTests.Features
             else
             {
                 this.ScenarioStart();
-#line 5
+#line 6
         testRunner.Given("I am on the Environment Variables page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 6
+#line 7
         testRunner.When("I look at the Environment Variables table", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 7
+#line 8
         testRunner.Then("I should see all the environment variables", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Filter environment variables")]
+        [Xunit.SkippableFactAttribute(DisplayName="Filter environment variables", Skip="Ignored")]
         [Xunit.TraitAttribute("FeatureTitle", "EnvironmentVariablesTable")]
         [Xunit.TraitAttribute("Description", "Filter environment variables")]
         public void FilterEnvironmentVariables()
@@ -120,7 +121,7 @@ namespace Datahub.SpecflowTests.Features
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Filter environment variables", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 9
+#line 10
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -130,20 +131,20 @@ namespace Datahub.SpecflowTests.Features
             else
             {
                 this.ScenarioStart();
-#line 10
+#line 11
         testRunner.Given("I am on the Environment Variables page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 11
+#line 12
         testRunner.When("I enter a filter string", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 12
+#line 13
         testRunner.Then("I should see only the environment variables that match the filter", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Add a new environment variable")]
+        [Xunit.SkippableFactAttribute(DisplayName="Add a new environment variable", Skip="Ignored")]
         [Xunit.TraitAttribute("FeatureTitle", "EnvironmentVariablesTable")]
         [Xunit.TraitAttribute("Description", "Add a new environment variable")]
         public void AddANewEnvironmentVariable()
@@ -151,7 +152,7 @@ namespace Datahub.SpecflowTests.Features
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Add a new environment variable", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 14
+#line 15
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -161,23 +162,23 @@ namespace Datahub.SpecflowTests.Features
             else
             {
                 this.ScenarioStart();
-#line 15
+#line 16
         testRunner.Given("I am on the Environment Variables page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 16
+#line 17
         testRunner.When("I click on the Add button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 17
+#line 18
         testRunner.And("I enter a key and a value for the new environment variable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 18
+#line 19
         testRunner.Then("the new environment variable should be added to the table", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Edit an existing environment variable")]
+        [Xunit.SkippableFactAttribute(DisplayName="Edit an existing environment variable", Skip="Ignored")]
         [Xunit.TraitAttribute("FeatureTitle", "EnvironmentVariablesTable")]
         [Xunit.TraitAttribute("Description", "Edit an existing environment variable")]
         public void EditAnExistingEnvironmentVariable()
@@ -185,7 +186,7 @@ namespace Datahub.SpecflowTests.Features
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Edit an existing environment variable", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 20
+#line 21
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -195,29 +196,29 @@ namespace Datahub.SpecflowTests.Features
             else
             {
                 this.ScenarioStart();
-#line 21
+#line 22
         testRunner.Given("I am on the Environment Variables page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 22
+#line 23
         testRunner.And("an environment variable exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 23
+#line 24
         testRunner.When("I click on the Edit button for that environment variable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 24
+#line 25
         testRunner.And("I change the key and/or value of the environment variable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 25
+#line 26
         testRunner.And("I click on the Commit Edit button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 26
+#line 27
         testRunner.Then("the changes should be saved", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Delete an existing environment variable")]
+        [Xunit.SkippableFactAttribute(DisplayName="Delete an existing environment variable", Skip="Ignored")]
         [Xunit.TraitAttribute("FeatureTitle", "EnvironmentVariablesTable")]
         [Xunit.TraitAttribute("Description", "Delete an existing environment variable")]
         public void DeleteAnExistingEnvironmentVariable()
@@ -225,7 +226,7 @@ namespace Datahub.SpecflowTests.Features
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Delete an existing environment variable", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 28
+#line 29
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -235,16 +236,16 @@ namespace Datahub.SpecflowTests.Features
             else
             {
                 this.ScenarioStart();
-#line 29
+#line 30
         testRunner.Given("I am on the Environment Variables page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 30
+#line 31
         testRunner.And("an environment variable exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 31
+#line 32
         testRunner.When("I click on the Delete button for that environment variable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 32
+#line 33
         testRunner.Then("the environment variable should be removed from the table", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
@@ -258,12 +259,10 @@ namespace Datahub.SpecflowTests.Features
             
             public FixtureData()
             {
-                EnvironmentVariablesTableFeature.FeatureSetup();
             }
             
             void System.IDisposable.Dispose()
             {
-                EnvironmentVariablesTableFeature.FeatureTearDown();
             }
         }
     }
