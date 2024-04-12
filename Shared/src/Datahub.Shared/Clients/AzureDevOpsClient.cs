@@ -57,4 +57,14 @@ public class AzureDevOpsClient(AzureDevOpsConfiguration config)
             ]));
         return accessToken;
     }
+    public async Task<AccessToken> GetAccessToken(AzureDevOpsConfiguration customConfig, string customScope)
+    {
+        var credentials = new ClientSecretCredential(customConfig.TenantId, customConfig.ClientId,
+            customConfig.ClientSecret);
+        var accessToken =
+            await credentials.GetTokenAsync(new TokenRequestContext([
+                customScope
+            ]));
+        return accessToken;
+    }
 }
