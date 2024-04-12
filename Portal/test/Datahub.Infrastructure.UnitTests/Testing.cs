@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Core.Data.Databricks;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Services;
@@ -26,7 +27,7 @@ public partial class Testing
     internal static DatahubPortalConfiguration _datahubPortalConfiguration = null!;
     internal static IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = null!;
     internal static IHttpClientFactory _httpClientFactory = null;
-
+    internal static Mock<HttpMessageHandler> _mockHandler = null;
 
     internal const string TestProjectAcronym = "TEST";
     internal const string TestUserEmail = "user@email.gc.ca";
@@ -53,8 +54,9 @@ public partial class Testing
         _dbContextFactory = Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
 
         var expectedDatahubPortalInviteResponse = ExpectedDatahubPortalInviteResponse();
-        var mockHandler = new Mock<HttpMessageHandler>();
-        mockHandler.Protected()
+
+        _mockHandler = new Mock<HttpMessageHandler>();
+        _mockHandler.Protected()
             .Setup<Task<HttpResponseMessage>>("SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
@@ -62,11 +64,13 @@ public partial class Testing
             {
                 StatusCode = HttpStatusCode.OK,
                 Content = expectedDatahubPortalInviteResponse
-            });
+            })
+            .Verifiable();
 
         var httpClientFactory = new Mock<IHttpClientFactory>();
+
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(
-            () => new HttpClient(mockHandler.Object));
+            () => new HttpClient(_mockHandler.Object));
 
         _httpClientFactory = httpClientFactory.Object;
 
@@ -101,6 +105,23 @@ public partial class Testing
             }
         };
         var stringContent = new StringContent(JsonSerializer.Serialize(data), Encoding.UTF8, "application/json");
+        return stringContent;
+    }
+
+    internal static StringContent ExpectedDatabricksAddUserResponse()
+    {
+        var databricksUser = new DatabricksUser
+        {
+            userName = TestUserEmail,
+            name = new Name { familyName = TEST_USER_IDS[0] },
+            id = TestAdminUserId,
+            active = true,
+            emails =
+            [
+                new Email { primary = true, value = TestUserEmail, type = "work", display=TEST_USER_IDS[0] }
+            ]
+        };
+        var stringContent = new StringContent(JsonSerializer.Serialize(databricksUser), Encoding.UTF8, "application/json");
         return stringContent;
     }
 

@@ -6,6 +6,7 @@ using Datahub.Core.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Graph.Models;
 using Moq;
+using Moq.Protected;
 
 namespace Datahub.Infrastructure.UnitTests.Services;
 using static Testing;
@@ -50,17 +51,31 @@ public class DatabricksApiServiceTests
     }
 
     [Test]
-    [TestCase("TEST1", false, false, Ignore = "Needs to be validated")]
-    [TestCase("TEST2", true, true, Ignore = "Needs to be validated")]
-    public async Task ShouldUseDatabricksApi(string projectAcronym, bool hasDatabricks, bool expectedResult)
+    [TestCase("TEST1", "https://test.azuredatabricks.net")] 
+    public async Task ShouldUseDatabricksApi(string projectAcronym, string expectedUri)
     {
         await SeedDatabase();
         var accessToken = new AccessToken("", DateTime.Now.AddDays(1));
-        var portalUser = new PortalUser { GraphGuid=""};
-        var success = await _databricksApiService.AddAdminToDatabricsWorkspaceAsync(accessToken, projectAcronym, portalUser);
-        
-        Assert.That(success, Is.EqualTo(expectedResult)); 
+        var portalUser = new PortalUser { GraphGuid = TestUserGraphGuid };
+        await _databricksApiService.AddAdminToDatabricsWorkspaceAsync(accessToken, projectAcronym, portalUser);
 
+        _mockHandler.Protected().Verify(
+           "SendAsync",
+           Times.Exactly(1),  
+           ItExpr.Is<HttpRequestMessage>(req =>
+              req.Method == HttpMethod.Get 
+           ),
+           ItExpr.IsAny<CancellationToken>()
+        );
+
+        _mockHandler.Protected().Verify(
+           "SendAsync",
+           Times.Exactly(1),
+           ItExpr.Is<HttpRequestMessage>(req =>
+              req.Method == HttpMethod.Post
+           ),
+           ItExpr.IsAny<CancellationToken>()
+        );
     }
 
     private async Task SeedDatabase()
