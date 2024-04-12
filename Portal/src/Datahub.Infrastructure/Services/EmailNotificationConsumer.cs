@@ -2,24 +2,29 @@ using MassTransit;
 using Datahub.Infrastructure.Queues.Messages;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Logging;
-using MimeKit;
+using MimeKit; 
+using Datahub.Application.Configuration;
+using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Infrastructure.Services;
 
 public class EmailNotificationConsumer: IConsumer<EmailRequestMessage>
 {
     private readonly ILogger _logger;
-    private readonly AzureConfig _config;
+    private readonly EmailNotification _emailConfig;
+    private readonly IConfiguration _config;
 
-    public EmailNotificationConsumer(ILoggerFactory loggerFactory, AzureConfig config)
+    public EmailNotificationConsumer(ILoggerFactory loggerFactory, IConfiguration config)
     {
         _logger = loggerFactory.CreateLogger<EmailNotificationConsumer>();
-        _config = config; 
+        _config = config;
+        _emailConfig = new EmailNotification();
+        _config.Bind("EmailNotification", _emailConfig);
     }
     public async Task Consume(ConsumeContext<EmailRequestMessage> context)
     {
         // check mail configuration
-        if (!_config.Email.IsValid)
+        if (!_emailConfig.IsValid)
         {
             _logger.LogError($"Invalid mail configuration!");
             return;
@@ -33,7 +38,7 @@ public class EmailNotificationConsumer: IConsumer<EmailRequestMessage>
         }
 
         // setting only used in development
-        if (_config.Email.DumpMessages)
+        if (_emailConfig.DumpMessages)
         {
             _logger.LogInformation($"No email sent: Dumping messages!");
             return;
@@ -46,7 +51,7 @@ public class EmailNotificationConsumer: IConsumer<EmailRequestMessage>
         {
             using MimeMessage message = new();
 
-            message.From.Add(new MailboxAddress(_config.Email.SenderName, _config.Email.SenderAddress));
+            message.From.Add(new MailboxAddress(_emailConfig.SenderName, _emailConfig.SenderAddress));
             message.To.AddRange(req.To.Select(GetMailboxAddress));
             message.Cc.AddRange(req.CcTo.Select(GetMailboxAddress));
             message.Bcc.AddRange(req.BccTo.Select(GetMailboxAddress));
@@ -64,8 +69,8 @@ public class EmailNotificationConsumer: IConsumer<EmailRequestMessage>
 
             using var smtpClient = new SmtpClient();
 
-            await smtpClient.ConnectAsync(_config.Email.SmtpHost, _config.Email.SmtpPort, MailKit.Security.SecureSocketOptions.StartTls);
-            await smtpClient.AuthenticateAsync(new System.Net.NetworkCredential(_config.Email.SmtpUsername, _config.Email.SmtpPassword));
+            await smtpClient.ConnectAsync(_emailConfig.SmtpHost, _emailConfig.SmtpPort, MailKit.Security.SecureSocketOptions.StartTls);
+            await smtpClient.AuthenticateAsync(new System.Net.NetworkCredential(_emailConfig.SmtpUsername, _emailConfig.SmtpPassword));
 
             await smtpClient.SendAsync(message);
             await smtpClient.DisconnectAsync(true);

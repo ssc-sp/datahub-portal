@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <AzureFunctionsVersion>v4</AzureFunctionsVersion>
@@ -7,9 +7,6 @@
         <Nullable>enable</Nullable>
         <UserSecretsId>7085b673-23cc-4759-933a-5a22d1004411</UserSecretsId>
     </PropertyGroup>
-    <ItemGroup>
-      <Compile Remove="EmailNotificationConsumer.cs" />
-    </ItemGroup>
     <ItemGroup>
       <Content Include="EmailTemplates\cost_alert.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -40,12 +37,6 @@
         
         
         <PackageReference Include="Azure.Storage.Queues" Version="12.16.0" />
-        
-        
-        <PackageReference Include="MassTransit" Version="8.1.3" />
-        
-        
-        <PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="8.1.3" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.19.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" Version="6.2.0" />

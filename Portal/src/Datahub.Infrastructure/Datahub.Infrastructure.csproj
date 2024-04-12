@@ -30,7 +30,4 @@
       <ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
       <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
     </ItemGroup>
-
-    <Import Project="..\..\..\Shared\src\Datahub.Messaging\Datahub.Messaging.projitems" Label="Shared" />
-
 </Project>

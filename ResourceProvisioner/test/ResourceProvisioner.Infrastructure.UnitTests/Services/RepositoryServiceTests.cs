@@ -3,6 +3,9 @@ using System.Text;
 using System.Text.Json.Nodes;
 using Datahub.Shared.Entities;
 using ResourceProvisioner.Application.Services;
+using ResourceProvisioner.Domain.Enums;
+using ResourceProvisioner.Domain.Events;
+using ResourceProvisioner.Domain.ValueObjects;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
 using LibGit2Sharp;
@@ -11,7 +14,6 @@ using Moq;
 using Moq.Protected;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using Version = System.Version;
-using Datahub.Shared.Messaging;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Services;
 

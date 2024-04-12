@@ -1,6 +1,8 @@
-using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
-using Datahub.Shared.Messaging;
 using Datahub.Shared.Entities;
+using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
+using ResourceProvisioner.Domain.Events;
+using ResourceProvisioner.Domain.Messages;
+using ResourceProvisioner.Domain.ValueObjects;
 
 namespace ResourceProvisioner.Application.Services;
 
