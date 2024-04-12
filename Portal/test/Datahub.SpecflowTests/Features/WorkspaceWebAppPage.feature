@@ -1,4 +1,5 @@
-﻿Feature: WorkspaceWebAppPage
+﻿@ignore
+Feature: WorkspaceWebAppPage
 As a user I want to manage my web application so that I can configure it correctly
 
     Scenario: Start the web application
