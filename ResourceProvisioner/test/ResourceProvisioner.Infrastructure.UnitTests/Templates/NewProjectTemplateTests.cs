@@ -145,7 +145,7 @@ public class NewProjectTemplateTests
             ["az_location"] = _resourceProvisionerConfiguration.Terraform.Variables.az_location,
             ["resource_prefix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix,
             ["resource_prefix_alphanumeric"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric,
-            ["resource_suffix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_suffix,
+            ["resource_suffix"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_suffix,
             ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
             ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
             ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aad_admin_group_oid,
