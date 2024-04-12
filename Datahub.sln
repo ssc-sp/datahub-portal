@@ -23,9 +23,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ResourceProvisioner", "ResourceProvisioner", "{A3E0CF47-6B1D-41C1-B1A4-B4A92985E05F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{40919C7D-5119-4821-9E51-96141E058E04}"
-	ProjectSection(SolutionItems) = preProject
-		ResourceProvisioner_PyFunctions_Tests.ps1 = ResourceProvisioner_PyFunctions_Tests.ps1
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Application.IntegrationTests", "ResourceProvisioner\test\ResourceProvisioner.Application.IntegrationTests\ResourceProvisioner.Application.IntegrationTests.csproj", "{E94EF665-2394-4C18-82F2-9150D0801CDE}"
 EndProject
@@ -131,6 +128,7 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.SpecflowTests", "Portal\test\Datahub.SpecflowTests\Datahub.SpecflowTests.csproj", "{D84C8789-E77F-438A-A0B6-7DB1695B9C17}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.MissingTranslations", "Portal\utils\Datahub.MissingTranslations\Datahub.MissingTranslations.csproj", "{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.MissingTranslations", "Portal\utils\Datahub.MissingTranslations\Datahub.MissingTranslations.csproj", "{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceProvisioner.SpecflowTests", "ResourceProvisioner\test\ResourceProvisioner.SpecflowTests\ResourceProvisioner.SpecflowTests.csproj", "{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}"
