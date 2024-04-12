@@ -83,20 +83,6 @@ var host = new HostBuilder()
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();
-
-        services.AddAzureClients(builder =>
-        {
-            builder.AddClient<ArmClient, ArmClientOptions>(options =>
-            {
-                options.Diagnostics.IsLoggingEnabled=true;
-                var tenantId = config.GetValue<string>("TENANT_ID");
-                var clientId = config.GetValue<string>("FUNC_SP_CLIENT_ID");
-                var clientSecret = config.GetValue<string>("FUNC_SP_CLIENT_SECRET");
-                var creds = new ClientSecretCredential(tenantId, clientId, clientSecret);
-                var client = new ArmClient(creds);
-                return client;
-            });
-        });
         services.AddDatahubConfigurationFromFunctionFormat(config);
        
 

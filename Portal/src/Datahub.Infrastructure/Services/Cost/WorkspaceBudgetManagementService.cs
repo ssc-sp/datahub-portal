@@ -215,18 +215,30 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <returns>The budget id</returns>
         internal async Task<string> GetBudgetIdForWorkspace(string workspaceAcronym, string? rgName = null)
         {
+            using var ctx = await _dbContextFactory.CreateDbContextAsync();
             if (rgName is null)
             {
-                using var ctx = await _dbContextFactory.CreateDbContextAsync();
                 var projectResources = ctx.Project_Resources2.Include(p => p.Project)
                     .Where(p => p.Project.Project_Acronym_CD == workspaceAcronym).ToList();
                 var blobType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
                 var blobResource = projectResources.First(r => r.ResourceType == blobType);
                 rgName = ParseResourceGroup(blobResource.JsonContent);
             }
+            var project= await ctx.Projects.Include(p => p.DatahubAzureSubscription).FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
+            if (project is null)
+            {
+                _logger.LogError($"Could not find project with acronym {workspaceAcronym}");
+                throw new Exception($"Could not find project with acronym {workspaceAcronym}");
+            }
 
-            var budgetId =
-                $"/subscription/{_armClient.GetDefaultSubscription().Id.SubscriptionId}/resourceGroups/{rgName}/providers/Microsoft.Consumption/budgets/{rgName}-budget";
+            var subId = project.DatahubAzureSubscription.SubscriptionId;
+            if (subId is null)
+            {
+                _logger.LogError($"Could not find subscription id for project with acronym {workspaceAcronym}");
+                throw new Exception($"Could not find subscription id for project with acronym {workspaceAcronym}");
+            }
+
+            var budgetId = $"/subscription/{subId}/resourceGroups/{rgName}/providers/Microsoft.Consumption/budgets/{rgName}-budget";
             return budgetId;
         }
 
