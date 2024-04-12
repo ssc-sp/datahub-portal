@@ -4,6 +4,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Repositories;
+using Datahub.Core.Model.Subscriptions;
 using Datahub.Shared.Entities;
 using Elemental.Components;
 using MudBlazor.Forms;
@@ -157,6 +158,16 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     [AeFormIgnore]
     public DateTime? Deleted_DT { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Id of the Azure subscription of the workspace in Datahub.
+    /// </summary>
+    public int DatahubAzureSubscriptionId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Azure subscription of the workspace in Datahub.
+    /// </summary>
+    public DatahubAzureSubscription DatahubAzureSubscription { get; set; }
 
     [AeFormIgnore]
     public bool IsDeleted => Deleted_DT != null && Deleted_DT < DateTime.UtcNow;

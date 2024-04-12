@@ -26,7 +26,7 @@ public class ConfigureWorkspaceAppServiceTests
     [SetUp]
     public void Setup()
     {
-        _azureConfig.AdoConfig.ListPipelineUrlTemplate = ListPipelineUrlTemplate;
+        _azureConfig.AzureDevOpsConfiguration.ListPipelineUrlTemplate = ListPipelineUrlTemplate;
     }
 
     [Test]
@@ -44,7 +44,7 @@ public class ConfigureWorkspaceAppServiceTests
     public async Task GetPipelineIdByName_ShouldThrowError_GivenIncorrectUrl()
     {
         // Arrange
-        _azureConfig.AdoConfig.ListPipelineUrlTemplate = "https://INVALID_URL.com"; 
+        _azureConfig.AzureDevOpsConfiguration.ListPipelineUrlTemplate = "https://INVALID_URL.com"; 
 
         // Act
         try
@@ -62,7 +62,7 @@ public class ConfigureWorkspaceAppServiceTests
     public async Task GetPipelineIdByName_ShouldThrowError_WhenIncorrectPipelineUrl()
     {
         // Arrange
-        _azureConfig.AdoConfig.ListPipelineUrlTemplate = "https://INVALID_URL.com";
+        _azureConfig.AzureDevOpsConfiguration.ListPipelineUrlTemplate = "https://INVALID_URL.com";
 
         // Act
         try
