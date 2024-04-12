@@ -286,12 +286,15 @@ public class TerraformService : ITerraformService
 
     private string ComputeBackendConfigValue(string workspaceName, string variableName)
     {
+        string rpa = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric;
+        string env = _resourceProvisionerConfiguration.Terraform.Variables.environment_name;
+        string suffix = _resourceProvisionerConfiguration.Terraform.Variables.storage_suffix;
         return variableName switch
         {
             TerraformVariables.BackendResourceGroupName => _resourceProvisionerConfiguration.Terraform.Backend
                 .ResourceGroupName,
             TerraformVariables.BackendStorageAccountName =>
-                $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}{_resourceProvisionerConfiguration.Terraform.Variables.environment_name}terraformbackend",
+                $"{rpa}{env}{suffix}",
             TerraformVariables.BackendContainerName =>
                 $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-project-states",
             TerraformVariables.BackendKeyName =>

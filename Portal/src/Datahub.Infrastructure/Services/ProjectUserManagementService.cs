@@ -193,7 +193,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             }
            
             // If current user is not the user being added to the project
-            if (projectUser.PortalUserId != currentUser.Id)
+            if (projectUser?.PortalUserId != currentUser.Id)
             {
                 context.Attach(currentUser);
             }
