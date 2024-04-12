@@ -1,9 +1,10 @@
-﻿@if (_isLoading)
+﻿@using Datahub.Application.Services.Reports
+@if (_isLoading)
 {
     <DHLoadingInitializer/>
     return;
 }
-<MudTable T="Report" Items="@_reports" Hover Striped Filter="@(FilterTable)">
+<MudTable T="WorkspaceReport" Items="@_reports" Hover Striped Filter="@(FilterTable)">
     <ToolBarContent>
         <MudText Typo="Typo.h2">Reports for @WorkspaceAcronym</MudText>
         <MudSpacer/>
@@ -73,10 +74,10 @@
             </MudText>
             <MudText Typo="Typo.body1">
                 @Localizer["Select the type of your report"]
-                <MudSelect Label="@Localizer["Report type"]" T="@ReportType" Required>
-                    <MudSelectItem Value="ReportType.Cost">Cost</MudSelectItem>
-                    <MudSelectItem Value="ReportType.Storage">Storage</MudSelectItem>
-                    <MudSelectItem Value="ReportType.CostAndStorage">Cost & Storage</MudSelectItem>
+                <MudSelect Label="@Localizer["Report type"]" T="@WorkspaceReportType" Required>
+                    <MudSelectItem Value="WorkspaceReportType.Cost">Cost</MudSelectItem>
+                    <MudSelectItem Value="WorkspaceReportType.Storage">Storage</MudSelectItem>
+                    <MudSelectItem Value="WorkspaceReportType.CostAndStorage">Cost & Storage</MudSelectItem>
                 </MudSelect>
             </MudText>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-6">@Localizer["Submit"]</MudButton>
@@ -88,7 +89,7 @@
 @code {
     [Parameter] public string WorkspaceAcronym { get; set; }
     private bool _isLoading = true;
-    private List<Report> _reports { get; set; }
+    private List<WorkspaceReport> _reports { get; set; }
     private string _searchString = "";
     private Timeframe _timeframe = Timeframe.Fiscal;
 
@@ -113,35 +114,29 @@
         CY2024
     };
 
-    private enum ReportType
-    {
-        Cost,
-        Storage,
-        CostAndStorage
-    }
+    
 
-    private record Report(DateTime GenerationDate, string GeneratedBy, (DateTime, DateTime) CoverageDates, string ReportType, string ReportName, string ReportUrl);
 
     protected override void OnInitialized()
     {
-        _reports = new List<Report>();
-        _reports.Add(new Report(DateTime.Now, "System generated", (DateTime.Now.AddDays(-365), DateTime.Now), "Cost", "myreport1", "https://www.google.com"));
-        _reports.Add(new Report(DateTime.Now.AddDays(-10), "René, David (SSC/SPC)", (DateTime.Now.AddDays(-365), DateTime.Now.AddDays(-10)), "Cost & Storage", "myreport2", "https://www.google.com"));
-        _reports.Add(new Report(DateTime.Now, "System generated", (DateTime.Now.AddDays(-365), DateTime.Now), "Storage", "myreport3", "https://www.google.com"));
+        _reports = new List<WorkspaceReport>();
+        _reports.Add(new WorkspaceReport(DateTime.Now, DateTime.Now, "System generated", (DateTime.Now.AddDays(-365), DateTime.Now), WorkspaceReportType.Cost, WorkspaceReportStatus.Requested, "myreport1", "https://www.google.com"));
+        _reports.Add(new WorkspaceReport(DateTime.Now.AddDays(-10), DateTime.Now, "René, David (SSC/SPC)", (DateTime.Now.AddDays(-365), DateTime.Now.AddDays(-10)), WorkspaceReportType.Storage, WorkspaceReportStatus.Generating, "myreport2", "https://www.google.com"));
+        _reports.Add(new WorkspaceReport(DateTime.Now, DateTime.Now, "System generated", (DateTime.Now.AddDays(-365), DateTime.Now), WorkspaceReportType.CostAndStorage, WorkspaceReportStatus.Generated, "myreport3", "https://www.google.com"));
         _isLoading = false;
     }
 
-    private bool FilterTable(Report report) => FilterFunc(report, _searchString);
+    private bool FilterTable(WorkspaceReport report) => FilterFunc(report, _searchString);
 
-    private bool FilterFunc(Report element, string searchString)
+    private bool FilterFunc(WorkspaceReport element, string searchString)
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
         if (element.ReportName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (element.ReportType.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (Localizer[element.ReportType.ToString()].ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (element.GeneratedBy.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (Localizer[element.GeneratedBy].ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
         return false;
     }
