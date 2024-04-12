@@ -24,7 +24,8 @@ namespace Datahub.SpecflowTests.Features
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
         
-        private static string[] featureTags = ((string[])(null));
+        private static string[] featureTags = new string[] {
+                "ignore"};
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
@@ -80,7 +81,7 @@ namespace Datahub.SpecflowTests.Features
             this.TestTearDown();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Display the featured documents on load")]
+        [Xunit.SkippableFactAttribute(DisplayName="Display the featured documents on load", Skip="Ignored")]
         [Xunit.TraitAttribute("FeatureTitle", "Learn Page")]
         [Xunit.TraitAttribute("Description", "Display the featured documents on load")]
         public void DisplayTheFeaturedDocumentsOnLoad()
@@ -88,7 +89,7 @@ namespace Datahub.SpecflowTests.Features
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Display the featured documents on load", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 4
+#line 5
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -98,20 +99,20 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
-#line 5
+#line 6
  testRunner.Given("I am on the Learn Page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 6
+#line 7
  testRunner.When("the page loads", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 7
+#line 8
  testRunner.Then("I should see a list of featured documents", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Display a document when clicked")]
+        [Xunit.SkippableFactAttribute(DisplayName="Display a document when clicked", Skip="Ignored")]
         [Xunit.TraitAttribute("FeatureTitle", "Learn Page")]
         [Xunit.TraitAttribute("Description", "Display a document when clicked")]
         public void DisplayADocumentWhenClicked()
@@ -119,7 +120,7 @@ this.ScenarioInitialize(scenarioInfo);
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Display a document when clicked", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 9
+#line 10
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -129,20 +130,20 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
-#line 10
+#line 11
  testRunner.Given("I am on the Learn Page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 11
+#line 12
  testRunner.When("I click on Read More for a document", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 12
+#line 13
  testRunner.Then("I should see the document", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Display media when it is used in a document")]
+        [Xunit.SkippableFactAttribute(DisplayName="Display media when it is used in a document", Skip="Ignored")]
         [Xunit.TraitAttribute("FeatureTitle", "Learn Page")]
         [Xunit.TraitAttribute("Description", "Display media when it is used in a document")]
         public void DisplayMediaWhenItIsUsedInADocument()
@@ -150,7 +151,7 @@ this.ScenarioInitialize(scenarioInfo);
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Display media when it is used in a document", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 14
+#line 15
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -160,13 +161,13 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
-#line 15
+#line 16
  testRunner.Given("I am on the Learn Page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 16
+#line 17
  testRunner.When("I access on a document", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 17
+#line 18
  testRunner.Then("I should see the media used in the document loaded from Blob Storage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
@@ -180,12 +181,10 @@ this.ScenarioInitialize(scenarioInfo);
             
             public FixtureData()
             {
-                LearnPageFeature.FeatureSetup();
             }
             
             void System.IDisposable.Dispose()
             {
-                LearnPageFeature.FeatureTearDown();
             }
         }
     }

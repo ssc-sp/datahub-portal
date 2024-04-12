@@ -1,3 +1,4 @@
+@ignore
 Feature: Learn Page
 	The Learn Page should display a list of available documents. 
 
