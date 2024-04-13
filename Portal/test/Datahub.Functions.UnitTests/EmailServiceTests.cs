@@ -3,13 +3,8 @@ using Datahub.Functions.Services;
 using Datahub.Infrastructure.Services.Notifications;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Newtonsoft.Json;
 using NSubstitute;
-
-namespace Datahub.Functions.UnitTests;
 
 namespace Datahub.Functions.UnitTests;
 
