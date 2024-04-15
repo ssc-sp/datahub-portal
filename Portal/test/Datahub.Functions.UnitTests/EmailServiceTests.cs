@@ -3,6 +3,7 @@ using Datahub.Functions.Services;
 using Datahub.Infrastructure.Services.Notifications;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
@@ -37,10 +38,10 @@ public class EmailServiceTests
         var subjectArgs = new Dictionary<string, string> { { "{key2}", "value2" } };
 
         var result = _emailService.BuildEmail(template, sendTo, bccTo, bodyArgs, subjectArgs);
-
-        Assert.IsNotNull(result);
-        Assert.AreEqual(sendTo, result.To);
-        Assert.AreEqual(bccTo, result.BccTo);
+        
+        result.Should().NotBeNull();
+        result!.To.Should().BeEquivalentTo(sendTo);
+        result!.BccTo.Should().BeEquivalentTo(bccTo);
     }
 
     [Test]
@@ -54,7 +55,7 @@ public class EmailServiceTests
 
         var result = _emailService.BuildEmail(template, sendTo, bccTo, bodyArgs, subjectArgs);
 
-        Assert.IsNull(result);
+        result.Should().BeNull();
     }
 
     [Test]
@@ -65,7 +66,8 @@ public class EmailServiceTests
 
         var result = _emailService.PopulateTemplate(template, args);
 
-        Assert.AreEqual("Hello, John!", result);
+        result.Should().NotBeNull();
+        result.Should().Be("Hello, John!");
     }
 
 
