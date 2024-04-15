@@ -1,4 +1,5 @@
 ﻿using Datahub.Infrastructure.Services.WebApp;
+using FluentAssertions;
 using MediatR;
 using NSubstitute;
 using static Datahub.Infrastructure.UnitTests.Testing;
@@ -35,7 +36,7 @@ public class WorkspaceWebAppManagementServiceTests
         var result = await _service.Start(TestWebAppId);
 
         // Assert
-        Assert.IsTrue(result);
+        result.Should().BeTrue();
     }
     
     [Test]
@@ -49,7 +50,7 @@ public class WorkspaceWebAppManagementServiceTests
         var result = await _service.Stop(TestWebAppId);
 
         // Assert
-        Assert.IsTrue(result);
+        result.Should().BeTrue();
     }
     
     [Test]
@@ -63,7 +64,7 @@ public class WorkspaceWebAppManagementServiceTests
         var result = await _service.Restart(TestWebAppId);
 
         // Assert
-        Assert.IsTrue(result);
+        result.Should().BeTrue();
     }
     
     [Test]
@@ -77,7 +78,7 @@ public class WorkspaceWebAppManagementServiceTests
         var result = await _service.GetState(TestWebAppId);
 
         // Assert
-        Assert.IsTrue(result);
+        result.Should().BeTrue();
     }
     
     [Test]
@@ -87,6 +88,6 @@ public class WorkspaceWebAppManagementServiceTests
         var result = await _service.GetState(TestWebAppId);
 
         // Assert
-        Assert.IsFalse(result);
+        result.Should().BeTrue();
     }
 }

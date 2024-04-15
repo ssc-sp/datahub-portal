@@ -1,3 +1,4 @@
+using Datahub.Core.Model.Subscriptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -8,7 +9,9 @@ public class DatahubProjectConfiguration : IEntityTypeConfiguration<Datahub_Proj
     public void Configure(EntityTypeBuilder<Datahub_Project> builder)
     {
         builder.ToTable("Projects");
-        builder.Property(e => e.SubscriptionId)
-            .HasMaxLength(36);
+        // builder.HasOne(e => e.DatahubAzureSubscription)
+        //     .WithMany(s => s.Workspaces)
+        //     .HasForeignKey(e => e.DatahubAzureSubscriptionId)
+        //     .IsRequired(false);
     }
 }

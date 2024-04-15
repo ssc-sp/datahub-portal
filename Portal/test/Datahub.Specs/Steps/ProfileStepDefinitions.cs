@@ -1,4 +1,5 @@
 using Datahub.Specs.PageObjects;
+using Reqnroll;
 
 namespace Datahub.Specs.Steps;
 
