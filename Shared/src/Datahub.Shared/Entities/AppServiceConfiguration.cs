@@ -12,7 +12,7 @@ namespace Datahub.Shared.Entities
         public string ComposePath { get; set; }
         public string Id { get; set; }
         public string HostName { get; set; }
-        
+
         public AppServiceConfiguration() { }
 
         public AppServiceConfiguration(string framework, string gitRepo,
