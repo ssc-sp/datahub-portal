@@ -1,18 +1,32 @@
+using System.Text.Json;
 using Datahub.Shared.Entities;
+using Reqnroll;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
+using ResourceProvisioner.Functions;
 
 namespace ResourceProvisioner.SpecflowTests.Steps;
 
 [Binding]
-public sealed class ResourceRunRequestSteps(ScenarioContext scenarioContext)
+public sealed class ResourceRunRequestSteps(
+    ResourceRunRequest resourceRunRequest,
+    ScenarioContext scenarioContext)
 {
-    [GivenAttribute(@"the user has a workspace definition")]
-    public void GivenTheUserHasAWorkspaceDefinition()
+
+    [Given(@"a workspace definition with every required field")]
+    public void GivenAWorkspaceDefinitionWithEveryRequiredField()
     {
         var createResourceRunCommand = new CreateResourceRunCommand()
         {
             Templates = [new TerraformTemplate() { Name = "test" }, new TerraformTemplate() { Name = "test2" }],
-            Workspace = new TerraformWorkspace() { Acronym = "test" },
+            Workspace = new TerraformWorkspace()
+            {
+                TerraformOrganization = new TerraformOrganization()
+                {
+                    Name = "test",
+                    Code = "test"
+                },
+                Acronym = "test"
+            },
             AppData = new WorkspaceAppData()
             {
                 DatabricksHostUrl = "test",
@@ -25,4 +39,61 @@ public sealed class ResourceRunRequestSteps(ScenarioContext scenarioContext)
 
         scenarioContext["createResourceRunCommand"] = createResourceRunCommand;
     }
+    
+    [Given(@"the workspace app configuration is null")]
+    public void GivenTheWorkspaceAppConfigurationIsNull()
+    {
+        var createResourceRunCommand = scenarioContext["createResourceRunCommand"] as CreateResourceRunCommand;
+        createResourceRunCommand!.AppData = null!;
+    }
+    
+    
+    [Given(@"a workspace definition without every required field")]
+    public void GivenAWorkspaceDefinitionWithoutEveryRequiredField()
+    {
+        var createResourceRunCommand = new CreateResourceRunCommand()
+        {
+            Templates = [],
+            Workspace = new TerraformWorkspace(),
+            AppData = new WorkspaceAppData()
+        };
+
+        scenarioContext["createResourceRunCommand"] = createResourceRunCommand;
+    }
+    
+    [When(@"a resource run request processes the workspace definition")]
+    public async Task WhenAResourceRunRequestProcessesTheWorkspaceDefinition()
+    {
+        var createResourceRunCommand = scenarioContext["createResourceRunCommand"] as CreateResourceRunCommand;
+        var createResourceRunCommandString = JsonSerializer.Serialize(createResourceRunCommand);
+        try
+        {
+            await resourceRunRequest.RunAsync(createResourceRunCommandString);
+        }
+        catch (Exception e)
+        {
+            scenarioContext["exception"] = e;
+        }
+    }
+
+    [Then(@"the resource run request should parse the workspace definition without errors")]
+    public void ThenTheResourceRunRequestShouldParseTheWorkspaceDefinitionWithoutErrors()
+    {
+        if (scenarioContext.TryGetValue("exception", out object? value) && value is Exception exception)
+        {
+            throw exception;
+        }
+    }
+
+
+    [Then(@"the resource run request should parse the workspace definition with errors")]
+    public void ThenTheResourceRunRequestShouldParseTheWorkspaceDefinitionWithErrors()
+    {
+        if (!scenarioContext.TryGetValue("exception", out object? value) || value is not Exception exception)
+        {
+            throw new Exception("Expected exception was not thrown");
+        }
+    }
+
+
 }
