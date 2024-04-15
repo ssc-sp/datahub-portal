@@ -51,6 +51,11 @@ public class DatahubEmailService : IDatahubEmailService
 
     private async Task<bool> SendMessage(List<string>? toRecipients, List<string>? ccRecipients, List<string>? bccRecipients, string subject, string body)
     {
+        if (toRecipients is null && ccRecipients is null)
+        {
+            _logger.LogError($"No recipients specified for message '{subject}'");
+            return false;
+        }
         try
         {
             EmailRequestMessage message = new()

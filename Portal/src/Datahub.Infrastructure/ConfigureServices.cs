@@ -10,6 +10,7 @@ using Datahub.Infrastructure.Services.Azure;
 using Datahub.Infrastructure.Services.CatalogSearch;
 using Datahub.Infrastructure.Services.Notebooks;
 using Datahub.Infrastructure.Services.Notifications;
+using Datahub.Infrastructure.Services.Queues;
 using Datahub.Infrastructure.Services.ReverseProxy;
 using Datahub.Infrastructure.Services.Storage;
 using MassTransit;
@@ -21,31 +22,16 @@ using Yarp.ReverseProxy.Configuration;
 namespace Datahub.Infrastructure;
 
 public static class ConfigureServices
-{
-    public static IServiceCollection AddDatahubInfrastructureServices(this IServiceCollection services,
+{    
+
+    public static IServiceCollection AddMassTransitProducer(this IServiceCollection services,
         IConfiguration configuration)
     {
         var whereAmI = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-        //services.AddMediatR(typeof(QueueMessageSender<>)); v11 mediatr code
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
-
-        services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
-        services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
-        services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
-        services.AddScoped<CloudStorageManagerFactory>();
-        services.AddSingleton<IResourceMessagingService, ResourceMessagingService>();
-        services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
-        services.AddScoped<IAnnouncementService, AnnouncementService>();
-        services.AddScoped<IDatahubEmailService, DatahubEmailService>();
-        services.AddScoped<IDatabricksApiService, DatabricksApiService>();
-        services.AddScoped<IUsersStatusService,UsersStatusService>();
-        services.AddSingleton<IDatahubCatalogSearch, DatahubCatalogSearch>();
-
         services.AddMassTransit(x =>
-        {
-            x.AddConsumer<EmailNotificationConsumer>();
-            if (whereAmI == "Development")
+        {            
+            if (whereAmI == "Local")
             {
                 x.UsingInMemory((context, cfg) =>
                 {
@@ -61,14 +47,33 @@ public static class ConfigureServices
                         ?? configuration["DatahubServiceBus:ConnectionString"];
 
                     cfg.Host(serviceBusConnectingString);
-                    cfg.ReceiveEndpoint("email-notification", e =>
-                    {
-                        e.ConfigureConsumer<EmailNotificationConsumer>(context);
-                    });
                     cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
                 });
             }
         });
+
+        return services;
+    }
+
+    public static IServiceCollection AddDatahubInfrastructureServices(this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var whereAmI = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+        //services.AddMediatR(typeof(QueueMessageSender<>)); v11 mediatr code
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
+        services.AddMassTransitProducer(configuration);
+        services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
+        services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
+        services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
+        services.AddScoped<CloudStorageManagerFactory>();
+        services.AddSingleton<IResourceMessagingService, ResourceMessagingService>();
+        services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
+        services.AddScoped<IAnnouncementService, AnnouncementService>();
+        services.AddScoped<IDatahubEmailService, DatahubEmailService>();
+        services.AddScoped<IDatabricksApiService, DatabricksApiService>();
+        services.AddScoped<IUsersStatusService,UsersStatusService>();
+        services.AddSingleton<IDatahubCatalogSearch, DatahubCatalogSearch>();
 
         if (configuration.GetValue<bool>("ReverseProxy:Enabled"))
         {

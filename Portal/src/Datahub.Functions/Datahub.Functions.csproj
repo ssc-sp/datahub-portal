@@ -37,8 +37,12 @@
         
         
         <PackageReference Include="Azure.Storage.Queues" Version="12.16.0" />
+        
+        
+        <PackageReference Include="MassTransit.WebJobs.ServiceBus" Version="8.2.1" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.19.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.17.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" Version="6.2.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.2.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.2.0" />
