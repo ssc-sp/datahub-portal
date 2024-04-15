@@ -7,6 +7,7 @@ using Datahub.Shared.Entities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
+using Reqnroll;
 
 namespace Datahub.SpecflowTests.Steps
 {
