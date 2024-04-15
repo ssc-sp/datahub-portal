@@ -27,7 +27,8 @@ public class ResourceRunRequest
         
         var deserializeOptions = new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            IncludeFields = true
         };
         var resourceRun = JsonSerializer.Deserialize<CreateResourceRunCommand>(myQueueItem, deserializeOptions);
         
