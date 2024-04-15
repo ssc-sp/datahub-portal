@@ -28,12 +28,11 @@ public class ResourceRunRequest
         var deserializeOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
-            IncludeFields = true
         };
         var resourceRun = JsonSerializer.Deserialize<CreateResourceRunCommand>(myQueueItem, deserializeOptions);
         
         var resourceRunCommandValidator = new CreateResourceRunCommandValidator();
-        var validationResult = await resourceRunCommandValidator.ValidateAsync(resourceRun);
+        var validationResult = await resourceRunCommandValidator.ValidateAsync(resourceRun!);
         if (!validationResult.IsValid)
         {
             _logger.LogError("Validation failed: {Errors}", validationResult.Errors.ToString());
