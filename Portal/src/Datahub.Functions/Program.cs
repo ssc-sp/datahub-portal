@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 using System.Net;
+using MassTransit;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Projects;
 using Datahub.Application.Services.Security;
@@ -60,7 +61,11 @@ var host = new HostBuilder()
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();
-
+        services.AddScoped<EmailNotificationHandler>(); // add your functions as scoped
+        services.AddMassTransitForAzureFunctions(cfg =>
+                {
+                    cfg.AddConsumersFromNamespaceContaining<EmailNotificationConsumer>();
+                });
         services.AddDatahubConfigurationFromFunctionFormat(config);
        
 
