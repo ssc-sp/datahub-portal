@@ -81,7 +81,7 @@ public class EmailServiceTests
             body = "test" 
         }; 
         await _datahubEmailService.SendToRecipients("test@ssc.gc.ca",message.to,message.subject,message.body);
-        Assert.IsTrue(_publishEndpoint.ReceivedCalls().Count() == 1);
+        _publishEndpoint.ReceivedCalls().Count().Should().Be(1);
     }
 
     [OneTimeTearDown]
