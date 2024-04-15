@@ -2,6 +2,7 @@ using BoDi;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using Reqnroll;
 using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Infrastructure.Common;

@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using Azure.Core;
 using Datahub.Shared.Clients;
+using Reqnroll;
 using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Infrastructure.Common;
