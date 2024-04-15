@@ -2,24 +2,14 @@ using System.Text.Json;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using FluentValidation;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace ResourceProvisioner.Functions;
 
-public class ResourceRunRequest
+public class ResourceRunRequest(ILoggerFactory loggerFactory, CreateResourceRunCommandHandler commandHandler)
 {
-    private readonly IConfiguration _configuration;
-    private readonly CreateResourceRunCommandHandler _commandHandler;
-    private readonly ILogger<ResourceRunRequest> _logger;
+    private readonly ILogger<ResourceRunRequest> _logger = loggerFactory.CreateLogger<ResourceRunRequest>();
 
-    public ResourceRunRequest(ILoggerFactory loggerFactory, IConfiguration configuration, CreateResourceRunCommandHandler commandHandler)
-    {
-        _logger = loggerFactory.CreateLogger<ResourceRunRequest>();
-        _configuration = configuration;
-        _commandHandler = commandHandler;
-    }
-    
     [Function("ResourceRunRequest")]
     public async Task RunAsync([QueueTrigger("resource-run-request", Connection = "ResourceRunRequestConnectionString")] string myQueueItem)
     {
@@ -41,7 +31,7 @@ public class ResourceRunRequest
 
         try
         {
-            await _commandHandler.Handle(resourceRun!, CancellationToken.None);
+            await commandHandler.Handle(resourceRun!, CancellationToken.None);
         }
         catch (Exception e)
         {
