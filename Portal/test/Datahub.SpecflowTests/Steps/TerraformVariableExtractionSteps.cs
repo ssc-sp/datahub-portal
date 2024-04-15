@@ -1,7 +1,7 @@
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
 using FluentAssertions;
-using TechTalk.SpecFlow.Assist;
+using Reqnroll;
 
 namespace Datahub.SpecflowTests.Steps;
 
