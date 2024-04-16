@@ -1,7 +1,6 @@
 using Datahub.Application.Services.Notification;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
-using Datahub.Core.Services.Security;
 using Datahub.Portal.Templates;
 using Datahub.Portal.Templates.FileSharing;
 using Datahub.Portal.Templates.Onboarding;
@@ -9,6 +8,7 @@ using Microsoft.Extensions.Localization;
 using MimeKit;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Projects;
+using Datahub.Infrastructure.Services.Security;
 using Microsoft.Graph.Models;
 
 namespace Datahub.Portal.Services.Notification;

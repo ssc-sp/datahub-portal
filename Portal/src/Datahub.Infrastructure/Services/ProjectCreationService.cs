@@ -11,7 +11,7 @@ using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Projects.Configuration;
 using Datahub.Core.Services;
 using Datahub.Core.Services.CatalogSearch;
-using Datahub.Core.Services.Security;
+using Datahub.Infrastructure.Services.Security;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

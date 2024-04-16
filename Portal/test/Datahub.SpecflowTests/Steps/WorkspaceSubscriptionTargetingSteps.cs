@@ -1,14 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Subscriptions;
 using Datahub.Shared.Entities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using TechTalk.SpecFlow;
+using Reqnroll;
 
 namespace Datahub.SpecflowTests.Steps;
 
@@ -26,8 +23,14 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
         var workspace = new Datahub_Project
         {
             Project_Acronym_CD = Testing.WORKSPACE_ACRONYM,
-            SubscriptionId = Testing.WORKSPACE_SUBSCRIPTION_GUID
         };
+        
+        var datahubAzureSubscription = new DatahubAzureSubscription()
+        {
+            SubscriptionId = Testing.WORKSPACE_SUBSCRIPTION_GUID,
+        };
+        
+        workspace.DatahubAzureSubscription = datahubAzureSubscription;
         
         ctx.Projects.Add(workspace);
         await ctx.SaveChangesAsync();

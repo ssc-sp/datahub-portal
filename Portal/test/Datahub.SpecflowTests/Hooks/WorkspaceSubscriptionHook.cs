@@ -5,19 +5,20 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Services.CatalogSearch;
-using Datahub.Core.Services.Security;
 using Datahub.Infrastructure.Services;
+using Datahub.Infrastructure.Services.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using Reqnroll;
 
 namespace Datahub.SpecflowTests.Hooks;
 
 [Binding]
 public class WorkspaceSubscriptionHook
 {
-    [BeforeScenario("WorkspaceSubscription")]
+    [BeforeScenario("RequiringResourceMessaging")]
     public async Task BeforeScenarioRequiringResourceMessaging(IObjectContainer objectContainer,
         ScenarioContext scenarioContext)
     {

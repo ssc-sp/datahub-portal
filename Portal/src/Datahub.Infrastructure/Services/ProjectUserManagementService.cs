@@ -6,7 +6,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
-using Datahub.Core.Services.Security;
+using Datahub.Infrastructure.Services.Security;
 using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -193,7 +193,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             }
            
             // If current user is not the user being added to the project
-            if (projectUser.PortalUserId != currentUser.Id)
+            if (projectUser?.PortalUserId != currentUser.Id)
             {
                 context.Attach(currentUser);
             }
