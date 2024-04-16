@@ -198,11 +198,15 @@ public class NewProjectTemplateTests
             Acronym = workspaceAcronym
         };
 
-        var expectedConfiguration = @"resource_group_name = ""fsdh-core-test-rg""
-storage_account_name = ""fsdhtestterraformbackend""
-container_name = ""fsdh-project-states""
-key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
+        var expectedConfiguration = @"resource_group_name = ""{{prefix}}-core-test-rg""
+storage_account_name = ""{{prefix_alphanumeric}}testterraformbackend""
+container_name = ""{{prefix}}-project-states""
+key = ""{{prefix}}-ShouldExtractBackendConfiguration.tfstate""
 ";
+        
+        expectedConfiguration = expectedConfiguration
+            .Replace("{{prefix}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix)
+            .Replace("{{prefix_alphanumeric}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric);
 
         var module = new TerraformTemplate()
         {
