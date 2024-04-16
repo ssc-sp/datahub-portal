@@ -19,7 +19,6 @@ using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Offline;
 using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.Search;
-using Datahub.Core.Services.Security;
 using Datahub.Core.Services.Storage;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Services.Wiki;
@@ -442,8 +441,6 @@ public class Startup
         services.AddScoped<PortalEmailService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
         services.AddSingleton<IPropagationService, PropagationService>();
-
-        services.AddSingleton<ServiceAuthManager>();
 
         services.AddSingleton<IOpenDataService, OpenDataService>();
         

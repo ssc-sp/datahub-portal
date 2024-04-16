@@ -6,6 +6,7 @@ using Datahub.Portal.Components.Announcements;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Reqnroll;
 
 namespace Datahub.SpecflowTests.Steps;
 

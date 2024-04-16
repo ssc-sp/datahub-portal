@@ -1,15 +1,16 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
+using Datahub.Application.Services.Security;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 
-namespace Datahub.Core.Services.Security;
+namespace Datahub.Infrastructure.Services.Security;
 
-public class ServiceAuthManager
+public class ServiceAuthManager : IServiceAuthManager
 {
     private const int AUTH_KEY = 1;
     private const int PROJECT_ADMIN_KEY = 2;
@@ -25,7 +26,7 @@ public class ServiceAuthManager
         this.dbFactory = dbFactory;
     }
 
-    internal List<string> GetAllProjects()
+    public List<string> GetAllProjects()
     {
         using var ctx = dbFactory.CreateDbContext();
         return ctx.Projects.Where(p => p.Project_Acronym_CD != null).Select(p => p.Project_Acronym_CD).ToList();
@@ -144,7 +145,7 @@ public class ServiceAuthManager
         }
     }
 
-    private async Task<Dictionary<string, List<string>>> CheckCacheForAdmins()
+    public async Task<Dictionary<string, List<string>>> CheckCacheForAdmins()
     {
         Dictionary<string, List<string>> allProjectAdmins;
         if (!serviceAuthCache.TryGetValue(PROJECT_ADMIN_KEY, out allProjectAdmins))

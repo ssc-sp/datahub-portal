@@ -4,6 +4,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Repositories;
+using Datahub.Core.Model.Subscriptions;
 using Datahub.Shared.Entities;
 using Elemental.Components;
 using MudBlazor.Forms;
@@ -157,7 +158,16 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     [AeFormIgnore]
     public DateTime? Deleted_DT { get; set; }
-    public string SubscriptionId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Id of the Azure subscription of the workspace in Datahub.
+    /// </summary>
+    public int DatahubAzureSubscriptionId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Azure subscription of the workspace in Datahub.
+    /// </summary>
+    public DatahubAzureSubscription DatahubAzureSubscription { get; set; }
 
     [AeFormIgnore]
     public bool IsDeleted => Deleted_DT != null && Deleted_DT < DateTime.UtcNow;
@@ -344,7 +354,12 @@ public class Datahub_Project : IComparable<Datahub_Project>
         return "On Hold";
     }
 
-    [AeFormIgnore]
+    /// <summary>
+    /// Converts a Datahub_Project object to a TerraformWorkspace object.
+    /// </summary>
+    /// <param name="users">The list of TerraformUser objects.</param>
+    /// <exception cref="InvalidOperationException">Throws an exception when the Datahub Azure Subscription is not included</exception>
+    /// <returns>A TerraformWorkspace object populated with values from the Datahub_Project object.</returns>
     public TerraformWorkspace ToResourceWorkspace(List<TerraformUser> users)
     {
         return new TerraformWorkspace()
@@ -359,7 +374,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
                 Code = "TODO"
             },
             Users = users,
-            SubscriptionId = SubscriptionId
+            SubscriptionId = DatahubAzureSubscription?.SubscriptionId ?? throw new InvalidOperationException("Azure subscription not found.")
         };
     }
 }
