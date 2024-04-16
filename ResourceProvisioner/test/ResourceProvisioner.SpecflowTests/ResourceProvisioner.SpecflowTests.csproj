@@ -23,6 +23,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\ResourceProvisioner.Application\ResourceProvisioner.Application.csproj"/>
+        <ProjectReference Include="..\..\src\ResourceProvisioner.Functions\ResourceProvisioner.Functions.csproj" />
         <ProjectReference Include="..\..\src\ResourceProvisioner.Infrastructure\ResourceProvisioner.Infrastructure.csproj" />
     </ItemGroup>
 
