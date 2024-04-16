@@ -11,6 +11,7 @@ using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Datahub.Core.Enums;
 
 namespace Datahub.Infrastructure.Services.WebApp
 {
@@ -114,7 +115,8 @@ namespace Datahub.Infrastructure.Services.WebApp
 
             var projectResource = workspace.Resources
                 .FirstOrDefault(x =>
-                    x.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService));
+                    x.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService) &&
+                    (x.Status == null || x.Status != TerraformOutputStatus.Deleted));
 
             if (projectResource == null)
                 throw new Exception($"Azure App Service resource not found for workspace {workspaceAcronym}");
