@@ -2,6 +2,7 @@ using BoDi;
 using Datahub.Specs.PageObjects;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Playwright;
+using Reqnroll;
 
 namespace Datahub.Specs.Hooks;
 

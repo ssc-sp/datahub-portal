@@ -1,5 +1,6 @@
 ﻿using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
+using FluentAssertions;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -74,8 +75,8 @@ public class BugReportTests
         var result = await _bugReport.CreateIssue(_bugReportMessage);
 
         // Assert
-        Assert.IsNotNull(result);
-        Assert.IsInstanceOf<object[]>(result);
+        result.Should().NotBeNull();
+        result.Should().BeOfType<object[]>();
     }
     
     [OneTimeTearDown]

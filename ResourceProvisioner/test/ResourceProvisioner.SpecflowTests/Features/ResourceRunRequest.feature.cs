@@ -10,7 +10,7 @@
 // ------------------------------------------------------------------------------
 #region Designer generated code
 #pragma warning disable
-namespace Datahub.SpecflowTests.Features
+namespace ResourceProvisioner.SpecflowTests.Features
 {
     using Reqnroll;
     using System;
@@ -19,20 +19,21 @@ namespace Datahub.SpecflowTests.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "1.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public partial class LearnPageFeature : object, Xunit.IClassFixture<LearnPageFeature.FixtureData>, Xunit.IAsyncLifetime
+    [Xunit.TraitAttribute("Category", "resource-run-function")]
+    public partial class ResourceRunRequestFeature : object, Xunit.IClassFixture<ResourceRunRequestFeature.FixtureData>, Xunit.IAsyncLifetime
     {
         
         private static Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = new string[] {
-                "ignore"};
+                "resource-run-function"};
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
-#line 1 "LearnPage.feature"
+#line 1 "ResourceRunRequest.feature"
 #line hidden
         
-        public LearnPageFeature(LearnPageFeature.FixtureData fixtureData, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public ResourceRunRequestFeature(ResourceRunRequestFeature.FixtureData fixtureData, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
         }
@@ -40,7 +41,8 @@ namespace Datahub.SpecflowTests.Features
         public static async System.Threading.Tasks.Task FeatureSetupAsync()
         {
             testRunner = Reqnroll.TestRunnerManager.GetTestRunnerForAssembly(null, Reqnroll.xUnit.ReqnrollPlugin.XUnitParallelWorkerTracker.Instance.GetWorkerId());
-            Reqnroll.FeatureInfo featureInfo = new Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Learn Page", "\tThe Learn Page should display a list of available documents. ", ProgrammingLanguage.CSharp, featureTags);
+            Reqnroll.FeatureInfo featureInfo = new Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Resource Run Request", "This is the feature that allows the user to request a run of a workspace definiti" +
+                    "on in order to configure their cloud resources.", ProgrammingLanguage.CSharp, featureTags);
             await testRunner.OnFeatureStartAsync(featureInfo);
         }
         
@@ -87,14 +89,14 @@ namespace Datahub.SpecflowTests.Features
             await this.TestTearDownAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Display the featured documents on load", Skip="Ignored")]
-        [Xunit.TraitAttribute("FeatureTitle", "Learn Page")]
-        [Xunit.TraitAttribute("Description", "Display the featured documents on load")]
-        public async System.Threading.Tasks.Task DisplayTheFeaturedDocumentsOnLoad()
+        [Xunit.SkippableFactAttribute(DisplayName="User requests a run of a workspace definition with every required field")]
+        [Xunit.TraitAttribute("FeatureTitle", "Resource Run Request")]
+        [Xunit.TraitAttribute("Description", "User requests a run of a workspace definition with every required field")]
+        public async System.Threading.Tasks.Task UserRequestsARunOfAWorkspaceDefinitionWithEveryRequiredField()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Display the featured documents on load", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("User requests a run of a workspace definition with every required field", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 5
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -106,26 +108,26 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 await this.ScenarioStartAsync();
 #line 6
- await testRunner.GivenAsync("I am on the Learn Page", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+    await testRunner.GivenAsync("a workspace definition with every required field", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 7
- await testRunner.WhenAsync("the page loads", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+    await testRunner.WhenAsync("a resource run request processes the workspace definition", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 8
- await testRunner.ThenAsync("I should see a list of featured documents", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+    await testRunner.ThenAsync("the resource run request should parse the workspace definition without errors", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Display a document when clicked", Skip="Ignored")]
-        [Xunit.TraitAttribute("FeatureTitle", "Learn Page")]
-        [Xunit.TraitAttribute("Description", "Display a document when clicked")]
-        public async System.Threading.Tasks.Task DisplayADocumentWhenClicked()
+        [Xunit.SkippableFactAttribute(DisplayName="User requests a run of a workspace definition without every required field")]
+        [Xunit.TraitAttribute("FeatureTitle", "Resource Run Request")]
+        [Xunit.TraitAttribute("Description", "User requests a run of a workspace definition without every required field")]
+        public async System.Threading.Tasks.Task UserRequestsARunOfAWorkspaceDefinitionWithoutEveryRequiredField()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Display a document when clicked", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("User requests a run of a workspace definition without every required field", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 10
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -137,26 +139,29 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 await this.ScenarioStartAsync();
 #line 11
- await testRunner.GivenAsync("I am on the Learn Page", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+    await testRunner.GivenAsync("a workspace definition without every required field", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 12
- await testRunner.WhenAsync("I click on Read More for a document", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+    await testRunner.WhenAsync("a resource run request processes the workspace definition", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 13
- await testRunner.ThenAsync("I should see the document", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+    await testRunner.ThenAsync("the resource run request should parse the workspace definition with errors", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Display media when it is used in a document", Skip="Ignored")]
-        [Xunit.TraitAttribute("FeatureTitle", "Learn Page")]
-        [Xunit.TraitAttribute("Description", "Display media when it is used in a document")]
-        public async System.Threading.Tasks.Task DisplayMediaWhenItIsUsedInADocument()
+        [Xunit.SkippableFactAttribute(DisplayName="User requests a run of a workspace definition without every field in `AppServiceC" +
+            "onfiguration`")]
+        [Xunit.TraitAttribute("FeatureTitle", "Resource Run Request")]
+        [Xunit.TraitAttribute("Description", "User requests a run of a workspace definition without every field in `AppServiceC" +
+            "onfiguration`")]
+        public async System.Threading.Tasks.Task UserRequestsARunOfAWorkspaceDefinitionWithoutEveryFieldInAppServiceConfiguration()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Display media when it is used in a document", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("User requests a run of a workspace definition without every field in `AppServiceC" +
+                    "onfiguration`", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 15
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -168,13 +173,16 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 await this.ScenarioStartAsync();
 #line 16
- await testRunner.GivenAsync("I am on the Learn Page", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+    await testRunner.GivenAsync("a workspace definition with every required field", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 17
- await testRunner.WhenAsync("I access on a document", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+    await testRunner.AndAsync("the workspace app configuration is null", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 18
- await testRunner.ThenAsync("I should see the media used in the document loaded from Blob Storage", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+    await testRunner.WhenAsync("a resource run request processes the workspace definition", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 19
+    await testRunner.ThenAsync("the resource run request should parse the workspace definition without errors", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -187,10 +195,12 @@ this.ScenarioInitialize(scenarioInfo);
             
             async System.Threading.Tasks.Task Xunit.IAsyncLifetime.InitializeAsync()
             {
+                await ResourceRunRequestFeature.FeatureSetupAsync();
             }
             
             async System.Threading.Tasks.Task Xunit.IAsyncLifetime.DisposeAsync()
             {
+                await ResourceRunRequestFeature.FeatureTearDownAsync();
             }
         }
     }
