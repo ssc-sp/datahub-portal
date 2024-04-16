@@ -1,5 +1,7 @@
 ﻿using Datahub.Specs.PageObjects;
+using FluentAssertions;
 using NUnit.Framework;
+using Reqnroll;
 
 namespace Datahub.Specs.Steps;
 
@@ -36,6 +38,6 @@ public sealed class SidebarStepDefinitions
             File.WriteAllText($"./Screenshots/latest_{screenshotName}", current);
         }
 
-        Assert.True(matched, "Sidebars don't match!");
+        matched.Should().BeTrue();
     }
 }

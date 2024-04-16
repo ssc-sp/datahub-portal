@@ -4,6 +4,7 @@ using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20240410134550_AddWorkspaceSubscriptionAsOptional")]
+    partial class AddWorkspaceSubscriptionAsOptional
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1408,9 +1411,6 @@ namespace Datahub.Core.Migrations.Core
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
-                    b.Property<int>("DatahubAzureSubscriptionId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("Deleted_DT")
                         .HasColumnType("datetime2");
 
@@ -1526,6 +1526,10 @@ namespace Datahub.Core.Migrations.Core
                     b.Property<string>("Stage_Desc")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("SubscriptionId")
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
                     b.Property<byte[]>("Timestamp")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -1549,8 +1553,6 @@ namespace Datahub.Core.Migrations.Core
                     b.HasKey("Project_ID");
 
                     b.HasIndex("BranchId");
-
-                    b.HasIndex("DatahubAzureSubscriptionId");
 
                     b.HasIndex("DivisionId");
 
@@ -2063,33 +2065,6 @@ namespace Datahub.Core.Migrations.Core
                     b.ToTable("Project_Repositories", (string)null);
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.DatahubAzureSubscription", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("SubscriptionId")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AzureSubscriptions", (string)null);
-                });
-
             modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserInactivityNotifications", b =>
                 {
                     b.Property<int>("User_ID")
@@ -2487,12 +2462,6 @@ namespace Datahub.Core.Migrations.Core
                         .HasForeignKey("BranchId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("Datahub.Core.Model.Subscriptions.DatahubAzureSubscription", "DatahubAzureSubscription")
-                        .WithMany("Workspaces")
-                        .HasForeignKey("DatahubAzureSubscriptionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Datahub.Core.Model.Datahub.Organization_Level", "Division")
                         .WithMany("Divisions")
                         .HasForeignKey("DivisionId")
@@ -2504,8 +2473,6 @@ namespace Datahub.Core.Migrations.Core
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Branch");
-
-                    b.Navigation("DatahubAzureSubscription");
 
                     b.Navigation("Division");
 
@@ -2774,11 +2741,6 @@ namespace Datahub.Core.Migrations.Core
                     b.Navigation("WebForms");
 
                     b.Navigation("Whitelist");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.DatahubAzureSubscription", b =>
-                {
-                    b.Navigation("Workspaces");
                 });
 #pragma warning restore 612, 618
         }
