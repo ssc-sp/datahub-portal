@@ -83,7 +83,6 @@ public class DatabricksApiServiceTests
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
         var projects = PROJECT_ACRONYMS.Select((acronym, index) => new Datahub_Project()
         {
-            SubscriptionId = "SUBSCRIPTION",
             Project_Acronym_CD = acronym,
             Project_Name = PROJECT_NAMES[index],
             Project_Status_Desc = "Active",
