@@ -1,12 +1,14 @@
 ﻿@page "/metadata/definition/{Id}"
 @page "/metadata/newdefinition"
+@using Datahub.Application.Services
+@using Datahub.Application.Services.UserManagement
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Metadata.Model
 
 @inject IUserInformationService _userInformationService
 @inject IDbContextFactory<MetadataDbContext> ContextFactory
 @inject NavigationManager NavigationManager
-@inject ServiceAuthManager ServiceAuthManager
+@inject IServiceAuthManager ServiceAuthManager
 @inject IDatahubAuditingService AuditingService
 
 <DHPageTitle PageTitleKey=@Localizer["Edit Field Definition"] />

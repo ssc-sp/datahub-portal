@@ -2,6 +2,7 @@ using System.Linq.Dynamic.Core;
 using System.Net.Mail;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
@@ -15,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NSubstitute;
 
 namespace Datahub.Infrastructure.UnitTests.Services;
 
@@ -29,7 +31,7 @@ public class ProjectUserManagementServiceTests
     private Mock<IMSGraphService> _mockIMSGraphService = null!;
     private Mock<IRequestManagementService> _mockRequestManagementService = null!;
     private Mock<IUserEnrollmentService> _mockUserEnrollmentService = null!;
-    private ServiceAuthManager _serviceAuthManager = null!;
+    private IServiceAuthManager _serviceAuthManager = null!;
     private Mock<IDatahubAuditingService> _mockDatahubAuditingService = null!;
 
     private readonly string[] _testUserIds = TEST_USER_IDS;
@@ -938,7 +940,6 @@ public class ProjectUserManagementServiceTests
             _mockUserInformationService.Object,
             _mockIMSGraphService.Object,
             _mockRequestManagementService.Object,
-            _serviceAuthManager,
             _mockUserEnrollmentService.Object,
             _mockDatahubAuditingService.Object);
 

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System;
 using System.Threading.Tasks;
+using Datahub.Application.Services.Security;
 using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Services.Security;
 using Xunit;
@@ -13,7 +14,7 @@ namespace Datahub.Tests;
 public class ServiceAuthTests:IDisposable
 {
     private readonly DatahubProjectDBContext ctx;
-    private ServiceAuthManager _authManager;
+    private IServiceAuthManager _authManager;
 
     public ServiceAuthTests()
     {
