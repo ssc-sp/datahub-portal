@@ -2,7 +2,7 @@
 @page "/onboarding/applications/{AppId}"
 @inject PortalEmailService EmailService
 @implements IDisposable
-@inject ServiceAuthManager ServiceAuthManager
+@inject IServiceAuthManager ServiceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IUserInformationService UserInformationService
 @inject IJSRuntime JsInterop
@@ -13,6 +13,8 @@
 
 @using Datahub.Core.Model.Onboarding
 @using System.Text
+@using Datahub.Application.Services
+@using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Notification;
 @using Datahub.Infrastructure.Services.Security

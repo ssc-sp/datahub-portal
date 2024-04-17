@@ -1,7 +1,8 @@
 ﻿@inject IUserInformationService _userInformationService
-@inject ServiceAuthManager _serviceAuthManager
+@inject IServiceAuthManager _serviceAuthManager
 
 @page "/admin/services"
+@using Datahub.Application.Services.UserManagement
 @using Datahub.Infrastructure.Services.Security
 
 <DHPageTitle PageTitleKey=@Localizer[$"{ADMIN_SECTION_LOCALIZATION_PREFIX}.ServiceAdmin"] />

@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using BlazorTemplater;
 using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Templates;
@@ -31,14 +32,14 @@ public class EmailNotificationService : IEmailNotificationService
 
     private IMSGraphService _graphService;
 
-    private ServiceAuthManager _serviceAuthManager;
+    private IServiceAuthManager _serviceAuthManager;
 
     public EmailNotificationService(
         IStringLocalizer localizer,
         IConfiguration config,
         ILogger<EmailNotificationService> logger,
         IMSGraphService graphService,
-        ServiceAuthManager serviceAuthManager
+        IServiceAuthManager serviceAuthManager
     )
     {
         _localizer = localizer;

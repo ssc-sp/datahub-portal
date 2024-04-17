@@ -2,6 +2,8 @@
 using System.Transactions;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Achievements;
@@ -23,7 +25,7 @@ public class ProjectCreationService(
     DatahubPortalConfiguration portalConfiguration,
     IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
     ILogger<ProjectCreationService> logger,
-    ServiceAuthManager serviceAuthManager,
+    IServiceAuthManager serviceAuthManager,
     IUserInformationService userInformationService,
     IResourceMessagingService resourceMessagingService,
     IDatahubAuditingService auditingService,

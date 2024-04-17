@@ -1,4 +1,5 @@
 using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Security;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Portal.Templates;
@@ -34,7 +35,7 @@ public class PortalEmailService
     private ILogger<PortalEmailService> _logger;
 
 
-    private ServiceAuthManager _serviceAuthManager;
+    private IServiceAuthManager _serviceAuthManager;
     private IEmailNotificationService _emailNotificationService;
 
     public PortalEmailService(
@@ -42,7 +43,7 @@ public class PortalEmailService
         IConfiguration config,
         ILogger<PortalEmailService> logger,
         IEmailNotificationService emailNotificationService,
-        ServiceAuthManager serviceAuthManager
+        IServiceAuthManager serviceAuthManager
     )
     {
         _localizer = localizer;

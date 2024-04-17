@@ -4,13 +4,14 @@ using Askmethat.Aspnet.JsonLocalizer.Extensions;
 using Blazored.LocalStorage;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Achievements;
+using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Security;
+using Datahub.Application.Services.UserManagement;
 using Datahub.CatalogSearch;
 using Datahub.Core.Services;
-using Datahub.Core.Services.Achievements;
 using Datahub.Core.Services.CatalogSearch;
-using Datahub.Core.Services.Metadata;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Infrastructure.Offline.Security;
 using Microsoft.AspNetCore.Builder;
@@ -28,7 +29,7 @@ public static class ConfigureServices
         services.AddSingleton<CultureService>();
         services.AddDatahubLocalization(portalConfiguration);
         
-        services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
+        services.AddScoped<IMetadataBrokerService, OfflineMetadataBrokerService>();
         services.AddScoped<IDatahubAuditingService, OfflineDatahubTelemetryAuditingService>();
         services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
         services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();

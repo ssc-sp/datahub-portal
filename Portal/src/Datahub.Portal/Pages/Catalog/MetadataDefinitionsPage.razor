@@ -1,7 +1,9 @@
 ﻿@page "/metadata/definitions"
+@using Datahub.Application.Services.Metadata
+@using Datahub.Application.Services.UserManagement
 @using Datahub.Infrastructure.Services.Security
 
-@inject ServiceAuthManager ServiceAuthManager
+@inject IServiceAuthManager ServiceAuthManager
 @inject IUserInformationService _userInformationService
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IJSRuntime jsRuntime

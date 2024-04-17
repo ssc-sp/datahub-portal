@@ -101,6 +101,9 @@
 		<ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Folder Include="RoleManagement\" />
+	  <Folder Include="Services\Metadata\" />
+	  <Folder Include="Services\Offline\" />
 	  <Folder Include="Services\Security\" />
 	</ItemGroup>
 

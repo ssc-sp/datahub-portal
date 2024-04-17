@@ -1,11 +1,12 @@
 ﻿@page "/metadata/profile/{ProfileId}"
 @page "/metadata/newprofile"
+@using Datahub.Application.Services.UserManagement
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
 
 @inject IUserInformationService _userInformationService
-@inject ServiceAuthManager ServiceAuthManager
+@inject IServiceAuthManager ServiceAuthManager
 @inject NavigationManager NavigationManager
 @inject IDbContextFactory<MetadataDbContext> ContextFactory
 
