@@ -58,3 +58,4 @@ ResourceProvisioner/venv/**
 Portal/src/Datahub.Core/Utils/Certs/gc1.cer
 Portal/src/Datahub.Core/Utils/Certs/gc1.pem
 /appservice.json
+/Portal/src/Datahub.Portal/template.appsettings.sand.json
