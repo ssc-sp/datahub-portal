@@ -196,13 +196,18 @@
     private string BuildPythonConnectionInfo()
     {
         return @"```python
-pip install psycopg2
+import psycopg2
 
 conn = psycopg2.connect(
     host=""<database_host>"",
     database=""<database_name>"",
     user=""<username>"",
-    password=""<password>"",
+    password=""<password>""
+)
+
+cursor = conn.cursor()
+
+# You can then use the connection to execute queries. Use cursor.execute(query) to execute a query.
 ```";
     }
 
