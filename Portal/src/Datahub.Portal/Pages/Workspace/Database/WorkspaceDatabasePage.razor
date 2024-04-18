@@ -214,6 +214,8 @@ cursor = conn.cursor()
     private string BuildRConnectionInfo()
     {
         return @"```r
+install.packages("RPostgres")
+
 library(DBI)
 
 db <- '<database_name>'  #provide the name of your db
