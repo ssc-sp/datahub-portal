@@ -1,4 +1,3 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33815.320
@@ -24,25 +23,28 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ResourceProvisioner", "Reso
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{40919C7D-5119-4821-9E51-96141E058E04}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Application.IntegrationTests", "ResourceProvisioner\test\ResourceProvisioner.Application.IntegrationTests\ResourceProvisioner.Application.IntegrationTests.csproj", "{E94EF665-2394-4C18-82F2-9150D0801CDE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Application.IntegrationTests", "E:\datahub-portal\ResourceProvisioner\test\ResourceProvisioner.Application.IntegrationTests\ResourceProvisioner.Application.IntegrationTests.csproj", "{E94EF665-2394-4C18-82F2-9150D0801CDE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Application.UnitTests", "ResourceProvisioner\test\ResourceProvisioner.Application.UnitTests\ResourceProvisioner.Application.UnitTests.csproj", "{EAADD301-947A-41AB-8036-BBB6B960C4FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Application.UnitTests", "E:\datahub-portal\ResourceProvisioner\test\ResourceProvisioner.Application.UnitTests\ResourceProvisioner.Application.UnitTests.csproj", "{EAADD301-947A-41AB-8036-BBB6B960C4FF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Domain.UnitTests", "ResourceProvisioner\test\ResourceProvisioner.Domain.UnitTests\ResourceProvisioner.Domain.UnitTests.csproj", "{E73E776F-8787-40D3-B1EC-D97E29069945}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Domain.UnitTests", "E:\datahub-portal\ResourceProvisioner\test\ResourceProvisioner.Domain.UnitTests\ResourceProvisioner.Domain.UnitTests.csproj", "{E73E776F-8787-40D3-B1EC-D97E29069945}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Infrastructure.UnitTests", "ResourceProvisioner\test\ResourceProvisioner.Infrastructure.UnitTests\ResourceProvisioner.Infrastructure.UnitTests.csproj", "{AA32ADBD-EA7E-4849-AEB2-5BB19844B326}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Infrastructure.UnitTests", "E:\datahub-portal\ResourceProvisioner\test\ResourceProvisioner.Infrastructure.UnitTests\ResourceProvisioner.Infrastructure.UnitTests.csproj", "{AA32ADBD-EA7E-4849-AEB2-5BB19844B326}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.API", "ResourceProvisioner\src\ResourceProvisioner.API\ResourceProvisioner.API.csproj", "{2C3C6AD3-F329-4A20-BAC6-3F12B9B48F32}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.API", "E:\datahub-portal\ResourceProvisioner\src\ResourceProvisioner.API\ResourceProvisioner.API.csproj", "{2C3C6AD3-F329-4A20-BAC6-3F12B9B48F32}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Application", "ResourceProvisioner\src\ResourceProvisioner.Application\ResourceProvisioner.Application.csproj", "{FB5038B6-DF75-4167-8FB7-FDA3E5D9488E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Application", "E:\datahub-portal\ResourceProvisioner\src\ResourceProvisioner.Application\ResourceProvisioner.Application.csproj", "{FB5038B6-DF75-4167-8FB7-FDA3E5D9488E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Domain", "ResourceProvisioner\src\ResourceProvisioner.Domain\ResourceProvisioner.Domain.csproj", "{CF8DE3C8-8B81-4569-8075-AAD80B478B5F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Domain", "E:\datahub-portal\ResourceProvisioner\src\ResourceProvisioner.Domain\ResourceProvisioner.Domain.csproj", "{CF8DE3C8-8B81-4569-8075-AAD80B478B5F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Infrastructure", "ResourceProvisioner\src\ResourceProvisioner.Infrastructure\ResourceProvisioner.Infrastructure.csproj", "{C2913060-0D92-4094-AEED-5D5DF2646CFD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Infrastructure", "E:\datahub-portal\ResourceProvisioner\src\ResourceProvisioner.Infrastructure\ResourceProvisioner.Infrastructure.csproj", "{C2913060-0D92-4094-AEED-5D5DF2646CFD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Functions", "ResourceProvisioner\src\ResourceProvisioner.Functions\ResourceProvisioner.Functions.csproj", "{33C6B018-24B5-453F-973F-6412331C7921}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Functions", "E:\datahub-portal\ResourceProvisioner\src\ResourceProvisioner.Functions\ResourceProvisioner.Functions.csproj", "{33C6B018-24B5-453F-973F-6412331C7921}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Portal", "Portal", "{BBA6CF1B-6BDA-4363-9641-2E4A4E43D321}"
+	ProjectSection(SolutionItems) = preProject
+		Portal\template.appsettings.sand.json = Portal\template.appsettings.sand.json
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}"
 EndProject
@@ -50,27 +52,25 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{47D68FB0-4
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utils", "utils", "{73AC16BF-F514-4081-8C74-63C6399260E0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatalogIngestTool", "Portal\utils\CatalogIngestTool\CatalogIngestTool.csproj", "{7CAA042A-AA21-44BD-A0F8-0E89CD651B33}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatalogIngestTool", "E:\datahub-portal\Portal\utils\CatalogIngestTool\CatalogIngestTool.csproj", "{7CAA042A-AA21-44BD-A0F8-0E89CD651B33}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonTranslator", "Portal\utils\JsonTranslator\JsonTranslator.csproj", "{297AA1C7-6026-46B7-A494-B974E6663F94}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonTranslator", "E:\datahub-portal\Portal\utils\JsonTranslator\JsonTranslator.csproj", "{297AA1C7-6026-46B7-A494-B974E6663F94}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDbUsers", "Portal\utils\SyncDbUsers\SyncDbUsers.csproj", "{346091EA-1E82-4220-9387-C181BF5E1019}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDbUsers", "E:\datahub-portal\Portal\utils\SyncDbUsers\SyncDbUsers.csproj", "{346091EA-1E82-4220-9387-C181BF5E1019}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Tests", "Portal\test\Datahub.Tests\Datahub.Tests.csproj", "{693C3DC6-CF30-4942-80EA-EEC8ABB87DD3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Tests", "E:\datahub-portal\Portal\test\Datahub.Tests\Datahub.Tests.csproj", "{693C3DC6-CF30-4942-80EA-EEC8ABB87DD3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.CatalogSearch", "Portal\src\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj", "{213E0A3B-D933-4E81-AFD5-AA2D0B1CC3F8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.CatalogSearch", "E:\datahub-portal\Portal\src\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj", "{213E0A3B-D933-4E81-AFD5-AA2D0B1CC3F8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Core", "Portal\src\Datahub.Core\Datahub.Core.csproj", "{6C2D8F35-4EFA-4474-9973-FE6B2881E59A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Core", "E:\datahub-portal\Portal\src\Datahub.Core\Datahub.Core.csproj", "{6C2D8F35-4EFA-4474-9973-FE6B2881E59A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDBUsersConsole", "Portal\utils\SyncDBUsersConsole\SyncDBUsersConsole.csproj", "{053A3E9E-A3A4-4207-88F3-983E9EA328B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDBUsersConsole", "E:\datahub-portal\Portal\utils\SyncDBUsersConsole\SyncDBUsersConsole.csproj", "{053A3E9E-A3A4-4207-88F3-983E9EA328B2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Functions", "Portal\src\Datahub.Functions\Datahub.Functions.csproj", "{A6A2ECE8-6EC5-4DEC-B14E-22D9F0E95AE4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Metadata", "E:\datahub-portal\Portal\src\Datahub.Metadata\Datahub.Metadata.csproj", "{3D42FAE1-4B4B-4F62-9013-488B0790090B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Metadata", "Portal\src\Datahub.Metadata\Datahub.Metadata.csproj", "{3D42FAE1-4B4B-4F62-9013-488B0790090B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Portal", "E:\datahub-portal\Portal\src\Datahub.Portal\Datahub.Portal.csproj", "{320C7542-9DD3-499E-ACB9-E7891459E64D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Portal", "Portal\src\Datahub.Portal\Datahub.Portal.csproj", "{320C7542-9DD3-499E-ACB9-E7891459E64D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Portal.Metadata", "Portal\src\Datahub.Portal.Metadata\Datahub.Portal.Metadata.csproj", "{8413A25E-635D-4052-94A8-5CA94686FA4E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Portal.Metadata", "E:\datahub-portal\Portal\src\Datahub.Portal.Metadata\Datahub.Portal.Metadata.csproj", "{8413A25E-635D-4052-94A8-5CA94686FA4E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infra", "infra", "{F3058DB1-40C9-40AA-805D-06B3D88B4AC7}"
 	ProjectSection(SolutionItems) = preProject
@@ -93,43 +93,51 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A8C7
 		scripts\merge_fork.ps1 = scripts\merge_fork.ps1
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Specs", "Portal\test\Datahub.Specs\Datahub.Specs.csproj", "{D07C3009-6F0F-486D-91E1-0084B4B4FF46}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Specs", "E:\datahub-portal\Portal\test\Datahub.Specs\Datahub.Specs.csproj", "{D07C3009-6F0F-486D-91E1-0084B4B4FF46}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{2E97B44B-1A99-41C1-8F25-EED4740A3ED9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{839AFC95-740D-4C44-8F05-254250306841}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Datahub.Shared", "Shared\src\Datahub.Shared\Datahub.Shared.shproj", "{79DA8E04-5655-493A-80E4-37A07FBEC90E}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Datahub.Shared", "E:\datahub-portal\Shared\src\Datahub.Shared\Datahub.Shared.shproj", "{79DA8E04-5655-493A-80E4-37A07FBEC90E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDocs", "Portal\utils\SyncDocs\SyncDocs.csproj", "{57703CEC-08B9-40B8-B5E2-064A196B1587}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDocs", "E:\datahub-portal\Portal\utils\SyncDocs\SyncDocs.csproj", "{57703CEC-08B9-40B8-B5E2-064A196B1587}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Application", "Portal\src\Datahub.Application\Datahub.Application.csproj", "{29F1349F-4415-4725-A562-2DD59F5C14A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Application", "E:\datahub-portal\Portal\src\Datahub.Application\Datahub.Application.csproj", "{29F1349F-4415-4725-A562-2DD59F5C14A9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure", "Portal\src\Datahub.Infrastructure\Datahub.Infrastructure.csproj", "{BEA40233-6741-43AE-BA63-8D1ADA261420}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure", "E:\datahub-portal\Portal\src\Datahub.Infrastructure\Datahub.Infrastructure.csproj", "{BEA40233-6741-43AE-BA63-8D1ADA261420}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure.UnitTests", "Portal\test\Datahub.Infrastructure.UnitTests\Datahub.Infrastructure.UnitTests.csproj", "{8DAF4132-5D66-4B90-953A-5B00F2F75BA4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure.UnitTests", "E:\datahub-portal\Portal\test\Datahub.Infrastructure.UnitTests\Datahub.Infrastructure.UnitTests.csproj", "{8DAF4132-5D66-4B90-953A-5B00F2F75BA4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncLocalization", "SyncLocalization\SyncLocalization.csproj", "{78416465-E37B-4DB5-B96B-99E45581A0EE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncLocalization", "E:\datahub-portal\SyncLocalization\SyncLocalization.csproj", "{78416465-E37B-4DB5-B96B-99E45581A0EE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Maintenance", "Portal\src\Datahub.Maintenance\Datahub.Maintenance.csproj", "{5FB450AC-5E50-46A8-B454-EAD8ACD24FC6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Maintenance", "E:\datahub-portal\Portal\src\Datahub.Maintenance\Datahub.Maintenance.csproj", "{5FB450AC-5E50-46A8-B454-EAD8ACD24FC6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Desktop", "Desktop", "{8B889747-F089-4150-AC80-FCAE5FA33571}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desktop.Uploader", "Desktop\Desktop.Uploader\Desktop.Uploader.csproj", "{99E69964-BB4A-4830-9C4D-6E1608356EC4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desktop.Uploader", "E:\datahub-portal\Desktop\Desktop.Uploader\Desktop.Uploader.csproj", "{99E69964-BB4A-4830-9C4D-6E1608356EC4}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Desktop.SharedCode", "Desktop\Desktop.SharedCode\Desktop.SharedCode.shproj", "{C694124A-399C-4FD6-B795-D9ACE5EBECDC}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Desktop.SharedCode", "E:\datahub-portal\Desktop\Desktop.SharedCode\Desktop.SharedCode.shproj", "{C694124A-399C-4FD6-B795-D9ACE5EBECDC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Functions.UnitTests", "Portal\test\Datahub.Functions.UnitTests\Datahub.Functions.UnitTests.csproj", "{0AC4C517-2D60-4E33-B2B7-CDAFB40EF6CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Markdown", "E:\datahub-portal\Shared\src\Datahub.Markdown\Datahub.Markdown.csproj", "{819408C3-1962-4642-9971-51A1BCCE61FF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Markdown", "Shared\src\Datahub.Markdown\Datahub.Markdown.csproj", "{819408C3-1962-4642-9971-51A1BCCE61FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure.Offline", "E:\datahub-portal\Portal\src\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj", "{E84F619D-E105-4E1A-BD92-DF22DDAE966F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure.Offline", "Portal\src\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj", "{E84F619D-E105-4E1A-BD92-DF22DDAE966F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.SpecflowTests", "E:\datahub-portal\Portal\test\Datahub.SpecflowTests\Datahub.SpecflowTests.csproj", "{D84C8789-E77F-438A-A0B6-7DB1695B9C17}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.SpecflowTests", "Portal\test\Datahub.SpecflowTests\Datahub.SpecflowTests.csproj", "{D84C8789-E77F-438A-A0B6-7DB1695B9C17}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.SpecflowTests", "E:\datahub-portal\ResourceProvisioner\test\ResourceProvisioner.SpecflowTests\ResourceProvisioner.SpecflowTests.csproj", "{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceProvisioner.SpecflowTests", "ResourceProvisioner\test\ResourceProvisioner.SpecflowTests\ResourceProvisioner.SpecflowTests.csproj", "{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.MissingTranslations", "E:\datahub-portal\Portal\utils\Datahub.MissingTranslations\Datahub.MissingTranslations.csproj", "{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.MissingTranslations", "Portal\utils\Datahub.MissingTranslations\Datahub.MissingTranslations.csproj", "{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ServerlessOperations", "ServerlessOperations", "{0A20EC69-1E3C-498F-B989-89CAF316CE06}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8620F501-1D36-439E-9BF0-3BBEFB84DC56}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Functions", "E:\datahub-portal\ServerlessOperations\src\Datahub.Functions\Datahub.Functions.csproj", "{C26C43E3-D518-4E62-9FB5-A537E16AF543}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{12002871-163E-49CD-93DE-FBED9F5573E1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Functions.UnitTests", "E:\datahub-portal\ServerlessOperations\test\Datahub.Functions.UnitTests\Datahub.Functions.UnitTests.csproj", "{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -137,6 +145,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C26C43E3-D518-4E62-9FB5-A537E16AF543}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C26C43E3-D518-4E62-9FB5-A537E16AF543}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C26C43E3-D518-4E62-9FB5-A537E16AF543}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C26C43E3-D518-4E62-9FB5-A537E16AF543}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E94EF665-2394-4C18-82F2-9150D0801CDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E94EF665-2394-4C18-82F2-9150D0801CDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E94EF665-2394-4C18-82F2-9150D0801CDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -201,10 +217,6 @@ Global
 		{053A3E9E-A3A4-4207-88F3-983E9EA328B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{053A3E9E-A3A4-4207-88F3-983E9EA328B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{053A3E9E-A3A4-4207-88F3-983E9EA328B2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A6A2ECE8-6EC5-4DEC-B14E-22D9F0E95AE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A6A2ECE8-6EC5-4DEC-B14E-22D9F0E95AE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A6A2ECE8-6EC5-4DEC-B14E-22D9F0E95AE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A6A2ECE8-6EC5-4DEC-B14E-22D9F0E95AE4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3D42FAE1-4B4B-4F62-9013-488B0790090B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3D42FAE1-4B4B-4F62-9013-488B0790090B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D42FAE1-4B4B-4F62-9013-488B0790090B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -250,10 +262,6 @@ Global
 		{99E69964-BB4A-4830-9C4D-6E1608356EC4}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{99E69964-BB4A-4830-9C4D-6E1608356EC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99E69964-BB4A-4830-9C4D-6E1608356EC4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0AC4C517-2D60-4E33-B2B7-CDAFB40EF6CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0AC4C517-2D60-4E33-B2B7-CDAFB40EF6CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0AC4C517-2D60-4E33-B2B7-CDAFB40EF6CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0AC4C517-2D60-4E33-B2B7-CDAFB40EF6CF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{819408C3-1962-4642-9971-51A1BCCE61FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{819408C3-1962-4642-9971-51A1BCCE61FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{819408C3-1962-4642-9971-51A1BCCE61FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -279,8 +287,12 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{12002871-163E-49CD-93DE-FBED9F5573E1} = {0A20EC69-1E3C-498F-B989-89CAF316CE06}
 		{48CAB0F7-CFCC-443B-B71D-E015878CE5B7} = {A3E0CF47-6B1D-41C1-B1A4-B4A92985E05F}
 		{40919C7D-5119-4821-9E51-96141E058E04} = {A3E0CF47-6B1D-41C1-B1A4-B4A92985E05F}
+		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A} = {12002871-163E-49CD-93DE-FBED9F5573E1}
+		{8620F501-1D36-439E-9BF0-3BBEFB84DC56} = {0A20EC69-1E3C-498F-B989-89CAF316CE06}
+		{C26C43E3-D518-4E62-9FB5-A537E16AF543} = {8620F501-1D36-439E-9BF0-3BBEFB84DC56}
 		{E94EF665-2394-4C18-82F2-9150D0801CDE} = {40919C7D-5119-4821-9E51-96141E058E04}
 		{EAADD301-947A-41AB-8036-BBB6B960C4FF} = {40919C7D-5119-4821-9E51-96141E058E04}
 		{E73E776F-8787-40D3-B1EC-D97E29069945} = {40919C7D-5119-4821-9E51-96141E058E04}
@@ -300,7 +312,6 @@ Global
 		{213E0A3B-D933-4E81-AFD5-AA2D0B1CC3F8} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{6C2D8F35-4EFA-4474-9973-FE6B2881E59A} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{053A3E9E-A3A4-4207-88F3-983E9EA328B2} = {73AC16BF-F514-4081-8C74-63C6399260E0}
-		{A6A2ECE8-6EC5-4DEC-B14E-22D9F0E95AE4} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{3D42FAE1-4B4B-4F62-9013-488B0790090B} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{320C7542-9DD3-499E-ACB9-E7891459E64D} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{8413A25E-635D-4052-94A8-5CA94686FA4E} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
@@ -315,11 +326,9 @@ Global
 		{5FB450AC-5E50-46A8-B454-EAD8ACD24FC6} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{99E69964-BB4A-4830-9C4D-6E1608356EC4} = {8B889747-F089-4150-AC80-FCAE5FA33571}
 		{C694124A-399C-4FD6-B795-D9ACE5EBECDC} = {8B889747-F089-4150-AC80-FCAE5FA33571}
-		{0AC4C517-2D60-4E33-B2B7-CDAFB40EF6CF} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 		{819408C3-1962-4642-9971-51A1BCCE61FF} = {839AFC95-740D-4C44-8F05-254250306841}
 		{E84F619D-E105-4E1A-BD92-DF22DDAE966F} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
 		{D84C8789-E77F-438A-A0B6-7DB1695B9C17} = {47D68FB0-47FE-485D-AE94-00C48643721E}
-		{879D39ED-3C1F-4C0B-8856-6E76203CEA0A} = {40919C7D-5119-4821-9E51-96141E058E04}
 		{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B} = {40919C7D-5119-4821-9E51-96141E058E04}
 		{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 	EndGlobalSection
@@ -336,5 +345,8 @@ Global
 		Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems*{99e69964-bb4a-4830-9c4d-6e1608356ec4}*SharedItemsImports = 5
 		Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems*{c694124a-399c-4fd6-b795-d9ace5ebecdc}*SharedItemsImports = 13
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{cf8de3c8-8b81-4569-8075-aad80b478b5f}*SharedItemsImports = 5
+	EndGlobalSection
+EndGlobal
+ts = 5
 	EndGlobalSection
 EndGlobal
