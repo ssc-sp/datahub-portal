@@ -125,6 +125,133 @@ namespace Datahub.SpecflowTests.Features.Subscriptions
             await this.ScenarioCleanupAsync();
         }
         
+        [Xunit.SkippableFactAttribute(DisplayName="Add a valid Azure subscription")]
+        [Xunit.TraitAttribute("FeatureTitle", "Azure Subscription Service")]
+        [Xunit.TraitAttribute("Description", "Add a valid Azure subscription")]
+        public async System.Threading.Tasks.Task AddAValidAzureSubscription()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Add a valid Azure subscription", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 12
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 13
+        await testRunner.GivenAsync("a datahub azure subscription service", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 14
+        await testRunner.WhenAsync("a new subscription is added", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 15
+        await testRunner.ThenAsync("the subscription is added to the list of subscriptions", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Add an invalid Azure subscription")]
+        [Xunit.TraitAttribute("FeatureTitle", "Azure Subscription Service")]
+        [Xunit.TraitAttribute("Description", "Add an invalid Azure subscription")]
+        public async System.Threading.Tasks.Task AddAnInvalidAzureSubscription()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Add an invalid Azure subscription", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 17
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 18
+        await testRunner.GivenAsync("a datahub azure subscription service", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 19
+        await testRunner.WhenAsync("an invalid subscription is added", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 20
+        await testRunner.ThenAsync("an error is returned", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Delete an existing subscription")]
+        [Xunit.TraitAttribute("FeatureTitle", "Azure Subscription Service")]
+        [Xunit.TraitAttribute("Description", "Delete an existing subscription")]
+        public async System.Threading.Tasks.Task DeleteAnExistingSubscription()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Delete an existing subscription", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 22
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 23
+        await testRunner.GivenAsync("a datahub azure subscription service", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 24
+        await testRunner.AndAsync("at exactly one subscription exists", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 25
+        await testRunner.WhenAsync("a subscription is deleted", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 26
+        await testRunner.ThenAsync("there should be no subscriptions", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Delete a non-existing subscription")]
+        [Xunit.TraitAttribute("FeatureTitle", "Azure Subscription Service")]
+        [Xunit.TraitAttribute("Description", "Delete a non-existing subscription")]
+        public async System.Threading.Tasks.Task DeleteANon_ExistingSubscription()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Delete a non-existing subscription", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 28
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 29
+        await testRunner.GivenAsync("a datahub azure subscription service", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 30
+        await testRunner.WhenAsync("a subscription is deleted", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 31
+        await testRunner.ThenAsync("an error is returned", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
         [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "1.0.0.0")]
         [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
         public class FixtureData : object, Xunit.IAsyncLifetime

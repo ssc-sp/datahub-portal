@@ -22,4 +22,57 @@ public class DatahubAzureSubscriptionService(
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         return await ctx.AzureSubscriptions.ToListAsync();
     }
+
+    /// <summary>
+    /// Adds a new Datahub Azure subscription to the database.
+    /// </summary>
+    /// <param name="subscription">The Datahub Azure subscription to add.</param>
+    /// <exception cref="InvalidOperationException">Thrown when the subscription is not found or there are access permission issues.</exception>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task AddSubscriptionAsync(DatahubAzureSubscription subscription)
+    {
+        // verify access
+        var armClient = new ArmClient(new ClientSecretCredential(
+            portalConfiguration.AzureAd.TenantId,
+            portalConfiguration.AzureAd.InfraClientId,
+            portalConfiguration.AzureAd.InfraClientSecret));
+        
+        var subscriptionResource = await armClient
+            .GetSubscriptions()
+            .GetIfExistsAsync(subscription.SubscriptionId);
+        
+        if(subscriptionResource == null)
+        {
+            throw new InvalidOperationException("Subscription not found. Please check the subscription id and access permissions.");
+        }
+        
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        ctx.AzureSubscriptions.Add(subscription);
+        await ctx.SaveChangesAsync();
+    }
+
+
+    /// <summary>
+    /// Disables a Datahub Azure subscription.
+    ///
+    /// TODO: Flag the subscription as disabled instead of removing it from the database.
+    /// </summary>
+    /// <param name="subscription">The Datahub Azure subscription to be disabled.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task DisableSubscriptionAsync(DatahubAzureSubscription subscription)
+    {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        
+        var workspacesUsingSubscription = await ctx.Projects
+            .Where(p => p.DatahubAzureSubscriptionId == subscription.Id)
+            .ToListAsync();
+        
+        if(workspacesUsingSubscription.Count != 0)
+        {
+            throw new InvalidOperationException("Subscription is in use by one or more workspaces.");
+        }
+        
+        ctx.AzureSubscriptions.Remove(subscription);
+        await ctx.SaveChangesAsync();
+    }
 }
