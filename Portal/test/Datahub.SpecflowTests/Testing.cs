@@ -7,4 +7,5 @@ public static class Testing
     public static readonly string WORKSPACE_SUBSCRIPTION_GUID = Guid.NewGuid().ToString();
     public static readonly string WORKSPACE_ACRONYM = Guid.NewGuid().ToString().Replace("-", "")[..5];
     public static readonly string WORKSPACE_NAME = "Test Workspace";
+    public static readonly string WORKSPACE_TENANT_GUID = Guid.NewGuid().ToString();
 }
