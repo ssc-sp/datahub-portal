@@ -1,12 +1,16 @@
+$kv_pattern = "@Microsoft\.KeyVault\(VaultName=(?<VaultName>[\w-]+);SecretName=(?<SecretName>[\w-]+)\)"
+
 function Export-AppSettings(
     [Parameter(Mandatory = $true)]
     [string]$SourceFile,
     [Parameter(Mandatory=$true)]
-    [ValidateSet("AppSettings", "Environment")]
+    [ValidateSet("AppSettings", "Environment", "Terraform")]
     [string]$Target,
     [Parameter(Mandatory=$true)]
     [ValidateSet("test", "development","poc")]
-    [string]$EnvironmentName
+    [string]$EnvironmentName,
+    [Parameter(Mandatory=$true)]
+    [string]$ProjectFolder
 )
 {
     #import module for keyvault
@@ -21,7 +25,7 @@ function Export-AppSettings(
     if ($Target -eq "AppSettings") {
         Write-Host "Initializing user secrets"
         Push-Location
-        Set-Location $srcPath
+        Set-Location $ProjectFolder
         try {
 			dotnet user-secrets init
 		} catch {
@@ -30,8 +34,6 @@ function Export-AppSettings(
 			Pop-Location
 		}
 	} 
-
-    $kv_pattern = "VaultName=(.*?);SecretName=(.*)\)"
 
     $domain = "163oxygen.onmicrosoft.com"
 
@@ -55,6 +57,11 @@ function Export-AppSettings(
 
     $datahubMssqlAdmin = Read-VaultSecret "fsdh-key-dev" "datahub-mssql-admin"
     $datahubMssqlPassword = Read-VaultSecret "fsdh-key-dev" "datahub-mssql-password"
+    $sqlCreds = "User ID=$datahubMssqlAdmin;Password=$datahubMssqlPassword"
+    if ($Target -eq "Terraform")
+    {
+        $sqlCreds = "Authentication=Active Directory Managed Identity"
+    }
     #$srcFolder = Get-Path -Parent $SourceFile
     if (-not (Test-Path $SourceFile))
     {
@@ -79,7 +86,7 @@ function Export-AppSettings(
     #Write-Host "Flattened object"
     #$flattenedObject | Format-Table
 
-    $akvEntries = $flattenedObject.GetEnumerator() | Where-Object { $_.Value -like "@Microsoft.KeyVault*" }
+    $akvEntries = $flattenedObject.GetEnumerator() | Where-Object { $_.Value -like "*@Microsoft.KeyVault*" }
     $akvKeys = $akvEntries | ForEach-Object { $_.Name }
     $otherEntries = $flattenedObject.GetEnumerator() | Where-Object { $akvKeys -notcontains $_.Name -and $sensitiveKeys -notcontains $_.Name}
 
@@ -101,29 +108,23 @@ function Export-AppSettings(
         Write-Host "Sensitive entries"
         $nonAkvSettings | Out-File -FilePath $tgtFile
         Push-Location
-        Set-Location $srcPath
+        Set-Location $ProjectFolder
         try {       
             Write-Host "Setting user secrets from keyvault values" 
             foreach ($entry in $akvEntries)
             {
                 $key = $entry.Name
-                $vaultName = $null
-                $secretName = $null
-                if ($entry.Value -match $kv_pattern) {
-                    $vaultName = $Matches[1]
-                    $secretName = $Matches[2]
-                }         
-                Write-Host "Reading secret $secretName from vault $vaultName"                
-	            $secretValue = Read-VaultSecret $vaultName $secretName
-	            dotnet user-secrets set $key $secretValue
-            }
-            Write-Host "Setting user secrets from sensitive values" 
-            foreach ($entry in $sensitiveEntries)
-            {
-                $key = $entry.Name
-                $secretValue = $entry.Value
+                Write-Host "Setting user secret $key"
+                $secretValue = Read-AllSecrets $entry.Value
                 dotnet user-secrets set $key $secretValue
             }
+            # Write-Host "Setting user secrets from sensitive values" 
+            # foreach ($entry in $sensitiveEntries)
+            # {
+            #     $key = $entry.Name
+                
+            #     dotnet user-secrets set $key $secretValue
+            # }
         } catch {
             Write-Error "Error setting user secrets"
         } finally {
@@ -137,15 +138,7 @@ function Export-AppSettings(
 		foreach ($entry in $akvEntries)
 		{
 			$key = $entry.Name
-
-            $vaultName = $null
-            $secretName = $null
-            if ($entry.Value -match $kv_pattern) {
-                $vaultName = $Matches[1]
-                $secretName = $Matches[2]
-            }       
-            Write-Host "Reading secret $secretName from vault $vaultName"
-            $secretValue = Read-VaultSecret $vaultName $secretName
+            $secretValue = Read-AllSecrets $key
 	        $envKey = $key -replace ":", "__"
             
             Write-Output "Setting environment variable $envKey"
@@ -168,6 +161,28 @@ function Export-AppSettings(
 
 		Write-Output "Done"
 	}
+}
+
+function Read-AllSecrets($value)
+{
+    $vaultName = $null
+    $secretName = $null
+    $patterns = 0
+    while ($value -match $kv_pattern) {
+        $vaultName = $Matches.VaultName
+        $secretName = $Matches.SecretName
+        Write-Host "Reading secret $secretName from vault $vaultName"                
+        $secretValue = Read-VaultSecret $vaultName $secretName
+        # replace $kv_pattern with secret value
+        $value = $value.Replace($Matches[0], $secretValue)
+        #$value = $value -replace $kv_pattern, $secretValue
+        #Write-Host "Value is $value"
+        $patterns++
+    }
+    # if ($patterns -eq 0) {
+    #     Write-Host "No keyvault pattern found in $value"
+    # }
+    return $value
 }
 
 function Read-SecureString($secureString)
