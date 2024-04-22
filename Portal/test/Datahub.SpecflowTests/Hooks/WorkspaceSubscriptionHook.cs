@@ -1,6 +1,7 @@
 using BoDi;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
@@ -60,8 +61,8 @@ public class WorkspaceSubscriptionHook
             datahubPortalConfiguration,
             dbContextFactory,
             Substitute.For<ILogger<ProjectCreationService>>(),
-            Substitute.For<ServiceAuthManager>(),
-            Substitute.For<IUserInformationService>(),
+            Substitute.For<IServiceAuthManager>(),
+            userInformationService,
             resourceMessagingSubstitute,
             Substitute.For<IDatahubAuditingService>(),
             Substitute.For<IDatahubCatalogSearch>());

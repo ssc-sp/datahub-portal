@@ -11,6 +11,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Projects.Configuration;
+using Datahub.Core.Model.Subscriptions;
 using Datahub.Core.Services;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Services.Security;

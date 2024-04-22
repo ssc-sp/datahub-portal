@@ -12,6 +12,7 @@ namespace Datahub.SpecflowTests.Steps;
 [Binding]
 public sealed class WorkspaceSubscriptionTargetingSteps(
     IResourceMessagingService resourceMessagingService,
+    IDatahubAzureSubscriptionService datahubAzureSubscriptionService,
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
     IProjectCreationService projectCreationService,
     ScenarioContext scenarioContext)
@@ -28,6 +29,7 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
         var datahubAzureSubscription = new DatahubAzureSubscription()
         {
             SubscriptionId = Testing.WORKSPACE_SUBSCRIPTION_GUID,
+            TenantId = Testing.WORKSPACE_TENANT_GUID
         };
         
         workspace.DatahubAzureSubscription = datahubAzureSubscription;
