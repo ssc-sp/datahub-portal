@@ -8,3 +8,24 @@ This feature provides the ability to manage Azure subscriptions for the DataHub
         When the list of subscriptions is requested
         Then the list of subscriptions is returned
         And the list of subscriptions contains at least one subscription
+        
+    Scenario: Add a valid Azure subscription
+        Given a datahub azure subscription service
+        When a new subscription is added
+        Then the subscription is added to the list of subscriptions
+        
+    Scenario: Add an invalid Azure subscription
+        Given a datahub azure subscription service
+        When an invalid subscription is added
+        Then an error is returned
+        
+    Scenario: Delete an existing subscription
+        Given a datahub azure subscription service
+        And at exactly one subscription exists
+        When a subscription is deleted
+        Then there should be no subscriptions
+        
+    Scenario: Delete a non-existing subscription
+        Given a datahub azure subscription service
+        When a subscription is deleted
+        Then an error is returned
