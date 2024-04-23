@@ -1,13 +1,22 @@
 ﻿@using Datahub.Application.Services
 @using MudBlazor.Utilities
 @using Microsoft.Identity.Web
+@using MediatR
 @using Datahub.Core.Model.Achievements
+@using Datahub.Infrastructure.Queues.Messages
 
 @inherits LayoutComponentBase
 @layout MainLayout
 
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDatahubAuditingService _auditingService
+@inject NavigationManager _navigationManager
+@inject IUserInformationService _userInformationService
+@inject IUserSettingsService _userSettingsService
+@inject IWebHostEnvironment _hostingEnv
+@inject IMediator _mediatr
+@inject IJSRuntime _jsRuntime
+@inject ILocalStorageService _localStorage
 
 <MudThemeProvider Theme="@DatahubTheme.DefaultTheme"/>
 <MudDialogProvider/>
@@ -72,6 +81,7 @@
 
     private PortalUser _portalUser;
     private string _correlationId;
+    private IJSObjectReference _module;
     private ErrorBoundary _errorBoundary;
     private Exception _lastException;
 
@@ -104,6 +114,7 @@
         {
             var correlationId = Guid.NewGuid().ToString();
             await _auditingService.TrackException(ex, (nameof(correlationId), correlationId));
+            await ReportIssue(ex, correlationId);
             _correlationId = correlationId;
             await InvokeAsync(StateHasChanged);
         }
@@ -113,4 +124,72 @@
         }
     }
 
+    private async Task ReportIssue(Exception ex, string correlationId)
+    {
+        if (!_hostingEnv.IsDevelopment())
+        {
+            var exceptionDetail = new Dictionary<string, string>()
+            {
+                {"Type", ex.GetType().ToString()},
+                {"Message", ex.Message},
+                {"StackTrace", ex.StackTrace},
+                {"CorrelationId", correlationId}
+            };
+            var exceptionData = Newtonsoft.Json.JsonConvert.SerializeObject(exceptionDetail);
+
+            // collect information
+            _portalUser = await _userInformationService.GetCurrentPortalUserAsync();
+            var userLanguage = await _userSettingsService.GetUserLanguage();
+
+            var url = _navigationManager.Uri; // Retrieve the active URL
+            var userAgent = await _jsRuntime.InvokeAsync<string>("navigator.userAgent");
+            var screenWidth = await _jsRuntime.InvokeAsync<int>("window.innerWidth");
+            var screenHeight = await _jsRuntime.InvokeAsync<int>("window.innerHeight");
+            var timeZone = await _jsRuntime.InvokeAsync<string>("Intl.DateTimeFormat().resolvedOptions().timeZone");
+
+            // Retrieve all local storage data
+            var allKeys = await _localStorage.KeysAsync();
+            var dataDict = new Dictionary<string, string>();
+            foreach (var key in allKeys)
+            {
+                var value = await _localStorage.GetItemAsStringAsync(key);
+                dataDict.Add(key, value);
+            }
+            var localStorageData = Newtonsoft.Json.JsonConvert.SerializeObject(dataDict);
+
+            // We create the bug report message and send it to the queue.
+            var bugReport = new BugReportMessage(
+                UserName: _portalUser.DisplayName,
+                UserEmail: _portalUser.Email,
+                UserOrganization: GetOrg(_portalUser.Email),
+                PortalLanguage: userLanguage,
+                PreferredLanguage: "en",
+                Timezone: timeZone,
+                Workspaces: "N/A",
+                Topics: "Other",
+                URL: url,
+                UserAgent: userAgent,
+                Resolution: $"{screenWidth}x{screenHeight}",
+                LocalStorage: localStorageData,
+                BugReportType: BugReportTypes.SupportRequest,
+                Description: $"Automatically recorded exception: {exceptionData}"
+            );
+
+            await _mediatr.Send(bugReport);
+        }
+    }
+
+    private string GetOrg(string email)
+    {
+        var org = "";
+        try
+        {
+            org = email.Split("@")[1].Split('.')[0];
+        }
+        catch
+        {
+            org = "unknown";
+        }
+        return org;
+    }
 }
