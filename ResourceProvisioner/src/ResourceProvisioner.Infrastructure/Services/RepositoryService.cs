@@ -64,7 +64,7 @@ public class RepositoryService : IRepositoryService
         if (!string.IsNullOrEmpty(_resourceProvisionerConfiguration.InfrastructureRepository.AutoApproveUserOid))
         {
             _logger.LogInformation("Auto-approving pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
-            await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId);
+            await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId, command.Workspace.Acronym!);
         }
         else
         {
@@ -313,9 +313,9 @@ public class RepositoryService : IRepositoryService
         return new PullRequestValueObject(workspaceAcronym, pullRequestUrl, int.Parse(pullRequestId));
     }
 
-    private async Task AutoApproveInfrastructurePullRequest(int pullRequestId)
+    private async Task AutoApproveInfrastructurePullRequest(int pullRequestId, string workspaceAcronym)
     {
-        var patchContent = BuildPullRequestPatchBody();
+        var patchContent = BuildPullRequestPatchBody(workspaceAcronym);
         var patchUrl =
             $"{_resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}/{pullRequestId}?api-version={_resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
 
@@ -335,20 +335,44 @@ public class RepositoryService : IRepositoryService
         }
     }
 
-    private StringContent BuildPullRequestPatchBody()
+    private StringContent BuildPullRequestPatchBody(string workspaceAcronym)
     {
         _logger.LogInformation(
             "Building infrastructure pull request patch body for auto-approve user {AutoApproveUserOid}",
-            _resourceProvisionerConfiguration.InfrastructureRepository.AutoApproveUserOid);
+            _resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientId);
         var patchData = new JsonObject
         {
-            ["autoCompleteSetBy"] = new JsonObject
+            // ["autoCompleteSetBy"] = new JsonObject
+            // {
+            //     ["id"] = "dd94583c-6697-40ab-b0e1-78c2603458ef" //_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientId
+            // }
+            ["status"] = "completed",
+            ["lastMergeSourceCommit"] = new JsonObject
             {
-                ["id"] = _resourceProvisionerConfiguration.InfrastructureRepository.AutoApproveUserOid
+                ["commitId"] = GetBranchLastCommitId(workspaceAcronym)
+            },
+            ["completionOptions"] = new JsonObject
+            {
+                ["deleteSourceBranch"] = false,
+                ["mergeCommitMessage"] = "Auto-merged by ResourceProvisioner"
             }
         };
         var patchBody = new StringContent(JsonSerializer.Serialize(patchData), Encoding.UTF8, "application/json");
         return patchBody;
+    }
+
+    private string GetBranchLastCommitId(string branchName)
+    {
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
+        using var repo = new Repository(repositoryPath);
+        var branch = repo.Branches[branchName];
+
+        if (branch is null)
+        {
+            _logger.LogError("Branch {BranchName} does not exist in {RepositoryPath}", branchName, repositoryPath);
+            throw new NullReferenceException($"Branch {branchName} does not exist in {repositoryPath}");
+        }
+        return branch.Tip.Sha;
     }
 
     private string BuildPullRequestUrl(string pullRequestId)
