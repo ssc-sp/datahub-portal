@@ -114,7 +114,7 @@ public sealed class DatahubAzureSubscriptionSteps(
             .FirstOrDefaultAsync(s => s.SubscriptionId == Testing.WORKSPACE_SUBSCRIPTION_GUID);
 
         subscription.Should().NotBeNull();
-        await datahubAzureSubscriptionService.DisableSubscriptionAsync(subscription!);
+        await datahubAzureSubscriptionService.DisableSubscriptionAsync(subscription!.SubscriptionId);
     }
 
     [Given(@"at exactly one subscription exists")]
@@ -142,5 +142,53 @@ public sealed class DatahubAzureSubscriptionSteps(
         var subscriptions = await ctx.AzureSubscriptions.ToListAsync();
         subscriptions.Should().NotBeNull();
         subscriptions!.Count.Should().Be(0);
+    }
+
+    [When(@"a non-existing subscription is deleted")]
+    public async Task WhenANonExistingSubscriptionIsDeleted()
+    {
+        try
+        {
+            var subscription = new DatahubAzureSubscription()
+            {
+                SubscriptionId = "non-existing-subscription-id",
+                TenantId = "non-existing-tenant-id"
+            };
+
+            await datahubAzureSubscriptionService.DisableSubscriptionAsync(subscription.SubscriptionId);
+        }
+        catch (Exception e)
+        {
+            scenarioContext["exception"] = e;
+        }
+    }
+
+    [Given(@"there is a subscription with id ""(.*)""")]
+    public async Task GivenThereIsASubscriptionWithId(string p0)
+    {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var subscription = new DatahubAzureSubscription()
+        {
+            SubscriptionId = string.Format(p0),
+            TenantId = Testing.WORKSPACE_TENANT_GUID
+        };
+        
+        ctx.AzureSubscriptions.Add(subscription);
+        await ctx.SaveChangesAsync();
+    }
+
+    [Then(@"there should be no subscriptions with id ""(.*)""")]
+    public async Task ThenThereShouldBeNoSubscriptionsWithId(string p0)
+    {
+        var subscriptions = await datahubAzureSubscriptionService.ListSubscriptionsAsync();
+        
+        subscriptions.Should().NotBeNull();
+        subscriptions.Any(s => s.SubscriptionId == p0).Should().BeFalse();
+    }
+
+    [When(@"a subscription with id ""(.*)"" is deleted")]
+    public async Task WhenASubscriptionWithIdIsDeleted(string p0)
+    {
+        await datahubAzureSubscriptionService.DisableSubscriptionAsync(p0);
     }
 }

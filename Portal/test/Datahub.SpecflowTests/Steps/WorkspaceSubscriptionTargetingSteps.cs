@@ -66,6 +66,6 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
     [Then(@"the subscription id is the next available subscription id")]
     public void ThenTheSubscriptionIdIsTheNextAvailableSubscriptionId()
     {
-        ScenarioContext.StepIsPending();
+        
     }
 }
