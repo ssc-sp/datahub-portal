@@ -60,16 +60,8 @@ public class RepositoryService : IRepositoryService
         var pullRequestValueObject =
             await CreateInfrastructurePullRequest(command.Workspace.Acronym!, user);
 
-
-        if (!string.IsNullOrEmpty(_resourceProvisionerConfiguration.InfrastructureRepository.AutoApproveUserOid))
-        {
-            _logger.LogInformation("Auto-approving pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
-            await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId, command.Workspace.Acronym!);
-        }
-        else
-        {
-            _logger.LogInformation("Auto-approve user OID not set, skipping auto-approve");
-        }
+        _logger.LogInformation("Completing pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
+        await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId, command.Workspace.Acronym!);
 
         var pullRequestMessage = new PullRequestUpdateMessage
         {
@@ -148,14 +140,15 @@ public class RepositoryService : IRepositoryService
         var azureDevOpsClient =
             new AzureDevOpsClient(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
         var accessToken = await azureDevOpsClient.GetAccessTokenAsync();
-        
+
         var cloneOptions = new CloneOptions
         {
             FetchOptions =
             {
                 CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
                 {
-                    Username = _resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientId,
+                    Username = _resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration
+                        .ClientId,
                     Password = accessToken.Token
                 }
             }
@@ -185,7 +178,7 @@ public class RepositoryService : IRepositoryService
         _logger.LogInformation("Branch {WorkspaceName} checked out in {Path}", workspaceName, repositoryPath);
 
         _logger.LogInformation("Checking upstream for any updates in branch");
-        
+
         var azureDevOpsClient =
             new AzureDevOpsClient(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
         var accessToken = await azureDevOpsClient.GetAccessTokenAsync();
@@ -196,7 +189,8 @@ public class RepositoryService : IRepositoryService
             {
                 CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
                 {
-                    Username = _resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientId,
+                    Username = _resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration
+                        .ClientId,
                     Password = accessToken.Token
                 }
             }
@@ -246,7 +240,7 @@ public class RepositoryService : IRepositoryService
     public async Task PushInfrastructureRepository(string workspaceAcronym)
     {
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
-        
+
         var azureDevOpsClient =
             new AzureDevOpsClient(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
         var accessToken = await azureDevOpsClient.GetAccessTokenAsync();
@@ -338,14 +332,10 @@ public class RepositoryService : IRepositoryService
     private StringContent BuildPullRequestPatchBody(string workspaceAcronym)
     {
         _logger.LogInformation(
-            "Building infrastructure pull request patch body for auto-approve user {AutoApproveUserOid}",
+            "Building infrastructure pull request patch body for complete by user {ClientId}",
             _resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientId);
         var patchData = new JsonObject
         {
-            // ["autoCompleteSetBy"] = new JsonObject
-            // {
-            //     ["id"] = "dd94583c-6697-40ab-b0e1-78c2603458ef" //_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientId
-            // }
             ["status"] = "completed",
             ["lastMergeSourceCommit"] = new JsonObject
             {
@@ -372,6 +362,7 @@ public class RepositoryService : IRepositoryService
             _logger.LogError("Branch {BranchName} does not exist in {RepositoryPath}", branchName, repositoryPath);
             throw new NullReferenceException($"Branch {branchName} does not exist in {repositoryPath}");
         }
+
         return branch.Tip.Sha;
     }
 
