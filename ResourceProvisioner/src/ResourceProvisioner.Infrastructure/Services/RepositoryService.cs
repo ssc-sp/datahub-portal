@@ -61,18 +61,8 @@ public class RepositoryService : IRepositoryService
             var pullRequestValueObject =
                 await CreateInfrastructurePullRequest(command.Workspace.Acronym!, user);
 
-        _logger.LogInformation("Completing pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
-        await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId, command.Workspace.Acronym!);
-
-            if (!string.IsNullOrEmpty(_resourceProvisionerConfiguration.InfrastructureRepository.AutoApproveUserOid))
-            {
-                _logger.LogInformation("Auto-approving pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
-                await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId);
-            }
-            else
-            {
-                _logger.LogInformation("Auto-approve user OID not set, skipping auto-approve");
-            }
+            _logger.LogInformation("Completing pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
+            await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId, command.Workspace.Acronym!);
 
             var pullRequestMessage = new PullRequestUpdateMessage
             {
