@@ -20,7 +20,7 @@ public interface IDatahubAzureSubscriptionService
     /// <summary>
     /// Disables a Datahub Azure subscription.
     /// </summary>
-    /// <param name="subscription">The Datahub Azure subscription to be disabled.</param>
+    /// <param name="subscriptionId">The GUID of the Datahub Azure subscription to be disabled.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task DisableSubscriptionAsync(DatahubAzureSubscription subscription);
+    Task DisableSubscriptionAsync(string subscriptionId);
 }

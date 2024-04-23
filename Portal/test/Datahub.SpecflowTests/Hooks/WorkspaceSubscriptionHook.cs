@@ -67,8 +67,12 @@ public class WorkspaceSubscriptionHook
             Substitute.For<IDatahubAuditingService>(),
             Substitute.For<IDatahubCatalogSearch>());
         
+        
+        var datahubAzureSubscriptionService = new DatahubAzureSubscriptionService(dbContextFactory, datahubPortalConfiguration);
+        
         objectContainer.RegisterInstanceAs<IResourceMessagingService>(resourceMessagingService);
         objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
         objectContainer.RegisterInstanceAs<IProjectCreationService>(projectCreationService);
+        objectContainer.RegisterInstanceAs<IDatahubAzureSubscriptionService>(datahubAzureSubscriptionService);
     }
 }

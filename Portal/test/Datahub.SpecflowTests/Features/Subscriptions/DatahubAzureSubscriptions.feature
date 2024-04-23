@@ -21,11 +21,11 @@ This feature provides the ability to manage Azure subscriptions for the DataHub
         
     Scenario: Delete an existing subscription
         Given a datahub azure subscription service
-        And at exactly one subscription exists
-        When a subscription is deleted
-        Then there should be no subscriptions
+        And there is a subscription with id "delete-me"
+        When a subscription with id "delete-me" is deleted
+        Then there should be no subscriptions with id "delete-me"
         
     Scenario: Delete a non-existing subscription
         Given a datahub azure subscription service
-        When a subscription is deleted
+        When a non-existing subscription is deleted
         Then an error is returned

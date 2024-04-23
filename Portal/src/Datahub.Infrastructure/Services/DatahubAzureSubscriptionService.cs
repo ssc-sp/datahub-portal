@@ -57,19 +57,28 @@ public class DatahubAzureSubscriptionService(
     ///
     /// TODO: Flag the subscription as disabled instead of removing it from the database.
     /// </summary>
-    /// <param name="subscription">The Datahub Azure subscription to be disabled.</param>
+    /// <param name="subscriptionId">The ID of the Datahub Azure subscription to be disabled.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    public async Task DisableSubscriptionAsync(DatahubAzureSubscription subscription)
+    public async Task DisableSubscriptionAsync(string subscriptionId)
     {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        
+
         var workspacesUsingSubscription = await ctx.Projects
-            .Where(p => p.DatahubAzureSubscriptionId == subscription.Id)
+            .Include(p => p.DatahubAzureSubscription)
+            .Where(p => p.DatahubAzureSubscription.SubscriptionId == subscriptionId)
             .ToListAsync();
         
         if(workspacesUsingSubscription.Count != 0)
         {
             throw new InvalidOperationException("Subscription is in use by one or more workspaces.");
+        }
+        
+        var subscription = await ctx.AzureSubscriptions
+            .FirstOrDefaultAsync(s => s.SubscriptionId == subscriptionId);
+        
+        if(subscription == null)
+        {
+            throw new InvalidOperationException("Subscription not found.");
         }
         
         ctx.AzureSubscriptions.Remove(subscription);
