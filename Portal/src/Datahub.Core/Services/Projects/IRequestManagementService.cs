@@ -14,9 +14,10 @@ public interface IRequestManagementService
     /// <param name="project">The project to handle the Terraform request for.</param>
     /// <param name="terraformTemplate">The Terraform template to use for the request.</param>
     /// <param name="requestingUser">The user requesting the Terraform request.</param>
+    /// <param name="isDelete">Specify if this is a delete request</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a boolean indicating whether the Terraform request was handled successfully or not.</returns>
     Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate,
-        PortalUser requestingUser);
+        PortalUser requestingUser, bool isDelete = false);
 
     /// <summary>
     /// Handles user updates to external permissions for a specified Datahub project.
