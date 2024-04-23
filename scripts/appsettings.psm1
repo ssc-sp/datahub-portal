@@ -1,16 +1,32 @@
 $kv_pattern = "@Microsoft\.KeyVault\(VaultName=(?<VaultName>[\w-]+);SecretName=(?<SecretName>[\w-]+)\)"
 
-function Export-AppSettings(
+function Find-InfraRepo()
+{
+    $scriptDirectory = Split-Path -Parent $PSCommandPath
+    Write-Host "The directory of this script is: $scriptDirectory"
+    $parentFolder = Resolve-Path "$scriptDirectory/../../"
+    Write-Host "Searching for infra repo in $parentFolder"
+    $infra = "$parentFolder/datahub-infra"
+    if (Test-Path -Path $infra)
+    {
+        Write-Host "Found infra repo at $infra"
+        return $infra
+    }
+    return $null;
+}
+
+function Export-Settings(
     [Parameter(Mandatory = $true)]
     [string]$SourceFile,
     [Parameter(Mandatory=$true)]
-    [ValidateSet("AppSettings", "Environment", "Terraform")]
+    [ValidateSet("AppSettings", "Environment", "Terraform", "Function")]
     [string]$Target,
     [Parameter(Mandatory=$true)]
     [ValidateSet("test", "development","poc")]
     [string]$EnvironmentName,
-    [Parameter(Mandatory=$true)]
-    [string]$ProjectFolder
+    [string]$ProjectFolder,
+    [string]$TfFile = $null,
+    [string]$TargetFile = $null
 )
 {
     #import module for keyvault
@@ -22,7 +38,12 @@ function Export-AppSettings(
     # set . to srcPath if it is empty
     $srcPath = if ([string]::IsNullOrEmpty($srcPath)) { "." } else { $srcPath }
     Write-Host "Src path is $srcPath"
-    if ($Target -eq "AppSettings") {
+    if ($Target -eq "AppSettings" -or $Target -eq "Function") {
+        # check if project folder is set
+        if ([string]::IsNullOrEmpty($ProjectFolder)) {
+            Write-Error "Project folder is required for AppSettings target"
+            return
+        }
         Write-Host "Initializing user secrets"
         Push-Location
         Set-Location $ProjectFolder
@@ -58,9 +79,29 @@ function Export-AppSettings(
     $datahubMssqlAdmin = Read-VaultSecret "fsdh-key-dev" "datahub-mssql-admin"
     $datahubMssqlPassword = Read-VaultSecret "fsdh-key-dev" "datahub-mssql-password"
     $sqlCreds = "User ID=$datahubMssqlAdmin;Password=$datahubMssqlPassword"
+    $infraRepo = $null
     if ($Target -eq "Terraform")
     {
         $sqlCreds = "Authentication=Active Directory Managed Identity"
+        $infraRepo = Find-InfraRepo
+        if ($null -eq $infraRepo)
+        {
+            Write-Error "Infra repo not found"
+            return
+        }
+        Write-Host "Infra repo found in $infraRepo"
+        #make sure TF file is set
+        if ($null -eq $TfFile)
+        {
+            Write-Error "TfFile is required for Terraform target"
+            return
+        }
+        $tfFilePath = Join-Path $infraRepo $TfFile
+        if (-not (Test-Path $tfFilePath))
+        {
+            Write-Error "TfFile $tfFilePath not found"
+            return
+        }
     }
     #$srcFolder = Get-Path -Parent $SourceFile
     if (-not (Test-Path $SourceFile))
@@ -81,7 +122,7 @@ function Export-AppSettings(
     $object = $jsonObject | ConvertFrom-Json
     $flattenedObject = ConvertTo-HashTable -Object $object
 
-    $sensitiveEntries = $flattenedObject.GetEnumerator() | Where-Object { $_.Value -like "*Password=*" }    
+    $sensitiveEntries = $flattenedObject.GetEnumerator() | Where-Object { $_.Value -like "*Password=*" -or $_.Key -like "*ConnectionStrings*"}    
     $sensitiveKeys = $sensitiveEntries | ForEach-Object { $_.Name }
     #Write-Host "Flattened object"
     #$flattenedObject | Format-Table
@@ -101,12 +142,20 @@ function Export-AppSettings(
 
     $unflattenedObject = ConvertFrom-HashTable -Hashtable $hashtable
 
-    $nonAkvSettings = $unflattenedObject | ConvertTo-Json -Depth 100
+    $nonAkvJson = $unflattenedObject | ConvertTo-Json -Depth 100
 
-    if ($Target -eq "AppSettings") {
+    if ($Target -eq "AppSettings" -or $Target -eq "Function") {
+        $fName = ($null -eq $TargetFile) ? [System.IO.Path]::GetFileName($tgtFile):$TargetFile
+        $tgtFile = Join-Path $ProjectFolder $fName
         Write-Output "Writing json object to $tgtFile"
         Write-Host "Sensitive entries"
-        $nonAkvSettings | Out-File -FilePath $tgtFile
+        if ($Target -eq "Function")
+        {   
+            $functionSettings = "{`n  `"IsEncrypted`": false,`n  `"Values`":   $nonAkvJson `n}"
+            $functionSettings | Out-File -FilePath $tgtFile
+        } else {
+            $nonAkvJson | Out-File -FilePath $tgtFile
+        }
         Push-Location
         Set-Location $ProjectFolder
         try {       
@@ -134,17 +183,22 @@ function Export-AppSettings(
         Write-Output "Done"
 	} elseif ($Target -eq "Environment") {
 		Write-Output "Configuring environment variables"
-		$nonAkvSettings | Out-File -FilePath $tgtFile
+		$nonAkvJson | Out-File -FilePath $tgtFile
 		foreach ($entry in $akvEntries)
 		{
 			$key = $entry.Name
+            if ($sensitiveKeys -contains $key)
+            {
+                Write-Output "Skipping sensitive key $key"
+                continue
+            }
             $secretValue = Read-AllSecrets $key
 	        $envKey = $key -replace ":", "__"
             
             Write-Output "Setting environment variable $envKey"
             $env[$envKey] = $secretValue
 		}
-		foreach ($entry in $nonAkvSettings)
+		foreach ($entry in $otherEntries)
 		{
 			$key = $entry.Name
 	        $envKey = $key -replace ":", "__"
@@ -160,6 +214,63 @@ function Export-AppSettings(
 		}
 
 		Write-Output "Done"
+	} elseif ($Target -eq "Terraform") {
+		Write-Output "Generating Terraform output"
+        $padding = 50
+        #take the tf output file without extension
+        $varName = [System.IO.Path]::GetFileNameWithoutExtension($TfFile) -replace "-", "_"
+        
+        $header = @"
+variable "$varName" {
+    description = "Generated settings from $SourceFile"
+    type        = map(string)
+    default     = {
+      "ASPNETCORE_DETAILEDERRORS"                        = "false"
+      "ASPNETCORE_ENVIRONMENT"                           = "$EnvironmentName"
+      "WEBSITE_RUN_FROM_PACKAGE"                         = var.app_deploy_as_package    
+"@          
+        $footer = "    }`n}"
+        $tfOutput = ""
+        
+		foreach ($entry in $akvEntries)
+		{
+			$key = $entry.Name
+            if ($sensitiveKeys -contains $key)
+            {
+                Write-Output "Skipping sensitive key $key"
+                continue
+            }        
+	        $envKey = $key -replace ":", "__"
+            #pad spaces to $envKey
+            $envKey = "`"$envKey`"".PadRight($padding)
+            Write-Host "Setting akv $envKey"
+            $tfOutput += "      $envKey = `"$($entry.Value)`"" + "`n"
+		}
+		foreach ($entry in $otherEntries)
+		{
+			$key = $entry.Name
+	        $envKey = $key -replace ":", "__"
+            $envKey = "`"$envKey`"".PadRight($padding)
+            Write-Host "Setting $envKey"
+            $tfOutput += "      $envKey = `"$($entry.Value)`"" + "`n"
+		}
+		foreach ($entry in $sensitiveEntries)
+		{
+			$key = $entry.Name
+	        $envKey = $key -replace ":", "__"
+            $envKey = "`"$envKey`"".PadRight($padding)
+            $secretValue = Read-AllSecrets $entry.Value
+            Write-Host "Setting sensitive entry $envKey"
+            $tfOutput += "      $envKey = `"$($secretValue)`"" + "`n"
+		}
+        # sort all tfOutput lines
+        $sortedTfOutput = $tfOutput -split "`n" | Sort-Object | Out-String
+        $tfOutput = $header + $sortedTfOutput
+        $tfOutput += $footer
+        Write-Host "Writing to $tfFilePath"
+        #Write-Host $tfOutput
+        $tfOutput | Out-File -FilePath $tfFilePath
+		Write-Host "Done"
 	}
 }
 
@@ -258,4 +369,4 @@ function ConvertFrom-HashTable {
     return $result
 }
 
-Export-ModuleMember -Function Export-AppSettings, ConvertFrom-HashTable
+Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo
