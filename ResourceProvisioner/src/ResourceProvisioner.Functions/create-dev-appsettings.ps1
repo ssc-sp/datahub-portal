@@ -22,7 +22,6 @@ $hashTable = @{
         "Url" = "https://$azureDevOpsOrganization@dev.azure.com/$azureDevOpsOrganization/$azureDevOpsProject/_git/$azureDevopsRepository"
         "LocalPath" = "/tmp/$azureDevopsRepository"
         "ProjectPathPrefix" = "terraform/projects"
-        "AutoApproveUserOid" = (az keyvault secret show --name "datahub-infrastructure-repo-auto-approver-oid" --vault-name $vaultName --query value -o tsv)
         "PullRequestUrl" = "https://dev.azure.com/$azureDevOpsOrganization/$azureDevOpsProject/_apis/git/repositories/$repositoryId/pullrequests"
         "PullRequestBrowserUrl" = "https://dev.azure.com/$azureDevOpsOrganization/$azureDevOpsProject/_git/$azureDevopsRepository/pullrequest"
         "ApiVersion" = "7.1-preview.1"
