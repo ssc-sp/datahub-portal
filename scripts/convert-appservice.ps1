@@ -11,7 +11,7 @@ $CurrentPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 #get full path from $CurrentPath
 
-Import-Module $CurrentPath/scripts/appsettings.psm1 -Force
+Import-Module $CurrentPath/../scripts/appsettings.psm1 -Force
 
 $appServiceSettings = Get-Content "appservice.json" | ConvertFrom-Json
 # convert $appServiceSettings to a hashtable

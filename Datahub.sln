@@ -43,7 +43,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Functio
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Portal", "Portal", "{BBA6CF1B-6BDA-4363-9641-2E4A4E43D321}"
 	ProjectSection(SolutionItems) = preProject
-		Portal\template.appsettings.sand.json = Portal\template.appsettings.sand.json
+		Portal\template.appsettings.dev.json = Portal\template.appsettings.dev.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}"
@@ -130,6 +130,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.MissingTranslations", "E:\datahub-portal\Portal\utils\Datahub.MissingTranslations\Datahub.MissingTranslations.csproj", "{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ServerlessOperations", "ServerlessOperations", "{0A20EC69-1E3C-498F-B989-89CAF316CE06}"
+	ProjectSection(SolutionItems) = preProject
+		ServerlessOperations\template.settings.dev.json = ServerlessOperations\template.settings.dev.json
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8620F501-1D36-439E-9BF0-3BBEFB84DC56}"
 EndProject
@@ -347,6 +350,4 @@ Global
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{cf8de3c8-8b81-4569-8075-aad80b478b5f}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
-ts = 5
-	EndGlobalSection
-EndGlobal
+ndGlobal

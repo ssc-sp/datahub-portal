@@ -18,6 +18,11 @@
     "Costing": false,
     "Storage": true
   },
+  "MassTransit": {
+    "AzureServiceBus": {
+      "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-dev;SecretName=azbus-connection)"
+    }
+  },
   "Achievements": {
     "Enabled": true,
     "LocalAchievementsOnly": false
@@ -60,9 +65,6 @@
       }
     }
   },
-  "KeyVault": {
-    "UserName": ""
-  },
   "Hosting": {
     "Profile": "ssc"
   },
@@ -95,6 +97,7 @@
     "UseFreeApi": false,
     "AuthKey": "@Microsoft.KeyVault(VaultName=fsdh-key-dev;SecretName=deepl-authkey)"
   },
+  "APPLICATIONINSIGHTS_CONNECTION_STRING": "@Microsoft.KeyVault(VaultName=fsdh-key-dev;SecretName=appinsights-connection)",
   "DatahubGraphInviteFunctionUrl": "@Microsoft.KeyVault(VaultName=fsdh-key-dev;SecretName=datahub-create-graph-user-url)",
   "DatahubGraphUsersStatusFunctionUrl": "@Microsoft.KeyVault(VaultName=fsdh-key-dev;SecretName=datahub-status-graph-user-url)"
 }
