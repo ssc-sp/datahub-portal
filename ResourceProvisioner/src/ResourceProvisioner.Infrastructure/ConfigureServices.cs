@@ -1,4 +1,6 @@
 ﻿using System.Text;
+using Datahub.Shared.Clients;
+using Datahub.Shared.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ResourceProvisioner.Application.Services;
@@ -14,11 +16,12 @@ public static class ConfigureServices
         services.AddHttpClient("InfrastructureHttpClient", client =>
         {
             // client.BaseAddress = new Uri(configuration["InfrastructureRepository:PullRequestUrl"]);
-
-            var token =
-                $"{configuration["InfrastructureRepository:Username"]}:{configuration["InfrastructureRepository:Password"]}";
-            var encodedToken = Convert.ToBase64String(Encoding.UTF8.GetBytes(token));
-            client.DefaultRequestHeaders.Add("Authorization", $"Basic {encodedToken}");
+            var azureDevOpsConfiguration = configuration.GetSection("InfrastructureRepository:AzureDevOpsConfiguration")
+                .Get<AzureDevOpsConfiguration>();
+            
+            var azureDevOpsClient = new AzureDevOpsClient(azureDevOpsConfiguration!);
+            var accessToken = azureDevOpsClient.GetAccessToken();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken.Token}");
         });
         
         services.AddSingleton<ITerraformService, TerraformService>();
