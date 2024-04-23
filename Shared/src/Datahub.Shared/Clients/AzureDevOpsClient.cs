@@ -17,6 +17,7 @@ public class AzureDevOpsClient(AzureDevOpsConfiguration config)
     public const string AzureDevopsScope = "499b84ac-1321-427f-aa17-267ca6975798";
 
     private static string AzureDevOpsScopeDefault => $"{AzureDevopsScope}/.default";
+    private static string AzureDevopsCodeWriteScope => $"{AzureDevopsScope}/vso.code_write";
 
     public async Task<WorkItemTrackingHttpClient> GetWorkItemClient()
     {
@@ -28,7 +29,7 @@ public class AzureDevOpsClient(AzureDevOpsConfiguration config)
     public async Task<HttpClient> GetPipelineClient()
     {
         var client = new HttpClient();
-        var accessToken = await GetAccessToken();
+        var accessToken = await GetAccessTokenAsync();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token.ToString());
         return client;
     }
@@ -42,17 +43,27 @@ public class AzureDevOpsClient(AzureDevOpsConfiguration config)
 
     private async Task<VssCredentials> GetCredentials()
     {
-        var accessToken = await GetAccessToken();
+        var accessToken = await GetAccessTokenAsync();
         var aadToken = new VssAadToken("Bearer", accessToken.Token);
         var aadCredentials = new VssAadCredential(aadToken);
         return aadCredentials;
     }
-    public async Task<AccessToken> GetAccessToken()
+    public async Task<AccessToken> GetAccessTokenAsync()
     {
         var credentials = new ClientSecretCredential(config.TenantId, config.ClientId,
             config.ClientSecret);
         var accessToken =
             await credentials.GetTokenAsync(new TokenRequestContext([
+                AzureDevOpsScopeDefault
+            ]));
+        return accessToken;
+    }
+    public AccessToken GetAccessToken()
+    {
+        var credentials = new ClientSecretCredential(config.TenantId, config.ClientId,
+            config.ClientSecret);
+        var accessToken =
+            credentials.GetToken(new TokenRequestContext([
                 AzureDevOpsScopeDefault
             ]));
         return accessToken;
