@@ -42,44 +42,53 @@ public class RepositoryService : IRepositoryService
     {
         await _semaphore.WaitAsync();
 
-        var user = command.RequestingUserEmail ?? throw new NullReferenceException("Requesting user's email is null");
-        _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
-        await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym!);
+        try { 
+            var user = command.RequestingUserEmail ?? throw new NullReferenceException("Requesting user's email is null");
+            _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
+            await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym!);
 
-        _logger.LogInformation(
-            "Executing the following resource runs in workspace {WorkspaceAcronym} for user {User}: [{ResourceRuns}]",
-            command.Workspace.Acronym, user, string.Join(", ", command.Templates.Select(x => x.Name)));
-        var repositoryUpdateEvents =
-            await ExecuteResourceRuns(command.Templates, command.Workspace, user);
+            _logger.LogInformation(
+                "Executing the following resource runs in workspace {WorkspaceAcronym} for user {User}: [{ResourceRuns}]",
+                command.Workspace.Acronym, user, string.Join(", ", command.Templates.Select(x => x.Name)));
+            var repositoryUpdateEvents =
+                await ExecuteResourceRuns(command.Templates, command.Workspace, user);
 
-        _logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
-            command.Workspace.Acronym);
-        await PushInfrastructureRepository(command.Workspace.Acronym!);
+            _logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
+                command.Workspace.Acronym);
+            await PushInfrastructureRepository(command.Workspace.Acronym!);
 
-        _logger.LogInformation("Creating pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
-        var pullRequestValueObject =
-            await CreateInfrastructurePullRequest(command.Workspace.Acronym!, user);
+            _logger.LogInformation("Creating pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
+            var pullRequestValueObject =
+                await CreateInfrastructurePullRequest(command.Workspace.Acronym!, user);
 
 
-        if (!string.IsNullOrEmpty(_resourceProvisionerConfiguration.InfrastructureRepository.AutoApproveUserOid))
-        {
-            _logger.LogInformation("Auto-approving pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
-            await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId);
+            if (!string.IsNullOrEmpty(_resourceProvisionerConfiguration.InfrastructureRepository.AutoApproveUserOid))
+            {
+                _logger.LogInformation("Auto-approving pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
+                await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId);
+            }
+            else
+            {
+                _logger.LogInformation("Auto-approve user OID not set, skipping auto-approve");
+            }
+
+            var pullRequestMessage = new PullRequestUpdateMessage
+            {
+                PullRequestValueObject = pullRequestValueObject,
+                TerraformWorkspace = command.Workspace,
+                Events = repositoryUpdateEvents
+            };
+
+            return pullRequestMessage;
         }
-        else
-        {
-            _logger.LogInformation("Auto-approve user OID not set, skipping auto-approve");
+        catch (Exception e) {
+            _logger.LogError(e, "Error while handling resource run request");
+            throw; // throw if retry required. Host.json is now configured for 2 max retries
+            //Donot throw if the queue element needs to be removed from the queue
         }
-
-        var pullRequestMessage = new PullRequestUpdateMessage
-        {
-            PullRequestValueObject = pullRequestValueObject,
-            TerraformWorkspace = command.Workspace,
-            Events = repositoryUpdateEvents
-        };
-
-        _semaphore.Release();
-        return pullRequestMessage;
+        finally {
+            _semaphore.Release();
+        }
     }
 
     public async Task<List<Version>> GetModuleVersions()
@@ -474,19 +483,21 @@ public class RepositoryService : IRepositoryService
                 File.Delete(filePath);
                 _logger.LogInformation($"Deleted file: {filePath}");
             }
-
-            // Once all files are deleted, create a new .tf file with output indicating deletion
-            var deletionIndicatorFilePath = Path.Combine(projectPath, template.Name + ".tf");
-            var deletionIndicatorContent = @"output ""azure_storage_blob_status"" {
-  value = ""deleted""
-}";
-            await File.WriteAllTextAsync(deletionIndicatorFilePath, deletionIndicatorContent);
-            _logger.LogInformation($"Deletion indicator added for {template.Name} in {projectPath}.");
         }
         else
         {
             _logger.LogWarning($"No matching files found for template {template.Name} in {projectPath}.");
         }
+        
+        // Once all files are deleted, create a new .tf file with output indicating deletion
+        // or even if no files were found to be deleted, 
+        // create a new .tf file with output indicating deletion
+        var deletionIndicatorFilePath = Path.Combine(projectPath, template.Name + ".tf");
+        var deletionIndicatorContent = @"output ""azure_storage_blob_status"" {
+  value = ""deleted""
+}";
+        await File.WriteAllTextAsync(deletionIndicatorFilePath, deletionIndicatorContent);
+        _logger.LogInformation($"Deletion indicator added for {template.Name} in {projectPath}.");
     }
     private async Task<string> GetExistingPullRequestId(string workspaceAcronym)
     {

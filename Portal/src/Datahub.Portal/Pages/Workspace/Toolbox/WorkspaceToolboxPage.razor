@@ -54,6 +54,10 @@
                                     </MudButton>
                                     break;
                                 case ToolStatus.SendingDelete:
+                                    <SpinnerButton Variant="@Variant.Filled">
+                                        @Localizer["Delete In Progress..."]
+                                    </SpinnerButton>
+                                    break;
                                 case ToolStatus.SendingRequest:
                                     <SpinnerButton Variant="@Variant.Filled">
                                         @Localizer["Sending Request..."]
@@ -194,6 +198,11 @@
         if (toolResource == null)
         {
             return ToolStatus.Available;
+        }
+
+        if (toolResource.Status == TerraformOutputStatus.Deleting)
+        {
+            return ToolStatus.SendingDelete;
         }
 
         if (toolResource.CreatedAt == null)
