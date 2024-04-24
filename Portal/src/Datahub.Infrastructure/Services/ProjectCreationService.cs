@@ -108,7 +108,6 @@ public class ProjectCreationService(
             try
             {
                 acronym ??= await GenerateProjectAcronymAsync(projectName);
-                var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
                 
                 var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
                 if (currentPortalUser is null) 
