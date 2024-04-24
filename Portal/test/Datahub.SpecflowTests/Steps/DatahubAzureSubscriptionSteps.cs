@@ -1,5 +1,6 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Subscriptions;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Infrastructure.Services;
@@ -190,5 +191,40 @@ public sealed class DatahubAzureSubscriptionSteps(
     public async Task WhenASubscriptionWithIdIsDeleted(string p0)
     {
         await datahubAzureSubscriptionService.DisableSubscriptionAsync(p0);
+    }
+
+    [When(@"the next available subscription is requested")]
+    public async Task WhenTheNextAvailableSubscriptionIsRequested()
+    {
+        var subscription = await datahubAzureSubscriptionService.NextSubscription();
+        scenarioContext["subscription"] = subscription;
+    }
+
+    [Then(@"the next available subscription is returned")]
+    public async Task ThenTheNextAvailableSubscriptionIsReturned()
+    {
+        var subscription = scenarioContext["subscription"] as DatahubAzureSubscription;
+        subscription.Should().NotBeNull();
+        
+        subscription!.SubscriptionId.Should().NotBeNullOrEmpty();
+        subscription!.TenantId.Should().NotBeNullOrEmpty();
+        
+        var allSubscriptions = await datahubAzureSubscriptionService.ListSubscriptionsAsync();
+        allSubscriptions.Should().NotBeNull();
+        allSubscriptions!.Any(s => s.SubscriptionId == subscription.SubscriptionId).Should().BeTrue();
+    }
+
+    [Given(@"there is a subscription available")]
+    public async Task GivenThereIsASubscriptionAvailable()
+    {
+        var subscription = new DatahubAzureSubscription()
+        {
+            SubscriptionId = Testing.WORKSPACE_SUBSCRIPTION_GUID,
+            TenantId = Testing.WORKSPACE_TENANT_GUID
+        };
+
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        ctx.AzureSubscriptions.Add(subscription);
+        await ctx.SaveChangesAsync();
     }
 }

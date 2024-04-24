@@ -1,8 +1,10 @@
 using BoDi;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Subscriptions;
 using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Services;
+using Datahub.Infrastructure.Services.Subscriptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Reqnroll;

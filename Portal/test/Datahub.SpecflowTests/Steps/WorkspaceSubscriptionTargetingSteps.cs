@@ -1,4 +1,5 @@
 using Datahub.Application.Services;
+using Datahub.Application.Services.Subscriptions;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
@@ -43,6 +44,7 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
     {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var workspace = await ctx.Projects
+            .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == Testing.WORKSPACE_ACRONYM);
         
         var workspaceDefinition =  await resourceMessagingService.GetWorkspaceDefinition(workspace!.Project_Acronym_CD, string.Empty);
@@ -63,9 +65,21 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
         await projectCreationService.CreateProjectAsync(Testing.WORKSPACE_NAME, Testing.WORKSPACE_ACRONYM, "Unspecified");
     }
 
-    [Then(@"the subscription id is the next available subscription id")]
-    public void ThenTheSubscriptionIdIsTheNextAvailableSubscriptionId()
+    [Given(@"the next available subscription id is ""(.*)""")]
+    public async Task GivenTheNextAvailableSubscriptionIdIs(string p0)
     {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var subscriptions = await ctx.AzureSubscriptions.ToListAsync();
+        subscriptions.Should().NotBeNull();
+        subscriptions.Should().BeEmpty();
         
+        var subscription = new DatahubAzureSubscription()
+        {
+            SubscriptionId = p0,
+            TenantId = Testing.WORKSPACE_TENANT_GUID
+        };
+        
+        ctx.AzureSubscriptions.Add(subscription);
+        await ctx.SaveChangesAsync();
     }
 }
