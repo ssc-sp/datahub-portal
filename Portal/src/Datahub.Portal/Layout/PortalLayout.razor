@@ -10,6 +10,8 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDatahubAuditingService _auditingService
 @inject NavigationManager _navigationManager
+@inject IHttpContextAccessor _httpContextAccessor;
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IUserInformationService _userInformationService
 @inject IUserSettingsService _userSettingsService
 @inject IWebHostEnvironment _hostingEnv
@@ -141,10 +143,9 @@
             var userLanguage = await _userSettingsService.GetUserLanguage();
 
             var url = _navigationManager.Uri; // Retrieve the active URL
-            var userAgent = await _jsRuntime.InvokeAsync<string>("navigator.userAgent");
-            var screenWidth = await _jsRuntime.InvokeAsync<int>("window.innerWidth");
-            var screenHeight = await _jsRuntime.InvokeAsync<int>("window.innerHeight");
-            var timeZone = await _jsRuntime.InvokeAsync<string>("Intl.DateTimeFormat().resolvedOptions().timeZone");
+            var userAgent = _httpContextAccessor.HttpContext.Request.Headers["User-Agent"].ToString();
+            var timeZone = await _jsRuntime.InvokeAsync<string>("blazorGetTimezone");
+            var dimensions = await _jsRuntime.InvokeAsync<string>("blazorGetScreenDimentions");
 
             // Retrieve all local storage data
             var allKeys = await _localStorage.KeysAsync();
@@ -155,6 +156,9 @@
                 dataDict.Add(key, value);
             }
             var localStorageData = Newtonsoft.Json.JsonConvert.SerializeObject(dataDict);
+
+            var lastHourEvents = await GetTelemetryData();
+            var telemetryData = Newtonsoft.Json.JsonConvert.SerializeObject(lastHourEvents);
 
             // We create the bug report message and send it to the queue.
             var bugReport = new BugReportMessage(
@@ -168,16 +172,25 @@
                 Topics: "Other",
                 URL: url,
                 UserAgent: userAgent,
-                Resolution: $"{screenWidth}x{screenHeight}",
+                Resolution: dimensions,
                 LocalStorage: localStorageData,
                 BugReportType: BugReportTypes.SupportRequest,
-                Description: $"Automatically recorded exception: {exceptionData}"
+                Description: $"Automatically recorded exception: {exceptionData}, telemetry: {telemetryData}"
             );
 
             await _mediatr.Send(bugReport);
         }
     }
 
+    private async Task<List<TelemetryEvent>> GetTelemetryData()
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        var lastHour = DateTime.Now.AddHours(-1);
+        var events = await dbContext.TelemetryEvents
+            .Where(u => u.PortalUser.Id == _portalUser.Id && u.EventDate >= lastHour )
+            .ToListAsync();
+        return events;
+    }
     private string GetOrg(string email)
     {
         var org = "";
