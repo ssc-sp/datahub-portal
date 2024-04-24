@@ -19,6 +19,18 @@ Tests around the workspace resource requesting and its functionality for the use
       | AzurePostgres      | 1                  |
 
     @queue
+    Scenario: Request a resource to be deleted from a workspace
+        Given a workspace without a <resource_name> resource
+        And a current user
+        When a current user requests to delete a <resource_name> resource in a workspace
+        Then there should be a workspace <resource_name> resource created
+        And there should be <number_of_messages> delete messages in resource messaging queue
+
+    Examples:
+      | resource_name      | number_of_messages |
+      | AzureStorageBlob   | 1                  |
+
+    @queue
     Scenario: Request to run an update resource for a workspace
         Given a workspace without a <resource_name> resource
         And a current user
