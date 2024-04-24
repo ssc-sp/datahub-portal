@@ -2,6 +2,7 @@ using BoDi;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
@@ -9,6 +10,7 @@ using Datahub.Core.Services;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Security;
+using Datahub.Infrastructure.Services.Subscriptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -44,7 +46,6 @@ public class WorkspaceSubscriptionHook
             .Returns(callInfo =>
                 resourceMessagingService.GetWorkspaceDefinition(callInfo.Arg<string>(), callInfo.Arg<string>()));
         
-        
         var currentUser = new PortalUser
         {
             GraphGuid = Testing.CURRENT_USER_GUID.ToString(),
@@ -57,6 +58,8 @@ public class WorkspaceSubscriptionHook
         var userInformationService = Substitute.For<IUserInformationService>();
         userInformationService.GetCurrentPortalUserAsync().Returns(currentUser);
         
+        var datahubAzureSubscriptionService = new DatahubAzureSubscriptionService(dbContextFactory, datahubPortalConfiguration);
+        
         var projectCreationService = new ProjectCreationService(
             datahubPortalConfiguration,
             dbContextFactory,
@@ -65,10 +68,10 @@ public class WorkspaceSubscriptionHook
             userInformationService,
             resourceMessagingSubstitute,
             Substitute.For<IDatahubAuditingService>(),
+            datahubAzureSubscriptionService,
             Substitute.For<IDatahubCatalogSearch>());
         
         
-        var datahubAzureSubscriptionService = new DatahubAzureSubscriptionService(dbContextFactory, datahubPortalConfiguration);
         
         objectContainer.RegisterInstanceAs<IResourceMessagingService>(resourceMessagingService);
         objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);

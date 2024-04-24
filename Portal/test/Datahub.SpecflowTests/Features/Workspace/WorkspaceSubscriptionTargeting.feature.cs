@@ -121,16 +121,15 @@ this.ScenarioInitialize(scenarioInfo);
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="A new workspace needs to get the next subscription id", Skip="Ignored")]
+        [Xunit.SkippableFactAttribute(DisplayName="A newly created workspace has a subscription id")]
         [Xunit.TraitAttribute("FeatureTitle", "Workspace Subscription Targeting")]
-        [Xunit.TraitAttribute("Description", "A new workspace needs to get the next subscription id")]
-        public async System.Threading.Tasks.Task ANewWorkspaceNeedsToGetTheNextSubscriptionId()
+        [Xunit.TraitAttribute("Description", "A newly created workspace has a subscription id")]
+        public async System.Threading.Tasks.Task ANewlyCreatedWorkspaceHasASubscriptionId()
         {
-            string[] tagsOfScenario = new string[] {
-                    "ignore"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("A new workspace needs to get the next subscription id", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 11
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("A newly created workspace has a subscription id", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 10
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -140,17 +139,17 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
+#line 11
+ await testRunner.GivenAsync("there is a subscription available", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+#line hidden
 #line 12
- await testRunner.GivenAsync("a new workspace is created", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+ await testRunner.AndAsync("a new workspace is created", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 13
  await testRunner.WhenAsync("the workspace definition is requested", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 14
  await testRunner.ThenAsync("the subscription id is included in the workspace definition", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
-#line hidden
-#line 15
- await testRunner.AndAsync("the subscription id is the next available subscription id", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

@@ -7,10 +7,9 @@ Scenario: A workspace has a subscription id
 	When the workspace definition is requested
 	Then the subscription id is included in the workspace definition
 	
-@ignore
-Scenario: A new workspace needs to get the next subscription id
-	Given a new workspace is created
+Scenario: A newly created workspace has a subscription id
+	Given there is a subscription available
+	And a new workspace is created
 	When the workspace definition is requested
 	Then the subscription id is included in the workspace definition
-	And the subscription id is the next available subscription id
 	

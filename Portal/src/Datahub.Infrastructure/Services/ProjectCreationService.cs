@@ -3,6 +3,7 @@ using System.Transactions;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Enums;
@@ -30,6 +31,7 @@ public class ProjectCreationService(
     IUserInformationService userInformationService,
     IResourceMessagingService resourceMessagingService,
     IDatahubAuditingService auditingService,
+    IDatahubAzureSubscriptionService datahubAzureSubscriptionService,
     IDatahubCatalogSearch datahubCatalogSearch)
     : IProjectCreationService
 {
@@ -174,6 +176,10 @@ public class ProjectCreationService(
     private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization) 
     {
         var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
+        await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+
+        var subscription = await datahubAzureSubscriptionService.NextSubscription();
+
         var project = new Datahub_Project()
         {
             Project_Acronym_CD = acronym,
@@ -186,8 +192,8 @@ public class ProjectCreationService(
             Project_Status_Desc = "Ongoing",
             Project_Status = (int)ProjectStatus.InProgress,
             Project_Budget = portalConfiguration.DefaultProjectBudget,
+            DatahubAzureSubscriptionId = subscription.Id
         };
-        await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
         await db.Projects.AddAsync(project);
         
         var role = Project_Role.GetAll()

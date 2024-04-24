@@ -29,3 +29,8 @@ This feature provides the ability to manage Azure subscriptions for the DataHub
         Given a datahub azure subscription service
         When a non-existing subscription is deleted
         Then an error is returned
+
+    Scenario: Get the next available suscription
+        Given a datahub azure subscription service
+        When the next available subscription is requested
+        Then the next available subscription is returned
