@@ -102,32 +102,26 @@ public class ProjectCreationService(
 
     public async Task<bool> CreateProjectAsync(string projectName, string? acronym, string organization)
     {
-        using (var scope = new TransactionScope(
-           TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled))
+        using var scope = new TransactionScope(
+            TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
+        try
         {
-            try
-            {
-                acronym ??= await GenerateProjectAcronymAsync(projectName);
+            acronym ??= await GenerateProjectAcronymAsync(projectName);
+            var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
                 
-                var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
-                if (currentPortalUser is null) 
-                    return false;
-
-                await AddProjectToDb(currentPortalUser, projectName, acronym, organization);
+            await AddProjectToDb(currentPortalUser, projectName, acronym, organization);
+            await CreateNewTemplateProjectResourceAsync(acronym); 
                 
-                await CreateNewTemplateProjectResourceAsync(acronym); 
+            var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
+            await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
                 
-                var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
-                
-                await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
-                scope.Complete();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error creating project {projectName} - {acronym} - {organization}");
-                return false;
-            }
+            scope.Complete();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, $"Error creating project {projectName} - {acronym} - {organization}");
+            return false;
         }
     }
 
