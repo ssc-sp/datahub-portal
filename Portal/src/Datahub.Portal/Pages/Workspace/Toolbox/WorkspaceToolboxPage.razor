@@ -67,14 +67,16 @@
                                     <ToolBeingProvisionedButton Variant="@Variant.Filled"/>
                                     break;
                                 case ToolStatus.Exists:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
-                                        @Localizer["Tool has been created"]
-                                        <MudIcon Icon="fa-light fa-check-to-slot" Class="ml-1" Style="font-size: 0.8rem;"/>
-                                    </MudButton>
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await DeleteToolFromWorkspace(tool))">
-                                     @Localizer["Delete"]
-                                        <MudIcon Icon="fa-light fa-trash" Class="ml-1" Style="font-size: 0.8rem;" />
-                                    </MudButton>
+                                    <div style="display: flex; flex-direction: column;">
+                                        <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Style="margin-bottom: 8px;" Disabled>
+                                            @Localizer["Tool has been created"]
+                                            <MudIcon Icon="fa-light fa-check-to-slot" Class="ml-1" Style="font-size: 0.8rem;"/>
+                                        </MudButton>
+                                        <MudButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await DeleteToolFromWorkspace(tool))">
+                                         @Localizer["Delete"]
+                                            <MudIcon Icon="fa-light fa-trash" Class="ml-1" Style="font-size: 0.8rem;" />
+                                        </MudButton>
+                                    </div>
                                     break;
                                 case ToolStatus.Disabled:
                                     <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
