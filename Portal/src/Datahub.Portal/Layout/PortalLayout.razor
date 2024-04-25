@@ -125,7 +125,7 @@
         }
     }
 
-    private async Task ReportIssue(Exception ex, string correlationId)
+    public async Task ReportIssue(Exception ex, string correlationId)
     {
         if (!_hostingEnv.IsDevelopment())
         {

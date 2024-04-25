@@ -31,6 +31,7 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="bunit" Version="1.28.9" />
 		<PackageReference Include="Divergic.Logging.Xunit" Version="4.2.0" />
 		<PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" Version="1.38.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.*" />
