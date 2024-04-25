@@ -24,6 +24,8 @@ public interface IUserInformationService
     Task<User> GetAnonymousGraphUserAsync();
     Task<string> GetUserIdString();
     Task<string> GetDisplayName();
+    Task<(string FirstName, string LastName)> GetFullName();
+    Task SetFullName(string firstName, string lastName);
     Task<string> GetUserEmail();
     Task<string> GetUserEmailDomain();
     Task<string> GetUserEmailPrefix();

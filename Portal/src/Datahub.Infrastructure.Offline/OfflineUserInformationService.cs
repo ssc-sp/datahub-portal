@@ -40,6 +40,16 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult("Me");
     }
 
+    public Task<(string FirstName, string LastName)> GetFullName()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task SetFullName(string firstName, string lastName)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<string> GetUserEmail()
     {
         return Task.FromResult("me@me.com");
