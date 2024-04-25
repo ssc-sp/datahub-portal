@@ -236,17 +236,12 @@ public class TerraformOutputHandler
             _logger.LogInformation("Azure storage blob status not found in output variables");
             return;
         }
+        string storageServiceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
 
         var storageBlobStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
-        if (!storageBlobStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
-        {
-            _logger.LogError("Azure storage blob status is not completed. Status: {Status}", storageBlobStatus);
-            return;
-        }
 
-        var projectResource = await GetProjectResource(outputVariables,
-            TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob));
+        var projectResource = await GetProjectResource(outputVariables, storageServiceType);
 
         var accountName = outputVariables[TerraformVariables.OutputAzureStorageAccountName];
         var containerName = outputVariables[TerraformVariables.OutputAzureStorageContainerName];
@@ -267,6 +262,7 @@ public class TerraformOutputHandler
         projectResource.CreatedAt = DateTime.UtcNow;
         projectResource.JsonContent = jsonContent.ToString();
         projectResource.InputJsonContent = inputJsonContent.ToString();
+        projectResource.Status = storageBlobStatus;
 
         await _projectDbContext.SaveChangesAsync();
     }
@@ -357,6 +353,8 @@ public class TerraformOutputHandler
         return value switch
         {
             "completed" => TerraformOutputStatus.Completed,
+            "deleting" => TerraformOutputStatus.Deleting,
+            "deleted" => TerraformOutputStatus.Deleted,
             "in_progress" => TerraformOutputStatus.InProgress,
             "pending_approval" => TerraformOutputStatus.PendingApproval,
             "failed" => TerraformOutputStatus.Failed,
@@ -380,7 +378,7 @@ public class TerraformOutputHandler
         }
 
         var projectResource = project.Resources
-            .FirstOrDefault(x => x.ResourceType == terraformServiceType);
+            .FirstOrDefault(x => x.ResourceType == terraformServiceType && (x.Status == null || x.Status != TerraformOutputStatus.Deleted));
 
         if (projectResource is null)
         {
@@ -390,6 +388,7 @@ public class TerraformOutputHandler
             throw new Exception(
                 $"Project resource not found for project acronym {projectAcronym.Value} and service type {terraformServiceType}");
         }
+
 
         return projectResource;
     }
