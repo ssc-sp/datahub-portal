@@ -240,18 +240,6 @@ public class TerraformOutputHandler
 
         var storageBlobStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
-        if (!storageBlobStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase)) {
-            if (!storageBlobStatus.Equals(TerraformOutputStatus.Deleted, StringComparison.InvariantCultureIgnoreCase)) {
-                _logger.LogError("Azure storage blob status is failed. Status: {Status}", storageBlobStatus);
-                return;
-            }
-            bool isDeleted = await DeleteProjectResource(outputVariables, storageServiceType);
-            if (isDeleted)
-                _logger.LogInformation("Azure storage blob status is Deleted. Status: {Status}", storageBlobStatus);
-            else
-                _logger.LogError("Azure storage blob deleted from azure but could not be removed from project. Status: {Status}", storageBlobStatus);
-            return;
-        }
 
         var projectResource = await GetProjectResource(outputVariables, storageServiceType);
 
@@ -271,6 +259,16 @@ public class TerraformOutputHandler
             ["storage_type"] = TerraformVariables.AzureStorageType
         };
 
+        if (!storageBlobStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
+        {
+            if (!storageBlobStatus.Equals(TerraformOutputStatus.Deleted, StringComparison.InvariantCultureIgnoreCase))
+            {
+                _logger.LogError("Azure storage blob status is failed. Status: {Status}", storageBlobStatus);
+                return;
+            }
+            projectResource.Status = TerraformOutputStatus.Deleted;
+        }
+        
         projectResource.CreatedAt = DateTime.UtcNow;
         projectResource.JsonContent = jsonContent.ToString();
         projectResource.InputJsonContent = inputJsonContent.ToString();
@@ -402,42 +400,5 @@ public class TerraformOutputHandler
 
 
         return projectResource;
-    }
-    private async Task<bool> DeleteProjectResource(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables, string terraformServiceType)
-    {
-        try {
-            
-            var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
-        
-            var project = await _projectDbContext.Projects.Include(p => p.Resources)
-                                              .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
-            if (project is null) {
-                _logger.LogError("Project not found for acronym {ProjectId}", projectAcronym.Value);
-                throw new Exception($"Project not found for acronym {projectAcronym.Value}");
-            }
-
-            var projectResource = project.Resources
-                .FirstOrDefault(x => x.ResourceType == terraformServiceType);
-
-            if (projectResource is null) {
-                _logger.LogError("Project resource not found for project acronym {ProjectAcronymValue} and service type {TerraformServiceType}",
-                                  projectAcronym.Value, terraformServiceType);
-                throw new Exception($"Project resource not found for project acronym {projectAcronym.Value} and service type {terraformServiceType}");
-            }
-
-            projectResource.Status = TerraformOutputStatus.Deleted;
-            _projectDbContext.Project_Resources2.Update(projectResource);
-
-            await _projectDbContext.SaveChangesAsync();
-
-            _logger.LogInformation("Project resource with service type {TerraformServiceType} deleted successfully for project acronym {ProjectAcronymValue}",
-                                    terraformServiceType, projectAcronym.Value);
-            return true;
-        }
-        catch (Exception e) {
-            _logger.LogError(e, "Error deleting project resource");
-        }
-
-        return true;
     }
 }
