@@ -22,6 +22,11 @@
     "SmtpPort": "587",
     "SmtpUsername": "@Microsoft.KeyVault(VaultName=fsdh-key-dev;SecretName=datahub-smtp-username)"
   },
+  "MassTransit": {
+    "AzureServiceBus": {
+      "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-dev;SecretName=azbus-connection)"
+    }
+  },
   "FUNC_SP_CLIENT_ID": "@Microsoft.KeyVault(VaultName=fsdh-key-dev;SecretName=datahubportal-client-id)",
   "FUNC_SP_CLIENT_SECRET": "@Microsoft.KeyVault(VaultName=fsdh-key-dev;SecretName=datahubportal-client-secret)",
   "FUNCTIONS_EXTENSION_VERSION": "~4",
