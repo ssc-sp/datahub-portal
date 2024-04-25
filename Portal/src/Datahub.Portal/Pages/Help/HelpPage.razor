@@ -1,0 +1,330 @@
+﻿@inject ILogger<HelpPage> _logger
+@inject IUserSettingsService _userSettingsService
+@inject IUserInformationService _userInformationService
+@inject IKeyVaultService _keyVaultService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IDialogService DialogService
+@inject NavigationManager _navigationManager
+@inject DatahubPortalConfiguration _portalConfiguration
+@inject IJSRuntime _jsRuntime
+@inject ILocalStorageService _localStorage
+@inject IMediator _mediatr
+
+@using MudBlazor
+@using Datahub.Core.Components.Common
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Datahub
+@using Datahub.Core.Model.Projects;
+@using Datahub.Application.Configuration
+@using Datahub.Portal.Components.User
+@using Datahub.Portal.Pages.Project
+
+@using System;
+@using System.Net.Http;
+@using System.Net.Http.Headers;
+@using System.Text;
+@using System.Threading.Tasks;
+@using Datahub.Application.Services.Security
+@using Datahub.Infrastructure.Queues.Messages
+@using Datahub.Infrastructure.Services.Security
+@using MediatR
+@using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq;
+@using Microsoft.Identity.Web
+@using Microsoft.JSInterop;
+
+@attribute [Route(PageRoutes.Help)]
+
+<PageTitle>
+    @Localizer["SSC Datahub - Help"]
+</PageTitle>
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar />
+</SectionContent>
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+    <MudStack Spacing="6">
+        <MudText Typo="Typo.h1">@Localizer["Help"]</MudText>
+
+        <MudForm @ref="form">
+            @if (_currentStep != Steps.Start)
+            {
+                <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
+            }
+            @if (_currentStep == Steps.Start)
+            {
+                <MudStack>
+                    <MudText>@Localizer["Need a hand? We've got you covered."]</MudText>
+                    <MudText Typo="Typo.body2">@Localizer["Our Resources page has many resources that could be helpful for you. Additional support is available using the FSDH Support Request Form."]</MudText>
+                    <MudItem xs="6" Class="py-3">
+                        <MudButton Href="/resources"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="fat fa-sitemap">
+                            @Localizer["Resources"]
+                        </MudButton>
+                    </MudItem>
+                </MudStack>
+                <MudDivider/>
+                <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
+                <MudText Typo="@Typo.body2" Class="py-3">@Localizer["To report an issue or request assistance, please use the FSDH Support Request Form"]</MudText>
+            }
+            else if (_currentStep == Steps.Topics)
+            {
+                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
+                @foreach (var topic in _ticketTopics)
+                {
+                    <MudCheckBox @bind-Checked="@_ticketTopics[topic.Key]" Label="@Localizer[topic.Key]" Color="@Color.Primary"></MudCheckBox>
+                }
+            }
+            else if (_currentStep == Steps.Description)
+            {
+                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
+                <MudTextField T="string"
+                              @bind-Value="@_ticketDescription"
+                              Label=@(Localizer["Detailed description"])
+                              Required
+                              Lines="5"/>
+
+                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>
+                foreach (var workspace in _ticketWorkspaces)
+                {
+                    <MudCheckBox @bind-Checked="@_ticketWorkspaces[workspace.Key]" Label="@Localizer[workspace.Key]" Color="@Color.Primary"></MudCheckBox>
+                }
+            }
+            else if (_currentStep == Steps.Language)
+            {
+                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which language you would like to be contacted in."]</MudText>
+                <MudRadioGroup T="int" @bind-SelectedOption="_ticketPreferredLanguage">
+                    <MudRadio Option="1" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["English"]</MudRadio>
+                    <MudRadio Option="2" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["French"]</MudRadio>
+                </MudRadioGroup>
+            }
+            else if (_currentStep == Steps.Submit)
+            {
+                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket."]</MudText>
+                <MudPaper Class="pa-2" Outlined="true">
+                    <MudText Typo="@Typo.h6" Class="pb-3">@Localizer["Ticket Topics"]</MudText>
+                    @foreach (KeyValuePair<string, bool> topic in _ticketTopics)
+                    {
+                        @if (topic.Value)
+                        {
+                            <MudText Typo="@Typo.body2">@Localizer[@topic.Key]</MudText>
+                        }
+                    }
+                    <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Workspaces"]</MudText>
+                    @foreach (KeyValuePair<string, bool> workspace in _ticketWorkspaces)
+                    {
+                        @if (workspace.Value)
+                        {
+                            <MudText Typo="@Typo.body2">@Localizer[@workspace.Key]</MudText>
+                        }
+                    }
+                    <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Ticket Description"]</MudText>
+                    <MudText Typo="@Typo.body2">@_ticketDescription</MudText>
+                    <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Preferred Contact Language"]</MudText>
+                    @if (_ticketPreferredLanguage == 1)
+                    {
+                        <MudText Typo="@Typo.body2">@Localizer["English"]</MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="@Typo.body2">@Localizer["Français"]</MudText>
+                    }
+                </MudPaper>
+            }
+            <MudGrid Class="pt-3">
+                <MudItem xs="6" Align="Align.Start" Class="py-6">
+                    @if (_currentStep == Steps.Start)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Get Started"]</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@PreviousStep">@Localizer["Previous"]</MudButton>
+                    }
+                </MudItem>
+                <MudItem xs="6" Align="Align.End" Class="py-6">
+                    @if (_currentStep == Steps.Submit)
+                    {
+                        <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="@SubmitForm">@Localizer["Submit"]</MudButton>
+                    }
+                    else if (_currentStep != Steps.Start)
+                    {
+                        <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Next"]</MudButton>
+                    }
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </MudStack>
+</DatahubAuthView>
+
+@code {
+    private PortalUser _viewedUser; // To retrieve the user's name/email for the form
+    private MudForm form;
+
+    // Variables used for the form that can be passed in the bug report.
+    private string _ticketName = "";
+    private string _ticketEmail = "";
+    private string _ticketPortalLanguage = "";
+    private string _ticketDescription = "";
+    private string _ticketOrg = "";
+    private int _ticketPreferredLanguage = 1;
+    private List<Datahub_Project_User> _userRoles;
+    private IJSObjectReference _module;
+
+    private string _tempIssues = ""; // Temporary string to store the issues previously submitted
+
+    // This dictionary is used to generate checkboxes in the help request
+    Dictionary<string, bool> _ticketTopics = new Dictionary<string, bool>
+    {
+        { "Workspace", false },
+        { "Databricks", false },
+        { "Storage", false },
+        { "PostgreSQL", false },
+        { "User Management", false },
+        { "Documentation", false },
+        { "Tool Requesting", false },
+        { "Other", false },
+    };
+
+    // This dictionary is used to generate Workspace checkboxes in the help request
+    Dictionary<string, bool> _ticketWorkspaces = new Dictionary<string, bool> { };
+
+    private Steps _currentStep = Steps.Start; // Indicates what part of the form to show
+
+    private enum Steps
+    {
+        Start = 0,
+        Topics = 1,
+        Description = 2,
+        Language = 3,
+        Submit = 4
+    }
+
+    private void NextStep()
+    {
+        form.Validate();
+        if (form.IsValid)
+        {
+            _currentStep++;
+        }
+    }
+
+    private void PreviousStep()
+    {
+        _currentStep--;
+    }
+
+    private async void SubmitForm()
+    {
+        await form.Validate();
+        if (!form.IsValid)
+        {
+            return;
+        }
+
+        var url = _navigationManager.Uri; // Retrieve the active URL
+        var useragent = await _module.InvokeAsync<string>("retrieveUserAgent"); // Call our JS functions for user agent + resolution
+        var resolution = await _module.InvokeAsync<string>("retrieveResolution");
+        var timezone = await _module.InvokeAsync<string>("retrieveTimeZone");
+        var preferredLanguage = (_ticketPreferredLanguage == 1) ? "en" : "fr";
+
+        // Retrieve all local storage data
+        var allKeys = await _localStorage.KeysAsync();
+        var dataDict = new Dictionary<string, string>();
+        foreach (var key in allKeys)
+        {
+            var value = await _localStorage.GetItemAsStringAsync(key);
+            dataDict.Add(key, value);
+        }
+        var localStorageData = Newtonsoft.Json.JsonConvert.SerializeObject(dataDict);
+
+        // We retrieve the selected checkboxes that indicate the issue topics
+        var matchingTopics = _ticketTopics.Where(kvp => kvp.Value == true).Select(kvp => kvp.Key);
+        var matchingWorkspaces = _ticketWorkspaces.Where(kvp => kvp.Value == true).Select(kvp => kvp.Key);
+        var topics = string.Join("; ", matchingTopics);
+        var workspaces = string.Join(", ", matchingWorkspaces);
+        if (topics.Length == 0)
+        {
+            topics = "Issue";
+        }
+        if (workspaces.Length == 0)
+        {
+            workspaces = "N/A";
+        }
+
+        // We create the bug report message and send it to the queue.
+        var bugReport = new BugReportMessage(
+            UserName: _ticketName,
+            UserEmail: _ticketEmail,
+            UserOrganization: _ticketOrg,
+            PortalLanguage: _ticketPortalLanguage,
+            PreferredLanguage: _ticketPreferredLanguage == 1 ? "en" : "fr",
+            Timezone: timezone,
+            Workspaces: workspaces,
+            Topics: topics,
+            URL: url,
+            UserAgent: useragent,
+            Resolution: resolution,
+            LocalStorage: localStorageData,
+            BugReportType: BugReportTypes.SupportRequest,
+            Description: _ticketDescription
+        );
+
+        await _mediatr.Send(bugReport);
+        await DialogService.ShowMessageBox(Localizer["Success"], Localizer["Your support ticket has been created. Thank you!"], yesText: "OK");
+        _currentStep = Steps.Start;
+        StateHasChanged();
+    }
+
+    private string GetOrg(string email)
+    {
+        var org = "";
+        try
+        {
+            org = email.Split("@")[1].Split('.')[0];
+        }
+        catch
+        {
+            org = "unknown";
+        }
+        return org;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Retrieve general info, such as the user submitting the issue.
+
+        try
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Layout/Topbar/HelpDialog.razor.js");
+        }
+        catch (Exception e)
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Layout/Topbar/HelpDialog.razor.js");
+        }
+
+        _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+        _ticketName = _viewedUser.DisplayName;
+        _ticketEmail = _viewedUser.Email;
+        _ticketOrg = GetOrg(_ticketEmail);
+        _ticketPortalLanguage = await _userSettingsService.GetUserLanguage();
+
+        // Retrieve the list of workspaces
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        _userRoles = await dbContext.Project_Users
+            .Include(u => u.Role)
+            .Include(u => u.Project)
+            .ThenInclude(p => p.Users)
+            .Include(u => u.PortalUser)
+            .Where(u => u.PortalUser.GraphGuid == _viewedUser.GraphGuid)
+            .ToListAsync();
+
+        foreach (var project in _userRoles.Select(userRole => userRole.Project))
+        {
+            _ticketWorkspaces.Add(project.Project_Name, false);
+        }
+    }
+}
