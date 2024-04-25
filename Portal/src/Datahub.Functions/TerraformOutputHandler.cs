@@ -259,19 +259,10 @@ public class TerraformOutputHandler
             ["storage_type"] = TerraformVariables.AzureStorageType
         };
 
-        if (!storageBlobStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
-        {
-            if (!storageBlobStatus.Equals(TerraformOutputStatus.Deleted, StringComparison.InvariantCultureIgnoreCase))
-            {
-                _logger.LogError("Azure storage blob status is failed. Status: {Status}", storageBlobStatus);
-                return;
-            }
-            projectResource.Status = TerraformOutputStatus.Deleted;
-        }
-        
         projectResource.CreatedAt = DateTime.UtcNow;
         projectResource.JsonContent = jsonContent.ToString();
         projectResource.InputJsonContent = inputJsonContent.ToString();
+        projectResource.Status = storageBlobStatus;
 
         await _projectDbContext.SaveChangesAsync();
     }
