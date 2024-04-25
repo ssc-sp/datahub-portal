@@ -73,8 +73,8 @@ namespace Datahub.SpecflowTests.Steps
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var currentUser = new PortalUser()
             {
-                GraphGuid = Testing.CURRENT_USER_GUID.ToString(),
-                Email = Testing.CURRENT_USER_EMAIL
+                GraphGuid = Testing.CurrentUserGuid.ToString(),
+                Email = Testing.CurrentUserEmail
             };
             
             ctx.PortalUsers.Add(currentUser);
@@ -92,7 +92,7 @@ namespace Datahub.SpecflowTests.Steps
                 .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
             
             var currentUser = await ctx.PortalUsers
-                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CURRENT_USER_GUID.ToString());
+                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CurrentUserGuid.ToString());
             
             await requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.AzurePostgres, currentUser);
         }
@@ -110,7 +110,7 @@ namespace Datahub.SpecflowTests.Steps
                 .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
             
             var currentUser = await ctx.PortalUsers
-                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CURRENT_USER_GUID.ToString());
+                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CurrentUserGuid.ToString());
             
             await requestManagementService.HandleTerraformRequestServiceAsync(project, resourceType, currentUser);
         }

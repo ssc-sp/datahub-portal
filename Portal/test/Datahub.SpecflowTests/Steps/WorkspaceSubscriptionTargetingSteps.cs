@@ -24,13 +24,13 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var workspace = new Datahub_Project
         {
-            Project_Acronym_CD = Testing.WORKSPACE_ACRONYM,
+            Project_Acronym_CD = Testing.WorkspaceAcronym,
         };
         
         var datahubAzureSubscription = new DatahubAzureSubscription()
         {
-            SubscriptionId = Testing.WORKSPACE_SUBSCRIPTION_GUID,
-            TenantId = Testing.WORKSPACE_TENANT_GUID
+            SubscriptionId = Testing.WorkspaceSubscriptionGuid,
+            TenantId = Testing.WorkspaceTenantGuid
         };
         
         workspace.DatahubAzureSubscription = datahubAzureSubscription;
@@ -45,7 +45,7 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var workspace = await ctx.Projects
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == Testing.WORKSPACE_ACRONYM);
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
         
         var workspaceDefinition =  await resourceMessagingService.GetWorkspaceDefinition(workspace!.Project_Acronym_CD, string.Empty);
         scenarioContext["workspaceDefinition"] = workspaceDefinition;
@@ -56,13 +56,13 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
     public void ThenTheSubscriptionIdIsIncludedInTheWorkspaceDefinition()
     {
         var workspaceDefinition = scenarioContext["workspaceDefinition"] as WorkspaceDefinition;
-        workspaceDefinition!.Workspace.SubscriptionId.Should().Be(Testing.WORKSPACE_SUBSCRIPTION_GUID);
+        workspaceDefinition!.Workspace.SubscriptionId.Should().Be(Testing.WorkspaceSubscriptionGuid);
     }
 
     [Given(@"a new workspace is created")]
     public async Task GivenANewWorkspaceIsCreated()
     {
-        await projectCreationService.CreateProjectAsync(Testing.WORKSPACE_NAME, Testing.WORKSPACE_ACRONYM, "Unspecified");
+        await projectCreationService.CreateProjectAsync(Testing.WorkspaceName, Testing.WorkspaceAcronym, "Unspecified");
     }
 
     [Given(@"the next available subscription id is ""(.*)""")]
@@ -76,7 +76,7 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
         var subscription = new DatahubAzureSubscription()
         {
             SubscriptionId = p0,
-            TenantId = Testing.WORKSPACE_TENANT_GUID
+            TenantId = Testing.WorkspaceTenantGuid
         };
         
         ctx.AzureSubscriptions.Add(subscription);

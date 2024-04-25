@@ -28,8 +28,8 @@ public sealed class DatahubAzureSubscriptionSteps(
     {
         var subscription = new DatahubAzureSubscription()
         {
-            SubscriptionId = Testing.WORKSPACE_SUBSCRIPTION_GUID,
-            TenantId = Testing.WORKSPACE_TENANT_GUID
+            SubscriptionId = Testing.WorkspaceSubscriptionGuid,
+            TenantId = Testing.WorkspaceTenantGuid
         };
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
@@ -112,7 +112,7 @@ public sealed class DatahubAzureSubscriptionSteps(
     {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var subscription = await ctx.AzureSubscriptions
-            .FirstOrDefaultAsync(s => s.SubscriptionId == Testing.WORKSPACE_SUBSCRIPTION_GUID);
+            .FirstOrDefaultAsync(s => s.SubscriptionId == Testing.WorkspaceSubscriptionGuid);
 
         subscription.Should().NotBeNull();
         await datahubAzureSubscriptionService.DisableSubscriptionAsync(subscription!.SubscriptionId);
@@ -123,8 +123,8 @@ public sealed class DatahubAzureSubscriptionSteps(
     {
         var subscription = new DatahubAzureSubscription()
         {
-            SubscriptionId = Testing.WORKSPACE_SUBSCRIPTION_GUID,
-            TenantId = Testing.WORKSPACE_TENANT_GUID
+            SubscriptionId = Testing.WorkspaceSubscriptionGuid,
+            TenantId = Testing.WorkspaceTenantGuid
         };
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
@@ -171,7 +171,7 @@ public sealed class DatahubAzureSubscriptionSteps(
         var subscription = new DatahubAzureSubscription()
         {
             SubscriptionId = string.Format(p0),
-            TenantId = Testing.WORKSPACE_TENANT_GUID
+            TenantId = Testing.WorkspaceTenantGuid
         };
         
         ctx.AzureSubscriptions.Add(subscription);
@@ -219,12 +219,53 @@ public sealed class DatahubAzureSubscriptionSteps(
     {
         var subscription = new DatahubAzureSubscription()
         {
-            SubscriptionId = Testing.WORKSPACE_SUBSCRIPTION_GUID,
-            TenantId = Testing.WORKSPACE_TENANT_GUID
+            SubscriptionId = Testing.WorkspaceSubscriptionGuid,
+            TenantId = Testing.WorkspaceTenantGuid
         };
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         ctx.AzureSubscriptions.Add(subscription);
         await ctx.SaveChangesAsync();
+    }
+
+    [Given(@"there are no subscriptions")]
+    public async Task GivenThereAreNoSubscriptions()
+    {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var subscriptions = await ctx.AzureSubscriptions.ToListAsync();
+        subscriptions.Should().NotBeNull();
+        subscriptions.Count.Should().Be(0);
+    }
+
+    [Given(@"there are multiple subscriptions")]
+    public async Task GivenThereAreMultipleSubscriptions()
+    {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var subscriptions = await ctx.AzureSubscriptions.ToListAsync();
+        subscriptions.Should().NotBeNull();
+        subscriptions.Count.Should().Be(0);
+        
+        var subscription1 = new DatahubAzureSubscription()
+        {
+            SubscriptionId = Testing.WorkspaceSubscriptionGuid,
+            TenantId = Testing.WorkspaceTenantGuid
+        };
+        
+        var subscription2 = new DatahubAzureSubscription()
+        {
+            SubscriptionId = Testing.WorkspaceSubscriptionGuid2,
+            TenantId = Testing.WorkspaceTenantGuid
+        };
+        
+        ctx.AzureSubscriptions.Add(subscription1);
+        ctx.AzureSubscriptions.Add(subscription2);
+        
+        await ctx.SaveChangesAsync();
+    }
+
+    [Given(@"the next available subscription has one spot left")]
+    public void GivenTheNextAvailableSubscriptionHasOneSpotLeft()
+    {
+        throw new PendingStepException();
     }
 }

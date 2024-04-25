@@ -48,8 +48,8 @@ public class WorkspaceSubscriptionHook
         
         var currentUser = new PortalUser
         {
-            GraphGuid = Testing.CURRENT_USER_GUID.ToString(),
-            Email = Testing.CURRENT_USER_EMAIL
+            GraphGuid = Testing.CurrentUserGuid.ToString(),
+            Email = Testing.CurrentUserEmail
         };
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
         dbContext.PortalUsers.Add(currentUser);

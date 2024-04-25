@@ -34,3 +34,16 @@ This feature provides the ability to manage Azure subscriptions for the DataHub
         Given a datahub azure subscription service
         When the next available subscription is requested
         Then the next available subscription is returned
+        
+    Scenario: Get the next available suscription when there are no subscriptions
+        Given a datahub azure subscription service
+        And there are no subscriptions
+        When the next available subscription is requested
+        Then an error is returned
+        
+    Scenario: Roll over to the next available subscription
+        Given a datahub azure subscription service
+        And there are multiple subscriptions
+        And the next available subscription has one spot left
+        When a two workspaces are created
+        Then they should have different subscriptions
