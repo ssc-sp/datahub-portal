@@ -48,10 +48,6 @@
         <MudText Typo="Typo.h1">@Localizer["Help"]</MudText>
 
         <MudForm @ref="form">
-            @if (_currentStep != Steps.Start)
-            {
-                <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
-            }
             @if (_currentStep == Steps.Start)
             {
                 <MudStack>
@@ -72,6 +68,7 @@
             }
             else if (_currentStep == Steps.Topics)
             {
+                <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
                 @foreach (var topic in _ticketTopics)
                 {
@@ -80,6 +77,7 @@
             }
             else if (_currentStep == Steps.Description)
             {
+                <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
                 <MudTextField T="string"
                               @bind-Value="@_ticketDescription"
@@ -95,6 +93,7 @@
             }
             else if (_currentStep == Steps.Language)
             {
+                <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which language you would like to be contacted in."]</MudText>
                 <MudRadioGroup T="int" @bind-SelectedOption="_ticketPreferredLanguage">
                     <MudRadio Option="1" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["English"]</MudRadio>
@@ -103,6 +102,7 @@
             }
             else if (_currentStep == Steps.Submit)
             {
+                <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket."]</MudText>
                 <MudPaper Class="pa-2" Outlined="true">
                     <MudText Typo="@Typo.h6" Class="pb-3">@Localizer["Ticket Topics"]</MudText>
@@ -156,6 +156,24 @@
                     }
                 </MudItem>
             </MudGrid>
+            @if (_currentStep == Steps.Start)
+            {
+                <MudDivider/>
+                <MudText Typo="Typo.h4" Class="py-3">@Localizer["Your Support Requests"]</MudText>
+                <MudText Typo="Typo.body1" Class="py-3">@Localizer["These are your previously submitted support requests."]</MudText>
+                <MudTable Items="@_issues" Loading="@_loading" Hover Dense>
+                    <HeaderContent>
+						<MudTh>@Localizer["Title"]</MudTh>
+						<MudTh>@Localizer["Description"]</MudTh>
+                        <MudTh>@Localizer["Status"]</MudTh>
+					</HeaderContent>
+					<RowTemplate>
+						<MudTd>@context.Title</MudTd>
+						<MudTd>@context.Description</MudTd>
+                        <MudTd><MudChip Color="@GetColor(context.State)">@context.Message</MudChip></MudTd>
+					</RowTemplate>
+                </MudTable>
+            }
         </MudForm>
     </MudStack>
 </DatahubAuthView>
@@ -173,8 +191,10 @@
     private int _ticketPreferredLanguage = 1;
     private List<Datahub_Project_User> _userRoles;
     private IJSObjectReference _module;
+    private List<IssueForDisplaying> _issues = new ();
+    private string _issuesCount = "test";
 
-    private string _tempIssues = ""; // Temporary string to store the issues previously submitted
+    private bool _loading = true;
 
     // This dictionary is used to generate checkboxes in the help request
     Dictionary<string, bool> _ticketTopics = new Dictionary<string, bool>
@@ -296,7 +316,7 @@
     protected override async Task OnInitializedAsync()
     {
         // Retrieve general info, such as the user submitting the issue.
-
+        _loading = true;
         try
         {
             _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Layout/Topbar/HelpDialog.razor.js");
@@ -310,6 +330,7 @@
         _ticketName = _viewedUser.DisplayName;
         _ticketEmail = _viewedUser.Email;
         _ticketOrg = GetOrg(_ticketEmail);
+        _issues = await GetIssuesCreatedByUser(_ticketName);
         _ticketPortalLanguage = await _userSettingsService.GetUserLanguage();
 
         // Retrieve the list of workspaces
@@ -326,5 +347,97 @@
         {
             _ticketWorkspaces.Add(project.Project_Name, false);
         }
+
+        StateHasChanged();
+    }
+
+    public async Task<List<IssueForDisplaying>> GetIssuesCreatedByUser(string userName)
+    {
+        List<IssueForDisplaying> _issuesList = new List<IssueForDisplaying>();
+        var query = $"SELECT [System.Id], [System.Title], [System.CreatedBy], [System.CreatedDate], [System.Tags] FROM WorkItems WHERE [Submitted By] = '{userName}'";
+        var apiUrl = $"https://dev.azure.com/DataSolutionsDonnees/FSDH%20SSC/_apis/wit/wiql?api-version=7.0";
+
+        using (var client = new HttpClient())
+        {
+            var credentials = await _keyVaultService.GetSecret(_portalConfiguration.AdoServiceUser.PatSecretName);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($":{credentials}")));
+
+            // Create request body and send the POST request to Azure DevOps API
+            var body = new JObject { ["query"] = query };
+            var response = await client.PostAsync(apiUrl, new StringContent(body.ToString(), System.Text.Encoding.UTF8, "application/json"));
+            response.EnsureSuccessStatusCode();
+
+            // Parse the response and extract the work item titles
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var result = JObject.Parse(jsonResponse);
+
+            // Collect all the titles
+            var workItems = (JArray)result["workItems"];
+
+            foreach (var workItem in workItems)
+            {
+                // Get the WorkItem ID
+                var workItemId = (int)workItem["id"];
+                // Get the WorkItem details with ID
+                var itemApiUrl = $"https://dev.azure.com/DataSolutionsDonnees/FSDH%20SSC/_apis/wit/workItems/{workItemId}?api-version=7.0";
+                var workItemResponse = await client.GetAsync(itemApiUrl);
+                workItemResponse.EnsureSuccessStatusCode();
+
+                var workItemJsonResponse = await workItemResponse.Content.ReadAsStringAsync();
+                var workItemDetails = JObject.Parse(workItemJsonResponse);
+
+                var title = (string) workItemDetails["fields"]["System.Title"];
+                var description = (string)workItemDetails["fields"]["System.Description"];
+
+                var state = (string) workItemDetails["fields"]["System.State"];
+                string message;
+                switch (state)
+                {
+                    case "New":
+                        message = "Your request is submitted and awaiting review.";
+                        break;
+                    case "Active":
+                        message = "Your request is currently active and being worked on.";
+                        break;
+                    case "Closed":
+                        message = "Your request has been marked as closed.";
+                        break;
+                    default:
+                        message = "The state of your request is currently unknown.";
+                        break;
+                }
+
+                _issuesList.Add(new IssueForDisplaying(title, description, state, message));
+            }
+        }
+        _loading = false;
+        return _issuesList;
+    }
+
+    public class IssueForDisplaying {
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string State { get; set; }
+        public string Message { get; set; }
+
+        public IssueForDisplaying(string title, string description, string state, string message)
+        {
+            Title = title;
+            Description = description;
+            State = state;
+            Message = message;
+        }
+    }
+
+    private static Color GetColor(string status)
+    {
+        return status switch
+        {
+            "Closed" => Color.Success,
+            "Active" => Color.Default,
+            "New" => Color.Default,
+            _ => Color.Default
+        };
     }
 }
