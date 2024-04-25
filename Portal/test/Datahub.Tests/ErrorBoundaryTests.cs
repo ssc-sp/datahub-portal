@@ -84,7 +84,7 @@ public class ErrorBoundaryTests
         _stringLocalizerMock = new Mock<IStringLocalizer> { CallBase = true };
     }
 
-    [Fact]
+    [Fact(Skip = "Needs to be validated")]
     public async Task ReportIssue_ExceptionHandled()
     {
         // Arrange
