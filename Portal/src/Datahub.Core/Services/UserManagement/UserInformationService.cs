@@ -1,5 +1,6 @@
 ﻿using System.Net.Mail;
 using System.Security.Claims;
+using Azure.Core;
 using Azure.Identity;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
@@ -22,6 +23,7 @@ public class UserInformationService : IUserInformationService
 {
     private readonly ILogger<UserInformationService> logger;
     private GraphServiceClient graphServiceClient;
+    private GraphServiceClient onBehalfOfGraphServiceClient;
     private readonly AuthenticationStateProvider authenticationStateProvider;
     private readonly NavigationManager navigationManager;
 
@@ -67,11 +69,21 @@ public class UserInformationService : IUserInformationService
             authenticatedUser = (await authenticationStateProvider.GetAuthenticationStateAsync()).User;
         return authenticatedUser;
     }
-
     public async Task<string> GetUserIdString()
     {
         await CheckUser();
         return GetOid();
+    }
+
+    public async Task SetFullName(string firstName, string lastName)
+    {
+        await PrepareOnBehalfClient();
+        var request = new User
+        {
+            GivenName = firstName,
+            Surname = lastName
+        };
+        var result = await onBehalfOfGraphServiceClient.Me.PatchAsync(request);
     }
 
     public async Task<string> GetUserEmail()
@@ -84,6 +96,12 @@ public class UserInformationService : IUserInformationService
     {
         await CheckUser();
         return currentUser.DisplayName;
+    }
+
+    public async Task<(string FirstName, string LastName)> GetFullName()
+    {
+        await CheckUser();
+        return (currentUser.GivenName, currentUser.Surname);
     }
 
     public async Task<string> GetUserEmailDomain()
@@ -162,6 +180,37 @@ public class UserInformationService : IUserInformationService
         }
     }
 
+    private async Task PrepareOnBehalfClient()
+    {
+        try
+        {
+            var options = new OnBehalfOfCredentialOptions
+            {
+                AuthorityHost = AzureAuthorityHosts.AzurePublicCloud
+            };
+            var appCreds = new ClientSecretCredential(
+                configuration.GetSection("AzureAd").GetValue<string>("TenantId"),
+                configuration.GetSection("AzureAd").GetValue<string>("ClientId"),
+                configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"));
+            var appTokenRequestContext = new TokenRequestContext(new[] { "https://graph.microsoft.com/.default" });
+            var appToken = await appCreds.GetTokenAsync(appTokenRequestContext);
+            var userAssertion = new UserAssertion(appToken.Token, "urn:ietf:params:oauth:grant-type:jwt-bearer");
+            var onBehalfCreds = new OnBehalfOfCredential(
+                configuration.GetSection("AzureAd").GetValue<string>("TenantId"),
+                configuration.GetSection("AzureAd").GetValue<string>("ClientId"),
+                configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"),
+                userAssertion.Assertion,
+                options);
+            onBehalfOfGraphServiceClient = new(onBehalfCreds, new[] { "https://graph.microsoft.com/User.ReadWrite" });
+        }
+        catch (Exception e)
+        {
+            logger.LogError($"Error preparing authentication client: {e.Message}");
+            Console.WriteLine($"Error preparing authentication client: {e.Message}");
+            throw;
+        }
+    }
+
     private string GetOid()
     {
         // ReSharper disable once ConstantConditionalAccessQualifier
@@ -191,7 +240,7 @@ public class UserInformationService : IUserInformationService
                 configuration.GetSection("AzureAd").GetValue<string>("TenantId"),
                 configuration.GetSection("AzureAd").GetValue<string>("ClientId"),
                 configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"), options);
-            graphServiceClient = new(clientCertCredential);
+            graphServiceClient = new(clientCertCredential, new[] { "https://graph.microsoft.com/.default" });
         }
         catch (Exception e)
         {

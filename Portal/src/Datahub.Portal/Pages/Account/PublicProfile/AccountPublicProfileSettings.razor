@@ -1,9 +1,12 @@
+@using Datahub.Application.Validators
 @using Datahub.Portal.Components.User
+@using FluentValidation.Results
 @using Datahub.Core.Model.Achievements
 
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDialogService _dialogService
 @inject IUserSettingsService _userSettingsService
+@inject IUserInformationService _userInformationService
 
 <MudStack Spacing="8" Class="mb-16">
     <MudStack>
@@ -15,6 +18,21 @@
     </SettingsField>
     <SettingsField Label="@Localizer["Email Address"]" Description="@Localizer["Your email address will be used to send you notifications."]">
         <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.Email"/>
+    </SettingsField>
+    <SettingsField Label="@Localizer["First and last name"]" Description="@Localizer["Your first name and last name are not used within the DataHub but are often required to setup external connections."]">
+        <MudStack Row>
+            <MudTextField T="string" Variant="Variant.Outlined" Margin="Margin.Dense" Value="@FirstName" Label="@Localizer["First name"]" Immediate="true" ValueChanged="HandleFirstNameChanged"/>
+            <MudTextField T="string" Variant="Variant.Outlined" Margin="Margin.Dense" Value="@LastName" Label="@Localizer["Last name"]" Immediate="true" ValueChanged="HandleLastNameChanged"/>
+        </MudStack>
+        @if (!_nameValidationResult.IsValid)
+        {
+            <MudAlert Severity="Severity.Error" Variant="Variant.Text" Class="mt-4">
+                @Localizer[_nameValidationResult.ToString()]
+            </MudAlert>
+        }
+        <MudButton Variant="Variant.Filled" Disabled="@(!canSubmitNameChange)" Color="Color.Primary" Class="mt-4" OnClick="SubmitNameChange">
+            @Localizer["Save name change"]
+        </MudButton>
     </SettingsField>
     <SettingsField Label="@Localizer["Profile Picture"]" Description="@Localizer["Your profile picture will be displayed beside your name around DataHub. You can it at any time and unlock more variations from completing achievements."]">
         <ImageSelectionView
@@ -40,11 +58,55 @@
 
 @code {
 
-    [Parameter]
-    public PortalUser ViewedUser { get; set; }
+    [Parameter] public PortalUser ViewedUser { get; set; }
 
-    [Parameter]
-    public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
+    [Parameter] public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
+
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    private string _userFirstName { get; set; }
+    private string _userLastName { get; set; }
+    private NameValidator _nameValidator = new NameValidator();
+    private ValidationResult _nameValidationResult = new ValidationResult();
+    
+    private bool canSubmitNameChange => _nameValidationResult.IsValid && (FirstName != _userFirstName || LastName != _userLastName);
+
+    protected override async Task OnInitializedAsync()
+    {
+        (_userFirstName, _userLastName) = await _userInformationService.GetFullName();
+        (FirstName, LastName) = (_userFirstName, _userLastName);
+    }
+
+    private string ValidateName(string placeholder)
+    {
+        _nameValidationResult = _nameValidator.Validate((FirstName, LastName));
+        return Localizer[_nameValidationResult.ToString()];
+    }
+    
+    private void HandleFirstNameChanged(string value)
+    {
+        FirstName = value;
+        ValidateName(value);
+    }
+    
+    private void HandleLastNameChanged(string value)
+    {
+        LastName = value;
+        ValidateName(value);
+    }
+
+    private async Task SubmitNameChange()
+    {
+        if (!canSubmitNameChange)
+        {
+            return;
+        }
+
+        await _userInformationService.SetFullName(FirstName, LastName);
+        (_userFirstName, _userLastName) = (FirstName, LastName);
+        _nameValidationResult = new ValidationResult();
+        await OnViewedUserChanged.InvokeAsync(ViewedUser);
+    }
 
     private async Task HandleImageSelected(string code, bool isProfilePicture)
     {
@@ -59,7 +121,7 @@
         ViewedUser.UserSettings.HideAchievements = !ViewedUser.UserSettings.HideAchievements;
         await OnViewedUserChanged.InvokeAsync(ViewedUser);
     }
-    
+
     private async Task HandleHideAlertsChanged()
     {
         ViewedUser.UserSettings.HideAlerts = !ViewedUser.UserSettings.HideAlerts;
