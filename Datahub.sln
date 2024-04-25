@@ -132,16 +132,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.SpecflowTests", "Po
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.MissingTranslations", "Portal\utils\Datahub.MissingTranslations\Datahub.MissingTranslations.csproj", "{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ResourceProvisioner_PyFunctions_Tests", "ResourceProvisioner_PyFunctions_Tests", "{879D39ED-3C1F-4C0B-8856-6E76203CEA0A}"
-	ProjectSection(SolutionItems) = preProject
-		ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\at3_workspace_data.json = ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\at3_workspace_data.json
-		ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\configure_env.ps1 = ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\configure_env.ps1
-		ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\function_app_test.py = ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\function_app_test.py
-		ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\README.md = ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\README.md
-		ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\requirements.txt = ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\requirements.txt
-		ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\workspace_data.json = ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\workspace_data.json
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.SpecflowTests", "ResourceProvisioner\test\ResourceProvisioner.SpecflowTests\ResourceProvisioner.SpecflowTests.csproj", "{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}"
 EndProject
 Global
