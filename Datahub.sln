@@ -23,6 +23,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ResourceProvisioner", "ResourceProvisioner", "{A3E0CF47-6B1D-41C1-B1A4-B4A92985E05F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{40919C7D-5119-4821-9E51-96141E058E04}"
+	ProjectSection(SolutionItems) = preProject
+		ResourceProvisioner_PyFunctions_Tests.ps1 = ResourceProvisioner_PyFunctions_Tests.ps1
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Application.IntegrationTests", "ResourceProvisioner\test\ResourceProvisioner.Application.IntegrationTests\ResourceProvisioner.Application.IntegrationTests.csproj", "{E94EF665-2394-4C18-82F2-9150D0801CDE}"
 EndProject
@@ -127,9 +130,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Infrastructure.Offl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.SpecflowTests", "Portal\test\Datahub.SpecflowTests\Datahub.SpecflowTests.csproj", "{D84C8789-E77F-438A-A0B6-7DB1695B9C17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceProvisioner.SpecflowTests", "ResourceProvisioner\test\ResourceProvisioner.SpecflowTests\ResourceProvisioner.SpecflowTests.csproj", "{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.MissingTranslations", "Portal\utils\Datahub.MissingTranslations\Datahub.MissingTranslations.csproj", "{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.MissingTranslations", "Portal\utils\Datahub.MissingTranslations\Datahub.MissingTranslations.csproj", "{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ResourceProvisioner_PyFunctions_Tests", "ResourceProvisioner_PyFunctions_Tests", "{879D39ED-3C1F-4C0B-8856-6E76203CEA0A}"
+	ProjectSection(SolutionItems) = preProject
+		ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\at3_workspace_data.json = ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\at3_workspace_data.json
+		ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\configure_env.ps1 = ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\configure_env.ps1
+		ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\function_app_test.py = ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\function_app_test.py
+		ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\README.md = ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\README.md
+		ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\requirements.txt = ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\requirements.txt
+		ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\workspace_data.json = ResourceProvisioner\test\ResourceProvisioner_PyFunctions_Tests\workspace_data.json
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.SpecflowTests", "ResourceProvisioner\test\ResourceProvisioner.SpecflowTests\ResourceProvisioner.SpecflowTests.csproj", "{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -266,14 +279,14 @@ Global
 		{D84C8789-E77F-438A-A0B6-7DB1695B9C17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D84C8789-E77F-438A-A0B6-7DB1695B9C17}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D84C8789-E77F-438A-A0B6-7DB1695B9C17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C90C5DD-C546-45A1-9D25-1112DFBDC52A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -321,7 +334,6 @@ Global
 		{D84C8789-E77F-438A-A0B6-7DB1695B9C17} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 		{879D39ED-3C1F-4C0B-8856-6E76203CEA0A} = {40919C7D-5119-4821-9E51-96141E058E04}
 		{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B} = {40919C7D-5119-4821-9E51-96141E058E04}
-		{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_ConfirmAddLanguageFile = True

@@ -8,6 +8,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using Datahub.Core.Enums;
 
 namespace Datahub.Functions;
 
@@ -108,12 +109,12 @@ public class ProjectUsageScheduler
         var projects = new List<Project_Resources2>();
         await foreach (var res in ctx.Project_Resources2.AsAsyncEnumerable())
         {
-            if (res.ResourceType == terraformServiceType)
+            if (res.ResourceType == terraformServiceType && (res.Status == null || res.Status != TerraformOutputStatus.Deleted))
             {
                 databrickProjects.Add(res.ProjectId);
             }
 
-            if (res.ResourceType == storageBlobType)
+            if (res.ResourceType == storageBlobType && (res.Status == null || res.Status != TerraformOutputStatus.Deleted))
             {
                 projects.Add(res);
             }
