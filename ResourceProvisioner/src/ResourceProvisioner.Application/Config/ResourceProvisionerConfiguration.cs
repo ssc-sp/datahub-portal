@@ -22,9 +22,8 @@ public class InfrastructureRepositoryConfiguration
     public string ProjectPathPrefix { get; set; }
     public string PullRequestUrl { get; set; }
     public string PullRequestBrowserUrl { get; set; }
-    public string ApiVersion { get; set; }
+    public string ApiVersion { get; set; } = "7.1-preview.1";
     public string MainBranch { get; set; }
-    public string AutoApproveUserOid { get; set; }
     public AzureDevOpsConfiguration AzureDevOpsConfiguration { get; set; } = new(); 
 }
 
