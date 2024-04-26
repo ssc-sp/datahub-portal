@@ -150,7 +150,7 @@
         _config.ClientId = _portalConfiguration.AzureAd.InfraClientId;
         _config.ClientSecret = _portalConfiguration.AzureAd.InfraClientSecret;
         var clientProvider = new AzureDevOpsClient(_config);
-        return clientProvider.GetAccessToken(_config, DATABRICKS_SCOPE);
+        return clientProvider.AccessTokenWithCustomScopeAsync(_config, DATABRICKS_SCOPE);
     }
 
     private async Task AddToDatabricksAdmins()
