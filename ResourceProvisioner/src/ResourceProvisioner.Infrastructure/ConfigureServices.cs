@@ -20,7 +20,7 @@ public static class ConfigureServices
                 .Get<AzureDevOpsConfiguration>();
             
             var azureDevOpsClient = new AzureDevOpsClient(azureDevOpsConfiguration!);
-            var accessToken = azureDevOpsClient.GetAccessToken();
+            var accessToken = azureDevOpsClient.AccessToken();
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken.Token}");
         });
         
