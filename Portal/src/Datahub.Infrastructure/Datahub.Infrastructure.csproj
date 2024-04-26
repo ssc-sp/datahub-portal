@@ -9,6 +9,10 @@
     <ItemGroup>
       <PackageReference Include="Azure.ResourceManager" Version="1.11.0" />
       <PackageReference Include="Azure.ResourceManager.AppService" Version="1.0.2" />
+      <PackageReference Include="Azure.ResourceManager.Consumption" Version="1.0.1" />
+      <PackageReference Include="Azure.ResourceManager.CostManagement" Version="1.0.1" />
+      <PackageReference Include="Azure.ResourceManager.Monitor" Version="1.3.0" />
+      <PackageReference Include="Azure.ResourceManager.Storage" Version="1.2.0" />
       <PackageReference Include="Google.Cloud.Storage.V1" Version="4.6.0" />
       <PackageReference Include="MediatR" Version="12.1.1" />
 	  <!--<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />-->
