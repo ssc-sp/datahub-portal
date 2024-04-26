@@ -203,6 +203,7 @@ public class Hosting
 {
 	public string Profile { get; set; } = "ssc";
 	public string EnvironmentName { get; set; } = "dev";
+    public int WorkspaceCountPerAzureSubscription { get; set; } = 100;
 }
 
 public class KeyVault

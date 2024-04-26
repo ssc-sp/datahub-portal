@@ -9,5 +9,8 @@ public static class Testing
     public static readonly string WorkspaceSubscriptionGuid2 = Guid.NewGuid().ToString();
     
     public static readonly string WorkspaceAcronym = Guid.NewGuid().ToString().Replace("-", "")[..5];
+    public static readonly string WorkspaceAcronym2 = Guid.NewGuid().ToString().Replace("-", "")[..5];
+    
     public const string WorkspaceName = "Test Workspace";
+    public const string WorkspaceName2 = "Test Workspace2";
 }
