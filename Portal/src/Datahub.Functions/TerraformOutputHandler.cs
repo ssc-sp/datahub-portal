@@ -243,6 +243,19 @@ public class TerraformOutputHandler
 
         var projectResource = await GetProjectResource(outputVariables, storageServiceType);
 
+        if (!storageBlobStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
+        {
+            if (!storageBlobStatus.Equals(TerraformOutputStatus.Deleted, StringComparison.InvariantCultureIgnoreCase))
+            {
+                //In this case, donot mark the resource as deleted, as it is not deleted
+                _logger.LogError("Azure storage blob status is failed. Status: {Status}", storageBlobStatus);
+                return;
+            }
+            projectResource.Status = TerraformOutputStatus.Deleted;
+            await _projectDbContext.SaveChangesAsync();
+            return;
+        }
+
         var accountName = outputVariables[TerraformVariables.OutputAzureStorageAccountName];
         var containerName = outputVariables[TerraformVariables.OutputAzureStorageContainerName];
         var resourceGroupName = outputVariables[TerraformVariables.OutputAzureResourceGroupName];
