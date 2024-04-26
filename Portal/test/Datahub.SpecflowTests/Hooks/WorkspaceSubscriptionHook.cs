@@ -54,7 +54,7 @@ public class WorkspaceSubscriptionHook
         var datahubPortalConfiguration = LoadConfiguration(objectContainer);
 
         var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
-            .UseInMemoryDatabase(databaseName: "DatahubProjectDB")
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
         var dbContextFactory = new SpecFlowDbContextFactory(options);

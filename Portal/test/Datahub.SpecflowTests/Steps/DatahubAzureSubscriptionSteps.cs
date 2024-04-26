@@ -130,7 +130,7 @@ public sealed class DatahubAzureSubscriptionSteps(
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         ctx.AzureSubscriptions.Add(subscription);
         await ctx.SaveChangesAsync();
-        
+
         var subscriptions = await ctx.AzureSubscriptions.ToListAsync();
         subscriptions.Should().NotBeNull();
         subscriptions!.Count.Should().Be(1);
@@ -173,7 +173,7 @@ public sealed class DatahubAzureSubscriptionSteps(
             SubscriptionId = string.Format(p0),
             TenantId = Testing.WorkspaceTenantGuid
         };
-        
+
         ctx.AzureSubscriptions.Add(subscription);
         await ctx.SaveChangesAsync();
     }
@@ -182,7 +182,7 @@ public sealed class DatahubAzureSubscriptionSteps(
     public async Task ThenThereShouldBeNoSubscriptionsWithId(string p0)
     {
         var subscriptions = await datahubAzureSubscriptionService.ListSubscriptionsAsync();
-        
+
         subscriptions.Should().NotBeNull();
         subscriptions.Any(s => s.SubscriptionId == p0).Should().BeFalse();
     }
@@ -196,8 +196,15 @@ public sealed class DatahubAzureSubscriptionSteps(
     [When(@"the next available subscription is requested")]
     public async Task WhenTheNextAvailableSubscriptionIsRequested()
     {
-        var subscription = await datahubAzureSubscriptionService.NextSubscriptionAsync();
-        scenarioContext["subscription"] = subscription;
+        try
+        {
+            var subscription = await datahubAzureSubscriptionService.NextSubscriptionAsync();
+            scenarioContext["subscription"] = subscription;
+        }
+        catch (Exception e)
+        {
+            scenarioContext["exception"] = e;
+        }
     }
 
     [Then(@"the next available subscription is returned")]
@@ -205,10 +212,10 @@ public sealed class DatahubAzureSubscriptionSteps(
     {
         var subscription = scenarioContext["subscription"] as DatahubAzureSubscription;
         subscription.Should().NotBeNull();
-        
+
         subscription!.SubscriptionId.Should().NotBeNullOrEmpty();
         subscription!.TenantId.Should().NotBeNullOrEmpty();
-        
+
         var allSubscriptions = await datahubAzureSubscriptionService.ListSubscriptionsAsync();
         allSubscriptions.Should().NotBeNull();
         allSubscriptions!.Any(s => s.SubscriptionId == subscription.SubscriptionId).Should().BeTrue();
@@ -244,22 +251,22 @@ public sealed class DatahubAzureSubscriptionSteps(
         var subscriptions = await ctx.AzureSubscriptions.ToListAsync();
         subscriptions.Should().NotBeNull();
         subscriptions.Count.Should().Be(0);
-        
+
         var subscription1 = new DatahubAzureSubscription()
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
             TenantId = Testing.WorkspaceTenantGuid
         };
-        
+
         var subscription2 = new DatahubAzureSubscription()
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid2,
             TenantId = Testing.WorkspaceTenantGuid
         };
-        
+
         ctx.AzureSubscriptions.Add(subscription1);
         ctx.AzureSubscriptions.Add(subscription2);
-        
+
         await ctx.SaveChangesAsync();
     }
 
@@ -267,8 +274,9 @@ public sealed class DatahubAzureSubscriptionSteps(
     public async Task GivenTheNextAvailableSubscriptionHasOneSpotLeft()
     {
         var subscription = await datahubAzureSubscriptionService.NextSubscriptionAsync();
-        var numberOfRemainingWorkspaces = await datahubAzureSubscriptionService.NumberOfRemainingWorkspacesAsync(subscription.SubscriptionId);
-        
+        var numberOfRemainingWorkspaces =
+            await datahubAzureSubscriptionService.NumberOfRemainingWorkspacesAsync(subscription.SubscriptionId);
+
         numberOfRemainingWorkspaces.Should().Be(1);
     }
 }

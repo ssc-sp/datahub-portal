@@ -274,9 +274,12 @@ namespace Datahub.SpecflowTests.Features.Subscriptions
         await testRunner.GivenAsync("a datahub azure subscription service", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 35
-        await testRunner.WhenAsync("the next available subscription is requested", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+        await testRunner.AndAsync("at least one subscription exists", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 36
+        await testRunner.WhenAsync("the next available subscription is requested", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 37
         await testRunner.ThenAsync("the next available subscription is returned", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
@@ -291,7 +294,7 @@ namespace Datahub.SpecflowTests.Features.Subscriptions
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Get the next available suscription when there are no subscriptions", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 38
+#line 39
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -301,16 +304,16 @@ namespace Datahub.SpecflowTests.Features.Subscriptions
             else
             {
                 await this.ScenarioStartAsync();
-#line 39
+#line 40
         await testRunner.GivenAsync("a datahub azure subscription service", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 40
+#line 41
         await testRunner.AndAsync("there are no subscriptions", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 41
+#line 42
         await testRunner.WhenAsync("the next available subscription is requested", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 42
+#line 43
         await testRunner.ThenAsync("an error is returned", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
