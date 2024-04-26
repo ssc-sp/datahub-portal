@@ -129,7 +129,7 @@ namespace Datahub.Functions
         public async Task<WorkItem> PostIssue(JsonPatchDocument body)
         {
             var clientProvider = new AzureDevOpsClient(_config.AzureDevOpsConfiguration);
-            var client = await clientProvider.GetWorkItemClient();
+            var client = await clientProvider.WorkItemClientAsync();
             var workItem = await client.CreateWorkItemAsync(body, _config.AzureDevOpsConfiguration.ProjectName, "Issue");
 
             if (workItem is null)

@@ -55,7 +55,7 @@ namespace Datahub.Functions
         private async Task<HttpClient> ConfigureHttpClient()
         {
             var adoProvider = new AzureDevOpsClient(_config.AzureDevOpsConfiguration);
-            return await adoProvider.GetPipelineClient();
+            return await adoProvider.PipelineClientAsync();
         }
 
         // private async Task<AppServiceConfiguration> GetAppServiceConfiguration(string projectAcronym)
