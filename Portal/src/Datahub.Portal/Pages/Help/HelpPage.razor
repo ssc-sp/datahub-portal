@@ -201,7 +201,6 @@
     private List<Datahub_Project_User> _userRoles;
     private IJSObjectReference _module;
     private List<IssueForDisplaying> _issues = new ();
-    private string _issuesCount = "test";
 
     private bool _loading = true;
 
@@ -233,6 +232,12 @@
     }
 
 
+    /**
+     * Initializes the component asynchronously.
+     * Retrieves general information about the user submitting the issue, such as name, email, and language used.
+     * Retrieves the list of workspaces associated with the user.
+     * Retrieves the list of issues previously created by the user.
+     */
     protected override async Task OnInitializedAsync()
     {
         _loading = true; // showing the user that the table is loading.
@@ -263,9 +268,18 @@
         StateHasChanged();
     }
 
+    /**
+     * Performs an action after the component has been rendered.
+     * This method is called after the first render and can be used to perform tasks that require access to the rendered DOM elements.
+     * It imports a JavaScript module and retrieves user agent, resolution, and timezone information using JavaScript interop.
+     * This occurs in this method because it requires the component to be rendered first, otherwise an error will be visible briefly to the user.
+     * 
+     * @param firstRender - A boolean value indicating whether this is the first render of the component.
+     * @returns A Task representing the asynchronous operation.
+     */
     protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
-		if (firstRender)
+    {
+        if (firstRender)
         {
             try
             {
@@ -275,9 +289,13 @@
             {
                 _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Pages/Help/HelpPage.razor.js");
             }
-		}
-	}
+        }
+    }
 
+    /**
+     * Advances to the next step in the form.
+     * Validates the form before proceeding to the next step.
+     */
     private void NextStep()
     {
         form.Validate();
@@ -287,11 +305,24 @@
         }
     }
 
+    /**
+     * Goes back to the previous step in the form.
+     */
     private void PreviousStep()
     {
         _currentStep--;
     }
 
+    /**
+     * Submits the form for creating a support ticket.
+     * Validates the form before submitting.
+     * Retrieves necessary information such as URL, user agent, resolution, timezone, and preferred language.
+     * Retrieves local storage data.
+     * Retrieves selected checkboxes for issue topics and workspaces.
+     * Creates a bug report message and sends it to the queue.
+     * Displays a success message to the user.
+     * Resets the form and current step.
+     */
     private async void SubmitForm()
     {
         await form.Validate();
@@ -348,12 +379,20 @@
             Description: _ticketDescription
         );
 
-        await _mediatr.Send(bugReport);
+        await _mediatr.Send(bugReport); // Send the bug report to the queue
         await DialogService.ShowMessageBox(Localizer["Success"], Localizer["Your support ticket has been created. Thank you!"], yesText: "OK");
-        _currentStep = Steps.Start;
+        _currentStep = Steps.Start; // Reset the form
         StateHasChanged();
     }
 
+    /**
+     * Retrieves the organization name from the given email address.
+     * If the email address is in the format "user@organization.gc.ca", then organization is extracted from it.
+     * If the email address is not in the expected format, the organization name is set to "unknown".
+     * 
+     * @param email - The email address from which to extract the organization name.
+     * @returns The organization name extracted from the email address, or "unknown" if the email address is not in the expected format.
+     */
     private string GetOrg(string email)
     {
         var org = "";
@@ -368,6 +407,12 @@
         return org;
     }
 
+    /**
+     * Retrieves a list of issues created by a specific user.
+     * 
+     * @param userName The username of the user.
+     * @return A list of IssueForDisplaying objects representing the issues created by the user.
+     */
     public async Task<List<IssueForDisplaying>> GetIssuesCreatedByUser(string userName)
     {
         List<IssueForDisplaying> _issuesList = new List<IssueForDisplaying>();
@@ -404,14 +449,16 @@
                 var workItemJsonResponse = await workItemResponse.Content.ReadAsStringAsync();
                 var workItemDetails = JObject.Parse(workItemJsonResponse);
 
+                // Retrieve fields that will be displayed to the user
                 var issueId = (string)workItemDetails["id"];
-
                 var title = (string) workItemDetails["fields"]["System.Title"];
                 var description = (string)workItemDetails["fields"]["System.Description"];
                 description = description.Split("<b>Description:</b> ")[1].Split("<br>")[0];
+                var state = (string)workItemDetails["fields"]["System.State"];
+                var submittedDate = (string)workItemDetails["fields"]["System.CreatedDate"];
+                var changedDate = (string)workItemDetails["fields"]["System.ChangedDate"];
 
-                var state = (string) workItemDetails["fields"]["System.State"];
-                string message;
+                string message; // Message to display to the user based on the state of the issue
                 switch (state)
                 {
                     case "New":
@@ -428,25 +475,83 @@
                         break;
                 }
 
-                var submittedDate = (string) workItemDetails["fields"]["System.CreatedDate"];
-                var changedDate = (string) workItemDetails["fields"]["System.ChangedDate"];
-
+                // Add the issue to the list
                 _issuesList.Add(new IssueForDisplaying(issueId, title, description, state, message, submittedDate, changedDate));
             }
         }
         _loading = false; // Stop showing the loading bar in the table.
+
+        // Reverse the issues list so that the most recent issues are displayed first
+        _issuesList.Reverse();
         return _issuesList;
     }
 
+    /**
+     * Retrieves the color based on the status of an issue.
+     *
+     * @param status - The status of the issue.
+     * @returns The color associated with the status.
+     */
+    private static Color GetColor(string status)
+    {
+        return status switch
+        {
+            "Closed" => Color.Success,
+            "Active" => Color.Default,
+            "New" => Color.Default,
+            _ => Color.Default
+        };
+    }
+
+    /**
+     * Represents an issue for displaying in the support ticket table.
+     */
     public class IssueForDisplaying {
+        /// <summary>
+        /// Gets or sets the ID of the issue.
+        /// </summary>
         public string Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the title of the issue.
+        /// </summary>
         public string Title { get; set; }
+
+        /// <summary>
+        /// Gets or sets the description of the issue.
+        /// </summary>
         public string Description { get; set; }
+
+        /// <summary>
+        /// Gets or sets the state of the issue.
+        /// </summary>
         public string State { get; set; }
+
+        /// <summary>
+        /// Gets or sets the message to display to the user based on the state of the issue.
+        /// </summary>
         public string Message { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date the issue was submitted.
+        /// </summary>
         public string SubmittedDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date the issue was last changed.
+        /// </summary>
         public string ChangedDate { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IssueForDisplaying"/> class.
+        /// </summary>
+        /// <param name="id">The ID of the issue.</param>
+        /// <param name="title">The title of the issue.</param>
+        /// <param name="description">The description of the issue.</param>
+        /// <param name="state">The state of the issue.</param>
+        /// <param name="message">The message to display to the user based on the state of the issue.</param>
+        /// <param name="submittedDate">The date the issue was submitted.</param>
+        /// <param name="changedDate">The date the issue was last changed.</param>
         public IssueForDisplaying(string id, string title, string description, string state, string message, string submittedDate, string changedDate)
         {
             Id = id;
@@ -457,16 +562,5 @@
             SubmittedDate = submittedDate;
             ChangedDate = changedDate;
         }
-    }
-
-    private static Color GetColor(string status)
-    {
-        return status switch
-        {
-            "Closed" => Color.Success,
-            "Active" => Color.Default,
-            "New" => Color.Default,
-            _ => Color.Default
-        };
     }
 }
