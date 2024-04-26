@@ -22,8 +22,8 @@ function Export-Settings(
     [ValidateSet("AppSettings", "Environment", "Terraform", "Function")]
     [string]$Target,
     [Parameter(Mandatory=$true)]
-    [ValidateSet("test", "development","poc")]
-    [string]$EnvironmentName,
+    [ValidateSet("test", "dev","int","poc")]
+    [string]$Environment,
     [string]$ProjectFolder,
     [string]$TfFile = $null,
     [string]$TargetFile = $null
@@ -70,7 +70,7 @@ function Export-Settings(
     $azureDevOpsOrganization = "DataSolutionsDonnees"
     $azureDevOpsProject = "FSDH%20SSC"
     $vaultName = "fsdh-static-test-akv"
-    $azureDevopsRepository = "datahub-project-infrastructure-$EnvironmentName"
+    $azureDevopsRepository = "datahub-project-infrastructure-$Environment"
 
     $tenantId = Read-VaultSecret $vaultName "datahub-portal-tenant-id"
     $subscriptionId = Read-VaultSecret $vaultName "datahub-portal-subscription-id"
@@ -97,9 +97,9 @@ function Export-Settings(
             return
         }
         $tfFilePath = Join-Path $infraRepo $TfFile
-        if (-not (Test-Path $tfFilePath))
+        if (-not (Test-Path $infraRepo))
         {
-            Write-Error "TfFile $tfFilePath not found"
+            Write-Error "Folder $infraRepo not found"
             return
         }
     }
@@ -122,7 +122,7 @@ function Export-Settings(
     $object = $jsonObject | ConvertFrom-Json
     $flattenedObject = ConvertTo-HashTable -Object $object
 
-    $sensitiveEntries = $flattenedObject.GetEnumerator() | Where-Object { $_.Value -like "*Password=*" -or $_.Key -like "*ConnectionStrings*"}    
+    $sensitiveEntries = $flattenedObject.GetEnumerator() | Where-Object { $_.Value -like "*Password=*" -or $_.Key -like "*ConnectionStrings*" -or $_.Value -like "*Server=*"}     
     $sensitiveKeys = $sensitiveEntries | ForEach-Object { $_.Name }
     #Write-Host "Flattened object"
     #$flattenedObject | Format-Table
@@ -145,10 +145,11 @@ function Export-Settings(
     $nonAkvJson = $unflattenedObject | ConvertTo-Json -Depth 100
 
     if ($Target -eq "AppSettings" -or $Target -eq "Function") {
-        $fName = ($null -eq $TargetFile) ? [System.IO.Path]::GetFileName($tgtFile):$TargetFile
+        #Write-Host "Target file is $tgtFile $($null -eq $TargetFile) - TargetFile is $TargetFile - fname = $([System.IO.Path]::GetFileName($tgtFile))"        
+        $fName = if ($TargetFile) { $TargetFile } else { [System.IO.Path]::GetFileName($tgtFile) }
         $tgtFile = Join-Path $ProjectFolder $fName
         Write-Output "Writing json object to $tgtFile"
-        Write-Host "Sensitive entries"
+        Write-Host "Processing Sensitive entries"
         if ($Target -eq "Function")
         {   
             $functionSettings = "{`n  `"IsEncrypted`": false,`n  `"Values`":   $nonAkvJson `n}"
@@ -219,14 +220,14 @@ function Export-Settings(
         $padding = 50
         #take the tf output file without extension
         $varName = [System.IO.Path]::GetFileNameWithoutExtension($TfFile) -replace "-", "_"
-        
+        $aspEnv = if ($Environment -eq "dev") { "Development" } else { $Environment}
         $header = @"
 variable "$varName" {
     description = "Generated settings from $SourceFile"
     type        = map(string)
     default     = {
       "ASPNETCORE_DETAILEDERRORS"                        = "false"
-      "ASPNETCORE_ENVIRONMENT"                           = "$EnvironmentName"
+      "ASPNETCORE_ENVIRONMENT"                           = "$aspEnv"
       "WEBSITE_RUN_FROM_PACKAGE"                         = var.app_deploy_as_package    
 "@          
         $footer = "    }`n}"
