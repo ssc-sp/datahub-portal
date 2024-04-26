@@ -20,6 +20,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{48CAB0F7-CFCC-443B-B71D-E015878CE5B7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ResourceProvisioner", "ResourceProvisioner", "{A3E0CF47-6B1D-41C1-B1A4-B4A92985E05F}"
+	ProjectSection(SolutionItems) = preProject
+		ResourceProvisioner\template.settings.json = ResourceProvisioner\template.settings.json
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{40919C7D-5119-4821-9E51-96141E058E04}"
 EndProject
@@ -43,7 +46,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Functio
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Portal", "Portal", "{BBA6CF1B-6BDA-4363-9641-2E4A4E43D321}"
 	ProjectSection(SolutionItems) = preProject
-		Portal\template.appsettings.dev.json = Portal\template.appsettings.dev.json
+		Portal\template.appsettings.json = Portal\template.appsettings.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}"
@@ -131,7 +134,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.MissingTranslations
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ServerlessOperations", "ServerlessOperations", "{0A20EC69-1E3C-498F-B989-89CAF316CE06}"
 	ProjectSection(SolutionItems) = preProject
-		ServerlessOperations\template.settings.dev.json = ServerlessOperations\template.settings.dev.json
+		ServerlessOperations\template.settings.json = ServerlessOperations\template.settings.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8620F501-1D36-439E-9BF0-3BBEFB84DC56}"
@@ -350,4 +353,3 @@ Global
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{cf8de3c8-8b81-4569-8075-aad80b478b5f}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
-ndGlobal
