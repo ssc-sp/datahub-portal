@@ -30,7 +30,7 @@ public class EmailNotificationHandler
     }
 
     [Function("EmailNotificationHandler")]
-    public Task Run([ServiceBusTrigger(QueueConstants.QUEUE_EMAILS)] ServiceBusReceivedMessage requestMessage, CancellationToken cancellationToken)
+    public Task Run([ServiceBusTrigger(QueueConstants.QUEUE_EMAILS, Connection = "MassTransit:AzureServiceBus:ConnectionString")] ServiceBusReceivedMessage requestMessage, CancellationToken cancellationToken)
     {
         return receiver.HandleConsumer<EmailNotificationConsumer>(QueueConstants.QUEUE_EMAILS, requestMessage, cancellationToken);
     }

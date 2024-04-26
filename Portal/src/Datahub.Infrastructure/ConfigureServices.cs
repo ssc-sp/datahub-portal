@@ -43,8 +43,7 @@ public static class ConfigureServices
             {
                 x.UsingAzureServiceBus((context, cfg) =>
                 {
-                    var serviceBusConnectingString = configuration["DatahubServiceBusConnectionString"]
-                        ?? configuration["DatahubServiceBus:ConnectionString"];
+                    var serviceBusConnectingString = configuration["MassTransit:AzureServiceBus:ConnectionString"];
 
                     cfg.Host(serviceBusConnectingString);
                     cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);

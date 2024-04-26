@@ -33,7 +33,7 @@ var host = new HostBuilder()
         var config = hostContext.Configuration;
 
         hostContext.HostingEnvironment.IsDevelopment();
-        
+
         var connectionString = config["datahub_mssql_project"];
         if (connectionString is not null)
         {
@@ -66,9 +66,9 @@ var host = new HostBuilder()
         services.AddMassTransitForAzureFunctions(cfg =>
                 {
                     cfg.AddConsumersFromNamespaceContaining<EmailNotificationConsumer>();
-                });
+                }, "MassTransit:AzureServiceBus:ConnectionString");
         services.AddDatahubConfigurationFromFunctionFormat(config);
-       
+
 
     })
     .Build();
