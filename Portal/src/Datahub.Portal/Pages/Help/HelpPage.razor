@@ -45,14 +45,14 @@
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
     <MudStack Spacing="6">
-        <MudText Typo="Typo.h1">@Localizer["Help"]</MudText>
+        <MudText Typo="Typo.h1">@Localizer["Support"]</MudText>
 
         <MudForm @ref="form">
             @if (_currentStep == Steps.Start)
             {
                 <MudStack>
                     <MudText>@Localizer["Need a hand? We've got you covered."]</MudText>
-                    <MudText Typo="Typo.body2">@Localizer["Our Resources page has many resources that could be helpful for you. Additional support is available using the FSDH Support Request Form."]</MudText>
+                    <MudText Typo="Typo.body1">@Localizer["Our Resources page has many resources that could be helpful for you. Additional support is available using the FSDH Support Request Form."]</MudText>
                     <MudItem xs="6" Class="py-3">
                         <MudButton Href="/resources"
                                    Variant="Variant.Filled"
@@ -63,12 +63,12 @@
                     </MudItem>
                 </MudStack>
                 <MudDivider/>
-                <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
-                <MudText Typo="@Typo.body2" Class="py-3">@Localizer["To report an issue or request assistance, please use the FSDH Support Request Form"]</MudText>
+                <MudText Typo="Typo.h2" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
+                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["To report an issue or request assistance, please use the FSDH Support Request Form"]</MudText>
             }
             else if (_currentStep == Steps.Topics)
             {
-                <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
+                <MudText Typo="Typo.h2" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
                 @foreach (var topic in _ticketTopics)
                 {
@@ -77,7 +77,7 @@
             }
             else if (_currentStep == Steps.Description)
             {
-                <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
+                <MudText Typo="Typo.h2" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
                 <MudTextField T="string"
                               @bind-Value="@_ticketDescription"
@@ -93,7 +93,7 @@
             }
             else if (_currentStep == Steps.Language)
             {
-                <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
+                <MudText Typo="Typo.h2" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which language you would like to be contacted in."]</MudText>
                 <MudRadioGroup T="int" @bind-SelectedOption="_ticketPreferredLanguage">
                     <MudRadio Option="1" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["English"]</MudRadio>
@@ -102,7 +102,7 @@
             }
             else if (_currentStep == Steps.Submit)
             {
-                <MudText Typo="Typo.h4" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
+                <MudText Typo="Typo.h2" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket."]</MudText>
                 <MudPaper Class="pa-2" Outlined="true">
                     <MudText Typo="@Typo.h6" Class="pb-3">@Localizer["Ticket Topics"]</MudText>
@@ -135,7 +135,7 @@
                 </MudPaper>
             }
             <MudGrid Class="pt-3">
-                <MudItem xs="6" Align="Align.Start" Class="py-6">
+                <MudItem xs="6" Align="Align.Start" Class="pb-6">
                     @if (_currentStep == Steps.Start)
                     {
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Get Started"]</MudButton>
@@ -145,7 +145,7 @@
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@PreviousStep">@Localizer["Previous"]</MudButton>
                     }
                 </MudItem>
-                <MudItem xs="6" Align="Align.End" Class="py-6">
+                <MudItem xs="6" Align="Align.End" Class="pb-6">
                     @if (_currentStep == Steps.Submit)
                     {
                         <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="@SubmitForm">@Localizer["Submit"]</MudButton>
@@ -159,19 +159,28 @@
             @if (_currentStep == Steps.Start)
             {
                 <MudDivider/>
-                <MudText Typo="Typo.h4" Class="py-3">@Localizer["Your Support Requests"]</MudText>
-                <MudText Typo="Typo.body1" Class="py-3">@Localizer["These are your previously submitted support requests."]</MudText>
+                <MudText Typo="Typo.h2" Class="py-3">@Localizer["Your Support Requests"]</MudText>
+                <MudText Typo="Typo.body1" Class="py-3">@Localizer["These are your previously submitted support requests. Requests may take up to 15 minutes to appear here."]</MudText>
                 <MudTable Items="@_issues" Loading="@_loading" Hover Dense>
                     <HeaderContent>
+                        <MudTh>@Localizer["ID"]</MudTh>
 						<MudTh>@Localizer["Title"]</MudTh>
 						<MudTh>@Localizer["Description"]</MudTh>
                         <MudTh>@Localizer["Status"]</MudTh>
+                        <MudTh>@Localizer["Submitted"]</MudTh>
+                        <MudTh>@Localizer["Last Updated"]</MudTh>
 					</HeaderContent>
 					<RowTemplate>
+                        <MudTd>@context.Id</MudTd>
 						<MudTd>@context.Title</MudTd>
 						<MudTd>@context.Description</MudTd>
                         <MudTd><MudChip Color="@GetColor(context.State)">@context.Message</MudChip></MudTd>
+                        <MudTd>@context.SubmittedDate</MudTd>
+                        <MudTd>@context.ChangedDate</MudTd>
 					</RowTemplate>
+                    <PagerContent>
+                        <MudTablePager />
+                    </PagerContent>
                 </MudTable>
             }
         </MudForm>
@@ -222,6 +231,52 @@
         Language = 3,
         Submit = 4
     }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true; // showing the user that the table is loading.
+
+        // Retrieve general info, such as the user submitting the issue.
+        _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+        _ticketName = _viewedUser.DisplayName;
+        _ticketEmail = _viewedUser.Email;
+        _ticketOrg = GetOrg(_ticketEmail);
+        _issues = await GetIssuesCreatedByUser(_ticketName);
+        _ticketPortalLanguage = await _userSettingsService.GetUserLanguage();
+
+        // Retrieve the list of workspaces
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        _userRoles = await dbContext.Project_Users
+            .Include(u => u.Role)
+            .Include(u => u.Project)
+            .ThenInclude(p => p.Users)
+            .Include(u => u.PortalUser)
+            .Where(u => u.PortalUser.GraphGuid == _viewedUser.GraphGuid)
+            .ToListAsync();
+
+        foreach (var project in _userRoles.Select(userRole => userRole.Project))
+        {
+            _ticketWorkspaces.Add(project.Project_Name, false);
+        }
+
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+        {
+            try
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Help/HelpPage.razor.js");
+            }
+            catch (Exception e)
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Pages/Help/HelpPage.razor.js");
+            }
+		}
+	}
 
     private void NextStep()
     {
@@ -313,49 +368,11 @@
         return org;
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        // Retrieve general info, such as the user submitting the issue.
-        _loading = true;
-        try
-        {
-            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Layout/Topbar/HelpDialog.razor.js");
-        }
-        catch (Exception e)
-        {
-            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Layout/Topbar/HelpDialog.razor.js");
-        }
-
-        _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
-        _ticketName = _viewedUser.DisplayName;
-        _ticketEmail = _viewedUser.Email;
-        _ticketOrg = GetOrg(_ticketEmail);
-        _issues = await GetIssuesCreatedByUser(_ticketName);
-        _ticketPortalLanguage = await _userSettingsService.GetUserLanguage();
-
-        // Retrieve the list of workspaces
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        _userRoles = await dbContext.Project_Users
-            .Include(u => u.Role)
-            .Include(u => u.Project)
-            .ThenInclude(p => p.Users)
-            .Include(u => u.PortalUser)
-            .Where(u => u.PortalUser.GraphGuid == _viewedUser.GraphGuid)
-            .ToListAsync();
-
-        foreach (var project in _userRoles.Select(userRole => userRole.Project))
-        {
-            _ticketWorkspaces.Add(project.Project_Name, false);
-        }
-
-        StateHasChanged();
-    }
-
     public async Task<List<IssueForDisplaying>> GetIssuesCreatedByUser(string userName)
     {
         List<IssueForDisplaying> _issuesList = new List<IssueForDisplaying>();
-        var query = $"SELECT [System.Id], [System.Title], [System.CreatedBy], [System.CreatedDate], [System.Tags] FROM WorkItems WHERE [Submitted By] = '{userName}'";
-        var apiUrl = $"https://dev.azure.com/DataSolutionsDonnees/FSDH%20SSC/_apis/wit/wiql?api-version=7.0";
+        var query = $"SELECT [System.Id], [System.Title], [System.CreatedBy], [System.CreatedDate], [System.ChangedDate], [System.Tags] FROM WorkItems WHERE [Submitted By] = '{userName}'";
+        var apiUrl = $"https://dev.azure.com/{_portalConfiguration.AdoOrg.OrgName}/{_portalConfiguration.AdoOrg.ProjectName}/_apis/wit/wiql?api-version=7.0";
 
         using (var client = new HttpClient())
         {
@@ -380,15 +397,18 @@
                 // Get the WorkItem ID
                 var workItemId = (int)workItem["id"];
                 // Get the WorkItem details with ID
-                var itemApiUrl = $"https://dev.azure.com/DataSolutionsDonnees/FSDH%20SSC/_apis/wit/workItems/{workItemId}?api-version=7.0";
+                var itemApiUrl = $"https://dev.azure.com/{_portalConfiguration.AdoOrg.OrgName}/{_portalConfiguration.AdoOrg.ProjectName}/_apis/wit/workItems/{workItemId}?api-version=7.0";
                 var workItemResponse = await client.GetAsync(itemApiUrl);
                 workItemResponse.EnsureSuccessStatusCode();
 
                 var workItemJsonResponse = await workItemResponse.Content.ReadAsStringAsync();
                 var workItemDetails = JObject.Parse(workItemJsonResponse);
 
+                var issueId = (string)workItemDetails["id"];
+
                 var title = (string) workItemDetails["fields"]["System.Title"];
                 var description = (string)workItemDetails["fields"]["System.Description"];
+                description = description.Split("<b>Description:</b> ")[1].Split("<br>")[0];
 
                 var state = (string) workItemDetails["fields"]["System.State"];
                 string message;
@@ -408,25 +428,34 @@
                         break;
                 }
 
-                _issuesList.Add(new IssueForDisplaying(title, description, state, message));
+                var submittedDate = (string) workItemDetails["fields"]["System.CreatedDate"];
+                var changedDate = (string) workItemDetails["fields"]["System.ChangedDate"];
+
+                _issuesList.Add(new IssueForDisplaying(issueId, title, description, state, message, submittedDate, changedDate));
             }
         }
-        _loading = false;
+        _loading = false; // Stop showing the loading bar in the table.
         return _issuesList;
     }
 
     public class IssueForDisplaying {
+        public string Id { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string State { get; set; }
         public string Message { get; set; }
+        public string SubmittedDate { get; set; }
+        public string ChangedDate { get; set; }
 
-        public IssueForDisplaying(string title, string description, string state, string message)
+        public IssueForDisplaying(string id, string title, string description, string state, string message, string submittedDate, string changedDate)
         {
+            Id = id;
             Title = title;
             Description = description;
             State = state;
             Message = message;
+            SubmittedDate = submittedDate;
+            ChangedDate = changedDate;
         }
     }
 
