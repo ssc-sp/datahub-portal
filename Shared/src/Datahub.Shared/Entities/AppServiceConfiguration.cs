@@ -30,21 +30,21 @@ namespace Datahub.Shared.Entities
 
     public static class AppServiceTemplates
     {
-        private static readonly AppServiceConfiguration SHINY_CONFIG =
-            new(SHINY, "https://github.com/ssc-sp/datahub-infra.git", "dev/docker/shiny-app/");
+        //private static readonly AppServiceConfiguration SHINY_CONFIG =
+        //    new(SHINY, "https://github.com/ssc-sp/datahub-infra.git", "dev/docker/shiny-app/");
         private static readonly AppServiceConfiguration CUSTOM_CONFIG =
             new(CUSTOM, Empty, Empty);
 
-        public const string SHINY = "Shiny";
+        // public const string SHINY = "Shiny";
         public const string CUSTOM = "Docker compose";
 
-        public static readonly List<string> TEMPLATES = [SHINY, CUSTOM];
+        public static readonly List<string> TEMPLATES = [CUSTOM];
 
         public static AppServiceConfiguration GetTemplateConfiguration(string template)
         {
             return template switch
             {
-                SHINY => SHINY_CONFIG,
+                //SHINY => SHINY_CONFIG,
                 CUSTOM => CUSTOM_CONFIG,
                 _ => null
             };
