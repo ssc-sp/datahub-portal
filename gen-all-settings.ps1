@@ -26,4 +26,4 @@ Export-Settings -ProjectFolder "./ResourceProvisioner/test/ResourceProvisioner.A
 Export-Settings -ProjectFolder "./ResourceProvisioner/test/ResourceProvisioner.Domain.UnitTests" -SourceFile "./ResourceProvisioner/template.settings.json" -Target Appsettings -Environment dev -TargetFile "appsettings.test.json"
 Export-Settings -ProjectFolder "./ResourceProvisioner/test/ResourceProvisioner.Infrastructure.UnitTests" -SourceFile "./ResourceProvisioner/template.settings.json" -Target Appsettings -Environment dev -TargetFile "appsettings.test.json"
 Export-Settings -ProjectFolder "./ResourceProvisioner/test/ResourceProvisioner.SpecflowTests" -SourceFile "./ResourceProvisioner/template.settings.json" -Target Appsettings -Environment dev -TargetFile "appsettings.test.json"
-Export-Settings -SourceFile "./ResourceProvisioner/template.settings.json" -Target Terraform -Environment $Environment -TfFile "terraform/env/$Environment/dotnetfunc-settings-$Environment.tf"
+Export-Settings -SourceFile "./ResourceProvisioner/template.settings.json" -Target Terraform -Environment $Environment -TfFile "terraform/env/$Environment/rp-settings-$Environment.tf"
