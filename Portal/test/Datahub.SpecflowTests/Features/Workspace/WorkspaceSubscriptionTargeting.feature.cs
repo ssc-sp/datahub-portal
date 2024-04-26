@@ -41,9 +41,9 @@ namespace Datahub.SpecflowTests.Features.Workspace
         public static async System.Threading.Tasks.Task FeatureSetupAsync()
         {
             testRunner = Reqnroll.TestRunnerManager.GetTestRunnerForAssembly(null, Reqnroll.xUnit.ReqnrollPlugin.XUnitParallelWorkerTracker.Instance.GetWorkerId());
-            Reqnroll.FeatureInfo featureInfo = new Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features/Workspace", "Workspace Subscription Targeting", "\tThis feature is to ensure that the workspace subscription targeting is working a" +
-                    "s expected. The limitations imposed by cloud providers are to be considered in t" +
-                    "he context of deploying the workspace.", ProgrammingLanguage.CSharp, featureTags);
+            Reqnroll.FeatureInfo featureInfo = new Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features/Workspace", "Workspace Subscription Targeting", "This feature is to ensure that the workspace subscription targeting is working as" +
+                    " expected. The limitations imposed by cloud providers are to be considered in th" +
+                    "e context of deploying the workspace.", ProgrammingLanguage.CSharp, featureTags);
             await testRunner.OnFeatureStartAsync(featureInfo);
         }
         
@@ -99,7 +99,7 @@ namespace Datahub.SpecflowTests.Features.Workspace
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("A workspace has a subscription id", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 5
-this.ScenarioInitialize(scenarioInfo);
+    this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -109,13 +109,13 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 await this.ScenarioStartAsync();
 #line 6
- await testRunner.GivenAsync("a workspace that has a subscription id", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+        await testRunner.GivenAsync("a workspace that has a subscription id", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 7
- await testRunner.WhenAsync("the workspace definition is requested", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+        await testRunner.WhenAsync("the workspace definition is requested", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 8
- await testRunner.ThenAsync("the subscription id is included in the workspace definition", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+        await testRunner.ThenAsync("the subscription id is included in the workspace definition", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -130,7 +130,7 @@ this.ScenarioInitialize(scenarioInfo);
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("A newly created workspace has a subscription id", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 10
-this.ScenarioInitialize(scenarioInfo);
+    this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -140,16 +140,55 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 await this.ScenarioStartAsync();
 #line 11
- await testRunner.GivenAsync("there is a subscription available", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+        await testRunner.GivenAsync("there is a subscription available", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 12
- await testRunner.AndAsync("a new workspace is created", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
+        await testRunner.AndAsync("a new workspace is created", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 13
- await testRunner.WhenAsync("the workspace definition is requested", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+        await testRunner.WhenAsync("the workspace definition is requested", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 14
- await testRunner.ThenAsync("the subscription id is included in the workspace definition", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+        await testRunner.ThenAsync("the subscription id is included in the workspace definition", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Roll over to the next available subscription")]
+        [Xunit.TraitAttribute("FeatureTitle", "Workspace Subscription Targeting")]
+        [Xunit.TraitAttribute("Description", "Roll over to the next available subscription")]
+        [Xunit.TraitAttribute("Category", "WorkspaceSubscriptionsLimited")]
+        public async System.Threading.Tasks.Task RollOverToTheNextAvailableSubscription()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "WorkspaceSubscriptionsLimited"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Roll over to the next available subscription", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 17
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 18
+        await testRunner.GivenAsync("a datahub azure subscription service", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 19
+        await testRunner.AndAsync("there are multiple subscriptions", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 20
+        await testRunner.AndAsync("the next available subscription has one spot left", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 21
+        await testRunner.WhenAsync("a two workspaces are created", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 22
+        await testRunner.ThenAsync("they should have different subscriptions", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

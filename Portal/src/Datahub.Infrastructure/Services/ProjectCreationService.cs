@@ -171,7 +171,7 @@ public class ProjectCreationService(
         var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
 
-        var subscription = await datahubAzureSubscriptionService.NextSubscription();
+        var subscription = await datahubAzureSubscriptionService.NextSubscriptionAsync();
 
         var project = new Datahub_Project()
         {

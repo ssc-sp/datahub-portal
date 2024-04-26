@@ -82,4 +82,35 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
         ctx.AzureSubscriptions.Add(subscription);
         await ctx.SaveChangesAsync();
     }
+
+    [When(@"a two workspaces are created")]
+    public async Task WhenATwoWorkspacesAreCreated()
+    {
+        await projectCreationService.CreateProjectAsync(Testing.WorkspaceName, Testing.WorkspaceAcronym, "Unspecified");
+        await projectCreationService.CreateProjectAsync(Testing.WorkspaceName2, Testing.WorkspaceAcronym2, "Unspecified");
+    }
+
+    [Then(@"they should have different subscriptions")]
+    public async Task ThenTheyShouldHaveDifferentSubscriptions()
+    {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        
+        var workspace1 = await ctx.Projects
+            .AsNoTracking()
+            .Include(datahubProject => datahubProject.DatahubAzureSubscription!)
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
+        
+        var workspace2 = await ctx.Projects
+            .AsNoTracking()
+            .Include(datahubProject => datahubProject.DatahubAzureSubscription!)
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym2);
+        
+        workspace1.Should().NotBeNull();
+        workspace1!.DatahubAzureSubscription!.Should().NotBeNull();
+        
+        workspace2.Should().NotBeNull();
+        workspace2!.DatahubAzureSubscription!.Should().NotBeNull();
+        
+        workspace1!.DatahubAzureSubscription!.SubscriptionId.Should().NotBe(workspace2!.DatahubAzureSubscription!.SubscriptionId);
+    }
 }

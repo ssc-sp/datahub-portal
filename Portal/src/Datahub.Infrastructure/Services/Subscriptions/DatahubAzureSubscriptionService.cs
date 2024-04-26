@@ -115,6 +115,9 @@ public class DatahubAzureSubscriptionService(
             .Include(p => p.DatahubAzureSubscription)
             .Where(p => p.DatahubAzureSubscription.SubscriptionId == subscriptionId)
             .ToListAsync();
+        
+        var subscriptionStrategy = new DatahubSubscriptionStrategy(portalConfiguration);
+        return subscriptionStrategy.NumberOfWorkspacesRemaining(workspacesUsingSubscription);
 
         return IDatahubAzureSubscriptionService.MaxNumberOfWorkspaces - workspacesUsingSubscription.Count;
     }
@@ -124,11 +127,12 @@ public class DatahubAzureSubscriptionService(
     /// </summary>
     /// <returns>The task result contains the next available DatahubAzureSubscription.</returns>
     /// <exception cref="InvalidOperationException">Thrown when there are no subscriptions available or no subscriptions available with remaining workspaces.</exception>
-    public async Task<DatahubAzureSubscription> NextSubscription()
+    public async Task<DatahubAzureSubscription> NextSubscriptionAsync()
     {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var subscriptions = await ctx.AzureSubscriptions
             .AsNoTracking()
+            .Include(e => e.Workspaces)
             .ToListAsync();
         
         if (subscriptions.Count == 0)
@@ -136,15 +140,7 @@ public class DatahubAzureSubscriptionService(
             throw new InvalidOperationException("No subscriptions available.");
         }
         
-        foreach (var subscription in subscriptions)
-        {
-            var remainingWorkspaces = await NumberOfRemainingWorkspacesAsync(subscription.SubscriptionId);
-            if (remainingWorkspaces > 0)
-            {
-                return subscription;
-            }
-        }
-        
-        throw new InvalidOperationException("No subscriptions available with remaining workspaces.");
+        var subscriptionStrategy = new DatahubSubscriptionStrategy(portalConfiguration);
+        return subscriptionStrategy.NextSubscription(subscriptions);
     }
 }

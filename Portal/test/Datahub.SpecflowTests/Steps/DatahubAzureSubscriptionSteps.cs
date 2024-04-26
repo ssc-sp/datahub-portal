@@ -196,7 +196,7 @@ public sealed class DatahubAzureSubscriptionSteps(
     [When(@"the next available subscription is requested")]
     public async Task WhenTheNextAvailableSubscriptionIsRequested()
     {
-        var subscription = await datahubAzureSubscriptionService.NextSubscription();
+        var subscription = await datahubAzureSubscriptionService.NextSubscriptionAsync();
         scenarioContext["subscription"] = subscription;
     }
 
@@ -264,8 +264,11 @@ public sealed class DatahubAzureSubscriptionSteps(
     }
 
     [Given(@"the next available subscription has one spot left")]
-    public void GivenTheNextAvailableSubscriptionHasOneSpotLeft()
+    public async Task GivenTheNextAvailableSubscriptionHasOneSpotLeft()
     {
-        throw new PendingStepException();
+        var subscription = await datahubAzureSubscriptionService.NextSubscriptionAsync();
+        var numberOfRemainingWorkspaces = await datahubAzureSubscriptionService.NumberOfRemainingWorkspacesAsync(subscription.SubscriptionId);
+        
+        numberOfRemainingWorkspaces.Should().Be(1);
     }
 }
