@@ -1,11 +1,10 @@
 Write-Output "Fetching secrets from keyvault"
 
-$environmentName = "test"
+$environmentName = "dev"
 $resourcePrefix = "fsdh"
-$resourcePrefixAlphanumeric = ($resourcePrefix -replace '[^a-zA-Z0-9]', '').ToLower()
 $azureDevOpsOrganization = "DataSolutionsDonnees"
 $azureDevOpsProject = "FSDH%20SSC"
-$vaultName = "fsdh-static-test-akv"
+$vaultName = "fsdh-key-dev"
 $azureDevopsRepository = "datahub-project-infrastructure-$environmentName"
 
 $tenantId = (az keyvault secret show --name "datahub-portal-tenant-id" --vault-name $vaultName --query value -o tsv)
@@ -23,10 +22,9 @@ $hashTable = @{
         "Url" = "https://$azureDevOpsOrganization@dev.azure.com/$azureDevOpsOrganization/$azureDevOpsProject/_git/$azureDevopsRepository"
         "LocalPath" = "/tmp/$azureDevopsRepository"
         "ProjectPathPrefix" = "terraform/projects"
-        "AutoApproveUserOid" = (az keyvault secret show --name "datahub-infrastructure-repo-auto-approver-oid" --vault-name $vaultName --query value -o tsv)
         "PullRequestUrl" = "https://dev.azure.com/$azureDevOpsOrganization/$azureDevOpsProject/_apis/git/repositories/$repositoryId/pullrequests"
         "PullRequestBrowserUrl" = "https://dev.azure.com/$azureDevOpsOrganization/$azureDevOpsProject/_git/$azureDevopsRepository/pullrequest"
-        "ApiVersion" = "6.0"
+        "ApiVersion" = "7.1-preview.1"
         "MainBranch" = "main"
         "AzureDevOpsConfiguration" = @{
             "TenantId" = "$tenantId"
@@ -50,7 +48,6 @@ $hashTable = @{
             "storage_size_limit_tb" = "5"
             "az_location" = "canadacentral"
             "resource_prefix" = "$resourcePrefix"
-            "resource_prefix_alphanumeric" = "$resourcePrefixAlphanumeric"
             "common_tags" = @{
                 "Sector" = "Science Program"
                 "Environment" = "$environmentName"
