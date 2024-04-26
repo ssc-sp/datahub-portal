@@ -25,6 +25,7 @@ var host = new HostBuilder()
     {
         builder.AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddUserSecrets<Program>()
             .Build();
     })
     .ConfigureServices((hostContext, services) =>
