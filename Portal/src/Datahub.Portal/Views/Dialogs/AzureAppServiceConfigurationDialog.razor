@@ -13,7 +13,7 @@
                     @Localizer["Please read the Additional Information section before proceeding to ensure that you do not run into any issues!"]
                 </strong>
             </MudAlert>
-            <MudSelect Class="mt-6" Label=@Localizer["Select a web framework"]     @bind-Value="_selectedFramework">
+            <MudSelect Class="mt-6" Label=@Localizer["Select a web framework"] @bind-Value="_selectedFramework">
                 @foreach (string framework in AppServiceTemplates.TEMPLATES)
                 {
                     <MudSelectItem Value="@framework" Label="@framework"/>
@@ -91,7 +91,7 @@
 
     protected override void OnInitialized()
     {
-        _selectedFramework = Configuration.Framework ?? "";
+        _selectedFramework = Configuration.Framework ?? AppServiceTemplates.CUSTOM;
         _gitRepoUrl = Configuration.GitRepo ?? "";
         _isRepoPrivate = Configuration.IsGitRepoPrivate;
         _fullToken = Configuration.GitToken ?? "";
