@@ -10,16 +10,13 @@ using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Modules;
 using Datahub.Core.Services;
-using Datahub.Core.Services.Achievements;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Data;
 using Datahub.Core.Services.Docs;
-using Datahub.Core.Services.Metadata;
 using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Offline;
 using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.Search;
-using Datahub.Core.Services.Security;
 using Datahub.Core.Services.Storage;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Services.Wiki;
@@ -55,6 +52,7 @@ using Azure.Identity;
 using Azure.ResourceManager;
 using Datahub.Infrastructure.Offline;
 using Datahub.Application.Configuration;
+using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
@@ -67,6 +65,7 @@ using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Configuration;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Application.Services.Publishing;
+using Datahub.Infrastructure.Services.Achievements;
 using Datahub.Infrastructure.Services.Publishing;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
@@ -446,8 +445,6 @@ public class Startup
         services.AddScoped<PortalEmailService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
         services.AddSingleton<IPropagationService, PropagationService>();
-
-        services.AddSingleton<ServiceAuthManager>();
 
         services.AddSingleton<IOpenDataService, OpenDataService>();
         
