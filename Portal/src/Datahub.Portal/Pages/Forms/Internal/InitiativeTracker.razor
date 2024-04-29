@@ -2,7 +2,7 @@
 
 @inject IStringLocalizer DataLocalizer
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
-@inject ServiceAuthManager ServiceAuthManager
+@inject IServiceAuthManager ServiceAuthManager
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
 @inject Elemental.Services.UIControlsService UIControlService
@@ -13,9 +13,12 @@
 @inject PortalEmailService EmailService
 @inject IDialogService DialogService
 @using System.Security.Claims
+@using Datahub.Application.Services
+@using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Onboarding
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Notification;
+@using Datahub.Infrastructure.Services.Security
 @using Datahub.Portal.Components.Dialogs
 @using Datahub.Portal.Services.Notification;
 @using MudBlazor.Forms;

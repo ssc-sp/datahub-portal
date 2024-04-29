@@ -1,11 +1,12 @@
 using System.Net;
+using Datahub.Application.Services;
+using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Notification;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
-using Datahub.Core.Services.Metadata;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Portal.Templates;
 using Microsoft.EntityFrameworkCore;

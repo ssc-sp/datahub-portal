@@ -1,8 +1,8 @@
 ﻿using System.Text;
+using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services.Metadata;
 using Datahub.Metadata.Catalog;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
