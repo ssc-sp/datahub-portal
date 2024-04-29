@@ -58,6 +58,9 @@
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
           <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </None>
+        <None Update="appsettings.test.json">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\ResourceProvisioner.Application\ResourceProvisioner.Application.csproj" />
