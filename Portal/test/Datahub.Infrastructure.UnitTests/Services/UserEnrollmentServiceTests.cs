@@ -17,8 +17,28 @@ public class UserEnrollmentServiceTests
     public async Task UserCanEnrollWithDataHubTest()
     {
         SetDatahubGraphInviteFunctionUrl("http://localhost");
+        
+        var mockHandler = new Mock<HttpMessageHandler>();
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>("SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(() => new HttpResponseMessage()
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = ExpectedDatahubPortalInviteResponse()
+            })
+            .Verifiable();
 
-        var result = await _userEnrollmentService.SendUserDatahubPortalInvite(TestUserEmail, default);
+        var httpClientFactory = new Mock<IHttpClientFactory>();
+
+        httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(
+            () => new HttpClient(mockHandler.Object));
+
+        var userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), 
+            httpClientFactory.Object, _datahubPortalConfiguration, null);
+
+        var result = await userEnrollmentService.SendUserDatahubPortalInvite(TestUserEmail, default);
 
         Assert.That(result, Is.Not.Null.Or.Empty);
         Assert.That(result, Is.EqualTo(TestUserGraphGuid));
@@ -30,8 +50,29 @@ public class UserEnrollmentServiceTests
         string[] whiteList = [".gov.au", ".gov.uk"]; 
         SetDatahubGraphInviteFunctionUrl("http://localhost");
         SetAllowedUserEmailDomains(whiteList);
+        
+        
+        var mockHandler = new Mock<HttpMessageHandler>();
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>("SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(() => new HttpResponseMessage()
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = ExpectedDatahubPortalInviteResponse()
+            })
+            .Verifiable();
 
-        var result = await _userEnrollmentService.SendUserDatahubPortalInvite(GuestUserEmail, default);
+        var httpClientFactory = new Mock<IHttpClientFactory>();
+
+        httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(
+            () => new HttpClient(mockHandler.Object));
+
+        var userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), 
+            httpClientFactory.Object, _datahubPortalConfiguration, null);
+
+        var result = await userEnrollmentService.SendUserDatahubPortalInvite(GuestUserEmail, default);
 
         Assert.That(result, Is.Not.Null.Or.Empty);
         Assert.That(result, Is.EqualTo(TestUserGraphGuid));
