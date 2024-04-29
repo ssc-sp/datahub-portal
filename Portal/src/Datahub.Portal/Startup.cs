@@ -47,6 +47,9 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Azure.Core;
+using Azure.Identity;
+using Azure.ResourceManager;
 using Datahub.Infrastructure.Offline;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Metadata;
@@ -68,6 +71,7 @@ using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
 using Datahub.Infrastructure.Services.ReverseProxy;
 using Datahub.Infrastructure.Services.WebApp;
+using Microsoft.Extensions.Azure;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 

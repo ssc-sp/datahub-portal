@@ -18,42 +18,62 @@ public class AzureDevOpsClient(AzureDevOpsConfiguration config)
 
     private static string AzureDevOpsScopeDefault => $"{AzureDevopsScope}/.default";
 
-    public async Task<WorkItemTrackingHttpClient> GetWorkItemClient()
+    public async Task<WorkItemTrackingHttpClient> WorkItemClientAsync()
     {
-        var connection = await GetVssConnection();
+        var connection = await VssConnectionAsync();
         var client = await connection.GetClientAsync<WorkItemTrackingHttpClient>();
 
         return client;
     }
-    public async Task<HttpClient> GetPipelineClient()
+    public async Task<HttpClient> PipelineClientAsync()
     {
         var client = new HttpClient();
-        var accessToken = await GetAccessToken();
+        var accessToken = await AccessTokenAsync();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token.ToString());
         return client;
     }
-    private async Task<VssConnection> GetVssConnection()
+    private async Task<VssConnection> VssConnectionAsync()
     {
-        var aadCredentials = await GetCredentials();
+        var aadCredentials = await Credentials();
         VssConnection vssConnection = new VssConnection(new Uri(config.OrganizationUrl), aadCredentials);
         vssConnection.ConnectAsync().SyncResult();
         return vssConnection;
     }
 
-    private async Task<VssCredentials> GetCredentials()
+    private async Task<VssCredentials> Credentials()
     {
-        var accessToken = await GetAccessToken();
+        var accessToken = await AccessTokenAsync();
         var aadToken = new VssAadToken("Bearer", accessToken.Token);
         var aadCredentials = new VssAadCredential(aadToken);
         return aadCredentials;
     }
-    public async Task<AccessToken> GetAccessToken()
+    public async Task<AccessToken> AccessTokenAsync()
     {
         var credentials = new ClientSecretCredential(config.TenantId, config.ClientId,
             config.ClientSecret);
         var accessToken =
             await credentials.GetTokenAsync(new TokenRequestContext([
                 AzureDevOpsScopeDefault
+            ]));
+        return accessToken;
+    }
+    public AccessToken AccessToken()
+    {
+        var credentials = new ClientSecretCredential(config.TenantId, config.ClientId,
+            config.ClientSecret);
+        var accessToken =
+            credentials.GetToken(new TokenRequestContext([
+                AzureDevOpsScopeDefault
+            ]));
+        return accessToken;
+    }
+    public async Task<AccessToken> AccessTokenWithCustomScopeAsync(AzureDevOpsConfiguration customConfig, string customScope)
+    {
+        var credentials = new ClientSecretCredential(customConfig.TenantId, customConfig.ClientId,
+            customConfig.ClientSecret);
+        var accessToken =
+            await credentials.GetTokenAsync(new TokenRequestContext([
+                customScope
             ]));
         return accessToken;
     }
