@@ -42,5 +42,10 @@ public interface IDatahubAzureSubscriptionService
     /// </returns>
     Task<DatahubAzureSubscription> NextSubscriptionAsync();
 
+    /// <summary>
+    /// Updates a Datahub Azure subscription in the database.
+    /// </summary>
+    /// <param name="subscription">The Datahub Azure subscription to update.</param>
+    /// <returns>The task representing the asynchronous operation.</returns>
     Task UpdateSubscriptionAsync(DatahubAzureSubscription subscription);
 }
