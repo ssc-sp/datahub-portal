@@ -15,10 +15,7 @@ public class DatahubAzureSubscriptionConfiguration : IEntityTypeConfiguration<Da
         builder.Property(e => e.SubscriptionId)
             .IsRequired()
             .HasMaxLength(36);
-        builder.Property(e => e.SubscriptionName)
-            .HasMaxLength(100)
-            .IsRequired();
-        builder.Property(e => e.Nickname)
+        builder.Property(e => e.Name)
             .HasMaxLength(100);
 
         builder.HasMany(e => e.Workspaces)

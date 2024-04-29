@@ -139,7 +139,7 @@ public class RepositoryService : IRepositoryService
 
         var azureDevOpsClient =
             new AzureDevOpsClient(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
-        var accessToken = await azureDevOpsClient.AccessTokenAsync();
+        var accessToken = await azureDevOpsClient.GetAccessTokenAsync();
 
         var cloneOptions = new CloneOptions
         {
@@ -181,7 +181,7 @@ public class RepositoryService : IRepositoryService
 
         var azureDevOpsClient =
             new AzureDevOpsClient(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
-        var accessToken = await azureDevOpsClient.AccessTokenAsync();
+        var accessToken = await azureDevOpsClient.GetAccessTokenAsync();
 
         var pullOptions = new PullOptions()
         {
@@ -243,7 +243,7 @@ public class RepositoryService : IRepositoryService
 
         var azureDevOpsClient =
             new AzureDevOpsClient(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
-        var accessToken = await azureDevOpsClient.AccessTokenAsync();
+        var accessToken = await azureDevOpsClient.GetAccessTokenAsync();
         var options = new PushOptions
         {
             CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
