@@ -41,3 +41,9 @@ This feature provides the ability to manage Azure subscriptions for the DataHub
         And there are no subscriptions
         When the next available subscription is requested
         Then an error is returned
+        
+    Scenario: Update an existing subscription
+        Given a datahub azure subscription service
+        And there is a subscription with id "update-me"
+        When the subscription with id "update-me" is updated 
+        Then there should be no subscriptions with id "update-me"

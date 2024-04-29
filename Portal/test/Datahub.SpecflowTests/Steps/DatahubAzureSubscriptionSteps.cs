@@ -279,4 +279,16 @@ public sealed class DatahubAzureSubscriptionSteps(
 
         numberOfRemainingWorkspaces.Should().Be(1);
     }
+
+    [When(@"the subscription with id ""(.*)"" is updated")]
+    public async Task WhenTheSubscriptionWithIdIsUpdated(string p0)
+    {
+        var subscription = new DatahubAzureSubscription()
+        {
+            SubscriptionId = p0,
+            TenantId = Testing.WorkspaceTenantGuid
+        };
+
+        await datahubAzureSubscriptionService.UpdateSubscriptionAsync(subscription);
+    }
 }

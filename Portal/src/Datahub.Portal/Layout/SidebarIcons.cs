@@ -35,6 +35,7 @@ public static class SidebarIcons
     public const string Statistics = "fa-light fa-chart-bar";
     public const string HealthCheck = "fa-light fa-heartbeat";
     public const string Email = "fa-light fa-mailbox";
+    public const string AzureSubscriptions = "fa-light fa-cloud";
     
     // Default Sidebar Icons
     public const string Default = "fa-light fa-table-layout";

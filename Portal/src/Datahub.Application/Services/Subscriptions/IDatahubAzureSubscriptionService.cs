@@ -41,4 +41,6 @@ public interface IDatahubAzureSubscriptionService
     /// The task result contains the next available Datahub Azure subscription.
     /// </returns>
     Task<DatahubAzureSubscription> NextSubscriptionAsync();
+
+    Task UpdateSubscriptionAsync(DatahubAzureSubscription subscription);
 }

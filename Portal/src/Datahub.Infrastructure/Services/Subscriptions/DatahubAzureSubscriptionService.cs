@@ -143,4 +143,16 @@ public class DatahubAzureSubscriptionService(
         var subscriptionStrategy = new DatahubSubscriptionStrategy(portalConfiguration);
         return subscriptionStrategy.NextSubscription(subscriptions);
     }
+
+    /// <summary>
+    /// Updates a Datahub Azure subscription in the database.
+    /// </summary>
+    /// <param name="subscription">The Datahub Azure subscription to update.</param>
+    /// <returns>The task representing the asynchronous operation.</returns>
+    public async Task UpdateSubscriptionAsync(DatahubAzureSubscription subscription)
+    {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        ctx.AzureSubscriptions.Update(subscription);
+        await ctx.SaveChangesAsync();
+    }
 }
