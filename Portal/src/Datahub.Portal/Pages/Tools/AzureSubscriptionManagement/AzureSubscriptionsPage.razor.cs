@@ -57,7 +57,7 @@ public partial class AzureSubscriptionsPage : ComponentBase
             Id = ((DatahubAzureSubscription)subscription).Id,
             TenantId = ((DatahubAzureSubscription)subscription).TenantId,
             SubscriptionId = ((DatahubAzureSubscription)subscription).SubscriptionId,
-            Name = ((DatahubAzureSubscription)subscription).Name,
+            Nickname = ((DatahubAzureSubscription)subscription).Nickname,
         };
         
         _logger.LogInformation("Backing up item {SubscriptionId} for editing.", ((DatahubAzureSubscription)subscription).SubscriptionId);
@@ -73,7 +73,7 @@ public partial class AzureSubscriptionsPage : ComponentBase
         item.Id = _elementBeforeEdit.Id;
         item.TenantId = _elementBeforeEdit.TenantId;
         item.SubscriptionId = _elementBeforeEdit.SubscriptionId;
-        item.Name = _elementBeforeEdit.Name;
+        item.Nickname = _elementBeforeEdit.Nickname;
         
         _logger.LogInformation("Row edit cancelled for Azure subscription {SubscriptionId}.", item.SubscriptionId);
     }

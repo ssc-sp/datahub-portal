@@ -42,6 +42,11 @@ public class DatahubAzureSubscriptionService(
             throw new InvalidOperationException(
                 "Subscription not found. Please check the subscription id and access permissions.");
         }
+        
+        if(subscriptionResource?.Value?.Data.DisplayName is not null)
+        {
+            subscription.SubscriptionName = subscriptionResource.Value.Data.DisplayName;
+        }
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         ctx.AzureSubscriptions.Add(subscription);
