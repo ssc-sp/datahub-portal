@@ -308,7 +308,7 @@ function Read-VaultSecret($vault, $secretId)
     try {
         return Read-SecureString((Get-AzKeyVaultSecret -VaultName $vault -Name $secretId).SecretValue)
 	} catch {
-		Write-Error "Error reading secret $secretId from vault $vault"
+		Write-Error "Error reading secret $secretId from vault $vault - do you have read access in $vault policies?"
 		return
     }
 }
