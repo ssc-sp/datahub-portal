@@ -43,14 +43,14 @@
                 <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => x.SubscriptionId))">@Localizer["Subscription ID"]</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => x.Name))">@Localizer["Name"]</MudTableSortLabel>
+                <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => x.Nickname))">@Localizer["Name"]</MudTableSortLabel>
             </MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="@Localizer["Row ID"]">@context.Id</MudTd>
             <MudTd DataLabel="@Localizer["Tenant ID"]">@context.TenantId</MudTd>
             <MudTd DataLabel="@Localizer["Subscription ID"]">@context.SubscriptionId</MudTd>
-            <MudTd DataLabel="@Localizer["Name"]">@context.Name</MudTd>
+            <MudTd DataLabel="@Localizer["Name"]">@context.Nickname</MudTd>
         </RowTemplate>
 
         <RowEditingTemplate>
@@ -64,7 +64,7 @@
                 <MudTextField @bind-Value="@context.SubscriptionId"/>
             </MudTd>
             <MudTd DataLabel="@Localizer["Name"]">
-                <MudTextField @bind-Value="@context.Name"/>
+                <MudTextField @bind-Value="@context.Nickname"/>
             </MudTd>
         </RowEditingTemplate>
         <EditButtonContent Context="button">

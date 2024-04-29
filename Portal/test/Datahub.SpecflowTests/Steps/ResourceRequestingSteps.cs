@@ -211,7 +211,7 @@ namespace Datahub.SpecflowTests.Steps
             };
             var datahubAzureSubscription = new DatahubAzureSubscription()
             {
-                Name = "Test Subscription",
+                Nickname = "Test Subscription",
                 TenantId = "00000000-0000-0000-0000-000000000000",
                 SubscriptionId = "00000000-0000-0000-0000-000000000000",
             };
