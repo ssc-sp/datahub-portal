@@ -1,12 +1,13 @@
 using System.Linq.Dynamic.Core;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
-using Datahub.Core.Services.Security;
+using Datahub.Infrastructure.Services.Security;
 using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -20,7 +21,6 @@ public class ProjectUserManagementService : IProjectUserManagementService
     private readonly IRequestManagementService _requestManagementService;
     private readonly ILogger<ProjectUserManagementService> _logger;
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
-    private readonly ServiceAuthManager _serviceAuthManager;
     private readonly IUserEnrollmentService _userEnrollmentService;
     private readonly IDatahubAuditingService _datahubAuditingService;
 
@@ -30,11 +30,9 @@ public class ProjectUserManagementService : IProjectUserManagementService
         IUserInformationService userInformationService,
         IMSGraphService msGraphService,
         IRequestManagementService requestManagementService,
-        ServiceAuthManager serviceAuthManager,
         IUserEnrollmentService userEnrollmentService,
         IDatahubAuditingService datahubAuditingService)
     {
-        _serviceAuthManager = serviceAuthManager;
         _userInformationService = userInformationService;
         _msGraphService = msGraphService;
         _requestManagementService = requestManagementService;

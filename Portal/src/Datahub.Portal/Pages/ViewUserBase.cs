@@ -1,5 +1,6 @@
 // ReSharper disable InconsistentNaming
 
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Extensions;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Services;

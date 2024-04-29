@@ -15,6 +15,14 @@ public class TerraformWorkspace
     public string? Acronym { get; set; }
     public double BudgetAmount { get; set; } = 100;
 
+    /// <summary>
+    /// Gets or sets the unique identifier of the Azure Subscription.
+    /// </summary>
+    /// <value>
+    /// The subscription identifier.
+    /// </value>
+    public string SubscriptionId { get; set; } = null!;
+
     public string Version { get; set; } = DefaultVersion;
 
     // TODO: Move this into the storage module

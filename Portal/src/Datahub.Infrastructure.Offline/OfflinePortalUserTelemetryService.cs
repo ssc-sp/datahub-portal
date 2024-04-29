@@ -1,4 +1,4 @@
-using Datahub.Core.Services.Achievements;
+using Datahub.Application.Services.Achievements;
 using Microsoft.Extensions.Logging;
 
 namespace Datahub.Infrastructure.Offline;
