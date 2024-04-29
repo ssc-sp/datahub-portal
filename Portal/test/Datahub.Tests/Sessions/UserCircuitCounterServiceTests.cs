@@ -3,6 +3,8 @@ using Datahub.Core.Services.UserManagement;
 using Microsoft.Extensions.Options;
 using Moq;
 using System.Threading.Tasks;
+using Datahub.Application.Services.UserManagement;
+using Datahub.Infrastructure.Services.UserManagement;
 using Xunit;
 
 namespace Datahub.Tests.Sessions;

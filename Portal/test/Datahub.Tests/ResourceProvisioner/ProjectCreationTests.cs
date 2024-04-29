@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Threading.Tasks;
 using Datahub.Application.Services;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
