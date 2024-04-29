@@ -1,8 +1,8 @@
-﻿using Datahub.Core.Services.Metadata;
-using Datahub.Metadata.DTO;
+﻿using Datahub.Metadata.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using Datahub.Application.Services.Metadata;
 
 namespace Datahub.Portal.Controllers
 {

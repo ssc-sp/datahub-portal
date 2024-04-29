@@ -38,7 +38,7 @@ public class Hooks
 
         // setup in memory provider ef core context
         var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
-            .UseInMemoryDatabase(databaseName: "DatahubProjectDB")
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
         var dbContextFactory = new SpecFlowDbContextFactory(options);

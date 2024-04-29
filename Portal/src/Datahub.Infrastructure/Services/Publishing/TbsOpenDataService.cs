@@ -1,10 +1,10 @@
 ﻿using Datahub.Application.Configuration;
 using Datahub.Application.Exceptions;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Publishing;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services.Metadata;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Metadata.DTO;
