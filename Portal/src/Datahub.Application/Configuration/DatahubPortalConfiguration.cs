@@ -2,51 +2,51 @@ using Newtonsoft.Json;
 
 namespace Datahub.Application.Configuration;
 
-public class DatahubPortalConfiguration
+public class DatahubPortalConfiguration : IDatahubPortalConfiguration
 {
     public CultureSettings CultureSettings { get; set; } = new();
-	public string LandingBgFolder { get; set; } = "ssc";
-	public int LandingBgImgCount { get; set; } = 2;
-	public bool ShowLoginPage { get; set; } = true;
-	public string Title { get; set; } = "Federal Science DataHub default title";
-	public string DataHubModules { get; set; } = null!;
-	public DataProjects DataProjects { get; set; } = new();
-	public Achievements Achievements { get; set; } = new();
-	public Media Media { get; set; } = new();
-	public string ProjectUrlSegment { get; set; } = "w";
-	public string ProfileUrlSegment { get; set; } = "profile";
+    public string LandingBgFolder { get; set; } = "ssc";
+    public int LandingBgImgCount { get; set; } = 2;
+    public bool ShowLoginPage { get; set; } = true;
+    public string Title { get; set; } = "Federal Science DataHub default title";
+    public string DataHubModules { get; set; } = null!;
+    public DataProjects DataProjects { get; set; } = new();
+    public Achievements Achievements { get; set; } = new();
+    public Media Media { get; set; } = new();
+    public string ProjectUrlSegment { get; set; } = "w";
+    public string ProfileUrlSegment { get; set; } = "profile";
 
-	public ConnectionStrings ConnectionStrings { get; set; } = new();
-	public AzureAd AzureAd { get; set; } = new();
-	public AdoServiceUser AdoServiceUser { get; set; } = new();
-	public AdoOrg AdoOrg { get; set; } = new();
-	public Graph Graph { get; set; } = new();
-	public APITargets APITargets { get; set; } = new();
-	public ApplicationInsights ApplicationInsights { get; set; } = new();
-	public KeyVault KeyVault { get; set; } = new();
-	public Hosting Hosting { get; set; } = new();
-	public EmailNotification EmailNotification { get; set; } = new();
-	public PublicFileSharing PublicFileSharing { get; set; } = new();
-	public string PortalRunAsManagedIdentity { get; set; } = "disabled";
-	public string ResourcePrefix { get; set; } = "fsdh";
-	public bool CentralizedProjectSecrets { get; set; } = false;
-	public string ProjectStorageKeySecretName { get; set; } = "storage-key";
+    public ConnectionStrings ConnectionStrings { get; set; } = new();
+    public AzureAd AzureAd { get; set; } = new();
+    public AdoServiceUser AdoServiceUser { get; set; } = new();
+    public AdoOrg AdoOrg { get; set; } = new();
+    public Graph Graph { get; set; } = new();
+    public APITargets APITargets { get; set; } = new();
+    public ApplicationInsights ApplicationInsights { get; set; } = new();
+    public KeyVault KeyVault { get; set; } = new();
+    public Hosting Hosting { get; set; } = new();
+    public EmailNotification EmailNotification { get; set; } = new();
+    public PublicFileSharing PublicFileSharing { get; set; } = new();
+    public string PortalRunAsManagedIdentity { get; set; } = "disabled";
+    public string ResourcePrefix { get; set; } = "fsdh";
+    public bool CentralizedProjectSecrets { get; set; } = false;
+    public string ProjectStorageKeySecretName { get; set; } = "storage-key";
 
-	[JsonProperty("Azure:SignalR:StickyServerMode")]
-	public string AzureSignalRStickyServerMode { get; set; } = "Required";
+    [JsonProperty("Azure:SignalR:StickyServerMode")]
+    public string AzureSignalRStickyServerMode { get; set; } = "Required";
 
-	public string AllowedHosts { get; set; } = null!;
+    public string AllowedHosts { get; set; } = null!;
     public string[] AllowedUserEmailDomains { get; set; } = [".gc.ca"];
     public DatahubStorageQueue DatahubStorageQueue { get; set; } = new();
-	public string DatahubGraphInviteFunctionUrl { get; set; } = null!;
-	public string DatahubGraphUsersStatusFunctionUrl { get; set; } = null!;
-	public TermsAndConditionsUrl TermsAndConditionsUrl { get; set; } = new();
-	public PreRegistrationDocumentationUrl PreRegistrationDocumentationUrl { get; set; } = new();
+    public string DatahubGraphInviteFunctionUrl { get; set; } = null!;
+    public string DatahubGraphUsersStatusFunctionUrl { get; set; } = null!;
+    public TermsAndConditionsUrl TermsAndConditionsUrl { get; set; } = new();
+    public PreRegistrationDocumentationUrl PreRegistrationDocumentationUrl { get; set; } = new();
 
-	public string SupportFormUrl { get; set; } =
-		"https://forms.office.com/pages/responsepage.aspx?id=lMFb0L-U1kquLh2w8uOPXhksOXzZ73RCp9fVTz4vTU5UNTc1U00yNVUxWVg4SkJGMFVHN1RCTTdQRS4u";
+    public string SupportFormUrl { get; set; } =
+        "https://forms.office.com/pages/responsepage.aspx?id=lMFb0L-U1kquLh2w8uOPXhksOXzZ73RCp9fVTz4vTU5UNTc1U00yNVUxWVg4SkJGMFVHN1RCTTdQRS4u";
 
-	public ReverseProxy ReverseProxy { get; set; } = new();
+    public ReverseProxy ReverseProxy { get; set; } = new();
 
     public GithubConfig Github { get; set; } = new();
 
