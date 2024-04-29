@@ -11,6 +11,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using Reqnroll;
 
 namespace Datahub.SpecflowTests.Steps
 {
