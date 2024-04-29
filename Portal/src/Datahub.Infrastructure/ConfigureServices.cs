@@ -4,6 +4,7 @@ using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Notifications;
 using Datahub.Application.Services.ReverseProxy;
 using Datahub.Core.Services.CatalogSearch;
+using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
 using Datahub.Infrastructure.Services.Azure;
@@ -44,11 +45,14 @@ public static class ConfigureServices
                 x.UsingAzureServiceBus((context, cfg) =>
                 {
                     var serviceBusConnectingString = configuration["MassTransit:AzureServiceBus:ConnectionString"];
-
+                    //cfg.ConfigureEndpoints(context);
                     cfg.Host(serviceBusConnectingString);
-                    cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
+                    //cfg.Publish<EmailRequestMessage>(x => x.BasePath = "email-notification");
+                    //EndpointConvention.Map<EmailRequestMessage>(new Uri("queue:email-notification"));
+                    //cfg.UseConsumeFilter(typeof(LoggingFilter<>), context);
+                    //cfg.ConfigureEndpoints(context);
                 });
-            }
+            }            
         });
 
         return services;

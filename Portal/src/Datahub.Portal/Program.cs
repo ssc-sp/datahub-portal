@@ -30,9 +30,10 @@ public class Program
                 // or if you want to capture logs from early in the application startup
                 // pipeline from Startup.cs or Program.cs itself.
 
-
-                var key = hostingContext.Configuration.GetSection("ApplicationInsights").GetValue<string>("InstrumentationKey");
-                logBuilder.AddApplicationInsights(key);
+                logBuilder.AddApplicationInsights(appInsightsCfg =>
+                {
+                    appInsightsCfg.ConnectionString = hostingContext.Configuration.GetValue<string>("ApplicationInsights_Connection_String") ?? throw new InvalidOperationException("No application insight connection string");
+                }, loggerOptions => { });
 
                 //var appInsightsConfig = hostingContext.Configuration.GetSection("ApplicationInsights");
                 //logBuilder.AddApplicationInsights(config => 

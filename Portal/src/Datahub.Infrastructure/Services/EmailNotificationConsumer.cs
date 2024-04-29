@@ -49,6 +49,7 @@ public class EmailNotificationConsumer: IConsumer<EmailRequestMessage>
     {
         try
         {
+            _logger.LogInformation($"Sending email '{req.Subject}' to {req.To?.Count} recipients");
             using MimeMessage message = new();
 
             message.From.Add(new MailboxAddress(_emailConfig.SenderName, _emailConfig.SenderAddress));
