@@ -7,7 +7,7 @@
 @inherits LayoutComponentBase
 @layout MainLayout
 
-@inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject IDatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDatahubAuditingService _auditingService
 @inject NavigationManager _navigationManager
 @inject IHttpContextAccessor _httpContextAccessor;
@@ -140,6 +140,15 @@
 
             // collect information
             _portalUser = await _userInformationService.GetCurrentPortalUserAsync();
+            if (_portalUser is null)
+            {
+                _portalUser = new PortalUser
+                    {
+                        GraphGuid = Guid.NewGuid().ToString(),
+                        DisplayName = "Unknown User",
+                        Email = "unknown_email",
+                    };
+            }
             var userLanguage = await _userSettingsService.GetUserLanguage();
 
             var url = _navigationManager.Uri; // Retrieve the active URL
@@ -186,10 +195,14 @@
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
         var lastHour = DateTime.Now.AddHours(-1);
-        var events = await dbContext.TelemetryEvents
-            .Where(u => u.PortalUser.Id == _portalUser.Id && u.EventDate >= lastHour )
-            .ToListAsync();
-        return events;
+        var events = dbContext.TelemetryEvents;
+        if (events != null && events.Count() > 0 )
+        {
+            return await events
+                .Where(u => u.PortalUser.Id == _portalUser.Id && u.EventDate >= lastHour)
+                .ToListAsync();
+        } 
+        return new List<TelemetryEvent>();
     }
     private string GetOrg(string email)
     {

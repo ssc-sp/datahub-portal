@@ -30,15 +30,22 @@ using Microsoft.AspNetCore.Components.Routing;
 using System.Collections.Generic;
 using Microsoft.Extensions.Localization;
 using Datahub.Tests.Portal;
+using NSubstitute;
+using Microsoft.Extensions.Options;
+using Datahub.Core.Services.CatalogSearch;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Datahub.Core.Model.Achievements;
+using Datahub.Infrastructure.Queues.Messages;
 
 namespace Datahub.Tests;
 
 public class ErrorBoundaryTests
 {
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbConextFactoryMock;
-    private readonly Mock<DatahubPortalConfiguration> _datahubPortalConfigurationMock;
+    private readonly IWebHostEnvironment _hostingMock;
+    private readonly Mock<IDatahubPortalConfiguration> _datahubPortalConfigurationMock;
+    private readonly Mock<IDatahubCatalogSearch> _datahubCatalogSearchMock;
     private readonly Mock<IDatahubAuditingService> _auditingServiceMock;
-    private readonly Mock<IWebHostEnvironment> _hostingMock;
     private readonly Mock<IUserInformationService> _userInformationMock;
     private readonly Mock<IUserSettingsService> _userSettingsMock;
     private readonly Mock<CultureService> _cultureServiceMock;
@@ -61,9 +68,9 @@ public class ErrorBoundaryTests
     public ErrorBoundaryTests()
     {
         _dbConextFactoryMock = new MockProjectDbContextFactory();
-        _datahubPortalConfigurationMock = new Mock<DatahubPortalConfiguration>();
         _auditingServiceMock = new Mock<IDatahubAuditingService>();
-        _hostingMock = new Mock<IWebHostEnvironment>();
+        _datahubCatalogSearchMock = new Mock<IDatahubCatalogSearch>();
+        //_hostingMock = new Mock<IWebHostEnvironment>();
         _userInformationMock = new Mock<IUserInformationService>();
         _userSettingsMock = new Mock<IUserSettingsService>();
         _cultureServiceMock = new Mock<CultureService>();
@@ -81,28 +88,41 @@ public class ErrorBoundaryTests
         _browserViewportServiceMock = new Mock<IBrowserViewportService>();
         _scrollManagerMock = new Mock<IScrollManager>();
         _portalUserTelemetryServiceMock = new Mock<IPortalUserTelemetryService>();
-        _stringLocalizerMock = new Mock<IStringLocalizer> { CallBase = true };
+        _stringLocalizerMock = new Mock<IStringLocalizer> { CallBase = false };
+        _datahubPortalConfigurationMock = new Mock<IDatahubPortalConfiguration> { CallBase = true };
+
+        _hostingMock = Substitute.For<IWebHostEnvironment>();
     }
 
-    [Fact(Skip = "Needs to be validated")]
+    [Fact]
     public async Task ReportIssue_ExceptionHandled()
     {
         // Arrange
         var ex = new Exception("test");
         var corrlationId = Guid.NewGuid().ToString();
-
+        var fakePortalUser = new PortalUser 
+        { 
+            GraphGuid=Guid.NewGuid().ToString(),
+            DisplayName = "Test User",
+            Email="fake_user@gc.ca",
+        };
         _snackBarMock.Setup(x => x.Configuration).Returns(new SnackbarConfiguration());
         _stringLocalizerMock.Setup(x => x[It.IsAny<string>()]).Returns(new LocalizedString("test","test"));
-         
-        // _datahubPortalConfigurationMock.Setup(x => x.SupportFormUrl).Returns("");
-        // _hostingMock.Setup(x => x.IsDevelopment()).Returns(false);
+
+        _hostingMock.EnvironmentName.Returns("Hosting:PortalUnitTestingEnvironment");
+        _datahubPortalConfigurationMock.Setup(x => x.SupportFormUrl).Returns("https://forms.office.com/pages/responsepage.aspx");
+        //_userInformationMock.Setup(x => x.GetCurrentPortalUserAsync()).Returns(Task.FromResult(fakePortalUser));
+        
+        var context = new DefaultHttpContext();
+        context.Request.Headers["User-Agent"] = "fake_user_agent"; 
+        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
 
         using var ctx = new TestContext();
-        ctx.Services.AddSingleton(_dbConextFactoryMock);
-        ctx.Services.AddSingleton<DatahubPortalConfiguration>(new DatahubPortalConfiguration());
-        //ctx.Services.AddSingleton(_datahubPortalConfigurationMock.Object);
+        ctx.Services.AddSingleton(_dbConextFactoryMock); 
+        ctx.Services.AddSingleton(_datahubPortalConfigurationMock.Object);
+        ctx.Services.AddSingleton(_datahubCatalogSearchMock.Object);
         ctx.Services.AddSingleton(_auditingServiceMock.Object);
-        ctx.Services.AddSingleton(_hostingMock.Object);
+        ctx.Services.AddSingleton(_hostingMock);
         ctx.Services.AddSingleton(_userInformationMock.Object);
         ctx.Services.AddSingleton(_userSettingsMock.Object);
         ctx.Services.AddSingleton(_cultureServiceMock.Object);
@@ -112,22 +132,16 @@ public class ErrorBoundaryTests
         ctx.Services.AddSingleton(_navigationManagerMock.Object);
         ctx.Services.AddSingleton<NavigationManager, FakeNavigationManager>();
         ctx.Services.AddSingleton(_mediatrMock.Object);
-        ctx.Services.AddSingleton(_dialogServiceMock.Object);
-        ctx.Services.AddSingleton(_snackBarMock.Object);
+        ctx.Services.AddSingleton(_stringLocalizerMock.Object);
         ctx.Services.AddSingleton(_portalUserTelemetryServiceMock.Object);
-        ctx.Services.AddSingleton(_popoverServiceMock.Object);
-        ctx.Services.AddSingleton(_mudPopoverServiceMock.Object);
-        ctx.Services.AddSingleton(new MudPopoverProvider());
-        ctx.Services.AddSingleton(_breakpointServiceMock.Object);
-        ctx.Services.AddSingleton(_browserViewportServiceMock.Object);
-        ctx.Services.AddSingleton(_scrollManagerMock.Object);
-        ctx.Services.AddLocalization();
+        ctx.Services.AddMudServices();
 
         // Act
         var cut = ctx.RenderComponent<PortalLayout>();
 
         await cut.Instance.ReportIssue(ex, corrlationId);
 
+        _mediatrMock.Verify(m => m.Send(It.IsAny<BugReportMessage>(), default), Times.Once);
     }
 }
 public class FakeNavigationManager : NavigationManager
