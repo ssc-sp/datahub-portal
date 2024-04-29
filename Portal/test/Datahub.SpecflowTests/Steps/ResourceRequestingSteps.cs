@@ -2,6 +2,7 @@ using Datahub.Application.Services;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Subscriptions;
 using Datahub.Core.Services.Projects;
 using Datahub.Shared.Entities;
 using FluentAssertions;
@@ -22,15 +23,8 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"a workspace without a database resource")]
         public async Task GivenAWorkspaceWithoutADatabaseResource()
         {
-            await using var ctx = await dbContextFactory.CreateDbContextAsync();
             const string projectAcronym = "test";
-            var project = new Datahub_Project()
-            {
-                Project_Acronym_CD = projectAcronym,
-            };
-            
-            ctx.Projects.Add(project);
-            await ctx.SaveChangesAsync();
+            await GenerateWorkspace(projectAcronym);
             
             scenarioContext["projectAcronym"] = projectAcronym;
         }
@@ -39,20 +33,12 @@ namespace Datahub.SpecflowTests.Steps
         public async Task GivenAWorkspaceWithoutAResource(string resourceName)
         {
             var resourceType = TransformResourceName(resourceName);
-            
-            await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var projectAcronym = $"{resourceType}-acronym";
-            var project = new Datahub_Project()
-            {
-                Project_Acronym_CD = projectAcronym,
-            };
-            
-            ctx.Projects.Add(project);
-            await ctx.SaveChangesAsync();
-            
+            await GenerateWorkspace(projectAcronym);
+
             scenarioContext[$"acronym:{resourceName}"] = projectAcronym;
         }
-        
+
         [Given(@"a workspace with a (.*) resource")]
         public async Task GivenAWorkspaceWithAResource(string resourceName)
         {
@@ -60,6 +46,7 @@ namespace Datahub.SpecflowTests.Steps
             
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var projectAcronym = $"{resourceType}-acronym";
+            await GenerateWorkspace(projectAcronym);
             var project = new Datahub_Project()
             {
                 Project_Acronym_CD = projectAcronym,
@@ -86,8 +73,8 @@ namespace Datahub.SpecflowTests.Steps
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var currentUser = new PortalUser()
             {
-                GraphGuid = Testing.CURRENT_USER_GUID.ToString(),
-                Email = Testing.CURRENT_USER_EMAIL
+                GraphGuid = Testing.CurrentUserGuid.ToString(),
+                Email = Testing.CurrentUserEmail
             };
             
             ctx.PortalUsers.Add(currentUser);
@@ -105,7 +92,7 @@ namespace Datahub.SpecflowTests.Steps
                 .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
             
             var currentUser = await ctx.PortalUsers
-                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CURRENT_USER_GUID.ToString());
+                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CurrentUserGuid.ToString());
             
             await requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.AzurePostgres, currentUser);
         }
@@ -123,7 +110,7 @@ namespace Datahub.SpecflowTests.Steps
                 .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
             
             var currentUser = await ctx.PortalUsers
-                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CURRENT_USER_GUID.ToString());
+                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CurrentUserGuid.ToString());
             
             await requestManagementService.HandleTerraformRequestServiceAsync(project, resourceType, currentUser);
         }
@@ -213,6 +200,39 @@ namespace Datahub.SpecflowTests.Steps
             expectedResource.Should().BeNull();
         }
 
+        
+        
+        private async Task GenerateWorkspace(string projectAcronym, string? resourceType = null)
+        {
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = new Datahub_Project()
+            {
+                Project_Acronym_CD = projectAcronym,
+            };
+            var datahubAzureSubscription = new DatahubAzureSubscription()
+            {
+                Nickname = "Test Subscription",
+                TenantId = "00000000-0000-0000-0000-000000000000",
+                SubscriptionId = "00000000-0000-0000-0000-000000000000",
+            };
+            
+            project.DatahubAzureSubscription = datahubAzureSubscription;
 
+            if (resourceType != null)
+            {
+                var resource = new Project_Resources2()
+                {
+                    ResourceType = TerraformTemplate.GetTerraformServiceType(resourceType),
+                    JsonContent = "{}",
+                    Project = project
+                };
+                
+                ctx.Project_Resources2.Add(resource);
+            }            
+            
+            ctx.AzureSubscriptions.Add(datahubAzureSubscription);
+            ctx.Projects.Add(project);
+            await ctx.SaveChangesAsync();
+        }
     }
 }

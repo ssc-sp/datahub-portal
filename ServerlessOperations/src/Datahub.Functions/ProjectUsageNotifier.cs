@@ -48,26 +48,26 @@ namespace Datahub.Functions
             var message = DeserializeQueueMessage(queueItem);
 
             // verify message 
-            if (message is null || message.ProjectId <= 0)
+            if (message is null || message.ProjectAcronym.Length <= 0)
             {
                 throw new Exception($"Invalid queue message:\n{queueItem}");
             }
 
             // run project verification
-            await VerifyAndNotifyProject(message.ProjectId, cancellationToken);
+            await VerifyAndNotifyProject(message.ProjectAcronym, cancellationToken);
         }
 
-        private async Task VerifyAndNotifyProject(int projectId, CancellationToken cancellationToken)
+        private async Task VerifyAndNotifyProject(string projectAcronym, CancellationToken cancellationToken)
         {
             using var ctx = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-            // load details from db
-            var details = await GetProjectDetails(ctx, projectId, cancellationToken);
+            // load from details from db
+            var details = await GetProjectDetails(ctx, projectAcronym, cancellationToken);
 
             if (details?.Credits is null)
             {
                 // log that details credits are null
-                _logger.LogWarning("Project {ProjectId} details or credits are null", projectId);
+                _logger.LogWarning("Project {ProjectId} details or credits are null", projectAcronym);
                 return;
             }
 
@@ -104,11 +104,11 @@ namespace Datahub.Functions
             }
         }
 
-        private async Task<ProjectNotificationDetails?> GetProjectDetails(DatahubProjectDBContext ctx, int projectId, 
+        private async Task<ProjectNotificationDetails?> GetProjectDetails(DatahubProjectDBContext ctx, string projectAcronym, 
             CancellationToken cancellationToken)
         {
             var project = await ctx.Projects
-                .Where(e => e.Project_ID == projectId)
+                .Where(e => e.Project_Acronym_CD == projectAcronym)
                 .Include(e => e.Credits)
                 .Include(e => e.Users)
                 .ThenInclude(e => e.PortalUser)

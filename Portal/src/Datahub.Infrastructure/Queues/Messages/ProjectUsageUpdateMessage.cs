@@ -1,34 +1,37 @@
-﻿using Datahub.Infrastructure.Queues.MessageHandlers;
+﻿using Datahub.Application.Services.Budget;
+using Datahub.Infrastructure.Queues.MessageHandlers;
 using MediatR;
 
 namespace Datahub.Infrastructure.Queues.Messages;
 
 public class ProjectUsageUpdateMessageBase
 {
-    public ProjectUsageUpdateMessageBase(int projectId, string resourceGroup, bool databricks, int timeout)
+    public ProjectUsageUpdateMessageBase(string projectAcronym, List<DailyServiceCost> subCosts, int timeout, bool forceRollover)
     {
-        ProjectId = projectId;
-        ResourceGroup = resourceGroup;
-        Databricks = databricks;
+        ProjectAcronym = projectAcronym;
+        SubscriptionCosts = subCosts;
         Timeout = timeout;
+        ForceRollover = forceRollover;
     }
 
-    public int ProjectId { get; }
-    public string ResourceGroup { get; }
-    public bool Databricks { get; }
+    public string ProjectAcronym { get; }
+    public List<DailyServiceCost> SubscriptionCosts { get; }
     public int Timeout { get; }
+    public bool ForceRollover { get; set; }
 }
 
 public class ProjectUsageUpdateMessage : ProjectUsageUpdateMessageBase, IRequest, IMessageTimeout
 {
-    public ProjectUsageUpdateMessage(int projectId, string resourceGroup, bool databricks, int timeout) : base(projectId, resourceGroup, databricks, timeout)
+    public ProjectUsageUpdateMessage(string ProjectAcronym, List<DailyServiceCost> SubscriptionCosts, int Timeout, bool ForceRollover) : base(ProjectAcronym,
+        SubscriptionCosts, Timeout, ForceRollover)
     {
     }
 }
 
 public class ProjectCapacityUpdateMessage : ProjectUsageUpdateMessageBase, IRequest, IMessageTimeout
 {
-    public ProjectCapacityUpdateMessage(int projectId, string resourceGroup, bool databricks, int timeout) : base(projectId, resourceGroup, databricks, timeout)
+    public ProjectCapacityUpdateMessage(string projectAcronym, int timeout, bool forceRollover) : base(projectAcronym, new List<DailyServiceCost>(),
+        timeout, forceRollover)
     {
     }
 }

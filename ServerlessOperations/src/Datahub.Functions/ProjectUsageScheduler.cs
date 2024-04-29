@@ -1,13 +1,12 @@
 ﻿using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Shared.Entities;
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
+using Datahub.Application.Services.Budget;
+using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Functions;
 
@@ -16,13 +15,18 @@ public class ProjectUsageScheduler
     private readonly ILogger<ProjectUsageScheduler> _logger;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
     private readonly IMediator _mediator;
+    private readonly IWorkspaceCostManagementService _workspaceCostMgmtService;
+    private readonly AzureConfig _azConfig;
 
     public ProjectUsageScheduler(ILoggerFactory loggerFactory,
-        IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IMediator mediator)
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IMediator mediator,
+        IWorkspaceCostManagementService workspaceCostMgmtService, IConfiguration config)
     {
         _logger = loggerFactory.CreateLogger<ProjectUsageScheduler>();
         _dbContextFactory = dbContextFactory;
         _mediator = mediator;
+        _workspaceCostMgmtService = workspaceCostMgmtService;
+        _azConfig = new AzureConfig(config);
     }
 
     [Function("ProjectUsageScheduler")]
@@ -34,93 +38,48 @@ public class ProjectUsageScheduler
 #if DEBUG
     [Function("ProjectUsageSchedulerHttp")]
     public async Task RunHttp(
-        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]
+        HttpRequestData req)
     {
-        await RunScheduler();
+        var body = await req.ReadAsStringAsync();
+        var manualRollover = body.Contains("manualRollover");
+        await RunScheduler(manualRollover);
     }
 #endif
 
-    private async Task RunScheduler()
+    private async Task RunScheduler(bool manualRollover = false)
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
-        // set to keep track of already schedule projects
-        HashSet<int> scheduled = new();
         var timeout = 0;
 
-        var resources = await GetProjectResources(ctx);
-        var sortedResources = resources.OrderBy(r => r.LastUpdate).Take(1000);
-        
-        foreach (var resource in sortedResources)
+        var projects = ctx.Projects.ToList();
+        var sortedProjects = projects.OrderBy(p => GetLastUpdate(ctx, p.Project_ID)).ToList();
+        var subscriptionCosts = await _workspaceCostMgmtService.QuerySubscriptionCosts(null,
+            DateTime.UtcNow.Date.AddDays(-7), DateTime.UtcNow.Date);
+
+        if (subscriptionCosts is null)
         {
-            if (scheduled.Contains(resource.ProjectId))
-                continue;
+            _logger.LogError("Cannot query costs at this time.");
+            return;
+        }
 
-            var message = TryDeserializeMessage(resource, timeout);
-            if (message is null)
-            {
-                _logger.LogWarning(
-                    $"Invalid resource json found in project {resource.ProjectId}:\n{resource.JsonContent}");
-                continue;
-            }
-
-            // track project id
-            scheduled.Add(message.ProjectId);
+        foreach (var resource in sortedProjects)
+        {
+            var usageMessage = new ProjectUsageUpdateMessage(resource.Project_Acronym_CD, subscriptionCosts, timeout,
+                manualRollover);
 
             // send/post the message
-            await _mediator.Send(message);
+            await _mediator.Send(usageMessage);
 
-            var capacityMessage = ConvertToCapacityUpdateMessage(message, timeout);
+            var capacityMessage = ConvertToCapacityUpdateMessage(usageMessage, timeout, manualRollover);
 
             // send/post the message,
             await _mediator.Send(capacityMessage);
         }
 
-        _logger.LogInformation($"{scheduled.Count} projects scheduled!");
-    }
-
-    private ProjectUsageUpdateMessage? TryDeserializeMessage(ProjectResourceData resource, int timeout)
-    {
-        try
-        {
-            var content = JsonSerializer.Deserialize<DBResourceContent>(resource.JsonContent);
-            if (string.IsNullOrEmpty(content?.resource_group_name))
-                return default;
-
-            return new ProjectUsageUpdateMessage(resource.ProjectId, content.resource_group_name, resource.Databricks,
-                timeout);
-        }
-        catch
-        {
-            _logger.LogInformation(
-                $"Found project {resource.ProjectId} with invalid JsonContent:\n{resource.JsonContent}");
-            return default;
-        }
-    }
-
-    private async Task<List<ProjectResourceData>> GetProjectResources(DatahubProjectDBContext ctx)
-    {
-        var databrickProjects = new HashSet<int>();
-
-        var terraformServiceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-        var storageBlobType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
-
-        var projects = new List<Project_Resources2>();
-        await foreach (var res in ctx.Project_Resources2.AsAsyncEnumerable())
-        {
-            if (res.ResourceType == terraformServiceType)
-            {
-                databrickProjects.Add(res.ProjectId);
-            }
-
-            if (res.ResourceType == storageBlobType)
-            {
-                projects.Add(res);
-            }
-        }
-
-        return projects.Select(p => new ProjectResourceData(p.ProjectId, p.JsonContent,
-            databrickProjects.Contains(p.ProjectId), GetLastUpdate(ctx, p.ProjectId))).ToList();
+        // TODO: deadman switch?
+        _logger.LogInformation($"All projects scheduled for usage and capacity update");
     }
 
     private DateTime GetLastUpdate(DatahubProjectDBContext ctx, int projectId)
@@ -131,12 +90,9 @@ public class ProjectUsageScheduler
         return lastUpdate ?? DateTime.MinValue;
     }
 
-    static ProjectCapacityUpdateMessage ConvertToCapacityUpdateMessage(ProjectUsageUpdateMessage message, int timeout)
+    static ProjectCapacityUpdateMessage ConvertToCapacityUpdateMessage(ProjectUsageUpdateMessage message, int timeout,
+        bool manualRollover)
     {
-        return new(message.ProjectId, message.ResourceGroup, message.Databricks, timeout);
+        return new(message.ProjectAcronym, timeout, manualRollover);
     }
-
-    record DBResourceContent(string resource_group_name);
-
-    record ProjectResourceData(int ProjectId, string JsonContent, bool Databricks, DateTime LastUpdate);
 }
