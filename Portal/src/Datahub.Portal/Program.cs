@@ -32,7 +32,7 @@ public class Program
 
                 logBuilder.AddApplicationInsights(appInsightsCfg =>
                 {
-                    appInsightsCfg.ConnectionString = hostingContext.Configuration.GetValue<string>("ApplicationInsights_Connection_String") ?? throw new InvalidOperationException("No application insight connection string");
+                    appInsightsCfg.ConnectionString = hostingContext.Configuration.GetValue<string>("ApplicationInsights:ConnectionString") ?? throw new InvalidOperationException("No application insight connection string");
                 }, loggerOptions => { });
 
                 //var appInsightsConfig = hostingContext.Configuration.GetSection("ApplicationInsights");

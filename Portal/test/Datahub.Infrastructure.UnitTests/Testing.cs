@@ -25,7 +25,11 @@ public partial class Testing
     internal static IUserEnrollmentService _userEnrollmentService = null!;
     internal static DatabricksApiService _databricksApiService = null!;
     internal static DatahubPortalConfiguration _datahubPortalConfiguration = null!;
-    internal static IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = null!;
+    internal static DatahubProjectDBContext _dbContext =
+                new (new DbContextOptions<DatahubProjectDBContext>());
+    internal static IDbContextFactory<DatahubProjectDBContext> _dbContextFactory =
+        Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
+    internal static ILoggerFactory _loggerFactory;
     internal static IHttpClientFactory _httpClientFactory = null;
     internal static Mock<HttpMessageHandler> _mockHandler = null;
 
@@ -34,6 +38,11 @@ public partial class Testing
     internal const string TestUserGraphGuid = "0000-0000-0000-0000-0000";
     internal static readonly string[] TEST_USER_IDS = Enumerable.Range(0,5).Select(_ => Guid.NewGuid().ToString()).ToArray();
     internal const string TestAdminUserId = "987654321";
+    internal const string TestResourceGroupId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b/resourceGroups/fsdh-static-test-rg";
+    internal const string SubscriptionId = "bc4bcb08-d617-49f4-b6af-69d6f10c240b";
+    internal const string SubscriptionResourceId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b";
+    internal const string TestBudgetId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b/resourceGroups/fsdh-static-test-rg/providers/Microsoft.Consumption/budgets/fsdh-test-budget";
+    internal const string TestStorageAccountId = "/subscriptions/bc4bcb08-d617-49f4-b6af-69d6f10c240b/resourceGroups/fsdh-static-test-rg/providers/Microsoft.Storage/storageAccounts/fsdhteststorageaccount";
     internal const string OldUserEmail = "old-user@email.gc.ca";
     internal const string GuestUserEmail = "user@email.gov.uk";
     internal const string OldUserId = "987654321";
@@ -51,8 +60,8 @@ public partial class Testing
         
         _datahubPortalConfiguration = new DatahubPortalConfiguration();
         _configuration.Bind(_datahubPortalConfiguration);
-        _dbContextFactory = Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
-
+        _loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        
         var expectedDatahubPortalInviteResponse = ExpectedDatahubPortalInviteResponse();
 
         _mockHandler = new Mock<HttpMessageHandler>();
@@ -95,7 +104,7 @@ public partial class Testing
         _databricksApiService = new DatabricksApiService(Mock.Of<ILogger<DatabricksApiService>>(),
             _httpClientFactory, dbContextFactory, Mock.Of<IDatahubCatalogSearch>());
     }
-    private static StringContent ExpectedDatahubPortalInviteResponse()
+    public static StringContent ExpectedDatahubPortalInviteResponse()
     {
         var data = new JsonObject
         {
@@ -128,5 +137,6 @@ public partial class Testing
     [OneTimeTearDown]
     public void RunAfterAnyTests()
     {
+        _loggerFactory.Dispose();
     }
 }
