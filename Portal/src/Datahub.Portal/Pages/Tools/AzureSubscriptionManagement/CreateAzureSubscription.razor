@@ -1,36 +1,84 @@
+@using Datahub.Application.Services.Subscriptions
 @using Datahub.Core.Model.Subscriptions
 
-<MudStack>
-    <MudText Typo="Typo.h2">Add a new subscription</MudText>
+@inject IDatahubAzureSubscriptionService _datahubAzureSubscriptionService
 
-    <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
-        <MudTextField T="string" Label="@Localizer["Tenant ID"]" Required="true" RequiredError="@Localizer["Tenant ID is required"]"
-                      @bind-Value="@_tenantId" Validation="@(new Func<string, string>(IsValidGuid))"/>
-        <MudTextField T="string" Label="@Localizer["Subscription ID"]" Required="true" RequiredError="@Localizer["Subscription ID is required"]"
-                      @bind-Value="@_subscriptionId" Validation="@(new Func<string, string>(IsValidGuid))"/>
-        <MudTextField T="string" Label="@Localizer["Subscription Name"]" Required="true" RequiredError="@Localizer["Subscription Name is required"]"
-                      @bind-Value="@_subscriptionName"/>
-
-        <MudButton Class="mt-6" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="@SubmitSubscription">Add Subscription</MudButton>
-    </MudForm>
-
+<MudText Typo="Typo.h2">Add a new subscription</MudText>
+<MudGrid>
+    <MudItem xs="12" sm="6">
+        <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
+            <MudTextField T="string" Label="@Localizer["Subscription ID"]" Required="true" RequiredError="@Localizer["Subscription ID is required"]"
+                          @bind-Value="@_subscriptionId" Validation="@(new Func<string, string>(IsValidGuid))"/>
+            <MudTextField T="string" Label="@Localizer["Subscription Nickname"]" Required="true" RequiredError="@Localizer["Subscription Nickname is required"]"
+                          @bind-Value="@_subscriptionNickname"/>
+        </MudForm>
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudSimpleTable Style="overflow-x: auto;">
+            <thead>
+            <tr>
+                <th>@Localizer["Property"]</th>
+                <th>@Localizer["Value"]</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>@Localizer["Tenant ID"]</td>
+                <td>@_tenantId</td>
+            </tr>
+            <tr>
+                <td>@Localizer["Subscription ID"]</td>
+                <td>@_subscriptionId</td>
+            </tr>
+            <tr>
+                <td>@Localizer["Subscription Name"]</td>
+                <td>@_subscriptionName</td>
+            </tr>
+            <tr>
+                <td>@Localizer["Subscription Nickname"]</td>
+                <td>@_subscriptionNickname</td>
+            </tr>
+            </tbody>
+        </MudSimpleTable>
+    </MudItem>
+</MudGrid>
+<MudStack Row>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="@ValidateSubscription">@Localizer["Validate Subscription"]</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!(_success && _valid))" OnClick="@SubmitSubscription">@Localizer["Add Subscription"]</MudButton>
 </MudStack>
 
 @code {
-    [Parameter]
-    public EventCallback<DatahubAzureSubscription> OnSubscriptionSubmitted { get; set; }
+    [Parameter] public EventCallback<DatahubAzureSubscription> OnSubscriptionSubmitted { get; set; }
 
     private MudForm _form;
     private bool _success;
+    private bool _valid;
     private string[] _errors = [];
 
     private string _tenantId;
     private string _subscriptionId;
     private string _subscriptionName;
+    private string _subscriptionNickname;
 
     private string IsValidGuid(string value)
     {
         return Guid.TryParse(value, out _) ? null : Localizer["Invalid GUID format"];
+    }
+
+    private async Task ValidateSubscription()
+    {
+        await _form.Validate();
+        if (!_success)
+        {
+            return;
+        }
+
+        var azureSubscription = await _datahubAzureSubscriptionService.SubscriptionExistsAsync(_subscriptionId);
+        _valid = azureSubscription.TenantId != null && azureSubscription.SubscriptionName != null;
+        _tenantId = azureSubscription.TenantId;
+        _subscriptionName = azureSubscription.SubscriptionName;
+
+        StateHasChanged();
     }
 
     private async Task SubmitSubscription()
@@ -45,11 +93,16 @@
         {
             TenantId = _tenantId,
             SubscriptionId = _subscriptionId,
-            Nickname = _subscriptionName
+            Nickname = _subscriptionNickname
         };
 
         await OnSubscriptionSubmitted.InvokeAsync(subscription);
         await _form.ResetAsync();
+        _success = false;
+        _valid = false;
+        
+        _tenantId = null;
+        _subscriptionName = null;
     }
 
 }
