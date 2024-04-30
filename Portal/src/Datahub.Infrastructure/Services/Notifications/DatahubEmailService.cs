@@ -1,7 +1,9 @@
 ﻿using Datahub.Application.Services.Notifications;
 using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Queues.Messages;
-using MediatR;
+using Datahub.Infrastructure.Services.Queues;
+using MassTransit;
+using MassTransit.Transports;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -10,13 +12,15 @@ namespace Datahub.Infrastructure.Services.Notifications;
 public class DatahubEmailService : IDatahubEmailService
 {
     private readonly ILogger<DatahubEmailService> _logger;
-    private readonly IMediator _mediator;
+    private readonly ISendEndpointProvider sendEndpointProvider;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 
-    public DatahubEmailService(ILogger<DatahubEmailService> logger, IMediator mediator, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+    public DatahubEmailService(ILogger<DatahubEmailService> logger, 
+        ISendEndpointProvider sendEndpointProvider,
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
     {
         _logger = logger;
-        _mediator = mediator;
+        this.sendEndpointProvider = sendEndpointProvider;
         _dbContextFactory = dbContextFactory;
     }
 
@@ -51,6 +55,11 @@ public class DatahubEmailService : IDatahubEmailService
 
     private async Task<bool> SendMessage(List<string>? toRecipients, List<string>? ccRecipients, List<string>? bccRecipients, string subject, string body)
     {
+        if (toRecipients is null && ccRecipients is null)
+        {
+            _logger.LogError($"No recipients specified for message '{subject}'");
+            return false;
+        }
         try
         {
             EmailRequestMessage message = new()
@@ -61,7 +70,8 @@ public class DatahubEmailService : IDatahubEmailService
                 Subject = subject,
                 Body = body
             };
-            await _mediator.Send(message);
+            var endpoint = await sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{QueueConstants.QUEUE_EMAILS}"));
+            await endpoint.Send(message);            
             return true;
         }
         catch (Exception ex)

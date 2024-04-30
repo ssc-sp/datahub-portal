@@ -89,6 +89,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A8C709D8-8A40-45E3-BB40-2549AFECE6E6}"
 	ProjectSection(SolutionItems) = preProject
 		bleach.ps1 = bleach.ps1
+		gen-all-settings.ps1 = gen-all-settings.ps1
 		scripts\ConfigureAZCert.ps1 = scripts\ConfigureAZCert.ps1
 		scripts\find-translations.ps1 = scripts\find-translations.ps1
 		scripts\fix_CS8981.ps1 = scripts\fix_CS8981.ps1

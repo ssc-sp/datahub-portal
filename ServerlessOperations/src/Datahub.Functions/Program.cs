@@ -13,6 +13,7 @@ using System.Net;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
+using MassTransit;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Projects;
 using Datahub.Application.Services.Security;
@@ -36,7 +37,7 @@ var host = new HostBuilder()
         var config = hostContext.Configuration;
 
         hostContext.HostingEnvironment.IsDevelopment();
-        
+
         var connectionString = config["datahub_mssql_project"];
         if (connectionString is not null)
         {
@@ -84,8 +85,13 @@ var host = new HostBuilder()
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();
+        services.AddScoped<EmailNotificationHandler>(); // add your functions as scoped
+        services.AddMassTransitForAzureFunctions(cfg =>
+                {
+                    cfg.AddConsumersFromNamespaceContaining<EmailNotificationConsumer>();
+                }, "MassTransit:AzureServiceBus:ConnectionString");
         services.AddDatahubConfigurationFromFunctionFormat(config);
-       
+
 
     })
     .Build();

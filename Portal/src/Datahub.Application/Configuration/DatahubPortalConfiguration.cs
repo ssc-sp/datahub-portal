@@ -191,6 +191,12 @@ public class EmailNotification
 	public string SenderName { get; set; } = "Placeholder Name";
 	public string SenderAddress { get; set; } = "Placeholder@address.com";
 	public bool DevTestMode { get; set; } = false;
+    public bool IsValid => !string.IsNullOrEmpty(SmtpHost) &&
+                       !string.IsNullOrEmpty(SmtpUsername) &&
+                       !string.IsNullOrEmpty(SmtpPassword) &&
+                       !string.IsNullOrEmpty(SenderAddress) &&
+                       SmtpPort != 0;
+    public bool DumpMessages { get; set; }
 }
 
 public class Graph

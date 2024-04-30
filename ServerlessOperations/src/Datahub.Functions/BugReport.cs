@@ -1,4 +1,4 @@
-using Azure.Storage.Queues.Models;
+﻿using Azure.Storage.Queues.Models;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;

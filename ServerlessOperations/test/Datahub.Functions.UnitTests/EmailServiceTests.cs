@@ -1,21 +1,31 @@
-﻿using Datahub.Functions.Services;
+﻿using Datahub.Core.Model.Datahub;
+using Datahub.Functions.Services;
+using Datahub.Infrastructure.Services.Notifications;
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Moq;
+using NSubstitute;
 
 namespace Datahub.Functions.UnitTests;
 
 [TestFixture]
 public class EmailServiceTests
 {
-    private Mock<ILogger<EmailService>> _mockLogger;
     private EmailService _emailService;
-
+    private DatahubEmailService _datahubEmailService;
+    private ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
+    private ILogger<EmailService> _mockEmailLogger;
+    private ILogger<DatahubEmailService> _mockEmailServiceLogger;
+    private IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
+    private readonly ISendEndpointProvider _publishEndpoint = Substitute.For<ISendEndpointProvider>();
     [SetUp]
     public void Setup()
     {
-        _mockLogger = new Mock<ILogger<EmailService>>();
-        _emailService = new EmailService(_mockLogger.Object);
+        _mockEmailLogger = _loggerFactory.CreateLogger<EmailService>();
+        _mockEmailServiceLogger = _loggerFactory.CreateLogger<DatahubEmailService>();
+        _emailService = new EmailService(_mockEmailLogger);
+        _datahubEmailService = new DatahubEmailService(_mockEmailServiceLogger, _publishEndpoint, _dbContextFactory);
     }
 
     [Test]
@@ -58,5 +68,25 @@ public class EmailServiceTests
 
         result.Should().NotBeNull();
         result.Should().Be("Hello, John!");
+    }
+
+
+    [Test]
+    public async Task EmailNotificationHandler_ShouldInvokeMassTransit()
+    {
+        var message = new  
+        { 
+            to = new List<string> { "test@test.test"}, 
+            subject = "test", 
+            body = "test" 
+        }; 
+        await _datahubEmailService.SendToRecipients("test@ssc.gc.ca",message.to,message.subject,message.body);
+        _publishEndpoint.ReceivedCalls().Count().Should().Be(1);
+    }
+
+    [OneTimeTearDown]
+    public void TearDown()
+    {
+        _loggerFactory?.Dispose();
     }
 }

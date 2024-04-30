@@ -34,7 +34,8 @@
     "LoginUrl": ""
   },
   "ApplicationInsights": {
-    "InstrumentationKey": ""
+    "InstrumentationKey": "",
+    "ConnectionString": ""
   },
   "DetailedErrors": true,
   "Logging": {
@@ -53,11 +54,17 @@
     }
   },
   "UpdateProjectMonthlyCostFunction": {
-      "FunctionUrl": "",
-      "FunctionCode": ""
+    "FunctionUrl": "",
+    "FunctionCode": ""
   },
   "KeyVault": {
     "UserName": ""
+  },
+
+  "MassTransit": {
+    "AzureServiceBus": {
+      "ConnectionString": ""
+    }
   },
   "EmailNotification": {
     "SmtpHost": "",
@@ -82,10 +89,10 @@
     }
   },
   "DataCatalog": "enabled",
-  "ResourceProvisionerApi" : {
-      "BaseUrl": "",
-      "Scopes": ""
-    }
+  "ResourceProvisionerApi": {
+    "BaseUrl": "",
+    "Scopes": ""
+  }
 }
 
 

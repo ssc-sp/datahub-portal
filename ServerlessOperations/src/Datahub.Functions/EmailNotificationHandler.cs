@@ -1,10 +1,16 @@
+using Datahub.Application;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using MailKit.Net.Smtp;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Microsoft.Azure.Functions.Worker.Extensions;
 using MimeKit;
 using System.Text.Json;
+using Datahub.Infrastructure.Services.Queues;
+using System.Threading;
+using MassTransit;
+using Azure.Messaging.ServiceBus;
 
 namespace Datahub.Functions;
 
@@ -13,82 +19,20 @@ public class EmailNotificationHandler
     private readonly ILogger _logger;
     private readonly AzureConfig _config;
     private readonly QueuePongService _pongService;
+    private readonly IMessageReceiver receiver;
 
-    public EmailNotificationHandler(ILoggerFactory loggerFactory, AzureConfig config, QueuePongService pongService)
+    public EmailNotificationHandler(ILoggerFactory loggerFactory, AzureConfig config, QueuePongService pongService, IMessageReceiver receiver)
     {
         _logger = loggerFactory.CreateLogger<EmailNotificationHandler>();
         _config = config;
         _pongService = pongService;
+        this.receiver = receiver;
     }
 
     [Function("EmailNotificationHandler")]
-    public async Task Run([QueueTrigger("%QueueEmailNotification%", Connection = "DatahubStorageConnectionString")] string requestMessage)
+    public Task Run([ServiceBusTrigger(QueueConstants.QUEUE_EMAILS, Connection = "MassTransit:AzureServiceBus:ConnectionString")] ServiceBusReceivedMessage requestMessage, CancellationToken cancellationToken)
     {
-        // test for ping
-        if (await _pongService.Pong(requestMessage))
-            return;
-
-        // check mail configuration
-        if (!_config.Email.IsValid)
-        {
-            _logger.LogError($"Invalid mail configuration!");
-            return;
-        }
-
-        // deserialize message
-        var message = JsonSerializer.Deserialize<EmailRequestMessage>(requestMessage);
-        if (message is null || !message.IsValid)
-        {
-            _logger.LogError($"Invalid message received: \n{requestMessage}");
-            return;
-        }
-
-        // setting only used in development
-        if (_config.Email.DumpMessages)
-        {
-            _logger.LogInformation($"No email sent: Dumping messages!");
-            return;
-        }
-
-        // send message
-        await SendMessage(message);
-    }
-
-    private async Task SendMessage(EmailRequestMessage req)
-    {
-        try
-        {
-            using MimeMessage message = new();
-
-            message.From.Add(new MailboxAddress(_config.Email.SenderName, _config.Email.SenderAddress));
-            message.To.AddRange(req.To.Select(GetMailboxAddress));
-            message.Cc.AddRange(req.CcTo.Select(GetMailboxAddress));
-            message.Bcc.AddRange(req.BccTo.Select(GetMailboxAddress));
-
-            message.Subject = req.Subject;
-
-            //var builder = new BodyBuilder { HtmlBody = req.Body };
-            // add attachments (see: builder.Attachments.Add())
-            //message.Body = builder.ToMessageBody();
-
-            message.Body = new TextPart("html")
-            {
-                Text = req.Body
-            };
-
-            using var smtpClient = new SmtpClient();
-
-            await smtpClient.ConnectAsync(_config.Email.SmtpHost, _config.Email.SmtpPort, MailKit.Security.SecureSocketOptions.StartTls);
-            await smtpClient.AuthenticateAsync(new System.Net.NetworkCredential(_config.Email.SmtpUsername, _config.Email.SmtpPassword));
-
-            await smtpClient.SendAsync(message);
-            await smtpClient.DisconnectAsync(true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Fail to send email!");
-            throw;
-        }
+        return receiver.HandleConsumer<EmailNotificationConsumer>(QueueConstants.QUEUE_EMAILS, requestMessage, cancellationToken);
     }
 
     static MailboxAddress GetMailboxAddress(string address) => new(address, address); 
