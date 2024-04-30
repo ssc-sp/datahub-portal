@@ -86,7 +86,7 @@ public class PreRegistrationDocumentationUrl
 		"/UserGuide/Preregistration/Preregistration.md";
 
 	public string Fr { get; set; } =
-		"/fr/UserGuide/Préinscription/Préinscription.md";
+		"/fr/UserGuide/Preregistration/Preregistration.md";
 }
 
 public class CultureSettings
