@@ -29,7 +29,8 @@ public sealed class DatahubAzureSubscriptionSteps(
         var subscription = new DatahubAzureSubscription()
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
-            TenantId = Testing.WorkspaceTenantGuid
+            TenantId = Testing.WorkspaceTenantGuid,
+            SubscriptionName = Testing.SubscriptionName
         };
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
@@ -171,7 +172,8 @@ public sealed class DatahubAzureSubscriptionSteps(
         var subscription = new DatahubAzureSubscription()
         {
             SubscriptionId = string.Format(p0),
-            TenantId = Testing.WorkspaceTenantGuid
+            TenantId = Testing.WorkspaceTenantGuid,
+            SubscriptionName = Testing.SubscriptionName
         };
 
         ctx.AzureSubscriptions.Add(subscription);
@@ -227,7 +229,8 @@ public sealed class DatahubAzureSubscriptionSteps(
         var subscription = new DatahubAzureSubscription()
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
-            TenantId = Testing.WorkspaceTenantGuid
+            TenantId = Testing.WorkspaceTenantGuid,
+            SubscriptionName = Testing.SubscriptionName
         };
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
@@ -255,13 +258,15 @@ public sealed class DatahubAzureSubscriptionSteps(
         var subscription1 = new DatahubAzureSubscription()
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
-            TenantId = Testing.WorkspaceTenantGuid
+            TenantId = Testing.WorkspaceTenantGuid,
+            SubscriptionName = Testing.SubscriptionName
         };
 
         var subscription2 = new DatahubAzureSubscription()
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid2,
-            TenantId = Testing.WorkspaceTenantGuid
+            TenantId = Testing.WorkspaceTenantGuid,
+            SubscriptionName = Testing.SubscriptionName2
         };
 
         ctx.AzureSubscriptions.Add(subscription1);
@@ -283,12 +288,21 @@ public sealed class DatahubAzureSubscriptionSteps(
     [When(@"the subscription with id ""(.*)"" is updated")]
     public async Task WhenTheSubscriptionWithIdIsUpdated(string p0)
     {
-        var subscription = new DatahubAzureSubscription()
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var subscription = await ctx.AzureSubscriptions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.SubscriptionId == p0);
+        
+        subscription.Should().NotBeNull();
+        
+        var updatedSubscription = new DatahubAzureSubscription()
         {
-            SubscriptionId = p0,
-            TenantId = Testing.WorkspaceTenantGuid
+            Id = subscription!.Id,
+            SubscriptionId = "updated-subscription-id",
+            TenantId = subscription.TenantId,
+            SubscriptionName = subscription.SubscriptionName
         };
 
-        await datahubAzureSubscriptionService.UpdateSubscriptionAsync(subscription);
+        await datahubAzureSubscriptionService.UpdateSubscriptionAsync(updatedSubscription);
     }
 }
