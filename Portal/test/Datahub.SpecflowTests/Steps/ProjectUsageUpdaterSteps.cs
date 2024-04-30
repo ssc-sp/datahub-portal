@@ -76,8 +76,11 @@ namespace Datahub.SpecflowTests.Steps
                 {
                     using var ctx = dbContextFactory.CreateDbContext();
                     var credits = ctx.Project_Credits.FirstOrDefault();
-                    credits.LastRollover = DateTime.UtcNow;
-                    ctx.Project_Credits.Update(credits);
+                    if (credits != null)
+                    {
+                        credits.LastRollover = DateTime.UtcNow;
+                        ctx.Project_Credits.Update(credits);
+                    }
                     ctx.SaveChanges();
                 });
             costMgmt.UpdateWorkspaceCostAsync(Arg.Any<List<DailyServiceCost>>(), Arg.Any<string>()).Returns((costRollover, (decimal)10.0));
