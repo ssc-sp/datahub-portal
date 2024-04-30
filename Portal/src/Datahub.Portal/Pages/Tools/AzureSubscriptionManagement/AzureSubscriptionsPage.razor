@@ -11,6 +11,10 @@
     <MudText Typo="Typo.h1">DataHub Azure Subscriptions</MudText>
     <MudText>This page shows the current Azure subscriptions that are being monitored by the DataHub service.</MudText>
 
+    <MudText Class="my-6">
+        The active subscription for new workspaces is <code>@_activeSubscription?.Nickname (@_activeSubscription?.SubscriptionName)</code>
+    </MudText>
+
     <CreateAzureSubscription OnSubscriptionSubmitted="@HandleSubscriptionSubmitted"/>
 
 
@@ -92,6 +96,7 @@
 @code {
     private List<DatahubAzureSubscription> _subscriptions;
     private DatahubAzureSubscription _elementBeforeEdit;
+    private DatahubAzureSubscription _activeSubscription;
 
     private readonly Dictionary<string, int> _numberOfWorkspaceRemaining = new();
 
@@ -99,6 +104,7 @@
     {
         await base.OnInitializedAsync();
         _subscriptions = await _datahubAzureSubscriptionService.ListSubscriptionsAsync();
+        _activeSubscription = await _datahubAzureSubscriptionService.NextSubscriptionAsync();
 
         // Get the number of workspaces remaining for each subscription
         foreach (var subscription in _subscriptions)
