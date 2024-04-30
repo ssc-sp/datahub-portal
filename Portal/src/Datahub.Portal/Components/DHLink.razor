@@ -1,0 +1,193 @@
+@using Microsoft.Extensions.Logging 
+@using System.Text.RegularExpressions
+@using Datahub.Application.Services.Achievements
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.UserTracking
+@using Datahub.Infrastructure.Services.UserManagement
+@using Datahub.Core.Model.Achievements;
+
+@inject ILogger<DHLink> Logger
+@inject NavigationManager NavigationManager
+@inject UserLocationManagerService UserLocationManagerService
+@inject IJSRuntime _jsRuntime
+@inject IPortalUserTelemetryService _telemetryService
+
+@inherits HtmlElement
+
+<MudLink Underline="@Underline" Typo="@Typo" Class="@_classname" @onclick="Navigate" @attributes="@InputAttributesWithoutClass">
+    @ChildContent
+</MudLink>
+
+@code {
+
+    private string _classname => $"{Variant} {InputClass}";
+
+    [Parameter]
+    public DatahubLinkType LinkType { get; set; } = DatahubLinkType.Undefined;
+
+    [Parameter]
+    public string PowerBIURL { get; set; }
+
+    [Parameter]
+    public string Variant { get; set; }
+
+    [Parameter]
+    public Typo Typo { get; set; } = Typo.body1;
+    [Parameter]
+    public Underline Underline { get; set; } = Underline.Hover;
+
+    [Parameter]
+    public string DatabricksURL { get; set; }
+
+    [Parameter]
+    public string WebFormsURL { get; set; }
+
+    [Parameter]
+    public string AzureWebAppUrl { get; set; }
+
+    [Parameter]
+    public string DataProject { get; set; }
+
+    [Parameter]
+    public string Name { get; set; }
+
+    [Parameter]
+    public string ExternalUrl { get; set; }
+
+    [Parameter]
+    public string PBIReportId { get; set; } = null;
+
+    [Parameter]
+    public string PBIWorkspaceId { get; set; } = null;
+
+    [Parameter]
+    public string ResourceArticleId { get; set; } = null;
+    [Parameter]
+    public string ResourceArticleName { get; set; } = null;
+
+    [Parameter]
+    public long? PublishingSubmissionId { get; set; }
+
+    [Parameter]
+    public UserRecentLink UserRecentLink { get; set; }
+
+    public static readonly Regex PBIUrl = new Regex("https://app.powerbi.com/groups/(.+)/reports/(.+)/(.+)", RegexOptions.IgnoreCase);
+
+    private async Task Navigate()
+    {
+        UserRecentLink link;
+        if (UserRecentLink != null)
+        {
+            LinkType = UserRecentLink.LinkType;
+            link = UserRecentLink;
+            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserRecentLink);
+        }
+        else
+        {
+            link = new UserRecentLink();
+            if (LinkType == DatahubLinkType.Undefined)
+            {
+                if (PowerBIURL != null)
+                    LinkType = DatahubLinkType.PowerBI;
+                else if (DatabricksURL != null)
+                    LinkType = DatahubLinkType.Databricks;
+                else if (WebFormsURL != null)
+                    LinkType = DatahubLinkType.WebForm;
+                else if (PublishingSubmissionId.HasValue)
+                    LinkType = DatahubLinkType.PublishingSubmission;
+                else if (DataProject != null)
+                    LinkType = DatahubLinkType.DataProject;
+                else if (ExternalUrl != null)
+                    LinkType = DatahubLinkType.ExternalUrl;
+                else if (AzureWebAppUrl != null)
+                    LinkType = DatahubLinkType.AzureWebApp;
+                else if (ResourceArticleId != null)
+                    LinkType = DatahubLinkType.ResourceArticle;
+            }
+            link.LinkType = LinkType;
+            link.PowerBIURL = PowerBIURL;
+            link.PBIReportId = PBIReportId;
+            link.PBIWorkspaceId = PBIWorkspaceId;
+            link.Variant = Variant;
+            link.DatabricksURL = DatabricksURL;
+            link.AzureWebAppUrl = AzureWebAppUrl;
+            link.ExternalUrl = ExternalUrl;
+            link.WebFormsURL = WebFormsURL;
+            link.DataProject = DataProject;
+            link.ResourceArticleId = ResourceArticleId;
+            link.ResourceArticleTitle = ResourceArticleName;
+            link.Name = Name;
+        }
+        link.AccessedTime = DateTimeOffset.Now;
+
+        await UserLocationManagerService.RegisterNavigation(link);
+        switch (LinkType)
+        {
+            case DatahubLinkType.PowerBI:
+                //NavigationManager.NavigateTo(link.PowerBIURL);
+                //https://app.powerbi.com/groups/6ca76417-b205-43c2-be1b-6aeeedcb84ae/reports/0923fe18-c795-4c88-b7cf-ed8cf2ceacc6/ReportSection
+
+                NavigationManager.NavigateTo($"/powerbi-report/{link.PBIWorkspaceId}/{link.PBIReportId}");
+                break;
+            case DatahubLinkType.DataProject:
+                NavigationManager.NavigateTo($"/w/{link.DataProject}");
+                break;
+            case DatahubLinkType.Databricks:
+                await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserOpenDatabricks);
+                await _jsRuntime.InvokeVoidAsync("open", link?.DatabricksURL, "_blank");
+                break;
+            case DatahubLinkType.AzureWebApp:
+                await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserOpenAzureWebApp);
+                await _jsRuntime.InvokeVoidAsync("open", link?.AzureWebAppUrl, "_blank");
+                break;
+            case DatahubLinkType.ExternalUrl:
+                await _jsRuntime.InvokeVoidAsync("open", link?.ExternalUrl, "_blank");
+                break;
+            case DatahubLinkType.WebForm:
+                NavigationManager.NavigateTo(link.WebFormsURL);
+                break;
+            case DatahubLinkType.FormBuilder:
+                NavigationManager.NavigateTo($"/w/{link.DataProject}/forms");
+                break;
+            case DatahubLinkType.Storage:
+                NavigationManager.NavigateTo($"/w/{link.DataProject}/filelist");
+                break;
+            case DatahubLinkType.Repository:
+                NavigationManager.NavigateTo($"/w/{link.DataProject}/repository");
+                break;
+            case DatahubLinkType.DataSharingDashboard:
+                NavigationManager.NavigateTo($"/w/{link.DataProject}/datasharing");
+                break;
+            case DatahubLinkType.PowerBIReport:
+                NavigationManager.NavigateTo($"/powerbi/{link.DataProject}");
+                break;
+            case DatahubLinkType.PowerBIWorkspace:
+                NavigationManager.NavigateTo($"https://app.powerbi.com/groups/{link.PBIWorkspaceId}");
+                break;
+            case DatahubLinkType.Onboarding:
+                NavigationManager.NavigateTo($"/onboarding/applications");
+                break;
+            case DatahubLinkType.StorageCostEstimator:
+                NavigationManager.NavigateTo("/tools/storagecost");
+                break;
+            case DatahubLinkType.ComputeCostEstimator:
+                NavigationManager.NavigateTo("/tools/computecost");
+                break;
+            case DatahubLinkType.M365Form:
+                NavigationManager.NavigateTo($"/m365form/applications");
+                break;
+            case DatahubLinkType.ResourceArticle:
+                NavigationManager.NavigateTo($"/resources/{link.ResourceArticleId}");
+                break;
+            case DatahubLinkType.PublishingDashboard:
+                NavigationManager.NavigateTo($"/w/{link.DataProject}/publishing");
+                break;
+            case DatahubLinkType.PublishingSubmission:
+                NavigationManager.NavigateTo($"/w/{link.DataProject}/publishing/{PublishingSubmissionId}");
+                break;
+            case DatahubLinkType.Undefined:
+            default:
+                break;
+        }
+    }
+}

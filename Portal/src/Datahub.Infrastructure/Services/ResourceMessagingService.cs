@@ -73,6 +73,7 @@ public class ResourceMessagingService : IResourceMessagingService
             .Include(p => p.Users)
             .ThenInclude(u => u.PortalUser)
             .Include(p => p.Resources)
+            .Include(p => p.DatahubAzureSubscription)
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
         
         if(project == null)

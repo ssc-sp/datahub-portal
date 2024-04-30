@@ -1,7 +1,6 @@
 ﻿#nullable enable
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Api;
-using Datahub.Core.Services.Metadata;
 using Datahub.Metadata.DTO;
 using Datahub.Portal.Model;
 using Microsoft.AspNetCore.Authorization;
@@ -11,6 +10,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Projects;

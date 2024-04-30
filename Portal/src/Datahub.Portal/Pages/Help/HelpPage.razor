@@ -1,0 +1,567 @@
+﻿@inject ILogger<HelpPage> _logger
+@inject IUserSettingsService _userSettingsService
+@inject IUserInformationService _userInformationService
+@inject IKeyVaultService _keyVaultService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IDialogService DialogService
+@inject NavigationManager _navigationManager
+@inject DatahubPortalConfiguration _portalConfiguration
+@inject IJSRuntime _jsRuntime
+@inject ILocalStorageService _localStorage
+@inject IMediator _mediatr
+
+@using MudBlazor
+@using Datahub.Core.Components.Common
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Datahub
+@using Datahub.Core.Model.Projects;
+@using Datahub.Application.Configuration
+@using Datahub.Portal.Components.User
+@using Datahub.Portal.Pages.Project
+
+@using System;
+@using System.Net.Http;
+@using System.Net.Http.Headers;
+@using System.Text;
+@using System.Threading.Tasks;
+@using Datahub.Application.Services.Security
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Infrastructure.Queues.Messages
+@using Datahub.Infrastructure.Services.Security
+@using MediatR
+@using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq;
+@using Microsoft.Identity.Web
+@using Microsoft.JSInterop;
+
+@attribute [Route(PageRoutes.Help)]
+
+<PageTitle>
+    @Localizer["SSC Datahub - Help"]
+</PageTitle>
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar />
+</SectionContent>
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+    <MudStack Spacing="6">
+        <MudText Typo="Typo.h1">@Localizer["Support Centre"]</MudText>
+
+        <MudForm @ref="form">
+            @if (_currentStep == Steps.Start)
+            {
+                <MudStack>
+                    <MudText>@Localizer["Need a hand? We've got you covered."]</MudText>
+                    <MudText Typo="Typo.body1">@Localizer["Our Resources page has many resources that could be helpful for you. Additional support is available using the FSDH Support Request Form."]</MudText>
+                    <MudItem xs="6" Class="py-3">
+                        <MudButton Href="/resources"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="fat fa-sitemap">
+                            @Localizer["Resources"]
+                        </MudButton>
+                    </MudItem>
+                </MudStack>
+                <MudDivider/>
+                <MudText Typo="Typo.h2" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
+                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["To report an issue or request assistance, please use the FSDH Support Request Form"]</MudText>
+            }
+            else if (_currentStep == Steps.Topics)
+            {
+                <MudText Typo="Typo.h2" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
+                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
+                @foreach (var topic in _ticketTopics)
+                {
+                    <MudCheckBox @bind-Checked="@_ticketTopics[topic.Key]" Label="@Localizer[topic.Key]" Color="@Color.Primary"></MudCheckBox>
+                }
+            }
+            else if (_currentStep == Steps.Description)
+            {
+                <MudText Typo="Typo.h2" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
+                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
+                <MudTextField T="string"
+                              @bind-Value="@_ticketDescription"
+                              Label=@(Localizer["Detailed description"])
+                              Required
+                              Lines="5"/>
+
+                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>
+                foreach (var workspace in _ticketWorkspaces)
+                {
+                    <MudCheckBox @bind-Checked="@_ticketWorkspaces[workspace.Key]" Label="@Localizer[workspace.Key]" Color="@Color.Primary"></MudCheckBox>
+                }
+            }
+            else if (_currentStep == Steps.Language)
+            {
+                <MudText Typo="Typo.h2" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
+                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which language you would like to be contacted in."]</MudText>
+                <MudRadioGroup T="int" @bind-SelectedOption="_ticketPreferredLanguage">
+                    <MudRadio Option="1" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["English"]</MudRadio>
+                    <MudRadio Option="2" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["French"]</MudRadio>
+                </MudRadioGroup>
+            }
+            else if (_currentStep == Steps.Submit)
+            {
+                <MudText Typo="Typo.h2" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
+                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket."]</MudText>
+                <MudPaper Class="pa-2" Outlined="true">
+                    <MudText Typo="@Typo.h6" Class="pb-3">@Localizer["Ticket Topics"]</MudText>
+                    @foreach (KeyValuePair<string, bool> topic in _ticketTopics)
+                    {
+                        @if (topic.Value)
+                        {
+                            <MudText Typo="@Typo.body2">@Localizer[@topic.Key]</MudText>
+                        }
+                    }
+                    <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Workspaces"]</MudText>
+                    @foreach (KeyValuePair<string, bool> workspace in _ticketWorkspaces)
+                    {
+                        @if (workspace.Value)
+                        {
+                            <MudText Typo="@Typo.body2">@Localizer[@workspace.Key]</MudText>
+                        }
+                    }
+                    <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Ticket Description"]</MudText>
+                    <MudText Typo="@Typo.body2">@_ticketDescription</MudText>
+                    <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Preferred Contact Language"]</MudText>
+                    @if (_ticketPreferredLanguage == 1)
+                    {
+                        <MudText Typo="@Typo.body2">@Localizer["English"]</MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="@Typo.body2">@Localizer["Français"]</MudText>
+                    }
+                </MudPaper>
+            }
+            <MudGrid Class="pt-3">
+                <MudItem xs="6" Align="Align.Start" Class="pb-6">
+                    @if (_currentStep == Steps.Start)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Get Started"]</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@PreviousStep">@Localizer["Previous"]</MudButton>
+                    }
+                </MudItem>
+                <MudItem xs="6" Align="Align.End" Class="pb-6">
+                    @if (_currentStep == Steps.Submit)
+                    {
+                        <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="@SubmitForm">@Localizer["Submit"]</MudButton>
+                    }
+                    else if (_currentStep != Steps.Start)
+                    {
+                        <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Next"]</MudButton>
+                    }
+                </MudItem>
+            </MudGrid>
+            @if (_currentStep == Steps.Start)
+            {
+                <MudDivider/>
+                <MudText Typo="Typo.h2" Class="py-3">@Localizer["Your Support Requests"]</MudText>
+                <MudText Typo="Typo.body1" Class="py-3">@Localizer["These are your previously submitted support requests. Requests may take up to 15 minutes to appear here."]</MudText>
+                <MudTable Items="@_issues" Loading="@_loading" Hover Dense>
+                    <HeaderContent>
+                        <MudTh>@Localizer["ID"]</MudTh>
+						<MudTh>@Localizer["Title"]</MudTh>
+						<MudTh>@Localizer["Description"]</MudTh>
+                        <MudTh>@Localizer["Status"]</MudTh>
+                        <MudTh>@Localizer["Submitted_DT"]</MudTh>
+                        <MudTh>@Localizer["Last Update"]</MudTh>
+					</HeaderContent>
+					<RowTemplate>
+                        <MudTd>@context.Id</MudTd>
+						<MudTd>@context.Title</MudTd>
+						<MudTd>@context.Description</MudTd>
+                        <MudTd><MudChip Color="@GetColor(context.State)">@Localizer[context.Message]</MudChip></MudTd>
+                        <MudTd>@context.SubmittedDate</MudTd>
+                        <MudTd>@context.ChangedDate</MudTd>
+					</RowTemplate>
+                    <PagerContent>
+                        <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")"/>
+                    </PagerContent>
+                </MudTable>
+            }
+        </MudForm>
+    </MudStack>
+</DatahubAuthView>
+
+@code {
+    private PortalUser _viewedUser; // To retrieve the user's name/email for the form
+    private MudForm form;
+
+    // Variables used for the form that can be passed in the bug report.
+    private string _ticketName = "";
+    private string _ticketEmail = "";
+    private string _ticketPortalLanguage = "";
+    private string _ticketDescription = "";
+    private string _ticketOrg = "";
+    private int _ticketPreferredLanguage = 1;
+    private List<Datahub_Project_User> _userRoles;
+    private IJSObjectReference _module;
+    private List<IssueForDisplaying> _issues = new ();
+
+    private bool _loading = true;
+
+    // This dictionary is used to generate checkboxes in the help request
+    Dictionary<string, bool> _ticketTopics = new Dictionary<string, bool>
+    {
+        { "Workspace", false },
+        { "Databricks", false },
+        { "Storage", false },
+        { "PostgreSQL", false },
+        { "User Management", false },
+        { "Documentation", false },
+        { "Tool Requesting", false },
+        { "Other", false },
+    };
+
+    // This dictionary is used to generate Workspace checkboxes in the help request
+    Dictionary<string, bool> _ticketWorkspaces = new Dictionary<string, bool> { };
+
+    private Steps _currentStep = Steps.Start; // Indicates what part of the form to show
+
+    private enum Steps
+    {
+        Start = 0,
+        Topics = 1,
+        Description = 2,
+        Language = 3,
+        Submit = 4
+    }
+
+
+    /**
+     * Initializes the component asynchronously.
+     * Retrieves general information about the user submitting the issue, such as name, email, and language used.
+     * Retrieves the list of workspaces associated with the user.
+     * Retrieves the list of issues previously created by the user.
+     */
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true; // showing the user that the table is loading.
+
+        // Retrieve general info, such as the user submitting the issue.
+        _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+        _ticketName = _viewedUser.DisplayName;
+        _ticketEmail = _viewedUser.Email;
+        _ticketOrg = GetOrg(_ticketEmail);
+        _issues = await GetIssuesCreatedByUser(_ticketName);
+        _ticketPortalLanguage = await _userSettingsService.GetUserLanguage();
+
+        // Retrieve the list of workspaces
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        _userRoles = await dbContext.Project_Users
+            .Include(u => u.Role)
+            .Include(u => u.Project)
+            .ThenInclude(p => p.Users)
+            .Include(u => u.PortalUser)
+            .Where(u => u.PortalUser.GraphGuid == _viewedUser.GraphGuid)
+            .ToListAsync();
+
+        foreach (var project in _userRoles.Select(userRole => userRole.Project))
+        {
+            _ticketWorkspaces.Add(project.Project_Name, false);
+        }
+
+        StateHasChanged();
+    }
+
+    /**
+     * Performs an action after the component has been rendered.
+     * This method is called after the first render and can be used to perform tasks that require access to the rendered DOM elements.
+     * It imports a JavaScript module and retrieves user agent, resolution, and timezone information using JavaScript interop.
+     * This occurs in this method because it requires the component to be rendered first, otherwise an error will be visible briefly to the user.
+     * 
+     * @param firstRender - A boolean value indicating whether this is the first render of the component.
+     * @returns A Task representing the asynchronous operation.
+     */
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Help/HelpPage.razor.js");
+            }
+            catch (Exception e)
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Pages/Help/HelpPage.razor.js");
+            }
+        }
+    }
+
+    /**
+     * Advances to the next step in the form.
+     * Validates the form before proceeding to the next step.
+     */
+    private void NextStep()
+    {
+        form.Validate();
+        if (form.IsValid)
+        {
+            _currentStep++;
+        }
+    }
+
+    /**
+     * Goes back to the previous step in the form.
+     */
+    private void PreviousStep()
+    {
+        _currentStep--;
+    }
+
+    /**
+     * Submits the form for creating a support ticket.
+     * Validates the form before submitting.
+     * Retrieves necessary information such as URL, user agent, resolution, timezone, and preferred language.
+     * Retrieves local storage data.
+     * Retrieves selected checkboxes for issue topics and workspaces.
+     * Creates a bug report message and sends it to the queue.
+     * Displays a success message to the user.
+     * Resets the form and current step.
+     */
+    private async void SubmitForm()
+    {
+        await form.Validate();
+        if (!form.IsValid)
+        {
+            return;
+        }
+
+        var url = _navigationManager.Uri; // Retrieve the active URL
+        var useragent = await _module.InvokeAsync<string>("retrieveUserAgent"); // Call our JS functions for user agent + resolution
+        var resolution = await _module.InvokeAsync<string>("retrieveResolution");
+        var timezone = await _module.InvokeAsync<string>("retrieveTimeZone");
+        var preferredLanguage = (_ticketPreferredLanguage == 1) ? "en" : "fr";
+
+        // Retrieve all local storage data
+        var allKeys = await _localStorage.KeysAsync();
+        var dataDict = new Dictionary<string, string>();
+        foreach (var key in allKeys)
+        {
+            var value = await _localStorage.GetItemAsStringAsync(key);
+            dataDict.Add(key, value);
+        }
+        var localStorageData = Newtonsoft.Json.JsonConvert.SerializeObject(dataDict);
+
+        // We retrieve the selected checkboxes that indicate the issue topics
+        var matchingTopics = _ticketTopics.Where(kvp => kvp.Value == true).Select(kvp => kvp.Key);
+        var matchingWorkspaces = _ticketWorkspaces.Where(kvp => kvp.Value == true).Select(kvp => kvp.Key);
+        var topics = string.Join("; ", matchingTopics);
+        var workspaces = string.Join(", ", matchingWorkspaces);
+        if (topics.Length == 0)
+        {
+            topics = "Issue";
+        }
+        if (workspaces.Length == 0)
+        {
+            workspaces = "N/A";
+        }
+
+        // We create the bug report message and send it to the queue.
+        var bugReport = new BugReportMessage(
+            UserName: _ticketName,
+            UserEmail: _ticketEmail,
+            UserOrganization: _ticketOrg,
+            PortalLanguage: _ticketPortalLanguage,
+            PreferredLanguage: _ticketPreferredLanguage == 1 ? "en" : "fr",
+            Timezone: timezone,
+            Workspaces: workspaces,
+            Topics: topics,
+            URL: url,
+            UserAgent: useragent,
+            Resolution: resolution,
+            LocalStorage: localStorageData,
+            BugReportType: BugReportTypes.SupportRequest,
+            Description: _ticketDescription
+        );
+
+        await _mediatr.Send(bugReport); // Send the bug report to the queue
+        await DialogService.ShowMessageBox(Localizer["Success"], Localizer["Your support ticket has been created. Thank you!"], yesText: "OK");
+        _currentStep = Steps.Start; // Reset the form
+        StateHasChanged();
+    }
+
+    /**
+     * Retrieves the organization name from the given email address.
+     * If the email address is in the format "user@organization.gc.ca", then organization is extracted from it.
+     * If the email address is not in the expected format, the organization name is set to "unknown".
+     * 
+     * @param email - The email address from which to extract the organization name.
+     * @returns The organization name extracted from the email address, or "unknown" if the email address is not in the expected format.
+     */
+    private string GetOrg(string email)
+    {
+        var org = "";
+        try
+        {
+            org = email.Split("@")[1].Split('.')[0];
+        }
+        catch
+        {
+            org = "unknown";
+        }
+        return org;
+    }
+
+    /**
+     * Retrieves a list of issues created by a specific user.
+     * 
+     * @param userName The username of the user.
+     * @return A list of IssueForDisplaying objects representing the issues created by the user.
+     */
+    public async Task<List<IssueForDisplaying>> GetIssuesCreatedByUser(string userName)
+    {
+        List<IssueForDisplaying> _issuesList = new List<IssueForDisplaying>();
+        var query = $"SELECT [System.Id], [System.Title], [System.CreatedBy], [System.CreatedDate], [System.ChangedDate], [System.Tags] FROM WorkItems WHERE [Submitted By] = '{userName}'";
+        var apiUrl = $"https://dev.azure.com/{_portalConfiguration.AdoOrg.OrgName}/{_portalConfiguration.AdoOrg.ProjectName}/_apis/wit/wiql?api-version=7.0";
+
+        using (var client = new HttpClient())
+        {
+            var credentials = await _keyVaultService.GetSecret(_portalConfiguration.AdoServiceUser.PatSecretName);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($":{credentials}")));
+
+            // Create request body and send the POST request to Azure DevOps API
+            var body = new JObject { ["query"] = query };
+            var response = await client.PostAsync(apiUrl, new StringContent(body.ToString(), System.Text.Encoding.UTF8, "application/json"));
+            response.EnsureSuccessStatusCode();
+
+            // Parse the response and extract the work item titles
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var result = JObject.Parse(jsonResponse);
+
+            // Collect all the titles
+            var workItems = (JArray)result["workItems"];
+
+            foreach (var workItem in workItems)
+            {
+                // Get the WorkItem ID
+                var workItemId = (int)workItem["id"];
+                // Get the WorkItem details with ID
+                var itemApiUrl = $"https://dev.azure.com/{_portalConfiguration.AdoOrg.OrgName}/{_portalConfiguration.AdoOrg.ProjectName}/_apis/wit/workItems/{workItemId}?api-version=7.0";
+                var workItemResponse = await client.GetAsync(itemApiUrl);
+                workItemResponse.EnsureSuccessStatusCode();
+
+                var workItemJsonResponse = await workItemResponse.Content.ReadAsStringAsync();
+                var workItemDetails = JObject.Parse(workItemJsonResponse);
+
+                // Retrieve fields that will be displayed to the user
+                var issueId = (string)workItemDetails["id"];
+                var title = (string) workItemDetails["fields"]["System.Title"];
+                var description = (string)workItemDetails["fields"]["System.Description"];
+                description = description.Split("<b>Description:</b> ")[1].Split("<br>")[0];
+                var state = (string)workItemDetails["fields"]["System.State"];
+                var submittedDate = (string)workItemDetails["fields"]["System.CreatedDate"];
+                var changedDate = (string)workItemDetails["fields"]["System.ChangedDate"];
+
+                string message; // Message to display to the user based on the state of the issue
+                switch (state)
+                {
+                    case "New":
+                        message = "Your request is submitted and awaiting review.";
+                        break;
+                    case "Active":
+                        message = "Your request is currently active and being worked on.";
+                        break;
+                    case "Closed":
+                        message = "Your request has been marked as closed.";
+                        break;
+                    default:
+                        message = "The state of your request is currently unknown.";
+                        break;
+                }
+
+                // Add the issue to the list
+                _issuesList.Add(new IssueForDisplaying(issueId, title, description, state, message, submittedDate, changedDate));
+            }
+        }
+        _loading = false; // Stop showing the loading bar in the table.
+
+        // Reverse the issues list so that the most recent issues are displayed first
+        _issuesList.Reverse();
+        return _issuesList;
+    }
+
+    /**
+     * Retrieves the color based on the status of an issue.
+     *
+     * @param status - The status of the issue.
+     * @returns The color associated with the status.
+     */
+    private static Color GetColor(string status)
+    {
+        return status switch
+        {
+            "Closed" => Color.Success,
+            "Active" => Color.Default,
+            "New" => Color.Default,
+            _ => Color.Default
+        };
+    }
+
+    /**
+     * Represents an issue for displaying in the support ticket table.
+     */
+    public class IssueForDisplaying {
+        /// <summary>
+        /// Gets or sets the ID of the issue.
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the title of the issue.
+        /// </summary>
+        public string Title { get; set; }
+
+        /// <summary>
+        /// Gets or sets the description of the issue.
+        /// </summary>
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Gets or sets the state of the issue.
+        /// </summary>
+        public string State { get; set; }
+
+        /// <summary>
+        /// Gets or sets the message to display to the user based on the state of the issue.
+        /// </summary>
+        public string Message { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date the issue was submitted.
+        /// </summary>
+        public string SubmittedDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date the issue was last changed.
+        /// </summary>
+        public string ChangedDate { get; set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IssueForDisplaying"/> class.
+        /// </summary>
+        /// <param name="id">The ID of the issue.</param>
+        /// <param name="title">The title of the issue.</param>
+        /// <param name="description">The description of the issue.</param>
+        /// <param name="state">The state of the issue.</param>
+        /// <param name="message">The message to display to the user based on the state of the issue.</param>
+        /// <param name="submittedDate">The date the issue was submitted.</param>
+        /// <param name="changedDate">The date the issue was last changed.</param>
+        public IssueForDisplaying(string id, string title, string description, string state, string message, string submittedDate, string changedDate)
+        {
+            Id = id;
+            Title = title;
+            Description = description;
+            State = state;
+            Message = message;
+            SubmittedDate = submittedDate;
+            ChangedDate = changedDate;
+        }
+    }
+}
