@@ -28,6 +28,22 @@ public class DatahubAzureSubscriptionService(
     }
 
     /// <summary>
+    /// Checks if a Datahub Azure subscription with the specified subscriptionId exists.
+    /// </summary>
+    /// <param name="subscriptionId">The subscription ID to check.</param>
+    /// <returns>Returns true if the subscription exists, otherwise false.</returns>
+    public async Task<DatahubAzureSubscription> SubscriptionExistsAsync(string subscriptionId)
+    {
+        var subscriptionResource = await FetchSubscriptionResource(subscriptionId);
+        return new DatahubAzureSubscription
+        {
+            TenantId = subscriptionResource?.Value?.Data.TenantId.ToString(),
+            SubscriptionId = subscriptionId,
+            SubscriptionName = subscriptionResource?.Value?.Data.DisplayName
+        };
+    }
+
+    /// <summary>
     /// Adds a new Datahub Azure subscription to the database.
     /// </summary>
     /// <param name="subscription">The Datahub Azure subscription to add.</param>
@@ -46,6 +62,19 @@ public class DatahubAzureSubscriptionService(
         if(subscriptionResource?.Value?.Data.DisplayName is not null)
         {
             subscription.SubscriptionName = subscriptionResource.Value.Data.DisplayName;
+        }
+        else
+        {
+            throw new InvalidOperationException("Subscription name not found.");
+        }
+
+        if (subscriptionResource?.Value?.Data.TenantId is not null)
+        {
+            subscription.TenantId = subscriptionResource.Value.Data.TenantId.ToString();
+        }
+        else
+        {
+            throw new InvalidOperationException("Tenant ID not found.");
         }
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
