@@ -38,16 +38,15 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"an associated project credits record")]
         public async Task GivenAnAssociatedProjectCreditsRecord()
         {
-            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = new Datahub_Project
             {
                 Project_Name = "Test project",
                 Project_Acronym_CD = "TEST",
-                Project_ID = 1
             };
             var credits = new Project_Credits
             {
-                ProjectId = 1,
+                Project = project,
                 Current = 10.0,
                 LastUpdate = DateTime.UtcNow.Date.AddDays(-1),
                 BudgetCurrentSpent = 10.2,
