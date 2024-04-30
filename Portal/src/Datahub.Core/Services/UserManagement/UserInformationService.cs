@@ -23,7 +23,7 @@ public class UserInformationService : IUserInformationService
 {
     private readonly ILogger<UserInformationService> logger;
     private GraphServiceClient graphServiceClient;
-    private GraphServiceClient onBehalfOfGraphServiceClient;
+    private GraphServiceClient userGraphServiceClient;
     private readonly AuthenticationStateProvider authenticationStateProvider;
     private readonly NavigationManager navigationManager;
 
@@ -36,6 +36,8 @@ public class UserInformationService : IUserInformationService
     private readonly IDatahubCatalogSearch datahubCatalogSearch;
 
     private ClaimsPrincipal authenticatedUser;
+    private ITokenAcquisition tokenAcquisition;
+    private MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler;
 
     public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated;
 
@@ -51,7 +53,7 @@ public class UserInformationService : IUserInformationService
         NavigationManager navigationManager,
         IConfiguration configureOptions, ServiceAuthManager serviceAuthManager,
         IDatahubCatalogSearch datahubCatalogSearch,
-        IDbContextFactory<DatahubProjectDBContext> datahubContextFactory, CultureService cultureService)
+        IDbContextFactory<DatahubProjectDBContext> datahubContextFactory, CultureService cultureService, ITokenAcquisition tokenAcquisition, MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler)
     {
         this.logger = logger;
         this.authenticationStateProvider = authenticationStateProvider;
@@ -61,6 +63,8 @@ public class UserInformationService : IUserInformationService
         this.datahubContextFactory = datahubContextFactory;
         this.cultureService = cultureService;
         this.datahubCatalogSearch = datahubCatalogSearch;
+        this.tokenAcquisition = tokenAcquisition;
+        this.consentHandler = consentHandler;
     }
 
     public async Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
@@ -69,6 +73,7 @@ public class UserInformationService : IUserInformationService
             authenticatedUser = (await authenticationStateProvider.GetAuthenticationStateAsync()).User;
         return authenticatedUser;
     }
+
     public async Task<string> GetUserIdString()
     {
         await CheckUser();
@@ -77,13 +82,13 @@ public class UserInformationService : IUserInformationService
 
     public async Task SetFullName(string firstName, string lastName)
     {
-        await PrepareOnBehalfClient();
+        await PrepareOnBehalfOfClient();
         var request = new User
         {
             GivenName = firstName,
             Surname = lastName
         };
-        var result = await onBehalfOfGraphServiceClient.Me.PatchAsync(request);
+        var result = await userGraphServiceClient.Me.PatchAsync(request);
     }
 
     public async Task<string> GetUserEmail()
@@ -180,28 +185,37 @@ public class UserInformationService : IUserInformationService
         }
     }
 
-    private async Task PrepareOnBehalfClient()
+    private async Task PrepareOnBehalfOfClient()
     {
+        var tenantId = configuration.GetSection("AzureAd").GetValue<string>("TenantId");
+        var code = string.Empty;
+        var scopes = new[] { "https://graph.microsoft.com/User.ReadWrite" };
         try
         {
-            var options = new OnBehalfOfCredentialOptions
+            var result = await tokenAcquisition.GetAuthenticationResultForUserAsync(scopes, user: authenticatedUser);
+            code = result.SpaAuthCode;
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e)
+        {
+            consentHandler.HandleException(e);
+            var result = await tokenAcquisition.GetAuthenticationResultForUserAsync(scopes, user: authenticatedUser);
+            code = result.SpaAuthCode;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error preparing authentication client");
+            throw;
+        }
+        try
+        {
+            var clientId = configuration.GetSection("AzureAd").GetValue<string>("ClientId");
+            var clientSecret = configuration.GetSection("AzureAd").GetValue<string>("ClientSecret");
+            var options = new AuthorizationCodeCredentialOptions
             {
                 AuthorityHost = AzureAuthorityHosts.AzurePublicCloud
             };
-            var appCreds = new ClientSecretCredential(
-                configuration.GetSection("AzureAd").GetValue<string>("TenantId"),
-                configuration.GetSection("AzureAd").GetValue<string>("ClientId"),
-                configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"));
-            var appTokenRequestContext = new TokenRequestContext(new[] { "https://graph.microsoft.com/.default" });
-            var appToken = await appCreds.GetTokenAsync(appTokenRequestContext);
-            var userAssertion = new UserAssertion(appToken.Token, "urn:ietf:params:oauth:grant-type:jwt-bearer");
-            var onBehalfCreds = new OnBehalfOfCredential(
-                configuration.GetSection("AzureAd").GetValue<string>("TenantId"),
-                configuration.GetSection("AzureAd").GetValue<string>("ClientId"),
-                configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"),
-                userAssertion.Assertion,
-                options);
-            onBehalfOfGraphServiceClient = new(onBehalfCreds, new[] { "https://graph.microsoft.com/User.ReadWrite" });
+            var oboCredential = new AuthorizationCodeCredential(clientId, tenantId, clientSecret, code, options);
+            userGraphServiceClient = new GraphServiceClient(oboCredential, scopes);
         }
         catch (Exception e)
         {
@@ -223,6 +237,29 @@ public class UserInformationService : IUserInformationService
     {
         await CheckUser();
         return currentUser;
+    }
+
+    private string GetAuthorizationCode()
+    {
+        try
+        {
+            var httpClient = new HttpClient();
+            var tenantId = configuration.GetSection("AzureAd").GetValue<string>("TenantId");
+            var clientId = configuration.GetSection("AzureAd").GetValue<string>("ClientId");
+            var responseType = "code";
+            var redirectURI = navigationManager.BaseUri + "signin-oidc";
+            var scope = "https://graph.microsoft.com/user.readwrite";
+            var responseMode = "query";
+            var state = "12345";
+            var authURI =
+                $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize?client_id={clientId}&response_type={responseType}&redirect_uri={redirectURI}&response_mode={responseMode}&scope={scope}&state={state}";
+            navigationManager.NavigateTo(authURI);
+        }
+        catch
+        {
+        }
+
+        return string.Empty;
     }
 
     private void PrepareAuthenticatedClient()
@@ -346,7 +383,7 @@ public class UserInformationService : IUserInformationService
             throw new ArgumentException("projectAcronym expected");
 
         return (await IsUserProjectAdmin(projectAcronym)) ||
-                (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}");
+               (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}");
     }
 
     /// <summary>
@@ -449,6 +486,7 @@ public class UserInformationService : IUserInformationService
             {
                 await UpdatePortalUserFirstLogin(graphId);
             }
+
             await UpdatePortalUserLastLogin(graphId);
         }
     }

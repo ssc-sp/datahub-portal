@@ -1,12 +1,14 @@
 @using Datahub.Application.Validators
 @using Datahub.Portal.Components.User
 @using FluentValidation.Results
+@using Microsoft.Identity.Web
 @using Datahub.Core.Model.Achievements
 
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDialogService _dialogService
 @inject IUserSettingsService _userSettingsService
 @inject IUserInformationService _userInformationService
+@inject ITokenAcquisition _tokenAcquisition
 
 <MudStack Spacing="8" Class="mb-16">
     <MudStack>
@@ -61,13 +63,14 @@
     [Parameter] public PortalUser ViewedUser { get; set; }
 
     [Parameter] public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
-
+    
     public string FirstName { get; set; }
     public string LastName { get; set; }
     private string _userFirstName { get; set; }
     private string _userLastName { get; set; }
     private NameValidator _nameValidator = new NameValidator();
     private ValidationResult _nameValidationResult = new ValidationResult();
+    private string token;
     
     private bool canSubmitNameChange => _nameValidationResult.IsValid && (FirstName != _userFirstName || LastName != _userLastName);
 

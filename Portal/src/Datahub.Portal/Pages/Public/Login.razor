@@ -25,6 +25,9 @@
     [Parameter]
     [SupplyParameterFromQuery]
     public string redirectUri { get; set; }
+    
+    [SupplyParameterFromQuery]
+    public string code { get; set; }
 
     private void HandleLogin()
     {
@@ -33,7 +36,7 @@
         {
             redirectUri = _navigationManager.BaseUri;
         }
-        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint=&domainHint=&claims=&policy=";
+        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.readwrite%20openid%20offline_access%20profile&loginHint=&domainHint=&claims=&policy=";
         _navigationManager.NavigateTo(url, true);
     }
 
@@ -42,6 +45,10 @@
         await base.OnInitializedAsync();
 
         var user = await _userInformationService.GetAuthenticatedUser(true);
+        if (code != null)
+        {
+            Console.Write(code);
+        }
         if (user.Identity?.IsAuthenticated == true)
         {
             _navigationManager.NavigateTo("/");
