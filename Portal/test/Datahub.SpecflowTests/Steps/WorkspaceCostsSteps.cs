@@ -4,6 +4,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Reqnroll;
 
 namespace Datahub.SpecflowTests.Steps
 {

@@ -104,7 +104,7 @@ public partial class Testing
         _databricksApiService = new DatabricksApiService(Mock.Of<ILogger<DatabricksApiService>>(),
             _httpClientFactory, dbContextFactory, Mock.Of<IDatahubCatalogSearch>());
     }
-    private static StringContent ExpectedDatahubPortalInviteResponse()
+    public static StringContent ExpectedDatahubPortalInviteResponse()
     {
         var data = new JsonObject
         {

@@ -11,6 +11,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using Reqnroll;
 
 namespace Datahub.SpecflowTests.Steps
 {
@@ -37,16 +38,15 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"an associated project credits record")]
         public async Task GivenAnAssociatedProjectCreditsRecord()
         {
-            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = new Datahub_Project
             {
                 Project_Name = "Test project",
                 Project_Acronym_CD = "TEST",
-                Project_ID = 1
             };
             var credits = new Project_Credits
             {
-                ProjectId = 1,
+                Project = project,
                 Current = 10.0,
                 LastUpdate = DateTime.UtcNow.Date.AddDays(-1),
                 BudgetCurrentSpent = 10.2,
@@ -75,8 +75,11 @@ namespace Datahub.SpecflowTests.Steps
                 {
                     using var ctx = dbContextFactory.CreateDbContext();
                     var credits = ctx.Project_Credits.FirstOrDefault();
-                    credits.LastRollover = DateTime.UtcNow;
-                    ctx.Project_Credits.Update(credits);
+                    if (credits != null)
+                    {
+                        credits.LastRollover = DateTime.UtcNow;
+                        ctx.Project_Credits.Update(credits);
+                    }
                     ctx.SaveChanges();
                 });
             costMgmt.UpdateWorkspaceCostAsync(Arg.Any<List<DailyServiceCost>>(), Arg.Any<string>()).Returns((costRollover, (decimal)10.0));
