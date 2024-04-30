@@ -174,7 +174,7 @@
 					<RowTemplate>
                         <MudTd>@context.Id</MudTd>
 						<MudTd>@context.Title</MudTd>
-						<MudTd>@context.Description</MudTd>
+                        <MudTd>@TrimDescription(context.Description)</MudTd>
                         <MudTd><MudChip Color="@GetColor(context.State)">@Localizer[context.Message]</MudChip></MudTd>
                         <MudTd>@context.SubmittedDate</MudTd>
                         <MudTd>@context.ChangedDate</MudTd>
@@ -485,6 +485,21 @@
         // Reverse the issues list so that the most recent issues are displayed first
         _issuesList.Reverse();
         return _issuesList;
+    }
+
+    /**
+     * Trims the description to a specified maximum length and appends ellipsis if necessary.
+     *
+     * @param description The description to be trimmed.
+     * @param maxLength The maximum length of the trimmed description.
+     * @return The trimmed description.
+     */
+    private string TrimDescription(string description, int maxLength = 240)
+    {
+        if (description.Length > maxLength)
+            return description.Substring(0, maxLength) + "...";
+        else
+            return description;
     }
 
     /**
