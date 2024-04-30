@@ -14,6 +14,8 @@ $hashTable = @{
         "Domain" = $domain
         "TenantId" = $tenantId
         "SubscriptionId" = $subscriptionId
+        "ClientId" = (az keyvault secret show --name "datahubportal-client-id" --vault-name $vaultName --query value -o tsv)
+        "ClientSecret" = (az keyvault secret show --name "datahubportal-client-secret" --vault-name $vaultName --query value -o tsv)
         "InfraClientId" = (az keyvault secret show --name "devops-client-id" --vault-name $vaultName --query value -o tsv)
         "InfraClientSecret" = (az keyvault secret show --name "devops-client-secret" --vault-name $vaultName --query value -o tsv)
     }

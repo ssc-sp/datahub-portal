@@ -30,7 +30,8 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
         var datahubAzureSubscription = new DatahubAzureSubscription()
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
-            TenantId = Testing.WorkspaceTenantGuid
+            TenantId = Testing.WorkspaceTenantGuid,
+            SubscriptionName = Testing.SubscriptionName
         };
         
         workspace.DatahubAzureSubscription = datahubAzureSubscription;

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
@@ -7,7 +7,8 @@
 
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
-    </PropertyGroup>
+      <UserSecretsId>934c2336-fa64-47f8-8261-782e2754ad5b</UserSecretsId>
+  </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="AutoFixture" Version="4.18.0" />
@@ -25,6 +26,10 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
 
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Datahub.Functions\Datahub.Functions.csproj" />
     </ItemGroup>
 
     <ItemGroup>
