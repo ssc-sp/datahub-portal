@@ -32,7 +32,7 @@ namespace ResourceProvisioner.SpecflowTests.Steps
         public async Task WhenItRequestsAnAccessToken()
         {
             var azureDevOpsClient = new AzureDevOpsClient(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
-            var accessToken = await azureDevOpsClient.GetAccessToken();
+            var accessToken = await azureDevOpsClient.AccessTokenAsync();
             
             scenarioContext["accessToken"] = accessToken;
         }

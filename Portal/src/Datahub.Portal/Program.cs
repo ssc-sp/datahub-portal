@@ -66,6 +66,7 @@ public class Program
                 webBuilder.UseStartup<Startup>();                    
                 webBuilder.ConfigureAppConfiguration((ctx, cb) =>
                 {
+                    cb.AddUserSecrets<Startup>();
                     if (!ctx.HostingEnvironment.IsDevelopment()) // you'll have to find the right method to check that
                     {
                         StaticWebAssetsLoader.UseStaticWebAssets(ctx.HostingEnvironment, ctx.Configuration);

@@ -18,17 +18,13 @@
         <PackageReference Include="NSubstitute" Version="5.*" />
         <PackageReference Include="NUnit" Version="4.1.0" />
 		<PackageReference Include="Moq" Version="4.*" />
-        <PackageReference Include="NUnit3TestAdapter" Version="4.*"/>
-        <PackageReference Include="NUnit.Analyzers" Version="3.*"/>
+        <PackageReference Include="NUnit3TestAdapter" Version="4.*" />
+        <PackageReference Include="NUnit.Analyzers" Version="3.*" />
         <PackageReference Include="coverlet.collector" Version="6.0.1">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
 
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\..\src\Datahub.Functions\Datahub.Functions.csproj" />
     </ItemGroup>
 
     <ItemGroup>

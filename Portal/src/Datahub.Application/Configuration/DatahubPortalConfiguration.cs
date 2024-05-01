@@ -4,7 +4,7 @@ namespace Datahub.Application.Configuration;
 
 public class DatahubPortalConfiguration
 {
-	public CultureSettings CultureSettings { get; set; } = new();
+    public CultureSettings CultureSettings { get; set; } = new();
 	public string LandingBgFolder { get; set; } = "ssc";
 	public int LandingBgImgCount { get; set; } = 2;
 	public bool ShowLoginPage { get; set; } = true;
@@ -51,6 +51,7 @@ public class DatahubPortalConfiguration
     public GithubConfig Github { get; set; } = new();
 
 	public CkanConfiguration CkanConfiguration { get; set; } = new();
+    public int DefaultProjectBudget { get; set; } = 100;
 }
 
 public class Achievements
@@ -208,6 +209,7 @@ public class Hosting
 {
 	public string Profile { get; set; } = "ssc";
 	public string EnvironmentName { get; set; } = "dev";
+    public int WorkspaceCountPerAzureSubscription { get; set; } = 100;
 }
 
 public class KeyVault

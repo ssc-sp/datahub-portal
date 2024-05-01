@@ -1,4 +1,5 @@
-using Datahub.Core.RoleManagement;
+using Datahub.Application;
+using Datahub.Application.RoleManagement;
 using Datahub.Core.Services.UserManagement;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;

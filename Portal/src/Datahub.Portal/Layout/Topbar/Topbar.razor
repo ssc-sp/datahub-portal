@@ -50,13 +50,17 @@
     <MudButton Variant="Variant.Text" Href=@PageRoutes.ResourceDefault>
         @Localizer["Learn"]
     </MudButton>
+    <MudButton Variant="Variant.Text" Href=@PageRoutes.Help>
+        @Localizer["Support"]
+    </MudButton>
 </MudStack>
 <MudSpacer/>
 <SearchPopover/>
 
 <MudSpacer/>
-@* <NotificationsList IsNotificationsListOpen="@IsNotificationsListOpen" ToggleNotificationsList="ToggleNotificationsList" /> *@
-<HelpPopup/>
+@* <NotificationsList IsNotificationsListOpen="@IsNotificationsListOpen" ToggleNotificationsList="ToggleNotificationsList" />
+<MudIconButton Icon="@Icons.Material.Outlined.HelpOutline" Href=@PageRoutes.Help aria-label="help"></MudIconButton> *@
+@* <HelpPopup/>*@
 <TopBarProfileButton/>
 
 @code {

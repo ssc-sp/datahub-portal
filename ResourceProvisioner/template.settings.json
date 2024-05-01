@@ -1,0 +1,46 @@
+{
+    "ModuleRepository": {
+        "Url": "https://github.com/ssc-sp/datahub-resource-modules.git",
+        "LocalPath": "/tmp/datahub-resource-modules",
+        "TemplatePathPrefix": "templates/",
+        "ModulePathPrefix": "modules/"
+    },
+    "InfrastructureRepository": {
+        "Url": "https://$azureDevOpsOrganization@dev.azure.com/$azureDevOpsOrganization/$azureDevOpsProject/_git/$azureDevopsRepository",
+        "LocalPath": "/tmp/$azureDevopsRepository",
+        "ProjectPathPrefix": "terraform/projects",
+        "AutoApproveUserOid": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-infrastructure-repo-auto-approver-oid)",
+        "PullRequestUrl": "https://dev.azure.com/$azureDevOpsOrganization/$azureDevOpsProject/_apis/git/repositories/$repositoryId/pullrequests",
+        "PullRequestBrowserUrl": "https://dev.azure.com/$azureDevOpsOrganization/$azureDevOpsProject/_git/$azureDevopsRepository/pullrequest",
+        "ApiVersion": "6.0",
+        "MainBranch": "main",
+        "AzureDevOpsConfiguration": {
+            "TenantId": "$tenantId",
+            "ClientId": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=devops-client-id)",
+            "ClientSecret": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=devops-client-secret)"
+        }
+    },
+    "Terraform": {
+        "Backend": {
+            "ResourceGroupName": "$resourcePrefix-core-$Environment-rg"
+        },
+        "Variables": {
+            "az_subscription_id": "$subscriptionId",
+            "az_tenant_id": "$tenantId",
+            "datahub_app_sp_oid": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahubportal-client-oid)",
+            "azure_databricks_enterprise_oid": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-databricks-sp)",
+            "environment_classification": "U",
+            "environment_name": "$Environment",
+            "budget_amount": "400",
+            "aad_admin_group_oid": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=aad-admin-group-oid)",
+            "storage_size_limit_tb": "5",
+            "az_location": "canadacentral",
+            "resource_prefix": "$resourcePrefix",
+            "common_tags": {
+                "Sector": "Science Program",
+                "Environment": "$Environment",
+                "ClientOrganization": "TEST-TEST"
+            }
+        }
+    }
+}

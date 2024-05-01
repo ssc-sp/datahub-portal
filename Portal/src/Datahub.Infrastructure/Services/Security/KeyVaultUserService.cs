@@ -8,6 +8,7 @@ using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using System.Text.RegularExpressions;
+using Datahub.Application.Services.UserManagement;
 
 namespace Datahub.Infrastructure.Services.Security
 {

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
@@ -25,11 +25,16 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\..\ServerlessOperations\src\Datahub.Functions\Datahub.Functions.csproj" />
       <ProjectReference Include="..\..\src\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj" />
       <ProjectReference Include="..\..\src\Datahub.Portal\Datahub.Portal.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="Features\*.feature" />
+        <Content Include="Features\**\*.feature" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Features\Workspace\" />
     </ItemGroup>
 </Project>
