@@ -37,9 +37,9 @@ public class DatahubAzureSubscriptionService(
         var subscriptionResource = await FetchSubscriptionResource(subscriptionId);
         return new DatahubAzureSubscription
         {
-            TenantId = subscriptionResource?.Value?.Data.TenantId.ToString(),
+            TenantId = subscriptionResource?.TenantId,
             SubscriptionId = subscriptionId,
-            SubscriptionName = subscriptionResource?.Value?.Data.DisplayName
+            SubscriptionName = subscriptionResource?.SubscriptionName
         };
     }
 
@@ -53,29 +53,8 @@ public class DatahubAzureSubscriptionService(
     {
         var subscriptionResource = await FetchSubscriptionResource(subscription.SubscriptionId);
 
-        if (subscriptionResource == null)
-        {
-            throw new InvalidOperationException(
-                "Subscription not found. Please check the subscription id and access permissions.");
-        }
-        
-        if(subscriptionResource?.Value?.Data.DisplayName is not null)
-        {
-            subscription.SubscriptionName = subscriptionResource.Value.Data.DisplayName;
-        }
-        else
-        {
-            throw new InvalidOperationException("Subscription name not found.");
-        }
-
-        if (subscriptionResource?.Value?.Data.TenantId is not null)
-        {
-            subscription.TenantId = subscriptionResource.Value.Data.TenantId.ToString();
-        }
-        else
-        {
-            throw new InvalidOperationException("Tenant ID not found.");
-        }
+        subscription.SubscriptionName = subscriptionResource.SubscriptionName;
+        subscription.TenantId = subscriptionResource.TenantId;
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         ctx.AzureSubscriptions.Add(subscription);
@@ -87,7 +66,7 @@ public class DatahubAzureSubscriptionService(
     /// </summary>
     /// <param name="subscriptionId">The GUID of the subscription.</param>
     /// <returns>Returns a nullable response containing the SubscriptionResource if found; otherwise null.</returns>
-    private async Task<NullableResponse<SubscriptionResource>?> FetchSubscriptionResource(string subscriptionId)
+    public virtual async Task<DatahubAzureSubscription> FetchSubscriptionResource(string subscriptionId)
     {
         // verify access
         var armClient = new ArmClient(new ClientSecretCredential(
@@ -95,11 +74,24 @@ public class DatahubAzureSubscriptionService(
             portalConfiguration.AzureAd.InfraClientId,
             portalConfiguration.AzureAd.InfraClientSecret));
 
-        var subscriptionResource = await armClient
-            .GetSubscriptions()
-            .GetIfExistsAsync(subscriptionId);
-
-        return subscriptionResource;
+        try
+        {
+            var subscriptionResource = await armClient
+                .GetSubscriptions()
+                .GetIfExistsAsync(subscriptionId);
+            
+            return new DatahubAzureSubscription
+            {
+                TenantId = subscriptionResource.Value!.Data.TenantId.ToString(),
+                SubscriptionId = subscriptionId,
+                SubscriptionName = subscriptionResource.Value.Data.DisplayName
+            };
+        }
+        catch (Exception e)
+        {
+            throw new InvalidOperationException(
+                "Subscription not found. Please check the subscription id and access permissions.", e);
+        }
     }
 
 
@@ -149,7 +141,7 @@ public class DatahubAzureSubscriptionService(
             .Include(p => p.DatahubAzureSubscription)
             .Where(p => p.DatahubAzureSubscription.SubscriptionId == subscriptionId)
             .ToListAsync();
-        
+
         var subscriptionStrategy = new DatahubSubscriptionStrategy(portalConfiguration);
         return subscriptionStrategy.NumberOfWorkspacesRemaining(workspacesUsingSubscription);
 
@@ -168,12 +160,12 @@ public class DatahubAzureSubscriptionService(
             .AsNoTracking()
             .Include(e => e.Workspaces)
             .ToListAsync();
-        
+
         if (subscriptions.Count == 0)
         {
             throw new InvalidOperationException("No subscriptions available.");
         }
-        
+
         var subscriptionStrategy = new DatahubSubscriptionStrategy(portalConfiguration);
         return subscriptionStrategy.NextSubscription(subscriptions);
     }
