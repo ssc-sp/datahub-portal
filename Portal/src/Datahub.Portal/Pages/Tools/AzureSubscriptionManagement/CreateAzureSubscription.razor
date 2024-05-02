@@ -1,0 +1,55 @@
+@using Datahub.Core.Model.Subscriptions
+
+<MudStack>
+    <MudText Typo="Typo.h2">Add a new subscription</MudText>
+
+    <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
+        <MudTextField T="string" Label="@Localizer["Tenant ID"]" Required="true" RequiredError="@Localizer["Tenant ID is required"]"
+                      @bind-Value="@_tenantId" Validation="@(new Func<string, string>(IsValidGuid))"/>
+        <MudTextField T="string" Label="@Localizer["Subscription ID"]" Required="true" RequiredError="@Localizer["Subscription ID is required"]"
+                      @bind-Value="@_subscriptionId" Validation="@(new Func<string, string>(IsValidGuid))"/>
+        <MudTextField T="string" Label="@Localizer["Subscription Name"]" Required="true" RequiredError="@Localizer["Subscription Name is required"]"
+                      @bind-Value="@_subscriptionName"/>
+
+        <MudButton Class="mt-6" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="@SubmitSubscription">Add Subscription</MudButton>
+    </MudForm>
+
+</MudStack>
+
+@code {
+    [Parameter]
+    public EventCallback<DatahubAzureSubscription> OnSubscriptionSubmitted { get; set; }
+
+    private MudForm _form;
+    private bool _success;
+    private string[] _errors = [];
+
+    private string _tenantId;
+    private string _subscriptionId;
+    private string _subscriptionName;
+
+    private string IsValidGuid(string value)
+    {
+        return Guid.TryParse(value, out _) ? null : Localizer["Invalid GUID format"];
+    }
+
+    private async Task SubmitSubscription()
+    {
+        await _form.Validate();
+        if (!_success)
+        {
+            return;
+        }
+
+        var subscription = new DatahubAzureSubscription()
+        {
+            TenantId = _tenantId,
+            SubscriptionId = _subscriptionId,
+            Nickname = _subscriptionName
+        };
+
+        await OnSubscriptionSubmitted.InvokeAsync(subscription);
+        await _form.ResetAsync();
+    }
+
+}

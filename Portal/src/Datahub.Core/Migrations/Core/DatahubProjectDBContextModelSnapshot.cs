@@ -2071,7 +2071,7 @@ namespace Datahub.Core.Migrations.Core
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Nickname")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -2079,6 +2079,11 @@ namespace Datahub.Core.Migrations.Core
                         .IsRequired()
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("SubscriptionName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("TenantId")
                         .IsRequired()

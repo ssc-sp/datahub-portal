@@ -1,10 +1,12 @@
 @using Datahub.Application.Services.Publishing
 @using Datahub.Core.Components.Common
 @using Datahub.Core.Model.Projects
-@using Datahub.Core.Services.Achievements;
 @using Datahub.Core.Services.Storage;
 @using Datahub.Metadata.Model;
 @using Datahub.Application.Services
+@using Datahub.Application.Services.Metadata
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Infrastructure.Services.Security
 @using Datahub.Infrastructure.Services.Storage
 
 @inject NavigationManager _navigationManager
@@ -12,7 +14,7 @@
 @inject IUserInformationService _userInformationService
 @inject IJSRuntime _jsRuntime
 @inject IPortalUserTelemetryService _telemetryService
-@inject ServiceAuthManager ServiceAuthManager
+@inject IServiceAuthManager ServiceAuthManager
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IProjectUserManagementService _projectUserManagementService
 @inject IOpenDataPublishingService _openDataPublishingService

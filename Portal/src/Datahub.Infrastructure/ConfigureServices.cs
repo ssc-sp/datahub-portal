@@ -3,6 +3,8 @@ using Datahub.Application.Services.Announcements;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Notifications;
 using Datahub.Application.Services.ReverseProxy;
+using Datahub.Application.Services.Subscriptions;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
@@ -11,6 +13,8 @@ using Datahub.Infrastructure.Services.Notebooks;
 using Datahub.Infrastructure.Services.Notifications;
 using Datahub.Infrastructure.Services.ReverseProxy;
 using Datahub.Infrastructure.Services.Storage;
+using Datahub.Infrastructure.Services.Subscriptions;
+using Datahub.Infrastructure.Services.UserManagement;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Yarp.ReverseProxy.Configuration;
@@ -35,6 +39,9 @@ public static class ConfigureServices
         services.AddScoped<IDatabricksApiService, DatabricksApiService>();
         services.AddScoped<IUsersStatusService,UsersStatusService>();
         services.AddSingleton<IDatahubCatalogSearch, DatahubCatalogSearch>();
+        services.AddScoped<IDatahubAzureSubscriptionService, DatahubAzureSubscriptionService>();
+        services.AddScoped<IUserInformationService, UserInformationService>();
+        services.AddScoped<IUserSettingsService, UserSettingsService>();
 
         if (configuration.GetValue<bool>("ReverseProxy:Enabled"))
         {

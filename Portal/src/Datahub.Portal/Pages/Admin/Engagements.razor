@@ -2,7 +2,9 @@
 @inject IStringLocalizer DataLocalizer
 @implements IDisposable
 @using System.Security.Claims
+@using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Infrastructure.Services.Security
 @using Datahub.Core.Model.Projects
 @inject NavigationManager NavigationManager
 @inject IMSGraphService MSGraphService
@@ -10,7 +12,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IUserInformationService UserInformationService
 @inject IDatahubAuditingService AuditingService
-@inject ServiceAuthManager ServiceAuthManager
+@inject IServiceAuthManager ServiceAuthManager
 
 <Datahub.Core.Components.Form.MudFormTemplate T="Client_Engagement"
                                          U="DatahubProjectDBContext"

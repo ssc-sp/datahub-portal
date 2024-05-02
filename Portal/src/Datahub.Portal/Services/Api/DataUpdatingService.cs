@@ -1,4 +1,5 @@
 ﻿using Azure.Storage.Files.DataLake;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
