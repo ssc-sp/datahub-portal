@@ -183,8 +183,9 @@
         return status switch
         {
             "Closed" => Color.Success,
-            "Active" => Color.Default,
-            "New" => Color.Default,
+            "Active" => Color.Warning,
+            "Waiting" => Color.Info,
+            "New" => Color.Error,
             _ => Color.Default
         };
     }
