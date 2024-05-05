@@ -89,6 +89,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A8C709D8-8A40-45E3-BB40-2549AFECE6E6}"
 	ProjectSection(SolutionItems) = preProject
 		bleach.ps1 = bleach.ps1
+		gen-all-settings.ps1 = gen-all-settings.ps1
 		scripts\ConfigureAZCert.ps1 = scripts\ConfigureAZCert.ps1
 		scripts\find-translations.ps1 = scripts\find-translations.ps1
 		scripts\fix_CS8981.ps1 = scripts\fix_CS8981.ps1
@@ -339,9 +340,9 @@ Global
 		{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{57703cec-08b9-40b8-b5e2-064a196b1587}*SharedItemsImports = 5

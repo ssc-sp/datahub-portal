@@ -18,7 +18,7 @@ public class EmailServiceTests
     private ILogger<EmailService> _mockEmailLogger;
     private ILogger<DatahubEmailService> _mockEmailServiceLogger;
     private IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
-    private readonly IPublishEndpoint _publishEndpoint = Substitute.For<IPublishEndpoint>();
+    private readonly ISendEndpointProvider _publishEndpoint = Substitute.For<ISendEndpointProvider>();
     [SetUp]
     public void Setup()
     {

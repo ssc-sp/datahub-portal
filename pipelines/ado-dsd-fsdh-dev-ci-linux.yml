@@ -100,23 +100,23 @@ jobs:
     displayName: dotnet restore
     inputs:
       command: restore
-      projects: ServerlessOperations/src/Datahub.Functions/*.csproj
+      projects: Portal/src/Datahub.Functions/*.csproj
   - task: DotNetCoreCLI@2
     displayName: dotnet build
     inputs:
-      projects: ServerlessOperations/src/Datahub.Functions/Datahub.Functions.csproj
+      projects: Portal/src/Datahub.Functions/Datahub.Functions.csproj
       arguments: --configuration $(BuildConfiguration)
   - task: DotNetCoreCLI@2
     displayName: dotnet publish
     inputs:
       command: publish
       publishWebProjects: false
-      projects: ServerlessOperations/src/Datahub.Functions/Datahub.Functions.csproj
-      arguments: -o $(Build.ArtifactStagingDirectory)/output/serverless -r $(target_os) --self-contained true
+      projects: Portal/src/Datahub.Functions/Datahub.Functions.csproj
+      arguments: -o $(Build.ArtifactStagingDirectory)/output/portal -r $(target_os) --self-contained true
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: datahub-function'
     inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)/output/serverless
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/output/portal
       ArtifactName: datahub-function
 - job: Job_5
   displayName: Agent job - build resource provisioner function app
