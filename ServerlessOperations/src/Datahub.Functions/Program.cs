@@ -86,9 +86,13 @@ var host = new HostBuilder()
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();
         services.AddScoped<EmailNotificationHandler>(); // add your functions as scoped
+        services.AddScoped<ProjectCapacityUpdateHandler>();
+        services.AddScoped<ProjectInactivityNotificationHandler>();
         services.AddMassTransitForAzureFunctions(cfg =>
                 {
                     cfg.AddConsumersFromNamespaceContaining<EmailNotificationConsumer>();
+                    cfg.AddConsumersFromNamespaceContaining<ProjectCapacityUpdateConsumer>();
+                    cfg.AddConsumersFromNamespaceContaining<ProjectInactivityNotificationConsumer>();
                 }, "MassTransit:AzureServiceBus:ConnectionString");
         services.AddDatahubConfigurationFromFunctionFormat(config);
 
