@@ -61,10 +61,6 @@
         var totalUsers = await context.PortalUsers
             .CountAsync();
 
-        if (totalUsers > 0)
-        {
-            throw new Exception("Too many users");
-        }
         // get the number of users who have each achievement
         var achievementCounts = await context.UserAchievements
             .GroupBy(ua => ua.AchievementId)
