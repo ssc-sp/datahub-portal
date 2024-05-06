@@ -148,6 +148,7 @@ public class Startup
         services.AddFileReaderService();
         services.AddBlazorDownloadFile();
         services.AddBlazoredLocalStorage();
+        services.AddHttpContextAccessor();
         services.AddScoped<ApiTelemetryService>();
         services.AddScoped<GetDimensionsService>();
         //TimeZoneService provides the user time zone to the server using JS Interop

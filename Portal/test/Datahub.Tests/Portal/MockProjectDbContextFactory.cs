@@ -1,8 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace Datahub.Tests.Portal;
 
@@ -19,6 +21,8 @@ public class MockProjectDbContextFactory : IDbContextFactory<DatahubProjectDBCon
 
         var context = new DatahubProjectDBContext(options);
         context.Database.EnsureCreated();
+        context.TelemetryEvents = context.Set<TelemetryEvent>();
+
         return context;
     }
 
