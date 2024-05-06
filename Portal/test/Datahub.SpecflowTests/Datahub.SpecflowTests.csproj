@@ -34,8 +34,4 @@
     <ItemGroup>
         <Content Include="Features\**\*.feature" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Features\Workspace\" />
-    </ItemGroup>
 </Project>

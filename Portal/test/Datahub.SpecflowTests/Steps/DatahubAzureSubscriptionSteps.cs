@@ -2,8 +2,10 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Infrastructure.Services;
+using Datahub.Infrastructure.Services.Subscriptions;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Reqnroll;
@@ -304,5 +306,126 @@ public sealed class DatahubAzureSubscriptionSteps(
         };
 
         await datahubAzureSubscriptionService.UpdateSubscriptionAsync(updatedSubscription);
+    }
+
+    [When(@"a subscription that does not exist in Azure is added")]
+    public async Task WhenASubscriptionThatDoesNotExistInAzureIsAdded()
+    {
+        try
+        {
+            var subscription = new DatahubAzureSubscription()
+            {
+                SubscriptionId = "invalid-subscription-id",
+            };
+
+            await datahubAzureSubscriptionService.AddSubscriptionAsync(subscription);
+        }
+        catch (InvalidOperationException e)
+        {
+            scenarioContext["exception"] = e;
+        }
+    }
+
+    [Given(@"there is a workspace that uses the subscription with id ""(.*)""")]
+    public async Task GivenThereIsAWorkspaceThatUsesTheSubscriptionWithId(string p0)
+    {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var subscription = await ctx.AzureSubscriptions
+            .FirstOrDefaultAsync(s => s.SubscriptionId == p0);
+        
+        subscription.Should().NotBeNull();
+        var workspace = new Datahub_Project()
+        {
+            Project_Name = Testing.WorkspaceName,
+            DatahubAzureSubscription = subscription,
+            Project_Acronym_CD = Testing.WorkspaceAcronym
+        };
+        
+        ctx.Projects.Add(workspace);
+        await ctx.SaveChangesAsync();
+    }
+
+    [When(@"the subscription with id ""(.*)"" is disabled")]
+    public async Task WhenTheSubscriptionWithIdIsDisabled(string p0)
+    {
+        try
+        {
+            await datahubAzureSubscriptionService.DisableSubscriptionAsync(p0);
+        }
+        catch (InvalidOperationException e)
+        {
+            scenarioContext["exception"] = e;
+        }
+    }
+
+    [When(@"the subscription with id ""(.*)"" is checked")]
+    public async Task WhenTheSubscriptionWithIdIsChecked(string p0)
+    {
+        try
+        {
+            var subscription = await datahubAzureSubscriptionService.SubscriptionExistsAsync(p0);
+            scenarioContext["subscription"] = subscription;
+        }
+        catch (Exception e)
+        {
+            scenarioContext["exception"] = e;
+        }
+    }
+
+    [Then(@"the subscription with id ""(.*)"" is returned")]
+    public void ThenTheSubscriptionWithIdIsReturned(string p0)
+    {
+        var subscription = scenarioContext["subscription"] as DatahubAzureSubscription;
+        subscription.Should().NotBeNull();
+        subscription!.SubscriptionId.Should().Be(p0);
+    }
+
+    [Given(@"there is a subscription with id from an actual subscription")]
+    public async Task GivenThereIsASubscriptionWithIdFromAnActualSubscription()
+    {
+        var subscription = new DatahubAzureSubscription()
+        {
+            SubscriptionId = portalConfiguration.AzureAd.SubscriptionId,
+            TenantId = portalConfiguration.AzureAd.TenantId
+        };
+
+        await datahubAzureSubscriptionService.AddSubscriptionAsync(subscription);
+    }
+
+    [Given(@"an unstubbed datahub azure subscription service")]
+    public void GivenAnUnstubbedDatahubAzureSubscriptionService()
+    {
+        var unstubbedDatahubAzureSubscriptionService = scenarioContext["unstubbedDatahubAzureSubscriptionService"] as DatahubAzureSubscriptionService;
+        unstubbedDatahubAzureSubscriptionService.Should().NotBeNull();
+    }
+
+    [When(@"the subscription with id from an actual subscription is checked with the unstubbed service")]
+    public async Task WhenTheSubscriptionWithIdFromAnActualSubscriptionIsCheckedWithTheUnstubbedService()
+    {
+        var unstubbedDatahubAzureSubscriptionService = scenarioContext["unstubbedDatahubAzureSubscriptionService"] as DatahubAzureSubscriptionService;
+        var subscription = await unstubbedDatahubAzureSubscriptionService!.SubscriptionExistsAsync(portalConfiguration.AzureAd.SubscriptionId);
+        scenarioContext["subscription"] = subscription;
+    }
+
+    [Then(@"there should be a subscription with id from an actual subscription")]
+    public void ThenThereShouldBeASubscriptionWithIdFromAnActualSubscription()
+    {
+        var subscription = scenarioContext["subscription"] as DatahubAzureSubscription;
+        subscription.Should().NotBeNull();
+        subscription!.SubscriptionId.Should().Be(portalConfiguration.AzureAd.SubscriptionId);
+    }
+
+    [When(@"the subscription with a random guid is checked with the unstubbed service")]
+    public async Task WhenTheSubscriptionWithARandomGuidIsCheckedWithTheUnstubbedService()
+    {
+        var unstubbedDatahubAzureSubscriptionService = scenarioContext["unstubbedDatahubAzureSubscriptionService"] as DatahubAzureSubscriptionService;
+        try
+        {
+            await unstubbedDatahubAzureSubscriptionService!.SubscriptionExistsAsync(Guid.NewGuid().ToString());
+        }
+        catch (Exception e)
+        {
+            scenarioContext["exception"] = e;
+        }
     }
 }
