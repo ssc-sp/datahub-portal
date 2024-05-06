@@ -354,6 +354,177 @@ namespace Datahub.SpecflowTests.Features.Subscriptions
             await this.ScenarioCleanupAsync();
         }
         
+        [Xunit.SkippableFactAttribute(DisplayName="Add a subscription that does not exist in Azure")]
+        [Xunit.TraitAttribute("FeatureTitle", "Azure Subscription Service")]
+        [Xunit.TraitAttribute("Description", "Add a subscription that does not exist in Azure")]
+        public async System.Threading.Tasks.Task AddASubscriptionThatDoesNotExistInAzure()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Add a subscription that does not exist in Azure", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 51
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 52
+        await testRunner.GivenAsync("a datahub azure subscription service", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 53
+        await testRunner.WhenAsync("a subscription that does not exist in Azure is added", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 54
+        await testRunner.ThenAsync("an error is returned", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Disabling a subscription that\'s in use")]
+        [Xunit.TraitAttribute("FeatureTitle", "Azure Subscription Service")]
+        [Xunit.TraitAttribute("Description", "Disabling a subscription that\'s in use")]
+        public async System.Threading.Tasks.Task DisablingASubscriptionThatsInUse()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Disabling a subscription that\'s in use", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 56
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 57
+        await testRunner.GivenAsync("a datahub azure subscription service", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 58
+        await testRunner.AndAsync("there is a subscription with id \"in-use\"", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 59
+        await testRunner.AndAsync("there is a workspace that uses the subscription with id \"in-use\"", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 60
+        await testRunner.WhenAsync("the subscription with id \"in-use\" is disabled", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 61
+        await testRunner.ThenAsync("an error is returned", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Check if a subscription exists and the client has access")]
+        [Xunit.TraitAttribute("FeatureTitle", "Azure Subscription Service")]
+        [Xunit.TraitAttribute("Description", "Check if a subscription exists and the client has access")]
+        public async System.Threading.Tasks.Task CheckIfASubscriptionExistsAndTheClientHasAccess()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Check if a subscription exists and the client has access", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 63
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 64
+        await testRunner.GivenAsync("a datahub azure subscription service", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 65
+        await testRunner.AndAsync("there is a subscription with id \"check-me\"", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 66
+        await testRunner.WhenAsync("the subscription with id \"check-me\" is checked", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 67
+        await testRunner.ThenAsync("the subscription with id \"check-me\" is returned", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Check if a subscription exists and the client does has access with an actual subs" +
+            "cription")]
+        [Xunit.TraitAttribute("FeatureTitle", "Azure Subscription Service")]
+        [Xunit.TraitAttribute("Description", "Check if a subscription exists and the client does has access with an actual subs" +
+            "cription")]
+        public async System.Threading.Tasks.Task CheckIfASubscriptionExistsAndTheClientDoesHasAccessWithAnActualSubscription()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Check if a subscription exists and the client does has access with an actual subs" +
+                    "cription", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 69
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 70
+        await testRunner.GivenAsync("an unstubbed datahub azure subscription service", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 71
+        await testRunner.AndAsync("there is a subscription with id from an actual subscription", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 72
+        await testRunner.WhenAsync("the subscription with id from an actual subscription is checked with the unstubbe" +
+                        "d service", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 73
+        await testRunner.ThenAsync("there should be a subscription with id from an actual subscription", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Check if a fake subscription exists against azure")]
+        [Xunit.TraitAttribute("FeatureTitle", "Azure Subscription Service")]
+        [Xunit.TraitAttribute("Description", "Check if a fake subscription exists against azure")]
+        public async System.Threading.Tasks.Task CheckIfAFakeSubscriptionExistsAgainstAzure()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Check if a fake subscription exists against azure", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 75
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 76
+        await testRunner.GivenAsync("an unstubbed datahub azure subscription service", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 77
+        await testRunner.WhenAsync("the subscription with a random guid is checked with the unstubbed service", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 78
+        await testRunner.ThenAsync("an error is returned", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
         [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "1.0.0.0")]
         [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
         public class FixtureData : object, Xunit.IAsyncLifetime
