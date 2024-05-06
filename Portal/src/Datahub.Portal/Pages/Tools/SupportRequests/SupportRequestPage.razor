@@ -122,7 +122,6 @@
 
                 var workItemJsonResponse = await workItemResponse.Content.ReadAsStringAsync();
                 var workItemDetails = JObject.Parse(workItemJsonResponse);
-
                 var issue = new IssueForDisplaying(workItemDetails, false);
 
                 if (issue.State == "Closed"){

@@ -49,7 +49,8 @@ namespace Datahub.Portal.Pages.Help
             Id = (string)workItemDetails["id"];
             Title = (string)workItemDetails["fields"]["System.Title"];
             var description = (string)workItemDetails["fields"]["System.Description"];
-            Description = description.Split("<b>Description:</b> ")[1].Split("<br>")[0];
+            description = description.Split("<b>Description:</b> ")[1].Split("<br>")[0];
+            Description = TrimDescription(description);
             State = (string)workItemDetails["fields"]["System.State"];
             Message = userView == true ? GetUserHelpStatusMessage(State) : State;
             SubmittedDate = (string)workItemDetails["fields"]["System.CreatedDate"];
