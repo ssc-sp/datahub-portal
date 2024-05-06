@@ -174,7 +174,7 @@
 					<RowTemplate>
                         <MudTd>@context.Id</MudTd>
 						<MudTd>@context.Title</MudTd>
-                        <MudTd>@TrimDescription(context.Description)</MudTd>
+                        <MudTd>@context.Description</MudTd>
                         <MudTd><MudChip Color="@GetColor(context.State)">@Localizer[context.Message]</MudChip></MudTd>
                         <MudTd>@context.SubmittedDate</MudTd>
                         <MudTd>@context.ChangedDate</MudTd>
@@ -450,37 +450,8 @@
                 var workItemJsonResponse = await workItemResponse.Content.ReadAsStringAsync();
                 var workItemDetails = JObject.Parse(workItemJsonResponse);
 
-                // Retrieve fields that will be displayed to the user
-                var issueId = (string)workItemDetails["id"];
-                var title = (string) workItemDetails["fields"]["System.Title"];
-                var description = (string)workItemDetails["fields"]["System.Description"];
-                description = description.Split("<b>Description:</b> ")[1].Split("<br>")[0];
-                var state = (string)workItemDetails["fields"]["System.State"];
-                var submittedDate = (string)workItemDetails["fields"]["System.CreatedDate"];
-                var changedDate = (string)workItemDetails["fields"]["System.ChangedDate"];
-
-                string message; // Message to display to the user based on the state of the issue
-                switch (state)
-                {
-                    case "New":
-                        message = "Your request is submitted and awaiting review.";
-                        break;
-                    case "Active":
-                        message = "Your request is currently active and being worked on.";
-                        break;
-                    case "Waiting":
-						message = "We have reached out for more information.";
-						break;
-                    case "Closed":
-                        message = "Your request has been marked as closed.";
-                        break;
-                    default:
-                        message = "The state of your request is currently unknown.";
-                        break;
-                }
-
                 // Add the issue to the list
-                _issuesList.Add(new IssueForDisplaying(issueId, title, description, state, message, submittedDate, changedDate));
+                _issuesList.Add(new IssueForDisplaying(workItemDetails, true));
             }
         }
         _loading = false; // Stop showing the loading bar in the table.
@@ -488,21 +459,6 @@
         // Reverse the issues list so that the most recent issues are displayed first
         _issuesList.Reverse();
         return _issuesList;
-    }
-
-    /**
-     * Trims the description to a specified maximum length and appends ellipsis if necessary.
-     *
-     * @param description The description to be trimmed.
-     * @param maxLength The maximum length of the trimmed description.
-     * @return The trimmed description.
-     */
-    private string TrimDescription(string description, int maxLength = 240)
-    {
-        if (description.Length > maxLength)
-            return description.Substring(0, maxLength) + "...";
-        else
-            return description;
     }
 
     /**
@@ -520,66 +476,5 @@
             "New" => Color.Default,
             _ => Color.Default
         };
-    }
-
-    /**
-     * Represents an issue for displaying in the support ticket table.
-     */
-    public class IssueForDisplaying {
-        /// <summary>
-        /// Gets or sets the ID of the issue.
-        /// </summary>
-        public string Id { get; set; }
-
-        /// <summary>
-        /// Gets or sets the title of the issue.
-        /// </summary>
-        public string Title { get; set; }
-
-        /// <summary>
-        /// Gets or sets the description of the issue.
-        /// </summary>
-        public string Description { get; set; }
-
-        /// <summary>
-        /// Gets or sets the state of the issue.
-        /// </summary>
-        public string State { get; set; }
-
-        /// <summary>
-        /// Gets or sets the message to display to the user based on the state of the issue.
-        /// </summary>
-        public string Message { get; set; }
-
-        /// <summary>
-        /// Gets or sets the date the issue was submitted.
-        /// </summary>
-        public string SubmittedDate { get; set; }
-
-        /// <summary>
-        /// Gets or sets the date the issue was last changed.
-        /// </summary>
-        public string ChangedDate { get; set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="IssueForDisplaying"/> class.
-        /// </summary>
-        /// <param name="id">The ID of the issue.</param>
-        /// <param name="title">The title of the issue.</param>
-        /// <param name="description">The description of the issue.</param>
-        /// <param name="state">The state of the issue.</param>
-        /// <param name="message">The message to display to the user based on the state of the issue.</param>
-        /// <param name="submittedDate">The date the issue was submitted.</param>
-        /// <param name="changedDate">The date the issue was last changed.</param>
-        public IssueForDisplaying(string id, string title, string description, string state, string message, string submittedDate, string changedDate)
-        {
-            Id = id;
-            Title = title;
-            Description = description;
-            State = state;
-            Message = message;
-            SubmittedDate = submittedDate;
-            ChangedDate = changedDate;
-        }
     }
 }
