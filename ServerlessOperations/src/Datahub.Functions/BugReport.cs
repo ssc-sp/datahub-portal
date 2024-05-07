@@ -128,20 +128,29 @@ namespace Datahub.Functions
 
         public async Task<WorkItem> PostIssue(JsonPatchDocument body)
         {
+
             var clientProvider = new AzureDevOpsClient(_config.AzureDevOpsConfiguration);
             var client = await clientProvider.WorkItemClientAsync();
-            var workItem = await client.CreateWorkItemAsync(body, _config.AzureDevOpsConfiguration.ProjectName, "Issue");
-
-            if (workItem is null)
+            WorkItem? workItem = null;
+            try
             {
-                _logger.LogError("Unable to create issue in DevOps.");
+                workItem = await client.CreateWorkItemAsync(body, _config.AzureDevOpsConfiguration.ProjectName, "Issue");
+
+                if (workItem is null)
+                {
+                    _logger.LogError("Unable to create issue in DevOps.");
+                }
+                else
+                {
+                    _logger.LogInformation("Successfully created issue in DevOps.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogInformation("Successfully created issue in DevOps.");
+                _logger.LogError(ex, "Error creating issue in DevOps.");
             }
 
-            return workItem;
+            return workItem!;
         }
     }
 }

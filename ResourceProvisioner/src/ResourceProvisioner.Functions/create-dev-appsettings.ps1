@@ -60,7 +60,7 @@ $hashTable = @{
 Write-Output "Converting secrets to json object"
 $jsonObject = $hashTable | ConvertTo-Json -Depth 100
 
-Write-Output "Writing json object to appsettings.test.json"
-$jsonObject | Out-File -FilePath "appsettings.test.json"
+Write-Output "Writing json object to appsettings.json"
+$jsonObject | Out-File -FilePath "appsettings.json"
 
 Write-Output "Done"

@@ -115,6 +115,23 @@ namespace Datahub.SpecflowTests.Steps
             await requestManagementService.HandleTerraformRequestServiceAsync(project, resourceType, currentUser);
         }
 
+        [When(@"a current user requests to delete a (.*) resource in a workspace")]
+        public async Task WhenACurrentUserRequestsToDeleteACertainResourceWorkspace(string resourceName)
+        {
+
+            var resourceType = TransformResourceName(resourceName);
+            var projectAcronym = scenarioContext[$"acronym:{resourceName}"] as string;
+
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = await ctx.Projects
+                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+
+            var currentUser = await ctx.PortalUsers
+                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CURRENT_USER_GUID.ToString());
+
+            await requestManagementService.HandleTerraformRequestServiceAsync(project, resourceType, currentUser, true);
+        }
+
         [Then(@"there should be a workspace database resource created")]
         public async Task ThenThereShouldBeAWorkspaceDatabaseResourceCreated()
         {
@@ -181,6 +198,24 @@ namespace Datahub.SpecflowTests.Steps
             resourceMessagingService
                 .Received(numberOfQueueMessages)
                 .SendToTerraformQueue(Arg.Any<WorkspaceDefinition>());
+        }
+
+        [Then(@"there should be (.*) delete messages in resource messaging queue")]
+        public void ThenThereShouldBeDeleteMessagesInResourceMessagingQueue(int numberOfQueueMessages)
+        {
+            resourceMessagingService
+                .Received(numberOfQueueMessages)
+                .SendToTerraformQueue(Arg.Any<WorkspaceDefinition>());
+
+            var capturedWorkspaces = ScenarioContext.Current.Get<List<WorkspaceDefinition>>("CapturedWorkspaces");
+            WorkspaceDefinition workspace = capturedWorkspaces.First();
+            workspace.Should().NotBeNull();
+
+            TerraformTemplate template = workspace.Templates.First()!;
+            template.Should().NotBeNull();
+            template.Status.Should().Be("deleted", because: "all workspaces should be marked as deleted.");
+            
+            capturedWorkspaces.Clear();
         }
 
         [Then(@"there should not be a workspace (.*) resource created")]

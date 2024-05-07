@@ -2,12 +2,15 @@
 @using Datahub.Shared.Entities
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Projects
+@using Datahub.Core.Enums
+@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject IRequestManagementService _requestManagementService
 @inject IUserInformationService _userInformationService
 @inject ILogger<WorkspaceToolboxPage> _logger
 @inject ISnackbar _snackbar
+@inject IDialogService _dialogService
 
 <MudStack>
     <MudText Typo="Typo.h2">
@@ -46,13 +49,17 @@
                         </MudText>
                         <MudSpacer/>
                         <MudStack Row>
-                            @switch (_toolCurrentDevelopmentStatusMap[tool])
-                            {
+                            @switch (_toolCurrentDevelopmentStatusMap[tool]) {
                                 case ToolStatus.Available:
                                     <MudButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await AddToolToWorkspace(tool))">
                                         @Localizer["Add to Workspace"]
                                         <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;"/>
                                     </MudButton>
+                                    break;
+                                case ToolStatus.SendingDelete:
+                                    <SpinnerButton Variant="@Variant.Filled">
+                                        @Localizer["Delete In Progress..."]
+                                    </SpinnerButton>
                                     break;
                                 case ToolStatus.SendingRequest:
                                     <SpinnerButton Variant="@Variant.Filled">
@@ -63,15 +70,27 @@
                                     <ToolBeingProvisionedButton Variant="@Variant.Filled"/>
                                     break;
                                 case ToolStatus.Exists:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
-                                        @Localizer["Tool has been created"]
-                                        <MudIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;"/>
-                                    </MudButton>
+                                    <div style="display: flex; flex-direction: column;">
+                                        <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Style="margin-bottom: 8px;" Disabled>
+                                            @Localizer["Tool has been created"]
+                                            <MudIcon Icon="fa-light fa-check-to-slot" Class="ml-1" Style="font-size: 0.8rem;"/>
+                                        </MudButton>
+                                        <MudButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await DeleteToolFromWorkspace(tool))">
+                                         @Localizer["Delete"]
+                                            <MudIcon Icon="fa-light fa-trash" Class="ml-1" Style="font-size: 0.8rem;" />
+                                        </MudButton>
+                                    </div>
                                     break;
                                 case ToolStatus.Disabled:
                                     <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Not Enabled"]
                                         <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                    </MudButton>
+                                    break;
+                                case ToolStatus.PendingDeleteRequest:
+                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                     @Localizer["Delete In Progress"]
+                                        <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </MudButton>
                                     break;
                                 case ToolStatus.UnderDevelopment:
@@ -121,7 +140,9 @@
     {
         Available,
         SendingRequest,
+        SendingDelete,
         PendingRequest,
+        PendingDeleteRequest,
         Disabled,
         UnderDevelopment,
         Exists,
@@ -177,10 +198,16 @@
             return _toolCurrentDevelopmentStatusMap[tool];
         }
 
-        var toolResource = _workspace.Resources.FirstOrDefault(r => r.ResourceType.EndsWith(tool));
+        var toolResource = _workspace.Resources.FirstOrDefault(r => r.ResourceType.EndsWith(tool) 
+                                        && (r.Status == null || r.Status != TerraformOutputStatus.Deleted));
         if (toolResource == null)
         {
             return ToolStatus.Available;
+        }
+
+        if (toolResource.Status == TerraformOutputStatus.Deleting)
+        {
+            return ToolStatus.SendingDelete;
         }
 
         if (toolResource.CreatedAt == null)
@@ -210,6 +237,38 @@
             _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.PendingRequest;
             _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(tool)], Severity.Success);
             await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error adding tool {Tool} to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
+            _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.Error;
+            _snackbar.Add(Localizer["Error adding {0} to your workspace", GetLabel(tool)], Severity.Error);
+        }
+    }
+
+    private async Task DeleteToolFromWorkspace(string tool) 
+    {
+        _logger.LogInformation("Deleting tool {Tool} from workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
+
+        try
+        {
+            var parameters = new DialogParameters { };
+            var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+            var dialog = _dialogService.Show<DeleteResourceDialog>("Delete Resource", parameters, options);
+            var result = await dialog.Result;
+
+            if (!result.Canceled)
+            {
+                _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.SendingDelete;
+                await InvokeAsync(StateHasChanged);
+
+                var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+                await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, tool, currentUser, true);
+                _logger.LogInformation("Tool {Tool} successfully removed from workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
+                _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.PendingDeleteRequest;
+                _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(tool)], Severity.Success);
+                await InvokeAsync(StateHasChanged);
+            }
         }
         catch (Exception e)
         {

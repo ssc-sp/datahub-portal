@@ -33,6 +33,8 @@ public class Hooks
             .AddJsonFile("appsettings.test.json", optional: true)
             .Build();
 
+        var capturedWorkspaces = new List<WorkspaceDefinition>();
+
         var datahubPortalConfiguration = new DatahubPortalConfiguration();
         configuration.Bind(datahubPortalConfiguration);
 
@@ -47,7 +49,8 @@ public class Hooks
         var actualResourceMessageService = new ResourceMessagingService(datahubPortalConfiguration, dbContextFactory);
 
         var substituteResourceMessageService = Substitute.For<IResourceMessagingService>();
-        substituteResourceMessageService.SendToTerraformQueue(Arg.Any<WorkspaceDefinition>())
+        substituteResourceMessageService.SendToTerraformQueue(Arg.Do<WorkspaceDefinition>(workspace =>
+                capturedWorkspaces.Add(workspace)))
             .Returns(Task.CompletedTask);
 
         substituteResourceMessageService.GetWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string?>())
@@ -59,6 +62,8 @@ public class Hooks
             dbContextFactory,
             datahubAuditingService,
             substituteResourceMessageService);
+        
+        scenarioContext["CapturedWorkspaces"] = capturedWorkspaces;
 
         // register dependencies
         objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
