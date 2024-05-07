@@ -1,0 +1,41 @@
+@using Datahub.Application.Services.Achievements
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Achievements;
+
+@inject IUserSettingsService _userSettingsService
+@inject ILocalStorageService _localStorage
+@inject IPortalUserTelemetryService _telemetryService
+@inject NavigationManager NavManager
+
+<span @onclick="() => ChangeLanguage(Language)" style="cursor:pointer;">
+    @LanguageDisplay
+</span>
+
+@code {
+
+    private static string Language => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "en-CA" : "fr-CA";
+    private static string LanguageDisplay => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "English" : "Français";
+    
+    private static List<string> UnauthenticatedPages = new() { "/login", "/register", "/terms-and-conditions", "account-setup" };
+
+    private async Task ChangeLanguage(string language)
+    {
+        // if in an unauthenticated page, user still needs to be able to translate languages
+        var currentPage = NavManager.Uri;
+        if (UnauthenticatedPages.Any(x => currentPage.Contains(x)))
+        {
+            await _localStorage.SetItemAsStringAsync("language", language);
+            await _userSettingsService.SetLanguage(language);
+        } else {
+            await _localStorage.SetItemAsStringAsync("language", language);
+            await _userSettingsService.RegisterUserLanguage(language);
+            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
+            await _userSettingsService.SetLanguage(language);
+        }
+    }
+    
+    public async Task ToggleLanguage()
+    {
+        await ChangeLanguage(Language);
+    }
+}

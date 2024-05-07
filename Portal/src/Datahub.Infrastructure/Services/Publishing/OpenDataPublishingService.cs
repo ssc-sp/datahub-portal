@@ -1,5 +1,6 @@
 ﻿using Datahub.Application.Exceptions;
 using Datahub.Application.Services.Publishing;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
@@ -11,14 +12,11 @@ namespace Datahub.Infrastructure.Services.Publishing
     public class OpenDataPublishingService(IUserInformationService userService,
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory) : IOpenDataPublishingService
     {
-        private readonly IUserInformationService _userService = userService;
-        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory = dbContextFactory;
-
         public event Func<OpenDataPublishFile, Task>? FileUploadStatusUpdated;
 
         public async Task<List<OpenDataSubmission>> GetAvailableOpenDataSubmissionsForWorkspaceAsync(int workspaceId)
         {
-            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
             var submissions = await ctx.OpenDataSubmissions
                 .AsNoTracking()
@@ -30,7 +28,7 @@ namespace Datahub.Infrastructure.Services.Publishing
 
         public async Task<OpenDataSubmission> GetOpenDataSubmissionAsync(long submissionId)
         {
-            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
             var submission = await ctx.OpenDataSubmissions
                 .AsNoTracking()
@@ -49,7 +47,7 @@ namespace Datahub.Infrastructure.Services.Publishing
 
         public async Task<List<OpenDataSubmission>> GetOpenDataSubmissionsAsync(int workspaceId)
         {
-            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
             var submissions = await ctx.OpenDataSubmissions
                 .AsNoTracking()
@@ -62,7 +60,7 @@ namespace Datahub.Infrastructure.Services.Publishing
 
         public async Task<TbsOpenGovSubmission> UpdateTbsOpenGovSubmission(TbsOpenGovSubmission submission)
         {
-            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
             var existingSubmission = await ctx.TbsOpenGovSubmissions
                 .Include(s => s.Files)
@@ -120,7 +118,7 @@ namespace Datahub.Infrastructure.Services.Publishing
 
         public async Task<OpenDataSubmission> CreateOpenDataSubmission(OpenDataSubmissionBasicInfo openDataSubmissionBasicInfo)
         {
-            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
             OpenDataSubmission? submission = openDataSubmissionBasicInfo.ProcessType switch
             {
@@ -133,7 +131,7 @@ namespace Datahub.Infrastructure.Services.Publishing
                 throw new OpenDataPublishingException("Cannot create an open data submission without specifying a process type");
             }
 
-            var user = await _userService.GetCurrentPortalUserAsync();
+            var user = await userService.GetCurrentPortalUserAsync();
             submission.RequestingUserId = user.Id;
             submission.RequestDate = DateTime.Today;
 
@@ -162,7 +160,7 @@ namespace Datahub.Infrastructure.Services.Publishing
 
         public async Task AddFilesToSubmission(OpenDataSubmission openDataSubmission, IEnumerable<FileMetaData> files, int? containerId, string containerName)
         {
-            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
             var submission = await ctx.OpenDataSubmissions
                 .Include(s => s.Files)
@@ -195,7 +193,7 @@ namespace Datahub.Infrastructure.Services.Publishing
 
         public async Task<OpenDataPublishFile> UpdateFileUploadStatus(OpenDataPublishFile file, OpenDataPublishFileUploadStatus status, string? uploadMessage = null)
         {
-            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var existingFile = await ctx.OpenDataPublishFiles.FirstOrDefaultAsync(f => f.Id == file.Id);
             if (existingFile == null)
             {

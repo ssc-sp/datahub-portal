@@ -1,4 +1,5 @@
 using Datahub.Application.Configuration;
+using Datahub.Application.Services;
 using Datahub.Application.Services.Announcements;
 using Datahub.Core.Model.Announcements;
 using Datahub.Core.Model.Datahub;

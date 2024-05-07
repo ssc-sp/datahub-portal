@@ -1,8 +1,8 @@
 ﻿using Datahub.Core.Model.Achievements;
-using Datahub.Core.Services.Achievements;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Datahub.Application.Services.Achievements;
 using Xunit;
 
 namespace Datahub.Tests.Achivements;

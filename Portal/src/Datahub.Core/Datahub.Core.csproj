@@ -30,9 +30,8 @@
 		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22329.4-beta" />
 		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
 		<PackageReference Include="AElemental.Blazor.Theme" Version="1.6.22173.2" />
-		<PackageReference Include="AngleSharp" Version="1.0.4" />
 		<PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="4.0.1" />
-		<PackageReference Include="Azure.Identity" Version="1.11.2" />
+		<PackageReference Include="Azure.Identity" Version="1.11.0" />
 		<PackageReference Include="Azure.Search.Documents" Version="11.4.0" />
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.18.0" />
 		<PackageReference Include="Azure.Storage.Files.DataLake" Version="12.16.0" />
@@ -68,7 +67,10 @@
 		<PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.5" />
 
 		<PackageReference Include="Microsoft.Identity.Web.UI" Version="2.13.4" />
+
+		<PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="16.170.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
+		<PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="16.170.0" />
 
 		<PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
 
@@ -98,10 +100,6 @@
 		<ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
 		<ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
 	</ItemGroup>
-	<ItemGroup>
-		<Folder Include="Components\PageAlerts\" />
-	</ItemGroup>
-
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
 		<Copy SourceFiles="@(GitHookFiles)" DestinationFolder="../.git/hooks/" SkipUnchangedFiles="true" />
