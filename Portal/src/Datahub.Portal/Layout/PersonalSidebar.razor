@@ -171,7 +171,8 @@
         public const string HealthCheck = "healthcheck";
         public const string Users = "users";
         public const string Email = "email";
-        public const string AzureSubscriptions = "auzre-subscriptions";
+        public const string SupportRequests = "support-requests";
+        public const string AzureSubscriptions = "azure-subscriptions";
     }
 
 
@@ -187,6 +188,7 @@
     private List<string> _datahubAdminItems = new()
     {
         SectionViews.Diagnostics,
+        SectionViews.SupportRequests,
         SectionViews.Statistics,
         SectionViews.HealthCheck,
         SectionViews.Users,
@@ -267,6 +269,7 @@
             SectionViews.Users => SidebarIcons.Users,
             SectionViews.Email => SidebarIcons.Email,
             SectionViews.AzureSubscriptions => SidebarIcons.AzureSubscriptions,
+            SectionViews.SupportRequests => SidebarIcons.SupportRequests,
 
             _ => SidebarIcons.Profile
         };
@@ -288,6 +291,7 @@
             SectionViews.Users => Localizer["Users"],
             SectionViews.Email => Localizer["Email"],
             SectionViews.AzureSubscriptions => Localizer["Azure Subscriptions"],
+            SectionViews.SupportRequests => Localizer["Support Requests"],
 
             _ => Localizer["Public Profile"]
         };

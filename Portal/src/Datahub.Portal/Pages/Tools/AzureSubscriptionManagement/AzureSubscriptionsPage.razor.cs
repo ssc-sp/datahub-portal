@@ -17,7 +17,8 @@ public partial class AzureSubscriptionsPage : ComponentBase
             await _datahubAzureSubscriptionService.AddSubscriptionAsync(subscription);
         
             _logger.LogInformation("Azure subscription {SubscriptionId} added.", subscription.SubscriptionId);
-            _snackbar.Add(Localizer["Azure subscription added"], Severity.Info);
+            _snackbar.Add(Localizer["Azure subscription added"], Severity.Success);
+            StateHasChanged();
         }
         catch (Exception e)
         {
