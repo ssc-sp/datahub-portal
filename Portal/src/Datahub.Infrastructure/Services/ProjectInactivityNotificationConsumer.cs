@@ -15,7 +15,7 @@ public class ProjectInactivityNotificationConsumer : IConsumer<ProjectInactivity
 
     public ProjectInactivityNotificationConsumer(ILoggerFactory loggerFactory, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
     {
-        _logger = loggerFactory.CreateLogger<ProjectCapacityUpdateConsumer>();
+        _logger = loggerFactory.CreateLogger<ProjectInactivityNotificationConsumer>();
         _dbContextFactory = dbContextFactory;
     }
 
