@@ -1,0 +1,29 @@
+{
+  "IsEncrypted": false,
+  "Values":   {
+  "Terraform__Variables__az_subscription_id": "bc4bcb08-d617-49f4-b6af-69d6f10c240b",
+  "InfrastructureRepository__Url": "https://DataSolutionsDonnees@dev.azure.com/DataSolutionsDonnees/FSDH%20SSC/_git/datahub-project-infrastructure-dev",
+  "Terraform__Variables__az_location": "canadacentral",
+  "Terraform__Variables__az_tenant_id": "8c1a4d93-d828-4d0e-9303-fd3bd611c822",
+  "Terraform__Variables__environment_name": "dev",
+  "InfrastructureRepository__PullRequestBrowserUrl": "https://dev.azure.com/DataSolutionsDonnees/FSDH%20SSC/_git/datahub-project-infrastructure-dev/pullrequest",
+  "Terraform__Variables__storage_size_limit_tb": "5",
+  "Terraform__Variables__common_tags__Environment": "dev",
+  "Terraform__Variables__budget_amount": "400",
+  "Terraform__Variables__common_tags__Sector": "Science Program",
+  "InfrastructureRepository__MainBranch": "main",
+  "ModuleRepository__LocalPath": "/tmp/datahub-resource-modules",
+  "ModuleRepository__TemplatePathPrefix": "templates/",
+  "Terraform__Variables__resource_prefix": "fsdh",
+  "InfrastructureRepository__ProjectPathPrefix": "terraform/projects",
+  "Terraform__Variables__environment_classification": "U",
+  "InfrastructureRepository__AzureDevOpsConfiguration__TenantId": "8c1a4d93-d828-4d0e-9303-fd3bd611c822",
+  "InfrastructureRepository__ApiVersion": "6.0",
+  "Terraform__Variables__common_tags__ClientOrganization": "TEST-TEST",
+  "ModuleRepository__Url": "https://github.com/ssc-sp/datahub-resource-modules.git",
+  "ModuleRepository__ModulePathPrefix": "modules/",
+  "Terraform__Backend__ResourceGroupName": "fsdh-core-dev-rg",
+  "InfrastructureRepository__PullRequestUrl": "https://dev.azure.com/DataSolutionsDonnees/FSDH%20SSC/_apis/git/repositories/d39f0833-678b-4f76-a906-98d1332b2990/pullrequests",
+  "InfrastructureRepository__LocalPath": "/tmp/datahub-project-infrastructure-dev"
+} 
+}
