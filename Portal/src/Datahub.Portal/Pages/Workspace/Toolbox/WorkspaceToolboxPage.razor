@@ -3,12 +3,14 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Projects
 @using Datahub.Core.Enums
+@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject IRequestManagementService _requestManagementService
 @inject IUserInformationService _userInformationService
 @inject ILogger<WorkspaceToolboxPage> _logger
 @inject ISnackbar _snackbar
+@inject IDialogService _dialogService
 
 <MudStack>
     <MudText Typo="Typo.h2">
@@ -247,17 +249,26 @@
     private async Task DeleteToolFromWorkspace(string tool) 
     {
         _logger.LogInformation("Deleting tool {Tool} from workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
-        _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.SendingDelete;
-        await InvokeAsync(StateHasChanged);
 
         try
         {
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, tool, currentUser, true);
-            _logger.LogInformation("Tool {Tool} successfully removed from workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
-            _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.PendingDeleteRequest;
-            _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(tool)], Severity.Success);
-            await InvokeAsync(StateHasChanged);
+            var parameters = new DialogParameters { };
+            var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+            var dialog = _dialogService.Show<DeleteResourceDialog>("Delete Resource", parameters, options);
+            var result = await dialog.Result;
+
+            if (!result.Canceled)
+            {
+                _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.SendingDelete;
+                await InvokeAsync(StateHasChanged);
+
+                var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+                await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, tool, currentUser, true);
+                _logger.LogInformation("Tool {Tool} successfully removed from workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
+                _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.PendingDeleteRequest;
+                _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(tool)], Severity.Success);
+                await InvokeAsync(StateHasChanged);
+            }
         }
         catch (Exception e)
         {

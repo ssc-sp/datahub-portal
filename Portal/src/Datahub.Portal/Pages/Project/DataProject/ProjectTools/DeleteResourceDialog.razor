@@ -1,0 +1,17 @@
+﻿<MudDialog>
+    <DialogContent>
+        <p>@Localizer["Are you sure you want to delete the selected resource?"]</p>
+        <p>@Localizer["This action is irreversible. Deletion will remove the selected resource in this project and may take up to 30 minutes to complete."]</p>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Error" OnClick="Submit">Delete</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    void Cancel() => MudDialog.Cancel();
+}
