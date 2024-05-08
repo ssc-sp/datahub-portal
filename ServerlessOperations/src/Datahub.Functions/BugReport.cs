@@ -5,7 +5,6 @@ using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
 using MassTransit;
-using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;

@@ -1,5 +1,4 @@
 using Azure.Security.KeyVault.Secrets;
-using Azure.Storage.Queues.Models;
 using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Queues;
@@ -20,7 +19,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using MediatR;
 
 namespace Datahub.Functions;
 

@@ -9,7 +9,6 @@ using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Shared.Configuration;
 using MassTransit;
-using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
