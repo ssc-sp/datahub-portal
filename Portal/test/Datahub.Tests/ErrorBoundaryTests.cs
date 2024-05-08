@@ -43,6 +43,7 @@ public class ErrorBoundaryTests
     private readonly Mock<CultureService> _cultureServiceMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly Mock<IJSRuntime> _jsRuntimeMock;
+    private readonly Mock<IJSObjectReference> _jsModuleMock;
     private readonly Mock<ILocalStorageService> _localStorageMock;
     private readonly Mock<NavigationManager> _navigationManagerMock;
     private readonly Mock<IMediator> _mediatrMock;
@@ -68,6 +69,7 @@ public class ErrorBoundaryTests
         _cultureServiceMock = new Mock<CultureService>();
         _httpContextAccessorMock =new Mock<IHttpContextAccessor>() { CallBase = true };
         _jsRuntimeMock = new Mock<IJSRuntime>();
+        _jsModuleMock = new Mock<IJSObjectReference> { CallBase = true };
         _localStorageMock = new Mock<ILocalStorageService>();
         _navigationManagerMock = new Mock<NavigationManager>();
         _mediatrMock = new Mock<IMediator>();
@@ -103,8 +105,12 @@ public class ErrorBoundaryTests
 
         _hostingMock.EnvironmentName.Returns("Hosting:PortalUnitTestingEnvironment");
         _datahubPortalConfigurationMock.Setup(x => x.SupportFormUrl).Returns("https://forms.office.com/pages/responsepage.aspx");
-        //_userInformationMock.Setup(x => x.GetCurrentPortalUserAsync()).Returns(Task.FromResult(fakePortalUser));
-        
+
+        _jsModuleMock.Setup(x => x.InvokeAsync<string>(It.IsAny<string>(), 
+            It.IsAny<object[]>())).ReturnsAsync("data");
+        _jsRuntimeMock.Setup(x => x.InvokeAsync<IJSObjectReference>(It.IsAny<string>(),
+            It.IsAny<object[]>())).ReturnsAsync(_jsModuleMock.Object);
+
         var context = new DefaultHttpContext();
         context.Request.Headers["User-Agent"] = "fake_user_agent"; 
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
