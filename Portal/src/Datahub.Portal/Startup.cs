@@ -188,6 +188,7 @@ public class Startup
 
         services.AddSingleton<CultureService>();
 
+        services.AddSingleton<IDatahubPortalConfiguration, DatahubPortalConfiguration>();
         services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
         services.AddSingleton<AzureManagementService>();
         services.AddSingleton<ProjectUsageService>();
