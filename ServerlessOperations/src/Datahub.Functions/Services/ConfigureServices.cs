@@ -26,7 +26,7 @@ public static class ConfigureServices
                                                                         ?? throw new ArgumentNullException(
                                                                             "DatahubStorageConnectionString");
         }
-        
+
         if (string.IsNullOrEmpty(datahubConfiguration.AzureAd.TenantId))
         {
             datahubConfiguration.AzureAd.TenantId = configuration["TENANT_ID"]
@@ -54,10 +54,8 @@ public static class ConfigureServices
 
         services.AddSingleton(datahubConfiguration);
 
-        services.AddMassTransitForAzureFunctions(x =>
-        {
-            x.AddConsumersFromNamespaceContaining<Program>();
-        });
+        services.AddMassTransitForAzureFunctions(x => { x.AddConsumersFromNamespaceContaining<Program>(); },
+            datahubConfiguration.DatahubServiceBus.ConnectionString);
 
         return services;
     }
