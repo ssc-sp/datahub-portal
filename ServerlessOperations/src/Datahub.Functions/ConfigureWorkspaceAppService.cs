@@ -2,11 +2,13 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Azure.Messaging.ServiceBus;
 using Azure.Storage.Queues.Models;
 using Datahub.Core.Model.Datahub;
 using Datahub.Functions.Providers;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Clients;
+using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
@@ -16,29 +18,21 @@ using Microsoft.Extensions.Logging;
 
 namespace Datahub.Functions
 {
-    public class ConfigureWorkspaceAppService
+    public class ConfigureWorkspaceAppService(
+        ILogger<ConfigureWorkspaceAppService> logger,
+        AzureConfig config,
+        IDbContextFactory<DatahubProjectDBContext> dbContext)
     {
-        private readonly ILogger<ConfigureWorkspaceAppService> _logger;
-        private readonly AzureConfig _config;
-        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContext;
-
-        public ConfigureWorkspaceAppService(ILogger<ConfigureWorkspaceAppService> logger,
-            AzureConfig config, IDbContextFactory<DatahubProjectDBContext> dbContext)
-        {
-            _logger = logger;
-            _config = config;
-            _dbContext = dbContext;
-        }
+        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContext = dbContext;
 
         [Function(nameof(ConfigureWorkspaceAppService))]
         public async Task Run(
-            [QueueTrigger("workspace-app-service-configuration", Connection = "DatahubStorageConnectionString")]
-            QueueMessage message)
+            [ServiceBusTrigger(QueueConstants.WorkspaceAppServiceConfigurationQueueName)] ServiceBusReceivedMessage  message)
         {
-            _logger.LogInformation($"C# Queue trigger function processed: {message.MessageText}");
+            logger.LogInformation($"C# Queue trigger function processed: {message.Body}");
 
             var appServiceConfigurationMessage =
-                JsonSerializer.Deserialize<WorkspaceAppServiceConfigurationMessage>(message.MessageText)!;
+                JsonSerializer.Deserialize<WorkspaceAppServiceConfigurationMessage>(message.Body)!;
 
             var projectAcronym = appServiceConfigurationMessage.ProjectAcronym;
             var configuration = appServiceConfigurationMessage.Configuration;
@@ -48,13 +42,13 @@ namespace Datahub.Functions
 
         private async Task ConfigureAppService(string projectAcronym, AppServiceConfiguration configuration)
         {
-            var pipelineId = await GetPipelineIdByName(_config.AzureDevOpsConfiguration.AppServiceConfigPipeline);
+            var pipelineId = await GetPipelineIdByName(config.AzureDevOpsConfiguration.AppServiceConfigPipeline);
             await PostPipelineRun(pipelineId, configuration, projectAcronym);
         }
 
         private async Task<HttpClient> ConfigureHttpClient()
         {
-            var adoProvider = new AzureDevOpsClient(_config.AzureDevOpsConfiguration);
+            var adoProvider = new AzureDevOpsClient(config.AzureDevOpsConfiguration);
             return await adoProvider.PipelineClientAsync();
         }
 
@@ -88,8 +82,8 @@ namespace Datahub.Functions
         internal async Task<int> GetPipelineIdByName(string pipelineName)
         {
             var httpClient = await ConfigureHttpClient();
-            var url = _config.AzureDevOpsConfiguration.ListPipelineUrlTemplate.Replace("{organization}", _config.AzureDevOpsConfiguration.OrganizationName)
-                .Replace("{project}", _config.AzureDevOpsConfiguration.ProjectName);
+            var url = config.AzureDevOpsConfiguration.ListPipelineUrlTemplate.Replace("{organization}", config.AzureDevOpsConfiguration.OrganizationName)
+                .Replace("{project}", config.AzureDevOpsConfiguration.ProjectName);
 
             HttpResponseMessage response;
             try
@@ -98,13 +92,13 @@ namespace Datahub.Functions
             }
             catch (HttpRequestException e)
             {
-                _logger.LogError("Invalid Pipeline URL");
+                logger.LogError("Invalid Pipeline URL");
                 throw new ArgumentException($"Invalid Pipeline URL");
             }
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("Request to list pipelines failed");
+                logger.LogError("Request to list pipelines failed");
                 throw new ArgumentException($"Request to list pipelines failed");
             }
 
@@ -114,7 +108,7 @@ namespace Datahub.Functions
 
             if (pipeline is null)
             {
-                _logger.LogError("Pipeline {PipelineName} not found", pipelineName);
+                logger.LogError("Pipeline {PipelineName} not found", pipelineName);
                 throw new Exception($"Pipeline {pipelineName} not found");
             }
 
@@ -157,12 +151,12 @@ namespace Datahub.Functions
             var httpClient = await ConfigureHttpClient();
             var body = GetPipelineBody(appServiceConfiguration);
             var json = JsonSerializer.Serialize(body); 
-            var pipelineUrl = _config.AzureDevOpsConfiguration.PostPipelineRunUrlTemplate
-                .Replace("{organization}", _config.AzureDevOpsConfiguration.OrganizationName)
-                .Replace("{project}", _config.AzureDevOpsConfiguration.ProjectName)
+            var pipelineUrl = config.AzureDevOpsConfiguration.PostPipelineRunUrlTemplate
+                .Replace("{organization}", config.AzureDevOpsConfiguration.OrganizationName)
+                .Replace("{project}", config.AzureDevOpsConfiguration.ProjectName)
                 .Replace("{pipelineId}", pipelineId.ToString());
 
-            _logger.LogInformation(
+            logger.LogInformation(
                 "Sending configuration request to pipeline url {PipelineUrl} with body {RequestBody}", pipelineUrl,
                 body.ToString());
 
@@ -173,14 +167,14 @@ namespace Datahub.Functions
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError(
+                logger.LogError(
                     "Error configuring web app for project acronym {ProjectAcronymValue}, could not configure web app",
                     projectAcronym);
                 throw new Exception(
                     $"Error configuring web app for project acronym {projectAcronym}, could not configure web app");
             }
 
-            _logger.LogInformation("Web app configured for project acronym {ProjectAcronymValue}",
+            logger.LogInformation("Web app configured for project acronym {ProjectAcronymValue}",
                 projectAcronym);
 
             return response;
