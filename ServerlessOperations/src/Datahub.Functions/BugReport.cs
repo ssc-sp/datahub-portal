@@ -21,10 +21,10 @@ namespace Datahub.Functions
         IEmailService emailService,
         ISendEndpointProvider sendEndpointProvider)
     {
-
         [Function("BugReport")]
         public async Task Run(
-            [ServiceBusTrigger(QueueConstants.BugReportQueueName)] ServiceBusReceivedMessage message)
+            [ServiceBusTrigger(QueueConstants.BugReportQueueName)]
+            ServiceBusReceivedMessage message)
         {
             logger.LogInformation($"Bug report queue triggered: {message.Body}");
 
@@ -44,7 +44,8 @@ namespace Datahub.Functions
 
                 if (email is not null)
                 {
-                    await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, email);
+                    await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
+                        email);
                 }
                 else
                 {
@@ -59,8 +60,9 @@ namespace Datahub.Functions
 
         private EmailRequestMessage? BuildEmail(BugReportMessage bug, WorkItem? workItem)
         {
-            var sendTo = new List<string> { config.Email.AdminEmail ?? throw new MissingMemberException("Admin email not set.") };
-            var url = workItem?.Url ?? ""; 
+            var sendTo = new List<string>
+                { config.Email.AdminEmail ?? throw new MissingMemberException("Admin email not set.") };
+            var url = workItem?.Url ?? "";
             var id = workItem?.Id.ToString() ?? "";
 
             Dictionary<string, string> subjectArgs = new()
@@ -83,7 +85,7 @@ namespace Datahub.Functions
         {
             var organization = config.AzureDevOpsConfiguration.OrganizationName;
             var project = config.AzureDevOpsConfiguration.ProjectName;
-            
+
             var title = $"{bug.Topics} in {bug.Workspaces}";
             var description =
                 $"<b>Issue submitted by:</b> {bug.UserName}<br /><b>Contact email:</b> {bug.UserEmail}<br /><b>Organization:</b> {bug.UserOrganization}<br /><b>Preferred Language:</b> {bug.PreferredLanguage} <br /><b>Time Zone:</b> {bug.Timezone}<br /><br /><b>Topics:</b> {bug.Topics}<br /><b>Workspace:</b> {bug.Workspaces}<br /><b>Description:</b> {bug.Description}<br /><br /><b>Portal Language:</b> {bug.PortalLanguage}<br /><b>Active URL:</b> {bug.URL}<br /><b>User Agent:</b> {bug.UserAgent}<br /><b>Resolution:</b> {bug.Resolution}<br /><b>Local Storage:</b><br />{bug.LocalStorage}";
@@ -93,9 +95,16 @@ namespace Datahub.Functions
             {
                 new() { Operation = Operation.Add, Path = "/fields/System.Title", Value = title },
                 new() { Operation = Operation.Add, Path = "/fields/System.Description", Value = description },
-                new() { Operation = Operation.Add, Path = "/fields/System.AreaPath", Value = $"{project}\\FSDH Support Team" },
+                new()
+                {
+                    Operation = Operation.Add, Path = "/fields/System.AreaPath", Value = $"{project}\\FSDH Support Team"
+                },
                 new() { Operation = Operation.Add, Path = "/fields/System.IterationPath", Value = $"{project}\\POC 2" },
-                new() { Operation = Operation.Add, Path = "/fields/System.Tags", Value = $"UserSubmitted; {bug.UserName?.Replace(",", " ")};{bug.Topics}" },
+                new()
+                {
+                    Operation = Operation.Add, Path = "/fields/System.Tags",
+                    Value = $"UserSubmitted; {bug.UserName?.Replace(",", " ")};{bug.Topics}"
+                },
                 new() { Operation = Operation.Add, Path = "/fields/Submitted By", Value = bug.UserName },
                 new() { Operation = Operation.Add, Path = "/fields/Email", Value = bug.UserEmail },
                 new() { Operation = Operation.Add, Path = "/fields/Workspaces", Value = bug.Workspaces },
@@ -109,7 +118,8 @@ namespace Datahub.Functions
                     Value = new
                     {
                         rel = "System.LinkTypes.Hierarchy-Reverse",
-                        url = $"https://dev.azure.com/{organization}/{project}/_apis/wit/workItems/{(int)bug.BugReportType}",
+                        url =
+                            $"https://dev.azure.com/{organization}/{project}/_apis/wit/workItems/{(int)bug.BugReportType}",
                         attributes = new { comment = "Parent work item for user generated issue" }
                     }
                 }

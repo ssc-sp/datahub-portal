@@ -25,7 +25,8 @@ public class ProjectUsageUpdater(
 
     [Function("ProjectUsageUpdater")]
     public async Task<bool> Run(
-        [ServiceBusTrigger(QueueConstants.ProjectUsageUpdateQueueName)] ServiceBusReceivedMessage serviceBusReceivedMessage,
+        [ServiceBusTrigger(QueueConstants.ProjectUsageUpdateQueueName)]
+        ServiceBusReceivedMessage serviceBusReceivedMessage,
         CancellationToken cancellationToken)
     {
         var rolledOver = false;
@@ -40,7 +41,8 @@ public class ProjectUsageUpdater(
         var (costRollover, spentAmount) =
             await workspaceCostMgmtService.UpdateWorkspaceCostAsync(message.SubscriptionCosts, message.ProjectAcronym);
         _logger.LogInformation("Querying budget...");
-        var budgetSpentAmount = await workspaceBudgetMgmtService.UpdateWorkspaceBudgetSpentAsync(message.ProjectAcronym);
+        var budgetSpentAmount =
+            await workspaceBudgetMgmtService.UpdateWorkspaceBudgetSpentAsync(message.ProjectAcronym);
 
         // The query to cost checks if the last update was outside of the current fiscal year, if so that means we are in a new fiscal year
         // The query to budget checks if the amount spent captured by the budget is less than previously. If so, that means the budget was renewed.
@@ -50,10 +52,10 @@ public class ProjectUsageUpdater(
             var currentBudget = await workspaceBudgetMgmtService.GetWorkspaceBudgetAmountAsync(message.ProjectAcronym);
             _logger.LogInformation($"Spend captured by cost management: {spentAmount}");
             _logger.LogInformation($"Spend captured by budget : {budgetSpentAmount}");
-            
+
             // Checking if the two captured costs are within 5% of each other to ensure that the rollover is valid
             var relativeDifference = (budgetSpentAmount - spentAmount) / budgetSpentAmount;
-            if ( relativeDifference <= (decimal)0.05)
+            if (relativeDifference <= (decimal)0.05)
             {
                 _logger.LogInformation($"Executing rollover for {message.ProjectAcronym}");
                 await workspaceBudgetMgmtService.SetWorkspaceBudgetAmountAsync(message.ProjectAcronym,
@@ -63,25 +65,29 @@ public class ProjectUsageUpdater(
             }
             else
             {
-                _logger.LogWarning($"Aborted rollover due to large difference between captured spend and captured costs ({relativeDifference:P})");
+                _logger.LogWarning(
+                    $"Aborted rollover due to large difference between captured spend and captured costs ({relativeDifference:P})");
             }
         }
 
         // queue the usage notification message
-        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageNotificationQueueName, new ProjectUsageNotificationMessage(message.ProjectAcronym), cancellationToken);
+        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageNotificationQueueName,
+            new ProjectUsageNotificationMessage(message.ProjectAcronym), cancellationToken);
         return rolledOver;
     }
 
     [Function("ProjectCapacityUsageUpdater")]
-    public async Task UpdateProjectCapacity([QueueTrigger("%QueueProjectCapacityUpdate%", Connection = "DatahubStorageConnectionString")] string queueItem,
-    CancellationToken cancellationToken)
+    public async Task UpdateProjectCapacity(
+        [ServiceBusTrigger(QueueConstants.BugReportQueueName)]
+        ServiceBusReceivedMessage serviceBusReceivedMessage,
+        CancellationToken cancellationToken)
     {
         // test for ping
-        if (await pongService.Pong(queueItem))
+        if (await pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
             return;
 
         // deserialize message
-        var message = DeserializeQueueMessage(queueItem);
+        var message = DeserializeQueueMessage(serviceBusReceivedMessage.Body.ToString());
 
         // update the capacity
         _logger.LogInformation("Querying storage capacity...");
@@ -94,9 +100,9 @@ public class ProjectUsageUpdater(
     static ProjectUsageUpdateMessage DeserializeQueueMessage(string text)
     {
         var message = JsonSerializer.Deserialize<ProjectUsageUpdateMessage>(text);
-        
+
         // verify message 
-        if (message is null || string.IsNullOrEmpty(message.ProjectAcronym) )
+        if (message is null || string.IsNullOrEmpty(message.ProjectAcronym))
         {
             throw new Exception($"Invalid queue message:\n{text}");
         }
