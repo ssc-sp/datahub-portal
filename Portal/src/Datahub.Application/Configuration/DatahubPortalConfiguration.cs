@@ -52,6 +52,7 @@ public class DatahubPortalConfiguration
 
 	public CkanConfiguration CkanConfiguration { get; set; } = new();
     public int DefaultProjectBudget { get; set; } = 100;
+    public DatahubServiceBus DatahubServiceBus { get; set; } = new();
 }
 
 public class Achievements
@@ -217,6 +218,15 @@ public class DatahubStorageQueue
 	public QueueNames QueueNames { get; set; } = new();
 }
 
+/// <summary>
+/// Represents the configuration settings for DatahubServiceBus.
+/// </summary>
+public class DatahubServiceBus
+{
+    public string ConnectionString { get; set; } = null!;
+    public QueueNames QueueNames { get; set; } = new();
+}
+
 public class QueueNames
 {
 	public string ResourceRunRequest { get; set; } = "resource-run-request";
@@ -226,6 +236,10 @@ public class QueueNames
 	public string EmailNotification { get; set; } = "email-notifications";
 	public string StorageCapacity { get; set; } = "storage-capacity";
 	public string TerraformOutput { get; set; } = "terraform-output";
+    
+    public string DatabricksSyncOutput { get; set; } = "databricks-sync-output";
+    public string KeyvaultSyncOutput { get; set; } = "keyvault-sync-output";
+    public string StorageSyncOutput { get; set; } = "storage-sync-output";
 }
 
 public class PublicFileSharing
