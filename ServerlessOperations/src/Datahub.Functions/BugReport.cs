@@ -1,4 +1,5 @@
 ﻿using Azure.Messaging.ServiceBus;
+using Datahub.Functions.Extensions;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Clients;
@@ -23,7 +24,7 @@ namespace Datahub.Functions
 
         [Function("BugReport")]
         public async Task Run(
-            [ServiceBusTrigger(QueueConstants.BugReportQueueName)] ServiceBusReceivedMessage  message)
+            [ServiceBusTrigger(QueueConstants.BugReportQueueName)] ServiceBusReceivedMessage message)
         {
             logger.LogInformation($"Bug report queue triggered: {message.Body}");
 
@@ -43,8 +44,7 @@ namespace Datahub.Functions
 
                 if (email is not null)
                 {
-                    var endpoint = await sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{QueueConstants.EmailNotificationQueueName}"));
-                    await endpoint.Send(message);   
+                    await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, email);
                 }
                 else
                 {
