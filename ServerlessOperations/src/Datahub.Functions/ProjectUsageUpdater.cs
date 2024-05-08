@@ -1,58 +1,53 @@
 using System.Text.Json;
+using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services.Budget;
 using Datahub.Application.Services.Storage;
+using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
-using MediatR;
+using Datahub.Shared.Configuration;
+using MassTransit;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
 namespace Datahub.Functions;
 
-public class ProjectUsageUpdater
+public class ProjectUsageUpdater(
+    ILoggerFactory loggerFactory,
+    QueuePongService pongService,
+    IWorkspaceCostManagementService workspaceCostMgmtService,
+    IWorkspaceBudgetManagementService workspaceBudgetMgmtService,
+    ISendEndpointProvider sendEndpointProvider,
+    IWorkspaceStorageManagementService workspaceStorageMgmtService)
 {
-    private readonly ILogger<ProjectUsageUpdater> _logger;
-    private readonly IMediator _mediator;
-    private readonly QueuePongService _pongService;
-    private readonly IWorkspaceCostManagementService _workspaceCostMgmtService;
-    private readonly IWorkspaceBudgetManagementService _workspaceBudgetMgmtService;
-    private readonly IWorkspaceStorageManagementService _workspaceStorageMgmtService;
-    
+    private readonly ILogger<ProjectUsageUpdater> _logger = loggerFactory.CreateLogger<ProjectUsageUpdater>();
 
-    public ProjectUsageUpdater(ILoggerFactory loggerFactory, IMediator mediator, QueuePongService pongService, IWorkspaceCostManagementService workspaceCostMgmtService, IWorkspaceBudgetManagementService workspaceBudgetMgmtService, IWorkspaceStorageManagementService workspaceStorageMgmtService)
-    {
-        _logger = loggerFactory.CreateLogger<ProjectUsageUpdater>();
-        _mediator = mediator;
-        _pongService = pongService;
-        _workspaceCostMgmtService = workspaceCostMgmtService;
-        _workspaceBudgetMgmtService = workspaceBudgetMgmtService;
-        _workspaceStorageMgmtService = workspaceStorageMgmtService;
-    }
 
     [Function("ProjectUsageUpdater")]
-    public async Task<bool> Run([QueueTrigger("%QueueProjectUsageUpdate%", Connection = "DatahubStorageConnectionString")] string queueItem, 
+    public async Task<bool> Run(
+        [ServiceBusTrigger(QueueConstants.ProjectUsageUpdateQueueName)] ServiceBusReceivedMessage serviceBusReceivedMessage,
         CancellationToken cancellationToken)
     {
         var rolledOver = false;
         // test for ping
-        if (await _pongService.Pong(queueItem))
+        if (await pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
             return false;
 
         // deserialize message
-        var message = DeserializeQueueMessage(queueItem);
+        var message = DeserializeQueueMessage(serviceBusReceivedMessage.Body.ToString());
 
         _logger.LogInformation("Querying cost management...");
         var (costRollover, spentAmount) =
-            await _workspaceCostMgmtService.UpdateWorkspaceCostAsync(message.SubscriptionCosts, message.ProjectAcronym);
+            await workspaceCostMgmtService.UpdateWorkspaceCostAsync(message.SubscriptionCosts, message.ProjectAcronym);
         _logger.LogInformation("Querying budget...");
-        var budgetSpentAmount = await _workspaceBudgetMgmtService.UpdateWorkspaceBudgetSpentAsync(message.ProjectAcronym);
+        var budgetSpentAmount = await workspaceBudgetMgmtService.UpdateWorkspaceBudgetSpentAsync(message.ProjectAcronym);
 
         // The query to cost checks if the last update was outside of the current fiscal year, if so that means we are in a new fiscal year
         // The query to budget checks if the amount spent captured by the budget is less than previously. If so, that means the budget was renewed.
         if (message.ForceRollover || costRollover)
         {
             _logger.LogInformation($"Budget rollover initiated.");
-            var currentBudget = await _workspaceBudgetMgmtService.GetWorkspaceBudgetAmountAsync(message.ProjectAcronym);
+            var currentBudget = await workspaceBudgetMgmtService.GetWorkspaceBudgetAmountAsync(message.ProjectAcronym);
             _logger.LogInformation($"Spend captured by cost management: {spentAmount}");
             _logger.LogInformation($"Spend captured by budget : {budgetSpentAmount}");
             
@@ -61,7 +56,7 @@ public class ProjectUsageUpdater
             if ( relativeDifference <= (decimal)0.05)
             {
                 _logger.LogInformation($"Executing rollover for {message.ProjectAcronym}");
-                await _workspaceBudgetMgmtService.SetWorkspaceBudgetAmountAsync(message.ProjectAcronym,
+                await workspaceBudgetMgmtService.SetWorkspaceBudgetAmountAsync(message.ProjectAcronym,
                     currentBudget - budgetSpentAmount, true);
                 rolledOver = true;
                 // Generate fiscal year report here?
@@ -73,7 +68,7 @@ public class ProjectUsageUpdater
         }
 
         // queue the usage notification message
-        await _mediator.Send(new ProjectUsageNotificationMessage(message.ProjectAcronym), cancellationToken);
+        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageNotificationQueueName, new ProjectUsageNotificationMessage(message.ProjectAcronym), cancellationToken);
         return rolledOver;
     }
 
@@ -82,7 +77,7 @@ public class ProjectUsageUpdater
     CancellationToken cancellationToken)
     {
         // test for ping
-        if (await _pongService.Pong(queueItem))
+        if (await pongService.Pong(queueItem))
             return;
 
         // deserialize message
@@ -90,7 +85,7 @@ public class ProjectUsageUpdater
 
         // update the capacity
         _logger.LogInformation("Querying storage capacity...");
-        var capacityUsed = await _workspaceStorageMgmtService.UpdateStorageCapacity(message.ProjectAcronym);
+        var capacityUsed = await workspaceStorageMgmtService.UpdateStorageCapacity(message.ProjectAcronym);
 
         // log capacity found
         _logger.LogInformation($"Used storage capacity for: '{message.ProjectAcronym}' is {capacityUsed}.");
