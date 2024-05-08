@@ -57,11 +57,11 @@
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
-        // get the total number of users
+    // get the total number of users
         var totalUsers = await context.PortalUsers
             .CountAsync();
 
-        // get the number of users who have each achievement
+    // get the number of users who have each achievement
         var achievementCounts = await context.UserAchievements
             .GroupBy(ua => ua.AchievementId)
             .Select(g => new

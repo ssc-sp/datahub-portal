@@ -153,10 +153,12 @@
             }
             var userLanguage = await _userSettingsService.GetUserLanguage();
 
+            IJSObjectReference _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Layout/PortalLayout.razor.js");
+
             var url = _navigationManager.Uri; // Retrieve the active URL
             var userAgent = _httpContextAccessor.HttpContext.Request.Headers["User-Agent"].ToString();
-            var timeZone = await _jsRuntime.InvokeAsync<string>("blazorGetTimezone");
-            var dimensions = await _jsRuntime.InvokeAsync<string>("blazorGetScreenDimentions");
+            var timeZone = await _module.InvokeAsync<string>("blazorGetTimezone");
+            var dimensions = await _module.InvokeAsync<string>("blazorGetScreenDimentions");
 
             // Retrieve all local storage data
             var allKeys = await _localStorage.KeysAsync();
