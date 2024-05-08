@@ -7,7 +7,7 @@ using Datahub.Application.Configuration;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Health;
 using Datahub.Core.Utils;
-using Datahub.Functions.Extensions;
+using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Storage;

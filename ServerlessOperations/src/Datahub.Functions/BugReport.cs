@@ -1,6 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
-using Datahub.Functions.Extensions;
 using Datahub.Functions.Services;
+using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;

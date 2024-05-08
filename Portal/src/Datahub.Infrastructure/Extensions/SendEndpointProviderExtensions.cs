@@ -1,7 +1,6 @@
-using Datahub.Shared.Configuration;
 using MassTransit;
 
-namespace Datahub.Functions.Extensions;
+namespace Datahub.Infrastructure.Extensions;
 
 public static class SendEndpointProviderExtensions
 {
