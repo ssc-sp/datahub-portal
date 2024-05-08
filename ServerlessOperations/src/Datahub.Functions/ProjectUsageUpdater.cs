@@ -78,7 +78,7 @@ public class ProjectUsageUpdater(
 
     [Function("ProjectCapacityUsageUpdater")]
     public async Task UpdateProjectCapacity(
-        [ServiceBusTrigger(QueueConstants.BugReportQueueName)]
+        [ServiceBusTrigger(QueueConstants.ProjectCapacityUpdateQueueName)]
         ServiceBusReceivedMessage serviceBusReceivedMessage,
         CancellationToken cancellationToken)
     {
