@@ -11,4 +11,5 @@ public static class QueueConstants
     public const string ProjectCapacityUpdateQueueName = "project-capacity-update";
     public const string ProjectInactivityNotificationQueueName = "project-inactivity-notification";
     public const string PongQueueName = "pong-queue";
+    public const string TerraformOutputHandlerQueueName = "terraform-output-handler";
 }
