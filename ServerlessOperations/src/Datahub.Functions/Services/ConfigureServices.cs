@@ -1,4 +1,5 @@
 using Datahub.Application.Configuration;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -43,8 +44,20 @@ public static class ConfigureServices
             datahubConfiguration.AzureAd.ClientSecret = configuration["FUNC_SP_CLIENT_SECRET"]
                                                         ?? throw new ArgumentNullException("FUNC_SP_CLIENT_SECRET");
         }
-        
+
+        if (string.IsNullOrEmpty(datahubConfiguration.DatahubServiceBus.ConnectionString))
+        {
+            datahubConfiguration.DatahubServiceBus.ConnectionString = configuration["DatahubServiceBus"]
+                                                                      ?? throw new ArgumentNullException(
+                                                                          "DatahubServiceBus");
+        }
+
         services.AddSingleton(datahubConfiguration);
+
+        services.AddMassTransitForAzureFunctions(x =>
+        {
+            x.AddConsumersFromNamespaceContaining<Program>();
+        });
 
         return services;
     }
