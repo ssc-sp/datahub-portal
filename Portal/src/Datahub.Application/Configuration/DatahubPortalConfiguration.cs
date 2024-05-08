@@ -224,7 +224,6 @@ public class DatahubStorageQueue
 public class DatahubServiceBus
 {
     public string ConnectionString { get; set; } = null!;
-    public QueueNames QueueNames { get; set; } = new();
 }
 
 public class QueueNames
@@ -236,10 +235,6 @@ public class QueueNames
 	public string EmailNotification { get; set; } = "email-notifications";
 	public string StorageCapacity { get; set; } = "storage-capacity";
 	public string TerraformOutput { get; set; } = "terraform-output";
-    
-    public string DatabricksSyncOutput { get; set; } = "databricks-sync-output";
-    public string KeyvaultSyncOutput { get; set; } = "keyvault-sync-output";
-    public string StorageSyncOutput { get; set; } = "storage-sync-output";
 }
 
 public class PublicFileSharing
