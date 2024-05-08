@@ -47,9 +47,9 @@ public static class ConfigureServices
 
         if (string.IsNullOrEmpty(datahubConfiguration.DatahubServiceBus.ConnectionString))
         {
-            datahubConfiguration.DatahubServiceBus.ConnectionString = configuration["DatahubServiceBus"]
+            datahubConfiguration.DatahubServiceBus.ConnectionString = configuration["DatahubServiceBus__ConnectionString"]
                                                                       ?? throw new ArgumentNullException(
-                                                                          "DatahubServiceBus");
+                                                                          "DatahubServiceBus__ConnectionString");
         }
 
         services.AddSingleton(datahubConfiguration);
