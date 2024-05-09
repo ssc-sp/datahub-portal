@@ -46,7 +46,7 @@
                 {
                     <MudNavLink Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
                         <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                            <MudIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark"/>
                             <MudText Style="@_workspaceLinkStyle">
                                 @userRole.Project.ProjectName
                             </MudText>
@@ -82,7 +82,7 @@
             {
                 <MudNavLink Href="@GetSectionViewUrl(recentActivity)">
                     <MudStack Row AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                        <MudIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark"/>
                         <MudText Style="@_workspaceLinkStyle">
                             @GetLabel(recentActivity)
                         </MudText>
@@ -103,7 +103,7 @@
             {
                 <MudNavLink Href="@GetSectionViewUrl(PageRoutes.AccountPrefix, sectionView)" Match="NavLinkMatch.All">
                     <MudStack Row AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                        <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark"/>
                         <MudText Style="@_workspaceLinkStyle">
                             @GetLabel(sectionView)
                         </MudText>
@@ -124,7 +124,7 @@
                 {
                     <MudNavLink Href="@GetSectionViewUrl(PageRoutes.ToolPrefix, sectionView)" Match="NavLinkMatch.All">
                         <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                            <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark"/>
                             <MudText Style="@_workspaceLinkStyle">
                                 @GetLabel(sectionView)
                             </MudText>
