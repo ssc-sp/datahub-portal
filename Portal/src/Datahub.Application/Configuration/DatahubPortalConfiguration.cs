@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace Datahub.Application.Configuration;
 
-public class DatahubPortalConfiguration: IDatahubPortalConfiguration
+public class DatahubPortalConfiguration
 {
     public CultureSettings CultureSettings { get; set; } = new();
     public string LandingBgFolder { get; set; } = "ssc";

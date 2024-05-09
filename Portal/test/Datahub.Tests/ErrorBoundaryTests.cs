@@ -28,6 +28,7 @@ using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Application.Services.Achievements;
+using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Tests;
 
@@ -35,7 +36,6 @@ public class ErrorBoundaryTests
 {
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbConextFactoryMock;
     private readonly IWebHostEnvironment _hostingMock;
-    private readonly Mock<IDatahubPortalConfiguration> _datahubPortalConfigurationMock;
     private readonly Mock<IDatahubCatalogSearch> _datahubCatalogSearchMock;
     private readonly Mock<IDatahubAuditingService> _auditingServiceMock;
     private readonly Mock<IUserInformationService> _userInformationMock;
@@ -47,14 +47,7 @@ public class ErrorBoundaryTests
     private readonly Mock<ILocalStorageService> _localStorageMock;
     private readonly Mock<NavigationManager> _navigationManagerMock;
     private readonly Mock<IMediator> _mediatrMock;
-    private readonly Mock<IDialogService> _dialogServiceMock;
     private readonly Mock<ISnackbar> _snackBarMock;
-    private readonly Mock<IPopoverService> _popoverServiceMock;
-    private readonly Mock<IMudPopoverService> _mudPopoverServiceMock;
-    private readonly Mock<MudPopoverProvider> _mudPopoverProvider;
-    private readonly Mock<IBreakpointService> _breakpointServiceMock;
-    private readonly Mock<IBrowserViewportService> _browserViewportServiceMock;
-    private readonly Mock<IScrollManager> _scrollManagerMock;
     private readonly Mock<IPortalUserTelemetryService> _portalUserTelemetryServiceMock;
     private readonly Mock<IStringLocalizer> _stringLocalizerMock;
 
@@ -73,17 +66,9 @@ public class ErrorBoundaryTests
         _localStorageMock = new Mock<ILocalStorageService>();
         _navigationManagerMock = new Mock<NavigationManager>();
         _mediatrMock = new Mock<IMediator>();
-        _dialogServiceMock= new Mock<IDialogService>();
         _snackBarMock = new Mock<ISnackbar>();
-        _mudPopoverServiceMock = new Mock<IMudPopoverService>();
-        _popoverServiceMock = new Mock<IPopoverService>();
-        _mudPopoverProvider = new Mock<MudPopoverProvider> { CallBase = true };
-        _breakpointServiceMock = new Mock<IBreakpointService> { CallBase = true };
-        _browserViewportServiceMock = new Mock<IBrowserViewportService>();
-        _scrollManagerMock = new Mock<IScrollManager>();
         _portalUserTelemetryServiceMock = new Mock<IPortalUserTelemetryService>();
         _stringLocalizerMock = new Mock<IStringLocalizer> { CallBase = false };
-        _datahubPortalConfigurationMock = new Mock<IDatahubPortalConfiguration> { CallBase = true };
 
         _hostingMock = Substitute.For<IWebHostEnvironment>();
     }
@@ -104,7 +89,6 @@ public class ErrorBoundaryTests
         _stringLocalizerMock.Setup(x => x[It.IsAny<string>()]).Returns(new LocalizedString("test","test"));
 
         _hostingMock.EnvironmentName.Returns("Hosting:PortalUnitTestingEnvironment");
-        _datahubPortalConfigurationMock.Setup(x => x.SupportFormUrl).Returns("https://forms.office.com/pages/responsepage.aspx");
 
         _jsModuleMock.Setup(x => x.InvokeAsync<string>(It.IsAny<string>(), 
             It.IsAny<object[]>())).ReturnsAsync("data");
@@ -115,9 +99,17 @@ public class ErrorBoundaryTests
         context.Request.Headers["User-Agent"] = "fake_user_agent"; 
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
 
+        var configuration = new ConfigurationBuilder()
+            .AddEnvironmentVariables()
+            .AddJsonFile("appsettings.test.json", optional: true)
+            .Build();
+
+        var datahubPortalConfiguration = new DatahubPortalConfiguration();
+        configuration.Bind(datahubPortalConfiguration);
+
         using var ctx = new TestContext();
         ctx.Services.AddSingleton(_dbConextFactoryMock); 
-        ctx.Services.AddSingleton(_datahubPortalConfigurationMock.Object);
+        ctx.Services.AddSingleton(datahubPortalConfiguration);
         ctx.Services.AddSingleton(_datahubCatalogSearchMock.Object);
         ctx.Services.AddSingleton(_auditingServiceMock.Object);
         ctx.Services.AddSingleton(_hostingMock);
