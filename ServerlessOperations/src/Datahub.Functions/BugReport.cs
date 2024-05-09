@@ -22,7 +22,7 @@ namespace Datahub.Functions
     {
         [Function("BugReport")]
         public async Task Run(
-            [ServiceBusTrigger(QueueConstants.BugReportQueueName)]
+            [ServiceBusTrigger(QueueConstants.BugReportQueueName, Connection = "DatahubServiceBus:ConnectionString")]
             ServiceBusReceivedMessage message)
         {
             logger.LogInformation($"Bug report queue triggered: {message.Body}");

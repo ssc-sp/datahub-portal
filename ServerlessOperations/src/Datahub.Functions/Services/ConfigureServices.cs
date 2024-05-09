@@ -47,15 +47,17 @@ public static class ConfigureServices
 
         if (string.IsNullOrEmpty(datahubConfiguration.DatahubServiceBus.ConnectionString))
         {
-            datahubConfiguration.DatahubServiceBus.ConnectionString = configuration["DatahubServiceBus__ConnectionString"]
-                                                                      ?? throw new ArgumentNullException(
-                                                                          "DatahubServiceBus__ConnectionString");
+            datahubConfiguration.DatahubServiceBus.ConnectionString =
+                configuration["DatahubServiceBus__ConnectionString"]
+                ?? throw new ArgumentNullException(
+                    "DatahubServiceBus__ConnectionString");
         }
 
         services.AddSingleton(datahubConfiguration);
-
-        services.AddMassTransitForAzureFunctions(x => { x.AddConsumersFromNamespaceContaining<Program>(); },
-            datahubConfiguration.DatahubServiceBus.ConnectionString);
+        services.AddMassTransitForAzureFunctions(x =>
+        {
+            x.AddConsumersFromNamespaceContaining<EmailNotificationHandler>();
+        }, "DatahubServiceBus:ConnectionString");
 
         return services;
     }

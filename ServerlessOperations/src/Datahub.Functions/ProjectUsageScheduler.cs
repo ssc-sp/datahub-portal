@@ -1,33 +1,26 @@
 ﻿using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Queues.Messages;
-using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Datahub.Application.Services.Budget;
+using Datahub.Infrastructure.Extensions;
+using Datahub.Shared.Configuration;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Functions;
 
-public class ProjectUsageScheduler
+public class ProjectUsageScheduler(
+    ILoggerFactory loggerFactory,
+    IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+    ISendEndpointProvider sendEndpointProvider,
+    IWorkspaceCostManagementService workspaceCostMgmtService,
+    IConfiguration config)
 {
-    private readonly ILogger<ProjectUsageScheduler> _logger;
-    private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-    private readonly IMediator _mediator;
-    private readonly IWorkspaceCostManagementService _workspaceCostMgmtService;
-    private readonly AzureConfig _azConfig;
-
-    public ProjectUsageScheduler(ILoggerFactory loggerFactory,
-        IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IMediator mediator,
-        IWorkspaceCostManagementService workspaceCostMgmtService, IConfiguration config)
-    {
-        _logger = loggerFactory.CreateLogger<ProjectUsageScheduler>();
-        _dbContextFactory = dbContextFactory;
-        _mediator = mediator;
-        _workspaceCostMgmtService = workspaceCostMgmtService;
-        _azConfig = new AzureConfig(config);
-    }
+    private readonly ILogger<ProjectUsageScheduler> _logger = loggerFactory.CreateLogger<ProjectUsageScheduler>();
+    private readonly AzureConfig _azConfig = new(config);
 
     [Function("ProjectUsageScheduler")]
     public async Task Run([TimerTrigger("%ProjectUsageCRON%")] TimerInfo timerInfo)
@@ -49,13 +42,13 @@ public class ProjectUsageScheduler
 
     private async Task RunScheduler(bool manualRollover = false)
     {
-        using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        using var ctx = await dbContextFactory.CreateDbContextAsync();
 
         var timeout = 0;
 
         var projects = ctx.Projects.ToList();
         var sortedProjects = projects.OrderBy(p => GetLastUpdate(ctx, p.Project_ID)).ToList();
-        var subscriptionCosts = await _workspaceCostMgmtService.QuerySubscriptionCosts(null,
+        var subscriptionCosts = await workspaceCostMgmtService.QuerySubscriptionCosts(null,
             DateTime.UtcNow.Date.AddDays(-7), DateTime.UtcNow.Date);
 
         if (subscriptionCosts is null)
@@ -70,12 +63,12 @@ public class ProjectUsageScheduler
                 manualRollover);
 
             // send/post the message
-            await _mediator.Send(usageMessage);
+            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageUpdateQueueName, usageMessage);
 
             var capacityMessage = ConvertToCapacityUpdateMessage(usageMessage, timeout, manualRollover);
 
             // send/post the message,
-            await _mediator.Send(capacityMessage);
+            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectCapacityUpdateQueueName, capacityMessage);
         }
 
         // TODO: deadman switch?

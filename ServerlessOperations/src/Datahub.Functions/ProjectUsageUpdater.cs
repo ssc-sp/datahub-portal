@@ -25,7 +25,8 @@ public class ProjectUsageUpdater(
 
     [Function("ProjectUsageUpdater")]
     public async Task<bool> Run(
-        [ServiceBusTrigger(QueueConstants.ProjectUsageUpdateQueueName)]
+        [ServiceBusTrigger(QueueConstants.ProjectUsageUpdateQueueName,
+            Connection = "DatahubServiceBus:ConnectionString")]
         ServiceBusReceivedMessage serviceBusReceivedMessage,
         CancellationToken cancellationToken)
     {
@@ -78,7 +79,7 @@ public class ProjectUsageUpdater(
 
     [Function("ProjectCapacityUsageUpdater")]
     public async Task UpdateProjectCapacity(
-        [ServiceBusTrigger(QueueConstants.ProjectCapacityUpdateQueueName)]
+        [ServiceBusTrigger(QueueConstants.ProjectCapacityUpdateQueueName, Connection = "DatahubServiceBus:ConnectionString")]
         ServiceBusReceivedMessage serviceBusReceivedMessage,
         CancellationToken cancellationToken)
     {

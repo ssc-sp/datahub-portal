@@ -6,11 +6,12 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
+using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
-using MediatR;
+using MassTransit;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,9 +20,9 @@ namespace Datahub.Functions
 {
     public class ProjectInactivityNotifier(
         ILoggerFactory loggerFactory,
-        IMediator mediator,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
         QueuePongService pongService,
+        ISendEndpointProvider sendEndpointProvider,
         IProjectInactivityNotificationService projectInactivityNotificationService,
         IResourceMessagingService resourceMessagingService,
         EmailValidator emailValidator,
@@ -33,7 +34,9 @@ namespace Datahub.Functions
 
         [Function("ProjectInactivityNotifier")]
         public async Task Run(
-            [ServiceBusTrigger(QueueConstants.ProjectInactivityNotificationQueueName)] ServiceBusReceivedMessage serviceBusReceivedMessage,
+            [ServiceBusTrigger(QueueConstants.ProjectInactivityNotificationQueueName,
+                Connection = "DatahubServiceBus:ConnectionString")]
+            ServiceBusReceivedMessage serviceBusReceivedMessage,
             CancellationToken ct)
         {
             // test for ping
@@ -70,7 +73,7 @@ namespace Datahub.Functions
             // if email is not null, send email
             if (email != null)
             {
-                await mediator.Send(email, ct);
+                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, email, ct);
 
                 // add notification to db
                 var sentTo = string.Join(",", contacts);

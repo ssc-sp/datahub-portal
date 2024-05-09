@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Datahub.Functions
 {
-	public class ProjectUsageNotifier(
+    public class ProjectUsageNotifier(
         ILoggerFactory loggerFactory,
         AzureConfig config,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
@@ -24,12 +24,16 @@ namespace Datahub.Functions
         ISendEndpointProvider sendEndpointProvider,
         IEmailService emailService)
     {
-        private readonly int[] _notificationPercents = ParseNotificationPercents(config.NotificationPercents ?? "25,50,80,100");
+        private readonly int[] _notificationPercents =
+            ParseNotificationPercents(config.NotificationPercents ?? "25,50,80,100");
+
         private readonly ILogger<ProjectUsageNotifier> _logger = loggerFactory.CreateLogger<ProjectUsageNotifier>();
 
         [Function("ProjectUsageNotifier")]
         public async Task Run(
-            [ServiceBusTrigger(QueueConstants.ProjectUsageNotificationQueueName)] ServiceBusReceivedMessage serviceBusReceivedMessage, 
+            [ServiceBusTrigger(QueueConstants.ProjectUsageNotificationQueueName,
+                Connection = "DatahubServiceBus:ConnectionString")]
+            ServiceBusReceivedMessage serviceBusReceivedMessage,
             CancellationToken cancellationToken)
         {
             // test for ping
@@ -64,11 +68,13 @@ namespace Datahub.Functions
             }
 
             // calc current %
-            var currentPercent = details.ProjectBudget > 0 ? (int)Math.Round(100.0 * details.Credits.Current / details.ProjectBudget) : 0;
-            
+            var currentPercent = details.ProjectBudget > 0
+                ? (int)Math.Round(100.0 * details.Credits.Current / details.ProjectBudget)
+                : 0;
+
             // get the matching notification %
             var notificationPerc = GetNotificationPercent(currentPercent);
-                        
+
             // check if notification is not needed 
             if (notificationPerc == 0 || details.Credits.PercNotified == notificationPerc)
             {
@@ -78,7 +84,8 @@ namespace Datahub.Functions
             try
             {
                 var notificationEmail = GetNotificationEmail(details.ProjectAcro, notificationPerc, details.Contacts);
-                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, notificationEmail);
+                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
+                    notificationEmail);
 
                 details.Credits.PercNotified = notificationPerc;
                 details.Credits.LastNotified = DateTime.UtcNow;
@@ -91,12 +98,14 @@ namespace Datahub.Functions
             }
             catch (Exception ex)
             {
-                _logger.LogWarning("The ProjectUsageNotifier was unable the update the DB or send the email, check the next log.");
+                _logger.LogWarning(
+                    "The ProjectUsageNotifier was unable the update the DB or send the email, check the next log.");
                 _logger.LogError(ex.Message, ex);
             }
         }
 
-        private async Task<ProjectNotificationDetails?> GetProjectDetails(DatahubProjectDBContext ctx, string projectAcronym, 
+        private async Task<ProjectNotificationDetails?> GetProjectDetails(DatahubProjectDBContext ctx,
+            string projectAcronym,
             CancellationToken cancellationToken)
         {
             var project = await ctx.Projects
@@ -156,17 +165,20 @@ namespace Datahub.Functions
         static int[] ParseNotificationPercents(string percents)
         {
             return percents.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                           .Select(s => int.Parse(s.Trim()))
-                           .ToArray();
+                .Select(s => int.Parse(s.Trim()))
+                .ToArray();
         }
 
-        
 
         static ProjectUsageNotificationMessage? DeserializeQueueMessage(string message)
         {
             return JsonSerializer.Deserialize<ProjectUsageNotificationMessage>(message);
         }
 
-        record ProjectNotificationDetails(string ProjectAcro, List<string> Contacts, double ProjectBudget, Project_Credits Credits);
+        record ProjectNotificationDetails(
+            string ProjectAcro,
+            List<string> Contacts,
+            double ProjectBudget,
+            Project_Credits Credits);
     }
 }

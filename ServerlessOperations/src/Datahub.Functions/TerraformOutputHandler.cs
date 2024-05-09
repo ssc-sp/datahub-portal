@@ -29,7 +29,7 @@ public class TerraformOutputHandler(
 
     [Function("TerraformOutputHandler")]
     public async Task RunAsync(
-        [ServiceBusTrigger(QueueConstants.TerraformOutputHandlerQueueName)]
+        [ServiceBusTrigger(QueueConstants.TerraformOutputHandlerQueueName, Connection = "DatahubServiceBus:ConnectionString")]
         ServiceBusReceivedMessage message)
     {
         _logger.LogInformation($"C# Queue trigger function started");

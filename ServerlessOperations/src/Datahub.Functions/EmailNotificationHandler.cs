@@ -25,7 +25,8 @@ public class EmailNotificationHandler
 
     [Function("EmailNotificationHandler")]
     public async Task Run(
-        [ServiceBusTrigger(QueueConstants.EmailNotificationQueueName)]
+        [ServiceBusTrigger(QueueConstants.EmailNotificationQueueName,
+            Connection = "DatahubServiceBus:ConnectionString")]
         ServiceBusReceivedMessage serviceBusReceivedMessage)
     {
         // test for ping

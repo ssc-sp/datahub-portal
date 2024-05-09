@@ -22,6 +22,7 @@ using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Services.Security;
 using Microsoft.Extensions.Azure;
 
+
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureAppConfiguration(builder =>

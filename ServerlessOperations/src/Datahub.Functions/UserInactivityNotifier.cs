@@ -31,7 +31,7 @@ namespace Datahub.Functions
 
         [Function("UserInactivityNotifier")]
         public async Task Run(
-            [ServiceBusTrigger(QueueConstants.BugReportQueueName)]
+            [ServiceBusTrigger(QueueConstants.UserInactivityNotification, Connection = "DatahubServiceBus:ConnectionString")]
             ServiceBusReceivedMessage serviceBusReceivedMessage, 
             CancellationToken ct)
         {

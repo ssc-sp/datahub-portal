@@ -25,7 +25,9 @@ namespace Datahub.Functions
 
         [Function(nameof(ConfigureWorkspaceAppService))]
         public async Task Run(
-            [ServiceBusTrigger(QueueConstants.WorkspaceAppServiceConfigurationQueueName)] ServiceBusReceivedMessage  message)
+            [ServiceBusTrigger(QueueConstants.WorkspaceAppServiceConfigurationQueueName,
+                Connection = "DatahubServiceBus:ConnectionString")]
+            ServiceBusReceivedMessage message)
         {
             logger.LogInformation($"C# Queue trigger function processed: {message.Body}");
 
@@ -80,7 +82,8 @@ namespace Datahub.Functions
         internal async Task<int> GetPipelineIdByName(string pipelineName)
         {
             var httpClient = await ConfigureHttpClient();
-            var url = config.AzureDevOpsConfiguration.ListPipelineUrlTemplate.Replace("{organization}", config.AzureDevOpsConfiguration.OrganizationName)
+            var url = config.AzureDevOpsConfiguration.ListPipelineUrlTemplate
+                .Replace("{organization}", config.AzureDevOpsConfiguration.OrganizationName)
                 .Replace("{project}", config.AzureDevOpsConfiguration.ProjectName);
 
             HttpResponseMessage response;
@@ -116,11 +119,12 @@ namespace Datahub.Functions
         internal JsonObject GetPipelineBody(AppServiceConfiguration appServiceConfiguration)
         {
             var gitUrl = appServiceConfiguration.GitRepo;
-            if (appServiceConfiguration.IsGitRepoPrivate && !string.IsNullOrWhiteSpace(appServiceConfiguration.GitToken))
+            if (appServiceConfiguration.IsGitRepoPrivate &&
+                !string.IsNullOrWhiteSpace(appServiceConfiguration.GitToken))
             {
                 gitUrl = gitUrl.Replace("https://", $"https://{appServiceConfiguration.GitToken}@");
             }
-            
+
             return new JsonObject
             {
                 ["resources"] = new JsonObject
@@ -148,7 +152,7 @@ namespace Datahub.Functions
         {
             var httpClient = await ConfigureHttpClient();
             var body = GetPipelineBody(appServiceConfiguration);
-            var json = JsonSerializer.Serialize(body); 
+            var json = JsonSerializer.Serialize(body);
             var pipelineUrl = config.AzureDevOpsConfiguration.PostPipelineRunUrlTemplate
                 .Replace("{organization}", config.AzureDevOpsConfiguration.OrganizationName)
                 .Replace("{project}", config.AzureDevOpsConfiguration.ProjectName)
