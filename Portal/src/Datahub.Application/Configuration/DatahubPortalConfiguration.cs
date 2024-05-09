@@ -52,6 +52,7 @@ public class DatahubPortalConfiguration
 
 	public CkanConfiguration CkanConfiguration { get; set; } = new();
     public int DefaultProjectBudget { get; set; } = 100;
+    public DatahubServiceBus DatahubServiceBus { get; set; } = new();
 }
 
 public class Achievements
@@ -217,6 +218,14 @@ public class DatahubStorageQueue
 	public QueueNames QueueNames { get; set; } = new();
 }
 
+/// <summary>
+/// Represents the configuration settings for DatahubServiceBus.
+/// </summary>
+public class DatahubServiceBus
+{
+    public string ConnectionString { get; set; } = null!;
+}
+
 public class QueueNames
 {
 	public string ResourceRunRequest { get; set; } = "resource-run-request";
@@ -224,7 +233,6 @@ public class QueueNames
 	public string DeleteRunRequest { get; set; } = "delete-run-request";
 	public string UserRunRequest { get; set; } = "user-run-request";
 	public string EmailNotification { get; set; } = "email-notifications";
-	public string StorageCapacity { get; set; } = "storage-capacity";
 	public string TerraformOutput { get; set; } = "terraform-output";
 }
 

@@ -1,4 +1,5 @@
 using Datahub.Application.Configuration;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,7 +26,7 @@ public static class ConfigureServices
                                                                         ?? throw new ArgumentNullException(
                                                                             "DatahubStorageConnectionString");
         }
-        
+
         if (string.IsNullOrEmpty(datahubConfiguration.AzureAd.TenantId))
         {
             datahubConfiguration.AzureAd.TenantId = configuration["TENANT_ID"]
@@ -43,8 +44,20 @@ public static class ConfigureServices
             datahubConfiguration.AzureAd.ClientSecret = configuration["FUNC_SP_CLIENT_SECRET"]
                                                         ?? throw new ArgumentNullException("FUNC_SP_CLIENT_SECRET");
         }
-        
+
+        if (string.IsNullOrEmpty(datahubConfiguration.DatahubServiceBus.ConnectionString))
+        {
+            datahubConfiguration.DatahubServiceBus.ConnectionString =
+                configuration["DatahubServiceBus__ConnectionString"]
+                ?? throw new ArgumentNullException(
+                    "DatahubServiceBus__ConnectionString");
+        }
+
         services.AddSingleton(datahubConfiguration);
+        services.AddMassTransitForAzureFunctions(x =>
+        {
+            x.AddConsumersFromNamespaceContaining<EmailNotificationHandler>();
+        }, "DatahubServiceBus:ConnectionString");
 
         return services;
     }
