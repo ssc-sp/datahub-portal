@@ -13,7 +13,7 @@ using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Cost;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Shared.Entities;
-using MediatR;
+using MassTransit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -81,7 +81,7 @@ public class Hooks
         ScenarioContext scenarioContext)
     {
         var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
-            .UseInMemoryDatabase(databaseName: "DatahubProjectDB")
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
         var dbContextFactory = new SpecFlowDbContextFactory(options);
@@ -156,26 +156,26 @@ public class Hooks
         ScenarioContext scenarioContext)
     {
         var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
-            .UseInMemoryDatabase(databaseName: "DatahubProjectDB")
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
         var dbContextFactory = new SpecFlowDbContextFactory(options);
 
         objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
 
+        var iSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var workspaceCostManagementService = Substitute.For<IWorkspaceCostManagementService>();
         var workspaceBudgetManagementService = Substitute.For<IWorkspaceBudgetManagementService>();
         var workspaceStorageManagementService = Substitute.For<IWorkspaceStorageManagementService>();
         var loggerFactory = Substitute.For<ILoggerFactory>();
-        var mediator = Substitute.For<IMediator>();
-        var pongService = new QueuePongService(mediator);
+        var pongService = new QueuePongService(iSendEndpointProvider);
         
         objectContainer.RegisterInstanceAs(workspaceCostManagementService);
         objectContainer.RegisterInstanceAs(workspaceBudgetManagementService);
         objectContainer.RegisterInstanceAs(workspaceStorageManagementService);
         objectContainer.RegisterInstanceAs(loggerFactory);
         objectContainer.RegisterInstanceAs(pongService);
-        objectContainer.RegisterInstanceAs(mediator);
+        objectContainer.RegisterInstanceAs(iSendEndpointProvider);
     }
     
     [AfterScenario("MockWorkspaceManagement")]

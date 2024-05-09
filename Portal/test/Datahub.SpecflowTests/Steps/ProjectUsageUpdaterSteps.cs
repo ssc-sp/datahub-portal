@@ -1,4 +1,7 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
+using Azure.Core.Amqp;
+using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services.Budget;
 using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Datahub;
@@ -7,6 +10,7 @@ using Datahub.Functions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using FluentAssertions;
+using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,7 +23,7 @@ namespace Datahub.SpecflowTests.Steps
     public class ProjectUsageUpdaterSteps(
         ScenarioContext scenarioContext,
         ILoggerFactory loggerFactory,
-        IMediator mediator,
+        ISendEndpointProvider sendEndpointProvider,
         QueuePongService pongService,
         IWorkspaceCostManagementService costMgmt,
         IWorkspaceBudgetManagementService budgetMgmt,
@@ -57,7 +61,7 @@ namespace Datahub.SpecflowTests.Steps
             };
             ctx.Projects.Add(project);
             ctx.Project_Credits.Add(credits);
-            await ctx.SaveChangesAsync(); 
+            await ctx.SaveChangesAsync();
         }
 
         [When(@"the project usage is updated")]
@@ -68,6 +72,13 @@ namespace Datahub.SpecflowTests.Steps
             var costSpent = scenarioContext["costSpent"] as decimal? ?? 0;
             var budgetSpent = scenarioContext["budgetSpent"] as decimal? ?? 0;
             var strMessage = JsonSerializer.Serialize(message);
+
+            var serviceBusReceivedMessage = ServiceBusReceivedMessage.FromAmqpMessage(
+                new AmqpAnnotatedMessage(new AmqpMessageBody(new List<ReadOnlyMemory<byte>>
+                {
+                    Encoding.UTF8.GetBytes(strMessage)
+                })), new BinaryData(Encoding.UTF8.GetBytes(strMessage)));
+
             budgetMgmt.UpdateWorkspaceBudgetSpentAsync(Arg.Any<string>()).Returns(budgetSpent);
             budgetMgmt.GetWorkspaceBudgetAmountAsync(Arg.Any<string>()).Returns((decimal)100.0);
             budgetMgmt.When(c => c.SetWorkspaceBudgetAmountAsync(Arg.Any<string>(), Arg.Any<decimal>(), true)).Do(
@@ -80,12 +91,15 @@ namespace Datahub.SpecflowTests.Steps
                         credits.LastRollover = DateTime.UtcNow;
                         ctx.Project_Credits.Update(credits);
                     }
+
                     ctx.SaveChanges();
                 });
-            costMgmt.UpdateWorkspaceCostAsync(Arg.Any<List<DailyServiceCost>>(), Arg.Any<string>()).Returns((costRollover, (decimal)10.0));
-            var projectUsageUpdater = new ProjectUsageUpdater(loggerFactory, mediator, pongService, costMgmt, budgetMgmt, storageMgmt);
-            
-            var rolledOver = await projectUsageUpdater.Run(strMessage, CancellationToken.None);
+            costMgmt.UpdateWorkspaceCostAsync(Arg.Any<List<DailyServiceCost>>(), Arg.Any<string>())
+                .Returns((costRollover, (decimal)10.0));
+            var projectUsageUpdater = new ProjectUsageUpdater(loggerFactory, pongService, costMgmt, budgetMgmt,
+                sendEndpointProvider, storageMgmt);
+
+            var rolledOver = await projectUsageUpdater.Run(serviceBusReceivedMessage, CancellationToken.None);
             scenarioContext["rolledOver"] = rolledOver;
         }
 
@@ -107,7 +121,7 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"the last update date is in the previous fiscal year")]
         public async Task WhenTheLastUpdateDateIsInThePreviousFiscalYear()
         {
-            scenarioContext["costSpent"] = (decimal)10.0; 
+            scenarioContext["costSpent"] = (decimal)10.0;
             scenarioContext["costRollover"] = true;
             scenarioContext["budgetSpent"] = (decimal)10.0;
         }

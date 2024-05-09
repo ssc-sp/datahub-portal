@@ -20,6 +20,7 @@ public class Hooks
     {
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.test.json", optional: true)
+            .AddUserSecrets<Hooks>()
             .Build();
 
         var resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
