@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Azure.Messaging.ServiceBus;
+using Datahub.Shared.Configuration;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using FluentValidation;
 using Microsoft.Azure.Functions.Worker;
@@ -11,7 +13,9 @@ public class ResourceRunRequest(ILoggerFactory loggerFactory, CreateResourceRunC
     private readonly ILogger<ResourceRunRequest> _logger = loggerFactory.CreateLogger<ResourceRunRequest>();
 
     [Function("ResourceRunRequest")]
-    public async Task RunAsync([QueueTrigger("resource-run-request", Connection = "ResourceRunRequestConnectionString")] string myQueueItem)
+    public async Task RunAsync(
+        [ServiceBusTrigger(QueueConstants.ResourceRunRequestQueueName, Connection = "DatahubServiceBus:ConnectionString")]
+        ServiceBusReceivedMessage myQueueItem)
     {
         _logger.LogInformation("C# Queue trigger function started");
         
@@ -19,7 +23,7 @@ public class ResourceRunRequest(ILoggerFactory loggerFactory, CreateResourceRunC
         {
             PropertyNameCaseInsensitive = true,
         };
-        var resourceRun = JsonSerializer.Deserialize<CreateResourceRunCommand>(myQueueItem, deserializeOptions);
+        var resourceRun = JsonSerializer.Deserialize<CreateResourceRunCommand>(myQueueItem.Body, deserializeOptions);
         
         var resourceRunCommandValidator = new CreateResourceRunCommandValidator();
         var validationResult = await resourceRunCommandValidator.ValidateAsync(resourceRun!);

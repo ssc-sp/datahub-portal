@@ -1,8 +1,10 @@
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ResourceProvisioner.Application;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
+using ResourceProvisioner.Functions;
 using ResourceProvisioner.Infrastructure;
 
 
@@ -18,7 +20,11 @@ var host = new HostBuilder()
     {
         services.AddApplicationServices(hostContext.Configuration);
         services.AddInfrastructureServices(hostContext.Configuration);
-        services.AddScoped<CreateResourceRunCommandHandler>();
+        
+        services.AddMassTransitForAzureFunctions(x =>
+        {
+            x.AddConsumersFromNamespaceContaining<ResourceRunRequest>();
+        }, "DatahubServiceBus:ConnectionString");
 
     })
     .Build();
