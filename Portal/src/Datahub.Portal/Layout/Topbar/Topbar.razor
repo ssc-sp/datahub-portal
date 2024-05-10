@@ -1,6 +1,6 @@
 @using MudBlazor.Utilities
 @using Datahub.Core.Components.Common
-<div class="reader-only">
+<nav class="sr-only">
     <ul>
         <li>
             <a href="#maincontent">@Localizer["Skip to main content"]</a>
@@ -20,8 +20,8 @@
             </a>
         </li>
     </ul>
-</div>
-<div class="reader-only" id="header">
+</nav>
+<div class="sr-only" id="header">
     <h3>@Localizer["Header"]</h3>
 </div>
 <MudLink Href="@PageRoutes.Home" Underline="Underline.None">
