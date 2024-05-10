@@ -18,10 +18,8 @@
     "Costing": false,
     "Storage": true
   },
-  "MassTransit": {
-    "AzureServiceBus": {
-      "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=azbus-connection)"
-    }
+  "DatahubServiceBus": {
+    "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=service-bus-connection-string)"
   },
   "Achievements": {
     "Enabled": true,

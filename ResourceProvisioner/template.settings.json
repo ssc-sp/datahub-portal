@@ -1,4 +1,7 @@
 {
+    "DatahubServiceBus": {
+        "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=service-bus-connection-string)"
+    },
     "ModuleRepository": {
         "Url": "https://github.com/ssc-sp/datahub-resource-modules.git",
         "LocalPath": "/tmp/datahub-resource-modules",
