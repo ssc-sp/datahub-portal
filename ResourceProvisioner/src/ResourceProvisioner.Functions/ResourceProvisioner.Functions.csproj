@@ -26,45 +26,6 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </None>
-        <None Update="appsettings.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-        </None>
-        <None Update="local.settings.int.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-        </None>
-        <None Update="local.settings.poc.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-        </None>
-        <None Update="appsettings.poc.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-        </None>
-        <None Update="appsettings.int.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-        </None>
-        <None Update="appsettings.dev.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-        </None>
-        <None Update="local.settings.dev.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-        </None>
-        <None Update="appsettings.local.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-        </None>
-        <None Update="local.settings.local.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-        </None>
-        <None Update="appsettings.test.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\ResourceProvisioner.Application\ResourceProvisioner.Application.csproj" />
