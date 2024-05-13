@@ -1,14 +1,14 @@
 ﻿using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Configuration;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Infrastructure.Queues.MessageHandlers
 {
-    public class WorkspaceAppServiceConfigurationSender : QueueMessageSender<WorkspaceAppServiceConfigurationMessage>
+    public class WorkspaceAppServiceConfigurationSender(ISendEndpointProvider sendEndpointProvider)
+        : QueueMessageSender<BugReportMessage>(sendEndpointProvider)
     {
-        public WorkspaceAppServiceConfigurationSender(IConfiguration configuration) : base(configuration)
-        {
-        }
 
-        protected override string ConfigPathOrQueueName => "workspace-app-service-configuration";
+        protected override string ConfigPathOrQueueName => QueueConstants.WorkspaceAppServiceConfigurationQueueName;
     }
 }

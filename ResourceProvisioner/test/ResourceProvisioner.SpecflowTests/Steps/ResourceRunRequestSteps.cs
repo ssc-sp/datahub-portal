@@ -1,4 +1,7 @@
+using System.Text;
 using System.Text.Json;
+using Azure.Core.Amqp;
+using Azure.Messaging.ServiceBus;
 using Datahub.Shared.Entities;
 using Reqnroll;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
@@ -66,9 +69,15 @@ public sealed class ResourceRunRequestSteps(
     {
         var createResourceRunCommand = scenarioContext["createResourceRunCommand"] as CreateResourceRunCommand;
         var createResourceRunCommandString = JsonSerializer.Serialize(createResourceRunCommand);
+        
+        var serviceBusReceivedMessage = ServiceBusReceivedMessage.FromAmqpMessage(
+            new AmqpAnnotatedMessage(new AmqpMessageBody(new List<ReadOnlyMemory<byte>>
+            {
+                Encoding.UTF8.GetBytes(createResourceRunCommandString)
+            })), new BinaryData(Encoding.UTF8.GetBytes(createResourceRunCommandString)));
         try
         {
-            await resourceRunRequest.RunAsync(createResourceRunCommandString);
+            await resourceRunRequest.RunAsync(serviceBusReceivedMessage);
         }
         catch (Exception e)
         {

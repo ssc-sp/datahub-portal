@@ -34,7 +34,7 @@ namespace Datahub.SpecflowTests.Steps
         public void GivenAProjectUsageUpdateMessage()
         {
             var mockCosts = new List<DailyServiceCost>();
-            var message = new ProjectUsageUpdateMessage("TEST", mockCosts, 0, false);
+            var message = new ProjectUsageUpdateMessage("TEST", mockCosts, false);
             scenarioContext["message"] = message;
             scenarioContext["mockCosts"] = mockCosts;
         }

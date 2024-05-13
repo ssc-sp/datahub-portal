@@ -42,9 +42,7 @@ public class ProjectUsageScheduler(
 
     private async Task RunScheduler(bool manualRollover = false)
     {
-        using var ctx = await dbContextFactory.CreateDbContextAsync();
-
-        var timeout = 0;
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
         var projects = ctx.Projects.ToList();
         var sortedProjects = projects.OrderBy(p => GetLastUpdate(ctx, p.Project_ID)).ToList();
@@ -59,13 +57,13 @@ public class ProjectUsageScheduler(
 
         foreach (var resource in sortedProjects)
         {
-            var usageMessage = new ProjectUsageUpdateMessage(resource.Project_Acronym_CD, subscriptionCosts, timeout,
+            var usageMessage = new ProjectUsageUpdateMessage(resource.Project_Acronym_CD, subscriptionCosts,
                 manualRollover);
 
             // send/post the message
             await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageUpdateQueueName, usageMessage);
 
-            var capacityMessage = ConvertToCapacityUpdateMessage(usageMessage, timeout, manualRollover);
+            var capacityMessage = ConvertToCapacityUpdateMessage(usageMessage, manualRollover);
 
             // send/post the message,
             await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectCapacityUpdateQueueName, capacityMessage);
@@ -83,9 +81,9 @@ public class ProjectUsageScheduler(
         return lastUpdate ?? DateTime.MinValue;
     }
 
-    static ProjectCapacityUpdateMessage ConvertToCapacityUpdateMessage(ProjectUsageUpdateMessage message, int timeout,
+    static ProjectCapacityUpdateMessage ConvertToCapacityUpdateMessage(ProjectUsageUpdateMessage message,
         bool manualRollover)
     {
-        return new(message.ProjectAcronym, timeout, manualRollover);
+        return new(message.ProjectAcronym, manualRollover);
     }
 }

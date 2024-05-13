@@ -78,15 +78,6 @@
   },
   "Azure:SignalR:StickyServerMode": "Required",
   "AllowedHosts": "*",
-  "DatahubStorageQueue": {
-    "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-storage-queue-conn-str)",
-    "QueueNames": {
-      "ResourceRunRequest": "resource-run-request",
-      "EmailNotification": "email-notifications",
-      "StorageCapacity": "storage-capacity",
-      "TerraformOutput": "terraform-output"
-    }
-  },
   "ReverseProxy": {
     "Enabled": true,
     "MatchPath": "/webapp"
@@ -95,7 +86,9 @@
     "UseFreeApi": false,
     "AuthKey": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=deepl-authkey)"
   },
-  "APPLICATIONINSIGHTS_CONNECTION_STRING": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=appinsights-connection)",
+  "ApplicationInsights": {
+    "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=appinsights-connection)"
+  },
   "DatahubGraphInviteFunctionUrl": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-create-graph-user-url)",
   "DatahubGraphUsersStatusFunctionUrl": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-status-graph-user-url)"
 }
