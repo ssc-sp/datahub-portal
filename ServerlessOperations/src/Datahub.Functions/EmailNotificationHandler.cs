@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using MimeKit;
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
+using Datahub.Functions.Extensions;
 using Datahub.Shared.Configuration;
 
 namespace Datahub.Functions;
@@ -30,8 +31,8 @@ public class EmailNotificationHandler
         ServiceBusReceivedMessage serviceBusReceivedMessage)
     {
         // test for ping
-        if (await _pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
-            return;
+        // if (await _pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
+            // return;
 
         // check mail configuration
         if (!_config.Email.IsValid)
@@ -41,7 +42,7 @@ public class EmailNotificationHandler
         }
 
         // deserialize message
-        var message = JsonSerializer.Deserialize<EmailRequestMessage>(serviceBusReceivedMessage.Body);
+        var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<EmailRequestMessage>();
         if (message is null || !message.IsValid)
         {
             _logger.LogError($"Invalid message received: \n{serviceBusReceivedMessage.Body}");

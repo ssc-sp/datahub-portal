@@ -6,6 +6,7 @@ using Datahub.Application.Configuration;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Health;
 using Datahub.Core.Utils;
+using Datahub.Functions.Extensions;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
@@ -92,7 +93,8 @@ public class CheckInfrastructureStatus(
         ServiceBusReceivedMessage message)
     {
         _logger.LogInformation($"C# Queue trigger function processed: {message.Body}");
-        var request = System.Text.Json.JsonSerializer.Deserialize<InfrastructureHealthCheckRequest>(message.Body);
+        
+        var request = await message.DeserializeAndUnwrapMessageAsync<InfrastructureHealthCheckRequest>();
 
         if (request?.Group == "all")
         {

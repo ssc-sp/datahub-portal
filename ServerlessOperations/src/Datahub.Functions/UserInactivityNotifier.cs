@@ -2,6 +2,7 @@
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Datahub;
+using Datahub.Functions.Extensions;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
@@ -31,16 +32,18 @@ namespace Datahub.Functions
 
         [Function("UserInactivityNotifier")]
         public async Task Run(
-            [ServiceBusTrigger(QueueConstants.UserInactivityNotification, Connection = "DatahubServiceBus:ConnectionString")]
-            ServiceBusReceivedMessage serviceBusReceivedMessage, 
+            [ServiceBusTrigger(QueueConstants.UserInactivityNotification,
+                Connection = "DatahubServiceBus:ConnectionString")]
+            ServiceBusReceivedMessage serviceBusReceivedMessage,
             CancellationToken ct)
         {
             // test for ping
-            if (await pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
-                return;
+            // if (await pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
+            // return;
 
             // deserialize message
-            var message = DeserializeQueueMessage(serviceBusReceivedMessage.Body.ToString());
+            var message = await serviceBusReceivedMessage
+                .DeserializeAndUnwrapMessageAsync<UserInactivityNotificationMessage>();
 
             // verify message 
             if (message is null)
@@ -65,7 +68,8 @@ namespace Datahub.Functions
 
                 if (email != null)
                 {
-                    await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, email, ct);
+                    await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
+                        email, ct);
 
                     // send notification to db
                     await userInactivityNotificationService.AddInactivityNotification(user.Id, dateProvider.Today,
@@ -121,11 +125,6 @@ namespace Datahub.Functions
         private string GetNotificationCCAddress()
         {
             return config.Email?.NotificationsCCAddress ?? "fsdh-notifications-dhsf-notifications@ssc-spc.gc.ca";
-        }
-
-        static UserInactivityNotificationMessage? DeserializeQueueMessage(string queueItem)
-        {
-            return JsonSerializer.Deserialize<UserInactivityNotificationMessage>(queueItem);
         }
     }
 }

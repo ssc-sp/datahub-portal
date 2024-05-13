@@ -1,4 +1,5 @@
 ﻿using Azure.Messaging.ServiceBus;
+using Datahub.Functions.Extensions;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
@@ -28,7 +29,7 @@ namespace Datahub.Functions
             logger.LogInformation($"Bug report queue triggered: {message.Body}");
 
             // We deserialize the queue message into a BugReportMessage object
-            var bug = JsonSerializer.Deserialize<BugReportMessage>(message.Body);
+            var bug = await message.DeserializeAndUnwrapMessageAsync<BugReportMessage>();
 
             if (bug != null)
             {

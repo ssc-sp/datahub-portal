@@ -6,10 +6,12 @@ using Datahub.Application.Services;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
+using Datahub.Functions.Extensions;
 using Datahub.Infrastructure.Services;
 using Datahub.Shared;
 using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
+using Lucene.Net.Analysis.Hunspell;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -35,16 +37,10 @@ public class TerraformOutputHandler(
         _logger.LogInformation($"C# Queue trigger function started");
 
         // test for ping
-        if (await pongService.Pong(message.Body.ToString()))
-            return;
+        // if (await pongService.Pong(message.Body.ToString()))
+            // return;
 
-        var deserializeOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        var output =
-            JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(message.Body.ToString(), deserializeOptions);
+        var output = await message.DeserializeAndUnwrapMessageAsync<Dictionary<string, TerraformOutputVariable>>();
 
         _logger.LogInformation("C# Queue trigger function processing: {OutputCount} items", output?.Count);
 

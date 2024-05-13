@@ -3,6 +3,7 @@ using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Projects;
 using Datahub.Core.Model.Datahub;
+using Datahub.Functions.Extensions;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
@@ -40,11 +41,12 @@ namespace Datahub.Functions
             CancellationToken ct)
         {
             // test for ping
-            if (await pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
-                return;
+            // if (await pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
+                // return;
 
             // deserialize message
-            var message = DeserializeQueueMessage(serviceBusReceivedMessage.Body.ToString());
+
+            var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<ProjectInactivityNotificationMessage>();
 
             // verify message 
             if (message is null)
@@ -166,11 +168,6 @@ namespace Datahub.Functions
         private string GetNotificationCCAddress()
         {
             return config.Email?.NotificationsCCAddress ?? "fsdh-notifications-dhsf-notifications@ssc-spc.gc.ca";
-        }
-
-        static ProjectInactivityNotificationMessage? DeserializeQueueMessage(string message)
-        {
-            return JsonSerializer.Deserialize<ProjectInactivityNotificationMessage>(message);
         }
     }
 }

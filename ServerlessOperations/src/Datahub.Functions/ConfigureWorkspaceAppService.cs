@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Azure.Messaging.ServiceBus;
 using Datahub.Core.Model.Datahub;
+using Datahub.Functions.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
@@ -31,8 +32,7 @@ namespace Datahub.Functions
         {
             logger.LogInformation($"C# Queue trigger function processed: {message.Body}");
 
-            var appServiceConfigurationMessage =
-                JsonSerializer.Deserialize<WorkspaceAppServiceConfigurationMessage>(message.Body)!;
+            var appServiceConfigurationMessage = await  message.DeserializeAndUnwrapMessageAsync<WorkspaceAppServiceConfigurationMessage>();
 
             var projectAcronym = appServiceConfigurationMessage.ProjectAcronym;
             var configuration = appServiceConfigurationMessage.Configuration;

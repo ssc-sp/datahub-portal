@@ -2,6 +2,7 @@ using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services.Budget;
 using Datahub.Application.Services.Storage;
+using Datahub.Functions.Extensions;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
@@ -32,11 +33,11 @@ public class ProjectUsageUpdater(
     {
         var rolledOver = false;
         // test for ping
-        if (await pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
-            return false;
+        // if (await pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
+            // return false;
 
         // deserialize message
-        var message = DeserializeQueueMessage(serviceBusReceivedMessage.Body.ToString());
+        var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<ProjectUsageUpdateMessage>();
 
         _logger.LogInformation("Querying cost management...");
         var (costRollover, spentAmount) =
@@ -88,7 +89,7 @@ public class ProjectUsageUpdater(
             return;
 
         // deserialize message
-        var message = DeserializeQueueMessage(serviceBusReceivedMessage.Body.ToString());
+        var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<ProjectUsageUpdateMessage>();
 
         // update the capacity
         _logger.LogInformation("Querying storage capacity...");
@@ -96,18 +97,5 @@ public class ProjectUsageUpdater(
 
         // log capacity found
         _logger.LogInformation($"Used storage capacity for: '{message.ProjectAcronym}' is {capacityUsed}.");
-    }
-
-    static ProjectUsageUpdateMessage DeserializeQueueMessage(string text)
-    {
-        var message = JsonSerializer.Deserialize<ProjectUsageUpdateMessage>(text);
-
-        // verify message 
-        if (message is null || string.IsNullOrEmpty(message.ProjectAcronym))
-        {
-            throw new Exception($"Invalid queue message:\n{text}");
-        }
-
-        return message;
     }
 }

@@ -2,6 +2,7 @@ using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
+using Datahub.Functions.Extensions;
 using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Extensions;
@@ -37,11 +38,11 @@ namespace Datahub.Functions
             CancellationToken cancellationToken)
         {
             // test for ping
-            if (await pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
-                return;
+            // if (await pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
+                // return;
 
             // deserialize message
-            var message = DeserializeQueueMessage(serviceBusReceivedMessage.Body.ToString());
+            var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<ProjectUsageNotificationMessage>();
 
             // verify message 
             if (message is null || message.ProjectAcronym.Length <= 0)
@@ -167,12 +168,6 @@ namespace Datahub.Functions
             return percents.Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(s => int.Parse(s.Trim()))
                 .ToArray();
-        }
-
-
-        static ProjectUsageNotificationMessage? DeserializeQueueMessage(string message)
-        {
-            return JsonSerializer.Deserialize<ProjectUsageNotificationMessage>(message);
         }
 
         record ProjectNotificationDetails(
