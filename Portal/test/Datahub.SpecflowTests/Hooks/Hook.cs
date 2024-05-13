@@ -44,7 +44,8 @@ public class Hooks
         var dbContextFactory = new SpecFlowDbContextFactory(options);
 
         var datahubAuditingService = new OfflineDatahubTelemetryAuditingService();
-        var actualResourceMessageService = new ResourceMessagingService(datahubPortalConfiguration, dbContextFactory);
+        var mockSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
+        var actualResourceMessageService = new ResourceMessagingService(dbContextFactory, mockSendEndpointProvider);
 
         var substituteResourceMessageService = Substitute.For<IResourceMessagingService>();
         substituteResourceMessageService.SendToTerraformQueue(Arg.Any<WorkspaceDefinition>())

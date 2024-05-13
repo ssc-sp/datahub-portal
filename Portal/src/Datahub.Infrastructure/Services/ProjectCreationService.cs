@@ -62,9 +62,9 @@ public class ProjectCreationService(
         };
         var enumerable = existingAcronyms.ToArray();
         if (!enumerable.Contains(acronym)) return acronym;
-        var largestNumber = enumerable.Where(a => a.StartsWith(acronym)).
-            Select(a => a.Length > acronym.Length && int.TryParse(a[acronym.Length..], out var n) ? n : 0
-            ).Max();
+        var largestNumber = enumerable.Where(a => a.StartsWith(acronym)).Select(
+            a => a.Length > acronym.Length && int.TryParse(a[acronym.Length..], out var n) ? n : 0
+        ).Max();
         acronym += (largestNumber + 1).ToString();
         return await Task.FromResult(acronym);
     }
@@ -94,7 +94,7 @@ public class ProjectCreationService(
                 InterestedFeatures = interestedFeatures,
                 CreatedAt = DateTime.UtcNow
             };
-            
+
             await context.ProjectCreationDetails.AddAsync(newProjectCreationDetails);
             await context.TrackSaveChangesAsync(auditingService);
         }
@@ -102,20 +102,18 @@ public class ProjectCreationService(
 
     public async Task<bool> CreateProjectAsync(string projectName, string? acronym, string organization)
     {
-        using var scope = new TransactionScope(
-            TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
         try
         {
             acronym ??= await GenerateProjectAcronymAsync(projectName);
             var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
-                
+
             await AddProjectToDb(currentPortalUser, projectName, acronym, organization);
-            await CreateNewTemplateProjectResourceAsync(acronym); 
-                
-            var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
+            await CreateNewTemplateProjectResourceAsync(acronym);
+
+            var workspaceDefinition =
+                await resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
             await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
-                
-            scope.Complete();
+
             return true;
         }
         catch (Exception ex)
@@ -131,7 +129,7 @@ public class ProjectCreationService(
         var project = await context.Projects
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-        
+
         if (project is null)
         {
             logger.LogError("Project with acronym {ProjectAcronym} not found", projectAcronym);
@@ -141,16 +139,18 @@ public class ProjectCreationService(
             await CreateNewTemplateProjectResourceAsync(project.Project_ID);
         }
     }
+
     public async Task CreateNewTemplateProjectResourceAsync(int projectId)
     {
         await using var context = await datahubProjectDbFactory.CreateDbContextAsync();
-        
+
         var exists = context.Project_Resources2
             .Any(r => r.ProjectId == projectId
-                      && r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
-        
+                      && r.ResourceType ==
+                      TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
+
         if (exists) return;
-        
+
         var project = await context.Projects
             .FirstAsync(p => p.Project_ID == projectId);
         var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
@@ -161,12 +161,12 @@ public class ProjectCreationService(
             RequestedById = currentPortalUser.Id,
             ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)
         };
-        
+
         await context.Project_Resources2.AddAsync(newResource);
         await context.TrackSaveChangesAsync(auditingService);
     }
-    
-    private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization) 
+
+    private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization)
     {
         var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
@@ -188,10 +188,10 @@ public class ProjectCreationService(
             DatahubAzureSubscriptionId = subscription.Id
         };
         await db.Projects.AddAsync(project);
-        
+
         var role = Project_Role.GetAll()
             .First(r => r.Id == (int)Project_Role.RoleNames.WorkspaceLead);
-            
+
         var projectUser = new Datahub_Project_User()
         {
             PortalUserId = portalUser.Id,
@@ -201,16 +201,16 @@ public class ProjectCreationService(
             RoleId = role.Id
         };
         await db.Project_Users.AddAsync(projectUser);
-        
+
         var projectWhiteList = new Project_Whitelist()
         {
-            Project = project, 
+            Project = project,
             LastUpdated = DateTime.UtcNow,
             AllowStorage = true,
             AllowDatabricks = true
         };
         await db.Project_Whitelists.AddAsync(projectWhiteList);
-        
+
         await db.TrackSaveChangesAsync(auditingService);
         serviceAuthManager.InvalidateAuthCache();
 

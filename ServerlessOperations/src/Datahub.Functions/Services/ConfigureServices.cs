@@ -20,13 +20,6 @@ public static class ConfigureServices
         var datahubConfiguration = new DatahubPortalConfiguration();
         configuration.Bind(datahubConfiguration);
 
-        if (string.IsNullOrEmpty(datahubConfiguration.DatahubStorageQueue.ConnectionString))
-        {
-            datahubConfiguration.DatahubStorageQueue.ConnectionString = configuration["DatahubStorageConnectionString"]
-                                                                        ?? throw new ArgumentNullException(
-                                                                            "DatahubStorageConnectionString");
-        }
-
         if (string.IsNullOrEmpty(datahubConfiguration.AzureAd.TenantId))
         {
             datahubConfiguration.AzureAd.TenantId = configuration["TENANT_ID"]
