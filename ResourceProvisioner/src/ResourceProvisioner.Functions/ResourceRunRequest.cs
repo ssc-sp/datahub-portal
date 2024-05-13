@@ -5,10 +5,11 @@ using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using FluentValidation;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using ResourceProvisioner.Application.Services;
 
 namespace ResourceProvisioner.Functions;
 
-public class ResourceRunRequest(ILoggerFactory loggerFactory, CreateResourceRunCommandHandler commandHandler)
+public class ResourceRunRequest(ILoggerFactory loggerFactory, IRepositoryService repositoryService)
 {
     private readonly ILogger<ResourceRunRequest> _logger = loggerFactory.CreateLogger<ResourceRunRequest>();
 
@@ -23,7 +24,10 @@ public class ResourceRunRequest(ILoggerFactory loggerFactory, CreateResourceRunC
         {
             PropertyNameCaseInsensitive = true,
         };
-        var resourceRun = JsonSerializer.Deserialize<CreateResourceRunCommand>(myQueueItem.Body, deserializeOptions);
+        
+        var messageEnvelope = await JsonDocument.ParseAsync(myQueueItem.Body.ToStream());
+        messageEnvelope.RootElement.TryGetProperty("message", out var message);
+        var resourceRun = message.Deserialize<CreateResourceRunCommand>(deserializeOptions);
         
         var resourceRunCommandValidator = new CreateResourceRunCommandValidator();
         var validationResult = await resourceRunCommandValidator.ValidateAsync(resourceRun!);
@@ -35,7 +39,8 @@ public class ResourceRunRequest(ILoggerFactory loggerFactory, CreateResourceRunC
 
         try
         {
-            await commandHandler.Handle(resourceRun!, CancellationToken.None);
+            var pullRequestMessage = await repositoryService.HandleResourcing(resourceRun!);
+            _logger.LogInformation("Resource run request processed successfully {PullRequestMessage}", pullRequestMessage);
         }
         catch (Exception e)
         {
