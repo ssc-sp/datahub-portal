@@ -8,7 +8,7 @@ using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Shared.Entities;
 using FluentAssertions;
-using MediatR;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -21,7 +21,6 @@ public class ProjectInactivityNotifierTests
     private ProjectInactivityNotifier _sut;
 
     private readonly IDateProvider _dateProvider = Substitute.For<IDateProvider>();
-    private readonly IMediator _mediator = Substitute.For<IMediator>();
     private readonly ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
 
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory =
@@ -39,15 +38,17 @@ public class ProjectInactivityNotifierTests
     private QueuePongService _pongService;
     private EmailValidator _emailValidator;
     private IEmailService _emailService;
+    private ISendEndpointProvider _iSendEndpointProvider;
 
     [SetUp]
     public void Setup()
     {
+        _iSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         _azConfig = new AzureConfig(_config);
-        _pongService = new QueuePongService(_mediator);
+        _pongService = new QueuePongService(_iSendEndpointProvider);
         _emailValidator = new EmailValidator();
         _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
-        _sut = new ProjectInactivityNotifier(_loggerFactory, _mediator, _dbContextFactory, _pongService,
+        _sut = new ProjectInactivityNotifier(_loggerFactory, _dbContextFactory, _pongService, _iSendEndpointProvider,
             _projectInactivityNotificationService, _resourceMessagingService, _emailValidator, _dateProvider, _azConfig, _emailService);
     }
 

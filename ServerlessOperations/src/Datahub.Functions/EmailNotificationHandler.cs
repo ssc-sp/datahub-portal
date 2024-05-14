@@ -5,6 +5,9 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using System.Text.Json;
+using Azure.Messaging.ServiceBus;
+using Datahub.Functions.Extensions;
+using Datahub.Shared.Configuration;
 
 namespace Datahub.Functions;
 
@@ -22,11 +25,14 @@ public class EmailNotificationHandler
     }
 
     [Function("EmailNotificationHandler")]
-    public async Task Run([QueueTrigger("%QueueEmailNotification%", Connection = "DatahubStorageConnectionString")] string requestMessage)
+    public async Task Run(
+        [ServiceBusTrigger(QueueConstants.EmailNotificationQueueName,
+            Connection = "DatahubServiceBus:ConnectionString")]
+        ServiceBusReceivedMessage serviceBusReceivedMessage)
     {
         // test for ping
-        if (await _pongService.Pong(requestMessage))
-            return;
+        // if (await _pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
+            // return;
 
         // check mail configuration
         if (!_config.Email.IsValid)
@@ -36,10 +42,10 @@ public class EmailNotificationHandler
         }
 
         // deserialize message
-        var message = JsonSerializer.Deserialize<EmailRequestMessage>(requestMessage);
+        var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<EmailRequestMessage>();
         if (message is null || !message.IsValid)
         {
-            _logger.LogError($"Invalid message received: \n{requestMessage}");
+            _logger.LogError($"Invalid message received: \n{serviceBusReceivedMessage.Body}");
             return;
         }
 
@@ -78,8 +84,10 @@ public class EmailNotificationHandler
 
             using var smtpClient = new SmtpClient();
 
-            await smtpClient.ConnectAsync(_config.Email.SmtpHost, _config.Email.SmtpPort, MailKit.Security.SecureSocketOptions.StartTls);
-            await smtpClient.AuthenticateAsync(new System.Net.NetworkCredential(_config.Email.SmtpUsername, _config.Email.SmtpPassword));
+            await smtpClient.ConnectAsync(_config.Email.SmtpHost, _config.Email.SmtpPort,
+                MailKit.Security.SecureSocketOptions.StartTls);
+            await smtpClient.AuthenticateAsync(new System.Net.NetworkCredential(_config.Email.SmtpUsername,
+                _config.Email.SmtpPassword));
 
             await smtpClient.SendAsync(message);
             await smtpClient.DisconnectAsync(true);
@@ -91,5 +99,5 @@ public class EmailNotificationHandler
         }
     }
 
-    static MailboxAddress GetMailboxAddress(string address) => new(address, address); 
+    static MailboxAddress GetMailboxAddress(string address) => new(address, address);
 }
