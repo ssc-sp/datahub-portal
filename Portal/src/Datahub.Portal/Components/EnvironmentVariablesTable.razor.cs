@@ -1,13 +1,14 @@
 ﻿using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Azure.KeyVault.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace Datahub.Portal.Components
 {
-	public partial class EnvironmentVariablesTable
+    public partial class EnvironmentVariablesTable
     {
         private bool FilterFunc((string Key, string Value) item)
         {
@@ -43,9 +44,18 @@ namespace Datahub.Portal.Components
 
             foreach (var key in keys)
             {
-                var value = await GetEnvironmentVariable(key, role);
-                var envVar = (key, value);
-                envVars.Add(envVar);
+                try
+                {
+                    var value = await GetEnvironmentVariable(key, role);
+                    var envVar = (key, value);
+                    envVars.Add(envVar);
+                }
+                catch (KeyVaultErrorException e)
+                {
+                    _logger.LogError(e, $"Error getting environment variable {key} from KeyVault.");
+                    _snackbar.Add(Localizer["Error getting environment variable \"{0}\" from KeyVault.", key],
+                        Severity.Error);
+                }
             }
 
             return envVars;
@@ -88,7 +98,7 @@ namespace Datahub.Portal.Components
 
             if (!string.IsNullOrWhiteSpace(newKey) && !string.IsNullOrWhiteSpace(newValue))
             {
-                await CreateOrUpdateEnvironmentVariable(new (newKey, newValue));
+                await CreateOrUpdateEnvironmentVariable(new(newKey, newValue));
                 _snackbar.Add(Localizer["Environment variable {0} has been added.", newKey], Severity.Success);
             }
             else
@@ -113,6 +123,7 @@ namespace Datahub.Portal.Components
             {
                 envVars.Remove(existingItem);
             }
+
             envVars.Add(item);
         }
 
@@ -130,20 +141,19 @@ namespace Datahub.Portal.Components
             var item = element as (string Key, string Value)?;
             if (item is not null)
             {
-                item = new (_elementBeforeEdit.Key, _elementBeforeEdit.Value);
+                item = new(_elementBeforeEdit.Key, _elementBeforeEdit.Value);
                 _logger.LogInformation($"Item has been reset to original values: {item?.Key}");
             }
         }
-        
-        public Dictionary<string,string> GetEnvironmentVariablesDictionary()
+
+        public Dictionary<string, string> GetEnvironmentVariablesDictionary()
         {
             return envVars.ToDictionary(x => x.Key, x => x.Value);
         }
-        
+
         public string GetHiddenValue(string value)
         {
             return new string('*', value.Length);
         }
-
     }
 }
