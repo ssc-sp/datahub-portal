@@ -22,6 +22,7 @@ using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Services.Security;
 using Microsoft.Extensions.Azure;
 
+
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureAppConfiguration(builder =>
@@ -44,8 +45,6 @@ var host = new HostBuilder()
                 options.UseSqlServer(connectionString));
             services.AddDbContextPool<DatahubProjectDBContext>(options => options.UseSqlServer(connectionString));
         }
-
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
 
         services.AddHttpClient(AzureManagementService.ClientName).AddPolicyHandler(
             Policy<HttpResponseMessage>

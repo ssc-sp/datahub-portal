@@ -37,7 +37,6 @@ public class DatahubPortalConfiguration
 
 	public string AllowedHosts { get; set; } = null!;
     public string[] AllowedUserEmailDomains { get; set; } = [".gc.ca"];
-    public DatahubStorageQueue DatahubStorageQueue { get; set; } = new();
 	public string DatahubGraphInviteFunctionUrl { get; set; } = null!;
 	public string DatahubGraphUsersStatusFunctionUrl { get; set; } = null!;
 	public TermsAndConditionsUrl TermsAndConditionsUrl { get; set; } = new();
@@ -52,6 +51,7 @@ public class DatahubPortalConfiguration
 
 	public CkanConfiguration CkanConfiguration { get; set; } = new();
     public int DefaultProjectBudget { get; set; } = 100;
+    public DatahubServiceBus DatahubServiceBus { get; set; } = new();
 }
 
 public class Achievements
@@ -211,21 +211,12 @@ public class KeyVault
 	public string UserName { get; set; } = null!;
 }
 
-public class DatahubStorageQueue
+/// <summary>
+/// Represents the configuration settings for DatahubServiceBus.
+/// </summary>
+public class DatahubServiceBus
 {
-	public string ConnectionString { get; set; } = null!;
-	public QueueNames QueueNames { get; set; } = new();
-}
-
-public class QueueNames
-{
-	public string ResourceRunRequest { get; set; } = "resource-run-request";
-
-	public string DeleteRunRequest { get; set; } = "delete-run-request";
-	public string UserRunRequest { get; set; } = "user-run-request";
-	public string EmailNotification { get; set; } = "email-notifications";
-	public string StorageCapacity { get; set; } = "storage-capacity";
-	public string TerraformOutput { get; set; } = "terraform-output";
+    public string ConnectionString { get; set; } = null!;
 }
 
 public class PublicFileSharing

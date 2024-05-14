@@ -6,6 +6,7 @@ using Datahub.Application.Services.ReverseProxy;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Services.CatalogSearch;
+using Datahub.Infrastructure.Queues.MessageHandlers;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
 using Datahub.Infrastructure.Services.CatalogSearch;
@@ -15,6 +16,7 @@ using Datahub.Infrastructure.Services.ReverseProxy;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.Subscriptions;
 using Datahub.Infrastructure.Services.UserManagement;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Yarp.ReverseProxy.Configuration;
@@ -48,6 +50,16 @@ public static class ConfigureServices
             services.AddTransient<IReverseProxyConfigService, ReverseProxyConfigService>();
             services.AddSingleton<IProxyConfigProvider, ProxyConfigProvider>();
         }
+
+        services.AddMassTransit(x =>
+        {
+            x.UsingAzureServiceBus((context, cfg) =>
+            {
+                cfg.Host(configuration["DatahubServiceBus:ConnectionString"]);
+                cfg.ConfigureEndpoints(context);
+            });
+        });
+        
         return services;
     }
 }
