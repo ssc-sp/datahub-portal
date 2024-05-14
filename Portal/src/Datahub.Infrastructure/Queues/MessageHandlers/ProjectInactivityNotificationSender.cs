@@ -1,14 +1,15 @@
 ﻿using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Configuration;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Infrastructure.Queues.MessageHandlers
 {
-    public class ProjectInactivityNotificationSender : QueueMessageSender<ProjectInactivityNotificationMessage>
+    public class ProjectInactivityNotificationSender(ISendEndpointProvider sendEndpointProvider)
+        : QueueMessageSender<BugReportMessage>(sendEndpointProvider)
     {
-        public ProjectInactivityNotificationSender(IConfiguration configuration) : base(configuration)
-        {
-        }
 
-        protected override string ConfigPathOrQueueName => "QueueProjectInactivityNotification";
+        protected override string ConfigPathOrQueueName =>
+            QueueConstants.ProjectInactivityNotificationQueueName;
     }
 }
