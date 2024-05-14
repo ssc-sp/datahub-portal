@@ -51,7 +51,7 @@ namespace Datahub.Infrastructure.Services.Storage
                 option.ValidateDimensions = false;
                 var metrics = _armClient.GetMonitorMetrics(storageId, option).ToList();
                 var timeseries = metrics[0].Timeseries.ToList()[0];
-                var timeseriesData = timeseries.Data.ToList().Last();
+                var timeseriesData = timeseries.Data.ToList().Last(x => x.Average != null);
                 var average = timeseriesData.Average;
                 if (average is null)
                 {

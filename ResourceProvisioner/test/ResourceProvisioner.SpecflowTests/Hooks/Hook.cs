@@ -20,6 +20,7 @@ public class Hooks
     {
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.test.json", optional: true)
+            .AddUserSecrets<Hooks>()
             .Build();
 
         var resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
@@ -74,13 +75,10 @@ public class Hooks
         
         var loggerFactory = Substitute.For<ILoggerFactory>();
         loggerFactory.CreateLogger<ResourceRunRequest>().Returns(Substitute.For<ILogger<ResourceRunRequest>>());
-        var createResourceRunCommandHandler = Substitute.For<CreateResourceRunCommandHandler>(
-            Substitute.For<ILogger<CreateResourceRunCommandHandler>>(),
-            Substitute.For<IRepositoryService>()
-            );
+        var substituteRepositoryService = Substitute.For<IRepositoryService>();
         var resourceRunRequest = new ResourceRunRequest(
             loggerFactory,
-            createResourceRunCommandHandler);
+            substituteRepositoryService);
         
         // register dependencies
         objectContainer.RegisterInstanceAs(resourceProvisionerConfiguration);
