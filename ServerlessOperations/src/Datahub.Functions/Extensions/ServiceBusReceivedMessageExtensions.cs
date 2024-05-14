@@ -5,7 +5,7 @@ namespace Datahub.Functions.Extensions;
 
 public static class ServiceBusReceivedMessageExtensions
 {
-    private const string MessagePropertyName = "message";
+    public const string MessagePropertyName = "message";
     public static async Task<T> DeserializeAndUnwrapMessageAsync<T>(
         this ServiceBusReceivedMessage serviceBusReceivedMessage)
     {

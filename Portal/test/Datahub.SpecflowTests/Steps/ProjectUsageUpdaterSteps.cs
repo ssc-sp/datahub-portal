@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Azure.Core.Amqp;
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services.Budget;
@@ -71,13 +72,17 @@ namespace Datahub.SpecflowTests.Steps
             var costRollover = scenarioContext["costRollover"] as bool? ?? false;
             var costSpent = scenarioContext["costSpent"] as decimal? ?? 0;
             var budgetSpent = scenarioContext["budgetSpent"] as decimal? ?? 0;
-            var strMessage = JsonSerializer.Serialize(message);
+
+            var messageEnvelope = new JsonObject
+            {
+                ["message"] = JsonSerializer.SerializeToNode(message)
+            };
 
             var serviceBusReceivedMessage = ServiceBusReceivedMessage.FromAmqpMessage(
                 new AmqpAnnotatedMessage(new AmqpMessageBody(new List<ReadOnlyMemory<byte>>
                 {
-                    Encoding.UTF8.GetBytes(strMessage)
-                })), new BinaryData(Encoding.UTF8.GetBytes(strMessage)));
+                    Encoding.UTF8.GetBytes(messageEnvelope.ToJsonString())
+                })), new BinaryData("lockToken"u8.ToArray()));
 
             budgetMgmt.UpdateWorkspaceBudgetSpentAsync(Arg.Any<string>()).Returns(budgetSpent);
             budgetMgmt.GetWorkspaceBudgetAmountAsync(Arg.Any<string>()).Returns((decimal)100.0);

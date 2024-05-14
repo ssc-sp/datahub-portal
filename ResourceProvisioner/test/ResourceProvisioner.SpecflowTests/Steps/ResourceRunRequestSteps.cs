@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Azure.Core.Amqp;
 using Azure.Messaging.ServiceBus;
 using Datahub.Shared.Entities;
@@ -14,7 +15,6 @@ public sealed class ResourceRunRequestSteps(
     ResourceRunRequest resourceRunRequest,
     ScenarioContext scenarioContext)
 {
-
     [Given(@"a workspace definition with every required field")]
     public void GivenAWorkspaceDefinitionWithEveryRequiredField()
     {
@@ -42,15 +42,15 @@ public sealed class ResourceRunRequestSteps(
 
         scenarioContext["createResourceRunCommand"] = createResourceRunCommand;
     }
-    
+
     [Given(@"the workspace app configuration is null")]
     public void GivenTheWorkspaceAppConfigurationIsNull()
     {
         var createResourceRunCommand = scenarioContext["createResourceRunCommand"] as CreateResourceRunCommand;
         createResourceRunCommand!.AppData = null!;
     }
-    
-    
+
+
     [Given(@"a workspace definition without every required field")]
     public void GivenAWorkspaceDefinitionWithoutEveryRequiredField()
     {
@@ -63,18 +63,23 @@ public sealed class ResourceRunRequestSteps(
 
         scenarioContext["createResourceRunCommand"] = createResourceRunCommand;
     }
-    
+
     [When(@"a resource run request processes the workspace definition")]
     public async Task WhenAResourceRunRequestProcessesTheWorkspaceDefinition()
     {
         var createResourceRunCommand = scenarioContext["createResourceRunCommand"] as CreateResourceRunCommand;
-        var createResourceRunCommandString = JsonSerializer.Serialize(createResourceRunCommand);
-        
+
+        // HOWTO: Create a ServiceBusReceivedMessage from an object
+        var messageEnvelope = new JsonObject
+        {
+            ["message"] = JsonSerializer.SerializeToNode(createResourceRunCommand)
+        };
         var serviceBusReceivedMessage = ServiceBusReceivedMessage.FromAmqpMessage(
             new AmqpAnnotatedMessage(new AmqpMessageBody(new List<ReadOnlyMemory<byte>>
             {
-                Encoding.UTF8.GetBytes(createResourceRunCommandString)
-            })), new BinaryData(Encoding.UTF8.GetBytes(createResourceRunCommandString)));
+                Encoding.UTF8.GetBytes(messageEnvelope.ToJsonString())
+            })), new BinaryData("lockToken"u8.ToArray()));
+        
         try
         {
             await resourceRunRequest.RunAsync(serviceBusReceivedMessage);
@@ -103,6 +108,4 @@ public sealed class ResourceRunRequestSteps(
             throw new Exception("Expected exception was not thrown");
         }
     }
-
-
 }

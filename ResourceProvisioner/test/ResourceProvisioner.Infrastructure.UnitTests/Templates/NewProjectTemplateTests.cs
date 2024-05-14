@@ -198,7 +198,7 @@ public class NewProjectTemplateTests
             Acronym = workspaceAcronym
         };
 
-        var expectedConfiguration = @"resource_group_name = ""{{prefix}}-core-{{env}}-rg""
+        var expectedConfiguration = @"resource_group_name = ""{{prefix}}-{{env}}-rg""
 storage_account_name = ""{{prefix_alphanumeric}}{{env}}{{suffix}}""
 container_name = ""{{prefix}}-project-states""
 key = ""{{prefix}}-ShouldExtractBackendConfiguration.tfstate""
