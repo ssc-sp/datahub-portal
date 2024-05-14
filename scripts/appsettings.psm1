@@ -67,6 +67,7 @@ function Export-Settings(
     Write-Output "Fetching secrets from keyvault"
 
     $resourcePrefix = "fsdh"
+    $resourcePrefixAlphanumeric = $resourcePrefix -replace "[^a-zA-Z0-9]", ""
     $azureDevOpsOrganization = "DataSolutionsDonnees"
     $azureDevOpsProject = "FSDH%20SSC"
     $vaultName = "fsdh-static-test-akv"

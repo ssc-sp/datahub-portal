@@ -42,6 +42,7 @@
             "storage_size_limit_tb": "5",
             "az_location": "canadacentral",
             "resource_prefix": "$resourcePrefix",
+            "resource_prefix_alphanumeric": "$resourcePrefixAlphanumeric",
             "common_tags": {
                 "Sector": "Science Program",
                 "Environment": "$Environment",
