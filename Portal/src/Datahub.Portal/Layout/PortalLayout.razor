@@ -43,8 +43,8 @@
         </MudDrawerContainer>
     </MudDrawer>
     <MudMainContent>
-        <div class="reader-only" id="maincontent">
-            <h3>@Localizer["Main content"]</h3>
+        <div class="sr-only" id="maincontent">
+            <h1>@Localizer["Main content"]</h1>
         </div>
         <ErrorBoundary @ref="_errorBoundary">
             <ChildContent>

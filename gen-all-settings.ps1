@@ -2,9 +2,11 @@ param (
     [ValidateSet("test", "dev", "int", "poc")]
     [string[]]$Environment = @("dev"),
     [switch]$SkipAppSettings,
-    [switch]$SkipTerraform,
-    [switch]$SkipTests)
+    [switch]$SkipTests
+)
 
+#temporary until we figure out a solution to integrate TF settings
+$SkipTerraform = $true
 $ErrorActionPreference = "Stop"
 $CurrentPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 #get full path from $CurrentPath

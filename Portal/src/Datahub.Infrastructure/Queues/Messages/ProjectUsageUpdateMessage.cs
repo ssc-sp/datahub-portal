@@ -1,37 +1,22 @@
 ﻿using Datahub.Application.Services.Budget;
-using Datahub.Infrastructure.Queues.MessageHandlers;
 using MediatR;
 
 namespace Datahub.Infrastructure.Queues.Messages;
 
-public class ProjectUsageUpdateMessageBase
+public class ProjectUsageUpdateMessageBase(string projectAcronym, List<DailyServiceCost> subCosts, bool forceRollover)
 {
-    public ProjectUsageUpdateMessageBase(string projectAcronym, List<DailyServiceCost> subCosts, int timeout, bool forceRollover)
-    {
-        ProjectAcronym = projectAcronym;
-        SubscriptionCosts = subCosts;
-        Timeout = timeout;
-        ForceRollover = forceRollover;
-    }
-
-    public string ProjectAcronym { get; }
-    public List<DailyServiceCost> SubscriptionCosts { get; }
-    public int Timeout { get; }
-    public bool ForceRollover { get; set; }
+    public string ProjectAcronym { get; } = projectAcronym;
+    public List<DailyServiceCost> SubscriptionCosts { get; } = subCosts;
+    public bool ForceRollover { get; set; } = forceRollover;
 }
 
-public class ProjectUsageUpdateMessage : ProjectUsageUpdateMessageBase, IRequest, IMessageTimeout
-{
-    public ProjectUsageUpdateMessage(string ProjectAcronym, List<DailyServiceCost> SubscriptionCosts, int Timeout, bool ForceRollover) : base(ProjectAcronym,
-        SubscriptionCosts, Timeout, ForceRollover)
-    {
-    }
-}
+public class ProjectUsageUpdateMessage(
+    string projectAcronym,
+    List<DailyServiceCost> subscriptionCosts,
+    bool forceRollover)
+    : ProjectUsageUpdateMessageBase(projectAcronym,
+        subscriptionCosts, forceRollover), IRequest;
 
-public class ProjectCapacityUpdateMessage : ProjectUsageUpdateMessageBase, IRequest, IMessageTimeout
-{
-    public ProjectCapacityUpdateMessage(string projectAcronym, int timeout, bool forceRollover) : base(projectAcronym, new List<DailyServiceCost>(),
-        timeout, forceRollover)
-    {
-    }
-}
+public class ProjectCapacityUpdateMessage(string projectAcronym, bool forceRollover) : ProjectUsageUpdateMessageBase(
+    projectAcronym, [],
+    forceRollover), IRequest;
