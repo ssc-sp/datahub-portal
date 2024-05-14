@@ -21,52 +21,59 @@
 }
 <MudStack>
     <MudStack Row="true">
-        <MudText Typo="Typo.h1">
+        <MudText Typo="Typo.h2">
             @Localizer["Web Application"]
         </MudText>
-        <MudStack AlignItems="AlignItems.End" Justify="Justify.Center">
-            <MudIcon Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)" Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])"/>
-        </MudStack>
+        @if (_isConfigured)
+        {
+            <MudStack AlignItems="AlignItems.End" Justify="Justify.Center">
+                <MudIcon Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)" Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])"/>
+            </MudStack>
+        }
         <MudSpacer/>
         @if (_isProvisioned)
         {
-            @if (!_webAppState)
+            @if (_isConfigured)
             {
-                <MudButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Start" IconColor="@Color.Success" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
-                    @if (_isStartStopping)
+                @if (!_webAppState)
+                {
+                    <MudButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Start" IconColor="@Color.Success" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
+                        @if (_isStartStopping)
+                        {
+                            <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                        }
+                        else
+                        {
+                            @Localizer["Start"]
+                        }
+                    </MudButton>
+                }
+                else
+                {
+                    <MudButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Stop" IconColor="@Color.Error" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
+                        @if (_isStartStopping)
+                        {
+                            <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                        }
+                        else
+                        {
+                            @Localizer["Stop"]
+                        }
+                    </MudButton>
+                }
+
+                <MudButton Disabled="@(_isRestarting || !_webAppState)" Variant="Variant.Filled" StartIcon="@SidebarIcons.Restart" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
+                    @if (_isRestarting)
                     {
                         <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
                     }
                     else
                     {
-                        @Localizer["Start"]
-                    }
-                </MudButton>
-            }
-            else
-            {
-                <MudButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Stop" IconColor="@Color.Error" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
-                    @if (_isStartStopping)
-                    {
-                        <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
-                    }
-                    else
-                    {
-                        @Localizer["Stop"]
+                        @Localizer["Restart"]
                     }
                 </MudButton>
             }
 
-            <MudButton Disabled="@(_isRestarting || !_webAppState)" Variant="Variant.Filled" StartIcon="@SidebarIcons.Restart" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
-                @if (_isRestarting)
-                {
-                    <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
-                }
-                else
-                {
-                    @Localizer["Restart"]
-                }
-            </MudButton>
             <MudButton Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" StartIcon="@SidebarIcons.Gear" OnClick="@(async () => await ConfigureWebApp())">
                 @Localizer["Configure"]
             </MudButton>
@@ -84,7 +91,7 @@
     else if (_isProvisioned)
     {
         <MudText>
-            @Localizer["This web application is not configured yet. Please configure it by clicking the \"Configure\" button at the top right of the page."]
+            @Localizer["This web application is not configured yet. Please configure it by clicking the 'Configure' button at the top right of the page."]
         </MudText>
     }
     else
@@ -93,9 +100,81 @@
             @Localizer["This web application is not provisioned yet. Please come back soon."]
         </MudText>
     }
-    @if (_resource is not null)
+    @if (_resource is not null && _isConfigured)
     {
         <EnvironmentVariablesTable resource="@_resource" projectAcronym="@WorkspaceAcronym" isEditable="false"/>
+    }
+    @if (_isProvisioned)
+    {
+        <MudDivider DividerType="DividerType.Middle"/>
+        <MudPaper Class="pa-6 mt-4 mb-12" Elevation="1">
+            <MudText Typo="Typo.h2">
+                @Localizer["Additional information"]
+            </MudText>
+            <MudAlert Class="mt-4" Severity="Severity.Warning">
+                <strong>
+                    @Localizer["Please read before configuration to ensure that you do not run into any issues!"]
+                </strong>
+            </MudAlert>
+            <MudText Typo="Typo.body1" Class="mt-4">
+                @Localizer["Web applications in FSDH are deployed and hosted using the "]
+                <MudLink Href="https://azure.microsoft.com/en-ca/products/app-service">@Localizer["Azure App Service. "]</MudLink>
+                @Localizer["For this reason, there are certain limitations you must follow in order to successfully deploy your web application."]
+            </MudText>
+            <MudText Typo="Typo.h3" Class="mt-4">
+                @Localizer["Limitations to docker compose:"]
+            </MudText>
+            <MudText Typo="Typo.body1" Class="mt-4">
+                @Localizer["The following are supported and unsupported docker compose configuration options as per "]
+                <MudLink Href="https://learn.microsoft.com/en-us/azure/app-service/configure-custom-container?tabs=debian&pivots=container-linux#configure-multi-container-apps">
+                    @Localizer["Microsoft's documentation on multi-container web apps. "]
+                </MudLink>
+            </MudText>
+            <MudText Typo="Typo.h4" Class="mt-4">
+                @Localizer["Supported options:"]
+            </MudText>
+            <MudText Typo="Typo.body1">
+                <ul class="ml-4">
+                    <li style="display: list-item; list-style-type: circle"><code>command</code></li>
+                    <li style="display: list-item; list-style-type: circle"><code>entrypoint</code></li>
+                    <li style="display: list-item; list-style-type: circle"><code>environment</code></li>
+                    <li style="display: list-item; list-style-type: circle"><code>image</code></li>
+                    <li style="display: list-item; list-style-type: circle"><code>ports</code></li>
+                    <li style="display: list-item; list-style-type: circle"><code>restart</code></li>
+                    <li style="display: list-item; list-style-type: circle"><code>services</code></li>
+                    <li style="display: list-item; list-style-type: circle"><code>volumes</code></li>
+                </ul>
+            </MudText>
+            <MudText Typo="Typo.h4" Class="mt-4">
+                @Localizer["Unsupported options:"]
+            </MudText>
+            <MudText>
+                <ul class="ml-4">
+                    <li style="display: list-item; list-style-type: circle"><code>build</code> @Localizer[", not allowed without "] <code>image</code>.</li>
+                    <li style="display: list-item; list-style-type: circle"><code>depends_on</code> @Localizer[", will be ignored."]</li>
+                    <li style="display: list-item; list-style-type: circle"><code>networks</code> @Localizer[", will be ignored."]</li>
+                    <li style="display: list-item; list-style-type: circle"><code>secrets</code>@Localizer[", will be ignored."]</li>
+                    <li style="display: list-item; list-style-type: circle"><code>ports</code>@Localizer[" other than 80 and 8080 will be ignored."]</li>
+                </ul>
+            </MudText>
+            <MudText Typo="Typo.h4" Class="mt-4">
+                @Localizer["Syntax limitations:"]
+            </MudText>
+            <MudText>
+                <ul class="ml-4" >
+                    <li style="display: list-item; list-style-type: circle"><code>version: "X"</code>@Localizer[" must always be the first YAML statement in the file."]</li>
+                    <li style="display: list-item; list-style-type: circle">@Localizer["ports section in the YAML must use quoted numbers."]</li>
+                    <li style="display: list-item; list-style-type: circle">@Localizer["image > volume section in the YAML must be quoted and cannot have permissions definitions."]</li>
+                    <li style="display: list-item; list-style-type: circle">@Localizer["volumes section must not have an empty curly brace after the volume name."]</li>
+                </ul>
+            </MudText>
+            <MudText Typo="Typo.h3" Class="mt-4">
+                @Localizer["Limitations to images:"]
+            </MudText>
+            <MudText Typo="Typo.body1" Class="mt-4">
+                @Localizer["We currently only support public images, i.e. images that are available on Docker Hub or other public repositories. In order to deploy private images, please fill a support request."]
+            </MudText>
+        </MudPaper>
     }
 </MudStack>
 
@@ -128,9 +207,6 @@
         {
             await _keyVaultUserService.Authenticate();
             _isElevated = true;
-            _resource = await _webAppMgmtService.GetResource(WorkspaceAcronym);
-            await HydrateValues();
-            _webAppState = await _webAppMgmtService.GetState(_webAppId);
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
         {
@@ -141,6 +217,9 @@
             _logger.LogError(e, "Failed to get consent from user");
         }
 
+        _resource = await _webAppMgmtService.GetResource(WorkspaceAcronym);
+        await HydrateValues();
+        _webAppState = await _webAppMgmtService.GetState(_webAppId);
         StateHasChanged();
     }
 
@@ -193,6 +272,10 @@
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync();
         var resource = await _webAppMgmtService.GetResource(ctx, WorkspaceAcronym);
+        if (!string.IsNullOrWhiteSpace(_appConfiguration.GitTokenSecretName))
+        {
+            _appConfiguration.GitToken = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, _appConfiguration.GitTokenSecretName);
+        }
 
         var dialogOptions = new DialogOptions()
         {
@@ -220,6 +303,7 @@
                 var envVars = resultData?.EnvVars;
 
                 await _webAppMgmtService.SaveConfiguration(WorkspaceAcronym, config!);
+                await SetGitToken(config);
                 await SaveEnvironmentVariableKeys(envVars);
                 await SetEnvironmentVariableValues(envVars);
                 await _webAppMgmtService.Configure(WorkspaceAcronym, config);
@@ -254,7 +338,15 @@
     {
         foreach (var envVar in envVars)
         {
-            await _keyVaultUserService.StoreSecret(WorkspaceAcronym, envVar.Key, envVar.Value);
+            await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, envVar.Key, envVar.Value);
+        }
+    }
+
+    private async Task SetGitToken(AppServiceConfiguration config)
+    {
+        if (!string.IsNullOrWhiteSpace(config.GitToken))
+        {
+            await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, config.GitTokenSecretName, config.GitToken);
         }
     }
 

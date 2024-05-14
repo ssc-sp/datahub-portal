@@ -1,13 +1,13 @@
 ﻿using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Configuration;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Infrastructure.Queues.MessageHandlers;
 
-public class PongMessageHandler : QueueMessageSender<PongMessage>
+public class PongMessageHandler(ISendEndpointProvider sendEndpointProvider)
+    : QueueMessageSender<BugReportMessage>(sendEndpointProvider)
 {
-    public PongMessageHandler(IConfiguration configuration) : base(configuration)
-    {
-    }
 
-    protected override string ConfigPathOrQueueName => "pong-queue";
+    protected override string ConfigPathOrQueueName => QueueConstants.PongQueueName;
 }

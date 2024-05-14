@@ -1,6 +1,9 @@
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.UserTracking
+@using Datahub.Infrastructure.Services.UserManagement
 @using Datahub.Portal.Components.User
 @using MudBlazor.Utilities
 
@@ -46,7 +49,7 @@
                 {
                     <MudNavLink Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
                         <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                            <MudIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark"/>
                             <MudText Style="@_workspaceLinkStyle">
                                 @userRole.Project.ProjectName
                             </MudText>
@@ -64,7 +67,7 @@
         else
         {
             <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" OnClick="@ShowProjectDialog">
-                <MudIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;"/>
+                <MudIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Color="Color.Dark" Class="mr-5" Style="font-size: 0.85rem;"/>
                 @Localizer["Create new"]
                 <MudSpacer/>
             </MudButton>
@@ -82,7 +85,7 @@
             {
                 <MudNavLink Href="@GetSectionViewUrl(recentActivity)">
                     <MudStack Row AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                        <MudIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark"/>
                         <MudText Style="@_workspaceLinkStyle">
                             @GetLabel(recentActivity)
                         </MudText>
@@ -103,7 +106,7 @@
             {
                 <MudNavLink Href="@GetSectionViewUrl(PageRoutes.AccountPrefix, sectionView)" Match="NavLinkMatch.All">
                     <MudStack Row AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                        <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                         <MudText Style="@_workspaceLinkStyle">
                             @GetLabel(sectionView)
                         </MudText>
@@ -124,7 +127,7 @@
                 {
                     <MudNavLink Href="@GetSectionViewUrl(PageRoutes.ToolPrefix, sectionView)" Match="NavLinkMatch.All">
                         <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                            <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                             <MudText Style="@_workspaceLinkStyle">
                                 @GetLabel(sectionView)
                             </MudText>
@@ -153,7 +156,7 @@
 
     private bool _isLoaded = false;
 
-        private const ushort MaxWorkspaceCount = 3;
+    private const ushort MaxWorkspaceCount = 3;
 
 
     public struct SectionViews
@@ -169,6 +172,8 @@
         public const string HealthCheck = "healthcheck";
         public const string Users = "users";
         public const string Email = "email";
+        public const string SupportRequests = "support-requests";
+        public const string AzureSubscriptions = "azure-subscriptions";
     }
 
 
@@ -184,10 +189,12 @@
     private List<string> _datahubAdminItems = new()
     {
         SectionViews.Diagnostics,
+        SectionViews.SupportRequests,
         SectionViews.Statistics,
         SectionViews.HealthCheck,
         SectionViews.Users,
-        SectionViews.Email
+        SectionViews.Email,
+        SectionViews.AzureSubscriptions
     };
 
 
@@ -207,7 +214,7 @@
         _userRoles = await dbContext.Project_Users
             .Include(u => u.Role)
             .Include(u => u.Project)
-    // .ThenInclude(p => p.Users)
+            // .ThenInclude(p => p.Users)
             .Include(u => u.PortalUser)
             .Where(u => u.PortalUser.Id == _viewedUser.Id)
             .ToListAsync();
@@ -215,7 +222,7 @@
         var userRecent = await _userLocationManagerService.GetRecentLinks(_viewedUser.GraphGuid, _maxRecentLinks);
 
         _recentLinks = userRecent?
-            .Select(l => (l, project:GetProject(dbContext, l)))
+            .Select(l => (l, project: GetProject(dbContext, l)))
             .ToList() ?? new List<(UserRecentLink l, Datahub_Project project)>();
 
         _numberOfRemainingWorkspaces = (ushort)(MaxWorkspaceCount - _userRoles.Count(u => u.RoleId is (int)Project_Role.RoleNames.WorkspaceLead or (int)Project_Role.RoleNames.Admin));
@@ -256,15 +263,17 @@
             SectionViews.Appearance => SidebarIcons.Appearance,
             SectionViews.Notifications => SidebarIcons.Notifications,
             SectionViews.Achievements => SidebarIcons.Achievements,
-            
+
             SectionViews.Diagnostics => SidebarIcons.Diagnostics,
             SectionViews.Statistics => SidebarIcons.Statistics,
             SectionViews.HealthCheck => SidebarIcons.HealthCheck,
             SectionViews.Users => SidebarIcons.Users,
             SectionViews.Email => SidebarIcons.Email,
-            
+            SectionViews.AzureSubscriptions => SidebarIcons.AzureSubscriptions,
+            SectionViews.SupportRequests => SidebarIcons.SupportRequests,
+
             _ => SidebarIcons.Profile
-            };
+        };
     }
 
     private string GetLabel(string sectionView)
@@ -276,15 +285,17 @@
             SectionViews.Appearance => Localizer["Appearance"],
             SectionViews.Notifications => Localizer["Notifications"],
             SectionViews.Achievements => Localizer["Achievements"],
-            
+
             SectionViews.Diagnostics => Localizer["Diagnostics"],
             SectionViews.Statistics => Localizer["Statistics"],
             SectionViews.HealthCheck => Localizer["Health Check"],
             SectionViews.Users => Localizer["Users"],
             SectionViews.Email => Localizer["Email"],
-            
+            SectionViews.AzureSubscriptions => Localizer["Azure Subscriptions"],
+            SectionViews.SupportRequests => Localizer["Support Requests"],
+
             _ => Localizer["Public Profile"]
-            };
+        };
     }
 
     private async Task ShowProjectDialog()
@@ -308,7 +319,7 @@
             DatahubLinkType.Storage => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Storage}",
             DatahubLinkType.ResourceArticle => $"{PageRoutes.ResourcePrefix}/{recentActivity.userRecentLink.ResourceArticleId}",
             _ => "/"
-            };
+        };
     }
 
 
@@ -322,7 +333,7 @@
             DatahubLinkType.Storage => SidebarIcons.Storage,
             DatahubLinkType.ResourceArticle => SidebarIcons.Resources,
             _ => SidebarIcons.Workspace
-            };
+        };
     }
 
     private string GetLabel((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
@@ -335,7 +346,7 @@
             DatahubLinkType.Storage => $"{Localizer["Storage"]} - {recentActivity.datahubProject.ProjectName}",
             DatahubLinkType.ResourceArticle => recentActivity.userRecentLink.ResourceArticleTitle,
             _ => recentActivity.datahubProject.ProjectName
-            };
+        };
     }
 
 }

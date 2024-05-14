@@ -8,6 +8,7 @@ using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using System.Text.RegularExpressions;
+using Datahub.Application.Services.UserManagement;
 
 namespace Datahub.Infrastructure.Services.Security
 {
@@ -71,7 +72,8 @@ namespace Datahub.Infrastructure.Services.Security
             // This retrieves the secret/certificate with the private key
             SecretBundle secret = null;
             var vaultName =
-                GetKeyVaultURL(GetVaultName(acronym.ToLowerInvariant(), _datahubPortalConfiguration.Hosting.EnvironmentName));
+                GetKeyVaultURL(GetVaultName(acronym.ToLowerInvariant(),
+                    _datahubPortalConfiguration.Hosting.EnvironmentName));
             try
             {
                 secret = await this._keyVaultClient.GetSecretAsync(vaultName, secretName);
@@ -143,8 +145,37 @@ namespace Datahub.Infrastructure.Services.Security
                 NotBefore = DateTimeOffset.UtcNow.DateTime
             };
             await _keyVaultClient.SetSecretAsync(
-                GetKeyVaultURL(GetVaultName(acronym.ToLowerInvariant(), _datahubPortalConfiguration.Hosting.EnvironmentName)),
+                GetKeyVaultURL(GetVaultName(acronym.ToLowerInvariant(),
+                    _datahubPortalConfiguration.Hosting.EnvironmentName)),
                 secretName, secretValue, secretAttributes: secretAttributes);
+        }
+
+        public async Task StoreOrUpdateSecret(string acronym, string name, string secretValue, int monthValidity = 12)
+        {
+            try
+            {
+                await StoreSecret(acronym, name, secretValue, monthValidity);
+            }
+            catch (KeyVaultErrorException kvex)
+            {
+                if (kvex.Body.Error.Code == "SecretAlreadyExists")
+                {
+                    var secretAttributes = new SecretAttributes()
+                    {
+                        Enabled = true,
+                        Expires = DateTimeOffset.UtcNow.AddMonths(monthValidity).DateTime,
+                        NotBefore = DateTimeOffset.UtcNow.DateTime
+                    };
+                    await _keyVaultClient.UpdateSecretAsync(
+                        GetKeyVaultURL(GetVaultName(acronym.ToLowerInvariant(),
+                            _datahubPortalConfiguration.Hosting.EnvironmentName)),
+                        name, string.Empty, secretAttributes: secretAttributes);
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         public void Dispose()
@@ -177,7 +208,8 @@ namespace Datahub.Infrastructure.Services.Security
             {
                 if (connectionData.ContainsKey(secretKey) && !string.IsNullOrEmpty(connectionData[secretKey]))
                 {
-                    await StoreSecret(acronym, GetSecretNameForStorage(projectCloudStorage.Id, secretKey), connectionData[secretKey]);
+                    await StoreSecret(acronym, GetSecretNameForStorage(projectCloudStorage.Id, secretKey),
+                        connectionData[secretKey]);
                 }
             }
         }

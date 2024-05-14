@@ -1,13 +1,12 @@
 ﻿using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Configuration;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Infrastructure.Queues.MessageHandlers;
 
-public class EmailMessageSender : QueueMessageSender<EmailRequestMessage>
+public class EmailMessageSender(ISendEndpointProvider sendEndpointProvider)
+    : QueueMessageSender<BugReportMessage>(sendEndpointProvider)
 {
-    public EmailMessageSender(IConfiguration configuration) : base(configuration)
-    {
-    }
-
-    protected override string ConfigPathOrQueueName => "email-notification";
+    protected override string ConfigPathOrQueueName => QueueConstants.EmailNotificationQueueName;
 }

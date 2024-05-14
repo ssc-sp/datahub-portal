@@ -10,6 +10,7 @@
 		<UserSecretsId>b1e84dc3-b45f-428e-bf71-7eec3434b232</UserSecretsId>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="Azure.Identity" Version="1.11.2" />
 		<PackageReference Include="Azure.ResourceManager.AppService" Version="1.0.2" />
 		<PackageReference Include="Azure.ResourceManager.PostgreSql" Version="1.1.1" />
 		<PackageReference Include="DocumentFormat.OpenXml" Version="2.20.0" />
@@ -17,6 +18,7 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.2" />
 		<PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="2.13.4" />
 		<PackageReference Include="Microsoft.PowerBI.JavaScript" Version="2.22.4" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />

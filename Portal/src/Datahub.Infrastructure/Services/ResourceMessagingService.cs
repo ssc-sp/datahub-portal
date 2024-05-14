@@ -2,48 +2,32 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Utils;
+using Datahub.Infrastructure.Extensions;
+using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
 using Foundatio.Queues;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Infrastructure.Services;
 
-public class ResourceMessagingService : IResourceMessagingService
+public class ResourceMessagingService(
+    IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+    ISendEndpointProvider sendEndpointProvider)
+    : IResourceMessagingService
 {
-    private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
-    private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-
-    public ResourceMessagingService(DatahubPortalConfiguration datahubPortalConfiguration,
-        IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
-    {
-        _datahubPortalConfiguration = datahubPortalConfiguration;
-        _dbContextFactory = dbContextFactory;
-    }
     public async Task SendToTerraformQueue(WorkspaceDefinition project)
     {
-        using IQueue<WorkspaceDefinition> queue = new AzureStorageQueue<WorkspaceDefinition>(new AzureStorageQueueOptions<WorkspaceDefinition>()
-        {
-            ConnectionString = _datahubPortalConfiguration.DatahubStorageQueue.ConnectionString,
-            Name = _datahubPortalConfiguration.DatahubStorageQueue.QueueNames.ResourceRunRequest,
-        });
-        
-        
-        await queue.EnqueueAsync(project);
+        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ResourceRunRequestQueueName, project);
     }
 
     public async Task SendToTerraformDeleteQueue(WorkspaceDefinition project, int projectId)
     {
-        using IQueue<WorkspaceDefinition> queue = new AzureStorageQueue<WorkspaceDefinition>(new AzureStorageQueueOptions<WorkspaceDefinition>()
-        {
-            ConnectionString = _datahubPortalConfiguration.DatahubStorageQueue.ConnectionString,
-            Name = _datahubPortalConfiguration.DatahubStorageQueue.QueueNames.DeleteRunRequest,
-        });
-        
-        await queue.EnqueueAsync(project);
+        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ResourceDeleteRequestQueueName, project);
         
         // Update Deleted_DT on the project
-        using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var projectToDeleted = await ctx.Projects
             .FirstOrDefaultAsync(p => p.Project_ID == projectId);
         if (projectToDeleted != null)
@@ -56,23 +40,18 @@ public class ResourceMessagingService : IResourceMessagingService
 
     public async Task SendToUserQueue(WorkspaceDefinition workspaceDefinition, string? connectionString = null, string? queueName = null)
     {
-        using IQueue<WorkspaceDefinition> queue = new AzureStorageQueue<WorkspaceDefinition>(
-            new AzureStorageQueueOptions<WorkspaceDefinition>()
-            {
-                ConnectionString = connectionString ?? _datahubPortalConfiguration.DatahubStorageQueue.ConnectionString,
-                Name = queueName ?? _datahubPortalConfiguration.DatahubStorageQueue.QueueNames.UserRunRequest,
-            });
-        await queue.EnqueueAsync(workspaceDefinition);
+        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.UserRunRequestQueueName, workspaceDefinition);
     }
 
     public async Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym, string? requestingUserEmail = "system-generated")
     {
-        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var project = await ctx.Projects
             .AsNoTracking()
             .Include(p => p.Users)
             .ThenInclude(u => u.PortalUser)
             .Include(p => p.Resources)
+            .Include(p => p.DatahubAzureSubscription)
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
         
         if(project == null)

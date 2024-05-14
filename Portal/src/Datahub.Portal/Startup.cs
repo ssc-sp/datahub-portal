@@ -10,16 +10,13 @@ using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Modules;
 using Datahub.Core.Services;
-using Datahub.Core.Services.Achievements;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Data;
 using Datahub.Core.Services.Docs;
-using Datahub.Core.Services.Metadata;
 using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Offline;
 using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.Search;
-using Datahub.Core.Services.Security;
 using Datahub.Core.Services.Storage;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Services.Wiki;
@@ -50,8 +47,12 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Azure.Core;
+using Azure.Identity;
+using Azure.ResourceManager;
 using Datahub.Infrastructure.Offline;
 using Datahub.Application.Configuration;
+using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
@@ -64,11 +65,13 @@ using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Configuration;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Application.Services.Publishing;
+using Datahub.Infrastructure.Services.Achievements;
 using Datahub.Infrastructure.Services.Publishing;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
 using Datahub.Infrastructure.Services.ReverseProxy;
 using Datahub.Infrastructure.Services.WebApp;
+using Microsoft.Extensions.Azure;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -99,7 +102,10 @@ public class Startup
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddApplicationInsightsTelemetry();
+        services.AddApplicationInsightsTelemetry(x =>
+        {
+            x.ConnectionString = Configuration["ApplicationInsights:ConnectionString"];
+        });
 
         services.AddDistributedMemoryCache();
 
@@ -145,6 +151,7 @@ public class Startup
         services.AddFileReaderService();
         services.AddBlazorDownloadFile();
         services.AddBlazoredLocalStorage();
+        services.AddHttpContextAccessor();
         services.AddScoped<ApiTelemetryService>();
         services.AddScoped<GetDimensionsService>();
         //TimeZoneService provides the user time zone to the server using JS Interop
@@ -184,6 +191,7 @@ public class Startup
 
         services.AddSingleton<CultureService>();
 
+        services.AddSingleton<DatahubPortalConfiguration, DatahubPortalConfiguration>();
         services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
         services.AddSingleton<AzureManagementService>();
         services.AddSingleton<ProjectUsageService>();
@@ -443,9 +451,6 @@ public class Startup
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
         services.AddSingleton<IPropagationService, PropagationService>();
 
-        services.AddSingleton<ServiceAuthManager>();
-
-        services.AddSingleton<ICKANServiceFactory, CKANServiceFactory>();
         services.AddSingleton<IOpenDataService, OpenDataService>();
         
         services.AddScoped<ITbsOpenDataService, TbsOpenDataService>();

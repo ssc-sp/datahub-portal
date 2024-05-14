@@ -1,0 +1,118 @@
+@using Datahub.Core.Model.Subscriptions
+@using Datahub.Application.Services.Subscriptions
+
+@inject IDatahubAzureSubscriptionService _datahubAzureSubscriptionService
+@inject DatahubPortalConfiguration _portalConfiguration
+@inject ILogger<AzureSubscriptionsPage> _logger
+@inject ISnackbar _snackbar
+
+
+<MudStack>
+    <MudText Typo="Typo.h2">DataHub Azure Subscriptions</MudText>
+    <MudText>This page shows the current Azure subscriptions that are being monitored by the DataHub service.</MudText>
+
+    <MudText Class="my-6">
+        The active subscription for new workspaces is <code>@_activeSubscription?.Nickname (@_activeSubscription?.SubscriptionName)</code>
+    </MudText>
+
+    <CreateAzureSubscription OnSubscriptionSubmitted="@HandleSubscriptionSubmitted"/>
+
+
+    <MudTable
+        Items="_subscriptions"
+        T="DatahubAzureSubscription"
+        Dense="true"
+        Hover="true"
+        Outlined="true"
+        Class="mt-6 mb-12"
+        CanCancelEdit="true"
+        SortLabel="@Localizer["Sort by"]"
+        CommitEditTooltip="@Localizer["Commit edit"]"
+        CancelEditTooltip="@Localizer["Cancel edit"]"
+        IsEditRowSwitchingBlocked="true"
+        EditTrigger="TableEditTrigger.EditButton"
+        OnCommitEditClick="@HandleCommitEditClicked"
+        ApplyButtonPosition="TableApplyButtonPosition.Start"
+        EditButtonPosition="TableEditButtonPosition.Start"
+        RowEditPreview="@BackupItem"
+        RowEditCancel="@HandleRowEditCancel"
+        RowEditCommit="@HandleRowEditCommit">
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => x.Id))">@Localizer["Row ID"]</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => x.TenantId))">@Localizer["Tenant ID"]</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => x.SubscriptionId))">@Localizer["Subscription ID"]</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => x.SubscriptionName))">@Localizer["Subscription Name"]</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => x.Nickname))">@Localizer["Nickname"]</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => _numberOfWorkspaceRemaining[x.SubscriptionId]))">@Localizer["Number of Workspaces"]</MudTableSortLabel>
+            </MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="@Localizer["Row ID"]">@context.Id</MudTd>
+            <MudTd DataLabel="@Localizer["Tenant ID"]">@context.TenantId</MudTd>
+            <MudTd DataLabel="@Localizer["Subscription ID"]">@context.SubscriptionId</MudTd>
+            <MudTd DataLabel="@Localizer["Subscription Name"]">@context.SubscriptionName</MudTd>
+            <MudTd DataLabel="@Localizer["Nickname"]">@context.Nickname</MudTd>
+            <MudTd DataLabel="@Localizer["Number of Workspaces"]">
+                @(_portalConfiguration.Hosting.WorkspaceCountPerAzureSubscription - _numberOfWorkspaceRemaining[context.SubscriptionId]) / @_portalConfiguration.Hosting.WorkspaceCountPerAzureSubscription
+            </MudTd>
+        </RowTemplate>
+
+        <RowEditingTemplate>
+            <MudTd DataLabel="@Localizer["Row ID"]">
+                <MudText Typo="Typo.h6">@context.Id</MudText>
+            </MudTd>
+            <MudTd DataLabel="@Localizer["Tenant ID"]">
+                <MudTextField @bind-Value="@context.TenantId" Disabled/>
+            </MudTd>
+            <MudTd DataLabel="@Localizer["Subscription ID"]">
+                <MudTextField @bind-Value="@context.SubscriptionId"/>
+            </MudTd>
+            <MudTd DataLabel="@Localizer["Subscription Name"]">
+                <MudTextField @bind-Value="@context.SubscriptionName" Disabled/>
+            </MudTd>
+            <MudTd DataLabel="@Localizer["Name"]">
+                <MudTextField @bind-Value="@context.Nickname"/>
+            </MudTd>
+        </RowEditingTemplate>
+        <EditButtonContent Context="button">
+            <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
+        </EditButtonContent>
+    </MudTable>
+
+
+</MudStack>
+
+@code {
+    private List<DatahubAzureSubscription> _subscriptions;
+    private DatahubAzureSubscription _elementBeforeEdit;
+    private DatahubAzureSubscription _activeSubscription;
+
+    private readonly Dictionary<string, int> _numberOfWorkspaceRemaining = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _subscriptions = await _datahubAzureSubscriptionService.ListSubscriptionsAsync();
+        _activeSubscription = await _datahubAzureSubscriptionService.NextSubscriptionAsync();
+
+        // Get the number of workspaces remaining for each subscription
+        foreach (var subscription in _subscriptions)
+        {
+            var numberOfWorkspaces = await _datahubAzureSubscriptionService.NumberOfRemainingWorkspacesAsync(subscription.SubscriptionId);
+            _numberOfWorkspaceRemaining.Add(subscription.SubscriptionId, numberOfWorkspaces);
+        }
+    }
+
+
+}

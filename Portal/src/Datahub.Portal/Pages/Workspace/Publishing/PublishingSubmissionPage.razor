@@ -1,6 +1,8 @@
 ﻿@* PublishingSubmissionPage.razor *@
 
+@using Datahub.Application.Exceptions
 @using Datahub.Application.Services.Publishing;
+@using Datahub.Application.Services.UserManagement
 @using Datahub.Application.Services.Security;
 @inject IUserInformationService UserService
 @inject IOpenDataPublishingService PublishingService
@@ -39,8 +41,6 @@
 
     [Parameter]
     public string SubSection { get; set; }
-
-    private System.Threading.Timer _fileStatusTimer;
 
     private bool IsPublishingEnabled => _config.CkanConfiguration.IsFeatureEnabled;
 
@@ -93,26 +93,28 @@
         {
             _consentHandler.HandleException(e);
         }
-        
+
         await LoadSubmission();
 
-        _fileStatusTimer = new System.Threading.Timer(async (object? stateInfo) =>
-        {
-            var numRefreshed = await PublishingService.RefreshFileUploadStatuses(_submission);
-            if (numRefreshed > 0)
-            {
-                await InvokeAsync(StateHasChanged);
-            }
-        }, new System.Threading.AutoResetEvent(false), 2000, 2000);
+        PublishingService.FileUploadStatusUpdated += OnFileStatusUpdated;
 
         await base.OnInitializedAsync();
     }
 
+    private async Task OnFileStatusUpdated(OpenDataPublishFile file)
+    {
+        var matchingFile = _submission?.Files?.FirstOrDefault(f => f.Id == file.Id);
+        if (matchingFile != null)
+        {
+            matchingFile.UploadStatus = file.UploadStatus;
+            matchingFile.UploadMessage = file.UploadMessage;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
     public void Dispose()
     {
-        if (_fileStatusTimer != null)
-        {
-            _fileStatusTimer.Dispose();
-        }
+        PublishingService.FileUploadStatusUpdated -= OnFileStatusUpdated;
     }
 }

@@ -11,6 +11,7 @@
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
 @using Datahub.Application.Services.Security
+@using Datahub.Application.Services.UserManagement
 @using Microsoft.Identity.Web;
 
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
@@ -36,7 +37,7 @@
 
 <MudStack>
     <MudStack Row Justify="Justify.SpaceBetween">
-        <MudText Typo="Typo.h1">@Localizer["{0} Storage Explorer", WorkspaceAcronym]</MudText>
+        <MudText Typo="Typo.h2">@Localizer["{0} Storage Explorer", WorkspaceAcronym]</MudText>
     </MudStack>
     <CascadingValue Value="@WorkspaceAcronym" Name="ProjectAcronym">
         <CascadingValue Value="@_project" Name="Project">

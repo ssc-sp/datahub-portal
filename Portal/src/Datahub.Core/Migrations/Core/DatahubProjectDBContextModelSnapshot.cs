@@ -17,7 +17,7 @@ namespace Datahub.Core.Migrations.Core
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "8.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1408,6 +1408,9 @@ namespace Datahub.Core.Migrations.Core
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
+                    b.Property<int>("DatahubAzureSubscriptionId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("Deleted_DT")
                         .HasColumnType("datetime2");
 
@@ -1547,6 +1550,8 @@ namespace Datahub.Core.Migrations.Core
 
                     b.HasIndex("BranchId");
 
+                    b.HasIndex("DatahubAzureSubscriptionId");
+
                     b.HasIndex("DivisionId");
 
                     b.HasIndex("Project_Acronym_CD")
@@ -1554,7 +1559,7 @@ namespace Datahub.Core.Migrations.Core
 
                     b.HasIndex("SectorId");
 
-                    b.ToTable("Projects");
+                    b.ToTable("Projects", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_ProjectApiUser", b =>
@@ -1797,6 +1802,9 @@ namespace Datahub.Core.Migrations.Core
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<double>("BudgetCurrentSpent")
+                        .HasColumnType("float");
+
                     b.Property<double>("Current")
                         .HasColumnType("float");
 
@@ -1807,6 +1815,9 @@ namespace Datahub.Core.Migrations.Core
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("LastNotified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastRollover")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("LastUpdate")
@@ -1865,6 +1876,9 @@ namespace Datahub.Core.Migrations.Core
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -2049,6 +2063,38 @@ namespace Datahub.Core.Migrations.Core
                     b.ToTable("Project_Repositories", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.DatahubAzureSubscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nickname")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SubscriptionId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("SubscriptionName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AzureSubscriptions", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserInactivityNotifications", b =>
                 {
                     b.Property<int>("User_ID")
@@ -2083,6 +2129,9 @@ namespace Datahub.Core.Migrations.Core
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("AccessedTime")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("AzureWebAppUrl")
                         .HasColumnType("nvarchar(max)");
@@ -2126,9 +2175,6 @@ namespace Datahub.Core.Migrations.Core
                     b.Property<string>("WebFormsURL")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTimeOffset>("accessedTime")
-                        .HasColumnType("datetimeoffset");
-
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
@@ -2148,17 +2194,23 @@ namespace Datahub.Core.Migrations.Core
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("HideAchievements")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("HideAlerts")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Language")
                         .HasMaxLength(5)
                         .HasColumnType("nvarchar(5)");
 
                     b.Property<bool>("NotificationsEnabled")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("UserName")
                         .HasMaxLength(128)
@@ -2440,6 +2492,12 @@ namespace Datahub.Core.Migrations.Core
                         .HasForeignKey("BranchId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("Datahub.Core.Model.Subscriptions.DatahubAzureSubscription", "DatahubAzureSubscription")
+                        .WithMany("Workspaces")
+                        .HasForeignKey("DatahubAzureSubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Datahub.Core.Model.Datahub.Organization_Level", "Division")
                         .WithMany("Divisions")
                         .HasForeignKey("DivisionId")
@@ -2451,6 +2509,8 @@ namespace Datahub.Core.Migrations.Core
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Branch");
+
+                    b.Navigation("DatahubAzureSubscription");
 
                     b.Navigation("Division");
 
@@ -2719,6 +2779,11 @@ namespace Datahub.Core.Migrations.Core
                     b.Navigation("WebForms");
 
                     b.Navigation("Whitelist");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.DatahubAzureSubscription", b =>
+                {
+                    b.Navigation("Workspaces");
                 });
 #pragma warning restore 612, 618
         }

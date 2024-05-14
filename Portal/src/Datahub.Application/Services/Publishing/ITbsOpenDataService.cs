@@ -4,7 +4,7 @@ namespace Datahub.Application.Services.Publishing;
 
 public interface ITbsOpenDataService
 {
-    public const string WORKSPACE_CKAN_API_KEY = "TbsCkanApiKey";
+    public const string WORKSPACE_CKAN_API_KEY_SECRET_NAME = "TbsCkanApiKey";
     Task<CKANApiResult> CreateOrFetchPackage(OpenDataSubmission submission);
     Task<OpenDataPublishFile> UploadFile(OpenDataPublishFile publishFile);
     Task<bool> IsApiKeyConfiguredForWorkspace(string workspaceAcronym);

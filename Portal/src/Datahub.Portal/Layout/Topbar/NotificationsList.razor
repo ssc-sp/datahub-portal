@@ -5,6 +5,7 @@
 
 @implements IDisposable
 @using System.Globalization
+@using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Data
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Services.Notification
@@ -16,7 +17,7 @@
     {
         <MudBadge Dot Color="Color.Primary" Overlap>
             <MudTooltip Text="@Localizer[TooltipText]">
-                <div class="reader-only"><p>@Localizer[TooltipText]</p></div>
+                <div class="sr-only"><p>@Localizer[TooltipText]</p></div>
                 <MudToggleIconButton
                     aria-label="Notifications toggle"
                     ToggledIcon="@Icons.Material.Filled.Notifications"
@@ -29,7 +30,7 @@
     else
     {
         <MudTooltip Text="@Localizer[TooltipText]">
-            <div class="reader-only"><p>@Localizer[TooltipText]</p></div>
+            <div class="sr-only"><p>@Localizer[TooltipText]</p></div>
             <MudToggleIconButton
                 aria-label="Notifications toggle"
                 ToggledIcon="@Icons.Material.Filled.Notifications"
