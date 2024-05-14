@@ -1,13 +1,25 @@
 ﻿@using Datahub.Application.Services
 @using MudBlazor.Utilities
 @using Microsoft.Identity.Web
+@using MediatR
 @using Datahub.Core.Model.Achievements
+@using Datahub.Infrastructure.Queues.Messages
+@using Datahub.Application.Services.UserManagement;
 
 @inherits LayoutComponentBase
 @layout MainLayout
 
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDatahubAuditingService _auditingService
+@inject NavigationManager _navigationManager
+@inject IHttpContextAccessor _httpContextAccessor
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IUserInformationService _userInformationService
+@inject IUserSettingsService _userSettingsService
+@inject IWebHostEnvironment _hostingEnv
+@inject IMediator _mediatr
+@inject IJSRuntime _jsRuntime
+@inject ILocalStorageService _localStorage
 
 <MudThemeProvider Theme="@DatahubTheme.DefaultTheme"/>
 <MudDialogProvider/>
@@ -72,6 +84,7 @@
 
     private PortalUser _portalUser;
     private string _correlationId;
+    private IJSObjectReference _module;
     private ErrorBoundary _errorBoundary;
     private Exception _lastException;
 
@@ -104,6 +117,7 @@
         {
             var correlationId = Guid.NewGuid().ToString();
             await _auditingService.TrackException(ex, (nameof(correlationId), correlationId));
+            await ReportIssue(ex, correlationId);
             _correlationId = correlationId;
             await InvokeAsync(StateHasChanged);
         }
@@ -113,4 +127,98 @@
         }
     }
 
+    public async Task ReportIssue(Exception ex, string correlationId)
+    {
+        if (!_hostingEnv.IsDevelopment())
+        {
+            var exceptionDetail = new Dictionary<string, string>()
+            {
+                {"Type", ex.GetType().ToString()},
+                {"Message", ex.Message},
+                {"StackTrace", ex.StackTrace},
+                {"CorrelationId", correlationId}
+            };
+            var exceptionData = Newtonsoft.Json.JsonConvert.SerializeObject(exceptionDetail);
+
+            // collect information
+            _portalUser = await _userInformationService.GetCurrentPortalUserAsync();
+            if (_portalUser is null)
+            {
+                _portalUser = new PortalUser
+                    {
+                        GraphGuid = Guid.NewGuid().ToString(),
+                        DisplayName = "Unknown User",
+                        Email = "unknown_email",
+                    };
+            }
+            var userLanguage = await _userSettingsService.GetUserLanguage();
+
+            IJSObjectReference _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Layout/PortalLayout.razor.js");
+
+            var url = _navigationManager.Uri; // Retrieve the active URL
+            var userAgent = _httpContextAccessor.HttpContext.Request.Headers["User-Agent"].ToString();
+            var timeZone = await _module.InvokeAsync<string>("blazorGetTimezone");
+            var dimensions = await _module.InvokeAsync<string>("blazorGetScreenDimentions");
+
+            // Retrieve all local storage data
+            var allKeys = await _localStorage.KeysAsync();
+            var dataDict = new Dictionary<string, string>();
+            foreach (var key in allKeys)
+            {
+                var value = await _localStorage.GetItemAsStringAsync(key);
+                dataDict.Add(key, value);
+            }
+            var localStorageData = Newtonsoft.Json.JsonConvert.SerializeObject(dataDict);
+
+            var lastHourEvents = await GetTelemetryData();
+            var telemetryData = Newtonsoft.Json.JsonConvert.SerializeObject(lastHourEvents);
+
+            // We create the bug report message and send it to the queue.
+            var bugReport = new BugReportMessage(
+                UserName: _portalUser.DisplayName,
+                UserEmail: _portalUser.Email,
+                UserOrganization: GetOrg(_portalUser.Email),
+                PortalLanguage: userLanguage,
+                PreferredLanguage: "en",
+                Timezone: timeZone,
+                Workspaces: "N/A",
+                Topics: "Other",
+                URL: url,
+                UserAgent: userAgent,
+                Resolution: dimensions,
+                LocalStorage: localStorageData,
+                BugReportType: BugReportTypes.SupportRequest,
+                Description: $"Automatically recorded exception: {exceptionData}, telemetry: {telemetryData}"
+            );
+
+            await _mediatr.Send(bugReport);
+        }
+    }
+
+    private async Task<List<TelemetryEvent>> GetTelemetryData()
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        var lastHour = DateTime.Now.AddHours(-1);
+        var events = dbContext.TelemetryEvents;
+        if (events != null && events.Count() > 0 )
+        {
+            return await events
+                .Where(u => u.PortalUser.Id == _portalUser.Id && u.EventDate >= lastHour)
+                .ToListAsync();
+        } 
+        return new List<TelemetryEvent>();
+    }
+    private string GetOrg(string email)
+    {
+        var org = "";
+        try
+        {
+            org = email.Split("@")[1].Split('.')[0];
+        }
+        catch
+        {
+            org = "unknown";
+        }
+        return org;
+    }
 }
