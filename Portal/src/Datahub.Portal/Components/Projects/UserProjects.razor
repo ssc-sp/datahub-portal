@@ -2,6 +2,7 @@
 @using Microsoft.Graph.Models
 @using Datahub.Core.Model.Datahub
 @using Datahub.Application.Configuration
+@using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Projects
 @using Datahub.Portal.Pages.Project
 @using Datahub.Portal.Pages.Explore
@@ -22,7 +23,7 @@
 <MudStack>
     @if (ShowTitle)
     {
-        <MudText Typo="Typo.h1" Class="mb-4">@Localizer["My Workspaces"]</MudText>
+        <MudText Typo="Typo.h2" Class="mb-4">@Localizer["My Workspaces"]</MudText>
     }
     <MudGrid>
         @foreach (var project in _userRoles.Select(userRole => userRole.Project))

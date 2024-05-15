@@ -1,7 +1,9 @@
+@using Datahub.Portal.Pages.Tools.AzureSubscriptionManagement
 @using Datahub.Portal.Pages.Tools.Diagnostics
 @using Datahub.Portal.Pages.Tools.Email
 @using Datahub.Portal.Pages.Tools.Health
 @using Datahub.Portal.Pages.Tools.Statistics
+@using Datahub.Portal.Pages.Tools.SupportRequests
 @using Datahub.Portal.Pages.Tools.Users
 
 @inject ILogger<ToolsPage> _logger
@@ -48,7 +50,7 @@
         { PersonalSidebar.SectionViews.HealthCheck, typeof(InfrastructureHealthPage) },
         { PersonalSidebar.SectionViews.Users, typeof(UsersPage) },
         { PersonalSidebar.SectionViews.Email, typeof(ComposeEmailPage) },
-        
-        
+        { PersonalSidebar.SectionViews.AzureSubscriptions, typeof(AzureSubscriptionsPage)},
+        { PersonalSidebar.SectionViews.SupportRequests, typeof(SupportRequestPage)}
     };
 }

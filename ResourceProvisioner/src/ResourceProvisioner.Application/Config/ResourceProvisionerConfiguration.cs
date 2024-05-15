@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Datahub.Shared.Configuration;
 
 namespace ResourceProvisioner.Application.Config;
 
@@ -19,13 +20,11 @@ public class InfrastructureRepositoryConfiguration
     public string Url { get; set; }
     public string LocalPath { get; set; }
     public string ProjectPathPrefix { get; set; }
-    public string Username { get; set; }
-    public string Password { get; set; }
     public string PullRequestUrl { get; set; }
     public string PullRequestBrowserUrl { get; set; }
-    public string ApiVersion { get; set; }
+    public string ApiVersion { get; set; } = "7.1-preview.1";
     public string MainBranch { get; set; }
-    public string AutoApproveUserOid { get; set; }
+    public AzureDevOpsConfiguration AzureDevOpsConfiguration { get; set; } = new(); 
 }
 
 public class ModuleRepositoryConfiguration
@@ -78,6 +77,8 @@ public class Variables
     public string environment_name { get; set; }
     public string az_location { get; set; }
     public string resource_prefix { get; set; }
+    public string resource_prefix_alphanumeric { get; set; }
+    public string storage_suffix { get; set; } = "terraformbackend";
     public string datahub_app_sp_oid { get; set; }
     public string azure_databricks_enterprise_oid { get; set; }
     public string log_workspace_id { get; set; } = "";

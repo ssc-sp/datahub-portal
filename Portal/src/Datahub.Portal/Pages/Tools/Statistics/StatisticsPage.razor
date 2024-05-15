@@ -5,7 +5,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
 <MudStack>
-    <MudText Typo="Typo.h1">DataHub Statistics</MudText>
+    <MudText Typo="Typo.h2">DataHub Statistics</MudText>
     <MudText>This page shows statistics about the DataHub.</MudText>
 
     <MudTable Items="@_statsRows" Hover="true" Loading="_isLoading" LoadingProgressColor="Color.Info">

@@ -5,10 +5,6 @@
             {
                 <RouteView RouteData="@routeData" DefaultLayout="typeof(PublicLayout)"/>
             }
-            else if (routeData?.PageType.Namespace?.StartsWith(InternalPublicPageNamespace) ?? false)
-            {
-                <AuthorizeRouteView Resource="@routeData" RouteData="@routeData" DefaultLayout="@typeof(InternalPublicLayout)"/>
-            }
             else
             {
                 <AuthorizeRouteView Resource="@routeData" RouteData="@routeData" DefaultLayout="@typeof(PortalContainerLayout)"/>
@@ -22,7 +18,7 @@
                     <SectionContent SectionName="side-bar">
                         <PersonalSidebar/>
                     </SectionContent>
-                    <MudText Typo="Typo.h1" Class="py-3">@Localizer["404-Page-error"]</MudText>
+                    <MudText Typo="Typo.h2" Class="py-3">@Localizer["404-Page-error"]</MudText>
                     <MudText Typo="Typo.body1" Class="py-3">@Localizer["If you believe this is an error, please fill out a Support Request Form and we'll get right on it."]</MudText>
                     <MudText Typo="Typo.body1" Class="py-3">@Localizer["Otherwise, you can click the button below to return to the main page of DataHub."]</MudText>
                     <MudText Typo="Typo.body1" Class="py-3">@Localizer["We apologize for any inconvenience."]</MudText>

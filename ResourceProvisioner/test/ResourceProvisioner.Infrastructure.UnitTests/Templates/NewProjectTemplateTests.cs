@@ -83,6 +83,8 @@ public class NewProjectTemplateTests
             ["environment_name"] = _configuration["Terraform:Variables:environment_name"],
             ["az_location"] = _configuration["Terraform:Variables:az_location"],
             ["resource_prefix"] = _configuration["Terraform:Variables:resource_prefix"],
+            ["resource_prefix_alphanumeric"] = _configuration["Terraform:Variables:resource_prefix_alphanumeric"],
+            ["storage_suffix"] = _configuration["Terraform:Variables:storage_suffix"],
             ["project_cd"] = "ShouldExtractNewProjectTemplateVariables",
             ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
             ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
@@ -142,6 +144,8 @@ public class NewProjectTemplateTests
             ["environment_name"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_name,
             ["az_location"] = _resourceProvisionerConfiguration.Terraform.Variables.az_location,
             ["resource_prefix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix,
+            ["resource_prefix_alphanumeric"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric,
+            ["resource_suffix"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_suffix,
             ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
             ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
             ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aad_admin_group_oid,
@@ -194,11 +198,17 @@ public class NewProjectTemplateTests
             Acronym = workspaceAcronym
         };
 
-        var expectedConfiguration = @"resource_group_name = ""fsdh-core-test-rg""
-storage_account_name = ""fsdhtestterraformbackend""
-container_name = ""fsdh-project-states""
-key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
+        var expectedConfiguration = @"resource_group_name = ""{{prefix}}-{{env}}-rg""
+storage_account_name = ""{{prefix_alphanumeric}}{{env}}{{suffix}}""
+container_name = ""{{prefix}}-project-states""
+key = ""{{prefix}}-ShouldExtractBackendConfiguration.tfstate""
 ";
+        
+        expectedConfiguration = expectedConfiguration
+            .Replace("{{prefix}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix)
+            .Replace("{{env}}", _resourceProvisionerConfiguration.Terraform.Variables.environment_name)
+            .Replace("{{suffix}}", _resourceProvisionerConfiguration.Terraform.Variables.storage_suffix)
+            .Replace("{{prefix_alphanumeric}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric);
 
         var module = new TerraformTemplate()
         {

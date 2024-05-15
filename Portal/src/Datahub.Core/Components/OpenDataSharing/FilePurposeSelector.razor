@@ -17,7 +17,7 @@
     >
         @foreach(var f in Submission.Files)
         {
-            <MudSelectItem Value=@f />
+            <MudSelectItem Value=@f Disabled=@(!IsFileSelectable(f)) />
         }
     </MudSelect>
 }
@@ -63,6 +63,8 @@
             Syncer?.Ping();
         }
     }
+
+    private bool IsFileSelectable(OpenDataPublishFile file) => file.UploadStatus == OpenDataPublishFileUploadStatus.NotStarted || file.UploadStatus == OpenDataPublishFileUploadStatus.ReadyToUpload;
 
     // if a file is already selected for another purpose, show that in the list
     private string GetFileLabel(OpenDataPublishFile file) => file == null ? string.Empty : string.IsNullOrEmpty(file.FilePurpose) || file.FilePurpose == FilePurpose ?

@@ -1,3 +1,4 @@
+@using Datahub.Application.Services.Metadata
 @using Datahub.Core.Model.Projects
 @using Datahub.Metadata.DTO
 @using Datahub.Portal.Pages.Workspace
@@ -6,7 +7,7 @@
 @inject IMetadataBrokerService _metadataBrokerService
 
 <MudStack>
-    <MudText Typo="Typo.h1">
+    <MudText Typo="Typo.h2">
         <MudIcon Icon="fa-light fa-flask-vial" Title="@Localizer["Workspace Icon"]" Size="Size.Large" Class="mr-2"/>
         @_project?.ProjectName
     </MudText>
