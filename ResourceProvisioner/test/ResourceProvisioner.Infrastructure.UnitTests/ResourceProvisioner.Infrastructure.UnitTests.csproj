@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
@@ -6,16 +6,18 @@
         <Nullable>enable</Nullable>
 
         <IsPackable>false</IsPackable>
-    </PropertyGroup>
+      <UserSecretsId>9edf3516-5557-48c6-aace-523038fd4848</UserSecretsId>
+  </PropertyGroup>
 
     <ItemGroup>
         
         <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.*" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.*" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.*" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
         <PackageReference Include="Moq" Version="4.20.69" />
-        <PackageReference Include="NUnit" Version="3.13.3" />
+        <PackageReference Include="NUnit" Version="4.1.0" />
         <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
         <PackageReference Include="NUnit.Analyzers" Version="3.7.0" />
         <PackageReference Include="coverlet.collector" Version="6.0.1">
@@ -29,10 +31,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="appsettings.Test.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="appsettings.Test.json">
+      <None Update="appsettings.test.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>

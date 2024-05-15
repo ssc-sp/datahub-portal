@@ -1,6 +1,7 @@
 using Datahub.Specs.PageObjects;
 using FluentAssertions;
 using Microsoft.Playwright;
+using Reqnroll;
 
 namespace Datahub.Specs.Steps;
 

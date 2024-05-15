@@ -25,15 +25,6 @@ public class Program
                 logBuilder.ClearProviders();
                 logBuilder.AddConsole();
 
-                // Providing an instrumentation key here is required if you're using
-                // standalone package Microsoft.Extensions.Logging.ApplicationInsights
-                // or if you want to capture logs from early in the application startup
-                // pipeline from Startup.cs or Program.cs itself.
-
-
-                var key = hostingContext.Configuration.GetSection("ApplicationInsights").GetValue<string>("InstrumentationKey");
-                logBuilder.AddApplicationInsights(key);
-
                 //var appInsightsConfig = hostingContext.Configuration.GetSection("ApplicationInsights");
                 //logBuilder.AddApplicationInsights(config => 
                 //{ 
@@ -66,6 +57,7 @@ public class Program
                 webBuilder.UseStartup<Startup>();                    
                 webBuilder.ConfigureAppConfiguration((ctx, cb) =>
                 {
+                    cb.AddUserSecrets<Startup>();
                     if (!ctx.HostingEnvironment.IsDevelopment()) // you'll have to find the right method to check that
                     {
                         StaticWebAssetsLoader.UseStaticWebAssets(ctx.HostingEnvironment, ctx.Configuration);

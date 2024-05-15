@@ -7,9 +7,6 @@ namespace Datahub.Core.Model.Datahub
     {
         public const string DATASET_FILE_TYPE = "Dataset";
         public const string GUIDE_FILE_TYPE = "Guide";
-        public const string METADATA_FILE_TYPE = "Metadata";
-        public const string SUPPORTING_DOC_FILE_TYPE = "SupportingDoc";
-        public const string DATA_DICTIONARY_FILE_TYPE = "DataDictionary";
         public const string IMSO_APPROVAL_FILE_TYPE = "ImsoApproval";
 
         public const string PUBLICATION_METADATA_PROFILE_NAME = "publication";

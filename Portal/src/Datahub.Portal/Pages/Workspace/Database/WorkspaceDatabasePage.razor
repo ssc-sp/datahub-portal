@@ -13,7 +13,7 @@
     return;
 }
 <MudStack>
-    <MudText Typo="Typo.h1">
+    <MudText Typo="Typo.h2">
         @Localizer["Workspace Database"]
     </MudText>
 
@@ -196,32 +196,39 @@
     private string BuildPythonConnectionInfo()
     {
         return @"```python
-pip install psycopg2
+import psycopg2
 
 conn = psycopg2.connect(
     host=""<database_host>"",
     database=""<database_name>"",
     user=""<username>"",
-    password=""<password>"",
+    password=""<password>""
+)
+
+cursor = conn.cursor()
+
+# You can then use the connection to execute queries. Use cursor.execute(query) to execute a query.
 ```";
     }
 
     private string BuildRConnectionInfo()
     {
         return @"```r
+install.packages('RPostgres')
+
 library(DBI)
 
 db <- '<database_name>'  #provide the name of your db
 
-host_db <- ‘<database_host>’ #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'  
+host_db <- '<database_host>' #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
 
 db_port <- '<port>'  # or any other port specified by the DBA
 
-db_user <- ‘<username>’  
+db_user <- '<username>'
 
-db_password <- ‘<password>'
+db_password <- '<password>'
 
-con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)  
+con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)
 ```";
     }
 

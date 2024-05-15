@@ -51,7 +51,7 @@ await (await Parser.Default.ParseArguments<TranslateOptions, GensidebarOptions>(
 
         if (options.Validate)
         {
-            await IteratePath(options.Path, BuildExcluder(configParams), async (_,_) => { }, markdownProcessor.ValidateFile);
+            await IteratePath(options.Path, BuildExcluder(configParams), (_,_) => Task.CompletedTask, markdownProcessor.ValidateFile);
         }
 
         if (options.Validate && markdownProcessor.ValidationErrors.Count > 0)
