@@ -38,8 +38,8 @@ def http_sync_workspace_users_function(req: func.HttpRequest) -> func.HttpRespon
     return func.HttpResponse("Successfully synchronized workspace users.")
 
 @app.function_name(name="SynchronizeWorkspaceUsersQueueTrigger")
-@app.queue_trigger(arg_name="msg", queue_name="user-run-request", 
-                   connection="AzureStorageQueueConnectionString") # Queue Trigger
+@app.service_bus_queue_trigger(arg_name="msg", queue_name="user-run-request", 
+                   connection="DatahubServiceBus__ConnectionString") # Queue Trigger
 
 def queue_sync_workspace_users_function(msg: func.QueueMessage) -> None:
     """
@@ -52,7 +52,8 @@ def queue_sync_workspace_users_function(msg: func.QueueMessage) -> None:
         None
 
     """
-    workspace_definition = msg.get_json()
+    message_envelope = msg.get_json()
+    workspace_definition = message_envelope['message']
     logging.info("Synchronizing workspace users.")
     logging.info("Synchronizing databricks users.")
     sync_databricks_workspace_users_function(workspace_definition)
