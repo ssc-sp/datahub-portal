@@ -16,7 +16,7 @@ public class TerraformService : ITerraformService
 {
     public const string TerraformVersionToken = "{{version}}";
     public const string TerraformBranchToken = "{{branch}}";
-    
+
     private readonly ILogger<TerraformService> _logger;
     internal static readonly List<string> EXCLUDED_FILE_EXTENSIONS = new(new[] { ".md" });
     private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
@@ -70,7 +70,8 @@ public class TerraformService : ITerraformService
 
             var fileContent = await File.ReadAllTextAsync(file);
             fileContent = fileContent.Replace(TerraformVersionToken, terraformWorkspace.Version);
-            fileContent = fileContent.Replace(TerraformBranchToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}");
+            fileContent = fileContent.Replace(TerraformBranchToken,
+                $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}");
             await File.WriteAllTextAsync(destinationFilename, fileContent);
         }
     }
@@ -171,7 +172,8 @@ public class TerraformService : ITerraformService
         var files = Directory.GetFiles(projectPath, "*.auto.tfvars.json", SearchOption.TopDirectoryOnly);
         var existingVariables = files.Select(file => JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(file)))
             .SelectMany(jsonNode => jsonNode.EnumerateObject())
-            .ToDictionary(jsonProperty => jsonProperty.Name, jsonProperty => (jsonProperty.Value.ValueKind.ToString(), true));
+            .ToDictionary(jsonProperty => jsonProperty.Name,
+                jsonProperty => (jsonProperty.Value.ValueKind.ToString(), true));
         return existingVariables;
     }
 
@@ -203,11 +205,12 @@ public class TerraformService : ITerraformService
             await File.WriteAllTextAsync(variablesFilePath,
                 JsonSerializer.Serialize(missingVariables
                     .Select(missingVariable => (
-                        missingVariable.Key, 
-                        ComputeVariableValue(terraformWorkspace, missingVariable.Key, missingVariable.Value.Value, missingVariable.Value.isRequired)))
+                        missingVariable.Key,
+                        ComputeVariableValue(terraformWorkspace, missingVariable.Key, missingVariable.Value.Value,
+                            missingVariable.Value.isRequired)))
                     .Where(mv => mv.Item2 != null)
                     .ToDictionary(mv => mv.Key, mv => mv.Item2))
-                );
+            );
         }
     }
 
@@ -235,13 +238,13 @@ public class TerraformService : ITerraformService
             TerraformVariables.ProjectAcronym => terraformWorkspace.Acronym,
             TerraformVariables.BudgetAmount => terraformWorkspace.BudgetAmount,
             TerraformVariables.StorageSizeLimitInTb => terraformWorkspace.StorageSizeLimitInTB,
-            
+
             // optional variables
             TerraformVariables.AzureLogWorkspaceId => string.Empty,
             TerraformVariables.AllowSourceIp => string.Empty,
-            _ => isRequired 
+            _ => isRequired
                 ? throw new MissingTerraformVariableException(
-                $"Missing variable {variableName}:<{variableType}> in configuration")
+                    $"Missing variable {variableName}:<{variableType}> in configuration")
                 : null
         })!;
     }
@@ -286,15 +289,12 @@ public class TerraformService : ITerraformService
 
     private string ComputeBackendConfigValue(string workspaceName, string variableName)
     {
-        string rpa = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric;
-        string env = _resourceProvisionerConfiguration.Terraform.Variables.environment_name;
-        string suffix = _resourceProvisionerConfiguration.Terraform.Variables.storage_suffix;
         return variableName switch
         {
             TerraformVariables.BackendResourceGroupName => _resourceProvisionerConfiguration.Terraform.Backend
                 .ResourceGroupName,
             TerraformVariables.BackendStorageAccountName =>
-                $"{rpa}{env}{suffix}",
+                $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric}{_resourceProvisionerConfiguration.Terraform.Variables.environment_name}{_resourceProvisionerConfiguration.Terraform.Variables.storage_suffix}",
             TerraformVariables.BackendContainerName =>
                 $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-project-states",
             TerraformVariables.BackendKeyName =>

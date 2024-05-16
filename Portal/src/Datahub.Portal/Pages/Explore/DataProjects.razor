@@ -24,7 +24,7 @@
 <MudStack>
     @if (_featuredProjects.Any())
     {
-        <MudText Typo="Typo.h1">@Localizer["Featured Workspaces"]</MudText>
+        <MudText Typo="Typo.h2">@Localizer["Featured Workspaces"]</MudText>
         <MudText Typo="Typo.body1">
             @Localizer["Featured workspaces are a selection of workspaces that are currently being promoted by the Datahub team. You can view these projects' shared content to see what they are working on."]
         </MudText>
@@ -37,7 +37,7 @@
             }
         </MudGrid>
     }
-    <MudText Typo="Typo.h1" Class="mt-6 mb-3">@Localizer["All Workspaces"]</MudText>
+    <MudText Typo="Typo.h2" Class="mt-6 mb-3">@Localizer["All Workspaces"]</MudText>
     <MudTable Striped Items="_filteredProjects" Class="mb-12" Filter="new Func<Datahub_Project, bool>(ProjectFilter)">
         <ToolBarContent>
             <MudTextField T="string" Placeholder="@Localizer["Search"]" DebounceInterval="500"

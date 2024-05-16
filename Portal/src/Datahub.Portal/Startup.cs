@@ -102,7 +102,10 @@ public class Startup
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddApplicationInsightsTelemetry();
+        services.AddApplicationInsightsTelemetry(x =>
+        {
+            x.ConnectionString = Configuration["ApplicationInsights:ConnectionString"];
+        });
 
         services.AddDistributedMemoryCache();
 
@@ -148,6 +151,7 @@ public class Startup
         services.AddFileReaderService();
         services.AddBlazorDownloadFile();
         services.AddBlazoredLocalStorage();
+        services.AddHttpContextAccessor();
         services.AddScoped<ApiTelemetryService>();
         services.AddScoped<GetDimensionsService>();
         //TimeZoneService provides the user time zone to the server using JS Interop
