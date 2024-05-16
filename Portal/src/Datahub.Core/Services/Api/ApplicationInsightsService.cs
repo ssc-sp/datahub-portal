@@ -13,6 +13,11 @@ public class ApplicationInsightsService
     private readonly ILogger<ApplicationInsightsService> logger;
     private readonly IConfiguration config;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApplicationInsightsService"/> class.
+    /// </summary>
+    /// <param name="logger"></param>
+    /// <param name="configuration"></param>
     public ApplicationInsightsService(ILogger logger, IConfiguration configuration)
     {
         this.logger = (ILogger<ApplicationInsightsService>)logger;
@@ -20,13 +25,16 @@ public class ApplicationInsightsService
         client = new LogsQueryClient(new DefaultAzureCredential());
     }
 
-    public async Task<List<InfrastructureHealthResult>> GetHealthResultsAsync()
+    public async Task<List<InfrastructureHealthResult>> GetHealthResultsAsync(string workspaceId)
     {
         string query = @"
             customEvents
             | where name == 'InfrastructureHealthCheck'
             | summarize count() by tostring(customDimesions.resourceType), tostring(customDimesions.status) ";
-        Response<LogsQueryResult> response = await client.QueryWorkspaceAsync("appid", query, new QueryTimeRange(TimeSpan.FromDays(1)));
+        Response<LogsQueryResult> response = await client.QueryWorkspaceAsync(
+            workspaceId,
+            query,
+            new QueryTimeRange(TimeSpan.FromDays(1)));
         List<InfrastructureHealthResult> results = response.Value.Table.Rows.Select(x => new InfrastructureHealthResult
         {
             ResourceType = x["tostring_customDimesions_resourceType"].ToString(),
