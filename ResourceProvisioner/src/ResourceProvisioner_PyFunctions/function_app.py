@@ -4,6 +4,7 @@ import lib.databricks_utils as dtb_utils
 import lib.azkeyvault_utils as azkv_utils
 import lib.azstorage_utils as azsg_utils
 import os
+import json
 
 #from lib.databricks_utils import get_workspace_client, remove_deleted_users_in_workspace, synchronize_workspace_users
 
@@ -44,13 +45,13 @@ def queue_sync_workspace_users_function(msg: func.ServiceBusMessage):
     Synchronizes the users in the Databricks workspace with the users in the definition file.
 
     Args:
-        workspace_definition (QueueMessage): The workspace definition file.
+        workspace_definition (ServiceBusMessage): The workspace definition file.
 
     Returns:
         None
 
     """
-    message_envelope = msg.get_json()
+    message_envelope = json.loads(msg.get_body().decode('utf-8'))
     workspace_definition = message_envelope['message']
     logging.info("Synchronizing workspace users.")
     logging.info("Synchronizing databricks users.")
