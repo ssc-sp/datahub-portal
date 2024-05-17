@@ -40,7 +40,6 @@ def http_sync_workspace_users_function(req: func.HttpRequest) -> func.HttpRespon
 @app.function_name(name="SynchronizeWorkspaceUsersQueueTrigger")
 @app.service_bus_queue_trigger(arg_name="msg", queue_name="user-run-request", 
                    connection="DatahubServiceBus__ConnectionString") # Queue Trigger
-
 def queue_sync_workspace_users_function(msg: func.QueueMessage) -> None:
     """
     Synchronizes the users in the Databricks workspace with the users in the definition file.
