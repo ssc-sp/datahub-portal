@@ -73,7 +73,7 @@ def sync_databricks_workspace_users_function(workspace_definition):
         None
 
     """
-    databricksHost = workspace_definition['AppData']['DatabricksHostUrl']
+    databricksHost = workspace_definition['appData']['databricksHostUrl']
     environment_name = os.environ["DataHub_ENVNAME"]   
     subscription_id = os.environ["AzureSubscriptionId"]
 
