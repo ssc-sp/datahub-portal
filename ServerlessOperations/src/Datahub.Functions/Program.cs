@@ -14,12 +14,16 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Budget;
 using Datahub.Application.Services.Projects;
 using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Storage;
 using Datahub.Functions.Services;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Validators;
+using Datahub.Infrastructure.Services.Cost;
 using Datahub.Infrastructure.Services.Security;
+using Datahub.Infrastructure.Services.Storage;
 using Microsoft.Extensions.Azure;
 
 
@@ -75,6 +79,9 @@ var host = new HostBuilder()
             }
             );
         services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
+        services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();
+        services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
+        services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
         services.AddSingleton<IEmailService, EmailService>();
         services.AddScoped<ProjectUsageService>();
         services.AddScoped<QueuePongService>();
