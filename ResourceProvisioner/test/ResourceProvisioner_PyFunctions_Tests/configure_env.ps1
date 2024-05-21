@@ -1,6 +1,6 @@
 Install-Module -Name Az -AllowClobber -Scope CurrentUser
 #Install-Module -Name Az.Accounts -AllowClobber -Scope CurrentUser
-Import-Module Az
+Import-Module Az.KeyVault
 $env:AzureTenantId = "8c1a4d93-d828-4d0e-9303-fd3bd611c822"
 Connect-AzAccount -Tenant $env:AzureTenantId
 $env:AzureClientId = Get-AzKeyVaultSecret -VaultName "fsdh-key-dev" -Name "devops-client-id" -AsPlainText
