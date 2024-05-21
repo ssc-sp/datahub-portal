@@ -53,6 +53,7 @@ def queue_sync_workspace_users_function(msg: func.ServiceBusMessage):
     """
     message_envelope = json.loads(msg.get_body().decode('utf-8'))
     workspace_definition = message_envelope['message']
+    workspace_definition = keys_upper(workspace_definition)
     logging.info("Synchronizing workspace users.")
     logging.info("Synchronizing databricks users.")
     sync_databricks_workspace_users_function(workspace_definition)
@@ -60,6 +61,29 @@ def queue_sync_workspace_users_function(msg: func.ServiceBusMessage):
     sync_keyvault_workspace_users_function(workspace_definition)
     logging.info("Successfully synchronized workspace users.")
     return None
+    
+def keys_upper(dictionary):
+    """
+    Converts the key's first letter in the dictionary to uppercase.
+
+    Args:
+        dict (dict): The dictionary.
+
+    Returns:
+        dict: The dictionary with uppercase first letter keys.
+
+    """
+    res = dict()
+    for key in dictionary.keys():
+        if isinstance(dictionary[key], dict):
+            res[key[0].upper()+key[1:]] = keys_upper(dictionary[key])
+        elif isinstance(dictionary[key], list):
+            if dictionary[key] and isinstance(dictionary[key][0], dict):
+                res[key[0].upper()+key[1:]] = [keys_upper(item) for item in dictionary[key]]
+        else:
+            res[key[0].upper()+key[1:]] = dictionary[key]
+    return res
+   
 
 
 def sync_databricks_workspace_users_function(workspace_definition):
@@ -130,9 +154,7 @@ def sync_storage_workspace_users_function(workspace_definition):
 
     # Cleanup users in workspace that aren't in AAD Graph
     #remove_deleted_users_in_workspace(workspace_client)
-    #synchronize_workspace_users(workspace_definition, workspace_client)    
-
-
+    #synchronize_workspace_users(workspace_definition, workspace_client) 
 
 # ####################################################################################
 # # Temporary function to run the sync function in INT and POC environments 
