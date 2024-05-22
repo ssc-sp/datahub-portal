@@ -7,7 +7,6 @@
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IDialogService DialogService
 @inject IMediator _mediator
-@inject ApplicationInsightsService _applicationInsightsService
 
 @if (isLoading)
     {
@@ -109,7 +108,6 @@ else
                 @foreach (var resourceType in _workspaceChecks)
                 {
                     var health = context.Value.FirstOrDefault(h => h.ResourceType == (InfrastructureHealthResourceType)resourceType);
-                    var details = _applicationInsightsService.GetHealthResultsAsync(health.Id.ToString());
                     if (health == null)
                     {
                         <MudTd>
