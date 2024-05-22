@@ -272,7 +272,7 @@
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync();
         var resource = await _webAppMgmtService.GetResource(ctx, WorkspaceAcronym);
-        if (!string.IsNullOrWhiteSpace(_appConfiguration.GitTokenSecretName))
+        if (_appConfiguration.IsGitRepoPrivate)
         {
             _appConfiguration.GitToken = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, _appConfiguration.GitTokenSecretName);
         }
