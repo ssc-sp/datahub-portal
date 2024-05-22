@@ -4,6 +4,7 @@ import lib.databricks_utils as dtb_utils
 import lib.azkeyvault_utils as azkv_utils
 import lib.azstorage_utils as azsg_utils
 import os
+import json
 
 #from lib.databricks_utils import get_workspace_client, remove_deleted_users_in_workspace, synchronize_workspace_users
 
@@ -38,22 +39,21 @@ def http_sync_workspace_users_function(req: func.HttpRequest) -> func.HttpRespon
     return func.HttpResponse("Successfully synchronized workspace users.")
 
 @app.function_name(name="SynchronizeWorkspaceUsersQueueTrigger")
-@app.service_bus_queue_trigger(arg_name="msg", queue_name="user-run-request", 
-                   connection="DatahubServiceBus__ConnectionString") # Queue Trigger
-
-def queue_sync_workspace_users_function(msg: func.QueueMessage) -> None:
+@app.service_bus_queue_trigger(arg_name="msg", queue_name="user-run-request", connection="DatahubServiceBus") # Queue Trigger
+def queue_sync_workspace_users_function(msg: func.ServiceBusMessage):
     """
     Synchronizes the users in the Databricks workspace with the users in the definition file.
 
     Args:
-        workspace_definition (QueueMessage): The workspace definition file.
+        workspace_definition (ServiceBusMessage): The workspace definition file.
 
     Returns:
         None
 
     """
-    message_envelope = msg.get_json()
+    message_envelope = json.loads(msg.get_body().decode('utf-8'))
     workspace_definition = message_envelope['message']
+    workspace_definition = keys_upper(workspace_definition)
     logging.info("Synchronizing workspace users.")
     logging.info("Synchronizing databricks users.")
     sync_databricks_workspace_users_function(workspace_definition)
@@ -61,6 +61,29 @@ def queue_sync_workspace_users_function(msg: func.QueueMessage) -> None:
     sync_keyvault_workspace_users_function(workspace_definition)
     logging.info("Successfully synchronized workspace users.")
     return None
+    
+def keys_upper(dictionary):
+    """
+    Converts the key's first letter in the dictionary to uppercase.
+
+    Args:
+        dict (dict): The dictionary.
+
+    Returns:
+        dict: The dictionary with uppercase first letter keys.
+
+    """
+    res = dict()
+    for key in dictionary.keys():
+        if isinstance(dictionary[key], dict):
+            res[key[0].upper()+key[1:]] = keys_upper(dictionary[key])
+        elif isinstance(dictionary[key], list):
+            if dictionary[key] and isinstance(dictionary[key][0], dict):
+                res[key[0].upper()+key[1:]] = [keys_upper(item) for item in dictionary[key]]
+        else:
+            res[key[0].upper()+key[1:]] = dictionary[key]
+    return res
+   
 
 
 def sync_databricks_workspace_users_function(workspace_definition):
@@ -131,9 +154,7 @@ def sync_storage_workspace_users_function(workspace_definition):
 
     # Cleanup users in workspace that aren't in AAD Graph
     #remove_deleted_users_in_workspace(workspace_client)
-    #synchronize_workspace_users(workspace_definition, workspace_client)    
-
-
+    #synchronize_workspace_users(workspace_definition, workspace_client) 
 
 # ####################################################################################
 # # Temporary function to run the sync function in INT and POC environments 
