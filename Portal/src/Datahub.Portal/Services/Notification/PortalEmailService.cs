@@ -7,6 +7,9 @@ using MimeKit;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Projects;
 using Microsoft.Graph.Models;
+using Datahub.Portal.Templates.Onboarding;
+using Datahub.Portal.Templates.FileSharing;
+using Datahub.Portal.Templates;
 
 namespace Datahub.Portal.Services.Notification;
 
