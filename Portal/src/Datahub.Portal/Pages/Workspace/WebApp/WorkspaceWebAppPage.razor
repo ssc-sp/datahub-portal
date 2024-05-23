@@ -272,7 +272,7 @@
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync();
         var resource = await _webAppMgmtService.GetResource(ctx, WorkspaceAcronym);
-        if (!string.IsNullOrWhiteSpace(_appConfiguration.GitTokenSecretName))
+        if (_appConfiguration.IsGitRepoPrivate)
         {
             _appConfiguration.GitToken = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, _appConfiguration.GitTokenSecretName);
         }
@@ -338,7 +338,15 @@
     {
         foreach (var envVar in envVars)
         {
-            await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, envVar.Key, envVar.Value);
+            try
+            {
+                await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, envVar.Key, envVar.Value);
+                _logger.LogInformation("Environment variable \"{envVar.Key}\"value stored");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to store environment variable \"{envVar.Key}\"");
+            }
         }
     }
 
@@ -346,7 +354,14 @@
     {
         if (!string.IsNullOrWhiteSpace(config.GitToken))
         {
-            await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, config.GitTokenSecretName, config.GitToken);
+            try
+            {
+                await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, config.GitTokenSecretName, config.GitToken);
+                _logger.LogInformation("Git token stored");
+            } catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to store git token");
+            }
         }
     }
 
