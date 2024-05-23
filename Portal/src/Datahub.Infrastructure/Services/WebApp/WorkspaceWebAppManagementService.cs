@@ -66,12 +66,22 @@ namespace Datahub.Infrastructure.Services.WebApp
 
             return false;
         }
+        
+        public async Task FillSystemConfiguration(string workspaceAcronym, AppServiceConfiguration config)
+        {
+            using var context = await _dbContextFactory.CreateDbContextAsync();
+            var projectResource = await GetResource(context, workspaceAcronym);
+            var json = JsonSerializer.Deserialize<Dictionary<string, string>>(projectResource.JsonContent);
+            config.Id = json["app_service_id"];
+            config.HostName = json["app_service_hostname"];
+        }
 
         public async Task SaveConfiguration(string workspaceAcronym, AppServiceConfiguration config)
         {
             using var context = await _dbContextFactory.CreateDbContextAsync();
+            
             var projectResource = await GetResource(context, workspaceAcronym);
-            var inputJson = JsonSerializer.Deserialize<Dictionary<string, dynamic>>(projectResource.InputJsonContent);
+            var inputJson = JsonSerializer.Deserialize<Dictionary<string, string>>(projectResource.InputJsonContent);
             inputJson["app_service_framework"] = config.Framework;
             inputJson["app_service_git_repo"] = config.GitRepo;
             inputJson["app_service_git_repo_visibility"] = config.IsGitRepoPrivate.ToString();
@@ -79,7 +89,7 @@ namespace Datahub.Infrastructure.Services.WebApp
             inputJson["app_service_compose_path"] = config.ComposePath;
             var jsonObject = JsonSerializer.Serialize(inputJson);
             projectResource.InputJsonContent = jsonObject;
-
+            
             await context.SaveChangesAsync();
         }
 

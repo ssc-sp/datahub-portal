@@ -11,25 +11,28 @@
         <MudText>
             @Localizer["Navigate to the Azure App Service to view your web application, where you can serve interactive and user-friendly dashboards."]
         </MudText>
-        <MudElement HtmlTag="div">
-            <MudButton
-                Href="@GetWebAppUrl()"
-                Target="_blank"
-                Color="Color.Primary"
-                Variant="@Variant.Text"
-                EndIcon="@SidebarIcons.External">
-                @Localizer["Navigate to Web App"]
-            </MudButton>
-        </MudElement>
-        <MudElement HtmlTag="div">
-            <MudButton
-                Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{PageRoutes.WebAppPrefix}")
-                Color="Color.Primary"
-                Variant="@Variant.Text"
-                EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
-                @Localizer["View Web App configuration"]
-            </MudButton>
-        </MudElement>
+        @if (ProjectResource.CreatedAt.HasValue)
+        {
+            <MudElement HtmlTag="div">
+                <MudButton
+                    Href="@GetWebAppUrl()"
+                    Target="_blank"
+                    Color="Color.Primary"
+                    Variant="@Variant.Text"
+                    EndIcon="@SidebarIcons.External">
+                    @Localizer["Navigate to Web App"]
+                </MudButton>
+            </MudElement>
+            <MudElement HtmlTag="div">
+                <MudButton
+                    Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{PageRoutes.WebAppPrefix}")
+                    Color="Color.Primary"
+                    Variant="@Variant.Text"
+                    EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
+                    @Localizer["View Web App configuration"]
+                </MudButton>
+            </MudElement>
+        }
     </MudStack>
 </MudPaper>
 
