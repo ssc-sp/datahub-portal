@@ -303,6 +303,7 @@
                 var envVars = resultData?.EnvVars;
 
                 await _webAppMgmtService.SaveConfiguration(WorkspaceAcronym, config!);
+                await _webAppMgmtService.FillSystemConfiguration(WorkspaceAcronym, config);
                 await SetGitToken(config);
                 await SaveEnvironmentVariableKeys(envVars);
                 await SetEnvironmentVariableValues(envVars);
