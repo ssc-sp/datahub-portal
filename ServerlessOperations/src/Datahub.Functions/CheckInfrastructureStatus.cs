@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Datahub.Application.Services;
 
 namespace Datahub.Functions;
 
@@ -31,7 +32,7 @@ public class CheckInfrastructureStatus(
     DatahubPortalConfiguration portalConfiguration,
     IConfiguration configuration,
     ISendEndpointProvider sendEndpointProvider,
-    ProjectStorageConfigurationService projectStorageConfigurationService)
+    IProjectStorageConfigurationService projectStorageConfigurationService)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<CheckInfrastructureStatus>();
     private readonly DatahubPortalConfiguration _portalConfiguration = portalConfiguration;
