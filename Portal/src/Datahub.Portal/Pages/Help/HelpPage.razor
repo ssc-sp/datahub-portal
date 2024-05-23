@@ -8,7 +8,7 @@
 @inject DatahubPortalConfiguration _portalConfiguration
 @inject IJSRuntime _jsRuntime
 @inject ILocalStorageService _localStorage
-@inject IMediator _mediatr
+@inject ISendEndpointProvider _sendEndpointProvider
 
 @using MudBlazor
 @using Datahub.Core.Components.Common
@@ -26,8 +26,11 @@
 @using System.Threading.Tasks;
 @using Datahub.Application.Services.Security
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Infrastructure.Extensions
 @using Datahub.Infrastructure.Queues.Messages
 @using Datahub.Infrastructure.Services.Security
+@using Datahub.Shared.Configuration
+@using MassTransit
 @using MediatR
 @using Newtonsoft.Json;
 @using Newtonsoft.Json.Linq;
@@ -380,7 +383,7 @@
             Description: _ticketDescription
         );
 
-        await _mediatr.Send(bugReport); // Send the bug report to the queue
+        await _sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.BugReportQueueName, bugReport);
         await DialogService.ShowMessageBox(Localizer["Success"], Localizer["Your support ticket has been created. Thank you!"], yesText: "OK");
         _currentStep = Steps.Start; // Reset the form
         StateHasChanged();
