@@ -11,6 +11,7 @@ namespace Datahub.Application.Services.WebApp
         public Task<bool> Restart(string webAppId);
         public Task<bool> GetState(string webAppId);
         public Task SaveConfiguration(string workspaceAcronym, AppServiceConfiguration configuration);
+        public Task FillSystemConfiguration(string workspaceAcronym, AppServiceConfiguration configuration);
         public Task Configure(string workspaceAcronym, AppServiceConfiguration configuration);
         public Task<Project_Resources2> GetResource(DatahubProjectDBContext dbContext, string workspaceAcronym);
         public Task<Project_Resources2> GetResource(string workspaceAcronym);
