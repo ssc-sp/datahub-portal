@@ -2,10 +2,12 @@
 @using System.Text.Json
 @using Datahub.Infrastructure.Queues.Messages
 @using Datahub.Core.Model.Projects;
-@using MediatR
+@using Datahub.Shared.Configuration
+@using Datahub.Infrastructure.Extensions;
+@using MassTransit
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IDialogService DialogService
-@inject IMediator _mediator
+@inject ISendEndpointProvider _sendEndpointProvider;
 
 <MudStack Spacing="6">
     <MudStack>
@@ -230,7 +232,8 @@
 
         try
         {
-            await _mediator.Send(request);
+            await _sendEndpointProvider.SendDatahubServiceBusMessage(
+                QueueConstants.InfrastructureHealthCheckQueueName, request);
         }
         catch (Exception ex)
         {
