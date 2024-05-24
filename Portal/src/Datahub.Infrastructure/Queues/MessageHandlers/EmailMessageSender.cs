@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 namespace Datahub.Infrastructure.Queues.MessageHandlers;
 
 public class EmailMessageSender(ISendEndpointProvider sendEndpointProvider)
-    : QueueMessageSender<BugReportMessage>(sendEndpointProvider)
+    : QueueMessageSender<EmailRequestMessage>(sendEndpointProvider)
 {
     protected override string ConfigPathOrQueueName => QueueConstants.EmailNotificationQueueName;
 }
