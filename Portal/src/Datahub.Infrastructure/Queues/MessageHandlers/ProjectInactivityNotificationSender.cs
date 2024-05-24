@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 namespace Datahub.Infrastructure.Queues.MessageHandlers
 {
     public class ProjectInactivityNotificationSender(ISendEndpointProvider sendEndpointProvider)
-        : QueueMessageSender<BugReportMessage>(sendEndpointProvider)
+        : QueueMessageSender<ProjectInactivityNotificationMessage>(sendEndpointProvider)
     {
 
         protected override string ConfigPathOrQueueName =>
