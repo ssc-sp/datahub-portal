@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 namespace Datahub.Infrastructure.Queues.MessageHandlers;
 
 public class InfrastructureHealthCheckSender(ISendEndpointProvider sendEndpointProvider)
-    : QueueMessageSender<BugReportMessage>(sendEndpointProvider)
+    : QueueMessageSender<InfrastructureHealthCheckMessage>(sendEndpointProvider)
 {
 
     protected override string ConfigPathOrQueueName => QueueConstants.InfrastructureHealthCheckQueueName;
