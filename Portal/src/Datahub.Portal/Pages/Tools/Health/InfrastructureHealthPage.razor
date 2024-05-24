@@ -36,6 +36,7 @@ else
                 <MudTh>@Localizer["Status"]</MudTh>
                 <MudTh>@Localizer["Updated"]</MudTh>
                 <MudTh>@Localizer["Run Check"]</MudTh>
+                <MudTh>History</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd>@context.ResourceType</MudTd>
@@ -48,6 +49,11 @@ else
                 <MudTd>
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
 						@Localizer["Run"]
+					</MudButton>
+                </MudTd>
+                <MudTd>                    
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="@(() => GetHealthCheckHistory(context.ResourceType, context.Name, context.Group))">
+						Get
 					</MudButton>
                 </MudTd>
             </RowTemplate>
@@ -137,7 +143,8 @@ else
 
 @code {
 
-
+    private History popupRef;
+    bool IsOpen = false;
     private Dictionary<string, List<InfrastructureHealthCheck>> _infrastructureHealth = new ();
     private List<InfrastructureHealthCheck> _coreInfrastructureHealth = new ();
     private List<InfrastructureHealthCheck> _queueInfrastructureHealth = new();
@@ -172,7 +179,7 @@ else
 
         var projects = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).Select(p => p.Project_Acronym_CD).ToList();
         _infrastructureHealth = new Dictionary<string, List<InfrastructureHealthCheck>>();
-
+        var stopper = 0;
         foreach (var acronym in projects)
         {
             var list = new List<InfrastructureHealthCheck>();
@@ -188,6 +195,8 @@ else
                 list.Add(output);
             }
             _infrastructureHealth.Add(acronym, list);
+            stopper++;
+            if (stopper > 10) break;
         }
 
         // Select the most recent core infrastructure health checks for each resource type
@@ -222,10 +231,32 @@ else
                 .GroupBy(h => h.Name)
                 .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
                 .ToList();
-                
+
         isLoading = false;
     }
 
+    private void GetHealthCheckHistory(InfrastructureHealthResourceType resourceType, string Name, string Group )
+    {
+        var list = new List<InfrastructureHealthCheck>();
+        var res = _projectDbContext.InfrastructureHealthCheckRuns
+            .Where(h => (_workspaceChecks.Contains(h.ResourceType)))
+            .Where(h => h.Group == Group)
+            .Where(h => (h.ResourceType == resourceType && h.Name.Contains(Name)))
+            .OrderByDescending(h => h.HealthCheckTimeUtc)
+            .ToList();
+
+        foreach (var output in res)
+        {
+            list.Add(output);
+        }
+        var parameters = new DialogParameters();
+        parameters.Add("HealthCheckList", list);
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium };
+
+        DialogService.Show<History>("History", parameters, options);
+    } 
+ 
     private async Task CallFunction(InfrastructureHealthResourceType type, string name, string group)
     {
         if (group == "all")

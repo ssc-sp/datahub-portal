@@ -165,7 +165,8 @@ public class CheckInfrastructureStatus(
             await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.BugReportQueueName, bugReport);
         }
 
-        await StoreResult(result);
+        await StoreResult(result);          // operational data
+        await StoreHealthCheckRun(result);  // historical data
 
         return new OkObjectResult(result);
     }
@@ -244,6 +245,19 @@ public class CheckInfrastructureStatus(
         }
 
         dbProjectContext.InfrastructureHealthChecks.Add(check);
+        await dbProjectContext.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Function that stores the result of an infrastructure health check in the database.
+    /// </summary>
+    /// <param name="result">the result of the health check result to upload</param>
+    /// <returns></returns>
+    private async Task StoreHealthCheckRun(InfrastructureHealthCheckResponse result)
+    {
+        var check = result.Check;
+
+        dbProjectContext.InfrastructureHealthCheckRuns.Add(check);
         await dbProjectContext.SaveChangesAsync();
     }
 

@@ -1,0 +1,54 @@
+﻿@using Datahub.Core.Model.Health
+<div class="toast-container p-3" data-bs-autohide="true" data-bs-delay="5000">
+    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+        </div>
+        <div class="toast-body" style="margin:2em;">
+            @if (HealthCheckList.Count == 0)
+            {
+                <p>No data</p>
+            }
+            else
+            {
+                <MudTable Items="@HealthCheckList" Hover Dense>
+                    <HeaderContent>
+                        <MudTh>Resource Type</MudTh>
+                        <MudTh>Name</MudTh>
+                        <MudTh>Group</MudTh>
+                        <MudTh>Status</MudTh>
+                        <MudTh>Date</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.ResourceType</MudTd>
+                        <MudTd>@context.Name</MudTd>
+                        <MudTd>@context.Group</MudTd>
+                        <MudTd>@context.Status.ToString()</MudTd>
+                        <MudTd>@context.HealthCheckTimeUtc</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public string? HeaderText { get; set; }
+    [Parameter] public List<InfrastructureHealthCheck> HealthCheckList { get; set; } = new List<InfrastructureHealthCheck>();
+
+    public void Show(string bodyText, string headerText = "")
+    {
+        HeaderText = headerText;
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        HeaderText = string.Empty;
+        IsVisible = false;
+        StateHasChanged();
+    }
+}
