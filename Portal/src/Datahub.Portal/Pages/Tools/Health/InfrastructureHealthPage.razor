@@ -29,8 +29,7 @@ else
         <MudText Typo="Typo.body1">
             @Localizer["View the health of the infrastructure that supports the application."]
         </MudText>
-
-        <MudTable Items="_coreInfrastructureHealth" Hover Dense>
+       <MudTable Items="_coreInfrastructureHealth" Hover Dense>
             <HeaderContent>
                 <MudTh>@Localizer["Resource"]</MudTh>
                 <MudTh>@Localizer["Status"]</MudTh>
@@ -38,7 +37,7 @@ else
                 <MudTh>@Localizer["Run Check"]</MudTh>
                 <MudTh>History</MudTh>
             </HeaderContent>
-            <RowTemplate>
+            <RowTemplate Context="context">
                 <MudTd>@context.ResourceType</MudTd>
                 <MudTd>
                     <MudChip Color="@GetColor(context)" Size="Size.Small">
@@ -47,17 +46,44 @@ else
                 </MudTd>
                 <MudTd>@context.HealthCheckTimeUtc</MudTd>
                 <MudTd>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
-						@Localizer["Run"]
-					</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
+                        @Localizer["Run"]
+                    </MudButton>
                 </MudTd>
-                <MudTd>                    
-                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="@(() => GetHealthCheckHistory(context.ResourceType, context.Name, context.Group))">
-						Get
-					</MudButton>
+                <MudTd>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="@(() => selectedContext = context)">
+                        Get
+                    </MudButton>
                 </MudTd>
             </RowTemplate>
         </MudTable>
+
+        <MudContainer>
+            <MudExpansionPanels MultiExpansion="true">
+                <MudExpansionPanel Text="History" Expanded="@(selectedContext != null)">
+                    <ChildContent>
+                        <MudTable Items="@GetHealthCheckHistory(selectedContext.ResourceType, selectedContext.Name, selectedContext.Group)" 
+                            T="InfrastructureHealthCheck" Hover Dense>
+                            <HeaderContent>
+                                <MudTh>Resource Type</MudTh>
+                                <MudTh>Name</MudTh>
+                                <MudTh>Group</MudTh>
+                                <MudTh>Status</MudTh>
+                                <MudTh>Date</MudTh>
+                            </HeaderContent>
+                            <RowTemplate Context="historyContext">
+                                <MudTd>@historyContext.ResourceType</MudTd>
+                                <MudTd>@historyContext.Name</MudTd>
+                                <MudTd>@historyContext.Group</MudTd>
+                                <MudTd>@historyContext.Status.ToString()</MudTd>
+                                <MudTd>@historyContext.HealthCheckTimeUtc</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </ChildContent>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </MudContainer>
+
     </MudStack>
 
     <MudStack>
@@ -166,6 +192,7 @@ else
     };
 
     public bool isLoading { get; set; } = false;
+    private InfrastructureHealthCheck selectedContext = new InfrastructureHealthCheck();
 
     protected override async Task OnInitializedAsync()
     {
@@ -235,7 +262,7 @@ else
         isLoading = false;
     }
 
-    private void GetHealthCheckHistory(InfrastructureHealthResourceType resourceType, string Name, string Group )
+    private List<InfrastructureHealthCheck> GetHealthCheckHistory(InfrastructureHealthResourceType resourceType, string Name, string Group )
     {
         var list = new List<InfrastructureHealthCheck>();
         var res = _projectDbContext.InfrastructureHealthCheckRuns
@@ -249,12 +276,13 @@ else
         {
             list.Add(output);
         }
-        var parameters = new DialogParameters();
-        parameters.Add("HealthCheckList", list);
+        return list;
+        // var parameters = new DialogParameters();
+        // parameters.Add("HealthCheckList", list);
 
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium };
+        // var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium };
 
-        DialogService.Show<History>("History", parameters, options);
+        // DialogService.Show<History>("History", parameters, options);
     } 
  
     private async Task CallFunction(InfrastructureHealthResourceType type, string name, string group)
