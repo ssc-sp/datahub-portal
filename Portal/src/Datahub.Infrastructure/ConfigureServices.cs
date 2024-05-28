@@ -7,6 +7,7 @@ using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Queues.MessageHandlers;
+using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
 using Datahub.Infrastructure.Services.CatalogSearch;
@@ -39,27 +40,42 @@ public static class ConfigureServices
         services.AddScoped<IAnnouncementService, AnnouncementService>();
         services.AddScoped<IDatahubEmailService, DatahubEmailService>();
         services.AddScoped<IDatabricksApiService, DatabricksApiService>();
-        services.AddScoped<IUsersStatusService,UsersStatusService>();
+        services.AddScoped<IUsersStatusService, UsersStatusService>();
         services.AddSingleton<IDatahubCatalogSearch, DatahubCatalogSearch>();
         services.AddScoped<IDatahubAzureSubscriptionService, DatahubAzureSubscriptionService>();
         services.AddScoped<IUserInformationService, UserInformationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
+        services.AddScoped<HealthCheckConsumer, HealthCheckConsumer>();
 
         if (configuration.GetValue<bool>("ReverseProxy:Enabled"))
         {
             services.AddTransient<IReverseProxyConfigService, ReverseProxyConfigService>();
             services.AddSingleton<IProxyConfigProvider, ProxyConfigProvider>();
         }
-
+        var whereAmI = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         services.AddMassTransit(x =>
         {
-            x.UsingAzureServiceBus((context, cfg) =>
+            if (!string.IsNullOrEmpty(whereAmI) && whereAmI.ToLower() == "development")
             {
-                cfg.Host(configuration["DatahubServiceBusConnectionString"]);
-                cfg.ConfigureEndpoints(context);
-            });
+                x.UsingInMemory((context, cfg) =>
+                {
+                    cfg.ConfigureEndpoints(context);
+                    cfg.ReceiveEndpoint("infrastructure-health-check", endpoint =>
+                    {
+                        endpoint.Consumer<HealthCheckConsumer>();
+                    });
+                });
+            }
+            else
+            {
+                x.UsingAzureServiceBus((context, cfg) =>
+                {
+                    cfg.Host(configuration["DatahubServiceBusConnectionString"]);
+                    cfg.ConfigureEndpoints(context);
+                });
+            }
         });
-        
+
         return services;
     }
 }
