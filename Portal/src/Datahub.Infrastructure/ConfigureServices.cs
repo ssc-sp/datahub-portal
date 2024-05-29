@@ -55,7 +55,7 @@ public static class ConfigureServices
         {
             x.UsingAzureServiceBus((context, cfg) =>
             {
-                cfg.Host(configuration["DatahubServiceBusConnectionString"]);
+                cfg.Host(configuration["DatahubServiceBus:ConnectionString"]);
                 cfg.ConfigureEndpoints(context);
             });
         });
