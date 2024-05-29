@@ -34,7 +34,7 @@ public static class ConfigureServices
         services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
         services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
         services.AddScoped<CloudStorageManagerFactory>();
-        services.AddSingleton<IResourceMessagingService, ResourceMessagingService>();
+        services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
         services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
         services.AddScoped<IAnnouncementService, AnnouncementService>();
         services.AddScoped<IDatahubEmailService, DatahubEmailService>();
@@ -55,7 +55,7 @@ public static class ConfigureServices
         {
             x.UsingAzureServiceBus((context, cfg) =>
             {
-                cfg.Host(configuration["DatahubServiceBus:ConnectionString"]);
+                cfg.Host(configuration["DatahubServiceBusConnectionString"]);
                 cfg.ConfigureEndpoints(context);
             });
         });
