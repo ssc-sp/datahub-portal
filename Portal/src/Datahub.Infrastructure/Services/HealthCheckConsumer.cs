@@ -42,7 +42,7 @@ namespace Datahub.Infrastructure.Services
             ISendEndpointProvider sendEndpointProvider,
             ProjectStorageConfigurationService projectStorageConfigurationService)
             {
-                _logger = loggerFactory.CreateLogger<CheckInfrastructureStatusService>();
+                _logger = loggerFactory.CreateLogger<HealthCheckConsumer>();
                 _projectStorageConfigurationService = projectStorageConfigurationService;
                 _projectDBContext = dbProjectContext;
                 _portalConfiguration = portalConfiguration;

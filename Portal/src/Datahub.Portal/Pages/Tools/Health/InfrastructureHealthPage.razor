@@ -29,7 +29,7 @@ else
         <MudText Typo="Typo.body1">
             @Localizer["View the health of the infrastructure that supports the application."]
         </MudText>
-       <MudTable Items="_coreInfrastructureHealth" Hover Dense>
+               <MudTable Items="_coreInfrastructureHealth" Hover Dense>
             <HeaderContent>
                 <MudTh>@Localizer["Resource"]</MudTh>
                 <MudTh>@Localizer["Status"]</MudTh>
@@ -38,54 +38,89 @@ else
                 <MudTh>History</MudTh>
             </HeaderContent>
             <RowTemplate Context="context">
-                <MudTd>@context.ResourceType</MudTd>
-                <MudTd>
-                    <MudChip Color="@GetColor(context)" Size="Size.Small">
-                        @Localizer[GetStatusText(context)]
-                    </MudChip>
-                </MudTd>
-                <MudTd>@context.HealthCheckTimeUtc</MudTd>
-                <MudTd>
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
-                        @Localizer["Run"]
-                    </MudButton>
-                </MudTd>
-                <MudTd>
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="@(() => selectedContext = context)">
-                        Get
-                    </MudButton>
-                </MudTd>
+                    @if (!IsExpanded(context))
+                    {  
+                    <MudTd>@context.ResourceType</MudTd>
+                    <MudTd>
+                        <MudChip Color="@GetColor(context)" Size="Size.Small">
+                            @Localizer[GetStatusText(context)]
+                        </MudChip>
+                    </MudTd>
+                    <MudTd>@context.HealthCheckTimeUtc</MudTd>
+                    <MudTd>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
+                            @Localizer["Run"]
+                        </MudButton>
+                    </MudTd>
+                    <MudTd>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" 
+                            OnClick="@(() => ToggleDetails(context))">
+                            @if (IsExpanded(context)) {
+                                <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowUp" />
+                            }
+                            else {
+                                <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowDown" />
+                            }
+                        </MudButton>
+                    </MudTd> 
+                    }
+                    <ChildRowContent>
+                    @if (IsExpanded(context))
+                    {            
+                        <MudTr>
+                            <MudTd>@context.ResourceType</MudTd>
+                    <MudTd>
+                        <MudChip Color="@GetColor(context)" Size="Size.Small">
+                            @Localizer[GetStatusText(context)]
+                        </MudChip>
+                    </MudTd>
+                    <MudTd>@context.HealthCheckTimeUtc</MudTd>
+                    <MudTd>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
+                            @Localizer["Run"]
+                        </MudButton>
+                    </MudTd>
+                    <MudTd>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" 
+                            OnClick="@(() => ToggleDetails(context))">
+                            @if (IsExpanded(context)) {
+                                <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowUp" />
+                            }
+                            else {
+                                <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowDown" />
+                            }
+                        </MudButton>
+                    </MudTd> 
+                        </MudTr>
+                        <MudTr>
+                            <MudTd ColSpan="5">
+                        <MudPaper>
+                            <MudTable Items="@GetHealthCheckHistory(selectedContext.ResourceType, selectedContext.Name, selectedContext.Group)" 
+                                T="InfrastructureHealthCheck" Hover Dense>
+                                <HeaderContent>
+                                    <MudTh>Resource Type</MudTh>
+                                    <MudTh>Name</MudTh>
+                                    <MudTh>Group</MudTh>
+                                    <MudTh>Status</MudTh>
+                                    <MudTh>Date</MudTh>
+                                </HeaderContent>
+                                <RowTemplate Context="historyContext">
+                                    <MudTd>@historyContext.ResourceType</MudTd>
+                                    <MudTd>@historyContext.Name</MudTd>
+                                    <MudTd>@historyContext.Group</MudTd>
+                                    <MudTd>@historyContext.Status.ToString()</MudTd>
+                                    <MudTd>@historyContext.HealthCheckTimeUtc</MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        </MudPaper>
+                        </MudTd>
+                        </MudTr>
+                    }
+                    </ChildRowContent>
             </RowTemplate>
         </MudTable>
-
-        <MudContainer>
-            <MudExpansionPanels MultiExpansion="true">
-                <MudExpansionPanel Text="History" Expanded="@(selectedContext != null)">
-                    <ChildContent>
-                        <MudTable Items="@GetHealthCheckHistory(selectedContext.ResourceType, selectedContext.Name, selectedContext.Group)" 
-                            T="InfrastructureHealthCheck" Hover Dense>
-                            <HeaderContent>
-                                <MudTh>Resource Type</MudTh>
-                                <MudTh>Name</MudTh>
-                                <MudTh>Group</MudTh>
-                                <MudTh>Status</MudTh>
-                                <MudTh>Date</MudTh>
-                            </HeaderContent>
-                            <RowTemplate Context="historyContext">
-                                <MudTd>@historyContext.ResourceType</MudTd>
-                                <MudTd>@historyContext.Name</MudTd>
-                                <MudTd>@historyContext.Group</MudTd>
-                                <MudTd>@historyContext.Status.ToString()</MudTd>
-                                <MudTd>@historyContext.HealthCheckTimeUtc</MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    </ChildContent>
-                </MudExpansionPanel>
-            </MudExpansionPanels>
-        </MudContainer>
-
+       
     </MudStack>
-
     <MudStack>
         <MudText Typo="Typo.h2">@Localizer["Queue Health"]</MudText>
         <MudText Typo="Typo.body1">
@@ -192,6 +227,8 @@ else
     };
 
     public bool isLoading { get; set; } = false;
+
+    private int? expandedRowId;
     private InfrastructureHealthCheck selectedContext = new InfrastructureHealthCheck();
 
     protected override async Task OnInitializedAsync()
@@ -376,5 +413,19 @@ else
             InfrastructureHealthStatus.Unhealthy => Color.Error,
             _ => Color.Default
         };
+    }
+    private bool IsExpanded(InfrastructureHealthCheck item){
+        return item.Id == expandedRowId;
+    }
+
+    private void ToggleDetails(InfrastructureHealthCheck item){
+        if (expandedRowId == item.Id) {
+            expandedRowId = null;
+            selectedContext = null;
+        }
+        else {
+            expandedRowId = item.Id;
+            selectedContext = item;
+        }
     }
 }
