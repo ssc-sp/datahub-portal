@@ -80,9 +80,9 @@ def synchronize_workspace(workspace_definition):
         sync_databricks_workspace_users_function(workspace_definition)
         all_synchronized = all_synchronized and True
     except Exception as e:
+        logging.exception(f"Error synchronizing databricks users for {workspace_name}.")
         last_exception = e
         all_synchronized = False
-        logging.error(f"Error synchronizing databricks users for {workspace_name}. {e}")
     #    return func.HttpResponse(f"Error synchronizing databricks users for {workspace_name}. {e}", status_code=500)    
     
     logging.info(f"Synchronizing keyvault users for {workspace_name}.")
@@ -90,18 +90,18 @@ def synchronize_workspace(workspace_definition):
         sync_keyvault_workspace_users_function(workspace_definition)
         all_synchronized = all_synchronized and True
     except Exception as e:
+        logging.exception(f"Error synchronizing keyvault users for {workspace_name}.")
         last_exception = e
         all_synchronized = False
-        logging.error(f"Error synchronizing keyvault users for {workspace_name}. {e}")
 
     logging.info(f"Synchronizing storage account policies for {workspace_name}")
     try:
         sync_storage_workspace_users_function(workspace_definition)
         all_synchronized = all_synchronized and True
     except Exception as e:
+        logging.exception(f"Error synchronizing storage account policies for {workspace_name}.")
         last_exception = e
         all_synchronized = False
-        logging.error(f"Error synchronizing storage account policies for {workspace_name}. {e}")
 
     if last_exception is not None:
         raise last_exception
