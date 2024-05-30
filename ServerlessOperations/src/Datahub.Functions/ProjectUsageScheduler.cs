@@ -86,7 +86,7 @@ public class ProjectUsageScheduler(
 
     private async Task<string> PostToBlob(List<DailyServiceCost> subCosts)
     {
-        var fileName = "costs-" + DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss") + ".json";
+        var fileName = "costs-" + DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss") +Guid.NewGuid()+ ".json";
         var blobServiceClient = new BlobServiceClient(_azConfig.MediaStorageConnectionString);
         var containerClient = blobServiceClient.GetBlobContainerClient("costs");
         var blobClient = containerClient.GetBlobClient(fileName);
