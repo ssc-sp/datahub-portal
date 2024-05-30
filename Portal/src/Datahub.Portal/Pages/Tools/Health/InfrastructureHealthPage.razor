@@ -9,6 +9,12 @@
 @inject IDialogService DialogService
 @inject ISendEndpointProvider _sendEndpointProvider;
 
+@if (isLoading)
+    {
+        <Spinner />
+    }
+else
+{
 <MudStack Spacing="6">
     <MudStack>
         <MudText Typo="Typo.h2">@Localizer["Infrastructure Health"]</MudText>
@@ -66,13 +72,13 @@
             <RowTemplate>
                 <MudTd>@context.Name</MudTd>
                 <MudTd>
-                    <MudChip Color="@GetColor(context.Status)" Size="Size.Small">
-                        @Localizer[context.Status.ToString()]
+                    <MudChip Color="@GetColor(context)" Size="Size.Small">
+                        @Localizer[GetStatusText(context)]
                     </MudChip>
                 </MudTd>
                 <MudTd>
-                    <MudChip Color="@GetColor(GetPoison(context).Status)" Size="Size.Small">
-                        @Localizer[GetPoison(context).Status.ToString()]
+                    <MudChip Color="@GetColor(GetPoison(context))" Size="Size.Small">
+                        @Localizer[GetStatusText(GetPoison(context))]
 					</MudChip>
                 </MudTd>
                 <MudTd>@context.HealthCheckTimeUtc</MudTd>
@@ -106,17 +112,21 @@
                     if (health == null)
                     {
                         <MudTd>
-							<MudChip Color="@GetColor(InfrastructureHealthStatus.Create)" Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
-								@Localizer["Create"]
+							<MudChip Color="@GetColor(InfrastructureHealthStatus.Undefined)" Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
+								@Localizer[InfrastructureHealthStatus.Undefined.ToString()]
 							</MudChip/>
                         </MudTd>
                     }
                     else
                     {
+                        var realStatus = GetRealStatus(health);
                         <MudTd>
-							<MudChip Color="@GetColor(health.Status)" Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
-								@Localizer[health.Status.ToString()]
+                            <MudTooltip Delay="600" Text="@health.HealthCheckTimeUtc.ToString()">
+							<MudChip Color="@GetColor(realStatus)" 
+                                Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
+								@Localizer[realStatus.ToString()]
 							</MudChip>
+                            </MudTooltip>
 						</MudTd>
                     }
                 }
@@ -124,6 +134,7 @@
         </MudTable>
     </MudStack>
 </MudStack>
+}
 
 @code {
 
@@ -148,10 +159,16 @@
         InfrastructureHealthResourceType.AzureWebApp,
     };
 
+    public bool isLoading { get; set; } = false;
 
-    protected override void OnInitialized()
+
+    protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
+
+        isLoading = true;
+
+        await Task.Delay(1);
 
         _projectDbContext = DbFactory.CreateDbContext();
 
@@ -207,6 +224,8 @@
                 .GroupBy(h => h.Name)
                 .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
                 .ToList();
+
+        isLoading = false;
     }
 
     private async Task CallFunction(InfrastructureHealthResourceType type, string name, string group)
@@ -257,6 +276,40 @@
 		return poison;
 	}
 
+    private static InfrastructureHealthStatus GetRealStatus(InfrastructureHealthCheck health)
+    {
+        var realStatus = health.Status; 
+        var timestamp = health.HealthCheckTimeUtc;
+        var now = DateTime.UtcNow;
+        if (health.Status == InfrastructureHealthStatus.Healthy)  
+        {
+            if (timestamp >= now.AddHours(-72)) 
+            {
+                realStatus = InfrastructureHealthStatus.Degraded; 
+            }
+            if (timestamp < now.AddHours(-72)) 
+            {
+                realStatus = InfrastructureHealthStatus.Unhealthy; 
+            }
+        }
+        if (health.Status == InfrastructureHealthStatus.Create)
+        {
+            realStatus = InfrastructureHealthStatus.NeedHealthCheckRun;
+        }
+        return realStatus;
+    }
+
+    private static string GetStatusText(InfrastructureHealthCheck health)
+    {
+        var realStatus = GetRealStatus(health);
+        return realStatus.ToString();
+    }
+
+    private static Color GetColor(InfrastructureHealthCheck health)
+    {
+        var realStatus = GetRealStatus(health);
+        return GetColor(realStatus);
+    }
     private static Color GetColor(InfrastructureHealthStatus status)
     {
         return status switch
