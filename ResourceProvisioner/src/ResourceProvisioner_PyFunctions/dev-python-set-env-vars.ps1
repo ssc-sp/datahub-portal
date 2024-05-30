@@ -22,6 +22,8 @@ function Read-VaultSecret($vault, $secretId)
 $env:AzureClientId = (Read-VaultSecret "fsdh-key-dev" "devops-client-id")
 $env:AzureClientSecret = (Read-VaultSecret "fsdh-key-dev" "devops-client-secret")
 $env:AzureTenantId = "8c1a4d93-d828-4d0e-9303-fd3bd611c822"
+$env:AzureSubscriptionId = (Read-VaultSecret "fsdh-key-dev" "datahub-portal-subscription-id")
 $env:DatahubServiceBus = (Read-VaultSecret "fsdh-key-dev" "service-bus-connection-string")
-
+$env:Datahub_ENVNAME = "dev"
 Write-Output "Environment variables set"
+Write-Output "Use 'func start' to start the function app locally"
