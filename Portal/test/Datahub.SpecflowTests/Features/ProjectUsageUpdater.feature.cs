@@ -215,6 +215,37 @@ this.ScenarioInitialize(scenarioInfo);
             await this.ScenarioCleanupAsync();
         }
         
+        [Xunit.SkippableFactAttribute(DisplayName="When a project usage is queued, the blob download should work properly")]
+        [Xunit.TraitAttribute("FeatureTitle", "ProjectUsageUpdater")]
+        [Xunit.TraitAttribute("Description", "When a project usage is queued, the blob download should work properly")]
+        public async System.Threading.Tasks.Task WhenAProjectUsageIsQueuedTheBlobDownloadShouldWorkProperly()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("When a project usage is queued, the blob download should work properly", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 28
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 29
+ await testRunner.GivenAsync("a project usage update message", ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 30
+ await testRunner.WhenAsync("the subscription costs are downloaded", ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 31
+ await testRunner.ThenAsync("the blob download should work properly", ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
         [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "1.0.0.0")]
         [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
         public class FixtureData : object, Xunit.IAsyncLifetime
