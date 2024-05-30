@@ -45,7 +45,7 @@ else
                         @Localizer[context.Status.ToString()]
                     </MudChip>
                 </MudTd>
-                <MudTd>@context.HealthCheckTimeUtc</MudTd>
+                <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
                 <MudTd>
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
 						@Localizer["Run"]
@@ -81,7 +81,7 @@ else
                         @Localizer[GetStatusText(GetPoison(context))]
 					</MudChip>
                 </MudTd>
-                <MudTd>@context.HealthCheckTimeUtc</MudTd>
+                <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
                     <MudTd>
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
                             @Localizer["Run"]
@@ -120,8 +120,9 @@ else
                     else
                     {
                         var realStatus = GetRealStatus(health);
+                        var realtTime = health.HealthCheckTimeUtc.ToLocalTime().ToString();
                         <MudTd>
-                            <MudTooltip Delay="600" Text="@health.HealthCheckTimeUtc.ToString()">
+                            <MudTooltip Delay="600" Text="@realtTime">
 							<MudChip Color="@GetColor(realStatus)" 
                                 Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
 								@Localizer[realStatus.ToString()]
