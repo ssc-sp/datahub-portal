@@ -15,17 +15,17 @@ public class MediaController : Controller
         .GetBytes(128)
         .Select(b => b.ToString("X2"))
         .Aggregate((a, b) => a + b);
-    
+
     private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
     private readonly ILogger<MediaController> _logger;
-    
+
 
     public MediaController(DatahubPortalConfiguration datahubPortalConfiguration, ILogger<MediaController> logger)
     {
         _datahubPortalConfiguration = datahubPortalConfiguration;
         _logger = logger;
     }
-    
+
     /// <summary>
     /// Redirect the video mp4 to the azure storage blob and return the video stream.
     /// </summary>
@@ -40,7 +40,7 @@ public class MediaController : Controller
             .CreateCloudBlobClient()
             .GetContainerReference("media")
             .GetBlockBlobReference(filePath);
-            
+
         var sasToken = blobReference
             .GetSharedAccessSignature(new SharedAccessBlobPolicy
             {
@@ -48,7 +48,7 @@ public class MediaController : Controller
                 SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-5),
                 SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(5)
             });
-        
+
         var sasUrl = blobReference.Uri + sasToken;
         return Redirect(sasUrl);
     }
@@ -80,6 +80,64 @@ public class MediaController : Controller
         return Redirect(sasUrl);
     }
 
+    [HttpGet("api/reports/{**filePath}")]
+    [Authorize]
+    public IActionResult GetReport(string filePath)
+    {
+        if (_datahubPortalConfiguration?.Media?.StorageConnectionString is null)
+            return Unauthorized("No token available");
+        var blobReference = CloudStorageAccount.Parse(_datahubPortalConfiguration.Media.StorageConnectionString)
+            .CreateCloudBlobClient()
+            .GetContainerReference("reports")
+            .GetBlockBlobReference(filePath);
+        var sasToken = blobReference
+            .GetSharedAccessSignature(new SharedAccessBlobPolicy
+            {
+                Permissions = SharedAccessBlobPermissions.Read,
+                SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-5),
+                SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(5)
+            });
+
+        var sasUrl = blobReference.Uri + sasToken;
+        return Redirect(sasUrl);
+    }
+
+    [HttpPost("api/reports/upload")]
+    public async Task<IActionResult> PostReport()
+    {
+        if (Request.Form.Files.Count == 0)
+        {
+            return BadRequest("No files uploaded");
+        }
+
+        if (Request.Form.Files.Count > 1)
+        {
+            return BadRequest("Cannot upload more than one file at a time");
+        }
+
+        var tokenString = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+        if (tokenString != PostMediaSaltySecret)
+        {
+            return Unauthorized();
+        }
+
+        var file = Request.Form.Files[0];
+        var filePath = "/report-" + Guid.NewGuid() + Path.GetExtension(file.FileName);
+        try
+        {
+            var blobServiceClient = new BlobServiceClient(_datahubPortalConfiguration.Media.StorageConnectionString);
+            var containerClient = blobServiceClient.GetBlobContainerClient("reports");
+            var blobClient = containerClient.GetBlobClient(filePath);
+            await blobClient.UploadAsync(file.OpenReadStream());
+            return Ok("/api/reports/" + filePath);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
+    }
+
     [HttpPost("api/media/upload")]
     //[Authorize]
     public async Task<IActionResult> PostMedia()
@@ -88,11 +146,12 @@ public class MediaController : Controller
         {
             return BadRequest("No files uploaded");
         }
+
         if (Request.Form.Files.Count > 1)
         {
             return BadRequest("Cannot upload more than one file at a time");
         }
-        
+
         // validate the jwt bearer token to ensure the user is authenticated
         var tokenString = Request.Headers["Authorization"].ToString().Split(" ")[1];
 
@@ -100,9 +159,9 @@ public class MediaController : Controller
         {
             return Unauthorized();
         }
-        
+
         var file = Request.Form.Files[0];
-        var filePath = "/uploads/upload-" + Guid.NewGuid()+Path.GetExtension(file.FileName);
+        var filePath = "/uploads/upload-" + Guid.NewGuid() + Path.GetExtension(file.FileName);
         try
         {
             var blobServiceClient = new BlobServiceClient(_datahubPortalConfiguration.Media.StorageConnectionString);
