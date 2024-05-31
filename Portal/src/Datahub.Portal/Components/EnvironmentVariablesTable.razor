@@ -3,6 +3,7 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Application.Services.Security
+@using Datahub.Application.Services.UserManagement
 @using Microsoft.Identity.Web
 
 @inject IKeyVaultUserService _keyVaultUserService
@@ -36,7 +37,7 @@
               RowEditCommit="@HandleRowEditCommit">
 
         <ToolBarContent>
-            <MudText Typo="Typo.h3" Class="mt-6">
+            <MudText Typo="Typo.h2" Class="mt-4">
                 @Localizer["Environment variables"]
             </MudText>
             <MudSpacer/>
@@ -107,7 +108,7 @@ else
               SortLabel="@Localizer["Sort by"]">
 
         <ToolBarContent>
-            <MudText Typo="Typo.h3" Class="mt-6">
+            <MudText Typo="Typo.h2" Class="mt-6">
                 @Localizer["Environment variables"]
             </MudText>
             <MudSpacer/>

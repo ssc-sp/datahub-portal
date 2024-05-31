@@ -1,25 +1,20 @@
-﻿using Datahub.Infrastructure.Queues.Messages;
-using MediatR;
+﻿using Datahub.Infrastructure.Extensions;
+using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Configuration;
+using MassTransit;
 
 namespace Datahub.Infrastructure.Services;
 
-public class QueuePongService
+public class QueuePongService(ISendEndpointProvider sendEndpointProvider)
 {
-    private readonly IMediator _mediator;
-
-    public QueuePongService(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
-    const string PING = "PING:";
+    private const string Ping = "PING:";
 
     public async Task<bool> Pong(string message)
     {
-        var isPing = (message ?? "").StartsWith(PING, StringComparison.OrdinalIgnoreCase);
+        var isPing = (message ?? "").StartsWith(Ping, StringComparison.OrdinalIgnoreCase);
         if (isPing)
         {
-            await _mediator.Send(new PongMessage(message![PING.Length..].Trim()));
+            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.PongQueueName, new PongMessage(message![Ping.Length..].Trim()));
         }
         return isPing;
     }

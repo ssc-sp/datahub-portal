@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Text;
 using Azure.Core;
 using Datahub.Shared.Clients;
-using LibGit2Sharp;
+using Reqnroll;
 using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Infrastructure.Common;
-using TechTalk.SpecFlow;
 using Xunit;
 
 namespace ResourceProvisioner.SpecflowTests.Steps
@@ -37,7 +32,7 @@ namespace ResourceProvisioner.SpecflowTests.Steps
         public async Task WhenItRequestsAnAccessToken()
         {
             var azureDevOpsClient = new AzureDevOpsClient(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
-            var accessToken = await azureDevOpsClient.GetAccessToken();
+            var accessToken = await azureDevOpsClient.AccessTokenAsync();
             
             scenarioContext["accessToken"] = accessToken;
         }

@@ -1,38 +1,36 @@
 using System.Text.Json;
+using Azure.Messaging.ServiceBus;
+using Datahub.Shared.Configuration;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using FluentValidation;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using ResourceProvisioner.Application.Services;
 
 namespace ResourceProvisioner.Functions;
 
-public class ResourceRunRequest
+public class ResourceRunRequest(ILoggerFactory loggerFactory, IRepositoryService repositoryService)
 {
-    private readonly IConfiguration _configuration;
-    private readonly CreateResourceRunCommandHandler _commandHandler;
-    private readonly ILogger<ResourceRunRequest> _logger;
+    private readonly ILogger<ResourceRunRequest> _logger = loggerFactory.CreateLogger<ResourceRunRequest>();
 
-    public ResourceRunRequest(ILoggerFactory loggerFactory, IConfiguration configuration, CreateResourceRunCommandHandler commandHandler)
-    {
-        _logger = loggerFactory.CreateLogger<ResourceRunRequest>();
-        _configuration = configuration;
-        _commandHandler = commandHandler;
-    }
-    
     [Function("ResourceRunRequest")]
-    public async Task RunAsync([QueueTrigger("resource-run-request", Connection = "ResourceRunRequestConnectionString")] string myQueueItem)
+    public async Task RunAsync(
+        [ServiceBusTrigger(QueueConstants.ResourceRunRequestQueueName, Connection = "DatahubServiceBus:ConnectionString")]
+        ServiceBusReceivedMessage myQueueItem)
     {
         _logger.LogInformation("C# Queue trigger function started");
         
         var deserializeOptions = new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
         };
-        var resourceRun = JsonSerializer.Deserialize<CreateResourceRunCommand>(myQueueItem, deserializeOptions);
+        
+        var messageEnvelope = await JsonDocument.ParseAsync(myQueueItem.Body.ToStream());
+        messageEnvelope.RootElement.TryGetProperty("message", out var message);
+        var resourceRun = message.Deserialize<CreateResourceRunCommand>(deserializeOptions);
         
         var resourceRunCommandValidator = new CreateResourceRunCommandValidator();
-        var validationResult = await resourceRunCommandValidator.ValidateAsync(resourceRun);
+        var validationResult = await resourceRunCommandValidator.ValidateAsync(resourceRun!);
         if (!validationResult.IsValid)
         {
             _logger.LogError("Validation failed: {Errors}", validationResult.Errors.ToString());
@@ -41,7 +39,8 @@ public class ResourceRunRequest
 
         try
         {
-            await _commandHandler.Handle(resourceRun!, CancellationToken.None);
+            var pullRequestMessage = await repositoryService.HandleResourcing(resourceRun!);
+            _logger.LogInformation("Resource run request processed successfully {PullRequestMessage}", pullRequestMessage);
         }
         catch (Exception e)
         {

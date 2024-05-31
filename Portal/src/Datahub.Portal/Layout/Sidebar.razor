@@ -1,11 +1,12 @@
 @*Sidebar.razor*@
+@using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Data
 @using Datahub.Core.Services.Docs;
-@using Datahub.Core.Services.Security;
 @using Datahub.Core.Utils
+@using Datahub.Infrastructure.Services.Security
 @using MudBlazor.Utilities
 
-@inject ServiceAuthManager ServiceAuthManager
+@inject IServiceAuthManager ServiceAuthManager
 @inject IUserInformationService _userInformationService
 @inject IConfiguration Configuration
 @inject DocumentationService documentationService
@@ -13,7 +14,7 @@
 @inject ILogger<Sidebar> logger
 
 <MudNavMenu Bordered>
-    <div class="reader-only" id="nav">
+    <div class="sr-only" id="nav">
         <h3>@Localizer["Navigation menu"]</h3>
     </div>
     @foreach (var (href, icon, label,_, showDotBadge) in GetLinks().Where(t => t.enabled))
