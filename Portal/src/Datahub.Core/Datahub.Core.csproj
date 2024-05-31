@@ -30,7 +30,6 @@
 		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22329.4-beta" />
 		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
 		<PackageReference Include="AElemental.Blazor.Theme" Version="1.6.22173.2" />
-		<PackageReference Include="AngleSharp" Version="1.0.4" />
 		<PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="4.0.1" />
 		<PackageReference Include="Azure.Identity" Version="1.11.0" />
 		<PackageReference Include="Azure.Search.Documents" Version="11.4.0" />
@@ -101,10 +100,6 @@
 		<ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
 		<ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
 	</ItemGroup>
-	<ItemGroup>
-		<Folder Include="Components\PageAlerts\" />
-	</ItemGroup>
-
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
 		<Copy SourceFiles="@(GitHookFiles)" DestinationFolder="../.git/hooks/" SkipUnchangedFiles="true" />

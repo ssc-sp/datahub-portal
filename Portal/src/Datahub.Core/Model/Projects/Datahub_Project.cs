@@ -354,7 +354,12 @@ public class Datahub_Project : IComparable<Datahub_Project>
         return "On Hold";
     }
 
-    [AeFormIgnore]
+    /// <summary>
+    /// Converts a Datahub_Project object to a TerraformWorkspace object.
+    /// </summary>
+    /// <param name="users">The list of TerraformUser objects.</param>
+    /// <exception cref="InvalidOperationException">Throws an exception when the Datahub Azure Subscription is not included</exception>
+    /// <returns>A TerraformWorkspace object populated with values from the Datahub_Project object.</returns>
     public TerraformWorkspace ToResourceWorkspace(List<TerraformUser> users)
     {
         return new TerraformWorkspace()
@@ -368,7 +373,8 @@ public class Datahub_Project : IComparable<Datahub_Project>
                 Name = Branch_Name ?? "TODO",
                 Code = "TODO"
             },
-            Users = users
+            Users = users,
+            SubscriptionId = DatahubAzureSubscription?.SubscriptionId ?? throw new InvalidOperationException("Azure subscription not found.")
         };
     }
 }

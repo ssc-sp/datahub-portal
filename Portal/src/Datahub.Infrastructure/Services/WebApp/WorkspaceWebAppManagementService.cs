@@ -7,8 +7,11 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services.WebApp;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
+using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
+using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,15 +21,15 @@ namespace Datahub.Infrastructure.Services.WebApp
     {
         private readonly ArmClient _armClient;
         private readonly DatahubPortalConfiguration _portalConfiguration;
-        private readonly IMediator _mediatr;
+        private readonly ISendEndpointProvider _sendEndpointProvider;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 
         public WorkspaceWebAppManagementService(DatahubPortalConfiguration portalConfiguration,
-            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IMediator mediatr)
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, ISendEndpointProvider sendEndpointProvider)
         {
             _portalConfiguration = portalConfiguration;
             _dbContextFactory = dbContextFactory;
-            _mediatr = mediatr;
+            _sendEndpointProvider = sendEndpointProvider;
             var credential = new ClientSecretCredential(_portalConfiguration.AzureAd.TenantId,
                 _portalConfiguration.AzureAd.InfraClientId, _portalConfiguration.AzureAd.InfraClientSecret);
             _armClient = new ArmClient(credential);
@@ -63,12 +66,22 @@ namespace Datahub.Infrastructure.Services.WebApp
 
             return false;
         }
+        
+        public async Task FillSystemConfiguration(string workspaceAcronym, AppServiceConfiguration config)
+        {
+            using var context = await _dbContextFactory.CreateDbContextAsync();
+            var projectResource = await GetResource(context, workspaceAcronym);
+            var json = JsonSerializer.Deserialize<Dictionary<string, string>>(projectResource.JsonContent);
+            config.Id = json["app_service_id"];
+            config.HostName = json["app_service_hostname"];
+        }
 
         public async Task SaveConfiguration(string workspaceAcronym, AppServiceConfiguration config)
         {
             using var context = await _dbContextFactory.CreateDbContextAsync();
+            
             var projectResource = await GetResource(context, workspaceAcronym);
-            var inputJson = JsonSerializer.Deserialize<Dictionary<string, dynamic>>(projectResource.InputJsonContent);
+            var inputJson = JsonSerializer.Deserialize<Dictionary<string, string>>(projectResource.InputJsonContent);
             inputJson["app_service_framework"] = config.Framework;
             inputJson["app_service_git_repo"] = config.GitRepo;
             inputJson["app_service_git_repo_visibility"] = config.IsGitRepoPrivate.ToString();
@@ -76,14 +89,15 @@ namespace Datahub.Infrastructure.Services.WebApp
             inputJson["app_service_compose_path"] = config.ComposePath;
             var jsonObject = JsonSerializer.Serialize(inputJson);
             projectResource.InputJsonContent = jsonObject;
-
+            
             await context.SaveChangesAsync();
         }
 
         public async Task Configure(string workspaceAcronym, AppServiceConfiguration configuration)
         {
             var message = new WorkspaceAppServiceConfigurationMessage(workspaceAcronym, configuration);
-            await _mediatr.Send(message);
+            await _sendEndpointProvider.SendDatahubServiceBusMessage(
+                QueueConstants.WorkspaceAppServiceConfigurationQueueName, message);
         }
 
         private async Task<WebSiteResource> GetWebAppAzureResource(string webAppId)

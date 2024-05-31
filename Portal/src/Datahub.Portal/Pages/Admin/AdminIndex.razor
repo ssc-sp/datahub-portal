@@ -1,5 +1,5 @@
 ﻿@inject IUserInformationService _userInformationService
-@inject ServiceAuthManager _serviceAuthManager
+@inject IServiceAuthManager _serviceAuthManager
 @inject ILogger<AdminIndex> _logger
 @inject ISnackbar _snackbar
 @inject ITokenAcquisition _tokenAcquisition
@@ -8,12 +8,14 @@
 
 @page "/administration"
 @page "/admin"
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Infrastructure.Services.Security
 @using Microsoft.Identity.Web;
 @using Microsoft.Rest;    
 
 <DHPageTitle PageTitleKey="@Localizer["Admin"]" />
 
-<MudText Typo="Typo.h1">@Localizer["DataHub Administration"]</MudText>
+<MudText Typo="Typo.h2">@Localizer["DataHub Administration"]</MudText>
 
 @if (_authorizedRoles?.Count > 0)
 {

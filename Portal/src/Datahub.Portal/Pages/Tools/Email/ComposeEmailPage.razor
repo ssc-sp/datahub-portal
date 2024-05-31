@@ -1,4 +1,5 @@
 ﻿@using Datahub.Application.Services.Notifications;
+@using Datahub.Application.Services.UserManagement
 @using Markdig
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -12,7 +13,7 @@
 <MudStack Class="mb-4">
     @*title*@
     <MudStack Row Justify="Justify.SpaceBetween">
-        <MudText Typo="Typo.h1">@Localizer["DataHub Email"]</MudText>
+        <MudText Typo="Typo.h2">@Localizer["DataHub Email"]</MudText>
         <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@NavigateBack"></MudIconButton>
     </MudStack>
 

@@ -2,8 +2,11 @@ using BoDi;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using Reqnroll;
 using ResourceProvisioner.Application.Config;
+using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Application.Services;
+using ResourceProvisioner.Functions;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
 
@@ -17,6 +20,7 @@ public class Hooks
     {
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.test.json", optional: true)
+            .AddUserSecrets<Hooks>()
             .Build();
 
         var resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
@@ -58,4 +62,27 @@ public class Hooks
         }
         
     }
+    
+    [BeforeScenario("resource-run-function")]
+    public void BeforeScenarioRequiringResourceRunFunction(IObjectContainer objectContainer, ScenarioContext scenarioContext)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.test.json", optional: true)
+            .Build();
+
+        var resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
+        configuration.Bind(resourceProvisionerConfiguration);
+        
+        var loggerFactory = Substitute.For<ILoggerFactory>();
+        loggerFactory.CreateLogger<ResourceRunRequest>().Returns(Substitute.For<ILogger<ResourceRunRequest>>());
+        var substituteRepositoryService = Substitute.For<IRepositoryService>();
+        var resourceRunRequest = new ResourceRunRequest(
+            loggerFactory,
+            substituteRepositoryService);
+        
+        // register dependencies
+        objectContainer.RegisterInstanceAs(resourceProvisionerConfiguration);
+        objectContainer.RegisterInstanceAs(resourceRunRequest);
+    }
+    
 }
