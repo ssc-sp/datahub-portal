@@ -11,11 +11,10 @@
     "extensions": {
         "serviceBus": {
             "prefetchCount": 32,
-            "messageHandlerOptions": {
-                "autoComplete": true,
-                "maxConcurrentCalls": 32,
-                "maxAutoRenewDuration": "00:30:00"
-            }
+            "autoCompleteMessages": true,
+            "maxConcurrentCalls": 32,
+            "maxAutoLockRenewalDuration": "00:30:00",
+            "transportType": "amqpWebSockets"
         }
     }
 }
