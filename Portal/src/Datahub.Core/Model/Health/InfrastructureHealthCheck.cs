@@ -54,7 +54,9 @@ public enum InfrastructureHealthStatus
     Expired,
     Healthy,
     Degraded,
-    Unhealthy
+    Unhealthy,
+    Undefined,
+    NeedHealthCheckRun
 }
 
 /// <summary>
