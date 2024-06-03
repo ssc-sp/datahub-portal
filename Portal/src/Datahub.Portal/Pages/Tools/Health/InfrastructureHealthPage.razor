@@ -3,6 +3,7 @@
 @using Datahub.Core.Services.Api
 @using Datahub.Infrastructure.Queues.Messages
 @using Datahub.Core.Model.Projects;
+@using Datahub.Infrastructure.Services;
 @using MediatR
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IDialogService DialogService
@@ -35,11 +36,8 @@ else
                 <MudTh>@Localizer["Status"]</MudTh>
                 <MudTh>@Localizer["Updated"]</MudTh>
                 <MudTh>@Localizer["Run Check"]</MudTh>
-                <MudTh>History</MudTh>
             </HeaderContent>
             <RowTemplate Context="context">
-                    @if (!IsExpanded(context))
-                    {  
                     <MudTd>@context.ResourceType</MudTd>
                     <MudTd>
                         <MudChip Color="@GetColor(context)" Size="Size.Small">
@@ -51,72 +49,7 @@ else
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
                             @Localizer["Run"]
                         </MudButton>
-                    </MudTd>
-                    <MudTd>
-                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" 
-                            OnClick="@(() => ToggleDetails(context))">
-                            @if (IsExpanded(context)) {
-                                <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowUp" />
-                            }
-                            else {
-                                <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowDown" />
-                            }
-                        </MudButton>
-                    </MudTd> 
-                    }
-                    <ChildRowContent>
-                    @if (IsExpanded(context))
-                    {            
-                        <MudTr>
-                            <MudTd>@context.ResourceType</MudTd>
-                    <MudTd>
-                        <MudChip Color="@GetColor(context)" Size="Size.Small">
-                            @Localizer[GetStatusText(context)]
-                        </MudChip>
-                    </MudTd>
-                    <MudTd>@context.HealthCheckTimeUtc</MudTd>
-                    <MudTd>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
-                            @Localizer["Run"]
-                        </MudButton>
-                    </MudTd>
-                    <MudTd>
-                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" 
-                            OnClick="@(() => ToggleDetails(context))">
-                            @if (IsExpanded(context)) {
-                                <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowUp" />
-                            }
-                            else {
-                                <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowDown" />
-                            }
-                        </MudButton>
-                    </MudTd> 
-                        </MudTr>
-                        <MudTr>
-                            <MudTd ColSpan="5">
-                        <MudPaper>
-                            <MudTable Items="@GetHealthCheckHistory(selectedContext.ResourceType, selectedContext.Name, selectedContext.Group)" 
-                                T="InfrastructureHealthCheck" Hover Dense>
-                                <HeaderContent>
-                                    <MudTh>Resource Type</MudTh>
-                                    <MudTh>Name</MudTh>
-                                    <MudTh>Group</MudTh>
-                                    <MudTh>Status</MudTh>
-                                    <MudTh>Date</MudTh>
-                                </HeaderContent>
-                                <RowTemplate Context="historyContext">
-                                    <MudTd>@historyContext.ResourceType</MudTd>
-                                    <MudTd>@historyContext.Name</MudTd>
-                                    <MudTd>@historyContext.Group</MudTd>
-                                    <MudTd>@historyContext.Status.ToString()</MudTd>
-                                    <MudTd>@historyContext.HealthCheckTimeUtc</MudTd>
-                                </RowTemplate>
-                            </MudTable>
-                        </MudPaper>
-                        </MudTd>
-                        </MudTr>
-                    }
-                    </ChildRowContent>
+                    </MudTd>                    
             </RowTemplate>
         </MudTable>
        
@@ -204,8 +137,6 @@ else
 
 @code {
 
-    private History popupRef;
-    bool IsOpen = false;
     private Dictionary<string, List<InfrastructureHealthCheck>> _infrastructureHealth = new ();
     private List<InfrastructureHealthCheck> _coreInfrastructureHealth = new ();
     private List<InfrastructureHealthCheck> _queueInfrastructureHealth = new();
@@ -243,7 +174,7 @@ else
 
         var projects = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).Select(p => p.Project_Acronym_CD).ToList();
         _infrastructureHealth = new Dictionary<string, List<InfrastructureHealthCheck>>();
-        var stopper = 0;
+
         foreach (var acronym in projects)
         {
             var list = new List<InfrastructureHealthCheck>();
@@ -259,8 +190,6 @@ else
                 list.Add(output);
             }
             _infrastructureHealth.Add(acronym, list);
-            stopper++;
-            if (stopper > 10) break;
         }
 
         // Select the most recent core infrastructure health checks for each resource type
@@ -314,12 +243,6 @@ else
             list.Add(output);
         }
         return list;
-        // var parameters = new DialogParameters();
-        // parameters.Add("HealthCheckList", list);
-
-        // var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium };
-
-        // DialogService.Show<History>("History", parameters, options);
     } 
  
     private async Task CallFunction(InfrastructureHealthResourceType type, string name, string group)
@@ -413,19 +336,5 @@ else
             InfrastructureHealthStatus.Unhealthy => Color.Error,
             _ => Color.Default
         };
-    }
-    private bool IsExpanded(InfrastructureHealthCheck item){
-        return item.Id == expandedRowId;
-    }
-
-    private void ToggleDetails(InfrastructureHealthCheck item){
-        if (expandedRowId == item.Id) {
-            expandedRowId = null;
-            selectedContext = null;
-        }
-        else {
-            expandedRowId = item.Id;
-            selectedContext = item;
-        }
     }
 }

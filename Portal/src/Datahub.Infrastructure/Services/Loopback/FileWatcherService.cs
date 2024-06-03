@@ -1,115 +1,132 @@
-using Azure.Security.KeyVault.Secrets;
 using Azure.Identity;
-using Azure.Messaging.ServiceBus;
+using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Queues;
 using Datahub.Application.Configuration;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Health;
 using Datahub.Core.Utils;
-using Datahub.Functions.Extensions;
-using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Shared.Configuration;
-using MassTransit;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Services.WebApi;
+using System.Text.Json;
 
-namespace Datahub.Functions;
+namespace Datahub.Infrastructure.Services;
 
-public class CheckInfrastructureStatus(
-    ILoggerFactory loggerFactory,
-    DatahubProjectDBContext dbProjectContext,
-    AzureConfig azureConfig,
-    IHttpClientFactory httpClientFactory,
-    DatahubPortalConfiguration portalConfiguration,
-    IConfiguration configuration,
-    ISendEndpointProvider sendEndpointProvider,
-    ProjectStorageConfigurationService projectStorageConfigurationService)
+public class FileWatcherService : BackgroundService
 {
-    private readonly ILogger _logger = loggerFactory.CreateLogger<CheckInfrastructureStatus>();
-    private readonly DatahubPortalConfiguration _portalConfiguration = portalConfiguration;
+    private readonly ILogger<FileWatcherService> _logger;
+    private readonly IServiceProvider _serviceProvider;
+    private FileSystemWatcher _watcher; 
+
+    private DatahubPortalConfiguration _portalConfiguration;
+    private DatahubProjectDBContext _projectDBContext;
+    private IConfiguration _configuration;
+    private ProjectStorageConfigurationService _projectStorageConfigurationService;
+    private AzureDevOpsConfiguration _config = new AzureDevOpsConfiguration();
+    private IHttpClientFactory _httpClientFactory;
+
     private const string workspaceKeyCheck = "project-cmk";
     private const string coreKeyCheck = "datahubportal-client-id";
 
-    /// <summary>
-    /// Azure Function that runs on a timer to check the infrastructure health of all infrastructure.
-    /// </summary>
-    /// <param name="timerInfo"></param>
-    /// <returns>An OkObjectResult containing the results for all infrastructure tests.</returns>
-    [Function("CheckInfrastructureScheduled")]
-    public async Task<IActionResult> RunCheckTimer([TimerTrigger("%ProjectUsageCRON%")] TimerInfo timerInfo)
+    public FileWatcherService(
+            ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
     {
-        _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
-        ObjectResult[] results = await RunAllChecks();
-        return new OkObjectResult(results);
+        _serviceProvider = serviceProvider;
+        _logger = loggerFactory.CreateLogger<FileWatcherService>();
     }
 
-    /// <summary>
-    /// Azure Function that can be called to check a specific infrastructure resource with a POST request.
-    /// </summary>
-    /// <param name="req"></param>
-    /// <returns>An OkObjectResult containing the result for a specific infrastructure test.</returns>
-    [Function("CheckInfrastructureStatusHttp")]
-    public async Task<IActionResult> RunHealthCheckHttp(
-        [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req)
-    {
-        _logger.LogInformation("C# HTTP trigger function processed a request.");
-        var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-        var request = System.Text.Json.JsonSerializer.Deserialize<InfrastructureHealthCheckRequest>(requestBody);
-
-        if (request.Group == "all")
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    { 
+        var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "MessageFolder");
+        _watcher = new FileSystemWatcher
         {
-            return new OkObjectResult(await RunAllChecks());
+            Path = folderPath,
+            NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
+            Filter = "*.*"
+        };
+
+        _watcher.Created += OnCreated;
+        _watcher.EnableRaisingEvents = true;
+
+        return Task.CompletedTask;
+    }
+
+    private void OnCreated(object sender, FileSystemEventArgs e)
+    {
+        _logger.LogInformation($"New file created: {e.Name}");
+
+        // Wait until the file is no longer locked by the other process
+        while (IsFileLocked(e.FullPath))
+        {
+            Thread.Sleep(100);
         }
 
-        IActionResult result = await RunHealthCheck(request);
-        return result;
-    }
+        // Create a new scope to retrieve scoped services
+        using (var scope = _serviceProvider.CreateScope())
+        { 
+            _projectStorageConfigurationService = scope.ServiceProvider.GetRequiredService<ProjectStorageConfigurationService>();
+            _projectDBContext = scope.ServiceProvider.GetRequiredService<DatahubProjectDBContext>(); 
+            _portalConfiguration = scope.ServiceProvider.GetRequiredService<DatahubPortalConfiguration>(); ;
+            _configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>(); ;
+            _httpClientFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>(); ;
+            _config = _configuration
+                .GetSection("InfrastructureRepository:AzureDevOpsConfiguration")
+                .Get<AzureDevOpsConfiguration>();
+            string fileContents = File.ReadAllText(e.FullPath);
 
-    /// <summary>
-    /// Azure Function that consumes messages from the infrastructure health check queue and performs health checks on the specified infrastructure resources.
-    /// </summary>
-    /// <param name="message">The ServiceBusReceivedMessage containing the infrastructure health check request.</param>
-    /// <returns>
-    /// An IActionResult containing the results of the health check. If the request group is "all", it returns an OkObjectResult containing the results of all infrastructure checks.
-    /// Otherwise, it returns the result of the specific health check associated with the request.
-    /// </returns>
-    /// <remarks>
-    /// The method retrieves the InfrastructureHealthCheckRequest object from the message body and checks the request group. If the group is "all", it calls the RunAllChecks method
-    /// to perform health checks on all infrastructure resources. If the group is not "all", it calls the RunHealthCheck method to perform the specific health check associated with
-    /// the request. The method logs the processed message using the ILogger instance.
-    /// </remarks>
-    [Function("CheckInfrastructureStatusQueue")]
-    public async Task<IActionResult> RunHealthCheckQueue(
-        [ServiceBusTrigger(QueueConstants.InfrastructureHealthCheckQueueName,
-            Connection = "DatahubServiceBus:ConnectionString")]
-        ServiceBusReceivedMessage message)
-    {
-        _logger.LogInformation($"C# Queue trigger function processed: {message.Body}");
-        
-        var request = await message.DeserializeAndUnwrapMessageAsync<InfrastructureHealthCheckRequest>();
+            // Deserialize the file contents into an InfrastructureHealthCheckMessage object
+            InfrastructureHealthCheckMessage message = JsonSerializer.Deserialize<InfrastructureHealthCheckMessage>(fileContents);
+            var request = new InfrastructureHealthCheckRequest(message.Type, message.Group, message.Name);
+            if (message.Group == "all")
+            {
+                RunAllChecks(e.Name).SyncResult();
+            }
+            else
+            {
+                RunHealthCheck(request, e.Name).SyncResult();
+            }
 
-        if (request?.Group == "all")
-        {
-            return new OkObjectResult(await RunAllChecks());
         }
-
-        return await RunHealthCheck(request);
+        // Process the file here
     }
+
+    private bool IsFileLocked(string filePath)
+    {
+        try
+        {
+            using (FileStream fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                return false;
+            }
+        }
+        catch (IOException)
+        {
+            // If an IOException is thrown, it means the file is still locked
+            return true;
+        }
+    }
+
+    public override Task StopAsync(CancellationToken stoppingToken)
+    {
+        _watcher.Dispose();
+        return base.StopAsync(stoppingToken);
+    }
+
+    //  copied and modified from \datahub-portal\ServerlessOperations\src\Datahub.Functions\CheckInfrastructureStatus.cs
+    //  to facilitate local debugging
 
     /// <summary>
     /// Checks the infrastructure health of a specific resource. Creates a bug report if the resource is unhealthy. Stores all results in a blob.
     /// </summary>
     /// <param name="request">the request containing the resource type, group, and name</param>
     /// <returns>An OkObjectResult containing the result for a specific infrastructure test if the request is formatted properly. A BadRequestObjectResult is returned for poorly formatted requests.</returns>
-    private async Task<IActionResult> RunHealthCheck(InfrastructureHealthCheckRequest request)
+    private async Task RunHealthCheck(InfrastructureHealthCheckRequest request, string requestName)
     {
         InfrastructureHealthCheckResponse result =
             new InfrastructureHealthCheckResponse(new InfrastructureHealthCheck(), new List<string>());
@@ -139,14 +156,14 @@ public class CheckInfrastructureStatus(
                 result = await CheckAzureFunctions(request);
                 break;
             default:
-                return new BadRequestObjectResult("Please pass a valid request body");
+                return;
         }
 
         //If the result is unhealthy, create a bug in DevOps
         if (result.Check.Status == InfrastructureHealthStatus.Unhealthy)
         {
             var errorDetails = result.Errors?.Count > 0
-               ? string.Join(", ", result.Errors) : "Please investigate.";
+                ? string.Join(", ", result.Errors) : "Please investigate.";
             var bugReport = new BugReportMessage(
                 UserName: "Datahub Portal",
                 UserEmail: "",
@@ -163,49 +180,51 @@ public class CheckInfrastructureStatus(
                 BugReportType: BugReportTypes.InfrastructureError,
                 Description: $"The infrastructure health check for {request.Name} {request.Type} failed. {errorDetails}"
             );
-
-            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.BugReportQueueName, bugReport);
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "MessageFolder");
+            var fileName = "_bug_report";
+            var filePath = Path.Combine(folderPath, $"{requestName}{fileName}.txt");
+            var message = JsonSerializer.Serialize(bugReport);
+            await File.WriteAllTextAsync(filePath, message);
+            //await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.BugReportQueueName, bugReport);
         }
 
         await StoreResult(result);          // operational data
         await StoreHealthCheckRun(result);  // historical data
 
-        return new OkObjectResult(result);
+        //return new OkObjectResult(result);
     }
 
     /// <summary>
     /// Function that runs all infrastructure health checks. Called by the timer trigger.
     /// </summary>
     /// <returns>A list of ObjectResult objects with the results of all health checks.</returns>
-    private async Task<ObjectResult[]> RunAllChecks()
+    private async Task RunAllChecks(string requestName)
     {
-        ObjectResult[] objectResults = Array.Empty<ObjectResult>();
-
         // Core checks
-        objectResults.Append(await RunHealthCheck(
-            new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureSqlDatabase, "core", "core")));
-        objectResults.Append(await RunHealthCheck(
-            new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureKeyVault, "core", "core")));
-        objectResults.Append(await RunHealthCheck(
+        await RunHealthCheck(
+            new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureSqlDatabase, "core", "core"), requestName);
+        await RunHealthCheck(
+            new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureKeyVault, "core", "core"), requestName);
+        await RunHealthCheck(
             new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureKeyVault, "workspaces",
-                "workspaces")));
-        objectResults.Append(await RunHealthCheck(
+                "workspaces"), requestName);
+        await RunHealthCheck(
             new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureFunction, "core",
-                "localhost:7071")));
+                "localhost:7071"), requestName);
 
         // Workspace checks (Storage, Databricks, eventually Web App)
-        var projects = dbProjectContext.Projects.AsNoTracking().Include(p => p.Resources).ToList();
+        var projects = _projectDBContext.Projects.AsNoTracking().Include(p => p.Resources).ToList();
         foreach (var project in projects)
         {
-            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(
-                InfrastructureHealthResourceType.AzureSqlDatabase, "core", project.Project_Acronym_CD.ToString())));
-            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(
+            await RunHealthCheck(new InfrastructureHealthCheckRequest(
+                InfrastructureHealthResourceType.AzureSqlDatabase, "core", project.Project_Acronym_CD.ToString()), requestName);
+            await RunHealthCheck(new InfrastructureHealthCheckRequest(
                 InfrastructureHealthResourceType.AzureStorageAccount, "workspaces",
-                project.Project_Acronym_CD.ToString())));
-            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(
-                InfrastructureHealthResourceType.AzureDatabricks, "workspaces", project.Project_Acronym_CD)));
-            objectResults.Append(await RunHealthCheck(new InfrastructureHealthCheckRequest(
-                InfrastructureHealthResourceType.AzureWebApp, "workspaces", project.Project_Acronym_CD)));
+                project.Project_Acronym_CD.ToString()), requestName);
+            await RunHealthCheck(new InfrastructureHealthCheckRequest(
+                InfrastructureHealthResourceType.AzureDatabricks, "workspaces", project.Project_Acronym_CD), requestName);
+            await RunHealthCheck(new InfrastructureHealthCheckRequest(
+                InfrastructureHealthResourceType.AzureWebApp, "workspaces", project.Project_Acronym_CD), requestName);
         }
 
         // Queues checks
@@ -218,15 +237,15 @@ public class CheckInfrastructureStatus(
         };
         foreach (var queue in queues)
         {
-            objectResults.Append(await RunHealthCheck(
+            await RunHealthCheck(
                 new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageQueue, "0",
-                    queue.ToString())));
-            objectResults.Append(await RunHealthCheck(
+                    queue.ToString()), requestName);
+            await RunHealthCheck(
                 new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureStorageQueue, "1",
-                    queue.ToString())));
+                    queue.ToString()), requestName);
         }
 
-        return objectResults;
+        return;
     }
 
     /// <summary>
@@ -238,16 +257,16 @@ public class CheckInfrastructureStatus(
     {
         var check = result.Check;
         if (check.Group == null || check.Name == null) { return; }
-        var existingCheck = await dbProjectContext.InfrastructureHealthChecks.FirstOrDefaultAsync(c =>
+        var existingCheck = await _projectDBContext.InfrastructureHealthChecks.FirstOrDefaultAsync(c =>
             c.Group == check.Group && c.Name == check.Name && c.ResourceType == check.ResourceType);
 
         if (existingCheck != null)
         {
-            dbProjectContext.InfrastructureHealthChecks.Remove(existingCheck);
+            _projectDBContext.InfrastructureHealthChecks.Remove(existingCheck);
         }
 
         // Add the check without specifying the ID to allow the database to generate it
-        dbProjectContext.InfrastructureHealthChecks.Add(new InfrastructureHealthCheck
+        _projectDBContext.InfrastructureHealthChecks.Add(new InfrastructureHealthCheck
         {
             Group = check.Group,
             Name = check.Name,
@@ -257,7 +276,7 @@ public class CheckInfrastructureStatus(
         });
         try
         {
-            await dbProjectContext.SaveChangesAsync();
+            await _projectDBContext.SaveChangesAsync();
         }
         catch(Exception ex)
         {
@@ -276,7 +295,7 @@ public class CheckInfrastructureStatus(
         if (check.Group == null || check.Name == null) { return; }
 
         // Add the check run without specifying the ID to allow the database to generate it
-        dbProjectContext.InfrastructureHealthCheckRuns.Add(new InfrastructureHealthCheck
+        _projectDBContext.InfrastructureHealthCheckRuns.Add(new InfrastructureHealthCheck
         {
             Group = check.Group,
             Name = check.Name,
@@ -286,7 +305,7 @@ public class CheckInfrastructureStatus(
         });
         try
         {
-            await dbProjectContext.SaveChangesAsync();
+            await _projectDBContext.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -312,7 +331,7 @@ public class CheckInfrastructureStatus(
             HealthCheckTimeUtc = DateTime.UtcNow
         };
 
-        bool connectable = await dbProjectContext.Database.CanConnectAsync();
+        bool connectable = await _projectDBContext.Database.CanConnectAsync();
         if (!connectable)
         {
             check.Status = InfrastructureHealthStatus.Unhealthy;
@@ -320,7 +339,7 @@ public class CheckInfrastructureStatus(
         }
         else
         {
-            var test = dbProjectContext.Projects.First();
+            var test = _projectDBContext.Projects.First();
             if (test == null)
             {
                 check.Status = InfrastructureHealthStatus.Degraded;
@@ -370,9 +389,9 @@ public class CheckInfrastructureStatus(
 
         try
         {
-            Environment.SetEnvironmentVariable("AZURE_TENANT_ID", azureConfig.TenantId);
-            Environment.SetEnvironmentVariable("AZURE_CLIENT_ID", azureConfig.ClientId);
-            Environment.SetEnvironmentVariable("AZURE_CLIENT_SECRET", azureConfig.ClientSecret);
+            Environment.SetEnvironmentVariable("AZURE_TENANT_ID", _config.TenantId);
+            Environment.SetEnvironmentVariable("AZURE_CLIENT_ID", _config.ClientId);
+            Environment.SetEnvironmentVariable("AZURE_CLIENT_SECRET", _config.ClientSecret);
 
             var client =
                 new SecretClient(GetAzureKeyVaultUrl(request),
@@ -438,12 +457,12 @@ public class CheckInfrastructureStatus(
         // Get the projects that match the request.Name
         try
         {
-            string accountName = projectStorageConfigurationService.GetProjectStorageAccountName(request.Name);
-            string accountKey = await projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name);
+            string accountName = _projectStorageConfigurationService.GetProjectStorageAccountName(request.Name);
+            string accountKey = await _projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name);
 
             var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
 
-            if (projectStorageManager.IsNull())
+            if (projectStorageManager == null)
             {
                 check.Status = InfrastructureHealthStatus.Degraded;
                 errors.Add("Unable to find the data container.");
@@ -481,7 +500,7 @@ public class CheckInfrastructureStatus(
             HealthCheckTimeUtc = DateTime.UtcNow
         };
 
-        var project = dbProjectContext.Projects.AsNoTracking().Include(p => p.Resources)
+        var project = _projectDBContext.Projects.AsNoTracking().Include(p => p.Resources)
             .FirstOrDefault(p => p.Project_Acronym_CD == request.Name);
 
         // If the project is null, the project does not exist or there was an error retrieving it
@@ -522,7 +541,7 @@ public class CheckInfrastructureStatus(
                     try
                     {
                         // We attempt to connect to the databricks URL. If we cannot, we return an unhealthy status.
-                        using var httpClient = httpClientFactory.CreateClient();
+                        using var httpClient = _httpClientFactory.CreateClient();
                         var response = await httpClient.GetAsync(databricksUrl);
 
                         if (!response.IsSuccessStatusCode)
@@ -572,7 +591,7 @@ public class CheckInfrastructureStatus(
 
         try
         {
-            using var httpClient = httpClientFactory.CreateClient();
+            using var httpClient = _httpClientFactory.CreateClient();
             var response = await httpClient.GetAsync(azureFunctionUrl);
 
             if (!response.IsSuccessStatusCode)
@@ -616,7 +635,7 @@ public class CheckInfrastructureStatus(
             HealthCheckTimeUtc = DateTime.UtcNow
         };
 
-        var storageConnectionString = configuration["DatahubStorageQueue:ConnectionString"];
+        var storageConnectionString = _configuration["DatahubStorageQueue:ConnectionString"];
 
         string queueName = request.Name;
         if (request.Group == "1")
@@ -674,7 +693,7 @@ public class CheckInfrastructureStatus(
             HealthCheckTimeUtc = DateTime.UtcNow
         };
 
-        var project = dbProjectContext.Projects.AsNoTracking().Include(p => p.Resources)
+        var project = _projectDBContext.Projects.AsNoTracking().Include(p => p.Resources)
             .FirstOrDefault(p => p.Project_Acronym_CD == request.Name);
 
         // If the project is null, the project does not exist or there was an error retrieving it
@@ -697,7 +716,7 @@ public class CheckInfrastructureStatus(
                 try
                 {
                     // We attempt to connect to the URL. If we cannot, we return an unhealthy status.
-                    using var httpClient = httpClientFactory.CreateClient();
+                    using var httpClient = _httpClientFactory.CreateClient();
                     var response = await httpClient.GetAsync(url);
 
                     if (!response.IsSuccessStatusCode)
@@ -721,7 +740,8 @@ public class CheckInfrastructureStatus(
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
-    record InfrastructureHealthCheckRequest(InfrastructureHealthResourceType Type, string Group, string Name);
+    public record InfrastructureHealthCheckRequest(InfrastructureHealthResourceType Type, string Group, string Name);
 
-    record InfrastructureHealthCheckResponse(InfrastructureHealthCheck Check, List<string>? Errors);
+    public record InfrastructureHealthCheckResponse(InfrastructureHealthCheck Check, List<string>? Errors);
+
 }

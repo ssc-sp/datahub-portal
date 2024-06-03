@@ -6,8 +6,6 @@ using Datahub.Application.Services.ReverseProxy;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Services.CatalogSearch;
-using Datahub.Infrastructure.Queues.MessageHandlers;
-using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
 using Datahub.Infrastructure.Services.CatalogSearch;
@@ -45,17 +43,27 @@ public static class ConfigureServices
         services.AddScoped<IDatahubAzureSubscriptionService, DatahubAzureSubscriptionService>();
         services.AddScoped<IUserInformationService, UserInformationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
-        services.AddScoped<HealthCheckConsumer, HealthCheckConsumer>();
 
         if (configuration.GetValue<bool>("ReverseProxy:Enabled"))
         {
             services.AddTransient<IReverseProxyConfigService, ReverseProxyConfigService>();
             services.AddSingleton<IProxyConfigProvider, ProxyConfigProvider>();
         }
+
         var whereAmI = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var isDevelopment = !string.IsNullOrEmpty(whereAmI) && whereAmI.ToLower() == "development";
+
+        // in Development, using InMemory MassTransit transport, HealthCheckConsumer and file system (FileWatcherService)
+        // to pass and process HealthCheck messages
+        if (isDevelopment)
+        {
+            services.AddScoped<IHealthCheckConsumer, HealthCheckConsumer>();
+            services.AddHostedService<FileWatcherService>();
+        }
+
         services.AddMassTransit(x =>
         {
-            if (!string.IsNullOrEmpty(whereAmI) && whereAmI.ToLower() == "development")
+            if (isDevelopment)
             {
                 x.UsingInMemory((context, cfg) =>
                 {
