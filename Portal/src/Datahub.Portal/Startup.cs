@@ -237,6 +237,7 @@ public class Startup
             services.AddReverseProxy()
                     .AddTransforms(builderContext =>
                     {
+                        builderContext.AddXForwarded(ForwardedTransformActions.Append);
                         builderContext.AddRequestTransform(async transformContext =>
                         {
                             // passing the logged user to the proxied app

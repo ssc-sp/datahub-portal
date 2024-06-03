@@ -1,4 +1,7 @@
-﻿<MudText Typo="Typo.h2" Class="mt-6">
+﻿@using Datahub.Application.Services.ReverseProxy
+@inject IReverseProxyConfigService ReverseProxyConfigService
+
+<MudText Typo="Typo.h2" Class="mt-6">
     @Localizer["Web Application Information"]
 </MudText>
 <MudSimpleTable Dense Hover Striped Outlined>
@@ -69,7 +72,7 @@
     
     protected override void OnParametersSet()
     {
-        _url = $"/{PageRoutes.WebAppPrefix}/{WorkspaceAcronym}/";
+        _url = $"/{ReverseProxyConfigService.BuildWebAppURL(WorkspaceAcronym)}/";
     }
 
 

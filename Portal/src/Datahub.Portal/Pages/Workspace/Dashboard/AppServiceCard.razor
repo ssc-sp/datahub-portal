@@ -1,4 +1,6 @@
-﻿@using Datahub.Core.Model.Projects
+﻿@using Datahub.Application.Services.ReverseProxy
+@using Datahub.Core.Model.Projects
+@inject IReverseProxyConfigService ReverseProxyConfigService
 
 <MudPaper Outlined Class="pa-4">
     <MudStack>
@@ -24,8 +26,7 @@
                 </MudButton>
             </MudElement>
             <MudElement HtmlTag="div">
-                <MudButton
-                    Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{PageRoutes.WebAppPrefix}")
+                <MudButton Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{IReverseProxyConfigService.WebAppPrefix}")
                     Color="Color.Primary"
                     Variant="@Variant.Text"
                     EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
@@ -45,7 +46,7 @@
 
     private string GetWebAppUrl()
     {
-        var url = $"/{PageRoutes.WebAppPrefix}/{WorkspaceAcronym}/";
+        var url = $"/{ReverseProxyConfigService.BuildWebAppURL(WorkspaceAcronym)}/";
         return url;
     }
 
