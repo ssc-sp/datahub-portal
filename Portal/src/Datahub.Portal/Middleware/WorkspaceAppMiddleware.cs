@@ -1,4 +1,5 @@
 ﻿using Datahub.Core.Data;
+using Datahub.Infrastructure.Services;
 using System.Security.Claims;
 
 namespace Datahub.Portal.Middleware;
