@@ -123,6 +123,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// </summary>
     public DbSet<InfrastructureHealthCheck> InfrastructureHealthChecks { get; set; }
 
+    /// <summary>
+    /// Gets or sets table for storing the history of infrastructure health checks
+    /// </summary>
+    public DbSet<InfrastructureHealthCheck> InfrastructureHealthCheckRuns { get; set; }
+
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
         var p1 = context.Projects.Add(new Datahub_Project()
