@@ -55,7 +55,8 @@ public static class ConfigureServices
         {
             x.UsingAzureServiceBus((context, cfg) =>
             {
-                cfg.Host(configuration["DatahubServiceBus:ConnectionString"]);
+                cfg.Host(configuration["DatahubServiceBus:ConnectionString"], hc => hc.TransportType = Azure.Messaging.ServiceBus.ServiceBusTransportType.AmqpWebSockets);
+                cfg.PrefetchCount = 1;
                 cfg.ConfigureEndpoints(context);
             });
         });
