@@ -3,11 +3,12 @@
 @using Datahub.Core.Services.Api
 @using Datahub.Infrastructure.Queues.Messages
 @using Datahub.Core.Model.Projects;
-@using Datahub.Infrastructure.Services;
-@using MediatR
+@using Datahub.Shared.Configuration
+@using Datahub.Infrastructure.Extensions;
+@using MassTransit
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IDialogService DialogService
-@inject IMediator _mediator
+@inject ISendEndpointProvider _sendEndpointProvider;
 
 @if (isLoading)
     {
@@ -20,7 +21,7 @@ else
         <MudText Typo="Typo.h2">@Localizer["Infrastructure Health"]</MudText>
         <MudText Typo="Typo.body1">
             @Localizer["View the health of the infrastructure that supports the application and the workspaces."]
-        </MudText>
+            </MudText>
     </MudStack>
     <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => CallFunction(0, "", "all"))" Style="width: fit-content;">
         @Localizer["Run all checks"]
@@ -262,13 +263,14 @@ else
 
         var request = new InfrastructureHealthCheckMessage(
             type,
-            name,
-            group
+            group,
+            name
         );
 
         try
         {
-            await _mediator.Send(request);
+            await _sendEndpointProvider.SendDatahubServiceBusMessage(
+                QueueConstants.InfrastructureHealthCheckQueueName, request);
         }
         catch (Exception ex)
         {
