@@ -1,4 +1,7 @@
 ﻿@using Datahub.Application.Services.Reports
+
+@inject NavigationManager NavigationManager
+
 @if (_isLoading)
 {
     <DHLoadingInitializer/>
@@ -25,7 +28,7 @@
         <MudTd DataLabel="@Localizer["Report Type"]">@context.ReportType</MudTd>
         <MudTd DataLabel="@Localizer["Report Name"]">@context.ReportName</MudTd>
         <MudTd DataLabel="@Localizer["View report"]">
-            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="@context.ReportUrl">@Localizer["View"]</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(() => ViewReport(context))">@Localizer["View"]</MudButton>
         </MudTd>
     </RowTemplate>
     <PagerContent>
@@ -115,7 +118,10 @@
     };
 
     
-
+    private void ViewReport(WorkspaceReport report)
+    {
+        NavigationManager.NavigateTo($"/w/{WorkspaceAcronym}/costs/{report.ReportName}");
+    }
 
     protected override void OnInitialized()
     {
