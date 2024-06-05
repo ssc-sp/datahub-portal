@@ -1,4 +1,5 @@
 using Azure.Identity;
+using Azure.Messaging.ServiceBus;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Queues;
 using Datahub.Application.Configuration;
@@ -7,6 +8,7 @@ using Datahub.Core.Model.Health;
 using Datahub.Core.Utils;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services.Storage;
+using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -143,11 +145,14 @@ public class FileWatcherService : BackgroundService
                 result = await CheckAzureKeyVault(request);
                 break;
             case InfrastructureHealthResourceType.AzureDatabricks: // Name is project acronym to check
-                result = await CheckAzureDatabricks(request);
+                result = await CheckAzureDatabricksHealth(request);
                 break;
             case InfrastructureHealthResourceType.AzureStorageQueue
                 : // Name is the Azure Storage Queue name. Group == 1 for poison
                 result = await CheckAzureStorageQueue(request);
+                break;
+            case InfrastructureHealthResourceType.AsureServiceBus:
+                result = await CheckAzureServiceBusQueue(request);
                 break;
             case InfrastructureHealthResourceType.AzureWebApp:
                 result = await CheckWebApp(request);
@@ -482,6 +487,109 @@ public class FileWatcherService : BackgroundService
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
+    private async Task<InfrastructureHealthCheckResponse> CheckAzureDatabricksHealth(
+    InfrastructureHealthCheckRequest request)
+    {
+        var errors = new List<string>();
+        var check = new InfrastructureHealthCheck()
+        {
+            Group = request.Group,
+            Name = request.Name,
+            ResourceType = request.Type,
+            Status = InfrastructureHealthStatus.Unhealthy,
+            HealthCheckTimeUtc = DateTime.UtcNow
+        };
+
+        var project = _projectDBContext.Projects.AsNoTracking().Include(p => p.Resources)
+            .FirstOrDefault(p => p.Project_Acronym_CD == request.Name);
+
+        // If the project is null, the project does not exist or there was an error retrieving it
+        if (project == null)
+        {
+            check.Status = InfrastructureHealthStatus.Unhealthy;
+            errors.Add("Failed to retrieve project.");
+        }
+        else
+        {
+            // We check if the project has a databricks resource. If not, we return a create status.
+            bool checkForDatabricks = false;
+            var resources = project.Resources.ToArray();
+            foreach (var resource in resources)
+            {
+                if (resource.ResourceType == "terraform:azure-databricks")
+                {
+                    checkForDatabricks = true;
+                    break;
+                }
+            }
+
+            if (!checkForDatabricks)
+            {
+                check.Status = InfrastructureHealthStatus.Create;
+            }
+            else
+            {
+                // We attempt to retrieve the databricks URL. If we cannot, we return an unhealthy status.
+                var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project);
+
+                if (databricksUrl == null)
+                {
+                    check.Status = InfrastructureHealthStatus.Unhealthy;
+                    errors.Add("Failed to retrieve Databricks URL.");
+                }
+                else
+                {
+                    try
+                    {
+                        var azureDevOpsClient = new AzureDevOpsClient(_config);
+                        var accessToken = await azureDevOpsClient.AccessTokenAsync();
+
+                        var databricksClient = new DatabricksClientUtils(databricksUrl, accessToken.Token);
+
+                        // Verify Instance Availability
+                        var instanceRunning = await databricksClient.IsDatabricksInstanceRunning();
+                        if (!instanceRunning)
+                        {
+                            check.Status = InfrastructureHealthStatus.Unhealthy;
+                            errors.Add("Databricks instance is not available.");
+                        }
+                        else
+                        {
+                            // Verify ACL Status
+                            var aclStatus = await databricksClient.VerifyACLStatus();
+                            if (!aclStatus)
+                            {
+                                check.Status = InfrastructureHealthStatus.Unhealthy;
+                                errors.Add("Failed to verify ACL status.");
+                            }
+                            else
+                            {
+                                // Check Cluster Status
+                                var clusterStatus = await databricksClient.GetClusterStatus("");
+                                if (string.IsNullOrEmpty(clusterStatus) || clusterStatus != "Running")
+                                {
+                                    check.Status = InfrastructureHealthStatus.Unhealthy;
+                                    errors.Add("Cluster is not in the running state.");
+                                }
+                                else
+                                {
+                                    check.Status = InfrastructureHealthStatus.Healthy;
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        check.Status = InfrastructureHealthStatus.Unhealthy;
+                        errors.Add($"Error while checking Databricks health: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        return new InfrastructureHealthCheckResponse(check, errors);
+    }
+  
     /// <summary>
     /// Function that checks the health of an Azure Databricks workspace.
     /// </summary>
@@ -676,6 +784,60 @@ public class FileWatcherService : BackgroundService
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
+    private async Task<InfrastructureHealthCheckResponse> CheckAzureServiceBusQueue(
+       InfrastructureHealthCheckRequest request)
+    {
+        var errors = new List<string>();
+        var check = new InfrastructureHealthCheck()
+        {
+            Group = request.Group,
+            Name = request.Name,
+            ResourceType = request.Type,
+            Status = InfrastructureHealthStatus.Unhealthy,
+            HealthCheckTimeUtc = DateTime.UtcNow
+        };
+
+        var serviceBusConnectionString = _configuration["DatahubServiceBus:ConnectionString"];
+
+        string queueName = request.Name;
+        if (request.Group == "1")
+        {
+            queueName += "-poison";
+        }
+
+        check.Name = queueName;
+
+        try
+        {
+            ServiceBusClient serviceBusClient = new ServiceBusClient(serviceBusConnectionString);
+            ServiceBusReceiver receiver = serviceBusClient.CreateReceiver(queueName);
+
+            if (receiver is null)
+            {
+                errors.Add("Unable to connect to the queue.");
+            }
+            else
+            {
+                ServiceBusReceivedMessage message = await receiver.PeekMessageAsync();
+
+                if (message is null)
+                {
+                    errors.Add("The queue is empty.");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"Error while checking Azure Service Bus Queue: {ex.Message}");
+        }
+
+        if (!errors.Any())
+        {
+            check.Status = InfrastructureHealthStatus.Healthy;
+        }
+
+        return new InfrastructureHealthCheckResponse(check, errors);
+    }
     /// <summary>
     /// Function that checks the health of the Azure Web App, if enabled.
     /// </summary>
