@@ -22,12 +22,10 @@
     {
         // if in an unauthenticated page, user still needs to be able to translate languages
         var currentPage = NavManager.Uri;
-        var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Components/LanguageToggle.razor.js");
         if (UnauthenticatedPages.Any(x => currentPage.Contains(x)))
         {
             await _localStorage.SetItemAsStringAsync("language", language);
             await _userSettingsService.SetLanguage(language);
-            await module.InvokeVoidAsync("SetHtmlLangAttribute", language);
         }
         else
         {
@@ -35,7 +33,6 @@
             await _userSettingsService.RegisterUserLanguage(language);
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
             await _userSettingsService.SetLanguage(language);
-            await module.InvokeVoidAsync("SetHtmlLangAttribute", language);
         }
     }
 
