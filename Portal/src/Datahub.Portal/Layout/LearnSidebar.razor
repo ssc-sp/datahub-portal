@@ -2,13 +2,14 @@
 @using Datahub.Portal.Components.Resources
 
 @inject NavigationManager _navManager
-
+@* "@currentCategory.GetMudblazorMaterialIcon("Outlined")" *@
+@* @DocItemHelper.GetMudblazorMaterialIcon("Outlined", "LibraryBooks") *@
 @if (!PageIsLoading)
 {
     <MudStack Class="px-4 mt-6">
         <MudStack Class="ml-2">
             <MudStack Row="true" Spacing="3">
-                <MudIcon Icon="@currentCategory.GetMudblazorMaterialIcon("Outlined")"/>
+                <MudIcon aria-hidden="true" focusable="false" Icon="@currentCategory.GetMudblazorMaterialIcon("Outlined")" />
                 <MudText Typo="Typo.h6">
                     @Localizer[currentCategory.Title.ToUpper()]
                 </MudText>
@@ -26,7 +27,12 @@
 
                         if (isDoc)
                         {
-                            <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat) Icon="@(cat.GetSidebarIcon())">
+@*                             <MudToggleIconButton aria-label="Notifications toggle"
+                                                 ToggledIcon="@Icons.Material.Filled.Notifications"
+                                                 ToggledChanged="@ToggleNotificationsList"
+                                                 Toggled="IsNotificationsListOpen"
+                                                 Icon="@Icons.Material.Outlined.Notifications" /> *@
+                            <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat) Icon="@(cat.GetSidebarIconFilled())">
                                 @cat.Title
                             </MudNavLink>
                         }
@@ -35,16 +41,30 @@
                             <MudNavGroup Title="@cat.Title" ExpandedChanged=@(isExpanding => UpdateCategory(cat, isExpanding)) Icon="@(cat.GetSidebarIcon())">
                                 @foreach (var article in cat.Children)
                                 {
-                                    if (article.DocType == DocItemType.External)
+                                    if(article.DocType == DocItemType.External)
                                     {
-                                        <MudNavLink Match="NavLinkMatch.All" Target="_blank" Href=@BuildResourceLink(article) Icon="@(article.GetSidebarIcon())">
-                                            @article.Title
+                                        <MudNavLink Match="NavLinkMatch.All" Target="_blank" Href=@BuildResourceLink(article)>
+                                            <MudStack Row AlignItems="AlignItems.Center">
+                                                <MudIcon role="img" aria-labelledby="decimg01" Icon="@(article.GetSidebarIcon())" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1.25rem;" />
+                                                <div class="sr-only" id="decimg01">@Localizer["External"]</div>
+                                                <MudText>
+                                                    @article.Title
+                                                </MudText>
+                                            </MudStack>
                                         </MudNavLink>
                                     }
                                     else
                                     {
-                                        <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article) Icon="@(article.GetSidebarIcon())">
-                                            @article.Title
+                                        <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article)>
+                                            <MudStack Row AlignItems="AlignItems.Center">
+                                                <MudIcon role="img" aria-labelledby="decimg01" Icon="@(article.GetSidebarIcon())" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1.25rem;" />
+                                                <div class="sr-only" id="decimg01">
+                                                    @((article.DocType == DocItemType.Tutorial) ? @Localizer["Video"] : @Localizer["Document"])
+                                                </div>
+                                                <MudText>
+                                                    @article.Title
+                                                </MudText>
+                                            </MudStack>
                                         </MudNavLink>
                                     }
                                 }

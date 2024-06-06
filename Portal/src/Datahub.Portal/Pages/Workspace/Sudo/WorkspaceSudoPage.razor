@@ -62,7 +62,7 @@
                         <MudPaper Outlined Class="pt-4 px-6 pb-6">
                             <MudStack Style="height: 150px;">
                                 <MudStack Row AlignItems="AlignItems.Center">
-                                    <MudIcon Icon="@SidebarIcons.Api" Class="mr-2" />
+                                    <MudIcon aria-hidden="true" focusable="false" Icon="@SidebarIcons.Api" Class="mr-2" />
                                     <MudText Typo="Typo.h3">
                                         @Localizer["Databricks Admin"]
                                     </MudText>
@@ -75,7 +75,7 @@
                                     <MudButton Variant="@Variant.Filled" Color="@Color.Primary"
                                                OnClick="@(async () => await AddToDatabricksAdmins())">
                                         @Localizer["Databricks Admin"]
-                                        <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
+                                        <MudIcon aria-hidden="true" focusable="false" Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </MudButton>
                                 </MudStack>
                             </MudStack>
