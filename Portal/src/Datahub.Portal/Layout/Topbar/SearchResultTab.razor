@@ -5,7 +5,7 @@
 @foreach (var result in Results)
 {
      <MudStack Row Class="mb-2">
-         <MudIcon Icon=@GetIcon(result)></MudIcon>
+         <MudIcon aria-hidden="true" focusable="false" Icon=@GetIcon(result)></MudIcon>
          <MudStack Spacing="0">
              <MudText Typo="Typo.h6" Color="Color.Success">
                 <MudLink Href=@GetLink(result) Underline="Underline.None" Target=@GetTarget(result) OnClick=@OnClickLink>
