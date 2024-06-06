@@ -2860,5 +2860,8 @@
   "This web application is not provisioned yet. Please come back soon.": "Cette application web n'est pas encore provisionnée. Revenez bientôt.",
   "Configure Web Application": "Configurer l'application web",
   "Web application configuration processed": "Configuration de l'application web traitée",
-  "Web application configuration failed": "Échec de la configuration de l'application web"
+  "Web application configuration failed": "Échec de la configuration de l'application web",
+  "Enable URL Rewriting": "Activer la réécriture de l'URL",
+  "URL Rewriting setting updated": "Mise à jour du paramètre de réécriture d'URL",
+  "Could not update URL Rewriting setting": "Impossible de mettre à jour les paramètres de réécriture d'URL"
 }
