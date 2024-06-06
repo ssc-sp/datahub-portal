@@ -32,7 +32,7 @@
                                                  ToggledChanged="@ToggleNotificationsList"
                                                  Toggled="IsNotificationsListOpen"
                                                  Icon="@Icons.Material.Outlined.Notifications" /> *@
-                            <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat) Icon="@(cat.GetSidebarIconFilled())">
+                            <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat) Icon="@(cat.GetSidebarIcon())">
                                 @cat.Title
                             </MudNavLink>
                         }
