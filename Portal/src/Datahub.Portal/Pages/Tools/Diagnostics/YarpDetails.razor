@@ -7,7 +7,7 @@
 @inject IUserInformationService _userInformationService
 @inject YarpTelemetryConsumer _telemetryConsumer
 @inject IReverseProxyConfigService _reverseProxyConfigService
-@inject IProxyConfigProvider proxyConfigProvider
+@inject IReverseProxyManagerService ReverseProxyManagerService
 
 @if (_loading)
 {
@@ -55,6 +55,7 @@ else
                     <PropertyColumn Property="x => x.Cluster.Destinations.First().Value" Title="Cluster destination" />
                     <PropertyColumn Property="x => x.Route.RouteId" Title="RouteId" />
                     <PropertyColumn Property="x => x.Route.Match.Path" Title="Route Path" />
+                    <PropertyColumn Property="x => FindTransformRemovePrefix(x.Route)" Title="Prefix Removed" />
                 </Columns>
             </MudDataGrid>
         </MudItem>
@@ -74,9 +75,14 @@ else
         _loading = false;
     }
 
+    private static string? FindTransformRemovePrefix(RouteConfig routeConfig)
+    {
+        var prefixTransforms = routeConfig.Transforms.SelectMany(t => t.Where(d => d.Key == "PathRemovePrefix").Select(d => d.Value)).ToList();
+        return prefixTransforms.FirstOrDefault();
+    }
+
     private async Task ReloadYarpConfig()
     {
-        var proxyConfig = proxyConfigProvider as Datahub.Infrastructure.Services.ReverseProxy.ProxyConfigProvider;
-        proxyConfig.RefreshFromWorkspaces();
+        ReverseProxyManagerService.ReloadConfiguration();
     }
 }

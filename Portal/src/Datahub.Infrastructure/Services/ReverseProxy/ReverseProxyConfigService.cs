@@ -53,9 +53,9 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
             .Select(e => new ProjectWebData(e.Project_Acronym_CD, SanitizeWebAppURL(e.WebApp_URL), e.WebAppUrlRewritingEnabled))
             .ToList();
 
-        var routes = data.Select(d => BuildRoute(d.Acronym)).ToList();
+        var routes = data.Select(d => BuildRoute(d.Acronym, d.UrlRewritingEnabled)).ToList();
         var clusters = data.Select(d => BuildCluster(d.Acronym, d.Url)).ToList();
-        return data.Select(d => (d.Acronym, BuildRoute(d.Acronym), BuildCluster(d.Acronym, d.Url))).ToList();
+        return data.Select(d => (d.Acronym, BuildRoute(d.Acronym, d.UrlRewritingEnabled), BuildCluster(d.Acronym, d.Url))).ToList();
     }
 
     RouteConfig BuildRoute(string acronym, bool urlRewritingEnabled)
@@ -94,5 +94,5 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
     static string GetRouteId(string acronym) => $"route-{acronym}".ToLower();
     static string GetClusterId(string acronym) => $"cluster-{acronym}".ToLower();
 
-    record ProjectWebData(string Acronym, string Url, bool urlRewritingEnabled);
+    record ProjectWebData(string Acronym, string Url, bool UrlRewritingEnabled);
 }
