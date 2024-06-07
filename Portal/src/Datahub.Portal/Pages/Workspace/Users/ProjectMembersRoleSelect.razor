@@ -8,7 +8,7 @@
     <ActivatorContent>
         <MudStack Row AlignItems="AlignItems.Center" Style="@_outlineStyle" Class="py-2 px-4">
             <MudText Typo="Typo.body1">@Localizer[_currentRole?.Name ?? string.Empty]</MudText>
-            <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
+            <MudIcon aria-hidden="true" focusable="false" Icon="@Icons.Material.Filled.ArrowDropDown"/>
         </MudStack>
     </ActivatorContent>
     <ChildContent>
