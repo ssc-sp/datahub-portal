@@ -25,6 +25,7 @@
   "DatahubServiceBus": {
     "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=service-bus-connection-string)"
   },
+  "MediaStorageConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-media-storage-connection-string)",
   "FUNC_SP_CLIENT_ID": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahubportal-client-id)",
   "FUNC_SP_CLIENT_SECRET": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahubportal-client-secret)",
   "FUNCTIONS_EXTENSION_VERSION": "~4",
