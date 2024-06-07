@@ -69,11 +69,15 @@
     [Parameter] public string WorkspaceAcronym { get; set; }
 
     private string _url;
-    
+
     protected override void OnParametersSet()
+    {
+        RefreshUrl();
+    }
+
+    public void RefreshUrl()
     {
         _url = $"/{ReverseProxyConfigService.BuildWebAppURL(WorkspaceAcronym)}/";
     }
-
 
 }
