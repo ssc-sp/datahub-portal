@@ -50,7 +50,7 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
 
         var data = _context.Projects
             .Where(e => e.WebAppEnabled == true && e.WebApp_URL != null)
-            .Select(e => new ProjectWebData(e.Project_Acronym_CD, SanitizeWebAppURL(e.WebApp_URL)))
+            .Select(e => new ProjectWebData(e.Project_Acronym_CD, SanitizeWebAppURL(e.WebApp_URL), e.WebAppEnabled))
             .ToList();
 
         var routes = data.Select(d => BuildRoute(d.Acronym)).ToList();

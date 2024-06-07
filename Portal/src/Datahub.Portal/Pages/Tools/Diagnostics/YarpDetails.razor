@@ -7,6 +7,7 @@
 @inject IUserInformationService _userInformationService
 @inject YarpTelemetryConsumer _telemetryConsumer
 @inject IReverseProxyConfigService _reverseProxyConfigService
+@inject IProxyConfigProvider proxyConfigProvider
 
 @if (_loading)
 {
@@ -19,6 +20,9 @@ else
             <MudText Typo="Typo.h2" Class="mb-6">
                 Yarp Proxy Diagnostics
             </MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mb-6" OnClick="@(() => ReloadYarpConfig())">
+                Reload Yarp Config
+            </MudButton>
             @if (_lastError is not null)
             {
                 <MudText Typo="Typo.subtitle2" Class="mb-6">
@@ -68,5 +72,11 @@ else
         _yarpConfig = _reverseProxyConfigService.GetAllConfigurationFromProjects();
         _lastError = _telemetryConsumer.GetLastError();
         _loading = false;
+    }
+
+    private async Task ReloadYarpConfig()
+    {
+        var proxyConfig = proxyConfigProvider as Datahub.Infrastructure.Services.ReverseProxy.ProxyConfigProvider;
+        proxyConfig.RefreshFromWorkspaces();
     }
 }
