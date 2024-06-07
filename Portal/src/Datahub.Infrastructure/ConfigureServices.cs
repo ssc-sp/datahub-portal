@@ -48,6 +48,7 @@ public static class ConfigureServices
         {
             services.AddTransient<IReverseProxyConfigService, ReverseProxyConfigService>();
             services.AddSingleton<IProxyConfigProvider, ProxyConfigProvider>();
+            services.AddSingleton<IReverseProxyManagerService, ReverseProxyManagerService>();
         }
 
         var whereAmI = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
