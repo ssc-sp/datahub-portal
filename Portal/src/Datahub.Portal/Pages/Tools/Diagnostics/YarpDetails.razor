@@ -7,6 +7,7 @@
 @inject IUserInformationService _userInformationService
 @inject YarpTelemetryConsumer _telemetryConsumer
 @inject IReverseProxyConfigService _reverseProxyConfigService
+@inject IReverseProxyManagerService ReverseProxyManagerService
 
 @if (_loading)
 {
@@ -19,6 +20,9 @@ else
             <MudText Typo="Typo.h2" Class="mb-6">
                 Yarp Proxy Diagnostics
             </MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mb-6" OnClick="@(() => ReloadYarpConfig())">
+                Reload Yarp Config
+            </MudButton>
             @if (_lastError is not null)
             {
                 <MudText Typo="Typo.subtitle2" Class="mb-6">
@@ -51,6 +55,7 @@ else
                     <PropertyColumn Property="x => x.Cluster.Destinations.First().Value" Title="Cluster destination" />
                     <PropertyColumn Property="x => x.Route.RouteId" Title="RouteId" />
                     <PropertyColumn Property="x => x.Route.Match.Path" Title="Route Path" />
+                    <PropertyColumn Property="x => FindTransformRemovePrefix(x.Route)" Title="Prefix Removed" />
                 </Columns>
             </MudDataGrid>
         </MudItem>
@@ -68,5 +73,16 @@ else
         _yarpConfig = _reverseProxyConfigService.GetAllConfigurationFromProjects();
         _lastError = _telemetryConsumer.GetLastError();
         _loading = false;
+    }
+
+    private static string? FindTransformRemovePrefix(RouteConfig routeConfig)
+    {
+        var prefixTransforms = routeConfig.Transforms.SelectMany(t => t.Where(d => d.Key == "PathRemovePrefix").Select(d => d.Value)).ToList();
+        return prefixTransforms.FirstOrDefault();
+    }
+
+    private async Task ReloadYarpConfig()
+    {
+        ReverseProxyManagerService.ReloadConfiguration();
     }
 }

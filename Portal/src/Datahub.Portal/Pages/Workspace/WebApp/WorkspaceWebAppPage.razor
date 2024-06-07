@@ -1,4 +1,5 @@
-﻿@using Datahub.Application.Services.Security
+﻿@using Datahub.Application.Services.ReverseProxy
+@using Datahub.Application.Services.Security
 @using Datahub.Portal.Views.Dialogs
 @using Datahub.Shared.Entities
 @using Microsoft.Identity.Web
@@ -13,6 +14,7 @@
 @inject ILogger<WorkspaceWebAppPage> _logger
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IWorkspaceWebAppManagementService _webAppMgmtService
+@inject IReverseProxyManagerService ReverseProxyManagerService
 
 @if (!_isElevated)
 {
@@ -267,7 +269,7 @@
             _isUrlRewritingEnabled = oldValue;
             _snackbar.Add(Localizer["Could not update URL Rewriting setting"], Severity.Error);
         }
-
+        ReverseProxyManagerService.ReloadConfiguration();
         _isSaving = false;
     }
 
@@ -357,6 +359,7 @@
                 await SaveEnvironmentVariableKeys(envVars);
                 await SetEnvironmentVariableValues(envVars);
                 await _webAppMgmtService.Configure(WorkspaceAcronym, config);
+                ReverseProxyManagerService.ReloadConfiguration();
                 _logger.LogInformation("Web app configuration processed");
                 _snackbar.Add(Localizer["Web application configuration processed"], Severity.Success);
                 StateHasChanged();

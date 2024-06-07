@@ -50,15 +50,15 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
 
         var data = _context.Projects
             .Where(e => e.WebAppEnabled == true && e.WebApp_URL != null)
-            .Select(e => new ProjectWebData(e.Project_Acronym_CD, SanitizeWebAppURL(e.WebApp_URL)))
+            .Select(e => new ProjectWebData(e.Project_Acronym_CD, SanitizeWebAppURL(e.WebApp_URL), e.WebAppUrlRewritingEnabled))
             .ToList();
 
-        var routes = data.Select(d => BuildRoute(d.Acronym)).ToList();
+        var routes = data.Select(d => BuildRoute(d.Acronym, d.UrlRewritingEnabled)).ToList();
         var clusters = data.Select(d => BuildCluster(d.Acronym, d.Url)).ToList();
-        return data.Select(d => (d.Acronym, BuildRoute(d.Acronym), BuildCluster(d.Acronym, d.Url))).ToList();
+        return data.Select(d => (d.Acronym, BuildRoute(d.Acronym, d.UrlRewritingEnabled), BuildCluster(d.Acronym, d.Url))).ToList();
     }
 
-    RouteConfig BuildRoute(string acronym)
+    RouteConfig BuildRoute(string acronym, bool urlRewritingEnabled)
     {
         var prefix = $"/{BuildWebAppURL(acronym)}";
         var route = new RouteConfig()
@@ -70,11 +70,13 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
                 Path = $"{prefix}/{{**catch-all}}"
             }                        
         };
-        
-        return route.
+
+        var finalRoute = route.
             WithTransformForwarded().
-            WithTransformXForwarded().
-            WithTransformPathRemovePrefix(prefix);
+            WithTransformXForwarded();
+        if (urlRewritingEnabled)
+            finalRoute = finalRoute.WithTransformPathRemovePrefix(prefix);
+        return finalRoute;
     }
 
     static ClusterConfig BuildCluster(string acronym, string webUrl)
@@ -92,5 +94,5 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
     static string GetRouteId(string acronym) => $"route-{acronym}".ToLower();
     static string GetClusterId(string acronym) => $"cluster-{acronym}".ToLower();
 
-    record ProjectWebData(string Acronym, string Url);
+    record ProjectWebData(string Acronym, string Url, bool UrlRewritingEnabled);
 }
