@@ -1,4 +1,5 @@
-﻿@using Datahub.Application.Services.Security
+﻿@using Datahub.Application.Services.ReverseProxy
+@using Datahub.Application.Services.Security
 @using Datahub.Portal.Views.Dialogs
 @using Datahub.Shared.Entities
 @using Microsoft.Identity.Web
@@ -13,6 +14,7 @@
 @inject ILogger<WorkspaceWebAppPage> _logger
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IWorkspaceWebAppManagementService _webAppMgmtService
+@inject IReverseProxyManagerService ReverseProxyManagerService
 
 @if (!_isElevated)
 {
@@ -84,9 +86,27 @@
         @Localizer["Here you can manage your web application. You can view and edit the configurations of your web application"]
     </MudText>
 
+    @if (_isProvisioned)
+    {
+        <MudSwitch 
+            T=@bool 
+            Checked=@_isUrlRewritingEnabled 
+            Color=@Color.Primary 
+            Label=@Localizer["Enable URL Rewriting"] 
+            CheckedChanged=@HandleToggleUrlRewriting
+            Disabled=@_isSaving />
+    }
+
     @if (_isProvisioned && _isConfigured)
     {
-        <WorkspaceWebAppInfoTable WebAppHost="@_webAppHost" WebAppId="@_webAppId" Framework="@_webAppFramework" GitRepo="@_webAppRepo" ComposePath="@_webAppCompose" WorkspaceAcronym="@WorkspaceAcronym"/>
+        <WorkspaceWebAppInfoTable 
+            @ref=@_webappInfoTable
+            WebAppHost="@_webAppHost" 
+            WebAppId="@_webAppId" 
+            Framework="@_webAppFramework" 
+            GitRepo="@_webAppRepo" 
+            ComposePath="@_webAppCompose" 
+            WorkspaceAcronym="@WorkspaceAcronym"/>
     }
     else if (_isProvisioned)
     {
@@ -192,12 +212,16 @@
     private AppServiceConfiguration _appConfiguration;
     private Project_Resources2 _resource;
 
+    private bool _isUrlRewritingEnabled;
+    private WorkspaceWebAppInfoTable _webappInfoTable;
+
     private bool _isConfigured;
     private bool _isProvisioned;
     private bool _isElevated;
     private bool _webAppState;
     private bool _isStartStopping;
     private bool _isRestarting;
+    private bool _isSaving;
 
     protected override async Task OnInitializedAsync()
     {
@@ -223,6 +247,32 @@
         StateHasChanged();
     }
 
+    private async Task HandleToggleUrlRewriting(bool value)
+    {
+        _isSaving = true;
+        var oldValue = _isUrlRewritingEnabled;
+        _isUrlRewritingEnabled = value;
+        using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        var workspace = await ctx.Projects.FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronym);
+        if (workspace != null)
+        {
+            workspace.WebAppUrlRewritingEnabled = value;
+            await ctx.SaveChangesAsync();
+            _snackbar.Add(Localizer["URL Rewriting setting updated"], Severity.Success);
+            if (_webappInfoTable != null)
+            {
+                _webappInfoTable.RefreshUrl();
+            }
+        }
+        else
+        {
+            _isUrlRewritingEnabled = oldValue;
+            _snackbar.Add(Localizer["Could not update URL Rewriting setting"], Severity.Error);
+        }
+        ReverseProxyManagerService.ReloadConfiguration();
+        _isSaving = false;
+    }
+
     private async Task HydrateValues()
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync();
@@ -230,6 +280,7 @@
             .Include(x => x.Resources)
             .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronym);
         _appConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(workspace);
+        _isUrlRewritingEnabled = workspace.WebAppUrlRewritingEnabled;
 
         if (_appConfiguration != null)
         {
@@ -308,6 +359,7 @@
                 await SaveEnvironmentVariableKeys(envVars);
                 await SetEnvironmentVariableValues(envVars);
                 await _webAppMgmtService.Configure(WorkspaceAcronym, config);
+                ReverseProxyManagerService.ReloadConfiguration();
                 _logger.LogInformation("Web app configuration processed");
                 _snackbar.Add(Localizer["Web application configuration processed"], Severity.Success);
                 StateHasChanged();
