@@ -454,7 +454,12 @@
                 var workItemDetails = JObject.Parse(workItemJsonResponse);
 
                 // Add the issue to the list
-                _issuesList.Add(new IssueForDisplaying(workItemDetails, true));
+                var issue = new IssueForDisplaying(workItemDetails, true);
+
+                if (!issue.Title.Contains("Exception")) // No point in showing automated exceptions to the user
+                {
+                    _issuesList.Add(issue);
+                }
             }
         }
         _loading = false; // Stop showing the loading bar in the table.

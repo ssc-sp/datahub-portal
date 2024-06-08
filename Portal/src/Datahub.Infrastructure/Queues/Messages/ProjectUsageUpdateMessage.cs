@@ -3,20 +3,20 @@ using MediatR;
 
 namespace Datahub.Infrastructure.Queues.Messages;
 
-public class ProjectUsageUpdateMessageBase(string projectAcronym, List<DailyServiceCost> subCosts, bool forceRollover)
+public class ProjectUsageUpdateMessageBase(string projectAcronym, string costsBlobName, bool forceRollover)
 {
     public string ProjectAcronym { get; } = projectAcronym;
-    public List<DailyServiceCost> SubscriptionCosts { get; } = subCosts;
+    public string CostsBlobName { get; } = costsBlobName;
     public bool ForceRollover { get; set; } = forceRollover;
 }
 
 public class ProjectUsageUpdateMessage(
     string projectAcronym,
-    List<DailyServiceCost> subscriptionCosts,
+    string costsBlobName,
     bool forceRollover)
     : ProjectUsageUpdateMessageBase(projectAcronym,
-        subscriptionCosts, forceRollover), IRequest;
+        costsBlobName, forceRollover), IRequest;
 
 public class ProjectCapacityUpdateMessage(string projectAcronym, bool forceRollover) : ProjectUsageUpdateMessageBase(
-    projectAcronym, [],
+    projectAcronym, string.Empty,
     forceRollover), IRequest;
