@@ -54,6 +54,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.ApplicationInsights.HostingStartup" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="6.0.22" />
 		<PackageReference Include="Microsoft.AspNetCore.DataProtection.Abstractions" Version="8.0.*" />
+		<PackageReference Include="Microsoft.Azure.Databricks.Client" Version="2.3.0" />
 		<PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
 		<PackageReference Include="Microsoft.Azure.KeyVault.Core" Version="3.0.5" />
 		<PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
