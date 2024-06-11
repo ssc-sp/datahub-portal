@@ -57,8 +57,10 @@ else
         </MudTable>
        
     </MudStack>
-    <MudStack>
-        <MudText Typo="Typo.h2">@Localizer["Queue Health"]</MudText>
+        @if (hasQueues)
+        {
+            <MudStack>
+                <MudText Typo="Typo.h2">@Localizer["Queue Health"]</MudText>
         <MudText Typo="Typo.body1">
             @Localizer["View the health of the infrastructure queue that supports the communication between the application and the workspaces."]
         </MudText>
@@ -92,7 +94,7 @@ else
             </RowTemplate>
         </MudTable>
     </MudStack>
-
+        }
     <MudStack>
         <MudText Typo="Typo.h2">@Localizer["Workspace Health"]</MudText>
         <MudText Typo="Typo.body1">
@@ -163,7 +165,7 @@ else
     };
 
     public bool isLoading { get; set; } = false;
-
+    public bool hasQueues { get; set; } = false;
     private int? expandedRowId;
     private InfrastructureHealthCheck selectedContext = new InfrastructureHealthCheck();
 
@@ -217,7 +219,7 @@ else
                 .GroupBy(h => h.Name)
                 .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
                 .ToList();
-
+        hasQueues = _queueInfrastructureHealth.Count > 0;
         string[] poison_queues = new string[]
         {
             "delete-run-request-poison", "email-notification-poison", "pong-queue-poison", "project-capacity-update-poison", "project-inactivity-notification-poison",
