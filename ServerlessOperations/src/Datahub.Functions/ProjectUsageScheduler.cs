@@ -62,14 +62,14 @@ public class ProjectUsageScheduler(
                 manualRollover);
 
             // send/post the message
-            //await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageUpdateQueueName,
-            //usageMessage);
+            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageUpdateQueueName,
+            usageMessage);
 
             var capacityMessage = ConvertToCapacityUpdateMessage(usageMessage, manualRollover);
 
             // send/post the message,
-            //await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectCapacityUpdateQueueName,
-            //capacityMessage);
+            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectCapacityUpdateQueueName,
+            capacityMessage);
         }
 
         // TODO: deadman switch?
