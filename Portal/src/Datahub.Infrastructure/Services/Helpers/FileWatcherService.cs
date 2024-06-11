@@ -262,12 +262,15 @@ public class FileWatcherService : BackgroundService
     {
         var check = result.Check;
         if (check.Group == null || check.Name == null) { return; }
-        var existingCheck = await _projectDBContext.InfrastructureHealthChecks.FirstOrDefaultAsync(c =>
+        var existingChecks = _projectDBContext.InfrastructureHealthChecks.Where(c =>
             c.Group == check.Group && c.Name == check.Name && c.ResourceType == check.ResourceType);
 
-        if (existingCheck != null)
+        if (existingChecks != null)
         {
-            _projectDBContext.InfrastructureHealthChecks.Remove(existingCheck);
+            foreach(var item in existingChecks)
+            {
+                _projectDBContext.InfrastructureHealthChecks.Remove(item);
+            }
         }
 
         // Add the check without specifying the ID to allow the database to generate it

@@ -168,6 +168,8 @@ else
     public bool hasQueues { get; set; } = false;
     private int? expandedRowId;
     private InfrastructureHealthCheck selectedContext = new InfrastructureHealthCheck();
+    private const string cacheKey = "InfrastructureHealthChecks";
+    private Timer _timer;
 
     protected override async Task OnInitializedAsync()
     {
@@ -178,8 +180,25 @@ else
         await Task.Delay(1);
 
         _projectDbContext = DbFactory.CreateDbContext();
-        _infrastructureHealthChecks = Cache.Get<List<InfrastructureHealthCheck>>("InfrastructureHealthChecks");
 
+        LoadDataForTables();
+
+        _timer = new System.Threading.Timer(e =>
+        {
+            InvokeAsync(() =>
+            {
+                LoadDataForTables();
+                StateHasChanged();
+            });
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+
+
+        isLoading = false;
+    }
+
+    private void LoadDataForTables()
+    {
+        _infrastructureHealthChecks = Cache.Get<List<InfrastructureHealthCheck>>(cacheKey);
         var projects = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).Select(p => p.Project_Acronym_CD).ToList();
         _infrastructureHealth = new Dictionary<string, List<InfrastructureHealthCheck>>();
 
@@ -232,10 +251,7 @@ else
                 .GroupBy(h => h.Name)
                 .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
                 .ToList();
-
-        isLoading = false;
     }
-
     private List<InfrastructureHealthCheck> GetHealthCheckHistory(InfrastructureHealthResourceType resourceType, string Name, string Group )
     {
         var list = new List<InfrastructureHealthCheck>();

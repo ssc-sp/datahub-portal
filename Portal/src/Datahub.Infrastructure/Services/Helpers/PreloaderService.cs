@@ -29,7 +29,7 @@ public class PreloaderService : BackgroundService
                 _cache.Set("InfrastructureHealthChecks", healthChecks);
             }
 
-            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken); // call takes 10 sec
+            await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken); // call takes 10 sec
         }
     }
 }
