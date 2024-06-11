@@ -50,6 +50,9 @@ public static class ConfigureServices
             services.AddSingleton<IProxyConfigProvider, ProxyConfigProvider>();
         }
 
+        services.AddHostedService<PreloaderService>();
+        services.AddMemoryCache();
+
         var whereAmI = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         var isDevelopment = !string.IsNullOrEmpty(whereAmI) && whereAmI.ToLower() == "development";
 
