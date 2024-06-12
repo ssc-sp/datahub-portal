@@ -246,10 +246,7 @@ public class CheckInfrastructureStatus(
 
         if (existingChecks != null)
         {
-            foreach (var item in existingChecks)
-            {
-                dbProjectContext.InfrastructureHealthChecks.Remove(item);
-            }
+            dbProjectContext.InfrastructureHealthChecks.RemoveRange(existingChecks);
         }
 
         // Add the check without specifying the ID to allow the database to generate it
