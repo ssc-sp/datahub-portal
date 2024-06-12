@@ -241,12 +241,15 @@ public class CheckInfrastructureStatus(
     {
         var check = result.Check;
         if (check.Group == null || check.Name == null) { return; }
-        var existingCheck = await dbProjectContext.InfrastructureHealthChecks.FirstOrDefaultAsync(c =>
+        var existingChecks = dbProjectContext.InfrastructureHealthChecks.Where(c =>
             c.Group == check.Group && c.Name == check.Name && c.ResourceType == check.ResourceType);
 
-        if (existingCheck != null)
+        if (existingChecks != null)
         {
-            dbProjectContext.InfrastructureHealthChecks.Remove(existingCheck);
+            foreach (var item in existingChecks)
+            {
+                dbProjectContext.InfrastructureHealthChecks.Remove(item);
+            }
         }
 
         // Add the check without specifying the ID to allow the database to generate it
