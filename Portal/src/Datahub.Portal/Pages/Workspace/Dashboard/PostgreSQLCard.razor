@@ -15,13 +15,13 @@
             @if (ProjectResource.CreatedAt.HasValue)
             {
                 
-            <MudButton
+            <DHButton
                 Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.SqlDatabase}")"
                 Color="Color.Primary"
                 Variant="@Variant.Text"
                 EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
                 @Localizer["View Connection Details"]
-            </MudButton>
+            </DHButton>
             }
             else
             {

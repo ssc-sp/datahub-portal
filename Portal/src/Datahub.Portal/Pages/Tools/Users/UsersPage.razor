@@ -10,14 +10,14 @@
 @if (_hasLoaded)
 {
     <MudTooltip Text=@Localizer["Copy the emails of all users in the current environment. Excludes gmail, ssc-spc and apption emails."]>
-        <MudButton Color="Color.Primary" OnClick="@CopyAllUsersToClipboard">
+        <DHButton Color="Color.Primary" OnClick="@CopyAllUsersToClipboard">
             @_allButton
-        </MudButton>
+        </DHButton>
     </MudTooltip>
     <MudTooltip Text=@Localizer["Copy the emails of locked users in the tenant."]>
-        <MudButton Color="Color.Primary" OnClick="@CopyLockedUsersToClipboard">
+        <DHButton Color="Color.Primary" OnClick="@CopyLockedUsersToClipboard">
             @_lockedButton
-        </MudButton>
+        </DHButton>
     </MudTooltip>
 }
 else

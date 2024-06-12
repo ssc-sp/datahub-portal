@@ -12,23 +12,23 @@
             @Localizer["Navigate to the Azure App Service to view your web application, where you can serve interactive and user-friendly dashboards."]
         </MudText>
         <MudElement HtmlTag="div">
-            <MudButton
+            <DHButton
                 Href="@GetWebAppUrl()"
                 Target="_blank"
                 Color="Color.Primary"
                 Variant="@Variant.Text"
                 EndIcon="@SidebarIcons.External">
                 @Localizer["Navigate to Web App"]
-            </MudButton>
+            </DHButton>
         </MudElement>
         <MudElement HtmlTag="div">
-            <MudButton
+            <DHButton
                 Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{PageRoutes.WebAppPrefix}")
                 Color="Color.Primary"
                 Variant="@Variant.Text"
                 EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
                 @Localizer["View Web App configuration"]
-            </MudButton>
+            </DHButton>
         </MudElement>
     </MudStack>
 </MudPaper>

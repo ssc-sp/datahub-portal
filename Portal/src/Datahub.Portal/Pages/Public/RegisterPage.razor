@@ -46,14 +46,14 @@
 
                 @if (_isRegistering)
                 {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mx-auto mt-4">
+                    <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mx-auto mt-4">
                         @Localizer["Registering"]
                         <MudProgressCircular Class="ml-4" Color="Color.Default" Size="Size.Small" Indeterminate="true"/>
                     </MudButton>
                 }
                 else
                 {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mx-auto mt-4" OnClick="HandleValidSubmit">
+                    <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mx-auto mt-4" OnClick="HandleValidSubmit">
                         @Localizer["Register"]
                     </MudButton>
                 }

@@ -14,9 +14,9 @@
             @Localizer["View the health of the infrastructure that supports the application and the workspaces."]
         </MudText>
     </MudStack>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => CallFunction(0, "", "all"))" Style="width: fit-content;">
+    <DHButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => CallFunction(0, "", "all"))" Style="width: fit-content;">
         @Localizer["Run all checks"]
-    </MudButton>
+    </DHButton>
     <MudStack>
         <MudText Typo="Typo.h2">@Localizer["Core Health"]</MudText>
         <MudText Typo="Typo.body1">
@@ -39,9 +39,9 @@
                 </MudTd>
                 <MudTd>@context.HealthCheckTimeUtc</MudTd>
                 <MudTd>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
+                        <DHButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
 						@Localizer["Run"]
-					</MudButton>
+					</DHButton>
                 </MudTd>
             </RowTemplate>
         </MudTable>
@@ -75,9 +75,9 @@
                 </MudTd>
                 <MudTd>@context.HealthCheckTimeUtc</MudTd>
                     <MudTd>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
+                        <DHButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
                             @Localizer["Run"]
-                        </MudButton>
+                        </DHButton>
                     </MudTd>
             </RowTemplate>
         </MudTable>

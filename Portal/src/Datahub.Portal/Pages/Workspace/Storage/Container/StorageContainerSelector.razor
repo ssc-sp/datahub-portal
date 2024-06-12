@@ -5,7 +5,7 @@
 {
     <MudMenu AnchorOrigin=@Origin.BottomRight TransformOrigin=@Origin.TopRight @ref=@_rootMenu>
         <ActivatorContent>
-            <MudButton>
+            <DHButton>
                 <MudStack Row>
                     <MudIcon Icon=@GetCloudProviderIcon(SelectedContainer) 
                         ViewBox=@GetCloudProviderIconViewBox(SelectedContainer) 
@@ -13,7 +13,7 @@
                     <MudText Typo=@Typo.h2>@Localizer[SelectedContainer.CloudStorageProvider.ToString()] - @SelectedContainer.AccountName - @SelectedContainer.ContainerName</MudText>
                     <MudIcon Icon=@Icons.Material.Filled.ArrowDropDown Size=@Size.Large />
                 </MudStack>
-            </MudButton>
+            </DHButton>
         </ActivatorContent>
         <ChildContent>
             @foreach(var accountContainer in CloudContainers.DistinctBy(c => c.AccountName))

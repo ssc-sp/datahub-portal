@@ -1,4 +1,6 @@
-﻿@using DocumentFormat.OpenXml.Office2019.Presentation
+﻿@using Datahub.Core.Model.Achievements
+@inject IPortalUserTelemetryService _telemetryService
+
 <MudButton HtmlTag="a" @ref="@Button" 
            ClickPropagation="@ClickPropagation" 
            Disabled="@Disabled" 
@@ -21,7 +23,7 @@
            Style="@Style"
            Tag="@Tag"
            UserAttributes="@UserAttributes"
-           OnClick="@OnClick">
+           OnClick="@TrackOnClick">
     @ChildContent
 </MudButton>
 
@@ -60,6 +62,12 @@
 
     // EventCallbacks
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    public async Task<EventCallback<MouseEventArgs>> TrackOnClick()
+    {
+        await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserClickButton);
+        return OnClick;
+    }
 
     // Methods
     public ValueTask FocusAsync() => Button.FocusAsync();

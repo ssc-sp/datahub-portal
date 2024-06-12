@@ -20,22 +20,22 @@
         <MudElement>
             @if (DocumentItem?.DocType == DocItemType.External)
             {
-                <MudButton Href="@ResourcesPage.BuildResourceLink(DocumentItem)"
+                <DHButton Href="@ResourcesPage.BuildResourceLink(DocumentItem)"
                            Color="@Color.Primary"
                            Variant="@Variant.Text"
                            Target="_blank"
                            EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                     @Localizer["Open link"]
-                </MudButton>
+                </DHButton>
             }
             else
             {
-                <MudButton Href="@ResourcesPage.BuildResourceLink(DocumentItem)"
+                <DHButton Href="@ResourcesPage.BuildResourceLink(DocumentItem)"
                            Color="@Color.Primary"
                            Variant="@Variant.Text"
                            EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                     @Localizer["Read more"]
-                </MudButton>
+                </DHButton>
             }
         </MudElement>
     </MudStack>
