@@ -9,12 +9,11 @@ using Datahub.Core.Services.Search;
 
 namespace Datahub.Tests;
 
-public class ExternalSearchFixture: IDisposable
+public class ExternalSearchFixture : IDisposable
 {
     public IExternalSearchService ExternalSearchService { get; private set; }
     public ILogger Logger { get; private set; }
-        
-    private ITestOutputHelper _output = null;
+
     private readonly HttpClient _httpClient;
 
     public ExternalSearchFixture()
@@ -25,14 +24,11 @@ public class ExternalSearchFixture: IDisposable
     // ITestOutputHelper can only be injected in a unit test class, not in a fixture
     // so this method is a hack to get around that
     // otherwise this initialization would be done in the constructor
-    public void InitOutput(ITestOutputHelper output) 
+    public void InitOutput<T>(ITestOutputHelper output) where T : class
     {
-        if (_output == null) 
-        {
-            _output = output;
-            Logger = _output.BuildLoggerFor<ExternalSearchTest>();
-            ExternalSearchService = new ExternalSearchService(_output.BuildLoggerFor<ExternalSearchService>(), _httpClient);
-        }
+        Logger = output.BuildLoggerFor<T>();
+        ExternalSearchService = new ExternalSearchService(output.BuildLoggerFor<ExternalSearchService>(), _httpClient);
+
     }
 
     public void Dispose()
@@ -41,7 +37,7 @@ public class ExternalSearchFixture: IDisposable
     }
 }
 
-public class ExternalSearchTest: IClassFixture<ExternalSearchFixture>
+public class ExternalSearchTest : IClassFixture<ExternalSearchFixture>
 {
     private static readonly string SEARCH_API_URL = "https://hqdatl0f6d.execute-api.ca-central-1.amazonaws.com/dev/geo";
 
@@ -49,19 +45,19 @@ public class ExternalSearchTest: IClassFixture<ExternalSearchFixture>
 
     public ExternalSearchTest(ExternalSearchFixture fixture, ITestOutputHelper output)
     {
-        fixture.InitOutput(output);
+        fixture.InitOutput<ExternalSearchTest>(output);
         _fixture = fixture;
     }
 
     [Fact]
-    public async void TestFGPKeywordQuery() 
+    public async void TestFGPKeywordQuery()
     {
         var keyword = "ferroalloy";
         var httpClient = new HttpClient();
-            
+
         using (var request = new HttpRequestMessage())
         {
-            request.Method=HttpMethod.Get;
+            request.Method = HttpMethod.Get;
             request.RequestUri = new Uri($"{SEARCH_API_URL}?keyword_only=true&lang=en&keyword={keyword}");
 
             using (var response = await httpClient.SendAsync(request))
@@ -69,11 +65,11 @@ public class ExternalSearchTest: IClassFixture<ExternalSearchFixture>
                 var content = await response.Content.ReadAsStringAsync();
 
                 var result = JsonConvert.DeserializeObject<dynamic>(content);
-                    
+
                 Assert.Equal(1, (int)result.Count);
 
                 var item = result.Items[0];
-                    
+
                 Assert.Equal("Principal Mineral Areas, Producing Mines, and Oil and Gas Fields (900A)", (string)item.title);
             }
         }
@@ -90,7 +86,7 @@ public class ExternalSearchTest: IClassFixture<ExternalSearchFixture>
             request.Method = HttpMethod.Get;
             request.RequestUri = new Uri($"{SEARCH_API_URL}?keyword_only=true&lang=en&keyword={keyword}");
 
-            using (var response = await httpClient.SendAsync(request)) 
+            using (var response = await httpClient.SendAsync(request))
             {
                 var content = await response.Content.ReadAsStringAsync();
 
@@ -118,15 +114,16 @@ public class ExternalSearchTest: IClassFixture<ExternalSearchFixture>
     }
 
     [Fact]
-    public async void TestMultiFGPResultsFromService() {
+    public async void TestMultiFGPResultsFromService()
+    {
         var keyword = "mining";
         _fixture.Logger.LogInformation($"Testing keyword '{keyword}' - should have multiple results, limited to 10 in query");
-            
+
         var result = await _fixture.ExternalSearchService.SearchFGPByKeyword(keyword, min: 1, max: 10);
         Assert.Equal(10, result.Count);
     }
 
-    [Fact (Skip = "Needs to be validated")]
+    [Fact(Skip = "Needs to be validated")]
     public async void TestSingleFGPResultFrench()
     {
         var keyword = "Pompage turbinage";
@@ -159,7 +156,7 @@ public class ExternalSearchTest: IClassFixture<ExternalSearchFixture>
         Assert.Equal(0, result.Count);
     }
 
-    [Fact (Skip = "Needs to be validated")]
+    [Fact(Skip = "Needs to be validated")]
     public async void TestFGPEmbeddedObjects()
     {
         var keyword = "ferroalloy";
@@ -183,14 +180,14 @@ public class ExternalSearchTest: IClassFixture<ExternalSearchFixture>
         // first two have a "null" string in all the fields
         // the third one has something
         // if ever we update the class To ignore/remove the null ones, we may need To update this
-        var option = optionsList[2]; 
+        var option = optionsList[2];
         Assert.Equal("Vector dataset of the 900A map", option.Name.En);
         _fixture.Logger.LogInformation("Expected option matches");
 
         Assert.Single(graphicsList);
         var graphicOverview = item.FirstGraphicOverview;
         Assert.Equal(
-            "http://ftp.maps.canada.ca/pub/nrcan_rncan/Mining-industry_Industrie-miniere/900A_and_top_100/Thumbnail/900A.png", 
+            "http://ftp.maps.canada.ca/pub/nrcan_rncan/Mining-industry_Industrie-miniere/900A_and_top_100/Thumbnail/900A.png",
             graphicOverview.OverviewFilename);
         _fixture.Logger.LogInformation("GraphicOverview filename matches");
     }
