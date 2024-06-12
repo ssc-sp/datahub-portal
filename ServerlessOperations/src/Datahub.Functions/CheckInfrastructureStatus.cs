@@ -21,6 +21,8 @@ using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Datahub.Application.Services;
+using Datahub.Shared.Clients;
+using MassTransit.Internals.Caching;
 
 namespace Datahub.Functions;
 
@@ -548,6 +550,109 @@ public class CheckInfrastructureStatus(
         if (!errors.Any())
         {
             check.Status = InfrastructureHealthStatus.Healthy;
+        }
+
+        return new InfrastructureHealthCheckResponse(check, errors);
+    }
+
+    private async Task<InfrastructureHealthCheckResponse> CheckAzureDatabricksHealth(
+    InfrastructureHealthCheckMessage request)
+    {
+        var errors = new List<string>();
+        var check = new InfrastructureHealthCheck()
+        {
+            Group = request.Group,
+            Name = request.Name,
+            ResourceType = request.Type,
+            Status = InfrastructureHealthStatus.Unhealthy,
+            HealthCheckTimeUtc = DateTime.UtcNow
+        };
+
+        var project = dbProjectContext.Projects.AsNoTracking().Include(p => p.Resources)
+            .FirstOrDefault(p => p.Project_Acronym_CD == request.Name);
+
+        // If the project is null, the project does not exist or there was an error retrieving it
+        if (project == null)
+        {
+            check.Status = InfrastructureHealthStatus.Unhealthy;
+            errors.Add("Failed to retrieve project.");
+        }
+        else
+        {
+            // We check if the project has a databricks resource. If not, we return a create status.
+            bool checkForDatabricks = false;
+            var resources = project.Resources.ToArray();
+            foreach (var resource in resources)
+            {
+                if (resource.ResourceType == "terraform:azure-databricks")
+                {
+                    checkForDatabricks = true;
+                    break;
+                }
+            }
+
+            if (!checkForDatabricks)
+            {
+                check.Status = InfrastructureHealthStatus.Create;
+            }
+            else
+            {
+                // We attempt to retrieve the databricks URL. If we cannot, we return an unhealthy status.
+                var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project);
+
+                if (databricksUrl == null)
+                {
+                    check.Status = InfrastructureHealthStatus.Unhealthy;
+                    errors.Add("Failed to retrieve Databricks URL.");
+                }
+                else
+                {
+                    try
+                    { 
+                        var azureDevOpsClient = new AzureDevOpsClient(azureConfig.AzureDevOpsConfiguration);
+                        var accessToken = await azureDevOpsClient.AccessTokenAsync();
+                         
+                        var databricksClient = new DatabricksClientUtils(databricksUrl, accessToken.Token);
+
+                        // Verify Instance Availability
+                        var instanceRunning = await databricksClient.IsDatabricksInstanceRunning();
+                        if (!instanceRunning)
+                        {
+                            check.Status = InfrastructureHealthStatus.Unhealthy;
+                            errors.Add("Databricks instance is not available.");
+                        }
+                        else
+                        {
+                            // Verify ACL Status
+                            var aclStatus = await databricksClient.VerifyACLStatus();
+                            if (!aclStatus)
+                            {
+                                check.Status = InfrastructureHealthStatus.Unhealthy;
+                                errors.Add("Failed to verify ACL status.");
+                            }
+                            else
+                            {
+                                // Check Cluster Status
+                                var clusterStatus = await databricksClient.GetClusterStatus("");
+                                if (string.IsNullOrEmpty(clusterStatus) || clusterStatus != "Running")
+                                {
+                                    check.Status = InfrastructureHealthStatus.Unhealthy;
+                                    errors.Add("Cluster is not in the running state.");
+                                }
+                                else
+                                {
+                                    check.Status = InfrastructureHealthStatus.Healthy;
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        check.Status = InfrastructureHealthStatus.Unhealthy;
+                        errors.Add($"Error while checking Databricks health: {ex.Message}");
+                    }
+                }
+            }
         }
 
         return new InfrastructureHealthCheckResponse(check, errors);
