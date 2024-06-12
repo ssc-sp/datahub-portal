@@ -9,17 +9,17 @@
 
     <ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.*" />
-        <PackageReference Include="Microsoft.Playwright.NUnit" Version="1.37.1" />
+        <PackageReference Include="Microsoft.Playwright.NUnit" Version="1.44.0" />
         <PackageReference Include="Playwright.Axe" Version="1.3.0" />
         <PackageReference Include="nunit" Version="4.1.0" />
         <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
         <PackageReference Include="FluentAssertions" Version="6.12.0" />
-        <PackageReference Include="coverlet.collector" Version="6.0.1">
+        <PackageReference Include="coverlet.collector" Version="6.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Reqnroll" Version="1.0.1" />
-        <PackageReference Include="Reqnroll.NUnit" Version="1.0.1" />
+        <PackageReference Include="Reqnroll" Version="2.0.3" />
+        <PackageReference Include="Reqnroll.NUnit" Version="2.0.3" />
     </ItemGroup>
 
 
