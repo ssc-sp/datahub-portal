@@ -1,6 +1,5 @@
 using Azure;
 using Azure.ResourceManager.Resources;
-using BoDi;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Subscriptions;
@@ -14,6 +13,7 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.Extensions;
 using Reqnroll;
+using Reqnroll.BoDi;
 
 namespace Datahub.SpecflowTests.Hooks;
 
