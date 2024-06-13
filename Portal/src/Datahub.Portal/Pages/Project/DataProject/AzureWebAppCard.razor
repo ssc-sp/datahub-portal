@@ -1,7 +1,9 @@
+@using Datahub.Application.Services.ReverseProxy
 @using Datahub.Core.Model.Projects
 @using MudBlazor.Utilities
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject DatahubPortalConfiguration _portalConfiguration
+@inject IReverseProxyConfigService ReverseProxyConfigService
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@ProjectAcronym">
     <MudPaper Class="@_cardCss" Style="@_cardStyle">
@@ -45,7 +47,7 @@
     [Parameter]
     public string ProjectAcronym { get; set; }
 
-    private string _azureWebAppUrl => $"/{_portalConfiguration.ReverseProxy.BasePath}/{ProjectAcronym}/";
+    private string _azureWebAppUrl => $"/{ReverseProxyConfigService.BuildWebAppURL(ProjectAcronym)}/";
 
     private string _descriptionStyle;
     private string _cardContentStyle;

@@ -923,6 +923,7 @@
   "Navigating your workspace": "Navigating your workspace",
   "Navigation menu": "Navigation menu",
   "Need a hand? We\u0027ve got you covered.": "Need a hand? We\u0027ve got you covered.",
+  "NeedHealthCheckRun": "Run health check",
   "New": "New",
   "New Achievement Unlocked!": "New Achievement Unlocked!",
   "New Folder": "New Folder",
@@ -1931,5 +1932,8 @@
   "This web application is not provisioned yet. Please come back soon.": "This web application is not provisioned yet. Please come back soon.",
   "Configure Web Application": "Configure Web Application",
   "Web application configuration processed": "Web application configuration processed",
-  "Web application configuration failed": "Web application configuration failed"
+  "Web application configuration failed": "Web application configuration failed",
+  "Enable URL Rewriting": "Enable URL Rewriting",
+  "URL Rewriting setting updated": "URL Rewriting setting updated",
+  "Could not update URL Rewriting setting": "Could not update URL Rewriting setting"
 }

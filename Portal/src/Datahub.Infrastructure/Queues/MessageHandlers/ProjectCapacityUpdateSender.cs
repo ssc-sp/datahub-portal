@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 namespace Datahub.Infrastructure.Queues.MessageHandlers;
 
 public class ProjectCapacityUpdateSender(ISendEndpointProvider sendEndpointProvider)
-    : QueueMessageSender<BugReportMessage>(sendEndpointProvider)
+    : QueueMessageSender<ProjectCapacityUpdateMessage>(sendEndpointProvider)
 {
 
     protected override string ConfigPathOrQueueName => QueueConstants.ProjectCapacityUpdateQueueName;

@@ -1,5 +1,6 @@
 ﻿using Datahub.Infrastructure.Services.WebApp;
 using FluentAssertions;
+using MassTransit;
 using MediatR;
 using NSubstitute;
 using static Datahub.Infrastructure.UnitTests.Testing;
@@ -11,13 +12,13 @@ namespace Datahub.Infrastructure.UnitTests.Services;
 public class WorkspaceWebAppManagementServiceTests
 {
     private WorkspaceWebAppManagementService _service;
-    private IMediator _mediatr;
+    private ISendEndpointProvider _sendEndpointProvider;
 
     [SetUp]
     public async Task Setup()
     {
-        _mediatr = Substitute.For<IMediator>();
-        _service = new WorkspaceWebAppManagementService(_datahubPortalConfiguration, _dbContextFactory, _mediatr);
+        _sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
+        _service = new WorkspaceWebAppManagementService(_datahubPortalConfiguration, _dbContextFactory, _sendEndpointProvider);
         await _service.Stop(TestWebAppId);
         await Task.Delay(1000);
     }
