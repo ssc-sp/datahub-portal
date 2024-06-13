@@ -1,3 +1,5 @@
+using Datahub.Application.Services.ReverseProxy;
+
 namespace Datahub.Portal.Pages;
 
 public static class PageRoutes
@@ -22,10 +24,9 @@ public static class PageRoutes
     public const string ToolPrefix = "tool";
     public const string ToolDefault = $"/{ToolPrefix}/";
     public const string Tool = $"/{ToolPrefix}/{{Section}}";
-
-    public const string WebAppPrefix = "webapp";
-    public const string WebAppDefault = $"/{WebAppPrefix}/";
-    public const string WebApp = $"/{WorkspacePrefix}/{WebAppPrefix}/{{Section}}";
+    
+    public const string WebAppDefault = $"/{IReverseProxyConfigService.WebAppPrefix}/";
+    public const string WebApp = $"/{WorkspacePrefix}/{IReverseProxyConfigService.WebAppPrefix}/{{Section}}";
 
     public const string Logout = "/signout-oidc";
     public const string TermsAndConditions = "/terms-and-conditions";

@@ -1,4 +1,8 @@
-﻿using Datahub.Core.Model.Datahub;
+﻿using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Azure.Storage.Blobs;
+using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Queues.Messages;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -44,29 +48,28 @@ public class ProjectUsageScheduler(
     {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
-        var projects = ctx.Projects.ToList();
+        var projects = ctx.Projects.Include(p => p.DatahubAzureSubscription).ToList();
         var sortedProjects = projects.OrderBy(p => GetLastUpdate(ctx, p.Project_ID)).ToList();
-        var subscriptionCosts = await workspaceCostMgmtService.QuerySubscriptionCosts(null,
-            DateTime.UtcNow.Date.AddDays(-7), DateTime.UtcNow.Date);
+        var subIds = sortedProjects.Select(p => "subscriptions/" + p.DatahubAzureSubscription.SubscriptionId).Distinct()
+            .ToList();
 
-        if (subscriptionCosts is null)
-        {
-            _logger.LogError("Cannot query costs at this time.");
-            return;
-        }
+        var allCosts = await AggregateCosts(subIds);
+        var costBlobName = await PostToBlob(allCosts);
 
         foreach (var resource in sortedProjects)
         {
-            var usageMessage = new ProjectUsageUpdateMessage(resource.Project_Acronym_CD, subscriptionCosts,
+            var usageMessage = new ProjectUsageUpdateMessage(resource.Project_Acronym_CD, costBlobName,
                 manualRollover);
 
             // send/post the message
-            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageUpdateQueueName, usageMessage);
+            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageUpdateQueueName,
+            usageMessage);
 
             var capacityMessage = ConvertToCapacityUpdateMessage(usageMessage, manualRollover);
 
             // send/post the message,
-            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectCapacityUpdateQueueName, capacityMessage);
+            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectCapacityUpdateQueueName,
+            capacityMessage);
         }
 
         // TODO: deadman switch?
@@ -81,9 +84,51 @@ public class ProjectUsageScheduler(
         return lastUpdate ?? DateTime.MinValue;
     }
 
+    private async Task<string> PostToBlob(List<DailyServiceCost> subCosts)
+    {
+        var fileName = "costs-" + DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss") +Guid.NewGuid()+ ".json";
+        var blobServiceClient = new BlobServiceClient(_azConfig.MediaStorageConnectionString);
+        var containerClient = blobServiceClient.GetBlobContainerClient("costs");
+        var blobClient = containerClient.GetBlobClient(fileName);
+        var costs = new BlobCostObject { Costs = subCosts };
+        var costsJson = JsonSerializer.Serialize(costs);
+        using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(costsJson)))
+        {
+            await blobClient.UploadAsync(ms);
+        }
+
+        return fileName;
+    }
+    
+    private async Task<List<DailyServiceCost>> AggregateCosts(List<string> subIds)
+    {
+        var allCosts = new List<DailyServiceCost>();
+        foreach (var subId in subIds)
+        {
+            var costs = await workspaceCostMgmtService.QuerySubscriptionCosts(subId, DateTime.UtcNow.Date.AddDays(-7),
+                DateTime.UtcNow.Date);
+            if (costs is not null)
+            {
+                allCosts.AddRange(costs);
+            }
+            else
+            {
+                _logger.LogError($"Cannot query costs for subscription {subId}");
+            }
+        }
+
+        return allCosts;
+    }
+
     static ProjectCapacityUpdateMessage ConvertToCapacityUpdateMessage(ProjectUsageUpdateMessage message,
         bool manualRollover)
     {
         return new(message.ProjectAcronym, manualRollover);
+    }
+
+    record BlobCostObject
+    {
+        [JsonPropertyName("costs")]
+        public List<DailyServiceCost> Costs { get; set; }
     }
 }

@@ -15,21 +15,21 @@
             @if (ProjectResource.CreatedAt.HasValue)
             {
             <MudStack Row>
-                <MudButton
+                <DHButton
                     Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Storage}")"
                     Color="Color.Primary"
                     Variant="@Variant.Text"
                     EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
                     @Localizer["View Storage"]
-                </MudButton>
+                </DHButton>
 
-                <MudButton 
+                <DHButton 
                     Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Publishing}")"
                     Color="Color.Primary"
                     Variant="@Variant.Text"
                     EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
                     @Localizer["Open Publishing Dashboard"]
-                </MudButton>
+                </DHButton>
             </MudStack>
             }
             else

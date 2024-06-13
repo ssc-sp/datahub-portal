@@ -29,9 +29,9 @@
             <MudStack>
                 <MudText>@Localizer["{0} credits consumed yesterday", $"{_yesterdayCost:C}"]</MudText>
                 <MudText>@Localizer["{0} credits consumed on average (daily)", $"{_averageDailyCost:C}"]</MudText>
-                <MudButton Href="@($"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Reports}")" Variant="Variant.Text">
+                <DHButton Href="@($"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Reports}")" Variant="Variant.Text">
                     @Localizer["View Reports"]
-                </MudButton>
+                </DHButton>
             </MudStack>
         </MudItem>
     </MudGrid>

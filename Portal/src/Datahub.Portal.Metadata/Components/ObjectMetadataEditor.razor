@@ -25,9 +25,9 @@
             <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mb-2">
                 @if (_profile.HasOptionalFields())
                 {
-                    <MudButton OnClick=@ToggleShowAll>
+                    <DHButton OnClick=@ToggleShowAll>
                         <MudText>@(_showAll ? Localizer["METADATA-PAGE.ShowLess"] : Localizer["METADATA-PAGE.ShowMore"])</MudText>
-                    </MudButton>
+                    </DHButton>
                 }
                 else
                 {
@@ -37,13 +37,13 @@
                 <MudStack Row="true" Justify="Justify.FlexEnd">
                     @if (ShowDiscardButton)
                     {
-                        <MudButton OnClick=@HandleDiscard Variant="Variant.Filled" Color="Color.Default">
+                        <DHButton OnClick=@HandleDiscard Variant="Variant.Filled" Color="Color.Default">
                             <MudText>@Localizer["Discard"]</MudText>
-                        </MudButton>
+                        </DHButton>
                     }
                     @if (ShowSaveButton)
                     {
-                        <MudButton OnClick=@HandleSaveButton 
+                        <DHButton OnClick=@HandleSaveButton 
                                    Disabled=@SaveDisabled                                   
                                    Variant="Variant.Filled" 
                                    Color="Color.Primary">
@@ -56,7 +56,7 @@
                             {
                                 <MudText>@SaveButtonLabel</MudText>
                             }
-                        </MudButton>
+                        </DHButton>
                     }
                 </MudStack>
             </MudStack>

@@ -26,12 +26,12 @@
         @Localizer["Changes to the firewall rules can take up to 15 minutes to apply."]
     </MudAlert>
     <MudStack Row>
-        <MudButton OnClick="@AddCurrentIpAddress">
+        <DHButton OnClick="@AddCurrentIpAddress">
             @Localizer["Add current IP address ({0})", _userIpAddress]
-        </MudButton>
-        <MudButton OnClick="@AddNewIpAddress">
+        </DHButton>
+        <DHButton OnClick="@AddNewIpAddress">
                     @Localizer["Add a new IP address"]
-                </MudButton>
+                </DHButton>
         <MudSpacer/>
     </MudStack>
 </MudStack>

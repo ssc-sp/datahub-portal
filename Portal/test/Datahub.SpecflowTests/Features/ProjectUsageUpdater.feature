@@ -25,3 +25,8 @@ Scenario: When a project usage is updated and the update goes into a new fiscal 
 	When the project usage is updated
 	Then the rollover should not be triggered 
 	
+Scenario: When a project usage is queued, the blob download should work properly
+	Given a project usage update message
+	When the subscription costs are downloaded
+	Then the blob download should work properly
+	

@@ -98,7 +98,7 @@ namespace Datahub.Portal.Components
 
             if (!string.IsNullOrWhiteSpace(newKey) && !string.IsNullOrWhiteSpace(newValue))
             {
-                await CreateOrUpdateEnvironmentVariable(new(newKey, newValue));
+                CreateOrUpdateEnvironmentVariable(new(newKey, newValue));
                 _snackbar.Add(Localizer["Environment variable {0} has been added.", newKey], Severity.Success);
             }
             else
@@ -116,7 +116,7 @@ namespace Datahub.Portal.Components
                 _snackbar.Add(Localizer["Error deleting environment variable {0}.", item.Key], Severity.Error);
         }
 
-        private async Task CreateOrUpdateEnvironmentVariable((string Key, string Value) item)
+        private void CreateOrUpdateEnvironmentVariable((string Key, string Value) item)
         {
             var existingItem = envVars.FirstOrDefault(x => x.Key == item.Key);
             if (existingItem.Key != default)

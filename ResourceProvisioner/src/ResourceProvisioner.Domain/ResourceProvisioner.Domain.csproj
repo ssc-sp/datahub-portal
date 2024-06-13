@@ -7,9 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Azure.Identity" Version="1.11.0" />
-      <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="16.170.0" />
-      <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="16.170.0" />
+      <PackageReference Include="Azure.Identity" Version="1.11.4" />
+      <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="19.225.1" />
+      <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="19.225.1" />
     </ItemGroup>
 
     <Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />

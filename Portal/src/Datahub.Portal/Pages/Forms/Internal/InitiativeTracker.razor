@@ -178,7 +178,7 @@
     private List<RenderFragment> GetFormButtons()
     {
         var buttons = new List<RenderFragment>();
-        buttons.Add(@<MudButton style="margin-right: 0.2rem" Variant="Variant.Filled" Color="Color.Primary" @onclick=@SuggestTranslation Disabled=@DisabledSuggestTranslation>@DataLocalizer["Suggest French Translation"]</MudButton>);
+        buttons.Add(@<DHButton style="margin-right: 0.2rem" Variant="Variant.Filled" Color="Color.Primary" @onclick=@SuggestTranslation Disabled=@DisabledSuggestTranslation>@DataLocalizer["Suggest French Translation"]</DHButton>);
         return buttons;
     }
 

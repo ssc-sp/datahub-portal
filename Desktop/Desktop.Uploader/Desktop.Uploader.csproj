@@ -49,8 +49,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Azure.Storage.Blobs" Version="12.18.*" />
-		<PackageReference Include="CommunityToolkit.Maui" Version="6.0.0" />
+		<PackageReference Include="Azure.Storage.Blobs" Version="12.20.*" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="9.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.*" />
 		<PackageReference Include="SuchByte.SpeedTestSharp" Version="1.0.2" />
 	</ItemGroup>
@@ -101,5 +101,13 @@
 	</ItemGroup>
 
 	<Import Project="..\Desktop.SharedCode\Desktop.SharedCode.projitems" Label="Shared" />
+
+	<ItemGroup>
+	  <PackageReference Update="Microsoft.Maui.Controls" Version="8.0.40" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="Microsoft.Maui.Controls.Compatibility" Version="8.0.40" />
+	</ItemGroup>
 
 </Project>

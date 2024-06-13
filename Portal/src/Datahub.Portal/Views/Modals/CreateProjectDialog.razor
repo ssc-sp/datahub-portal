@@ -16,17 +16,19 @@
                           HelperText="@Localizer["Enter a descriptive title for the workspace"]"
                           DebounceInterval="500"
                           OnDebounceIntervalElapsed="UpdateProjectAcronym"/>
-
+            
             <MudTextField T="string"
                           @bind-Value="_projectAcronym"
                           Label="@Localizer["Workspace Acronym"]"
                           AdornmentIcon="fa-light fa-arrows-rotate"
-                          HelperText="@Localizer["A unique alphanumeric acronym to identify the workspace"]"
+                          HelperText="@Localizer["A unique alphanumeric acronym to identify the workspace. Click the icon to generate an acronym based on the title."]"
                           Adornment="Adornment.End"
                           OnAdornmentClick="GenerateAcronym"
+                          AdornmentAriaLabel="@Localizer["Generate Acronym"]"
                           RequiredError="@Localizer["Workspace Acronym is required"]"
                           Converter="_converter"
                           @ref="_acronymField"
+                          alt=@Localizer["A unique alphanumeric acronym to identify the workspace. Click the icon to generate an acronym based on the title."]
                           Required
                           Validation="@(new Func<string, Task<string>>(ValidateAcronym))"/>
 
