@@ -2,7 +2,7 @@
     <BulletTemplate Context="selected">
         <div Class="mud-button-root mud-icon-button mud-icon-button-color-inherit mud-ripple mud-ripple-icon">
             <span class="mud-icon-button-label">
-                <MudIcon Icon="@(selected ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Circle)" Color="@Color.Inherit"/>
+                <MudIcon aria-hidden="true" focusable="false" Icon="@(selected ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Circle)" Color="@Color.Inherit"/>
             </span>
         </div>
     </BulletTemplate>

@@ -7,7 +7,21 @@
      <MudStack Justify="Justify.SpaceBetween" Style="height: 100%;">
          <MudStack>
              <MudStack Row AlignItems="AlignItems.Center">
-                 <MudIcon Icon="@(DocumentItem.GetSidebarIcon())" />
+                <MudIcon role="img" aria-labelledby="decimg01" Icon="@(DocumentItem.GetSidebarIcon())" />
+                <div class="sr-only" id="decimg01">
+                    @if (DocumentItem.DocType == DocItemType.External)
+                    {
+                        @Localizer["External"]
+                    }
+                    else if (DocumentItem.DocType == DocItemType.Tutorial)
+                    {
+                        @Localizer["Video"]
+                    }
+                    else
+                    {
+                        @Localizer["Document"]
+                    }
+                </div>
                  <MudText Typo="Typo.body1" Style="@_titleTextStyle">                     
                          @DocumentItem?.Title                    
                 </MudText>
