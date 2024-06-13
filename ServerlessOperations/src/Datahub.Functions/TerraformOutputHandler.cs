@@ -120,11 +120,18 @@ public class TerraformOutputHandler(
             projectAcronym.Value);
     }
 
+    private static SemaphoreSlim semaphore = new(1, 1);
+
     private async Task ProcessTerraformOutputVariables(
         IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
         try
         {
+            if (semaphore.CurrentCount == 0)
+            {
+                _logger.LogInformation("Semaphore is locked, waiting for release");
+            }
+            await semaphore.WaitAsync();
             using var transactionScope =
                 new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
             await ProcessWorkspaceStatus(outputVariables);
@@ -138,6 +145,10 @@ public class TerraformOutputHandler(
         {
             _logger.LogError(e, "Error processing output variables");
             throw;
+        }
+        finally
+        {
+            semaphore.Release();
         }
     }
 
