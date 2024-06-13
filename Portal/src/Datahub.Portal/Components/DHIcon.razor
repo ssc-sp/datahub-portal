@@ -13,12 +13,13 @@
 </MudIcon>
 
 @code {
-    //public MudIcon Icon { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    //Behaviour
+    // General
     [Parameter] public string Icon { get; set; } = "";
     [Parameter] public string Title { get; set; } = "";
+
+    // Behaviour
     [Parameter] public string AriaHidden { get; set; } = "true";
     [Parameter] public string Focusable { get; set; } = "false";
 
