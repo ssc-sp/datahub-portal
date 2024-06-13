@@ -49,7 +49,9 @@
         }
         @if (Metadata.AllowDelete)
         {
-            <MudTd @onclick="async () => await DeleteRow(RowContext)"><MudIcon Icon="@Icons.Material.Filled.DeleteOutline" Size="Size.Small" Style="cursor:pointer" /></MudTd>
+            <MudTd @onclick="async () => await DeleteRow(RowContext)">
+                <MudIcon aria-hidden="true" focusable="false" Icon="@Icons.Material.Filled.DeleteOutline" Size="Size.Small" Style="cursor:pointer" />
+            </MudTd>
         }
 
     </RowTemplate>

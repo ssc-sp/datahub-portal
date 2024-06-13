@@ -5,15 +5,15 @@
 {
     <MudMenu AnchorOrigin=@Origin.BottomRight TransformOrigin=@Origin.TopRight @ref=@_rootMenu>
         <ActivatorContent>
-            <MudButton>
+            <DHButton>
                 <MudStack Row>
-                    <MudIcon Icon=@GetCloudProviderIcon(SelectedContainer) 
+                    <MudIcon aria-hidden="true" focusable="false" Icon=@GetCloudProviderIcon(SelectedContainer) 
                         ViewBox=@GetCloudProviderIconViewBox(SelectedContainer) 
                         Size=@Size.Large />
                     <MudText Typo=@Typo.h2>@Localizer[SelectedContainer.CloudStorageProvider.ToString()] - @SelectedContainer.AccountName - @SelectedContainer.ContainerName</MudText>
-                    <MudIcon Icon=@Icons.Material.Filled.ArrowDropDown Size=@Size.Large />
+                    <MudIcon aria-hidden="true" focusable="false" Icon=@Icons.Material.Filled.ArrowDropDown Size=@Size.Large />
                 </MudStack>
-            </MudButton>
+            </DHButton>
         </ActivatorContent>
         <ChildContent>
             @foreach(var accountContainer in CloudContainers.DistinctBy(c => c.AccountName))
@@ -22,10 +22,10 @@
                     <MudMenu ActivationEvent=@MouseEvent.MouseOver AnchorOrigin=@Origin.TopRight TransformOrigin=@Origin.TopLeft Style="display:block;" >
                         <ActivatorContent>
                             <MudStack Row>
-                                <MudIcon Icon=@GetCloudProviderIcon(accountContainer) ViewBox=@GetCloudProviderIconViewBox(accountContainer) />
+                                <MudIcon aria-hidden="true" focusable="false" Icon=@GetCloudProviderIcon(accountContainer) ViewBox=@GetCloudProviderIconViewBox(accountContainer) />
                                 <MudText>@Localizer[accountContainer.CloudStorageProvider.ToString()] - @accountContainer.AccountName</MudText>
                                 <MudSpacer />
-                                <MudIcon Icon=@Icons.Material.Filled.ChevronRight />
+                                <MudIcon aria-hidden="true" focusable="false" Icon=@Icons.Material.Filled.ChevronRight />
                             </MudStack>
                         </ActivatorContent>
                         <ChildContent>
@@ -52,13 +52,13 @@
                                     <MudDivider />
                                     <MudMenuItem OnClick=@(() => EditProviderAccount(accountContainer))>
                                         <MudStack Row>
-                                            <MudIcon Icon=@Icons.Material.Filled.Edit />
+                                            <MudIcon aria-hidden="true" focusable="false" Icon=@Icons.Material.Filled.Edit />
                                             <MudText>@Localizer["Edit"]</MudText>
                                         </MudStack>
                                     </MudMenuItem>
                                     <MudMenuItem OnClick=@(() => RemoveProviderAccount(accountContainer))>
                                         <MudStack Row>
-                                            <MudIcon Icon=@Icons.Material.Filled.Delete Color=@Color.Error />
+                                            <MudIcon aria-hidden="true" focusable="false" Icon=@Icons.Material.Filled.Delete Color=@Color.Error />
                                             <MudText>@Localizer["Remove"]</MudText>
                                         </MudStack>
                                     </MudMenuItem>
@@ -76,7 +76,7 @@
                             <MudStack Row>
                                 <MudText>@Localizer["Add Account"]</MudText>
                                 <MudSpacer />
-                                <MudIcon Icon=@Icons.Material.Filled.ChevronRight />
+                                <MudIcon aria-hidden="true" focusable="false" Icon=@Icons.Material.Filled.ChevronRight />
                             </MudStack>
                         </ActivatorContent>
                         <ChildContent>
@@ -84,7 +84,7 @@
                             {
                                 <MudMenuItem OnClick=@(() => AddNewProviderAccount(cloudProviderType))>
                                     <MudStack Row>
-                                        <MudIcon Icon=@GetCloudProviderIconByType(cloudProviderType) ViewBox=@GetCloudProviderIconViewBox(cloudProviderType) />
+                                        <MudIcon aria-hidden="true" focusable="false" Icon=@GetCloudProviderIconByType(cloudProviderType) ViewBox=@GetCloudProviderIconViewBox(cloudProviderType) />
                                         <MudText>@Localizer[cloudProviderType.ToString()]</MudText>
                                     </MudStack>
                                 </MudMenuItem>

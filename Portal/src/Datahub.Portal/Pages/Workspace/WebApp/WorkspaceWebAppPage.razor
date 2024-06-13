@@ -29,7 +29,7 @@
         @if (_isConfigured)
         {
             <MudStack AlignItems="AlignItems.End" Justify="Justify.Center">
-                <MudIcon Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)" Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])"/>
+                <MudIcon aria-hidden="true" focusable="false" Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)" Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])"/>
             </MudStack>
         }
         <MudSpacer/>
@@ -39,7 +39,7 @@
             {
                 @if (!_webAppState)
                 {
-                    <MudButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Start" IconColor="@Color.Success" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
+                    <DHButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Start" IconColor="@Color.Success" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
                         @if (_isStartStopping)
                         {
                             <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
@@ -48,11 +48,11 @@
                         {
                             @Localizer["Start"]
                         }
-                    </MudButton>
+                    </DHButton>
                 }
                 else
                 {
-                    <MudButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Stop" IconColor="@Color.Error" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
+                    <DHButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Stop" IconColor="@Color.Error" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
                         @if (_isStartStopping)
                         {
                             <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
@@ -61,10 +61,10 @@
                         {
                             @Localizer["Stop"]
                         }
-                    </MudButton>
+                    </DHButton>
                 }
 
-                <MudButton Disabled="@(_isRestarting || !_webAppState)" Variant="Variant.Filled" StartIcon="@SidebarIcons.Restart" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
+                <DHButton Disabled="@(_isRestarting || !_webAppState)" Variant="Variant.Filled" StartIcon="@SidebarIcons.Restart" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
                     @if (_isRestarting)
                     {
                         <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
@@ -73,12 +73,12 @@
                     {
                         @Localizer["Restart"]
                     }
-                </MudButton>
+                </DHButton>
             }
 
-            <MudButton Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" StartIcon="@SidebarIcons.Gear" OnClick="@(async () => await ConfigureWebApp())">
+            <DHButton Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" StartIcon="@SidebarIcons.Gear" OnClick="@(async () => await ConfigureWebApp())">
                 @Localizer["Configure"]
-            </MudButton>
+            </DHButton>
         }
     </MudStack>
 

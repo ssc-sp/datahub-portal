@@ -8,7 +8,7 @@
         <MudCard>
             <MudCardHeader>
                 <CardHeaderAvatar>
-                    <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings"/>
+                    <MudIcon aria-hidden="true" focusable="false" Icon="@Icons.Material.Filled.AdminPanelSettings"/>
                 </CardHeaderAvatar>
                 <CardHeaderContent>
                     @Localizer["Administration"]
@@ -23,12 +23,12 @@
                         }
                         else
                         {
-                            <MudButton OnClick="@RefreshCache"
+                            <DHButton OnClick="@RefreshCache"
                                        StartIcon="@Icons.Material.Filled.Refresh"
                                        Variant="@Variant.Filled"
                                        Color="@Color.Secondary">
                                 @Localizer["Refresh"]
-                            </MudButton>
+                            </DHButton>
                         }
 
                         <MudText>

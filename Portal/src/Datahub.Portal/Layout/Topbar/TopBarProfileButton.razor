@@ -16,10 +16,10 @@
     <div class="sr-only"><p>@Localizer["Your profile"]</p></div>
     <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" FullWidth>
         <ActivatorContent>
-            <MudButton Class="ml-2">
+            <DHButton Class="ml-2">
                 <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Medium"/>
-                <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="@Size.Medium"/>
-            </MudButton>
+                <MudIcon aria-hidden="true" focusable="false" Icon="@Icons.Material.Filled.ArrowDropDown" Size="@Size.Medium"/>
+            </DHButton>
         </ActivatorContent>
         <ChildContent>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
