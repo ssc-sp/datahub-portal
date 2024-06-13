@@ -124,11 +124,14 @@
                 var workItemDetails = JObject.Parse(workItemJsonResponse);
                 var issue = new IssueForDisplaying(workItemDetails, false);
 
-                if (issue.State == "Closed"){
-                    _closedIssues.Add(issue);
-                }
-                else {
-                    _openIssues.Add(issue);
+                if (!issue.Title.Contains("Exception")) // Filter out exceptions
+                {
+                    if (issue.State == "Closed"){
+                        _closedIssues.Add(issue);
+                    }
+                    else {
+                        _openIssues.Add(issue);
+                    }
                 }
             }
         }

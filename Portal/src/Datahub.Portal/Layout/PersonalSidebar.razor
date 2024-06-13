@@ -35,10 +35,10 @@
             <MudSpacer/>
             @if (userRoles.Any())
             {
-                <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="@ShowProjectDialog" Disabled="@_canNotCreateWorkspace">
+                <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="@ShowProjectDialog" Disabled="@_canNotCreateWorkspace">
                     <MudIcon aria-hidden="true" focusable="false" Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;"/>
                     @Localizer["New"]
-                </MudButton>
+                </DHButton>
             }
         </MudStack>
 
@@ -66,11 +66,11 @@
         }
         else
         {
-            <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" OnClick="@ShowProjectDialog">
+            <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" OnClick="@ShowProjectDialog">
                 <MudIcon aria-hidden="true" focusable="false" Icon="@SidebarIcons.CreateNew" Size="Size.Small" Color="Color.Dark" Class="mr-5" Style="font-size: 0.85rem;" />
                 @Localizer["Create new"]
                 <MudSpacer/>
-            </MudButton>
+            </DHButton>
         }
     </MudStack>
 

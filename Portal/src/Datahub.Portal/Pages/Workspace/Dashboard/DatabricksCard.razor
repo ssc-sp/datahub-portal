@@ -14,14 +14,14 @@
         <MudElement HtmlTag="div">
             @if (ProjectResource.CreatedAt.HasValue)
             {
-                <MudButton
+                <DHButton
                     Href="@ExtractDatabricksUrl()"
                     Target="_blank"
                     Color="Color.Primary"
                     Variant="@Variant.Text"
                     EndIcon="@SidebarIcons.External">
                     @Localizer["Open Databricks"]
-                </MudButton>
+                </DHButton>
             }
             else
             {

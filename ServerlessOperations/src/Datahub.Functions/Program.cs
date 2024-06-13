@@ -87,6 +87,7 @@ var host = new HostBuilder()
         services.AddScoped<QueuePongService>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
         services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
+        services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();

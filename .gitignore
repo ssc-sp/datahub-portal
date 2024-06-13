@@ -60,3 +60,4 @@ Portal/src/Datahub.Core/Utils/Certs/gc1.pem
 /appservice.json
 /Portal/src/Datahub.Portal/template.appsettings.sand.json
 /ServerlessOperations/src/Datahub.Functions/settings.dev.json
+Portal/src/Datahub.Portal/MessageFolder/
