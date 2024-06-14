@@ -23,7 +23,7 @@ using Microsoft.Extensions.Configuration;
 using Datahub.Application.Services;
 using Datahub.Shared.Clients;
 using MassTransit.Internals.Caching;
-using static Datahub.Infrastructure.Services.FileWatcherService;
+using static Datahub.Infrastructure.Services.LocalMessageReaderService;
 
 namespace Datahub.Functions;
 

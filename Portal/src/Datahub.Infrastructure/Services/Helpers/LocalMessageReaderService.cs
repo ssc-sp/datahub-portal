@@ -20,9 +20,9 @@ using System.Text.Json;
 
 namespace Datahub.Infrastructure.Services;
 
-public class FileWatcherService : BackgroundService
+public class LocalMessageReaderService : BackgroundService
 {
-    private readonly ILogger<FileWatcherService> _logger;
+    private readonly ILogger<LocalMessageReaderService> _logger;
     private readonly IServiceProvider _serviceProvider;
     private FileSystemWatcher _watcher; 
 
@@ -36,11 +36,11 @@ public class FileWatcherService : BackgroundService
     private const string workspaceKeyCheck = "project-cmk";
     private const string coreKeyCheck = "datahubportal-client-id";
 
-    public FileWatcherService(
+    public LocalMessageReaderService(
             ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        _logger = loggerFactory.CreateLogger<FileWatcherService>();
+        _logger = loggerFactory.CreateLogger<LocalMessageReaderService>();
     }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
