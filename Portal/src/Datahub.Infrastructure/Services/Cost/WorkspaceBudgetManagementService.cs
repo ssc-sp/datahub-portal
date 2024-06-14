@@ -160,7 +160,7 @@ namespace Datahub.Infrastructure.Services.Cost
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
             var projectCredits = await ctx.Project_Credits
-                .FirstAsync(p => p.ProjectId == project.Project_ID);
+                .FirstOrDefaultAsync(p => p.ProjectId == project.Project_ID);
 
             if (projectCredits is null)
             {
