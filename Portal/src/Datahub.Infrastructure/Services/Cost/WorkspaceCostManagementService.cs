@@ -61,6 +61,12 @@ namespace Datahub.Infrastructure.Services.Cost
             // The costs from the query are the costs from the last several days
             // The costs from the database are all costs existing for a workspace
             var queryWorkspaceCosts = rgNames is null ? await FilterWorkspaceCosts(subCosts, workspaceAcronym) : await FilterWorkspaceCosts(subCosts, workspaceAcronym, rgNames);
+            
+            if (queryWorkspaceCosts.Count == 0)
+            {
+                _logger.LogInformation($"Could not find costs for project with acronym {workspaceAcronym}. This could be due to the workspace not having any associated cloud infrastructure.");
+                return (false, 0);
+            }
 
             // We get the dates from the query and exclude today
             var dates = queryWorkspaceCosts.Select(c => c.Date).Distinct().ToList();
@@ -100,6 +106,13 @@ namespace Datahub.Infrastructure.Services.Cost
             // and we add the costs from today from the query
             var queryWorkspaceTodayCosts = FilterDateRange(queryWorkspaceCosts, DateTime.UtcNow.Date);
             var dbWorkspaceCosts = await GetWorkspaceCosts(workspaceAcronym);
+            
+            if (dbWorkspaceCosts.Count == 0)
+            {
+                _logger.LogInformation($"Could not find costs for project with acronym {workspaceAcronym}");
+                return (false, 0);
+            }
+            
             var dbWorkspaceCurrentFYCosts = FilterCurrentFiscalYear(dbWorkspaceCosts);
             var workspaceCurrentFYCosts = dbWorkspaceCurrentFYCosts.Concat(queryWorkspaceTodayCosts).ToList();
             var workspaceYesterdayCosts = FilterDateRange(dbWorkspaceCosts, DateTime.UtcNow.Date.AddDays(-1));
@@ -295,8 +308,8 @@ namespace Datahub.Infrastructure.Services.Cost
             var projectCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).ToList();
             if (projectCosts.Count == 0)
             {
-                _logger.LogError($"Could not find costs for project with acronym {workspaceAcronym}");
-                throw new Exception($"Could not find costs for project with acronym {workspaceAcronym}");
+                _logger.LogInformation($"Could not find costs for project with acronym {workspaceAcronym}");
+                return new List<DailyServiceCost>();
             }
 
             var workspaceCosts = ParseProjectCosts(projectCosts);
