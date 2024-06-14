@@ -43,8 +43,8 @@
     </MudItem>
 </MudGrid>
 <MudStack Row>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="@ValidateSubscription">@Localizer["Validate Subscription"]</MudButton>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!(_success && _valid))" OnClick="@SubmitSubscription">@Localizer["Add Subscription"]</MudButton>
+    <DHButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="@ValidateSubscription">@Localizer["Validate Subscription"]</DHButton>
+    <DHButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!(_success && _valid))" OnClick="@SubmitSubscription">@Localizer["Add Subscription"]</DHButton>
 </MudStack>
 
 @code {
