@@ -46,6 +46,10 @@ public class FileWatcherService : BackgroundService
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     { 
         var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "MessageFolder");
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
         _watcher = new FileSystemWatcher
         {
             Path = folderPath,
