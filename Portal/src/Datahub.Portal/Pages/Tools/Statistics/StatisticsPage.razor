@@ -66,9 +66,9 @@
                 @context.Collaborators?.Count
             </MudTd>
             <MudTd>
-                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowUsersPressed(context.ProjectId))">
+                <DHButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowUsersPressed(context.ProjectId))">
                     @(context.ShowUserDetails ? "Hide" : "Show") User details
-                </MudButton>
+                </DHButton>
             </MudTd>
             <MudTd DataLabel="Budget">
                 <MudTooltip Text="@($"{context.BudgetSpent.ToString("C", CultureInfo.CurrentCulture)} / {context.BudgetLimit.ToString("C", CultureInfo.CurrentCulture)}")">

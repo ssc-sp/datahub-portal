@@ -94,20 +94,20 @@
 
     @*buttons*@
     <MudStack Row Justify="Justify.FlexStart">
-        <MudButton Variant="Variant.Filled"
+        <DHButton Variant="Variant.Filled"
                    EndIcon="@Icons.Material.Filled.Send"
                    Color="Color.Warning"
                    Disabled="@IsPreviewDisabled()"
                    OnClick="@HandleEmailYourself">
             @Localizer["Send Preview to yourself"]
-        </MudButton>
-        <MudButton Variant="Variant.Filled"
+        </DHButton>
+        <DHButton Variant="Variant.Filled"
                    EndIcon="@Icons.Material.Filled.Send"
                    Color="Color.Primary"
                    Disabled="@IsSendDisabled()"
                    OnClick="@HandleSendEmail">
             @Localizer["Send"]
-        </MudButton>
+        </DHButton>
     </MudStack>
 </MudStack>
 

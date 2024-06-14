@@ -82,10 +82,10 @@
             </MudTd>
 
             <MudTd DataLabel="ProjectButton">
-                <MudButton EndIcon="@UserWorkspaceOpenIcon" Variant="Variant.Text" Color="Color.Primary"
+                <DHButton EndIcon="@UserWorkspaceOpenIcon" Variant="Variant.Text" Color="Color.Primary"
                            Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{context.Project_Acronym_CD}")">
                     @Localizer["Open Workspace"]
-                </MudButton>
+                </DHButton>
             </MudTd>
         </RowTemplate>
         <PagerContent>

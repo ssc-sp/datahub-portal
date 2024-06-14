@@ -17,7 +17,7 @@ namespace Datahub.Core.Migrations.Core
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.4")
+                .HasAnnotation("ProductVersion", "8.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1537,6 +1537,11 @@ namespace Datahub.Core.Migrations.Core
 
                     b.Property<bool?>("WebAppEnabled")
                         .HasColumnType("bit");
+
+                    b.Property<bool>("WebAppUrlRewritingEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("WebApp_URL")
                         .HasMaxLength(128)

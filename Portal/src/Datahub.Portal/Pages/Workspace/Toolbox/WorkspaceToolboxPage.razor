@@ -52,10 +52,10 @@
                             @switch (_toolCurrentDevelopmentStatusMap[tool])
                             {
                                 case ToolStatus.Available:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await AddToolToWorkspace(tool))">
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await AddToolToWorkspace(tool))">
                                         @Localizer["Add to Workspace"]
                                         <DHIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
-                                    </MudButton>
+                                    </DHButton>
                                     break;
                                 case ToolStatus.SendingRequest:
                                     <SpinnerButton Variant="@Variant.Filled">
@@ -66,34 +66,34 @@
                                     <ToolBeingProvisionedButton Variant="@Variant.Filled"/>
                                     break;
                                 case ToolStatus.Exists:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Tool has been created"]
                                         <DHIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;" />
-                                    </MudButton>
+                                    </DHButton>
                                     break;
                                 case ToolStatus.Disabled:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Not Enabled"]
                                         <DHIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
-                                    </MudButton>
+                                    </DHButton>
                                     break;
                                 case ToolStatus.UnderDevelopment:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Under Development"]
                                         <DHIcon Icon="fa-light fa-space-station-moon-construction" Class="ml-2" Style="font-size: 0.8rem;" />
-                                    </MudButton>
+                                    </DHButton>
                                     break;
                                 case ToolStatus.MetadataRequired:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Metadata Required"]
                                         <DHIcon Icon="@SidebarIcons.Metadata" Class="ml-2" Style="font-size: 0.8rem;" />
-                                    </MudButton>
+                                    </DHButton>
                                     break;
                                 default:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Unknown"]
                                         <DHIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
-                                    </MudButton>
+                                    </DHButton>
                                     break;
                             }
                         </MudStack>

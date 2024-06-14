@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 namespace Datahub.Infrastructure.Queues.MessageHandlers;
 
 public class PongMessageHandler(ISendEndpointProvider sendEndpointProvider)
-    : QueueMessageSender<BugReportMessage>(sendEndpointProvider)
+    : QueueMessageSender<PongMessage>(sendEndpointProvider)
 {
 
     protected override string ConfigPathOrQueueName => QueueConstants.PongQueueName;

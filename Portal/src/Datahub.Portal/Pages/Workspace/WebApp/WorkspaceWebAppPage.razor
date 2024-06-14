@@ -1,4 +1,5 @@
-﻿@using Datahub.Application.Services.Security
+﻿@using Datahub.Application.Services.ReverseProxy
+@using Datahub.Application.Services.Security
 @using Datahub.Portal.Views.Dialogs
 @using Datahub.Shared.Entities
 @using Microsoft.Identity.Web
@@ -13,6 +14,7 @@
 @inject ILogger<WorkspaceWebAppPage> _logger
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IWorkspaceWebAppManagementService _webAppMgmtService
+@inject IReverseProxyManagerService ReverseProxyManagerService
 
 @if (!_isElevated)
 {
@@ -37,7 +39,7 @@
             {
                 @if (!_webAppState)
                 {
-                    <MudButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Start" IconColor="@Color.Success" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
+                    <DHButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Start" IconColor="@Color.Success" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
                         @if (_isStartStopping)
                         {
                             <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
@@ -46,11 +48,11 @@
                         {
                             @Localizer["Start"]
                         }
-                    </MudButton>
+                    </DHButton>
                 }
                 else
                 {
-                    <MudButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Stop" IconColor="@Color.Error" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
+                    <DHButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Stop" IconColor="@Color.Error" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
                         @if (_isStartStopping)
                         {
                             <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
@@ -59,10 +61,10 @@
                         {
                             @Localizer["Stop"]
                         }
-                    </MudButton>
+                    </DHButton>
                 }
 
-                <MudButton Disabled="@(_isRestarting || !_webAppState)" Variant="Variant.Filled" StartIcon="@SidebarIcons.Restart" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
+                <DHButton Disabled="@(_isRestarting || !_webAppState)" Variant="Variant.Filled" StartIcon="@SidebarIcons.Restart" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
                     @if (_isRestarting)
                     {
                         <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
@@ -71,12 +73,12 @@
                     {
                         @Localizer["Restart"]
                     }
-                </MudButton>
+                </DHButton>
             }
 
-            <MudButton Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" StartIcon="@SidebarIcons.Gear" OnClick="@(async () => await ConfigureWebApp())">
+            <DHButton Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" StartIcon="@SidebarIcons.Gear" OnClick="@(async () => await ConfigureWebApp())">
                 @Localizer["Configure"]
-            </MudButton>
+            </DHButton>
         }
     </MudStack>
 
@@ -84,9 +86,27 @@
         @Localizer["Here you can manage your web application. You can view and edit the configurations of your web application"]
     </MudText>
 
+    @if (_isProvisioned)
+    {
+        <MudSwitch 
+            T=@bool 
+            Checked=@_isUrlRewritingEnabled 
+            Color=@Color.Primary 
+            Label=@Localizer["Enable URL Rewriting"] 
+            CheckedChanged=@HandleToggleUrlRewriting
+            Disabled=@_isSaving />
+    }
+
     @if (_isProvisioned && _isConfigured)
     {
-        <WorkspaceWebAppInfoTable WebAppHost="@_webAppHost" WebAppId="@_webAppId" Framework="@_webAppFramework" GitRepo="@_webAppRepo" ComposePath="@_webAppCompose" WorkspaceAcronym="@WorkspaceAcronym"/>
+        <WorkspaceWebAppInfoTable 
+            @ref=@_webappInfoTable
+            WebAppHost="@_webAppHost" 
+            WebAppId="@_webAppId" 
+            Framework="@_webAppFramework" 
+            GitRepo="@_webAppRepo" 
+            ComposePath="@_webAppCompose" 
+            WorkspaceAcronym="@WorkspaceAcronym"/>
     }
     else if (_isProvisioned)
     {
@@ -192,12 +212,16 @@
     private AppServiceConfiguration _appConfiguration;
     private Project_Resources2 _resource;
 
+    private bool _isUrlRewritingEnabled;
+    private WorkspaceWebAppInfoTable _webappInfoTable;
+
     private bool _isConfigured;
     private bool _isProvisioned;
     private bool _isElevated;
     private bool _webAppState;
     private bool _isStartStopping;
     private bool _isRestarting;
+    private bool _isSaving;
 
     protected override async Task OnInitializedAsync()
     {
@@ -223,6 +247,32 @@
         StateHasChanged();
     }
 
+    private async Task HandleToggleUrlRewriting(bool value)
+    {
+        _isSaving = true;
+        var oldValue = _isUrlRewritingEnabled;
+        _isUrlRewritingEnabled = value;
+        using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        var workspace = await ctx.Projects.FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronym);
+        if (workspace != null)
+        {
+            workspace.WebAppUrlRewritingEnabled = value;
+            await ctx.SaveChangesAsync();
+            _snackbar.Add(Localizer["URL Rewriting setting updated"], Severity.Success);
+            if (_webappInfoTable != null)
+            {
+                _webappInfoTable.RefreshUrl();
+            }
+        }
+        else
+        {
+            _isUrlRewritingEnabled = oldValue;
+            _snackbar.Add(Localizer["Could not update URL Rewriting setting"], Severity.Error);
+        }
+        ReverseProxyManagerService.ReloadConfiguration();
+        _isSaving = false;
+    }
+
     private async Task HydrateValues()
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync();
@@ -230,6 +280,7 @@
             .Include(x => x.Resources)
             .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronym);
         _appConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(workspace);
+        _isUrlRewritingEnabled = workspace.WebAppUrlRewritingEnabled;
 
         if (_appConfiguration != null)
         {
@@ -272,7 +323,7 @@
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync();
         var resource = await _webAppMgmtService.GetResource(ctx, WorkspaceAcronym);
-        if (!string.IsNullOrWhiteSpace(_appConfiguration.GitTokenSecretName))
+        if (_appConfiguration.IsGitRepoPrivate)
         {
             _appConfiguration.GitToken = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, _appConfiguration.GitTokenSecretName);
         }
@@ -303,10 +354,12 @@
                 var envVars = resultData?.EnvVars;
 
                 await _webAppMgmtService.SaveConfiguration(WorkspaceAcronym, config!);
+                await _webAppMgmtService.FillSystemConfiguration(WorkspaceAcronym, config);
                 await SetGitToken(config);
                 await SaveEnvironmentVariableKeys(envVars);
                 await SetEnvironmentVariableValues(envVars);
                 await _webAppMgmtService.Configure(WorkspaceAcronym, config);
+                ReverseProxyManagerService.ReloadConfiguration();
                 _logger.LogInformation("Web app configuration processed");
                 _snackbar.Add(Localizer["Web application configuration processed"], Severity.Success);
                 StateHasChanged();
@@ -338,7 +391,15 @@
     {
         foreach (var envVar in envVars)
         {
-            await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, envVar.Key, envVar.Value);
+            try
+            {
+                await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, envVar.Key, envVar.Value);
+                _logger.LogInformation("Environment variable \"{envVar.Key}\"value stored");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to store environment variable \"{envVar.Key}\"");
+            }
         }
     }
 
@@ -346,7 +407,14 @@
     {
         if (!string.IsNullOrWhiteSpace(config.GitToken))
         {
-            await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, config.GitTokenSecretName, config.GitToken);
+            try
+            {
+                await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, config.GitTokenSecretName, config.GitToken);
+                _logger.LogInformation("Git token stored");
+            } catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to store git token");
+            }
         }
     }
 

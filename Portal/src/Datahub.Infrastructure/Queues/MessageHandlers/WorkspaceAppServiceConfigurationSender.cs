@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 namespace Datahub.Infrastructure.Queues.MessageHandlers
 {
     public class WorkspaceAppServiceConfigurationSender(ISendEndpointProvider sendEndpointProvider)
-        : QueueMessageSender<BugReportMessage>(sendEndpointProvider)
+        : QueueMessageSender<WorkspaceAppServiceConfigurationMessage>(sendEndpointProvider)
     {
 
         protected override string ConfigPathOrQueueName => QueueConstants.WorkspaceAppServiceConfigurationQueueName;

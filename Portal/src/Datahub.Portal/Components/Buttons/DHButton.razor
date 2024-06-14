@@ -1,0 +1,74 @@
+﻿@using Datahub.Core.Model.Achievements
+@inject IPortalUserTelemetryService _telemetryService
+
+<MudButton HtmlTag="a" @ref="@Button" 
+           ClickPropagation="@ClickPropagation" 
+           Disabled="@Disabled" 
+           EndIcon="@EndIcon" 
+           StartIcon="@StartIcon"
+           ButtonType="@ButtonType"
+           Href="@Href"
+           Rel="@Rel"
+           Target="@Target"
+           Color="@Color"
+           DisableElevation="@DisableElevation"
+           DisableRipple="@DisableRipple"
+           FullWidth="@FullWidth"
+           IconClass="@IconClass"
+           IconColor="@IconColor"
+           IconSize="@IconSize"
+           Size="@Size"
+           Variant="@Variant"
+           Class="@Class"
+           Style="@Style"
+           Tag="@Tag"
+           UserAttributes="@UserAttributes"
+           OnClick="@TrackOnClick">
+    @ChildContent
+</MudButton>
+
+@code {
+    public MudButton Button { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // Behavior
+    [Parameter] public bool ClickPropagation { get; set; } = false;
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public string EndIcon { get; set; } = null;
+    [Parameter] public string StartIcon { get; set; } = null;
+
+    // Click action
+    [Parameter] public ButtonType ButtonType { get; set; } = ButtonType.Button;
+    [Parameter] public string Href { get; set; } = null;
+    [Parameter] public string Rel { get; set; } = null;
+    [Parameter] public string Target { get; set; } = null;
+
+    // Appearance
+    [Parameter] public Color Color { get; set; } = Color.Default;
+    [Parameter] public bool DisableElevation { get; set; } = false;
+    [Parameter] public bool DisableRipple { get; set; } = false;
+    [Parameter] public bool FullWidth { get; set; } = false;
+    [Parameter] public string IconClass { get; set; } = null;
+    [Parameter] public Color IconColor { get; set; } = Color.Inherit;
+    [Parameter] public Size? IconSize { get; set; } = null;
+    [Parameter] public Size Size { get; set; } = Size.Medium;
+    [Parameter] public Variant Variant { get; set; } = Variant.Text;
+
+    // Common
+    [Parameter] public string Class { get; set; } = null;
+    [Parameter] public string Style { get; set; } = null;
+    [Parameter] public object Tag { get; set; } = null;
+    [Parameter] public Dictionary<string, object> UserAttributes { get; set; } = null;
+
+    // EventCallbacks
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    public async Task<EventCallback<MouseEventArgs>> TrackOnClick()
+    {
+        await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserClickButton);
+        return OnClick;
+    }
+
+    // Methods
+    public ValueTask FocusAsync() => Button.FocusAsync();
+}

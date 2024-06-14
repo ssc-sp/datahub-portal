@@ -1,4 +1,4 @@
-using BoDi;
+using Reqnroll.BoDi;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;

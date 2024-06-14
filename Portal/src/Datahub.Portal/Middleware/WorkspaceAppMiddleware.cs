@@ -1,5 +1,7 @@
 ﻿using Datahub.Core.Data;
+using Datahub.Infrastructure.Services;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace Datahub.Portal.Middleware;
 
@@ -8,12 +10,14 @@ public class WorkspaceAppMiddleware
     private readonly RequestDelegate _next;
     private readonly bool _enabled;
     private readonly string _matchPath;
+    private static Regex webAppRegEx = new Regex("^/webapp-([A-Z0-9]+)", RegexOptions.Compiled | RegexOptions.Singleline);
 
     public WorkspaceAppMiddleware(RequestDelegate next, IConfiguration config)
     {
         _next = next;
         _enabled = config.GetValue<bool>("ReverseProxy:Enabled");
         _matchPath = config.GetValue<string>("ReverseProxy:MatchPath") ?? "/webapp";
+        
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -21,19 +25,14 @@ public class WorkspaceAppMiddleware
         if (_enabled)
         {
             var urlPath = context.Request.Path;
-            if (urlPath.StartsWithSegments(_matchPath, StringComparison.OrdinalIgnoreCase))
+            var match = webAppRegEx.Match(urlPath);
+            if (match.Success)
             {
-                var (acronym, missingSlash) = InspectWorkspaceAcronym(urlPath);
+                var acronym = match.Groups[1].Value;
 
-                if (!ClaimsContainAcronymRole(context, acronym))
+                if (!ClaimsContainAcronymRole(context, acronym) && !ClaimsContainAcronymRole(context, RoleConstants.DATAHUB_ADMIN_PROJECT))
                 {
-                    context.Response.StatusCode = StatusCodes.Status404NotFound;
-                    return;
-                }
-
-                if (missingSlash)
-                {
-                    context.Response.Redirect($@"{GetFullUrl(context.Request)}/");
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;// Status404NotFound;
                     return;
                 }
             }
