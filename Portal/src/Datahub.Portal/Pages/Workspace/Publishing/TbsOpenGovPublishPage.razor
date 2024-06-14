@@ -31,7 +31,7 @@
             <MudCardHeader>
                 <MudText Typo=@Typo.h3>@Localizer["Timeline"]</MudText>
                 <MudSpacer />
-                <MudButton OnClick=@ToggleTimeline >@(_timelineCollapsed? "Expand":"Collapse")</MudButton>
+                <DHButton OnClick=@ToggleTimeline >@(_timelineCollapsed? "Expand":"Collapse")</DHButton>
             </MudCardHeader>
 
             <MudCardContent>
@@ -121,20 +121,20 @@
                     </MudTable>
                 </MudCardContent>
                 <MudCardActions>
-                    <MudButton 
+                    <DHButton 
                         Color=@Color.Primary 
                         Variant=@Variant.Filled 
                         OnClick=@UpdateSubmission 
-                        Disabled=@(!FilePurposesHaveChanged())>@Localizer["Update"]</MudButton>
+                        Disabled=@(!FilePurposesHaveChanged())>@Localizer["Update"]</DHButton>
 
-                    <MudButton
+                    <DHButton
                         Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Storage}")
                         Color=@Color.Primary
                         Variant=@Variant.Text
                         EndIcon=@Icons.Material.Outlined.KeyboardDoubleArrowRight
-                    >@Localizer["Add Files"]</MudButton>
+                    >@Localizer["Add Files"]</DHButton>
 
-                    <MudButton Color=@Color.Error OnClick=@ResetFileStatuses>@Localizer["Reset Upload Statuses"]</MudButton>
+                    <DHButton Color=@Color.Error OnClick=@ResetFileStatuses>@Localizer["Reset Upload Statuses"]</DHButton>
                 </MudCardActions>
             </MudCard>
         }
@@ -147,13 +147,13 @@
                 </MudCardHeader>
                 <MudCardContent>
                     <MudText>@Localizer["Please press the button below to generate the IMSO approval form."]</MudText>
-                    <MudButton 
+                    <DHButton 
                         Href=@($"{_navManager.BaseUri}api/OpenDataApproval?id={Submission.OpenGovCriteriaFormId}") 
                         Target="_blank" 
                         Variant=@Variant.Outlined 
                         Color=@Color.Primary
                         OnClick=@SendImsoApprovalRequest
-                    >@Localizer["Generate IMSO Approval Form"]</MudButton>
+                    >@Localizer["Generate IMSO Approval Form"]</DHButton>
 
                     <MudText>@Localizer["After it is approved, upload the signed form to your cloud storage and submit it below to finalize the IMSO Approval."]</MudText>
                     
@@ -165,12 +165,12 @@
                     
                 </MudCardContent>
                 <MudCardActions>
-                    <MudButton 
+                    <DHButton 
                         Variant=@Variant.Filled 
                         Color=@Color.Primary
                         Disabled=@SubmitImsoButtonDisabled
                         OnClick=@SubmitImsoApprovalDocument
-                    >@Localizer["Submit"]</MudButton>
+                    >@Localizer["Submit"]</DHButton>
                 </MudCardActions>
 
             </MudCard>
@@ -193,12 +193,12 @@
                     }
                 </MudCardContent>
                 <MudCardActions>
-                    <MudButton 
+                    <DHButton 
                         Variant=@Variant.Filled 
                         Color=@Color.Primary 
                         OnClick=@PublishSubmission
                         Disabled=@PublishButtonDisabled
-                        >@Localizer["Publish"]</MudButton>
+                        >@Localizer["Publish"]</DHButton>
                 </MudCardActions>
             </MudCard>
         }

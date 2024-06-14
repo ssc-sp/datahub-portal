@@ -15,14 +15,14 @@
         @if (ShowPaper)
         {
             <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
-                <MudButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
+                <DHButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
                            OnClick="@HandleRemoveFromCache"
                            Color="@Color.Primary"
                            Variant="@Variant.Filled"
                            StartIcon="@Icons.Material.Filled.Launch"
                            Target="_blank">
                     @Localizer["Edit"]
-                </MudButton>
+                </DHButton>
             </AuthorizeView>
             <DHMarkdown Content="@_markdownContent"
                         LinkRewriter="@RewriteLink"
@@ -31,14 +31,14 @@
         else
         {
             <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
-                <MudButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
+                <DHButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
                            OnClick="@HandleRemoveFromCache"
                            Color="@Color.Primary"
                            Variant="@Variant.Filled"
                            StartIcon="@Icons.Material.Filled.Launch"
                            Target="_blank">
                     @Localizer["Edit"]
-                </MudButton>
+                </DHButton>
             </AuthorizeView>
             <DHMarkdown Content="@_markdownContent"
                         LinkRewriter="@RewriteLink"
