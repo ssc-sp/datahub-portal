@@ -13,13 +13,13 @@
                 <MudText Typo="Typo.caption">@RepositoryInfoDto.Path</MudText>
             }
             <MudStack Row AlignItems="AlignItems.Center">
-                <MudIcon aria-hidden="true" focusable="false" Icon="@GetRepositoryIcon()" Size="Size.Small"/>
+                <DHIcon Icon="@GetRepositoryIcon()" Size="Size.Small" />
                 <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon aria-hidden="true" focusable="false" Icon="fa-regular fa-code-branch" Style="@_smallIconStyle"/>
+                    <DHIcon Icon="fa-regular fa-code-branch" Style="@_smallIconStyle" />
                     <MudText Style="@_codeBlockStyle" Typo="Typo.caption">@RepositoryInfoDto.Branch</MudText>
                 </MudStack>
                 <MudStack Row AlignItems="AlignItems.Center">
-                    <MudIcon aria-hidden="true" focusable="false" Icon="fa-regular fa-code-commit" Style="@_smallIconStyle"/>
+                    <DHIcon Icon="fa-regular fa-code-commit" Style="@_smallIconStyle"/>
                     <MudText Style="@_codeBlockStyle" Typo="Typo.caption">@RepositoryInfoDto.HeadCommitId[..8]</MudText>
                 </MudStack>
             </MudStack>

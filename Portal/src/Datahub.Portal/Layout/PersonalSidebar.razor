@@ -36,7 +36,7 @@
             @if (userRoles.Any())
             {
                 <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="@ShowProjectDialog" Disabled="@_canNotCreateWorkspace">
-                    <MudIcon aria-hidden="true" focusable="false" Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;"/>
+                    <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;" />
                     @Localizer["New"]
                 </DHButton>
             }
@@ -49,7 +49,7 @@
                 {
                     <MudNavLink Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
                         <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon aria-hidden="true" focusable="false" Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark"/>
+                            <DHIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark"/>
                             <MudText Style="@_workspaceLinkStyle">
                                 @userRole.Project.ProjectName
                             </MudText>
@@ -63,11 +63,11 @@
                     </MudLink>
                 }
             </MudNavMenu>
-        }
+        } 
         else
         {
             <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" OnClick="@ShowProjectDialog">
-                <MudIcon aria-hidden="true" focusable="false" Icon="@SidebarIcons.CreateNew" Size="Size.Small" Color="Color.Dark" Class="mr-5" Style="font-size: 0.85rem;" />
+                <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Color="Color.Dark" Class="mr-5" Style="font-size: 0.85rem;" />
                 @Localizer["Create new"]
                 <MudSpacer/>
             </DHButton>
@@ -85,7 +85,7 @@
             {
                 <MudNavLink Href="@GetSectionViewUrl(recentActivity)">
                     <MudStack Row AlignItems="AlignItems.Center">
-                        <MudIcon aria-hidden="true" focusable="false" Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark"/>
+                        <DHIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark" />
                         <MudText Style="@_workspaceLinkStyle">
                             @GetLabel(recentActivity)
                         </MudText>
@@ -106,7 +106,7 @@
             {
                 <MudNavLink Href="@GetSectionViewUrl(PageRoutes.AccountPrefix, sectionView)" Match="NavLinkMatch.All">
                     <MudStack Row AlignItems="AlignItems.Center">
-                        <MudIcon aria-hidden="true" focusable="false" Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                        <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
                         <MudText Style="@_workspaceLinkStyle">
                             @GetLabel(sectionView)
                         </MudText>
@@ -127,7 +127,7 @@
                 {
                     <MudNavLink Href="@GetSectionViewUrl(PageRoutes.ToolPrefix, sectionView)" Match="NavLinkMatch.All">
                         <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon aria-hidden="true" focusable="false" Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                            <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
                             <MudText Style="@_workspaceLinkStyle">
                                 @GetLabel(sectionView)
                             </MudText>

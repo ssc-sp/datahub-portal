@@ -23,21 +23,21 @@
             <MudSelect T="RecipientType" @bind-Value="_recipientType" Label="To:" Variant="Variant.Outlined">
                 <MudSelectItem Value="RecipientType.All">
                     <MudStack Row Spacing="3">
-                        <MudIcon aria-hidden="true" focusable="false" Icon="@Icons.Material.Filled.People"/>
+                        <DHIcon Icon="@Icons.Material.Filled.People" />
                         <MudText>@Localizer["Everybody"]</MudText>
                     </MudStack>
                 </MudSelectItem>
 
                 <MudSelectItem Value="RecipientType.Projects">
                     <MudStack Row Spacing="3">
-                        <MudIcon aria-hidden="true" focusable="false" Icon="@Icons.Material.Filled.Groups"/>
+                        <DHIcon Icon="@Icons.Material.Filled.Groups" />
                         <MudText>@Localizer["Workspaces"]</MudText>
                     </MudStack>
                 </MudSelectItem>
 
                 <MudSelectItem Value="RecipientType.Addresses">
                     <MudStack Row Spacing="3">
-                        <MudIcon aria-hidden="true" focusable="false" Icon="@Icons.Material.Filled.AlternateEmail"/>
+                        <DHIcon Icon="@Icons.Material.Filled.AlternateEmail" />
                         <MudText>@Localizer["Emails"]</MudText>
                     </MudStack>
                 </MudSelectItem>
