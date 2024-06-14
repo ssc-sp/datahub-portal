@@ -39,7 +39,7 @@
                 <MudPaper Outlined Class="pt-4 px-6 pb-6">
                     <MudStack Style="height: 280px;">
                         <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon aria-hidden="true" focusable="false" Icon="@GetIcon(tool)" Class="mr-2"/>
+                            <DHIcon Icon="@GetIcon(tool)" Class="mr-2" />
                             <MudText Typo="Typo.h3">
                                 @GetLabel(tool)
                             </MudText>
@@ -54,7 +54,7 @@
                                 case ToolStatus.Available:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await AddToolToWorkspace(tool))">
                                         @Localizer["Add to Workspace"]
-                                        <MudIcon aria-hidden="true" focusable="false" Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                        <DHIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
                                 case ToolStatus.SendingRequest:
@@ -68,31 +68,31 @@
                                 case ToolStatus.Exists:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Tool has been created"]
-                                        <MudIcon aria-hidden="true" focusable="false" Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                        <DHIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
                                 case ToolStatus.Disabled:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Not Enabled"]
-                                        <MudIcon aria-hidden="true" focusable="false" Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                        <DHIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
                                 case ToolStatus.UnderDevelopment:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Under Development"]
-                                        <MudIcon aria-hidden="true" focusable="false" Icon="fa-light fa-space-station-moon-construction" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                        <DHIcon Icon="fa-light fa-space-station-moon-construction" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
                                 case ToolStatus.MetadataRequired:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Metadata Required"]
-                                        <MudIcon aria-hidden="true" focusable="false" Icon="@SidebarIcons.Metadata" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                        <DHIcon Icon="@SidebarIcons.Metadata" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
                                 default:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Unknown"]
-                                        <MudIcon aria-hidden="true" focusable="false" Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                        <DHIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
                             }

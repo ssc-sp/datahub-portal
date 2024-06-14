@@ -41,7 +41,7 @@
                     <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
                         <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
                             <MudStack Row AlignItems="@AlignItems.Center">
-                                <MudIcon aria-hidden="true" focusable="false" Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                <DHIcon Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
                                 <MudText Style="@_workspaceTitleStyle">
                                     @GetLabel(toolSection)
                                 </MudText>
@@ -69,7 +69,7 @@
                     <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
                         <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
                             <MudStack Row AlignItems="AlignItems.Center">
-                                <MudIcon aria-hidden="true" focusable="false" Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
                                 <MudText Style="@_workspaceTitleStyle">
                                     @GetLabel(toolSection)
                                 </MudText>
