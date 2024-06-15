@@ -221,7 +221,7 @@ namespace Datahub.Infrastructure.Services.Cost
                 var projectResources = ctx.Project_Resources2.Include(p => p.Project)
                     .Where(p => p.Project.Project_Acronym_CD == workspaceAcronym).ToList();
                 var blobType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
-                var blobResource = projectResources.First(r => r.ResourceType == blobType);
+                var blobResource = projectResources.FirstOrDefault(r => r.ResourceType == blobType);
                 rgName = ParseResourceGroup(blobResource.JsonContent);
             }
             var project= await ctx.Projects.Include(p => p.DatahubAzureSubscription).FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
