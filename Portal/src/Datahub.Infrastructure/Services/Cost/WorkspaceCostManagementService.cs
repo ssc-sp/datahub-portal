@@ -143,6 +143,7 @@ namespace Datahub.Infrastructure.Services.Cost
                     ProjectId = project.Project_ID
                 };
                 ctx.Project_Credits.Add(projectCredits);
+                await ctx.SaveChangesAsync();
             }
 
             // Get the last update time to check if a rollover is needed and the total costs incurred in the last fiscal year

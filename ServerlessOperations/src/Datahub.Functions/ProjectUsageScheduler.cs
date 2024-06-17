@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Azure.Storage.Blobs;
@@ -91,7 +92,11 @@ public class ProjectUsageScheduler(
         var containerClient = blobServiceClient.GetBlobContainerClient("costs");
         var blobClient = containerClient.GetBlobClient(fileName);
         var costs = new BlobCostObject { Costs = subCosts };
-        await blobClient.UploadAsync(BinaryData.FromObjectAsJson(costs));
+        var options = new JsonSerializerOptions()
+        {
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+        await blobClient.UploadAsync(BinaryData.FromObjectAsJson(costs, options));
 
         return fileName;
     }
