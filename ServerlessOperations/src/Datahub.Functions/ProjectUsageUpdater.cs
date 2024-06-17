@@ -60,6 +60,12 @@ public class ProjectUsageUpdater(
         {
             _logger.LogInformation($"Budget rollover initiated.");
             var currentBudget = await workspaceBudgetMgmtService.GetWorkspaceBudgetAmountAsync(message.ProjectAcronym);
+            if (currentBudget == 0)
+            {
+                _logger.LogError("Cannot rollover budget, budget is 0.");
+                return false;
+            }
+            
             _logger.LogInformation($"Spend captured by cost management: {spentAmount}");
             _logger.LogInformation($"Spend captured by budget : {budgetSpentAmount}");
 
