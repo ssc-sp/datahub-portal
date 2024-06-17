@@ -91,11 +91,7 @@ public class ProjectUsageScheduler(
         var containerClient = blobServiceClient.GetBlobContainerClient("costs");
         var blobClient = containerClient.GetBlobClient(fileName);
         var costs = new BlobCostObject { Costs = subCosts };
-        var costsJson = JsonSerializer.Serialize(costs);
-        using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(costsJson)))
-        {
-            await blobClient.UploadAsync(ms);
-        }
+        await blobClient.UploadAsync(BinaryData.FromObjectAsJson(costs));
 
         return fileName;
     }
