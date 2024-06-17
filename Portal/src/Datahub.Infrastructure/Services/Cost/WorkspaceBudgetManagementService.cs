@@ -55,8 +55,16 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <returns>The total budget amount</returns>
         public async Task<decimal> GetWorkspaceBudgetAmountAsync(string workspaceAcronym)
         {
-            var budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
-            return await GetBudgetAmountAsync(budgetId);
+            try
+            {
+                var budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
+                return await GetBudgetAmountAsync(budgetId);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("GetWorkspaceBudgetAmountAsync failed", e);
+                return 0;
+            }
         }
 
         /// <summary>
@@ -86,13 +94,22 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <param name="rollover">If the operation is part of a rollover. This will update the credits to keep track of rollovers</param>
         /// <param name="budgetId">Optional budget id to use. If not provided, will interpolate</param>
         /// <returns></returns>
-        public async Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount, bool rollover = false, string? budgetId = null)
+        public async Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount, bool rollover = false,
+            string? budgetId = null)
         {
             if (budgetId is null)
             {
-                budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
+                try
+                {
+                    budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError("SetWorkspaceBudgetAmountAsync failed", e);
+                    return;
+                }
             }
-            
+
             await SetBudgetAmountAsync(budgetId, amount);
             if (rollover)
             {
@@ -140,7 +157,15 @@ namespace Datahub.Infrastructure.Services.Cost
         {
             if (budgetId is null)
             {
-                budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
+                try
+                {
+                    budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError("GetWorkspaceBudgetSpentAsync failed", e);
+                    return 0;
+                }
             }
 
             return await GetBudgetSpentAsync(budgetId);
@@ -173,7 +198,10 @@ namespace Datahub.Infrastructure.Services.Cost
 
             var currentSpent = await GetWorkspaceBudgetSpentAsync(workspaceAcronym, budgetId);
             var beforeUpdateBudgetSpent = (decimal)projectCredits.BudgetCurrentSpent;
-            projectCredits.BudgetCurrentSpent = (double)currentSpent;
+            if (currentSpent != 0)
+            {
+                projectCredits.BudgetCurrentSpent = (double)currentSpent;
+            }
 
             ctx.Project_Credits.Update(projectCredits);
             await ctx.SaveChangesAsync();
@@ -222,9 +250,19 @@ namespace Datahub.Infrastructure.Services.Cost
                     .Where(p => p.Project.Project_Acronym_CD == workspaceAcronym).ToList();
                 var blobType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
                 var blobResource = projectResources.FirstOrDefault(r => r.ResourceType == blobType);
+                if (blobResource is null)
+                {
+                    _logger.LogError(
+                        $"Could not find blob storage resource for project with acronym {workspaceAcronym}");
+                    throw new Exception(
+                        $"Could not find blob storage resource for project with acronym {workspaceAcronym}");
+                }
+
                 rgName = ParseResourceGroup(blobResource.JsonContent);
             }
-            var project= await ctx.Projects.Include(p => p.DatahubAzureSubscription).FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
+
+            var project = await ctx.Projects.Include(p => p.DatahubAzureSubscription)
+                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
             if (project is null)
             {
                 _logger.LogError($"Could not find project with acronym {workspaceAcronym}");
@@ -238,7 +276,8 @@ namespace Datahub.Infrastructure.Services.Cost
                 throw new Exception($"Could not find subscription id for project with acronym {workspaceAcronym}");
             }
 
-            var budgetId = $"/subscription/{subId}/resourceGroups/{rgName}/providers/Microsoft.Consumption/budgets/{rgName}-budget";
+            var budgetId =
+                $"/subscription/{subId}/resourceGroups/{rgName}/providers/Microsoft.Consumption/budgets/{rgName}-budget";
             return budgetId;
         }
 
