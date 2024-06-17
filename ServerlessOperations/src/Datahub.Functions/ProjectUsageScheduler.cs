@@ -91,13 +91,7 @@ public class ProjectUsageScheduler(
         var blobServiceClient = new BlobServiceClient(_azConfig.MediaStorageConnectionString);
         var containerClient = blobServiceClient.GetBlobContainerClient("costs");
         var blobClient = containerClient.GetBlobClient(fileName);
-        var costs = new BlobCostObject { Costs = subCosts };
-        var options = new JsonSerializerOptions()
-        {
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        };
-        await blobClient.UploadAsync(BinaryData.FromObjectAsJson(costs, options));
-
+        await blobClient.UploadAsync(BinaryData.FromObjectAsJson(subCosts));
         return fileName;
     }
     

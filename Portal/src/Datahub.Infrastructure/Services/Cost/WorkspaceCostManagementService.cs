@@ -605,11 +605,11 @@ namespace Datahub.Infrastructure.Services.Cost
                     lstDailyCosts.Add(new DailyServiceCost()
                     {
                         Amount = decimal.Parse(r[cols.FindIndex(c => c == COST_COLUMN)].ToString()),
-                        Source = r[cols.FindIndex(c => c == SERVICE_NAME_COLUMN)].ToString(),
+                        Source = r[cols.FindIndex(c => c == SERVICE_NAME_COLUMN)].ToString().Replace("\"", ""),
                         Date = DateTime.ParseExact(r[cols.FindIndex(c => c == USAGE_DATE_COLUMN)].ToString(),
                             "yyyyMMdd",
                             provider),
-                        ResourceGroupName = r[cols.FindIndex(c => c == RESOURCE_GROUP_NAME_COLUMN)].ToString()
+                        ResourceGroupName = r[cols.FindIndex(c => c == RESOURCE_GROUP_NAME_COLUMN)].ToString().Replace("\"", "")
                     });
                 });
             });
