@@ -65,8 +65,10 @@ namespace Datahub.Infrastructure.Services.Cost
             if (queryWorkspaceCosts.Count == 0)
             {
                 _logger.LogInformation($"Could not find costs for project with acronym {workspaceAcronym}. This could be due to the workspace not having any associated cloud infrastructure.");
+                _logger.LogInformation("Aborting cost update.");
                 return (false, 0);
             }
+            _logger.LogInformation($"Found {queryWorkspaceCosts.Count} costs for project with acronym {workspaceAcronym}");
 
             // We get the dates from the query and exclude today
             var dates = queryWorkspaceCosts.Select(c => c.Date).Distinct().ToList();
@@ -75,6 +77,8 @@ namespace Datahub.Infrastructure.Services.Cost
             // For each of these dates (at most 7 days), we verify that the database contains the costs for that day
             // to ensure resilience against query failures
             // We add these costs to the database if they do not exist
+            _logger.LogInformation($"Checking for missing costs in the database for project with acronym {workspaceAcronym}");
+            var entriesAdded = 0;
             foreach (var date in dates)
             {
                 var projectCost = await ctx.Project_Costs.FirstOrDefaultAsync(c => c.Date == date);
@@ -96,10 +100,12 @@ namespace Datahub.Infrastructure.Services.Cost
                         ServiceName = c.Source
                     };
                     ctx.Project_Costs.Add(cost);
+                    entriesAdded++;
                 });
             }
 
             await ctx.SaveChangesAsync();
+            _logger.LogInformation($"Added {entriesAdded} missing costs to the database for project with acronym {workspaceAcronym}");
 
             // At this point, the costs in the database (Project_Costs) include all times excluding today.
             // To get the totals for the current fiscal year (Project_Credits), we just take the costs in the database in the current fiscal year
@@ -110,6 +116,7 @@ namespace Datahub.Infrastructure.Services.Cost
             if (dbWorkspaceCosts.Count == 0)
             {
                 _logger.LogInformation($"Could not find costs for project with acronym {workspaceAcronym}");
+                _logger.LogInformation("Aborting cost update.");
                 return (false, 0);
             }
             
@@ -119,9 +126,11 @@ namespace Datahub.Infrastructure.Services.Cost
             var workspaceLastFYCosts = FilterLastFiscalYear(dbWorkspaceCosts);
 
             // Create the Project_Credits entry if it does not exist (in the case of a new workspace)
+            _logger.LogInformation($"Updating credits for project with acronym {workspaceAcronym}");
             var projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(c => c.ProjectId == project.Project_ID);
             if (projectCredits is null)
             {
+                _logger.LogInformation("Creating new Project_Credits entry");
                 projectCredits = new Project_Credits()
                 {
                     ProjectId = project.Project_ID
@@ -144,7 +153,8 @@ namespace Datahub.Infrastructure.Services.Cost
             ctx.Project_Credits.Update(projectCredits);
 
             await ctx.SaveChangesAsync();
-
+            _logger.LogInformation($"Updated credits for project with acronym {workspaceAcronym}");
+            
             // Return whether a rollover is needed and the total costs incurred in the last fiscal year (the last full FY)
             return (RolloverNeeded(beforeUpdate, lastRollover), workspaceLastFYTotal);
         }
@@ -415,6 +425,7 @@ namespace Datahub.Infrastructure.Services.Cost
         {
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
+            _logger.LogInformation($"Getting resource group names for workspace {workspaceAcronym}");
             var blobStorageType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
             var dbkType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
 
@@ -444,7 +455,7 @@ namespace Datahub.Infrastructure.Services.Cost
                     }
                 }
             });
-
+            _logger.LogInformation($"Resource group names retrieved for {workspaceAcronym}: {string.Join(", ", rgNames)}");
             return rgNames;
         }
 
