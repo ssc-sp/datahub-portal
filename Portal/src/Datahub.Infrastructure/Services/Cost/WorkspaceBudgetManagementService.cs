@@ -182,6 +182,7 @@ namespace Datahub.Infrastructure.Services.Cost
         public async Task<decimal> UpdateWorkspaceBudgetSpentAsync(string workspaceAcronym,
             string? budgetId = null)
         {
+            _logger.LogInformation($"Updating budget spent for workspace {workspaceAcronym}");
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
             var projectCredits = await ctx.Project_Credits
@@ -205,6 +206,7 @@ namespace Datahub.Infrastructure.Services.Cost
 
             ctx.Project_Credits.Update(projectCredits);
             await ctx.SaveChangesAsync();
+            _logger.LogInformation($"Workspace {workspaceAcronym} budget spent updated to {currentSpent} from {beforeUpdateBudgetSpent}");
             return beforeUpdateBudgetSpent;
         }
 
@@ -243,6 +245,7 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <returns>The budget id</returns>
         internal async Task<string> GetBudgetIdForWorkspace(string workspaceAcronym, string? rgName = null)
         {
+            _logger.LogInformation($"Getting budget id for workspace {workspaceAcronym}");
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
             if (rgName is null)
             {
@@ -277,7 +280,8 @@ namespace Datahub.Infrastructure.Services.Cost
             }
 
             var budgetId =
-                $"/subscription/{subId}/resourceGroups/{rgName}/providers/Microsoft.Consumption/budgets/{rgName}-budget";
+                $"/subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.Consumption/budgets/{rgName}-budget";
+            _logger.LogInformation($"Budget id for workspace {workspaceAcronym} is {budgetId}");
             return budgetId;
         }
 
