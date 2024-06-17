@@ -46,6 +46,7 @@ public class ProjectUsageUpdater(
 
         _logger.LogInformation("Downloading costs from blob...");
         var costs = await GetFromBlob(message.CostsBlobName);
+        _logger.LogInformation($"Downloaded costs from blob. There are {costs.Count} entries.");
         
         _logger.LogInformation("Querying cost management...");
         var (costRollover, spentAmount) =
