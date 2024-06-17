@@ -77,7 +77,8 @@ namespace Datahub.Infrastructure.Services.Cost
 
             // We get the dates from the query and exclude today
             var dates = queryWorkspaceCosts.Select(c => c.Date).Distinct().ToList();
-            dates = dates.Where(d => d >= DateTime.UtcNow.Date.AddDays(-7) && !d.Equals(DateTime.UtcNow.Date)).ToList();
+            dates = dates.Where(d => d.Date >= DateTime.UtcNow.Date.AddDays(-7) && !d.Date.Equals(DateTime.UtcNow.Date)).ToList();
+            _logger.LogInformation($"Days to check: {string.Join(", ", dates)}");
 
             // For each of these dates (at most 7 days), we verify that the database contains the costs for that day
             // to ensure resilience against query failures
@@ -87,7 +88,7 @@ namespace Datahub.Infrastructure.Services.Cost
             var entriesAdded = 0;
             foreach (var date in dates)
             {
-                var projectCost = await ctx.Project_Costs.FirstOrDefaultAsync(c => c.Date == date);
+                var projectCost = await ctx.Project_Costs.FirstOrDefaultAsync(c => c.Date == date.Date && c.Project_ID == project.Project_ID);
                 if (projectCost is not null)
                 {
                     continue;
@@ -263,7 +264,7 @@ namespace Datahub.Infrastructure.Services.Cost
         public List<DailyServiceCost> FilterDateRange(List<DailyServiceCost> costs, DateTime startDate,
             DateTime endDate)
         {
-            return costs.Where(c => (c.Date >= startDate && c.Date <= endDate)).ToList();
+            return costs.Where(c => (c.Date >= startDate.Date && c.Date <= endDate.Date)).ToList();
         }
 
         /// <summary>
@@ -274,7 +275,7 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <returns>The filtered costs, which should be only from the given date</returns>
         public List<DailyServiceCost> FilterDateRange(List<DailyServiceCost> costs, DateTime date)
         {
-            return costs.Where(c => c.Date == date).ToList();
+            return costs.Where(c => c.Date == date.Date).ToList();
         }
 
         /// <summary>
