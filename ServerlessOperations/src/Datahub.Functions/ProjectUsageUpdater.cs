@@ -126,15 +126,12 @@ public class ProjectUsageUpdater(
         {
             _logger.LogInformation($"Downloaded costs from blob {fileName}");
             var plainTextResult = response.Value.Content.ToString();
-            var costs = JsonSerializer.Deserialize<BlobCostObject>(plainTextResult);
-            return costs.Costs;
+            var costs = JsonSerializer.Deserialize<List<DailyServiceCost>>(plainTextResult);
+            return costs;
         }
         _logger.LogError($"Cannot download costs from blob {fileName}");
         return null;
     }
 
-    record BlobCostObject
-    {
-        [JsonPropertyName("costs")] public List<DailyServiceCost> Costs { get; set; }
-    }
+    
 }

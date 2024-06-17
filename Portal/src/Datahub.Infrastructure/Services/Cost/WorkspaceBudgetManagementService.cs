@@ -195,6 +195,7 @@ namespace Datahub.Infrastructure.Services.Cost
                     ProjectId = project.Project_ID
                 };
                 ctx.Project_Credits.Add(projectCredits);
+                await ctx.SaveChangesAsync();
             }
 
             var currentSpent = await GetWorkspaceBudgetSpentAsync(workspaceAcronym, budgetId);
