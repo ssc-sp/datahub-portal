@@ -60,15 +60,20 @@ namespace Datahub.Infrastructure.Services.Cost
             // Get the costs for the workspace both from the query and the database
             // The costs from the query are the costs from the last several days
             // The costs from the database are all costs existing for a workspace
-            var queryWorkspaceCosts = rgNames is null ? await FilterWorkspaceCosts(subCosts, workspaceAcronym) : await FilterWorkspaceCosts(subCosts, workspaceAcronym, rgNames);
-            
+            var queryWorkspaceCosts = rgNames is null
+                ? await FilterWorkspaceCosts(subCosts, workspaceAcronym)
+                : await FilterWorkspaceCosts(subCosts, workspaceAcronym, rgNames);
+
             if (queryWorkspaceCosts.Count == 0)
             {
-                _logger.LogInformation($"Could not find costs for project with acronym {workspaceAcronym}. This could be due to the workspace not having any associated cloud infrastructure.");
+                _logger.LogInformation(
+                    $"Could not find costs for project with acronym {workspaceAcronym}. This could be due to the workspace not having any associated cloud infrastructure.");
                 _logger.LogInformation("Aborting cost update.");
                 return (false, 0);
             }
-            _logger.LogInformation($"Found {queryWorkspaceCosts.Count} costs for project with acronym {workspaceAcronym}");
+
+            _logger.LogInformation(
+                $"Found {queryWorkspaceCosts.Count} costs for project with acronym {workspaceAcronym}");
 
             // We get the dates from the query and exclude today
             var dates = queryWorkspaceCosts.Select(c => c.Date).Distinct().ToList();
@@ -77,7 +82,8 @@ namespace Datahub.Infrastructure.Services.Cost
             // For each of these dates (at most 7 days), we verify that the database contains the costs for that day
             // to ensure resilience against query failures
             // We add these costs to the database if they do not exist
-            _logger.LogInformation($"Checking for missing costs in the database for project with acronym {workspaceAcronym}");
+            _logger.LogInformation(
+                $"Checking for missing costs in the database for project with acronym {workspaceAcronym}");
             var entriesAdded = 0;
             foreach (var date in dates)
             {
@@ -105,21 +111,22 @@ namespace Datahub.Infrastructure.Services.Cost
             }
 
             await ctx.SaveChangesAsync();
-            _logger.LogInformation($"Added {entriesAdded} missing costs to the database for project with acronym {workspaceAcronym}");
+            _logger.LogInformation(
+                $"Added {entriesAdded} missing costs to the database for project with acronym {workspaceAcronym}");
 
             // At this point, the costs in the database (Project_Costs) include all times excluding today.
             // To get the totals for the current fiscal year (Project_Credits), we just take the costs in the database in the current fiscal year
             // and we add the costs from today from the query
             var queryWorkspaceTodayCosts = FilterDateRange(queryWorkspaceCosts, DateTime.UtcNow.Date);
             var dbWorkspaceCosts = await GetWorkspaceCosts(workspaceAcronym);
-            
+
             if (dbWorkspaceCosts.Count == 0)
             {
                 _logger.LogInformation($"Could not find costs for project with acronym {workspaceAcronym}");
                 _logger.LogInformation("Aborting cost update.");
                 return (false, 0);
             }
-            
+
             var dbWorkspaceCurrentFYCosts = FilterCurrentFiscalYear(dbWorkspaceCosts);
             var workspaceCurrentFYCosts = dbWorkspaceCurrentFYCosts.Concat(queryWorkspaceTodayCosts).ToList();
             var workspaceYesterdayCosts = FilterDateRange(dbWorkspaceCosts, DateTime.UtcNow.Date.AddDays(-1));
@@ -154,7 +161,7 @@ namespace Datahub.Infrastructure.Services.Cost
 
             await ctx.SaveChangesAsync();
             _logger.LogInformation($"Updated credits for project with acronym {workspaceAcronym}");
-            
+
             // Return whether a rollover is needed and the total costs incurred in the last fiscal year (the last full FY)
             return (RolloverNeeded(beforeUpdate, lastRollover), workspaceLastFYTotal);
         }
@@ -181,7 +188,7 @@ namespace Datahub.Infrastructure.Services.Cost
                 _logger.LogError("Querying more than a year of data is not allowed");
                 throw new Exception("Querying more than a year of data is not allowed.");
             }
-            
+
             if (subscriptionId is null)
             {
                 subscriptionId = _armClient.GetDefaultSubscription().Id;
@@ -286,13 +293,36 @@ namespace Datahub.Infrastructure.Services.Cost
 
             var workspaceCosts = new List<DailyServiceCost>();
 
-            subCosts.ForEach(c =>
+            if (rgNames.Count == 0)
             {
-                if (rgNames.Contains(c.ResourceGroupName))
+                _logger.LogInformation("Filtering costs using workspace acronym");
+                subCosts.ForEach(c =>
                 {
-                    workspaceCosts.Add(c);
-                }
-            });
+                    var underscoreSplit = c.ResourceGroupName.Split("_");
+                    var dashSplit = c.ResourceGroupName.Split("-");
+                    
+                    if (underscoreSplit.Length > 1 && underscoreSplit[2].ToUpper() == workspaceAcronym.ToUpper())
+                    {
+                        workspaceCosts.Add(c);
+                    }
+                    else if (dashSplit.Length > 1 && dashSplit[2].ToUpper() == workspaceAcronym.ToUpper())
+                    {
+                        workspaceCosts.Add(c);
+                    }
+                });
+            }
+            else
+            {
+                _logger.LogInformation("Filtering costs by resource group names");
+                subCosts.ForEach(c =>
+                {
+                    if (rgNames.Contains(c.ResourceGroupName))
+                    {
+                        workspaceCosts.Add(c);
+                    }
+                });
+            }
+
 
             workspaceCosts.OrderBy(c => c.Date);
 
@@ -329,7 +359,7 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <summary>
         /// Queries the given scopes for costs within the given date range. Daily granularity.
         /// </summary>
-        /// <param name="scopeId">The id of the scope. e.g. /subscription/<...> </param>
+        /// <param name="scopeId">The id of the scope. e.g. /subscriptions/<...> </param>
         /// <param name="startDate">The start date</param>
         /// <param name="endDate">The end date</param>
         /// <param name="mock">Boolean to perform a "mock" request</param>
@@ -410,6 +440,7 @@ namespace Datahub.Infrastructure.Services.Cost
                 {
                     return null;
                 }
+
                 throw new Exception($"Could not get cost data for scope {scopeId}");
             }
 
@@ -455,7 +486,44 @@ namespace Datahub.Infrastructure.Services.Cost
                     }
                 }
             });
-            _logger.LogInformation($"Resource group names retrieved for {workspaceAcronym}: {string.Join(", ", rgNames)}");
+            
+            if (rgNames.Count == 0) rgNames = await GetResourceGroupNamesFallback(workspaceAcronym);
+
+            _logger.LogInformation(
+                $"Resource group names retrieved for {workspaceAcronym}: {string.Join(", ", rgNames)}");
+            return rgNames;
+        }
+
+        /// <summary>
+        /// Uses azure resource manager to find the resource group names for the given workspace acronym. This is a fallback method.
+        /// </summary>
+        /// <param name="workspaceAcronym">The workspace acronym</param>
+        /// <returns></returns>
+        internal async Task<List<string>> GetResourceGroupNamesFallback(string workspaceAcronym)
+        {
+            _logger.LogInformation(
+                $"Using Azure Resource Manager to find resource group names for workspace {workspaceAcronym}");
+            using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            var sub = ctx.Projects.Include(p => p.DatahubAzureSubscription)
+                .FirstOrDefault(p => p.Project_Acronym_CD == workspaceAcronym)?.DatahubAzureSubscription;
+            var subId = "/subscriptions/" + sub?.SubscriptionId;
+            var subResource = _armClient.GetSubscriptionResource(new ResourceIdentifier(subId));
+            var rgs = subResource.GetResourceGroups();
+            var workspaceRgs = rgs.GetAllAsync(filter: $"tagName eq 'project_cd' and tagValue eq '{workspaceAcronym}'");
+            var enumerator = workspaceRgs.GetAsyncEnumerator();
+            var rgNames = new List<string>();
+            do
+            {
+                var currentRg = enumerator.Current;
+                if (currentRg is null) continue;
+                var rgResource = await currentRg.GetAsync();
+                if (!rgResource.HasValue) continue;
+                var rgName = rgResource.Value.Data.Name;
+                if (string.IsNullOrEmpty(rgName)) continue;
+                rgNames.Add(rgName);
+            } while (await enumerator.MoveNextAsync());
+
+            await enumerator.DisposeAsync();
             return rgNames;
         }
 
