@@ -108,7 +108,7 @@ public class Hooks
             objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>(), configuration);
         var workspaceBudgetManagementService = new WorkspaceBudgetManagementService(armClient,
             Substitute.For<ILogger<WorkspaceBudgetManagementService>>(),
-            objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>());
+            objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>(), configuration);
         var workspaceStorageManagementService = new WorkspaceStorageManagementService(armClient,
             Substitute.For<ILogger<WorkspaceStorageManagementService>>(),
             objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>());
