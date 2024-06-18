@@ -33,8 +33,8 @@
     <ItemGroup>
         <PackageReference Include="Azure.Identity" Version="1.11.4" />               
         <PackageReference Include="Azure.Storage.Queues" Version="12.18.0" />
-        <PackageReference Include="MassTransit" Version="8.2.2" />
-        <PackageReference Include="MassTransit.WebJobs.ServiceBus" Version="8.2.2" />
+        <PackageReference Include="MassTransit" Version="8.2.*" />
+        <PackageReference Include="MassTransit.WebJobs.ServiceBus" Version="8.2.*" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.22.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.2.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.19.0" />
