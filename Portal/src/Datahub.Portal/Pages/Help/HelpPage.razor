@@ -419,7 +419,7 @@
     public async Task<List<IssueForDisplaying>> GetIssuesCreatedByUser(string userName)
     {
         List<IssueForDisplaying> _issuesList = new List<IssueForDisplaying>();
-        var query = $"SELECT [System.Id], [System.Title], [System.CreatedBy], [System.CreatedDate], [System.ChangedDate], [System.Tags] FROM WorkItems WHERE [Submitted By] = '{userName}' AND NOT [System.Title] CONTAINS 'Exception'";
+        var query = $"SELECT [System.Id], [System.Title], [System.CreatedBy], [System.CreatedDate], [System.ChangedDate], [System.Tags] FROM WorkItems WHERE [Submitted By] = '{userName}' AND NOT [System.Title] CONTAINS 'xception'";
         var wiql = new Wiql()
         {
             Query = query

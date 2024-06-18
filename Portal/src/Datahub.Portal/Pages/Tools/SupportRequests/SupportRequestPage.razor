@@ -3,8 +3,6 @@
 
 @using System.Net.Http;
 @using System.Net.Http.Headers;
-@using Newtonsoft.Json;
-@using Newtonsoft.Json.Linq;
 @using Datahub.Portal.Pages.Help;
 @using Datahub.Shared.Clients;
 @using Datahub.Shared.Configuration;
@@ -93,7 +91,7 @@
         _loading = true; // Show the loading bar in the table.
         _openIssues = new();
         _closedIssues = new();
-        var query = $"SELECT [System.Id], [System.Title], [System.CreatedBy], [System.CreatedDate], [System.ChangedDate], [System.Tags] FROM WorkItems WHERE [System.Tags] CONTAINS 'UserSubmitted' AND NOT [System.Title] CONTAINS 'Exception'";
+        var query = $"SELECT [System.Id], [System.Title], [System.CreatedBy], [System.CreatedDate], [System.ChangedDate], [System.Tags] FROM WorkItems WHERE [System.Tags] CONTAINS 'UserSubmitted' AND NOT [System.Title] CONTAINS 'xception'";
         var wiql = new Wiql()
         {
             Query = query
