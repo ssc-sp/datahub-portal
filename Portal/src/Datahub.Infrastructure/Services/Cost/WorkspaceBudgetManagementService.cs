@@ -9,6 +9,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 [assembly: InternalsVisibleTo("Datahub.Infrastructure.UnitTests")]
@@ -21,13 +22,15 @@ namespace Datahub.Infrastructure.Services.Cost
         private ArmClient _armClient;
         private readonly ILogger<WorkspaceBudgetManagementService> _logger;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
+        private readonly IConfiguration _config;
 
         public WorkspaceBudgetManagementService(ArmClient armClient, ILogger<WorkspaceBudgetManagementService> logger,
-            IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IConfiguration config)
         {
             _armClient = armClient;
             _logger = logger;
             _dbContextFactory = dbContextFactory;
+            _config = config;
         }
 
         /// <summary>
@@ -207,7 +210,8 @@ namespace Datahub.Infrastructure.Services.Cost
 
             ctx.Project_Credits.Update(projectCredits);
             await ctx.SaveChangesAsync();
-            _logger.LogInformation($"Workspace {workspaceAcronym} budget spent updated to {currentSpent} from {beforeUpdateBudgetSpent}");
+            _logger.LogInformation(
+                $"Workspace {workspaceAcronym} budget spent updated to {currentSpent} from {beforeUpdateBudgetSpent}");
             return beforeUpdateBudgetSpent;
         }
 
@@ -256,13 +260,14 @@ namespace Datahub.Infrastructure.Services.Cost
                 var blobResource = projectResources.FirstOrDefault(r => r.ResourceType == blobType);
                 if (blobResource is null)
                 {
-                    _logger.LogError(
+                    _logger.LogInformation(
                         $"Could not find blob storage resource for project with acronym {workspaceAcronym}");
-                    throw new Exception(
-                        $"Could not find blob storage resource for project with acronym {workspaceAcronym}");
+                    rgName = await GetResourceGroupNameFallback(workspaceAcronym);
                 }
-
-                rgName = ParseResourceGroup(blobResource.JsonContent);
+                else
+                {
+                    rgName = ParseResourceGroup(blobResource.JsonContent);
+                }
             }
 
             var project = await ctx.Projects.Include(p => p.DatahubAzureSubscription)
@@ -284,6 +289,37 @@ namespace Datahub.Infrastructure.Services.Cost
                 $"/subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.Consumption/budgets/{rgName}-budget";
             _logger.LogInformation($"Budget id for workspace {workspaceAcronym} is {budgetId}");
             return budgetId;
+        }
+
+        internal async Task<string> GetResourceGroupNameFallback(string workspaceAcronym)
+        {
+            _logger.LogInformation(
+                $"Using Azure Resource Manager to find resource group name for workspace {workspaceAcronym}");
+            using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            var sub = ctx.Projects.Include(p => p.DatahubAzureSubscription)
+                .FirstOrDefault(p => p.Project_Acronym_CD == workspaceAcronym)?.DatahubAzureSubscription;
+            var subId = "/subscriptions/" + sub?.SubscriptionId;
+            var env = _config["DataHub_ENVNAME"];
+            var subResource = _armClient.GetSubscriptionResource(new ResourceIdentifier(subId));
+            var rgs = subResource.GetResourceGroups();
+            var workspaceRgs = rgs.GetAllAsync(filter: $"tagName eq 'project_cd' and tagValue eq '{workspaceAcronym}'");
+            var enumerator = workspaceRgs.GetAsyncEnumerator();
+            var rgNames = new List<string>();
+            do
+            {
+                var currentRg = enumerator.Current;
+                if (currentRg is null) continue;
+                var rgResource = await currentRg.GetAsync();
+                if (!rgResource.HasValue) continue;
+                var rgName = rgResource.Value.Data.Name;
+                if (string.IsNullOrEmpty(rgName)) continue;
+                if (!string.IsNullOrEmpty(env)) rgNames = rgNames.Where(rg => rg.Contains(env)).ToList();
+                rgNames.Add(rgName);
+            } while (await enumerator.MoveNextAsync());
+
+            await enumerator.DisposeAsync();
+            var projRgName = rgNames.FirstOrDefault(rg => rg.Contains("_proj_"));
+            return projRgName;
         }
 
         /// <summary>

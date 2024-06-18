@@ -1,7 +1,5 @@
 ﻿using System.Globalization;
-using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
 using Azure;
 using Azure.Core;
@@ -11,9 +9,9 @@ using Azure.ResourceManager.CostManagement.Models;
 using Datahub.Application.Services.Budget;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
-using Datahub.Infrastructure.Services.Azure;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 [assembly: InternalsVisibleTo("Datahub.Infrastructure.UnitTests")]
@@ -25,6 +23,7 @@ namespace Datahub.Infrastructure.Services.Cost
         private ArmClient _armClient;
         private readonly ILogger<WorkspaceCostManagementService> _logger;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
+        private readonly IConfiguration _config;
 
         private const string COST_COLUMN = "Cost";
         private const string SERVICE_NAME_COLUMN = "ServiceName";
@@ -32,11 +31,12 @@ namespace Datahub.Infrastructure.Services.Cost
         private const string RESOURCE_GROUP_NAME_COLUMN = "ResourceGroupName";
 
         public WorkspaceCostManagementService(ArmClient armClient,
-            ILogger<WorkspaceCostManagementService> logger, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+            ILogger<WorkspaceCostManagementService> logger, IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IConfiguration config)
         {
             _logger = logger;
             _dbContextFactory = dbContextFactory;
             _armClient = armClient;
+            _config = config;
         }
 
         /// <summary>   
@@ -77,7 +77,8 @@ namespace Datahub.Infrastructure.Services.Cost
 
             // We get the dates from the query and exclude today
             var dates = queryWorkspaceCosts.Select(c => c.Date).Distinct().ToList();
-            dates = dates.Where(d => d.Date >= DateTime.UtcNow.Date.AddDays(-7) && !d.Date.Equals(DateTime.UtcNow.Date)).ToList();
+            dates = dates.Where(d => d.Date >= DateTime.UtcNow.Date.AddDays(-7) && !d.Date.Equals(DateTime.UtcNow.Date))
+                .ToList();
             _logger.LogInformation($"Days to check: {string.Join(", ", dates)}");
 
             // For each of these dates (at most 7 days), we verify that the database contains the costs for that day
@@ -88,14 +89,20 @@ namespace Datahub.Infrastructure.Services.Cost
             var entriesAdded = 0;
             foreach (var date in dates)
             {
-                var projectCost = await ctx.Project_Costs.FirstOrDefaultAsync(c => c.Date == date.Date && c.Project_ID == project.Project_ID);
-                if (projectCost is not null)
+                _logger.LogInformation($"Checking for missing costs for date {date}");
+                var projectCosts = ctx.Project_Costs
+                    .Where(c => c.Project_ID == project.Project_ID && c.Date == date.Date)
+                    .ToList();
+                if (projectCosts.Count > 0)
                 {
+                    _logger.LogInformation($"Found {projectCosts.Count} costs for date {date}, skipping this date.");
                     continue;
                 }
 
                 var thatDateQueryCosts = FilterDateRange(queryWorkspaceCosts, date);
                 var thatDateByService = GroupBySource(thatDateQueryCosts);
+                _logger.LogInformation(
+                    $"Adding {thatDateByService.Count} missing costs for date {date} to the database");
                 thatDateByService.ForEach(c =>
                 {
                     var cost = new Datahub_Project_Costs()
@@ -302,7 +309,7 @@ namespace Datahub.Infrastructure.Services.Cost
                 {
                     var underscoreSplit = c.ResourceGroupName.Split("_");
                     var dashSplit = c.ResourceGroupName.Split("-");
-                    
+
                     if (underscoreSplit.Length > 1 && underscoreSplit[2].ToUpper() == workspaceAcronym.ToUpper())
                     {
                         workspaceCosts.Add(c);
@@ -488,7 +495,7 @@ namespace Datahub.Infrastructure.Services.Cost
                     }
                 }
             });
-            
+
             if (rgNames.Count == 0) rgNames = await GetResourceGroupNamesFallback(workspaceAcronym);
 
             _logger.LogInformation(
@@ -509,6 +516,7 @@ namespace Datahub.Infrastructure.Services.Cost
             var sub = ctx.Projects.Include(p => p.DatahubAzureSubscription)
                 .FirstOrDefault(p => p.Project_Acronym_CD == workspaceAcronym)?.DatahubAzureSubscription;
             var subId = "/subscriptions/" + sub?.SubscriptionId;
+            var env = _config["DataHub_ENVNAME"];            
             var subResource = _armClient.GetSubscriptionResource(new ResourceIdentifier(subId));
             var rgs = subResource.GetResourceGroups();
             var workspaceRgs = rgs.GetAllAsync(filter: $"tagName eq 'project_cd' and tagValue eq '{workspaceAcronym}'");
@@ -522,6 +530,7 @@ namespace Datahub.Infrastructure.Services.Cost
                 if (!rgResource.HasValue) continue;
                 var rgName = rgResource.Value.Data.Name;
                 if (string.IsNullOrEmpty(rgName)) continue;
+                if (!string.IsNullOrEmpty(env)) rgNames = rgNames.Where(rg => rg.Contains(env)).ToList();
                 rgNames.Add(rgName);
             } while (await enumerator.MoveNextAsync());
 
@@ -610,7 +619,8 @@ namespace Datahub.Infrastructure.Services.Cost
                         Date = DateTime.ParseExact(r[cols.FindIndex(c => c == USAGE_DATE_COLUMN)].ToString(),
                             "yyyyMMdd",
                             provider),
-                        ResourceGroupName = r[cols.FindIndex(c => c == RESOURCE_GROUP_NAME_COLUMN)].ToString().Replace("\"", "")
+                        ResourceGroupName = r[cols.FindIndex(c => c == RESOURCE_GROUP_NAME_COLUMN)].ToString()
+                            .Replace("\"", "")
                     });
                 });
             });
