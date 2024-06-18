@@ -6,6 +6,7 @@
 @using Datahub.Infrastructure.Services.Azure;
 @using System.Text.Json;
 @using Datahub.Application.Services
+@using Datahub.Application.Services.Budget
 @using Datahub.Core.Model.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -61,7 +62,7 @@
         </div>
     }
 
-    @if (_currentDailyCosts?.Count > 1 && _currentDailyCosts.Any(c => c.Cost > 0))
+    @if (_currentDailyCosts?.Count > 1 && _currentDailyCosts.Any(c => c.Amount > 0))
     {
         <MudDivider Class="my-6" />
         <MudText Typo="Typo.h3">@Localizer["Daily cost (over last 30 days)"]</MudText>
@@ -120,9 +121,9 @@
     public decimal _projectBudget { get; set; }
     private Project_Credits _projectCredits { get; set; }
 
-    private List<AzureDailyCost> _currentDailyCosts { get; set; } = new();
-    private List<AzureServiceCost> _currentServiceCosts { get; set; } = new();
-    private List<AzureServiceCost> _yesterdayServiceCosts { get; set; } = new();
+    private List<DailyServiceCost> _currentDailyCosts { get; set; } = new();
+    private List<DailyServiceCost> _currentServiceCosts { get; set; } = new();
+    private List<DailyServiceCost> _yesterdayServiceCosts { get; set; } = new();
 
     private decimal CurrentCost => Convert.ToDecimal(_projectCredits.Current);
     private decimal YesterdayCost => Convert.ToDecimal(_projectCredits.YesterdayCredits);
@@ -141,7 +142,7 @@
 
     private List<ChartSeries> DailySeries => new()
     {
-        new() { Name = Localizer["$CAD"], Data = _currentDailyCosts.Select(dc => dc.Cost).ToArray() }
+        new() { Name = Localizer["$CAD"], Data = _currentDailyCosts.Select(dc => (double)dc.Amount).ToArray() }
     };
 
     private string[] XAxisDailyLabels => _currentDailyCosts.Select(dc => FormatDay(dc.Date)).ToArray();
@@ -150,11 +151,11 @@
     private double[] ServiceCosts => _showingTotal ? GetMonthServiceCosts() : GetYesterdayServiceCosts();
     private string[] ServiceLabels => _showingTotal ? GetMonthServiceLabels() : GetYesterdayServiceLabels();
 
-    private double[] GetMonthServiceCosts() => _currentServiceCosts.Select(sc => sc.Cost).ToArray();
-    private string[] GetMonthServiceLabels() => _currentServiceCosts.Select(sc => $"{sc.Name} ({sc.Cost:C})").ToArray();
+    private double[] GetMonthServiceCosts() => _currentServiceCosts.Select(sc => (double)sc.Amount).ToArray();
+    private string[] GetMonthServiceLabels() => _currentServiceCosts.Select(sc => $"{sc.Source} ({sc.Amount:C})").ToArray();
 
-    private double[] GetYesterdayServiceCosts() => _yesterdayServiceCosts.Select(sc => sc.Cost).ToArray();
-    private string[] GetYesterdayServiceLabels() => _yesterdayServiceCosts.Select(sc => $"{sc.Name} ({sc.Cost:C})").ToArray();
+    private double[] GetYesterdayServiceCosts() => _yesterdayServiceCosts.Select(sc => (double)sc.Amount).ToArray();
+    private string[] GetYesterdayServiceLabels() => _yesterdayServiceCosts.Select(sc => $"{sc.Source} ({sc.Amount:C})").ToArray();
 
     protected override async Task OnInitializedAsync()
     {
@@ -181,7 +182,7 @@
             _storageEquivalentFormatted = FormatStorageCapacity(_spendingEstimation.Storage);
         }
 
-        ConvertCosts();
+        HydrateCosts();
 
         _loading = false;
     }
@@ -230,22 +231,55 @@
         return $"{rounded} TB";
     }
 
-    private void ConvertCosts()
+    private void HydrateCosts()
     {
-        if (!string.IsNullOrEmpty(_projectCredits.CurrentPerService))
+        try
         {
-            _currentServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.CurrentPerService);
+            _currentDailyCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.CurrentPerService);
+        }
+        catch (Exception e)
+        {
+            var dailyCosts = JsonSerializer.Deserialize<List<AzureDailyCost>>(_projectCredits.CurrentPerService);
+            _currentDailyCosts = ConvertCosts(dailyCosts);
         }
 
-        if (!string.IsNullOrEmpty(_projectCredits.YesterdayPerService))
+        try
         {
-            _yesterdayServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.YesterdayPerService);
+            _currentServiceCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.CurrentPerService);
+        }
+        catch (Exception e)
+        {
+            var serviceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.CurrentPerService);
+            _currentServiceCosts = ConvertCosts(serviceCosts);
         }
 
-        if (!string.IsNullOrEmpty(_projectCredits.CurrentPerDay))
+        try
         {
-            _currentDailyCosts = JsonSerializer.Deserialize<List<AzureDailyCost>>(_projectCredits.CurrentPerDay);
+            _yesterdayServiceCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.YesterdayPerService);
         }
+        catch (Exception e)
+        {
+            var serviceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.YesterdayPerService);
+            _yesterdayServiceCosts = ConvertCosts(serviceCosts);
+        }
+    }
+
+    private List<DailyServiceCost> ConvertCosts(List<AzureServiceCost> costs)
+    {
+        return costs.Select(c => new DailyServiceCost
+        {
+            Amount = (decimal)c.Cost,
+            Source = c.Name
+        }).ToList();
+    }
+
+    private List<DailyServiceCost> ConvertCosts(List<AzureDailyCost> costs)
+    {
+        return costs.Select(c => new DailyServiceCost
+        {
+            Amount = (decimal)c.Cost,
+            Date = c.Date
+        }).ToList();
     }
 
     private void HandleShowMonth() => _showingTotal = true;
