@@ -2,6 +2,7 @@
 @using Datahub.Infrastructure.Services.Azure
 @using Datahub.Core.Data.CostEstimators
 @using Datahub.Application.Services
+@using Datahub.Application.Services.Budget
 @using System.Text.Json
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IAzurePriceListService _azurePriceListService
@@ -39,8 +40,7 @@
 
 @code {
 
-    [Parameter, EditorRequired]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter, EditorRequired] public string WorkspaceAcronym { get; set; }
 
     private decimal _projectBudget { get; set; }
     private Project_Credits _projectCredits { get; set; }
@@ -48,12 +48,12 @@
     private decimal CurrentCost => Convert.ToDecimal(_projectCredits?.Current ?? 0);
 
     private decimal _remainingBudget;
-    private decimal _yesterdayCost => (decimal)_yesterdayServiceCosts.Sum(s => s.Cost);
-    private decimal _averageDailyCost => _currentDailyCosts.Any() ? (decimal)_currentDailyCosts.Average(d => d.Cost) : 0;
+    private decimal _yesterdayCost => _yesterdayServiceCosts.Sum(s => s.Amount);
+    private decimal _averageDailyCost => _currentDailyCosts.Any() ? _currentDailyCosts.Average(d => d.Amount) : 0;
 
-    private List<AzureDailyCost> _currentDailyCosts { get; set; } = new();
-    private List<AzureServiceCost> _currentServiceCosts { get; set; } = new();
-    private List<AzureServiceCost> _yesterdayServiceCosts { get; set; } = new();
+    private List<DailyServiceCost> _currentDailyCosts { get; set; } = new();
+    private List<DailyServiceCost> _currentServiceCosts { get; set; } = new();
+    private List<DailyServiceCost> _yesterdayServiceCosts { get; set; } = new();
 
     private ChartOptions _chartOptions = new ChartOptions
     {
@@ -75,26 +75,58 @@
 
         _remainingBudget = _projectBudget - CurrentCost;
 
-        ConvertCosts();
+        HydrateCosts();
     }
 
-    private void ConvertCosts()
+    private void HydrateCosts()
     {
-        if (!string.IsNullOrEmpty(_projectCredits?.CurrentPerService))
+        try
         {
-            _currentServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.CurrentPerService);
+            _currentDailyCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.CurrentPerService);
+        }
+        catch (Exception e)
+        {
+            var dailyCosts = JsonSerializer.Deserialize<List<AzureDailyCost>>(_projectCredits.CurrentPerService);
+            _currentDailyCosts = ConvertCosts(dailyCosts);
         }
 
-        if (!string.IsNullOrEmpty(_projectCredits?.YesterdayPerService))
+        try
         {
-            _yesterdayServiceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.YesterdayPerService);
+            _currentServiceCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.CurrentPerService);
+        }
+        catch (Exception e)
+        {
+            var serviceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.CurrentPerService);
+            _currentServiceCosts = ConvertCosts(serviceCosts);
         }
 
-        if (!string.IsNullOrEmpty(_projectCredits?.CurrentPerDay))
+        try
         {
-            _currentDailyCosts = JsonSerializer.Deserialize<List<AzureDailyCost>>(_projectCredits.CurrentPerDay);
+            _yesterdayServiceCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.YesterdayPerService);
         }
+        catch (Exception e)
+        {
+            var serviceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.YesterdayPerService);
+            _yesterdayServiceCosts = ConvertCosts(serviceCosts);
+        }
+    }
+
+    private List<DailyServiceCost> ConvertCosts(List<AzureServiceCost> costs)
+    {
+        return costs.Select(c => new DailyServiceCost
+        {
+            Amount = (decimal)c.Cost,
+            Source = c.Name
+        }).ToList();
+    }
+
+    private List<DailyServiceCost> ConvertCosts(List<AzureDailyCost> costs)
+    {
+        return costs.Select(c => new DailyServiceCost
+        {
+            Amount = (decimal)c.Cost,
+            Date = c.Date
+        }).ToList();
     }
 
 }
-
