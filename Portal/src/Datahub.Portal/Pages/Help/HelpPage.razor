@@ -436,12 +436,14 @@
         var res = await client2.QueryByWiqlAsync(wiql).ConfigureAwait(false);
         var ids = res.WorkItems.Select(item => item.Id).ToArray();
 
-        foreach (var id in ids)
+        for (int i = 0; i < ids.Length; i += 150)
         {
-            var workItem = await client2.GetWorkItemAsync(id).ConfigureAwait(false);
-            var issue = new IssueForDisplaying(workItem, false);
-
-            _issuesList.Add(issue);
+            var workItems = await client2.GetWorkItemsAsync(ids.Skip(i).Take(150).ToArray()).ConfigureAwait(false);
+            foreach (var workItem in workItems)
+            {
+                var issue = new IssueForDisplaying(workItem, false);
+                _issuesList.Add(issue);
+            }
         }
 
         _loading = false; // Stop showing the loading bar in the table.
