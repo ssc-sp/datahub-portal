@@ -17,9 +17,13 @@ if (-not $dotnetEf) {
 	Write-Host "dotnet-ef is not installed. Installing..."
 	Start-Process -FilePath "dotnet" -ArgumentList "tool install --global dotnet-ef" -NoNewWindow -PassThru -Wait
 }
+else
+{
+    Start-Process -FilePath "dotnet" -ArgumentList "tool update --global dotnet-ef" -NoNewWindow -PassThru -Wait
+}
 
 # Run the dotnet build command and capture the exit code
-$buildResult = Start-Process -FilePath "dotnet" -ArgumentList "build" -NoNewWindow -PassThru -Wait -
+$buildResult = Start-Process -FilePath "dotnet" -ArgumentList "build" -NoNewWindow -PassThru -Wait
 
 Write-Host "Build completed"
 
