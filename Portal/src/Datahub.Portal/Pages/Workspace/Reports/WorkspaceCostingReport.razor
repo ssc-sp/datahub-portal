@@ -19,7 +19,7 @@
     return;
 }
 
-@if (_projectCredits is null)
+@if (!AreCreditsValid())
 {
     <MudStack>
         <MudText Typo="Typo.h3">@Localizer["Cost Analysis"]</MudText>
@@ -182,7 +182,7 @@
             _storageEquivalentFormatted = FormatStorageCapacity(_spendingEstimation.Storage);
         }
 
-        HydrateCosts();
+        if (AreCreditsValid()) HydrateCosts();
 
         _loading = false;
     }
@@ -235,7 +235,7 @@
     {
         try
         {
-            _currentDailyCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.CurrentPerService);
+            _currentDailyCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.CurrentPerDay);
         }
         catch (Exception e)
         {
@@ -280,6 +280,15 @@
             Amount = (decimal)c.Cost,
             Date = c.Date
         }).ToList();
+    }
+
+    private bool AreCreditsValid()
+    {
+        if (_projectCredits is null) return false;
+        if (string.IsNullOrEmpty(_projectCredits.CurrentPerService)) return false;
+        if (string.IsNullOrEmpty(_projectCredits.CurrentPerDay)) return false;
+        if (string.IsNullOrEmpty(_projectCredits.YesterdayPerService)) return false;
+        return true;
     }
 
     private void HandleShowMonth() => _showingTotal = true;
