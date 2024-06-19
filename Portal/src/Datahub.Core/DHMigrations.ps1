@@ -32,16 +32,16 @@ if ($buildResult.ExitCode -gt 0) {
 if ($Action -eq "AddMigration") {
 
     Write-Host "Adding migration with name: $MigrationName"
-    Start-Process -FilePath "dotnet" -ArgumentList "ef migrations add $MigrationName --context SqlServerDatahunterDbContext --configuration MIGRATION -v" -NoNewWindow -PassThru -Wait
-    Start-Process -FilePath "dotnet" -ArgumentList "ef migrations add $MigrationName --context SqliteDatahunterDbContext --configuration MIGRATION -v" -NoNewWindow -PassThru -Wait
+    Start-Process -FilePath "dotnet" -ArgumentList "ef migrations add $MigrationName --context DatahubProjectDBContext --configuration MIGRATION -v" -NoNewWindow -PassThru -Wait
+    #Start-Process -FilePath "dotnet" -ArgumentList "ef migrations add $MigrationName --context SqliteDatahubDbContext --configuration MIGRATION -v" -NoNewWindow -PassThru -Wait
 
     # Add your logic for AddMigration here using $MigrationName
 }
 elseif ($Action -eq "RemoveMigration") {
 
     Write-Host "Removing migration"
-    Start-Process -FilePath "dotnet" -ArgumentList "ef migrations remove --context SqlServerDatahunterDbContext --configuration MIGRATION -v --force" -NoNewWindow -PassThru -Wait
-    Start-Process -FilePath "dotnet" -ArgumentList "ef migrations remove --context SqliteDatahunterDbContext --configuration MIGRATION -v --force" -NoNewWindow -PassThru -Wait
+    Start-Process -FilePath "dotnet" -ArgumentList "ef migrations remove --context DatahubProjectDBContext --configuration MIGRATION -v --force" -NoNewWindow -PassThru -Wait
+    #Start-Process -FilePath "dotnet" -ArgumentList "ef migrations remove --context SqliteDatahubDbContext --configuration MIGRATION -v --force" -NoNewWindow -PassThru -Wait
 
     # Add your logic for RemoveMigration here
 }
