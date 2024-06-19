@@ -26,6 +26,18 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     {
     }
 
+    // below are used for migrations
+#if MIGRATION
+    public DatahubProjectDBContext() { }
+
+    protected DatahubProjectDBContext(DbContextOptions options) : base(options) { }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder options) {
+        options.UseSqlServer("Server=(LocalDB);Integrated Security=True;MultipleActiveResultSets=True");
+    }
+
+#endif
+
     public DbSet<Datahub_Project> Projects { get; set; }
     public DbSet<PBI_License_Request> PowerBI_License_Requests { get; set; }
     public DbSet<PBI_User_License_Request> PowerBI_License_User_Requests { get; set; }
@@ -127,6 +139,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// Gets or sets table for storing the history of infrastructure health checks
     /// </summary>
     public DbSet<InfrastructureHealthCheck> InfrastructureHealthCheckRuns { get; set; }
+
+    /// <summary>
+    /// Gets or sets the synchronization statuses for workspaces
+    /// </summary>
+    public DbSet<Project_SyncStatus> SyncStatuses { get; set; }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
