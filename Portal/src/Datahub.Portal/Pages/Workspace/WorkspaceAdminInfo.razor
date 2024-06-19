@@ -7,7 +7,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IAzurePriceListService _azurePriceListService
 
-@if (_projectBudget != 0)
+@if (_projectBudget != 0 && AreCreditsValid())
 {
     <MudGrid>
         <MudItem xs="12">
@@ -75,7 +75,7 @@
 
         _remainingBudget = _projectBudget - CurrentCost;
 
-        HydrateCosts();
+        if (AreCreditsValid()) HydrateCosts();
     }
 
     private void HydrateCosts()
@@ -127,6 +127,15 @@
             Amount = (decimal)c.Cost,
             Date = c.Date
         }).ToList();
+    }
+
+    private bool AreCreditsValid()
+    {
+        if (_projectCredits is null) return false;
+        if (string.IsNullOrEmpty(_projectCredits.CurrentPerService)) return false;
+        if (string.IsNullOrEmpty(_projectCredits.CurrentPerDay)) return false;
+        if (string.IsNullOrEmpty(_projectCredits.YesterdayPerService)) return false;
+        return true;
     }
 
 }
