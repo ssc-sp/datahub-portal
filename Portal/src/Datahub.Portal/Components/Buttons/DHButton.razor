@@ -1,7 +1,5 @@
-﻿@using Datahub.Core.Model.Achievements
-@inject IPortalUserTelemetryService _telemetryService
-
-<MudButton HtmlTag="a" @ref="@Button" 
+﻿
+<MudButton HtmlTag="@HtmlTag" @ref="@Button" 
            ClickPropagation="@ClickPropagation" 
            Disabled="@Disabled" 
            EndIcon="@EndIcon" 
@@ -23,7 +21,7 @@
            Style="@Style"
            Tag="@Tag"
            UserAttributes="@UserAttributes"
-           OnClick="@TrackOnClick">
+           OnClick="@OnClick">
     @ChildContent
 </MudButton>
 
@@ -42,6 +40,7 @@
     [Parameter] public string Href { get; set; } = null;
     [Parameter] public string Rel { get; set; } = null;
     [Parameter] public string Target { get; set; } = null;
+    [Parameter] public string HtmlTag { get; set; } = "a";
 
     // Appearance
     [Parameter] public Color Color { get; set; } = Color.Default;
@@ -62,12 +61,6 @@
 
     // EventCallbacks
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
-
-    public async Task<EventCallback<MouseEventArgs>> TrackOnClick()
-    {
-        await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserClickButton);
-        return OnClick;
-    }
 
     // Methods
     public ValueTask FocusAsync() => Button.FocusAsync();
