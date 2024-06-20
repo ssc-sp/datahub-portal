@@ -65,7 +65,7 @@ namespace Datahub.Infrastructure.Services.Cost
             }
             catch (Exception e)
             {
-                _logger.LogError("GetWorkspaceBudgetAmountAsync failed", e);
+                _logger.LogInformation($"Could not get budget ID for workspace {workspaceAcronym}");
                 return 0;
             }
         }
@@ -108,7 +108,7 @@ namespace Datahub.Infrastructure.Services.Cost
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError("SetWorkspaceBudgetAmountAsync failed", e);
+                    _logger.LogError($"Could not get budget ID for workspace {workspaceAcronym}");
                     return;
                 }
             }
@@ -170,7 +170,7 @@ namespace Datahub.Infrastructure.Services.Cost
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError("GetWorkspaceBudgetSpentAsync failed", e);
+                    _logger.LogInformation($"Could not get budget ID for workspace {workspaceAcronym}");
                     return 0;
                 }
             }
@@ -212,8 +212,9 @@ namespace Datahub.Infrastructure.Services.Cost
             }
 
             var currentSpent = await GetWorkspaceBudgetSpentAsync(workspaceAcronym, budgetIds);
+            _logger.LogInformation($"Current spent for workspace {workspaceAcronym} is {currentSpent}");
             var beforeUpdateBudgetSpent = (decimal)projectCredits.BudgetCurrentSpent;
-            if (currentSpent != 0)
+            if (currentSpent > (decimal)0.0)
             {
                 projectCredits.BudgetCurrentSpent = (double)currentSpent;
             }
