@@ -127,7 +127,8 @@
             .FirstOrDefaultAsync();
 
         _projectName = _project?.ProjectName;
-        _title = $"{Localizer["Storage"]} - {_projectName}";
+        var acronym = _project?.Project_Acronym_CD;
+        _title = $"{acronym} - {Localizer["Storage"]}";
         _projectId = _project?.Project_ID;
         containersLoaded = false;
         try
