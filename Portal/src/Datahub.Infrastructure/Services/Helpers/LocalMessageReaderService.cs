@@ -20,9 +20,9 @@ using System.Text.Json;
 
 namespace Datahub.Infrastructure.Services;
 
-public class FileWatcherService : BackgroundService
+public class LocalMessageReaderService : BackgroundService
 {
-    private readonly ILogger<FileWatcherService> _logger;
+    private readonly ILogger<LocalMessageReaderService> _logger;
     private readonly IServiceProvider _serviceProvider;
     private FileSystemWatcher _watcher; 
 
@@ -36,16 +36,20 @@ public class FileWatcherService : BackgroundService
     private const string workspaceKeyCheck = "project-cmk";
     private const string coreKeyCheck = "datahubportal-client-id";
 
-    public FileWatcherService(
+    public LocalMessageReaderService(
             ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        _logger = loggerFactory.CreateLogger<FileWatcherService>();
+        _logger = loggerFactory.CreateLogger<LocalMessageReaderService>();
     }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     { 
         var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "MessageFolder");
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
         _watcher = new FileSystemWatcher
         {
             Path = folderPath,
@@ -153,6 +157,8 @@ public class FileWatcherService : BackgroundService
                 break;
             case InfrastructureHealthResourceType.AsureServiceBus:
                 result = await CheckAzureServiceBusQueue(request);
+                var poison = new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AsureServiceBus, "1", request.Name);
+                await CheckAzureServiceBusQueue(poison);
                 break;
             case InfrastructureHealthResourceType.AzureWebApp:
                 result = await CheckWebApp(request);
@@ -787,6 +793,11 @@ public class FileWatcherService : BackgroundService
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
+    /// <summary>
+    /// Function that checks the health of the Azure Service Bus
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns>An InfrastructureHealthCheckResponse indicating the result of the check.</returns>
     private async Task<InfrastructureHealthCheckResponse> CheckAzureServiceBusQueue(
        InfrastructureHealthCheckRequest request)
     {
@@ -821,17 +832,20 @@ public class FileWatcherService : BackgroundService
             }
             else
             {
+                // attempt to read message to check if queue exists; receiver is created with no errors for non-existing queue
                 ServiceBusReceivedMessage message = await receiver.PeekMessageAsync();
-
-                if (message is null)
+                if (message != null && request.Group == "1")
                 {
-                    errors.Add("The queue is empty.");
+                    if (string.IsNullOrEmpty(message.DeadLetterReason))
+                    {
+                        errors.Add("Dead letter reason is empty.");
+                    }
                 }
             }
         }
         catch (Exception ex)
         {
-            errors.Add($"Error while checking Azure Service Bus Queue: {ex.Message}");
+            errors.Add($"Error while checking Azure Service Bus Queue: {ex.Message.Replace(",",".")}");
         }
 
         if (!errors.Any())
@@ -841,6 +855,7 @@ public class FileWatcherService : BackgroundService
 
         return new InfrastructureHealthCheckResponse(check, errors);
     }
+
     /// <summary>
     /// Function that checks the health of the Azure Web App, if enabled.
     /// </summary>

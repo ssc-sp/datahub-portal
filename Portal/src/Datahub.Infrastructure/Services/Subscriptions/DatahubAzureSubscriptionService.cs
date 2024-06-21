@@ -145,7 +145,7 @@ public class DatahubAzureSubscriptionService(
         var subscriptionStrategy = new DatahubSubscriptionStrategy(portalConfiguration);
         return subscriptionStrategy.NumberOfWorkspacesRemaining(workspacesUsingSubscription);
 
-        return IDatahubAzureSubscriptionService.MaxNumberOfWorkspaces - workspacesUsingSubscription.Count;
+        //return IDatahubAzureSubscriptionService.MaxNumberOfWorkspaces - workspacesUsingSubscription.Count;
     }
 
     /// <summary>
