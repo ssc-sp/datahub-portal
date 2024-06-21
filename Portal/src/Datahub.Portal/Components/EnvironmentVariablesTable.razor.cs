@@ -8,9 +8,15 @@ using MudBlazor;
 
 namespace Datahub.Portal.Components
 {
+    public class KeyValuePair
+    {
+        public string Key { get; set; }
+        public string Value { get; set; }
+    }
+
     public partial class EnvironmentVariablesTable
     {
-        private bool FilterFunc((string Key, string Value) item)
+        private bool FilterFunc(KeyValuePair item)
         {
             if (string.IsNullOrWhiteSpace(_filterString))
                 return true;
@@ -22,7 +28,7 @@ namespace Datahub.Portal.Components
             return false;
         }
 
-        private async Task<List<(string Key, string Value)>> GetEnvironmentVariables()
+        private async Task<List<KeyValuePair>> GetEnvironmentVariables()
         {
             var keys = TerraformVariableExtraction.ExtractEnvironmentVariableKeys(resource);
 
@@ -45,7 +51,7 @@ namespace Datahub.Portal.Components
                 try
                 {
                     var value = await GetEnvironmentVariable(key, role);
-                    var envVar = (key, value);
+                    KeyValuePair envVar = new() { Key = key, Value = value };
                     envVars.Add(envVar);
                 }
                 catch (KeyVaultErrorException e)
@@ -61,7 +67,9 @@ namespace Datahub.Portal.Components
 
         private async Task<string> GetEnvironmentVariable(string key, Project_Role role)
         {
-            var value = role.IsAtLeastAdmin ? (await keyVaultUserService.GetSecretAsync(projectAcronym, key))??string.Empty : string.Empty;
+            var value = role.IsAtLeastAdmin
+                ? (await keyVaultUserService.GetSecretAsync(projectAcronym, key)) ?? string.Empty
+                : string.Empty;
             return value;
         }
 
@@ -73,10 +81,10 @@ namespace Datahub.Portal.Components
 
         private void HandleRowEditCommit(object element)
         {
-            var item = element as (string Key, string Value)?;
+            var item = element as KeyValuePair;
             if (item is not null)
             {
-                CreateOrUpdateEnvironmentVariable(item!.Value);
+                CreateOrUpdateEnvironmentVariable(item);
                 _snackbar.Add(Localizer["Environment variable has been updated."], Severity.Success);
                 _logger.LogInformation($"Item has been committed: {item?.Key}");
             }
@@ -96,7 +104,8 @@ namespace Datahub.Portal.Components
 
             if (!string.IsNullOrWhiteSpace(newKey) && !string.IsNullOrWhiteSpace(newValue))
             {
-                CreateOrUpdateEnvironmentVariable(new(newKey, newValue));
+                KeyValuePair newKVP = new() { Key = newKey, Value = newValue };
+                CreateOrUpdateEnvironmentVariable(newKVP);
                 _snackbar.Add(Localizer["Environment variable {0} has been added.", newKey], Severity.Success);
             }
             else
@@ -106,41 +115,41 @@ namespace Datahub.Portal.Components
             }
         }
 
-        private async Task DeleteEnvironmentVariable((string Key, string Value) item, bool showSnackbar)
-        {
-            if (envVars.Remove(item))
-                _snackbar.Add(Localizer["Environment variable {0} has been deleted.", item.Key], Severity.Success);
-            else
-                _snackbar.Add(Localizer["Error deleting environment variable {0}.", item.Key], Severity.Error);
-        }
-
-        private void CreateOrUpdateEnvironmentVariable((string Key, string Value) item)
+        private void CreateOrUpdateEnvironmentVariable(KeyValuePair item)
         {
             var existingItem = envVars.FirstOrDefault(x => x.Key == item.Key);
-            if (existingItem.Key != default)
+            if (existingItem is not null)
             {
-                envVars.Remove(existingItem);
+                existingItem.Value = item.Value;
             }
-
-            envVars.Add(item);
+            else
+            {
+                envVars.Add(item);
+            }
         }
 
         private void BackupItem(object item)
         {
+            var element = item as KeyValuePair;
             _elementBeforeEdit = new()
             {
-                Key = (((string Key, string Value))item).Key,
-                Value = (((string Key, string Value))item).Value
+                Key = element.Key,
+                Value = element.Value
             };
         }
 
         private void HandleRowEditCancel(object element)
         {
-            var item = element as (string Key, string Value)?;
+            var item = element as KeyValuePair;
             if (item is not null)
             {
-                item = new(_elementBeforeEdit.Key, _elementBeforeEdit.Value);
-                _logger.LogInformation($"Item has been reset to original values: {item?.Key}");
+                item = new KeyValuePair
+                {
+                    Key = _elementBeforeEdit.Key,
+                    Value = _elementBeforeEdit.Value
+                };
+                
+                _logger.LogInformation($"Item has been reset to original values: {item.Key}");
             }
         }
 
@@ -151,6 +160,10 @@ namespace Datahub.Portal.Components
 
         public string GetHiddenValue(string value)
         {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
             return new string('*', value.Length);
         }
     }
