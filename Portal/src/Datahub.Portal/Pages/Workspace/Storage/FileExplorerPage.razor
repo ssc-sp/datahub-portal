@@ -27,7 +27,7 @@
 @* @page "/w/{ProjectAcronymParam}/storage" *@
 
 <!--suppress CssUnresolvedCustomProperty -->
-<DHPageTitle PageTitleKey="@_projectName"/>
+<DHPageTitle PageTitleKey="@_title"/>
 
 @if (!containersLoaded)
 {
@@ -104,6 +104,7 @@
     private Datahub_Project _project;
     private int? _projectId;
     private string _projectName;
+    private string _title;
 
     private List<CloudStorageContainer> _cloudContainers = new();
     private CloudStorageContainer _selectedContainer;
@@ -126,6 +127,7 @@
             .FirstOrDefaultAsync();
 
         _projectName = _project?.ProjectName;
+        _title = $"{Localizer["Storage"]} - {_projectName}";
         _projectId = _project?.Project_ID;
         containersLoaded = false;
         try
