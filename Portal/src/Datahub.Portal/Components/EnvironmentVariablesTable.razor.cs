@@ -24,11 +24,7 @@ namespace Datahub.Portal.Components
 
         private async Task<List<(string Key, string Value)>> GetEnvironmentVariables()
         {
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
             var keys = TerraformVariableExtraction.ExtractEnvironmentVariableKeys(resource);
-            var ctx = await _dbContextFactory.CreateDbContextAsync();
-            var projectUser = ctx.Project_Users.Include(datahubProjectUser => datahubProjectUser.Role)
-                .FirstOrDefault(u => u.PortalUser.Id == currentUser.Id);
 
             if (projectUser == null)
             {
@@ -41,6 +37,8 @@ namespace Datahub.Portal.Components
             {
                 throw new Exception("Could not find role");
             }
+
+            envVars = new();
 
             foreach (var key in keys)
             {
@@ -63,7 +61,7 @@ namespace Datahub.Portal.Components
 
         private async Task<string> GetEnvironmentVariable(string key, Project_Role role)
         {
-            var value = role.IsAtLeastAdmin ? await _keyVaultUserService.GetSecretAsync(projectAcronym, key) : "";
+            var value = role.IsAtLeastAdmin ? (await keyVaultUserService.GetSecretAsync(projectAcronym, key))??string.Empty : string.Empty;
             return value;
         }
 
