@@ -98,9 +98,9 @@ namespace Datahub.Portal.Components
         private async Task AddNewEnvironmentVariable()
         {
             var newKey = await _jsRuntime.InvokeAsync<string>("prompt",
-                Localizer["Enter the key of your new environment variable:"].ToString());
+                Localizer["Enter the key of your new environment variable. Environment variable keys cannot be changed and environment variables cannot be deleted."].ToString());
             var newValue = await _jsRuntime.InvokeAsync<string>("prompt",
-                Localizer["Enter the value of your new environment variable:"].ToString());
+                Localizer["Enter the value of your new environment variable. You may edit this value later."].ToString());
 
             if (!string.IsNullOrWhiteSpace(newKey) && !string.IsNullOrWhiteSpace(newValue))
             {

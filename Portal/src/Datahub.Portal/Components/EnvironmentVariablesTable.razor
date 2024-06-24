@@ -14,7 +14,7 @@
 @inject IUserInformationService _userInformationService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 
-@if (((projectUser?.Role?.IsAtLeastAdmin ?? false) && envVars is null) || projectUser is null)
+@if (((projectUser?.Role?.IsAtLeastAdmin ?? false) && loading) || projectUser is null)
 {
     <MudProgressCircular Color="Color.Default" Indeterminate="true"/>
 }
@@ -95,11 +95,14 @@ else if (isEditable)
         <EditButtonContent Context="button">
             <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
         </EditButtonContent>
+        <FooterContent>
+            <MudTd>
+                <DHButton Variant="Variant.Filled" OnClick="@AddNewEnvironmentVariable" StartIcon="@SidebarIcons.Plus">
+                    @Localizer["Add environment variable"]
+                </DHButton>
+            </MudTd>
+        </FooterContent>
     </MudTable>
-
-    <DHButton Variant="Variant.Filled" OnClick="@AddNewEnvironmentVariable" StartIcon="@SidebarIcons.Plus">
-        @Localizer["Add environment variable"]
-    </DHButton>
 }
 else
 {
@@ -159,6 +162,7 @@ else
     private MudTable<KeyValuePair>? editTable;
     private bool _show = false;
     private bool envError = false;
+    private bool loading = true;
     private Datahub_Project_User? projectUser;
 
     protected override async Task OnInitializedAsync()
@@ -171,6 +175,7 @@ else
                 .FirstOrDefault(u => u.PortalUser.Id == currentUser.Id);
             var role = projectUser.Role;
             envVars = await GetEnvironmentVariables();
+            loading = false;
             StateHasChanged();
         }
         catch (Exception ex)

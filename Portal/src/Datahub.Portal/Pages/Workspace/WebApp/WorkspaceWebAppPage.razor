@@ -122,7 +122,7 @@
     }
     @if (_resource is not null && _isConfigured)
     {
-        <EnvironmentVariablesTable resource="@_resource" projectAcronym="@WorkspaceAcronym" isEditable="false"/>
+        <EnvironmentVariablesTable resource="@_resource" projectAcronym="@WorkspaceAcronym" isEditable="true"/>
     }
     @if (_isProvisioned)
     {
@@ -162,7 +162,7 @@
                     <li style="display: list-item; list-style-type: circle"><code>ports</code></li>
                     <li style="display: list-item; list-style-type: circle"><code>restart</code></li>
                     <li style="display: list-item; list-style-type: circle"><code>services</code></li>
-                    <li style="display: list-item; list-style-type: circle"><code>volumes</code></li>
+                    <li style="display: list-item; list-style-type: circle"><code>volumes</code>, @Localizer["please contact us to set-up volumes as they require more configuration."]</li>
                 </ul>
             </MudText>
             <MudText Typo="Typo.h4" Class="mt-4">
