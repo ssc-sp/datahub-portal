@@ -39,24 +39,6 @@
 
                 <MudTextField Label=@Localizer["Enter Docker compose file path"]     @bind-Value="_dockerComposeFilePath" HelperText="@Localizer["Path from the base of your repo to the desired compose file, including the compose file"]" Placeholder="path/to/compose.yaml" Required="true" RequiredError=@Localizer["Path to docker compose is necessary, file name must be included"]/>
             }
-            <MudExpansionPanels Elevation="1" Class="mt-4">
-                <MudExpansionPanel IsInitiallyExpanded="false">
-                    <TitleContent>
-                        <MudStack Row="true">
-                            <DHIcon Icon=@SidebarIcons.Brackets />
-                            <MudText>
-                                @Localizer["Environment variables"]
-                            </MudText>
-                        </MudStack>
-                    </TitleContent>
-                    <ChildContent>
-                        <MudText>
-                            @Localizer["Environment variables are key-value pairs that are used to pass configuration to your web application. They are used to store sensitive information such as database connection strings, API keys, etc. You can add environment variables to your web application by providing a key-value pair. The key is the name of the environment variable and the value is the value of the environment variable."]
-                        </MudText>
-                        <EnvironmentVariablesTable projectAcronym="@WorkspaceAcronym" resource="@Resource" isEditable="true" @ref="@envVarTable"/>
-                    </ChildContent>
-                </MudExpansionPanel>
-            </MudExpansionPanels>
         </MudForm>
     </DialogContent>
     <DialogActions>
@@ -75,7 +57,6 @@
     [Parameter] public AppServiceConfiguration Configuration { get; set; }
     [Parameter] public string WorkspaceAcronym { get; set; }
     [Parameter] public Project_Resources2 Resource { get; set; }
-    private EnvironmentVariablesTable envVarTable { get; set; }
 
     private MudForm form;
     private string[] errors = { };
@@ -108,7 +89,6 @@
 
     void Submit()
     {
-        var envVars = envVarTable.GetEnvironmentVariablesDictionary();
         var config = AppServiceTemplates.GetTemplateConfiguration(AppServiceTemplates.CUSTOM);
         if (_selectedFramework == AppServiceTemplates.CUSTOM)
         {
@@ -133,7 +113,7 @@
             config = AppServiceTemplates.GetTemplateConfiguration(_selectedFramework);
         }
 
-        MudDialog.Close(DialogResult.Ok((config, envVars)));
+        MudDialog.Close(DialogResult.Ok(config));
     }
 
     private void CheckForPrivateRepo(string value)
