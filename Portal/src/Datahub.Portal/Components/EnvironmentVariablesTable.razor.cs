@@ -79,7 +79,6 @@ namespace Datahub.Portal.Components
         private void HandleCommitEditClicked(MouseEventArgs args)
         {
             _logger.LogInformation("Commit edit button clicked.");
-            _snackbar.Add(Localizer["Environment variable updated"], Severity.Info);
         }
 
         private void HandleRowEditCommit(object element)
@@ -123,17 +122,23 @@ namespace Datahub.Portal.Components
 
         private async Task CreateOrUpdateEnvironmentVariable(KeyValuePair item)
         {
-            var existingItem = envVars.FirstOrDefault(x => x.Key == item.Key);
-            if (existingItem is not null)
+            try
             {
-                existingItem.Value = item.Value;
+                await SyncEnvironmentVariables(item);
+                var existingItem = envVars.FirstOrDefault(x => x.Key == item.Key);
+                if (existingItem is not null)
+                {
+                    existingItem.Value = item.Value;
+                }
+                else
+                {
+                    envVars.Add(item);
+                }
             }
-            else
+            catch (Exception e)
             {
-                envVars.Add(item);
+                _logger.LogError(e, "Error creating or updating environment variable.");
             }
-
-            await SyncEnvironmentVariables(item);
         }
 
         private void BackupItem(object item)
@@ -216,12 +221,13 @@ namespace Datahub.Portal.Components
                 _snackbar.Add(Localizer["Error updating local environment variables."], Severity.Error);
                 return;
             }
-            
+
             var currentEnvVarKeys = TerraformVariableExtraction.ExtractEnvironmentVariableKeys(webAppResource);
             if (!currentEnvVarKeys.Contains(kvp.Key))
             {
                 currentEnvVarKeys.Add(kvp.Key);
             }
+
             var newEnvVarKeys = JsonSerializer.Serialize(currentEnvVarKeys);
             var inputJson = JsonSerializer.Deserialize<Dictionary<string, dynamic>>(webAppResource.InputJsonContent);
             inputJson["environment_variables_keys"] = newEnvVarKeys;
