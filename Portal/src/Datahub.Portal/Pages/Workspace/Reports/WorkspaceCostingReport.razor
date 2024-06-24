@@ -31,6 +31,20 @@
     @if (_currentServiceCosts?.Count > 0)
     {
         <MudText Typo="Typo.h3">@Localizer["Cost Analysis"]</MudText>
+        @if (_lastUpdateValid)
+        {
+            <MudText Style="font-style: italic">
+                @Localizer["Last updated {0} {1}",$"{ConvertToLocalTime(_projectCredits.LastUpdate!.Value):yyyy-MM-dd HH:mm}", TimeZone.CurrentTimeZone.StandardName]
+            </MudText>
+        }
+
+        @if (!_validData)
+        {
+            <MudAlert Variant="Variant.Outlined" Severity="Severity.Error" Style="color: #000">
+                @Localizer["Costing data is older than 7 days and may be incorrect, please check back later."]
+            </MudAlert>
+        }
+
         <MudStack Row>
             <MudChip Label="true"
                      Icon="@Icons.Material.Filled.AttachMoney"
@@ -64,7 +78,7 @@
 
     @if (_currentDailyCosts?.Count > 1 && _currentDailyCosts.Any(c => c.Amount > 0))
     {
-        <MudDivider Class="my-6" />
+        <MudDivider Class="my-6"/>
         <MudText Typo="Typo.h3">@Localizer["Daily cost (over last 30 days)"]</MudText>
         <div>
             <MudChart ChartType="ChartType.Bar"
@@ -77,7 +91,7 @@
 
     @if (_remainingBudget > 0 && _spendingEstimation != null)
     {
-        <MudDivider Class="my-6" />
+        <MudDivider Class="my-6"/>
         <MudStack>
             <MudText Typo="Typo.h3">@Localizer["Daily cost (over last 30 days)"]</MudText>
             <MudStack>
@@ -115,8 +129,7 @@
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
 
     public decimal _projectBudget { get; set; }
     private Project_Credits _projectCredits { get; set; }
@@ -129,6 +142,8 @@
     private decimal YesterdayCost => Convert.ToDecimal(_projectCredits.YesterdayCredits);
 
     private bool _showingTotal = true;
+    private bool _lastUpdateValid => _projectCredits is not null && _projectCredits.LastUpdate is not null;
+    private bool _validData => _lastUpdateValid && _projectCredits.LastUpdate >= DateTime.UtcNow.AddDays(-7);
     private string SelectedTotalLabel => _showingTotal ? Localizer["Total"] : Localizer["Yesterday"];
     private decimal SelectedTotalCost => _showingTotal ? CurrentCost : YesterdayCost;
     private MudBlazor.Color MonthChipColor => _showingTotal ? MudBlazor.Color.Primary : MudBlazor.Color.Default;
@@ -189,14 +204,14 @@
 
     private async Task<SpendingEstimation> GetSpendingEstimations(decimal amount)
     {
-    // storage
+        // storage
         var storageCostGrid = await _azurePriceListService.GetAzureStoragePriceLists();
 
         var searchKey = IAzurePriceListService.GenerateAzureStoragePriceListKey(AccessTierType.Hot, DataRedundancyType.LRS);
         var priceList = storageCostGrid.PriceLists[searchKey];
         var storage = decimal.ToDouble(amount / priceList.Capacity.BasePrice);
 
-    // compute
+        // compute
         var compCostGrid = await _azurePriceListService.GetAzureComputeCostPrices();
 
         var smPerHour = CalculateComputeCost(5, compCostGrid.Ds3VmPrice, compCostGrid.DbuPrice, 0.75M, 1);
@@ -291,9 +306,16 @@
         return true;
     }
 
+    private DateTime ConvertToLocalTime(DateTime UTCTime)
+    {
+        TimeZone localZone = TimeZone.CurrentTimeZone;
+        return localZone.ToLocalTime(UTCTime);
+    }
+
     private void HandleShowMonth() => _showingTotal = true;
     private void HandleShowYesterday() => _showingTotal = false;
 
     record SpendingEstimation(double Storage, double ComputeSmall, double ComputeMedium, double ComputeLarge);
 
 }
+
