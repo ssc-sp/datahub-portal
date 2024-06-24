@@ -33,7 +33,7 @@ else if (isEditable)
               Dense="true"
               Hover="true"
               Outlined="true"
-              Class="mt-6 mb-12"
+              Class="mt-6"
               CanCancelEdit="true"
               Filter="@(new Func<KeyValuePair, bool>(FilterFunc))"
               @bind-SelectedItem="@_selectedItem"
@@ -47,12 +47,15 @@ else if (isEditable)
               ApplyButtonPosition="TableApplyButtonPosition.Start"
               RowEditPreview="@BackupItem"
               RowEditCancel="@HandleRowEditCancel"
-              RowEditCommit="@HandleRowEditCommit">
+              RowEditCommit="@HandleRowEditCommit"
+              FooterClass="pa-8">
 
         <ToolBarContent>
             <MudText Typo="Typo.h2" Class="mt-4">
                 @Localizer["Environment variables"]
             </MudText>
+
+            <MudToggleIconButton @bind-Toggled="@_show" Icon="@SidebarIcons.Show" ToggledIcon="@SidebarIcons.Hide" Class="align-self-end" Title="@Localizer["Show environment variable values"]" ToggledTitle="@Localizer["Hide environment variable values"]"/>
             <MudSpacer/>
             <MudTextField @bind-Value="@_filterString"
                           Label="@Localizer["Filter"]"
@@ -66,22 +69,20 @@ else if (isEditable)
         <ColGroup>
             <col/>
             <col/>
-            <col/>
         </ColGroup>
 
         <HeaderContent>
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<(string Key, string Value), string>(x => x.Key))">@Localizer["Key"]</MudTableSortLabel>
+                <MudTableSortLabel SortBy="@(new Func<KeyValuePair, string>(x => x.Key))">@Localizer["Key"]</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<(string Key, string Value), string>(x => x.Value))">@Localizer["Value"]</MudTableSortLabel>
+                <MudTableSortLabel SortBy="@(new Func<KeyValuePair, string>(x => x.Value))">@Localizer["Value"]</MudTableSortLabel>
             </MudTh>
-            <MudTh/>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="@Localizer["Key"]">@context.Key</MudTd>
             <MudTd DataLabel="@Localizer["Value"]">
-                <code>@context.Value</code>
+                <code>@(_show ? context.Value : GetHiddenValue(context.Value))</code>
             </MudTd>
         </RowTemplate>
         <RowEditingTemplate>
@@ -96,13 +97,15 @@ else if (isEditable)
             <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
         </EditButtonContent>
         <FooterContent>
-            <MudTd>
+            <MudTd >
                 <DHButton Variant="Variant.Filled" OnClick="@AddNewEnvironmentVariable" StartIcon="@SidebarIcons.Plus">
                     @Localizer["Add environment variable"]
                 </DHButton>
             </MudTd>
+            <MudTd><MudAlert Variant="Variant.Outlined" Severity="Severity.Info" Style="color: #000000">@Localizer["Environment variables keys cannot be modified"]</MudAlert></MudTd>
         </FooterContent>
     </MudTable>
+    <MudText Align="Align.Start" Class="mb-6"><MudMarkdown Value="@Localizer["_Environment variables are stored in [Azure Keyvault](https://azure.microsoft.com/en-us/products/key-vault). Use a [client SDK](https://learn.microsoft.com/en-us/azure/key-vault/general/developers-guide) of your choice to fetch environment variables from your web application's runtime. Subject to change._"]"></MudMarkdown></MudText>
 }
 else
 {
