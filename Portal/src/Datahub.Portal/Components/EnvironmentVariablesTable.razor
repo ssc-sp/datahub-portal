@@ -81,9 +81,16 @@ else if (isEditable)
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="@Localizer["Key"]">@context.Key</MudTd>
-            <MudTd DataLabel="@Localizer["Value"]">
-                <code>@(_show ? context.Value : GetHiddenValue(context.Value))</code>
-            </MudTd>
+            @if (!string.IsNullOrEmpty(context.Value))
+            {
+                <MudTd DataLabel="@Localizer["Value"]">
+                    <code>@(_show ? context.Value : GetHiddenValue(context.Value))</code>
+                </MudTd>
+            }
+            else
+            {
+                <MudTd DataLabel="@Localizer["Value"]"><MudAlert Dense Variant="Variant.Outlined" Severity="Severity.Error" Style="color: #000">@Localizer["Could not find value"]</MudAlert></MudTd>
+            }
         </RowTemplate>
         <RowEditingTemplate>
             <MudTd DataLabel="@Localizer["Key"]">
@@ -102,10 +109,14 @@ else if (isEditable)
                     @Localizer["Add environment variable"]
                 </DHButton>
             </MudTd>
-            <MudTd><MudAlert Variant="Variant.Outlined" Severity="Severity.Info" Style="color: #000000">@Localizer["Environment variables keys cannot be modified"]</MudAlert></MudTd>
+            <MudTd>
+                <MudAlert Variant="Variant.Outlined" Severity="Severity.Info" Style="color: #000000">@Localizer["Environment variables keys cannot be modified"]</MudAlert>
+            </MudTd>
         </FooterContent>
     </MudTable>
-    <MudText Align="Align.Start" Class="mb-6"><MudMarkdown Value="@Localizer["_Environment variables are stored in [Azure Keyvault](https://azure.microsoft.com/en-us/products/key-vault). Use a [client SDK](https://learn.microsoft.com/en-us/azure/key-vault/general/developers-guide) of your choice to fetch environment variables from your web application's runtime. Subject to change._"]"></MudMarkdown></MudText>
+    <MudText Align="Align.Start" Class="mb-6">
+        <MudMarkdown Value="@Localizer["_Environment variables are stored in [Azure Keyvault](https://azure.microsoft.com/en-us/products/key-vault). Use a [client SDK](https://learn.microsoft.com/en-us/azure/key-vault/general/developers-guide) of your choice to fetch environment variables from your web application's runtime. Subject to change._"]"></MudMarkdown>
+    </MudText>
 }
 else
 {
@@ -189,3 +200,4 @@ else
     }
 
 }
+
