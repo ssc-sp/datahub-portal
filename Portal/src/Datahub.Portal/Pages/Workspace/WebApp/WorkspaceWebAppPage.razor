@@ -122,7 +122,7 @@
     }
     @if (_resource is not null && _isConfigured)
     {
-        <EnvironmentVariablesTable resource="@_resource" projectAcronym="@WorkspaceAcronym" isEditable="false"/>
+        <EnvironmentVariablesTable resource="@_resource" projectAcronym="@WorkspaceAcronym" isEditable="true"/>
     }
     @if (_isProvisioned)
     {
@@ -162,7 +162,7 @@
                     <li style="display: list-item; list-style-type: circle"><code>ports</code></li>
                     <li style="display: list-item; list-style-type: circle"><code>restart</code></li>
                     <li style="display: list-item; list-style-type: circle"><code>services</code></li>
-                    <li style="display: list-item; list-style-type: circle"><code>volumes</code></li>
+                    <li style="display: list-item; list-style-type: circle"><code>volumes</code>, @Localizer["please contact us to set-up volumes as they require more configuration."]</li>
                 </ul>
             </MudText>
             <MudText Typo="Typo.h4" Class="mt-4">
@@ -349,16 +349,12 @@
         {
             try
             {
-                var resultData = dialogResult.Data as (AppServiceConfiguration Config, Dictionary<string, string> EnvVars)?;
-                var config = resultData?.Config;
-                var envVars = resultData?.EnvVars;
+                var resultConfig = dialogResult.Data as AppServiceConfiguration;
 
-                await _webAppMgmtService.SaveConfiguration(WorkspaceAcronym, config!);
-                await _webAppMgmtService.FillSystemConfiguration(WorkspaceAcronym, config);
-                await SetGitToken(config);
-                await SaveEnvironmentVariableKeys(envVars);
-                await SetEnvironmentVariableValues(envVars);
-                await _webAppMgmtService.Configure(WorkspaceAcronym, config);
+                await _webAppMgmtService.SaveConfiguration(WorkspaceAcronym, resultConfig);
+                await _webAppMgmtService.FillSystemConfiguration(WorkspaceAcronym, resultConfig);
+                await SetGitToken(resultConfig);
+                await _webAppMgmtService.Configure(WorkspaceAcronym, resultConfig);
                 ReverseProxyManagerService.ReloadConfiguration();
                 _logger.LogInformation("Web app configuration processed");
                 _snackbar.Add(Localizer["Web application configuration processed"], Severity.Success);
@@ -368,37 +364,6 @@
             {
                 _logger.LogError(e, "Failed to save web app configuration");
                 _snackbar.Add(Localizer["Web application configuration failed"], Severity.Error);
-            }
-        }
-    }
-
-    private async Task SaveEnvironmentVariableKeys(Dictionary<string, string> envVars)
-    {
-        using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        var projectResource = await _webAppMgmtService.GetResource(ctx, WorkspaceAcronym);
-
-        var envVarKeys = envVars.Keys.ToList();
-        var jsonKeys = JsonSerializer.Serialize(envVarKeys);
-        var inputJson = JsonSerializer.Deserialize<Dictionary<string, dynamic>>(projectResource.InputJsonContent);
-        inputJson["environment_variables_keys"] = jsonKeys;
-        var jsonObject = JsonSerializer.Serialize(inputJson);
-        projectResource.InputJsonContent = jsonObject;
-
-        await ctx.SaveChangesAsync();
-    }
-
-    private async Task SetEnvironmentVariableValues(Dictionary<string, string> envVars)
-    {
-        foreach (var envVar in envVars)
-        {
-            try
-            {
-                await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, envVar.Key, envVar.Value);
-                _logger.LogInformation("Environment variable \"{envVar.Key}\"value stored");
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Failed to store environment variable \"{envVar.Key}\"");
             }
         }
     }
