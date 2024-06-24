@@ -238,7 +238,27 @@ else
                 .GroupBy(h => h.Name)
                 .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
                 .ToList();
+
+        foreach(var item in queues)
+        {
+            var found = _queueInfrastructureHealth
+                .Where(h => h.ResourceType == InfrastructureHealthResourceType.AsureServiceBus && h.Name == item).Any();
+            if (!found)
+            {
+                var backfill = new InfrastructureHealthCheck
+                    {
+                        Id = Guid.NewGuid().GetHashCode(),
+                        ResourceType = InfrastructureHealthResourceType.AsureServiceBus,
+                        Group = "0",
+                        Name = item,
+                        Status = InfrastructureHealthStatus.NeedHealthCheckRun
+                    };
+                _queueInfrastructureHealth.Add(backfill);
+            }
+        }
+        
         hasQueues = _queueInfrastructureHealth.Count > 0;
+
         string[] poison_queues = new string[]
         {
             "delete-run-request-poison", "email-notification-poison", "pong-queue-poison", "project-capacity-update-poison", "project-inactivity-notification-poison",
@@ -251,6 +271,23 @@ else
                 .GroupBy(h => h.Name)
                 .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
                 .ToList();
+        foreach(var item in queues)
+        {
+            var found = _poisonQueueInfrastructureHealth
+                .Where(h => h.ResourceType == InfrastructureHealthResourceType.AsureServiceBus && h.Name == item).Any();
+            if (!found)
+            {
+                var backfill = new InfrastructureHealthCheck
+                    {
+                        Id = Guid.NewGuid().GetHashCode(),
+                        ResourceType = InfrastructureHealthResourceType.AsureServiceBus,
+                        Group = "1",
+                        Name = item,
+                        Status = InfrastructureHealthStatus.NeedHealthCheckRun
+                    };
+                _poisonQueueInfrastructureHealth.Add(backfill);
+            }
+        }
     }
     private List<InfrastructureHealthCheck> GetHealthCheckHistory(InfrastructureHealthResourceType resourceType, string Name, string Group )
     {

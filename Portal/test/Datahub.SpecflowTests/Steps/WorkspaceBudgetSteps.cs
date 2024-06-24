@@ -106,8 +106,8 @@ namespace Datahub.SpecflowTests.Steps
         [When(@"the budget is updated for that workspace")]
         public async Task WhenTheBudgetIsUpdatedForThatWorkspace()
         {
-            var budgetId = scenarioContext["budgetId"] as string;
-            await sut.UpdateWorkspaceBudgetSpentAsync("TEST", budgetId);
+            var budgetIds = new List<string> { scenarioContext["budgetId"] as string };
+            await sut.UpdateWorkspaceBudgetSpentAsync("TEST", budgetIds);
         }
 
         [Then(@"project credit record should be updated")]

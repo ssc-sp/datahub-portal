@@ -4,7 +4,7 @@
 
 <MudDialog ClassContent="pa-6" ClassActions="pa-6">
     <DialogContent>
-        <MudForm @bind-IsValid="@_success">
+        <MudForm @ref="form" @bind-IsValid="@_success" @bind-Errors="@errors">
             <MudText>
                 @Localizer["Select a framework from the list, which will be used to generate a template app service configuration. If you want to deploy a custom web application, select 'Docker compose' and provide the git repo URL and the path to the docker compose file."]
             </MudText>
@@ -65,6 +65,7 @@
         </MudText>
         <MudSpacer/>
         <MudButton Variant="Variant.Outlined" OnClick="() => MudDialog.Cancel()">@Localizer["Cancel"]</MudButton>
+        @* <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(()=>form.Validate())">Validate</MudButton> *@
         <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Disabled="@(!_success)">@Localizer["Save"]</MudButton>
     </DialogActions>
 </MudDialog>
@@ -76,6 +77,8 @@
     [Parameter] public Project_Resources2 Resource { get; set; }
     private EnvironmentVariablesTable envVarTable { get; set; }
 
+    private MudForm form;
+    private string[] errors = { };
 
     private string _selectedFramework = AppServiceTemplates.CUSTOM;
     private string _gitRepoUrl;
