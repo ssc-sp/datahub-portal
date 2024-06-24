@@ -12,8 +12,8 @@
         <MudText Style="font-style: italic">@Localizer["Last updated {0} {1}", $"{_lastUpdate:yyyy-MM-dd HH:mm}", TimeZone.CurrentTimeZone.StandardName]</MudText>
         @if (_lastUpdate < DateTime.UtcNow.AddDays(-7))
         {
-            <MudAlert Variant="Variant.Outlined" Severity="Severity.Error" Style="color: #000">
-                @Localizer["Storage data is older than 7 days and may be incorrect, please check back later."]
+            <MudAlert Variant="Variant.Outlined" Severity="Severity.Warning" Style="color: #000">
+                @Localizer["Storage data has not been updated in the last 7 days, please check back later for updated storage data."]
             </MudAlert>
         }
     }

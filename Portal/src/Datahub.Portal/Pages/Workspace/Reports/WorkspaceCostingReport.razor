@@ -40,8 +40,8 @@
 
         @if (!_validData)
         {
-            <MudAlert Variant="Variant.Outlined" Severity="Severity.Error" Style="color: #000">
-                @Localizer["Costing data is older than 7 days and may be incorrect, please check back later."]
+            <MudAlert Variant="Variant.Outlined" Severity="Severity.Warning" Style="color: #000">
+                @Localizer["Costing data has not been updated in the last 7 days, please check back later for updated costs."]
             </MudAlert>
         }
 
