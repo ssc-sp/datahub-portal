@@ -2897,5 +2897,9 @@
   "{0} credits consumed on average (daily)": "{0} crédits consommés en moyenne (quotidiennement)",
   "{0} credits consumed yesterday": "{0} crédits consommés hier",
   "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail",
-  "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés."
+  "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés.",
+  "Last updated {0} {1}": "Dernière mise à jour le {0} {1}",
+  "Costing data has not been updated in the last 7 days, please check back later for updated costs.": "Les données de coût n'ont pas été mises à jour au cours des 7 derniers jours, veuillez vérifier plus tard pour obtenir des coûts mis à jour.",
+  "Storage data has not been updated in the last 7 days, please check back later for updated storage data.": "Les données de stockage n'ont pas été mises à jour au cours des 7 derniers jours, veuillez vérifier plus tard pour obtenir des données de stockage mises à jour.",
+  "This web application is not configured yet. Please configure it by clicking the \u0027Configure\u0027 button at the top right of the page.": "Cette application web n'est pas encore configurée. Veuillez la configurer en cliquant sur le bouton \u0027Configurer\u0027 en haut à droite de la page."
 }
