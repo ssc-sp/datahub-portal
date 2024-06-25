@@ -30,9 +30,10 @@ namespace Datahub.Functions.Services
         {
             var client = await CreateTableClient(RECEIVED_ALERTS_TABLE_NAME);
             var reportIdentifier = bugReportMessage.GenerateInfrastructureReportIdentifier();
-            
-            //TODO configure debounce time
-            var earliestTime = DateTimeOffset.Now.AddDays(-1);
+
+            var timeSpan = TimeSpan.Parse(_config.InfrastructureAlertDebounceTimeSpan);
+
+            var earliestTime = DateTimeOffset.Now.Subtract(timeSpan);
 
             var alertsSinceTime = client.QueryAsync<ReceivedAlert>(r => r.ReportIdentifier ==  reportIdentifier && r.Timestamp >= earliestTime);
             return await alertsSinceTime.OrderByDescending(a => a.Timestamp).FirstOrDefaultAsync();
