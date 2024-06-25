@@ -1,4 +1,5 @@
-﻿@using Datahub.Application.Services.Security
+﻿@using Datahub.Application.Services.ReverseProxy
+@using Datahub.Application.Services.Security
 @using Datahub.Portal.Views.Dialogs
 @using Datahub.Shared.Entities
 @using Microsoft.Identity.Web
@@ -13,6 +14,7 @@
 @inject ILogger<WorkspaceWebAppPage> _logger
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IWorkspaceWebAppManagementService _webAppMgmtService
+@inject IReverseProxyManagerService ReverseProxyManagerService
 
 @if (!_isElevated)
 {
@@ -27,7 +29,7 @@
         @if (_isConfigured)
         {
             <MudStack AlignItems="AlignItems.End" Justify="Justify.Center">
-                <MudIcon Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)" Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])"/>
+                <DHIcon Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)" Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])" />
             </MudStack>
         }
         <MudSpacer/>
@@ -37,7 +39,7 @@
             {
                 @if (!_webAppState)
                 {
-                    <MudButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Start" IconColor="@Color.Success" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
+                    <DHButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Start" IconColor="@Color.Success" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
                         @if (_isStartStopping)
                         {
                             <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
@@ -46,11 +48,11 @@
                         {
                             @Localizer["Start"]
                         }
-                    </MudButton>
+                    </DHButton>
                 }
                 else
                 {
-                    <MudButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Stop" IconColor="@Color.Error" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
+                    <DHButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Stop" IconColor="@Color.Error" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
                         @if (_isStartStopping)
                         {
                             <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
@@ -59,10 +61,10 @@
                         {
                             @Localizer["Stop"]
                         }
-                    </MudButton>
+                    </DHButton>
                 }
 
-                <MudButton Disabled="@(_isRestarting || !_webAppState)" Variant="Variant.Filled" StartIcon="@SidebarIcons.Restart" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
+                <DHButton Disabled="@(_isRestarting || !_webAppState)" Variant="Variant.Filled" StartIcon="@SidebarIcons.Restart" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
                     @if (_isRestarting)
                     {
                         <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
@@ -71,12 +73,12 @@
                     {
                         @Localizer["Restart"]
                     }
-                </MudButton>
+                </DHButton>
             }
 
-            <MudButton Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" StartIcon="@SidebarIcons.Gear" OnClick="@(async () => await ConfigureWebApp())">
+            <DHButton Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" StartIcon="@SidebarIcons.Gear" OnClick="@(async () => await ConfigureWebApp())">
                 @Localizer["Configure"]
-            </MudButton>
+            </DHButton>
         }
     </MudStack>
 
@@ -120,7 +122,7 @@
     }
     @if (_resource is not null && _isConfigured)
     {
-        <EnvironmentVariablesTable resource="@_resource" projectAcronym="@WorkspaceAcronym" isEditable="false"/>
+        <EnvironmentVariablesTable resource="@_resource" projectAcronym="@WorkspaceAcronym" isEditable="true"/>
     }
     @if (_isProvisioned)
     {
@@ -160,7 +162,7 @@
                     <li style="display: list-item; list-style-type: circle"><code>ports</code></li>
                     <li style="display: list-item; list-style-type: circle"><code>restart</code></li>
                     <li style="display: list-item; list-style-type: circle"><code>services</code></li>
-                    <li style="display: list-item; list-style-type: circle"><code>volumes</code></li>
+                    <li style="display: list-item; list-style-type: circle"><code>volumes</code>, @Localizer["please contact us to set-up volumes as they require more configuration."]</li>
                 </ul>
             </MudText>
             <MudText Typo="Typo.h4" Class="mt-4">
@@ -267,7 +269,7 @@
             _isUrlRewritingEnabled = oldValue;
             _snackbar.Add(Localizer["Could not update URL Rewriting setting"], Severity.Error);
         }
-
+        ReverseProxyManagerService.ReloadConfiguration();
         _isSaving = false;
     }
 
@@ -328,7 +330,7 @@
 
         var dialogOptions = new DialogOptions()
         {
-            MaxWidth = MaxWidth.Medium,
+            MaxWidth = MaxWidth.Large,
             FullWidth = true,
             CloseButton = true
         };
@@ -347,16 +349,13 @@
         {
             try
             {
-                var resultData = dialogResult.Data as (AppServiceConfiguration Config, Dictionary<string, string> EnvVars)?;
-                var config = resultData?.Config;
-                var envVars = resultData?.EnvVars;
+                var resultConfig = dialogResult.Data as AppServiceConfiguration;
 
-                await _webAppMgmtService.SaveConfiguration(WorkspaceAcronym, config!);
-                await _webAppMgmtService.FillSystemConfiguration(WorkspaceAcronym, config);
-                await SetGitToken(config);
-                await SaveEnvironmentVariableKeys(envVars);
-                await SetEnvironmentVariableValues(envVars);
-                await _webAppMgmtService.Configure(WorkspaceAcronym, config);
+                await _webAppMgmtService.SaveConfiguration(WorkspaceAcronym, resultConfig);
+                await _webAppMgmtService.FillSystemConfiguration(WorkspaceAcronym, resultConfig);
+                await SetGitToken(resultConfig);
+                await _webAppMgmtService.Configure(WorkspaceAcronym, resultConfig);
+                ReverseProxyManagerService.ReloadConfiguration();
                 _logger.LogInformation("Web app configuration processed");
                 _snackbar.Add(Localizer["Web application configuration processed"], Severity.Success);
                 StateHasChanged();
@@ -365,37 +364,6 @@
             {
                 _logger.LogError(e, "Failed to save web app configuration");
                 _snackbar.Add(Localizer["Web application configuration failed"], Severity.Error);
-            }
-        }
-    }
-
-    private async Task SaveEnvironmentVariableKeys(Dictionary<string, string> envVars)
-    {
-        using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        var projectResource = await _webAppMgmtService.GetResource(ctx, WorkspaceAcronym);
-
-        var envVarKeys = envVars.Keys.ToList();
-        var jsonKeys = JsonSerializer.Serialize(envVarKeys);
-        var inputJson = JsonSerializer.Deserialize<Dictionary<string, dynamic>>(projectResource.InputJsonContent);
-        inputJson["environment_variables_keys"] = jsonKeys;
-        var jsonObject = JsonSerializer.Serialize(inputJson);
-        projectResource.InputJsonContent = jsonObject;
-
-        await ctx.SaveChangesAsync();
-    }
-
-    private async Task SetEnvironmentVariableValues(Dictionary<string, string> envVars)
-    {
-        foreach (var envVar in envVars)
-        {
-            try
-            {
-                await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, envVar.Key, envVar.Value);
-                _logger.LogInformation("Environment variable \"{envVar.Key}\"value stored");
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Failed to store environment variable \"{envVar.Key}\"");
             }
         }
     }

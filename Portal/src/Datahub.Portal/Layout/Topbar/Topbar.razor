@@ -22,7 +22,7 @@
     </ul>
 </nav>
 <div class="sr-only" id="header">
-    <h3>@Localizer["Header"]</h3>
+    <h3>@Localizer["Federal Science DataHub"]</h3>
 </div>
 <MudLink Href="@PageRoutes.Home" Underline="Underline.None">
     <MudStack Row AlignItems="AlignItems.Center">
@@ -38,21 +38,21 @@
 
 <MudSpacer/>
 <MudStack Row>
-    <MudButton Variant="Variant.Text" Href=@PageRoutes.Home>
+    <DHButton Variant="Variant.Text" Href=@PageRoutes.Home>
         @Localizer["Home"]
-    </MudButton>
-    <MudButton Variant="Variant.Text" Href=@PageRoutes.News>
+    </DHButton>
+    <DHButton Variant="Variant.Text" Href=@PageRoutes.News>
         @Localizer["News"]
-    </MudButton>
-    <MudButton Variant="Variant.Text" Href=@PageRoutes.Explore>
+    </DHButton>
+    <DHButton Variant="Variant.Text" Href=@PageRoutes.Explore>
         @Localizer["Explore"]
-    </MudButton>
-    <MudButton Variant="Variant.Text" Href=@PageRoutes.ResourceDefault>
+    </DHButton>
+    <DHButton Variant="Variant.Text" Href=@PageRoutes.ResourceDefault>
         @Localizer["Learn"]
-    </MudButton>
-    <MudButton Variant="Variant.Text" Href=@PageRoutes.Help>
+    </DHButton>
+    <DHButton Variant="Variant.Text" Href=@PageRoutes.Help>
         @Localizer["Support"]
-    </MudButton>
+    </DHButton>
 </MudStack>
 <MudSpacer/>
 <SearchPopover/>

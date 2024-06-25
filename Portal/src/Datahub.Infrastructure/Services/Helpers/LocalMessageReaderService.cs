@@ -1,4 +1,5 @@
 using Azure.Identity;
+using Azure.Messaging.ServiceBus;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Queues;
 using Datahub.Application.Configuration;
@@ -7,6 +8,7 @@ using Datahub.Core.Model.Health;
 using Datahub.Core.Utils;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services.Storage;
+using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,9 +20,9 @@ using System.Text.Json;
 
 namespace Datahub.Infrastructure.Services;
 
-public class FileWatcherService : BackgroundService
+public class LocalMessageReaderService : BackgroundService
 {
-    private readonly ILogger<FileWatcherService> _logger;
+    private readonly ILogger<LocalMessageReaderService> _logger;
     private readonly IServiceProvider _serviceProvider;
     private FileSystemWatcher _watcher; 
 
@@ -34,16 +36,20 @@ public class FileWatcherService : BackgroundService
     private const string workspaceKeyCheck = "project-cmk";
     private const string coreKeyCheck = "datahubportal-client-id";
 
-    public FileWatcherService(
+    public LocalMessageReaderService(
             ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        _logger = loggerFactory.CreateLogger<FileWatcherService>();
+        _logger = loggerFactory.CreateLogger<LocalMessageReaderService>();
     }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     { 
         var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "MessageFolder");
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
         _watcher = new FileSystemWatcher
         {
             Path = folderPath,
@@ -143,11 +149,16 @@ public class FileWatcherService : BackgroundService
                 result = await CheckAzureKeyVault(request);
                 break;
             case InfrastructureHealthResourceType.AzureDatabricks: // Name is project acronym to check
-                result = await CheckAzureDatabricks(request);
+                result = await CheckAzureDatabricksHealth(request);
                 break;
             case InfrastructureHealthResourceType.AzureStorageQueue
                 : // Name is the Azure Storage Queue name. Group == 1 for poison
                 result = await CheckAzureStorageQueue(request);
+                break;
+            case InfrastructureHealthResourceType.AsureServiceBus:
+                result = await CheckAzureServiceBusQueue(request);
+                var poison = new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AsureServiceBus, "1", request.Name);
+                await CheckAzureServiceBusQueue(poison);
                 break;
             case InfrastructureHealthResourceType.AzureWebApp:
                 result = await CheckWebApp(request);
@@ -257,12 +268,15 @@ public class FileWatcherService : BackgroundService
     {
         var check = result.Check;
         if (check.Group == null || check.Name == null) { return; }
-        var existingCheck = await _projectDBContext.InfrastructureHealthChecks.FirstOrDefaultAsync(c =>
+        var existingChecks = _projectDBContext.InfrastructureHealthChecks.Where(c =>
             c.Group == check.Group && c.Name == check.Name && c.ResourceType == check.ResourceType);
 
-        if (existingCheck != null)
+        if (existingChecks != null)
         {
-            _projectDBContext.InfrastructureHealthChecks.Remove(existingCheck);
+            foreach(var item in existingChecks)
+            {
+                _projectDBContext.InfrastructureHealthChecks.Remove(item);
+            }
         }
 
         // Add the check without specifying the ID to allow the database to generate it
@@ -482,6 +496,109 @@ public class FileWatcherService : BackgroundService
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
+    private async Task<InfrastructureHealthCheckResponse> CheckAzureDatabricksHealth(
+    InfrastructureHealthCheckRequest request)
+    {
+        var errors = new List<string>();
+        var check = new InfrastructureHealthCheck()
+        {
+            Group = request.Group,
+            Name = request.Name,
+            ResourceType = request.Type,
+            Status = InfrastructureHealthStatus.Unhealthy,
+            HealthCheckTimeUtc = DateTime.UtcNow
+        };
+
+        var project = _projectDBContext.Projects.AsNoTracking().Include(p => p.Resources)
+            .FirstOrDefault(p => p.Project_Acronym_CD == request.Name);
+
+        // If the project is null, the project does not exist or there was an error retrieving it
+        if (project == null)
+        {
+            check.Status = InfrastructureHealthStatus.Unhealthy;
+            errors.Add("Failed to retrieve project.");
+        }
+        else
+        {
+            // We check if the project has a databricks resource. If not, we return a create status.
+            bool checkForDatabricks = false;
+            var resources = project.Resources.ToArray();
+            foreach (var resource in resources)
+            {
+                if (resource.ResourceType == "terraform:azure-databricks")
+                {
+                    checkForDatabricks = true;
+                    break;
+                }
+            }
+
+            if (!checkForDatabricks)
+            {
+                check.Status = InfrastructureHealthStatus.Create;
+            }
+            else
+            {
+                // We attempt to retrieve the databricks URL. If we cannot, we return an unhealthy status.
+                var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project);
+
+                if (databricksUrl == null)
+                {
+                    check.Status = InfrastructureHealthStatus.Unhealthy;
+                    errors.Add("Failed to retrieve Databricks URL.");
+                }
+                else
+                {
+                    try
+                    {
+                        var azureDevOpsClient = new AzureDevOpsClient(_config);
+                        var accessToken = await azureDevOpsClient.AccessTokenAsync();
+
+                        var databricksClient = new DatabricksClientUtils(databricksUrl, accessToken.Token);
+
+                        // Verify Instance Availability
+                        var instanceRunning = await databricksClient.IsDatabricksInstanceRunning();
+                        if (!instanceRunning)
+                        {
+                            check.Status = InfrastructureHealthStatus.Unhealthy;
+                            errors.Add("Databricks instance is not available.");
+                        }
+                        else
+                        {
+                            // Verify ACL Status
+                            var aclStatus = await databricksClient.VerifyACLStatus();
+                            if (!aclStatus)
+                            {
+                                check.Status = InfrastructureHealthStatus.Unhealthy;
+                                errors.Add("Failed to verify ACL status.");
+                            }
+                            else
+                            {
+                                // Check Cluster Status
+                                var clusterStatus = await databricksClient.GetClusterStatus("");
+                                if (string.IsNullOrEmpty(clusterStatus) || clusterStatus != "Running")
+                                {
+                                    check.Status = InfrastructureHealthStatus.Unhealthy;
+                                    errors.Add("Cluster is not in the running state.");
+                                }
+                                else
+                                {
+                                    check.Status = InfrastructureHealthStatus.Healthy;
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        check.Status = InfrastructureHealthStatus.Unhealthy;
+                        errors.Add($"Error while checking Databricks health: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        return new InfrastructureHealthCheckResponse(check, errors);
+    }
+  
     /// <summary>
     /// Function that checks the health of an Azure Databricks workspace.
     /// </summary>
@@ -666,6 +783,69 @@ public class FileWatcherService : BackgroundService
         catch (Exception ex)
         {
             errors.Add($"Error while checking Azure Storage Queue: {ex.Message}");
+        }
+
+        if (!errors.Any())
+        {
+            check.Status = InfrastructureHealthStatus.Healthy;
+        }
+
+        return new InfrastructureHealthCheckResponse(check, errors);
+    }
+
+    /// <summary>
+    /// Function that checks the health of the Azure Service Bus
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns>An InfrastructureHealthCheckResponse indicating the result of the check.</returns>
+    private async Task<InfrastructureHealthCheckResponse> CheckAzureServiceBusQueue(
+       InfrastructureHealthCheckRequest request)
+    {
+        var errors = new List<string>();
+        var check = new InfrastructureHealthCheck()
+        {
+            Group = request.Group,
+            Name = request.Name,
+            ResourceType = request.Type,
+            Status = InfrastructureHealthStatus.Unhealthy,
+            HealthCheckTimeUtc = DateTime.UtcNow
+        };
+
+        var serviceBusConnectionString = _configuration["DatahubServiceBus:ConnectionString"];
+
+        string queueName = request.Name;
+        if (request.Group == "1")
+        {
+            queueName += "-poison";
+        }
+
+        check.Name = queueName;
+
+        try
+        {
+            ServiceBusClient serviceBusClient = new ServiceBusClient(serviceBusConnectionString);
+            ServiceBusReceiver receiver = serviceBusClient.CreateReceiver(queueName);
+
+            if (receiver is null)
+            {
+                errors.Add("Unable to connect to the queue.");
+            }
+            else
+            {
+                // attempt to read message to check if queue exists; receiver is created with no errors for non-existing queue
+                ServiceBusReceivedMessage message = await receiver.PeekMessageAsync();
+                if (message != null && request.Group == "1")
+                {
+                    if (string.IsNullOrEmpty(message.DeadLetterReason))
+                    {
+                        errors.Add("Dead letter reason is empty.");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"Error while checking Azure Service Bus Queue: {ex.Message.Replace(",",".")}");
         }
 
         if (!errors.Any())

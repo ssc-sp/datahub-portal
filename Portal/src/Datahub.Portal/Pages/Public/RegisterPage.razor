@@ -16,7 +16,7 @@
         <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
             <MudStack>
                 <MudTextField T="string"
-                              Label=@Localizer["Government of Canada Email"]
+                              Label=@_emailFieldText
                                   @bind-Value="_email"
                               Required
                               Variant="Variant.Outlined"
@@ -46,14 +46,14 @@
 
                 @if (_isRegistering)
                 {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mx-auto mt-4">
+                    <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mx-auto mt-4">
                         @Localizer["Registering"]
                         <MudProgressCircular Class="ml-4" Color="Color.Default" Size="Size.Small" Indeterminate="true"/>
                     </MudButton>
                 }
                 else
                 {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mx-auto mt-4" OnClick="HandleValidSubmit">
+                    <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mx-auto mt-4" OnClick="HandleValidSubmit">
                         @Localizer["Register"]
                     </MudButton>
                 }
@@ -74,15 +74,24 @@
 @code {
 
     private string _email;
+    private string _emailFieldText { get; set; }
     private string _comment;
     private bool _success = true;
     private bool _isRegistering;
     private string[] _errors = { };
     private MudForm _form;
 
+    protected override void OnInitialized()
+    {
+        _emailFieldText = Localizer["Government of Canada Email"];
+    }
+
     private string EmailValidation(string email)
     {
-        return _userEnrollmentService.IsValidGcEmail(email) ? null : Localizer["Invalid Government of Canada email address"];
+        var valid = _userEnrollmentService.IsValidGcEmail(email);
+        _emailFieldText = valid ? Localizer["Government of Canada Email"] : Localizer["Government of Canada email"]+" - " + Localizer["Invalid Government of Canada email address"];
+        var validationString =  valid ? null : Localizer["Invalid Government of Canada email address"];
+        return validationString;
     }
 
     private async Task HandleValidSubmit()

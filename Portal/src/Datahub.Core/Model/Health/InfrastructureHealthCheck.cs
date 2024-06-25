@@ -56,6 +56,7 @@ public enum InfrastructureHealthStatus
     Degraded,
     Unhealthy,
     Undefined,
+    NotProvisioned,
     NeedHealthCheckRun
 }
 
@@ -71,5 +72,6 @@ public enum InfrastructureHealthResourceType
     AzureDatabricks,
     AzureStorageQueue,
     AzureWebApp,
-    AzureFunction
+    AzureFunction,
+    AsureServiceBus
 }

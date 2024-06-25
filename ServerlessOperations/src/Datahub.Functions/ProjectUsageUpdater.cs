@@ -46,6 +46,7 @@ public class ProjectUsageUpdater(
 
         _logger.LogInformation("Downloading costs from blob...");
         var costs = await GetFromBlob(message.CostsBlobName);
+        _logger.LogInformation($"Downloaded costs from blob. There are {costs.Count} entries.");
         
         _logger.LogInformation("Querying cost management...");
         var (costRollover, spentAmount) =
@@ -60,6 +61,12 @@ public class ProjectUsageUpdater(
         {
             _logger.LogInformation($"Budget rollover initiated.");
             var currentBudget = await workspaceBudgetMgmtService.GetWorkspaceBudgetAmountAsync(message.ProjectAcronym);
+            if (currentBudget == 0)
+            {
+                _logger.LogError("Cannot rollover budget, budget is 0.");
+                return false;
+            }
+            
             _logger.LogInformation($"Spend captured by cost management: {spentAmount}");
             _logger.LogInformation($"Spend captured by budget : {budgetSpentAmount}");
 
@@ -119,15 +126,12 @@ public class ProjectUsageUpdater(
         {
             _logger.LogInformation($"Downloaded costs from blob {fileName}");
             var plainTextResult = response.Value.Content.ToString();
-            var costs = JsonSerializer.Deserialize<BlobCostObject>(plainTextResult);
-            return costs.Costs;
+            var costs = JsonSerializer.Deserialize<List<DailyServiceCost>>(plainTextResult);
+            return costs;
         }
         _logger.LogError($"Cannot download costs from blob {fileName}");
         return null;
     }
 
-    record BlobCostObject
-    {
-        [JsonPropertyName("costs")] public List<DailyServiceCost> Costs { get; set; }
-    }
+    
 }
