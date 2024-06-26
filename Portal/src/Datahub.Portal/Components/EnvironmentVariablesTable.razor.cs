@@ -1,13 +1,13 @@
 ﻿using System.Text.Json;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
-using Datahub.Shared;
 using Datahub.Shared.Entities;
+using FluentValidation;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
-using MudBlazor;
+using Severity = MudBlazor.Severity;
 
 namespace Datahub.Portal.Components
 {
@@ -15,6 +15,28 @@ namespace Datahub.Portal.Components
     {
         public string Key { get; set; }
         public string Value { get; set; }
+    }
+
+    public class KeyValuePairValidator : AbstractValidator<KeyValuePair>
+    {
+        public KeyValuePairValidator()
+        {
+            RuleFor(x => x.Key)
+                .NotEmpty()
+                .WithMessage("Key cannot be empty");
+            RuleFor(x => x.Key)
+                .MaximumLength(200)
+                .WithMessage("Key cannot be longer than 200 characters");
+            RuleFor(x => x.Key)
+                .Matches(@"^[0-9a-zA-Z\-]+$").WithMessage("Key can only contain letters, numbers and dashes");
+
+            RuleFor(x => x.Value)
+                .NotEmpty()
+                .WithMessage("Value cannot be empty");
+            RuleFor(x => x.Value)
+                .MaximumLength(200)
+                .WithMessage("Value cannot be longer than 200 characters");
+        }
     }
 
     public partial class EnvironmentVariablesTable
@@ -30,6 +52,11 @@ namespace Datahub.Portal.Components
 
             return false;
         }
+
+        private Func<KeyValuePair, string> ValidateKeyValuePair() => kvp =>
+            Localizer["{0}",
+                    new KeyValuePairValidator().Validate(kvp).Errors.Select(e => e.ErrorMessage).FirstOrDefault()]
+                .ToString();
 
         private async Task<List<KeyValuePair>> GetEnvironmentVariables()
         {
@@ -106,17 +133,17 @@ namespace Datahub.Portal.Components
             var newValue = await _jsRuntime.InvokeAsync<string>("prompt",
                 Localizer["Enter the value of your new environment variable. You may edit this value later."]
                     .ToString());
+            KeyValuePair newKVP = new() { Key = newKey, Value = newValue };
+            var validation = ValidateKeyValuePair().Invoke(newKVP);
 
-            if (!string.IsNullOrWhiteSpace(newKey) && !string.IsNullOrWhiteSpace(newValue))
+            if (string.IsNullOrWhiteSpace(validation))
             {
-                KeyValuePair newKVP = new() { Key = newKey, Value = newValue };
                 await CreateOrUpdateEnvironmentVariable(newKVP);
                 _snackbar.Add(Localizer["Environment variable {0} has been added.", newKey], Severity.Success);
             }
             else
             {
-                _snackbar.Add(Localizer["Error adding environment variable. Key and value must not be empty."],
-                    Severity.Error);
+                _snackbar.Add(Localizer["Error adding environment variable: {0}", validation], Severity.Error);
             }
         }
 
@@ -134,13 +161,13 @@ namespace Datahub.Portal.Components
                 {
                     envVars.Add(item);
                 }
+
                 needsRestart = true;
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error creating or updating environment variable.");
             }
-            
         }
 
         private void BackupItem(object item)
