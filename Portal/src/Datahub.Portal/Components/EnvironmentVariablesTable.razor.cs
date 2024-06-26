@@ -134,11 +134,13 @@ namespace Datahub.Portal.Components
                 {
                     envVars.Add(item);
                 }
+                needsRestart = true;
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error creating or updating environment variable.");
             }
+            
         }
 
         private void BackupItem(object item)
