@@ -120,7 +120,7 @@ else if (isEditable)
         </FooterContent>
     </MudTable>
     <MudText Align="Align.Start" Class="mb-6">
-        <MudMarkdown Value="@Localizer["_Environment variables are stored in [Azure Keyvault](https://azure.microsoft.com/en-us/products/key-vault). Use a [client SDK](https://learn.microsoft.com/en-us/azure/key-vault/general/developers-guide) of your choice to fetch environment variables from your web application's runtime. Subject to change._"]"></MudMarkdown>
+        <MudMarkdown Value="@Localizer["_Environment variables are stored in [Azure Keyvault](https://azure.microsoft.com/en-us/products/key-vault) and are made available to your web application as operating system level environment variables. They are available during the build process and the run process of your web application._"]"></MudMarkdown>
     </MudText>
 }
 else
