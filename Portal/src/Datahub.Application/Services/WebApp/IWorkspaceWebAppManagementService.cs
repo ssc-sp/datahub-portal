@@ -14,7 +14,6 @@ namespace Datahub.Application.Services.WebApp
         public Task<bool> GetState(string webAppId);
         public Task SetAppSettings(string workspaceAcronym, string webAppId);
         public Task<Dictionary<string, string>> GetAppSettings(string webAppId);
-        public Task<Dictionary<string, string>> GetEnvironmentVariables(string webAppId);
         public Task SaveConfiguration(string workspaceAcronym, AppServiceConfiguration configuration);
         public Task FillSystemConfiguration(string workspaceAcronym, AppServiceConfiguration configuration);
         public Task Configure(string workspaceAcronym, AppServiceConfiguration configuration);

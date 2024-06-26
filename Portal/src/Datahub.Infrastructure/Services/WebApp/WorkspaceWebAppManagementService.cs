@@ -51,7 +51,7 @@ namespace Datahub.Infrastructure.Services.WebApp
 
             return await Start(webAppId);
         }
-        
+
         public async Task<bool> Start(string webAppId)
         {
             var webAppResource = await GetWebAppAzureResource(webAppId);
@@ -111,9 +111,9 @@ namespace Datahub.Infrastructure.Services.WebApp
             var projectResource = await GetResource(ctx, workspaceAcronym);
             var envVarKeys = TerraformVariableExtraction.ExtractEnvironmentVariableKeys(projectResource);
             var appSettings = await GetAzureAppSettings(webAppId);
-            var keyVaultName = _keyVaultUserService.GetVaultName(workspaceAcronym, 
+            var keyVaultName = _keyVaultUserService.GetVaultName(workspaceAcronym,
                 _portalConfiguration.Hosting.EnvironmentName);
-            
+
             foreach (var key in envVarKeys)
             {
                 if (appSettings.Properties.ContainsKey(key))
@@ -145,7 +145,7 @@ namespace Datahub.Infrastructure.Services.WebApp
             return appSettings.Properties.ToDictionary();
         }
 
-        public async Task<AppServiceConfigurationDictionary> GetAzureAppSettings(string webAppId)
+        internal async Task<AppServiceConfigurationDictionary> GetAzureAppSettings(string webAppId)
         {
             var webAppResource = await GetWebAppAzureResource(webAppId);
             var appSettingsResponse = await webAppResource.GetApplicationSettingsAsync();
@@ -161,30 +161,6 @@ namespace Datahub.Infrastructure.Services.WebApp
             }
 
             return appSettings;
-        }
-
-
-        public async Task<Dictionary<string, string>> GetEnvironmentVariables(string workspaceAcronym)
-        {
-            using var context = await _dbContextFactory.CreateDbContextAsync();
-            var projectResource = await GetResource(context, workspaceAcronym);
-            var envVars = TerraformVariableExtraction.ExtractEnvironmentVariableKeys(projectResource);
-
-            var envVarsDict = new Dictionary<string, string>();
-            foreach (var envVar in envVars)
-            {
-                try
-                {
-                    var secret = await _keyVaultUserService.GetSecretAsync(workspaceAcronym, envVar);
-                    envVarsDict.Add(envVar, secret);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception($"Could not get secret {envVar} for workspace {workspaceAcronym}", e);
-                }
-            }
-
-            return envVarsDict;
         }
 
         public async Task SaveConfiguration(string workspaceAcronym, AppServiceConfiguration config)
