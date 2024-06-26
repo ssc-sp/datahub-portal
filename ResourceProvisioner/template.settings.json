@@ -41,6 +41,7 @@
             "aad_admin_group_oid": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=aad-admin-group-oid)",
             "storage_size_limit_tb": "5",
             "az_location": "canadacentral",
+            "allow_source_ip": "20.200.112.175,205.194.36.254",
             "resource_prefix": "$resourcePrefix",
             "resource_prefix_alphanumeric": "$resourcePrefixAlphanumeric",
             "common_tags": {

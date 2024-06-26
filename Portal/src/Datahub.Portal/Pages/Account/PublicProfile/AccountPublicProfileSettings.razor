@@ -35,7 +35,7 @@
     </SettingsField>
     <SettingsField Label="@Localizer["Display page alerts and tutorials"]" Description="@Localizer["Choose whether or not to display alert and tutorial dialogs in Datahub."]">
         <MudSwitch T="bool" Label="@Localizer["Show alerts and tutorials"]" Checked="@(!ViewedUser.UserSettings.HideAlerts)" Color="Color.Primary" UnCheckedColor="Color.Dark" CheckedChanged="HandleHideAlertsChanged"/>
-        <MudButton OnClick="@ClearAlerts">@Localizer["Reset alert settings"]</MudButton>
+        <DHButton OnClick="@ClearAlerts">@Localizer["Reset alert settings"]</DHButton>
     </SettingsField>
 </MudStack>
 

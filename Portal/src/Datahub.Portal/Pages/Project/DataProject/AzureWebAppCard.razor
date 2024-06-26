@@ -10,7 +10,7 @@
         <MudStack Justify="Justify.SpaceBetween">
             <MudStack>
                 <MudStack Row>
-                    <MudIcon Icon="fa-light fa-display-code" Color="Color.Secondary"/>
+                    <DHIcon Icon="fa-light fa-display-code" Color="Color.Secondary" />
                     <MudText Class="mb-3" Typo="Typo.h5">@Localizer["Web App Service"]</MudText>
                     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin" ProjectAcronym="@ProjectAcronym">
                         <MudSpacer/>
@@ -26,7 +26,7 @@
             <MudStack>
                 <MudElement>
                     <MudStack AlignItems="AlignItems.Start" Justify="Justify.FlexEnd" Class="flex-1 my-2">
-                        <MudButton Variant="Variant.Text" EndIcon="@SidebarIcons.External" Color="Color.Primary" Size="Size.Small">
+                        <DHButton Variant="Variant.Text" EndIcon="@SidebarIcons.External" Color="Color.Primary" Size="Size.Small">
                             <DHLink Underline="Underline.None"
                                     Typo="Typo.button"
                                     LinkType="DatahubLinkType.AzureWebApp"
@@ -34,7 +34,7 @@
                                     DataProject="@ProjectAcronym">
                                 @Localizer["Open Web App"]
                             </DHLink>
-                        </MudButton>
+                        </DHButton>
                     </MudStack>
                 </MudElement>
             </MudStack>

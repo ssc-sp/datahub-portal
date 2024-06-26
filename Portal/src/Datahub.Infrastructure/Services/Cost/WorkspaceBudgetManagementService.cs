@@ -9,6 +9,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 [assembly: InternalsVisibleTo("Datahub.Infrastructure.UnitTests")]
@@ -21,13 +22,15 @@ namespace Datahub.Infrastructure.Services.Cost
         private ArmClient _armClient;
         private readonly ILogger<WorkspaceBudgetManagementService> _logger;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
+        private readonly IConfiguration _config;
 
         public WorkspaceBudgetManagementService(ArmClient armClient, ILogger<WorkspaceBudgetManagementService> logger,
-            IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IConfiguration config)
         {
             _armClient = armClient;
             _logger = logger;
             _dbContextFactory = dbContextFactory;
+            _config = config;
         }
 
         /// <summary>
@@ -55,8 +58,16 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <returns>The total budget amount</returns>
         public async Task<decimal> GetWorkspaceBudgetAmountAsync(string workspaceAcronym)
         {
-            var budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
-            return await GetBudgetAmountAsync(budgetId);
+            try
+            {
+                var budgetIds = await GetBudgetIdForWorkspace(workspaceAcronym);
+                return await GetBudgetAmountAsync(budgetIds.First());
+            }
+            catch (Exception e)
+            {
+                _logger.LogInformation($"Could not get budget ID for workspace {workspaceAcronym}");
+                return 0;
+            }
         }
 
         /// <summary>
@@ -86,14 +97,27 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <param name="rollover">If the operation is part of a rollover. This will update the credits to keep track of rollovers</param>
         /// <param name="budgetId">Optional budget id to use. If not provided, will interpolate</param>
         /// <returns></returns>
-        public async Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount, bool rollover = false, string? budgetId = null)
+        public async Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount, bool rollover = false,
+            List<string>? budgetIds = null)
         {
-            if (budgetId is null)
+            if (budgetIds is null)
             {
-                budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
+                try
+                {
+                    budgetIds = await GetBudgetIdForWorkspace(workspaceAcronym);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"Could not get budget ID for workspace {workspaceAcronym}");
+                    return;
+                }
             }
-            
-            await SetBudgetAmountAsync(budgetId, amount);
+
+            foreach (var budgetId in budgetIds)
+            {
+                await SetBudgetAmountAsync(budgetId, amount);
+            }
+
             if (rollover)
             {
                 using var ctx = await _dbContextFactory.CreateDbContextAsync();
@@ -136,14 +160,28 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <param name="workspaceAcronym">The workspace acronym</param>
         /// <param name="budgetId">Optional budget id to use, if not provided, will interpolate id</param>
         /// <returns>The amount of budget spent</returns>
-        public async Task<decimal> GetWorkspaceBudgetSpentAsync(string workspaceAcronym, string? budgetId = null)
+        public async Task<decimal> GetWorkspaceBudgetSpentAsync(string workspaceAcronym, List<string>? budgetIds = null)
         {
-            if (budgetId is null)
+            if (budgetIds is null)
             {
-                budgetId = await GetBudgetIdForWorkspace(workspaceAcronym);
+                try
+                {
+                    budgetIds = await GetBudgetIdForWorkspace(workspaceAcronym);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogInformation($"Could not get budget ID for workspace {workspaceAcronym}");
+                    return 0;
+                }
             }
 
-            return await GetBudgetSpentAsync(budgetId);
+            decimal total = 0;
+            foreach (var budgetId in budgetIds)
+            {
+                total += await GetBudgetSpentAsync(budgetId);
+            }
+
+            return total;
         }
 
         /// <summary>
@@ -155,12 +193,13 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <param name="budgetId">Optional budget id to use. If not provided, will interpolate the id.</param>
         /// <returns>A tuple of whether or not the budget spent has decreased (indicating a budget reset), and the budget spent before the reset</returns>
         public async Task<decimal> UpdateWorkspaceBudgetSpentAsync(string workspaceAcronym,
-            string? budgetId = null)
+            List<string>? budgetIds = null)
         {
+            _logger.LogInformation($"Updating budget spent for workspace {workspaceAcronym}");
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
             var projectCredits = await ctx.Project_Credits
-                .FirstAsync(p => p.ProjectId == project.Project_ID);
+                .FirstOrDefaultAsync(p => p.ProjectId == project.Project_ID);
 
             if (projectCredits is null)
             {
@@ -169,14 +208,21 @@ namespace Datahub.Infrastructure.Services.Cost
                     ProjectId = project.Project_ID
                 };
                 ctx.Project_Credits.Add(projectCredits);
+                await ctx.SaveChangesAsync();
             }
 
-            var currentSpent = await GetWorkspaceBudgetSpentAsync(workspaceAcronym, budgetId);
+            var currentSpent = await GetWorkspaceBudgetSpentAsync(workspaceAcronym, budgetIds);
+            _logger.LogInformation($"Current spent for workspace {workspaceAcronym} is {currentSpent}");
             var beforeUpdateBudgetSpent = (decimal)projectCredits.BudgetCurrentSpent;
-            projectCredits.BudgetCurrentSpent = (double)currentSpent;
+            if (currentSpent > (decimal)0.0)
+            {
+                projectCredits.BudgetCurrentSpent = (double)currentSpent;
+            }
 
             ctx.Project_Credits.Update(projectCredits);
             await ctx.SaveChangesAsync();
+            _logger.LogInformation(
+                $"Workspace {workspaceAcronym} budget spent updated to {currentSpent} from {beforeUpdateBudgetSpent}");
             return beforeUpdateBudgetSpent;
         }
 
@@ -213,18 +259,35 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <param name="workspaceAcronym">The workspace acronym</param>
         /// <param name="rgName">Optional resource group name to use to get budget id</param>
         /// <returns>The budget id</returns>
-        internal async Task<string> GetBudgetIdForWorkspace(string workspaceAcronym, string? rgName = null)
+        internal async Task<List<string>> GetBudgetIdForWorkspace(string workspaceAcronym, List<string>? rgNames = null)
         {
+            _logger.LogInformation($"Getting budget id for workspace {workspaceAcronym}");
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
-            if (rgName is null)
+            if (rgNames is null)
             {
                 var projectResources = ctx.Project_Resources2.Include(p => p.Project)
                     .Where(p => p.Project.Project_Acronym_CD == workspaceAcronym).ToList();
                 var blobType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
-                var blobResource = projectResources.First(r => r.ResourceType == blobType);
-                rgName = ParseResourceGroup(blobResource.JsonContent);
+                var blobResource = projectResources.FirstOrDefault(r => r.ResourceType == blobType);
+                if (blobResource is null)
+                {
+                    _logger.LogInformation(
+                        $"Could not find blob storage resource for project with acronym {workspaceAcronym}");
+                    rgNames = await GetResourceGroupNamesFallback(workspaceAcronym);
+                }
+                else
+                {
+                    rgNames = new List<string>
+                    {
+                        ParseResourceGroup(blobResource.JsonContent), ParseDbkResourceGroup(blobResource.JsonContent)
+                    };
+                }
+
+                if (rgNames is null || rgNames.Count == 0) throw new Exception("Could not find resource group name");
             }
-            var project= await ctx.Projects.Include(p => p.DatahubAzureSubscription).FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
+
+            var project = await ctx.Projects.Include(p => p.DatahubAzureSubscription)
+                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
             if (project is null)
             {
                 _logger.LogError($"Could not find project with acronym {workspaceAcronym}");
@@ -238,8 +301,46 @@ namespace Datahub.Infrastructure.Services.Cost
                 throw new Exception($"Could not find subscription id for project with acronym {workspaceAcronym}");
             }
 
-            var budgetId = $"/subscription/{subId}/resourceGroups/{rgName}/providers/Microsoft.Consumption/budgets/{rgName}-budget";
+            var budgetIds = rgNames.Select(rg => GetBudgetId(subId, rg)).ToList();
+            _logger.LogInformation($"Budget ids for workspace {workspaceAcronym} is {string.Join(", ", budgetIds)}");
+            return budgetIds;
+        }
+
+        internal string GetBudgetId(string subId, string rgName)
+        {
+            var budgetId =
+                $"/subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.Consumption/budgets/{rgName}-budget";
             return budgetId;
+        }
+
+        internal async Task<List<string>> GetResourceGroupNamesFallback(string workspaceAcronym)
+        {
+            _logger.LogInformation(
+                $"Using Azure Resource Manager to find resource group name for workspace {workspaceAcronym}");
+            using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            var sub = ctx.Projects.Include(p => p.DatahubAzureSubscription)
+                .FirstOrDefault(p => p.Project_Acronym_CD == workspaceAcronym)?.DatahubAzureSubscription;
+            var subId = "/subscriptions/" + sub?.SubscriptionId;
+            var env = _config["DataHub_ENVNAME"];
+            var subResource = _armClient.GetSubscriptionResource(new ResourceIdentifier(subId));
+            var rgs = subResource.GetResourceGroups();
+            var workspaceRgs = rgs.GetAllAsync(filter: $"tagName eq 'project_cd' and tagValue eq '{workspaceAcronym}'");
+            var enumerator = workspaceRgs.GetAsyncEnumerator();
+            var rgNames = new List<string>();
+            do
+            {
+                var currentRg = enumerator.Current;
+                if (currentRg is null) continue;
+                var rgResource = await currentRg.GetAsync();
+                if (!rgResource.HasValue) continue;
+                var rgName = rgResource.Value.Data.Name;
+                if (string.IsNullOrEmpty(rgName)) continue;
+                if (!string.IsNullOrEmpty(env)) rgNames = rgNames.Where(rg => rg.Contains(env)).ToList();
+                rgNames.Add(rgName);
+            } while (await enumerator.MoveNextAsync());
+
+            await enumerator.DisposeAsync();
+            return rgNames;
         }
 
         /// <summary>
@@ -251,6 +352,14 @@ namespace Datahub.Infrastructure.Services.Cost
         {
             var content = JsonSerializer.Deserialize<RgNameObject>(jsonContent);
             return content?.resource_group_name;
+        }
+
+        internal string ParseDbkResourceGroup(string jsonContent)
+        {
+            var content = JsonSerializer.Deserialize<RgNameObject>(jsonContent);
+            var dbk = content.resource_group_name.Split("_").Select((s, idx) => idx == 1 ? "dbk" : s);
+            var dbkRg = string.Join("-", dbk);
+            return dbkRg;
         }
 
         internal record RgNameObject(string resource_group_name);

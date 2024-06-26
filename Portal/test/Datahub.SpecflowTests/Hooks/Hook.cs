@@ -1,7 +1,7 @@
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
-using BoDi;
+using Reqnroll.BoDi;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Budget;
@@ -21,6 +21,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
+using Reqnroll.BoDi;
 
 namespace Datahub.SpecflowTests.Hooks;
 
@@ -104,10 +105,10 @@ public class Hooks
 
         var workspaceCostManagementService = new WorkspaceCostManagementService(armClient,
             Substitute.For<ILogger<WorkspaceCostManagementService>>(),
-            objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>());
+            objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>(), configuration);
         var workspaceBudgetManagementService = new WorkspaceBudgetManagementService(armClient,
             Substitute.For<ILogger<WorkspaceBudgetManagementService>>(),
-            objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>());
+            objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>(), configuration);
         var workspaceStorageManagementService = new WorkspaceStorageManagementService(armClient,
             Substitute.For<ILogger<WorkspaceStorageManagementService>>(),
             objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>());

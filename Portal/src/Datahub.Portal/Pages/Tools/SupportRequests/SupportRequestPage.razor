@@ -3,9 +3,10 @@
 
 @using System.Net.Http;
 @using System.Net.Http.Headers;
-@using Newtonsoft.Json;
-@using Newtonsoft.Json.Linq;
 @using Datahub.Portal.Pages.Help;
+@using Datahub.Shared.Clients;
+@using Datahub.Shared.Configuration;
+@using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 
 <MudStack Spacing="6">
     <MudText Typo="Typo.h1">@Localizer["Support Requests"]</MudText>
@@ -90,51 +91,43 @@
         _loading = true; // Show the loading bar in the table.
         _openIssues = new();
         _closedIssues = new();
-        var query = $"SELECT [System.Id], [System.Title], [System.CreatedBy], [System.CreatedDate], [System.ChangedDate], [System.Tags] FROM WorkItems WHERE [System.Tags] CONTAINS 'UserSubmitted'";
-        var apiUrl = $"https://dev.azure.com/{_portalConfiguration.AdoOrg.OrgName}/{_portalConfiguration.AdoOrg.ProjectName}/_apis/wit/wiql?api-version=7.0";
-
-        using (var client = new HttpClient())
+        var query = $"SELECT [System.Id], [System.Title], [System.CreatedBy], [System.CreatedDate], [System.ChangedDate], [System.Tags] FROM WorkItems WHERE [System.Tags] CONTAINS 'UserSubmitted' AND NOT [System.Title] CONTAINS 'xception'";
+        var wiql = new Wiql()
         {
-            var credentials = await _keyVaultService.GetSecret(_portalConfiguration.AdoServiceUser.PatSecretName);
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($":{credentials}")));
+            Query = query
+        };
 
-            // Create request body and send the POST request to Azure DevOps API
-            var body = new JObject { ["query"] = query };
-            var response = await client.PostAsync(apiUrl, new StringContent(body.ToString(), System.Text.Encoding.UTF8, "application/json"));
-            response.EnsureSuccessStatusCode();
+        // Configure the Azure DevOps client
+        var config = new AzureDevOpsConfiguration();
+        config.TenantId = _portalConfiguration.AzureAd.TenantId;
+        config.ClientId = _portalConfiguration.AzureAd.InfraClientId;
+        config.ClientSecret = _portalConfiguration.AzureAd.InfraClientSecret;
+        var clientProvider = new AzureDevOpsClient(config);
 
-            // Parse the response and extract the work item titles
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            var result = JObject.Parse(jsonResponse);
+        var client2 = await clientProvider.WorkItemClientAsync();
+        var res = await client2.QueryByWiqlAsync(wiql).ConfigureAwait(false);
+        var ids = res.WorkItems.Select(item => item.Id).ToArray();
 
-            // Collect all the titles
-            var workItems = (JArray)result["workItems"];
+        for (int i = 0; i < ids.Length; i += 150)
+        {
+            var temp = ids.Skip(i).Take(150).ToArray();
+            var workItems = await client2.GetWorkItemsAsync(temp).ConfigureAwait(false);
 
             foreach (var workItem in workItems)
             {
-                // Get the WorkItem ID
-                var workItemId = (int)workItem["id"];
-                // Get the WorkItem details with ID
-                var itemApiUrl = $"https://dev.azure.com/{_portalConfiguration.AdoOrg.OrgName}/{_portalConfiguration.AdoOrg.ProjectName}/_apis/wit/workItems/{workItemId}?api-version=7.0";
-                var workItemResponse = await client.GetAsync(itemApiUrl);
-                workItemResponse.EnsureSuccessStatusCode();
+                var issue = new IssueForDisplaying(workItem, false);
 
-                var workItemJsonResponse = await workItemResponse.Content.ReadAsStringAsync();
-                var workItemDetails = JObject.Parse(workItemJsonResponse);
-                var issue = new IssueForDisplaying(workItemDetails, false);
-
-                if (!issue.Title.Contains("Exception")) // Filter out exceptions
+                if (issue.State == "Closed")
                 {
-                    if (issue.State == "Closed"){
-                        _closedIssues.Add(issue);
-                    }
-                    else {
-                        _openIssues.Add(issue);
-                    }
+                    _closedIssues.Add(issue);
+                }
+                else
+                {
+                    _openIssues.Add(issue);
                 }
             }
         }
+
         _loading = false; // Stop showing the loading bar in the table.
 
         // Reverse the issues list so that the most recent issues are displayed first

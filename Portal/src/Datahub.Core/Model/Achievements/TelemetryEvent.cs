@@ -27,6 +27,7 @@ public struct TelemetryEvents
     public const string UserViewOtherProfile = "user_view_other_profile";
     public const string UserRecentLink = "user_click_recent_link";
     public const string UserToggleCulture = "user_click_toggle_culture";
+    public const string UserClickButton = "user_click_button";
 
     // PRJ
     public const string UserSentInvite = "user_sent_invite";
