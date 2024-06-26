@@ -1,8 +1,4 @@
 ﻿@using Datahub.Core.Model.Projects
-@using Datahub.Portal.Pages.Workspace.Database
-@using Datahub.Core.Model.Achievements
-@using Datahub.Infrastructure.Services.Security
-@using Datahub.Application.Services.Security
 @using Datahub.Application.Services.UserManagement
 @using Microsoft.Identity.Web
 
@@ -90,7 +86,7 @@ else if (isEditable)
             else
             {
                 <MudTd DataLabel="@Localizer["Value"]">
-                    <MudAlert Dense Variant="Variant.Outlined" Severity="Severity.Error" Style="color: #000">@Localizer["Could not find value"]</MudAlert>
+                    <MudAlert Dense Variant="Variant.Outlined" Severity="MudBlazor.Severity.Error" Style="color: #000">@Localizer["Could not find value"]</MudAlert>
                 </MudTd>
             }
         </RowTemplate>
@@ -99,7 +95,7 @@ else if (isEditable)
                 @context.Key
             </MudTd>
             <MudTd DataLabel="@Localizer["Value"]">
-                <MudTextField @bind-Value="@context.Value" Required/>
+                <MudTextField @bind-Value="@context.Value" Required Validation="@ValidateKeyValuePair()" OnlyValidateIfDirty/>
             </MudTd>
         </RowEditingTemplate>
         <EditButtonContent Context="button">
@@ -114,7 +110,7 @@ else if (isEditable)
             @if (needsRestart)
             {
                 <MudTd>
-                    <MudAlert Variant="Variant.Outlined" Severity="Severity.Warning" Style="color: #000000">@Localizer["You must restart your web application to apply the latest changes."]</MudAlert>
+                    <MudAlert Variant="Variant.Outlined" Severity="MudBlazor.Severity.Warning" Style="color: #000000">@Localizer["You must restart your web application to apply the latest changes."]</MudAlert>
                 </MudTd>
             }
         </FooterContent>
@@ -184,6 +180,7 @@ else
     private bool loading = true;
     public bool needsRestart = false;
     private Datahub_Project_User? projectUser;
+    
 
     protected override async Task OnInitializedAsync()
     {
