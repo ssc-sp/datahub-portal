@@ -8,7 +8,6 @@ using Datahub.Core;
 using Datahub.Core.Configuration;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Modules;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Data;
@@ -87,7 +86,6 @@ public class Startup
 
     private readonly IConfiguration Configuration;
     private readonly IWebHostEnvironment _currentEnvironment;
-    private ModuleManager moduleManager = new ModuleManager();
 
     private bool ResetDB => (bool)Configuration.GetSection("InitialSetup")?.GetValue("ResetDB", false);
 
@@ -163,15 +161,6 @@ public class Startup
         services.AddElemental();
         services.AddMudServices();
         services.AddMudMarkdownServices();
-        services.AddSingleton(moduleManager);
-
-
-        moduleManager.LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
-        foreach (var module in moduleManager.Modules)
-        {
-            Console.Write($"Configuring module {module.Name}\n");
-            services.AddModule(module, Configuration);
-        }
 
         // configure db contexts in this method
         ConfigureDbContexts(services);
@@ -285,12 +274,6 @@ public class Startup
         if (Configuration.GetValue<bool>("HttpLogging:Enabled"))
         {
             app.UseHttpLogging();
-        }
-
-        foreach (var module in moduleManager.Modules)
-        {
-            logger.LogInformation($"Configuring module {module.Name}\n");
-            app.ConfigureModule(module);
         }
 
         InitializeDatabase(logger, datahubFactory);

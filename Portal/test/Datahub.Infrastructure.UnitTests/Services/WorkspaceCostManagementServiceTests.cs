@@ -42,7 +42,7 @@ namespace Datahub.Infrastructure.UnitTests.Services
                 }
             };
             var armClient = new ArmClient(credentials, SubscriptionId, armClientOptions);
-            _sut = new WorkspaceCostManagementService(armClient, _loggerFactory.CreateLogger<WorkspaceCostManagementService>(), _dbContextFactory);
+            _sut = new WorkspaceCostManagementService(armClient, _loggerFactory.CreateLogger<WorkspaceCostManagementService>(), _dbContextFactory, _configuration);
             _mockCosts =
             [
 

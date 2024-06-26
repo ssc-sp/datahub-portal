@@ -6,9 +6,10 @@
 @inject CultureService _cultureService
 @inject IJSRuntime _jsRuntime
 
-<MudElement Style="@($"max-width: {_maxWidth}; flex-grow: 1;")">
+<MudElement Style="@($"max-width: {_maxWidth}; flex-grow: 1;")" aria-label=@Localizer["search"]>
     <MudTextField T="string"
                   id="search-input"
+                  aria-label="@Localizer["Search"]"
                   Variant="Variant.Outlined"
                   Margin="Margin.Dense"
                   Placeholder="@Localizer["Search"]"
@@ -17,6 +18,7 @@
                   @onfocus="HandleOnFocus"
                   Adornment="Adornment.Start"
                   AdornmentIcon="@Icons.Material.Filled.Search"
+                  AdornmentAriaLabel="@Localizer["Search"]"
                   FullWidth
                   Clearable>
     </MudTextField>

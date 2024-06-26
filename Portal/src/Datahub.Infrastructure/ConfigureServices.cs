@@ -51,6 +51,9 @@ public static class ConfigureServices
             services.AddSingleton<IReverseProxyManagerService, ReverseProxyManagerService>();
         }
 
+        services.AddHostedService<PreloaderService>();
+        services.AddMemoryCache();
+
         var whereAmI = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         var isDevelopment = !string.IsNullOrEmpty(whereAmI) && whereAmI.ToLower() == "development";
 
@@ -59,7 +62,7 @@ public static class ConfigureServices
         if (isDevelopment)
         {
             services.AddScoped<IHealthCheckConsumer, HealthCheckConsumer>();
-            services.AddHostedService<FileWatcherService>();
+            services.AddHostedService<LocalMessageReaderService>();
         }
 
         services.AddMassTransit(x =>
