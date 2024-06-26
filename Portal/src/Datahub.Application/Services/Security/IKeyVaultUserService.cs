@@ -11,6 +11,7 @@ namespace Datahub.Application.Services.Security
         Task DeleteAllSecrets(ProjectCloudStorage projectCloudStorage, string acronym);
         Task<string?> GetSecretAsync(string acronym, string name);
         Task<bool?> IsSecretExpired(string acronym, string name);
+        string GetVaultName(string acronym, string environment);
         Task StoreSecret(string acronym, string name, string secretValue, int monthValidity = 12);
         Task StoreOrUpdateSecret(string acronym, string name, string secretValue, int monthValidity = 12);
     }
