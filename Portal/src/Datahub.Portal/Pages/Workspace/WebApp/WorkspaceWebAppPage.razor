@@ -122,7 +122,7 @@
     }
     @if (_resource is not null && _isConfigured)
     {
-        <EnvironmentVariablesTable resource="@_resource" projectAcronym="@WorkspaceAcronym" isEditable="true"/>
+        <EnvironmentVariablesTable resource="@_resource" projectAcronym="@WorkspaceAcronym" isEditable="true" @ref="@_envVarTable"/>
     }
     @if (_isProvisioned)
     {
@@ -211,6 +211,7 @@
 
     private AppServiceConfiguration _appConfiguration;
     private Project_Resources2 _resource;
+    private EnvironmentVariablesTable _envVarTable;
 
     private bool _isUrlRewritingEnabled;
     private WorkspaceWebAppInfoTable _webappInfoTable;
@@ -299,7 +300,7 @@
         }
     }
 
-    private async Task ExecuteAsyncWithStateChangeDelay(Func<string, Task<bool>> action, string param, int delay)
+    private async Task ExecuteAsyncWithStateChangeDelay(Func<string, Task<bool>> action, string webAppId, int delay)
     {
         if (action.Method.Name == "Start" || action.Method.Name == "Stop")
         {
@@ -311,7 +312,21 @@
         }
 
         StateHasChanged();
-        await action.Invoke(param);
+        switch (action.Method.Name)
+        {
+            case "Start":
+                await _webAppMgmtService.Start(webAppId, WorkspaceAcronym);
+                _envVarTable.needsRestart = false;
+                break;
+            case "Restart":
+                await _webAppMgmtService.Restart(webAppId, WorkspaceAcronym);
+                _envVarTable.needsRestart = false;
+                break;
+            default:
+                action.Invoke(webAppId);
+                break;
+        }
+
         await Task.Delay(delay);
         _webAppState = await _webAppMgmtService.GetState(_webAppId);
         _isStartStopping = false;

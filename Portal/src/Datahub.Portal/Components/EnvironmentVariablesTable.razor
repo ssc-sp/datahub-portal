@@ -89,7 +89,9 @@ else if (isEditable)
             }
             else
             {
-                <MudTd DataLabel="@Localizer["Value"]"><MudAlert Dense Variant="Variant.Outlined" Severity="Severity.Error" Style="color: #000">@Localizer["Could not find value"]</MudAlert></MudTd>
+                <MudTd DataLabel="@Localizer["Value"]">
+                    <MudAlert Dense Variant="Variant.Outlined" Severity="Severity.Error" Style="color: #000">@Localizer["Could not find value"]</MudAlert>
+                </MudTd>
             }
         </RowTemplate>
         <RowEditingTemplate>
@@ -109,9 +111,12 @@ else if (isEditable)
                     @Localizer["Add environment variable"]
                 </DHButton>
             </MudTd>
-            <MudTd>
-                <MudAlert Variant="Variant.Outlined" Severity="Severity.Info" Style="color: #000000">@Localizer["Environment variables keys cannot be modified"]</MudAlert>
-            </MudTd>
+            @if (needsRestart)
+            {
+                <MudTd>
+                    <MudAlert Variant="Variant.Outlined" Severity="Severity.Warning" Style="color: #000000">@Localizer["You must restart your web application to apply the latest changes."]</MudAlert>
+                </MudTd>
+            }
         </FooterContent>
     </MudTable>
     <MudText Align="Align.Start" Class="mb-6">
@@ -177,6 +182,7 @@ else
     private bool _show = false;
     private bool envError = false;
     private bool loading = true;
+    public bool needsRestart = false;
     private Datahub_Project_User? projectUser;
 
     protected override async Task OnInitializedAsync()
@@ -200,4 +206,3 @@ else
     }
 
 }
-
