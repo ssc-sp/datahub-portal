@@ -63,7 +63,7 @@ public class AzureConfig : IAzureServicePrincipalConfig
 
     /// <summary>
     /// Timespan between alerts for infrastructure health checks. This uses TimeSpan format. 
-    /// e.g. "1" = 1 day; "1:23" = 1 hour 12 minutes; "1.6:00" => 1 day 6 hours.
+    /// e.g. "1" = 1 day; "1:23" = 1 hour 23 minutes; "1.6:00" => 1 day 6 hours.
     /// For more information: https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-timespan-parse
     /// </summary>
     public string InfrastructureAlertDebounceTimeSpan => _config["InfrastructureAlertDebounceTimeSpan"] ?? "1";
