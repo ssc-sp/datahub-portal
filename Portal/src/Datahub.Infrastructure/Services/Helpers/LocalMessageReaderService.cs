@@ -286,7 +286,8 @@ public class LocalMessageReaderService : BackgroundService
             Name = check.Name,
             ResourceType = check.ResourceType,
             Status = check.Status,
-            HealthCheckTimeUtc = check.HealthCheckTimeUtc
+            HealthCheckTimeUtc = check.HealthCheckTimeUtc,
+            Details = check.Details,
         });
         try
         {
@@ -315,7 +316,8 @@ public class LocalMessageReaderService : BackgroundService
             Name = check.Name,
             ResourceType = check.ResourceType,
             Status = check.Status,
-            HealthCheckTimeUtc = check.HealthCheckTimeUtc
+            HealthCheckTimeUtc = check.HealthCheckTimeUtc,
+            Details = check.Details,
         });
         try
         {
@@ -364,6 +366,10 @@ public class LocalMessageReaderService : BackgroundService
         if (!errors.Any())
         {
             check.Status = InfrastructureHealthStatus.Healthy;
+        }
+        else
+        {
+            check.Details = string.Join(", ", errors);
         }
 
         return new InfrastructureHealthCheckResponse(check, errors);
@@ -446,7 +452,10 @@ public class LocalMessageReaderService : BackgroundService
         {
             check.Status = InfrastructureHealthStatus.Healthy;
         }
-
+        else
+        {
+            check.Details = string.Join(", ", errors);
+        }
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
@@ -491,6 +500,10 @@ public class LocalMessageReaderService : BackgroundService
         if (!errors.Any())
         {
             check.Status = InfrastructureHealthStatus.Healthy;
+        }
+        else
+        {
+            check.Details = string.Join(", ", errors);
         }
 
         return new InfrastructureHealthCheckResponse(check, errors);
@@ -596,6 +609,11 @@ public class LocalMessageReaderService : BackgroundService
             }
         }
 
+
+        if (errors.Any())
+        {
+            check.Details = string.Join(", ", errors);
+        }
         return new InfrastructureHealthCheckResponse(check, errors);
     }
   
@@ -684,6 +702,10 @@ public class LocalMessageReaderService : BackgroundService
         {
             check.Status = InfrastructureHealthStatus.Healthy;
         }
+        else
+        {
+            check.Details = string.Join(", ", errors);
+        }
 
         return new InfrastructureHealthCheckResponse(check, errors);
     }
@@ -729,6 +751,10 @@ public class LocalMessageReaderService : BackgroundService
         if (!errors.Any())
         {
             check.Status = InfrastructureHealthStatus.Healthy;
+        }
+        else
+        {
+            check.Details = string.Join(", ", errors);
         }
 
         return new InfrastructureHealthCheckResponse(check, errors);
@@ -788,6 +814,10 @@ public class LocalMessageReaderService : BackgroundService
         if (!errors.Any())
         {
             check.Status = InfrastructureHealthStatus.Healthy;
+        }
+        else
+        {
+            check.Details = string.Join(", ", errors);
         }
 
         return new InfrastructureHealthCheckResponse(check, errors);
@@ -852,6 +882,10 @@ public class LocalMessageReaderService : BackgroundService
         {
             check.Status = InfrastructureHealthStatus.Healthy;
         }
+        else
+        {
+            check.Details = string.Join(", ", errors);
+        }
 
         return new InfrastructureHealthCheckResponse(check, errors);
     }
@@ -915,6 +949,10 @@ public class LocalMessageReaderService : BackgroundService
                     errors.Add($"Error while checking Web App health: {ex.Message}");
                 }
             }
+        }
+        if (errors.Any())
+        {
+            check.Details = string.Join(", ", errors);
         }
 
         return new InfrastructureHealthCheckResponse(check, errors);

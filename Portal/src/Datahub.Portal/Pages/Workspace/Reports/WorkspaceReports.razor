@@ -1,12 +1,12 @@
 <MudStack>
     <MudText Typo="Typo.h2">@Localizer["Workspace Reports"]</MudText>
-    
-    <WorkspaceCostingReport WorkspaceAcronym="@WorkspaceAcronym" />
-    <WorkspaceStorageReport WorkspaceAcronym="@WorkspaceAcronym" />
+
+    <WorkspaceCostingReport WorkspaceAcronym="@WorkspaceAcronym"/>
+    <MudDivider Class="my-6"/>
+    <WorkspaceStorageReport WorkspaceAcronym="@WorkspaceAcronym"/>
 </MudStack>
 
 @code {
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
-    
+    [Parameter] public string WorkspaceAcronym { get; set; }
+
 }
