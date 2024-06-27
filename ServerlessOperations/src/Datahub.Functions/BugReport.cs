@@ -38,7 +38,7 @@ namespace Datahub.Functions
                 if (bug.BugReportType == BugReportTypes.InfrastructureError)
                 {
                     var recentAlert = await alertRecordService.GetRecentAlertForBugMessage(bug);
-                    if (recentAlert != null)
+                    if (recentAlert?.EmailSent ?? false)
                     {
                         logger.LogInformation($"Infrastructure alert has already been sent recently: {recentAlert.ReportIdentifier}");
                         return;
@@ -56,10 +56,19 @@ namespace Datahub.Functions
 
                 if (email is not null)
                 {
-                    await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
-                        email);
+                    try
+                    {
+                        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
+                            email);
 
-                    await alertRecordService.RecordReceivedAlert(bug);
+                        await alertRecordService.RecordReceivedAlert(bug);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogError(e, "Unable to send email.");
+
+                        await alertRecordService.RecordReceivedAlert(bug, false);
+                    }
                 }
                 else
                 {

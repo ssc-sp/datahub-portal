@@ -35,11 +35,16 @@ namespace Datahub.Functions.Services
 
             var earliestTime = DateTimeOffset.Now.Subtract(timeSpan);
 
-            var alertsSinceTime = client.QueryAsync<ReceivedAlert>(r => r.ReportIdentifier ==  reportIdentifier && r.Timestamp >= earliestTime);
-            return await alertsSinceTime.OrderByDescending(a => a.Timestamp).FirstOrDefaultAsync();
+            var alertsSinceTime = client
+                .QueryAsync<ReceivedAlert>(r => r.ReportIdentifier ==  reportIdentifier && r.Timestamp >= earliestTime)
+                .OrderByDescending(r => r.EmailSent)
+                .ThenByDescending(r => r.Timestamp);
+
+            var latestAlert = await alertsSinceTime.FirstOrDefaultAsync();
+            return latestAlert;
         }
 
-        public async Task<ReceivedAlert> RecordReceivedAlert(BugReportMessage bugReportMessage)
+        public async Task<ReceivedAlert> RecordReceivedAlert(BugReportMessage bugReportMessage, bool sent = true)
         {
             var alertClient = await CreateTableClient(RECEIVED_ALERTS_TABLE_NAME);
             var bugReportClient = await CreateTableClient(BUG_REPORT_MESSAGES_TABLE_NAME);
@@ -49,6 +54,7 @@ namespace Datahub.Functions.Services
             //TODO check response
 
             var savedAlert = savedBugReport.GenerateAlertRecord();
+            savedAlert.EmailSent = sent;
             var alertResponse = await alertClient.AddEntityAsync(savedAlert);
             //TODO check response
 

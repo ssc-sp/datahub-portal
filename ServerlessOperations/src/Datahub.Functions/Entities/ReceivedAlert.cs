@@ -12,6 +12,7 @@ namespace Datahub.Functions.Entities
     {
         public string ReportIdentifier { get; set; }
         public string SavedBugMessageRowKey { get; set; }
+        public bool EmailSent { get; set; }
         public string PartitionKey { get; set; }
         public string RowKey { get; set; }
         public DateTimeOffset? Timestamp { get; set; }
