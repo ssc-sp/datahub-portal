@@ -37,13 +37,13 @@
                 <MudStack Row="true" Justify="Justify.FlexEnd">
                     @if (ShowDiscardButton)
                     {
-                        <DHButton OnClick=@HandleDiscard Variant="Variant.Filled" Color="Color.Default">
+                        <MudButton OnClick=@HandleDiscard Variant="Variant.Filled" Color="Color.Default">
                             <MudText>@Localizer["Discard"]</MudText>
-                        </DHButton>
+                        </MudButton>
                     }
                     @if (ShowSaveButton)
                     {
-                        <DHButton OnClick=@HandleSaveButton 
+                        <MudButton OnClick=@HandleSaveButton 
                                    Disabled=@SaveDisabled                                   
                                    Variant="Variant.Filled" 
                                    Color="Color.Primary">
@@ -56,7 +56,7 @@
                             {
                                 <MudText>@SaveButtonLabel</MudText>
                             }
-                        </DHButton>
+                        </MudButton>
                     }
                 </MudStack>
             </MudStack>

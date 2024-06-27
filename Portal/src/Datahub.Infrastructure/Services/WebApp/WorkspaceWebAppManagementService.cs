@@ -134,7 +134,12 @@ namespace Datahub.Infrastructure.Services.WebApp
 
         internal string BuildSecretReference(string keyVaultName, string envVarKey)
         {
-            return $"@Microsoft.KeyVault(VaultName={keyVaultName};SecretName={envVarKey})";
+            return $"@Microsoft.KeyVault(VaultName={keyVaultName};SecretName={ToSecretName(envVarKey)})";
+        }
+        
+        internal string ToSecretName(string key)
+        {
+            return key.ToLower().Replace("_", "-");
         }
 
         public async Task<Dictionary<string, string>> GetAppSettings(string webAppId)

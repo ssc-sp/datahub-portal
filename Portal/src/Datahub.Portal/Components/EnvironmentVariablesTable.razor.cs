@@ -28,7 +28,7 @@ namespace Datahub.Portal.Components
                 .MaximumLength(200)
                 .WithMessage("Key cannot be longer than 200 characters");
             RuleFor(x => x.Key)
-                .Matches(@"^[0-9a-zA-Z\-]+$").WithMessage("Key can only contain letters, numbers and dashes");
+                .Matches(@"^[a-zA-Z_]+$").WithMessage("Key can only contain letters and underscores");
 
             RuleFor(x => x.Value)
                 .NotEmpty()
@@ -97,10 +97,21 @@ namespace Datahub.Portal.Components
 
         private async Task<string> GetEnvironmentVariable(string key, Project_Role role)
         {
+            var secretName = ToKeyVaultName(key);
             var value = role.IsAtLeastAdmin
-                ? (await keyVaultUserService.GetSecretAsync(projectAcronym, key)) ?? string.Empty
+                ? (await keyVaultUserService.GetSecretAsync(projectAcronym, secretName)) ?? string.Empty
                 : string.Empty;
             return value;
+        }
+
+        private string ToKeyVaultName(string key)
+        {
+            return key.ToLower().Replace("_", "-");
+        }
+        
+        private string ToEnvironmentVariableName(string key)
+        {
+            return key.ToUpper().Replace("-", "_");
         }
 
         private void HandleCommitEditClicked(MouseEventArgs args)
@@ -130,14 +141,27 @@ namespace Datahub.Portal.Components
                 Localizer[
                         "Enter the key of your new environment variable. Environment variable keys cannot be changed and environment variables cannot be deleted."]
                     .ToString());
+
+            if (string.IsNullOrWhiteSpace(newKey))
+            {
+                return;
+            }
+
             var newValue = await _jsRuntime.InvokeAsync<string>("prompt",
                 Localizer["Enter the value of your new environment variable. You may edit this value later."]
                     .ToString());
+
+            if (string.IsNullOrWhiteSpace(newValue))
+            {
+                return;
+            }
+
             KeyValuePair newKVP = new() { Key = newKey, Value = newValue };
             var validation = ValidateKeyValuePair().Invoke(newKVP);
 
             if (string.IsNullOrWhiteSpace(validation))
             {
+                newKVP.Key = newKVP.Key.ToUpper();
                 await CreateOrUpdateEnvironmentVariable(newKVP);
                 _snackbar.Add(Localizer["Environment variable {0} has been added.", newKey], Severity.Success);
             }
@@ -224,7 +248,7 @@ namespace Datahub.Portal.Components
         private async Task UpdateKeyVault(KeyValuePair kvp)
         {
             _logger.LogInformation($"Storing or updating secret {kvp.Key} in KeyVault.");
-            await keyVaultUserService.StoreOrUpdateSecret(projectAcronym, kvp.Key, kvp.Value);
+            await keyVaultUserService.StoreOrUpdateSecret(projectAcronym, ToKeyVaultName(kvp.Key), kvp.Value);
             _logger.LogInformation($"Secret {kvp.Key} stored or updated successfully.");
         }
 
