@@ -23,6 +23,7 @@ public class BugReportTests
     private IEmailService _emailService;
     private BugReportMessage _bugReportMessage;
     private ISendEndpointProvider _iSendEndpointProvider;
+    private IAlertRecordService _alertRecordService;
 
     [SetUp]
     public void SetUp()
@@ -31,7 +32,8 @@ public class BugReportTests
         _logger = _loggerFactory.CreateLogger<BugReport>();
         _azureConfig = new AzureConfig(_config);
         _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
-        _bugReport = new BugReport(_logger, _azureConfig, _emailService, _iSendEndpointProvider);
+        _alertRecordService = new AlertRecordService(_azureConfig);
+        _bugReport = new BugReport(_logger, _azureConfig, _emailService, _iSendEndpointProvider, _alertRecordService);
         _bugReportMessage = new BugReportMessage(
             UserName: "Test",
             UserEmail: "example@email.com",
