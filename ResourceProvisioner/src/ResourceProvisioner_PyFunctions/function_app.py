@@ -16,9 +16,9 @@ import healthcheck_message as hcm
 app = func.FunctionApp()
 
 def get_config():
-    asb_connection_str = os.getenv('AzureServiceBusConnectionString')
+    asb_connection_str = os.getenv('DatahubServiceBus')
     queue_name = "bug-report" // os.getenv('AzureServiceBusQueueName')
-    sql_connection_str = os.getenv('AzureSqlConnectionString')
+    sql_connection_str = os.getenv('DatahubMSSQLProjectConnectionString')
     return asb_connection_str, queue_name, sql_connection_str
 
 @app.function_name(name="SynchronizeWorkspaceUsersHttpTrigger")
