@@ -3,12 +3,23 @@ import logging
 import lib.databricks_utils as dtb_utils
 import lib.azkeyvault_utils as azkv_utils
 import lib.azstorage_utils as azsg_utils
+import azure.servicebus as servicebus
 import os
+import pyodbc
 import json
+import bug_report_message as brm
+import healthcheck_message as hcm
 
 #from lib.databricks_utils import get_workspace_client, remove_deleted_users_in_workspace, synchronize_workspace_users
+#from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
 app = func.FunctionApp()
+
+def get_config():
+    asb_connection_str = os.getenv('AzureServiceBusConnectionString')
+    queue_name = "bug-report" // os.getenv('AzureServiceBusQueueName')
+    sql_connection_str = os.getenv('AzureSqlConnectionString')
+    return asb_connection_str, queue_name, sql_connection_str
 
 @app.function_name(name="SynchronizeWorkspaceUsersHttpTrigger")
 @app.route(route="sync-workspace-users") # HTTP Trigger
@@ -46,7 +57,41 @@ def queue_sync_workspace_users_function(msg: func.ServiceBusMessage):
     workspace_definition = keys_upper(workspace_definition)
     synchronize_workspace(workspace_definition)
     return None
-    
+
+def send_exception_to_service_bus(exception_message):
+    asb_connection_str, queue_name = get_config()
+    bug_report = brm.BugReportMessage(
+        UserName="Datahub Portal",
+        UserEmail="",
+        UserOrganization="",
+        PortalLanguage="",
+        PreferredLanguage="",
+        Timezone="",
+        Workspaces="",
+        Topics="Databricks Syncronization",
+        URL="",
+        UserAgent="",
+        Resolution="",
+        LocalStorage="",
+        BugReportType="Synchronizing databricks workspace error",
+        Description=exception_message
+    )
+    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str) as client:
+        with client.get_queue_sender(queue_name) as sender:
+            message = servicebus.ServiceBusMessage(bug_report.to_json())
+            sender.send_messages(message)
+            print(f"Sent message to queue: {queue_name}")
+
+def send_healthcheck_to_sql_database(message):
+    sql_connection_str = get_config()
+    sql_query = "insert into [dbo].[InfrastructureHealthChecks] \
+        ([Group],[Name],ResourceType],[Status],[HealthCheckTimeUtc],[details]) \
+        values (?, ?, ?, ?, ?, ?)"
+    with pyodbc.connect(sql_connection_str) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(sql_query, message.Group, message.Name, message.Type, message.Status, message.HealthCheckTimeUtc, message.Details)
+            conn.commit()
+
 def keys_upper(dictionary):
     """
     Converts the key's first letter in the dictionary to uppercase.
@@ -76,13 +121,19 @@ def synchronize_workspace(workspace_definition):
     logging.info(f"Synchronizing databricks users for {workspace_name}.")
     all_synchronized = False
     last_exception = None
+    healthcheck_message = hcm.HealthcheckMessage(3, "workspaces", workspace_name, "")
     try:
         sync_databricks_workspace_users_function(workspace_definition)
         all_synchronized = all_synchronized and True
+        healthcheck_message.Status = 2
     except Exception as e:
-        logging.exception(f"Error synchronizing databricks users for {workspace_name}.")
+        exception_message = f"Error synchronizing databricks users for {workspace_name}: {e}"
+        logging.exception(exception_message)    
+        send_exception_to_service_bus(exception_message)
         last_exception = e
         all_synchronized = False
+        healthcheck_message.Status = 4
+        healthcheck_message.Details = exception_message
     #    return func.HttpResponse(f"Error synchronizing databricks users for {workspace_name}. {e}", status_code=500)    
     
     logging.info(f"Synchronizing keyvault users for {workspace_name}.")
@@ -90,19 +141,28 @@ def synchronize_workspace(workspace_definition):
         sync_keyvault_workspace_users_function(workspace_definition)
         all_synchronized = all_synchronized and True
     except Exception as e:
-        logging.exception(f"Error synchronizing keyvault users for {workspace_name}.")
+        exception_message = f"Error synchronizing keyvault users for {workspace_name}: {e}"
+        logging.exception(exception_message)    
+        send_exception_to_service_bus(exception_message)
         last_exception = e
         all_synchronized = False
+        healthcheck_message.Status = 4
+        healthcheck_message.Details = healthcheck_message.Details + exception_message
 
     logging.info(f"Synchronizing storage account policies for {workspace_name}")
     try:
         sync_storage_workspace_users_function(workspace_definition)
         all_synchronized = all_synchronized and True
     except Exception as e:
-        logging.exception(f"Error synchronizing storage account policies for {workspace_name}.")
+        exception_message = f"Error synchronizing storage account policies for {workspace_name}: {e}"
+        logging.exception(exception_message)    
+        send_exception_to_service_bus(exception_message)
         last_exception = e
         all_synchronized = False
+        healthcheck_message.Status = 4
+        healthcheck_message.Details = healthcheck_message.Details + exception_message
 
+    send_healthcheck_to_sql_database(healthcheck_message)
     if last_exception is not None:
         raise last_exception
     logging.info(f"Successfully synchronized workspace users for {workspace_name}.")
