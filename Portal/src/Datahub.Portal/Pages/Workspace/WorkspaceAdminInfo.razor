@@ -20,14 +20,14 @@
                       Height="150px"
                       InputData="@(new[] { (double)(_remainingBudget / _projectBudget), (double)(1 - (_remainingBudget / _projectBudget)) })">
                 <CustomGraphics>
-                    <text class="donut-inner-text" x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">@Localizer["remaining credits"]</text>
-                    <text class="donut-inner-text" x="50%" y="47.5%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="4">@($"{_remainingBudget:C}")</text>
-                    <text class="donut-inner-text" x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">@Localizer["of {0}", $"{_projectBudget:C}"]</text>
+                    <text class="donut-inner-text" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="6">@Localizer["{0}", $"{(_projectBudget-_remainingBudget):C}"]</text>
+                    <text class="donut-inner-text" x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="5">@Localizer["spent"]</text>
                 </CustomGraphics>
             </MudChart>
         </MudItem>
         <MudItem xs="12" sm="6">
             <MudStack>
+                <MudText>@Localizer["{0} remaining credits of {1}", $"{_remainingBudget:C}", $"{_projectBudget:C}"]</MudText>
                 <MudText>@Localizer["{0} credits consumed yesterday", $"{_yesterdayCost:C}"]</MudText>
                 <MudText>@Localizer["{0} credits consumed on average (daily)", $"{_averageDailyCost:C}"]</MudText>
                 <DHButton Href="@($"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Reports}")" Variant="Variant.Text">
@@ -58,7 +58,7 @@
     private ChartOptions _chartOptions = new ChartOptions
     {
         DisableLegend = true,
-        ChartPalette = new[] { DatahubTheme.DefaultTheme.Palette.Primary.ToString(), DatahubTheme.DefaultTheme.Palette.BackgroundGrey.ToString() },
+        ChartPalette = new[] { DatahubTheme.DefaultTheme.Palette.Primary.ToString(), DatahubTheme.DefaultTheme.Palette.GrayLighter.ToString() },
     };
 
     protected override async Task OnInitializedAsync()
