@@ -32,4 +32,5 @@ public static class PageRoutes
     public const string TermsAndConditions = "/terms-and-conditions";
 
     public const string Help = "/help";
+    public const string CreateWorkspace = "/create-workspace";
 }
