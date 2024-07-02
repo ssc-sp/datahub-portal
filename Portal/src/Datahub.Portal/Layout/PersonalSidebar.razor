@@ -35,7 +35,7 @@
             <MudSpacer/>
             @if (userRoles.Any())
             {
-                <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="@ShowProjectDialog" Disabled="@_canNotCreateWorkspace">
+                <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Href="@PageRoutes.CreateWorkspace" Disabled="@_canNotCreateWorkspace">
                     <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;" />
                     @Localizer["New"]
                 </DHButton>
