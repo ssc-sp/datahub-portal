@@ -66,7 +66,7 @@
         } 
         else
         {
-            <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" OnClick="@ShowProjectDialog">
+            <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" Href="@PageRoutes.CreateWorkspace">
                 <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;" />
                 @Localizer["Create new"]
                 <MudSpacer/>
@@ -296,17 +296,6 @@
 
             _ => Localizer["Public Profile"]
         };
-    }
-
-    private async Task ShowProjectDialog()
-    {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await _dialogService.ShowAsync<CreateProjectDialog>(Localizer["Create a new Workspace"], options);
-        var dialogResult = await dialog.Result;
-        if (!dialogResult.Canceled)
-        {
-            _navigationManager.NavigateTo($"{PageRoutes.WorkspacePrefix}/{dialogResult.Data}", true);
-        }
     }
 
     private string GetSectionViewUrl((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
