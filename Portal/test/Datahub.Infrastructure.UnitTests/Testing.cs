@@ -5,6 +5,7 @@ using System.Text.Json.Nodes;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Core.Data.Databricks;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Services;
@@ -26,7 +27,7 @@ public partial class Testing
     internal static DatabricksApiService _databricksApiService = null!;
     internal static DatahubPortalConfiguration _datahubPortalConfiguration = null!;
     internal static DatahubProjectDBContext _dbContext =
-                new (new DbContextOptions<DatahubProjectDBContext>());
+                new SqlServerDatahubContext(new DbContextOptions<DatahubProjectDBContext>());
     internal static IDbContextFactory<DatahubProjectDBContext> _dbContextFactory =
         Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
     internal static ILoggerFactory _loggerFactory;
@@ -138,5 +139,6 @@ public partial class Testing
     public void RunAfterAnyTests()
     {
         _loggerFactory.Dispose();
+        _dbContext?.Dispose();
     }
 }

@@ -1,6 +1,7 @@
 using Azure.Core;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
@@ -24,13 +25,13 @@ public class DatabricksApiServiceTests
             new DbContextOptionsBuilder<DatahubProjectDBContext>()
                 .UseInMemoryDatabase(new Guid().ToString());
         // create a mock factory to return the db context when CreateDbContextAsync is called
-        var context = new DatahubProjectDBContext(optionsBuilder.Options);
+        var context = new SqlServerDatahubContext(optionsBuilder.Options);
         context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
         _mockFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
         _mockFactory
             .Setup(f => f.CreateDbContextAsync(CancellationToken.None))
-            .ReturnsAsync(() => new DatahubProjectDBContext(optionsBuilder.Options));
+            .ReturnsAsync(() => new SqlServerDatahubContext(optionsBuilder.Options));
 
         // create a mock user information service to return the current (admin) user when GetCurrentGraphUserAsync is called
         _mockUserInformationService = new Mock<IUserInformationService>();

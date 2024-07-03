@@ -102,6 +102,9 @@
 		<ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
 		<ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Migrations\" />
+	</ItemGroup>
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
 		<Copy SourceFiles="@(GitHookFiles)" DestinationFolder="../.git/hooks/" SkipUnchangedFiles="true" />

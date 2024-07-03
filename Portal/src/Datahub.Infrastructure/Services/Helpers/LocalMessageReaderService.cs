@@ -3,6 +3,7 @@ using Azure.Messaging.ServiceBus;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Queues;
 using Datahub.Application.Configuration;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Health;
 using Datahub.Core.Utils;

@@ -1,5 +1,6 @@
 ﻿using Datahub.CatalogSearch;
 using Datahub.Core.Model.Catalog;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.CatalogSearch;
 using Microsoft.EntityFrameworkCore;

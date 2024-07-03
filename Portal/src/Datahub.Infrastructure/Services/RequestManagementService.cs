@@ -9,6 +9,7 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Enums;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.Infrastructure.Services;
 

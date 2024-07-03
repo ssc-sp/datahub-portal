@@ -25,6 +25,7 @@ using Datahub.Infrastructure.Services.Cost;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.Extensions.Azure;
+using Datahub.Core.Model.Context;
 
 
 var host = new HostBuilder()

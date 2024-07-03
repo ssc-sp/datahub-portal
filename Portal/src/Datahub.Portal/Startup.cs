@@ -71,6 +71,7 @@ using Datahub.Infrastructure.Services.UserManagement;
 using Datahub.Infrastructure.Services.ReverseProxy;
 using Datahub.Infrastructure.Services.WebApp;
 using Microsoft.Extensions.Azure;
+using Datahub.Core.Model.Context;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 

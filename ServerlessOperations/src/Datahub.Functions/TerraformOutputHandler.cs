@@ -4,6 +4,7 @@ using System.Transactions;
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services;
 using Datahub.Core.Enums;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Functions.Extensions;
