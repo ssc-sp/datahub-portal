@@ -14,9 +14,9 @@
                 <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
             }
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
-                <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@_viewMembersHref">
+                <DHButton Variant="Variant.Text" Color="Color.Primary" Href="@_viewMembersHref">
                     @Localizer["View Members"]
-                </MudButton>
+                </DHButton>
             </DatahubAuthView>
         </MudStack>
         <MudStack>

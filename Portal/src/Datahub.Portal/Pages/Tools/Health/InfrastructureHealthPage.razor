@@ -25,9 +25,9 @@ else
             @Localizer["View the health of the infrastructure that supports the application and the workspaces."]
             </MudText>
     </MudStack>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => CallFunction(0, "", "all"))" Style="width: fit-content;">
+    <DHButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => CallFunction(0, "", "all"))" Style="width: fit-content;">
         @Localizer["Run all checks"]
-    </MudButton>
+    </DHButton>
     <MudStack>
         <MudText Typo="Typo.h2">@Localizer["Core Health"]</MudText>
         <MudText Typo="Typo.body1">
@@ -43,15 +43,17 @@ else
             <RowTemplate Context="context">
                     <MudTd>@context.ResourceType</MudTd>
                     <MudTd>
+                        <MudTooltip Delay="600" Text="@GetStatusDetails(context)">
                         <MudChip Color="@GetColor(context)" Size="Size.Small">
                             @Localizer[GetStatusText(context)]
                         </MudChip>
+                        </MudTooltip>
                     </MudTd>
-                    <MudTd>@context.HealthCheckTimeUtc</MudTd>
+                    <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
                     <MudTd>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
+                        <DHButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
                             @Localizer["Run"]
-                        </MudButton>
+                        </DHButton>
                     </MudTd>                    
             </RowTemplate>
         </MudTable>
@@ -76,20 +78,24 @@ else
             <RowTemplate>
                 <MudTd>@context.Name</MudTd>
                 <MudTd>
+                    <MudTooltip Delay="600" Text="@GetStatusDetails(context)">
                     <MudChip Color="@GetColor(context)" Size="Size.Small">
                         @Localizer[GetStatusText(context)]
                     </MudChip>
+                    </MudTooltip>
                 </MudTd>
                 <MudTd>
+                    <MudTooltip Delay="600" Text="@GetStatusDetails(context)">
                     <MudChip Color="@GetColor(GetPoison(context))" Size="Size.Small">
                         @Localizer[GetStatusText(GetPoison(context))]
 					</MudChip>
+                    </MudTooltip>
                 </MudTd>
-                <MudTd>@context.HealthCheckTimeUtc</MudTd>
+                        <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
                     <MudTd>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
+                        <DHButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
                             @Localizer["Run"]
-                        </MudButton>
+                        </DHButton>
                     </MudTd>
             </RowTemplate>
         </MudTable>
@@ -118,14 +124,15 @@ else
                         <MudTd>
 							<MudChip Color="@GetColor(InfrastructureHealthStatus.Undefined)" Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
 								@Localizer[InfrastructureHealthStatus.Undefined.ToString()]
-							</MudChip/>
+							</MudChip>
                         </MudTd>
                     }
                     else
                     {
                         var realStatus = GetRealStatus(health);
+                        var details = GetStatusDetails(health);
                         <MudTd>
-                            <MudTooltip Delay="600" Text="@health.HealthCheckTimeUtc.ToString()">
+                            <MudTooltip Delay="600" Text="@details">
 							<MudChip Color="@GetColor(realStatus)" 
                                 Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
 								@Localizer[realStatus.ToString()]
@@ -238,7 +245,27 @@ else
                 .GroupBy(h => h.Name)
                 .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
                 .ToList();
+
+        foreach(var item in queues)
+        {
+            var found = _queueInfrastructureHealth
+                .Where(h => h.ResourceType == InfrastructureHealthResourceType.AsureServiceBus && h.Name == item).Any();
+            if (!found)
+            {
+                var backfill = new InfrastructureHealthCheck
+                    {
+                        Id = Guid.NewGuid().GetHashCode(),
+                        ResourceType = InfrastructureHealthResourceType.AsureServiceBus,
+                        Group = "0",
+                        Name = item,
+                        Status = InfrastructureHealthStatus.NeedHealthCheckRun
+                    };
+                _queueInfrastructureHealth.Add(backfill);
+            }
+        }
+
         hasQueues = _queueInfrastructureHealth.Count > 0;
+
         string[] poison_queues = new string[]
         {
             "delete-run-request-poison", "email-notification-poison", "pong-queue-poison", "project-capacity-update-poison", "project-inactivity-notification-poison",
@@ -251,6 +278,23 @@ else
                 .GroupBy(h => h.Name)
                 .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
                 .ToList();
+        foreach(var item in queues)
+        {
+            var found = _poisonQueueInfrastructureHealth
+                .Where(h => h.ResourceType == InfrastructureHealthResourceType.AsureServiceBus && h.Name == item).Any();
+            if (!found)
+            {
+                var backfill = new InfrastructureHealthCheck
+                    {
+                        Id = Guid.NewGuid().GetHashCode(),
+                        ResourceType = InfrastructureHealthResourceType.AsureServiceBus,
+                        Group = "1",
+                        Name = item,
+                        Status = InfrastructureHealthStatus.NeedHealthCheckRun
+                    };
+                _poisonQueueInfrastructureHealth.Add(backfill);
+            }
+        }
     }
     private List<InfrastructureHealthCheck> GetHealthCheckHistory(InfrastructureHealthResourceType resourceType, string Name, string Group )
     {
@@ -268,7 +312,7 @@ else
         }
         return list;
     } 
- 
+
     private async Task CallFunction(InfrastructureHealthResourceType type, string name, string group)
     {
         if (group == "all")
@@ -340,6 +384,13 @@ else
         return realStatus;
     }
 
+    private static string GetStatusDetails(InfrastructureHealthCheck health)
+    {
+        var timeStamp = health.HealthCheckTimeUtc.ToLocalTime().ToString();
+        if (health.Status == InfrastructureHealthStatus.Healthy) return timeStamp;
+        return $"{health.Details} (as of {timeStamp})";
+    }
+    
     private static string GetStatusText(InfrastructureHealthCheck health)
     {
         var realStatus = GetRealStatus(health);

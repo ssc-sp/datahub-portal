@@ -47,6 +47,7 @@ public static class TerraformVariables
     public const string BackendStorageAccountName = "storage_account_name";
     public const string BackendContainerName = "container_name";
     public const string BackendKeyName = "key";
+    public const string BackendSubscriptionIdName = "subscription_id";
 
     // Workspace related variables
     public const string ProjectAcronym = "project_cd";

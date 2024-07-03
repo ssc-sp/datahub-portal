@@ -19,7 +19,8 @@ namespace Datahub.Functions
         ILogger<BugReport> logger,
         AzureConfig config,
         IEmailService emailService,
-        ISendEndpointProvider sendEndpointProvider)
+        ISendEndpointProvider sendEndpointProvider,
+        IAlertRecordService alertRecordService)
     {
         [Function("BugReport")]
         public async Task Run(
@@ -33,6 +34,17 @@ namespace Datahub.Functions
 
             if (bug != null)
             {
+                // check if alert has been sent out recently (InfrastructureError only - other alerts get sent regardless)
+                if (bug.BugReportType == BugReportTypes.InfrastructureError)
+                {
+                    var recentAlert = await alertRecordService.GetRecentAlertForBugMessage(bug);
+                    if (recentAlert?.EmailSent ?? false)
+                    {
+                        logger.LogInformation($"Infrastructure alert has already been sent recently: {recentAlert.ReportIdentifier}");
+                        return;
+                    }
+                }
+
                 // Build the ADO issue
                 var issue = CreateIssue(bug);
 
@@ -44,8 +56,19 @@ namespace Datahub.Functions
 
                 if (email is not null)
                 {
-                    await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
-                        email);
+                    try
+                    {
+                        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
+                            email);
+
+                        await alertRecordService.RecordReceivedAlert(bug);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogError(e, "Unable to send email.");
+
+                        await alertRecordService.RecordReceivedAlert(bug, false);
+                    }
                 }
                 else
                 {

@@ -10,17 +10,17 @@ namespace Datahub.Infrastructure.Offline
         }
 
         public Task SetWorkspaceBudgetAmountAsync(string workspaceAcronym, decimal amount, bool rollover = false,
-            string? budgetId = null)
+            List<string>? budgetIds = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<decimal> GetWorkspaceBudgetSpentAsync(string workspaceAcronym, string? budgetId = null)
+        public Task<decimal> GetWorkspaceBudgetSpentAsync(string workspaceAcronym, List<string>? budgetIds = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<decimal> UpdateWorkspaceBudgetSpentAsync(string workspaceAcronym, string? budgetId = null)
+        public Task<decimal> UpdateWorkspaceBudgetSpentAsync(string workspaceAcronym, List<string>? budgetIds = null)
         {
             throw new NotImplementedException();
         }

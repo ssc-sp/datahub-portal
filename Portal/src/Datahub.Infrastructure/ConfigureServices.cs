@@ -62,7 +62,7 @@ public static class ConfigureServices
         if (isDevelopment)
         {
             services.AddScoped<IHealthCheckConsumer, HealthCheckConsumer>();
-            services.AddHostedService<FileWatcherService>();
+            services.AddHostedService<LocalMessageReaderService>();
         }
 
         services.AddMassTransit(x =>

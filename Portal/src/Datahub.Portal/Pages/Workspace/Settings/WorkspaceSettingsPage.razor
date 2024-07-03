@@ -44,9 +44,9 @@
                     <MudItem xs="12">
                         <MudStack Row AlignItems="AlignItems.Center">
                             <MudElement>
-                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="@SaveChanges">
+                                <DHButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="@SaveChanges">
                                     @Localizer["Save Changes"]
-                                </MudButton>
+                                </DHButton>
                             </MudElement>
                             <MudAlert Severity="Severity.Info">
                                 <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
@@ -59,9 +59,9 @@
 
                 <MudItem xs="12" sm="6" Class="mt-16">
                     <SettingsField Label="@Localizer["Delete Workspace"]" Description="@Localizer["Delete your workspace and all associated data. This action cannot be undone."]">
-                        <MudButton Disabled="false" Variant="Variant.Filled" Color="Color.Error">
+                        <DHButton Disabled="false" Variant="Variant.Filled" Color="Color.Error">
                             @Localizer["Delete Workspace"]
-                        </MudButton>
+                        </DHButton>
                     </SettingsField>
                 </MudItem>
                 <MudItem xs="0" sm="6"/>
@@ -79,9 +79,9 @@
 
                 <MudItem xs="12" sm="6" Class="mt-16">
                     <SettingsField Label="@Localizer["Delete Workspace"]" Description="@Localizer["Delete your workspace and all associated data. This action cannot be undone."]">
-                        <MudButton Disabled="true" Variant="Variant.Filled" Color="Color.Error">
+                        <DHButton Disabled="true" Variant="Variant.Filled" Color="Color.Error">
                             @Localizer["Delete Workspace"]
-                        </MudButton>
+                        </DHButton>
                     </SettingsField>
                 </MudItem>
                 <MudItem xs="0" sm="6"/>

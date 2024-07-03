@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Azure.Storage.Blobs;
@@ -90,13 +91,7 @@ public class ProjectUsageScheduler(
         var blobServiceClient = new BlobServiceClient(_azConfig.MediaStorageConnectionString);
         var containerClient = blobServiceClient.GetBlobContainerClient("costs");
         var blobClient = containerClient.GetBlobClient(fileName);
-        var costs = new BlobCostObject { Costs = subCosts };
-        var costsJson = JsonSerializer.Serialize(costs);
-        using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(costsJson)))
-        {
-            await blobClient.UploadAsync(ms);
-        }
-
+        await blobClient.UploadAsync(BinaryData.FromObjectAsJson(subCosts));
         return fileName;
     }
     
