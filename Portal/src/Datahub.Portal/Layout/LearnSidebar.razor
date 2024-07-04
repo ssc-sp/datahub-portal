@@ -45,27 +45,29 @@
                                     {
                                         <MudNavLink Match="NavLinkMatch.All" Target="_blank" Href=@BuildResourceLink(article)>
                                             <MudStack Row AlignItems="AlignItems.Center">
-                                                <MudIcon role="img" aria-labelledby="decimg01" Icon="@(article.GetSidebarIcon())" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1.25rem;" />
+                                                <MudIcon Title="@Localizer["External"]" role="img" aria-labelledby="decimg01" Icon="@(article.GetSidebarIcon())" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1.25rem;" />
                                                 <MudText>
+                                                    <span class="sr-only" id="decimg01">
+                                                        @Localizer["External"]
+                                                    </span>
                                                     @article.Title
                                                 </MudText>
                                             </MudStack>
                                         </MudNavLink>
-                                        <div class="sr-only" id="decimg01">@Localizer["External"]</div>
                                     }
                                     else
                                     {
                                         <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article)>
                                             <MudStack Row AlignItems="AlignItems.Center">
-                                                <MudIcon role="img" aria-labelledby="decimg01" Icon="@(article.GetSidebarIcon())" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1.25rem;" />
+                                                <MudIcon Title="@((article.DocType == DocItemType.Tutorial) ? @Localizer["Video"] : @Localizer["Document"])" role="img" aria-labelledby="decimg01" Icon="@(article.GetSidebarIcon())" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1.25rem;" />
                                                 <MudText>
+                                                    <span class="sr-only" id="decimg01">
+                                                        @((article.DocType == DocItemType.Tutorial) ? @Localizer["Video: "] : @Localizer["Document: "])
+                                                    </span>
                                                     @article.Title
                                                 </MudText>
                                             </MudStack>
                                         </MudNavLink>
-                                        <div class="sr-only" id="decimg01">
-                                            @((article.DocType == DocItemType.Tutorial) ? @Localizer["Video"] : @Localizer["Document"])
-                                        </div>
                                     }
                                 }
                             </MudNavGroup>
