@@ -23,22 +23,6 @@ namespace Datahub.Core.Model.Context;
 /// </summary>
 public abstract class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBContext>
 {
-    public DatahubProjectDBContext(DbContextOptions<DatahubProjectDBContext> options) : base(options)
-    {
-    }
-
-    // below are used for migrations
-#if MIGRATION
-    public DatahubProjectDBContext() { }
-
-    protected DatahubProjectDBContext(DbContextOptions options) : base(options) { }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder options) {
-        options.UseSqlServer("Server=(LocalDB);Integrated Security=True;MultipleActiveResultSets=True");
-    }
-
-#endif
-
     public DbSet<Datahub_Project> Projects { get; set; }
     public DbSet<PBI_License_Request> PowerBI_License_Requests { get; set; }
     public DbSet<PBI_User_License_Request> PowerBI_License_User_Requests { get; set; }
@@ -143,15 +127,15 @@ public abstract class DatahubProjectDBContext : DbContext //, ISeedable<DatahubP
 
     private readonly DbContextOptions<DatahubProjectDBContext> options;
 
+    // below are used for migrations
+#if MIGRATION
+    public DatahubProjectDBContext() { }
+#endif
+
     public DatahubProjectDBContext(DbContextOptions<DatahubProjectDBContext> options) : base(options)
     {
         this.options = options;
     }
-
-#if MIGRATION
-    // below are used for migrations
-    public DatahubProjectDBContext() { }
-#endif
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
