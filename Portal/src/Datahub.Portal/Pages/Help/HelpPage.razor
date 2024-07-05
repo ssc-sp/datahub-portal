@@ -430,6 +430,18 @@
         config.TenantId = _portalConfiguration.AzureAd.TenantId;
         config.ClientId = _portalConfiguration.AzureAd.InfraClientId;
         config.ClientSecret = _portalConfiguration.AzureAd.InfraClientSecret;
+
+        // Fix for enterprise environment - Verify whether the org/project are set
+        if (config.OrganizationName == null)
+        {
+            config.OrganizationName = _portalConfiguration.AdoOrg.OrgName;
+        }
+
+        if (config.ProjectName == null)
+        {
+            config.ProjectName = _portalConfiguration.AdoOrg.ProjectName;
+        }
+
         var clientProvider = new AzureDevOpsClient(config);
 
         var client2 = await clientProvider.WorkItemClientAsync();
