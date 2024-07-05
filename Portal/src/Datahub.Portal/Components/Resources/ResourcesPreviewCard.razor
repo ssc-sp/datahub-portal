@@ -7,20 +7,9 @@
      <MudStack Justify="Justify.SpaceBetween" Style="height: 100%;">
          <MudStack>
              <MudStack Row AlignItems="AlignItems.Center">
-                <MudIcon role="img" aria-labelledby="decimg01" Icon="@(DocumentItem.GetSidebarIcon())" />
+                <MudIcon role="img" aria-labelledby="decimg01" Icon="@(DocumentItem.GetSidebarIcon())" Title="@GetDocType()"/>
                 <div class="sr-only" id="decimg01">
-                    @if (DocumentItem.DocType == DocItemType.External)
-                    {
-                        @Localizer["External"]
-                    }
-                    else if (DocumentItem.DocType == DocItemType.Tutorial)
-                    {
-                        @Localizer["Video"]
-                    }
-                    else
-                    {
-                        @Localizer["Document"]
-                    }
+                    @GetDocType()
                 </div>
                  <MudText Typo="Typo.body1" Style="@_titleTextStyle">                     
                          @DocumentItem?.Title
@@ -98,6 +87,26 @@
             .AddStyle("height", "150px", when: !ShortVersion)
             .AddStyle("height", "90px", when: ShortVersion)
             .Build();
+    }
+
+    /// <summary>
+    /// Function to get the type of the document
+    /// </summary>
+    /// <returns> The type of the document (external, video, document) </returns>
+    private string GetDocType()
+    {
+        if (DocumentItem.DocType == DocItemType.External)
+        {
+            return @Localizer["External"];
+        }
+        else if (DocumentItem.DocType == DocItemType.Tutorial)
+        {
+            return @Localizer["Video"];
+        }
+        else
+        {
+            return @Localizer["Document"];
+        }
     }
 
 }
