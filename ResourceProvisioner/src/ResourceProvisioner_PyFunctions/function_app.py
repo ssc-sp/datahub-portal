@@ -5,7 +5,6 @@ import lib.azkeyvault_utils as azkv_utils
 import lib.azstorage_utils as azsg_utils
 import azure.servicebus as servicebus
 import os
-import pyodbc
 import json
 import bug_report_message as brm
 import healthcheck_message as hcm
@@ -17,9 +16,9 @@ app = func.FunctionApp()
 
 def get_config():
     asb_connection_str = os.getenv('DatahubServiceBus')
-    queue_name = "bug-report" // os.getenv('AzureServiceBusQueueName')
-    sql_connection_str = os.getenv('DatahubMSSQLProjectConnectionString')
-    return asb_connection_str, queue_name, sql_connection_str
+    queue_name = "bug-report" // os.getenv('AzureServiceBusQueueName4Bugs')
+    check_results_queue_name = "infrastructure-health-check-results" // os.getenv('AzureServiceBusQueueName4Results')
+    return asb_connection_str, queue_name, check_results_queue_name
 
 @app.function_name(name="SynchronizeWorkspaceUsersHttpTrigger")
 @app.route(route="sync-workspace-users") # HTTP Trigger
@@ -82,15 +81,13 @@ def send_exception_to_service_bus(exception_message):
             sender.send_messages(message)
             print(f"Sent message to queue: {queue_name}")
 
-def send_healthcheck_to_sql_database(message):
-    sql_connection_str = get_config()
-    sql_query = "insert into [dbo].[InfrastructureHealthChecks] \
-        ([Group],[Name],ResourceType],[Status],[HealthCheckTimeUtc],[details]) \
-        values (?, ?, ?, ?, ?, ?)"
-    with pyodbc.connect(sql_connection_str) as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(sql_query, message.Group, message.Name, message.Type, message.Status, message.HealthCheckTimeUtc, message.Details)
-            conn.commit()
+def send_healthcheck_to_service_bus(message):
+    asb_connection_str, check_results_queue_name = get_config()
+    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str) as client:
+        with client.get_queue_sender(check_results_queue_name) as sender:
+            message = servicebus.ServiceBusMessage(message.to_json())
+            sender.send_messages(message)
+            print(f"Sent message to queue: {check_results_queue_name}")
 
 def keys_upper(dictionary):
     """
@@ -162,7 +159,7 @@ def synchronize_workspace(workspace_definition):
         healthcheck_message.Status = 4
         healthcheck_message.Details = healthcheck_message.Details + exception_message
 
-    send_healthcheck_to_sql_database(healthcheck_message)
+    send_healthcheck_to_service_bus(healthcheck_message)
     if last_exception is not None:
         raise last_exception
     logging.info(f"Successfully synchronized workspace users for {workspace_name}.")
