@@ -43,7 +43,7 @@ else
             <RowTemplate Context="context">
                     <MudTd>@context.ResourceType</MudTd>
                     <MudTd>
-                        <MudChip Color="@GetColor(context)" Size="Size.Small">
+                        <MudChip T="string" Color="@GetColor(context)" Size="Size.Small">
                             @Localizer[GetStatusText(context)]
                         </MudChip>
                     </MudTd>
@@ -76,12 +76,12 @@ else
             <RowTemplate>
                 <MudTd>@context.Name</MudTd>
                 <MudTd>
-                    <MudChip Color="@GetColor(context)" Size="Size.Small">
+                    <MudChip T="string" Color="@GetColor(context)" Size="Size.Small">
                         @Localizer[GetStatusText(context)]
                     </MudChip>
                 </MudTd>
                 <MudTd>
-                    <MudChip Color="@GetColor(GetPoison(context))" Size="Size.Small">
+                    <MudChip T="string" Color="@GetColor(GetPoison(context))" Size="Size.Small">
                         @Localizer[GetStatusText(GetPoison(context))]
 					</MudChip>
                 </MudTd>
@@ -116,7 +116,7 @@ else
                     if (health == null)
                     {
                         <MudTd>
-							<MudChip Color="@GetColor(InfrastructureHealthStatus.Undefined)" Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
+							<MudChip T="string" Color="@GetColor(InfrastructureHealthStatus.Undefined)" Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
 								@Localizer[InfrastructureHealthStatus.Undefined.ToString()]
 							</MudChip>
                         </MudTd>
@@ -126,7 +126,7 @@ else
                         var realStatus = GetRealStatus(health);
                         <MudTd>
                             <MudTooltip Delay="600" Text="@health.HealthCheckTimeUtc.ToString()">
-							<MudChip Color="@GetColor(realStatus)" 
+							<MudChip Color="@GetColor(realStatus)" T="string"
                                 Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
 								@Localizer[realStatus.ToString()]
 							</MudChip>

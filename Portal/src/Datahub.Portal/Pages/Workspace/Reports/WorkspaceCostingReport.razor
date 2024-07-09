@@ -36,14 +36,14 @@
                      Icon="@Icons.Material.Filled.AttachMoney"
                      Color="@MonthChipColor"
                      Variant="@Variant.Text"
-                     OnClick="@HandleShowMonth">
+                     OnClick="@HandleShowMonth" T="string">
                 @($"{CurrentCost:C} {Localizer["Total"]}")
             </MudChip>
             <MudChip Label="true"
                      Icon="@Icons.Material.Filled.AttachMoney"
                      Color="@YesterdayChipColor"
                      Variant="@Variant.Text"
-                     OnClick="@HandleShowYesterday">
+                     OnClick="@HandleShowYesterday" T="string">
                 @($"{YesterdayCost:C} {Localizer["Yesterday"]}")
             </MudChip>
         </MudStack>

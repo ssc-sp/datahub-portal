@@ -2,7 +2,7 @@
 @using Datahub.Application.Validators
 @using Datahub.Core.Model.Projects
 
-<MudDialog ClassContent="pa-6" ClassActions="pa-6">
+<MudDialog ContentClass="pa-6" ActionsClass="pa-6">
     <DialogContent>
         <MudForm @ref="form" @bind-IsValid="@_success" @bind-Errors="@errors">
             <MudText>
@@ -40,7 +40,7 @@
                 <MudTextField Label=@Localizer["Enter Docker compose file path"]     @bind-Value="_dockerComposeFilePath" HelperText="@Localizer["Path from the base of your repo to the desired compose file, including the compose file"]" Placeholder="path/to/compose.yaml" Required="true" RequiredError=@Localizer["Path to docker compose is necessary, file name must be included"]/>
             }
             <MudExpansionPanels Elevation="1" Class="mt-4">
-                <MudExpansionPanel IsInitiallyExpanded="false">
+                <MudExpansionPanel Expanded="false">
                     <TitleContent>
                         <MudStack Row="true">
                             <DHIcon Icon=@SidebarIcons.Brackets />

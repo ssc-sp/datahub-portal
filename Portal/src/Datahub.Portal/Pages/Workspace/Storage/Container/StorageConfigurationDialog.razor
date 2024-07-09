@@ -20,7 +20,7 @@
     <DialogContent>
         <MudStack>
             <MudTextField @bind-Value=@ProjectCloudStorage.Name Label=@Localizer["Friendly Name"] Variant=@Variant.Text MaxLength="100" />
-            <MudCheckBox @bind-Checked=@ProjectCloudStorage.Enabled >@Localizer["Enabled"]</MudCheckBox>
+            <MudCheckBox @bind-Value=@ProjectCloudStorage.Enabled >@Localizer["Enabled"]</MudCheckBox>
             @if (CloudProvider == CloudStorageProviderType.AWS)
             {
                 <AWSConnectionDataInput ConnectionData=@ConnectionDataInternal OnValidationChanged=@HandleConnectionValidationChange />
@@ -33,7 +33,7 @@
             {
                 <GCPConnectionDataInput ConnectionData=@ConnectionDataInternal OnValidationChanged=@HandleConnectionValidationChange />
             }
-            <MudCheckBox @bind-Checked=@_isUnclassified>@Localizer["UnclassifiedDataConfirmation"]</MudCheckBox>
+            <MudCheckBox T="bool" @bind-Value=@_isUnclassified>@Localizer["UnclassifiedDataConfirmation"]</MudCheckBox>
         </MudStack>
     </DialogContent>
     <DialogActions>

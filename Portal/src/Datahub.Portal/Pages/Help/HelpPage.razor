@@ -75,7 +75,7 @@
                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
                 @foreach (var topic in _ticketTopics)
                 {
-                    <MudCheckBox @bind-Checked="@_ticketTopics[topic.Key]" Label="@Localizer[topic.Key]" Color="@Color.Primary"></MudCheckBox>
+                    <MudCheckBox @bind-Value="@_ticketTopics[topic.Key]" Label="@Localizer[topic.Key]" Color="@Color.Primary"></MudCheckBox>
                 }
             }
             else if (_currentStep == Steps.Description)
@@ -91,7 +91,7 @@
                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>
                 foreach (var workspace in _ticketWorkspaces)
                 {
-                    <MudCheckBox @bind-Checked="@_ticketWorkspaces[workspace.Key]" Label="@Localizer[workspace.Key]" Color="@Color.Primary"></MudCheckBox>
+                    <MudCheckBox @bind-Value="@_ticketWorkspaces[workspace.Key]" Label="@Localizer[workspace.Key]" Color="@Color.Primary"></MudCheckBox>
                 }
             }
             else if (_currentStep == Steps.Language)
@@ -99,8 +99,8 @@
                 <MudText Typo="Typo.h2" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which language you would like to be contacted in."]</MudText>
                 <MudRadioGroup T="int" @bind-SelectedOption="_ticketPreferredLanguage">
-                    <MudRadio Option="1" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["English"]</MudRadio>
-                    <MudRadio Option="2" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["French"]</MudRadio>
+                    <MudRadio Value="1" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["English"]</MudRadio>
+                    <MudRadio Value="2" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["French"]</MudRadio>
                 </MudRadioGroup>
             }
             else if (_currentStep == Steps.Submit)
@@ -177,7 +177,7 @@
                         <MudTd>@context.Id</MudTd>
 						<MudTd>@context.Title</MudTd>
                         <MudTd>@context.Description</MudTd>
-                        <MudTd><MudChip Color="@GetColor(context.State)">@Localizer[context.Message]</MudChip></MudTd>
+                        <MudTd><MudChip T="string" Color="@GetColor(context.State)">@Localizer[context.Message]</MudChip></MudTd>
                         <MudTd>@context.SubmittedDate</MudTd>
                         <MudTd>@context.ChangedDate</MudTd>
 					</RowTemplate>

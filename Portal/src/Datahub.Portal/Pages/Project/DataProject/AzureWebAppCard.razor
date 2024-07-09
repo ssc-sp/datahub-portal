@@ -14,7 +14,7 @@
                     <MudText Class="mb-3" Typo="Typo.h5">@Localizer["Web App Service"]</MudText>
                     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin" ProjectAcronym="@ProjectAcronym">
                         <MudSpacer/>
-                        <MudSwitch T="bool?" Checked="_webAppEnabled" Color="Color.Primary" Label="@Localizer["Enable Web Application"]" CheckedChanged="@HandleToggle"/>
+                        <MudSwitch T="bool?" Value="_webAppEnabled" Color="Color.Primary" Label="@Localizer["Enable Web Application"]" CheckedChanged="@HandleToggle"/>
                     </DatahubAuthView>
                 </MudStack>
                 <MudElement Class="mb-2">
