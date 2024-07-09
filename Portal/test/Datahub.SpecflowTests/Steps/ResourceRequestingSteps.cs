@@ -127,7 +127,7 @@ namespace Datahub.SpecflowTests.Steps
                 .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
 
             var currentUser = await ctx.PortalUsers
-                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CURRENT_USER_GUID.ToString());
+                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CurrentUserGuid.ToString());
 
             await requestManagementService.HandleTerraformRequestServiceAsync(project, resourceType, currentUser, true);
         }

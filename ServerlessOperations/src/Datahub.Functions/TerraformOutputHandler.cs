@@ -251,7 +251,7 @@ public class TerraformOutputHandler(
                 return;
             }
             projectResource.Status = TerraformOutputStatus.Deleted;
-            await _projectDbContext.SaveChangesAsync();
+            await projectDbContext.SaveChangesAsync();
             return;
         }
 
