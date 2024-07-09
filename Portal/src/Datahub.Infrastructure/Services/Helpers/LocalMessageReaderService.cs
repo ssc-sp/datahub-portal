@@ -11,6 +11,7 @@ using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -89,18 +90,24 @@ public class LocalMessageReaderService : BackgroundService
 
             // Deserialize the file contents into an InfrastructureHealthCheckMessage object
             InfrastructureHealthCheckMessage message = JsonSerializer.Deserialize<InfrastructureHealthCheckMessage>(fileContents);
-            var request = new InfrastructureHealthCheckRequest(message.Type, message.Group, message.Name);
-            if (message.Group == "all")
+            InfrastructureHealthCheckResultMessage checkResult = JsonSerializer.Deserialize<InfrastructureHealthCheckResultMessage>(fileContents);
+            if (message != null )
             {
-                RunAllChecks(e.Name).SyncResult();
+                var request = new InfrastructureHealthCheckRequest(message.Type, message.Group, message.Name);
+                if (message.Group == "all")
+                {
+                    RunAllChecks(e.Name).SyncResult();
+                }
+                else
+                {
+                    RunHealthCheck(request, e.Name).SyncResult();
+                }
             }
-            else
+            if (checkResult != null)
             {
-                RunHealthCheck(request, e.Name).SyncResult();
+               RecordHealthCheckResults(checkResult);
             }
-
         }
-        // Process the file here
     }
 
     private bool IsFileLocked(string filePath)
@@ -958,6 +965,98 @@ public class LocalMessageReaderService : BackgroundService
 
         return new InfrastructureHealthCheckResponse(check, errors);
     }
+    #region Handling Health Check  Results 
+    // copied and modified from \datahub-portal\ServerlessOperations\src\Datahub.Functions\RecordInfrastructureStatus.cs
+    /// <summary>
+    /// Persists in DB the result of an infrastructure health check. 
+    /// </summary>
+    /// <param name="request">the request containing the resource type, group, name, heathcheck status and details</param>
+    /// <returns>An OkResult containing the request is formatted properly. A BadRequestObjectResult is returned for poorly formatted requests.</returns>
+    private IActionResult RecordHealthCheckResults(InfrastructureHealthCheckResultMessage request)
+    {
+        try
+        {
+            StoreResult(request).GetAwaiter().GetResult();          // operational data
+            StoreHealthCheckRun(request).GetAwaiter().GetResult();  // historical data
+
+            return new OkResult();
+        }
+        catch (Exception ex)
+        {
+            return new BadRequestObjectResult(ex);
+        }
+    }
+
+    /// <summary>
+    /// Function that stores the result of an infrastructure health check in the database.
+    /// </summary>
+    /// <param name="result">the result of the health check result to upload</param>
+    /// <returns></returns>
+    private async Task StoreResult(InfrastructureHealthCheckResultMessage check)
+    {
+        if (check.Group == null || check.Name == null) { return; }
+        var existingChecks = _projectDBContext.InfrastructureHealthChecks.Where(c =>
+            c.Group == check.Group && c.Name == check.Name && c.ResourceType == check.ResourceType);
+
+        if (existingChecks != null)
+        {
+            foreach (var item in existingChecks)
+            {
+                _projectDBContext.InfrastructureHealthChecks.Remove(item);
+            }
+        }
+
+        // Add the check without specifying the ID to allow the database to generate it
+        _projectDBContext.InfrastructureHealthChecks.Add(new InfrastructureHealthCheck
+        {
+            Group = check.Group,
+            Name = check.Name,
+            ResourceType = check.ResourceType,
+            Status = check.Status,
+            HealthCheckTimeUtc = check.HealthCheckTimeUtc,
+            Details = check.Details,
+        });
+        try
+        {
+            await _projectDBContext.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message, check);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Function that stores the result of an infrastructure health check in the database.
+    /// </summary>
+    /// <param name="result">the result of the health check result to upload</param>
+    /// <returns></returns>
+    private async Task StoreHealthCheckRun(InfrastructureHealthCheckResultMessage check)
+    {
+        if (check.Group == null || check.Name == null) { return; }
+
+        // Add the check run without specifying the ID to allow the database to generate it
+        _projectDBContext.InfrastructureHealthCheckRuns.Add(new InfrastructureHealthCheck
+        {
+            Group = check.Group,
+            Name = check.Name,
+            ResourceType = check.ResourceType,
+            Status = check.Status,
+            HealthCheckTimeUtc = check.HealthCheckTimeUtc,
+            Details = check.Details,
+        });
+        try
+        {
+            await _projectDBContext.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message, check);
+        }
+    }
+
+    #endregion
 
     public record InfrastructureHealthCheckRequest(InfrastructureHealthResourceType Type, string Group, string Name);
 
