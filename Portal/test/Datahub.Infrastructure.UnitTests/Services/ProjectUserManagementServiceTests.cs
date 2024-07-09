@@ -95,7 +95,7 @@ public class ProjectUserManagementServiceTests
         _mockRequestManagementService = new Mock<IRequestManagementService>();
         _mockRequestManagementService
             .Setup(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(), It.IsAny<string>(),
-                It.IsAny<PortalUser>()))
+                It.IsAny<PortalUser>(), false))
             .ReturnsAsync(true);
 
         _mockUserEnrollmentService = new Mock<IUserEnrollmentService>();
@@ -131,7 +131,7 @@ public class ProjectUserManagementServiceTests
         Assert.That(result, Is.True);
 
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-            It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
+            It.IsAny<string>(), It.IsAny<PortalUser>(), false), Times.Never);
     }
 
     #region ProjectUserAddUserCommand
@@ -145,7 +145,7 @@ public class ProjectUserManagementServiceTests
     public async Task ShouldProcessAddExistingUserCommandTest(int roleId)
     {
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-            It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
+            It.IsAny<string>(), It.IsAny<PortalUser>(), false), Times.Never);
 
         var projectUserManagementService = GetProjectUserManagementService();
 
@@ -176,13 +176,13 @@ public class ProjectUserManagementServiceTests
         {
             Assert.That(result, Is.False);
             _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-                It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
+                It.IsAny<string>(), It.IsAny<PortalUser>(), false), Times.Never);
         }
         else
         {
             Assert.That(result, Is.True);
             _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-                It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Once);
+                It.IsAny<string>(), It.IsAny<PortalUser>(), false), Times.Once);
         }
     }
 
@@ -193,7 +193,7 @@ public class ProjectUserManagementServiceTests
         var projectUserManagementService = GetProjectUserManagementService();
 
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-            It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
+            It.IsAny<string>(), It.IsAny<PortalUser>(), false), Times.Never);
         _mockUserEnrollmentService.Verify(f => f.SendUserDatahubPortalInvite(It.IsAny<string?>(), It.IsAny<string?>()),
             Times.Never);
 
@@ -218,7 +218,7 @@ public class ProjectUserManagementServiceTests
         _mockUserEnrollmentService.Verify(f => f.SendUserDatahubPortalInvite(It.IsAny<string?>(), It.IsAny<string?>()),
             Times.Once);
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-            It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Once);
+            It.IsAny<string>(), It.IsAny<PortalUser>(), false), Times.Once);
 
         var projectUser = _dbContext.Project_Users
             .Include(u => u.Project)
@@ -240,7 +240,7 @@ public class ProjectUserManagementServiceTests
         var projectUserManagementService = GetProjectUserManagementService();
 
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-            It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
+            It.IsAny<string>(), It.IsAny<PortalUser>(), false), Times.Never);
 
         var existingProjectUser = await _dbContext.Project_Users
             .AsNoTracking()
@@ -264,7 +264,7 @@ public class ProjectUserManagementServiceTests
 
         Assert.That(result, Is.False);
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-            It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
+            It.IsAny<string>(), It.IsAny<PortalUser>(), false), Times.Never);
     }
 
     [Test]
@@ -274,7 +274,7 @@ public class ProjectUserManagementServiceTests
         var projectUserManagementService = GetProjectUserManagementService();
 
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-            It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
+            It.IsAny<string>(), It.IsAny<PortalUser>(), false), Times.Never);
 
         var existingProjectUser = await _dbContext.Project_Users
             .AsNoTracking()
@@ -302,7 +302,7 @@ public class ProjectUserManagementServiceTests
         Assert.That(result, Is.False);
 
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-            It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
+            It.IsAny<string>(), It.IsAny<PortalUser>(), false), Times.Never);
     }
 
     #endregion
@@ -320,7 +320,7 @@ public class ProjectUserManagementServiceTests
         var projectUserManagementService = GetProjectUserManagementService();
 
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
-            It.IsAny<string>(), It.IsAny<PortalUser>()), Times.Never);
+            It.IsAny<string>(), It.IsAny<PortalUser>(), false), Times.Never);
 
         var existingProjectUser = await _dbContext.Project_Users
             .AsNoTracking()

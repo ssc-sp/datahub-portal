@@ -146,9 +146,9 @@ public class ProjectCreationService(
 
         var exists = context.Project_Resources2
             .Any(r => r.ProjectId == projectId
-                      && r.ResourceType ==
-                      TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
-
+                      && r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)
+                      && r.Status != TerraformOutputStatus.Deleted);
+        
         if (exists) return;
 
         var project = await context.Projects

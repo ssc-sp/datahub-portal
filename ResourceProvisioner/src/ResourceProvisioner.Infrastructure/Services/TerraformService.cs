@@ -76,6 +76,13 @@ public class TerraformService : ITerraformService
         }
     }
 
+    /// <summary>
+    /// extracts the variables from the template and potential values from the workspace and or the configuration 
+    /// and if the variable file already exists, then from there. And finally writes the variables to the variables file
+    /// </summary>
+    /// <param name="template"></param>
+    /// <param name="terraformWorkspace"></param>
+    /// <returns></returns>
     public async Task ExtractVariables(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
     {
         if (template.Name is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
@@ -83,10 +90,20 @@ public class TerraformService : ITerraformService
             return;
         }
 
+        //Identify the variables marked as mandatory in the template and fill the values from the
+        //workspace or configuration or an already existing variables file
         var missingVariables = FindMissingVariables(template, terraformWorkspace);
+
+        //write or overwrite the variables file
         await WriteVariablesFile(template, terraformWorkspace, missingVariables);
     }
 
+    /// <summary>
+    /// Constructs the project.tfbackend file for the given acronym of the project 
+    /// from the configuration and the workspace acronym using static logic
+    /// </summary>
+    /// <param name="workspaceAcronym"></param>
+    /// <returns></returns>
     public async Task ExtractBackendConfig(string workspaceAcronym)
     {
         var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
@@ -123,6 +140,13 @@ public class TerraformService : ITerraformService
         await File.WriteAllLinesAsync(backendConfigFilePath, backendConfig.Select(x => $"{x.Key} = \"{x.Value}\""));
     }
 
+    /// <summary>
+    /// for each template of the workspace, reconstructs all the variable values required 
+    /// by the template and writes it into the variables file for each template
+    /// </summary>
+    /// <param name="terraformWorkspace"></param>
+    /// <returns></returns>
+    /// <exception cref="ProjectNotInitializedException"></exception>
     public async Task ExtractAllVariables(TerraformWorkspace terraformWorkspace)
     {
         // check if the project directory exists
@@ -135,27 +159,37 @@ public class TerraformService : ITerraformService
                 "Project directory does not exist please run template module first");
         }
 
-        // get all the files in the project directory that end with *.auto.tfvars.json
+        // *.auto.tfvars.json are basically all the variable files for every template required for the workspace
         var files = Directory.GetFiles(projectPath, "*.auto.tfvars.json", SearchOption.TopDirectoryOnly);
 
-        // get the filename up to the first "."
-        var variableNames = files.Select(file => Path.GetFileName(file).Split('.')[0]).ToList();
+        // the first part refers ti the template names
+        var templateFileNames = files.Select(file => Path.GetFileName(file).Split('.')[0]).ToList();
 
         // match against the templates and rerun the extract variables
-        foreach (var variableName in variableNames)
+        foreach (var templateName in templateFileNames)
         {
             try
             {
-                var template = TerraformTemplate.GetTemplateByName(variableName);
-                await ExtractVariables(template, terraformWorkspace);
+                var templateObject = TerraformTemplate.GetTemplateByName(templateName);
+
+                // for the given template object, extracts the variables from the template and potential values from the workspace and or the configuration 
+                // and if the variable file already exists, then from there. And finally writes the variables to the variables file
+                await ExtractVariables(templateObject, terraformWorkspace);
             }
             catch (ArgumentException)
             {
-                _logger.LogWarning("Unable to find template for variable {VariableName}", variableName);
+                _logger.LogWarning("Unable to find template for variable {VariableName}", templateName);
             }
         }
     }
 
+    /// <summary>
+    /// variables.tf.json contains all the required variables. This function searches all *.auto.tfvars.json and returns the 
+    /// mandatory variables which are either missing or has no values in any of the *.auto.tfvars.json files
+    /// </summary>
+    /// <param name="template"></param>
+    /// <param name="terraformWorkspace"></param>
+    /// <returns></returns>
     private Dictionary<string, (string, bool)> FindMissingVariables(TerraformTemplate template,
         TerraformWorkspace terraformWorkspace)
     {
@@ -336,4 +370,44 @@ public class TerraformService : ITerraformService
                 property => (property.Value?["type"]?.ToString() ?? "", property.Value?["default"]?.ToString() == null)
             ) ?? new Dictionary<string, (string, bool)>();
     }
+
+    ////TO Use later
+    //public async Task DestroySpecificResourcesAsync(TerraformWorkspace terraformWorkspace, string resourceIdentifier)
+    //{
+    //    var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+
+    //    Directory.SetCurrentDirectory(projectPath);
+
+    //    if (!await ExecuteShellCommand("terraform init")) {
+    //        _logger.LogError("Terraform init failed.");
+    //        return;
+    //    }
+
+    //    var destroyCmd = $"terraform destroy -auto-approve -target={resourceIdentifier}";
+    //    if (!await ExecuteShellCommand(destroyCmd)) {
+    //        _logger.LogError($"Terraform destroy failed for {resourceIdentifier}.");
+    //    }
+
+    //    _logger.LogInformation("Successfully destroyed specified resources.");
+    //}
+    //private async Task<bool> ExecuteShellCommand(string command)
+    //{
+    //    using var process = new System.Diagnostics.Process
+    //    {
+    //        StartInfo = new System.Diagnostics.ProcessStartInfo
+    //        {
+    //            FileName = "cmd.exe",
+    //            Arguments = $"/c {command}",
+    //            RedirectStandardOutput = true,
+    //            UseShellExecute = false,
+    //            CreateNoWindow = true,
+    //        }
+    //    };
+
+    //    process.Start();
+    //    await process.WaitForExitAsync();
+
+    //    return process.ExitCode == 0;
+    //}
+
 }
