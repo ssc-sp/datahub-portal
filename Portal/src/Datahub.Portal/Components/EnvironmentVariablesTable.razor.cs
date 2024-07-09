@@ -141,9 +141,21 @@ namespace Datahub.Portal.Components
                 Localizer[
                         "Enter the key of your new environment variable. Environment variable keys cannot be changed and environment variables cannot be deleted."]
                     .ToString());
+
+            if (string.IsNullOrWhiteSpace(newKey))
+            {
+                return;
+            }
+
             var newValue = await _jsRuntime.InvokeAsync<string>("prompt",
                 Localizer["Enter the value of your new environment variable. You may edit this value later."]
                     .ToString());
+
+            if (string.IsNullOrWhiteSpace(newValue))
+            {
+                return;
+            }
+
             KeyValuePair newKVP = new() { Key = newKey, Value = newValue };
             var validation = ValidateKeyValuePair().Invoke(newKVP);
 
