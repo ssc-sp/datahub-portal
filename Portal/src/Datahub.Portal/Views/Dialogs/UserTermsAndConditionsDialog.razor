@@ -12,7 +12,7 @@
                 @Localizer["Terms and Conditions"]
             </MudLink>
         </MudText>
-        <MudCheckBox
+        <MudCheckBox T="bool"
             @bind-Checked="@_agreedToTerms"
             Label="@(Localizer["I have read and agree to the terms and conditions"])"/>
     </DialogContent>

@@ -90,10 +90,10 @@
     {
         <MudSwitch 
             T=@bool 
-            Checked=@_isUrlRewritingEnabled 
+            Value=@_isUrlRewritingEnabled 
             Color=@Color.Primary 
             Label=@Localizer["Enable URL Rewriting"] 
-            CheckedChanged=@HandleToggleUrlRewriting
+            ValueChanged=@HandleToggleUrlRewriting
             Disabled=@_isSaving />
     }
 

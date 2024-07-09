@@ -1,7 +1,9 @@
 @using MudBlazor.Utilities
 <MudTooltip Arrow Placement="Placement.Top" RootClass="@_toolTipClass">
     <ChildContent>
-        <MudAvatar Size="Size.Medium" Image="@Achievement.imageSrc"/>
+        <MudAvatar Size="Size.Medium">
+            <MudImage Src="@Achievement.imageSrc"/>
+        </MudAvatar>
     </ChildContent>
     <TooltipContent>
         <MudStack AlignItems="AlignItems.Start" Style="@_toolTipStyle" Class="pa-2">

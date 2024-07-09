@@ -31,10 +31,10 @@
     </SettingsField>
     <MudDivider/>
     <SettingsField Label="@Localizer["Display Achievements"]" Description="@Localizer["You can choose whether to hide or display your achievements in the DataHub. This will also prevent the achievement notifications from displaying on your screen. You can change it at any time."]">
-        <MudSwitch T="bool" Label="@Localizer["Show Achievements"]" Checked="@(!ViewedUser.UserSettings.HideAchievements)" Color="Color.Primary" UnCheckedColor="Color.Dark" CheckedChanged="HandleHideAchievementsChanged"/>
+        <MudSwitch T="bool" Label="@Localizer["Show Achievements"]" Value="@(!ViewedUser.UserSettings.HideAchievements)" Color="Color.Primary" UnCheckedColor="@Color.Dark" ValueChanged="HandleHideAchievementsChanged"/>
     </SettingsField>
     <SettingsField Label="@Localizer["Display page alerts and tutorials"]" Description="@Localizer["Choose whether or not to display alert and tutorial dialogs in Datahub."]">
-        <MudSwitch T="bool" Label="@Localizer["Show alerts and tutorials"]" Checked="@(!ViewedUser.UserSettings.HideAlerts)" Color="Color.Primary" UnCheckedColor="Color.Dark" CheckedChanged="HandleHideAlertsChanged"/>
+        <MudSwitch T="bool" Label="@Localizer["Show alerts and tutorials"]" Value="@(!ViewedUser.UserSettings.HideAlerts)" Color="Color.Primary" UnCheckedColor="@Color.Dark" ValueChanged="HandleHideAlertsChanged"/>
         <DHButton OnClick="@ClearAlerts">@Localizer["Reset alert settings"]</DHButton>
     </SettingsField>
 </MudStack>
