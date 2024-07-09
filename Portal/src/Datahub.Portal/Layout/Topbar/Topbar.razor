@@ -1,6 +1,6 @@
 @using MudBlazor.Utilities
 @using Datahub.Core.Components.Common
-<div class="reader-only">
+<nav class="sr-only">
     <ul>
         <li>
             <a href="#maincontent">@Localizer["Skip to main content"]</a>
@@ -20,13 +20,13 @@
             </a>
         </li>
     </ul>
-</div>
-<div class="reader-only" id="header">
-    <h3>@Localizer["Header"]</h3>
+</nav>
+<div class="sr-only" id="header">
+    <h3>@Localizer["Federal Science DataHub"]</h3>
 </div>
 <MudLink Href="@PageRoutes.Home" Underline="Underline.None">
     <MudStack Row AlignItems="AlignItems.Center">
-        <MudImage src="_content/Datahub.Core/img/datahub-logo-v2.png" Alt="Datahub Logo" Height="30"/>
+        <MudImage src="_content/Datahub.Core/img/datahub-logo-v2.png" Height="30"/>
         <MudText Typo="Typo.h6" Style="@_titleStyle">
             @Localizer["MainTitle"]
         </MudText>
@@ -38,21 +38,21 @@
 
 <MudSpacer/>
 <MudStack Row>
-    <MudButton Variant="Variant.Text" Href=@PageRoutes.Home>
+    <DHButton Variant="Variant.Text" Href=@PageRoutes.Home>
         @Localizer["Home"]
-    </MudButton>
-    <MudButton Variant="Variant.Text" Href=@PageRoutes.News>
+    </DHButton>
+    <DHButton Variant="Variant.Text" Href=@PageRoutes.News>
         @Localizer["News"]
-    </MudButton>
-    <MudButton Variant="Variant.Text" Href=@PageRoutes.Explore>
+    </DHButton>
+    <DHButton Variant="Variant.Text" Href=@PageRoutes.Explore>
         @Localizer["Explore"]
-    </MudButton>
-    <MudButton Variant="Variant.Text" Href=@PageRoutes.ResourceDefault>
+    </DHButton>
+    <DHButton Variant="Variant.Text" Href=@PageRoutes.ResourceDefault>
         @Localizer["Learn"]
-    </MudButton>
-    <MudButton Variant="Variant.Text" Href=@PageRoutes.Help>
+    </DHButton>
+    <DHButton Variant="Variant.Text" Href=@PageRoutes.Help>
         @Localizer["Support"]
-    </MudButton>
+    </DHButton>
 </MudStack>
 <MudSpacer/>
 <SearchPopover/>

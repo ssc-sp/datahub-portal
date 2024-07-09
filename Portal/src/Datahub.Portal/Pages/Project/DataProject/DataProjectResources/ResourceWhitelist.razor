@@ -35,9 +35,9 @@
                         </CardHeaderActions>
                     </MudCardHeader>
                     <MudCardActions>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.Queue" OnClick="@(async () => await AddResourceToQueue(resource))">
+                        <DHButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.Queue" OnClick="@(async () => await AddResourceToQueue(resource))">
                             @Localizer["Add to Queue"]
-                        </MudButton>
+                        </DHButton>
                     </MudCardActions>
                 </MudCard>
             </MudItem>
@@ -65,13 +65,13 @@
                         />
                     </MudCardContent>
                     <MudCardActions>
-                        <MudButton Variant="Variant.Filled" 
+                        <DHButton Variant="Variant.Filled" 
                                    Color="Color.Primary" 
                                    EndIcon="@Icons.Material.Filled.AttachMoney"
                                    Disabled=IsSaveBudgetDisabled
                                    OnClick="HandleSaveBudget">
                             @Localizer["Save"]
-                        </MudButton>
+                        </DHButton>
                     </MudCardActions>
                 </MudCard>
             </MudItem>

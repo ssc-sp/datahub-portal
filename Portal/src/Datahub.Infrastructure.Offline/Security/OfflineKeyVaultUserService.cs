@@ -35,6 +35,11 @@ namespace Datahub.Infrastructure.Offline.Security
             throw new NotImplementedException();
         }
 
+        public string GetVaultName(string acronym, string environment)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task StoreAllSecrets(ProjectCloudStorage projectCloudStorage, string acronym, IDictionary<string, string> connectionData)
         {
             throw new NotImplementedException();

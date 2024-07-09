@@ -8,7 +8,6 @@ using Datahub.Core;
 using Datahub.Core.Configuration;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Modules;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Data;
@@ -87,7 +86,6 @@ public class Startup
 
     private readonly IConfiguration Configuration;
     private readonly IWebHostEnvironment _currentEnvironment;
-    private ModuleManager moduleManager = new ModuleManager();
 
     private bool ResetDB => (bool)Configuration.GetSection("InitialSetup")?.GetValue("ResetDB", false);
 
@@ -102,7 +100,10 @@ public class Startup
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddApplicationInsightsTelemetry();
+        services.AddApplicationInsightsTelemetry(x =>
+        {
+            x.ConnectionString = Configuration["ApplicationInsights:ConnectionString"];
+        });
 
         services.AddDistributedMemoryCache();
 
@@ -148,6 +149,7 @@ public class Startup
         services.AddFileReaderService();
         services.AddBlazorDownloadFile();
         services.AddBlazoredLocalStorage();
+        services.AddHttpContextAccessor();
         services.AddScoped<ApiTelemetryService>();
         services.AddScoped<GetDimensionsService>();
         //TimeZoneService provides the user time zone to the server using JS Interop
@@ -159,15 +161,6 @@ public class Startup
         services.AddElemental();
         services.AddMudServices();
         services.AddMudMarkdownServices();
-        services.AddSingleton(moduleManager);
-
-
-        moduleManager.LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
-        foreach (var module in moduleManager.Modules)
-        {
-            Console.Write($"Configuring module {module.Name}\n");
-            services.AddModule(module, Configuration);
-        }
 
         // configure db contexts in this method
         ConfigureDbContexts(services);
@@ -233,6 +226,7 @@ public class Startup
             services.AddReverseProxy()
                     .AddTransforms(builderContext =>
                     {
+                        builderContext.AddXForwarded(ForwardedTransformActions.Append);
                         builderContext.AddRequestTransform(async transformContext =>
                         {
                             // passing the logged user to the proxied app
@@ -280,12 +274,6 @@ public class Startup
         if (Configuration.GetValue<bool>("HttpLogging:Enabled"))
         {
             app.UseHttpLogging();
-        }
-
-        foreach (var module in moduleManager.Modules)
-        {
-            logger.LogInformation($"Configuring module {module.Name}\n");
-            app.ConfigureModule(module);
         }
 
         InitializeDatabase(logger, datahubFactory);

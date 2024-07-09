@@ -14,13 +14,18 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Budget;
 using Datahub.Application.Services.Projects;
 using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Storage;
 using Datahub.Functions.Services;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Validators;
+using Datahub.Infrastructure.Services.Cost;
 using Datahub.Infrastructure.Services.Security;
+using Datahub.Infrastructure.Services.Storage;
 using Microsoft.Extensions.Azure;
+
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -44,8 +49,6 @@ var host = new HostBuilder()
                 options.UseSqlServer(connectionString));
             services.AddDbContextPool<DatahubProjectDBContext>(options => options.UseSqlServer(connectionString));
         }
-
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
 
         services.AddHttpClient(AzureManagementService.ClientName).AddPolicyHandler(
             Policy<HttpResponseMessage>
@@ -76,11 +79,16 @@ var host = new HostBuilder()
             }
             );
         services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
+        services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();
+        services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
+        services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
         services.AddSingleton<IEmailService, EmailService>();
+        services.AddSingleton<IAlertRecordService, AlertRecordService>();
         services.AddScoped<ProjectUsageService>();
         services.AddScoped<QueuePongService>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
         services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
+        services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();

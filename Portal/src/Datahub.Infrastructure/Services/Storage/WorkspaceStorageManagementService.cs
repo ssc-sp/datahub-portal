@@ -28,10 +28,12 @@ namespace Datahub.Infrastructure.Services.Storage
 
         public async Task<double> GetStorageCapacity(string workspaceAcronym, List<string>? storageAccountIds = null)
         {
+            _logger.LogInformation($"Getting storage capacity for workspace {workspaceAcronym}");
             if (storageAccountIds is null)
             {
                 storageAccountIds = await GetStorageAccountIds(workspaceAcronym);
             }
+            _logger.LogInformation($"Storage account ids: {string.Join(", ", storageAccountIds)}");
 
             var today = DateTime.UtcNow;
             var dateFormat = "yyyy-MM-ddTHH:00:00.000Z";
@@ -49,18 +51,21 @@ namespace Datahub.Infrastructure.Services.Storage
                 option.Timespan = $"{fromDate}/{toDate}";
                 option.Metricnamespace = "Microsoft.Storage/storageAccounts";
                 option.ValidateDimensions = false;
+                _logger.LogInformation($"Getting metrics for storage account with id {id}");
                 var metrics = _armClient.GetMonitorMetrics(storageId, option).ToList();
                 var timeseries = metrics[0].Timeseries.ToList()[0];
-                var timeseriesData = timeseries.Data.ToList().Last();
+                var timeseriesData = timeseries.Data.ToList().Last(x => x.Average != null);
                 var average = timeseriesData.Average;
                 if (average is null)
                 {
                     _logger.LogError($"Could not parse data from storage account with id {id}");
                     throw new Exception($"Could not parse data from storage account with id {id}");
                 }
+                _logger.LogInformation($"Storage account with id {id} has capacity {average}");
 
                 totalCapacity += average!.Value;
             });
+            _logger.LogInformation($"Total capacity for workspace {workspaceAcronym} is {totalCapacity}");
             
             return totalCapacity;
         }
@@ -76,9 +81,10 @@ namespace Datahub.Infrastructure.Services.Storage
                 throw new Exception($"Project with acronym {workspaceAcronym} not found");
             }
             
-            var projectAverage = await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(p => p.ProjectId == project.Project_ID && p.Date == date);
+            var projectAverage = await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(p => p.ProjectId == project.Project_ID && p.Date == date.Date);
             if (projectAverage is null)
             {
+                _logger.LogInformation("Creating new project storage average for today");
                 projectAverage = new Project_Storage { ProjectId = project.Project_ID };
                 ctx.Project_Storage_Avgs.Add(projectAverage);
                 await ctx.SaveChangesAsync();
@@ -88,6 +94,7 @@ namespace Datahub.Infrastructure.Services.Storage
             projectAverage.AverageCapacity = capacity;
             projectAverage.Date = date;
             projectAverage.CloudProvider = "azure";
+            _logger.LogInformation($"Updating storage capacity for workspace {workspaceAcronym} to {capacity}");
             ctx.Project_Storage_Avgs.Update(projectAverage);
             await ctx.SaveChangesAsync();
             return capacity;

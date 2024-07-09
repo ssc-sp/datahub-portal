@@ -1,4 +1,4 @@
-using BoDi;
+using Reqnroll.BoDi;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
@@ -11,6 +11,7 @@ using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Subscriptions;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -58,8 +59,9 @@ public class WorkspaceSubscriptionHook
             .Options;
 
         var dbContextFactory = new SpecFlowDbContextFactory(options);
+        var mockISendEndpointProvider = Substitute.For<ISendEndpointProvider>();
 
-        var resourceMessagingService = new ResourceMessagingService(datahubPortalConfiguration, dbContextFactory);
+        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, mockISendEndpointProvider);
         var resourceMessagingSubstitute = Substitute.For<IResourceMessagingService>();
         resourceMessagingSubstitute.GetWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string>())
             .Returns(callInfo =>

@@ -6,6 +6,7 @@ using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using FluentAssertions;
+using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -35,16 +36,19 @@ namespace Datahub.Functions.UnitTests
         private QueuePongService _pongService;
         private EmailValidator _emailValidator;
         private IEmailService _emailService;
+        private ISendEndpointProvider _iSendEndpointProvider;
 
         [SetUp]
-        public void Setup()
+        public async Task Setup()
         {
+            
+            _iSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
             _azConfig = new AzureConfig(_config);
-            _pongService = new QueuePongService(_mediator);
+            _pongService = new QueuePongService(_iSendEndpointProvider);
             _emailValidator = new EmailValidator();
             _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
-            _sut = new UserInactivityNotifier(_mediator, _loggerFactory, _dbContextFactory, _dateProvider, _azConfig,
-                _pongService, _emailValidator, _userInactivityNotificationService, _emailService);
+            _sut = new UserInactivityNotifier(_loggerFactory, _dbContextFactory, _dateProvider, _azConfig,
+                _pongService, _emailValidator, _userInactivityNotificationService, _iSendEndpointProvider, _emailService);
         }
 
         [Test]

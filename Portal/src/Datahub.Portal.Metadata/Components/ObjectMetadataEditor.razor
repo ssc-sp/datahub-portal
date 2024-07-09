@@ -25,9 +25,9 @@
             <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mb-2">
                 @if (_profile.HasOptionalFields())
                 {
-                    <MudButton OnClick=@ToggleShowAll>
+                    <DHButton OnClick=@ToggleShowAll>
                         <MudText>@(_showAll ? Localizer["METADATA-PAGE.ShowLess"] : Localizer["METADATA-PAGE.ShowMore"])</MudText>
-                    </MudButton>
+                    </DHButton>
                 }
                 else
                 {

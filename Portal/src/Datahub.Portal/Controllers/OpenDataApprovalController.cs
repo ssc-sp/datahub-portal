@@ -105,7 +105,7 @@ public class OpenDataApprovalController : Controller
         inputDoc.CopyTo(mem);
         mem.Seek(0, SeekOrigin.Begin);
 
-        var document = WordprocessingDocument.Open(mem, true);
+        using var document = WordprocessingDocument.Open(mem, true);
 
         var elementsToUpdate = document.MainDocumentPart?.Document.Descendants()
             .Where(d => d.LocalName == "r" && MatchesField(d.InnerText))
@@ -120,7 +120,6 @@ public class OpenDataApprovalController : Controller
         }
 
         document.MainDocumentPart?.Document.Save();
-        document.Close();
 
         mem.Seek(0, SeekOrigin.Begin);
 

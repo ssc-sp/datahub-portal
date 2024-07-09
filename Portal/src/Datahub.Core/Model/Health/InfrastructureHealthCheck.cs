@@ -42,6 +42,11 @@ public class InfrastructureHealthCheck
     /// Note: This is in UTC and is automatically set by the database if not set
     /// </summary>
     public DateTime HealthCheckTimeUtc { get; set; }
+
+    /// <summary>
+    /// Gets or sets the details of the unsuccessful health check
+    /// </summary>
+    public string Details { get; set; }
 }
 
 /// <summary>
@@ -54,7 +59,10 @@ public enum InfrastructureHealthStatus
     Expired,
     Healthy,
     Degraded,
-    Unhealthy
+    Unhealthy,
+    Undefined,
+    NotProvisioned,
+    NeedHealthCheckRun
 }
 
 /// <summary>
@@ -69,5 +77,6 @@ public enum InfrastructureHealthResourceType
     AzureDatabricks,
     AzureStorageQueue,
     AzureWebApp,
-    AzureFunction
+    AzureFunction,
+    AsureServiceBus
 }

@@ -1,8 +1,9 @@
-using BoDi;
+using Reqnroll.BoDi;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
+using Reqnroll.BoDi;
 using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Application.Services;
@@ -20,6 +21,7 @@ public class Hooks
     {
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.test.json", optional: true)
+            .AddUserSecrets<Hooks>()
             .Build();
 
         var resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
@@ -74,13 +76,10 @@ public class Hooks
         
         var loggerFactory = Substitute.For<ILoggerFactory>();
         loggerFactory.CreateLogger<ResourceRunRequest>().Returns(Substitute.For<ILogger<ResourceRunRequest>>());
-        var createResourceRunCommandHandler = Substitute.For<CreateResourceRunCommandHandler>(
-            Substitute.For<ILogger<CreateResourceRunCommandHandler>>(),
-            Substitute.For<IRepositoryService>()
-            );
+        var substituteRepositoryService = Substitute.For<IRepositoryService>();
         var resourceRunRequest = new ResourceRunRequest(
             loggerFactory,
-            createResourceRunCommandHandler);
+            substituteRepositoryService);
         
         // register dependencies
         objectContainer.RegisterInstanceAs(resourceProvisionerConfiguration);

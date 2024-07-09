@@ -1,6 +1,6 @@
 azure-functions==1.17.0
 azure-graphrbac==0.61.1
-azure-identity==1.15.0
+azure-identity==1.16.1
 azure-keyvault==4.2.0
 azure-keyvault-administration==4.3.0
 azure-keyvault-certificates==4.7.0

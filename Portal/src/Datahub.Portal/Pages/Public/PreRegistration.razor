@@ -5,13 +5,13 @@
 @page "/preregistration"
 @page "/account-setup"
 
-<MudButton Style="position: absolute; top: 2rem; right:  2rem;" Variant="Variant.Filled" Color="Color.Primary">
+<MudButton HtmlTag='a' Style="position: absolute; top: 2rem; right:  2rem;" Variant="Variant.Filled" Color="Color.Primary">
     <LanguageToggle />
 </MudButton>
 
 <MudContainer Class="my-16" MaxWidth="MaxWidth.Medium">
 
-    <MudText Typo="Typo.h1" Class="mb-8" Align="Align.Center">
+    <MudText Typo="Typo.h2" Class="mb-8" Align="Align.Center">
         @Localizer["Registration and Login"]
     </MudText>
     <EmbeddedWiki PageNameEn="@_datahubPortalConfiguration.PreRegistrationDocumentationUrl.En"

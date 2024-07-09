@@ -3,7 +3,7 @@
 
 @inject NavigationManager _navigationManager
 
-<div class="reader-only"><h2>@Localizer["Announcements"]</h2></div>
+<div class="sr-only"><h2>@Localizer["Announcements"]</h2></div>
 <MudElement Class="rounded" HtmlTag="div" Style="@_backgroundImageStyle">
     <MudElement  Class="rounded" HtmlTag="div" Style="@_glassStyle">
         <MudCarousel Class="mud-width-full rounded"
@@ -22,17 +22,17 @@
                     {
                         <MudStack Class="px-12 py-4" Style="height: 100%">
                             <DHMarkdown Content="@preview.Preview"/>
-                            <MudButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
+                            <DHButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
                                 @Localizer["Read more"]
-                            </MudButton>
+                            </DHButton>
                         </MudStack>
                     }
 					else
 					{
 						<DHMarkdown Content="@preview.Preview"/>
-                        <MudButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
+                        <DHButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
                             @Localizer["Read more"]
-                        </MudButton>
+                        </DHButton>
 					}
                 </MudCarouselItem>
             }

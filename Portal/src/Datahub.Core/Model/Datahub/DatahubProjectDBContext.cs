@@ -26,6 +26,18 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     {
     }
 
+    // below are used for migrations
+#if MIGRATION
+    public DatahubProjectDBContext() { }
+
+    protected DatahubProjectDBContext(DbContextOptions options) : base(options) { }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder options) {
+        options.UseSqlServer("Server=(LocalDB);Integrated Security=True;MultipleActiveResultSets=True");
+    }
+
+#endif
+
     public DbSet<Datahub_Project> Projects { get; set; }
     public DbSet<PBI_License_Request> PowerBI_License_Requests { get; set; }
     public DbSet<PBI_User_License_Request> PowerBI_License_User_Requests { get; set; }
@@ -123,6 +135,16 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// </summary>
     public DbSet<InfrastructureHealthCheck> InfrastructureHealthChecks { get; set; }
 
+    /// <summary>
+    /// Gets or sets table for storing the history of infrastructure health checks
+    /// </summary>
+    public DbSet<InfrastructureHealthCheck> InfrastructureHealthCheckRuns { get; set; }
+
+    /// <summary>
+    /// Gets or sets the synchronization statuses for workspaces
+    /// </summary>
+    public DbSet<Project_SyncStatus> SyncStatuses { get; set; }
+
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
         var p1 = context.Projects.Add(new Datahub_Project()
@@ -195,6 +217,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
         modelBuilder.Entity<Datahub_Project>().HasOne(p => p.PBI_License_Request).WithOne(p => p.Project).HasForeignKey<PBI_License_Request>(l => l.Project_ID);
         modelBuilder.Entity<Datahub_Project>().HasIndex(p => p.Project_Acronym_CD).IsUnique();
+        modelBuilder.Entity<Datahub_Project>().Property(p => p.WebAppUrlRewritingEnabled).HasDefaultValue(true);
 
         modelBuilder.Entity<Datahub_ProjectComment>().HasOne(c => c.Project).WithMany(p => p.Comments);
 

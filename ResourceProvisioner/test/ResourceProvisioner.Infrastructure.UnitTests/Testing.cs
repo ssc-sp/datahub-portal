@@ -45,6 +45,7 @@ public class Testing
     {
         _configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.test.json")
+            .AddUserSecrets<Testing>()
             .Build();
 
         _resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();

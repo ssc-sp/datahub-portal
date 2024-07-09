@@ -6,21 +6,32 @@
 
 @if (_averages != null)
 {
-    <MudDivider Class="my-6" />
     <MudText Typo="Typo.h3">@Localizer["Storage daily average (over last 30 days)"]</MudText>
+    @if (_lastUpdate != default)
+    {
+        <MudText Style="font-style: italic">@Localizer["Last updated {0} {1}", $"{_lastUpdate:yyyy-MM-dd HH:mm}", TimeZone.CurrentTimeZone.StandardName]</MudText>
+        @if (_lastUpdate < DateTime.UtcNow.AddDays(-7))
+        {
+            <MudAlert Variant="Variant.Outlined" Severity="Severity.Warning" Style="color: #000">
+                @Localizer["Storage data has not been updated in the last 7 days, please check back later for updated storage data."]
+            </MudAlert>
+        }
+    }
+
     <div>
         <MudChart ChartType="ChartType.Bar"
                   ChartSeries="@DailySeries"
                   XAxisLabels="@XAxisDailyLabels"
                   Width="100%"
-                  Height="350px" />
+                  Height="350px"/>
     </div>
 }
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
+
+    private DateTime _lastUpdate { get; set; }
 
     private List<DayAverage> _averages = default;
 
@@ -34,7 +45,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _averages = await GetLast30DaysAverages();        
+        _averages = await GetLast30DaysAverages();
     }
 
     private async Task<List<DayAverage>> GetLast30DaysAverages()
@@ -42,17 +53,24 @@
         var minDate = DateTime.Now.AddDays(-30).Date;
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var averages = await ctx.Projects
+        var project_averages = await ctx.Projects
             .Where(e => e.Project_Acronym_CD == WorkspaceAcronym)
-            .Join(ctx.Project_Storage_Avgs, p => p.Project_ID, s => s.ProjectId, (p, s) => s)
-            .Where(e => e.Date >= minDate)
-            .Select(e => new DayAverage(e.Date.Day, e.AverageCapacity))
-            .ToListAsync();
+            .Join(ctx.Project_Storage_Avgs, p => p.Project_ID, s => s.ProjectId, (p, s) => s).ToListAsync();
+        var averages = project_averages.Where(e => e.Date >= minDate)
+            .Select(e => new DayAverage(e.Date.Day, e.AverageCapacity)).ToList();
 
+        _lastUpdate = project_averages.Max(e => e.Date);
         return averages;
+    }
+
+    private DateTime ConvertToLocalTime(DateTime UTCTime)
+    {
+        TimeZone localZone = TimeZone.CurrentTimeZone;
+        return localZone.ToLocalTime(UTCTime);
     }
 
     static string FormatDay(int day) => $"{day.ToString("D2")}";
 
     record DayAverage(int Day, double Average);
+
 }

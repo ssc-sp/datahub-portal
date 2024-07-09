@@ -1,25 +1,27 @@
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
-using BoDi;
+using Reqnroll.BoDi;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Budget;
 using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Projects;
+using Datahub.Functions;
 using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Cost;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Shared.Entities;
-using MediatR;
+using MassTransit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
+using Reqnroll.BoDi;
 
 namespace Datahub.SpecflowTests.Hooks;
 
@@ -46,7 +48,8 @@ public class Hooks
         var dbContextFactory = new SpecFlowDbContextFactory(options);
 
         var datahubAuditingService = new OfflineDatahubTelemetryAuditingService();
-        var actualResourceMessageService = new ResourceMessagingService(datahubPortalConfiguration, dbContextFactory);
+        var mockSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
+        var actualResourceMessageService = new ResourceMessagingService(dbContextFactory, mockSendEndpointProvider);
 
         var substituteResourceMessageService = Substitute.For<IResourceMessagingService>();
         substituteResourceMessageService.SendToTerraformQueue(Arg.Do<WorkspaceDefinition>(workspace =>
@@ -86,7 +89,7 @@ public class Hooks
         ScenarioContext scenarioContext)
     {
         var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
-            .UseInMemoryDatabase(databaseName: "DatahubProjectDB")
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
         var dbContextFactory = new SpecFlowDbContextFactory(options);
@@ -107,14 +110,14 @@ public class Hooks
 
         var workspaceCostManagementService = new WorkspaceCostManagementService(armClient,
             Substitute.For<ILogger<WorkspaceCostManagementService>>(),
-            objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>());
+            objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>(), configuration);
         var workspaceBudgetManagementService = new WorkspaceBudgetManagementService(armClient,
             Substitute.For<ILogger<WorkspaceBudgetManagementService>>(),
-            objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>());
+            objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>(), configuration);
         var workspaceStorageManagementService = new WorkspaceStorageManagementService(armClient,
             Substitute.For<ILogger<WorkspaceStorageManagementService>>(),
             objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>());
-        
+
         objectContainer.RegisterInstanceAs<IWorkspaceCostManagementService>(workspaceCostManagementService);
         objectContainer.RegisterInstanceAs<IWorkspaceBudgetManagementService>(workspaceBudgetManagementService);
         objectContainer.RegisterInstanceAs(workspaceBudgetManagementService);
@@ -148,7 +151,8 @@ public class Hooks
     }
 
     [AfterScenario("WorkspaceManagement")]
-    public void AfterScenarioRequiringWorkspaceManagement(IObjectContainer objectContainer, ScenarioContext scenarioContext)
+    public void AfterScenarioRequiringWorkspaceManagement(IObjectContainer objectContainer,
+        ScenarioContext scenarioContext)
     {
         var dbContextFactory = objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>();
         using var context = dbContextFactory.CreateDbContext();
@@ -161,30 +165,35 @@ public class Hooks
         ScenarioContext scenarioContext)
     {
         var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
-            .UseInMemoryDatabase(databaseName: "DatahubProjectDB")
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.test.json", optional: true)
+            .Build();
 
         var dbContextFactory = new SpecFlowDbContextFactory(options);
 
         objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
 
+        var iSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var workspaceCostManagementService = Substitute.For<IWorkspaceCostManagementService>();
         var workspaceBudgetManagementService = Substitute.For<IWorkspaceBudgetManagementService>();
         var workspaceStorageManagementService = Substitute.For<IWorkspaceStorageManagementService>();
         var loggerFactory = Substitute.For<ILoggerFactory>();
-        var mediator = Substitute.For<IMediator>();
-        var pongService = new QueuePongService(mediator);
-        
+        var pongService = new QueuePongService(iSendEndpointProvider);
+
         objectContainer.RegisterInstanceAs(workspaceCostManagementService);
         objectContainer.RegisterInstanceAs(workspaceBudgetManagementService);
         objectContainer.RegisterInstanceAs(workspaceStorageManagementService);
         objectContainer.RegisterInstanceAs(loggerFactory);
         objectContainer.RegisterInstanceAs(pongService);
-        objectContainer.RegisterInstanceAs(mediator);
+        objectContainer.RegisterInstanceAs(iSendEndpointProvider);
+        objectContainer.RegisterInstanceAs<IConfiguration>(configuration);
     }
-    
+
     [AfterScenario("MockWorkspaceManagement")]
-    public void AfterScenarioRequiringMockWorkspaceManagement(IObjectContainer objectContainer, ScenarioContext scenarioContext)
+    public void AfterScenarioRequiringMockWorkspaceManagement(IObjectContainer objectContainer,
+        ScenarioContext scenarioContext)
     {
         var dbContextFactory = objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>();
         using var context = dbContextFactory.CreateDbContext();
@@ -192,7 +201,8 @@ public class Hooks
         context.Database.EnsureCreated();
     }
 
-    public List<DailyServiceCost> CreateMockCosts(DateTime date1, DateTime date2, string rg1, string rg2, string source1, string source2)
+    public List<DailyServiceCost> CreateMockCosts(DateTime date1, DateTime date2, string rg1, string rg2,
+        string source1, string source2)
     {
         List<DailyServiceCost> mockCosts =
         [

@@ -29,7 +29,7 @@
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
     <Authorized>
         <MudStack>
-            <MudText Typo="Typo.h1">
+            <MudText Typo="Typo.h2">
                 @Localizer["Super User Page"]
             </MudText>
             <MudStack>
@@ -62,7 +62,7 @@
                         <MudPaper Outlined Class="pt-4 px-6 pb-6">
                             <MudStack Style="height: 150px;">
                                 <MudStack Row AlignItems="AlignItems.Center">
-                                    <MudIcon Icon="@SidebarIcons.Api" Class="mr-2" />
+                                    <DHIcon Icon="@SidebarIcons.Api" Class="mr-2" />
                                     <MudText Typo="Typo.h3">
                                         @Localizer["Databricks Admin"]
                                     </MudText>
@@ -72,11 +72,11 @@
                                 </MudText>
                                 <MudSpacer />
                                 <MudStack Row>
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary"
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary"
                                                OnClick="@(async () => await AddToDatabricksAdmins())">
                                         @Localizer["Databricks Admin"]
-                                        <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
-                                    </MudButton>
+                                        <DHIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
+                                    </DHButton>
                                 </MudStack>
                             </MudStack>
                         </MudPaper>
@@ -88,7 +88,7 @@
     </Authorized>
     <NotAuthorized>
         <MudStack AlignItems="AlignItems.Center">
-            <MudText Typo="Typo.h1">
+            <MudText Typo="Typo.h2">
                 @Localizer["Not Authorized"]
             </MudText>
             <MudText Typo="Typo.body1">

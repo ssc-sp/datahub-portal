@@ -67,6 +67,7 @@ function Export-Settings(
     Write-Output "Fetching secrets from keyvault"
 
     $resourcePrefix = "fsdh"
+    $resourcePrefixAlphanumeric = $resourcePrefix -replace "[^a-zA-Z0-9]", ""
     $azureDevOpsOrganization = "DataSolutionsDonnees"
     $azureDevOpsProject = "FSDH%20SSC"
     $vaultName = "fsdh-static-test-akv"
@@ -144,19 +145,52 @@ function Export-Settings(
 
     $nonAkvJson = $unflattenedObject | ConvertTo-Json -Depth 100
 
-    if ($Target -eq "AppSettings" -or $Target -eq "Function") {
+    if ($Target -eq "AppSettings") {
         #Write-Host "Target file is $tgtFile $($null -eq $TargetFile) - TargetFile is $TargetFile - fname = $([System.IO.Path]::GetFileName($tgtFile))"        
         $fName = if ($TargetFile) { $TargetFile } else { [System.IO.Path]::GetFileName($tgtFile) }
         $tgtFile = Join-Path $ProjectFolder $fName
         Write-Output "Writing json object to $tgtFile"
         Write-Host "Processing Sensitive entries"
-        if ($Target -eq "Function")
-        {   
-            $functionSettings = "{`n  `"IsEncrypted`": false,`n  `"Values`":   $nonAkvJson `n}"
-            $functionSettings | Out-File -FilePath $tgtFile
-        } else {
-            $nonAkvJson | Out-File -FilePath $tgtFile
+        $nonAkvJson | Out-File -FilePath $tgtFile
+        Push-Location
+        Set-Location $ProjectFolder
+        try {       
+            Write-Host "Setting user secrets from keyvault values" 
+            foreach ($entry in $akvEntries)
+            {
+                $key = $entry.Name
+                Write-Host "Setting user secret $key"
+                $secretValue = Read-AllSecrets $entry.Value
+                dotnet user-secrets set $key $secretValue
+            }
+
+        } catch {
+            Write-Error "Error setting user secrets"
+        } finally {
+            Pop-Location
         }
+
+        Write-Output "Done"
+	} elseif ($Target -eq "Function") {
+        $fName = if ($TargetFile) { $TargetFile } else { [System.IO.Path]::GetFileName($tgtFile) }
+        $tgtFile = Join-Path $ProjectFolder $fName
+        Write-Output "Writing json object to $tgtFile"
+
+		Write-Output "Configuring function settings"
+
+        $functionValues = @{}
+		foreach ($entry in $otherEntries)
+		{
+			$key = $entry.Name
+	        $envKey = $key -replace ":", "__"
+            Write-Output "Setting function variable $envKey"
+            $functionValues[$envKey] = $entry.Value
+		}
+
+        $valuesJson = $functionValues | ConvertTo-Json -Depth 100        
+        $functionSettings = "{`n  `"IsEncrypted`": false,`n  `"Values`":   $valuesJson `n}"
+        $functionSettings | Out-File -FilePath $tgtFile
+
         Push-Location
         Set-Location $ProjectFolder
         try {       
@@ -181,10 +215,10 @@ function Export-Settings(
             Pop-Location
         }
 
-        Write-Output "Done"
+
+		Write-Output "Done"	        
 	} elseif ($Target -eq "Environment") {
-		Write-Output "Configuring environment variables"
-		$nonAkvJson | Out-File -FilePath $tgtFile
+		Write-Output "Configuring environment variables"		
 		foreach ($entry in $akvEntries)
 		{
 			$key = $entry.Name

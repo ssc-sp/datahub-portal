@@ -1,0 +1,168 @@
+﻿@inject DatahubPortalConfiguration _portalConfiguration
+@inject IKeyVaultService _keyVaultService
+
+@using System.Net.Http;
+@using System.Net.Http.Headers;
+@using Datahub.Portal.Pages.Help;
+@using Datahub.Shared.Clients;
+@using Datahub.Shared.Configuration;
+@using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+
+<MudStack Spacing="6">
+    <MudText Typo="Typo.h1">@Localizer["Support Requests"]</MudText>
+    <MudText Typo="Typo.body1">@Localizer["This page displays all the support requests submitted by the user."]</MudText>
+
+    <MudText Typo="Typo.h2">@Localizer["Open Requests"]</MudText>
+    <MudText Typo="Typo.body1">@Localizer["These are all open support requests. New requests may take up to 15 minutes to appear here."]</MudText>
+    <MudTable Items="@_openIssues" Loading="@_loading" Hover Dense>
+        <HeaderContent>
+            <MudTh>@Localizer["Link to DevOps"]</MudTh>
+            <MudTh>@Localizer["ID"]</MudTh>
+			<MudTh>@Localizer["Title"]</MudTh>
+			<MudTh>@Localizer["Description"]</MudTh>
+            <MudTh>@Localizer["Status"]</MudTh>
+            <MudTh>@Localizer["Submitted_DT"]</MudTh>
+            <MudTh>@Localizer["Last Update"]</MudTh>
+		</HeaderContent>
+		<RowTemplate>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Outlined.Link" aria-label="share" Href="@GetIssueUrl(context.Id)"></MudIconButton>
+            </MudTd>
+            <MudTd>@context.Id</MudTd>
+			<MudTd>@context.Title</MudTd>
+            <MudTd>@context.Description</MudTd>
+            <MudTd><MudChip Color="@GetColor(context.State)">@Localizer[context.Message]</MudChip></MudTd>
+            <MudTd>@context.SubmittedDate</MudTd>
+            <MudTd>@context.ChangedDate</MudTd>
+		</RowTemplate>
+        <PagerContent>
+            <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")"/>
+        </PagerContent>
+    </MudTable>
+
+    <MudText Typo="Typo.h2">@Localizer["Closed Requests"]</MudText>
+    <MudText Typo="Typo.body1">@Localizer["These are all closed support requests."]</MudText>
+	<MudTable Items="@_closedIssues" Loading="@_loading" Hover Dense>
+		<HeaderContent>
+			<MudTh>@Localizer["Link to DevOps"]</MudTh>
+			<MudTh>@Localizer["ID"]</MudTh>
+			<MudTh>@Localizer["Title"]</MudTh>
+			<MudTh>@Localizer["Description"]</MudTh>
+			<MudTh>@Localizer["Status"]</MudTh>
+			<MudTh>@Localizer["Submitted_DT"]</MudTh>
+			<MudTh>@Localizer["Last Update"]</MudTh>
+		</HeaderContent>
+		<RowTemplate>
+			<MudTd>
+				<MudIconButton Icon="@Icons.Material.Outlined.Link" aria-label="share" Href="@GetIssueUrl(context.Id)"></MudIconButton>
+			</MudTd>
+			<MudTd>@context.Id</MudTd>
+			<MudTd>@context.Title</MudTd>
+            <MudTd>@context.Description)</MudTd>
+			<MudTd><MudChip Color="@GetColor(context.State)">@Localizer[context.Message]</MudChip></MudTd>
+			<MudTd>@context.SubmittedDate</MudTd>
+			<MudTd>@context.ChangedDate</MudTd>
+		</RowTemplate>
+		<PagerContent>
+			<MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")"/>
+		</PagerContent>
+	</MudTable>
+</MudStack>
+
+@code {
+    private List<IssueForDisplaying> _openIssues = new();
+    private List<IssueForDisplaying> _closedIssues = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetIssues();
+        StateHasChanged();
+    }
+
+    /**
+     * Retrieves a list of issues created by a specific user.
+     *
+     * @param userName The username of the user.
+     * @return A list of IssueForDisplaying objects representing the issues created by the user.
+     */
+    public async Task GetIssues()
+    {
+        _loading = true; // Show the loading bar in the table.
+        _openIssues = new();
+        _closedIssues = new();
+        var query = $"SELECT [System.Id], [System.Title], [System.CreatedBy], [System.CreatedDate], [System.ChangedDate], [System.Tags] FROM WorkItems WHERE [System.Tags] CONTAINS 'UserSubmitted' AND NOT [System.Title] CONTAINS 'xception'";
+        var wiql = new Wiql()
+        {
+            Query = query
+        };
+
+        // Configure the Azure DevOps client
+        var config = new AzureDevOpsConfiguration();
+        config.TenantId = _portalConfiguration.AzureAd.TenantId;
+        config.ClientId = _portalConfiguration.AzureAd.InfraClientId;
+        config.ClientSecret = _portalConfiguration.AzureAd.InfraClientSecret;
+        config.OrganizationName = _portalConfiguration.AdoOrg.OrgName;
+        config.ProjectName = _portalConfiguration.AdoOrg.ProjectName;
+
+        var clientProvider = new AzureDevOpsClient(config);
+
+        var client2 = await clientProvider.WorkItemClientAsync();
+        var res = await client2.QueryByWiqlAsync(wiql).ConfigureAwait(false);
+        var ids = res.WorkItems.Select(item => item.Id).ToArray();
+
+        for (int i = 0; i < ids.Length; i += 150)
+        {
+            var temp = ids.Skip(i).Take(150).ToArray();
+            var workItems = await client2.GetWorkItemsAsync(temp).ConfigureAwait(false);
+
+            foreach (var workItem in workItems)
+            {
+                var issue = new IssueForDisplaying(workItem, false);
+
+                if (issue.State == "Closed")
+                {
+                    _closedIssues.Add(issue);
+                }
+                else
+                {
+                    _openIssues.Add(issue);
+                }
+            }
+        }
+
+        _loading = false; // Stop showing the loading bar in the table.
+
+        // Reverse the issues list so that the most recent issues are displayed first
+        _openIssues.Reverse();
+    }
+
+    /**
+     * Generates the URL for a specific issue in Azure DevOps.
+     *
+     * @param issueId The ID of the issue.
+     * @return The URL for the issue in Azure DevOps.
+     */
+    private string GetIssueUrl(string issueId)
+    {
+        return $"https://dev.azure.com/{_portalConfiguration.AdoOrg.OrgName}/{_portalConfiguration.AdoOrg.ProjectName}/_workitems/edit/{issueId}";
+    }
+
+    /**
+     * Retrieves the color based on the status of an issue.
+     *
+     * @param status - The status of the issue.
+     * @returns The color associated with the status.
+     */
+    private static Color GetColor(string status)
+    {
+        return status switch
+        {
+            "Closed" => Color.Success,
+            "Active" => Color.Warning,
+            "Waiting" => Color.Info,
+            "New" => Color.Error,
+            _ => Color.Default
+        };
+    }
+}

@@ -5,7 +5,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
 <MudStack>
-    <MudText Typo="Typo.h1">DataHub Statistics</MudText>
+    <MudText Typo="Typo.h2">DataHub Statistics</MudText>
     <MudText>This page shows statistics about the DataHub.</MudText>
 
     <MudTable Items="@_statsRows" Hover="true" Loading="_isLoading" LoadingProgressColor="Color.Info">
@@ -66,9 +66,9 @@
                 @context.Collaborators?.Count
             </MudTd>
             <MudTd>
-                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowUsersPressed(context.ProjectId))">
+                <DHButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowUsersPressed(context.ProjectId))">
                     @(context.ShowUserDetails ? "Hide" : "Show") User details
-                </MudButton>
+                </DHButton>
             </MudTd>
             <MudTd DataLabel="Budget">
                 <MudTooltip Text="@($"{context.BudgetSpent.ToString("C", CultureInfo.CurrentCulture)} / {context.BudgetLimit.ToString("C", CultureInfo.CurrentCulture)}")">
@@ -81,21 +81,21 @@
             <MudTd DataLabel="Metadata">
                 @if (context.MetadataComplete)
                 {
-                    <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success"/>
+                    <DHIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
                 }
                 else
                 {
-                    <MudIcon Icon="@Icons.Material.Filled.WatchLater" Color="Color.Warning"/>
+                    <DHIcon Icon="@Icons.Material.Filled.WatchLater" Color="Color.Warning" />
                 }
             </MudTd>
             <MudTd DataLabel="Storage">
                 @switch (context.StorageStatus)
                 {
                     case DatahubProjectStatsRow.ResourceStatus.Complete:
-                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="@Color.Success"/>
+                        <DHIcon Icon="@Icons.Material.Filled.Check" Color="@Color.Success" />
                         break;
                     case DatahubProjectStatsRow.ResourceStatus.Requested:
-                        <MudIcon Icon="@Icons.Material.Filled.WatchLater" Color="@Color.Warning"/>
+                        <DHIcon Icon="@Icons.Material.Filled.WatchLater" Color="@Color.Warning" />
                         break;
                     case DatahubProjectStatsRow.ResourceStatus.None:
                         break;
@@ -107,10 +107,10 @@
                 @switch (context.DatabricksStatus)
                 {
                     case DatahubProjectStatsRow.ResourceStatus.Complete:
-                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="@Color.Success"/>
+                        <DHIcon Icon="@Icons.Material.Filled.Check" Color="@Color.Success" />
                         break;
                     case DatahubProjectStatsRow.ResourceStatus.Requested:
-                        <MudIcon Icon="@Icons.Material.Filled.WatchLater" Color="@Color.Warning"/>
+                        <DHIcon Icon="@Icons.Material.Filled.WatchLater" Color="@Color.Warning" />
                         break;
                     case DatahubProjectStatsRow.ResourceStatus.None:
                         break;

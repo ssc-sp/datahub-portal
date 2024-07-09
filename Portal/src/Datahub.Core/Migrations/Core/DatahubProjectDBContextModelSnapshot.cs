@@ -17,7 +17,7 @@ namespace Datahub.Core.Migrations.Core
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.4")
+                .HasAnnotation("ProductVersion", "8.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1538,6 +1538,11 @@ namespace Datahub.Core.Migrations.Core
                     b.Property<bool?>("WebAppEnabled")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("WebAppUrlRewritingEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("WebApp_URL")
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
@@ -1978,6 +1983,33 @@ namespace Datahub.Core.Migrations.Core
                     b.HasIndex("ProjectId", "Date");
 
                     b.ToTable("Project_Storage_Avgs", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Projects.Project_SyncStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Project_ID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("SyncTSUTC")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Project_ID");
+
+                    b.ToTable("SyncStatuses");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Whitelist", b =>
@@ -2620,6 +2652,15 @@ namespace Datahub.Core.Migrations.Core
                     b.Navigation("RequestedBy");
 
                     b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Projects.Project_SyncStatus", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("Project_ID");
+
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Whitelist", b =>

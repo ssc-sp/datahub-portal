@@ -1,4 +1,8 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using Azure.Core.Amqp;
+using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services.Budget;
 using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Datahub;
@@ -7,8 +11,10 @@ using Datahub.Functions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using FluentAssertions;
+using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
@@ -19,18 +25,19 @@ namespace Datahub.SpecflowTests.Steps
     public class ProjectUsageUpdaterSteps(
         ScenarioContext scenarioContext,
         ILoggerFactory loggerFactory,
-        IMediator mediator,
+        ISendEndpointProvider sendEndpointProvider,
         QueuePongService pongService,
         IWorkspaceCostManagementService costMgmt,
         IWorkspaceBudgetManagementService budgetMgmt,
         IWorkspaceStorageManagementService storageMgmt,
-        IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+        IConfiguration config)
     {
         [Given(@"a project usage update message")]
         public void GivenAProjectUsageUpdateMessage()
         {
             var mockCosts = new List<DailyServiceCost>();
-            var message = new ProjectUsageUpdateMessage("TEST", mockCosts, 0, false);
+            var message = new ProjectUsageUpdateMessage("TEST", "costs-mock.json", false);
             scenarioContext["message"] = message;
             scenarioContext["mockCosts"] = mockCosts;
         }
@@ -57,7 +64,7 @@ namespace Datahub.SpecflowTests.Steps
             };
             ctx.Projects.Add(project);
             ctx.Project_Credits.Add(credits);
-            await ctx.SaveChangesAsync(); 
+            await ctx.SaveChangesAsync();
         }
 
         [When(@"the project usage is updated")]
@@ -67,7 +74,18 @@ namespace Datahub.SpecflowTests.Steps
             var costRollover = scenarioContext["costRollover"] as bool? ?? false;
             var costSpent = scenarioContext["costSpent"] as decimal? ?? 0;
             var budgetSpent = scenarioContext["budgetSpent"] as decimal? ?? 0;
-            var strMessage = JsonSerializer.Serialize(message);
+
+            var messageEnvelope = new JsonObject
+            {
+                ["message"] = JsonSerializer.SerializeToNode(message)
+            };
+
+            var serviceBusReceivedMessage = ServiceBusReceivedMessage.FromAmqpMessage(
+                new AmqpAnnotatedMessage(new AmqpMessageBody(new List<ReadOnlyMemory<byte>>
+                {
+                    Encoding.UTF8.GetBytes(messageEnvelope.ToJsonString())
+                })), new BinaryData("lockToken"u8.ToArray()));
+
             budgetMgmt.UpdateWorkspaceBudgetSpentAsync(Arg.Any<string>()).Returns(budgetSpent);
             budgetMgmt.GetWorkspaceBudgetAmountAsync(Arg.Any<string>()).Returns((decimal)100.0);
             budgetMgmt.When(c => c.SetWorkspaceBudgetAmountAsync(Arg.Any<string>(), Arg.Any<decimal>(), true)).Do(
@@ -80,12 +98,15 @@ namespace Datahub.SpecflowTests.Steps
                         credits.LastRollover = DateTime.UtcNow;
                         ctx.Project_Credits.Update(credits);
                     }
+
                     ctx.SaveChanges();
                 });
-            costMgmt.UpdateWorkspaceCostAsync(Arg.Any<List<DailyServiceCost>>(), Arg.Any<string>()).Returns((costRollover, (decimal)10.0));
-            var projectUsageUpdater = new ProjectUsageUpdater(loggerFactory, mediator, pongService, costMgmt, budgetMgmt, storageMgmt);
-            
-            var rolledOver = await projectUsageUpdater.Run(strMessage, CancellationToken.None);
+            costMgmt.UpdateWorkspaceCostAsync(Arg.Any<List<DailyServiceCost>>(), Arg.Any<string>())
+                .Returns((costRollover, (decimal)10.0));
+            var projectUsageUpdater = new ProjectUsageUpdater(loggerFactory, pongService, costMgmt, budgetMgmt,
+                sendEndpointProvider, storageMgmt, config);
+
+            var rolledOver = await projectUsageUpdater.Run(serviceBusReceivedMessage, CancellationToken.None);
             scenarioContext["rolledOver"] = rolledOver;
         }
 
@@ -107,7 +128,7 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"the last update date is in the previous fiscal year")]
         public async Task WhenTheLastUpdateDateIsInThePreviousFiscalYear()
         {
-            scenarioContext["costSpent"] = (decimal)10.0; 
+            scenarioContext["costSpent"] = (decimal)10.0;
             scenarioContext["costRollover"] = true;
             scenarioContext["budgetSpent"] = (decimal)10.0;
         }
@@ -133,6 +154,24 @@ namespace Datahub.SpecflowTests.Steps
             scenarioContext["costSpent"] = (decimal)10.0;
             scenarioContext["costRollover"] = true;
             scenarioContext["budgetSpent"] = (decimal)20.0;
+        }
+
+        [When(@"the subscription costs are downloaded")]
+        public async Task WhenTheSubscriptionCostsAreDownloaded()
+        {
+            var projectUsageUpdater = new ProjectUsageUpdater(loggerFactory, pongService, costMgmt, budgetMgmt,
+                sendEndpointProvider, storageMgmt, config);
+            var message = scenarioContext["message"] as ProjectUsageUpdateMessage;
+            var costs = await projectUsageUpdater.GetFromBlob(message.CostsBlobName);
+            scenarioContext["costs"] = costs;
+        }
+
+        [Then(@"the blob download should work properly")]
+        public void ThenTheBlobDownloadShouldWorkProperly()
+        {
+            var costs = scenarioContext["costs"] as List<DailyServiceCost>;
+            costs.Should().NotBeNull();
+            costs.Should().NotBeEmpty();
         }
     }
 }

@@ -4,14 +4,16 @@
 
 <MudDialog ClassContent="pa-6" ClassActions="pa-6">
     <DialogContent>
-        <MudForm @bind-IsValid="@_success">
+        <MudForm @ref="form" @bind-IsValid="@_success" @bind-Errors="@errors">
             <MudText>
                 @Localizer["Select a framework from the list, which will be used to generate a template app service configuration. If you want to deploy a custom web application, select 'Docker compose' and provide the git repo URL and the path to the docker compose file."]
             </MudText>
-            <MudLink Href="@PageRoutes.ResourceDefault">
-                @Localizer["Learn more about configuring a web application"]
-            </MudLink>
-            <MudSelect Class="mt-6" Label=@Localizer["Select a web framework"]    @bind-Value="_selectedFramework">
+            <MudAlert Class="mt-4" Severity="Severity.Warning">
+                <strong>
+                    @Localizer["Please read the Additional Information section before proceeding to ensure that you do not run into any issues!"]
+                </strong>
+            </MudAlert>
+            <MudSelect Class="mt-6" Label=@Localizer["Select a web framework"] @bind-Value="_selectedFramework">
                 @foreach (string framework in AppServiceTemplates.TEMPLATES)
                 {
                     <MudSelectItem Value="@framework" Label="@framework"/>
@@ -32,29 +34,11 @@
                 </MudGrid>
                 @if (_isRepoPrivate)
                 {
-                    <MudTextField Label=@Localizer["Enter access token"]    @bind-Value="_accessToken" HelperText="@Localizer["Access token for the private repository - Do not edit to reuse existing token"]" Placeholder="********" Required="true" RequiredError=@Localizer["Access tokens are required for private repos"]/>
+                    <MudTextField Label=@Localizer["Enter access token"]     @bind-Value="_accessToken" HelperText="@Localizer["Access token for the private repository - Do not edit to reuse existing token"]" Placeholder="********" Required="true" RequiredError=@Localizer["Access tokens are required for private repos"]/>
                 }
 
-                <MudTextField Label=@Localizer["Enter Docker compose file path"]    @bind-Value="_dockerComposeFilePath" HelperText="@Localizer["Path from the base of your repo to the desired compose file, including the compose file"]" Placeholder="path/to/compose.yaml" Required="true" RequiredError=@Localizer["Path to docker compose is necessary, file name must be included"]/>
+                <MudTextField Label=@Localizer["Enter Docker compose file path"]     @bind-Value="_dockerComposeFilePath" HelperText="@Localizer["Path from the base of your repo to the desired compose file, including the compose file"]" Placeholder="path/to/compose.yaml" Required="true" RequiredError=@Localizer["Path to docker compose is necessary, file name must be included"]/>
             }
-            <MudExpansionPanels Elevation="1" Class="mt-4">
-                <MudExpansionPanel IsInitiallyExpanded="false">
-                    <TitleContent>
-                        <MudStack Row="true">
-                            <MudIcon Icon=@SidebarIcons.Brackets/>
-                            <MudText>
-                                @Localizer["Environment variables"]
-                            </MudText>
-                        </MudStack>
-                    </TitleContent>
-                    <ChildContent>
-                        <MudText>
-                            @Localizer["Environment variables are key-value pairs that are used to pass configuration to your web application. They are used to store sensitive information such as database connection strings, API keys, etc. You can add environment variables to your web application by providing a key-value pair. The key is the name of the environment variable and the value is the value of the environment variable."]
-                        </MudText>
-                        <EnvironmentVariablesTable projectAcronym="@WorkspaceAcronym" resource="@Resource" isEditable="true" @ref="@envVarTable"/>
-                    </ChildContent>
-                </MudExpansionPanel>
-            </MudExpansionPanels>
         </MudForm>
     </DialogContent>
     <DialogActions>
@@ -63,6 +47,7 @@
         </MudText>
         <MudSpacer/>
         <MudButton Variant="Variant.Outlined" OnClick="() => MudDialog.Cancel()">@Localizer["Cancel"]</MudButton>
+        @* <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(()=>form.Validate())">Validate</MudButton> *@
         <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Disabled="@(!_success)">@Localizer["Save"]</MudButton>
     </DialogActions>
 </MudDialog>
@@ -72,14 +57,15 @@
     [Parameter] public AppServiceConfiguration Configuration { get; set; }
     [Parameter] public string WorkspaceAcronym { get; set; }
     [Parameter] public Project_Resources2 Resource { get; set; }
-    private EnvironmentVariablesTable envVarTable { get; set; }
 
-    
-    private string _selectedFramework;
+    private MudForm form;
+    private string[] errors = { };
+
+    private string _selectedFramework = AppServiceTemplates.CUSTOM;
     private string _gitRepoUrl;
     private string _dockerComposeFilePath;
     private string _repoVisibility;
-    private bool _isRepoPrivate; 
+    private bool _isRepoPrivate;
     private string _accessToken;
     private string _fullToken;
     private bool _success;
@@ -89,7 +75,7 @@
 
     protected override void OnInitialized()
     {
-        _selectedFramework = Configuration.Framework ?? "";
+        _selectedFramework = Configuration.Framework ?? AppServiceTemplates.CUSTOM;
         _gitRepoUrl = Configuration.GitRepo ?? "";
         _isRepoPrivate = Configuration.IsGitRepoPrivate;
         _fullToken = Configuration.GitToken ?? "";
@@ -103,7 +89,6 @@
 
     void Submit()
     {
-        var envVars = envVarTable.GetEnvironmentVariablesDictionary();
         var config = AppServiceTemplates.GetTemplateConfiguration(AppServiceTemplates.CUSTOM);
         if (_selectedFramework == AppServiceTemplates.CUSTOM)
         {
@@ -128,14 +113,14 @@
             config = AppServiceTemplates.GetTemplateConfiguration(_selectedFramework);
         }
 
-        MudDialog.Close(DialogResult.Ok((config, envVars)));
+        MudDialog.Close(DialogResult.Ok(config));
     }
 
     private void CheckForPrivateRepo(string value)
     {
         if (value.Contains("@"))
         {
-            _isRepoPrivate = true; 
+            _isRepoPrivate = true;
             _accessToken = value.Split("@")[0].Split("https://")[1];
             _gitRepoUrl = value.Replace(_accessToken + "@", "");
         }
@@ -144,6 +129,6 @@
             _gitRepoUrl = value;
         }
     }
-    
+
 
 }

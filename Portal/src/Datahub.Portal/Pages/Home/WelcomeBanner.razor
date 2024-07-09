@@ -4,6 +4,7 @@
 @using Datahub.Application.Services.UserManagement
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
+@implements IDisposable
 
 @inject TimeZoneService _timeZoneService
 @inject IConfiguration _configuration
@@ -20,7 +21,7 @@
 else if (_previews.Count == 0)
 {
     <MudPaper Class="welcome-banner" Style="@_personalBackgroundStyle" >
-        <MudText Typo="Typo.h1" class="greeting">@_greeting</MudText>
+        <MudText Typo="Typo.h2" class="greeting">@_greeting</MudText>
     </MudPaper>
 }
 else
@@ -89,9 +90,12 @@ else
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
-        if (_module is not null)
-        {
-            await _module.DisposeAsync();
-        }
+        if (_module != null) await _module.DisposeAsync();
     }
+    
+    public void Dispose()
+    {
+        _module?.DisposeAsync();
+    }
+
 }

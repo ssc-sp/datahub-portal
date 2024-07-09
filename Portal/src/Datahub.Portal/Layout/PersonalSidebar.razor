@@ -1,4 +1,5 @@
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.UserTracking
@@ -34,10 +35,10 @@
             <MudSpacer/>
             @if (userRoles.Any())
             {
-                <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="@ShowProjectDialog" Disabled="@_canNotCreateWorkspace">
-                    <MudIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;"/>
+                <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="@ShowProjectDialog" Disabled="@_canNotCreateWorkspace">
+                    <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;" />
                     @Localizer["New"]
-                </MudButton>
+                </DHButton>
             }
         </MudStack>
 
@@ -48,7 +49,7 @@
                 {
                     <MudNavLink Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
                         <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                            <DHIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                             <MudText Style="@_workspaceLinkStyle">
                                 @userRole.Project.ProjectName
                             </MudText>
@@ -62,14 +63,14 @@
                     </MudLink>
                 }
             </MudNavMenu>
-        }
+        } 
         else
         {
-            <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" OnClick="@ShowProjectDialog">
-                <MudIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;"/>
+            <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" OnClick="@ShowProjectDialog">
+                <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;" />
                 @Localizer["Create new"]
                 <MudSpacer/>
-            </MudButton>
+            </DHButton>
         }
     </MudStack>
 
@@ -84,7 +85,7 @@
             {
                 <MudNavLink Href="@GetSectionViewUrl(recentActivity)">
                     <MudStack Row AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                        <DHIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark" />
                         <MudText Style="@_workspaceLinkStyle">
                             @GetLabel(recentActivity)
                         </MudText>
@@ -105,7 +106,7 @@
             {
                 <MudNavLink Href="@GetSectionViewUrl(PageRoutes.AccountPrefix, sectionView)" Match="NavLinkMatch.All">
                     <MudStack Row AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                        <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
                         <MudText Style="@_workspaceLinkStyle">
                             @GetLabel(sectionView)
                         </MudText>
@@ -126,7 +127,7 @@
                 {
                     <MudNavLink Href="@GetSectionViewUrl(PageRoutes.ToolPrefix, sectionView)" Match="NavLinkMatch.All">
                         <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                            <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
                             <MudText Style="@_workspaceLinkStyle">
                                 @GetLabel(sectionView)
                             </MudText>
@@ -171,6 +172,7 @@
         public const string HealthCheck = "healthcheck";
         public const string Users = "users";
         public const string Email = "email";
+        public const string SupportRequests = "support-requests";
         public const string AzureSubscriptions = "azure-subscriptions";
     }
 
@@ -187,6 +189,7 @@
     private List<string> _datahubAdminItems = new()
     {
         SectionViews.Diagnostics,
+        SectionViews.SupportRequests,
         SectionViews.Statistics,
         SectionViews.HealthCheck,
         SectionViews.Users,
@@ -267,6 +270,7 @@
             SectionViews.Users => SidebarIcons.Users,
             SectionViews.Email => SidebarIcons.Email,
             SectionViews.AzureSubscriptions => SidebarIcons.AzureSubscriptions,
+            SectionViews.SupportRequests => SidebarIcons.SupportRequests,
 
             _ => SidebarIcons.Profile
         };
@@ -288,6 +292,7 @@
             SectionViews.Users => Localizer["Users"],
             SectionViews.Email => Localizer["Email"],
             SectionViews.AzureSubscriptions => Localizer["Azure Subscriptions"],
+            SectionViews.SupportRequests => Localizer["Support Requests"],
 
             _ => Localizer["Public Profile"]
         };

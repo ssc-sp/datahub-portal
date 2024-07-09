@@ -1,4 +1,10 @@
 {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "DatahubServiceBus": {
+        "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=service-bus-connection-string)"
+    },
     "ModuleRepository": {
         "Url": "https://github.com/ssc-sp/datahub-resource-modules.git",
         "LocalPath": "/tmp/datahub-resource-modules",
@@ -12,7 +18,7 @@
         "AutoApproveUserOid": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-infrastructure-repo-auto-approver-oid)",
         "PullRequestUrl": "https://dev.azure.com/$azureDevOpsOrganization/$azureDevOpsProject/_apis/git/repositories/$repositoryId/pullrequests",
         "PullRequestBrowserUrl": "https://dev.azure.com/$azureDevOpsOrganization/$azureDevOpsProject/_git/$azureDevopsRepository/pullrequest",
-        "ApiVersion": "6.0",
+        "ApiVersion": "7.1-preview.1",
         "MainBranch": "main",
         "AzureDevOpsConfiguration": {
             "TenantId": "$tenantId",
@@ -22,7 +28,7 @@
     },
     "Terraform": {
         "Backend": {
-            "ResourceGroupName": "$resourcePrefix-core-$Environment-rg"
+            "ResourceGroupName": "$resourcePrefix-$Environment-rg"
         },
         "Variables": {
             "az_subscription_id": "$subscriptionId",
@@ -35,7 +41,9 @@
             "aad_admin_group_oid": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=aad-admin-group-oid)",
             "storage_size_limit_tb": "5",
             "az_location": "canadacentral",
+            "allow_source_ip": "20.200.112.175,205.194.36.254",
             "resource_prefix": "$resourcePrefix",
+            "resource_prefix_alphanumeric": "$resourcePrefixAlphanumeric",
             "common_tags": {
                 "Sector": "Science Program",
                 "Environment": "$Environment",

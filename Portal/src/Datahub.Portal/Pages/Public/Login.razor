@@ -12,7 +12,7 @@
         <MudText Typo="Typo.h4" Class="text-center">@Localizer["Welcome to DataHub"]</MudText>
         <MudText Typo="Typo.h6" Class="text-center">@Localizer["Please login to continue"]</MudText>
         <MudStack AlignItems="AlignItems.Center" Class="mt-4">
-            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">@Localizer["Login"]</MudButton>
+            <MudButton HtmlTag="a" Class="mx-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">@Localizer["Login"]</MudButton>
         </MudStack>
         <MudText Typo="Typo.body2" Class="mt-8">
             @Localizer["Don't have an account?"]

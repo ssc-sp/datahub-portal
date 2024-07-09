@@ -99,8 +99,6 @@ public class RequestManagementService : IRequestManagementService
     public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project datahubProject, string terraformTemplate,
         PortalUser requestingUser, bool isDelete = false)
     {
-        using var scope = new TransactionScope(
-            TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
         try
         {
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
@@ -146,7 +144,6 @@ public class RequestManagementService : IRequestManagementService
             workspaceDefinition.Templates = allTemplates;
 
             await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
-            scope.Complete();
             return true;
         }
         catch (Exception ex)

@@ -8,16 +8,16 @@
 
 @page "/terms-and-conditions"
 
-<MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/home" Style="position: absolute; top: 2rem; left:  2rem;">
+<MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Href="/home" Style="position: absolute; top: 2rem; left:  2rem;">
     @Localizer["Back to DataHub"]
 </MudButton>
-<MudButton Variant="Variant.Filled" Color="Color.Primary" Style="position: absolute; top: 2rem; right:  2rem;">
+<MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Style="position: absolute; top: 2rem; right:  2rem;">
     <LanguageToggle />
 </MudButton>
 
 <MudContainer Class="my-16" MaxWidth="MaxWidth.Medium">
 
-    <MudText Typo="Typo.h1" Class="mb-8" Align="Align.Center">
+    <MudText Typo="Typo.h2" Class="mb-8" Align="Align.Center">
         @Localizer["Terms and Conditions"]
     </MudText>
     <DHMarkdown Content="@_markdownContent" LinkRewriter="@RewriteLink"/>
