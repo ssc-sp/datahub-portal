@@ -1,4 +1,5 @@
 ﻿using Azure.Messaging.ServiceBus;
+using Datahub.Functions.Entities;
 using Datahub.Functions.Extensions;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Extensions;
@@ -20,7 +21,8 @@ namespace Datahub.Functions
         AzureConfig config,
         IEmailService emailService,
         ISendEndpointProvider sendEndpointProvider,
-        IAlertRecordService alertRecordService)
+        IAlertRecordService alertRecordService,
+        IHttpClientFactory httpClientFactory)
     {
         [Function("BugReport")]
         public async Task Run(
@@ -44,6 +46,8 @@ namespace Datahub.Functions
                         return;
                     }
                 }
+
+                await PostToTeams(bug);
 
                 // Build the ADO issue
                 var issue = CreateIssue(bug);
@@ -78,6 +82,52 @@ namespace Datahub.Functions
             else
             {
                 logger.LogError(message: "Bug report queue triggered but unable to deserialize message.");
+            }
+        }
+
+        private async Task PostToTeams(BugReportMessage bug)
+        {
+            if (string.IsNullOrEmpty(config.BugReportTeamsWebhookUrl))
+            {
+                logger.LogWarning("Teams Webhook is not configured - alert will not be posted to Teams. Please configure BugReportTeamsWebhookUrl setting.");
+                return;
+            }
+
+            var bugTeamsMessage = new TeamsWebhookMessage("Bug Report", bug.BugReportType.ToString());
+
+            var details = bugTeamsMessage.Sections[0];
+            details.AddNonEmptyFact(nameof(bug.UserName), bug.UserName);
+            details.AddNonEmptyFact(nameof(bug.UserEmail), bug.UserEmail);
+            details.AddNonEmptyFact(nameof(bug.UserOrganization), bug.UserOrganization);
+            details.AddNonEmptyFact(nameof(bug.Description), bug.Description);
+            details.AddNonEmptyFact(nameof(bug.Topics), bug.Topics);
+            details.AddNonEmptyFact(nameof(bug.Workspaces), bug.Workspaces);
+            details.AddNonEmptyFact(nameof(bug.URL), bug.URL);
+            details.AddNonEmptyFact(nameof(bug.PortalLanguage), bug.PortalLanguage);
+            details.AddNonEmptyFact(nameof(bug.PreferredLanguage), bug.PreferredLanguage);
+            details.AddNonEmptyFact(nameof(bug.Timezone), bug.Timezone);
+            details.AddNonEmptyFact(nameof(bug.UserAgent), bug.UserAgent);
+            details.AddNonEmptyFact(nameof(bug.Resolution), bug.Resolution);
+            details.AddNonEmptyFact(nameof(bug.LocalStorage), bug.LocalStorage);
+            details.AddNonEmptyFact(nameof(bug.BugReportType), bug.BugReportType.ToString());
+            
+            try
+            {
+                using var httpClient = httpClientFactory.CreateClient();
+                var response = await httpClient.PostAsJsonAsync(config.BugReportTeamsWebhookUrl, bugTeamsMessage);
+                if (response.IsSuccessStatusCode)
+                {
+                    logger.LogInformation("Alert successfully posted to Teams");
+                }
+                else
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    logger.LogError($"Problem posting to Teams Webhook - status {response.StatusCode} - {content}");
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error posting alert to Teams");
             }
         }
 
