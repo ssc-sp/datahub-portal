@@ -96,13 +96,7 @@
 
     private async Task ShowProjectDialog()
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await DialogService.ShowAsync<CreateProjectDialog>(Localizer["Create a new Workspace"], options);
-        var dialogResult = await dialog.Result;
-        if (!dialogResult.Canceled)
-        {
-            NavigationManager.NavigateTo($"{_datahubPortalConfiguration.ProjectUrlSegment}/{dialogResult.Data}", true);
-        }
+        NavigationManager.NavigateTo(PageRoutes.CreateWorkspace);
     }
 
 }
