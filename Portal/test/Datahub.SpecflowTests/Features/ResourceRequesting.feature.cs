@@ -139,6 +139,53 @@ namespace Datahub.SpecflowTests.Features
             await this.ScenarioCleanupAsync();
         }
         
+        [Xunit.SkippableTheoryAttribute(DisplayName="Request a resource to be deleted from a workspace")]
+        [Xunit.TraitAttribute("FeatureTitle", "Resource Requesting")]
+        [Xunit.TraitAttribute("Description", "Request a resource to be deleted from a workspace")]
+        [Xunit.TraitAttribute("Category", "queue")]
+        [Xunit.InlineDataAttribute("AzureStorageBlob", "1", new string[0])]
+        public async System.Threading.Tasks.Task RequestAResourceToBeDeletedFromAWorkspace(string resource_Name, string number_Of_Messages, string[] exampleTags)
+        {
+            string[] @__tags = new string[] {
+                    "queue"};
+            if ((exampleTags != null))
+            {
+                @__tags = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(@__tags, exampleTags));
+            }
+            string[] tagsOfScenario = @__tags;
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            argumentsOfScenario.Add("resource_name", resource_Name);
+            argumentsOfScenario.Add("number_of_messages", number_Of_Messages);
+            Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Request a resource to be deleted from a workspace", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 22
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 23
+        await testRunner.GivenAsync(string.Format("a workspace without a {0} resource", resource_Name), ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 24
+        await testRunner.AndAsync("a current user", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 25
+        await testRunner.WhenAsync(string.Format("a current user requests to delete a {0} resource in a workspace", resource_Name), ((string)(null)), ((Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 26
+        await testRunner.ThenAsync(string.Format("there should be a workspace {0} resource created", resource_Name), ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 27
+        await testRunner.AndAsync(string.Format("there should be {0} delete messages in resource messaging queue", number_Of_Messages), ((string)(null)), ((Reqnroll.Table)(null)), "And ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
         [Xunit.SkippableTheoryAttribute(DisplayName="Request to run an update resource for a workspace")]
         [Xunit.TraitAttribute("FeatureTitle", "Resource Requesting")]
         [Xunit.TraitAttribute("Description", "Request to run an update resource for a workspace")]
@@ -157,7 +204,7 @@ namespace Datahub.SpecflowTests.Features
             argumentsOfScenario.Add("resource_name", resource_Name);
             argumentsOfScenario.Add("number_of_messages", number_Of_Messages);
             Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Request to run an update resource for a workspace", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 22
+#line 34
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -167,19 +214,19 @@ namespace Datahub.SpecflowTests.Features
             else
             {
                 await this.ScenarioStartAsync();
-#line 23
+#line 35
         await testRunner.GivenAsync(string.Format("a workspace without a {0} resource", resource_Name), ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 24
+#line 36
         await testRunner.AndAsync("a current user", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 25
+#line 37
         await testRunner.WhenAsync(string.Format("a current user requests to run a {0} for a workspace", resource_Name), ((string)(null)), ((Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 26
+#line 38
         await testRunner.ThenAsync(string.Format("there should not be a workspace {0} resource created", resource_Name), ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 27
+#line 39
         await testRunner.AndAsync(string.Format("there should be {0} messages in resource messaging queue", number_Of_Messages), ((string)(null)), ((Reqnroll.Table)(null)), "And ");
 #line hidden
             }
@@ -205,7 +252,7 @@ namespace Datahub.SpecflowTests.Features
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             argumentsOfScenario.Add("resource_name", resource_Name);
             Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Request to run an unreleased workspace resource", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 34
+#line 46
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -215,19 +262,19 @@ namespace Datahub.SpecflowTests.Features
             else
             {
                 await this.ScenarioStartAsync();
-#line 35
+#line 47
         await testRunner.GivenAsync(string.Format("a workspace without a {0} resource", resource_Name), ((string)(null)), ((Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 36
+#line 48
         await testRunner.AndAsync("a current user", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 37
+#line 49
         await testRunner.WhenAsync(string.Format("a current user requests to run a {0} for a workspace", resource_Name), ((string)(null)), ((Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 38
+#line 50
         await testRunner.ThenAsync(string.Format("there should not be a workspace {0} resource created", resource_Name), ((string)(null)), ((Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 39
+#line 51
         await testRunner.AndAsync("there should be 0 messages in resource messaging queue", ((string)(null)), ((Reqnroll.Table)(null)), "And ");
 #line hidden
             }
