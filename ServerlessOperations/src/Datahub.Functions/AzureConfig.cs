@@ -67,6 +67,8 @@ public class AzureConfig : IAzureServicePrincipalConfig
     /// For more information: https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-timespan-parse
     /// </summary>
     public string InfrastructureAlertDebounceTimeSpan => _config["InfrastructureAlertDebounceTimeSpan"] ?? "1";
+
+    public string? BugReportTeamsWebhookUrl => _config["BugReportTeamsWebhookUrl"];
 }
 
 public class EmailNotification
