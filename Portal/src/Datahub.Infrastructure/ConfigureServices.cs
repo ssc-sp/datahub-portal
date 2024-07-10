@@ -62,6 +62,7 @@ public static class ConfigureServices
         if (isDevelopment)
         {
             services.AddScoped<IHealthCheckConsumer, HealthCheckConsumer>();
+            services.AddScoped<IHealthCheckResultConsumer, HealthCheckResultConsumer>();
             services.AddHostedService<LocalMessageReaderService>();
         }
 
@@ -75,6 +76,10 @@ public static class ConfigureServices
                     cfg.ReceiveEndpoint("infrastructure-health-check", endpoint =>
                     {
                         endpoint.Consumer<HealthCheckConsumer>();
+                    });
+                    cfg.ReceiveEndpoint("infrastructure-health-check-results", endpoint =>
+                    {
+                        endpoint.Consumer<HealthCheckResultConsumer>();
                     });
                 });
             }
