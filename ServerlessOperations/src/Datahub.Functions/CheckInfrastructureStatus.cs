@@ -24,6 +24,7 @@ using Datahub.Application.Services;
 using Datahub.Shared.Clients;
 using MassTransit.Internals.Caching;
 using static Datahub.Infrastructure.Services.LocalMessageReaderService;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.Functions;
 

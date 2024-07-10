@@ -98,6 +98,28 @@ public static class EFTools
         }
     }
 
+    public static void ConfigureDbContext<TGen, Tsql, Tsqlite>(this IServiceCollection services, IConfiguration configuration, string connectionStringName, DbDriver dbDriver)
+        where TGen : DbContext
+        where Tsql : DbContext
+        where Tsqlite : DbContext
+    {
+        ConfigureDbContext<TGen>(services, configuration, connectionStringName, dbDriver);
+        switch (dbDriver)
+        {
+            case DbDriver.Memory:
+            case DbDriver.SqlServer:
+            case DbDriver.SqlLocalDB:
+            case DbDriver.Azure:
+                ConfigureDbContext<Tsql>(services, configuration, connectionStringName, dbDriver);
+                break;
+            case DbDriver.Sqlite:
+                ConfigureDbContext<Tsqlite>(services, configuration, connectionStringName, dbDriver);
+                break;
+            default:
+                throw new ArgumentException("Invalid DB driver");
+        }
+    }
+
     private static string GetInfo(DatabaseFacade db)
     {
         if (db.IsRelational()) return $"{db.GetDbConnection().Database}";
@@ -119,13 +141,6 @@ public static class EFTools
             {
                 logger.LogCritical(ex, "Seed(context, configuration) method doesn't exist");
             }
-
-            //var seedable = context as ISeedable<T>;
-            //if (seedable != null)
-            //{
-            //    //seedable.Seed(context, Configuration);
-            //    context.SaveChanges();
-            //}
         }
     }
 }

@@ -8,6 +8,7 @@ using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
