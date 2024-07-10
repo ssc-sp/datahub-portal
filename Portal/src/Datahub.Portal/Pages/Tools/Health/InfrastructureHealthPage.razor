@@ -44,7 +44,7 @@ else
                     <MudTd>@context.ResourceType</MudTd>
                     <MudTd>
                         <MudTooltip Delay="600" Text="@GetStatusDetails(context)">
-                        <MudChip Color="@GetColor(context)" Size="Size.Small">
+                        <MudChip Color="@GetColor(context)" Size="Size.Small" T="string">
                             @Localizer[GetStatusText(context)]
                         </MudChip>
                         </MudTooltip>
@@ -79,14 +79,14 @@ else
                 <MudTd>@context.Name</MudTd>
                 <MudTd>
                     <MudTooltip Delay="600" Text="@GetStatusDetails(context)">
-                    <MudChip Color="@GetColor(context)" Size="Size.Small">
+                    <MudChip Color="@GetColor(context)" Size="Size.Small" T="string">
                         @Localizer[GetStatusText(context)]
                     </MudChip>
                     </MudTooltip>
                 </MudTd>
                 <MudTd>
                     <MudTooltip Delay="600" Text="@GetStatusDetails(context)">
-                    <MudChip Color="@GetColor(GetPoison(context))" Size="Size.Small">
+                                <MudChip Color="@GetColor(GetPoison(context))" Size="Size.Small" T="string">
                         @Localizer[GetStatusText(GetPoison(context))]
 					</MudChip>
                     </MudTooltip>
@@ -133,7 +133,7 @@ else
                         var details = GetStatusDetails(health);
                         <MudTd>
                             <MudTooltip Delay="600" Text="@details">
-							<MudChip Color="@GetColor(realStatus)" 
+                                    <MudChip Color="@GetColor(realStatus)" T="string"
                                 Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
 								@Localizer[realStatus.ToString()]
 							</MudChip>

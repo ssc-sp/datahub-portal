@@ -1,4 +1,3 @@
-using Askmethat.Aspnet.JsonLocalizer.Extensions;
 using BlazorDownloadFile;
 using Blazored.LocalStorage;
 using Datahub.Application;
@@ -71,6 +70,8 @@ using Datahub.Infrastructure.Services.UserManagement;
 using Datahub.Infrastructure.Services.ReverseProxy;
 using Datahub.Infrastructure.Services.WebApp;
 using Microsoft.Extensions.Azure;
+using AspNetCore.Localizer.Json.Extensions;
+using AspNetCore.Localizer.Json.JsonOptions;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -338,7 +339,7 @@ public class Startup
             options.ResourcesPath = "i18n";
             options.UseBaseName = false;
             options.IsAbsolutePath = true;
-            options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
+            options.LocalizationMode = LocalizationMode.I18n;
             options.MissingTranslationLogBehavior = trackTranslations
                 ? MissingTranslationLogBehavior.CollectToJSON
                 : MissingTranslationLogBehavior.Ignore;
