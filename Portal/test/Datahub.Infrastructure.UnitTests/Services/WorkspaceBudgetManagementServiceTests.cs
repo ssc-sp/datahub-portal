@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using static Datahub.Infrastructure.UnitTests.Testing;
 using NSubstitute;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.Infrastructure.UnitTests.Services
 {

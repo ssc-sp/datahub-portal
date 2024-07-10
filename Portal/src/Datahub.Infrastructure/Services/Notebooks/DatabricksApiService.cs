@@ -6,6 +6,7 @@ using Azure.Core;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Core.Data.Databricks;
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Services.CatalogSearch;

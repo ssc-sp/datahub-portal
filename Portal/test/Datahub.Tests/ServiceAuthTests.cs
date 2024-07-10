@@ -8,6 +8,7 @@ using Datahub.Application.Services.Security;
 using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Services.Security;
 using Xunit;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.Tests;
 
@@ -24,7 +25,7 @@ public class ServiceAuthTests:IDisposable
 
         var serviceAuthCache = serviceProvider.GetService<IMemoryCache>();
         var mockDbFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
-        ctx = new DatahubProjectDBContext(new DbContextOptionsBuilder<DatahubProjectDBContext>()
+        ctx = new SqlServerDatahubContext(new DbContextOptionsBuilder<DatahubProjectDBContext>()
             .UseInMemoryDatabase("InMemoryTest")
             .Options);
         mockDbFactory.Setup(f => f.CreateDbContext())

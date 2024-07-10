@@ -8,6 +8,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.Functions;
 

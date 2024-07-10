@@ -5,6 +5,7 @@ using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Services.UserManagement;

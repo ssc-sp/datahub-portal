@@ -1,6 +1,6 @@
 ﻿param (
     [Parameter(Mandatory=$true)]
-    [ValidateSet("AddMigration", "RemoveMigration")]
+    [ValidateSet("AddMigration", "RemoveMigration","Script")]
     [string]$Action,
     [string]$MigrationName
 )
@@ -22,30 +22,42 @@ else
     Start-Process -FilePath "dotnet" -ArgumentList "tool update --global dotnet-ef" -NoNewWindow -PassThru -Wait
 }
 
+# Define the timeout duration in milliseconds (120 seconds * 1000)
+$timeoutDuration = 120 * 1000
 # Run the dotnet build command and capture the exit code
-$buildResult = Start-Process -FilePath "dotnet" -ArgumentList "build" -NoNewWindow -PassThru -Wait
-
-Write-Host "Build completed"
+$buildProcess = Start-Process -FilePath "dotnet" -ArgumentList "build" -NoNewWindow -PassThru
+$buildProcess.WaitForExit($timeoutDuration)
 
 # Check the exit code
-if ($buildResult.ExitCode -gt 0) {
-    Write-Host "Build failed cannot continue. Error code is $($buildResult.ExitCode)"
+if (($buildProcess.ExitCode -gt 0) -or (-not $buildProcess.HasExited)) {
+    $buildProcess.Kill()
+    Write-Host "Build failed cannot continue. Error code is $($buildProcess.ExitCode)"
     Exit 1
 }
+Write-Host "Build completed"
 
 if ($Action -eq "AddMigration") {
 
     Write-Host "Adding migration with name: $MigrationName"
-    Start-Process -FilePath "dotnet" -ArgumentList "ef migrations add $MigrationName --context DatahubProjectDBContext --configuration MIGRATION -v" -NoNewWindow -PassThru -Wait
-    #Start-Process -FilePath "dotnet" -ArgumentList "ef migrations add $MigrationName --context SqliteDatahubDbContext --configuration MIGRATION -v" -NoNewWindow -PassThru -Wait
+
+    Start-Process -FilePath "dotnet" -ArgumentList "ef migrations add $MigrationName --context SqlServerDatahubContext --configuration MIGRATION -v" -NoNewWindow -PassThru -Wait
+    Start-Process -FilePath "dotnet" -ArgumentList "ef migrations add $MigrationName --context SqliteDatahubContext --configuration MIGRATION -v" -NoNewWindow -PassThru -Wait
 
     # Add your logic for AddMigration here using $MigrationName
+}
+elseif ($Action -eq "Script") {
+
+    Write-Host "Generating script for migration"
+    Start-Process -FilePath "dotnet" -ArgumentList "ef migrations script --context SqlServerDatahubContext --configuration MIGRATION -v" -NoNewWindow -PassThru -Wait
+    #Start-Process -FilePath "dotnet" -ArgumentList "ef migrations remove --context SqliteDatahubContext --configuration MIGRATION -v --force" -NoNewWindow -PassThru -Wait
+
+    # Add your logic for RemoveMigration here
 }
 elseif ($Action -eq "RemoveMigration") {
 
     Write-Host "Removing migration"
-    Start-Process -FilePath "dotnet" -ArgumentList "ef migrations remove --context DatahubProjectDBContext --configuration MIGRATION -v --force" -NoNewWindow -PassThru -Wait
-    #Start-Process -FilePath "dotnet" -ArgumentList "ef migrations remove --context SqliteDatahubDbContext --configuration MIGRATION -v --force" -NoNewWindow -PassThru -Wait
+    Start-Process -FilePath "dotnet" -ArgumentList "ef migrations remove --context SqlServerDatahubContext --configuration MIGRATION -v --force" -NoNewWindow -PassThru -Wait
+    Start-Process -FilePath "dotnet" -ArgumentList "ef migrations remove --context SqliteDatahubContext --configuration MIGRATION -v --force" -NoNewWindow -PassThru -Wait
 
     # Add your logic for RemoveMigration here
 }

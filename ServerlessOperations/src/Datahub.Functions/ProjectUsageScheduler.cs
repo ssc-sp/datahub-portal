@@ -14,6 +14,7 @@ using Datahub.Infrastructure.Extensions;
 using Datahub.Shared.Configuration;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.Functions;
 

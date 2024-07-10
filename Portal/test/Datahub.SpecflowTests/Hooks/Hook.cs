@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
 using Reqnroll.BoDi;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.SpecflowTests.Hooks;
 
