@@ -59,6 +59,7 @@ function Export-Settings(
     $domain = "163oxygen.onmicrosoft.com"
 
     if ($null -eq $context) {
+        Write-OutPut "Opening Azure session"
         connect-azaccount -Domain $domain
     } else {
         Write-Output "User $($context.Account.Id) is signed in."

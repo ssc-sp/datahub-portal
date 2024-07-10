@@ -14,6 +14,7 @@ using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.Portal.Controllers;
 

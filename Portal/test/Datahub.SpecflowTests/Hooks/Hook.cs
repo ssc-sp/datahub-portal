@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
 using Reqnroll.BoDi;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.SpecflowTests.Hooks;
 
@@ -39,7 +40,7 @@ public class Hooks
         configuration.Bind(datahubPortalConfiguration);
 
         // setup in memory provider ef core context
-        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+        var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
@@ -83,7 +84,7 @@ public class Hooks
     public void BeforeScenarioRequiringWorkspaceManagement(IObjectContainer objectContainer,
         ScenarioContext scenarioContext)
     {
-        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+        var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
@@ -159,7 +160,7 @@ public class Hooks
     public void BeforeScenarioRequiringMockWorkspaceManagement(IObjectContainer objectContainer,
         ScenarioContext scenarioContext)
     {
-        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+        var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var configuration = new ConfigurationBuilder()
