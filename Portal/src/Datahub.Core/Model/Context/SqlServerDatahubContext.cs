@@ -11,7 +11,7 @@ namespace Datahub.Core.Model.Context
         }
 #endif
 
-        public SqlServerDatahubContext(DbContextOptions<DatahubProjectDBContext> options) : base(options)
+        public SqlServerDatahubContext(DbContextOptions<SqlServerDatahubContext> options) : base(options)
         {
         }
 #if MIGRATION

@@ -46,9 +46,9 @@ var host = new HostBuilder()
         var connectionString = config["datahub_mssql_project"];
         if (connectionString is not null)
         {
-            services.AddPooledDbContextFactory<DatahubProjectDBContext>(options =>
+            services.AddPooledDbContextFactory<SqlServerDatahubContext>(options =>
                 options.UseSqlServer(connectionString));
-            services.AddDbContextPool<DatahubProjectDBContext>(options => options.UseSqlServer(connectionString));
+            services.AddDbContextPool<SqlServerDatahubContext>(options => options.UseSqlServer(connectionString));
         }
 
         services.AddHttpClient(AzureManagementService.ClientName).AddPolicyHandler(

@@ -269,15 +269,25 @@ public class Startup
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
-        IDbContextFactory<DatahubProjectDBContext> datahubFactory,
+        IConfiguration configuration,
         IDbContextFactory<MetadataDbContext> metadataFactory)
     {
         if (Configuration.GetValue<bool>("HttpLogging:Enabled"))
         {
             app.UseHttpLogging();
         }
-
-        InitializeDatabase(logger, datahubFactory);
+        var dbDriver = configuration.GetDriver();
+        if (dbDriver == DbDriver.Sqlite)
+        {
+            var ctx = app.ApplicationServices.GetRequiredService<IDbContextFactory<SqliteDatahubContext>>();
+            InitializeDatabase(logger, ctx);
+        }
+        else
+        {
+            var ctx = app.ApplicationServices.GetRequiredService<IDbContextFactory<SqlServerDatahubContext>>();
+            InitializeDatabase(logger, ctx);
+        }
+        
         InitializeDatabase(logger, metadataFactory, true);
 
         app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>()
@@ -455,7 +465,7 @@ public class Startup
         var projectsDatabaseConnectionString = Configuration.GetConnectionString("datahub_mssql_project");
         var useSqlite = projectsDatabaseConnectionString?.StartsWith("Data Source=") ?? false;
         
-        ConfigureDbContext<DatahubProjectDBContext>(services, "datahub_mssql_project", useSqlite ? DbDriver.Sqlite : DbDriver.Azure);
+        ConfigureDbContext<DatahubProjectDBContext, SqlServerDatahubContext,SqliteDatahubContext>(services, "datahub_mssql_project", useSqlite ? DbDriver.Sqlite : DbDriver.Azure);
         ConfigureDbContext<MetadataDbContext>(services, "datahub_mssql_metadata", DbDriver.Azure);
     }
 
@@ -463,5 +473,11 @@ public class Startup
         where T : DbContext
     {
         services.ConfigureDbContext<T>(Configuration, connectionStringName, dbDriver);
+    }
+
+    private void ConfigureDbContext<TGen, Tsql, Tsqlite>(IServiceCollection services, string connectionStringName, DbDriver dbDriver)
+        where TGen : DbContext where Tsql : DbContext where Tsqlite : DbContext
+    {
+        services.ConfigureDbContext<TGen, Tsql, Tsqlite>(Configuration, connectionStringName, dbDriver);
     }
 }

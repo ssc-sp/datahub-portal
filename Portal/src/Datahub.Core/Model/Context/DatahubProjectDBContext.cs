@@ -21,7 +21,7 @@ namespace Datahub.Core.Model.Context;
 /// Datahub Main DbContext
 /// Add a migration using PS command: Add-Migration MIGRATION_NAME -Context DatahubProjectDBContext
 /// </summary>
-public abstract class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBContext>
+public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBContext>
 {
     public DbSet<Datahub_Project> Projects { get; set; }
     public DbSet<PBI_License_Request> PowerBI_License_Requests { get; set; }
@@ -135,6 +135,10 @@ public abstract class DatahubProjectDBContext : DbContext //, ISeedable<DatahubP
     public DatahubProjectDBContext(DbContextOptions<DatahubProjectDBContext> options) : base(options)
     {
         this.options = options;
+    }
+
+    protected DatahubProjectDBContext(DbContextOptions options) : base(options)
+    {
     }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
