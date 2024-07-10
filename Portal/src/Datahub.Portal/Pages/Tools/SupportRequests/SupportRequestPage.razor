@@ -102,6 +102,9 @@
         config.TenantId = _portalConfiguration.AzureAd.TenantId;
         config.ClientId = _portalConfiguration.AzureAd.InfraClientId;
         config.ClientSecret = _portalConfiguration.AzureAd.InfraClientSecret;
+        config.OrganizationName = _portalConfiguration.AdoOrg.OrgName;
+        config.ProjectName = _portalConfiguration.AdoOrg.ProjectName;
+
         var clientProvider = new AzureDevOpsClient(config);
 
         var client2 = await clientProvider.WorkItemClientAsync();

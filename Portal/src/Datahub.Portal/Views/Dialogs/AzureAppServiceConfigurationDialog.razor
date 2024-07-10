@@ -75,7 +75,6 @@
     [Parameter] public AppServiceConfiguration Configuration { get; set; }
     [Parameter] public string WorkspaceAcronym { get; set; }
     [Parameter] public Project_Resources2 Resource { get; set; }
-    private EnvironmentVariablesTable envVarTable { get; set; }
 
     private MudForm form;
     private string[] errors = { };
@@ -108,7 +107,6 @@
 
     void Submit()
     {
-        var envVars = envVarTable.GetEnvironmentVariablesDictionary();
         var config = AppServiceTemplates.GetTemplateConfiguration(AppServiceTemplates.CUSTOM);
         if (_selectedFramework == AppServiceTemplates.CUSTOM)
         {
@@ -133,7 +131,7 @@
             config = AppServiceTemplates.GetTemplateConfiguration(_selectedFramework);
         }
 
-        MudDialog.Close(DialogResult.Ok((config, envVars)));
+        MudDialog.Close(DialogResult.Ok(config));
     }
 
     private void CheckForPrivateRepo(string value)
