@@ -263,7 +263,8 @@ public class CheckInfrastructureStatus(
             Name = check.Name,
             ResourceType = check.ResourceType,
             Status = check.Status,
-            HealthCheckTimeUtc = check.HealthCheckTimeUtc
+            HealthCheckTimeUtc = check.HealthCheckTimeUtc,
+            Details = check.Details,
         });
         try
         {
