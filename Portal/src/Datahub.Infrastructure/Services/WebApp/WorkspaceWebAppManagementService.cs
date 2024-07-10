@@ -7,6 +7,7 @@ using Azure.ResourceManager.AppService.Models;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.WebApp;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;

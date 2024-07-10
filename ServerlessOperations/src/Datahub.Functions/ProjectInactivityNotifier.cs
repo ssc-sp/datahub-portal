@@ -2,6 +2,7 @@
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Projects;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Functions.Extensions;
 using Datahub.Functions.Providers;

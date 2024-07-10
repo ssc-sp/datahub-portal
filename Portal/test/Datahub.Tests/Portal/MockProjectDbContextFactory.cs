@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -15,11 +16,11 @@ public class MockProjectDbContextFactory : IDbContextFactory<DatahubProjectDBCon
         var connection = new SqliteConnection("Data Source=InMemoryUnitTests;Mode=Memory;Cache=Shared");
         connection.Open();
 
-        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+        var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
             .UseSqlite(connection)
             .Options;
 
-        var context = new DatahubProjectDBContext(options);
+        var context = new SqlServerDatahubContext(options);
         context.Database.EnsureCreated();
         context.TelemetryEvents = context.Set<TelemetryEvent>();
 
