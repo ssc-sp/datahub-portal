@@ -16,7 +16,7 @@ public class MockProjectDbContextFactory : IDbContextFactory<DatahubProjectDBCon
         var connection = new SqliteConnection("Data Source=InMemoryUnitTests;Mode=Memory;Cache=Shared");
         connection.Open();
 
-        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+        var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
             .UseSqlite(connection)
             .Options;
 

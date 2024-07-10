@@ -45,7 +45,7 @@ public class ProjectUserManagementServiceTests
     public void Setup()
     {
         var optionsBuilder =
-            new DbContextOptionsBuilder<DatahubProjectDBContext>()
+            new DbContextOptionsBuilder<SqlServerDatahubContext>()
                 .UseInMemoryDatabase("ProjectUserManagementServiceTests");
         _dbContext = new SqlServerDatahubContext(optionsBuilder.Options);
         _dbContext.Database.EnsureDeleted();

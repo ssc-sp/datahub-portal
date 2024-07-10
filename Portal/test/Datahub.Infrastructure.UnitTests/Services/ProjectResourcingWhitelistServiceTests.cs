@@ -20,7 +20,7 @@ public class ProjectResourcingWhitelistServiceTests
     {
 
         var optionsBuilder =
-            new DbContextOptionsBuilder<DatahubProjectDBContext>()
+            new DbContextOptionsBuilder<SqlServerDatahubContext>()
                 .UseInMemoryDatabase(new Guid().ToString());
         // create a mock factory to return the db context when CreateDbContextAsync is called
         var context = new SqlServerDatahubContext(optionsBuilder.Options);

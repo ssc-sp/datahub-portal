@@ -27,7 +27,7 @@ public partial class Testing
     internal static DatabricksApiService _databricksApiService = null!;
     internal static DatahubPortalConfiguration _datahubPortalConfiguration = null!;
     internal static DatahubProjectDBContext _dbContext =
-                new SqlServerDatahubContext(new DbContextOptions<DatahubProjectDBContext>());
+                new DatahubProjectDBContext(new DbContextOptions<DatahubProjectDBContext>());
     internal static IDbContextFactory<DatahubProjectDBContext> _dbContextFactory =
         Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
     internal static ILoggerFactory _loggerFactory;

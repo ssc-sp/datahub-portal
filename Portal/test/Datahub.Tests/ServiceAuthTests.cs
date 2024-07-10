@@ -14,7 +14,7 @@ namespace Datahub.Tests;
 
 public class ServiceAuthTests:IDisposable
 {
-    private readonly DatahubProjectDBContext ctx;
+    private readonly SqlServerDatahubContext ctx;
     private IServiceAuthManager _authManager;
 
     public ServiceAuthTests()
@@ -25,7 +25,7 @@ public class ServiceAuthTests:IDisposable
 
         var serviceAuthCache = serviceProvider.GetService<IMemoryCache>();
         var mockDbFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
-        ctx = new SqlServerDatahubContext(new DbContextOptionsBuilder<DatahubProjectDBContext>()
+        ctx = new SqlServerDatahubContext(new DbContextOptionsBuilder<SqlServerDatahubContext>()
             .UseInMemoryDatabase("InMemoryTest")
             .Options);
         mockDbFactory.Setup(f => f.CreateDbContext())

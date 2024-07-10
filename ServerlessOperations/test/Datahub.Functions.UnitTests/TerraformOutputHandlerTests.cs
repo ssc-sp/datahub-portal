@@ -22,7 +22,7 @@ public class TerraformOutputHandlerTests
     public void Setup()
     {
         // setup the DatahubProjectDBContext in a in-memory database for testing
-        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+        var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
             .UseInMemoryDatabase(databaseName: "DatahubProjectDBContext")
             .Options;
 

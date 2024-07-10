@@ -17,14 +17,14 @@ public class AdminServiceTests
 
     public AdminServiceTests()
     {
-        var ctx = new SqlServerDatahubContext(new DbContextOptionsBuilder<DatahubProjectDBContext>()
+        var ctx = new SqlServerDatahubContext(new DbContextOptionsBuilder<SqlServerDatahubContext>()
             .UseInMemoryDatabase("InMemoryTest")
             .Options);
         var mockDbFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
         mockDbFactory.Setup(f => f.CreateDbContext())
             .Returns(ctx);
         mockDbFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult((DatahubProjectDBContext) new SqlServerDatahubContext(new DbContextOptionsBuilder<DatahubProjectDBContext>()
+            .Returns(Task.FromResult(new DatahubProjectDBContext(new DbContextOptionsBuilder<DatahubProjectDBContext>()
                 .UseInMemoryDatabase("InMemoryTest")
                 .Options)));
         dbFactory = mockDbFactory.Object;

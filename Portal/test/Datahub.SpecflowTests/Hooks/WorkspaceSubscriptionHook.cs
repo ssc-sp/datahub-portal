@@ -55,7 +55,7 @@ public class WorkspaceSubscriptionHook
     {
         var datahubPortalConfiguration = LoadConfiguration(objectContainer);
 
-        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+        var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
