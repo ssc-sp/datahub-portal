@@ -75,7 +75,7 @@ def send_exception_to_service_bus(exception_message):
         BugReportType="Synchronizing databricks workspace error",
         Description=exception_message
     )
-    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str) as client:
+    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type="AmqpWebSockets") as client:
         with client.get_queue_sender(queue_name) as sender:
             message = servicebus.ServiceBusMessage(bug_report.to_json())
             sender.send_messages(message)
@@ -83,7 +83,7 @@ def send_exception_to_service_bus(exception_message):
 
 def send_healthcheck_to_service_bus(message):
     asb_connection_str, check_results_queue_name = get_config()
-    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str) as client:
+    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type="AmqpWebSockets") as client:
         with client.get_queue_sender(check_results_queue_name) as sender:
             message = servicebus.ServiceBusMessage(message.to_json())
             sender.send_messages(message)
