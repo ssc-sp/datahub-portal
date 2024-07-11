@@ -10,5 +10,10 @@
         "isEnabled": false
       }
     }
+  },
+  "extensions": {
+    "serviceBus": {
+      "transportType": "amqpWebSockets"
+    }
   }
 }
