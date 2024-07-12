@@ -502,7 +502,7 @@ public class LocalMessageReaderService : BackgroundService
         catch (Exception ex)
         {
             check.Status = InfrastructureHealthStatus.Unhealthy;
-            errors.Add("Unable to retrieve project. " + ex.GetType().ToString());
+            errors.Add($"Unable to retrieve project. {ex.Message}");
         }
 
         if (!errors.Any())
@@ -944,7 +944,7 @@ public class LocalMessageReaderService : BackgroundService
                     if (!response.IsSuccessStatusCode)
                     {
                         check.Status = InfrastructureHealthStatus.Unhealthy;
-                        errors.Add($"Web App returned an unhealthy status code: {response.StatusCode}.");
+                        errors.Add($"Web App returned an unhealthy status code: {response.StatusCode}. {response.ReasonPhrase}");
                     }
                     else
                     {

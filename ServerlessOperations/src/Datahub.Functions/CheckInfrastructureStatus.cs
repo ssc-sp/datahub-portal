@@ -414,11 +414,13 @@ public class CheckInfrastructureStatus(
             catch (Exception ex)
             {
                 errors.Add("Unable to retrieve the secrets from the key vault." + ex.GetType().ToString());
+                errors.Add($"Details: {ex.Message}");
             }
         }
         catch (Exception ex)
         {
             errors.Add("Unable to connect and retrieve a secret. " + ex.GetType().ToString());
+            errors.Add($"Details: {ex.Message}");
         }
 
         if (!errors.Any())
@@ -465,6 +467,7 @@ public class CheckInfrastructureStatus(
         {
             check.Status = InfrastructureHealthStatus.Unhealthy;
             errors.Add("Unable to retrieve project. " + ex.GetType().ToString());
+            errors.Add($"Details: {ex.Message}");
         }
 
         if (!errors.Any())
@@ -886,7 +889,7 @@ public class CheckInfrastructureStatus(
                     if (!response.IsSuccessStatusCode)
                     {
                         check.Status = InfrastructureHealthStatus.Unhealthy;
-                        errors.Add($"Web App returned an unhealthy status code: {response.StatusCode}.");
+                        errors.Add($"Web App returned an unhealthy status code: {response.StatusCode}. {response.ReasonPhrase}");
                     }
                     else
                     {
