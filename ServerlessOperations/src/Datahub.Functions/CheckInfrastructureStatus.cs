@@ -880,6 +880,16 @@ public class CheckInfrastructureStatus(
             {
                 string url = project.WebApp_URL;
 
+                // Validate if the URL is valid
+                if (!Uri.TryCreate(url, UriKind.Absolute, out var result))
+                {
+                    check.Status = InfrastructureHealthStatus.Unhealthy;
+                    errors.Add("Invalid Web App URL.");
+                    if (!string.IsNullOrEmpty(url) && !url.ToLower().StartsWith("http"))
+                    {
+                        url = "https://" + url;  // add https if not present
+                    }
+                }
                 try
                 {
                     // We attempt to connect to the URL. If we cannot, we return an unhealthy status.
