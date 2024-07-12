@@ -249,10 +249,11 @@ public class LocalMessageReaderService : BackgroundService
         // Queues checks
         string[] queues = new string[]
         {
-            "delete-run-request", "email-notification", "pong-queue", "project-capacity-update",
+            "resource-delete-request", "email-notification", "pong-queue", "project-capacity-update",
             "project-inactivity-notification", "project-usage-notification",
-            "project-usage-update", "resource-run-request", "storage-capacity", "terraform-output",
-            "user-inactivity-notification", "user-run-request"
+            "project-usage-update", "resource-run-request", "storage-sync-output", "terraform-output-handler",
+            "user-inactivity-notification", "user-run-request","keyvault-sync-output",
+            "workspace-app-service-configuration","bug-report","infrastructure-health-check-results"
         };
         foreach (var queue in queues)
         {
@@ -934,6 +935,17 @@ public class LocalMessageReaderService : BackgroundService
             else
             {
                 string url = project.WebApp_URL;
+
+                // Validate if the URL is valid
+                if (!Uri.TryCreate(url, UriKind.Absolute, out var result))
+                {
+                    check.Status = InfrastructureHealthStatus.Unhealthy;
+                    errors.Add("Invalid Web App URL.");
+                    if (!string.IsNullOrEmpty(url) && !url.ToLower().StartsWith("http")) 
+                    { 
+                        url = "https://" + url;  // add https if not present
+                    }
+                }
 
                 try
                 {
