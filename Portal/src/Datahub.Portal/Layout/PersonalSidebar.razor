@@ -137,6 +137,14 @@
             </MudNavMenu>
         </MudStack>
     </DatahubAuthView>
+
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
+        <MudSwitch T="bool"
+                   Color="Color.Primary"
+                   Checked="@_isViewAsAdmin"
+                   ValueChanged="@ToggleAdminMode"
+                   Label="@Localizer["Admin Access Enabled"]" />
+    </DatahubAuthView>
 </MudStack>
 
 @code {
@@ -338,4 +346,10 @@
         };
     }
 
+    private async Task ToggleAdminMode()
+    {
+        _isViewAsAdmin = !_isViewAsAdmin;
+        await _userInformationService.SetViewingAsGuest(!_isViewAsAdmin);
+        _navigationManager.NavigateTo(_navigationManager.Uri, true);
+    }
 }
