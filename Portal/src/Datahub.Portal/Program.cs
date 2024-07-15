@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Datahub.Core;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 
 namespace Datahub.Portal;
@@ -8,10 +9,6 @@ public class Program
     public static void Main(string[] args)
     {
         var host = CreateHostBuilder(args)
-            //.ConfigureServices(serviceCollection =>
-            //{
-            //    serviceCollection.AddSingleton(new ResourceManager("Datahub.Portal.Resources", typeof(Startup).GetTypeInfo().Assembly));
-            //})  
             .Build();
            
         host.Run();
@@ -58,7 +55,7 @@ public class Program
                 webBuilder.ConfigureAppConfiguration((ctx, cb) =>
                 {
                     cb.AddUserSecrets<Startup>();
-                    if (!ctx.HostingEnvironment.IsDevelopment()) // you'll have to find the right method to check that
+                    if (!DevTools.IsDevelopment())
                     {
                         StaticWebAssetsLoader.UseStaticWebAssets(ctx.HostingEnvironment, ctx.Configuration);
                     }

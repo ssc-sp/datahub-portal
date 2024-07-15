@@ -79,10 +79,9 @@ namespace Datahub.Portal;
 
 public class Startup
 {
-    public Startup(IConfiguration configuration, IWebHostEnvironment env)
+    public Startup(IConfiguration configuration)
     {
         Configuration = configuration;
-        _currentEnvironment = env;
     }
 
     private readonly IConfiguration Configuration;
