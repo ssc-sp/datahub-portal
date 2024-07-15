@@ -1675,6 +1675,7 @@
   "These are your previously submitted support requests. Requests may take up to 15 minutes to appear here.": "These are your previously submitted support requests. Requests may take up to 15 minutes to appear here.",
   "This action is irreversible. Deletion will remove all resources in this workspace and may take up to an hour to complete.": "This action is irreversible. Deletion will remove all resources in this workspace and may take up to an hour to complete.",
   "This is a flexible PostgreSQL database hosted in Azure. It is used to store data for this project. You can view the details of the connection by clicking the button below.": "This is a flexible PostgreSQL database hosted in Azure. It is used to store data for this project. You can view the details of the connection by clicking the button below.",
+  "This is taking longer than normal... Please try signing in and contact support if you encounter any issue.": "This is taking longer than normal... Please try signing in and contact support if you encounter any issue.",
   "This page displays all the support requests submitted by the user.": "This page displays all the support requests submitted by FSDH users.",
   "This page is limited for DataHub administrators": "This page is limited for DataHub administrators",
   "This section lets you share inside Datahub your Git repositories that have been linked inside Databricks.": "This section lets you share inside Datahub your Git repositories that have been linked inside Databricks.",
@@ -1960,5 +1961,5 @@
   "Storage data has not been updated in the last 7 days, please check back later for updated storage data.": "Storage data has not been updated in the last 7 days, please check back later for updated storage data.",
   "_Environment variables are stored in [Azure Keyvault](https://azure.microsoft.com/en-us/products/key-vault) and are made available to your web application as operating system level environment variables. They are available during the build process and the run process of your web application._": "_Environment variables are stored in [Azure Keyvault](https://azure.microsoft.com/en-us/products/key-vault) and are made available to your web application as operating system level environment variables. They are available during the build process and the run process of your web application._",
   "This web application is not configured yet. Please configure it by clicking the \u0027Configure\u0027 button at the top right of the page.": "This web application is not configured yet. Please configure it by clicking the \u0027Configure\u0027 button at the top right of the page.",
-  "You must restart your web application to apply the latest changes.": "You must restart your web application to apply the latest changes.",
+  "You must restart your web application to apply the latest changes.": "You must restart your web application to apply the latest changes."
 }
