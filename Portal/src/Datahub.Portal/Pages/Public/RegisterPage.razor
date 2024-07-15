@@ -113,7 +113,7 @@
         _isRegistering = true;
         StateHasChanged();
 
-        await (DisplayFailedMessage(15));
+        await (DisplayFailedMessage(20));
 
         _logger.LogInformation("Saving registration details for user with email: {Email}", _email);
         await _userEnrollmentService.SaveRegistrationDetails(_email, _comment);
