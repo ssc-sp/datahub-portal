@@ -4,8 +4,66 @@
 @inject NavigationManager _navigationManager
 
 <div class="sr-only"><h2>@Localizer["Announcements"]</h2></div>
-<MudElement Class="rounded" HtmlTag="div" Style="@_backgroundImageStyle">
-    <MudElement  Class="rounded" HtmlTag="div" Style="@_glassStyle">
+
+<MudGrid>
+    @foreach (var preview in Previews)
+    {
+        @if (!preview.Preview.StartsWith("!["))
+        {
+            <MudItem xs="@_previewCount">
+                <MudPaper Elevation="0" Outlined Class="py-2 px-3">
+                    <MudStack Justify="Justify.SpaceBetween" Style="height: 100%;">
+                        <MudElement>
+                            @* <MudText Typo="Typo.body1">
+                                @preview.Preview
+                            </MudText> *@
+                            <DHMarkdown Content="@preview.Preview" />
+                            <DHButton Color="@Color.Primary" Variant="@Variant.Text">
+                                <span>
+                                    @Localizer["Read more"]
+                                    @* <span class="sr-only">@DocumentItem?.Title</span> *@
+                                </span>
+                            </DHButton>
+                        </MudElement>
+                    </MudStack>
+                </MudPaper>
+            
+            @* <AnnouncementPreviewCard DocumentItem="@preview" /> *@
+            </MudItem>
+        }
+    }
+</MudGrid>
+
+
+
+@* <MudElement Class="rounded" HtmlTag="div" Style="@_backgroundImageStyle">
+    <MudElement Class="rounded" HtmlTag="div" Style="@_glassStyle">
+        <MudGrid Class="px-4">
+            @foreach (var preview in Previews)
+            {
+                <MudItem xs="@_previewCount">
+                    @if (!preview.Preview.StartsWith("!["))
+                    {
+                        <MudStack Class="ma-6">
+                            <DHMarkdown Content="@preview.Preview" />
+                            <DHButton>@Localizer["Read More"]</DHButton>
+                            <DHButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
+                                @Localizer["Read more"]
+                            </DHButton>
+                        </MudStack>
+                    }
+                    else
+                    {
+                        <MudStack Class="ma-6">
+                            <DHMarkdown Content="@preview.Preview" />
+                            <DHButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
+                                @Localizer["Read more"]
+                            </DHButton>
+                        </MudStack>
+                    }
+                </MudItem>
+            }
+        </MudGrid>
         <MudCarousel Class="mud-width-full rounded"
                      Style="@_carouselStyle"
                      ShowArrows="true"
@@ -38,10 +96,10 @@
             }
         </MudCarousel>
     </MudElement>
-</MudElement>
+</MudElement> *@
 
 @code {
-        public const int CarouselHeight = 320;
+    public const int CarouselHeight = 320;
 
     [Parameter]
     public List<AnnouncementPreview> Previews { get; set; } = new();
@@ -54,6 +112,7 @@
     private string _glassStyle;
     private string _carouselStyle;
     private string _backgroundImageStyle;
+    private int _previewCount;
 
     // get the style so it's always at the bottom of the carousel
     private string _readMoreStyle => "position: absolute; bottom: 1rem; left: 2rem;";
@@ -63,7 +122,7 @@
         base.OnInitialized();
 
         var hasBackgroundUrl = !string.IsNullOrEmpty(BackgroundUrl);
-        
+
         _carouselStyle = new StyleBuilder()
             .AddStyle("height", $"{CarouselHeight}px")
             .Build();
@@ -83,6 +142,9 @@
             .AddStyle("--mud-palette-text-primary", "white", when: hasBackgroundUrl)
             .AddStyle("--mud-palette-primary", Colors.Purple.Accent2, when: hasBackgroundUrl)
             .Build();
+        
+        // There should really only be 2, 3, or 4 announcements at a time; if there are 3, they are displayed with 3 columns, otherwise it's 2 columns
+        _previewCount = (Previews.Count % 3 == 0) ? 4 : 6;
     }
 
     private void HandleReadMore(int newId)
