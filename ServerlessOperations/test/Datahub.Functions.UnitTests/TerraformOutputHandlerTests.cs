@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
@@ -21,11 +22,11 @@ public class TerraformOutputHandlerTests
     public void Setup()
     {
         // setup the DatahubProjectDBContext in a in-memory database for testing
-        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+        var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
             .UseInMemoryDatabase(databaseName: "DatahubProjectDBContext")
             .Options;
 
-        _context = new DatahubProjectDBContext(options);
+        _context = new SqlServerDatahubContext(options);
 
         _context.Database.EnsureDeleted();
         _context.Database.EnsureCreated();

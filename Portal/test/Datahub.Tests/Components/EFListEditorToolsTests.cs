@@ -7,6 +7,7 @@ using System.Linq;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Xunit;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.Tests.Components;
 

@@ -6,6 +6,7 @@ using Azure.Identity;
 using CatalogIngestTool;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Metadata;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Services.Metadata;
 using Datahub.Metadata.DTO;

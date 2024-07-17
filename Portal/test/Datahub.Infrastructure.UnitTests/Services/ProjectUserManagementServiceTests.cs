@@ -6,6 +6,7 @@ using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
@@ -44,9 +45,9 @@ public class ProjectUserManagementServiceTests
     public void Setup()
     {
         var optionsBuilder =
-            new DbContextOptionsBuilder<DatahubProjectDBContext>()
+            new DbContextOptionsBuilder<SqlServerDatahubContext>()
                 .UseInMemoryDatabase("ProjectUserManagementServiceTests");
-        _dbContext = new DatahubProjectDBContext(optionsBuilder.Options);
+        _dbContext = new SqlServerDatahubContext(optionsBuilder.Options);
         _dbContext.Database.EnsureDeleted();
         _dbContext.Database.EnsureCreated();
         SeedDatabase(_dbContext);
@@ -56,7 +57,7 @@ public class ProjectUserManagementServiceTests
         _mockFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
         _mockFactory
             .Setup(f => f.CreateDbContextAsync(CancellationToken.None))
-            .ReturnsAsync(() => new DatahubProjectDBContext(optionsBuilder.Options));
+            .ReturnsAsync(() => new SqlServerDatahubContext(optionsBuilder.Options));
 
         // create a mock user information service to return the current (admin) user when GetUserIdString is called
         _mockUserInformationService = new Mock<IUserInformationService>();
