@@ -20,6 +20,8 @@
     <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam" />
 </SectionContent>
 
+@if (DisclaimerAccepted)
+{
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronymParam">
     <Authorized>
         <MudGrid>
@@ -30,12 +32,6 @@
                 {
                     <MudText>
                         @Localizer["This web application is not provisioned yet. Please come back soon."]
-                    </MudText>
-                }
-                else
-                {
-                    <MudText Typo="Typo.h3">
-                        @Localizer["Web Application hosted by FSDH"]
                     </MudText>
                 }
             </MudItem>
@@ -51,7 +47,18 @@
     <NotAuthorized>
         <NotAuthorizedMessage />
     </NotAuthorized>
-</DatahubAuthView>
+    </DatahubAuthView>
+}
+else
+{
+
+    <MudText Typo="Typo.h3">
+        @Localizer["Web Application hosted by FSDH. The owners of the workspace are responsible for the web application content."]
+    </MudText>
+    <DHButton Variant="Variant.Filled" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
+        @Localizer["Accept web application terms"]
+    </DHButton>
+}
 
 
 
@@ -60,7 +67,15 @@
     [Parameter]
     public string WorkspaceAcronymParam { get; set; }
 
+    [Parameter]
+    public bool DisclaimerAccepted { get; set; }
+
     private bool isAvailable = false;
+
+    private async Task ApproveWebAppTerms()
+    {
+        
+    }
 
     protected override async Task OnInitializedAsync()
     {
