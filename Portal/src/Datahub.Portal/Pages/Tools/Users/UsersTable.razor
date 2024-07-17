@@ -13,7 +13,7 @@
 
 <MudTable Striped Items="@UserWorkspaces" Filter="new Func<UserWorkspaces,bool>(FilterUserWorkspaces)">
 <ToolBarContent>
-    <MudTextField @bind-Value="_searchString" Placeholder="Search by User or Workspace" Adornment="Adornment.Start"
+    <MudTextField @bind-Value="_searchString" Placeholder=@Localizer["Search by User or Workspace"] Adornment="Adornment.Start"
                   AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
     <HeaderContent>
