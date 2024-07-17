@@ -18,7 +18,10 @@
                                 @preview.Preview
                             </MudText> *@
                             <DHMarkdown Content="@preview.Preview" />
-                            <DHButton Color="@Color.Primary" Variant="@Variant.Text">
+                            <DHButton OnClick="() => HandleReadMore(preview.Id)"
+                                      Color="@Color.Primary"
+                                      Variant="@Variant.Text"
+                                      EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                                 <span>
                                     @Localizer["Read more"]
                                     @* <span class="sr-only">@DocumentItem?.Title</span> *@
