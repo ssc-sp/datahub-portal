@@ -1,6 +1,8 @@
 
 @using Datahub.Application.Services.Metadata
 @using Datahub.Core.Model.Projects
+@using Datahub.Portal.Pages.Tools.Users
+@using Datahub.Core.Model.Achievements
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
@@ -92,6 +94,8 @@
             <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]"/>
         </PagerContent>
     </MudTable>
+    <MudText Typo="Typo.h2" Class="mt-6 mb-3">@Localizer["Search Users"]</MudText>
+    <UsersTable UserWorkspaces="_userWorkspaces" HideInfo="true" @ref="_usersTable" />
 </MudStack>
 
 @code {
@@ -101,10 +105,14 @@
     private List<Datahub_Project> _allProjects = new();
     private List<Datahub_Project> _filteredProjects = new();
     private List<Datahub_Project> _featuredProjects = new();
-        private const int FeaturedProjectsCount = 3;
+    private const int FeaturedProjectsCount = 3;
 
     private string _projectSearchFilter = string.Empty;
     private readonly Dictionary<string, string> _departments = new();
+
+    private UsersTable _usersTable;
+    private List<UserWorkspaces> _userWorkspaces;
+    private List<PortalUser> _portalUsers;
 
     protected override async Task OnInitializedAsync()
     {
@@ -124,6 +132,16 @@
             .Where(p => p.Is_Featured)
             .Take(FeaturedProjectsCount)
             .ToList();
+
+        _portalUsers = await context.PortalUsers.ToListAsync();
+
+        _userWorkspaces = _portalUsers.Select(u => new UserWorkspaces
+            {
+                User = u,
+                Workspaces = context.Project_Users.Include(pu => pu.Project)
+                    .Where(pu => pu.User_ID == u.GraphGuid)
+                    .Select(pu => pu.Project).ToList(),
+            }).ToList();
 
         await LoadMetadata();
     }

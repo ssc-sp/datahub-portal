@@ -13,7 +13,7 @@
 
 <MudTable Striped Items="@UserWorkspaces" Filter="new Func<UserWorkspaces,bool>(FilterUserWorkspaces)">
 <ToolBarContent>
-    <MudTextField @bind-Value="_searchString" Placeholder="Search by User or Workspace" Adornment="Adornment.Start"
+    <MudTextField @bind-Value="_searchString" Placeholder=@Localizer["Search by User or Workspace"] Adornment="Adornment.Start"
                   AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
     <HeaderContent>
@@ -22,11 +22,14 @@
                 @Localizer["User"]
             </MudTableSortLabel>
         </MudTh>
-        <MudTh>
-            <MudTableSortLabel SortBy="new Func<UserWorkspaces, object>(x => GetUserStatus(x.User.Email))">
-                @Localizer["Status"]
-            </MudTableSortLabel>
-        </MudTh>
+        @if (!HideInfo)
+        {
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<UserWorkspaces, object>(x => GetUserStatus(x.User.Email))">
+                    @Localizer["Status"]
+                </MudTableSortLabel>
+            </MudTh>
+        }
         <MudTh>
             @Localizer["Workspaces"]
         </MudTh>
@@ -37,19 +40,22 @@
             <MudText Typo="Typo.h6">@context.User.DisplayName</MudText>
             <MudText Typo="Typo.body2">@context.User.Email</MudText>
         </MudTd>
-        <MudTd DataLabel="Status">
-            @switch(GetUserStatus(@context.User.Email))
-            {
-                case "locked":
-                    <DHIcon Icon="@Icons.Material.Filled.Lock" Title=@Localizer["Account locked"] />
-                    break;
-                case "missing":
-                    <DHIcon Icon="@Icons.Material.Filled.QuestionMark" Title=@Localizer["Account missing from MSGraph"] />
-                    break;
-                case "":
-                    break;                        
-            }
-        </MudTd>
+        @if (!HideInfo)
+        {
+            <MudTd DataLabel="Status">
+                @switch(GetUserStatus(@context.User.Email))
+                {
+                    case "locked":
+                        <DHIcon Icon="@Icons.Material.Filled.Lock" Title=@Localizer["Account locked"] />
+                        break;
+                    case "missing":
+                        <DHIcon Icon="@Icons.Material.Filled.QuestionMark" Title=@Localizer["Account missing from MSGraph"] />
+                        break;
+                    case "":
+                        break;                        
+                }
+            </MudTd>
+        }
         <MudTd DataLabel="Workspaces">
             <ul style="list-style: outside;">
                 @foreach(var workspace in context.Workspaces)
@@ -71,6 +77,9 @@
 @code {
     [Parameter]
     public ICollection<UserWorkspaces> UserWorkspaces { get; set; }
+
+    [Parameter]
+    public bool HideInfo { get; set; }
 
     private string _searchString;
 
