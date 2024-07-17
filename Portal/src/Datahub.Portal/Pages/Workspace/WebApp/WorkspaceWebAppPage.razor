@@ -75,8 +75,15 @@
                     }
                 </DHButton>
 
-                <DHButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" StartIcon="@SidebarIcons.Redeploy" OnClick="@(async () => await ConfigureWebApp(_appConfiguration))">
-                    @Localizer["Redeploy"]
+                <DHButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" StartIcon="@SidebarIcons.Redeploy" OnClick="@(async () => await RedeployWebApp())">
+                    @if (_isRedeploying)
+                    {
+                        <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                    }
+                    else
+                    {
+                        @Localizer["Redeploy"]
+                    }
                 </DHButton>
             }
 
@@ -89,7 +96,7 @@
     <MudText>
         @Localizer["Here you can manage your web application. You can view and edit the configurations of your web application"]
     </MudText>
-    
+
     <MudAlert Dense="true" Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000">
         @Localizer["Restart your application using the 'Restart' button to apply changes to your images or environment variables."]
         <br/>
@@ -256,6 +263,7 @@
     private bool _isStartStopping;
     private bool _isRestarting;
     private bool _isSaving;
+    private bool _isRedeploying;
 
     protected override async Task OnInitializedAsync()
     {
@@ -303,6 +311,7 @@
             _isUrlRewritingEnabled = oldValue;
             _snackbar.Add(Localizer["Could not update URL Rewriting setting"], Severity.Error);
         }
+
         ReverseProxyManagerService.ReloadConfiguration();
         _isSaving = false;
     }
@@ -366,6 +375,16 @@
         _isRestarting = false;
         StateHasChanged();
     }
+    
+    private async Task RedeployWebApp()
+    {
+        _isRedeploying = true;
+        StateHasChanged();
+        await Task.Delay(1000);
+        await ConfigureWebApp(_appConfiguration);
+        _isRedeploying = false;
+        StateHasChanged();
+    }
 
     private async Task NewWebAppConfiguration()
     {
@@ -421,6 +440,7 @@
             _logger.LogError(e, "Failed to save web app configuration");
             _snackbar.Add(Localizer["Web application configuration failed"], Severity.Error);
         }
+
     }
 
     private async Task SetGitToken(AppServiceConfiguration config)
