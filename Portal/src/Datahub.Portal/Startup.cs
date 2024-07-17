@@ -223,7 +223,16 @@ public class Startup
         if (ReverseProxyEnabled())
         {
             services.AddTelemetryConsumer<YarpTelemetryConsumer>();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("WorkspaceAppPolicy", policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+                    policy.RequireClaim(ClaimTypes.Role, RoleConstants.DATAHUB_ADMIN_PROJECT);
+                });
+            });
             services.AddReverseProxy()
+                    .AddTransformFactory<WorkspaceACLTransformFactory>()
                     .AddTransforms(builderContext =>
                     {
                         builderContext.AddXForwarded(ForwardedTransformActions.Append);
@@ -313,8 +322,6 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseMiddleware<WorkspaceAppMiddleware>();
-
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapRazorPages();
@@ -325,7 +332,11 @@ public class Startup
             var provider = endpoints.ServiceProvider.GetService<IProxyConfigProvider>();
             if (ReverseProxyEnabled() && provider != null)
             {
-                endpoints.MapReverseProxy();
+                endpoints.MapReverseProxy(pipeline => {
+                    pipeline.Use((context, next) => {
+                        context.GetEndpoint().Metadata;
+                        return next(); });
+                });
             }  
             else
             {
