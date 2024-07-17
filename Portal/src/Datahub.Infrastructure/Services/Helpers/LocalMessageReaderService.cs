@@ -1,8 +1,11 @@
 using Azure.Identity;
 using Azure.Messaging.ServiceBus;
+using Azure.ResourceManager;
+using Azure.ResourceManager.AppService;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Queues;
 using Datahub.Application.Configuration;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Health;
 using Datahub.Core.Utils;
@@ -10,6 +13,7 @@ using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,15 +36,19 @@ public class LocalMessageReaderService : BackgroundService
     private ProjectStorageConfigurationService _projectStorageConfigurationService;
     private AzureDevOpsConfiguration _config = new AzureDevOpsConfiguration();
     private IHttpClientFactory _httpClientFactory;
+    private string _functionAppAddress;
 
     private const string workspaceKeyCheck = "project-cmk";
     private const string coreKeyCheck = "datahubportal-client-id";
+    private const string functionPrefix = "fsdh-func-dotnet";
 
     public LocalMessageReaderService(
             ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
         _logger = loggerFactory.CreateLogger<LocalMessageReaderService>();
+        var env = _config.GetEnvironmentName();
+        _functionAppAddress = $"https://{functionPrefix}-{env}.azurewebsites.net";
     }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -88,18 +96,24 @@ public class LocalMessageReaderService : BackgroundService
 
             // Deserialize the file contents into an InfrastructureHealthCheckMessage object
             InfrastructureHealthCheckMessage message = JsonSerializer.Deserialize<InfrastructureHealthCheckMessage>(fileContents);
-            var request = new InfrastructureHealthCheckRequest(message.Type, message.Group, message.Name);
-            if (message.Group == "all")
+            InfrastructureHealthCheckResultMessage checkResult = JsonSerializer.Deserialize<InfrastructureHealthCheckResultMessage>(fileContents);
+            if (message != null )
             {
-                RunAllChecks(e.Name).SyncResult();
+                var request = new InfrastructureHealthCheckRequest(message.Type, message.Group, message.Name);
+                if (message.Group == "all")
+                {
+                    RunAllChecks(e.Name).SyncResult();
+                }
+                else
+                {
+                    RunHealthCheck(request, e.Name).SyncResult();
+                }
             }
-            else
+            if (checkResult != null)
             {
-                RunHealthCheck(request, e.Name).SyncResult();
+               RecordHealthCheckResults(checkResult);
             }
-
         }
-        // Process the file here
     }
 
     private bool IsFileLocked(string filePath)
@@ -157,8 +171,6 @@ public class LocalMessageReaderService : BackgroundService
                 break;
             case InfrastructureHealthResourceType.AsureServiceBus:
                 result = await CheckAzureServiceBusQueue(request);
-                var poison = new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AsureServiceBus, "1", request.Name);
-                await CheckAzureServiceBusQueue(poison);
                 break;
             case InfrastructureHealthResourceType.AzureWebApp:
                 result = await CheckWebApp(request);
@@ -221,7 +233,7 @@ public class LocalMessageReaderService : BackgroundService
                 "workspaces"), requestName);
         await RunHealthCheck(
             new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureFunction, "core",
-                "localhost:7071"), requestName);
+                _functionAppAddress), requestName);
 
         // Workspace checks (Storage, Databricks, eventually Web App)
         var projects = _projectDBContext.Projects.AsNoTracking().Include(p => p.Resources).ToList();
@@ -241,10 +253,11 @@ public class LocalMessageReaderService : BackgroundService
         // Queues checks
         string[] queues = new string[]
         {
-            "delete-run-request", "email-notification", "pong-queue", "project-capacity-update",
+            "resource-delete-request", "email-notification", "pong-queue", "project-capacity-update",
             "project-inactivity-notification", "project-usage-notification",
-            "project-usage-update", "resource-run-request", "storage-capacity", "terraform-output",
-            "user-inactivity-notification", "user-run-request"
+            "project-usage-update", "resource-run-request", "storage-sync-output", "terraform-output-handler",
+            "user-inactivity-notification", "user-run-request","keyvault-sync-output",
+            "workspace-app-service-configuration","bug-report","infrastructure-health-check-results"
         };
         foreach (var queue in queues)
         {
@@ -386,7 +399,11 @@ public class LocalMessageReaderService : BackgroundService
         {
             return new Uri($"https://fsdh-proj-{request.Name}-dev-kv.vault.azure.net/");
         }
-
+        if (request.Name.Contains("localhost"))
+        {
+            var env = _config.GetEnvironmentName();
+            return new Uri($"https://fsdh-key-{env}.vault.azure.net/");
+        }
         return new Uri($"https://{request.Name}.vault.azure.net/");
     }
 
@@ -494,7 +511,7 @@ public class LocalMessageReaderService : BackgroundService
         catch (Exception ex)
         {
             check.Status = InfrastructureHealthStatus.Unhealthy;
-            errors.Add("Unable to retrieve project. " + ex.GetType().ToString());
+            errors.Add($"Unable to retrieve project. {ex.Message}");
         }
 
         if (!errors.Any())
@@ -710,6 +727,19 @@ public class LocalMessageReaderService : BackgroundService
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
+    private async Task<string> GetAzureFunctionDefaultKey()
+    {
+        var env = _config.GetEnvironmentName();
+        var credential = new ClientSecretCredential(_portalConfiguration.AzureAd.TenantId,
+                _portalConfiguration.AzureAd.InfraClientId, _portalConfiguration.AzureAd.InfraClientSecret);
+        var armClient = new ArmClient(credential);
+        var subscription = await armClient.GetDefaultSubscriptionAsync();
+        var resourceGroup = await subscription.GetResourceGroupAsync($"fsdh-{env}-rg");
+        var functionApp = await resourceGroup.Value.GetWebSiteAsync($"{functionPrefix}-{env}");
+        var hostKeys = await functionApp.Value.GetHostKeysAsync();
+        var defaultKey = hostKeys.Value.FunctionKeys["default"];
+        return defaultKey;
+    }
     /// <summary>
     /// Function that checks the health of the Azure Function App.
     /// </summary>
@@ -717,7 +747,10 @@ public class LocalMessageReaderService : BackgroundService
     /// <returns>An InfrastructureHealthCheckResponse indicating the result of the check.</returns>
     private async Task<InfrastructureHealthCheckResponse> CheckAzureFunctions(InfrastructureHealthCheckRequest request)
     {
-        string azureFunctionUrl = $"http://{request.Name}/api/FunctionsHealthCheck";
+        // need to get default code 
+        var code = await GetAzureFunctionDefaultKey();
+
+        string azureFunctionUrl = $"{_functionAppAddress}/api/FunctionsHealthCheck?code={code}";
         var errors = new List<string>();
         var check = new InfrastructureHealthCheck()
         {
@@ -927,6 +960,17 @@ public class LocalMessageReaderService : BackgroundService
             {
                 string url = project.WebApp_URL;
 
+                // Validate if the URL is valid
+                if (!Uri.TryCreate(url, UriKind.Absolute, out var result))
+                {
+                    check.Status = InfrastructureHealthStatus.Unhealthy;
+                    errors.Add("Invalid Web App URL.");
+                    if (!string.IsNullOrEmpty(url) && !url.ToLower().StartsWith("http")) 
+                    { 
+                        url = "https://" + url;  // add https if not present
+                    }
+                }
+
                 try
                 {
                     // We attempt to connect to the URL. If we cannot, we return an unhealthy status.
@@ -936,7 +980,7 @@ public class LocalMessageReaderService : BackgroundService
                     if (!response.IsSuccessStatusCode)
                     {
                         check.Status = InfrastructureHealthStatus.Unhealthy;
-                        errors.Add($"Web App returned an unhealthy status code: {response.StatusCode}.");
+                        errors.Add($"Web App returned an unhealthy status code: {response.StatusCode}. {response.ReasonPhrase}");
                     }
                     else
                     {
@@ -957,6 +1001,98 @@ public class LocalMessageReaderService : BackgroundService
 
         return new InfrastructureHealthCheckResponse(check, errors);
     }
+    #region Handling Health Check  Results 
+    // copied and modified from \datahub-portal\ServerlessOperations\src\Datahub.Functions\RecordInfrastructureStatus.cs
+    /// <summary>
+    /// Persists in DB the result of an infrastructure health check. 
+    /// </summary>
+    /// <param name="request">the request containing the resource type, group, name, heathcheck status and details</param>
+    /// <returns>An OkResult containing the request is formatted properly. A BadRequestObjectResult is returned for poorly formatted requests.</returns>
+    private IActionResult RecordHealthCheckResults(InfrastructureHealthCheckResultMessage request)
+    {
+        try
+        {
+            StoreResult(request).GetAwaiter().GetResult();          // operational data
+            StoreHealthCheckRun(request).GetAwaiter().GetResult();  // historical data
+
+            return new OkResult();
+        }
+        catch (Exception ex)
+        {
+            return new BadRequestObjectResult(ex);
+        }
+    }
+
+    /// <summary>
+    /// Function that stores the result of an infrastructure health check in the database.
+    /// </summary>
+    /// <param name="result">the result of the health check result to upload</param>
+    /// <returns></returns>
+    private async Task StoreResult(InfrastructureHealthCheckResultMessage check)
+    {
+        if (check.Group == null || check.Name == null) { return; }
+        var existingChecks = _projectDBContext.InfrastructureHealthChecks.Where(c =>
+            c.Group == check.Group && c.Name == check.Name && c.ResourceType == check.ResourceType);
+
+        if (existingChecks != null)
+        {
+            foreach (var item in existingChecks)
+            {
+                _projectDBContext.InfrastructureHealthChecks.Remove(item);
+            }
+        }
+
+        // Add the check without specifying the ID to allow the database to generate it
+        _projectDBContext.InfrastructureHealthChecks.Add(new InfrastructureHealthCheck
+        {
+            Group = check.Group,
+            Name = check.Name,
+            ResourceType = check.ResourceType,
+            Status = check.Status,
+            HealthCheckTimeUtc = check.HealthCheckTimeUtc,
+            Details = check.Details,
+        });
+        try
+        {
+            await _projectDBContext.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message, check);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Function that stores the result of an infrastructure health check in the database.
+    /// </summary>
+    /// <param name="result">the result of the health check result to upload</param>
+    /// <returns></returns>
+    private async Task StoreHealthCheckRun(InfrastructureHealthCheckResultMessage check)
+    {
+        if (check.Group == null || check.Name == null) { return; }
+
+        // Add the check run without specifying the ID to allow the database to generate it
+        _projectDBContext.InfrastructureHealthCheckRuns.Add(new InfrastructureHealthCheck
+        {
+            Group = check.Group,
+            Name = check.Name,
+            ResourceType = check.ResourceType,
+            Status = check.Status,
+            HealthCheckTimeUtc = check.HealthCheckTimeUtc,
+            Details = check.Details,
+        });
+        try
+        {
+            await _projectDBContext.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message, check);
+        }
+    }
+
+    #endregion
 
     public record InfrastructureHealthCheckRequest(InfrastructureHealthResourceType Type, string Group, string Name);
 

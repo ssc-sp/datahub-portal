@@ -29,6 +29,7 @@ using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Application.Services.Achievements;
 using Microsoft.Extensions.Configuration;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.Tests;
 

@@ -29,7 +29,7 @@
         @if (_isConfigured)
         {
             <MudStack AlignItems="AlignItems.End" Justify="Justify.Center">
-                <DHIcon Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)" Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])" />
+                <DHIcon Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)" Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])"/>
             </MudStack>
         }
         <MudSpacer/>
@@ -74,9 +74,20 @@
                         @Localizer["Restart"]
                     }
                 </DHButton>
+
+                <DHButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" StartIcon="@SidebarIcons.Redeploy" OnClick="@(async () => await RedeployWebApp())">
+                    @if (_isRedeploying)
+                    {
+                        <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                    }
+                    else
+                    {
+                        @Localizer["Redeploy"]
+                    }
+                </DHButton>
             }
 
-            <DHButton Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" StartIcon="@SidebarIcons.Gear" OnClick="@(async () => await ConfigureWebApp())">
+            <DHButton Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" StartIcon="@SidebarIcons.Gear" OnClick="@(async () => await NewWebAppConfiguration())">
                 @Localizer["Configure"]
             </DHButton>
         }
@@ -86,26 +97,31 @@
         @Localizer["Here you can manage your web application. You can view and edit the configurations of your web application"]
     </MudText>
 
+    <MudAlert Dense="true" Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000">
+        @Localizer["Restart your application using the 'Restart' button to apply changes to your images or environment variables."]
+        <br/>
+        @Localizer["Redeploy your application using the 'Redeploy' button to apply changes to your docker-compose file."]
+    </MudAlert>
     @if (_isProvisioned)
     {
-        <MudSwitch 
-            T=@bool 
-            Checked=@_isUrlRewritingEnabled 
-            Color=@Color.Primary 
-            Label=@Localizer["Enable URL Rewriting"] 
+        <MudSwitch
+            T=@bool
+            Checked=@_isUrlRewritingEnabled
+            Color=@Color.Primary
+            Label=@Localizer["Enable URL Rewriting"]
             CheckedChanged=@HandleToggleUrlRewriting
-            Disabled=@_isSaving />
+            Disabled=@_isSaving/>
     }
 
     @if (_isProvisioned && _isConfigured)
     {
-        <WorkspaceWebAppInfoTable 
+        <WorkspaceWebAppInfoTable
             @ref=@_webappInfoTable
-            WebAppHost="@_webAppHost" 
-            WebAppId="@_webAppId" 
-            Framework="@_webAppFramework" 
-            GitRepo="@_webAppRepo" 
-            ComposePath="@_webAppCompose" 
+            WebAppHost="@_webAppHost"
+            WebAppId="@_webAppId"
+            Framework="@_webAppFramework"
+            GitRepo="@_webAppRepo"
+            ComposePath="@_webAppCompose"
             WorkspaceAcronym="@WorkspaceAcronym"/>
     }
     else if (_isProvisioned)
@@ -155,13 +171,27 @@
             </MudText>
             <MudText Typo="Typo.body1">
                 <ul class="ml-4">
-                    <li style="display: list-item; list-style-type: circle"><code>command</code></li>
-                    <li style="display: list-item; list-style-type: circle"><code>entrypoint</code></li>
-                    <li style="display: list-item; list-style-type: circle"><code>environment</code></li>
-                    <li style="display: list-item; list-style-type: circle"><code>image</code></li>
-                    <li style="display: list-item; list-style-type: circle"><code>ports</code></li>
-                    <li style="display: list-item; list-style-type: circle"><code>restart</code></li>
-                    <li style="display: list-item; list-style-type: circle"><code>services</code></li>
+                    <li style="display: list-item; list-style-type: circle">
+                        <code>command</code>
+                    </li>
+                    <li style="display: list-item; list-style-type: circle">
+                        <code>entrypoint</code>
+                    </li>
+                    <li style="display: list-item; list-style-type: circle">
+                        <code>environment</code>
+                    </li>
+                    <li style="display: list-item; list-style-type: circle">
+                        <code>image</code>
+                    </li>
+                    <li style="display: list-item; list-style-type: circle">
+                        <code>ports</code>
+                    </li>
+                    <li style="display: list-item; list-style-type: circle">
+                        <code>restart</code>
+                    </li>
+                    <li style="display: list-item; list-style-type: circle">
+                        <code>services</code>
+                    </li>
                     <li style="display: list-item; list-style-type: circle"><code>volumes</code>, @Localizer["please contact us to set-up volumes as they require more configuration."]</li>
                 </ul>
             </MudText>
@@ -171,18 +201,28 @@
             <MudText>
                 <ul class="ml-4">
                     <li style="display: list-item; list-style-type: circle"><code>build</code> @Localizer[", not allowed without "] <code>image</code>.</li>
-                    <li style="display: list-item; list-style-type: circle"><code>depends_on</code> @Localizer[", will be ignored."]</li>
-                    <li style="display: list-item; list-style-type: circle"><code>networks</code> @Localizer[", will be ignored."]</li>
-                    <li style="display: list-item; list-style-type: circle"><code>secrets</code>@Localizer[", will be ignored."]</li>
-                    <li style="display: list-item; list-style-type: circle"><code>ports</code>@Localizer[" other than 80 and 8080 will be ignored."]</li>
+                    <li style="display: list-item; list-style-type: circle">
+                        <code>depends_on</code> @Localizer[", will be ignored."]
+                    </li>
+                    <li style="display: list-item; list-style-type: circle">
+                        <code>networks</code> @Localizer[", will be ignored."]
+                    </li>
+                    <li style="display: list-item; list-style-type: circle">
+                        <code>secrets</code>@Localizer[", will be ignored."]
+                    </li>
+                    <li style="display: list-item; list-style-type: circle">
+                        <code>ports</code>@Localizer[" other than 80 and 8080 will be ignored."]
+                    </li>
                 </ul>
             </MudText>
             <MudText Typo="Typo.h4" Class="mt-4">
                 @Localizer["Syntax limitations:"]
             </MudText>
             <MudText>
-                <ul class="ml-4" >
-                    <li style="display: list-item; list-style-type: circle"><code>version: "X"</code>@Localizer[" must always be the first YAML statement in the file."]</li>
+                <ul class="ml-4">
+                    <li style="display: list-item; list-style-type: circle">
+                        <code>version: "X"</code>@Localizer[" must always be the first YAML statement in the file."]
+                    </li>
                     <li style="display: list-item; list-style-type: circle">@Localizer["ports section in the YAML must use quoted numbers."]</li>
                     <li style="display: list-item; list-style-type: circle">@Localizer["image > volume section in the YAML must be quoted and cannot have permissions definitions."]</li>
                     <li style="display: list-item; list-style-type: circle">@Localizer["volumes section must not have an empty curly brace after the volume name."]</li>
@@ -223,6 +263,7 @@
     private bool _isStartStopping;
     private bool _isRestarting;
     private bool _isSaving;
+    private bool _isRedeploying;
 
     protected override async Task OnInitializedAsync()
     {
@@ -270,6 +311,7 @@
             _isUrlRewritingEnabled = oldValue;
             _snackbar.Add(Localizer["Could not update URL Rewriting setting"], Severity.Error);
         }
+
         ReverseProxyManagerService.ReloadConfiguration();
         _isSaving = false;
     }
@@ -333,8 +375,18 @@
         _isRestarting = false;
         StateHasChanged();
     }
+    
+    private async Task RedeployWebApp()
+    {
+        _isRedeploying = true;
+        StateHasChanged();
+        await Task.Delay(1000);
+        await ConfigureWebApp(_appConfiguration);
+        _isRedeploying = false;
+        StateHasChanged();
+    }
 
-    private async Task ConfigureWebApp()
+    private async Task NewWebAppConfiguration()
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync();
         var resource = await _webAppMgmtService.GetResource(ctx, WorkspaceAcronym);
@@ -362,25 +414,33 @@
 
         if (!dialogResult.Canceled)
         {
-            try
+            var resultConfig = dialogResult.Data as AppServiceConfiguration;
+            if (resultConfig is not null)
             {
-                var resultConfig = dialogResult.Data as AppServiceConfiguration;
-
-                await _webAppMgmtService.SaveConfiguration(WorkspaceAcronym, resultConfig);
-                await _webAppMgmtService.FillSystemConfiguration(WorkspaceAcronym, resultConfig);
-                await SetGitToken(resultConfig);
-                await _webAppMgmtService.Configure(WorkspaceAcronym, resultConfig);
-                ReverseProxyManagerService.ReloadConfiguration();
-                _logger.LogInformation("Web app configuration processed");
-                _snackbar.Add(Localizer["Web application configuration processed"], Severity.Success);
-                StateHasChanged();
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Failed to save web app configuration");
-                _snackbar.Add(Localizer["Web application configuration failed"], Severity.Error);
+                await ConfigureWebApp(resultConfig);
             }
         }
+    }
+
+    private async Task ConfigureWebApp(AppServiceConfiguration configuration)
+    {
+        try
+        {
+            await _webAppMgmtService.SaveConfiguration(WorkspaceAcronym, configuration);
+            await _webAppMgmtService.FillSystemConfiguration(WorkspaceAcronym, configuration);
+            await SetGitToken(configuration);
+            await _webAppMgmtService.Configure(WorkspaceAcronym, configuration);
+            ReverseProxyManagerService.ReloadConfiguration();
+            _logger.LogInformation("Web app configuration processed");
+            _snackbar.Add(Localizer["Web application configuration processed. It can take several minutes before your changes are applied."], Severity.Success);
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to save web app configuration");
+            _snackbar.Add(Localizer["Web application configuration failed"], Severity.Error);
+        }
+
     }
 
     private async Task SetGitToken(AppServiceConfiguration config)
@@ -391,7 +451,8 @@
             {
                 await _keyVaultUserService.StoreOrUpdateSecret(WorkspaceAcronym, config.GitTokenSecretName, config.GitToken);
                 _logger.LogInformation("Git token stored");
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 _logger.LogError(e, "Failed to store git token");
             }

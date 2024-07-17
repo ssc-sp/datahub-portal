@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.SpecflowTests.Hooks;
 
@@ -54,7 +55,7 @@ public class WorkspaceSubscriptionHook
     {
         var datahubPortalConfiguration = LoadConfiguration(objectContainer);
 
-        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+        var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 

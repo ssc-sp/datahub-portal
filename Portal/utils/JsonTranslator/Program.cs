@@ -11,7 +11,7 @@ if (!File.Exists(fPath))
 }
 var tgt = Path.Combine(Path.GetDirectoryName(fPath)!, "output-fr.json");
 using var sourceFile = File.OpenRead(src);
-var data = (await JsonSerializer.DeserializeAsync<Dictionary<string,string>>(sourceFile)) ?? new();
+var data = (await JsonSerializer.DeserializeAsync<RootObject>(sourceFile)) ?? new();
 var cfgPath = Path.GetFullPath(@"../../../../../src/Datahub.Portal");
 var config = new ConfigurationBuilder()
     //.SetBasePath(AppContext.BaseDirectory)
@@ -27,7 +27,7 @@ if (authKey is null)
 }
 var translator = new TranslationService(config);
 var newDic = new Dictionary<string, string>();
-foreach (var item in data.Where(d => !String.IsNullOrWhiteSpace(d.Key)))
+foreach (var item in data.@default.Where(d => !String.IsNullOrWhiteSpace(d.Key)))
 {
     if (!string.IsNullOrWhiteSpace(item.Value))
     {
@@ -50,3 +50,8 @@ var options = new JsonSerializerOptions
     WriteIndented = true
 };
 await JsonSerializer.SerializeAsync(outFile, newDic, options);
+
+public class RootObject
+{
+    public Dictionary<string, string> @default { get; set; } = new();
+}

@@ -25,6 +25,7 @@ using Datahub.Infrastructure.Services.Cost;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.Extensions.Azure;
+using Datahub.Core.Model.Context;
 
 
 var host = new HostBuilder()
@@ -83,6 +84,7 @@ var host = new HostBuilder()
         services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
         services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
         services.AddSingleton<IEmailService, EmailService>();
+        services.AddSingleton<IAlertRecordService, AlertRecordService>();
         services.AddScoped<ProjectUsageService>();
         services.AddScoped<QueuePongService>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();

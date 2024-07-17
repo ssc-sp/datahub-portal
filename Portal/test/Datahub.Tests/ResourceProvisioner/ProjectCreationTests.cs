@@ -16,6 +16,7 @@ using Foundatio.Queues;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.Tests.ResourceProvisioner;
 

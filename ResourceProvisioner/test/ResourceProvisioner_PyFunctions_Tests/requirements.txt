@@ -17,7 +17,7 @@ azure-mgmt-authorization==4.0.0
 azure-mgmt-core==1.4.0
 azure-mgmt-keyvault==10.3.0
 azure-mgmt-storage==21.1.0
-certifi==2023.7.22
+certifi==2024.7.4
 cffi==1.16.0
 charset-normalizer==3.2.0
 cryptography==41.0.7
@@ -66,4 +66,4 @@ typing_extensions==4.8.0
 urllib3==2.2.2
 wrapt==1.16.0
 yarl==1.9.3
-zipp==3.17.0
+zipp==3.19.1

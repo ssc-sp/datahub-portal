@@ -1,6 +1,7 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Subscriptions;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
