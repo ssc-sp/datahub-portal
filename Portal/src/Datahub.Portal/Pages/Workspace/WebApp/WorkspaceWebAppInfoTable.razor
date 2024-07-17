@@ -14,7 +14,15 @@
     <tbody>
     <tr>
         <td>
-            @Localizer["Proxy URL"]
+            @Localizer["Share link"]
+        </td>
+        <td>
+            <MudLink Href="@shareLink" Target="_blank">@shareLink</MudLink>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @Localizer["Proxy URL for development"]
         </td>
         <td>
             <MudLink Href="@_url" Target="_blank" >@_url</MudLink>
@@ -52,14 +60,6 @@
             <code>@ComposePath</code>
         </td>
     </tr>
-        <tr>
-            <td>
-                @Localizer["Share link"]
-            </td>
-            <td>
-                <MudLink Href="@shareLink" Target="_blank">@shareLink</MudLink>
-            </td>
-        </tr>
     </tbody>
 </MudSimpleTable>
 

@@ -2879,7 +2879,6 @@
   "of {0}": "de {0}",
   "on setting up your account.": "sur la configuration de votre compte.",
   "please contact us to set-up volumes as they require more configuration.": "veuillez nous contacter pour configurer les volumes.",
-  "please contact us to set-up volumes as they require more configuration.": "veuillez nous contacter pour configurer les volumes.",
   "please refer to the resources page on it.": "veuillez vous référer à la page de ressources à ce sujet.",
   "ports section in the YAML must use quoted numbers.": "la section des ports dans le YAML doit utiliser des nombres entre guillemets.",
   "remaining credits": "crédits restants",
@@ -2895,7 +2894,6 @@
   "xxxx moved xxxx to xxxx": "xxxx a déplacé xxxx à xxxx",
   "yes": "oui",
   "{0}": "{0}",
-  "{0}": "{0}",
   "{0} Storage Explorer": "Explorateur de stockage de {0}",
   "{0} copied {1} to {2}": "xxxx a copié xxxx dans xxxx ",
   "{0} created {1} in {2}": "{0} a créé {1} dans {2}",
@@ -2903,5 +2901,14 @@
   "{0} credits consumed yesterday": "{0} crédits consommés hier",
   "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail",
   "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés.",
-  "Web Application hosted by FSDH": "Application web hébergée par le DHSF"
+  "Web Application hosted by FSDH": "Application web hébergée par le DHSF",
+  "The following web application has been uploaded by a user onto this data platform using their own code. Please be aware that the content and functionality of this application are entirely controlled by the user who uploaded it, and the platform provider takes no responsibility for its content, accuracy, or performance.": "L'application web suivante a été téléchargée par un utilisateur sur cette plateforme de données à l'aide de son propre code. Le contenu et les fonctionnalités de cette application sont entièrement contrôlés par l'utilisateur qui l'a téléchargée, et le fournisseur de la plateforme n'est pas responsable de son contenu, de son exactitude ou de ses performances.",
+  "It is the sole responsibility of the user and the content creator to ensure that any material or information included in the web application complies with applicable laws, regulations, and ethical standards. The platform provider does not endorse, guarantee, or warrant the suitability, completeness, or security of the uploaded application.": "Il est de la seule responsabilité de l'utilisateur et du créateur de contenu de s'assurer que tout matériel ou information inclus dans l'application web est conforme aux lois, réglementations et normes éthiques applicables. Le fournisseur de la plateforme n'approuve pas, ne garantit pas l'adéquation, l'exhaustivité ou la sécurité de l'application téléchargée.",
+  "By accessing and using this web application, you acknowledge that the platform provider assumes no liability for any damages, losses, or injuries incurred as a result of its use or reliance on the content provided by the user. Users are advised to exercise caution and perform due diligence when interacting with the application and its content.": "En accédant à cette application web et en l'utilisant, vous reconnaissez que le fournisseur de la plateforme n'assume aucune responsabilité pour les dommages, pertes ou blessures résultant de l'utilisation ou de la confiance accordée au contenu fourni par l'utilisateur. Il est conseillé aux utilisateurs de faire preuve de prudence et de diligence raisonnable lorsqu'ils interagissent avec l'application et son contenu.",
+  "Please note that any questions or concerns regarding the content or functionality of the web application should be directed to the user who uploaded it, as the platform provider does not assume responsibility for its maintenance or support.": "Veuillez noter que toute question ou préoccupation concernant le contenu ou la fonctionnalité de l'application web doit être adressée à l'utilisateur qui l'a téléchargée, étant donné que le fournisseur de la plateforme n'assume pas la responsabilité de sa maintenance ou de son soutien.",
+  "By continuing to utilize this web application, you are indicating your understanding and acceptance of this disclaimer.": "En continuant à utiliser cette application web, vous indiquez que vous comprenez et acceptez cette clause de non-responsabilité.",
+  "Accept Web Application Terms": "Accepter les conditions d'utilisation de l'application Web",
+  "Open in new window": "Ouvrir dans une nouvelle fenêtre",
+  "Share link": "Lien pour partager",
+  "Proxy URL for development": "URL proxy pour le développement"
 }
