@@ -2515,6 +2515,7 @@
   "This includes working with any combination of text, tables/databases, documents, maps, images, videos, etc.": "Cela inclut le travail avec n’importe quelle combinaison de textes, de tableaux/bases de données, de documents, de cartes, d’images, de vidéos, etc.",
   "This includes:": "Cela inclut :",
   "This is a flexible PostgreSQL database hosted in Azure. It is used to store data for this project. You can view the details of the connection by clicking the button below.": "Il s'agit d'une base de données PostgreSQL flexible hébergée dans Azure. Elle est utilisée pour stocker des données pour ce projet. Vous pouvez afficher les détails de la connexion en cliquant sur le bouton ci-dessous.",
+  "This is taking longer than normal... Please try signing in and contact support if you encounter any issue.": "Cela prend plus de temps que prévu... Veuillez essayer de vous connecter et contacter l'assistance si vous rencontrez un problème.",
   "This is where DataHub can help.": "DataHub peut vous aider à cet égard.",
   "This page displays all the support requests submitted by the user.": "Cette page affiche toutes les demandes d'assistance soumises par les utilisateurs du DHSF..",
   "This page is limited for DataHub administrators": "Cette page est limitée aux administrateurs DataHub",
