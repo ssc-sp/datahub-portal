@@ -1,6 +1,5 @@
 ﻿{
   " is the default role and has only read access to all resources within your project.": " est le rôle par défaut et n'a qu'un accès en lecture à toutes les ressources de votre projet.",
-  " is the default role and has only read access to all resources within your project.": " est le rôle par défaut et n'a qu'un accès en lecture à toutes les ressources de votre projet.",
   " is the role that you will want to give to most of your colleagues. It gives them read/write access to most of your resources.": " est le rôle que vous voudrez donner à la plupart de vos collègues. Il leur donne un accès en lecture/écriture à la plupart de vos ressources.",
   " must always be the first YAML statement in the file.": " doit toujours être la première déclaration YAML dans le fichier.",
   " of use for the FSDH Proof-of-Concept Phase 2": " d'utilisation pour la phase 2 de la démonstration de concept du DHSF",
@@ -2903,5 +2902,6 @@
   "{0} credits consumed on average (daily)": "{0} crédits consommés en moyenne (quotidiennement)",
   "{0} credits consumed yesterday": "{0} crédits consommés hier",
   "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail",
-  "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés."
+  "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés.",
+  "Web Application hosted by FSDH": "Application web hébergée par le DHSF"
 }

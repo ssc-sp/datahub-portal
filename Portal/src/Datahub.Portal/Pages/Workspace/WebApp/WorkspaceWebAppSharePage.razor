@@ -1,0 +1,76 @@
+﻿@using Datahub.Application.Services.ReverseProxy
+@using Datahub.Application.Services.Security
+@using Datahub.Portal.Views.Dialogs
+@using Datahub.Shared.Entities
+@using Microsoft.Identity.Web
+@using Datahub.Core.Model.Projects
+@using System.Text.Json
+@using Datahub.Application.Services.WebApp
+
+@inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
+@inject ILogger<WorkspaceWebAppSharePage> _logger
+
+@attribute [Route(PageRoutes.WorkspaceWebAppShare)]
+
+<PageTitle>
+    @Localizer["SSC Datahub - Workspace - {0}", WorkspaceAcronymParam ?? ""]
+</PageTitle>
+
+<SectionContent SectionName="side-bar">
+    <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam" />
+</SectionContent>
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronymParam">
+    <Authorized>
+        <MudGrid>
+            <MudItem xs="12" sm="8">
+
+                <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronymParam" />
+                @if (!isAvailable)
+                {
+                    <MudText>
+                        @Localizer["This web application is not provisioned yet. Please come back soon."]
+                    </MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h3">
+                        @Localizer["Web Application hosted by FSDH"]
+                    </MudText>
+                }
+            </MudItem>
+            @if (isAvailable)
+            {
+                <MudItem xs="12">
+                    <iframe src="/webapp-@(WorkspaceAcronymParam)/" style="height: 70vh;" title="Web Application" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"> </iframe>
+                </MudItem>
+            }
+
+        </MudGrid>
+    </Authorized>
+    <NotAuthorized>
+        <NotAuthorizedMessage />
+    </NotAuthorized>
+</DatahubAuthView>
+
+
+
+@code {
+
+    [Parameter]
+    public string WorkspaceAcronymParam { get; set; }
+
+    private bool isAvailable = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var workspace = await ctx.Projects
+            .Include(x => x.Resources)
+            .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronymParam);
+        var appConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(workspace);
+        isAvailable = workspace is not null && !(string.IsNullOrWhiteSpace(appConfiguration.Framework) && string.IsNullOrWhiteSpace(appConfiguration.GitRepo) && string.IsNullOrWhiteSpace(appConfiguration.ComposePath));
+        StateHasChanged();
+    }
+
+}

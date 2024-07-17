@@ -52,11 +52,18 @@
             <code>@ComposePath</code>
         </td>
     </tr>
+        <tr>
+            <td>
+                @Localizer["Share link"]
+            </td>
+            <td>
+                <MudLink Href="@shareLink" Target="_blank">@shareLink</MudLink>
+            </td>
+        </tr>
     </tbody>
 </MudSimpleTable>
 
 @code {
-
     [Parameter] public string WebAppHost { get; set; }
 
     [Parameter] public string WebAppId { get; set; }
@@ -68,11 +75,14 @@
     [Parameter] public string ComposePath { get; set; }
     [Parameter] public string WorkspaceAcronym { get; set; }
 
+    private string shareLink = null!;
+
     private string _url;
 
     protected override void OnParametersSet()
     {
         RefreshUrl();
+        shareLink = PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", WorkspaceAcronym);
     }
 
     public void RefreshUrl()
