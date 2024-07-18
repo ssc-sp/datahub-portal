@@ -8,26 +8,25 @@
 <MudGrid>
     @foreach (var preview in Previews)
     {
+        // only allowing text-based announcements
         @if (!preview.Preview.StartsWith("!["))
         {
             <MudItem xs="@_previewCount">
                 <MudPaper Elevation="0" Outlined Class="py-2 px-3">
-                    <MudStack Justify="Justify.SpaceBetween" Style="height: 100%;">
-                        <MudElement>
-                            @* <MudText Typo="Typo.body1">
-                                @preview.Preview
-                            </MudText> *@
-                            <DHMarkdown Content="@preview.Preview" />
-                            <DHButton OnClick="() => HandleReadMore(preview.Id)"
-                                      Color="@Color.Primary"
-                                      Variant="@Variant.Text"
-                                      EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
-                                <span>
-                                    @Localizer["Read more"]
-                                    @* <span class="sr-only">@DocumentItem?.Title</span> *@
-                                </span>
-                            </DHButton>
-                        </MudElement>
+                    <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;">
+                        <MudStack>
+                            <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle" />
+                        </MudStack>
+                        <MudStack>
+                                <DHButton OnClick="() => HandleReadMore(preview.Id)"
+                                          Color="@Color.Primary"
+                                          Variant="@Variant.Text"
+                                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                                    <span>
+                                        @Localizer["Read more"]
+                                    </span>
+                                </DHButton>
+                        </MudStack>
                     </MudStack>
                 </MudPaper>
             
@@ -115,6 +114,9 @@
     private string _glassStyle;
     private string _carouselStyle;
     private string _backgroundImageStyle;
+    private string _descriptionTextStyle;
+    private string _titleTextStyle;
+
     private int _previewCount;
 
     // get the style so it's always at the bottom of the carousel
@@ -145,9 +147,38 @@
             .AddStyle("--mud-palette-text-primary", "white", when: hasBackgroundUrl)
             .AddStyle("--mud-palette-primary", Colors.Purple.Accent2, when: hasBackgroundUrl)
             .Build();
-        
-        // There should really only be 2, 3, or 4 announcements at a time; if there are 3, they are displayed with 3 columns, otherwise it's 2 columns
-        _previewCount = (Previews.Count % 3 == 0) ? 4 : 6;
+
+        _descriptionTextStyle = new StyleBuilder()
+           .AddStyle("overflow", "hidden")
+           .AddStyle("-webkit-line-clamp", "6")
+           .AddStyle("-webkit-box-orient", "vertical")
+           .AddStyle("display", "-webkit-box")
+           .Build();
+
+        _titleTextStyle = new StyleBuilder()
+            .AddStyle("overflow", "hidden")
+            .AddStyle("-webkit-line-clamp", "2")
+            .AddStyle("-webkit-box-orient", "vertical")
+            .AddStyle("display", "-webkit-box")
+            .Build();
+
+        int count = 0;
+        foreach (var preview in Previews)
+        {
+            // only allowing text-based announcements
+            if (!preview.Preview.StartsWith("!["))
+            {
+                count++;
+            }
+        }
+
+        // There should really only be 1, 2, or 3 announcements at a time
+        // The # of columns for the announcements is displayed accordingly
+        _previewCount = (count % 3 == 0) ? 4 : 6;
+        if (count == 1)
+        {
+            _previewCount = 12;
+        }
     }
 
     private void HandleReadMore(int newId)
