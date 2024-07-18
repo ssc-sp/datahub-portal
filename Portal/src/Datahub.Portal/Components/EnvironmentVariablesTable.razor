@@ -138,7 +138,7 @@ else
             <MudTd DataLabel="@Localizer["Key"]">
                 @context.Key
             </MudTd>
-            <MudTd DataLabel="@Localizer["Value"]">
+            <MudTd DataLabel="@Localizer["Value"]" >
                 <code>@(_show ? context.Value : GetHiddenValue(context.Value))</code>
             </MudTd>
         </RowTemplate>
