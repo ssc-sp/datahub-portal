@@ -13,7 +13,7 @@
     return;
 }
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-    <div class="sr-only"><p>@Localizer["Your profile"]</p></div>
+    @* <div class="sr-only"><p>@Localizer["Your profile"]</p></div>
     <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" FullWidth>
         <ActivatorContent>
             <DHButton HtmlTag="button" Class="ml-2">
@@ -42,7 +42,13 @@
                 @Localizer["Sign Out"]
             </MudMenuItem>
         </ChildContent>
-    </MudMenu>
+    </MudMenu> *@
+    <MudButton OnClick="@HandleLanguageToggle">
+        <LanguageToggle @ref="_languageToggle" />
+    </MudButton>
+    <MudButton OnClick="@HandleLogOut">
+        @Localizer["Sign Out"]
+    </MudButton>
 </DatahubAuthView>
 
 @code {
