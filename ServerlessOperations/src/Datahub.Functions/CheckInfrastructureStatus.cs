@@ -3,13 +3,11 @@ using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Queues;
 using Datahub.Application.Configuration;
-using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Health;
 using Datahub.Core.Utils;
 using Datahub.Functions.Extensions;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Shared.Configuration;
 using MassTransit;
@@ -22,9 +20,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Datahub.Application.Services;
 using Datahub.Shared.Clients;
-using MassTransit.Internals.Caching;
-using static Datahub.Infrastructure.Services.LocalMessageReaderService;
 using Datahub.Core.Model.Context;
+using Azure.ResourceManager;
+using Azure.ResourceManager.AppService;
 
 namespace Datahub.Functions;
 
@@ -42,6 +40,7 @@ public class CheckInfrastructureStatus(
     private readonly DatahubPortalConfiguration _portalConfiguration = portalConfiguration;
     private const string workspaceKeyCheck = "project-cmk";
     private const string coreKeyCheck = "datahubportal-client-id";
+    private const string functionPrefix = "fsdh-func-dotnet";
 
     /// <summary>
     /// Azure Function that runs on a timer to check the infrastructure health of all infrastructure.
@@ -188,7 +187,17 @@ public class CheckInfrastructureStatus(
     private async Task<ObjectResult[]> RunAllChecks()
     {
         ObjectResult[] objectResults = Array.Empty<ObjectResult>();
-
+        string functionAppAddress;
+ 
+        var env = azureConfig?.AzureDevOpsConfiguration?.GetEnvironmentName();
+        if (string.IsNullOrEmpty(env) || env == "local")
+        {
+            functionAppAddress = "http://localhost:7071";
+        }
+        else
+        {
+            functionAppAddress = $"https://fsdh-func-dotnet-{env}.azurewebsites.net";
+        }
         // Core checks
         objectResults.Append(await RunHealthCheck(
             new InfrastructureHealthCheckMessage(InfrastructureHealthResourceType.AzureSqlDatabase, "core", "core")));
@@ -199,7 +208,7 @@ public class CheckInfrastructureStatus(
                 "workspaces")));
         objectResults.Append(await RunHealthCheck(
             new InfrastructureHealthCheckMessage(InfrastructureHealthResourceType.AzureFunction, "core",
-                "localhost:7071")));
+                functionAppAddress)));
 
         // Workspace checks (Storage, Databricks, eventually Web App)
         var projects = dbProjectContext.Projects.AsNoTracking().Include(p => p.Resources).ToList();
@@ -427,7 +436,10 @@ public class CheckInfrastructureStatus(
         {
             check.Status = InfrastructureHealthStatus.Healthy;
         }
-
+        else
+        {
+            check.Details = string.Join(", ", errors);
+        }
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
@@ -473,6 +485,10 @@ public class CheckInfrastructureStatus(
         if (!errors.Any())
         {
             check.Status = InfrastructureHealthStatus.Healthy;
+        }
+        else
+        {
+            check.Details = string.Join(", ", errors);
         }
 
         return new InfrastructureHealthCheckResponse(check, errors);
@@ -583,6 +599,11 @@ public class CheckInfrastructureStatus(
             }
         }
 
+
+        if (errors.Any())
+        {
+            check.Details = string.Join(", ", errors);
+        }
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
@@ -671,10 +692,28 @@ public class CheckInfrastructureStatus(
         {
             check.Status = InfrastructureHealthStatus.Healthy;
         }
+        else
+        {
+            check.Details = string.Join(", ", errors);
+        }
 
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
+    private async Task<string> GetAzureFunctionDefaultKey()
+    {
+        var env = azureConfig?.AzureDevOpsConfiguration?.GetEnvironmentName();
+        var credential = new ClientSecretCredential(_portalConfiguration.AzureAd.TenantId,
+                _portalConfiguration.AzureAd.InfraClientId, _portalConfiguration.AzureAd.InfraClientSecret);
+        var armClient = new ArmClient(credential);
+        var subscription = await armClient.GetDefaultSubscriptionAsync();
+        var resourceGroup = await subscription.GetResourceGroupAsync($"fsdh-{env}-rg");
+        var functionApp = await resourceGroup.Value.GetWebSiteAsync($"{functionPrefix}-{env}");
+        var hostKeys = await functionApp.Value.GetHostKeysAsync();
+        var defaultKey = hostKeys.Value.FunctionKeys["default"];
+
+        return defaultKey;
+    }
     /// <summary>
     /// Function that checks the health of the Azure Function App.
     /// </summary>
@@ -682,7 +721,12 @@ public class CheckInfrastructureStatus(
     /// <returns>An InfrastructureHealthCheckResponse indicating the result of the check.</returns>
     private async Task<InfrastructureHealthCheckResponse> CheckAzureFunctions(InfrastructureHealthCheckMessage request)
     {
-        string azureFunctionUrl = $"http://{request.Name}/api/FunctionsHealthCheck";
+        // need to get default code 
+        var code = await GetAzureFunctionDefaultKey();
+        var env = azureConfig?.AzureDevOpsConfiguration?.GetEnvironmentName();
+        var functionAppAddress = $"https://{functionPrefix}-{env}.azurewebsites.net";
+
+        string azureFunctionUrl = $"{functionAppAddress}/api/FunctionsHealthCheck?code={code}";
         var errors = new List<string>();
         var check = new InfrastructureHealthCheck()
         {
@@ -716,6 +760,10 @@ public class CheckInfrastructureStatus(
         if (!errors.Any())
         {
             check.Status = InfrastructureHealthStatus.Healthy;
+        }
+        else
+        {
+            check.Details = string.Join(", ", errors);
         }
 
         return new InfrastructureHealthCheckResponse(check, errors);
@@ -775,6 +823,10 @@ public class CheckInfrastructureStatus(
         if (!errors.Any())
         {
             check.Status = InfrastructureHealthStatus.Healthy;
+        }
+        else
+        {
+            check.Details = string.Join(", ", errors);
         }
 
         return new InfrastructureHealthCheckResponse(check, errors);
@@ -838,6 +890,10 @@ public class CheckInfrastructureStatus(
         if (!errors.Any())
         {
             check.Status = InfrastructureHealthStatus.Healthy;
+        }
+        else
+        {
+            check.Details = string.Join(", ", errors);
         }
 
         return new InfrastructureHealthCheckResponse(check, errors);
@@ -912,6 +968,10 @@ public class CheckInfrastructureStatus(
                     errors.Add($"Error while checking Web App health: {ex.Message}");
                 }
             }
+        }
+        if (errors.Any())
+        {
+            check.Details = string.Join(", ", errors);
         }
 
         return new InfrastructureHealthCheckResponse(check, errors);

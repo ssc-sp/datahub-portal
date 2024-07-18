@@ -1,5 +1,7 @@
 using Azure.Identity;
 using Azure.Messaging.ServiceBus;
+using Azure.ResourceManager;
+using Azure.ResourceManager.AppService;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Queues;
 using Datahub.Application.Configuration;
@@ -34,15 +36,19 @@ public class LocalMessageReaderService : BackgroundService
     private ProjectStorageConfigurationService _projectStorageConfigurationService;
     private AzureDevOpsConfiguration _config = new AzureDevOpsConfiguration();
     private IHttpClientFactory _httpClientFactory;
+    private string _functionAppAddress;
 
     private const string workspaceKeyCheck = "project-cmk";
     private const string coreKeyCheck = "datahubportal-client-id";
+    private const string functionPrefix = "fsdh-func-dotnet";
 
     public LocalMessageReaderService(
             ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
         _logger = loggerFactory.CreateLogger<LocalMessageReaderService>();
+        var env = _config.GetEnvironmentName();
+        _functionAppAddress = $"https://{functionPrefix}-{env}.azurewebsites.net";
     }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -165,8 +171,6 @@ public class LocalMessageReaderService : BackgroundService
                 break;
             case InfrastructureHealthResourceType.AsureServiceBus:
                 result = await CheckAzureServiceBusQueue(request);
-                var poison = new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AsureServiceBus, "1", request.Name);
-                await CheckAzureServiceBusQueue(poison);
                 break;
             case InfrastructureHealthResourceType.AzureWebApp:
                 result = await CheckWebApp(request);
@@ -229,7 +233,7 @@ public class LocalMessageReaderService : BackgroundService
                 "workspaces"), requestName);
         await RunHealthCheck(
             new InfrastructureHealthCheckRequest(InfrastructureHealthResourceType.AzureFunction, "core",
-                "localhost:7071"), requestName);
+                _functionAppAddress), requestName);
 
         // Workspace checks (Storage, Databricks, eventually Web App)
         var projects = _projectDBContext.Projects.AsNoTracking().Include(p => p.Resources).ToList();
@@ -395,7 +399,11 @@ public class LocalMessageReaderService : BackgroundService
         {
             return new Uri($"https://fsdh-proj-{request.Name}-dev-kv.vault.azure.net/");
         }
-
+        if (request.Name.Contains("localhost"))
+        {
+            var env = _config.GetEnvironmentName();
+            return new Uri($"https://fsdh-key-{env}.vault.azure.net/");
+        }
         return new Uri($"https://{request.Name}.vault.azure.net/");
     }
 
@@ -719,6 +727,19 @@ public class LocalMessageReaderService : BackgroundService
         return new InfrastructureHealthCheckResponse(check, errors);
     }
 
+    private async Task<string> GetAzureFunctionDefaultKey()
+    {
+        var env = _config.GetEnvironmentName();
+        var credential = new ClientSecretCredential(_portalConfiguration.AzureAd.TenantId,
+                _portalConfiguration.AzureAd.InfraClientId, _portalConfiguration.AzureAd.InfraClientSecret);
+        var armClient = new ArmClient(credential);
+        var subscription = await armClient.GetDefaultSubscriptionAsync();
+        var resourceGroup = await subscription.GetResourceGroupAsync($"fsdh-{env}-rg");
+        var functionApp = await resourceGroup.Value.GetWebSiteAsync($"{functionPrefix}-{env}");
+        var hostKeys = await functionApp.Value.GetHostKeysAsync();
+        var defaultKey = hostKeys.Value.FunctionKeys["default"];
+        return defaultKey;
+    }
     /// <summary>
     /// Function that checks the health of the Azure Function App.
     /// </summary>
@@ -726,7 +747,10 @@ public class LocalMessageReaderService : BackgroundService
     /// <returns>An InfrastructureHealthCheckResponse indicating the result of the check.</returns>
     private async Task<InfrastructureHealthCheckResponse> CheckAzureFunctions(InfrastructureHealthCheckRequest request)
     {
-        string azureFunctionUrl = $"http://{request.Name}/api/FunctionsHealthCheck";
+        // need to get default code 
+        var code = await GetAzureFunctionDefaultKey();
+
+        string azureFunctionUrl = $"{_functionAppAddress}/api/FunctionsHealthCheck?code={code}";
         var errors = new List<string>();
         var check = new InfrastructureHealthCheck()
         {
