@@ -66,8 +66,8 @@
                                Color="Color.Primary">
                         @Localizer["Link GitHub"]
                     </MudButton>
-                    <MudCheckBox Checked=@_createRepository
-                                 CheckedChanged=@ToggleCreateRepo
+                    <MudCheckBox Value=@_createRepository
+                                 ValueChanged=@ToggleCreateRepo
                                  Disabled="!_githubIntegration"
                                  T="bool"
                                  Label=@Localizer["Create Repository"] />

@@ -7,7 +7,9 @@
     </ChildContent>
     <TooltipContent>
         <MudStack AlignItems="AlignItems.Start" Style="@_toolTipStyle" Class="pa-2">
-            <MudAvatar Image="@Achievement.imageSrc" Size="Size.Medium" />
+            <MudAvatar Size="Size.Medium">
+                <MudImage Src="@Achievement.imageSrc"/>
+            </MudAvatar>
             <MudText Typo="Typo.h6">@Achievement.name</MudText>
             <MudText Typo="Typo.body2">@Achievement.description</MudText>
         </MudStack>
