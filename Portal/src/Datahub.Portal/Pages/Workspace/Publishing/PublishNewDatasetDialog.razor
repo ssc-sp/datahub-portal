@@ -10,10 +10,10 @@
             @if (HasFiles)
             {
                 <MudText Typo=@Typo.h3>@Localizer["Files"]</MudText>
-                <MudList>
+                <MudList T="string">
                     @foreach(var f in Files)
                     {
-                        <MudListItem><MudText>@f.filename</MudText></MudListItem>
+                        <MudListItem T="string"><MudText>@f.filename</MudText></MudListItem>
                     }
                 </MudList>
             }

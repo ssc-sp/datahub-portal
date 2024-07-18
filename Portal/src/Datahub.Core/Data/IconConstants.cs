@@ -77,7 +77,7 @@ public class Icon
     {
         Name = "fad fa-keyboard",
         Color = "grey",
-        HexColor = Colors.Grey.Default,
+        HexColor = Colors.Gray.Default,
     };
 
     public static readonly Icon PROJECT = new()
