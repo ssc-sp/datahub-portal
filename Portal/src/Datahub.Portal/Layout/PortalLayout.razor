@@ -24,6 +24,7 @@
 <MudThemeProvider Theme="@DatahubTheme.DefaultTheme"/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
+<MudPopoverProvider/>
 
 <DatahubAchievementProvider/>
 
@@ -34,7 +35,7 @@
     <MudDrawer
         Width="320px"
         Open
-        DisableOverlay
+        Overlay="false"
         Style="@_sideBorderStyle"
         Elevation="0"
         ClipMode="DrawerClipMode.Always">

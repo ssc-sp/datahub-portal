@@ -51,7 +51,7 @@ else if (isEditable)
                 @Localizer["Environment variables"]
             </MudText>
 
-            <MudToggleIconButton @bind-Toggled="@_show" Icon="@SidebarIcons.Show" ToggledIcon="@SidebarIcons.Hide" Class="align-self-end" Title="@Localizer["Show environment variable values"]" ToggledTitle="@Localizer["Hide environment variable values"]"/>
+            <MudToggleIconButton @bind-Toggled="@_show" Icon="@SidebarIcons.Show" ToggledIcon="@SidebarIcons.Hide" Class="align-self-end" title="@(_show ? Localizer["Hide environment variable values"] : Localizer["Show environment variable values"])"/>
             <MudSpacer/>
             <MudTextField @bind-Value="@_filterString"
                           Label="@Localizer["Filter"]"
@@ -141,7 +141,7 @@ else
                           IconSize="Size.Small"
                           Class="mt-0"/>
             <MudSpacer/>
-            <MudToggleIconButton @bind-Toggled="@_show" Icon="@SidebarIcons.Show" ToggledIcon="@SidebarIcons.Hide" Title="@Localizer["Show environment variable values"]" ToggledTitle="@Localizer["Hide environment variable values"]"/>
+            <MudToggleIconButton @bind-Toggled="@_show" Icon="@SidebarIcons.Show" ToggledIcon="@SidebarIcons.Hide" title="@(_show ? Localizer["Hide environment variable values"] : Localizer["Show environment variable values"])" />
         </ToolBarContent>
 
         <HeaderContent>

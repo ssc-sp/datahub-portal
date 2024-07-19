@@ -39,10 +39,10 @@
                 </MudStack>
                 <MudDivider Class="my-4"/>
                 <MudStack Spacing="4">
-                    <MudSwitch @bind-Checked="_announcement.ForceHidden"
+                    <MudSwitch @bind-Value="_announcement.ForceHidden"
                                Label="@(Localizer["Always hide this announcement"])"
                                Color="Color.Primary"/>
-                    <MudSwitch @bind-Checked="_announcementHasEndDate"
+                    <MudSwitch @bind-Value="_announcementHasEndDate"
                                Label="@(Localizer["Announcement has an end date"])"
                                Disabled="@_announcement.ForceHidden"
                                Color="Color.Primary"/>

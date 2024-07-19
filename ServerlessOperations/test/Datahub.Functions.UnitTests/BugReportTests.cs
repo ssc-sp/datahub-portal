@@ -30,10 +30,18 @@ public class BugReportTests
     {
         _iSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         _logger = _loggerFactory.CreateLogger<BugReport>();
+        
+        var httpClientFactory = Substitute.For<IHttpClientFactory>();
+        var httpClient = new HttpClient();
+
+        
+        httpClientFactory.CreateClient(Arg.Any<string>()).Returns(httpClient);
+
         _azureConfig = new AzureConfig(_config);
         _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
         _alertRecordService = new AlertRecordService(_azureConfig);
-        _bugReport = new BugReport(_logger, _azureConfig, _emailService, _iSendEndpointProvider, _alertRecordService);
+        
+        _bugReport = new BugReport(_logger, _azureConfig, _emailService, _iSendEndpointProvider, _alertRecordService, httpClientFactory);
         _bugReportMessage = new BugReportMessage(
             UserName: "Test",
             UserEmail: "example@email.com",

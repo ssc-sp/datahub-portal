@@ -104,7 +104,7 @@
                 }
             </MudExpansionPanels>
             <MudStack Row>
-                <MudCheckBox Checked=@_unreadOnly CheckedChanged=@ToggleUnreadOnly T="bool" Label=@Localizer[$"{LocalizationPrefix}.ShowUnreadOnly"] />
+                <MudCheckBox Value=@_unreadOnly ValueChanged=@ToggleUnreadOnly T="bool" Label=@Localizer[$"{LocalizationPrefix}.ShowUnreadOnly"] />
                 <MudPagination
                     Color="Color.Primary"
                     Count="_totalNotificationCount"

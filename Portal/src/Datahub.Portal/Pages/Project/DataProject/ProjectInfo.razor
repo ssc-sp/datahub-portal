@@ -28,12 +28,12 @@
 }
 
 <MudStack Row>
-    <MudChip Label Color="@Color.Dark" class="project-data-sensitivity">@Localizer[_project.Data_Sensitivity]</MudChip>
+    <MudChip T="string" Label="true" Color="@Color.Dark" class="project-data-sensitivity">@Localizer[_project.Data_Sensitivity]</MudChip>
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
         @if (CreditsDataExists && _projectBudget > 0)
         {
             <MudBadge Icon="@Icons.Material.Filled.QuestionMark" Color="@GetCostChipColor()" Overlap="@true" Bordered="@true">
-                <MudChip Label="true"
+                <MudChip T="string" Label="true"
                          Icon="@Icons.Material.Filled.AttachMoney"
                          IconColor="@GetCostChipColor()"
                          Variant="@Variant.Text"
@@ -45,7 +45,7 @@
         }
         else
         {
-            <MudChip Label="true"
+            <MudChip T="string" Label="true"
                      Icon="@Icons.Material.Filled.AttachMoney"
                      IconColor="@GetCostChipColor()"
                      Variant="@Variant.Text"
@@ -56,7 +56,7 @@
         }
         @if (_projectStorage != null)
         {
-            <MudChip Label="true"
+            <MudChip T="string" Label="true"
                      Icon="@Icons.Material.Filled.Storage"
                      IconColor="@GetCostChipColor()"
                      Variant="@Variant.Text"
@@ -71,13 +71,13 @@
         @{
             var color = _project?.MetadataAdded ?? false ? Color.Default : Color.Warning;
             var icon = _project?.MetadataAdded ?? false ? Icons.Material.Filled.Edit : Icons.Material.Filled.Warning;
-            <MudChip Icon="@icon"
+            <MudChip T="string" Icon="@icon"
                      IconColor="@color"
                      Variant="@Variant.Text"
                      Color="@color"
                      class="project-data-sensitivity"
                      OnClick="@HandleEditMetadata"
-                     Label>
+                     Label="true">
                 @Localizer["Edit Metadata"]
             </MudChip>
         }
