@@ -76,6 +76,13 @@ steps:
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'
 
+- task: PowerShell@2
+  displayName: 'Setup Python Environment'
+  inputs:
+    targetType: 'filePath'
+    filePath: 'ResourceProvisioner\src\ResourceProvisioner_PyFunctions\dev-python-env-start.ps1'
+    pwsh: true
+
 - task: AzureFunctionApp@1
   displayName: 'Azure Function App Deploy: dh-portal-func-dev'
   inputs:
