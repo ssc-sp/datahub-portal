@@ -4,32 +4,35 @@
 @inject NavigationManager _navigationManager
 
 <div class="sr-only"><h2>@Localizer["Announcements"]</h2></div>
-
 <MudGrid>
-    @foreach (var preview in Previews)
+    @foreach (var index in _announcementIndices)
     {
-        @if (!preview.Preview.StartsWith("!["))
+        if(index != -1)
         {
-            <MudItem xs="@_previewCount">
-                <MudPaper Elevation="0" Outlined Class="py-2 px-3">
-                    <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;" Spacing="1">
-                        <MudElement>
-                            <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle" />
-                        </MudElement>
-                        <MudElement>
-                            <DHButton   OnClick="() => HandleReadMore(preview.Id)"
-                                        Color="@Color.Primary"
-                                        Variant="@Variant.Text"
-                                        EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
-                                <span>
-                                    @Localizer["Read more"]
-                                    <span class="sr-only">@preview.Preview</span>
-                                </span>
-                            </DHButton>
-                        </MudElement>
-                    </MudStack>
-                </MudPaper>
-            </MudItem>
+            var preview = Previews[index];
+            if (!preview.Preview.StartsWith("!["))
+            {
+                <MudItem xs="@_previewCount">
+                    <MudPaper Elevation="0" Outlined Class="py-2 px-3">
+                        <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;" Spacing="1">
+                            <MudElement>
+                                <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle" />
+                            </MudElement>
+                            <MudElement>
+                                <DHButton   OnClick="() => HandleReadMore(preview.Id)"
+                                            Color="@Color.Primary"
+                                            Variant="@Variant.Text"
+                                            EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                                    <span>
+                                        @Localizer["Read more"]
+                                        <span class="sr-only">@preview.Preview</span>
+                                    </span>
+                                </DHButton>
+                            </MudElement>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+            }
         }
     }
 </MudGrid>
@@ -50,6 +53,7 @@
     private string _descriptionTextStyle;
 
     private int _previewCount;
+    private int[] _announcementIndices = new int[3] {-1, -1, -1};
 
     // get the style so it's always at the bottom of the carousel
     // private string _readMoreStyle => "position: absolute; bottom: 1rem; left: 2rem;";
@@ -86,15 +90,16 @@
            .AddStyle("-webkit-box-orient", "vertical")
            .AddStyle("display", "-webkit-box")
            .Build();
-
         int count = 0;
-        foreach (var preview in Previews)
+        for (int i=0; i< Previews.Count; i++)
         {
-            // only allowing text-based announcements
-            if (!preview.Preview.StartsWith("!["))
-            {
+            var preview = Previews[i];
+            if (!preview.Preview.StartsWith("![")){
+                _announcementIndices[count] = i;
                 count++;
             }
+
+            if(count == 3){break;}
         }
 
         // There should really only be 1, 2, or 3 announcements at a time
