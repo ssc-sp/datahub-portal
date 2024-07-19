@@ -1967,6 +1967,7 @@
   "{0} credits consumed on average (daily)": "{0} credits consumed on average (daily)",
   "{0} credits consumed yesterday": "{0} credits consumed yesterday",
   "{0} successfully added to your workspace": "{0} successfully added to your workspace",
+  "/explore": "/explore",
   "/home":  "/home",
   "/news": "/news",
   "Last updated {0} {1}": "Last updated {0} {1}",
