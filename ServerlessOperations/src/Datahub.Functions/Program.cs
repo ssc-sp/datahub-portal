@@ -26,6 +26,7 @@ using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.Extensions.Azure;
 using Datahub.Core.Model.Context;
+using Datahub.Infrastructure.Services.Helpers;
 
 
 var host = new HostBuilder()
@@ -93,6 +94,7 @@ var host = new HostBuilder()
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();
+        services.AddScoped<HealthCheckHelper>();
         services.AddDatahubConfigurationFromFunctionFormat(config);
        
 

@@ -1,7 +1,10 @@
 ﻿using Azure.Identity;
 using Azure.Messaging.ServiceBus;
+using Azure.ResourceManager;
+using Azure.ResourceManager.AppService;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Queues;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Health;
@@ -26,6 +29,8 @@ namespace Datahub.Infrastructure.Services.Helpers
 
         public const string PoisonQueueSuffix = "-poison";
 
+        public const string FSDHFunctionPrefix = "fsdh-func-dotnet";
+
         public const string WorkspaceKeyCheck = "project-cmk";
         public const string CoreKeyCheck = "datahubportal-client-id";
 
@@ -39,18 +44,14 @@ namespace Datahub.Infrastructure.Services.Helpers
         public const string AzureClientSecretEnvKey = "AZURE_CLIENT_SECRET";
     }
 
-    public class HealthCheckHelper(DatahubProjectDBContext dbProjectContext,
+    public class HealthCheckHelper(IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
         IProjectStorageConfigurationService projectStorageConfigurationService,
-        AzureDevOpsConfiguration devopsConfig,
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        DatahubPortalConfiguration portalConfiguration)
     {
-        private readonly DatahubProjectDBContext dbProjectContext = dbProjectContext;
-        private readonly IProjectStorageConfigurationService projectStorageConfigurationService = projectStorageConfigurationService;
-        private readonly AzureDevOpsConfiguration devopsConfig = devopsConfig;
-        private readonly IConfiguration configuration = configuration;
-        private readonly IHttpClientFactory httpClientFactory = httpClientFactory;
+        private readonly AzureDevOpsConfiguration devopsConfig = configuration.GetSection("AzureDevOpsConfiguration").Get<AzureDevOpsConfiguration>();
         private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
 
         /// <summary>
@@ -65,7 +66,9 @@ namespace Datahub.Infrastructure.Services.Helpers
             var errors = new List<string>();
             var status = InfrastructureHealthStatus.Healthy;
 
-            bool connectable = await dbProjectContext.Database.CanConnectAsync();
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+
+            bool connectable = await ctx.Database.CanConnectAsync();
             if (!connectable)
             {
                 status = InfrastructureHealthStatus.Unhealthy;
@@ -73,7 +76,7 @@ namespace Datahub.Infrastructure.Services.Helpers
             }
             else
             {
-                var test = await dbProjectContext.Projects.FirstOrDefaultAsync();
+                var test = await ctx.Projects.FirstOrDefaultAsync();
                 if (test == null)
                 {
                     status = InfrastructureHealthStatus.Degraded;
@@ -199,7 +202,9 @@ namespace Datahub.Infrastructure.Services.Helpers
             var errors = new List<string>();
             var status = InfrastructureHealthStatus.Healthy;
 
-            var project = await dbProjectContext.Projects
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+
+            var project = await ctx.Projects
                 .AsNoTracking()
                 .Include(p => p.Resources)
                 .FirstOrDefaultAsync(p => p.Project_Acronym_CD == request.Name);
@@ -278,19 +283,47 @@ namespace Datahub.Infrastructure.Services.Helpers
             return new(status, errors);
         }
 
-        /// <summary>
-        /// Function that checks the health of the Azure Function App.
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns>An IntermediateHealthCheckResult indicating the result of the check.</returns>
+        // TODO there may be a better source for this
+        private string CurrentEnvironment => devopsConfig.GetEnvironmentName();
+
+        private async Task<string> GetAzureFunctionDefaultKey()
+        {
+            try
+            {
+                // TODO there may be a better source for these values
+                var credential = new ClientSecretCredential(portalConfiguration.AzureAd.TenantId,
+                        portalConfiguration.AzureAd.InfraClientId, portalConfiguration.AzureAd.InfraClientSecret);
+
+                var armClient = new ArmClient(credential);
+                var subscription = await armClient.GetDefaultSubscriptionAsync();
+                var resourceGroup = await subscription.GetResourceGroupAsync($"fsdh-{CurrentEnvironment}-rg");
+                var functionApp = await resourceGroup.Value.GetWebSiteAsync($"{InfrastructureHealthCheckConstants.FSDHFunctionPrefix}-{CurrentEnvironment}");
+                var hostKeys = await functionApp.Value.GetHostKeysAsync();
+                var defaultKey = hostKeys.Value.FunctionKeys["default"];
+
+                return defaultKey;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error obtaining Azure Function default key");
+                throw;
+            }
+        }
+
+
         public async Task<IntermediateHealthCheckResult> CheckAzureFunctions(InfrastructureHealthCheckMessage request)
         {
-            var azureFunctionUrl = $"http://{request.Name}/api/FunctionsHealthCheck";
             var errors = new List<string>();
             var status = InfrastructureHealthStatus.Healthy;
 
+            // TODO this should come from request.Name
+            var functionAppAddress = $"https://{InfrastructureHealthCheckConstants.FSDHFunctionPrefix}-{CurrentEnvironment}.azurewebsites.net";
+
             try
             {
+                var functionKey = await GetAzureFunctionDefaultKey();
+                var azureFunctionUrl = $"{functionAppAddress}/api/FunctionsHealthCheck?code={functionKey}";
+
                 using var httpClient = httpClientFactory.CreateClient();
                 var response = await httpClient.GetAsync(azureFunctionUrl);
 
@@ -428,7 +461,9 @@ namespace Datahub.Infrastructure.Services.Helpers
             var errors = new List<string>();
             var status = InfrastructureHealthStatus.Healthy;
 
-            var project = await dbProjectContext.Projects
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+
+            var project = await ctx.Projects
                 .AsNoTracking()
                 .Include(p => p.Resources)
                 .FirstOrDefaultAsync(p => p.Project_Acronym_CD == request.Name);
@@ -500,13 +535,16 @@ namespace Datahub.Infrastructure.Services.Helpers
             _ => request.Name
         };
 
+        private bool IsUnhealthyStatus(InfrastructureHealthStatus status) => status == InfrastructureHealthStatus.Unhealthy
+            || status == InfrastructureHealthStatus.Degraded;
+
         /// <summary>
         /// Checks the infrastructure health of a specific resource.
         /// </summary>
         /// <param name="request"></param>
         /// <returns>An InfrastructureHealthCheckResponse, containing InfrastructureHealthCheck record and list of errors.</returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public async Task<InfrastructureHealthCheckResponse2> RunHealthCheck(InfrastructureHealthCheckMessage request)
+        public async Task<InfrastructureHealthCheckResponse> RunHealthCheck(InfrastructureHealthCheckMessage request)
         {
             var intermediateResult = request?.Type switch
             {
@@ -521,8 +559,9 @@ namespace Datahub.Infrastructure.Services.Helpers
                 _ => throw new InvalidOperationException()
             };
 
+            // if status is unhealthy or degraded but no errors are listed, there is some unknown problem
             var details = intermediateResult.Errors.Count == 0 ?
-                (intermediateResult.Status == InfrastructureHealthStatus.Healthy ? default : "Please investigate.") :
+                (IsUnhealthyStatus(intermediateResult.Status) ? "Please investigate." : default) :
                 string.Join("; ", intermediateResult.Errors);
 
             var result = new InfrastructureHealthCheck()
@@ -535,25 +574,51 @@ namespace Datahub.Infrastructure.Services.Helpers
                 Details = details,
             };
 
+            await StoreHealthCheck(result);
+            await StoreHealthCheckRun(result);
+
             return new(result, intermediateResult.Errors);
         }
+
+        public async Task<IEnumerable<InfrastructureHealthCheckResponse>> ProcessHealthCheckRequest(InfrastructureHealthCheckMessage request)
+        {
+            if (request.Group == InfrastructureHealthCheckConstants.AllRequestGroup)
+            {
+                return await RunAllChecks();
+            }
+            else
+            {
+                var result = await RunHealthCheck(request);
+                return [result];
+            }
+        }
+
+        private bool IsLocalEnvironment => string.IsNullOrEmpty(CurrentEnvironment) || CurrentEnvironment == "local";
+
+        private string DefaultFunctionUrl => $"https://{InfrastructureHealthCheckConstants.FSDHFunctionPrefix}-{CurrentEnvironment}.azurewebsites.net";
 
         /// <summary>
         /// Function that runs all infrastructure health checks.
         /// </summary>
         /// <returns>Results of all health checks</returns>
-        public async Task<IEnumerable<InfrastructureHealthCheckResponse2>> RunAllChecks()
+        public async Task<IEnumerable<InfrastructureHealthCheckResponse>> RunAllChecks()
         {
+            var functionAppAddress = IsLocalEnvironment ?
+                "http://localhost:7071" :
+                DefaultFunctionUrl;
+
             var coreChecks = new List<InfrastructureHealthCheckMessage>()
             {
                 new(InfrastructureHealthResourceType.AzureSqlDatabase, InfrastructureHealthCheckConstants.CoreRequestGroup, InfrastructureHealthCheckConstants.CoreRequestGroup),
                 new(InfrastructureHealthResourceType.AzureKeyVault, InfrastructureHealthCheckConstants.CoreRequestGroup, InfrastructureHealthCheckConstants.CoreRequestGroup),
                 new(InfrastructureHealthResourceType.AzureKeyVault, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, InfrastructureHealthCheckConstants.WorkspacesRequestGroup),
-                new(InfrastructureHealthResourceType.AzureFunction, InfrastructureHealthCheckConstants.CoreRequestGroup, "localhost:7071")
+                new(InfrastructureHealthResourceType.AzureFunction, InfrastructureHealthCheckConstants.CoreRequestGroup, functionAppAddress)
             };
 
-            // TODO exclude these if AzureSqlDatabase check fails
-            var projects = await dbProjectContext.Projects
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+
+            // TODO check AzureSqlDatabase first and exclude these checks if it fails
+            var projects = await ctx.Projects
                 .AsNoTracking()
                 .ToListAsync();
             var workspaceChecks = projects.SelectMany(p => new List<InfrastructureHealthCheckMessage>()
@@ -566,10 +631,11 @@ namespace Datahub.Infrastructure.Services.Helpers
 
             string[] queuesToCheck =
             [
-                "delete-run-request", "email-notification", "pong-queue", "project-capacity-update",
-                "project-inactivity-notification", "project-usage-notification",
-                "project-usage-update", "resource-run-request", "storage-capacity", "terraform-output",
-                "user-inactivity-notification", "user-run-request"
+                "bug-report", "delete-run-request", "email-notification", "infrastructure-health-check-results", 
+                "keyvault-sync-output", "pong-queue", "project-capacity-update", "project-inactivity-notification", 
+                "project-usage-notification", "project-usage-update", "resource-delete-request", "resource-run-request", 
+                "storage-capacity", "storage-sync-output", "terraform-output", "terraform-output-handler", 
+                "user-inactivity-notification", "user-run-request", "workspace-app-service-configuration"
             ];
             var queueChecks = queuesToCheck.SelectMany(q => new List<InfrastructureHealthCheckMessage>()
             {
@@ -603,20 +669,22 @@ namespace Datahub.Infrastructure.Services.Helpers
                 return;
             }
 
-            var existingChecks = await dbProjectContext.InfrastructureHealthChecks
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+
+            var existingChecks = await ctx.InfrastructureHealthChecks
                 .Where(c => c.Group == check.Group && c.Name == check.Name && c.ResourceType == check.ResourceType)
                 .ToListAsync();
 
             if (existingChecks?.Count > 0)
             {
-                dbProjectContext.InfrastructureHealthChecks.RemoveRange(existingChecks);
+                ctx.InfrastructureHealthChecks.RemoveRange(existingChecks);
             }
 
-            dbProjectContext.InfrastructureHealthChecks.Add(CloneWithoutId(check));
+            ctx.InfrastructureHealthChecks.Add(CloneWithoutId(check));
 
             try
             {
-                await dbProjectContext.SaveChangesAsync();
+                await ctx.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -633,11 +701,13 @@ namespace Datahub.Infrastructure.Services.Helpers
                 return;
             }
 
-            dbProjectContext.InfrastructureHealthCheckRuns.Add(CloneWithoutId(check));
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+
+            ctx.InfrastructureHealthCheckRuns.Add(CloneWithoutId(check));
 
             try
             {
-                await dbProjectContext.SaveChangesAsync();
+                await ctx.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -647,5 +717,5 @@ namespace Datahub.Infrastructure.Services.Helpers
     }
 
     public record IntermediateHealthCheckResult(InfrastructureHealthStatus Status, List<string> Errors);
-    public record InfrastructureHealthCheckResponse2(InfrastructureHealthCheck Check, List<string>? Errors);
+    public record InfrastructureHealthCheckResponse(InfrastructureHealthCheck Check, List<string>? Errors);
 }
