@@ -125,7 +125,7 @@
             <MudNavMenu Color="Color.Primary">
                 @foreach (var sectionView in _datahubAdminItems)
                 {
-                    <MudNavLink Href="@GetSectionViewUrl(PageRoutes.ToolPrefix, sectionView)" Match="NavLinkMatch.All">
+                    <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.ToolPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
                         <MudStack Row AlignItems="AlignItems.Center">
                             <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
                             <MudText Style="@_workspaceLinkStyle">
@@ -173,12 +173,19 @@
         public const string Achievements_FR = "realisations";
 
         public const string Diagnostics = "diagnostics";
+        public const string Diagnostics_FR = "diagnostiques";
         public const string Statistics = "statistics";
+        public const string Statistics_FR = "statistiques";
         public const string HealthCheck = "healthcheck";
+        public const string HealthCheck_FR = "verification-sante";
         public const string Users = "users";
+        public const string Users_FR = "utilisateurs";
         public const string Email = "email";
+        public const string Email_FR = "courriel";
         public const string SupportRequests = "support-requests";
+        public const string SupportRequests_FR = "demandes-assistance";
         public const string AzureSubscriptions = "azure-subscriptions";
+        public const string AzureSubscriptions_FR = "abonnements-azure";
     }
 
 
