@@ -2899,6 +2899,7 @@
   "xxxx deleted xxxx from xxxx": "xxxx a supprimé xxxx de xxxx",
   "xxxx moved xxxx to xxxx": "xxxx a déplacé xxxx à xxxx",
   "yes": "oui",
+  "/news":  "/nouvelles",
   "{0}": "{0}",
   "{0} Storage Explorer": "Explorateur de stockage de {0}",
   "{0} copied {1} to {2}": "xxxx a copié xxxx dans xxxx ",
