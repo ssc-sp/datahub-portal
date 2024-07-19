@@ -8,97 +8,31 @@
 <MudGrid>
     @foreach (var preview in Previews)
     {
-        // only allowing text-based announcements
         @if (!preview.Preview.StartsWith("!["))
         {
             <MudItem xs="@_previewCount">
                 <MudPaper Elevation="0" Outlined Class="py-2 px-3">
-                    <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;">
-                        <MudStack>
+                    <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;" Spacing="1">
+                        <MudElement>
                             <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle" />
-                        </MudStack>
-                        <MudStack>
-                                <DHButton OnClick="() => HandleReadMore(preview.Id)"
-                                          Color="@Color.Primary"
-                                          Variant="@Variant.Text"
-                                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
-                                    <span>
-                                        @Localizer["Read more"]
-                                    </span>
-                                </DHButton>
-                        </MudStack>
+                        </MudElement>
+                        <MudElement>
+                            <DHButton   OnClick="() => HandleReadMore(preview.Id)"
+                                        Color="@Color.Primary"
+                                        Variant="@Variant.Text"
+                                        EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                                <span>
+                                    @Localizer["Read more"]
+                                    <span class="sr-only">@preview.Preview</span>
+                                </span>
+                            </DHButton>
+                        </MudElement>
                     </MudStack>
                 </MudPaper>
-            
-            @* <AnnouncementPreviewCard DocumentItem="@preview" /> *@
             </MudItem>
         }
     }
 </MudGrid>
-
-
-
-@* <MudElement Class="rounded" HtmlTag="div" Style="@_backgroundImageStyle">
-    <MudElement Class="rounded" HtmlTag="div" Style="@_glassStyle">
-        <MudGrid Class="px-4">
-            @foreach (var preview in Previews)
-            {
-                <MudItem xs="@_previewCount">
-                    @if (!preview.Preview.StartsWith("!["))
-                    {
-                        <MudStack Class="ma-6">
-                            <DHMarkdown Content="@preview.Preview" />
-                            <DHButton>@Localizer["Read More"]</DHButton>
-                            <DHButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
-                                @Localizer["Read more"]
-                            </DHButton>
-                        </MudStack>
-                    }
-                    else
-                    {
-                        <MudStack Class="ma-6">
-                            <DHMarkdown Content="@preview.Preview" />
-                            <DHButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
-                                @Localizer["Read more"]
-                            </DHButton>
-                        </MudStack>
-                    }
-                </MudItem>
-            }
-        </MudGrid>
-        <MudCarousel Class="mud-width-full rounded"
-                     Style="@_carouselStyle"
-                     ShowArrows="true"
-                     ShowBullets="false"
-                     EnableSwipeGesture="true"
-                     AutoCycle="true"
-                     AutoCycleTime="@TimeSpan.FromSeconds(10)"
-                     TData="object">
-
-            @foreach (var preview in Previews)
-            {
-                <MudCarouselItem Transition="Transition.Fade">
-                    @if (!preview.Preview.StartsWith("!["))
-                    {
-                        <MudStack Class="px-12 py-4" Style="height: 100%">
-                            <DHMarkdown Content="@preview.Preview"/>
-                            <DHButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
-                                @Localizer["Read more"]
-                            </DHButton>
-                        </MudStack>
-                    }
-					else
-					{
-						<DHMarkdown Content="@preview.Preview"/>
-                        <DHButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
-                            @Localizer["Read more"]
-                        </DHButton>
-					}
-                </MudCarouselItem>
-            }
-        </MudCarousel>
-    </MudElement>
-</MudElement> *@
 
 @code {
     public const int CarouselHeight = 320;
@@ -110,17 +44,15 @@
     public string BackgroundUrl { get; set; }
 
 
-
-    private string _glassStyle;
-    private string _carouselStyle;
-    private string _backgroundImageStyle;
+    // private string _glassStyle;
+    // private string _carouselStyle;
+    // private string _backgroundImageStyle;
     private string _descriptionTextStyle;
-    private string _titleTextStyle;
 
     private int _previewCount;
 
     // get the style so it's always at the bottom of the carousel
-    private string _readMoreStyle => "position: absolute; bottom: 1rem; left: 2rem;";
+    // private string _readMoreStyle => "position: absolute; bottom: 1rem; left: 2rem;";
 
     protected override void OnInitialized()
     {
@@ -128,25 +60,25 @@
 
         var hasBackgroundUrl = !string.IsNullOrEmpty(BackgroundUrl);
 
-        _carouselStyle = new StyleBuilder()
-            .AddStyle("height", $"{CarouselHeight}px")
-            .Build();
+        // _carouselStyle = new StyleBuilder()
+        //     .AddStyle("height", $"{CarouselHeight}px")
+        //     .Build();
 
-        _backgroundImageStyle = new StyleBuilder()
-            .AddStyle("height", $"{CarouselHeight}px")
-            .AddStyle("background", $"linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{BackgroundUrl}') no-repeat", when: hasBackgroundUrl)
-            .AddStyle("background-size", "cover", when: hasBackgroundUrl)
-            .AddStyle("margin-bottom", "1rem")
-            .Build();
+        // _backgroundImageStyle = new StyleBuilder()
+        //     .AddStyle("height", $"{CarouselHeight}px")
+        //     .AddStyle("background", $"linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{BackgroundUrl}') no-repeat", when: hasBackgroundUrl)
+        //     .AddStyle("background-size", "cover", when: hasBackgroundUrl)
+        //     .AddStyle("margin-bottom", "1rem")
+        //     .Build();
 
-        _glassStyle = new StyleBuilder()
-            .AddStyle("height", $"{CarouselHeight}px")
-            .AddStyle("background", "rgba(0, 0, 0, 0.5)", when: hasBackgroundUrl)
-            .AddStyle("color", "white", when: hasBackgroundUrl)
-            .AddStyle("backdrop-filter", "blur(5px)", when: hasBackgroundUrl)
-            .AddStyle("--mud-palette-text-primary", "white", when: hasBackgroundUrl)
-            .AddStyle("--mud-palette-primary", Colors.Purple.Accent2, when: hasBackgroundUrl)
-            .Build();
+        // _glassStyle = new StyleBuilder()
+        //     .AddStyle("height", $"{CarouselHeight}px")
+        //     .AddStyle("background", "rgba(0, 0, 0, 0.5)", when: hasBackgroundUrl)
+        //     .AddStyle("color", "white", when: hasBackgroundUrl)
+        //     .AddStyle("backdrop-filter", "blur(5px)", when: hasBackgroundUrl)
+        //     .AddStyle("--mud-palette-text-primary", "white", when: hasBackgroundUrl)
+        //     .AddStyle("--mud-palette-primary", Colors.Purple.Accent2, when: hasBackgroundUrl)
+        //     .Build();
 
         _descriptionTextStyle = new StyleBuilder()
            .AddStyle("overflow", "hidden")
@@ -154,13 +86,6 @@
            .AddStyle("-webkit-box-orient", "vertical")
            .AddStyle("display", "-webkit-box")
            .Build();
-
-        _titleTextStyle = new StyleBuilder()
-            .AddStyle("overflow", "hidden")
-            .AddStyle("-webkit-line-clamp", "2")
-            .AddStyle("-webkit-box-orient", "vertical")
-            .AddStyle("display", "-webkit-box")
-            .Build();
 
         int count = 0;
         foreach (var preview in Previews)
