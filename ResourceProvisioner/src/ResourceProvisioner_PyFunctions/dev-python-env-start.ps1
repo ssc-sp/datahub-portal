@@ -26,3 +26,13 @@ Write-Host "Installing the required packages"
 pip3 install -r requirements.txt
 
 Write-Host "Python environment setup complete"
+Write-Host "Validating the setup by running the function app"
+python .\function_app.py
+# Capture the Python error code
+$pythonExitCode = $LASTEXITCODE
+Write-Host "Python script exited with code: $pythonExitCode"
+
+if ($pythonExitCode -ne 0) {
+    Write-Host "An error occurred while running the Python script."
+    exit $pythonExitCode
+}
