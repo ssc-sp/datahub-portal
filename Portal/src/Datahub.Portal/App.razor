@@ -25,7 +25,7 @@
                     <MudText Typo="Typo.body1" Class="py-3">@Localizer["If you believe this is an error, please fill out a Support Request Form and we'll get right on it."]</MudText>
                     <MudText Typo="Typo.body1" Class="py-3">@Localizer["Otherwise, you can click the button below to return to the main page of DataHub."]</MudText>
                     <MudText Typo="Typo.body1" Class="py-3">@Localizer["We apologize for any inconvenience."]</MudText>
-                    <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="/home" Class="py-3">@Localizer["Back to DataHub"]</DHButton>
+                    <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="@Localizer[PageRoutes.Home]" Class="py-3">@Localizer["Back to DataHub"]</DHButton>
                     <br/>
                     @if (random.Next(0, 2) == 0)
                     {
