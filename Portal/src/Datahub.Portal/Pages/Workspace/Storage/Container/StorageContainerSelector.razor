@@ -5,7 +5,7 @@
 {
     <MudMenu AnchorOrigin=@Origin.BottomRight TransformOrigin=@Origin.TopRight @ref=@_rootMenu>
         <ActivatorContent>
-            <DHButton>
+            <DHButton HtmlTag="button">
                 <MudStack Row>
                     <DHIcon Icon=@GetCloudProviderIcon(SelectedContainer)
                         ViewBox=@GetCloudProviderIconViewBox(SelectedContainer) 
@@ -136,7 +136,7 @@
             {
                 SelectedContainerChanged.InvokeAsync(value);
             }
-            _rootMenu.CloseMenu();
+            _rootMenu.CloseMenuAsync();
         }
     }
 
@@ -160,30 +160,30 @@
 
     private string GetCloudProviderIconViewBox(CloudStorageContainer container) => GetCloudProviderIconViewBox(container.CloudStorageProvider);
 
-    private void AddNewProviderAccount(CloudStorageProviderType cloudStorageProvider)
+    private async Task AddNewProviderAccount(CloudStorageProviderType cloudStorageProvider)
     {
         if (OnAddProviderClicked.HasDelegate)
         {
-            OnAddProviderClicked.InvokeAsync(cloudStorageProvider);
+            await OnAddProviderClicked.InvokeAsync(cloudStorageProvider);
         }
-        _rootMenu.CloseMenu();
+        await _rootMenu.CloseMenuAsync();
     }
 
-    private void EditProviderAccount(CloudStorageContainer container)
+    private async Task EditProviderAccount(CloudStorageContainer container)
     {
         if (OnEditProviderClicked.HasDelegate && container.Id.HasValue)
         {
-            OnEditProviderClicked.InvokeAsync(container.Id.Value);
+            await OnEditProviderClicked.InvokeAsync(container.Id.Value);
         }
-        _rootMenu.CloseMenu();
+        await _rootMenu.CloseMenuAsync();
     }
 
-    private void RemoveProviderAccount(CloudStorageContainer container)
+    private async Task RemoveProviderAccount(CloudStorageContainer container)
     {
         if (OnRemoveProviderClicked.HasDelegate && container.Id.HasValue)
         {
-            OnRemoveProviderClicked.InvokeAsync(container.Id.Value);
+            await OnRemoveProviderClicked.InvokeAsync(container.Id.Value);
         }
-        _rootMenu.CloseMenu();
+        await _rootMenu.CloseMenuAsync();
     }
 }

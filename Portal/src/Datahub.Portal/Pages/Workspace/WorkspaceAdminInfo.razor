@@ -57,8 +57,8 @@
 
     private ChartOptions _chartOptions = new ChartOptions
     {
-        DisableLegend = true,
-        ChartPalette = new[] { DatahubTheme.DefaultTheme.Palette.Primary.ToString(), DatahubTheme.DefaultTheme.Palette.GrayLighter.ToString() },
+        ShowLegend = false,
+        ChartPalette = new[] { DatahubTheme.DefaultTheme.PaletteLight.Primary.ToString(), DatahubTheme.DefaultTheme.PaletteLight.GrayLighter.ToString() },
     };
 
     protected override async Task OnInitializedAsync()

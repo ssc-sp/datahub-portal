@@ -18,14 +18,14 @@
                   OnAdornmentClick=HandleAddKeyword
                   Variant="Variant.Outlined" 
                   Margin="Margin.Dense" />
-    <MudChipSet AllClosable="false">
+    <MudChipSet AllClosable="false" T="string">
         @*selected keywords*@
         @foreach (var keyword in _keywordList)
         {
             <MudChip Text="@keyword" 
-                     OnClose=@HandleKeywordDeleted
+                     OnClose=@(m => HandleKeywordDeleted(m))
                      Variant="Variant.Filled" 
-                     Color="Color.Dark" />
+                     Color="Color.Dark" T="string" />
         }
         @*suggested keywords*@
         @foreach (var keyword in _suggestions)
@@ -120,7 +120,10 @@
         ApplySubjectSuggestions();
     }
 
-    private void HandleKeywordDeleted(MudChip chip) => DeleteKeyword(chip.Text, false);
+    private void HandleKeywordDeleted(MudChip<string> chip)
+    {
+        DeleteKeyword(chip.Text, false);
+    }
 
     private string InputKeyword
     {
