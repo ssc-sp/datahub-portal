@@ -13,7 +13,9 @@
 @attribute [Route(PageRoutes.Home)]
 @attribute [Route(PageRoutes.Home_FR)]
 @attribute [Route(PageRoutes.AccountDefault)]
+@attribute [Route(PageRoutes.AccountDefault_FR)]
 @attribute [Route(PageRoutes.Account)]
+@attribute [Route(PageRoutes.Account_FR)]
 
 <PageTitle>
     @Localizer["SSC Datahub {0}", _title]
@@ -89,6 +91,10 @@ else
         { PersonalSidebar.SectionViews.Appearance, typeof(AccountAppearanceSettings) },
         { PersonalSidebar.SectionViews.Notifications, typeof(AccountNotificationSettings) },
         { PersonalSidebar.SectionViews.Achievements, typeof(AchievementsPage) },
+        { PersonalSidebar.SectionViews.Customization_FR, typeof(AccountPublicProfileSettings) },
+        { PersonalSidebar.SectionViews.Appearance_FR, typeof(AccountAppearanceSettings) },
+        // Notifications is the same in English and French - Including it causes a duplicate key error
+        { PersonalSidebar.SectionViews.Achievements_FR, typeof(AchievementsPage) },
     };
 
     private async Task HandleViewedUserChanged(PortalUser updatedUser)

@@ -9,6 +9,6 @@
     [Parameter]
     public string ViewedUserGraphId { get; set; }
     
-    private string _href => $"/{PageRoutes.AccountPrefix}/?u={ViewedUserGraphId.Base64Encode()}";
+    private string _href => $"/{Localizer[PageRoutes.AccountPrefix]}/?u={ViewedUserGraphId.Base64Encode()}";
 
 }

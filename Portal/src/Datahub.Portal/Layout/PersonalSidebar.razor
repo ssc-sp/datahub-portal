@@ -104,7 +104,7 @@
         <MudNavMenu Color="Color.Primary">
             @foreach (var sectionView in _accountItems)
             {
-                <MudNavLink Href="@GetSectionViewUrl(PageRoutes.AccountPrefix, sectionView)" Match="NavLinkMatch.All">
+                <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.AccountPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
                     <MudStack Row AlignItems="AlignItems.Center">
                         <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
                         <MudText Style="@_workspaceLinkStyle">
@@ -166,6 +166,11 @@
         public const string Appearance = "appearance";
         public const string Notifications = "notifications";
         public const string Achievements = "achievements";
+        public const string Profile_FR = "publique";
+        public const string Customization_FR = "personnalisation";
+        public const string Appearance_FR = "apparence";
+        public const string Notifications_FR = "notifications";
+        public const string Achievements_FR = "realisations";
 
         public const string Diagnostics = "diagnostics";
         public const string Statistics = "statistics";
