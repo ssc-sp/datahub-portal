@@ -38,7 +38,7 @@
             {
                 <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
 
-                    <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
+                    <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
                         <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
                             <MudStack Row AlignItems="@AlignItems.Center">
                                 <DHIcon Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
@@ -67,7 +67,7 @@
                 @foreach (var toolSection in _workspaceAdministration)
                 {
                     <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
-                        <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
+                        <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
                             <MudStack Row AlignItems="AlignItems.Center">
                                 <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
                                 <MudText Style="@_workspaceTitleStyle">
@@ -108,13 +108,25 @@
         public const string WebApp = "webapp";
         public const string SqlDatabase = "sqldatabase";
         public const string ArcGis = "arcgis";
-
         public const string Toolbox = "toolbox";
         public const string Users = "users";
         public const string Metadata = "metadata";
         public const string Reports = "reports";
         public const string Sudo = "sudo";
         public const string Settings = "settings";
+
+        // exclude databricks, arcgis, and sudo since the translations are the same.
+        public const string Dashboard_FR = "tableau-de-bord";
+        public const string Storage_FR = "stockage";
+        public const string Publishing_FR = "publication";
+        public const string Repositories_FR = "depots";
+        public const string WebApp_FR = "application-web";
+        public const string SqlDatabase_FR = "base-de-donnees-sql";
+        public const string Toolbox_FR = "boite-a-outils";
+        public const string Users_FR = "utilisateurs";
+        public const string Metadata_FR = "metadonnees";
+        public const string Reports_FR = "rapports";
+        public const string Settings_FR = "parametres";
     }
 
     private List<string> _workspaceTools =
@@ -173,6 +185,20 @@
             SectionViews.Reports => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Sudo => DatahubAuthView.AuthLevels.DatahubAdmin,
             SectionViews.Settings => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+
+            SectionViews.Dashboard_FR => DatahubAuthView.AuthLevels.Authenticated,
+            SectionViews.Storage_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.Publishing_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.WebApp_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.SqlDatabase_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.Repositories_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
+
+            SectionViews.Toolbox_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Users_FR => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
+            SectionViews.Metadata_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Reports_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Settings_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+
             _ => DatahubAuthView.AuthLevels.Unauthorized
         };
     }
