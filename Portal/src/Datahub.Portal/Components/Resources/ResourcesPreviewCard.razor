@@ -7,23 +7,12 @@
      <MudStack Justify="Justify.SpaceBetween" Style="height: 100%;">
          <MudStack>
              <MudStack Row AlignItems="AlignItems.Center">
-                <MudIcon role="img" aria-labelledby="decimg01" Icon="@(DocumentItem.GetSidebarIcon())" />
+                <MudIcon role="img" aria-labelledby="decimg01" Icon="@(DocumentItem.GetSidebarIcon())" Title="@GetDocType()"/>
                 <div class="sr-only" id="decimg01">
-                    @if (DocumentItem.DocType == DocItemType.External)
-                    {
-                        @Localizer["External"]
-                    }
-                    else if (DocumentItem.DocType == DocItemType.Tutorial)
-                    {
-                        @Localizer["Video"]
-                    }
-                    else
-                    {
-                        @Localizer["Document"]
-                    }
+                    @GetDocType()
                 </div>
                  <MudText Typo="Typo.body1" Style="@_titleTextStyle">                     
-                         @DocumentItem?.Title                    
+                         @DocumentItem?.Title
                 </MudText>
             </MudStack>
             @if (!ShortVersion)
@@ -39,7 +28,11 @@
                            Variant="@Variant.Text"
                            Target="_blank"
                            EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
-                    @Localizer["Open link"]
+                   
+                    <span>
+                        @Localizer["Open link"]
+                        <span class="sr-only">@DocumentItem?.Title</span>
+                    </span>
                 </DHButton>
             }
             else
@@ -48,7 +41,10 @@
                            Color="@Color.Primary"
                            Variant="@Variant.Text"
                            EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
-                    @Localizer["Read more"]
+                    <span>
+                        @Localizer["Read more"]
+                        <span class="sr-only">@DocumentItem?.Title</span>
+                    </span>
                 </DHButton>
             }
         </MudElement>
@@ -91,6 +87,26 @@
             .AddStyle("height", "150px", when: !ShortVersion)
             .AddStyle("height", "90px", when: ShortVersion)
             .Build();
+    }
+
+    /// <summary>
+    /// Function to get the type of the document
+    /// </summary>
+    /// <returns> The type of the document (external, video, document) </returns>
+    private string GetDocType()
+    {
+        if (DocumentItem.DocType == DocItemType.External)
+        {
+            return @Localizer["External"];
+        }
+        else if (DocumentItem.DocType == DocItemType.Tutorial)
+        {
+            return @Localizer["Video"];
+        }
+        else
+        {
+            return @Localizer["Document"];
+        }
     }
 
 }

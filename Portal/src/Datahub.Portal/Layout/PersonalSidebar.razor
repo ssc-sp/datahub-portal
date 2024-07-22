@@ -18,7 +18,7 @@
     return;
 }
 
-<MudStack Class="px-4 mt-6">
+<MudStack Class="px-4 mt-6" id="nav">
     <MudStack Class="ml-2">
         <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"/>
     </MudStack>
@@ -35,9 +35,10 @@
             <MudSpacer/>
             @if (userRoles.Any())
             {
-                <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="@ShowProjectDialog" Disabled="@_canNotCreateWorkspace">
+                <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Href="@PageRoutes.CreateWorkspace" Disabled="@_canNotCreateWorkspace">
                     <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;" />
                     @Localizer["New"]
+                    <span class="sr-only">@Localizer["Workspace"]</span>
                 </DHButton>
             }
         </MudStack>
@@ -66,7 +67,7 @@
         } 
         else
         {
-            <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" OnClick="@ShowProjectDialog">
+            <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" Href="@PageRoutes.CreateWorkspace">
                 <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;" />
                 @Localizer["Create new"]
                 <MudSpacer/>
@@ -136,6 +137,14 @@
                 }
             </MudNavMenu>
         </MudStack>
+    </DatahubAuthView>
+
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
+        <MudSwitch T="bool"
+                   Color="Color.Primary"
+                   Value="@_isViewAsAdmin"
+                   ValueChanged="@ToggleAdminMode"
+                   Label="@Localizer["Admin Access Enabled"]" />
     </DatahubAuthView>
 </MudStack>
 
@@ -298,17 +307,6 @@
         };
     }
 
-    private async Task ShowProjectDialog()
-    {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await _dialogService.ShowAsync<CreateProjectDialog>(Localizer["Create a new Workspace"], options);
-        var dialogResult = await dialog.Result;
-        if (!dialogResult.Canceled)
-        {
-            _navigationManager.NavigateTo($"{PageRoutes.WorkspacePrefix}/{dialogResult.Data}", true);
-        }
-    }
-
     private string GetSectionViewUrl((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
     {
         return recentActivity.userRecentLink.LinkType switch
@@ -349,4 +347,10 @@
         };
     }
 
+    private async Task ToggleAdminMode()
+    {
+        _isViewAsAdmin = !_isViewAsAdmin;
+        await _userInformationService.SetViewingAsGuest(!_isViewAsAdmin);
+        _navigationManager.NavigateTo(_navigationManager.Uri, true);
+    }
 }

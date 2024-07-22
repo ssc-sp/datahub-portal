@@ -30,8 +30,10 @@
 		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22329.4-beta" />
 		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
 		<PackageReference Include="AElemental.Blazor.Theme" Version="1.6.22173.2" />
-		<PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="4.0.*" />
+
 		<PackageReference Include="Azure.Identity" Version="1.12.*" />
+		<PackageReference Include="AspNetCore.Localizer.Json" Version="0.1.*" />
+
 		<PackageReference Include="Azure.Monitor.Query" Version="1.3.*" />
 		<PackageReference Include="Azure.Search.Documents" Version="11.5.*" />
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.20.*" />
@@ -78,7 +80,7 @@
 
 		<PackageReference Include="RulesEngine" Version="5.0.3" />
 		<PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="8.0.*" />
-		<PackageReference Include="MudBlazor" Version="6.20.0" />
+		<PackageReference Include="MudBlazor" Version="7.0.0" />
 		<PackageReference Include="MudBlazor.Markdown" Version="1.0.2" />
 		<PackageReference Include="System.Drawing.Common" Version="8.0.*" />
 		<PackageReference Include="System.Linq.Async" Version="6.0.1" />

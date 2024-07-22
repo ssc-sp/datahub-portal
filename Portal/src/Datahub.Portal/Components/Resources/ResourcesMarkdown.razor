@@ -11,7 +11,13 @@
 @inject DocumentationService _docService
 @inject UserLocationManagerService UserLocationManagerService
 <MudGrid Spacing="3">
-    <MudItem xs="_headings.Any() ? 9 : 0">
+    @if (_headings?.Any() ?? false)
+    {
+        <MudItem xs="3" style="order: 1;">
+            <ResourcesTableOfContents Headings="_headings" />
+        </MudItem>
+    }
+    <MudItem xs="_headings.Any() ? 9 : 0" style="order: -1;">
         @if (ShowPaper)
         {
             <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
@@ -45,12 +51,6 @@
                         Substitutions="@Substitutions"/>
         }
     </MudItem>
-    @if (_headings?.Any() ?? false)
-    {
-        <MudItem xs="3">
-            <ResourcesTableOfContents Headings="_headings"/>
-        </MudItem>
-    }
 </MudGrid>
 
 
