@@ -8,6 +8,11 @@
 <PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
 
 <PublicLandingDescription>
+
+    <h1 id="maincontent" class="sr-only">
+        @Localizer["Login page"]
+    </h1>
+
     <MudStack AlignItems="AlignItems.Center" Class="mb-16 pb-16">
         <MudText Typo="Typo.h4" Class="text-center">@Localizer["Welcome to DataHub"]</MudText>
         <MudText Typo="Typo.h6" Class="text-center">@Localizer["Please login to continue"]</MudText>
@@ -23,9 +28,7 @@
 
 @code {
 
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string redirectUri { get; set; }
+    [Parameter] [SupplyParameterFromQuery] public string redirectUri { get; set; }
 
     private void HandleLogin()
     {
@@ -34,6 +37,7 @@
         {
             redirectUri = _navigationManager.BaseUri;
         }
+
         var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint=&domainHint=&claims=&policy=";
         _navigationManager.NavigateTo(url, true);
     }
@@ -52,4 +56,5 @@
             HandleLogin();
         }
     }
+
 }

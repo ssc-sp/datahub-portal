@@ -21,6 +21,10 @@
     @Localizer["Resources - Federal Science DataHub"]
 </PageTitle>
 
+<h1 id="maincontent" class="sr-only">
+    @Localizer["Resources page"]
+</h1>
+
 @if (PageIsLoading)
 {
     <DHLoadingInitializer Message="@Localizer["Initializing Resources..."]"/>
@@ -34,7 +38,7 @@ else
                 @if (_docIsLoading || _currentDoc is null)
                 {
                     <MudContainer MaxWidth="MaxWidth.Small">
-                        <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]" />
+                        <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]"/>
                     </MudContainer>
                 }
                 else if (_currentDoc.IsRoot)
@@ -45,22 +49,22 @@ else
                             @Localizer["Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
                         </MudText>
                     </MudStack>
-                    <ResourcesListView DocumentItems="@_mostPopularDocs" />
+                    <ResourcesListView DocumentItems="@_mostPopularDocs"/>
                 }
                 else
                 {
                     <MudText Typo="Typo.h2" Class="mb-3">@_currentDoc.Title</MudText>
-                    <ResourcesListView DocumentItems="@_currentDoc.Children" />
+                    <ResourcesListView DocumentItems="@_currentDoc.Children"/>
                 }
             }
             else
             {
-                <ResourcesMarkdown DocumentItem="@_currentDoc" />
+                <ResourcesMarkdown DocumentItem="@_currentDoc"/>
             }
         </MudItem>
     </MudGrid>
 
-    <ResourcesAdminView />
+    <ResourcesAdminView/>
 
     <SectionContent SectionName="side-bar">
         <LearnSidebar currentCategory="@_currentCategory"
@@ -68,25 +72,22 @@ else
                       hiddenNavGroups="@_hiddenNavGroups"
                       BuildResourceLink="@BuildResourceLink"
                       UpdateCategory="@UpdateCategory"
-                      PageIsLoading="@PageIsLoading" />
+                      PageIsLoading="@PageIsLoading"/>
     </SectionContent>
 }
 
 @code {
 
-    [Parameter]
-    public string PageName { get; set; }
+    [Parameter] public string PageName { get; set; }
 
-    [Parameter]
-    public List<(string, string)> Substitutions { get; set; }
+    [Parameter] public List<(string, string)> Substitutions { get; set; }
 
 
     [Parameter]
     [SupplyParameterFromQuery(Name = "t")]
     public int? TabIndex { get; set; }
 
-    [CascadingParameter]
-    public RouteData routeData { get; set; }
+    [CascadingParameter] public RouteData routeData { get; set; }
 
     const string MostPopularId = "6B9B9B8D-B071-44F7-B264-A7670192F446";
     const string UserGuideId = "b594e16c-56e9-aae5-880f-487afca9aa38";
@@ -128,7 +129,7 @@ else
         var idx = _tabList.IndexOf(docItem);
         await CreateMostPopularFolder();
         var uriBuilder = new UriBuilder(_navManager.Uri);
-        var q = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);        
+        var q = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
         //var page = routeData.
         //_navManager.NavigateTo("");
     }
@@ -149,7 +150,6 @@ else
         _tabIndex = Math.Min(_tabList.Count, TabIndex ?? 0);
         await ActivateCategory(_tabList[_tabIndex]);
         await ClearResourcesBadge();
-
     }
 
     private async Task ClearResourcesBadge()

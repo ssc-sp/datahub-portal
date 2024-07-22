@@ -43,12 +43,12 @@
             </MudMenuItem>
         </ChildContent>
     </MudMenu> *@
-    <MudButton OnClick="@HandleLanguageToggle">
+    <DHButton Href="" OnClick="@HandleLanguageToggle">
         <LanguageToggle @ref="_languageToggle" />
-    </MudButton>
-    <MudButton OnClick="@HandleLogOut">
+    </DHButton>
+    <DHButton OnClick="@HandleLogOut">
         @Localizer["Sign Out"]
-    </MudButton>
+    </DHButton>
 </DatahubAuthView>
 
 @code {

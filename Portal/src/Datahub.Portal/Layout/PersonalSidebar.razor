@@ -18,7 +18,7 @@
     return;
 }
 
-<MudStack Class="px-4 mt-6">
+<MudStack Class="px-4 mt-6" id="nav">
     <MudStack Class="ml-2">
         <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"/>
     </MudStack>
@@ -38,6 +38,7 @@
                 <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Href="@PageRoutes.CreateWorkspace" Disabled="@_canNotCreateWorkspace">
                     <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;" />
                     @Localizer["New"]
+                    <span class="sr-only">@Localizer["Workspace"]</span>
                 </DHButton>
             }
         </MudStack>
@@ -141,7 +142,7 @@
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
         <MudSwitch T="bool"
                    Color="Color.Primary"
-                   Checked="@_isViewAsAdmin"
+                   Value="@_isViewAsAdmin"
                    ValueChanged="@ToggleAdminMode"
                    Label="@Localizer["Admin Access Enabled"]" />
     </DatahubAuthView>

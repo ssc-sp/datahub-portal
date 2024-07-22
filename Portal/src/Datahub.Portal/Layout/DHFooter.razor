@@ -1,5 +1,6 @@
 ﻿<MudContainer role="footer">
-    <MudGrid Class="pt-12 pb-4">
+    <MudDivider Class="mt-12 pb-4"/>
+    <MudGrid Class="pb-4">
         <MudItem xs="12" sm="10" Class="align-content-center">
             <MudButton Href="@PageRoutes.TermsAndConditions">@Localizer["Terms and Conditions"]</MudButton>
             @* <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
@@ -7,7 +8,7 @@
             </DatahubAuthView> *@
         </MudItem>
         <MudItem xs="12" sm="2" Class="align-content-center">
-            <MudImage Src="/img/fip_mark.png" Alt=@Localizer["Government of Canada Wordmark"] Style="max-height:32px; float:right!important;" />
+            <MudImage Src="/img/fip_mark.png" Alt=@Localizer["Government of Canada Wordmark"] Style="max-height:32px; float:right!important;"/>
         </MudItem>
     </MudGrid>
 </MudContainer>

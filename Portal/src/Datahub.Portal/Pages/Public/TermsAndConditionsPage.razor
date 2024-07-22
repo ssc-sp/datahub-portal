@@ -10,11 +10,16 @@
 
 <PageTitle>@Localizer["Terms and Conditions - Federal Science DataHub"]</PageTitle>
 
+
+<h1 id="maincontent" class="sr-only">
+    @Localizer["Terms and conditions page"]
+</h1>
+
 <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Href="/home" Style="position: absolute; top: 2rem; left:  2rem;">
     @Localizer["Back to DataHub"]
 </MudButton>
 <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Style="position: absolute; top: 2rem; right:  2rem;">
-    <LanguageToggle />
+    <LanguageToggle/>
 </MudButton>
 
 <MudContainer Class="my-16" MaxWidth="MaxWidth.Medium">
@@ -27,19 +32,18 @@
 
 
 @code {
-    
+
     private string _markdownContent = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        
+
         _markdownContent = await GetTermsAndConditionsMarkdownContent();
     }
 
     private async Task<string> GetTermsAndConditionsMarkdownContent()
     {
-
         var fullUrl = _cultureService.IsEnglish ? _datahubPortalConfiguration.TermsAndConditionsUrl.En : _datahubPortalConfiguration.TermsAndConditionsUrl.Fr;
 
         var client = _httpClientFactory.CreateClient();
@@ -54,9 +58,10 @@
             return null;
         }
     }
-    
+
     private static string RewriteLink(string link)
     {
         return link;
     }
+
 }

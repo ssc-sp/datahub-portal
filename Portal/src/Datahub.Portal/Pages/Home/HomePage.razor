@@ -13,7 +13,9 @@
 @inject IDialogService _dialogService
 @inject NavigationManager _navigationManager
 
-
+<h1 id="maincontent" class="sr-only">
+    @Localizer["Home page"]
+</h1>
 
 @if (_viewedPortalUser is null)
 {
@@ -22,10 +24,11 @@
 }
 
 <MudStack>
+
     @if (_viewedPortalUser.GraphGuid == _currentUser.GraphGuid)
     {
         <MudText Typo="Typo.h2">@Localizer["Announcements"]</MudText>
-        <WelcomeBanner/>        
+        <WelcomeBanner/>
     }
     else
     {
@@ -94,8 +97,9 @@
         {
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
         }
-        
+
         _userProjectGuid = _viewedPortalUser.GraphGuid;
         StateHasChanged();
     }
+
 }

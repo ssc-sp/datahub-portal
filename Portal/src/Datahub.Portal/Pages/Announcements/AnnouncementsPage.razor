@@ -11,13 +11,17 @@
 </PageTitle>
 
 <SectionContent SectionName="side-bar">
-    <PersonalSidebar />
+    <PersonalSidebar/>
 </SectionContent>
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-    
+
+    <h1 id="maincontent" class="sr-only">
+        @Localizer["News page"]
+    </h1>
+
     <MudStack Spacing="6">
         <MudStack Row>
-            <MudText Typo="Typo.h2">@Localizer["DataHub News"]</MudText>
+            <MudText Typo="Typo.h2">@Localizer["News"]</MudText>
             <MudSpacer/>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
                 <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="/news/edit/new">@Localizer["Create a new Announcement"]</DHButton>
@@ -39,7 +43,7 @@
         else
         {
             <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center">
-                <DHIcon Icon="@Icons.Material.Outlined.Deck" Size="Size.Large" Class="mt-16 mb-4" />
+                <DHIcon Icon="@Icons.Material.Outlined.Deck" Size="Size.Large" Class="mt-16 mb-4"/>
                 <MudText Typo="Typo.h3">@Localizer["No announcements yet!"]</MudText>
             </MudStack>
         }

@@ -14,7 +14,7 @@
 <MudTable Striped Items="@UserWorkspaces" Filter="new Func<UserWorkspaces,bool>(FilterUserWorkspaces)">
 <ToolBarContent>
     <MudTextField @bind-Value="_searchString" Placeholder=@Localizer["Search by User or Workspace"] Adornment="Adornment.Start"
-                  AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                  AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Label="@Localizer["Search"]"></MudTextField>
     </ToolBarContent>
     <HeaderContent>
         <MudTh>
@@ -57,7 +57,7 @@
             </MudTd>
         }
         <MudTd DataLabel="Workspaces">
-            <ul style="list-style: outside;">
+            <ul style="">
                 @foreach(var workspace in context.Workspaces)
                 {
                     <li>
