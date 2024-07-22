@@ -13,7 +13,7 @@
     return;
 }
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-    <div class="sr-only"><p>@Localizer["Your profile"]</p></div>
+    @* <div class="sr-only"><p>@Localizer["Your profile"]</p></div>
     <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" FullWidth>
         <ActivatorContent>
             <DHButton HtmlTag="button" Class="ml-2">
@@ -27,7 +27,7 @@
                     <MudSwitch
                         T="bool"
                         Color="Color.Primary"
-                        Checked="@_isViewAsAdmin"
+                        Value="@_isViewAsAdmin"
                         Label="@Localizer["Admin Access Enabled"]"/>
                 </MudMenuItem>
                 <MudDivider/>
@@ -42,7 +42,13 @@
                 @Localizer["Sign Out"]
             </MudMenuItem>
         </ChildContent>
-    </MudMenu>
+    </MudMenu> *@
+    <DHButton Href="" OnClick="@HandleLanguageToggle">
+        <LanguageToggle @ref="_languageToggle" />
+    </DHButton>
+    <DHButton OnClick="@HandleLogOut">
+        @Localizer["Sign Out"]
+    </DHButton>
 </DatahubAuthView>
 
 @code {

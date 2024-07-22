@@ -31,7 +31,7 @@
             <MudTd>@context.Id</MudTd>
 			<MudTd>@context.Title</MudTd>
             <MudTd>@context.Description</MudTd>
-            <MudTd><MudChip Color="@GetColor(context.State)">@Localizer[context.Message]</MudChip></MudTd>
+            <MudTd><MudChip T="string" Color="@GetColor(context.State)">@Localizer[context.Message]</MudChip></MudTd>
             <MudTd>@context.SubmittedDate</MudTd>
             <MudTd>@context.ChangedDate</MudTd>
 		</RowTemplate>
@@ -59,7 +59,7 @@
 			<MudTd>@context.Id</MudTd>
 			<MudTd>@context.Title</MudTd>
             <MudTd>@context.Description)</MudTd>
-			<MudTd><MudChip Color="@GetColor(context.State)">@Localizer[context.Message]</MudChip></MudTd>
+			<MudTd><MudChip T="string" Color="@GetColor(context.State)">@Localizer[context.Message]</MudChip></MudTd>
 			<MudTd>@context.SubmittedDate</MudTd>
 			<MudTd>@context.ChangedDate</MudTd>
 		</RowTemplate>
