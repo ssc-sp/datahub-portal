@@ -71,7 +71,7 @@ else
             <HeaderContent>
                 <MudTh>@Localizer["Resource"]</MudTh>
                 <MudTh>@Localizer["Queue Status"]</MudTh>
-                <MudTh>@Localizer["Poison Queue Status"]</MudTh>
+                @* <MudTh>@Localizer["Poison Queue Status"]</MudTh> *@
                 <MudTh>@Localizer["Updated"]</MudTh>
                 <MudTh>@Localizer["Run Check"]</MudTh>
             </HeaderContent>
@@ -84,14 +84,14 @@ else
                     </MudChip>
                     </MudTooltip>
                 </MudTd>
-                <MudTd>
+@*                 <MudTd>
                     <MudTooltip Delay="600" Text="@GetStatusDetails(context)">
                                 <MudChip Color="@GetColor(GetPoison(context))" Size="Size.Small" T="string">
                         @Localizer[GetStatusText(GetPoison(context))]
 					</MudChip>
                     </MudTooltip>
-                </MudTd>
-                        <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
+                </MudTd> *@
+                <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
                     <MudTd>
                         <DHButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
                             @Localizer["Run"]
@@ -236,8 +236,11 @@ else
 
         string[] queues = new string[]
         {
-            "delete-run-request", "email-notification", "pong-queue", "project-capacity-update", "project-inactivity-notification", "project-usage-notification",
-            "project-usage-update", "resource-run-request", "storage-capacity", "terraform-output", "user-inactivity-notification", "user-run-request",
+            "resource-delete-request", "email-notification", "pong-queue", "project-capacity-update",
+            "project-inactivity-notification", "project-usage-notification",
+            "project-usage-update", "resource-run-request", "storage-sync-output", "terraform-output-handler",
+            "user-inactivity-notification", "user-run-request","keyvault-sync-output",
+            "workspace-app-service-configuration","bug-report","infrastructure-health-check-results"
         };
         _queueInfrastructureHealth = _infrastructureHealthChecks
                 .Where(h => (h.ResourceType == InfrastructureHealthResourceType.AsureServiceBus))
@@ -268,9 +271,9 @@ else
 
         string[] poison_queues = new string[]
         {
-            "delete-run-request-poison", "email-notification-poison", "pong-queue-poison", "project-capacity-update-poison", "project-inactivity-notification-poison",
-            "project-usage-notification-poison", "project-usage-update-poison", "resource-run-request-poison", "storage-capacity-poison", "terraform-output-poison",
-            "user-inactivity-notification-poison", "user-run-request-poison"
+            // "delete-run-request-poison", "email-notification-poison", "pong-queue-poison", "project-capacity-update-poison", "project-inactivity-notification-poison",
+            // "project-usage-notification-poison", "project-usage-update-poison", "resource-run-request-poison", "storage-capacity-poison", "terraform-output-poison",
+            // "user-inactivity-notification-poison", "user-run-request-poison"
         };
         _poisonQueueInfrastructureHealth = _infrastructureHealthChecks
                 .Where(h => (h.ResourceType == InfrastructureHealthResourceType.AsureServiceBus))

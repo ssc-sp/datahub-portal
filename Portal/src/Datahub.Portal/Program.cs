@@ -8,10 +8,6 @@ public class Program
     public static void Main(string[] args)
     {
         var host = CreateHostBuilder(args)
-            //.ConfigureServices(serviceCollection =>
-            //{
-            //    serviceCollection.AddSingleton(new ResourceManager("Datahub.Portal.Resources", typeof(Startup).GetTypeInfo().Assembly));
-            //})  
             .Build();
            
         host.Run();
@@ -24,12 +20,6 @@ public class Program
             {
                 logBuilder.ClearProviders();
                 logBuilder.AddConsole();
-
-                //var appInsightsConfig = hostingContext.Configuration.GetSection("ApplicationInsights");
-                //logBuilder.AddApplicationInsights(config => 
-                //{ 
-                //    config.ConnectionString = appInsightsConfig.GetValue<string>("ConnectionString"); 
-                //}, options => {});
 
                 logBuilder.AddAzureWebAppDiagnostics();
 
