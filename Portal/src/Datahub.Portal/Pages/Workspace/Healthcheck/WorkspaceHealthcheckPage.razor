@@ -55,51 +55,13 @@
                     </MudTd>
                     <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
                     <MudTd>
-                        <!-- @* OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))" *@
-                            -->
                         <DHButton Variant="Variant.Filled" Color="Color.Primary" 
                             OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))"
                             Size="Size.Small" >
                             @Localizer["Run"]
                         </DHButton>
                     </MudTd>                    
-            </RowTemplate>
-            @* <HeaderContent>
-                <MudTh>Workspace</MudTh>
-                @foreach (var resourceType in _workspaceChecks)
-                {
-                    <MudTh>@resourceType</MudTh>
-                }
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd>@WorkspaceAcronym</MudTd>
-                @foreach (var resourceType in _workspaceChecks)
-                {
-                    var health = context;
-                    //var health = context.FirstOrDefault(h => h.ResourceType == (InfrastructureHealthResourceType)resourceType);
-                    if (health == null)
-                    {
-                        <MudTd>
-							<MudChip Color="@HealthCheckHelperService.GetColor(InfrastructureHealthStatus.Undefined)" 
-                            Size="Size.Small">
-								@Localizer[InfrastructureHealthStatus.Undefined.ToString()]
-							</MudChip>
-                        </MudTd>
-                    }
-                    else
-                    {
-                        var realStatus = HealthCheckHelperService.GetRealStatus(health);
-                        var details = HealthCheckHelperService.GetStatusDetails(health);
-                        <MudTd>
-                            <MudTooltip Delay="600" Text="@details">
-							<MudChip Color="@HealthCheckHelperService.GetColor(realStatus)" Size="Size.Small">
-								@Localizer[realStatus.ToString()]
-							</MudChip>
-                            </MudTooltip>
-						</MudTd>
-                    }
-                }
-            </RowTemplate> *@
+            </RowTemplate>            
         </MudTable>
     </MudStack>
 </MudPaper>
