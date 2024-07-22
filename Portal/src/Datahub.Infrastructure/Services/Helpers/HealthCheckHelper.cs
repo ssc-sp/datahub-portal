@@ -9,10 +9,12 @@ using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Health;
 using Datahub.Core.Utils;
+using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -42,6 +44,8 @@ namespace Datahub.Infrastructure.Services.Helpers
         public const string AzureTenantIdEnvKey = "AZURE_TENANT_ID";
         public const string AzureClientIdEnvKey = "AZURE_CLIENT_ID";
         public const string AzureClientSecretEnvKey = "AZURE_CLIENT_SECRET";
+
+        public const string BugReportUsername = "Datahub Portal";
     }
 
     public class HealthCheckHelper(IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
@@ -49,6 +53,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory,
         ILoggerFactory loggerFactory,
+        ISendEndpointProvider sendEndpointProvider,
         DatahubPortalConfiguration portalConfiguration)
     {
         private readonly AzureDevOpsConfiguration devopsConfig = configuration.GetSection("AzureDevOpsConfiguration").Get<AzureDevOpsConfiguration>();
@@ -714,6 +719,35 @@ namespace Datahub.Infrastructure.Services.Helpers
                 logger.LogError(ex, $"Error saving health check run (type: {check.ResourceType}; group: {check.Group}; name: {check.Name})");
             }
         }
+
+        public BugReportMessage? CreateBugReportMessage(InfrastructureHealthCheck result)
+        {
+            if (IsUnhealthyStatus(result.Status))
+            {
+                return new BugReportMessage(
+                    UserName: InfrastructureHealthCheckConstants.BugReportUsername,
+                    UserEmail: string.Empty,
+                    UserOrganization: string.Empty,
+                    PortalLanguage: string.Empty,
+                    PreferredLanguage: string.Empty,
+                    Timezone: string.Empty,
+                    Workspaces: result.Group == InfrastructureHealthCheckConstants.WorkspacesRequestGroup ? result.Name : string.Empty,
+                    Topics: $"{result.ResourceType} {result.Name}",
+                    URL: string.Empty,
+                    UserAgent: string.Empty,
+                    Resolution: string.Empty,
+                    LocalStorage: string.Empty,
+                    BugReportType: BugReportTypes.InfrastructureError,
+                    Description: $"The infrastructure health check for {result.ResourceType} {result.Name} failed. {result.Details}"
+                    );
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public async Task SendBugReportMessagesToQueue(IEnumerable<BugReportMessage?> messages) => await sendEndpointProvider.SendDatahubServiceBusMessages(QueueConstants.BugReportQueueName, messages);
     }
 
     public record IntermediateHealthCheckResult(InfrastructureHealthStatus Status, List<string> Errors);

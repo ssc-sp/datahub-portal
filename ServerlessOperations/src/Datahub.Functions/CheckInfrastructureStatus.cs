@@ -82,6 +82,9 @@ public class CheckInfrastructureStatus(ILoggerFactory loggerFactory, HealthCheck
         {
             var results = await healthCheckHelper.ProcessHealthCheckRequest(request);
 
+            var bugReportMessages = results.Select(r => healthCheckHelper.CreateBugReportMessage(r.Check));
+            await healthCheckHelper.SendBugReportMessagesToQueue(bugReportMessages);
+
             return new OkObjectResult(results);
         }
         catch (Exception ex)
