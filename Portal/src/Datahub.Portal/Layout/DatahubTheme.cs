@@ -62,14 +62,14 @@ public abstract class DatahubTheme
                 LineHeight = 1.36,
             }
         },
-        Palette =
+        PaletteLight =
         {
             AppbarBackground = Colors.Shades.White,
-            Background = Colors.Grey.Lighten5
+            Background = Colors.Gray.Lighten5
         },
         PaletteDark =
         {
-            AppbarBackground = Colors.Grey.Darken3
+            AppbarBackground = Colors.Gray.Darken3
         },
     };
 }

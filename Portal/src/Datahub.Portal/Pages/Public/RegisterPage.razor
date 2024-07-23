@@ -13,6 +13,9 @@
 <PageTitle>@Localizer["Registration - Federal Science DataHub"]</PageTitle>
 
 <PublicLandingDescription>
+    <h1 id="maincontent" class="sr-only">
+        @Localizer["Registration page"]
+    </h1>
     <MudStack AlignItems="AlignItems.Center">
         <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
             <MudStack>
@@ -132,6 +135,7 @@
             _failed = true;
             _success = false;
         }
+
         _isRegistering = false;
         StateHasChanged();
     }

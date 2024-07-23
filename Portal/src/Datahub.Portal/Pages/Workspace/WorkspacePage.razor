@@ -15,6 +15,7 @@
 @using Datahub.Portal.Pages.Workspace.Storage
 @using Datahub.Portal.Pages.Workspace.Sudo
 @using Datahub.Portal.Pages.Workspace.Toolbox
+@using Datahub.Portal.Pages.Workspace.Healthcheck
 @using Datahub.Portal.Pages.Workspace.Users
 @using Datahub.Portal.Pages.Workspace.WebApp
 
@@ -27,12 +28,17 @@
 @attribute [Route(PageRoutes.WorkspaceSubSection)]
 
 <PageTitle>
-    @Localizer["SSC Datahub - Workspace - {0}", WorkspaceAcronymParam ?? ""]
+    @Localizer["{0} - Workspace - Federal Science DataHub", WorkspaceAcronymParam ?? ""]
 </PageTitle>
 
 <SectionContent SectionName="side-bar">
     <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam"/>
 </SectionContent>
+
+
+<h1 id="maincontent" class="sr-only">
+    @Localizer["Workspace page"]
+</h1>
 
 @{
     var containsKey = !string.IsNullOrWhiteSpace(Section)
@@ -81,14 +87,11 @@
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronymParam { get; set; }
+    [Parameter] public string WorkspaceAcronymParam { get; set; }
 
-    [Parameter]
-    public string Section { get; set; } = WorkspaceSidebar.SectionViews.Dashboard;
+    [Parameter] public string Section { get; set; } = WorkspaceSidebar.SectionViews.Dashboard;
 
-    [Parameter]
-    public string SubSection { get; set; } = string.Empty;
+    [Parameter] public string SubSection { get; set; } = string.Empty;
 
     private readonly Dictionary<string, Type> _sectionComponents = new()
     {
@@ -97,11 +100,12 @@
         { WorkspaceSidebar.SectionViews.Publishing, typeof(PublishingDashboard) },
         { WorkspaceSidebar.SectionViews.Repositories, typeof(RepositoryManagementPage) },
         { WorkspaceSidebar.SectionViews.SqlDatabase, typeof(WorkspaceDatabasePage) },
-        { WorkspaceSidebar.SectionViews.WebApp, typeof(WorkspaceWebAppPage)},
+        { WorkspaceSidebar.SectionViews.WebApp, typeof(WorkspaceWebAppPage) },
         { WorkspaceSidebar.SectionViews.Users, typeof(WorkspaceUsersPage) },
         { WorkspaceSidebar.SectionViews.Metadata, typeof(WorkspaceMetadataPage) },
         { WorkspaceSidebar.SectionViews.Toolbox, typeof(WorkspaceToolboxPage) },
         { WorkspaceSidebar.SectionViews.Reports, typeof(WorkspaceReports) },
+        { WorkspaceSidebar.SectionViews.Healthcheck, typeof(WorkspaceHealthcheckPage) },
         { WorkspaceSidebar.SectionViews.Sudo, typeof(WorkspaceSudoPage) },
         { WorkspaceSidebar.SectionViews.Settings, typeof(WorkspaceSettingsPage) },
 
@@ -136,9 +140,8 @@
         await base.OnParametersSetAsync();
 
         await RecordRecentLink();
-
     }
-    
+
     private async Task RecordRecentLink()
     {
         if (string.IsNullOrEmpty(WorkspaceAcronymParam))

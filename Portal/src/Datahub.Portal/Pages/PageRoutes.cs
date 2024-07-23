@@ -48,4 +48,6 @@ public static class PageRoutes
 
     public const string Help = "/help";
     public const string Help_FR = "/assistance";
+  
+    public const string CreateWorkspace = "/create-workspace";
 }

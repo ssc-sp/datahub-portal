@@ -5,6 +5,10 @@
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory;
 
+
+<h1 id="maincontent" class="sr-only">
+    @Localizer["Achievements page"]
+</h1>
 @if (_viewedPortalUser is null)
 {
     <DHLoadingInitializer Message="@Localizer["Loading Achievements"]"/>
@@ -36,11 +40,9 @@
 
 @code {
 
-    [Parameter]
-    public PortalUser ViewedUser { get; set; }
+    [Parameter] public PortalUser ViewedUser { get; set; }
 
-    [Parameter]
-    public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
+    [Parameter] public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
 
     private PortalUser _viewedPortalUser;
     private Dictionary<string, int> _achievementRarityDictionary;
@@ -57,11 +59,11 @@
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
-    // get the total number of users
+        // get the total number of users
         var totalUsers = await context.PortalUsers
             .CountAsync();
 
-    // get the number of users who have each achievement
+        // get the number of users who have each achievement
         var achievementCounts = await context.UserAchievements
             .GroupBy(ua => ua.AchievementId)
             .Select(g => new
@@ -71,7 +73,7 @@
             })
             .ToListAsync();
 
-    // get the number of users who have each achievement to a dictionary
+        // get the number of users who have each achievement to a dictionary
         var achievementRarityDictionary = achievementCounts
             .ToDictionary(
                 ac => ac.AchievementId,
@@ -97,8 +99,9 @@
         {
             return (0, 1);
         }
+
         var maxComplete = achievement.GetRules().Length;
-    // count how many match the first three characters of the id
+        // count how many match the first three characters of the id
         var currentComplete = _viewedPortalUser?.Achievements
             .Count(ua => ua.AchievementId.StartsWith(achievement.Id[..3])) ?? 0;
 
@@ -109,9 +112,9 @@
     private IEnumerable<UserAchievement> GetUserAchievements()
     {
         return _viewedPortalUser?.Achievements?
-            .OrderBy(a => a.Achievement.Id)
-            .ThenBy(a => a.UnlockedAt)
-            .ToList()
+                   .OrderBy(a => a.Achievement.Id)
+                   .ThenBy(a => a.UnlockedAt)
+                   .ToList()
                ?? new List<UserAchievement>();
     }
 

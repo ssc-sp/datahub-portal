@@ -18,7 +18,7 @@
 @attribute [Route(PageRoutes.Account_FR)]
 
 <PageTitle>
-    @Localizer["SSC Datahub {0}", _title]
+    @Localizer["{0} - Federal Science DataHub", _title]
 </PageTitle>
 
 <SectionContent SectionName="side-bar">
@@ -73,8 +73,8 @@ else
     private PortalUser _viewedPortalUser;
 
     private string _title => _viewedPortalUser?.DisplayName != null
-        ? $"- {_viewedPortalUser.DisplayName}"
-        : "- Home";
+        ? $"{_viewedPortalUser.DisplayName}"
+        : Localizer["Home"]; 
 
 
     protected override async Task OnParametersSetAsync()
