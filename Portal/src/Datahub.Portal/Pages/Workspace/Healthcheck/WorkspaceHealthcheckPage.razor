@@ -48,7 +48,7 @@
                     <MudTd>@context.ResourceType</MudTd>
                     <MudTd>
                         <MudTooltip Delay="600" Text="@HealthCheckHelperService.GetStatusDetails(context)">
-                        <MudChip Color="@HealthCheckHelperService.GetColor(context)" Size="Size.Small">
+                        <MudChip T="string" Color="@HealthCheckHelperService.GetColor(context)" Size="Size.Small">
                             @Localizer[HealthCheckHelperService.GetStatusText(context)]
                         </MudChip>
                         </MudTooltip>
