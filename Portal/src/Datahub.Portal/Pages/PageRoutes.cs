@@ -50,4 +50,5 @@ public static class PageRoutes
     public const string Help_FR = "/assistance";
   
     public const string CreateWorkspace = "/create-workspace";
+    public const string CreateWorkspace_FR = "/creer-espace-de-travail";
 }
