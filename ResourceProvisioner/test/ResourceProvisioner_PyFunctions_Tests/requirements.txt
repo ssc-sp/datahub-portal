@@ -50,6 +50,7 @@ opentelemetry-api==1.21.0
 opentelemetry-sdk==1.21.0
 opentelemetry-semantic-conventions==0.42b0
 pendulum==2.1.2
+pip-system-certs==0.3.0
 portalocker==2.8.2
 pycparser==2.21
 PyJWT==2.8.0
