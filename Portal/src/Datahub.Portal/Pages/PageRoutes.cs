@@ -44,7 +44,7 @@ public static class PageRoutes
 
     public const string Logout = "/signout-oidc";
     public const string TermsAndConditions = "/terms-and-conditions";
-    public const string TermsAndConditions_FR = "/conditions-d-utilisation";
+    public const string TermsAndConditions_FR = "/conditions-generales";
 
     public const string Help = "/help";
     public const string Help_FR = "/assistance";
