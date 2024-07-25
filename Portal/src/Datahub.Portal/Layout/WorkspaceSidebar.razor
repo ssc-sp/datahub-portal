@@ -13,7 +13,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 
-<MudStack Class="px-4 mt-6">
+<MudStack Class="px-4 mt-6" id="nav">
     <MudStack Class="ml-2">
         <MudStack Row AlignItems="AlignItems.Center">
             <MudAvatar Size="Size.Small">
@@ -113,6 +113,7 @@
         public const string Users = "users";
         public const string Metadata = "metadata";
         public const string Reports = "reports";
+        public const string Healthcheck = "healthcheck";
         public const string Sudo = "sudo";
         public const string Settings = "settings";
     }
@@ -135,6 +136,7 @@
         SectionViews.Users,
         SectionViews.Metadata,
         SectionViews.Reports,
+        SectionViews.Healthcheck,
         SectionViews.Sudo,
         SectionViews.Settings
     ];
@@ -171,7 +173,8 @@
             SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
             SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Reports => DatahubAuthView.AuthLevels.WorkspaceAdmin,
-            SectionViews.Sudo => DatahubAuthView.AuthLevels.DatahubAdmin,
+            SectionViews.Healthcheck => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Sudo => DatahubAuthView.AuthLevels.DatahubAdmin,            
             SectionViews.Settings => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             _ => DatahubAuthView.AuthLevels.Unauthorized
         };
@@ -242,6 +245,7 @@
             SectionViews.Users => SidebarIcons.Users,
             SectionViews.Metadata => SidebarIcons.Metadata,
             SectionViews.Reports => SidebarIcons.Reports,
+            SectionViews.Healthcheck => SidebarIcons.HealthCheck,
             SectionViews.Sudo => SidebarIcons.Sudo,
             SectionViews.Settings => SidebarIcons.Settings,
             _ => SidebarIcons.Dashboard
@@ -264,6 +268,7 @@
             SectionViews.Users => Localizer["Users"],
             SectionViews.Metadata => Localizer["Metadata"],
             SectionViews.Reports => Localizer["Reports"],
+            SectionViews.Healthcheck => Localizer["Health Check"],
             SectionViews.Sudo => Localizer["Sudo"],
             SectionViews.Settings => Localizer["Settings"],
             _ => Localizer["Dashboard"]
@@ -275,6 +280,7 @@
         return toolSection switch
         {
             SectionViews.Dashboard => true,
+            SectionViews.Healthcheck => true,
             SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
             SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false,
             SectionViews.Publishing => _datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled && (_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false),
@@ -291,6 +297,7 @@
         return toolSection switch
         {
             SectionViews.Dashboard => false,
+            SectionViews.Healthcheck => false,
             SectionViews.Databricks => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
             SectionViews.Storage => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true,
             SectionViews.Publishing => !_datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled || (!_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true),

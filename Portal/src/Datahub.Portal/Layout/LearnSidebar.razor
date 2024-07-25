@@ -6,7 +6,7 @@
 @* @DocItemHelper.GetMudblazorMaterialIcon("Outlined", "LibraryBooks") *@
 @if (!PageIsLoading)
 {
-    <MudStack Class="px-4 mt-6">
+    <MudStack Class="px-4 mt-6" id="nav">
         <MudStack Class="ml-2">
             <MudStack Row="true" Spacing="3">
                 <DHIcon Icon="@currentCategory.GetMudblazorMaterialIcon("Outlined")" />
@@ -45,9 +45,11 @@
                                     {
                                         <MudNavLink Match="NavLinkMatch.All" Target="_blank" Href=@BuildResourceLink(article)>
                                             <MudStack Row AlignItems="AlignItems.Center">
-                                                <MudIcon role="img" aria-labelledby="decimg01" Icon="@(article.GetSidebarIcon())" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1.25rem;" />
-                                                <div class="sr-only" id="decimg01">@Localizer["External"]</div>
+                                                <MudIcon Title="@Localizer["External"]" role="img" aria-labelledby="decimg01" Icon="@(article.GetSidebarIcon())" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1.25rem;" />
                                                 <MudText>
+                                                    <span class="sr-only" id="decimg01">
+                                                        @Localizer["External"]
+                                                    </span>
                                                     @article.Title
                                                 </MudText>
                                             </MudStack>
@@ -57,11 +59,11 @@
                                     {
                                         <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article)>
                                             <MudStack Row AlignItems="AlignItems.Center">
-                                                <MudIcon role="img" aria-labelledby="decimg01" Icon="@(article.GetSidebarIcon())" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1.25rem;" />
-                                                <div class="sr-only" id="decimg01">
-                                                    @((article.DocType == DocItemType.Tutorial) ? @Localizer["Video"] : @Localizer["Document"])
-                                                </div>
+                                                <MudIcon Title="@((article.DocType == DocItemType.Tutorial) ? @Localizer["Video"] : @Localizer["Document"])" role="img" aria-labelledby="decimg01" Icon="@(article.GetSidebarIcon())" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1.25rem;" />
                                                 <MudText>
+                                                    <span class="sr-only" id="decimg01">
+                                                        @((article.DocType == DocItemType.Tutorial) ? @Localizer["Video: "] : @Localizer["Document: "])
+                                                    </span>
                                                     @article.Title
                                                 </MudText>
                                             </MudStack>

@@ -15,15 +15,15 @@
             <MudText Class="py-2">@Localizer["Search for new users below using their email address. New users will be added as collaborators."]</MudText>
 
         </MudStack>
-        <MudList Clickable>
+        <MudList ReadOnly="false" T="string">
             @foreach (var user in _usersToAdd)
             {
-                <MudListItem Text="@GetListText(user)" Icon="@RemoveUserIcon" IconColor="Color.Primary"
+                <MudListItem T="string" Text="@GetListText(user)" Icon="@RemoveUserIcon" IconColor="Color.Primary"
                              OnClick="() => RemoveUser(user)"/>
             }
         </MudList>
         <MudAutocomplete T="string" @ref="@_autocomplete" Label="@Localizer["User's GC Email"]" ValueChanged="AddUser"
-                         DebounceInterval="500" SearchFuncWithCancel="@SearchUsers" AdornmentColor="Color.Primary" AdornmentIcon="@Icons.Material.Outlined.Search"
+                         DebounceInterval="500" SearchFunc="@SearchUsers" AdornmentColor="Color.Primary" AdornmentIcon="@Icons.Material.Outlined.Search"
                          Error="@_error" ErrorText="@_errorMessage" ShowProgressIndicator="@_searchingForUsers" ResetValueOnEmptyText
                          Value="_userSearch">
             <ItemTemplate>
@@ -189,7 +189,7 @@
         }
 
         _usersToAdd.Add(addUserCommand);
-        await _autocomplete.Clear();
+        await _autocomplete.ClearAsync();
         StateHasChanged();
     }
 
