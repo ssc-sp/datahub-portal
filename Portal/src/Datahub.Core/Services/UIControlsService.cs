@@ -57,7 +57,7 @@ public class UIControlsService
             FullWidth = true,
             CloseButton = true,
             CloseOnEscapeKey = true,
-            DisableBackdropClick = true
+            BackdropClick = false
         };
 
         dialogReference = dialogService.Show<DialogModalFrame>(dialogTitle, parameters, options);

@@ -1,0 +1,145 @@
+@*WorkspaceHealthPage.razor*@
+@namespace Datahub.Portal.Pages.Workspace.Healthcheck
+
+@* @page "/w/{ProjectAcronym}/healthcheck" *@
+
+@using Datahub.Core.Services.Projects;
+@using Datahub.Metadata.Model
+@using System.Text.Json
+@using System.Linq
+@using Datahub.Application.Services.Metadata
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Health
+@using Datahub.Core.Model.Projects
+@using Datahub.Infrastructure.Extensions;
+@using Datahub.Infrastructure.Services.Security
+@using Datahub.Infrastructure.Queues.Messages
+@using Datahub.Portal.Services
+@using Datahub.Shared
+@using Datahub.Shared.Configuration
+@using Datahub.Shared.Entities 
+@using Microsoft.Extensions.Caching.Memory
+@using MassTransit
+ 
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject IDialogService DialogService
+@inject ILogger<WorkspaceHealthcheckPage> Logger
+@inject IServiceAuthManager _serviceAuthManager
+@inject IUserInformationService _userInformationService
+@inject ISendEndpointProvider _sendEndpointProvider
+@inject IMemoryCache Cache
+
+<MudPaper Class="py-4 px-6">
+    <MudStack>
+        <MudText Class="mb-6" Typo="Typo.h2">@Localizer["Workspace"] @WorkspaceAcronym @Localizer["Health Check"]</MudText>
+    </MudStack>
+    <MudStack>
+        <MudText Typo="Typo.body1">
+            @Localizer["View the health of the infrastructure that supports the workspace."]
+        </MudText>
+        <MudTable Items="_statusList" Hover Dense>
+             <HeaderContent>
+                <MudTh>@Localizer["Resource"]</MudTh>
+                <MudTh>@Localizer["Status"]</MudTh>
+                <MudTh>@Localizer["Updated"]</MudTh>
+                <MudTh>@Localizer["Run Check"]</MudTh>
+            </HeaderContent>
+            <RowTemplate Context="context">
+                    <MudTd>@context.ResourceType</MudTd>
+                    <MudTd>
+                        <MudTooltip Delay="600" Text="@HealthCheckHelperService.GetStatusDetails(context)">
+                        <MudChip T="string" Color="@HealthCheckHelperService.GetColor(context)" Size="Size.Small">
+                            @Localizer[HealthCheckHelperService.GetStatusText(context)]
+                        </MudChip>
+                        </MudTooltip>
+                    </MudTd>
+                    <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
+                    <MudTd>
+                        <DHButton Variant="Variant.Filled" Color="Color.Primary" 
+                            OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))"
+                            Size="Size.Small" >
+                            @Localizer["Run"]
+                        </DHButton>
+                    </MudTd>                    
+            </RowTemplate>            
+        </MudTable>
+    </MudStack>
+</MudPaper>
+
+@code {
+    private List<InfrastructureHealthResourceType> _workspaceChecks = new List<InfrastructureHealthResourceType>
+    {
+        InfrastructureHealthResourceType.AzureSqlDatabase,
+        InfrastructureHealthResourceType.AzureDatabricks,
+        InfrastructureHealthResourceType.AzureStorageAccount,
+        InfrastructureHealthResourceType.AzureWebApp,
+    };
+    private List<InfrastructureHealthCheck> _statusList = new List<InfrastructureHealthCheck>();
+    private DatahubProjectDBContext _projectDbContext;
+    private List<InfrastructureHealthCheck> _infrastructureHealthChecks;
+    
+    private const string cacheKey = "InfrastructureHealthChecks";
+    private Timer _timer;
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var user = await _userInformationService.GetCurrentGraphUserAsync();
+        
+        _projectDbContext = DbFactory.CreateDbContext();
+
+        LoadDataForTables();
+
+        _timer = new System.Threading.Timer(e =>
+        {
+            InvokeAsync(() =>
+            {
+                LoadDataForTables();
+                StateHasChanged();
+            });
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+    }
+
+    private void LoadDataForTables()
+    {
+        _infrastructureHealthChecks = Cache.Get<List<InfrastructureHealthCheck>>(cacheKey);
+        var project = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).Where(p => p.Project_Acronym_CD == WorkspaceAcronym);
+        
+        var res = _infrastructureHealthChecks
+            .Where(h => (_workspaceChecks.Contains(h.ResourceType)))
+            .Where(h => (h.Name.Contains(WorkspaceAcronym)))
+            .GroupBy(h => h.ResourceType)
+            .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
+            .ToList();
+
+        _statusList.Clear();
+        foreach (var output in res)
+        {
+            _statusList.Add(output);
+        }
+    }
+    
+    private async Task CallFunction(InfrastructureHealthResourceType type, string name, string group)
+    {
+        var request = new InfrastructureHealthCheckMessage(
+            type,
+            group,
+            name
+        );
+
+        try
+        {
+            await _sendEndpointProvider.SendDatahubServiceBusMessage(
+                QueueConstants.InfrastructureHealthCheckQueueName, request);
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowMessageBox("Health Check", "Health check request failed. Type: " + type.ToString() + " Name: " + name + "Group: " + group + " Error: " + ex.Message);
+        }
+    }
+
+}

@@ -2,7 +2,7 @@
 @using Datahub.Application.Validators
 @using Datahub.Core.Model.Projects
 
-<MudDialog ClassContent="pa-6" ClassActions="pa-6">
+<MudDialog ContentClass="pa-6" ActionsClass="pa-6">
     <DialogContent>
         <MudForm @ref="form" @bind-IsValid="@_success" @bind-Errors="@errors">
             <MudText>
@@ -16,7 +16,7 @@
             <MudSelect Class="mt-6" Label=@Localizer["Select a web framework"] @bind-Value="_selectedFramework">
                 @foreach (string framework in AppServiceTemplates.TEMPLATES)
                 {
-                    <MudSelectItem Value="@framework" Label="@framework"/>
+                    <MudSelectItem Value="@framework"> @framework </MudSelectItem>
                 }
             </MudSelect>
             @if (_selectedFramework == AppServiceTemplates.CUSTOM)

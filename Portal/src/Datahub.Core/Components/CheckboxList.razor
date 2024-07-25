@@ -1,11 +1,11 @@
 ﻿@*CheckboxList.razor*@
 @typeparam T
 
-<MudList Clickable="false">
+<MudList ReadOnly T="bool">
     @foreach (var t in _selectOptions.Keys.OrderBy(t => OptionSortFunction(t)))
     {
-        <MudListItem>
-            <MudCheckBox T="bool" Label=@OptionLabelFunction(t) Checked=@IsChecked(t) CheckedChanged=@(v => HandleChecked(t, v)) />
+        <MudListItem T="bool">
+            <MudCheckBox T="bool" Label=@OptionLabelFunction(t) Value=@IsChecked(t) ValueChanged=@(v => HandleChecked(t, v)) />
         </MudListItem>
     }
 </MudList>
