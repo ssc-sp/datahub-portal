@@ -43,9 +43,7 @@
             </MudMenuItem>
         </ChildContent>
     </MudMenu> *@
-    <DHButton Href="" OnClick="@HandleLanguageToggle">
-        <LanguageToggle @ref="_languageToggle" />
-    </DHButton>
+    <LanguageToggle @ref="_languageToggle" />
     <DHButton OnClick="@HandleLogOut">
         @Localizer["Sign Out"]
     </DHButton>

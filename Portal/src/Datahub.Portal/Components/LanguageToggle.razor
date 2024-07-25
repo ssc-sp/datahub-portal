@@ -7,9 +7,9 @@
 @inject NavigationManager NavManager
 @inject IJSRuntime _jsRuntime
 
-<span @onclick="() => ChangeLanguage(Language)" style="cursor:pointer;">
+<DHButton OnClick="() => ChangeLanguage(Language)">
     @LanguageDisplay
-</span>
+</DHButton>
 
 @code {
 
