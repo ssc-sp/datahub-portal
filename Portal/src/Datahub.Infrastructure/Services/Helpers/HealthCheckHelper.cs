@@ -51,12 +51,12 @@ namespace Datahub.Infrastructure.Services.Helpers
     public class HealthCheckHelper(IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
         IProjectStorageConfigurationService projectStorageConfigurationService,
         IConfiguration configuration,
+        AzureDevOpsConfiguration devopsConfig,
         IHttpClientFactory httpClientFactory,
         ILoggerFactory loggerFactory,
         ISendEndpointProvider sendEndpointProvider,
         DatahubPortalConfiguration portalConfiguration)
     {
-        private readonly AzureDevOpsConfiguration devopsConfig = configuration.GetSection("AzureDevOpsConfiguration").Get<AzureDevOpsConfiguration>();
         private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
 
         /// <summary>
@@ -93,14 +93,15 @@ namespace Datahub.Infrastructure.Services.Helpers
         }
 
 
+        // TODO: Verify correct key vault addresses
         /// <summary>
         /// Function that gets the Azure Key Vault URL based on the request.
         /// </summary>
         /// <param name="request"></param>
         /// <returns>The URL for the group given.</returns>
-        private static Uri GetAzureKeyVaultUrl(InfrastructureHealthCheckMessage request) => request.Group == InfrastructureHealthCheckConstants.CoreRequestGroup ?
-            new Uri($"https://{request.Name}.vault.azure.net/") :
-            new Uri($"https://fsdh-proj-{request.Name}-dev-kv.vault.azure.net/");
+        private Uri GetAzureKeyVaultUrl(InfrastructureHealthCheckMessage request) => request.Group == InfrastructureHealthCheckConstants.CoreRequestGroup ?
+            new Uri($"https://fsdh-key-{CurrentEnvironment}.vault.azure.net/") :
+            new Uri($"https://fsdh-proj-{request.Name}-{CurrentEnvironment}-kv.vault.azure.net/");
 
         /// <summary>
         /// Function that checks the health of an Azure Key Vault.
