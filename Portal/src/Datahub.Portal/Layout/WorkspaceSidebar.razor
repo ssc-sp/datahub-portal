@@ -101,7 +101,7 @@
     public struct SectionViews
     {
         public const string Dashboard = "dashboard";
-        public const string Storage = "storage";
+        public const string Storage = "s";
         public const string Publishing = "publishing";
         public const string Databricks = "databricks";
         public const string Repositories = "repositories";
@@ -118,7 +118,6 @@
 
         // exclude databricks, arcgis, and sudo since the translations are the same.
         public const string Dashboard_FR = "tableau-de-bord";
-        public const string Storage_FR = "stockage";
         public const string Publishing_FR = "publication";
         public const string Repositories_FR = "depots";
         public const string SqlDatabase_FR = "base-de-donnees-sql";
@@ -189,7 +188,6 @@
             SectionViews.Settings => DatahubAuthView.AuthLevels.WorkspaceAdmin,
 
             SectionViews.Dashboard_FR => DatahubAuthView.AuthLevels.Authenticated,
-            SectionViews.Storage_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.Publishing_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.SqlDatabase_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.Repositories_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
