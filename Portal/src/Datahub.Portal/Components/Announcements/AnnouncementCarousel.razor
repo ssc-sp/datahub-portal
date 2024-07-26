@@ -3,19 +3,20 @@
 
 @inject NavigationManager _navigationManager
 
-<MudGrid Class="mb-4">
+<ul class="my-4" style="display: grid; grid-template-columns: repeat(@_previewCount, 1fr); gap: 25px">
     @foreach (var index in _announcementIndices)
     {
-        if(index != -1)
+        if (index != -1)
         {
             var preview = Previews[index];
             if (!preview.Preview.StartsWith("!["))
             {
-                <MudItem xs="@_previewCount">
+                <li>
+
                     <MudPaper Elevation="0" Outlined Class="py-2 px-3">
                         <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;" Spacing="1">
                             <MudElement>
-                                    <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle"/>
+                                <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle"/>
                             </MudElement>
                             <MudElement>
                                 <DHButton OnClick="() => HandleReadMore(preview.Id)"
@@ -28,20 +29,18 @@
                             </MudElement>
                         </MudStack>
                     </MudPaper>
-                </MudItem>
+                </li>
             }
         }
     }
-</MudGrid>
+</ul>
 
 @code {
     public const int CarouselHeight = 320;
 
-    [Parameter]
-    public List<AnnouncementPreview> Previews { get; set; } = new();
+    [Parameter] public List<AnnouncementPreview> Previews { get; set; } = new();
 
-    [Parameter]
-    public string BackgroundUrl { get; set; }
+    [Parameter] public string BackgroundUrl { get; set; }
 
 
     // private string _glassStyle;
@@ -50,7 +49,7 @@
     private string _descriptionTextStyle;
 
     private int _previewCount;
-    private int[] _announcementIndices = new int[3] {-1, -1, -1};
+    private int[] _announcementIndices = new int[3] { -1, -1, -1 };
 
     // get the style so it's always at the bottom of the carousel
     // private string _readMoreStyle => "position: absolute; bottom: 1rem; left: 2rem;";
@@ -82,30 +81,30 @@
         //     .Build();
 
         _descriptionTextStyle = new StyleBuilder()
-           .AddStyle("overflow", "hidden")
-           .AddStyle("-webkit-line-clamp", "6")
-           .AddStyle("-webkit-box-orient", "vertical")
-           .AddStyle("display", "-webkit-box")
-           .Build();
+            .AddStyle("overflow", "hidden")
+            .AddStyle("-webkit-line-clamp", "6")
+            .AddStyle("-webkit-box-orient", "vertical")
+            .AddStyle("display", "-webkit-box")
+            .Build();
         int count = 0;
-        for (int i=0; i< Previews.Count; i++)
+        for (int i = 0; i < Previews.Count; i++)
         {
             var preview = Previews[i];
-            if (!preview.Preview.StartsWith("![")){
+            if (!preview.Preview.StartsWith("!["))
+            {
                 _announcementIndices[count] = i;
                 count++;
             }
 
-            if(count == 3){break;}
+            if (count == 3)
+            {
+                break;
+            }
         }
 
         // There should really only be 1, 2, or 3 announcements at a time
         // The # of columns for the announcements is displayed accordingly
-        _previewCount = (count % 3 == 0) ? 4 : 6;
-        if (count == 1)
-        {
-            _previewCount = 12;
-        }
+        _previewCount = count;
     }
 
     private void HandleReadMore(int newId)
@@ -114,3 +113,4 @@
     }
 
 }
+
