@@ -82,12 +82,16 @@ def send_exception_to_service_bus(exception_message):
             print(f"Sent message to queue: {queue_name}")
 
 def send_healthcheck_to_service_bus(message):
-    asb_connection_str, check_results_queue_name = get_config()
-    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type="AmqpWebSockets") as client:
-        with client.get_queue_sender(check_results_queue_name) as sender:
-            message = servicebus.ServiceBusMessage(message.to_json())
-            sender.send_messages(message)
-            print(f"Sent message to queue: {check_results_queue_name}")
+    try:
+        asb_connection_str, check_results_queue_name = get_config()
+        with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type="AmqpWebSockets") as client:
+            with client.get_queue_sender(check_results_queue_name) as sender:
+                message = servicebus.ServiceBusMessage(message.to_json())
+                sender.send_messages(message)
+                print(f"Sent message to queue: {check_results_queue_name}")
+        pass
+    except Exception as e:
+        logging.error(f"An error occurred while sending health check to service bus: {e}")
 
 def keys_upper(dictionary):
     """

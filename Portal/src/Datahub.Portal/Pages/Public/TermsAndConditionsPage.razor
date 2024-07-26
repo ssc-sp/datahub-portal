@@ -7,20 +7,18 @@
 @inject IHttpClientFactory _httpClientFactory
 
 @page "/terms-and-conditions"
+@page "/conditions-generales"
 
 <PageTitle>@Localizer["Terms and Conditions - Federal Science DataHub"]</PageTitle>
-
 
 <h1 id="maincontent" class="sr-only">
     @Localizer["Terms and conditions page"]
 </h1>
 
-<MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Href="/home" Style="position: absolute; top: 2rem; left:  2rem;">
+<MudButton HtmlTag="a" Href="/home">
     @Localizer["Back to DataHub"]
-</MudButton>
-<MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Style="position: absolute; top: 2rem; right:  2rem;">
-    <LanguageToggle/>
-</MudButton>
+</MudButton> |
+<LanguageToggle />
 
 <MudContainer Class="my-16" MaxWidth="MaxWidth.Medium">
 

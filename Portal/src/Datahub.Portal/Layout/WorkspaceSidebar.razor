@@ -37,7 +37,7 @@
                 {
                     <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
                         <li>
-                            <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
+                            <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
                                 <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
                                     <MudStack Row AlignItems="@AlignItems.Center">
                                         <DHIcon Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
@@ -67,7 +67,7 @@
                     {
                         <li>
                             <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
-                                <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
+                                <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
                                     <MudStack Row AlignItems="AlignItems.Center">
                                         <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                                         <MudText Style="@_workspaceTitleStyle">
@@ -108,13 +108,26 @@
         public const string WebApp = "webapp";
         public const string SqlDatabase = "sqldatabase";
         public const string ArcGis = "arcgis";
-
         public const string Toolbox = "toolbox";
         public const string Users = "users";
         public const string Metadata = "metadata";
         public const string Reports = "reports";
+        public const string Healthcheck = "healthcheck";
         public const string Sudo = "sudo";
         public const string Settings = "settings";
+
+        // exclude databricks, arcgis, and sudo since the translations are the same.
+        public const string Dashboard_FR = "tableau-de-bord";
+        public const string Storage_FR = "stockage";
+        public const string Publishing_FR = "publication";
+        public const string Repositories_FR = "depots";
+        public const string WebApp_FR = "application-web";
+        public const string SqlDatabase_FR = "base-de-donnees-sql";
+        public const string Toolbox_FR = "boite-a-outils";
+        public const string Users_FR = "utilisateurs";
+        public const string Metadata_FR = "metadonnees";
+        public const string Reports_FR = "rapports";
+        public const string Settings_FR = "parametres";
     }
 
     private List<string> _workspaceTools =
@@ -135,6 +148,7 @@
         SectionViews.Users,
         SectionViews.Metadata,
         SectionViews.Reports,
+        SectionViews.Healthcheck,
         SectionViews.Sudo,
         SectionViews.Settings
     ];
@@ -171,8 +185,23 @@
             SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
             SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Reports => DatahubAuthView.AuthLevels.WorkspaceAdmin,
-            SectionViews.Sudo => DatahubAuthView.AuthLevels.DatahubAdmin,
+            SectionViews.Healthcheck => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Sudo => DatahubAuthView.AuthLevels.DatahubAdmin,            
             SectionViews.Settings => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+
+            SectionViews.Dashboard_FR => DatahubAuthView.AuthLevels.Authenticated,
+            SectionViews.Storage_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.Publishing_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.WebApp_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.SqlDatabase_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.Repositories_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
+
+            SectionViews.Toolbox_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Users_FR => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
+            SectionViews.Metadata_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Reports_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Settings_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+
             _ => DatahubAuthView.AuthLevels.Unauthorized
         };
     }
@@ -242,6 +271,7 @@
             SectionViews.Users => SidebarIcons.Users,
             SectionViews.Metadata => SidebarIcons.Metadata,
             SectionViews.Reports => SidebarIcons.Reports,
+            SectionViews.Healthcheck => SidebarIcons.HealthCheck,
             SectionViews.Sudo => SidebarIcons.Sudo,
             SectionViews.Settings => SidebarIcons.Settings,
             _ => SidebarIcons.Dashboard
@@ -264,6 +294,7 @@
             SectionViews.Users => Localizer["Users"],
             SectionViews.Metadata => Localizer["Metadata"],
             SectionViews.Reports => Localizer["Reports"],
+            SectionViews.Healthcheck => Localizer["Health Check"],
             SectionViews.Sudo => Localizer["Sudo"],
             SectionViews.Settings => Localizer["Settings"],
             _ => Localizer["Dashboard"]
@@ -275,6 +306,7 @@
         return toolSection switch
         {
             SectionViews.Dashboard => true,
+            SectionViews.Healthcheck => true,
             SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
             SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false,
             SectionViews.Publishing => _datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled && (_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false),
@@ -291,6 +323,7 @@
         return toolSection switch
         {
             SectionViews.Dashboard => false,
+            SectionViews.Healthcheck => false,
             SectionViews.Databricks => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
             SectionViews.Storage => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true,
             SectionViews.Publishing => !_datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled || (!_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true),
