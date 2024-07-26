@@ -15,7 +15,7 @@ namespace Datahub.Application.Services.UserManagement
         Task<bool> AddHiddenAlert(string alertKey);
         Task<bool> SetHideAchievements(bool hideAchievements);
         Task<bool> RegisterUserLanguage(string language);
-        Task<bool> SetLanguage(string language);
+        Task<bool> SetLanguage(string language, string redirectUrl = "");
         Task<string> GetUserLanguage();
         Task<bool> IsFrench();
         Task<UserSettings?> GetUserSettingsAsync();
