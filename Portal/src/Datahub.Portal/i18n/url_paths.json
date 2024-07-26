@@ -35,5 +35,15 @@
   "/resources/": "/resources/",
   "/create-workspace": "/create-workspace",
   "/tool": "/tool",
-  "tool": "tool"
+  "tool": "tool",
+  "home-lt": "accueil",
+  "/home-lt": "/accueil",
+  "news-lt": "nouvelles",
+  "/news-lt": "/nouvelles",
+  "explore-lt": "explorer",
+  "/explore-lt": "/explorer",
+  "help-lt": "assistance",
+  "/help-lt": "/assistance",
+  "terms-and-conditions-lt": "conditions-generales",
+  "/terms-and-conditions-lt": "/conditions-generales",
 }
