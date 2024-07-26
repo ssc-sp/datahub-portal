@@ -51,7 +51,7 @@ namespace Datahub.Core.Services.Offline
             return Task.FromResult(true);
         }
 
-        public Task<bool> SetLanguage(string language)
+        public Task<bool> SetLanguage(string language, string redirectUrl = "")
         {
             return Task.FromResult(true);
         }

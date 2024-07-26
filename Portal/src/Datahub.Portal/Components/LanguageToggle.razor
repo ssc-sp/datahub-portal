@@ -15,8 +15,15 @@
 
     private static string Language => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "en-CA" : "fr-CA";
     private static string LanguageDisplay => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "English" : "Français";
-
     private static List<string> UnauthenticatedPages = new() { "/login", "/register", "/terms-and-conditions", "account-setup" };
+
+    private static List<string> TranslatedPageRoutes = new() { 
+        PageRoutes.Home, PageRoutes.Home_FR,
+        PageRoutes.News, PageRoutes.News_FR,
+        PageRoutes.Explore, PageRoutes.Explore_FR,
+        PageRoutes.Help, PageRoutes.Help_FR,
+        PageRoutes.TermsAndConditions, PageRoutes.TermsAndConditions_FR,
+    };
 
     private async Task ChangeLanguage(string language)
     {
@@ -32,6 +39,16 @@
             await _localStorage.SetItemAsStringAsync("language", language);
             await _userSettingsService.RegisterUserLanguage(language);
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
+
+            foreach (string route in TranslatedPageRoutes)
+            {
+                if (currentPage.Contains(route))
+                {
+                    await _userSettingsService.SetLanguage(language, Localizer[route + "-lt"]);
+                    return;
+                }
+            }
+
             await _userSettingsService.SetLanguage(language);
         }
     }
