@@ -6,43 +6,52 @@
 <nav class="sr-only">
     <ul>
         <li>
-            <a href="@(_navManager.Uri+"#maincontent")">@Localizer["Skip to main content"]</a>
+            <a href="@(_navManager.Uri + "#maincontent")">@Localizer["Skip to main content"]</a>
         </li>
         <li>
-            <a href="@(_navManager.Uri+"#nav")">@Localizer["Skip to navigation"]</a>
+            <a href="@(_navManager.Uri + "#nav")">@Localizer["Skip to navigation"]</a>
         </li>
     </ul>
 </nav>
-<MudLink Href="@PageRoutes.Home" Underline="Underline.None">
-    <MudStack Row AlignItems="AlignItems.Center">
-        <MudText Typo="Typo.h6" Style="@_titleStyle">
-            @Localizer["MainTitle"]
-        </MudText>
-    </MudStack>
-</MudLink>
-
-<MudSpacer/>
-<MudStack Row>
-    <DHButton Variant="Variant.Text" Href=@PageRoutes.Home>
-        @Localizer["Home"]
-    </DHButton>
-    <DHButton Variant="Variant.Text" Href=@PageRoutes.News>
-        @Localizer["News"]
-    </DHButton>
-    <DHButton Variant="Variant.Text" Href=@PageRoutes.Explore>
-        @Localizer["Explore"]
-    </DHButton>
-    <DHButton Variant="Variant.Text" Href=@PageRoutes.ResourceDefault>
-        @Localizer["Learn"]
-    </DHButton>
-    <DHButton Variant="Variant.Text" Href=@PageRoutes.Help>
-        @Localizer["Support"]
-    </DHButton>
+<MudImage Src="/img/canada-fip.svg" Alt=@Localizer["Government of Canada Wordmark"] Style="max-height: 25px; float:left!important;"/>
+<MudText Typo="Typo.h2" Style="@_titleStyle">
+    @Localizer["MainTitle"]
+</MudText>
+<MudStack Row Style="margin-right: auto; width: 40%" Justify="Justify.Center" role="group">
+    <h2 class="sr-only">@Localizer["Navigation menu"]</h2>
+    <nav role="navigation">
+        <ul style="list-style-type: none">
+            <li style="display: inline-block; margin-inline: 5px">
+                <DHButton Variant="Variant.Text" Href=@PageRoutes.Home>
+                    @Localizer["Home"]
+                </DHButton>
+            </li>
+            <li style="display: inline-block; margin-inline: 5px">
+                <DHButton Variant="Variant.Text" Href=@PageRoutes.News>
+                    @Localizer["News"]
+                </DHButton>
+            </li>
+            <li style="display: inline-block; margin-inline: 5px">
+                <DHButton Variant="Variant.Text" Href=@PageRoutes.Explore>
+                    @Localizer["Explore"]
+                </DHButton>
+            </li>
+            <li style="display: inline-block; margin-inline: 5px">
+                <DHButton Variant="Variant.Text" Href=@PageRoutes.ResourceDefault>
+                    @Localizer["Learn"]
+                </DHButton>
+            </li>
+            <li style="display: inline-block; margin-inline: 5px">
+                <DHButton Variant="Variant.Text" Href=@PageRoutes.Help>
+                    @Localizer["Support"]
+                </DHButton>
+            </li>
+        </ul>
+    </nav>
 </MudStack>
 @*<MudSpacer/>
 <SearchPopover/>*@
 
-<MudSpacer/>
 <TopBarProfileButton/>
 
 @code {
@@ -69,6 +78,8 @@
 
         _titleStyle = new StyleBuilder()
             .AddStyle("color", "var(--mud-palette-text-primary)")
+            .AddStyle("font-size", "1.2rem")
+            .AddStyle("margin-left", "3rem")
             .Build();
     }
 

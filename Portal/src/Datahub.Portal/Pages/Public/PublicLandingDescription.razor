@@ -2,7 +2,7 @@
 @using Datahub.Core.Components.Common
 
 <MudButton HtmlTag="a" Style="position: absolute; top: 0.5rem; right:  0.5rem;">
-    <LanguageToggle />
+    <LanguageToggle/>
 </MudButton>
 <MudGrid Style="@_backgroundStyle" Spacing="0">
     <MudItem xs="0" sm="2" md="4" lg="5" xl="7"/>
@@ -10,17 +10,15 @@
         <MudPaper Class="pt-16 px-16" Square>
             <MudStack Justify="Justify.SpaceBetween" Style="height: 100%;">
                 <MudStack>
-                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center">
-                        <MudImage Src="/_content/Datahub.Core/img/datahub-logo-v2.png" Height="32" Width="32"></MudImage>
-                        <MudText Typo="Typo.h2">
-                            @Localizer["Federal Science DataHub"]
-                        </MudText>
-                    </MudStack>
-                    <MudText Typo="Typo.h2" Align="Align.Center">
+                    <MudImage Src="/img/canada-fip.svg" Alt=@Localizer["Government of Canada Wordmark"] Style="max-height: 25px; float:left!important;"/>
+                    <MudText Typo="Typo.h2">
+                        @Localizer["Federal Science DataHub"]
+                    </MudText>
+                    <MudText Typo="Typo.h2" >
                         @Localizer["Welcome to the Government of Canada's digital hub for science data solutions."]
                     </MudText>
-                    <MudText Align="Align.Center" Typo="Typo.caption">
-                        @Localizer["Hosted by SSC (Proof-of-Concept Phase 2)"]
+                    <MudText Typo="Typo.caption">
+                        @Localizer["Hosted by SSC"]
                     </MudText>
                 </MudStack>
                 <MudStack>
@@ -42,7 +40,7 @@
                         @ChildContent
                     </MudItem>
                 </MudGrid>
-        <DHFooter />
+                <DHFooter/>
             </MudStack>
         </MudPaper>
     </MudItem>
@@ -54,7 +52,7 @@
     [Parameter] public RenderFragment ChildContent { get; set; }
 
     private string _backgroundStyle;
-    
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -66,4 +64,5 @@
             .AddStyle("min-height", "100vh")
             .Build();
     }
+
 }

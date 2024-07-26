@@ -25,33 +25,33 @@
     {
         <MudText Typo="Typo.h2" Class="mb-4">@Localizer["My Workspaces"]</MudText>
     }
-    <MudGrid>
+    <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
         @foreach (var project in _userRoles.Select(userRole => userRole.Project))
         {
-            <MudItem xs="6" sm="@SmSize">
+            <li >
                 <ProjectPreviewCard Project="@project"/>
-            </MudItem>
+            </li>
         }
         @if (_isCurrentUser)
         {
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
                 <Authorized>
-                    <MudItem xs="6" sm="@SmSize">
-                        <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="999"/>
-                    </MudItem>
+                    <li>
+                    <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="999"/>
+                    </li>
 
                 </Authorized>
                 <NotAuthorized>
                     @if (_numberOfRemainingWorkspaces > 0)
                     {
-                        <MudItem xs="6" sm="@SmSize">
+                        <li>
                             <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="@_numberOfRemainingWorkspaces"/>
-                        </MudItem>
+                        </li>
                     }
                 </NotAuthorized>
             </DatahubAuthView>
         }
-    </MudGrid>
+    </ul>
 </MudStack>
 
 @code {

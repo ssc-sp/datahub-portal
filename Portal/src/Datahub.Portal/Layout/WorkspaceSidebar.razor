@@ -26,62 +26,62 @@
         </MudStack>
     </MudStack>
     <MudStack Spacing="2">
-        <MudStack Row AlignItems="AlignItems.Center">
-            <MudText Class="ml-2">
-                <b>
-                    @Localizer["Workspace Tools"]
-                </b>
-            </MudText>
-        </MudStack>
+        <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
+            <b>
+                @Localizer["Workspace Tools"]
+            </b>
+        </MudText>
         <MudNavMenu Color="Color.Primary">
-            @foreach (var toolSection in _workspaceTools.Where(ShouldToolBeShown))
-            {
-                <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
-
-                    <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
-                        <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
-                            <MudStack Row AlignItems="@AlignItems.Center">
-                                <DHIcon Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
-                                <MudText Style="@_workspaceTitleStyle">
-                                    @GetLabel(toolSection)
-                                </MudText>
-                            </MudStack>
-                        </span>
-
-                    </MudNavLink>
-                </DatahubAuthView>
-            }
+            <ul>
+                @foreach (var toolSection in _workspaceTools.Where(ShouldToolBeShown))
+                {
+                    <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
+                        <li>
+                            <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
+                                <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
+                                    <MudStack Row AlignItems="@AlignItems.Center">
+                                        <DHIcon Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                        <MudText Style="@_workspaceTitleStyle">
+                                            @GetLabel(toolSection)
+                                        </MudText>
+                                    </MudStack>
+                                </span>
+                            </MudNavLink>
+                        </li>
+                    </DatahubAuthView>
+                }
+            </ul>
         </MudNavMenu>
     </MudStack>
 
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
         <MudStack Spacing="2">
-            <MudStack Row AlignItems="AlignItems.Center">
-                <MudText Class="ml-2">
-                    <b>
-                        @Localizer["Administration"]
-                    </b>
-                </MudText>
-            </MudStack>
+            <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem;">
+                <b>
+                    @Localizer["Administration"]
+                </b>
+            </MudText>
             <MudNavMenu Color="Color.Primary">
-                @foreach (var toolSection in _workspaceAdministration)
-                {
-                    <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
-                        <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
-                                <MudText Style="@_workspaceTitleStyle">
-                                    @GetLabel(toolSection)
-                                </MudText>
-                            </MudStack>
-                        </MudNavLink>
-                    </DatahubAuthView>
-                }
+                <ul>
+                    @foreach (var toolSection in _workspaceAdministration)
+                    {
+                        <li>
+                            <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
+                                <MudNavLink Href="@GetSectionViewUrl(toolSection)" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
+                                    <MudStack Row AlignItems="AlignItems.Center">
+                                        <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                        <MudText Style="@_workspaceTitleStyle">
+                                            @GetLabel(toolSection)
+                                        </MudText>
+                                    </MudStack>
+                                </MudNavLink>
+                            </DatahubAuthView>
+                        </li>
+                    }
+                </ul>
             </MudNavMenu>
         </MudStack>
     </DatahubAuthView>
-
-
 </MudStack>
 
 @code {
@@ -182,29 +182,29 @@
         switch (toolSection)
         {
             case SectionViews.Databricks:
-                {
-                    var userRecentLink = new UserRecentLink()
+            {
+                var userRecentLink = new UserRecentLink()
                 {
                     LinkType = DatahubLinkType.Databricks,
                     DataProject = WorkspaceAcronym,
                     AccessedTime = DateTimeOffset.Now
                 };
 
-                    await _userLocationManagerService.RegisterNavigation(userRecentLink);
-                    break;
-                }
+                await _userLocationManagerService.RegisterNavigation(userRecentLink);
+                break;
+            }
             case SectionViews.WebApp:
-                {
-                    var userRecentLink = new UserRecentLink()
+            {
+                var userRecentLink = new UserRecentLink()
                 {
                     LinkType = DatahubLinkType.AzureWebApp,
                     DataProject = WorkspaceAcronym,
                     AccessedTime = DateTimeOffset.Now
                 };
 
-                    await _userLocationManagerService.RegisterNavigation(userRecentLink);
-                    break;
-                }
+                await _userLocationManagerService.RegisterNavigation(userRecentLink);
+                break;
+            }
         }
     }
 

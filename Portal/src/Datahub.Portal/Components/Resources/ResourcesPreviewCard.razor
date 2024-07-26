@@ -4,15 +4,17 @@
 @using Datahub.Portal.Pages.Resources
 
 <MudPaper Elevation="0" Outlined Class="py-2 px-3" Style="@_cardStyle">
-     <MudStack Justify="Justify.SpaceBetween" Style="height: 100%;">
-         <MudStack>
-             <MudStack Row AlignItems="AlignItems.Center">
-                <MudIcon role="img" aria-labelledby="decimg01" Icon="@(DocumentItem.GetSidebarIcon())" Title="@GetDocType()"/>
-                <div class="sr-only" id="decimg01">
-                    @GetDocType()
-                </div>
-                 <MudText Typo="Typo.body1" Style="@_titleTextStyle">                     
-                         @DocumentItem?.Title
+    <MudStack Justify="Justify.SpaceBetween" Style="height: 100%;">
+        <MudStack>
+            <MudStack Row AlignItems="AlignItems.Center">
+                <span>
+                    <MudIcon role="img" aria-labelledby="decimg01" Icon="@(DocumentItem.GetSidebarIcon())" Title="@GetDocType()"/>
+                    <p class="sr-only" id="decimg01">
+                        @GetDocType()
+                    </p>
+                </span>
+                <MudText Typo="Typo.body1" Style="@_titleTextStyle">
+                    @DocumentItem?.Title
                 </MudText>
             </MudStack>
             @if (!ShortVersion)
@@ -24,11 +26,11 @@
             @if (DocumentItem?.DocType == DocItemType.External)
             {
                 <DHButton Href="@ResourcesPage.BuildResourceLink(DocumentItem)"
-                           Color="@Color.Primary"
-                           Variant="@Variant.Text"
-                           Target="_blank"
-                           EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
-                   
+                          Color="@Color.Primary"
+                          Variant="@Variant.Text"
+                          Target="_blank"
+                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+
                     <span>
                         @Localizer["Open link"]
                         <span class="sr-only">@DocumentItem?.Title</span>
@@ -38,9 +40,9 @@
             else
             {
                 <DHButton Href="@ResourcesPage.BuildResourceLink(DocumentItem)"
-                           Color="@Color.Primary"
-                           Variant="@Variant.Text"
-                           EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                          Color="@Color.Primary"
+                          Variant="@Variant.Text"
+                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                     <span>
                         @Localizer["Read more"]
                         <span class="sr-only">@DocumentItem?.Title</span>
@@ -53,11 +55,9 @@
 
 @code {
 
-    [Parameter]
-    public DocItem DocumentItem { get; set; }
+    [Parameter] public DocItem DocumentItem { get; set; }
 
-    [Parameter]
-    public bool ShortVersion { get; set; } = false;
+    [Parameter] public bool ShortVersion { get; set; } = false;
 
     private string _previewTextStyle;
     private string _titleTextStyle;
