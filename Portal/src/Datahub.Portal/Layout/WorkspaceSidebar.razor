@@ -106,7 +106,7 @@
         public const string Databricks = "databricks";
         public const string Repositories = "repositories";
         public const string WebApp = "app";
-        public const string SqlDatabase = "sqldatabase";
+        public const string SqlDatabase = "db";
         public const string ArcGis = "arcgis";
         public const string Toolbox = "toolbox";
         public const string Users = "users";
@@ -120,7 +120,6 @@
         public const string Dashboard_FR = "tableau-de-bord";
         public const string Publishing_FR = "publication";
         public const string Repositories_FR = "depots";
-        public const string SqlDatabase_FR = "base-de-donnees-sql";
         public const string Toolbox_FR = "boite-a-outils";
         public const string Users_FR = "utilisateurs";
         public const string Metadata_FR = "metadonnees";
@@ -189,7 +188,6 @@
 
             SectionViews.Dashboard_FR => DatahubAuthView.AuthLevels.Authenticated,
             SectionViews.Publishing_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
-            SectionViews.SqlDatabase_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.Repositories_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
 
             SectionViews.Toolbox_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
