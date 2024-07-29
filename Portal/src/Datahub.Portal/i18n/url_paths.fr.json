@@ -43,5 +43,7 @@
   "assistance-lt": "help",
   "/assistance-lt": "/help",
   "conditions-generales-lt": "terms-and-conditions",
-  "/conditions-generales-lt": "/terms-and-conditions"
+  "/conditions-generales-lt": "/terms-and-conditions",
+  "connexion-lt": "login",
+  "/connexion-lt": "/login",
 }
