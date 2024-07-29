@@ -64,7 +64,7 @@ def send_exception_to_service_bus(exception_message):
         Description=exception_message
     ) 
     # Retrieve the custom certificate path from the environment variable
-    cert_path = os.getenv('REQUEST_CA_BUNDLE')
+    cert_path = os.getenv('REQUESTS_CA_BUNDLE')
     
     response = requests.post(queue_url, headers=headers, data=json.dumps(bug_report), verify=cert_path)
     response.raise_for_status()
@@ -91,7 +91,7 @@ def send_healthcheck_to_service_bus(message):
         asb_connection_str, check_results_queue_name = get_config()
 
         # Retrieve the custom certificate path from the environment variable
-        cert_path = os.getenv('REQUEST_CA_BUNDLE')
+        cert_path = os.getenv('REQUESTS_CA_BUNDLE')
         
         response = requests.post(queue_url, headers=headers, data=json.dumps(message), verify=cert_path)
         response.raise_for_status()
