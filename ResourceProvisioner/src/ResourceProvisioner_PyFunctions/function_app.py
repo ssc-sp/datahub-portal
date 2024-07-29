@@ -1,24 +1,104 @@
-import azure.functions as func
 import logging
 import lib.databricks_utils as dtb_utils
 import lib.azkeyvault_utils as azkv_utils
 import lib.azstorage_utils as azsg_utils
-import azure.servicebus as servicebus
 import os
+import urllib.parse
+import hmac
+import hashlib
+import base64
+import time
 import json
 import bug_report_message as brm
 import healthcheck_message as hcm
+import azure.functions as func
+import requests
 
 #from lib.databricks_utils import get_workspace_client, remove_deleted_users_in_workspace, synchronize_workspace_users
-#from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
 app = func.FunctionApp()
 
 def get_config():
     asb_connection_str = os.getenv('DatahubServiceBus')
-    queue_name = "bug-report" // os.getenv('AzureServiceBusQueueName4Bugs')
-    check_results_queue_name = "infrastructure-health-check-results" // os.getenv('AzureServiceBusQueueName4Results')
+    queue_name = "bug-report" or os.getenv('AzureServiceBusQueueName4Bugs')
+    check_results_queue_name = "infrastructure-health-check-results" or os.getenv('AzureServiceBusQueueName4Results')
     return asb_connection_str, queue_name, check_results_queue_name
+
+def parse_connection_string(connection_string):
+    parts = dict(part.split('=', 1) for part in connection_string.split(';'))
+    return parts['Endpoint'], parts['SharedAccessKeyName'], parts['SharedAccessKey']
+
+def generate_sas_token(uri, key_name, key):
+    expiry = int(time.time() + 3600)  # Token valid for 1 hour
+    string_to_sign = urllib.parse.quote_plus(uri) + '\n' + str(expiry)
+    signed_hmac_sha256 = hmac.new(base64.b64decode(key), string_to_sign.encode('utf-8'), hashlib.sha256)
+    signature = base64.b64encode(signed_hmac_sha256.digest()).decode('utf-8')
+    return f'SharedAccessSignature sr={urllib.parse.quote_plus(uri)}&sig={urllib.parse.quote_plus(signature)}&se={expiry}&skn={key_name}'
+
+def send_exception_to_service_bus(exception_message):
+    asb_connection_str, queue_name = get_config()
+    endpoint, key_name, key = parse_connection_string(asb_connection_str)
+    uri = f"{endpoint}{queue_name}/messages"
+    sas_token = generate_sas_token(uri, key_name, key)
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': sas_token
+    }
+        
+    # Define the queue URL
+    queue_url = f"{asb_connection_str}/{queue_name}/messages"
+    bug_report = brm.BugReportMessage(
+        UserName="Datahub Portal",
+        UserEmail="",
+        UserOrganization="",
+        PortalLanguage="",
+        PreferredLanguage="",
+        Timezone="",
+        Workspaces="",
+        Topics="Databricks Syncronization",
+        URL="",
+        UserAgent="",
+        Resolution="",
+        LocalStorage="",
+        BugReportType="Synchronizing databricks workspace error",
+        Description=exception_message
+    ) 
+    # Retrieve the custom certificate path from the environment variable
+    cert_path = os.getenv('REQUEST_CA_BUNDLE')
+    
+    response = requests.post(queue_url, headers=headers, data=json.dumps(bug_report), verify=cert_path)
+    response.raise_for_status()
+    return response.json()
+
+def send_healthcheck_to_service_bus(message):
+    try:
+        asb_connection_str, check_results_queue_name = get_config()
+        endpoint, key_name, key = parse_connection_string(asb_connection_str)
+        uri = f"{endpoint}{check_results_queue_name}/messages"
+        sas_token = generate_sas_token(uri, key_name, key)
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': sas_token
+        }
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {os.getenv("SERVICE_BUS_ACCESS_TOKEN")}'
+        }
+            
+        # Define the queue URL
+        queue_url = f"{asb_connection_str}/{check_results_queue_name}/messages"
+        asb_connection_str, check_results_queue_name = get_config()
+
+        # Retrieve the custom certificate path from the environment variable
+        cert_path = os.getenv('REQUEST_CA_BUNDLE')
+        
+        response = requests.post(queue_url, headers=headers, data=json.dumps(message), verify=cert_path)
+        response.raise_for_status()
+        print(f"Sent message to queue: {check_results_queue_name}")
+        pass
+    except Exception as e:
+        logging.error(f"An error occurred while sending health check to service bus: {e}")
 
 @app.function_name(name="SynchronizeWorkspaceUsersHttpTrigger")
 @app.route(route="sync-workspace-users") # HTTP Trigger
@@ -56,38 +136,6 @@ def queue_sync_workspace_users_function(msg: func.ServiceBusMessage):
     workspace_definition = keys_upper(workspace_definition)
     synchronize_workspace(workspace_definition)
     return None
-
-def send_exception_to_service_bus(exception_message):
-    asb_connection_str, queue_name = get_config()
-    bug_report = brm.BugReportMessage(
-        UserName="Datahub Portal",
-        UserEmail="",
-        UserOrganization="",
-        PortalLanguage="",
-        PreferredLanguage="",
-        Timezone="",
-        Workspaces="",
-        Topics="Databricks Syncronization",
-        URL="",
-        UserAgent="",
-        Resolution="",
-        LocalStorage="",
-        BugReportType="Synchronizing databricks workspace error",
-        Description=exception_message
-    )
-    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type="AmqpWebSockets") as client:
-        with client.get_queue_sender(queue_name) as sender:
-            message = servicebus.ServiceBusMessage(bug_report.to_json())
-            sender.send_messages(message)
-            print(f"Sent message to queue: {queue_name}")
-
-def send_healthcheck_to_service_bus(message):
-    asb_connection_str, check_results_queue_name = get_config()
-    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type="AmqpWebSockets") as client:
-        with client.get_queue_sender(check_results_queue_name) as sender:
-            message = servicebus.ServiceBusMessage(message.to_json())
-            sender.send_messages(message)
-            print(f"Sent message to queue: {check_results_queue_name}")
 
 def keys_upper(dictionary):
     """
