@@ -27,7 +27,7 @@
             var userRoles = GetWorkspaces();
         }
         <MudStack Row AlignItems="AlignItems.Center">
-            <MudText Class="ml-2">
+            <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
                 <b>
                     @Localizer["My workspaces"]
                 </b>
@@ -36,7 +36,7 @@
             @if (userRoles.Any())
             {
                 <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Href="@Localizer[PageRoutes.CreateWorkspace]" Disabled="@_canNotCreateWorkspace">
-                    <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;" />
+                    <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;"/>
                     @Localizer["New"]
                     <span class="sr-only">@Localizer["Workspace"]</span>
                 </DHButton>
@@ -45,18 +45,23 @@
 
         @if (userRoles.Any())
         {
-            <MudNavMenu Color="Color.Primary">
-                @foreach (var userRole in userRoles)
-                {
-                    <MudNavLink Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
-                        <MudStack Row AlignItems="AlignItems.Center">
-                            <DHIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                            <MudText Style="@_workspaceLinkStyle">
-                                @userRole.Project.ProjectName
-                            </MudText>
-                        </MudStack>
-                    </MudNavLink>
-                }
+            <MudNavMenu Color="Color.Primary" role="navigation">
+                <ul>
+
+                    @foreach (var userRole in userRoles)
+                    {
+                        <li>
+                            <MudNavLink Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <DHIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                    <MudText Style="@_workspaceLinkStyle">
+                                        @userRole.Project.ProjectName
+                                    </MudText>
+                                </MudStack>
+                            </MudNavLink>
+                        </li>
+                    }
+                </ul>
                 @if (_showAllWorkspaces == false && _userRoles.Count > _maxWorkspacesToShow)
                 {
                     <MudLink OnClick="@(() => _showAllWorkspaces = true)" Typo="Typo.body2" Color="Color.Default" Class="ml-4" Style="font-size: 0.75rem;">
@@ -76,65 +81,77 @@
     </MudStack>
 
     <MudStack Spacing="2">
-        <MudText Class="ml-2">
+        <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
             <b>
                 @Localizer["Recent activity"]
             </b>
         </MudText>
-        <MudNavMenu Color="Color.Primary">
-            @foreach (var recentActivity in _recentLinks)
-            {
-                <MudNavLink Href="@GetSectionViewUrl(recentActivity)">
-                    <MudStack Row AlignItems="AlignItems.Center">
-                        <DHIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark" />
-                        <MudText Style="@_workspaceLinkStyle">
-                            @GetLabel(recentActivity)
-                        </MudText>
-                    </MudStack>
-                </MudNavLink>
-            }
+        <MudNavMenu Color="Color.Primary" role="navigation">
+            <ul>
+                @foreach (var recentActivity in _recentLinks)
+                {
+                    <li>
+                        <MudNavLink Href="@GetSectionViewUrl(recentActivity)">
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <DHIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark"/>
+                                <MudText Style="@_workspaceLinkStyle">
+                                    @GetLabel(recentActivity)
+                                </MudText>
+                            </MudStack>
+                        </MudNavLink>
+                    </li>
+                }
+            </ul>
         </MudNavMenu>
     </MudStack>
 
     <MudStack Spacing="2">
-        <MudText Class="ml-2">
+        <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
             <b>
                 @Localizer["My account"]
             </b>
         </MudText>
-        <MudNavMenu Color="Color.Primary">
-            @foreach (var sectionView in _accountItems)
-            {
-                <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.AccountPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
-                    <MudStack Row AlignItems="AlignItems.Center">
-                        <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
-                        <MudText Style="@_workspaceLinkStyle">
-                            @GetLabel(sectionView)
-                        </MudText>
-                    </MudStack>
-                </MudNavLink>
-            }
+        <MudNavMenu Color="Color.Primary" role="navigation">
+            <ul>
+                @foreach (var sectionView in _accountItems)
+                {
+                    <li>
+                        <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.AccountPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                <MudText Style="@_workspaceLinkStyle">
+                                    @GetLabel(sectionView)
+                                </MudText>
+                            </MudStack>
+                        </MudNavLink>
+                    </li>
+                }
+            </ul>
         </MudNavMenu>
     </MudStack>
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
         <MudStack Spacing="2">
-            <MudText Class="ml-2">
+            <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
                 <b>
                     @Localizer["Datahub Admin"]
                 </b>
             </MudText>
-            <MudNavMenu Color="Color.Primary">
-                @foreach (var sectionView in _datahubAdminItems)
-                {
-                    <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.ToolPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
-                        <MudStack Row AlignItems="AlignItems.Center">
-                            <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
-                            <MudText Style="@_workspaceLinkStyle">
-                                @GetLabel(sectionView)
-                            </MudText>
-                        </MudStack>
-                    </MudNavLink>
-                }
+            <MudNavMenu Color="Color.Primary" role="navigation">
+                <ul>
+                    @foreach (var sectionView in _datahubAdminItems)
+                    {
+                        <li>
+                            <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.ToolPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                    <MudText Style="@_workspaceLinkStyle">
+                                        @GetLabel(sectionView)
+                                    </MudText>
+                                </MudStack>
+                            </MudNavLink>
+                        </li>
+                    }
+                </ul>
             </MudNavMenu>
         </MudStack>
     </DatahubAuthView>
@@ -144,7 +161,7 @@
                    Color="Color.Primary"
                    Value="@_isViewAsAdmin"
                    ValueChanged="@ToggleAdminMode"
-                   Label="@Localizer["Admin Access Enabled"]" />
+                   Label="@Localizer["Admin Access Enabled"]"/>
     </DatahubAuthView>
 </MudStack>
 

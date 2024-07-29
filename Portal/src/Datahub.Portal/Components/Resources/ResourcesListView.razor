@@ -2,19 +2,18 @@
 @using Datahub.Markdown.Model
 @using MudBlazor.Utilities
 
-<MudGrid>
+<ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
     @foreach (var documentItem in DocumentItems)
     {
-        <MudItem xs="6">
+        <li>
             <ResourcesPreviewCard ShortVersion="@_showShort" DocumentItem="@documentItem" />
-        </MudItem>
+        </li>
     }
-</MudGrid>
+</ul>
 
 @code {
 
-    [Parameter]
-    public List<DocItem> DocumentItems { get; set; } = new();
+    [Parameter] public List<DocItem> DocumentItems { get; set; } = new();
     private string _containerStyle;
     private bool _showShort = false;
 
