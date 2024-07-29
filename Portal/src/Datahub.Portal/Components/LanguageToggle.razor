@@ -15,25 +15,43 @@
 
     private static string Language => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "en-CA" : "fr-CA";
     private static string LanguageDisplay => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "English" : "Français";
+    private static List<string> UnauthenticatedPages = new() { "/login", "/register", "/terms-and-conditions", "account-setup", "/connexion", "/inscription", "conditions-generales" };
 
-    private static List<string> UnauthenticatedPages = new() { "/login", "/register", "/terms-and-conditions", "account-setup" };
+    private static List<string> TranslatedPageRoutes = new() { 
+        PageRoutes.Home, PageRoutes.Home_FR,
+        PageRoutes.News, PageRoutes.News_FR,
+        PageRoutes.Explore, PageRoutes.Explore_FR,
+        PageRoutes.Help, PageRoutes.Help_FR,
+        PageRoutes.TermsAndConditions, PageRoutes.TermsAndConditions_FR,
+        "/login", "/connexion", "/register", "/inscription"
+    };
 
     private async Task ChangeLanguage(string language)
     {
         // if in an unauthenticated page, user still needs to be able to translate languages
         var currentPage = NavManager.Uri;
+
         if (UnauthenticatedPages.Any(x => currentPage.Contains(x)))
         {
             await _localStorage.SetItemAsStringAsync("language", language);
-            await _userSettingsService.SetLanguage(language);
         }
         else
         {
             await _localStorage.SetItemAsStringAsync("language", language);
             await _userSettingsService.RegisterUserLanguage(language);
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
-            await _userSettingsService.SetLanguage(language);
         }
+
+        foreach (string route in TranslatedPageRoutes)
+        {
+            if (currentPage.Contains(route))
+            {
+                await _userSettingsService.SetLanguage(language, Localizer[route + "-lt"]);
+                return;
+            }
+        }
+
+        await _userSettingsService.SetLanguage(language);
     }
 
     public async Task ToggleLanguage()
