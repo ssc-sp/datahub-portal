@@ -46,4 +46,6 @@
   "/conditions-generales-lt": "/terms-and-conditions",
   "connexion-lt": "login",
   "/connexion-lt": "/login",
+  "inscription-lt": "register",
+  "/inscription-lt": "/register",
 }
