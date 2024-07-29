@@ -34,6 +34,7 @@ def get_workspace_client(databricksHost):
     Returns:
         WorkspaceClient: The databricks workspace client.
     """
+    os.environ['REQUESTS_CA_BUNDLE'] = os.getenv('REQUESTS_CA_BUNDLE', '/etc/ssl/certs/ca-certificates.crt')
 
     w = WorkspaceClient(
         host=databricksHost,
