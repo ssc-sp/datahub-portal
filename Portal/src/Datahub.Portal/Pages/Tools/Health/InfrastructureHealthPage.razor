@@ -43,11 +43,15 @@ else
             <RowTemplate Context="context">
                     <MudTd>@context.ResourceType</MudTd>
                     <MudTd>
-                        <MudTooltip Delay="600" Text="@GetStatusDetails(context)">
-                        <MudChip Color="@GetColor(context)" Size="Size.Small" T="string">
-                            @Localizer[GetStatusText(context)]
-                        </MudChip>
-                        </MudTooltip>
+                        <MudStack Row>
+                            <MudChip Color="@GetColor(context)" Size="Size.Small" T="string">
+                                @Localizer[GetStatusText(context)]
+                            </MudChip>
+                            @if (!string.IsNullOrEmpty(context.Details))
+                            {
+                                <MudText>@GetStatusDetails(context)</MudText>
+                            }
+                        </MudStack>
                     </MudTd>
                     <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
                     <MudTd>
@@ -71,26 +75,22 @@ else
             <HeaderContent>
                 <MudTh>@Localizer["Resource"]</MudTh>
                 <MudTh>@Localizer["Queue Status"]</MudTh>
-                @* <MudTh>@Localizer["Poison Queue Status"]</MudTh> *@
                 <MudTh>@Localizer["Updated"]</MudTh>
                 <MudTh>@Localizer["Run Check"]</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd>@context.Name</MudTd>
                 <MudTd>
-                    <MudTooltip Delay="600" Text="@GetStatusDetails(context)">
-                    <MudChip Color="@GetColor(context)" Size="Size.Small" T="string">
-                        @Localizer[GetStatusText(context)]
-                    </MudChip>
-                    </MudTooltip>
+                    <MudStack Row>
+                        <MudChip Color="@GetColor(context)" Size="Size.Small" T="string">
+                            @Localizer[GetStatusText(context)]
+                        </MudChip>
+                        @if (!string.IsNullOrEmpty(context.Details))
+                        {
+                            <MudText>@GetStatusDetails(context)</MudText>
+                        }
+                    </MudStack>
                 </MudTd>
-@*                 <MudTd>
-                    <MudTooltip Delay="600" Text="@GetStatusDetails(context)">
-                                <MudChip Color="@GetColor(GetPoison(context))" Size="Size.Small" T="string">
-                        @Localizer[GetStatusText(GetPoison(context))]
-					</MudChip>
-                    </MudTooltip>
-                </MudTd> *@
                 <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
                     <MudTd>
                         <DHButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
@@ -109,38 +109,39 @@ else
         <MudTable Items="_infrastructureHealth" Hover Dense>
             <HeaderContent>
                 <MudTh>Workspace</MudTh>
-                @foreach (var resourceType in _workspaceChecks)
-                {
-                    <MudTh>@resourceType</MudTh>
-                }
+                <MudTh>@Localizer["Status"]</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd>@context.Key</MudTd>
-                @foreach (var resourceType in _workspaceChecks)
-                {
-                    var health = context.Value.FirstOrDefault(h => h.ResourceType == (InfrastructureHealthResourceType)resourceType);
-                    if (health == null)
-                    {
-                        <MudTd>
-							<MudChip T="string" Color="@GetColor(InfrastructureHealthStatus.Undefined)" Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
-								@Localizer[InfrastructureHealthStatus.Undefined.ToString()]
-							</MudChip>
-                        </MudTd>
-                    }
-                    else
-                    {
-                        var realStatus = GetRealStatus(health);
-                        var details = GetStatusDetails(health);
-                        <MudTd>
-                            <MudTooltip Delay="600" Text="@details">
+                <MudTd>
+                    <MudStack>
+                        @foreach(var resourceType in _workspaceChecks)
+                        {
+                            var health = context.Value.FirstOrDefault(h => h.ResourceType == resourceType);
+                            if (health == null)
+                            {
+                            <MudChip T="string" Color="@GetColor(InfrastructureHealthStatus.Undefined)" Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
+                                @Localizer[InfrastructureHealthStatus.Undefined.ToString()]
+                                </MudChip>
+                            }
+                            else
+                            {
+                                var realStatus = GetRealStatus(health);
+                                var details = GetStatusDetails(health);
+                                <MudStack Row>
+                                    <MudText>@Localizer[health.ResourceType.ToString()]</MudText>
                                     <MudChip Color="@GetColor(realStatus)" T="string"
-                                Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
-								@Localizer[realStatus.ToString()]
-							</MudChip>
-                            </MudTooltip>
-						</MudTd>
-                    }
-                }
+                                                Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
+                                        @Localizer[realStatus.ToString()]
+                                    </MudChip>
+                                    <MudText>
+                                        @details
+                                    </MudText>
+                                </MudStack>
+                            }
+                        }
+                    </MudStack>
+                </MudTd>
             </RowTemplate>
         </MudTable>
     </MudStack>
