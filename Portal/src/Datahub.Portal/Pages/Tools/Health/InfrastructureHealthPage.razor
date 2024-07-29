@@ -143,6 +143,16 @@ else
                 }
             </RowTemplate>
         </MudTable>
+    </MudStack> 
+    <MudStack>
+    <iframe src="https://fsdh-portal-app-dev.scm.azurewebsites.net/api/logstream" width="100%" height="500px">
+        <!-- Fallback content for browsers that do not support iframes -->
+        Your browser does not support iframes.
+    </iframe> 
+    <iframe src="/api/healthcheck/logstream" width="100%" height="500px">
+        <!-- Fallback content for browsers that do not support iframes -->
+        Your browser does not support iframes.
+    </iframe>
     </MudStack>
 </MudStack>
 }
