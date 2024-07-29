@@ -57,7 +57,7 @@
     "ApplicationInsights": {
       "LogLevel": {
         "Default": "Warning",
-        "NRCan": "Information",
+        "DataHub": "Information",
         "Microsoft": "Warning",
         "Microsoft.Hosting.Lifetime": "Information"
       }
