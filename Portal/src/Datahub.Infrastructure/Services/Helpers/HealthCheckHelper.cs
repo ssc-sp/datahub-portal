@@ -51,13 +51,23 @@ namespace Datahub.Infrastructure.Services.Helpers
     public class HealthCheckHelper(IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
         IProjectStorageConfigurationService projectStorageConfigurationService,
         IConfiguration configuration,
-        AzureDevOpsConfiguration devopsConfig,
         IHttpClientFactory httpClientFactory,
         ILoggerFactory loggerFactory,
         ISendEndpointProvider sendEndpointProvider,
         DatahubPortalConfiguration portalConfiguration)
     {
         private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
+
+        private string AzureTenantId => portalConfiguration.AzureAd.TenantId;
+        private string DevopsClientId => portalConfiguration.AzureAd.InfraClientId;
+        private string DevopsClientSecret => portalConfiguration.AzureAd.InfraClientSecret;
+
+        private AzureDevOpsConfiguration BuildDevopsConfig() => new()
+        {
+            ClientId = DevopsClientId,
+            ClientSecret = DevopsClientSecret,
+            TenantId = AzureTenantId
+        };
 
         /// <summary>
         /// Function that checks the health of an Azure SQL Database.
@@ -115,9 +125,9 @@ namespace Datahub.Infrastructure.Services.Helpers
 
             try
             {
-                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureTenantIdEnvKey, devopsConfig.TenantId);
-                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureClientIdEnvKey, devopsConfig.ClientId);
-                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureClientSecretEnvKey, devopsConfig.ClientSecret);
+                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureTenantIdEnvKey, AzureTenantId);
+                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureClientIdEnvKey, DevopsClientId);
+                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureClientSecretEnvKey, DevopsClientSecret);
 
                 var client =
                     new SecretClient(GetAzureKeyVaultUrl(request),
@@ -244,7 +254,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                     {
                         try
                         {
-                            var azureDevOpsClient = new AzureDevOpsClient(devopsConfig);
+                            var azureDevOpsClient = new AzureDevOpsClient(BuildDevopsConfig());
                             var accessToken = await azureDevOpsClient.AccessTokenAsync();
 
                             var databricksClient = new DatabricksClientUtils(databricksUrl, accessToken.Token);
@@ -289,16 +299,19 @@ namespace Datahub.Infrastructure.Services.Helpers
             return new(status, errors);
         }
 
-        // TODO there may be a better source for this
-        private string CurrentEnvironment => devopsConfig.GetEnvironmentName();
+        private string CurrentEnvironment => configuration["DataHub_ENVNAME"] ?? GetEnvironmentNameFailsafe();
+
+        private string GetEnvironmentNameFailsafe()
+        {
+            logger.LogError("DataHub_ENVNAME not configured. Defaulting to dev");
+            return "dev";
+        }
 
         private async Task<string> GetAzureFunctionDefaultKey()
         {
             try
             {
-                // TODO there may be a better source for these values
-                var credential = new ClientSecretCredential(portalConfiguration.AzureAd.TenantId,
-                        portalConfiguration.AzureAd.InfraClientId, portalConfiguration.AzureAd.InfraClientSecret);
+                var credential = new ClientSecretCredential(AzureTenantId, DevopsClientId, DevopsClientSecret);
 
                 var armClient = new ArmClient(credential);
                 var subscription = await armClient.GetDefaultSubscriptionAsync();
