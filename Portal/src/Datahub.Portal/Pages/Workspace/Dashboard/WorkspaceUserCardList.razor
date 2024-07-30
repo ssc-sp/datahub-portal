@@ -19,16 +19,18 @@
                 </DHButton>
             </DatahubAuthView>
         </MudStack>
-        <MudStack>
+        <ul style="display: grid; gap: 12px">
             @foreach (var admin in _projectAdmins)
             {
                 var graphId = admin.PortalUser?.GraphGuid;
                 if (!string.IsNullOrEmpty(graphId))
                 {
-                    <UserCard ViewedUserGraphId=@graphId Size="Size.Medium" ShowProfileLink />
+                    <li>
+                        <UserCard ViewedUserGraphId=@graphId Size="Size.Medium" ShowProfileLink/>
+                    </li>
                 }
             }
-        </MudStack>
+        </ul>
 
         @if (_projectMembers.Any())
         {
@@ -37,28 +39,29 @@
             <MudStack Class="mb-2">
                 <MudText Typo="Typo.h5">@Localizer["Collaborators"]</MudText>
             </MudStack>
-            <MudStack>
+            <ul style="display: grid; gap: 12px">
                 @foreach (var member in _projectMembers)
                 {
                     var graphId = member.PortalUser?.GraphGuid;
                     if (!string.IsNullOrEmpty(graphId))
                     {
-                        <UserCard ViewedUserGraphId=@graphId Size="Size.Medium" ShowProfileLink />
-                    }                    
+                        <li>
+                            <UserCard ViewedUserGraphId=@graphId Size="Size.Medium" ShowProfileLink/>
+                        </li>
+                    }
                 }
-            </MudStack>
+            </ul>
         }
     </MudStack>
 </DatahubAuthView>
 
 @code {
 
-    [Parameter]
-    public string ProjectAcronym { get; set; }
+    [Parameter] public string ProjectAcronym { get; set; }
 
     private List<Datahub_Project_User> _projectAdmins = new();
     private List<Datahub_Project_User> _projectMembers = new();
-    
+
     private string _viewMembersHref => $"{PageRoutes.WorkspacePrefix}/{ProjectAcronym}/{WorkspaceSidebar.SectionViews.Users}";
 
 
@@ -67,16 +70,16 @@
         await base.OnParametersSetAsync();
 
         var workspaceMembers = await _projectUserManagementService.GetProjectUsersAsync(ProjectAcronym);
-        
+
         _projectAdmins = workspaceMembers
-            .Where(m => m.RoleId 
-                is (int) Project_Role.RoleNames.Admin 
-                or (int) Project_Role.RoleNames.WorkspaceLead)
+            .Where(m => m.RoleId
+                is (int)Project_Role.RoleNames.Admin
+                or (int)Project_Role.RoleNames.WorkspaceLead)
             .ToList();
-        
+
         _projectMembers = workspaceMembers
             .Where(m => m.RoleId
-                is (int) Project_Role.RoleNames.Collaborator)
+                is (int)Project_Role.RoleNames.Collaborator)
             .ToList();
     }
 
