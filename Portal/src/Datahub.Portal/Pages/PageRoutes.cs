@@ -16,7 +16,7 @@ public static class PageRoutes
     public const string Workspace = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{{Section}}";
     public const string WorkspaceSubSection = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{{Section}}/{{SubSection}}";
 
-    public const string WorkspaceWebAppShare = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/webapp-ext";
+    public const string WorkspaceWebAppShare = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/app-ext";
 
     public const string AccountPrefix = "account";
     public const string AccountPrefix_FR = "compte";
