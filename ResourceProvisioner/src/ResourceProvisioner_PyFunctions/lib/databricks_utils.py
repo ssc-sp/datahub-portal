@@ -35,13 +35,16 @@ def get_workspace_client(databricksHost):
         WorkspaceClient: The databricks workspace client.
     """
     os.environ['REQUESTS_CA_BUNDLE'] = os.getenv('REQUESTS_CA_BUNDLE', '/etc/ssl/certs/ca-certificates.crt')
+    session = requests.Session()
+    session.verify = os.environ['REQUESTS_CA_BUNDLE']
 
     w = WorkspaceClient(
         host=databricksHost,
         azure_client_secret = os.environ["AzureClientSecret"],
         azure_client_id = os.environ["AzureClientId"],
         azure_tenant_id = os.environ["AzureTenantId"],
-        auth_type='azure-client-secret'
+        auth_type='azure-client-secret',
+        session=session
     )
     return w
 
