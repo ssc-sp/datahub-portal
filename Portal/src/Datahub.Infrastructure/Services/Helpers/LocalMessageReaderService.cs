@@ -84,7 +84,7 @@ public class LocalMessageReaderService : BackgroundService
             var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<DatahubProjectDBContext>>();
             var sendEndpointProvider = scope.ServiceProvider.GetRequiredService<ISendEndpointProvider>();
 
-            var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, configuration, devopsConfig,
+            var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, configuration, 
                 httpClientFactory, _loggerFactory, sendEndpointProvider, portalConfiguration);
 
             // Deserialize the file contents into an InfrastructureHealthCheckMessage object
