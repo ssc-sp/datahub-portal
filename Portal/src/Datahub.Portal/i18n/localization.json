@@ -2038,6 +2038,7 @@
   "Storage data has not been updated in the last 7 days, please check back later for updated storage data.": "Storage data has not been updated in the last 7 days, please check back later for updated storage data.",
   "_Environment variables are stored in [Azure Keyvault](https://azure.microsoft.com/en-us/products/key-vault) and are made available to your web application as operating system level environment variables. They are available during the build process and the run process of your web application._": "_Environment variables are stored in [Azure Keyvault](https://azure.microsoft.com/en-us/products/key-vault) and are made available to your web application as operating system level environment variables. They are available during the build process and the run process of your web application._",
   "This web application is not configured yet. Please configure it by clicking the \u0027Configure\u0027 button at the top right of the page.": "This web application is not configured yet. Please configure it by clicking the \u0027Configure\u0027 button at the top right of the page.",
-  "You must restart your web application to apply the latest changes.": "You must restart your web application to apply the latest changes."
+  "You must restart your web application to apply the latest changes.": "You must restart your web application to apply the latest changes.",
+  "/img/canada-fip.svg": "/img/canada-fip.svg"
 
 }
