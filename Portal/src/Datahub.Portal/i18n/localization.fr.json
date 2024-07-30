@@ -3132,5 +3132,6 @@
   "Accept Web Application Terms": "Accepter les conditions d'utilisation de l'application Web",
   "Open in new window": "Ouvrir dans une nouvelle fenêtre",
   "Share link": "Lien pour partager",
-  "Proxy URL for development": "URL proxy pour le développement"
+  "Proxy URL for development": "URL proxy pour le développement",
+  "_currentLang":  "fr",
 }
