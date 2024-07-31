@@ -5,6 +5,7 @@ from databricks.sdk.service.workspace import ScopeBackendType
 import lib.azkeyvault_utils as azkv_utils
 import lib.constants as constants
 import os
+import requests
 import logging
 
 WORKSPACE_KV_SCOPE_NAME = "dh-workspace"
@@ -38,14 +39,30 @@ def get_workspace_client(databricksHost):
     session = requests.Session()
     session.verify = os.environ['REQUESTS_CA_BUNDLE']
 
+    # Function to patch the ApiClient to use the custom session 
+    def patch_api_client(api_client): 
+        api_client.session = session    
+        
+        def patched_do(self, method, path, query=None, body=None, headers=None, response_headers=None): 
+            request = requests.Request(method, self.url(path), params=query, json=body, headers=headers) 
+            prepped = self.session.prepare_request(request) 
+            response = self.session.send(prepped) 
+            if response_headers: 
+                for h in response_headers: 
+                    response_headers[h] = response.headers.get(h) 
+            response.raise_for_status() 
+            return response.json() 
+
+        api_client.do = patched_do.__get__(api_client) 
+
     w = WorkspaceClient(
         host=databricksHost,
         azure_client_secret = os.environ["AzureClientSecret"],
         azure_client_id = os.environ["AzureClientId"],
         azure_tenant_id = os.environ["AzureTenantId"],
-        auth_type='azure-client-secret',
-        session=session
+        auth_type='azure-client-secret'
     )
+    patch_api_client(w._api_client) 
     return w
 
 def get_workspace_groups(workspace_client):
