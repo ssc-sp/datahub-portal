@@ -16,8 +16,8 @@ app = func.FunctionApp()
 
 def get_config():
     asb_connection_str = os.getenv('DatahubServiceBus')
-    queue_name = "bug-report" or os.getenv('AzureServiceBusQueueName4Bugs')
-    check_results_queue_name = "infrastructure-health-check-results" or os.getenv('AzureServiceBusQueueName4Results')
+    queue_name = os.getenv('AzureServiceBusQueueName4Bugs') or "bug-report"
+    check_results_queue_name = os.getenv('AzureServiceBusQueueName4Results') or "infrastructure-health-check-results"
     return asb_connection_str, queue_name, check_results_queue_name
 
 @app.function_name(name="SynchronizeWorkspaceUsersHttpTrigger")
