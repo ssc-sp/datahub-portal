@@ -58,7 +58,7 @@ def queue_sync_workspace_users_function(msg: func.ServiceBusMessage):
     return None
 
 def send_exception_to_service_bus(exception_message):
-    asb_connection_str, queue_name = get_config()
+    asb_connection_str, queue_name, check_results_queue_name = get_config()
     bug_report = brm.BugReportMessage(
         UserName="Datahub Portal",
         UserEmail="",
@@ -75,15 +75,15 @@ def send_exception_to_service_bus(exception_message):
         BugReportType="Synchronizing databricks workspace error",
         Description=exception_message
     )
-    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type="AmqpWebSockets") as client:
+    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=servicebus.TransportType.AmqpOverWebsocket) as client:
         with client.get_queue_sender(queue_name) as sender:
             message = servicebus.ServiceBusMessage(bug_report.to_json())
             sender.send_messages(message)
             print(f"Sent message to queue: {queue_name}")
 
 def send_healthcheck_to_service_bus(message):
-    asb_connection_str, check_results_queue_name = get_config()
-    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type="AmqpWebSockets") as client:
+    asb_connection_str, queue_name, check_results_queue_name = get_config()
+    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=servicebus.TransportType.AmqpOverWebsocket) as client:
         with client.get_queue_sender(check_results_queue_name) as sender:
             message = servicebus.ServiceBusMessage(message.to_json())
             sender.send_messages(message)
