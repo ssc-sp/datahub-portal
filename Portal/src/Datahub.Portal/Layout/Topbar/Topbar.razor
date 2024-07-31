@@ -23,31 +23,60 @@
     <h2 class="sr-only">@Localizer["Navigation menu"]</h2>
     <nav role="navigation">
         <ul style="list-style-type: none">
-            <li style="display: inline-block; margin-inline: 5px">
-                <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.Home] Size="Size.Small">
-                    @Localizer["Home"]
-                </DHButton>
-            </li>
-            <li style="display: inline-block; margin-inline: 5px">
-                <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.News] Size="Size.Small">
-                    @Localizer["News"]
-                </DHButton>
-            </li>
-            <li style="display: inline-block; margin-inline: 5px">
-                <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.Explore] Size="Size.Small">
-                    @Localizer["Explore"]
-                </DHButton>
-            </li>
-            <li style="display: inline-block; margin-inline: 5px">
-                <DHButton Variant="Variant.Text" Href=@Localizer[@PageRoutes.ResourceDefault] Size="Size.Small">
-                    @Localizer["Learn"]
-                </DHButton>
-            </li>
-            <li style="display: inline-block; margin-inline: 5px">
-                <DHButton Variant="Variant.Text" Href=@Localizer[@PageRoutes.Help] Size="Size.Small">
-                    @Localizer["Support"]
-                </DHButton>
-            </li>
+            <MudHidden Breakpoint="Breakpoint.LgAndDown" Invert="true">
+                <li style="display: inline-block; margin-inline: 5px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.Home] Size="Size.Small">
+                        @Localizer["Home"]
+                    </DHButton>
+                </li>
+                <li style="display: inline-block; margin-inline: 5px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.News] Size="Size.Small">
+                        @Localizer["News"]
+                    </DHButton>
+                </li>
+                <li style="display: inline-block; margin-inline: 5px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.Explore] Size="Size.Small">
+                        @Localizer["Explore"]
+                    </DHButton>
+                </li>
+                <li style="display: inline-block; margin-inline: 5px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[@PageRoutes.ResourceDefault] Size="Size.Small">
+                        @Localizer["Learn"]
+                    </DHButton>
+                </li>
+                <li style="display: inline-block; margin-inline: 5px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[@PageRoutes.Help] Size="Size.Small">
+                        @Localizer["Support"]
+                    </DHButton>
+                </li>
+            </MudHidden>
+            <MudHidden Breakpoint="Breakpoint.XlAndUp" Invert="true">
+                <li style="display: inline-block; margin-inline: 5px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.Home] Size="Size.Medium">
+                        @Localizer["Home"]
+                    </DHButton>
+                </li>
+                <li style="display: inline-block; margin-inline: 5px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.News] Size="Size.Medium">
+                        @Localizer["News"]
+                    </DHButton>
+                </li>
+                <li style="display: inline-block; margin-inline: 5px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.Explore] Size="Size.Medium">
+                        @Localizer["Explore"]
+                    </DHButton>
+                </li>
+                <li style="display: inline-block; margin-inline: 5px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[@PageRoutes.ResourceDefault] Size="Size.Medium">
+                        @Localizer["Learn"]
+                    </DHButton>
+                </li>
+                <li style="display: inline-block; margin-inline: 5px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[@PageRoutes.Help] Size="Size.Medium">
+                        @Localizer["Support"]
+                    </DHButton>
+                </li>
+            </MudHidden>
         </ul>
     </nav>
 </MudStack>
