@@ -8,7 +8,6 @@ import os
 import json
 import bug_report_message as brm
 import healthcheck_message as hcm
-import azure.servicebus.TransportType as TransportType
 
 #from lib.databricks_utils import get_workspace_client, remove_deleted_users_in_workspace, synchronize_workspace_users
 #from azure.servicebus import ServiceBusClient, ServiceBusMessage
@@ -76,7 +75,7 @@ def send_exception_to_service_bus(exception_message):
         BugReportType="Synchronizing databricks workspace error",
         Description=exception_message
     )
-    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=TransportType.AmqpOverWebsocket) as client:
+    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=servicebus.TransportType.AmqpOverWebsocket) as client:
         with client.get_queue_sender(queue_name) as sender:
             message = servicebus.ServiceBusMessage(bug_report.to_json())
             sender.send_messages(message)
@@ -84,7 +83,7 @@ def send_exception_to_service_bus(exception_message):
 
 def send_healthcheck_to_service_bus(message):
     asb_connection_str, queue_name, check_results_queue_name = get_config()
-    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=TransportType.AmqpOverWebsocket) as client:
+    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=servicebus.TransportType.AmqpOverWebsocket) as client:
         with client.get_queue_sender(check_results_queue_name) as sender:
             message = servicebus.ServiceBusMessage(message.to_json())
             sender.send_messages(message)
