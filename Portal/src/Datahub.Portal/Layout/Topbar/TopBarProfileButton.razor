@@ -43,7 +43,7 @@
             </MudMenuItem>
         </ChildContent>
     </MudMenu> *@
-    <MudHidden Breakpoint="Breakpoint.LgAndDown" Invert="true">
+    <MudHidden Breakpoint="Breakpoint.MdAndDown" Invert="true">
         <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Language selection"]</MudText>
         <LanguageToggle @ref="_languageToggle" Size="Size.Small" />
         <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
@@ -51,7 +51,7 @@
             @Localizer["Sign Out"]
         </DHButton>
     </MudHidden>
-    <MudHidden Breakpoint="Breakpoint.XlAndUp" Invert="true">
+    <MudHidden Breakpoint="Breakpoint.LgAndUp" Invert="true">
         <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Language selection"]</MudText>
         <LanguageToggle @ref="_languageToggle" Size="Size.Medium" />
         <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
