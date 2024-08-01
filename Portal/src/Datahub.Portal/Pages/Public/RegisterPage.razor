@@ -1,7 +1,5 @@
-@using Datahub.Portal.Data.Forms
 @using Datahub.Application.Services.Metadata
 @using Datahub.Application.Services
-@using System.Timers
 
 @inject ILogger<RegisterPage> _logger
 @inject IMetadataBrokerService _metadataBrokerService
@@ -13,70 +11,65 @@
 
 <PageTitle>@Localizer["Registration - Federal Science DataHub"]</PageTitle>
 
-<PublicLandingDescription>
-    <h1 id="maincontent" class="sr-only">
-        @Localizer["Registration page"]
-    </h1>
-    <MudStack AlignItems="AlignItems.Center">
-        <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
-            <MudStack>
-                <MudTextField T="string"
-                              Label=@_emailFieldText
-                              @bind-Value="_email"
-                              Required
-                              Variant="Variant.Outlined"
-                              RequiredError=@Localizer["Government of Canada Email is required"]
-                              Validation=@(new Func<string, string>(EmailValidation)) />
+<MudStack >
+    <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
+        <MudStack>
+            <MudTextField T="string"
+                          Label=@_emailFieldText 
+                                                                                                                        @bind-Value="_email"
+                          Required
+                          Variant="Variant.Outlined"
+                          RequiredError=@Localizer["Government of Canada Email is required"]
+                          Validation=@(new Func<string, string>(EmailValidation))/>
 
-                <MudTextField T="string"
-                              Label=@Localizer["(Optional) How did you hear about the Federal Science DataHub?"]
-                              Variant="Variant.Outlined"
-                              Lines="5"
-                              @bind-Value="@_comment" />
+            <MudTextField T="string"
+                          Label=@Localizer["(Optional) How did you hear about the Federal Science DataHub?"]
+                          Variant="Variant.Outlined"
+                          Lines="5"
+                          @bind-Value="@_comment"/>
 
-                <MudCheckBox T="bool"
-                             Required
-                             RequiredError=@Localizer["Agreement with the Terms and conditions is required"]
-                             Class="mt-8">
+            <MudCheckBox T="bool"
+                         Required
+                         RequiredError=@Localizer["Agreement with the Terms and conditions is required"]
+                         Class="mt-4">
 
-                    <MudText Typo="Typo.body2">
-                        @Localizer["I agree to the "]
-                        <MudLink Href="@Localizer[PageRoutes.TermsAndConditions]" Typo="Typo.body2">
-                            @Localizer["Terms and conditions"]
-                        </MudLink>
-                        @Localizer[" of use for the FSDH Trial"]
-                    </MudText>
+                <MudText Typo="Typo.body2">
+                    @Localizer["I agree to the "]
+                    <MudLink Href="@Localizer[PageRoutes.TermsAndConditions]" Typo="Typo.body2">
+                        @Localizer["Terms and conditions"]
+                    </MudLink>
+                    @Localizer[" of use for the FSDH Trial"]
+                </MudText>
 
-                </MudCheckBox>
+            </MudCheckBox>
 
-                @if (_isRegistering)
-                {
-                    <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mx-auto mt-4">
-                        @Localizer["Registering"]
-                        <MudProgressCircular Class="ml-4" Color="Color.Default" Size="Size.Small" Indeterminate="true" />
-                    </MudButton>
-                    <MudAlert Severity="Severity.Warning" hidden="@(!_failed)" Class="mt-4">
-                        @Localizer["This is taking longer than normal... Please try signing in and contact support if you encounter any issue."]
-                    </MudAlert>
-                }
-                else
-                {
-                    <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mx-auto mt-4" OnClick="HandleValidSubmit">
-                        @Localizer["Register"]
-                    </MudButton>
-                }
-            </MudStack>
-        </MudForm>
-        <MudText Typo="Typo.body2" Align="Align.Center">
-            @Localizer["Already registered?"]
-            <MudLink Typo="Typo.body2" Href="/login">@Localizer["Login instead"]</MudLink>
-        </MudText>
-        <MudText Typo="Typo.body2" Align="Align.Center">
-            <MudLink Typo="Typo.body2" Target="_blank" Href="/account-setup">@Localizer["Click here for detailed instructions"]</MudLink>
-            @Localizer["on setting up your account."]
-        </MudText>
-    </MudStack>
-</PublicLandingDescription>
+            @if (_isRegistering)
+            {
+                <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mx-auto mt-4">
+                    @Localizer["Registering"]
+                    <MudProgressCircular Class="ml-4" Color="Color.Default" Size="Size.Small" Indeterminate="true"/>
+                </MudButton>
+                <MudAlert Severity="Severity.Warning" hidden="@(!_failed)" Class="mt-4">
+                    @Localizer["This is taking longer than normal... Please try signing in and contact support if you encounter any issue."]
+                </MudAlert>
+            }
+            else
+            {
+                <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mx-auto mt-4 px-16" OnClick="HandleValidSubmit">
+                    @Localizer["Register"]
+                </MudButton>
+            }
+        </MudStack>
+    </MudForm>
+    <MudText Typo="Typo.body2" Align="Align.Center">
+        @Localizer["Already registered?"]
+        <MudLink Typo="Typo.body2" Href="/login">@Localizer["Login instead"]</MudLink>
+    </MudText>
+    <MudText Typo="Typo.body2" Align="Align.Center">
+        <MudLink Typo="Typo.body2" Target="_blank" Href="/account-setup">@Localizer["Click here for detailed instructions"]</MudLink>
+        @Localizer["on setting up your account."]
+    </MudText>
+</MudStack>
 
 
 @code {
