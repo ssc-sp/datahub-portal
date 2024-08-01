@@ -91,9 +91,9 @@
         </MudStack>
     </DatahubAuthView>
     <MudStack Row Class="mt-6 mb-4">
-        <MudText Typo="Typo.h2">
+        <h1 id="maincontent">
             @Localizer["Workspace Users"]
-        </MudText>
+        </h1>
         <MudSpacer/>
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
             <DHButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">

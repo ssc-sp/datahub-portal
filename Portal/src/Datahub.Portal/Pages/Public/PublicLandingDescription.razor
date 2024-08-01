@@ -1,24 +1,15 @@
 @using MudBlazor.Utilities
 @using Datahub.Core.Components.Common
 
-<MudButton HtmlTag="a" Style="position: absolute; top: 0.5rem; right:  0.5rem;">
-    <LanguageToggle/>
-</MudButton>
 <MudGrid Style="@_backgroundStyle" Spacing="0">
     <MudItem xs="0" sm="2" md="4" lg="5" xl="7"/>
-    <MudItem xs="12" sm="10" md="8" lg="7" xl="5" Style="display: flex;">
-        <MudPaper Class="pt-16 px-16" Square>
-            <MudStack Justify="Justify.SpaceBetween" Style="height: 100%;">
+    <MudItem xs="12" sm="10" md="8" lg="7" xl="5" Style="display: flex; width: auto">
+        <MudPaper Class="pt-16 px-16" Square MinWidth="100%">
+            <MudStack Style="height: 100%">
                 <MudStack>
-                    <MudImage Src="/img/canada-fip.svg" Alt=@Localizer["Government of Canada Wordmark"] Style="max-height: 25px; float:left!important;"/>
-                    <MudText Typo="Typo.h2">
-                        @Localizer["Federal Science DataHub"]
-                    </MudText>
-                    <MudText Typo="Typo.h2" >
+                    <h1 id="maincontent">@Localizer["MainTitle"] - @Localizer["Login or register"]</h1>
+                    <MudText Typo="Typo.body1">
                         @Localizer["Welcome to the Government of Canada's digital hub for science data solutions."]
-                    </MudText>
-                    <MudText Typo="Typo.caption">
-                        @Localizer["Hosted by SSC"]
                     </MudText>
                 </MudStack>
                 <MudStack>
@@ -35,12 +26,7 @@
                         </MudElement>
                     </MudElement>
                 </MudStack>
-                <MudGrid Spacing="0" Justify="Justify.Center">
-                    <MudItem xs="12" md="10">
-                        @ChildContent
-                    </MudItem>
-                </MudGrid>
-                <DHFooter/>
+                    @ChildContent
             </MudStack>
         </MudPaper>
     </MudItem>
@@ -64,5 +50,6 @@
             .AddStyle("min-height", "100vh")
             .Build();
     }
+    
 
 }

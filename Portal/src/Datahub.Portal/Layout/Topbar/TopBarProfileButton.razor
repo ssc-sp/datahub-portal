@@ -43,7 +43,9 @@
             </MudMenuItem>
         </ChildContent>
     </MudMenu> *@
-    <LanguageToggle @ref="_languageToggle" />
+    <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Language selection"]</MudText>
+    <LanguageToggle @ref="_languageToggle"/>
+    <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
     <DHButton OnClick="@HandleLogOut">
         @Localizer["Sign Out"]
     </DHButton>
