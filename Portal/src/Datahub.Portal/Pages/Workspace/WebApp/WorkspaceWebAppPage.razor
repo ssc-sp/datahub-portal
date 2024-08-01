@@ -22,10 +22,10 @@
     return;
 }
 <MudStack>
-    <MudStack Row="true">
-        <MudText Typo="Typo.h2">
+    <MudStack Row="true" AlignItems="AlignItems.Center">
+        <h1 id="maincontent">
             @Localizer["Web Application"]
-        </MudText>
+        </h1>
         @if (_isConfigured)
         {
             <MudStack AlignItems="AlignItems.End" Justify="Justify.Center">

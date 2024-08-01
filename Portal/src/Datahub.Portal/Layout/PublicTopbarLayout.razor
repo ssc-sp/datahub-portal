@@ -1,5 +1,4 @@
-@using MudBlazor.Utilities
-@using Datahub.Portal.Pages.Public
+﻿@using MudBlazor.Utilities
 @inherits LayoutComponentBase
 
 @attribute [AllowAnonymous]
@@ -13,11 +12,10 @@
     <MudAppBar Elevation="0" Style="@_topBorderStyle">
         <PublicTopbar/>
     </MudAppBar>
-    <PublicLandingDescription>
+    <MudContainer >
         @Body
-        <MudSpacer/>
-        <DHFooter/>
-    </PublicLandingDescription>
+    </MudContainer>
+    <DHFooter/>
 </MudLayout>
 
 @code {

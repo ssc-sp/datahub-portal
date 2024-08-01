@@ -4,6 +4,7 @@
 @inject NavigationManager _navManager
 
 <nav class="sr-only">
+    <h2>@Localizer["Screen reader navigation"]</h2>
     <ul>
         <li>
             <a href="@(_navManager.Uri + "#maincontent")">@Localizer["Skip to main content"]</a>
@@ -23,7 +24,7 @@
     <h2 class="sr-only">@Localizer["Navigation menu"]</h2>
     <nav role="navigation">
         <ul style="list-style-type: none">
-            <MudHidden Breakpoint="Breakpoint.LgAndDown" Invert="true">
+            <MudHidden Breakpoint="Breakpoint.MdAndDown" Invert="true">
                 <li style="display: inline-block; margin-inline: 5px">
                     <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.Home] Size="Size.Small">
                         @Localizer["Home"]
@@ -50,7 +51,7 @@
                     </DHButton>
                 </li>
             </MudHidden>
-            <MudHidden Breakpoint="Breakpoint.XlAndUp" Invert="true">
+            <MudHidden Breakpoint="Breakpoint.LgAndUp" Invert="true">
                 <li style="display: inline-block; margin-inline: 5px">
                     <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.Home] Size="Size.Medium">
                         @Localizer["Home"]

@@ -23,9 +23,7 @@
     @Localizer["Resources - Federal Science DataHub"]
 </PageTitle>
 
-<h1 id="maincontent" class="sr-only">
-    @Localizer["Resources page"]
-</h1>
+
 
 @if (PageIsLoading)
 {
@@ -33,6 +31,7 @@
 }
 else
 {
+    <h1 id="maincontent">@Localizer["Learning resources and documentation"]</h1>
     <MudGrid Class="px-4">
         <MudItem>
             @if (ShowPreviewCards)
