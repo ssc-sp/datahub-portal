@@ -24,6 +24,11 @@ namespace Datahub.Functions
         IAlertRecordService alertRecordService,
         IHttpClientFactory httpClientFactory)
     {
+        // TODO: enable configuration of these toggles
+        private bool _postToTeams = true;
+        private bool _sendEmailNotification = true;
+        private bool _postToDevops = false;
+
         [Function("BugReport")]
         public async Task Run(
             [ServiceBusTrigger(QueueConstants.BugReportQueueName, Connection = "DatahubServiceBus:ConnectionString")]
@@ -47,37 +52,24 @@ namespace Datahub.Functions
                     }
                 }
 
-                await PostToTeams(bug);
+                var postedToTeams = await PostToTeams(bug);
 
                 // Build the ADO issue
                 var issue = CreateIssue(bug);
 
                 // Post the issue to ADO and parse the response
                 var workItem = await PostIssue(issue);
+                var postedToDevops = workItem is not null;
 
                 // Build the email
                 var email = BuildEmail(bug, workItem);
+                var emailSent = await SendEmailNotification(email);
 
-                if (email is not null)
-                {
-                    try
-                    {
-                        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
-                            email);
+                logger.LogDebug($"Posted to Teams: {postedToTeams}; posted to Devops: {postedToDevops}; sent email: {emailSent}");
 
-                        await alertRecordService.RecordReceivedAlert(bug);
-                    }
-                    catch (Exception e)
-                    {
-                        logger.LogError(e, "Unable to send email.");
+                var alertSent = postedToDevops || postedToTeams || emailSent;
 
-                        await alertRecordService.RecordReceivedAlert(bug, false);
-                    }
-                }
-                else
-                {
-                    logger.LogError("Unable to build email.");
-                }
+                await alertRecordService.RecordReceivedAlert(bug, alertSent);
             }
             else
             {
@@ -85,12 +77,40 @@ namespace Datahub.Functions
             }
         }
 
-        private async Task PostToTeams(BugReportMessage bug)
+        private async Task<bool> SendEmailNotification(EmailRequestMessage? email)
         {
+            if (email is not null)
+            {
+                try
+                {
+                    await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
+                        email);
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Unable to send email.");
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private async Task<bool> PostToTeams(BugReportMessage bug)
+        {
+            if (!_postToTeams)
+            {
+                logger.LogInformation("Posting to Teams is disabled.");
+                return false;
+            }
+
             if (string.IsNullOrEmpty(config.BugReportTeamsWebhookUrl))
             {
                 logger.LogWarning("Teams Webhook is not configured - alert will not be posted to Teams. Please configure BugReportTeamsWebhookUrl setting.");
-                return;
+                return false;
             }
 
             var bugTeamsMessage = new TeamsWebhookMessage("Bug Report", bug.BugReportType.ToString());
@@ -118,39 +138,62 @@ namespace Datahub.Functions
                 if (response.IsSuccessStatusCode)
                 {
                     logger.LogInformation("Alert successfully posted to Teams");
+                    return true;
                 }
                 else
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     logger.LogError($"Problem posting to Teams Webhook - status {response.StatusCode} - {content}");
+                    return false;
                 }
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error posting alert to Teams");
+                return false;
             }
         }
 
         private EmailRequestMessage? BuildEmail(BugReportMessage bug, WorkItem? workItem)
         {
-            var sendTo = new List<string>
-                { config.Email.AdminEmail ?? throw new MissingMemberException("Admin email not set.") };
-            var url = workItem?.Url ?? "";
-            var id = workItem?.Id.ToString() ?? "";
-
-            Dictionary<string, string> subjectArgs = new()
+            if (!_sendEmailNotification)
             {
-                { "{title}", $"{bug.Topics} in {bug.Workspaces}" }
-            };
+                logger.LogInformation("Email notifications are disabled.");
+                return default;
+            }
 
-            Dictionary<string, string> bodyArgs = new()
+            try
             {
-                { "{id}", id },
-                { "{url}", url },
-                { "{description}", bug.Description }
-            };
+                var sendTo = new List<string>
+                    { config.Email.AdminEmail ?? throw new MissingMemberException("Admin email not set.") };
+                var url = workItem?.Url ?? "";
+                var id = workItem?.Id.ToString() ?? "";
 
-            return emailService.BuildEmail("bug_report.html", sendTo, new List<string>(), bodyArgs, subjectArgs);
+                Dictionary<string, string> subjectArgs = new()
+                {
+                    { "{title}", $"{bug.Topics} in {bug.Workspaces}" }
+                };
+
+                Dictionary<string, string> bodyArgs = new()
+                {
+                    { "{id}", id },
+                    { "{url}", url },
+                    { "{description}", bug.Description }
+                };
+
+                var emailMessage = emailService.BuildEmail("bug_report.html", sendTo, new List<string>(), bodyArgs, subjectArgs);
+                if (emailMessage is null)
+                {
+                    logger.LogError("Unable to build email notification.");
+                }
+
+                return emailMessage;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error building email notification.");
+                return default;
+            }
         }
 
 
@@ -203,6 +246,12 @@ namespace Datahub.Functions
 
         private async Task<WorkItem?> PostIssue(JsonPatchDocument body)
         {
+            if (!_postToDevops)
+            {
+                logger.LogInformation("Posting to DevOps is disabled.");
+                return default;
+            }
+
             var clientProvider = new AzureDevOpsClient(config.AzureDevOpsConfiguration);
             var client = await clientProvider.WorkItemClientAsync();
             var workItem = await client.CreateWorkItemAsync(body, config.AzureDevOpsConfiguration.ProjectName, "Issue");
