@@ -1,7 +1,10 @@
 ﻿using Datahub.Application.Configuration;
 using Datahub.Application.Services.ReverseProxy;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using System.Reflection.Metadata;
 using Yarp.ReverseProxy.Configuration;
+using Yarp.ReverseProxy.Health;
 using Yarp.ReverseProxy.Transforms;
 
 namespace Datahub.Infrastructure.Services.ReverseProxy;
@@ -10,7 +13,7 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
 {
     private readonly DatahubProjectDBContext _context;
     private readonly DatahubPortalConfiguration _config;
-    
+
 
     public ReverseProxyConfigService(DatahubProjectDBContext context, DatahubPortalConfiguration config)
     {
@@ -25,23 +28,40 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
 
     }
 
-    public List<(string Acronym, RouteConfig Route, ClusterConfig Cluster)> GetAllConfigurationFromProjects()
+    private static string SanitizeWebAppURL(string url)
     {
-        var basePath = _config.ReverseProxy.BasePath;
+        if (!url.EndsWith("/"))
+        {
+            url += "/";
+        }
+        if (!url.StartsWith("http"))
+        {
+            url = "https://" + url;
+        }
+        return url;
+    }
+
+    public string BuildWebAppURL(string acronym)
+    {
+        return IReverseProxyConfigService.WebAppPrefix + "-" + acronym;
+    }
+
+    public List<(string Acronym, RouteConfig Route, ClusterConfig Cluster)> GetAllConfigurationFromProjects()
+    {       
 
         var data = _context.Projects
             .Where(e => e.WebAppEnabled == true && e.WebApp_URL != null)
-            .Select(e => new ProjectWebData(e.Project_Acronym_CD, e.WebApp_URL))
+            .Select(e => new ProjectWebData(e.Project_Acronym_CD, SanitizeWebAppURL(e.WebApp_URL), e.WebAppUrlRewritingEnabled))
             .ToList();
 
-        var routes = data.Select(d => BuildRoute(basePath, d.Acronym)).ToList();
+        var routes = data.Select(d => BuildRoute(d.Acronym, d.UrlRewritingEnabled)).ToList();
         var clusters = data.Select(d => BuildCluster(d.Acronym, d.Url)).ToList();
-        return data.Select(d => (d.Acronym, BuildRoute(basePath, d.Acronym), BuildCluster(d.Acronym, d.Url))).ToList(); 
+        return data.Select(d => (d.Acronym, BuildRoute(d.Acronym, d.UrlRewritingEnabled), BuildCluster(d.Acronym, d.Url))).ToList();
     }
 
-    static RouteConfig BuildRoute(string basePath, string acronym)
+    RouteConfig BuildRoute(string acronym, bool urlRewritingEnabled)
     {
-        var prefix = $"/{basePath}/{acronym}";
+        var prefix = $"/{BuildWebAppURL(acronym)}";
         var route = new RouteConfig()
         {
             RouteId = GetRouteId(acronym),
@@ -49,9 +69,15 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
             Match = new()
             {
                 Path = $"{prefix}/{{**catch-all}}"
-            }
+            }                        
         };
-        return route.WithTransformPathRemovePrefix(prefix);
+
+        var finalRoute = route.
+            WithTransformForwarded().
+            WithTransformXForwarded();
+        if (urlRewritingEnabled)
+            finalRoute = finalRoute.WithTransformPathRemovePrefix(prefix);
+        return finalRoute;
     }
 
     static ClusterConfig BuildCluster(string acronym, string webUrl)
@@ -61,7 +87,7 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
             ClusterId = GetClusterId(acronym),
             Destinations = new Dictionary<string, DestinationConfig>()
             {
-                { "destination1", new() { Address = webUrl }}
+                { $"destination-{acronym}", new() { Address = webUrl }}
             }
         };
     }
@@ -69,5 +95,5 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
     static string GetRouteId(string acronym) => $"route-{acronym}".ToLower();
     static string GetClusterId(string acronym) => $"cluster-{acronym}".ToLower();
 
-    record ProjectWebData(string Acronym, string Url);
+    record ProjectWebData(string Acronym, string Url, bool UrlRewritingEnabled);
 }

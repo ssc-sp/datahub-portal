@@ -1,9 +1,11 @@
-﻿@using Datahub.Core.Model.Projects
+﻿@using Datahub.Application.Services.ReverseProxy
+@using Datahub.Core.Model.Projects
+@inject IReverseProxyConfigService ReverseProxyConfigService
 
 <MudPaper Outlined Class="pa-4">
     <MudStack>
         <MudStack Row AlignItems="AlignItems.Center">
-            <MudIcon Icon="@SidebarIcons.WebApp" Size="Size.Medium"/>
+            <DHIcon Icon="@SidebarIcons.WebApp" Size="Size.Medium" />
             <MudText Typo="Typo.h3">@Localizer["Web Application"]</MudText>
             <MudSpacer/>
 
@@ -14,23 +16,22 @@
         @if (ProjectResource.CreatedAt.HasValue)
         {
             <MudElement HtmlTag="div">
-                <MudButton
+                <DHButton
                     Href="@GetWebAppUrl()"
                     Target="_blank"
                     Color="Color.Primary"
                     Variant="@Variant.Text"
                     EndIcon="@SidebarIcons.External">
                     @Localizer["Navigate to Web App"]
-                </MudButton>
+                </DHButton>
             </MudElement>
             <MudElement HtmlTag="div">
-                <MudButton
-                    Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{PageRoutes.WebAppPrefix}")
+                <DHButton Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{IReverseProxyConfigService.WebAppPrefix}")
                     Color="Color.Primary"
                     Variant="@Variant.Text"
                     EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
                     @Localizer["View Web App configuration"]
-                </MudButton>
+                </DHButton>
             </MudElement>
         }
     </MudStack>
@@ -45,7 +46,7 @@
 
     private string GetWebAppUrl()
     {
-        var url = $"/{PageRoutes.WebAppPrefix}/{WorkspaceAcronym}/";
+        var url = $"/{ReverseProxyConfigService.BuildWebAppURL(WorkspaceAcronym)}/";
         return url;
     }
 

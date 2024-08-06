@@ -28,8 +28,9 @@ else
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
+
+    private DateTime _lastUpdate { get; set; }
 
     private List<DayAverage> _averages = default;
     private ApexChartOptions<DayAverage> _storageDailyChartOptions { get; set; } = new();
@@ -55,15 +56,26 @@ else
         var minDate = DateTime.Now.AddDays(-30).Date;
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var averages = await ctx.Projects
+        var project_averages = await ctx.Projects
             .Where(e => e.Project_Acronym_CD == WorkspaceAcronym)
-            .Join(ctx.Project_Storage_Avgs, p => p.Project_ID, s => s.ProjectId, (p, s) => s)
-            .Where(e => e.Date >= minDate)
-            .Select(e => new DayAverage(e.Date, e.AverageCapacity))
-            .ToListAsync();
+            .Join(ctx.Project_Storage_Avgs, p => p.Project_ID, s => s.ProjectId, (p, s) => s).ToListAsync();
+        var averages = project_averages.Where(e => e.Date >= minDate)
+            .Select(e => new DayAverage(e.Date, e.AverageCapacity)).ToList();
 
+        _lastUpdate = project_averages.Max(e => e.Date);
         return averages;
     }
 
     record DayAverage(DateTime Date, double Average);
+}
+    private DateTime ConvertToLocalTime(DateTime UTCTime)
+    {
+        TimeZone localZone = TimeZone.CurrentTimeZone;
+        return localZone.ToLocalTime(UTCTime);
+    }
+
+    static string FormatDay(int day) => $"{day.ToString("D2")}";
+
+    record DayAverage(int Day, double Average);
+
 }

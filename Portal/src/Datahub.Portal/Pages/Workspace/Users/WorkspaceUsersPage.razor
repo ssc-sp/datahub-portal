@@ -26,9 +26,9 @@
             {
                 <MudStack Row AlignItems="AlignItems.Center">
                     <MudElement>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="SaveChanges">
+                        <DHButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="SaveChanges">
                             @Localizer["Save Changes"]
-                        </MudButton>
+                        </DHButton>
                     </MudElement>
                     <MudAlert Severity="Severity.Info" Class="my-3">
                         <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
@@ -54,7 +54,7 @@
                                         @if (userToBeAdded.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID)
                                         {
                                             <MudAvatar>
-                                                <MudIcon Icon="@Icons.Material.Outlined.PersonAdd"/>
+                                                <DHIcon Icon="@Icons.Material.Outlined.PersonAdd" />
                                             </MudAvatar>
                                         }
                                         else
@@ -91,14 +91,14 @@
         </MudStack>
     </DatahubAuthView>
     <MudStack Row Class="mt-6 mb-4">
-        <MudText Typo="Typo.h2">
+        <h1 id="maincontent">
             @Localizer["Workspace Users"]
-        </MudText>
+        </h1>
         <MudSpacer/>
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
+            <DHButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
                 @Localizer["Invite New User"]
-            </MudButton>
+            </DHButton>
         </DatahubAuthView>
     </MudStack>
     <MudTable Items="@_filteredProjectUsers" Striped Filter="@(new Func<Datahub_Project_User, bool>(SearchFilter))">

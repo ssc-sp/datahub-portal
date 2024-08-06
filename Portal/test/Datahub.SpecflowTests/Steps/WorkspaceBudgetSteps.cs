@@ -1,4 +1,5 @@
 ﻿using Datahub.Application.Services.Budget;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Services.Cost;
@@ -106,8 +107,8 @@ namespace Datahub.SpecflowTests.Steps
         [When(@"the budget is updated for that workspace")]
         public async Task WhenTheBudgetIsUpdatedForThatWorkspace()
         {
-            var budgetId = scenarioContext["budgetId"] as string;
-            await sut.UpdateWorkspaceBudgetSpentAsync("TEST", budgetId);
+            var budgetIds = new List<string> { scenarioContext["budgetId"] as string };
+            await sut.UpdateWorkspaceBudgetSpentAsync("TEST", budgetIds);
         }
 
         [Then(@"project credit record should be updated")]

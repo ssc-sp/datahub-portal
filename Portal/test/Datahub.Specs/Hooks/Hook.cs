@@ -1,8 +1,8 @@
-using BoDi;
 using Datahub.Specs.PageObjects;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Playwright;
 using Reqnroll;
+using Reqnroll.BoDi;
 
 namespace Datahub.Specs.Hooks;
 

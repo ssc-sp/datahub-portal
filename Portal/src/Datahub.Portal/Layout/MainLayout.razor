@@ -17,7 +17,7 @@
 
 
 
-<PageTitle>@Localizer[_portalConfiguration.Title]</PageTitle>
+<PageTitle>@Localizer["Federal Science DataHub"]</PageTitle>
 
 @if (_isLoaded)
 {
@@ -54,6 +54,7 @@ else
         <i class="fa-duotone fa-house" style="opacity:0; position: absolute; top: 0; left: 0;"></i>
         <DHLoadingInitializer Message="@Localizer[GetLoadMessage()]"/>
     </MudContainer>
+    <MudDialogProvider />
 }
 
 @code
@@ -125,7 +126,7 @@ else
         var options = new DialogOptions
         {
             CloseOnEscapeKey = false,
-            DisableBackdropClick = true,
+            BackdropClick = false,
         };
 
         var tocDialog = await _dialogService.ShowAsync<UserTermsAndConditionsDialog>(Localizer["TermsAndConditions"], options);
@@ -146,7 +147,7 @@ else
         var options = new DialogOptions
         {
             CloseOnEscapeKey = false,
-            DisableBackdropClick = true,
+            BackdropClick = false,
         };
 
         var languageDialog = await _dialogService.ShowAsync<UserSelectLanguageDialog>(Localizer["LanguagePreferencePrompt"], options);

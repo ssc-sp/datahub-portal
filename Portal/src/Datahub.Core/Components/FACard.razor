@@ -3,7 +3,7 @@
 <AeCard class="facard1">
     <ChildContent>
         <AeFlex>
-            <MudIcon Icon="@GetIconClass()" />
+            <MudIcon aria-hidden="true" focusable="false" Icon="@GetIconClass()" />
             <AeFlex Vertical>
 @if (NavLink is null)
 {
@@ -16,7 +16,7 @@ else
 @if (!(InfoLink is null))
 {
                 <AeTypography Variant="a" class="top-right" @onclick="@(() => NavigationManager.NavigateTo(InfoLink))">
-                    <MudIcon Icon="@Icon" />
+                        <MudIcon aria-hidden="true" focusable="false" Icon="@Icon" />
                 </AeTypography>
 }
                 <AeTypography>@Text</AeTypography>

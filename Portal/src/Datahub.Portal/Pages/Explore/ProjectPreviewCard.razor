@@ -15,9 +15,9 @@
                 <ProjectPreviewCardIconDetails
                     NumberOfWorkspacesRemaining="@NumberOfRemainingWorkspaces"/>
                 <MudElement>
-                    <MudButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary" OnClick="@OnCreateWorkspace">
+                    <DHButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary" Href="@PageRoutes.CreateWorkspace">
                         @Localizer["Create Workspace"]
-                    </MudButton>
+                    </DHButton>
                 </MudElement>
             </MudStack>
         </MudStack>
@@ -37,10 +37,10 @@ else
                     NumberOfRepositories="Project?.Repositories?.Count ?? 0"
                     NumberOfFiles="0"/>
                 <MudElement>
-                    <MudButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary"
+                    <DHButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary"
                                Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{Project?.Project_Acronym_CD}")">
                         @Localizer["Open Workspace"]
-                    </MudButton>
+                    </DHButton>
                 </MudElement>
             </MudStack>
         </MudStack>

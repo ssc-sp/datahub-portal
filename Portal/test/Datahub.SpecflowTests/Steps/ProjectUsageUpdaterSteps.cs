@@ -5,6 +5,7 @@ using Azure.Core.Amqp;
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services.Budget;
 using Datahub.Application.Services.Storage;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Functions;
@@ -14,6 +15,7 @@ using FluentAssertions;
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
@@ -29,13 +31,14 @@ namespace Datahub.SpecflowTests.Steps
         IWorkspaceCostManagementService costMgmt,
         IWorkspaceBudgetManagementService budgetMgmt,
         IWorkspaceStorageManagementService storageMgmt,
-        IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+        IConfiguration config)
     {
         [Given(@"a project usage update message")]
         public void GivenAProjectUsageUpdateMessage()
         {
             var mockCosts = new List<DailyServiceCost>();
-            var message = new ProjectUsageUpdateMessage("TEST", mockCosts, false);
+            var message = new ProjectUsageUpdateMessage("TEST", "costs-mock.json", false);
             scenarioContext["message"] = message;
             scenarioContext["mockCosts"] = mockCosts;
         }
@@ -102,7 +105,7 @@ namespace Datahub.SpecflowTests.Steps
             costMgmt.UpdateWorkspaceCostAsync(Arg.Any<List<DailyServiceCost>>(), Arg.Any<string>())
                 .Returns((costRollover, (decimal)10.0));
             var projectUsageUpdater = new ProjectUsageUpdater(loggerFactory, pongService, costMgmt, budgetMgmt,
-                sendEndpointProvider, storageMgmt);
+                sendEndpointProvider, storageMgmt, config);
 
             var rolledOver = await projectUsageUpdater.Run(serviceBusReceivedMessage, CancellationToken.None);
             scenarioContext["rolledOver"] = rolledOver;
@@ -152,6 +155,24 @@ namespace Datahub.SpecflowTests.Steps
             scenarioContext["costSpent"] = (decimal)10.0;
             scenarioContext["costRollover"] = true;
             scenarioContext["budgetSpent"] = (decimal)20.0;
+        }
+
+        [When(@"the subscription costs are downloaded")]
+        public async Task WhenTheSubscriptionCostsAreDownloaded()
+        {
+            var projectUsageUpdater = new ProjectUsageUpdater(loggerFactory, pongService, costMgmt, budgetMgmt,
+                sendEndpointProvider, storageMgmt, config);
+            var message = scenarioContext["message"] as ProjectUsageUpdateMessage;
+            var costs = await projectUsageUpdater.GetFromBlob(message.CostsBlobName);
+            scenarioContext["costs"] = costs;
+        }
+
+        [Then(@"the blob download should work properly")]
+        public void ThenTheBlobDownloadShouldWorkProperly()
+        {
+            var costs = scenarioContext["costs"] as List<DailyServiceCost>;
+            costs.Should().NotBeNull();
+            costs.Should().NotBeEmpty();
         }
     }
 }

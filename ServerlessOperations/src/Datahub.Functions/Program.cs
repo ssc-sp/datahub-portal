@@ -25,6 +25,9 @@ using Datahub.Infrastructure.Services.Cost;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.Extensions.Azure;
+using Datahub.Core.Model.Context;
+using Datahub.Infrastructure.Services.Helpers;
+using Datahub.Shared.Configuration;
 
 
 var host = new HostBuilder()
@@ -56,6 +59,13 @@ var host = new HostBuilder()
                 .OrResult(x => x.StatusCode == HttpStatusCode.TooManyRequests)
                 .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(2), 5)));
 
+        // TODO: implement this in a better way (unified between function and portal apps)
+        var devopsConfig = config?.GetSection("AzureDevOpsConfiguration")?.Get<AzureDevOpsConfiguration>();
+        if (devopsConfig != null)
+        {
+            services.AddSingleton(devopsConfig);
+        }
+
         services.AddSingleton<AzureConfig>();
         services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
         services.AddSingleton<AzureManagementService>();
@@ -83,6 +93,7 @@ var host = new HostBuilder()
         services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
         services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
         services.AddSingleton<IEmailService, EmailService>();
+        services.AddSingleton<IAlertRecordService, AlertRecordService>();
         services.AddScoped<ProjectUsageService>();
         services.AddScoped<QueuePongService>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
@@ -91,6 +102,7 @@ var host = new HostBuilder()
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();
+        services.AddScoped<HealthCheckHelper>();
         services.AddDatahubConfigurationFromFunctionFormat(config);
        
 

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using static Datahub.Infrastructure.UnitTests.Testing;
 using NSubstitute;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.Infrastructure.UnitTests.Services
 {
@@ -24,7 +25,7 @@ namespace Datahub.Infrastructure.UnitTests.Services
             _logger = _loggerFactory.CreateLogger<WorkspaceBudgetManagementServiceTests>();
             var credentials = new ClientSecretCredential(_datahubPortalConfiguration.AzureAd.TenantId, _datahubPortalConfiguration.AzureAd.ClientId, _datahubPortalConfiguration.AzureAd.ClientSecret);
             var armClient = new ArmClient(credentials);
-            _sut = new WorkspaceBudgetManagementService(armClient, _loggerFactory.CreateLogger<WorkspaceBudgetManagementService>(), _dbContextFactory);
+            _sut = new WorkspaceBudgetManagementService(armClient, _loggerFactory.CreateLogger<WorkspaceBudgetManagementService>(), _dbContextFactory, _configuration);
         }
 
         [Test]

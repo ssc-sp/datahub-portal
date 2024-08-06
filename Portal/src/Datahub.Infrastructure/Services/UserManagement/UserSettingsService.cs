@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using Datahub.Application.Services.UserManagement;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.UserTracking;
 using Microsoft.AspNetCore.Components;
@@ -301,7 +302,7 @@ namespace Datahub.Infrastructure.Services.UserManagement
             return false;
         }
 
-        public async Task<bool> SetLanguage(string language)
+        public async Task<bool> SetLanguage(string language, string redirectUrl = "")
         {
             await using var context = await datahubContextFactory.CreateDbContextAsync();
             var userSetting = await GetUserSettingsAsync();
@@ -319,11 +320,14 @@ namespace Datahub.Infrastructure.Services.UserManagement
             var uri = new Uri(navigationManager.Uri).GetComponents(
                 UriComponents.PathAndQuery,
                 UriFormat.Unescaped);
+
+            if (redirectUrl != string.Empty)
+                uri = redirectUrl;
+
             var query = $"?culture={Uri.EscapeDataString(language)}&" +
                         $"redirectionUri={Uri.EscapeDataString(uri)}";
             navigationManager.NavigateTo($"/Culture/SetCulture{query}", forceLoad: true);
 
-            //                Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
             return true;
         }
 

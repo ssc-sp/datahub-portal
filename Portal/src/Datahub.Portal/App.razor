@@ -1,4 +1,7 @@
-﻿<Router AppAssembly="@typeof(Program).Assembly">
+﻿@inject IJSRuntime _jsRuntime
+@inject ILocalStorageService _localStorage
+
+<Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
         <CascadingAuthenticationState>
             @if (routeData?.PageType.Namespace?.StartsWith(PublicPageNamespace) ?? false)
@@ -22,7 +25,7 @@
                     <MudText Typo="Typo.body1" Class="py-3">@Localizer["If you believe this is an error, please fill out a Support Request Form and we'll get right on it."]</MudText>
                     <MudText Typo="Typo.body1" Class="py-3">@Localizer["Otherwise, you can click the button below to return to the main page of DataHub."]</MudText>
                     <MudText Typo="Typo.body1" Class="py-3">@Localizer["We apologize for any inconvenience."]</MudText>
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/home" Class="py-3">@Localizer["Back to DataHub"]</MudButton>
+                    <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="@Localizer[PageRoutes.Home]" Class="py-3">@Localizer["Back to DataHub"]</DHButton>
                     <br/>
                     @if (random.Next(0, 2) == 0)
                     {
@@ -44,4 +47,22 @@
     private const string InternalPublicPageNamespace = "Datahub.Portal.Pages.InternalPublic";
     private const string PublicPageNamespace = "Datahub.Portal.Pages.Public";
     Random random = new Random();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./App.razor.js");
+            var language = await _localStorage.GetItemAsStringAsync("language");
+            if (string.IsNullOrEmpty(language))
+            {
+                language = "en-CA";
+                await _localStorage.SetItemAsStringAsync("language", language);
+            }
+
+            await module.InvokeVoidAsync("SetHtmlLangAttribute", language);
+        }
+    }
+
+
 }

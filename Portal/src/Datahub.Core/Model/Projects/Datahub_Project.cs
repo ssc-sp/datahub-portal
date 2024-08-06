@@ -241,6 +241,9 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public bool? WebAppEnabled { get; set; }
 
     [AeFormIgnore]
+    public bool WebAppUrlRewritingEnabled { get; set; }
+
+    [AeFormIgnore]
     public DateTime? LastLoginDate
     {
         get

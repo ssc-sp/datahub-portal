@@ -23,7 +23,7 @@
             <NavLink class="mud-nav-link mud-ripple px-0 py-4 justify-center" style="@GetNavStyle(icon)" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
                 <MudBadge Dot=true Color="@Color.Primary" Visible="@(showDotBadge())">
                     <MudStack AlignItems="AlignItems.Center" Spacing="1">
-                        <MudIcon Icon="@icon.Name"/>
+                        <DHIcon Icon="@icon.Name" />
                         <MudText Typo="Typo.body2" Style="@_navTextStyle">
                             @Localizer[label]
                         </MudText>
@@ -38,7 +38,7 @@
             <div class="mud-nav-item">
                 <NavLink class="mud-nav-link mud-ripple px-0 py-4 justify-center" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
                     <MudStack AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@icon.Name"/>
+                        <DHIcon Icon="@icon.Name" />
                         <MudText Typo="Typo.body2" Style="@_navTextStyle">
                             @Localizer[label]
                         </MudText>

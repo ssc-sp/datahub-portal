@@ -3,6 +3,7 @@ using Datahub.Infrastructure.Services.Azure;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.Infrastructure.Services.Projects;
 

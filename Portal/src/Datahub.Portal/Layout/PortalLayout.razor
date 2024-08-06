@@ -24,28 +24,27 @@
 <MudThemeProvider Theme="@DatahubTheme.DefaultTheme"/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
+<MudPopoverProvider/>
 
 <DatahubAchievementProvider/>
 
 <MudLayout>
     <MudAppBar Elevation="0" Style="@_topBorderStyle">
-        <Topbar SupportFormUrl="@_datahubPortalConfiguration.SupportFormUrl"/>/>
+        <Topbar SupportFormUrl="@_datahubPortalConfiguration.SupportFormUrl"/>
     </MudAppBar>
     <MudDrawer
         Width="320px"
+        Variant="DrawerVariant.Persistent"
         Open
-        DisableOverlay
+        Overlay="false"
         Style="@_sideBorderStyle"
         Elevation="0"
-        ClipMode="DrawerClipMode.Always">
+        ClipMode="DrawerClipMode.Always" Breakpoint="Breakpoint.Always">
         <MudDrawerContainer>
             <SectionOutlet SectionName="side-bar"/>
         </MudDrawerContainer>
     </MudDrawer>
     <MudMainContent>
-        <div class="sr-only" id="maincontent">
-            <h1>@Localizer["Main content"]</h1>
-        </div>
         <ErrorBoundary @ref="_errorBoundary">
             <ChildContent>
                 @Body
@@ -63,8 +62,9 @@
                 }
             </ErrorContent>
         </ErrorBoundary>
-    </MudMainContent>
 
+        <DHFooter />
+    </MudMainContent>
 </MudLayout>
 
 @code {

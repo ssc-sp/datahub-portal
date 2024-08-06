@@ -22,9 +22,13 @@
 }
 
 <MudStack>
+    <h1 id="maincontent">@Localizer["MainTitle"]</h1>
     @if (_viewedPortalUser.GraphGuid == _currentUser.GraphGuid)
     {
-        <WelcomeBanner/>
+        <div role="group">
+            <MudText Typo="Typo.h2">@Localizer["Announcements"]</MudText>
+            <WelcomeBanner/>
+        </div>
     }
     else
     {
@@ -36,37 +40,42 @@
                   Height="320"
                   ObjectPosition="ObjectPosition.Center"/>
     }
-    <MudGrid>
-        <MudItem xs="12" md="@(_viewedPortalUser.UserSettings?.HideAchievements ?? true ? 12 : 8)">
-            <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
-                <MudAvatar Style="width:120px; height: 120px">
-                    <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementPortraitUrl(_viewedPortalUser?.ProfilePictureUrl)"
-                              Alt="@Localizer[""]"
-                              Height="120"
-                              Width="120"/>
-                </MudAvatar>
-                <MudStack Spacing="0">
-                    <MudText Typo="Typo.h2">
-                        <strong>@_viewedPortalUser?.DisplayName</strong>
-                    </MudText>
-                    <MudText Typo="Typo.caption" Class="ml-2">@_viewedPortalUser?.Email</MudText>
-                </MudStack>
-            </MudStack>
-        </MudItem>
-        @if (!(_viewedPortalUser.UserSettings?.HideAchievements ?? true))
-        {
-            <MudItem xs="12" md="4">
-                <MudStack>
-                    <MudStack Spacing="6">
-                        <ProfileAchievements ViewedUser="@_viewedPortalUser"/>
+    <div role="group">
+        <h2 class="sr-only">
+            @Localizer["Profile information"]
+        </h2>
+        <MudGrid>
+            <MudItem xs="12" md="@(_viewedPortalUser.UserSettings?.HideAchievements ?? true ? 12 : 8)">
+                <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
+                    <MudAvatar Style="width:120px; height: 120px">
+                        <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementPortraitUrl(_viewedPortalUser?.ProfilePictureUrl)"
+                                  Alt="@Localizer[""]"
+                                  Height="120"
+                                  Width="120"/>
+                    </MudAvatar>
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.h2">
+                            <strong>@_viewedPortalUser?.DisplayName</strong>
+                        </MudText>
+                        <MudText Typo="Typo.caption" Class="ml-2">@_viewedPortalUser?.Email</MudText>
                     </MudStack>
-                    <MudLink Href="@_achievementsUrl">
-                        @Localizer["View All Achievements"]
-                    </MudLink>
                 </MudStack>
             </MudItem>
-        }
-    </MudGrid>
+            @if (!(_viewedPortalUser.UserSettings?.HideAchievements ?? true))
+            {
+                <MudItem xs="12" md="4">
+                    <MudStack>
+                        <MudStack Spacing="6">
+                            <ProfileAchievements ViewedUser="@_viewedPortalUser"/>
+                        </MudStack>
+                        <MudLink Href="@_achievementsUrl">
+                            @Localizer["View All Achievements"]
+                        </MudLink>
+                    </MudStack>
+                </MudItem>
+            }
+        </MudGrid>
+    </div>
     <UserProjects UserId="@_userProjectGuid" SmSize="6"/>
 </MudStack>
 
@@ -93,8 +102,9 @@
         {
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
         }
-        
+
         _userProjectGuid = _viewedPortalUser.GraphGuid;
         StateHasChanged();
     }
+
 }

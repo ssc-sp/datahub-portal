@@ -10,25 +10,20 @@
 @inject ILocalStorageService _localStorage
 @inject ILogger<ResourcesPage> _logger
 
-@layout PortalLayout
+@layout PortalContainerLayout
 
 @attribute [Route(PageRoutes.ResourceDefault)]
 @attribute [Route(PageRoutes.Resource)]
+@attribute [Route(PageRoutes.ResourceDefault_FR)]
+@attribute [Route(PageRoutes.Resource_FR)]
 
 
 <!--suppress CssUnresolvedCustomProperty -->
 <PageTitle>
-    @Localizer["SSC Datahub - Resources"]
+    @Localizer["Resources - Federal Science DataHub"]
 </PageTitle>
 
-<SectionContent SectionName="side-bar">
-    <LearnSidebar currentCategory="@_currentCategory"
-                  currentMarkdownCategory="@_currentMarkdownCategory"
-                  hiddenNavGroups="@_hiddenNavGroups"
-                  BuildResourceLink="@BuildResourceLink"
-                  UpdateCategory="@UpdateCategory"
-                  PageIsLoading="@PageIsLoading"/>
-</SectionContent>
+
 
 @if (PageIsLoading)
 {
@@ -36,88 +31,64 @@
 }
 else
 {
-    @*         <MudStack Class="my-6">
-            <MudText Typo="Typo.h2">@Localizer["Federal Science DataHub Resources"]</MudText>
-                <MudText Typo="Typo.body2">
-                    @Localizer["Welcome to the Federal Science Datahub resources and documentation section. Below you will find a short list of some recommended resources to help you get started with the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
-            </MudText>
-            <MudGrid Class="my-3">
-                <MudItem xs="4">
-                    <ResourcesPreviewCard ShortVersion DocumentItem="@_userGuideDoc" />
-                 </MudItem>
-                 <MudItem xs="4">
-                     <ResourcesPreviewCard ShortVersion DocumentItem="@_faqGuideDoc" />
-                 </MudItem>
-                 <MudItem xs="4">
-                     <ResourcesPreviewCard ShortVersion DocumentItem="@_supportGuideDoc" />
-                 </MudItem>
-             </MudGrid>
-         </MudStack> *@
-    <MudTabs @bind-ActivePanelIndex="_tabIndex"
-               Centered="false" ApplyEffectsToContainer="true" PanelClass="pa-8">
-        @foreach (var cat in _tabList)
-        {
-            var isDoc = cat.Children.Count == 0;
-
-            if (!isDoc)
+    <h1 id="maincontent">@Localizer["Learning resources and documentation"]</h1>
+    <MudGrid Class="px-4">
+        <MudItem>
+            @if (ShowPreviewCards)
             {
-                <MudTabPanel Text="@cat.Title" OnClick="() => ActivateCategory(cat)" Icon="@(cat.GetMudblazorMaterialIcon("Outlined"))">
-                    <MudGrid>
-                        <MudItem>
-                            @if (ShowPreviewCards)
-                            {
-                                @if (_docIsLoading || _currentDoc is null)
-                                {
-                                    <MudContainer MaxWidth="MaxWidth.Small">
-                                        <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]"/>
-                                    </MudContainer>
-                                }
-                                else if (_currentDoc.IsRoot)
-                                {
-                                    <MudStack Class="ma-6">
-                                        <MudText Typo="Typo.h2">@Localizer["Most Popular Resources"]</MudText>
-                                        <MudText Typo="Typo.body1">
-                                            @Localizer["Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
-                                        </MudText>
-                                    </MudStack>
-                                    <ResourcesListView DocumentItems="@_mostPopularDocs"/>
-                                }
-                                else
-                                {
-                                    <MudText Typo="Typo.h2" Class="mb-3">@_currentDoc.Title</MudText>
-                                    <ResourcesListView DocumentItems="@_currentDoc.Children"/>
-                                }
-                            }
-                            else
-                            {
-                                <ResourcesMarkdown DocumentItem="@_currentDoc"/>
-                            }
-                        </MudItem>
-                    </MudGrid>
-                </MudTabPanel>
+                @if (_docIsLoading || _currentDoc is null)
+                {
+                    <MudContainer MaxWidth="MaxWidth.Small">
+                        <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]"/>
+                    </MudContainer>
+                }
+                else if (_currentDoc.IsRoot)
+                {
+                    <MudStack Class="ma-6">
+                        <MudText Typo="Typo.h2">@Localizer["Most Popular Resources"]</MudText>
+                        <MudText Typo="Typo.body1">
+                            @Localizer["Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
+                        </MudText>
+                    </MudStack>
+                    <ResourcesListView DocumentItems="@_mostPopularDocs"/>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h2" Class="mb-3">@_currentDoc.Title</MudText>
+                    <ResourcesListView DocumentItems="@_currentDoc.Children"/>
+                }
             }
-        }
-    </MudTabs>
-
+            else
+            {
+                <ResourcesMarkdown DocumentItem="@_currentDoc"/>
+            }
+        </MudItem>
+    </MudGrid>
 
     <ResourcesAdminView/>
+
+    <SectionContent SectionName="side-bar">
+        <LearnSidebar currentCategory="@_currentCategory"
+                      currentMarkdownCategory="@_currentMarkdownCategory"
+                      hiddenNavGroups="@_hiddenNavGroups"
+                      BuildResourceLink="@BuildResourceLink"
+                      UpdateCategory="@UpdateCategory"
+                      PageIsLoading="@PageIsLoading"/>
+    </SectionContent>
 }
 
 @code {
 
-    [Parameter]
-    public string PageName { get; set; }
+    [Parameter] public string PageName { get; set; }
 
-    [Parameter]
-    public List<(string, string)> Substitutions { get; set; }
+    [Parameter] public List<(string, string)> Substitutions { get; set; }
 
 
     [Parameter]
     [SupplyParameterFromQuery(Name = "t")]
     public int? TabIndex { get; set; }
 
-    [CascadingParameter]
-    public RouteData routeData { get; set; }
+    [CascadingParameter] public RouteData routeData { get; set; }
 
     const string MostPopularId = "6B9B9B8D-B071-44F7-B264-A7670192F446";
     const string UserGuideId = "b594e16c-56e9-aae5-880f-487afca9aa38";
@@ -159,7 +130,7 @@ else
         var idx = _tabList.IndexOf(docItem);
         await CreateMostPopularFolder();
         var uriBuilder = new UriBuilder(_navManager.Uri);
-        var q = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);        
+        var q = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
         //var page = routeData.
         //_navManager.NavigateTo("");
     }
@@ -180,7 +151,6 @@ else
         _tabIndex = Math.Min(_tabList.Count, TabIndex ?? 0);
         await ActivateCategory(_tabList[_tabIndex]);
         await ClearResourcesBadge();
-
     }
 
     private async Task ClearResourcesBadge()

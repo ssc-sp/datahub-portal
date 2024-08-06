@@ -24,7 +24,7 @@
             </NotAuthorized>
         </DatahubAuthView>
         
-        <MudText Typo="Typo.h2">@Localizer["Workspace Repositories"]</MudText>
+        <h1 id="maincontent">@Localizer["Workspace Repositories"]</h1>
         <MudText>@Localizer["This section lets you share inside Datahub your Git repositories that have been linked inside Databricks."]</MudText>
         <MudText>
             @Localizer["If you wish to learn more about Databricks and Git integration, "]
@@ -45,7 +45,7 @@
                     <MudItem xs="12" sm="8">
                         <MudPaper Elevation="0" Class="border-dashed py-12 px-4" Outlined>
                             <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
-                                <MudIcon Icon="@Icons.Material.Outlined.Cloud" Size="Size.Large"/>
+                                <DHIcon Icon="@Icons.Material.Outlined.Cloud" Size="Size.Large" />
                                 <MudText Align="Align.Center">@Localizer["No linked repositories found in Databricks workspace"]</MudText>
                             </MudStack>
                         </MudPaper>

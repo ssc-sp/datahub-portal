@@ -50,7 +50,7 @@ else
                             <MudCard>
                                 <MudCardHeader>
                                     <CardHeaderAvatar>
-                                        <MudIcon Icon=@Icons.Material.Filled.MenuBook />
+                                        <DHIcon Icon=@Icons.Material.Filled.MenuBook />
                                     </CardHeaderAvatar>
                                     <CardHeaderContent>
                                         <MudText Typo=@Typo.h5>@card.Title</MudText>
@@ -106,7 +106,7 @@ else
             <MudCard>
                 <MudCardHeader>
                     <CardHeaderAvatar>
-                        <MudIcon Icon=@Icons.Material.Filled.AdminPanelSettings />
+                        <DHIcon Icon=@Icons.Material.Filled.AdminPanelSettings />
                     </CardHeaderAvatar>
                     <CardHeaderContent>
                         @Localizer["Administration"]
@@ -136,10 +136,10 @@ else
                             <MudText Typo=@Typo.h5>Error(s)</MudText>
                             @if (_formattedErrorList?.Count > 0)
                             {
-                                <MudList>
+                                <MudList T="string">
                                     @foreach (var e in _formattedErrorList)
                                     {
-                                        <MudListItem>@e</MudListItem>
+                                        <MudListItem T="string">@e</MudListItem>
                                     }
                                 </MudList>
                             }

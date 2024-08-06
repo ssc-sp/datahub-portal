@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+using Newtonsoft.Json.Linq;
 
 namespace Datahub.Portal.Pages.Help
 {
@@ -55,6 +56,19 @@ namespace Datahub.Portal.Pages.Help
             Message = userView == true ? GetUserHelpStatusMessage(State) : State;
             SubmittedDate = (string)workItemDetails["fields"]["System.CreatedDate"];
             ChangedDate = (string)workItemDetails["fields"]["System.ChangedDate"]; ;
+        }
+
+        public IssueForDisplaying(WorkItem workItem, bool userView = true)
+        {
+            Id = workItem.Id.ToString();
+            Title = workItem.Fields["System.Title"].ToString();
+            var description = workItem.Fields["System.Description"].ToString();
+            description = description.Split("<b>Description:</b> ")[1].Split("<br>")[0];
+            Description = TrimDescription(description);
+            State = workItem.Fields["System.State"].ToString();
+            Message = userView == true ? GetUserHelpStatusMessage(State) : State;
+            SubmittedDate = workItem.Fields["System.CreatedDate"].ToString();
+            ChangedDate = workItem.Fields["System.ChangedDate"].ToString();
         }
 
         /// <summary>

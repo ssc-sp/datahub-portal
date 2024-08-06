@@ -3,86 +3,108 @@
 
 @inject NavigationManager _navigationManager
 
-<div class="sr-only"><h2>@Localizer["Announcements"]</h2></div>
-<MudElement Class="rounded" HtmlTag="div" Style="@_backgroundImageStyle">
-    <MudElement  Class="rounded" HtmlTag="div" Style="@_glassStyle">
-        <MudCarousel Class="mud-width-full rounded"
-                     Style="@_carouselStyle"
-                     ShowArrows="true"
-                     ShowBullets="false"
-                     EnableSwipeGesture="true"
-                     AutoCycle="true"
-                     AutoCycleTime="@TimeSpan.FromSeconds(10)"
-                     TData="object">
-
-            @foreach (var preview in Previews)
+<ul class="my-4" style="display: grid; grid-template-columns: repeat(@_previewCount, 1fr); gap: 25px">
+    @foreach (var index in _announcementIndices)
+    {
+        if (index != -1)
+        {
+            var preview = Previews[index];
+            if (!preview.Preview.StartsWith("!["))
             {
-                <MudCarouselItem Transition="Transition.Fade">
-                    @if (!preview.Preview.StartsWith("!["))
-                    {
-                        <MudStack Class="px-12 py-4" Style="height: 100%">
-                            <DHMarkdown Content="@preview.Preview"/>
-                            <MudButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
-                                @Localizer["Read more"]
-                            </MudButton>
+                <li>
+
+                    <MudPaper Elevation="0" Outlined Class="py-2 px-3">
+                        <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;" Spacing="1">
+                            <MudElement>
+                                <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle"/>
+                            </MudElement>
+                            <MudElement>
+                                <DHButton OnClick="() => HandleReadMore(preview.Id)"
+                                          Color="@Color.Primary"
+                                          Variant="@Variant.Text"
+                                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                                    <span class="sr-only">@preview.Preview</span>
+                                    @Localizer["Read more"]
+                                </DHButton>
+                            </MudElement>
                         </MudStack>
-                    }
-					else
-					{
-						<DHMarkdown Content="@preview.Preview"/>
-                        <MudButton Style="@_readMoreStyle" Variant="Variant.Text" OnClick="() => HandleReadMore(preview.Id)">
-                            @Localizer["Read more"]
-                        </MudButton>
-					}
-                </MudCarouselItem>
+                    </MudPaper>
+                </li>
             }
-        </MudCarousel>
-    </MudElement>
-</MudElement>
+        }
+    }
+</ul>
 
 @code {
-        public const int CarouselHeight = 320;
+    public const int CarouselHeight = 320;
 
-    [Parameter]
-    public List<AnnouncementPreview> Previews { get; set; } = new();
+    [Parameter] public List<AnnouncementPreview> Previews { get; set; } = new();
 
-    [Parameter]
-    public string BackgroundUrl { get; set; }
+    [Parameter] public string BackgroundUrl { get; set; }
 
 
+    // private string _glassStyle;
+    // private string _carouselStyle;
+    // private string _backgroundImageStyle;
+    private string _descriptionTextStyle;
 
-    private string _glassStyle;
-    private string _carouselStyle;
-    private string _backgroundImageStyle;
+    private int _previewCount;
+    private int[] _announcementIndices = new int[3] { -1, -1, -1 };
 
     // get the style so it's always at the bottom of the carousel
-    private string _readMoreStyle => "position: absolute; bottom: 1rem; left: 2rem;";
+    // private string _readMoreStyle => "position: absolute; bottom: 1rem; left: 2rem;";
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
         var hasBackgroundUrl = !string.IsNullOrEmpty(BackgroundUrl);
-        
-        _carouselStyle = new StyleBuilder()
-            .AddStyle("height", $"{CarouselHeight}px")
-            .Build();
 
-        _backgroundImageStyle = new StyleBuilder()
-            .AddStyle("height", $"{CarouselHeight}px")
-            .AddStyle("background", $"linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{BackgroundUrl}') no-repeat", when: hasBackgroundUrl)
-            .AddStyle("background-size", "cover", when: hasBackgroundUrl)
-            .AddStyle("margin-bottom", "1rem")
-            .Build();
+        // _carouselStyle = new StyleBuilder()
+        //     .AddStyle("height", $"{CarouselHeight}px")
+        //     .Build();
 
-        _glassStyle = new StyleBuilder()
-            .AddStyle("height", $"{CarouselHeight}px")
-            .AddStyle("background", "rgba(0, 0, 0, 0.5)", when: hasBackgroundUrl)
-            .AddStyle("color", "white", when: hasBackgroundUrl)
-            .AddStyle("backdrop-filter", "blur(5px)", when: hasBackgroundUrl)
-            .AddStyle("--mud-palette-text-primary", "white", when: hasBackgroundUrl)
-            .AddStyle("--mud-palette-primary", Colors.Purple.Accent2, when: hasBackgroundUrl)
+        // _backgroundImageStyle = new StyleBuilder()
+        //     .AddStyle("height", $"{CarouselHeight}px")
+        //     .AddStyle("background", $"linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{BackgroundUrl}') no-repeat", when: hasBackgroundUrl)
+        //     .AddStyle("background-size", "cover", when: hasBackgroundUrl)
+        //     .AddStyle("margin-bottom", "1rem")
+        //     .Build();
+
+        // _glassStyle = new StyleBuilder()
+        //     .AddStyle("height", $"{CarouselHeight}px")
+        //     .AddStyle("background", "rgba(0, 0, 0, 0.5)", when: hasBackgroundUrl)
+        //     .AddStyle("color", "white", when: hasBackgroundUrl)
+        //     .AddStyle("backdrop-filter", "blur(5px)", when: hasBackgroundUrl)
+        //     .AddStyle("--mud-palette-text-primary", "white", when: hasBackgroundUrl)
+        //     .AddStyle("--mud-palette-primary", Colors.Purple.Accent2, when: hasBackgroundUrl)
+        //     .Build();
+
+        _descriptionTextStyle = new StyleBuilder()
+            .AddStyle("overflow", "hidden")
+            .AddStyle("-webkit-line-clamp", "6")
+            .AddStyle("-webkit-box-orient", "vertical")
+            .AddStyle("display", "-webkit-box")
             .Build();
+        int count = 0;
+        for (int i = 0; i < Previews.Count; i++)
+        {
+            var preview = Previews[i];
+            if (!preview.Preview.StartsWith("!["))
+            {
+                _announcementIndices[count] = i;
+                count++;
+            }
+
+            if (count == 3)
+            {
+                break;
+            }
+        }
+
+        // There should really only be 1, 2, or 3 announcements at a time
+        // The # of columns for the announcements is displayed accordingly
+        _previewCount = count;
     }
 
     private void HandleReadMore(int newId)
@@ -91,3 +113,4 @@
     }
 
 }
+

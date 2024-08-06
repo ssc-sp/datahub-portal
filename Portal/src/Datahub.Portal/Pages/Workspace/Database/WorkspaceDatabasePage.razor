@@ -13,9 +13,9 @@
     return;
 }
 <MudStack>
-    <MudText Typo="Typo.h2">
+    <h1 id="maincontent">
         @Localizer["Workspace Database"]
-    </MudText>
+    </h1>
 
     <MudText>
         @Localizer["Here you can manage your workspace database. You can view and test the connectivity of your database"]
@@ -28,7 +28,7 @@
         Password="@_password"
         Port="@_port"
         />
-    <MudButton Type="Button" style="width: fit-content;" OnClick="ToggleContentVisibility" Color=@Color.Primary Variant=@Variant.Filled>@Localizer[_message]</MudButton>
+    <DHButton style="width: fit-content;" OnClick="ToggleContentVisibility" Color=@Color.Primary Variant=@Variant.Filled>@Localizer[_message]</DHButton>
 
     <MudText Typo="Typo.h2">
         @Localizer["Connection Info"]

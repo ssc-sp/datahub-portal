@@ -34,15 +34,15 @@
         <MudItem xs="4">
             <MudPaper Elevation="0" Outlined Class="px-6 py-4 sticky">
                 <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
-                    <MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" Color="Color.Default"/>
+                    <DHIcon Icon="@Icons.Material.Outlined.CalendarMonth" Color="Color.Default" />
                     <MudText Typo="Typo.h2">@Localizer["Schedule"]</MudText>
                 </MudStack>
                 <MudDivider Class="my-4"/>
                 <MudStack Spacing="4">
-                    <MudSwitch @bind-Checked="_announcement.ForceHidden"
+                    <MudSwitch @bind-Value="_announcement.ForceHidden"
                                Label="@(Localizer["Always hide this announcement"])"
                                Color="Color.Primary"/>
-                    <MudSwitch @bind-Checked="_announcementHasEndDate"
+                    <MudSwitch @bind-Value="_announcementHasEndDate"
                                Label="@(Localizer["Announcement has an end date"])"
                                Disabled="@_announcement.ForceHidden"
                                Color="Color.Primary"/>
@@ -64,12 +64,12 @@
                     }
 
                     <MudStack Row Justify="Justify.Center">
-                        <MudButton Variant="Variant.Filled"
+                        <DHButton Variant="Variant.Filled"
                                    Class="mt-4 mb-2"
                                    Color="Color.Primary"
                                    OnClick="HandleSave">
                             @Localizer["Save Changes"]
-                        </MudButton>
+                        </DHButton>
                     </MudStack>
                 </MudStack>
             </MudPaper>
@@ -77,7 +77,7 @@
         <MudItem xs="8">
             <MudPaper Elevation="0" Outlined Class="px-6 py-4">
                 <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
-                    <MudIcon Icon="@Icons.Material.Outlined.Newspaper" Color="Color.Default"/>
+                    <DHIcon Icon="@Icons.Material.Outlined.Newspaper" Color="Color.Default" />
                     <MudText Typo="Typo.h2">@Localizer[_announcement.IsNew() ? "Create a new Announcement" : "Edit Announcement"]</MudText>
                 </MudStack>
 

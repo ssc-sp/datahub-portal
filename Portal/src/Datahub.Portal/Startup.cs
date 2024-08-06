@@ -1,14 +1,20 @@
-using Askmethat.Aspnet.JsonLocalizer.Extensions;
+using AspNetCore.Localizer.Json.Extensions;
+using AspNetCore.Localizer.Json.JsonOptions;
 using BlazorDownloadFile;
 using Blazored.LocalStorage;
 using Datahub.Application;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Metadata;
+using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Publishing;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.UserManagement;
+using Datahub.Application.Services.WebApp;
 using Datahub.CatalogSearch;
-using Datahub.Core;
 using Datahub.Core.Configuration;
 using Datahub.Core.Data;
-using Datahub.Core.Model.Datahub;
-using Datahub.Core.Modules;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Data;
@@ -21,9 +27,20 @@ using Datahub.Core.Services.Storage;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Services.Wiki;
 using Datahub.Infrastructure;
+using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
+using Datahub.Infrastructure.Services.Achievements;
+using Datahub.Infrastructure.Services.Api;
 using Datahub.Infrastructure.Services.Azure;
+using Datahub.Infrastructure.Services.Metadata;
+using Datahub.Infrastructure.Services.Notification;
 using Datahub.Infrastructure.Services.Projects;
+using Datahub.Infrastructure.Services.Publishing;
+using Datahub.Infrastructure.Services.ReverseProxy;
+using Datahub.Infrastructure.Services.Security;
+using Datahub.Infrastructure.Services.Storage;
+using Datahub.Infrastructure.Services.UserManagement;
+using Datahub.Infrastructure.Services.WebApp;
 using Datahub.Metadata.Model;
 using Datahub.Portal.Middleware;
 using Datahub.Portal.Services;
@@ -47,31 +64,9 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager;
-using Datahub.Infrastructure.Offline;
-using Datahub.Application.Configuration;
-using Datahub.Application.Services.Metadata;
-using Datahub.Application.Services.Notification;
-using Datahub.Application.Services.Security;
-using Datahub.Application.Services.UserManagement;
-using Datahub.Application.Services.WebApp;
-using Datahub.Infrastructure.Services.Api;
-using Datahub.Infrastructure.Services.Metadata;
-using Datahub.Infrastructure.Services.Notification;
 using Tewr.Blazor.FileReader;
-using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Configuration;
-using Datahub.Infrastructure.Services.Security;
-using Datahub.Application.Services.Publishing;
-using Datahub.Infrastructure.Services.Achievements;
-using Datahub.Infrastructure.Services.Publishing;
-using Datahub.Infrastructure.Services.Storage;
-using Datahub.Infrastructure.Services.UserManagement;
-using Datahub.Infrastructure.Services.ReverseProxy;
-using Datahub.Infrastructure.Services.WebApp;
-using Microsoft.Extensions.Azure;
+using Yarp.ReverseProxy.Transforms;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -87,7 +82,6 @@ public class Startup
 
     private readonly IConfiguration Configuration;
     private readonly IWebHostEnvironment _currentEnvironment;
-    private ModuleManager moduleManager = new ModuleManager();
 
     private bool ResetDB => (bool)Configuration.GetSection("InitialSetup")?.GetValue("ResetDB", false);
 
@@ -163,15 +157,6 @@ public class Startup
         services.AddElemental();
         services.AddMudServices();
         services.AddMudMarkdownServices();
-        services.AddSingleton(moduleManager);
-
-
-        moduleManager.LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
-        foreach (var module in moduleManager.Modules)
-        {
-            Console.Write($"Configuring module {module.Name}\n");
-            services.AddModule(module, Configuration);
-        }
 
         // configure db contexts in this method
         ConfigureDbContexts(services);
@@ -237,6 +222,7 @@ public class Startup
             services.AddReverseProxy()
                     .AddTransforms(builderContext =>
                     {
+                        builderContext.AddXForwarded(ForwardedTransformActions.Append);
                         builderContext.AddRequestTransform(async transformContext =>
                         {
                             // passing the logged user to the proxied app
@@ -278,21 +264,25 @@ public class Startup
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
-        IDbContextFactory<DatahubProjectDBContext> datahubFactory,
+        IConfiguration configuration,
         IDbContextFactory<MetadataDbContext> metadataFactory)
     {
         if (Configuration.GetValue<bool>("HttpLogging:Enabled"))
         {
             app.UseHttpLogging();
         }
-
-        foreach (var module in moduleManager.Modules)
+        var dbDriver = configuration.GetDriver();
+        if (dbDriver == DbDriver.Sqlite)
         {
-            logger.LogInformation($"Configuring module {module.Name}\n");
-            app.ConfigureModule(module);
+            var ctx = app.ApplicationServices.GetRequiredService<IDbContextFactory<SqliteDatahubContext>>();
+            InitializeDatabase(logger, ctx);
         }
-
-        InitializeDatabase(logger, datahubFactory);
+        else
+        {
+            var ctx = app.ApplicationServices.GetRequiredService<IDbContextFactory<SqlServerDatahubContext>>();
+            InitializeDatabase(logger, ctx);
+        }
+        
         InitializeDatabase(logger, metadataFactory, true);
 
         app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>()
@@ -354,7 +344,7 @@ public class Startup
             options.ResourcesPath = "i18n";
             options.UseBaseName = false;
             options.IsAbsolutePath = true;
-            options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
+            options.LocalizationMode = LocalizationMode.I18n;
             options.MissingTranslationLogBehavior = trackTranslations
                 ? MissingTranslationLogBehavior.CollectToJSON
                 : MissingTranslationLogBehavior.Ignore;
@@ -444,6 +434,7 @@ public class Startup
 
         services.AddScoped<NotificationsService>();
         services.AddScoped<NotifierService>();
+        services.AddScoped<HealthCheckHelperService>();
 
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
         services.AddScoped<PortalEmailService>();
@@ -470,7 +461,7 @@ public class Startup
         var projectsDatabaseConnectionString = Configuration.GetConnectionString("datahub_mssql_project");
         var useSqlite = projectsDatabaseConnectionString?.StartsWith("Data Source=") ?? false;
         
-        ConfigureDbContext<DatahubProjectDBContext>(services, "datahub_mssql_project", useSqlite ? DbDriver.Sqlite : DbDriver.Azure);
+        ConfigureDbContext<DatahubProjectDBContext, SqlServerDatahubContext,SqliteDatahubContext>(services, "datahub_mssql_project", useSqlite ? DbDriver.Sqlite : DbDriver.Azure);
         ConfigureDbContext<MetadataDbContext>(services, "datahub_mssql_metadata", DbDriver.Azure);
     }
 
@@ -478,5 +469,11 @@ public class Startup
         where T : DbContext
     {
         services.ConfigureDbContext<T>(Configuration, connectionStringName, dbDriver);
+    }
+
+    private void ConfigureDbContext<TGen, Tsql, Tsqlite>(IServiceCollection services, string connectionStringName, DbDriver dbDriver)
+        where TGen : DbContext where Tsql : DbContext where Tsqlite : DbContext
+    {
+        services.ConfigureDbContext<TGen, Tsql, Tsqlite>(Configuration, connectionStringName, dbDriver);
     }
 }

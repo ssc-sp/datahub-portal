@@ -4,12 +4,17 @@
 @using Datahub.Portal.Pages.Resources
 
 <MudPaper Elevation="0" Outlined Class="py-2 px-3" Style="@_cardStyle">
-     <MudStack Justify="Justify.SpaceBetween" Style="height: 100%;">
-         <MudStack>
-             <MudStack Row AlignItems="AlignItems.Center">
-                 <MudIcon Icon="@(DocumentItem.GetSidebarIcon())" />
-                 <MudText Typo="Typo.body1" Style="@_titleTextStyle">                     
-                         @DocumentItem?.Title                    
+    <MudStack Justify="Justify.SpaceBetween" Style="height: 100%;">
+        <MudStack>
+            <MudStack Row AlignItems="AlignItems.Center">
+                <span>
+                    <MudIcon role="img" aria-labelledby="decimg01" Icon="@(DocumentItem.GetSidebarIcon())" Title="@GetDocType()"/>
+                    <p class="sr-only" id="decimg01">
+                        @GetDocType()
+                    </p>
+                </span>
+                <MudText Typo="Typo.body1" Style="@_titleTextStyle">
+                    @DocumentItem?.Title
                 </MudText>
             </MudStack>
             @if (!ShortVersion)
@@ -20,22 +25,29 @@
         <MudElement>
             @if (DocumentItem?.DocType == DocItemType.External)
             {
-                <MudButton Href="@ResourcesPage.BuildResourceLink(DocumentItem)"
-                           Color="@Color.Primary"
-                           Variant="@Variant.Text"
-                           Target="_blank"
-                           EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
-                    @Localizer["Open link"]
-                </MudButton>
+                <DHButton Href="@ResourcesPage.BuildResourceLink(DocumentItem)"
+                          Color="@Color.Primary"
+                          Variant="@Variant.Text"
+                          Target="_blank"
+                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+
+                    <span>
+                        @Localizer["Open link"]
+                        <span class="sr-only">@DocumentItem?.Title</span>
+                    </span>
+                </DHButton>
             }
             else
             {
-                <MudButton Href="@ResourcesPage.BuildResourceLink(DocumentItem)"
-                           Color="@Color.Primary"
-                           Variant="@Variant.Text"
-                           EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
-                    @Localizer["Read more"]
-                </MudButton>
+                <DHButton Href="@ResourcesPage.BuildResourceLink(DocumentItem)"
+                          Color="@Color.Primary"
+                          Variant="@Variant.Text"
+                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                    <span>
+                        @Localizer["Read more"]
+                        <span class="sr-only">@DocumentItem?.Title</span>
+                    </span>
+                </DHButton>
             }
         </MudElement>
     </MudStack>
@@ -43,11 +55,9 @@
 
 @code {
 
-    [Parameter]
-    public DocItem DocumentItem { get; set; }
+    [Parameter] public DocItem DocumentItem { get; set; }
 
-    [Parameter]
-    public bool ShortVersion { get; set; } = false;
+    [Parameter] public bool ShortVersion { get; set; } = false;
 
     private string _previewTextStyle;
     private string _titleTextStyle;
@@ -77,6 +87,26 @@
             .AddStyle("height", "150px", when: !ShortVersion)
             .AddStyle("height", "90px", when: ShortVersion)
             .Build();
+    }
+
+    /// <summary>
+    /// Function to get the type of the document
+    /// </summary>
+    /// <returns> The type of the document (external, video, document) </returns>
+    private string GetDocType()
+    {
+        if (DocumentItem.DocType == DocItemType.External)
+        {
+            return @Localizer["External"];
+        }
+        else if (DocumentItem.DocType == DocItemType.Tutorial)
+        {
+            return @Localizer["Video"];
+        }
+        else
+        {
+            return @Localizer["Document"];
+        }
     }
 
 }

@@ -112,6 +112,10 @@ public class TerraformService : ITerraformService
             {
                 TerraformVariables.BackendKeyName,
                 ComputeBackendConfigValue(workspaceAcronym, TerraformVariables.BackendKeyName)
+            },
+            {
+                TerraformVariables.BackendSubscriptionIdName,
+                ComputeBackendConfigValue(workspaceAcronym, TerraformVariables.BackendSubscriptionIdName)
             }
         };
 
@@ -299,6 +303,8 @@ public class TerraformService : ITerraformService
                 $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-project-states",
             TerraformVariables.BackendKeyName =>
                 $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-{workspaceName}.tfstate",
+            TerraformVariables.BackendSubscriptionIdName =>
+                $"{_resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id}",
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<string> in configuration")
         };
