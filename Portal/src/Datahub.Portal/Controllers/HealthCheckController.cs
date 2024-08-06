@@ -1,20 +1,14 @@
-﻿using Azure.Identity;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
-using Microsoft.Identity.Client;
 using Datahub.Application.Configuration;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Health;
-using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
 using Azure.Core;
 using System.Net.Http.Headers;
 using Datahub.Infrastructure.Services.Azure;
-using System.Threading;
-using System.Net.Http;
 
 
 namespace Datahub.Portal.Controllers
@@ -67,34 +61,17 @@ namespace Datahub.Portal.Controllers
         [HttpGet("logstream")]
         public async Task<IActionResult> GetKuduLogStream()
         {
-            var kuduUrl = $"https://fsdh-portal-app-dev.scm.azurewebsites.net/api/logstream";
-            var access_token = await GetTokenAsync();            
+            var env = _portalConfiguration?.Hosting?.EnvironmentName;
+            if (string.IsNullOrEmpty(env) || env == "local")
+            {
+                env = "dev";
+            }
+
+            var kuduUrl = $"https://fsdh-portal-app-{env}.scm.azurewebsites.net/api/logstream";
+            var access_token = await GetAccessTokenAsync();            
             var request = new HttpRequestMessage(HttpMethod.Get, kuduUrl);
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
-            var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, "text/html");
-            }
-            else
-            {
-                return StatusCode((int)response.StatusCode, response.ReasonPhrase);
-            }
-        }
-
-        [HttpGet("logstream1")]
-        public async Task<IActionResult> GetKuduLogStream1()
-        {
-            var kuduUrl = $"https://fsdh-portal-app-dev.scm.azurewebsites.net/api/logstream";
-            var access_token = await GetTokenAsync();
-            var request = new HttpRequestMessage(HttpMethod.Get, kuduUrl);
-
-            // set default header
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
-
             var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
             if (response.IsSuccessStatusCode)
@@ -106,7 +83,6 @@ namespace Datahub.Portal.Controllers
             {
                 return StatusCode((int)response.StatusCode, response.ReasonPhrase);
             }
-
         }
 
         private async Task<List<InfrastructureHealthCheck>> LoadCheckData()
@@ -123,24 +99,7 @@ namespace Datahub.Portal.Controllers
             return infrastructureHealth;
         }
 
-        // interactive - not in use
-        public async Task<string> GetUserAccessTokenAsync()
-        {
-            var scopes = new[] { "https://management.azure.com/.default" };
-            var credential = new InteractiveBrowserCredential();
-
-            var tokenRequestContext = new TokenRequestContext(scopes);
-            var token = await credential.GetTokenAsync(tokenRequestContext);
-
-            return token.Token;
-        }
-        public async Task<string> GetTokenAsync()
-        {
-            var cancellationToken = CancellationToken.None;
-            var accessToken = await GetAccessTokenAsync(_httpClient, AzureManagementUrls.ManagementUrl, cancellationToken);
-            return accessToken;
-        }
-        private async Task<string> GetAccessTokenAsync(HttpClient httpClient, string audience, CancellationToken cancellationToken)
+        private async Task<string> GetAccessTokenAsync()
         {
             var config = new AzureDevOpsConfiguration
             {
@@ -149,15 +108,18 @@ namespace Datahub.Portal.Controllers
                 ClientSecret = _portalConfiguration.AzureAd.ClientSecret
             };
 
+            var cancellationToken = CancellationToken.None;
+            var audience = AzureManagementUrls.ManagementUrl;
             var url = $"{AzureManagementUrls.LoginUrl}/{config.TenantId}/oauth2/token";
             var content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 { "grant_type", "client_credentials" },
                 { "client_id", config.ClientId },
                 { "client_secret", config.ClientSecret },
+                { "scope", $"{audience}.default" },
                 { "resource", audience }
             });
-            var tokenResponse = await httpClient.PostAsync<AccessTokenResponse>(url, default, content, cancellationToken);
+            var tokenResponse = await _httpClient.PostAsync<AccessTokenResponse>(url, default, content, cancellationToken);
             return tokenResponse?.access_token;
         }
     }
