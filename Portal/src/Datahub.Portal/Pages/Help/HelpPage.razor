@@ -37,19 +37,22 @@
 @using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 
 @attribute [Route(PageRoutes.Help)]
+@attribute [Route(PageRoutes.Help_FR)]
 
 <PageTitle>
-    @Localizer["SSC Datahub - Help"]
+    @Localizer["Help - Federal Science DataHub"]
 </PageTitle>
 
 <SectionContent SectionName="side-bar">
-    <PersonalSidebar />
+    <PersonalSidebar/>
 </SectionContent>
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-    <MudStack Spacing="6">
-        <MudText Typo="Typo.h2">@Localizer["Support Centre"]</MudText>
 
+    
+
+    <MudStack Spacing="6">
+        <h1 id="maincontent">@Localizer["Support centre"]</h1>
         <MudForm @ref="form">
             @if (_currentStep == Steps.Start)
             {
@@ -75,7 +78,7 @@
                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
                 @foreach (var topic in _ticketTopics)
                 {
-                    <MudCheckBox @bind-Checked="@_ticketTopics[topic.Key]" Label="@Localizer[topic.Key]" Color="@Color.Primary"></MudCheckBox>
+                    <MudCheckBox @bind-Value="@_ticketTopics[topic.Key]" Label="@Localizer[topic.Key]" Color="@Color.Primary"></MudCheckBox>
                 }
             }
             else if (_currentStep == Steps.Description)
@@ -91,16 +94,16 @@
                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>
                 foreach (var workspace in _ticketWorkspaces)
                 {
-                    <MudCheckBox @bind-Checked="@_ticketWorkspaces[workspace.Key]" Label="@Localizer[workspace.Key]" Color="@Color.Primary"></MudCheckBox>
+                    <MudCheckBox @bind-Value="@_ticketWorkspaces[workspace.Key]" Label="@Localizer[workspace.Key]" Color="@Color.Primary"></MudCheckBox>
                 }
             }
             else if (_currentStep == Steps.Language)
             {
                 <MudText Typo="Typo.h2" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which language you would like to be contacted in."]</MudText>
-                <MudRadioGroup T="int" @bind-SelectedOption="_ticketPreferredLanguage">
-                    <MudRadio Option="1" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["English"]</MudRadio>
-                    <MudRadio Option="2" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["French"]</MudRadio>
+                <MudRadioGroup T="int" @bind-Value="_ticketPreferredLanguage">
+                    <MudRadio Value="1" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["English"]</MudRadio>
+                    <MudRadio Value="2" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["French"]</MudRadio>
                 </MudRadioGroup>
             }
             else if (_currentStep == Steps.Submit)
@@ -138,7 +141,7 @@
                 </MudPaper>
             }
             <MudGrid Class="pt-3">
-                <MudItem xs="6" Align="Align.Start" Class="pb-6">
+                <MudItem xs="6" align="@Align.Start" Class="pb-6">
                     @if (_currentStep == Steps.Start)
                     {
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Get Started"]</MudButton>
@@ -148,14 +151,14 @@
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@PreviousStep">@Localizer["Previous"]</MudButton>
                     }
                 </MudItem>
-                <MudItem xs="6" Align="Align.End" Class="pb-6">
+                <MudItem xs="6" align="@Align.End" Class="pb-6">
                     @if (_currentStep == Steps.Submit)
                     {
-                        <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="@SubmitForm">@Localizer["Submit"]</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="@SubmitForm">@Localizer["Submit"]</MudButton>
                     }
                     else if (_currentStep != Steps.Start)
                     {
-                        <MudButton Type="Button" Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Next"]</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Next"]</MudButton>
                     }
                 </MudItem>
             </MudGrid>
@@ -167,20 +170,22 @@
                 <MudTable Items="@_issues" Loading="@_loading" Hover Dense>
                     <HeaderContent>
                         <MudTh>@Localizer["ID"]</MudTh>
-						<MudTh>@Localizer["Title"]</MudTh>
-						<MudTh>@Localizer["Description"]</MudTh>
+                        <MudTh>@Localizer["Title"]</MudTh>
+                        <MudTh>@Localizer["Description"]</MudTh>
                         <MudTh>@Localizer["Status"]</MudTh>
                         <MudTh>@Localizer["Submitted_DT"]</MudTh>
                         <MudTh>@Localizer["Last Update"]</MudTh>
-					</HeaderContent>
-					<RowTemplate>
+                    </HeaderContent>
+                    <RowTemplate>
                         <MudTd>@context.Id</MudTd>
-						<MudTd>@context.Title</MudTd>
+                        <MudTd>@context.Title</MudTd>
                         <MudTd>@context.Description</MudTd>
-                        <MudTd><MudChip Color="@GetColor(context.State)">@Localizer[context.Message]</MudChip></MudTd>
+                        <MudTd>
+                            <MudChip T="string" Color="@GetColor(context.State)">@Localizer[context.Message]</MudChip>
+                        </MudTd>
                         <MudTd>@context.SubmittedDate</MudTd>
                         <MudTd>@context.ChangedDate</MudTd>
-					</RowTemplate>
+                    </RowTemplate>
                     <PagerContent>
                         <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")"/>
                     </PagerContent>
@@ -203,7 +208,7 @@
     private int _ticketPreferredLanguage = 1;
     private List<Datahub_Project_User> _userRoles;
     private IJSObjectReference _module;
-    private List<IssueForDisplaying> _issues = new ();
+    private List<IssueForDisplaying> _issues = new();
 
     private bool _loading = true;
 
@@ -276,7 +281,7 @@
      * This method is called after the first render and can be used to perform tasks that require access to the rendered DOM elements.
      * It imports a JavaScript module and retrieves user agent, resolution, and timezone information using JavaScript interop.
      * This occurs in this method because it requires the component to be rendered first, otherwise an error will be visible briefly to the user.
-     * 
+     *
      * @param firstRender - A boolean value indicating whether this is the first render of the component.
      * @returns A Task representing the asynchronous operation.
      */
@@ -348,6 +353,7 @@
             var value = await _localStorage.GetItemAsStringAsync(key);
             dataDict.Add(key, value);
         }
+
         var localStorageData = Newtonsoft.Json.JsonConvert.SerializeObject(dataDict);
 
         // We retrieve the selected checkboxes that indicate the issue topics
@@ -359,6 +365,7 @@
         {
             topics = "Issue";
         }
+
         if (workspaces.Length == 0)
         {
             workspaces = "N/A";
@@ -392,7 +399,7 @@
      * Retrieves the organization name from the given email address.
      * If the email address is in the format "user@organization.gc.ca", then organization is extracted from it.
      * If the email address is not in the expected format, the organization name is set to "unknown".
-     * 
+     *
      * @param email - The email address from which to extract the organization name.
      * @returns The organization name extracted from the email address, or "unknown" if the email address is not in the expected format.
      */
@@ -407,12 +414,13 @@
         {
             org = "unknown";
         }
+
         return org;
     }
 
     /**
      * Retrieves a list of issues created by a specific user.
-     * 
+     *
      * @param userName The username of the user.
      * @return A list of IssueForDisplaying objects representing the issues created by the user.
      */
@@ -472,4 +480,5 @@
             _ => Color.Default
         };
     }
+
 }

@@ -9,7 +9,7 @@
 
 <MudStack Spacing="8" Class="mb-16">
     <MudStack>
-        <MudText Typo="Typo.h4">@Localizer["Portal Appearance"]</MudText>
+        <h1 id="maincontent">@Localizer["Portal Appearance"]</h1>
         <MudDivider/>
     </MudStack>
     <SettingsField Label="@Localizer["Theme Preferences"]" Description="@Localizer["Choose how DataHub looks to you. Select a single theme, or sync with your operating system automatically."]">
@@ -23,7 +23,7 @@
     <SettingsField Label="@Localizer["Language Selection"]" Description="@Localizer["Choose your preferred language for DataHub."]">
         <MudSelect T="string" Label="@Localizer["Current Language"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@ViewedUser.UserSettings.Language" ValueChanged="HandleLanguageChanged">
             <MudSelectItem T="string" Value="@("en-CA")">English</MudSelectItem>
-            <MudSelectItem T="string" Value="@("fr-CA")">Français</MudSelectItem>
+            <MudSelectItem T="string" Value="@("fr-CA")">FranÃ§ais</MudSelectItem>
             <MudSelectItem Disabled T="string" Value="@("Klingon")">Klingon</MudSelectItem>
         </MudSelect>
     </SettingsField>

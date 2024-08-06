@@ -10,9 +10,11 @@
 
 @attribute [Route(PageRoutes.ToolDefault)]
 @attribute [Route(PageRoutes.Tool)]
+@attribute [Route(PageRoutes.ToolDefault_FR)]
+@attribute [Route(PageRoutes.Tool_FR)]
 
 <PageTitle>
-    @Localizer["SSC Datahub - Admin"]
+    @Localizer["Admin Tools - Federal Science DataHub"]
 </PageTitle>
 
 <SectionContent SectionName="side-bar">
@@ -51,6 +53,13 @@
         { PersonalSidebar.SectionViews.Users, typeof(UsersPage) },
         { PersonalSidebar.SectionViews.Email, typeof(ComposeEmailPage) },
         { PersonalSidebar.SectionViews.AzureSubscriptions, typeof(AzureSubscriptionsPage)},
-        { PersonalSidebar.SectionViews.SupportRequests, typeof(SupportRequestPage)}
+        { PersonalSidebar.SectionViews.SupportRequests, typeof(SupportRequestPage)},
+        { PersonalSidebar.SectionViews.Diagnostics_FR, typeof(DiagnosticsPage) },
+        { PersonalSidebar.SectionViews.Statistics_FR, typeof(StatisticsPage) },
+        { PersonalSidebar.SectionViews.HealthCheck_FR, typeof(InfrastructureHealthPage) },
+        { PersonalSidebar.SectionViews.Users_FR, typeof(UsersPage) },
+        { PersonalSidebar.SectionViews.Email_FR, typeof(ComposeEmailPage) },
+        { PersonalSidebar.SectionViews.AzureSubscriptions_FR, typeof(AzureSubscriptionsPage)},
+        { PersonalSidebar.SectionViews.SupportRequests_FR, typeof(SupportRequestPage)}
     };
 }

@@ -13,7 +13,7 @@
     return;
 }
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-    <div class="sr-only"><p>@Localizer["Your profile"]</p></div>
+    @* <div class="sr-only"><p>@Localizer["Your profile"]</p></div>
     <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" FullWidth>
         <ActivatorContent>
             <DHButton HtmlTag="button" Class="ml-2">
@@ -27,7 +27,7 @@
                     <MudSwitch
                         T="bool"
                         Color="Color.Primary"
-                        Checked="@_isViewAsAdmin"
+                        Value="@_isViewAsAdmin"
                         Label="@Localizer["Admin Access Enabled"]"/>
                 </MudMenuItem>
                 <MudDivider/>
@@ -42,7 +42,23 @@
                 @Localizer["Sign Out"]
             </MudMenuItem>
         </ChildContent>
-    </MudMenu>
+    </MudMenu> *@
+    <MudHidden Breakpoint="Breakpoint.MdAndDown" Invert="true">
+        <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Language selection"]</MudText>
+        <LanguageToggle @ref="_languageToggle" Size="Size.Small" />
+        <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
+        <DHButton OnClick="@HandleLogOut" Size="Size.Small">
+            @Localizer["Sign Out"]
+        </DHButton>
+    </MudHidden>
+    <MudHidden Breakpoint="Breakpoint.LgAndUp" Invert="true">
+        <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Language selection"]</MudText>
+        <LanguageToggle @ref="_languageToggle" Size="Size.Medium" />
+        <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
+        <DHButton OnClick="@HandleLogOut" Size="Size.Medium">
+            @Localizer["Sign Out"]
+        </DHButton>
+    </MudHidden>
 </DatahubAuthView>
 
 @code {

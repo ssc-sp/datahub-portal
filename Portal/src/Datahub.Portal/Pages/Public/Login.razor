@@ -1,31 +1,27 @@
 @page "/login"
+@page "/connexion"
 @using Datahub.Application.Services.UserManagement
 
 @inject NavigationManager _navigationManager
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _portalConfiguration
 
-<PageTitle>@Localizer["DataHub | Login"]</PageTitle>
+<PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
 
-<PublicLandingDescription>
-    <MudStack AlignItems="AlignItems.Center" Class="mb-16 pb-16">
-        <MudText Typo="Typo.h4" Class="text-center">@Localizer["Welcome to DataHub"]</MudText>
-        <MudText Typo="Typo.h6" Class="text-center">@Localizer["Please login to continue"]</MudText>
-        <MudStack AlignItems="AlignItems.Center" Class="mt-4">
-            <MudButton HtmlTag="a" Class="mx-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">@Localizer["Login"]</MudButton>
-        </MudStack>
+<MudStack Class="my-16 py-16">
+    <MudStack AlignItems="AlignItems.Center" Class="mt-4">
+        <MudText Typo="Typo.h2" Class="text-center">@Localizer["Please login to continue"]</MudText>
+        <MudButton HtmlTag="a" Class="mx-auto px-16" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">@Localizer["Login"]</MudButton>
         <MudText Typo="Typo.body2" Class="mt-8">
             @Localizer["Don't have an account?"]
             <MudLink Href="/register" Typo="Typo.body2">@Localizer["Register instead"]</MudLink>
         </MudText>
     </MudStack>
-</PublicLandingDescription>
+</MudStack>
 
 @code {
 
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string redirectUri { get; set; }
+    [Parameter] [SupplyParameterFromQuery] public string redirectUri { get; set; }
 
     private void HandleLogin()
     {
@@ -34,6 +30,7 @@
         {
             redirectUri = _navigationManager.BaseUri;
         }
+
         var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint=&domainHint=&claims=&policy=";
         _navigationManager.NavigateTo(url, true);
     }
@@ -52,4 +49,5 @@
             HandleLogin();
         }
     }
+
 }

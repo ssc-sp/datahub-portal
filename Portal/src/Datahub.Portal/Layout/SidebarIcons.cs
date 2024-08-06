@@ -54,6 +54,7 @@ public static class SidebarIcons
     public const string Start = "fa-solid fa-play";
     public const string Stop = "fa-solid fa-stop";
     public const string Restart = "fa-light fa-rotate-right";
+    public const string Redeploy = "fa-light fa-arrow-up-from-bracket";
     public const string Gear = "fa-light fa-gear";
     public const string Circle = "fa-solid fa-circle";
     public const string Show = "fa-light fa-eye";

@@ -1,13 +1,24 @@
-@using Datahub.Application.Services
+﻿@using Datahub.Application.Services
 @inject IProjectCreationService _projectCreationService
 @inject NavigationManager _navigationManager
 @inject DatahubPortalConfiguration _portalConfiguration
 
-<MudDialog>
-    <DialogContent>
+@attribute [Route(PageRoutes.CreateWorkspace)]
+@attribute [Route(PageRoutes.CreateWorkspace_FR)]
+
+<PageTitle>@Localizer["Create a Workspace - Federal Science DataHub"]</PageTitle>
+
+<SectionContent SectionName="side-bar">
+    <PersonalSidebar />
+</SectionContent>
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+    <MudStack Spacing="6">
+        <h1 id="maincontent">@Localizer["Create a new Workspace"]</h1>
         <MudText>
             @Localizer["Please complete the following information to create a new workspace"]
         </MudText>
+
         <MudForm Class="mb-4" @bind-IsValid="@_success">
             <MudTextField T="string"
                           @bind-Value="_projectTitle"
@@ -15,8 +26,8 @@
                           RequiredError="@Localizer["Workspace Title is required"]"
                           HelperText="@Localizer["Enter a descriptive title for the workspace"]"
                           DebounceInterval="500"
-                          OnDebounceIntervalElapsed="UpdateProjectAcronym"/>
-            
+                          OnDebounceIntervalElapsed="UpdateProjectAcronym" />
+
             <MudTextField T="string"
                           @bind-Value="_projectAcronym"
                           Label="@Localizer["Workspace Acronym"]"
@@ -30,7 +41,7 @@
                           @ref="_acronymField"
                           alt=@Localizer["A unique alphanumeric acronym to identify the workspace. Click the icon to generate an acronym based on the title."]
                           Required
-                          Validation="@(new Func<string, Task<string>>(ValidateAcronym))"/>
+                          Validation="@(new Func<string, Task<string>>(ValidateAcronym))" />
 
             <MudSelect T="string"
                        Label="@Localizer["(Optional) Which features are of interest to you?"]"
@@ -56,11 +67,11 @@
                                Color="Color.Primary">
                         @Localizer["Link GitHub"]
                     </MudButton>
-                    <MudCheckBox Checked=@_createRepository
-                                 CheckedChanged=@ToggleCreateRepo
+                    <MudCheckBox Value=@_createRepository
+                                 ValueChanged=@ToggleCreateRepo
                                  Disabled="!_githubIntegration"
                                  T="bool"
-                                 Label=@Localizer["Create Repository"]/>
+                                 Label=@Localizer["Create Repository"] />
                 </MudStack>
             }
 
@@ -71,35 +82,26 @@
                 </MudAlert>
             }
         </MudForm>
-    </DialogContent>
-    <DialogActions>
-        <MudElement Class="px-4 pb-4">
-            @if (ShowCancel)
-            {
-                <MudButton Variant="Variant.Text" OnClick="CloseDialog">@Localizer["Cancel"]</MudButton>
-            }
+        <MudElement Class="pb-4">
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Href="@PageRoutes.Home" Class="mr-2">
+                @Localizer["Cancel"]
+            </MudButton>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_success" OnClick="CreateProject" Class="ml-2">
                 @if (_isCreating)
                 {
-                    <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true"/>
+                    <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true" />
                 }
                 @Localizer["Create Workspace"]
             </MudButton>
         </MudElement>
-
-    </DialogActions>
-</MudDialog>
+    </MudStack>
+</DatahubAuthView>
 
 @code {
-
-    [CascadingParameter]
-    MudDialogInstance MudDialog { get; set; }
-
-    [Parameter]
     public bool ShowCancel { get; set; } = true;
 
 #nullable enable
-        private const int MaxAcronymLength = 7;
+    private const int MaxAcronymLength = 7;
     private string? _errorMessage;
     private string _projectTitle = string.Empty;
     private string _projectAcronym = string.Empty;
@@ -129,16 +131,11 @@
         _errorMessage = null;
     }
 
-    private void CloseDialog()
-    {
-        MudDialog.Cancel();
-    }
-
     private async Task<string?> ValidateAcronym(string acronym)
     {
         if (await _projectCreationService.AcronymExists(acronym))
             return Localizer["Workspace Acronym already exists"];
-        
+
         // check it is alphanumeric
         if (!acronym.All(char.IsLetterOrDigit))
             return Localizer["Acronym must be alphanumeric"];
@@ -147,10 +144,10 @@
     }
 
     private readonly Converter<string> _converter = new()
-    {
-        SetFunc = value => value?.ToUpperInvariant() ?? string.Empty,
-        GetFunc = text => text?.ToUpperInvariant() ?? string.Empty,
-    };
+        {
+            SetFunc = value => value?.ToUpperInvariant() ?? string.Empty,
+            GetFunc = text => text?.ToUpperInvariant() ?? string.Empty,
+        };
 
     private async Task UpdateProjectAcronym()
     {
@@ -167,23 +164,18 @@
             if (_isCreating)
                 return;
             _isCreating = true;
-    //update Button
+            //update Button
             StateHasChanged();
             await Task.Delay(1);
-    // TODO: Get Organization name?
+            // TODO: Get Organization name?
 
             var isAdded = await _projectCreationService.CreateProjectAsync(_projectTitle, _projectAcronym, "Unspecified");
             _isCreating = false;
             if (isAdded)
             {
                 await _projectCreationService.SaveProjectCreationDetailsAsync(_projectAcronym, _interestedFeatures);
-                MudDialog.Close(DialogResult.Ok(_projectAcronym));
-
-                if (_createRepository)
-                {
-                    var url = $"https://github.com/login/oauth/authorize?scope=repo&client_id={_portalConfiguration.Github.ClientId}&state={_projectAcronym}";
-                    _navigationManager.NavigateTo(url);
-                }
+                //MudDialog.Close(DialogResult.Ok(_projectAcronym));
+                _navigationManager.NavigateTo(PageRoutes.Home);
             }
             else
             {
@@ -204,5 +196,5 @@
     }
 
 
-#nullable disable
+    #nullable disable
 }

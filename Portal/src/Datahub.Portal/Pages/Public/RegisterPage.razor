@@ -1,4 +1,3 @@
-@using Datahub.Portal.Data.Forms
 @using Datahub.Application.Services.Metadata
 @using Datahub.Application.Services
 
@@ -8,67 +7,69 @@
 @inject NavigationManager _navigationManager
 
 @page "/register"
+@page "/inscription"
 
-<PageTitle>@Localizer["DataHub | Registration"]</PageTitle>
+<PageTitle>@Localizer["Registration - Federal Science DataHub"]</PageTitle>
 
-<PublicLandingDescription>
-    <MudStack>
-        <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
-            <MudStack>
-                <MudTextField T="string"
-                              Label=@_emailFieldText
-                                  @bind-Value="_email"
-                              Required
-                              Variant="Variant.Outlined"
-                              RequiredError=@Localizer["Government of Canada Email is required"]
-                              Validation=@(new Func<string, string>(EmailValidation))/>
+<MudStack >
+    <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
+        <MudStack>
+            <MudTextField T="string"
+                          Label=@_emailFieldText 
+                                                                                                                        @bind-Value="_email"
+                          Required
+                          Variant="Variant.Outlined"
+                          RequiredError=@Localizer["Government of Canada Email is required"]
+                          Validation=@(new Func<string, string>(EmailValidation))/>
 
-                <MudTextField T="string"
-                              Label=@Localizer["(Optional) How did you hear about the Federal Science DataHub?"]
-                              Variant="Variant.Outlined"
-                              Lines="5"
-                              @bind-Value="@_comment"/>
+            <MudTextField T="string"
+                          Label=@Localizer["(Optional) How did you hear about the Federal Science DataHub?"]
+                          Variant="Variant.Outlined"
+                          Lines="5"
+                          @bind-Value="@_comment"/>
 
-                <MudCheckBox T="bool"
-                             Required
-                             RequiredError=@Localizer["Agreement with the Terms and conditions is required"]
-                             Class="mt-8">
+            <MudCheckBox T="bool"
+                         Required
+                         RequiredError=@Localizer["Agreement with the Terms and conditions is required"]
+                         Class="mt-4">
 
-                    <MudText Typo="Typo.body2">
-                        @Localizer["I agree to the "]
-                        <MudLink Href="/terms-and-conditions" Typo="Typo.body2">
-                            @Localizer["Terms and conditions"]
-                        </MudLink>
-                        @Localizer[" of use for the FSDH Trial"]
-                    </MudText>
-
-                </MudCheckBox>
-
-                @if (_isRegistering)
-                {
-                    <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mx-auto mt-4">
-                        @Localizer["Registering"]
-                        <MudProgressCircular Class="ml-4" Color="Color.Default" Size="Size.Small" Indeterminate="true"/>
-                    </MudButton>
-                }
-                else
-                {
-                    <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mx-auto mt-4" OnClick="HandleValidSubmit">
-                        @Localizer["Register"]
-                    </MudButton>
-                }
-            </MudStack>
-        </MudForm>
-        <MudText Typo="Typo.body2" Align="Align.Center">
-            @Localizer["Already registered?"]
-            <MudLink Typo="Typo.body2" Href="/login">@Localizer["Login instead"]</MudLink>
-        </MudText>
-         <MudText Typo="Typo.body2" Align="Align.Center">
-                    <MudLink Typo="Typo.body2" Target="_blank" Href="/account-setup">@Localizer["Click here for detailed instructions"]</MudLink>
-                    @Localizer["on setting up your account."]
+                <MudText Typo="Typo.body2">
+                    @Localizer["I agree to the "]
+                    <MudLink Href="@Localizer[PageRoutes.TermsAndConditions]" Typo="Typo.body2">
+                        @Localizer["Terms and conditions"]
+                    </MudLink>
+                    @Localizer[" of use for the FSDH Trial"]
                 </MudText>
-    </MudStack>
-</PublicLandingDescription>
+
+            </MudCheckBox>
+
+            @if (_isRegistering)
+            {
+                <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mx-auto mt-4">
+                    @Localizer["Registering"]
+                    <MudProgressCircular Class="ml-4" Color="Color.Default" Size="Size.Small" Indeterminate="true"/>
+                </MudButton>
+                <MudAlert Severity="Severity.Warning" hidden="@(!_failed)" Class="mt-4">
+                    @Localizer["This is taking longer than normal... Please try signing in and contact support if you encounter any issue."]
+                </MudAlert>
+            }
+            else
+            {
+                <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mx-auto mt-4 px-16" OnClick="HandleValidSubmit">
+                    @Localizer["Register"]
+                </MudButton>
+            }
+        </MudStack>
+    </MudForm>
+    <MudText Typo="Typo.body2" Align="Align.Center">
+        @Localizer["Already registered?"]
+        <MudLink Typo="Typo.body2" Href="/login">@Localizer["Login instead"]</MudLink>
+    </MudText>
+    <MudText Typo="Typo.body2" Align="Align.Center">
+        <MudLink Typo="Typo.body2" Target="_blank" Href="/account-setup">@Localizer["Click here for detailed instructions"]</MudLink>
+        @Localizer["on setting up your account."]
+    </MudText>
+</MudStack>
 
 
 @code {
@@ -77,6 +78,7 @@
     private string _emailFieldText { get; set; }
     private string _comment;
     private bool _success = true;
+    private bool _failed = false;
     private bool _isRegistering;
     private string[] _errors = { };
     private MudForm _form;
@@ -89,9 +91,18 @@
     private string EmailValidation(string email)
     {
         var valid = _userEnrollmentService.IsValidGcEmail(email);
-        _emailFieldText = valid ? Localizer["Government of Canada Email"] : Localizer["Government of Canada email"]+" - " + Localizer["Invalid Government of Canada email address"];
-        var validationString =  valid ? null : Localizer["Invalid Government of Canada email address"];
+        _emailFieldText = valid ? Localizer["Government of Canada Email"] : Localizer["Government of Canada email"] + " - " + Localizer["Invalid Government of Canada email address"];
+        var validationString = valid ? null : Localizer["Invalid Government of Canada email address"];
         return validationString;
+    }
+
+    private async Task DisplayFailedMessage(int time = 15)
+    {
+        _failed = false;
+        StateHasChanged();
+        await Task.Delay(time * 1000);
+        _failed = true;
+        StateHasChanged();
     }
 
     private async Task HandleValidSubmit()
@@ -99,9 +110,11 @@
         _isRegistering = true;
         StateHasChanged();
 
+        await (DisplayFailedMessage(20));
+
         _logger.LogInformation("Saving registration details for user with email: {Email}", _email);
         await _userEnrollmentService.SaveRegistrationDetails(_email, _comment);
-        
+
         _logger.LogInformation("Attempting to register user with email: {Email}", _email);
         var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(_email, default);
 
@@ -113,8 +126,10 @@
         else
         {
             _logger.LogWarning("User with email: {Email} was not registered", _email);
+            _failed = true;
             _success = false;
         }
+
         _isRegistering = false;
         StateHasChanged();
     }

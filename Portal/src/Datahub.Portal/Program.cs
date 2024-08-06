@@ -22,12 +22,6 @@ public class Program
                 logBuilder.ClearProviders();
                 logBuilder.AddConsole();
 
-                //var appInsightsConfig = hostingContext.Configuration.GetSection("ApplicationInsights");
-                //logBuilder.AddApplicationInsights(config => 
-                //{ 
-                //    config.ConnectionString = appInsightsConfig.GetValue<string>("ConnectionString"); 
-                //}, options => {});
-
                 logBuilder.AddAzureWebAppDiagnostics();
 
                 // event log only works if app is hosted in a Windows enviroment

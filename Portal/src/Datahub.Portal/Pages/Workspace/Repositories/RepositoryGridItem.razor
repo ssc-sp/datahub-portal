@@ -10,10 +10,10 @@
 <MudItem xs="4">
     <MudSwitch T="bool"
                Label="@GetLabel()"
-               Checked="@RepositoryInfoDto.IsPublic"
+               Value="@RepositoryInfoDto.IsPublic"
                Color="Color.Primary"
-               UnCheckedColor="Color.Dark"
-               CheckedChanged="HandleCheckChanged"/>
+               UnCheckedColor="@Color.Dark"
+               ValueChanged="HandleCheckChanged"/>
 </MudItem>
 
 @code {
