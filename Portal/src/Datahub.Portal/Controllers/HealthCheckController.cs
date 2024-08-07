@@ -77,7 +77,22 @@ namespace Datahub.Portal.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var stream = await response.Content.ReadAsStreamAsync();
-                return new FileStreamResult(stream, response.Content.Headers.ContentType.ToString());
+                Response.ContentType = "text/event-stream";
+
+                using (var streamReader = new StreamReader(stream))
+                using(var writer = new StreamWriter(Response.Body))
+                {
+                    var buffer = new char[8192];
+                    int charsRead;
+                    while((charsRead = await streamReader.ReadAsync(buffer,0,buffer.Length)) >  0 && charsRead > 0)
+                    {
+                        await writer.WriteAsync(buffer,0,charsRead);
+                        await writer.FlushAsync();
+                    }
+                }
+                return new EmptyResult();
+                // [VB] could not use FileStreamResult - it did not stream as supposed to
+                //return new FileStreamResult(stream, new MediaTypeHeaderValue("text/event-stream").MediaType); 
             }
             else
             {
