@@ -11,10 +11,10 @@
 <MudStack Class="my-16 py-16">
     <MudStack AlignItems="AlignItems.Center" Class="mt-4">
         <MudText Typo="Typo.h2" Class="text-center">@Localizer["Please login to continue"]</MudText>
-        <MudButton HtmlTag="a" Class="mx-auto px-16" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">@Localizer["Login"]</MudButton>
-        <MudText Typo="Typo.body2" Class="mt-8">
+        <MudButton HtmlTag="a" Class="mx-auto px-16 my-4" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">@Localizer["Login"]</MudButton>
+        <MudText Typo="Typo.body1">
             @Localizer["Don't have an account?"]
-            <MudLink Href="/register" Typo="Typo.body2">@Localizer["Register instead"]</MudLink>
+            <MudLink Href="/register" Typo="Typo.body1">@Localizer["Register instead"]</MudLink>
         </MudText>
     </MudStack>
 </MudStack>

@@ -23,9 +23,9 @@
 }
 <MudStack>
     <MudStack Row="true" AlignItems="AlignItems.Center">
-        <h1 id="maincontent">
-            @Localizer["Web Application"]
-        </h1>
+        <span id="maincontent">
+            <MudText Typo="Typo.h1">@Localizer["Web Application"]</MudText>
+        </span>
         @if (_isConfigured)
         {
             <MudStack AlignItems="AlignItems.End" Justify="Justify.Center">

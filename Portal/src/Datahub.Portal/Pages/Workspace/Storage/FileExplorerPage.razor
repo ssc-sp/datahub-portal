@@ -37,7 +37,9 @@
 
 <MudStack>
     <MudStack Row Justify="Justify.SpaceBetween">
-        <h1 id="maincontent">@Localizer["{0} Storage Explorer", WorkspaceAcronym]</h1>
+        <span id="maincontent">
+            <MudText Typo="Typo.h1">@Localizer["{0} Storage Explorer", WorkspaceAcronym]</MudText>
+        </span>
     </MudStack>
     <CascadingValue Value="@WorkspaceAcronym" Name="ProjectAcronym">
         <CascadingValue Value="@_project" Name="Project">

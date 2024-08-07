@@ -8,7 +8,9 @@
 
 <MudStack Spacing="8" Class="mb-16">
     <MudStack>
-        <h1 id="maincontent">@Localizer["Public profile"]</h1>
+        <span id="maincontent">
+            <MudText Typo="Typo.h1">@Localizer["Public profile"]</MudText>
+        </span>
         <MudDivider/>
     </MudStack>
     <SettingsField Label="@Localizer["Display Name"]" Description="@Localizer["Your display name will be shown around DataHub as your username."]">

@@ -7,7 +7,9 @@
         <MudPaper Class="pt-16 px-16" Square MinWidth="100%">
             <MudStack Style="height: 100%">
                 <MudStack>
-                    <h1 id="maincontent">@Localizer["MainTitle"] - @Localizer["Login or register"]</h1>
+                    <span id="maincontent">
+                        <MudText Typo="Typo.h1" Class="my-8">@Localizer["MainTitle"] - @Localizer["Login or register"]</MudText>
+                    </span>
                     <MudText Typo="Typo.body1">
                         @Localizer["Welcome to the Government of Canada's digital hub for science data solutions."]
                     </MudText>
@@ -16,13 +18,13 @@
                     <MudText>@Localizer["Register here to escape the silos. On the Federal Science DataHub you can:"]</MudText>
                     <MudElement HtmlTag="ul" Style="list-style: circle; margin-left: 32px;">
                         <MudElement HtmlTag="li">
-                            <MudText Typo="Typo.body2">@Localizer["Access fit-for-purpose, scalable storage for GC science data"]</MudText>
+                            <MudText Typo="Typo.body1">@Localizer["Access fit-for-purpose, scalable storage for GC science data"]</MudText>
                         </MudElement>
                         <MudElement HtmlTag="li">
-                            <MudText Typo="Typo.body2">@Localizer["Easily share your data with your GC colleagues"]</MudText>
+                            <MudText Typo="Typo.body1">@Localizer["Easily share your data with your GC colleagues"]</MudText>
                         </MudElement>
                         <MudElement HtmlTag="li">
-                            <MudText Typo="Typo.body2">@Localizer["Perform analytics and collaborate with your GC science partners in an interactive environment"]</MudText>
+                            <MudText Typo="Typo.body1">@Localizer["Perform analytics and collaborate with your GC science partners in an interactive environment"]</MudText>
                         </MudElement>
                     </MudElement>
                 </MudStack>
