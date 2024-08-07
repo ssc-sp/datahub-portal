@@ -7,10 +7,12 @@
 @inject IMetadataBrokerService _metadataBrokerService
 
 <MudStack>
-    <h1 id="maincontent">
-        <DHIcon Icon="fa-light fa-flask-vial" Title="@Localizer["Workspace Icon"]" Size="Size.Large" Class="mr-2" />
-        @_project?.ProjectName
-    </h1>
+    <span id="maincontent">
+        <MudText Typo="Typo.h1" Class="my-8">
+            <DHIcon Icon="fa-light fa-flask-vial" Title="@Localizer["Workspace Icon"]" Size="Size.Large" Class="mr-2" />
+            @_project?.ProjectName
+        </MudText>
+    </span>
     <DHMarkdown class="description" Content="@_projectDescription"/>
 </MudStack>
 
