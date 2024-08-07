@@ -227,7 +227,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public IList<PowerBi_Workspace> PowerBi_Workspaces { get; set; }
 
     public List<ProjectRepository> Repositories { get; set; }
-    public List<ProjectReports> Reports { get; set; }
 
     public IList<OpenDataSubmission> PublishingSubmissions { get; set; }
 

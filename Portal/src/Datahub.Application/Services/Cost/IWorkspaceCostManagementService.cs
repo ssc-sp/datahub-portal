@@ -78,7 +78,7 @@
         public List<DailyServiceCost> FilterDateRange(List<DailyServiceCost> costs, DateTime date);
     }
 
-    public struct DailyServiceCost
+    public class DailyServiceCost
     {
         public decimal Amount { get; set; }
         public string Source { get; set; }

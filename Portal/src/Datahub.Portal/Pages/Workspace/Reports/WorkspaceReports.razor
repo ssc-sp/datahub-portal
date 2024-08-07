@@ -1,5 +1,5 @@
 <MudStack>
-    <MudText Typo="Typo.h2">@Localizer["Workspace Reports"]</MudText>
+    <h1 id="maincontent">@Localizer["Workspace Reports"]</h1>
 
     <MudTabs Elevation="2" ApplyEffectsToContainer="true" PanelClass="pa-6" Style="margin-bottom: 100px" Rounded="true" SliderColor="Color.Primary" Outlined="true">
             <MudTabPanel Text="@Localizer["Costing"]" >
@@ -8,16 +8,12 @@
             <MudTabPanel Text="@Localizer["Storage"]">
                 <WorkspaceStorageReport WorkspaceAcronym="@WorkspaceAcronym"/>
             </MudTabPanel>
-            <MudTabPanel Text="@Localizer["Reports"]">
-                <WorkspaceReportsTable WorkspaceAcronym="@WorkspaceAcronym"/>
-            </MudTabPanel>
+            
+            @* <MudTabPanel Text="@Localizer["Reports"]"> *@
+            @*     <WorkspaceReportsTable WorkspaceAcronym="@WorkspaceAcronym"/> *@
+            @* </MudTabPanel> *@
     </MudTabs>
-
-    <h1 id="maincontent">@Localizer["Workspace Reports"]</h1>
-
-    <WorkspaceCostingReport WorkspaceAcronym="@WorkspaceAcronym"/>
-    <MudDivider Class="my-6"/>
-    <WorkspaceStorageReport WorkspaceAcronym="@WorkspaceAcronym"/>
+    
 </MudStack>
 
 @code {

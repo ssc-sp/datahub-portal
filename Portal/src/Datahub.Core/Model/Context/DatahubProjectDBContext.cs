@@ -47,7 +47,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
     public DbSet<Project_Credits> Project_Credits { get; set; }
-    public DbSet<ProjectReports> ProjectReports { get; set; }
     public DbSet<Project_Whitelist> Project_Whitelists { get; set; }
 
     public DbSet<Project_Storage> Project_Storage_Avgs { get; set; }
@@ -257,12 +256,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasMany(w => w.ProjectInactivityNotifications)
             .WithOne(p => p.Project)
             .HasForeignKey(p => p.Project_ID)
-            .OnDelete(DeleteBehavior.NoAction);
-
-        modelBuilder.Entity<Datahub_Project>()
-            .HasMany(project => project.Reports)
-            .WithOne(report => report.Project)
-            .HasForeignKey(report => report.Id)
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Project_Whitelist>(entity =>

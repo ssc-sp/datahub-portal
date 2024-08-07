@@ -35,7 +35,7 @@
         @if (_lastUpdateValid)
         {
             <MudText Style="font-style: italic">
-                @Localizer["Last updated {0} {1}",$"{ConvertToLocalTime(_projectCredits.LastUpdate!.Value):yyyy-MM-dd HH:mm}", TimeZone.CurrentTimeZone.StandardName]
+                @Localizer["Last updated {0} {1}", $"{ConvertToLocalTime(_projectCredits.LastUpdate!.Value):yyyy-MM-dd HH:mm}", TimeZone.CurrentTimeZone.StandardName]
             </MudText>
         }
 
@@ -64,45 +64,48 @@
         </MudStack>
         <MudStack Row>
             <MudStack Style="height: 100%; width: 100%">
-                <ApexChart @ref="_serviceCostChart" TItem="AzureServiceCost" Title="@Localizer["Cost per service"]" Options="@(_showingTotal ? _serviceTotalCostChartOptions : _serviceYesterdayCostChartOptions)">
+                <ApexChart @ref="_serviceCostChart" TItem="DailyServiceCost" Title="@Localizer["Cost per service"]" Options="@(_showingTotal ? _serviceTotalCostChartOptions : _serviceYesterdayCostChartOptions)">
                     <ApexPointSeries
-                        TItem="AzureServiceCost"
+                        TItem="DailyServiceCost"
                         Name="@Localizer["Service cost"]"
                         Items="@(_showingTotal ? _currentServiceCosts : _yesterdayServiceCosts)"
-                        XValue="@(c => c.Name)"
-                        YValue="@(c => decimal.Round((decimal)c.Cost, 2))"
+                        XValue="@(c => c.Source)"
+                        YValue="@(c => decimal.Round((decimal)c.Amount, 2))"
                         SeriesType="SeriesType.Donut"
                         ShowDataLabels="true"/>
                 </ApexChart>
             </MudStack>
-            @if (_currentDailyCosts?.Count > 1 && _currentDailyCosts.Any(c => c.Amount > 0))
+            @if (_projectCosts.Count > 0)
             {
                 <MudStack Style="width: 100%; height: 100%">
-                    <ApexChart @ref="_dailyCostChart" TItem="AzureDailyCost" Title="@Localizer["Daily cost (over last 30 days)"]" Options="@_dailyCostChartOptions">
-                        <ApexPointSeries
-                            TItem="AzureDailyCost"
-                            Name="@Localizer["Daily cost"]"
-                            Items="@(_currentDailyCosts)"
-                            XValue="@(c => c.Date.Date.ToString("yyyy-MM-dd"))"
-                            YValue="@(c => decimal.Round((decimal)c.Cost, 2))"
-                            OrderBy="@(c => c.X)"
-                            SeriesType="SeriesType.Bar"/>
+                    <ApexChart @ref="_dailyCostChart" TItem="Datahub_Project_Costs" Title="@Localizer["Daily cost (over last 30 days)"]" Options="@_dailyCostChartOptions">
+                        @foreach (var service in _projectCosts.Select(c => c.ServiceName).Distinct().ToList())
+                        {
+                            <ApexPointSeries
+                                TItem="Datahub_Project_Costs"
+                                Name="@service"
+                                Items="@(_projectCosts.Where(c => c.ServiceName == service && c.Date >= DateTime.UtcNow.Date.AddDays(-30)).OrderBy(c => c.Date).ToList())"
+                                XValue="@(c => c.Date.Date.ToString("yyyy-MM-dd"))"
+                                YValue="@(c => decimal.Round((decimal)c.CadCost, 2))"
+                                OrderBy="@(c => c.X)"
+                                SeriesType="SeriesType.Bar"/>
+                        }
                     </ApexChart>
                 </MudStack>
             }
         </MudStack>
     }
-    @if (_projectCosts is not null && _projectCosts.Count > 0)
+    @if (_projectCosts.Count > 0)
     {
         <MudStack Row>
             <MudStack Style="width: 100%; height: 400px">
-                <ApexChart TItem="Datahub_Project_Costs" Title="@Localizer["Accumulated costs"]" Height="400" Options="_accumulatedCostsChartOptions">
+                <ApexChart @ref="@_accumulatedCostsChart" TItem="Datahub_Project_Costs" Title="@Localizer["Accumulated costs (this fiscal year)"]" Height="400" Options="_accumulatedCostsChartOptions">
                     <ApexPointSeries
                         TItem="Datahub_Project_Costs"
-                        Items="@(_projectCosts.GroupBy(c => c.Date).Select(g => new Datahub_Project_Costs { Date = g.Key, CadCost = g.Sum(c => c.CadCost), ServiceName = "" }).ToList().OrderBy(c => c.Date))"
+                        Items="@(_projectCosts.Where(c => c.Date >= GetFiscalYearStart()).GroupBy(c => c.Date).Select(g => new Datahub_Project_Costs { Date = g.Key, CadCost = g.Sum(c => c.CadCost), ServiceName = "" }).ToList().OrderBy(c => c.Date))"
                         Name="@Localizer["Accumulated costs"]"
                         XValue="@(c => c.Date.Date.ToString("yyyy-MM-dd"))"
-                        YAggregate="@(e => decimal.Round((decimal)_projectCosts.Where(c => c.Date <= e.Last().Date ).Aggregate(0.0, (total, next) => total + next.CadCost),2))"
+                        YAggregate="@(e => decimal.Round((decimal)_projectCosts.Where(c => c.Date <= e.Last().Date && c.Date >= GetFiscalYearStart()).Aggregate(0.0, (total, next) => total + next.CadCost), 2))"
                         OrderBy="@(c => c.X)"
                         SeriesType="SeriesType.Area"/>
                 </ApexChart>
@@ -170,12 +173,13 @@
     private decimal SelectedTotalCost => _showingTotal ? CurrentCost : YesterdayCost;
     private MudBlazor.Color MonthChipColor => _showingTotal ? MudBlazor.Color.Primary : MudBlazor.Color.Default;
     private MudBlazor.Color YesterdayChipColor => _showingTotal ? MudBlazor.Color.Default : MudBlazor.Color.Primary;
-    private ApexChartOptions<AzureDailyCost> _dailyCostChartOptions { get; set; } = new();
-    private ApexChartOptions<AzureServiceCost> _serviceTotalCostChartOptions { get; set; } = new();
-    private ApexChartOptions<AzureServiceCost> _serviceYesterdayCostChartOptions { get; set; } = new();
+    private ApexChartOptions<Datahub_Project_Costs> _dailyCostChartOptions { get; set; } = new();
+    private ApexChartOptions<DailyServiceCost> _serviceTotalCostChartOptions { get; set; } = new();
+    private ApexChartOptions<DailyServiceCost> _serviceYesterdayCostChartOptions { get; set; } = new();
     private ApexChartOptions<Datahub_Project_Costs> _accumulatedCostsChartOptions { get; set; } = new();
-    private ApexChart<AzureServiceCost> _serviceCostChart { get; set; } = new();
-    private ApexChart<AzureDailyCost> _dailyCostChart { get; set; } = new();
+    private ApexChart<DailyServiceCost> _serviceCostChart { get; set; } = new();
+    private ApexChart<Datahub_Project_Costs> _dailyCostChart { get; set; } = new();
+    private ApexChart<Datahub_Project_Costs> _accumulatedCostsChart { get; set; } = new();
 
     private decimal _remainingBudget;
     private SpendingEstimation _spendingEstimation;
@@ -231,19 +235,51 @@
         DefineChartOptions();
         await _dailyCostChart.UpdateSeriesAsync();
         await _dailyCostChart.UpdateOptionsAsync(true, true, true);
+        await _accumulatedCostsChart.UpdateSeriesAsync();
+        await _accumulatedCostsChart.UpdateOptionsAsync(true, true, true);
         _loading = false;
     }
 
     private void DefineChartOptions()
     {
-        _dailyCostChartOptions.Yaxis = new List<YAxis>();
-        _dailyCostChartOptions.Yaxis.Add(new YAxis
+        if (_projectCosts.Count > 0)
         {
-            Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
-            DecimalsInFloat = 2,
-            Max = _currentDailyCosts.Max(c => c.Cost),
-            Min = 0
-        });
+            _dailyCostChartOptions.Yaxis = new List<YAxis>();
+            var last30Days = _projectCosts.Where(c => c.Date >= DateTime.UtcNow.Date.AddDays(-30)).ToList();
+            if (last30Days.Count > 0)
+            {
+                _dailyCostChartOptions.Yaxis.Add(new YAxis
+                {
+                    Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
+                    DecimalsInFloat = 2,
+                    Max = last30Days.GroupBy(c => c.Date).Select(g => new Datahub_Project_Costs { ServiceName = "", CadCost = g.Sum(c => c.CadCost), Date = g.Key }).Max(c => c.CadCost),
+                    Min = 0
+                });
+            }
+
+            _dailyCostChartOptions.Xaxis = new XAxis();
+            _dailyCostChartOptions.Chart = new Chart()
+            {
+                Stacked = true
+            };
+            _dailyCostChartOptions.Xaxis.Type = XAxisType.Datetime;
+            _dailyCostChartOptions.PlotOptions = new PlotOptions
+            {
+                Bar = new PlotOptionsBar
+                {
+                    ColumnWidth = "15",
+                },
+            };
+
+            _accumulatedCostsChartOptions.Yaxis = new List<YAxis>();
+            _accumulatedCostsChartOptions.Yaxis.Add(new YAxis
+            {
+                Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
+                DecimalsInFloat = 2
+            });
+            _accumulatedCostsChartOptions.Xaxis = new XAxis();
+            _accumulatedCostsChartOptions.Xaxis.Type = XAxisType.Datetime;
+        }
 
         _serviceTotalCostChartOptions.PlotOptions = new PlotOptions
         {
@@ -267,7 +303,7 @@
         {
             Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
             DecimalsInFloat = 2,
-            Max = _currentServiceCosts.Max(c => c.Cost)
+            Max = _currentServiceCosts.Max(c => c.Amount)
         });
         _serviceYesterdayCostChartOptions.PlotOptions = new PlotOptions
         {
@@ -291,14 +327,7 @@
         {
             Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
             DecimalsInFloat = 2,
-            Max = _yesterdayServiceCosts.Max(c => c.Cost)
-        });
-        
-        _accumulatedCostsChartOptions.Yaxis = new List<YAxis>();
-        _accumulatedCostsChartOptions.Yaxis.Add(new YAxis
-        {
-            Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
-            DecimalsInFloat = 2
+            Max = _yesterdayServiceCosts.Max(c => c.Amount)
         });
     }
 
@@ -349,6 +378,14 @@
     private List<double> GetCostsBeforeDate(DateTime date)
     {
         return _projectCosts.Where(c => c.Date <= date).Select(c => c.CadCost).ToList();
+    }
+
+    private DateTime GetFiscalYearStart()
+    {
+        var today = DateTime.UtcNow;
+        var fiscalYearStart = new DateTime(today.Year, 4, 1);
+        if (today.Month < 4) fiscalYearStart = fiscalYearStart.AddYears(-1);
+        return fiscalYearStart;
     }
 
     private void HydrateCosts()
@@ -436,4 +473,3 @@
     record SpendingEstimation(double Storage, double ComputeSmall, double ComputeMedium, double ComputeLarge);
 
 }
-
