@@ -7,9 +7,9 @@
 @using System.Text.Json
 @using Datahub.Application.Services.WebApp
 
-@inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
-@inject ILogger<WorkspaceWebAppSharePage> _logger
-@inject NavigationManager NavigationManager
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject NavigationManager _navigationManager
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
 
 @attribute [Route(PageRoutes.WorkspaceWebAppShare)]
 
@@ -38,7 +38,7 @@
             </MudText>
             @if (isDisclaimerAccepted)
             {
-            <MudButton Href="@($"/webapp-{WorkspaceAcronymParam}/")" Target="_blank" EndIcon="@Icons.Material.Filled.Launch" Variant="Variant.Outlined" Style="text-transform:none">@Localizer["Open in new window"]</MudButton>
+            <MudButton Href="@($"/{_datahubPortalConfiguration.ReverseProxy.WebAppPrefix}-{WorkspaceAcronymParam}/")" Target="_blank" EndIcon="@Icons.Material.Filled.Launch" Variant="Variant.Outlined" Style="text-transform:none">@Localizer["Open in new window"]</MudButton>
             }
         </MudStack>
     }
@@ -52,7 +52,7 @@
                 @if (isAvailable)
                 {
                     <MudItem xs="12">
-                        <iframe src="/webapp-@(WorkspaceAcronymParam)/" style="height: 70vh;" title="@Localizer["Web Application hosted by FSDH"]" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"> </iframe>
+                        <iframe src="/@(_datahubPortalConfiguration.ReverseProxy.WebAppPrefix)-@(WorkspaceAcronymParam)/" style="height: 70vh;" title="@Localizer["Web Application hosted by FSDH"]" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"> </iframe>
                     </MudItem>
                 }
 
@@ -102,7 +102,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        using var ctx = await dbContextFactory.CreateDbContextAsync();
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
         var workspace = await ctx.Projects
             .Include(x => x.Resources)
             .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronymParam);
@@ -118,10 +118,10 @@ else
     private async Task ApproveWebAppTC()
     {
         // Construct the new URL with the d=1 query parameter
-        var newUrl = $"{NavigationManager.Uri.Split('?')[0]}?d=1";
+        var newUrl = $"{_navigationManager.Uri.Split('?')[0]}?d=1";
 
         // Redirect the user to the same page with d=1
-        NavigationManager.NavigateTo(newUrl);
+        _navigationManager.NavigateTo(newUrl);
         isDisclaimerAccepted = true;
         StateHasChanged();
     }

@@ -229,6 +229,7 @@ public class ReverseProxy
 {
     public bool Enabled { get; set; } = true;
     public string UserHeader { get; set; } = "dh-user";
+    public string WebAppPrefix { get; set; } = "app";
 }
 
 public class GithubConfig
