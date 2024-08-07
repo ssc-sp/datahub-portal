@@ -1,4 +1,5 @@
 ﻿using Datahub.Application.Services.ReverseProxy;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +12,19 @@ namespace Datahub.Infrastructure.Services.ReverseProxy
 {
     public class WorkspaceACLTransformFactory : ITransformFactory
     {
+
+        private readonly ILogger logger;
+
+        public WorkspaceACLTransformFactory(ILogger<WorkspaceACLTransformFactory> logger)
+        {
+            this.logger = logger;
+        }
+
         public bool Build(TransformBuilderContext context, IReadOnlyDictionary<string, string> transformValues)
         {
             if (transformValues.TryGetValue(IReverseProxyConfigService.WorkspaceACLTransform, out var workspaceAcronym))
             {
-                context.RequestTransforms.Add(new ContextRequestHeaderTransform(workspaceAcronym));                   
+                context.RequestTransforms.Add(new ContextRequestHeaderTransform(workspaceAcronym,logger));                   
             }
             else
             { 

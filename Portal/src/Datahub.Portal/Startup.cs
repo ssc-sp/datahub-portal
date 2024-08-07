@@ -219,27 +219,7 @@ public class Startup
 
         if (ReverseProxyEnabled())
         {
-            services.AddTelemetryConsumer<YarpTelemetryConsumer>();
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy(IReverseProxyConfigService.WorkspaceAuthorizationPolicy, policy =>
-                {
-                    policy.RequireAuthenticatedUser();
-                });
-            });
-            services.AddReverseProxy()
-                    .AddTransformFactory<WorkspaceACLTransformFactory>()
-                    .AddTransforms(builderContext =>
-                    {
-                        builderContext.AddXForwarded(ForwardedTransformActions.Append);
-                        builderContext.AddRequestTransform(async transformContext =>
-                        {
-                            // passing the logged user to the proxied app
-                            var loggedUser = transformContext.HttpContext?.User?.Identity?.Name ?? "";
-                            transformContext.ProxyRequest.Headers.Add(GetUserHeaderName(), loggedUser);                                                       
-                            await Task.CompletedTask;
-                        });
-                    });            
+            services.AddDataHubReverseProxy();
         }
     }
 
@@ -249,9 +229,7 @@ public class Startup
         Configuration.Bind(datahubConfiguration);
         
         return datahubConfiguration.ReverseProxy.Enabled;
-    }
-
-    private string GetUserHeaderName() => Configuration.GetValue<string>("ReverseProxy:UserHeaderName") ?? "dh-user";
+    }  
 
     static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
     {

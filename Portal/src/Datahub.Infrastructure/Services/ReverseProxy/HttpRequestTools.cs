@@ -1,6 +1,9 @@
-﻿using Datahub.Core.Data;
+﻿using Datahub.Application.Services.ReverseProxy;
+using Datahub.Core.Data;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
+using Yarp.ReverseProxy.Transforms;
 
 namespace Datahub.Infrastructure.Services.ReverseProxy;
 
@@ -29,5 +32,32 @@ public static class HttpRequestTools
             return "guest";
 
         return null;
+    }
+
+    public const string USER_HEADER_NAME = "dh-user";
+
+    public static void AddDataHubReverseProxy(this IServiceCollection services)
+    {
+        services.AddTelemetryConsumer<YarpTelemetryConsumer>();
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(IReverseProxyConfigService.WorkspaceAuthorizationPolicy, policy =>
+            {
+                policy.RequireAuthenticatedUser();
+            });
+        });
+        services.AddReverseProxy()
+                .AddTransformFactory<WorkspaceACLTransformFactory>()
+                .AddTransforms(builderContext =>
+                {
+                    builderContext.AddXForwarded(ForwardedTransformActions.Append);
+                    builderContext.AddRequestTransform(async transformContext =>
+                    {
+                        // passing the logged user to the proxied app
+                        var loggedUser = transformContext.HttpContext?.User?.Identity?.Name ?? "";
+                        transformContext.ProxyRequest.Headers.Add(USER_HEADER_NAME, loggedUser);
+                        await Task.CompletedTask;
+                    });
+                });
     }
 }
