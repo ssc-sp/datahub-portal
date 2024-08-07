@@ -52,9 +52,7 @@
     
 
     <MudStack Spacing="6">
-        <span id="maincontent">
-            <MudText Typo="Typo.h1">@Localizer["Support centre"]</MudText>
-        </span>
+        <DHMainContentTitle Title="@Localizer["Support centre"]" />
         <MudForm @ref="form">
             @if (_currentStep == Steps.Start)
             {

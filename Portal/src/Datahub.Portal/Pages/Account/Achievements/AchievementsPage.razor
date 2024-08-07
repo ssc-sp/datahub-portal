@@ -14,9 +14,7 @@
 
 <MudStack Spacing="6">
     <MudStack>
-        <span id="maincontent">
-            <MudText Typo="Typo.h1">@Localizer["Achievements"]</MudText>
-        </span>
+        <DHMainContentTitle Title="@Localizer["Achievements"]" />
 
         @foreach (var userAchievement in GetUserAchievements())
         {

@@ -27,9 +27,7 @@
 
 
 <MudStack>
-    <span id="maincontent">
-        <MudText Typo="Typo.h1">@Localizer["Explore workspaces and users"]</MudText>
-    </span>
+    <DHMainContentTitle Title="@Localizer["Explore workspaces and users"]" />
     @if (_featuredProjects.Any())
     {
         <MudText Typo="Typo.h2">@Localizer["Featured Workspaces"]</MudText>

@@ -22,9 +22,7 @@
 }
 
 <MudStack>
-    <span id="maincontent">
-        <MudText Typo="Typo.h1">@Localizer["MainTitle"]</MudText>
-    </span>
+    <DHMainContentTitle Title="@Localizer["MainTitle"]" />
     @if (_viewedPortalUser.GraphGuid == _currentUser.GraphGuid)
     {
         <div role="group">

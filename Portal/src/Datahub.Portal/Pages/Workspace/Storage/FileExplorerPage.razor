@@ -13,6 +13,7 @@
 @using Datahub.Application.Services.Security
 @using Datahub.Application.Services.UserManagement
 @using Microsoft.Identity.Web;
+@using Datahub.Core.Components;
 
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
@@ -37,9 +38,7 @@
 
 <MudStack>
     <MudStack Row Justify="Justify.SpaceBetween">
-        <span id="maincontent">
-            <MudText Typo="Typo.h1">@Localizer["{0} Storage Explorer", WorkspaceAcronym]</MudText>
-        </span>
+        <DHMainContentTitle Title="@Localizer["{0} Storage Explorer", WorkspaceAcronym]" />
     </MudStack>
     <CascadingValue Value="@WorkspaceAcronym" Name="ProjectAcronym">
         <CascadingValue Value="@_project" Name="Project">
