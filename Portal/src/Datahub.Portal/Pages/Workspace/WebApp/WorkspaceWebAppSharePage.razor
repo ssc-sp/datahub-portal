@@ -38,7 +38,7 @@
             </MudText>
             @if (isDisclaimerAccepted)
             {
-                <MudButton Href="@_reverseProxyConfigService.BuildWebAppURL(WorkspaceAcronymParam)" Target="_blank" EndIcon="@Icons.Material.Filled.Launch" Variant="Variant.Filled">@Localizer["Open in new window"]</MudButton>
+                <MudButton Href="@_reverseProxyConfigService.BuildWebAppURL(WorkspaceAcronymParam)" Target="_blank" EndIcon="@Icons.Material.Filled.Launch" Variant="Variant.Filled" Color="Color.Primary">@Localizer["Open in new window"]</MudButton>
             }
         </MudStack>
     }
