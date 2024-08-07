@@ -15,7 +15,7 @@ namespace Datahub.Infrastructure.Services.ReverseProxy
         {
             if (transformValues.TryGetValue(IReverseProxyConfigService.WorkspaceACLTransform, out var workspaceAcronym))
             {
-                context.RequestTransforms.Add(new ContextRequestHeaderTransform(workspaceAcronym));
+                context.RequestTransforms.Add(new ContextRequestHeaderTransform(workspaceAcronym));                   
             }
             else
             { 

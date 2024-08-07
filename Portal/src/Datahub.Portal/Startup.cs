@@ -8,6 +8,7 @@ using Datahub.Application.Services;
 using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Publishing;
+using Datahub.Application.Services.ReverseProxy;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Application.Services.WebApp;
@@ -42,13 +43,13 @@ using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
 using Datahub.Infrastructure.Services.WebApp;
 using Datahub.Metadata.Model;
-using Datahub.Portal.Middleware;
 using Datahub.Portal.Services;
 using Datahub.Portal.Services.Api;
 using Datahub.Portal.Services.Auth;
 using Datahub.Portal.Services.Notification;
 using Datahub.Portal.Services.Offline;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Localization;
@@ -117,6 +118,7 @@ public class Startup
 
         // use this method to setup the authentication and authorization
         services.AddAuthenticationServices(Configuration);
+        services.AddAuthorization();
 
         services.AddRazorPages()
             .AddMicrosoftIdentityUI();
@@ -220,10 +222,9 @@ public class Startup
             services.AddTelemetryConsumer<YarpTelemetryConsumer>();
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("WorkspaceAppPolicy", policy =>
+                options.AddPolicy(IReverseProxyConfigService.WorkspaceAuthorizationPolicy, policy =>
                 {
                     policy.RequireAuthenticatedUser();
-                    policy.RequireClaim(ClaimTypes.Role, RoleConstants.DATAHUB_ADMIN_PROJECT);
                 });
             });
             services.AddReverseProxy()
@@ -235,9 +236,7 @@ public class Startup
                         {
                             // passing the logged user to the proxied app
                             var loggedUser = transformContext.HttpContext?.User?.Identity?.Name ?? "";
-                            transformContext.ProxyRequest.Headers.Add(GetUserHeaderName(), loggedUser);
-                            // add the role
-                            transformContext.ProxyRequest.Headers.Add("role", transformContext.HttpContext.GetWorkspaceRole());
+                            transformContext.ProxyRequest.Headers.Add(GetUserHeaderName(), loggedUser);                                                       
                             await Task.CompletedTask;
                         });
                     });            
@@ -327,11 +326,7 @@ public class Startup
             var provider = endpoints.ServiceProvider.GetService<IProxyConfigProvider>();
             if (ReverseProxyEnabled() && provider != null)
             {
-                endpoints.MapReverseProxy(pipeline => {
-                    pipeline.Use((context, next) => {
-                        context.GetEndpoint().Metadata;
-                        return next(); });
-                });
+                endpoints.MapReverseProxy();
             }  
             else
             {

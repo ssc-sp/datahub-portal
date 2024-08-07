@@ -69,7 +69,8 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
             Match = new()
             {
                 Path = $"{prefix}/{{**catch-all}}"
-            }                        
+            },
+            AuthorizationPolicy = IReverseProxyConfigService.WorkspaceAuthorizationPolicy
         };
 
         var finalRoute = route.

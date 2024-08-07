@@ -1,5 +1,7 @@
-﻿using Datahub.Core.Data;
+﻿using Datahub.Application.Services.ReverseProxy;
+using Datahub.Core.Data;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,8 +25,11 @@ namespace Datahub.Infrastructure.Services.ReverseProxy
         {
             // Access the HttpContext
             var httpContext = context.HttpContext;
-            context.HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-
+            var userRole = httpContext.GetWorkspaceRole(workspaceAcronym);
+            if (userRole is null)
+            {
+                context.HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+            }
             return default;
         }
 
