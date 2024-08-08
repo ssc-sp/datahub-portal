@@ -3,6 +3,7 @@ using Datahub.Application.Services.ReverseProxy;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using System.Reflection.Metadata;
+using Microsoft.EntityFrameworkCore;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Health;
 using Yarp.ReverseProxy.Transforms;
@@ -11,13 +12,13 @@ namespace Datahub.Infrastructure.Services.ReverseProxy;
 
 internal class ReverseProxyConfigService : IReverseProxyConfigService
 {
-    private readonly DatahubProjectDBContext _context;
+    private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
     private readonly DatahubPortalConfiguration _config;
 
 
-    public ReverseProxyConfigService(DatahubProjectDBContext context, DatahubPortalConfiguration config)
+    public ReverseProxyConfigService(IDbContextFactory<DatahubProjectDBContext> contextFactory, DatahubPortalConfiguration config)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _config = config;
     }
 
@@ -43,19 +44,19 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
 
     public string BuildWebAppURL(string acronym)
     {
-        return IReverseProxyConfigService.WebAppPrefix + "-" + acronym;
+        return _config.ReverseProxy.WebAppPrefix + "/" + acronym;
     }
+    
+    public string WebAppPrefix => _config.ReverseProxy.WebAppPrefix;
 
     public List<(string Acronym, RouteConfig Route, ClusterConfig Cluster)> GetAllConfigurationFromProjects()
     {       
-
-        var data = _context.Projects
+        using var ctx = _contextFactory.CreateDbContext();
+        var data = ctx.Projects
             .Where(e => e.WebAppEnabled == true && e.WebApp_URL != null)
             .Select(e => new ProjectWebData(e.Project_Acronym_CD, SanitizeWebAppURL(e.WebApp_URL), e.WebAppUrlRewritingEnabled))
             .ToList();
 
-        var routes = data.Select(d => BuildRoute(d.Acronym, d.UrlRewritingEnabled)).ToList();
-        var clusters = data.Select(d => BuildCluster(d.Acronym, d.Url)).ToList();
         return data.Select(d => (d.Acronym, BuildRoute(d.Acronym, d.UrlRewritingEnabled), BuildCluster(d.Acronym, d.Url))).ToList();
     }
 
@@ -69,16 +70,12 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
             Match = new()
             {
                 Path = $"{prefix}/{{**catch-all}}"
-            },
-            AuthorizationPolicy = IReverseProxyConfigService.WorkspaceAuthorizationPolicy
+            }                        
         };
 
         var finalRoute = route.
             WithTransformForwarded().
-            WithTransformXForwarded().
-            WithTransform(transform => {
-                transform[IReverseProxyConfigService.WorkspaceACLTransform] = acronym;
-            });
+            WithTransformXForwarded();
         if (urlRewritingEnabled)
             finalRoute = finalRoute.WithTransformPathRemovePrefix(prefix);
         return finalRoute;

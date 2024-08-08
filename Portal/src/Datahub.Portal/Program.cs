@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using Datahub.Core;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 
 namespace Datahub.Portal;
@@ -49,7 +48,7 @@ public class Program
                 webBuilder.ConfigureAppConfiguration((ctx, cb) =>
                 {
                     cb.AddUserSecrets<Startup>();
-                    if (!DevTools.IsDevelopment())
+                    if (!ctx.HostingEnvironment.IsDevelopment()) // you'll have to find the right method to check that
                     {
                         StaticWebAssetsLoader.UseStaticWebAssets(ctx.HostingEnvironment, ctx.Configuration);
                     }

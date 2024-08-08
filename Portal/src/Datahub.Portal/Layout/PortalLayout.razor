@@ -1,5 +1,4 @@
 ﻿@using Datahub.Application.Services
-@using Datahub.Core
 @using MudBlazor.Utilities
 @using Microsoft.Identity.Web
 @using MediatR
@@ -130,7 +129,7 @@
 
     public async Task ReportIssue(Exception ex, string correlationId)
     {
-        if (!DevTools.IsDevelopment())
+        if (!_hostingEnv.IsDevelopment())
         {
             var exceptionDetail = new Dictionary<string, string>()
             {
