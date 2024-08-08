@@ -16,9 +16,17 @@ app = func.FunctionApp()
 
 def get_config():
     asb_connection_str = os.getenv('DatahubServiceBus')
-    queue_name = "bug-report" // os.getenv('AzureServiceBusQueueName4Bugs')
-    check_results_queue_name = "infrastructure-health-check-results" // os.getenv('AzureServiceBusQueueName4Results')
+    queue_name = "bug-report" #// os.getenv('AzureServiceBusQueueName4Bugs')
+    check_results_queue_name = "infrastructure-health-check-results" #// os.getenv('AzureServiceBusQueueName4Results')
     return asb_connection_str, queue_name, check_results_queue_name
+
+def get_sync_func_mappings():
+    mappings = {
+        "new-project-template": ("keyvault users", sync_keyvault_workspace_users_function),
+        "azure-storage-blob": ("storage account policies", sync_storage_workspace_users_function),
+        "azure-databricks": ("databricks users", sync_databricks_workspace_users_function)
+    }
+    return mappings
 
 @app.function_name(name="SynchronizeWorkspaceUsersHttpTrigger")
 @app.route(route="sync-workspace-users") # HTTP Trigger
@@ -35,7 +43,8 @@ def http_sync_workspace_users_function(req: func.HttpRequest) -> func.HttpRespon
     """
     workspace_definition = req.get_json()
     workspace_name = workspace_definition["Workspace"]["Acronym"]
-    synchronize_workspace(workspace_definition)
+    # synchronize_workspace(workspace_definition)
+    new_sync_workspace(workspace_definition)
     return func.HttpResponse(f"Successfully synchronized workspace users for {workspace_name}.")
 
 @app.function_name(name="SynchronizeWorkspaceUsersQueueTrigger")
@@ -115,6 +124,41 @@ def keys_upper(dictionary):
             res[key[0].upper()+key[1:]] = dictionary[key]
     return res
    
+def new_sync_workspace(workspace_definition):
+    sync_mappings = get_sync_func_mappings()
+    logging.info("Got template mappings")
+
+    errors = []
+
+    workspace_name = workspace_definition["Workspace"]["Acronym"]
+    logging.info(f"Synchronizing workspace users for {workspace_name}")
+
+    template_names = [t["Name"] for t in workspace_definition["Templates"]]
+    logging.info(f"Got template names: {template_names}")
+
+    for t in template_names:
+        name, sync_fn = sync_mappings[t]
+        logging.debug(f"name: {name}, func: {sync_fn.__name__}")
+
+        try:
+            logging.info(f"Synchronizing {name} for {workspace_name}.")
+            sync_fn(workspace_definition)
+        except Exception as e:
+            error_msg = f"Error synchronizing {name} for {workspace_name}: {e}"
+            logging.error(error_msg)
+            errors.append(error_msg)
+            # send_exception_to_service_bus(error_msg)
+    
+    errors_joined = "; ".join(errors)
+    health_status = hcm.HealthcheckMessage.STATUS_UNHEALTHY if errors_joined else hcm.HealthcheckMessage.STATUS_HEALTHY
+    health_msg = hcm.HealthcheckMessage(hcm.HealthcheckMessage.TYPE_WORKSPACE_SYNC, "workspaces", workspace_name, errors_joined, health_status)
+    #send_healthcheck_to_service_bus(health_msg)
+    if (health_status == hcm.HealthcheckMessage.STATUS_HEALTHY):
+        logging.info(f"Successfully synced workspace {workspace_name}")
+    else:
+        logging.error(f"Workspace {workspace_name} had problems while synchronizing: {errors_joined}")
+        raise RuntimeError(f"Workspace: {workspace_name} synchronization failed: {errors_joined}")
+
 def synchronize_workspace(workspace_definition):
     workspace_name = workspace_definition["Workspace"]["Acronym"]
     logging.info(f"Synchronizing workspace users for {workspace_name}.")
