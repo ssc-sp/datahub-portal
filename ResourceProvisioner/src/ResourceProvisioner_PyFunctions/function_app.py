@@ -16,8 +16,8 @@ app = func.FunctionApp()
 
 def get_config():
     asb_connection_str = os.getenv('DatahubServiceBus')
-    queue_name = "bug-report" #// os.getenv('AzureServiceBusQueueName4Bugs')
-    check_results_queue_name = "infrastructure-health-check-results" #// os.getenv('AzureServiceBusQueueName4Results')
+    queue_name = os.getenv('AzureServiceBusQueueName4Bugs') or "bug-report"
+    check_results_queue_name = os.getenv('AzureServiceBusQueueName4Results') or "infrastructure-health-check-results"
     return asb_connection_str, queue_name, check_results_queue_name
 
 def get_sync_func_mappings():
@@ -67,7 +67,7 @@ def queue_sync_workspace_users_function(msg: func.ServiceBusMessage):
     return None
 
 def send_exception_to_service_bus(exception_message):
-    asb_connection_str, queue_name = get_config()
+    asb_connection_str, queue_name, check_results_queue_name = get_config()
     bug_report = brm.BugReportMessage(
         UserName="Datahub Portal",
         UserEmail="",
@@ -84,7 +84,7 @@ def send_exception_to_service_bus(exception_message):
         BugReportType="Synchronizing databricks workspace error",
         Description=exception_message
     )
-    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type="AmqpWebSockets") as client:
+    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=servicebus.TransportType.AmqpOverWebsocket) as client:
         with client.get_queue_sender(queue_name) as sender:
             message = servicebus.ServiceBusMessage(bug_report.to_json())
             sender.send_messages(message)
@@ -92,13 +92,12 @@ def send_exception_to_service_bus(exception_message):
 
 def send_healthcheck_to_service_bus(message):
     try:
-        asb_connection_str, check_results_queue_name = get_config()
-        with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type="AmqpWebSockets") as client:
+        asb_connection_str, queue_name, check_results_queue_name = get_config()
+        with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=servicebus.TransportType.AmqpOverWebsocket) as client:
             with client.get_queue_sender(check_results_queue_name) as sender:
                 message = servicebus.ServiceBusMessage(message.to_json())
                 sender.send_messages(message)
                 print(f"Sent message to queue: {check_results_queue_name}")
-        pass
     except Exception as e:
         logging.error(f"An error occurred while sending health check to service bus: {e}")
 

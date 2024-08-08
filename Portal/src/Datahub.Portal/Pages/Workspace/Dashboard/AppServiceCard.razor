@@ -46,7 +46,7 @@
 
     private string GetWebAppUrl()
     {
-        var url = $"/{ReverseProxyConfigService.BuildWebAppURL(WorkspaceAcronym)}/";
+        var url = PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", WorkspaceAcronym);
         return url;
     }
 

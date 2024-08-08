@@ -18,4 +18,9 @@ class HealthcheckMessage:
         self.HealthCheckTimeUtc = datetime.datetime.now()
 
     def to_json(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+        def json_default(value):
+            if isinstance(value, datetime.date):
+                return dict(year=value.year, month=value.month, day=value.day)
+            else:
+                return value.__dict__        
+        return json.dumps(self, default=json_default, sort_keys=True, indent=4)
