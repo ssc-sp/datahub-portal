@@ -5,6 +5,7 @@ using Datahub.Application.Services.Notifications;
 using Datahub.Application.Services.ReverseProxy;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
+using Datahub.Core;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
@@ -54,12 +55,10 @@ public static class ConfigureServices
         services.AddHostedService<PreloaderService>();
         services.AddMemoryCache();
 
-        var whereAmI = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        var isDevelopment = !string.IsNullOrEmpty(whereAmI) && whereAmI.ToLower() == "development";
 
         // in Development, using InMemory MassTransit transport, HealthCheckConsumer and file system (FileWatcherService)
         // to pass and process HealthCheck messages
-        if (isDevelopment)
+        if (DevTools.IsDevelopment())
         {
             services.AddScoped<IHealthCheckConsumer, HealthCheckConsumer>();
             services.AddScoped<IHealthCheckResultConsumer, HealthCheckResultConsumer>();
@@ -68,7 +67,7 @@ public static class ConfigureServices
 
         services.AddMassTransit(x =>
         {
-            if (isDevelopment)
+            if (DevTools.IsDevelopment())
             {
                 x.UsingInMemory((context, cfg) =>
                 {
