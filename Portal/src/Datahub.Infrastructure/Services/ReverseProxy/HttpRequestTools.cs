@@ -9,8 +9,6 @@ namespace Datahub.Infrastructure.Services.ReverseProxy;
 
 public static class HttpRequestTools
 {
-    public const string NO_WORKSPACE_ROLE = "authenticated";
-
     public static string? GetWorkspaceRole(this HttpContext context, string acronym)
     {
         var claims = context.User.Claims.Where(c => c.Type == ClaimTypes.Role);
@@ -32,32 +30,5 @@ public static class HttpRequestTools
             return "guest";
 
         return null;
-    }
-
-    public const string USER_HEADER_NAME = "dh-user";
-
-    public static void AddDataHubReverseProxy(this IServiceCollection services)
-    {
-        services.AddTelemetryConsumer<YarpTelemetryConsumer>();
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy(IReverseProxyConfigService.WorkspaceAuthorizationPolicy, policy =>
-            {
-                policy.RequireAuthenticatedUser();
-            });
-        });
-        services.AddReverseProxy()
-                .AddTransformFactory<WorkspaceACLTransformFactory>()
-                .AddTransforms(builderContext =>
-                {
-                    builderContext.AddXForwarded(ForwardedTransformActions.Append);
-                    builderContext.AddRequestTransform(async transformContext =>
-                    {
-                        // passing the logged user to the proxied app
-                        var loggedUser = transformContext.HttpContext?.User?.Identity?.Name ?? "";
-                        transformContext.ProxyRequest.Headers.Add(USER_HEADER_NAME, loggedUser);
-                        await Task.CompletedTask;
-                    });
-                });
     }
 }

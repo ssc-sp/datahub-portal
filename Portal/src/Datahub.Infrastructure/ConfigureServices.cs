@@ -47,9 +47,7 @@ public static class ConfigureServices
 
         if (configuration.GetValue<bool>("ReverseProxy:Enabled"))
         {
-            services.AddTransient<IReverseProxyConfigService, ReverseProxyConfigService>();
-            services.AddSingleton<IProxyConfigProvider, ProxyConfigProvider>();
-            services.AddSingleton<IReverseProxyManagerService, ReverseProxyManagerService>();
+            services.AddDatahubReverseProxyServices();
         }
 
         services.AddHostedService<PreloaderService>();

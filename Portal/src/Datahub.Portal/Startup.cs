@@ -216,11 +216,6 @@ public class Startup
         }
 
         services.AddMiniProfiler().AddEntityFramework();
-
-        if (ReverseProxyEnabled())
-        {
-            services.AddDataHubReverseProxy();
-        }
     }
 
     private bool ReverseProxyEnabled()
