@@ -4,6 +4,10 @@ namespace Datahub.Application.Services.ReverseProxy;
 
 public interface IReverseProxyConfigService
 {
+    public const string WorkspaceACLTransform = "ACLTransformProvider";
+    public const string WorkspaceRouteInfo = "Workspace";
+    public const string WorkspaceAuthorizationPolicy = "WorkspaceAppPolicy";
+    
     ReverseProxyConfig GetConfigurationFromProjects();
 
     List<(string Acronym, RouteConfig Route, ClusterConfig Cluster)> GetAllConfigurationFromProjects();
