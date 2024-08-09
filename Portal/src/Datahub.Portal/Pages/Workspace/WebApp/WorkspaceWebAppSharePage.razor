@@ -7,9 +7,9 @@
 @using System.Text.Json
 @using Datahub.Application.Services.WebApp
 
-@inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
-@inject ILogger<WorkspaceWebAppSharePage> _logger
-@inject NavigationManager NavigationManager
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject NavigationManager _navigationManager
+@inject IReverseProxyConfigService _reverseProxyConfigService
 
 @attribute [Route(PageRoutes.WorkspaceWebAppShare)]
 
@@ -18,12 +18,12 @@
 </PageTitle>
 
 <SectionContent SectionName="side-bar">
-    <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam" />
+    <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam"/>
 </SectionContent>
 
 <MudItem xs="12" sm="12">
 
-    <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronymParam" />
+    <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronymParam"/>
     @if (!isAvailable)
     {
         <MudText>
@@ -38,7 +38,7 @@
             </MudText>
             @if (isDisclaimerAccepted)
             {
-            <MudButton Href="@($"/webapp-{WorkspaceAcronymParam}/")" Target="_blank" EndIcon="@Icons.Material.Filled.Launch" Variant="Variant.Outlined" Style="text-transform:none">@Localizer["Open in new window"]</MudButton>
+                <MudButton Href="@_reverseProxyConfigService.BuildWebAppURL(WorkspaceAcronymParam)" Target="_blank" EndIcon="@Icons.Material.Filled.Launch" Variant="Variant.Filled" Color="Color.Primary">@Localizer["Open in new window"]</MudButton>
             }
         </MudStack>
     }
@@ -52,14 +52,14 @@
                 @if (isAvailable)
                 {
                     <MudItem xs="12">
-                        <iframe src="/webapp-@(WorkspaceAcronymParam)/" style="height: 70vh;" title="@Localizer["Web Application hosted by FSDH"]" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"> </iframe>
+                        <iframe src="@_reverseProxyConfigService.BuildWebAppURL(WorkspaceAcronymParam)" style="height: 70vh; border: none;" title="@Localizer["Web Application hosted by FSDH"]" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"> </iframe>
                     </MudItem>
                 }
 
             </MudGrid>
         </Authorized>
         <NotAuthorized>
-            <NotAuthorizedMessage />
+            <NotAuthorizedMessage/>
         </NotAuthorized>
     </DatahubAuthView>
 }
@@ -90,39 +90,39 @@ else
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronymParam { get; set; }
+    [Parameter] public string WorkspaceAcronymParam { get; set; }
 
     private bool isAvailable = false;
 
     private bool isDisclaimerAccepted = false;
 
-    [SupplyParameterFromQuery(Name = "d")]
-    public string DisclaimerAccepted { get; set; }
+    [SupplyParameterFromQuery(Name = "d")] public string DisclaimerAccepted { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        using var ctx = await dbContextFactory.CreateDbContextAsync();
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
         var workspace = await ctx.Projects
             .Include(x => x.Resources)
             .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronymParam);
         var appConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(workspace);
-        isAvailable = workspace is not null && !(string.IsNullOrWhiteSpace(appConfiguration.Framework) && string.IsNullOrWhiteSpace(appConfiguration.GitRepo) && string.IsNullOrWhiteSpace(appConfiguration.ComposePath));
+        isAvailable = workspace is not null && !(string.IsNullOrWhiteSpace(appConfiguration?.Framework) && string.IsNullOrWhiteSpace(appConfiguration?.GitRepo) && string.IsNullOrWhiteSpace(appConfiguration?.ComposePath));
         if (DisclaimerAccepted == "1")
         {
             isDisclaimerAccepted = true;
         }
+
         StateHasChanged();
     }
 
     private async Task ApproveWebAppTC()
     {
         // Construct the new URL with the d=1 query parameter
-        var newUrl = $"{NavigationManager.Uri.Split('?')[0]}?d=1";
+        var newUrl = $"{_navigationManager.Uri.Split('?')[0]}?d=1";
 
         // Redirect the user to the same page with d=1
-        NavigationManager.NavigateTo(newUrl);
+        _navigationManager.NavigateTo(newUrl);
         isDisclaimerAccepted = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
+
 }

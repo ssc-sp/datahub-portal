@@ -202,13 +202,15 @@ public class NewProjectTemplateTests
 storage_account_name = ""{{prefix_alphanumeric}}{{env}}{{suffix}}""
 container_name = ""{{prefix}}-project-states""
 key = ""{{prefix}}-ShouldExtractBackendConfiguration.tfstate""
+subscription_id = ""{{az_subscription_id}}""
 ";
         
         expectedConfiguration = expectedConfiguration
             .Replace("{{prefix}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix)
             .Replace("{{env}}", _resourceProvisionerConfiguration.Terraform.Variables.environment_name)
             .Replace("{{suffix}}", _resourceProvisionerConfiguration.Terraform.Variables.storage_suffix)
-            .Replace("{{prefix_alphanumeric}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric);
+            .Replace("{{prefix_alphanumeric}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric)
+            .Replace("{{az_subscription_id}}", _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id);
 
         var module = new TerraformTemplate()
         {

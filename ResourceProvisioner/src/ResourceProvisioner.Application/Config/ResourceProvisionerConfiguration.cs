@@ -76,6 +76,7 @@ public class Variables
     public string environment_classification { get; set; }
     public string environment_name { get; set; }
     public string az_location { get; set; }
+    public string allow_source_ip { get; set; }
     public string resource_prefix { get; set; }
     public string resource_prefix_alphanumeric { get; set; }
     public string storage_suffix { get; set; } = "terraformbackend";

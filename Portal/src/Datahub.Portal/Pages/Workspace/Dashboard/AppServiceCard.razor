@@ -1,6 +1,6 @@
 ﻿@using Datahub.Application.Services.ReverseProxy
 @using Datahub.Core.Model.Projects
-@inject IReverseProxyConfigService ReverseProxyConfigService
+@inject IReverseProxyConfigService _reverseProxyConfigService
 
 <MudPaper Outlined Class="pa-4">
     <MudStack>
@@ -26,7 +26,7 @@
                 </DHButton>
             </MudElement>
             <MudElement HtmlTag="div">
-                <DHButton Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{IReverseProxyConfigService.WebAppPrefix}")
+                <DHButton Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{_reverseProxyConfigService.WebAppPrefix}")
                     Color="Color.Primary"
                     Variant="@Variant.Text"
                     EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
