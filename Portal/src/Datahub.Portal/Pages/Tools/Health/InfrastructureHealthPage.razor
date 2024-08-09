@@ -167,9 +167,10 @@ else
     private List<InfrastructureHealthResourceType> _workspaceChecks = new List<InfrastructureHealthResourceType>
     {
         InfrastructureHealthResourceType.AzureSqlDatabase,
-        InfrastructureHealthResourceType.AzureDatabricks,
+        // InfrastructureHealthResourceType.AzureDatabricks,
         InfrastructureHealthResourceType.AzureStorageAccount,
         InfrastructureHealthResourceType.AzureWebApp,
+        InfrastructureHealthResourceType.WorkspaceSync,
     };
 
     public bool isLoading { get; set; } = false;
