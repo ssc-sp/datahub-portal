@@ -74,28 +74,7 @@ public class NewProjectTemplateTests
             Acronym = workspaceAcronym
         };
 
-        var expectedVariables = new JsonObject
-        {
-            ["az_subscription_id"] = _configuration["Terraform:Variables:az_subscription_id"],
-            ["az_tenant_id"] = _configuration["Terraform:Variables:az_tenant_id"],
-            ["datahub_app_sp_oid"] = _configuration["Terraform:Variables:datahub_app_sp_oid"],
-            ["environment_classification"] = _configuration["Terraform:Variables:environment_classification"],
-            ["environment_name"] = _configuration["Terraform:Variables:environment_name"],
-            ["az_location"] = _configuration["Terraform:Variables:az_location"],
-            ["resource_prefix"] = _configuration["Terraform:Variables:resource_prefix"],
-            ["resource_prefix_alphanumeric"] = _configuration["Terraform:Variables:resource_prefix_alphanumeric"],
-            ["storage_suffix"] = _configuration["Terraform:Variables:storage_suffix"],
-            ["project_cd"] = "ShouldExtractNewProjectTemplateVariables",
-            ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
-            ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
-            ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aad_admin_group_oid,
-            ["common_tags"] = new JsonObject
-            {
-                ["ClientOrganization"] = _configuration["Terraform:Variables:common_tags:ClientOrganization"],
-                ["Environment"] = _configuration["Terraform:Variables:common_tags:Environment"],
-                ["Sector"] = _configuration["Terraform:Variables:common_tags:Sector"],
-            },
-        };
+        var expectedVariables = GenerateExpectedVariablesJsonObject(workspaceAcronym);
 
         var module = new TerraformTemplate()
         {
@@ -116,6 +95,7 @@ public class NewProjectTemplateTests
             JsonSerializer.Deserialize<JsonObject>(
                 await File.ReadAllTextAsync(expectedVariablesFilename));
 
+        
         foreach (var (key, value) in actualVariables!)
         {
             Assert.Multiple(() =>
@@ -124,6 +104,42 @@ public class NewProjectTemplateTests
                 Assert.That(expectedVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
             });
         }
+        foreach (var (key, value) in expectedVariables)
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(actualVariables.ContainsKey(key), Is.True, $"Missing variable {key}");
+                Assert.That(actualVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
+            });
+        }
+        Assert.That(actualVariables, Has.Count.EqualTo(expectedVariables.Count));
+    }
+
+    private static JsonObject GenerateExpectedVariablesJsonObject(string workspaceAcronym)
+    {
+        return new JsonObject
+        {
+            ["az_subscription_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id,
+            ["az_tenant_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_tenant_id,
+            ["datahub_app_sp_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.datahub_app_sp_oid,
+            ["environment_classification"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_classification,
+            ["environment_name"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_name,
+            ["az_location"] = _resourceProvisionerConfiguration.Terraform.Variables.az_location,
+            ["resource_prefix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix,
+            ["project_cd"] = workspaceAcronym,
+            ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
+            ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
+            ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aad_admin_group_oid,
+            ["common_tags"] = new JsonObject
+            {
+                ["ClientOrganization"] = _configuration["Terraform:Variables:common_tags:ClientOrganization"],
+                ["Environment"] = _configuration["Terraform:Variables:common_tags:Environment"],
+                ["Sector"] = _configuration["Terraform:Variables:common_tags:Sector"],
+            },
+            ["automation_account_uai_name"] = _resourceProvisionerConfiguration.Terraform.Variables.automation_account_uai_name,
+            ["automation_account_uai_rg"] = _resourceProvisionerConfiguration.Terraform.Variables.automation_account_uai_rg,
+            ["automation_account_uai_sub"] = _resourceProvisionerConfiguration.Terraform.Variables.automation_account_uai_sub,
+        };
     }
 
     [Test]
@@ -135,28 +151,8 @@ public class NewProjectTemplateTests
             Acronym = workspaceAcronym
         };
 
-        var expectedVariables = new JsonObject
-        {
-            ["az_subscription_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id,
-            ["az_tenant_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_tenant_id,
-            ["datahub_app_sp_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.datahub_app_sp_oid,
-            ["environment_classification"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_classification,
-            ["environment_name"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_name,
-            ["az_location"] = _resourceProvisionerConfiguration.Terraform.Variables.az_location,
-            ["resource_prefix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix,
-            ["resource_prefix_alphanumeric"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric,
-            ["resource_suffix"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_suffix,
-            ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
-            ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
-            ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aad_admin_group_oid,
-            ["project_cd"] = "ShouldExtractNewProjectTemplateVariablesWithoutDuplicates",
-            ["common_tags"] = new JsonObject
-            {
-                ["ClientOrganization"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.ClientOrganization,
-                ["Environment"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.Environment,
-                ["Sector"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.Sector,
-            },
-        };
+        
+        var expectedVariables = GenerateExpectedVariablesJsonObject(workspaceAcronym);
 
         var module = new TerraformTemplate()
         {
@@ -179,6 +175,7 @@ public class NewProjectTemplateTests
             JsonSerializer.Deserialize<JsonObject>(
                 await File.ReadAllTextAsync(expectedVariablesFilename));
 
+        
         foreach (var (key, value) in actualVariables!)
         {
             Assert.Multiple(() =>
@@ -187,6 +184,15 @@ public class NewProjectTemplateTests
                 Assert.That(expectedVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
             });
         }
+        foreach (var (key, value) in expectedVariables)
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(actualVariables.ContainsKey(key), Is.True, $"Missing variable {key}");
+                Assert.That(actualVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
+            });
+        }
+        Assert.That(actualVariables, Has.Count.EqualTo(expectedVariables.Count));
     }
 
     [Test]

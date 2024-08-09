@@ -69,6 +69,9 @@ public class OmniUser
 
 public class Variables
 {
+    public string automation_account_uai_name { get; set; }
+    public string automation_account_uai_rg { get; set; }
+    public string automation_account_uai_sub { get; set; }
     public string az_subscription_id { get; set; }
     public string az_tenant_id { get; set; }
     public string budget_amount { get; set; }
