@@ -8,6 +8,7 @@ class HealthcheckMessage:
     STATUS_UNDEFINED = 5
 
     TYPE_WORKSPACE_SYNC = 8
+    TYPE_DATABRICKS_SYNC = 9
 
     def __init__(self, Type, Group, Name, Details = None, Status = None):
         self.Type = Type

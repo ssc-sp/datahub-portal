@@ -12,6 +12,8 @@ import healthcheck_message as hcm
 #from lib.databricks_utils import get_workspace_client, remove_deleted_users_in_workspace, synchronize_workspace_users
 #from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
+ERROR_DETAILS_JOINER = "; "
+
 app = func.FunctionApp()
 
 def get_config():
@@ -63,7 +65,8 @@ def queue_sync_workspace_users_function(msg: func.ServiceBusMessage):
     message_envelope = json.loads(msg.get_body().decode('utf-8'))
     workspace_definition = message_envelope['message']
     workspace_definition = keys_upper(workspace_definition)
-    synchronize_workspace(workspace_definition)
+    # synchronize_workspace(workspace_definition)
+    new_sync_workspace(workspace_definition)
     return None
 
 def send_exception_to_service_bus(exception_message):
@@ -76,12 +79,12 @@ def send_exception_to_service_bus(exception_message):
         PreferredLanguage="",
         Timezone="",
         Workspaces="",
-        Topics="Databricks Syncronization",
+        Topics="Workspace Syncronization",
         URL="",
         UserAgent="",
         Resolution="",
         LocalStorage="",
-        BugReportType="Synchronizing databricks workspace error",
+        BugReportType="Synchronizing workspace error",
         Description=exception_message
     )
     with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=servicebus.TransportType.AmqpOverWebsocket) as client:
@@ -146,17 +149,18 @@ def new_sync_workspace(workspace_definition):
             error_msg = f"Error synchronizing {name} for {workspace_name}: {e}"
             logging.error(error_msg)
             errors.append(error_msg)
-            # send_exception_to_service_bus(error_msg)
+            send_exception_to_service_bus(error_msg)
     
-    errors_joined = "; ".join(errors)
+    errors_joined = ERROR_DETAILS_JOINER.join(errors)
     health_status = hcm.HealthcheckMessage.STATUS_UNHEALTHY if errors_joined else hcm.HealthcheckMessage.STATUS_HEALTHY
     health_msg = hcm.HealthcheckMessage(hcm.HealthcheckMessage.TYPE_WORKSPACE_SYNC, "workspaces", workspace_name, errors_joined, health_status)
-    #send_healthcheck_to_service_bus(health_msg)
+    send_healthcheck_to_service_bus(health_msg)
     if (health_status == hcm.HealthcheckMessage.STATUS_HEALTHY):
         logging.info(f"Successfully synced workspace {workspace_name}")
     else:
-        logging.error(f"Workspace {workspace_name} had problems while synchronizing: {errors_joined}")
-        raise RuntimeError(f"Workspace: {workspace_name} synchronization failed: {errors_joined}")
+        overall_sync_error = f"Workspace {workspace_name} had problems while synchronizing: {errors_joined}"
+        logging.error(overall_sync_error)
+        raise RuntimeError(overall_sync_error)
 
 def synchronize_workspace(workspace_definition):
     workspace_name = workspace_definition["Workspace"]["Acronym"]
@@ -234,6 +238,8 @@ def sync_databricks_workspace_users_function(workspace_definition):
 
     dtb_utils.synchronize_workspace_secret_scopes(environment_name, subscription_id, workspace_definition, workspace_client)    
     #dtb_utils.synchronize_workspace_secrets(environment_name, subscription_id, workspace_definition, workspace_client)  
+
+    # TODO: send a DatabricksSync (type 9) health check result to the queue
 
 def sync_keyvault_workspace_users_function(workspace_definition):
     """
