@@ -1,0 +1,73 @@
+@using MudBlazor.Utilities
+
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+
+<div style="@_styles">
+    @EnvironmentLabel()
+</div>
+
+@code {
+    
+    
+    [Parameter, EditorRequired] 
+    public string AppBarHeight { get; set; }
+
+    private string _styles;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (_datahubPortalConfiguration.Hosting.EnvironmentTopBar == Hosting.TopBarEnvironments.Invisible)
+        {
+            _styles = new StyleBuilder()
+                .AddStyle("display", "none")
+                .Build();
+        }
+        else
+        {
+            _styles = new StyleBuilder()
+                .AddStyle("height", "20px")
+                .AddStyle("width", "100%")
+                .AddStyle("background-color", EnvironmentColor())
+                .AddStyle("position", "fixed")
+                .AddStyle("top", "0px")
+                .AddStyle("z-index", "1400")
+                .AddStyle("text-align", "center")
+                .AddStyle("font-size", "12px")
+                .AddStyle("color", "white")
+                .AddStyle("font-weight", "bold")
+                .AddStyle("font-family", "Consolas, monospace")
+                .Build();
+        }
+    }
+
+    private string EnvironmentLabel()
+    {
+        return _datahubPortalConfiguration.Hosting.EnvironmentTopBar switch
+        {
+            Hosting.TopBarEnvironments.Development => Localizer["Development | Unclassified"],
+            Hosting.TopBarEnvironments.Staging => Localizer["Staging | Unclassified"],
+            Hosting.TopBarEnvironments.ProofOfConcept => Localizer["Proof of Concept | Unclassified"],
+            Hosting.TopBarEnvironments.Production => Localizer["Production | Unclassified"],
+            Hosting.TopBarEnvironments.ProductionProtected => Localizer["Production | Protected B"],
+            Hosting.TopBarEnvironments.Invisible => "",
+            _ => "Unknown Environment"
+        };
+    }
+
+    private string EnvironmentColor()
+    {
+        return _datahubPortalConfiguration.Hosting.EnvironmentTopBar switch
+        {
+            Hosting.TopBarEnvironments.Development => "#007BFF",
+            Hosting.TopBarEnvironments.Staging => "#FFA500",
+            Hosting.TopBarEnvironments.ProofOfConcept => "#800080",
+            Hosting.TopBarEnvironments.Production => "#28A745",
+            Hosting.TopBarEnvironments.ProductionProtected => "#006400",
+            Hosting.TopBarEnvironments.Invisible => "transparent",
+            _ => "transparent"
+        };
+    }
+
+}
