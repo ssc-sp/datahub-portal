@@ -88,15 +88,16 @@ namespace Datahub.SpecflowTests.Features
             await this.TestTearDownAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Show padding on the carousel when it starts with an image")]
+        [Xunit.SkippableFactAttribute(DisplayName="Show padding on the carousel when it starts with an image", Skip="Ignored")]
         [Xunit.TraitAttribute("FeatureTitle", "News Carousel")]
         [Xunit.TraitAttribute("Description", "Show padding on the carousel when it starts with an image")]
         public async System.Threading.Tasks.Task ShowPaddingOnTheCarouselWhenItStartsWithAnImage()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "ignore"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Show padding on the carousel when it starts with an image", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 5
+#line 6
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -106,28 +107,29 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 6
+#line 7
  await testRunner.GivenAsync("there is a news carousel component with an image", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 7
+#line 8
  await testRunner.ThenAsync("the carousel should not have padding on the x-axis", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 8
+#line 9
  await testRunner.AndAsync("the carousel should not have padding on the y-axis", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Show padding on the carousel when it does not start with an image")]
+        [Xunit.SkippableFactAttribute(DisplayName="Show padding on the carousel when it does not start with an image", Skip="Ignored")]
         [Xunit.TraitAttribute("FeatureTitle", "News Carousel")]
         [Xunit.TraitAttribute("Description", "Show padding on the carousel when it does not start with an image")]
         public async System.Threading.Tasks.Task ShowPaddingOnTheCarouselWhenItDoesNotStartWithAnImage()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "ignore"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Show padding on the carousel when it does not start with an image", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 10
+#line 12
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -137,13 +139,13 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 11
+#line 13
  await testRunner.GivenAsync("there is a news carousel component without an image", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 12
+#line 14
  await testRunner.ThenAsync("the carousel should have padding on the x-axis", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 13
+#line 15
  await testRunner.AndAsync("the carousel should have padding on the y-axis", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }

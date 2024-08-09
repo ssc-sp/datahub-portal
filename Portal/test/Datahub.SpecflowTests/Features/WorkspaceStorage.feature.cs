@@ -112,7 +112,7 @@ this.ScenarioInitialize(scenarioInfo);
                         "ageAccounts/fsdhteststorageaccount\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 7
- await testRunner.AndAsync("the storage account has a capacity of above 0 bytes and below 6000000 bytes", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+ await testRunner.AndAsync("the storage account has a capacity of above 0 bytes and below 9000000 bytes", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 8
  await testRunner.WhenAsync("the storage capacity is requested", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
@@ -151,7 +151,7 @@ this.ScenarioInitialize(scenarioInfo);
  await testRunner.AndAsync("a project exists in the database for the workspace", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 14
- await testRunner.AndAsync("the storage account has a capacity of above 5000000 bytes and below 6000000 bytes" +
+ await testRunner.AndAsync("the storage account has a capacity of above 5000000 bytes and below 9000000 bytes" +
                         "", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 15

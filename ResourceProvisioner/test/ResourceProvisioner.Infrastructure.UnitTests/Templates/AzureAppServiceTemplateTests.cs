@@ -154,7 +154,7 @@ public class AzureAppServiceTemplateTests
     {
         return new JsonObject
         {
-            [TerraformVariables.AllowSourceIp] = "",
+            [TerraformVariables.AllowSourceIp] = _resourceProvisionerConfiguration.Terraform.Variables.allow_source_ip,
         };
     }
 }
