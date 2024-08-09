@@ -1,5 +1,6 @@
 @using Datahub.Shared.Entities
 @using System.Text.Json
+@using System.Text.Json.Nodes
 @using Datahub.Core.Model.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -180,7 +181,6 @@
                 </MudTr>
             }
         </ChildRowContent>
-
     </MudTable>
 </MudStack>
 
@@ -240,13 +240,19 @@
         {
             return 0;
         }
-        
-        var currentPerDay = JsonSerializer.Deserialize(projectCredits.CurrentPerDay, typeof(List<DatahubProjectCurrentPerDay>)) as List<DatahubProjectCurrentPerDay>;
-        var cost = currentPerDay?.Where(c => c.Date > DateTime.Now.AddDays(-days)).Sum(c => c.Cost) ?? 0;
-        
-        return cost;
-    }
 
+        var data = projectCredits.CurrentPerDay;
+
+        if (data != null)
+        {
+            var currentPerDay = JsonSerializer.Deserialize(projectCredits.CurrentPerDay, typeof(List<DatahubProjectCurrentPerDay>)) as List<DatahubProjectCurrentPerDay>;
+            var cost = currentPerDay.Where(c => c.Date > DateTime.Now.AddDays(-days)).Sum(c => c.Amount);
+
+            return cost;
+        }
+
+        return 0;
+    }
 
     private void ShowUsersPressed(int projectId)
     {
