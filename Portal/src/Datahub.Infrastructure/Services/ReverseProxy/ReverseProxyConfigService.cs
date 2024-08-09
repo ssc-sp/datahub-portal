@@ -70,12 +70,16 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
             Match = new()
             {
                 Path = $"{prefix}/{{**catch-all}}"
-            }                        
+            },
+            AuthorizationPolicy = IReverseProxyConfigService.WorkspaceAuthorizationPolicy
         };
 
         var finalRoute = route.
             WithTransformForwarded().
-            WithTransformXForwarded();
+            WithTransformXForwarded().
+            WithTransform(transform => {
+                transform[IReverseProxyConfigService.WorkspaceACLTransform] = acronym;
+            });
         if (urlRewritingEnabled)
             finalRoute = finalRoute.WithTransformPathRemovePrefix(prefix);
         return finalRoute;
