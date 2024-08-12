@@ -11,12 +11,12 @@ class HealthcheckMessage:
     TYPE_DATABRICKS_SYNC = 9
 
     def __init__(self, Type, Group, Name, Details = None, Status = None):
-        self.Type = Type
+        self.ResourceType = Type
         self.Group = Group
         self.Name = Name
         self.Status = Status or self.STATUS_UNDEFINED 
-        self.Details = Details or ""
-        self.HealthCheckTimeUtc = datetime.datetime.now()
+        self.Details = Details
+        self.HealthCheckTimeUtc = datetime.datetime.now(datetime.UTC)
 
     def to_json(self):
         def json_default(value):
