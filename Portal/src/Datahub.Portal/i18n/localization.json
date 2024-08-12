@@ -779,7 +779,7 @@
   "Happy with your workspace name and acronym? Click on \u0022Create workspace\u0022 and your new workspace will soon appear in the sidebar!": "Happy with your workspace name and acronym? Click on \u0022Create workspace\u0022 and your new workspace will soon appear in the sidebar!",
   "Has Choices?": "Has Choices?",
   "HasAssociatedDatabase": "Has Associtated Database",
-  "Head of the business unit and bears business responsibility for successful implementation and availability": "Head of the business unit and bears business responsibility for successful implementation and availability",
+  "Head of the workspace and bears business responsibility for success of the workspace": "Head of the workspace and bears business responsibility for success of the workspace",
   "Header": "Header",
   "Health Check": "Health Check",
   "Healthy": "Healthy",
@@ -1005,7 +1005,7 @@
   "Manage Workspace Resources": "Manage Workspace Resources",
   "Manage the settings and actions for this project. ": "Manage the settings and actions for this project. ",
   "ManageAccess": "Manage Access",
-  "Management authority within the project with direct supervision over the project resources and deliverables": "Management authority within the project with direct supervision over the project resources and deliverables",
+  "Management authority within the workspace with direct supervision over the cloud resourcing and users": "Management authority within the workspace with direct supervision over the cloud resourcing and users",
   "Manager_Email_Address": "Finance Officer Email Address",
   "Manager_First_Name": "Finance Officer First Name",
   "Manager_Last_Name": "Finance Officer Last Name",
@@ -1441,7 +1441,7 @@
   "Resource {0} updated": "Resource {0} updated",
   "Resources": "Resources",
   "Resources - Federal Science DataHub": "Learn - Federal Science DataHub",
-  "Responsible for contributing to the overall project objectives and deliverables to ensure success": "Responsible for contributing to the overall project objectives and deliverables to ensure success",
+  "Responsible for contributing to the overall workspace objectives and deliverables": "Responsible for contributing to the overall workspace objectives and deliverables",
   "Restart": "Restart",
   "Restart": "Restart",
   "Restart your application using the \u0027Restart\u0027 button to apply changes to your images or environment variables.": "Restart your application using the \u0027Restart\u0027 button to apply changes to your images or environment variables.",
@@ -1458,7 +1458,7 @@
   "Revoke": "Revoke",
   "Revoke Active Sharing": "Revoke Active Sharing",
   "Revoke external sharing": "Revoke external sharing",
-  "Revoke the user\u0027s access to the project\u0027s private resources": "Revoke the user\u0027s access to the project\u0027s private resources",
+  "Revoke the user\u0027s access to the workspace": "Revoke the user\u0027s access to the workspace",
   "RevokeExtSharingFor": "Revoke external sharing for {0}?",
   "Rewarded portrait image": "Rewarded portrait image",
   "Risk_Category": "Risk Category",
@@ -2080,5 +2080,6 @@
   "Integration | Unclassified": "Integration | Unclassified",
   "Non-Production | Unclassified": "Non-Production | Unclassified",
   "Production | Unclassified": "Production | Unclassified",
-  "Production | Protected B": "Production | Protected B"
+  "Production | Protected B": "Production | Protected B",
+  "Please contact the Datahub Admins to change Workspace Leads.": "Please contact the Datahub Admins to change Workspace Leads."
 }
