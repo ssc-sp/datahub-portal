@@ -23,7 +23,7 @@
 
 
 @{
-    var datahubTheme = DatahubTheme.DefaultTheme(_datahubPortalConfiguration);
+    var datahubTheme = DatahubTheme.DefaultTheme;
 }
 <MudThemeProvider Theme="@datahubTheme"/>
 <MudDialogProvider/>
@@ -31,7 +31,6 @@
 <MudPopoverProvider/>
 
 <DatahubAchievementProvider/>
-<EnvironmentTopBar AppBarHeight="@datahubTheme.LayoutProperties.AppbarHeight"/>
 
 <MudLayout>
     <MudAppBar Elevation="0" Style="@_topBorderStyle">
@@ -50,6 +49,7 @@
         </MudDrawerContainer>
     </MudDrawer>
     <MudMainContent>
+        <EnvironmentTopBar />
         <ErrorBoundary @ref="_errorBoundary">
             <ChildContent>
                 @Body
@@ -67,7 +67,6 @@
                 }
             </ErrorContent>
         </ErrorBoundary>
-
         <DHFooter/>
     </MudMainContent>
 </MudLayout>

@@ -1,85 +1,80 @@
-using Datahub.Application.Configuration;
+using Datahub.Core;
 using MudBlazor;
 
 namespace Datahub.Portal.Layout;
 
 public abstract class DatahubTheme
 {
-    public static MudTheme DefaultTheme(DatahubPortalConfiguration? portalConfiguration = null)
+    public static readonly MudTheme DefaultTheme = new()
     {
-        return new MudTheme()
+        LayoutProperties =
         {
-            LayoutProperties =
+            AppbarHeight = "80px"
+        },
+        Typography =
+        {
+            Default =
             {
-                AppbarHeight = portalConfiguration?.Hosting.EnvironmentTopBar == Hosting.TopBarEnvironments.Invisible
-                    ? "64px"
-                    : "84px"
-            },
-            Typography =
+                FontFamily = new[] { "Open Sans", "sans-serif" },
+                FontSize = "0.9rem",        
+                LineHeight = 1.75,
+            }, 
+            H1 = new H1()
             {
-                Default =
-                {
-                    FontFamily = new[] { "Open Sans", "sans-serif" },
-                    FontSize = "0.9rem",
-                    LineHeight = 1.75,
-                },
-                H1 = new H1()
-                {
-                    LineHeight = 1.25,
-                    FontSize = "2.5rem",
-                    FontWeight = 600,
-                },
-                H2 = new H2()
-                {
-                    LineHeight = 1.35,
-                    FontSize = "1.75rem",
-                    FontWeight = 600,
-                },
-                H3 = new H3()
-                {
-                    LineHeight = 1.3,
-                    FontSize = "1.5rem",
-                    FontWeight = 600,
-                },
-                H4 = new H4()
-                {
-                    LineHeight = 1.2,
-                    FontSize = "1.25rem",
-                    FontWeight = 600,
-                },
-                H5 = new H5()
-                {
-                    LineHeight = 1.2,
-                    FontSize = "1.125rem",
-                    FontWeight = 600,
-                },
-                H6 = new H6()
-                {
-                    LineHeight = 1.2,
-                    FontSize = "1rem",
-                    FontWeight = 600,
-                },
-                Body1 =
-                {
-                    FontSize = "0.875rem",
-                    LineHeight = 1.43,
-                    LetterSpacing = ".01071em",
-                },
-                Body2 =
-                {
-                    FontSize = "0.775rem",
-                    LineHeight = 1.36,
-                }
+                LineHeight = 1.25,
+                FontSize = "2.5rem",
+                FontWeight = 600,
             },
-            PaletteLight =
+            H2 = new H2()
             {
-                AppbarBackground = Colors.Shades.White,
-                Background = Colors.Gray.Lighten5
+                LineHeight = 1.35,
+                FontSize = "1.75rem",
+                FontWeight = 600,
             },
-            PaletteDark =
+            H3 = new H3()
             {
-                AppbarBackground = Colors.Gray.Darken3
+                LineHeight = 1.3,
+                FontSize = "1.5rem",
+                FontWeight = 600,
             },
-        };
-    }
+            H4 = new H4()
+            {
+                LineHeight = 1.2,
+                FontSize = "1.25rem",
+                FontWeight = 600,
+            },
+            H5 = new H5()
+            {
+                LineHeight = 1.2,
+                FontSize = "1.125rem",
+                FontWeight = 600,
+            },
+            H6 = new H6()
+            {
+                LineHeight = 1.2,
+                FontSize = "1rem",
+                FontWeight = 600,
+            },
+            Body1 =
+            {
+                FontSize = "0.875rem",
+                LineHeight = 1.43,
+                LetterSpacing = ".01071em",
+            },
+            Body2 =
+            {
+                FontSize = "0.775rem",
+                LineHeight = 1.36,
+            }
+        },
+        PaletteLight =
+        {
+            AppbarBackground = Colors.Shades.White,
+            Background = Colors.Gray.Lighten5
+        },
+        PaletteDark =
+        {
+            AppbarBackground = Colors.Gray.Darken3
+        },
+    };
 }

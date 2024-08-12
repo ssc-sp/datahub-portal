@@ -204,17 +204,6 @@ public class Hosting
     public string Profile { get; set; } = "ssc";
     public string EnvironmentName { get; set; } = "dev";
     public int WorkspaceCountPerAzureSubscription { get; set; } = 100;
-    public TopBarEnvironments EnvironmentTopBar { get; set; } = TopBarEnvironments.Development;
-    
-    public enum TopBarEnvironments
-    {
-        Invisible,
-        Development,
-        Staging,
-        ProofOfConcept,
-        Production,
-        ProductionProtected
-    }
 }
 
 public class KeyVault

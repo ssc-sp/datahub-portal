@@ -1,72 +1,60 @@
+@using Datahub.Core
 @using MudBlazor.Utilities
 
-@inject DatahubPortalConfiguration _datahubPortalConfiguration
-
-<div style="@_styles">
+<h2 class="sr-only">
+    @Localizer["Environment information"]
+</h2>
+<p style="@_styles">
     @EnvironmentLabel()
-</div>
+</p>
 
 @code {
-    
-    
-    [Parameter, EditorRequired] 
-    public string AppBarHeight { get; set; }
 
-    private string _styles;
+    private string _styles = null!;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
-        if (_datahubPortalConfiguration.Hosting.EnvironmentTopBar == Hosting.TopBarEnvironments.Invisible)
-        {
-            _styles = new StyleBuilder()
-                .AddStyle("display", "none")
-                .Build();
-        }
-        else
-        {
-            _styles = new StyleBuilder()
-                .AddStyle("height", "20px")
-                .AddStyle("width", "100%")
-                .AddStyle("background-color", EnvironmentColor())
-                .AddStyle("position", "fixed")
-                .AddStyle("top", "0px")
-                .AddStyle("z-index", "1400")
-                .AddStyle("text-align", "center")
-                .AddStyle("font-size", "12px")
-                .AddStyle("color", "white")
-                .AddStyle("font-weight", "bold")
-                .AddStyle("font-family", "Consolas, monospace")
-                .Build();
-        }
+        _styles = new StyleBuilder()
+            .AddStyle("height", "20px")
+            .AddStyle("width", "100%")
+            .AddStyle("background-color", EnvironmentColor())
+            .AddStyle("position", "fixed")
+            .AddStyle("top", "0px")
+            .AddStyle("left", "0px")
+            .AddStyle("z-index", "1400")
+            .AddStyle("text-align", "center")
+            .AddStyle("font-size", "12px")
+            .AddStyle("color", "white")
+            .AddStyle("font-weight", "bold")
+            .AddStyle("font-family", "Consolas, monospace")
+            .Build();
     }
 
     private string EnvironmentLabel()
     {
-        return _datahubPortalConfiguration.Hosting.EnvironmentTopBar switch
+        return DevTools.TopBarEnvironment() switch
         {
-            Hosting.TopBarEnvironments.Development => Localizer["Development | Unclassified"],
-            Hosting.TopBarEnvironments.Staging => Localizer["Staging | Unclassified"],
-            Hosting.TopBarEnvironments.ProofOfConcept => Localizer["Proof of Concept | Unclassified"],
-            Hosting.TopBarEnvironments.Production => Localizer["Production | Unclassified"],
-            Hosting.TopBarEnvironments.ProductionProtected => Localizer["Production | Protected B"],
-            Hosting.TopBarEnvironments.Invisible => "",
+            DevTools.TopBarEnvironments.Development => Localizer["Development | Unclassified"],
+            DevTools.TopBarEnvironments.Integration => Localizer["Integration | Unclassified"],
+            DevTools.TopBarEnvironments.ProofOfConcept => Localizer["Non-Production | Unclassified"],
+            DevTools.TopBarEnvironments.Production => Localizer["Production | Unclassified"],
+            DevTools.TopBarEnvironments.ProductionProtected => Localizer["Production | Protected B"],
             _ => "Unknown Environment"
         };
     }
 
     private string EnvironmentColor()
     {
-        return _datahubPortalConfiguration.Hosting.EnvironmentTopBar switch
+        return DevTools.TopBarEnvironment() switch
         {
-            Hosting.TopBarEnvironments.Development => "#007BFF",
-            Hosting.TopBarEnvironments.Staging => "#FFA500",
-            Hosting.TopBarEnvironments.ProofOfConcept => "#800080",
-            Hosting.TopBarEnvironments.Production => "#28A745",
-            Hosting.TopBarEnvironments.ProductionProtected => "#006400",
-            Hosting.TopBarEnvironments.Invisible => "transparent",
-            _ => "transparent"
+            DevTools.TopBarEnvironments.Development => "#0071EB",
+            DevTools.TopBarEnvironments.Integration => "#CC6A00",
+            DevTools.TopBarEnvironments.ProofOfConcept => "#594ae2",
+            DevTools.TopBarEnvironments.Production => "#00602F",
+            DevTools.TopBarEnvironments.ProductionProtected => "#B8291C",
+            _ => "#000"
         };
     }
 
