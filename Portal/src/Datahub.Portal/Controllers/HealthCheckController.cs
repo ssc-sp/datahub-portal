@@ -3,13 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
 using Datahub.Application.Configuration;
+using Datahub.Core.Model;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Health;
 using Datahub.Shared.Configuration;
 using Azure.Core;
 using System.Net.Http.Headers;
 using Datahub.Infrastructure.Services.Azure;
-
+using Microsoft.AspNetCore.Authorization;
 
 namespace Datahub.Portal.Controllers
 {
@@ -100,6 +101,67 @@ namespace Datahub.Portal.Controllers
             }
         }
 
+
+        [HttpGet("webapplogstream")]
+        [Authorize]
+        public async Task<IActionResult> GetKuduLogStreamForUser([FromQuery] string ws)
+        {
+            var env = _portalConfiguration?.Hosting?.EnvironmentName;
+            if (string.IsNullOrEmpty(env) || env == "local")
+            {
+                env = "dev";
+            }
+
+            if (string.IsNullOrEmpty(ws))
+            {
+                return Unauthorized("Workspace name is missing.");
+            }
+
+            var kuduUrl = $"https://fsdh-proj-{ws.ToLower()}-webapp-{env}.scm.azurewebsites.net/api/logstream";
+            var access_token = await GetAccessTokenAsync();    
+            //await HttpContext.GetTokenAsync("access_token");
+
+            if (string.IsNullOrEmpty(access_token))
+            {
+                return Unauthorized("Access token is missing.");
+            }
+            var request = new HttpRequestMessage(HttpMethod.Get, kuduUrl);
+
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
+            try
+            {
+                var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var stream = await response.Content.ReadAsStreamAsync();
+                    Response.ContentType = "text/event-stream";
+
+                    using (var streamReader = new StreamReader(stream))
+                    using (var writer = new StreamWriter(Response.Body))
+                    {
+                        var buffer = new char[8192];
+                        int charsRead;
+                        while ((charsRead = await streamReader.ReadAsync(buffer, 0, buffer.Length)) > 0 && charsRead > 0)
+                        {
+                            await writer.WriteAsync(buffer, 0, charsRead);
+                            await writer.FlushAsync();
+                        }
+                    }
+                    return new EmptyResult();
+                    // [VB] could not use FileStreamResult - it did not stream as supposed to
+                    //return new FileStreamResult(stream, new MediaTypeHeaderValue("text/event-stream").MediaType); 
+                }
+                else
+                {
+                    return StatusCode((int)response.StatusCode, response.ReasonPhrase);
+                }
+            }
+            catch (Exception)
+            {
+                return new EmptyResult();
+            }
+        }
         private async Task<List<InfrastructureHealthCheck>> LoadCheckData()
         {
             var projects = await _dbProjectContext.Projects.AsNoTracking().Include(p => p.Resources).Select(p => p.Project_Acronym_CD).ToListAsync();
@@ -137,16 +199,5 @@ namespace Datahub.Portal.Controllers
             var tokenResponse = await _httpClient.PostAsync<AccessTokenResponse>(url, default, content, cancellationToken);
             return tokenResponse?.access_token;
         }
-    }
-
-    class AccessTokenResponse
-    {
-        public string? token_type { get; set; }
-        public string? expires_in { get; set; }
-        public string? ext_expires_in { get; set; }
-        public string? expires_on { get; set; }
-        public string? not_before { get; set; }
-        public string? resource { get; set; }
-        public string? access_token { get; set; }
     }
 }
