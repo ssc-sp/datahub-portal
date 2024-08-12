@@ -7,17 +7,18 @@
 @inject IMetadataBrokerService _metadataBrokerService
 
 <MudStack>
-    <h1 id="maincontent">
-        <DHIcon Icon="fa-light fa-flask-vial" Title="@Localizer["Workspace Icon"]" Size="Size.Large" Class="mr-2" />
-        @_project?.ProjectName
-    </h1>
+    <DHMainContentTitle>
+        <MudText Typo="Typo.h1" Class="my-8">
+            <DHIcon Icon="fa-light fa-flask-vial" Title="@Localizer["Workspace Icon"]" Size="Size.Large" Class="mr-2"/>
+            @_project?.ProjectName
+        </MudText>
+    </DHMainContentTitle>
     <DHMarkdown class="description" Content="@_projectDescription"/>
 </MudStack>
 
 @code {
 
-    [Parameter, EditorRequired]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter, EditorRequired] public string WorkspaceAcronym { get; set; }
 
     private Datahub_Project _project;
     private FieldValueContainer _projectMetadata;
@@ -38,9 +39,9 @@
     private string GetProjectDescription()
     {
         var description = _projectMetadata.GetValue($"description_{CultureService.Culture}", null) ?? _project.ProjectDescription;
-        
-        return string.IsNullOrWhiteSpace(description) 
-            ? Localizer["No description available, please contact the workspace lead for details."] 
+
+        return string.IsNullOrWhiteSpace(description)
+            ? Localizer["No description available, please contact the workspace lead for details."]
             : description;
     }
 

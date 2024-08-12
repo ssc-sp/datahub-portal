@@ -33,6 +33,7 @@ public class Hooks
     public void BeforeScenarioRequiringQueue(IObjectContainer objectContainer, ScenarioContext scenarioContext)
     {
         var configuration = new ConfigurationBuilder()
+            .AddUserSecrets<Hooks>()
             .AddJsonFile("appsettings.test.json", optional: true)
             .Build();
 
@@ -92,6 +93,7 @@ public class Hooks
 
         objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
         var configuration = new ConfigurationBuilder()
+            .AddUserSecrets<Hooks>()
             .AddJsonFile("appsettings.test.json", optional: true)
             .Build();
         var datahubPortalConfiguration = new DatahubPortalConfiguration();
@@ -164,6 +166,7 @@ public class Hooks
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var configuration = new ConfigurationBuilder()
+            .AddUserSecrets<Hooks>()
             .AddJsonFile("appsettings.test.json", optional: true)
             .Build();
 

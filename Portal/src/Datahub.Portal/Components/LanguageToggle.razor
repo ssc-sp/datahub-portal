@@ -7,14 +7,17 @@
 @inject NavigationManager NavManager
 @inject IJSRuntime _jsRuntime
 
-<DHButton OnClick="() => ChangeLanguage(Language)" Size="@Size">
+<DHButton OnClick="() => ChangeLanguage(Language)" Size="@Size" @attributes="@InputAttributes">
     @LanguageDisplay
 </DHButton>
 
 @code {
     [Parameter]
     public Size Size { get; set; } = Size.Medium;
-
+    
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; }
+    
     private static string Language => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "en-CA" : "fr-CA";
     private static string LanguageDisplay => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "English" : "Français";
 

@@ -1,0 +1,33 @@
+<span id="maincontent">
+    @if (Title != null)
+    {
+        <MudText Typo="Typo.h1">@Title</MudText>
+    }
+    else
+    {
+        @ChildContent
+    }
+</span>
+
+@code {
+
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    [Parameter] public string Title { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (ChildContent is not null && Title is not null)
+        {
+            throw new InvalidOperationException($"Do not specify both '{nameof(Title)}' and '{nameof(ChildContent)}'.");
+        }
+
+        if (ChildContent is null && Title is null)
+        {
+            throw new InvalidOperationException($"'{nameof(Title)}' or '{nameof(ChildContent)}' is required");
+        }
+    }
+
+}
