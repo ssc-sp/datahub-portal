@@ -15,12 +15,12 @@
     </ul>
 </nav>
 
-<MudImage Src=@Localizer["/img/canada-fip.svg"] Alt=@Localizer["Government of Canada Wordmark"] Style="max-height: 25px; float:left!important;" />
+<MudImage Src=@Localizer["/img/canada-fip.svg"] Alt=@Localizer["Government of Canada Wordmark"] Style="max-height: 25px; margin-top: 20px; float:left!important;" />
 
 <MudText Typo="Typo.h2" Style="@_titleStyle">
     @Localizer["MainTitle"]
 </MudText>
-<MudStack Row Style="margin-right: auto; width: 40%" Justify="Justify.Center" role="group">
+<MudStack Row Style="margin-right: auto; width: 40%; margin-top: 20px" Justify="Justify.Center" role="group">
     <h2 class="sr-only">@Localizer["Navigation menu"]</h2>
     <nav role="navigation">
         <ul style="list-style-type: none">
@@ -112,6 +112,7 @@
             .AddStyle("color", "var(--mud-palette-text-primary)")
             .AddStyle("font-size", "1.2rem")
             .AddStyle("margin-left", "3rem")
+            .AddStyle("margin-top", "20px")
             .Build();
     }
 

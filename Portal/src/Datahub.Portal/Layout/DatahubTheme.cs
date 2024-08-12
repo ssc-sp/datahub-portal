@@ -1,3 +1,4 @@
+using Datahub.Core;
 using MudBlazor;
 
 namespace Datahub.Portal.Layout;
@@ -6,6 +7,10 @@ public abstract class DatahubTheme
 {
     public static readonly MudTheme DefaultTheme = new()
     {
+        LayoutProperties =
+        {
+            AppbarHeight = "80px"
+        },
         Typography =
         {
             Default =
