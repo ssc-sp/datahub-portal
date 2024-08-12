@@ -1,11 +1,9 @@
 @using Datahub.Application.Services
-@using Datahub.Core.Model.Achievements
 @using Datahub.Core.Model.Projects
 @using MudBlazor.Utilities
 @using Datahub.Portal.Components.User
 @using Datahub.Application.Commands
 @using Datahub.Application.Services.UserManagement
-@using System.Text
 
 
 @inject IUserInformationService _userInformationService
@@ -54,7 +52,7 @@
                                         @if (userToBeAdded.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID)
                                         {
                                             <MudAvatar>
-                                                <DHIcon Icon="@Icons.Material.Outlined.PersonAdd" />
+                                                <DHIcon Icon="@Icons.Material.Outlined.PersonAdd"/>
                                             </MudAvatar>
                                         }
                                         else
@@ -204,37 +202,25 @@
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
 
     private string _filterString = null;
     private string _tabStyle;
-    //     private const string PROFILE_LINK_ICON = "fa-duotone fa-chevrons-right";
-    //     private const string ADD_USER_ICON = "fa-duotone fa-user-plus";
-    //     private const string INVITE_USERS_DIALOG_TITLE = "Invite New Users";
-    //     private const string EMAIL_FAILED_MESSAGE = "Unable to invite the following users. Please check their email addresses and try again, or contact DataHub support:";
-    // private bool _isLoading = true;
+
     private bool _updateInProgress;
+
     //
     private int _workspaceLeadCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.WorkspaceLead) ?? 0;
     private int _adminCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Admin) ?? 0;
     private int _contributorCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Collaborator) ?? 0;
     private int _guestCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Guest) ?? 0;
     private int _allCount => _projectUsers?.Count ?? 0;
-    // private ProjectMemberRole? _currentRoleFilter = null;
-    // private List<ProjectMember> _projectUsers;
-    // private List<ProjectMember> _filteredProjectMembers;
+
     private List<Datahub_Project_User> _projectUsers;
     private List<Datahub_Project_User> _filteredProjectUsers;
 
     private readonly List<ProjectUserAddUserCommand> _usersToAdd = new();
     private readonly List<ProjectUserUpdateCommand> _usersToUpdate = new();
-
-    // private string _currentUserId;
-    // private string _currentUserName;
-    //
-    // private List<ProjectMember> _usersToBeUpdated = new();
-    // private List<ProjectMember> _currentSavedUsers = new();
 
     private string _modifiedCellStyle;
 
@@ -242,7 +228,7 @@
     {
         base.OnInitialized();
 
-    // red border on top, left, and bottom
+        // red border on top, left, and bottom
         _modifiedCellStyle = new StyleBuilder()
             .AddStyle("background-color", $"{Colors.Amber.Default}4D")
             .Build();
@@ -280,7 +266,7 @@
 
     private void UpdateProjectMemberRole(Datahub_Project_User projectUser, int newRoleId)
     {
-    // check if the user is already in the list of users to be updated
+        // check if the user is already in the list of users to be updated
         var existingUser = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
         if (existingUser != null)
         {
@@ -298,6 +284,7 @@
                 NewRoleId = newRoleId
             });
         }
+
         StateHasChanged();
     }
 
@@ -308,6 +295,7 @@
         {
             _usersToAdd.Remove(projectUser);
         }
+
         StateHasChanged();
     }
 
@@ -360,6 +348,7 @@
         {
             _snackbar.Add(Localizer["No changes to save"], Severity.Info);
         }
+
         _updateInProgress = false;
         await InitializedProjectMembers();
         StateHasChanged();

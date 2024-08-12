@@ -8,11 +8,33 @@
     <ActivatorContent>
         <MudStack Row AlignItems="AlignItems.Center" Style="@_outlineStyle" Class="py-2 px-4">
             <MudText Typo="Typo.body1">@Localizer[_currentRole?.Name ?? string.Empty]</MudText>
-            <DHIcon Icon="@Icons.Material.Filled.ArrowDropDown" />
+            <DHIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
         </MudStack>
     </ActivatorContent>
     <ChildContent>
-        @foreach (var role in _projectRoles.Where(r => r.Id != (int)Project_Role.RoleNames.Remove))
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+            <Authorized>
+                @{
+                    var role = _projectRoles.First(r => r.Id == (int)Project_Role.RoleNames.WorkspaceLead);
+                }
+                <MudMenuItem OnClick="@(() => RoleChanged(role.Id))" Style="max-width: 400px;">
+                    <MudText Typo="Typo.h6">@Localizer[role.Name]</MudText>
+                    <MudText>@Localizer[role.Description]</MudText>
+                </MudMenuItem>
+            </Authorized>
+            <NotAuthorized>
+                @{
+                    var role = _projectRoles.First(r => r.Id == (int)Project_Role.RoleNames.WorkspaceLead);
+                }
+                <MudMenuItem Disabled Style="max-width: 400px;">
+                    <MudAlert Style="margin-bottom: 12px;" Dense Severity="Severity.Info">@Localizer["Please contact the Datahub Admins to change Workspace Leads."]</MudAlert>
+                    <MudText Typo="Typo.h6">@Localizer[role.Name]</MudText>
+                    <MudText>@Localizer[role.Description]</MudText>
+                </MudMenuItem>
+            </NotAuthorized>
+        </DatahubAuthView>
+        <MudDivider/>
+        @foreach (var role in _projectRoles.Where(r => r.Id is not ((int)Project_Role.RoleNames.Remove or (int)Project_Role.RoleNames.WorkspaceLead)))
         {
             <MudMenuItem OnClick="@(() => RoleChanged(role.Id))" Style="max-width: 400px;">
                 <MudText Typo="Typo.h6">@Localizer[role.Name]</MudText>
@@ -29,11 +51,9 @@
 
 @code {
 
-    [Parameter]
-    public int InitialValue { get; set; }
+    [Parameter] public int InitialValue { get; set; }
 
-    [Parameter]
-    public EventCallback<int> OnRoleChanged { get; set; }
+    [Parameter] public EventCallback<int> OnRoleChanged { get; set; }
 
     private Project_Role _currentRole;
     private IEnumerable<Project_Role> _projectRoles;
@@ -55,7 +75,7 @@
 
     private async Task RoleChanged(int newRoleId)
     {
-        if(newRoleId == (int)Project_Role.RoleNames.Remove)
+        if (newRoleId == (int)Project_Role.RoleNames.Remove)
         {
             var message = Localizer["Are you sure you want to remove this user from the workspace?"].Value;
             var confirmed = await _jsRuntime.InvokeAsync<bool>("confirm", message);
@@ -64,7 +84,7 @@
                 return;
             }
         }
-        
+
         await OnRoleChanged.InvokeAsync(newRoleId);
     }
 
