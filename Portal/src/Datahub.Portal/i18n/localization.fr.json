@@ -3155,5 +3155,11 @@
   "{0} credits consumed yesterday": "{0} crédits consommés hier",
   "{0} remaining credits of {1}": "{0} crédits restant de {1}",
   "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail",
-  "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés."
+  "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés.",
+  "Environment information": "Informations sur l'environnement",
+  "Development | Unclassified": "Développement | Non classifié",
+  "Integration | Unclassified": "Intégration | Non classifié",
+  "Non-Production | Unclassified": "Non-production | Non classifié",
+  "Production | Unclassified": "Production | Non classifié",
+  "Production | Protected B": "Production | Protégé B"
 }
