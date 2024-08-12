@@ -110,7 +110,7 @@ public class AzureAppServiceTemplateTests
             Assert.Multiple(() =>
             {
                 Assert.That(expectedVariables.ContainsKey(key), Is.True);
-                Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
+                Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()), $"Expected variable {key} does not match actual value");
             });
         }
     }
