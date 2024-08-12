@@ -44,7 +44,4 @@
 		<ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
 		<ProjectReference Include="..\Datahub.Portal.Metadata\Datahub.Portal.Metadata.csproj" />
 	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Middleware\" />
-	</ItemGroup>
 </Project>
