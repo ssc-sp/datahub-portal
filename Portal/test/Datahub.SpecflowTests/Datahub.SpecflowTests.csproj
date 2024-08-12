@@ -9,7 +9,7 @@
   </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.17.5" />
+        <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.18.1" />
         <PackageReference Include="bunit" Version="1.28.9" />
         <PackageReference Include="Deque.AxeCore.Commons" Version="4.9.1" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.6" />
