@@ -11,6 +11,8 @@
         /// <returns>(bool, decimal), a tuple representing whether a rollover is needed according to this update and the amount of costs captured in the last fiscal year</returns>
         public Task<(bool, decimal)> UpdateWorkspaceCostAsync(List<DailyServiceCost> subCosts, string workspaceAcronym, List<string> rgNames = null);
 
+        public Task<bool> RefreshWorkspaceCostsAsync(string workspaceAcronym);
+
         /// <summary>
         /// Queries the costs for the given subscription id within the given date range.
         /// </summary>
@@ -21,6 +23,21 @@
         /// <returns>A List containing all daily service costs. A daily service cost is a cost caused by one service during one day.</returns>
         public Task<List<DailyServiceCost>?> QuerySubscriptionCosts(string? subscriptionId, DateTime startDate,
             DateTime endDate, bool mock = false);
+
+        /// <summary>
+        /// Queries the given scopes for costs within the given date range. Daily granularity.
+        /// </summary>
+        /// <param name="scopeId">The id of the scope. e.g. /subscriptions/<...> </param>
+        /// <param name="startDate">The start date</param>
+        /// <param name="endDate">The end date</param>
+        /// <param name="mock">Boolean to perform a "mock" request</param>
+        /// <returns>Returns the result of the query or null if the query was throttled.</returns>
+        /// <exception cref="Exception">Throws exception if the query was incorrect</exception>
+        public Task<List<DailyServiceCost>?> QueryScopeCosts(string scopeId, DateTime startDate,
+            DateTime endDate, bool mock = false);
+
+        public Task<List<DailyServiceCost>?> QueryWorkspaceCosts(string workspaceAcronym, DateTime startDate,
+            DateTime endDate);
         
         /// <summary>
         /// Groups the costs given by source. By executing this, you lose date information

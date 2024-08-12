@@ -9,7 +9,22 @@ namespace Datahub.Infrastructure.Offline
             throw new NotImplementedException();
         }
 
+        public Task<bool> RefreshWorkspaceCostsAsync(string workspaceAcronym)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<List<DailyServiceCost>?> QuerySubscriptionCosts(string? subscriptionId, DateTime startDate, DateTime endDate, bool mock = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<DailyServiceCost>?> QueryScopeCosts(string scopeId, DateTime startDate, DateTime endDate, bool mock = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<DailyServiceCost>?> QueryWorkspaceCosts(string workspaceAcronym, DateTime startDate, DateTime endDate)
         {
             throw new NotImplementedException();
         }

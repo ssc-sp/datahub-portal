@@ -1,5 +1,10 @@
-﻿using Datahub.Application.Services;
+﻿using Azure.Core;
+using Azure.Identity;
+using Azure.ResourceManager;
+using Datahub.Application.Configuration;
+using Datahub.Application.Services;
 using Datahub.Application.Services.Announcements;
+using Datahub.Application.Services.Budget;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Notifications;
 using Datahub.Application.Services.ReverseProxy;
@@ -9,6 +14,7 @@ using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
 using Datahub.Infrastructure.Services.CatalogSearch;
+using Datahub.Infrastructure.Services.Cost;
 using Datahub.Infrastructure.Services.Notebooks;
 using Datahub.Infrastructure.Services.Notifications;
 using Datahub.Infrastructure.Services.ReverseProxy;
@@ -16,6 +22,7 @@ using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.Subscriptions;
 using Datahub.Infrastructure.Services.UserManagement;
 using MassTransit;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Yarp.ReverseProxy.Configuration;
@@ -43,6 +50,27 @@ public static class ConfigureServices
         services.AddScoped<IDatahubAzureSubscriptionService, DatahubAzureSubscriptionService>();
         services.AddScoped<IUserInformationService, UserInformationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
+
+        services.AddAzureClients(
+            builder =>
+            {
+                builder.AddClient<ArmClient, ArmClientOptions>(options =>
+                {
+                    options.Diagnostics.IsLoggingEnabled = true;
+                    options.Retry.Mode = RetryMode.Exponential;
+                    options.Retry.MaxRetries = 5;
+                    options.Retry.Delay = TimeSpan.FromSeconds(2);
+                    var azureAdSection = configuration.GetSection("AzureAd");
+                    var tenantId = azureAdSection.GetValue<string>("TenantId");
+                    var clientId = azureAdSection.GetValue<string>("ClientId");
+                    var clientSecret = azureAdSection.GetValue<string>("ClientSecret");
+                    var subscriptionId = azureAdSection.GetValue<string>("SubscriptionId");
+                    var creds = new ClientSecretCredential(tenantId, clientId, clientSecret);
+                    var client = new ArmClient(creds, subscriptionId, options);
+                    return client;
+                });
+            });
+        services.AddTransient<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
 
         if (configuration.GetValue<bool>("ReverseProxy:Enabled"))
         {

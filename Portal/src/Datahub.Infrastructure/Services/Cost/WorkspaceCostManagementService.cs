@@ -32,7 +32,8 @@ namespace Datahub.Infrastructure.Services.Cost
         private const string RESOURCE_GROUP_NAME_COLUMN = "ResourceGroupName";
 
         public WorkspaceCostManagementService(ArmClient armClient,
-            ILogger<WorkspaceCostManagementService> logger, IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IConfiguration config)
+            ILogger<WorkspaceCostManagementService> logger, IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+            IConfiguration config)
         {
             _logger = logger;
             _dbContextFactory = dbContextFactory;
@@ -78,11 +79,11 @@ namespace Datahub.Infrastructure.Services.Cost
 
             // We get the dates from the query and exclude today
             var dates = queryWorkspaceCosts.Select(c => c.Date).Distinct().ToList();
-            dates = dates.Where(d => d.Date >= DateTime.UtcNow.Date.AddDays(-7) && !d.Date.Equals(DateTime.UtcNow.Date))
+            dates = dates.Where(d => !d.Date.Equals(DateTime.UtcNow.Date))
                 .ToList();
             _logger.LogInformation($"Days to check: {string.Join(", ", dates)}");
 
-            // For each of these dates (at most 7 days), we verify that the database contains the costs for that day
+            // For each of these dates, we verify that the database contains the costs for that day
             // to ensure resilience against query failures
             // We add these costs to the database if they do not exist
             _logger.LogInformation(
@@ -174,6 +175,25 @@ namespace Datahub.Infrastructure.Services.Cost
 
             // Return whether a rollover is needed and the total costs incurred in the last fiscal year (the last full FY)
             return (RolloverNeeded(beforeUpdate, lastRollover), workspaceLastFYTotal);
+        }
+
+        public async Task<bool> RefreshWorkspaceCostsAsync(string workspaceAcronym)
+        {
+            var currentFiscalYear = GetCurrentFiscalYear();
+            var costs = await QueryWorkspaceCosts(workspaceAcronym, currentFiscalYear.startDate, DateTime.UtcNow.Date);
+
+            if (costs == null) return false;
+
+            try
+            {
+                var (success, amount) = await UpdateWorkspaceCostAsync(costs, workspaceAcronym);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -375,7 +395,7 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <param name="mock">Boolean to perform a "mock" request</param>
         /// <returns>Returns the result of the query or null if the query was throttled.</returns>
         /// <exception cref="Exception">Throws exception if the query was incorrect</exception>
-        internal async Task<List<DailyServiceCost>?> QueryScopeCosts(string scopeId, DateTime startDate,
+        public async Task<List<DailyServiceCost>?> QueryScopeCosts(string scopeId, DateTime startDate,
             DateTime endDate, bool mock = false)
         {
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
@@ -457,6 +477,30 @@ namespace Datahub.Infrastructure.Services.Cost
             return ParseQueryResult(queryResults);
         }
 
+        public async Task<List<DailyServiceCost>?> QueryWorkspaceCosts(string workspaceAcronym, DateTime startDate,
+            DateTime endDate)
+        {
+            var rgIds = await GetResourceGroupIdentifiers(workspaceAcronym);
+
+            if (rgIds is null)
+            {
+                _logger.LogError("Failing due to missing resource group identifiers");
+            }
+
+            var workspaceCosts = new List<DailyServiceCost>();
+            var currentFiscalYear = GetCurrentFiscalYear();
+            foreach (var rgId in rgIds)
+            {
+                var rgCosts = await QueryScopeCosts(rgId.ToString(), currentFiscalYear.startDate, DateTime.UtcNow);
+                if (rgCosts != null)
+                {
+                    workspaceCosts.AddRange(rgCosts);
+                }
+            }
+
+            return workspaceCosts;
+        }
+
         /// <summary>
         /// Gets the resource group names for the given workspace acronym
         /// </summary>
@@ -504,6 +548,40 @@ namespace Datahub.Infrastructure.Services.Cost
             return rgNames;
         }
 
+        internal async Task<List<ResourceIdentifier>?> GetResourceGroupIdentifiers(string workspaceAcronym)
+        {
+            var rgs = new List<string>();
+            try
+            {
+                rgs = await GetResourceGroupNames(workspaceAcronym);
+            }
+            catch
+            {
+                rgs = await GetResourceGroupNamesFallback(workspaceAcronym);
+            }
+
+            if (rgs.Count == 0)
+            {
+                _logger.LogError("Could not find the resource group names of the workspace");
+                return null;
+            }
+
+            using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            var sub = ctx.Projects.Include(p => p.DatahubAzureSubscription)
+                .FirstOrDefault(p => p.Project_Acronym_CD == workspaceAcronym)?.DatahubAzureSubscription;
+
+            if (sub is null)
+            {
+                _logger.LogError("Could not find the subscription of the workspace");
+                return null;
+            }
+
+            var subId = "/subscriptions/" + sub.SubscriptionId;
+
+            var rgIds = rgs.Select(c => new ResourceIdentifier(subId + "/resourceGroups/" + c)).ToList();
+            return rgIds;
+        }
+
         /// <summary>
         /// Uses azure resource manager to find the resource group names for the given workspace acronym. This is a fallback method.
         /// </summary>
@@ -517,7 +595,7 @@ namespace Datahub.Infrastructure.Services.Cost
             var sub = ctx.Projects.Include(p => p.DatahubAzureSubscription)
                 .FirstOrDefault(p => p.Project_Acronym_CD == workspaceAcronym)?.DatahubAzureSubscription;
             var subId = "/subscriptions/" + sub?.SubscriptionId;
-            var env = _config["DataHub_ENVNAME"];            
+            var env = _config["DataHub_ENVNAME"];
             var subResource = _armClient.GetSubscriptionResource(new ResourceIdentifier(subId));
             var rgs = subResource.GetResourceGroups();
             var workspaceRgs = rgs.GetAllAsync(filter: $"tagName eq 'project_cd' and tagValue eq '{workspaceAcronym}'");

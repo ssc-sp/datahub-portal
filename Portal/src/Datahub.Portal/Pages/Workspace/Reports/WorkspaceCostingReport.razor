@@ -8,16 +8,25 @@
 @using Datahub.Application.Services
 @using Datahub.Application.Services.Budget
 @using Datahub.Core.Model.Projects
+@using Color = MudBlazor.Color
+@using Size = MudBlazor.Size
+@using Align = MudBlazor.Align
 @using ApexCharts
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IAzurePriceListService _azurePriceListService
 @inject NavigationManager _navigationManager
+@inject IWorkspaceCostManagementService _costMgmt
+@inject ISnackbar _snackbar
 
 @if (_loading)
 {
     <DHLoadingInitializer/>
     return;
+}
+
+@if (_refreshing)
+{
 }
 
 @if (!AreCreditsValid())
@@ -31,7 +40,23 @@
 <MudStack>
     @if (_currentServiceCosts?.Count > 0)
     {
-        <MudText Typo="Typo.h3">@Localizer["Cost Analysis"]</MudText>
+        <MudStack Row>
+            <MudText Typo="Typo.h3">@Localizer["Cost Analysis"]</MudText>
+            <DatahubAuthView ProjectAcronym="@WorkspaceAcronym" AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin">
+                <MudSpacer/>
+                <DHButton StartIcon="@(_refreshing ? null : SidebarIcons.Restart)" Variant="Variant.Outlined" Color="Color.Dark" OnClick="HandleRefresh">
+                    @if (_refreshing)
+                    {
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small"/>
+                    }
+                    else
+                    {
+                        @Localizer["Refresh"]
+                    }
+                </DHButton>
+            </DatahubAuthView>
+        </MudStack>
+
         @if (_lastUpdateValid)
         {
             <MudText Style="font-style: italic">
@@ -44,6 +69,34 @@
             <MudAlert Variant="Variant.Outlined" Severity="Severity.Warning" Style="color: #000">
                 @Localizer["Costing data has not been updated in the last 7 days, please check back later for updated costs."]
             </MudAlert>
+        }
+
+        @if (_refreshing)
+        {
+            <MudGrid Justify="Justify.FlexStart" Spacing="10" Class="pt-2">
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Align="Align.Center">@Localizer["Refreshing your data. This may take some time..."]</MudText>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudStack>
+                        <MudSkeleton Height="30px" Width="100px" SkeletonType="SkeletonType.Text"/>
+                        <MudSkeleton Height="310px" SkeletonType="SkeletonType.Rectangle"/>
+                    </MudStack>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudStack>
+                        <MudSkeleton Height="30px" Width="80px" SkeletonType="SkeletonType.Text"/>
+                        <MudSkeleton Height="310px" SkeletonType="SkeletonType.Rectangle"/>
+                    </MudStack>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudStack>
+                        <MudSkeleton Height="30px" Width="200px" SkeletonType="SkeletonType.Text"/>
+                        <MudSkeleton Height="310px" SkeletonType="SkeletonType.Rectangle"/>
+                    </MudStack>
+                </MudItem>
+            </MudGrid>
+            return;
         }
 
         <MudStack Row>
@@ -86,7 +139,7 @@
                                 Name="@service"
                                 Items="@(_projectCosts.Where(c => c.ServiceName == service && c.Date >= DateTime.UtcNow.Date.AddDays(-30)).OrderBy(c => c.Date).ToList())"
                                 XValue="@(c => c.Date.Date.ToString("yyyy-MM-dd"))"
-                                YValue="@(c => decimal.Round((decimal)c.CadCost, 2))"
+                                YAggregate="@(e => e.Sum(c => (decimal)c.CadCost))"
                                 OrderBy="@(c => c.X)"
                                 SeriesType="SeriesType.Bar"/>
                         }
@@ -186,6 +239,7 @@
     private string _storageEquivalentFormatted;
 
     private bool _loading = true;
+    private bool _refreshing = false;
 
     private List<ChartSeries> DailySeries => new()
     {
@@ -207,11 +261,7 @@
     protected override async Task OnInitializedAsync()
     {
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
-
-        var project = await ctx.Projects
-            .Include(p => p.Credits)
-            .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+        var project = await GetProject();
 
         if (project?.Credits is null)
         {
@@ -219,10 +269,8 @@
             return;
         }
 
+        await FetchLocalData();
 
-        _projectCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).OrderBy(c => c.Date).ToList();
-        _projectCredits = project.Credits;
-        _projectBudget = project.Project_Budget ?? 0;
 
         _remainingBudget = _projectBudget - CurrentCost;
         if (_remainingBudget > 0)
@@ -240,6 +288,25 @@
         _loading = false;
     }
 
+    private async Task<Datahub_Project> GetProject()
+    {
+        using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        var project = await ctx.Projects
+            .Include(p => p.Credits)
+            .AsSingleQuery()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+        return project;
+    }
+
+    private async Task FetchLocalData()
+    {
+        using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        var project = await GetProject();
+        _projectCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).OrderBy(c => c.Date).ToList();
+        _projectCredits = project.Credits;
+        _projectBudget = project.Project_Budget ?? 0;
+    }
+
     private void DefineChartOptions()
     {
         if (_projectCosts.Count > 0)
@@ -252,7 +319,6 @@
                 {
                     Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
                     DecimalsInFloat = 2,
-                    Max = last30Days.GroupBy(c => c.Date).Select(g => new Datahub_Project_Costs { ServiceName = "", CadCost = g.Sum(c => c.CadCost), Date = g.Key }).Max(c => c.CadCost),
                     Min = 0
                 });
             }
@@ -467,6 +533,28 @@
         _showingTotal = false;
         await _serviceCostChart.UpdateSeriesAsync(true);
         await _serviceCostChart.UpdateOptionsAsync(true, true, true);
+        StateHasChanged();
+    }
+
+    private async Task HandleRefresh()
+    {
+        _refreshing = true;
+        var beforeUpdate = _projectCredits.LastUpdate;
+
+        var success = await _costMgmt.RefreshWorkspaceCostsAsync(WorkspaceAcronym);
+        await FetchLocalData();
+        var afterUpdate = _projectCredits.LastUpdate;
+
+        if (success && beforeUpdate != afterUpdate)
+        {
+            _snackbar.Add(Localizer["Successfully refreshed cost data!"], Severity.Success);
+        }
+        else
+        {
+            _snackbar.Add(Localizer["Error when refreshing cost data, please try again later."], Severity.Error);
+        }
+
+        _refreshing = false;
         StateHasChanged();
     }
 
