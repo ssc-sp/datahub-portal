@@ -17,10 +17,10 @@
 @using Datahub.Portal.Services
 @using Datahub.Shared
 @using Datahub.Shared.Configuration
-@using Datahub.Shared.Entities 
+@using Datahub.Shared.Entities
 @using Microsoft.Extensions.Caching.Memory
 @using MassTransit
- 
+
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IDialogService DialogService
 @inject ILogger<WorkspaceHealthcheckPage> Logger
@@ -31,44 +31,45 @@
 
 <MudPaper Class="py-4 px-6">
     <MudStack>
-        <span id="maincontent">
+        <DHMainContentTitle>
             <MudText Typo="Typo.h1">@Localizer["Workspace"] @WorkspaceAcronym @Localizer["Health Check"]</MudText>
-        </span>
+        </DHMainContentTitle>
     </MudStack>
     <MudStack>
         <MudText Typo="Typo.body1">
             @Localizer["View the health of the infrastructure that supports the workspace."]
         </MudText>
         <MudTable Items="_statusList" Hover Dense>
-             <HeaderContent>
+            <HeaderContent>
                 <MudTh>@Localizer["Resource"]</MudTh>
                 <MudTh>@Localizer["Status"]</MudTh>
                 <MudTh>@Localizer["Updated"]</MudTh>
                 <MudTh>@Localizer["Run Check"]</MudTh>
             </HeaderContent>
             <RowTemplate Context="context">
-                    <MudTd>@context.ResourceType</MudTd>
-                    <MudTd>
-                        <MudTooltip Delay="600" Text="@HealthCheckHelperService.GetStatusDetails(context)">
+                <MudTd>@context.ResourceType</MudTd>
+                <MudTd>
+                    <MudTooltip Delay="600" Text="@HealthCheckHelperService.GetStatusDetails(context)">
                         <MudChip T="string" Color="@HealthCheckHelperService.GetColor(context)" Size="Size.Small">
                             @Localizer[HealthCheckHelperService.GetStatusText(context)]
                         </MudChip>
-                        </MudTooltip>
-                    </MudTd>
-                    <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
-                    <MudTd>
-                        <DHButton Variant="Variant.Filled" Color="Color.Primary" 
-                            OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))"
-                            Size="Size.Small" >
-                            @Localizer["Run"]
-                        </DHButton>
-                    </MudTd>                    
-            </RowTemplate>            
+                    </MudTooltip>
+                </MudTd>
+                <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
+                <MudTd>
+                    <DHButton Variant="Variant.Filled" Color="Color.Primary"
+                              OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))"
+                              Size="Size.Small">
+                        @Localizer["Run"]
+                    </DHButton>
+                </MudTd>
+            </RowTemplate>
         </MudTable>
     </MudStack>
 </MudPaper>
 
 @code {
+
     private List<InfrastructureHealthResourceType> _workspaceChecks = new List<InfrastructureHealthResourceType>
     {
         InfrastructureHealthResourceType.AzureSqlDatabase,
@@ -76,22 +77,22 @@
         InfrastructureHealthResourceType.AzureStorageAccount,
         InfrastructureHealthResourceType.AzureWebApp,
     };
+
     private List<InfrastructureHealthCheck> _statusList = new List<InfrastructureHealthCheck>();
     private DatahubProjectDBContext _projectDbContext;
     private List<InfrastructureHealthCheck> _infrastructureHealthChecks;
-    
+
     private const string cacheKey = "InfrastructureHealthChecks";
     private Timer _timer;
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
-    
+    [Parameter] public string WorkspaceAcronym { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
         var user = await _userInformationService.GetCurrentGraphUserAsync();
-        
+
         _projectDbContext = DbFactory.CreateDbContext();
 
         LoadDataForTables();
@@ -110,7 +111,7 @@
     {
         _infrastructureHealthChecks = Cache.Get<List<InfrastructureHealthCheck>>(cacheKey);
         var project = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).Where(p => p.Project_Acronym_CD == WorkspaceAcronym);
-        
+
         var res = _infrastructureHealthChecks
             .Where(h => (_workspaceChecks.Contains(h.ResourceType)))
             .Where(h => (h.Name.Contains(WorkspaceAcronym)))
@@ -124,7 +125,7 @@
             _statusList.Add(output);
         }
     }
-    
+
     private async Task CallFunction(InfrastructureHealthResourceType type, string name, string group)
     {
         var request = new InfrastructureHealthCheckMessage(
