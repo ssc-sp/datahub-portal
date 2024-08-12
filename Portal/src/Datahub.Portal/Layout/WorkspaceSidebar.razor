@@ -101,6 +101,7 @@
     public struct SectionViews
     {
         public const string Dashboard = "dashboard";
+        public const string Delete = "delete";
         public const string Storage = "storage";
         public const string Publishing = "publishing";
         public const string Databricks = "databricks";
@@ -144,6 +145,7 @@
 
     private List<string> _workspaceAdministration =
     [
+        SectionViews.Delete,
         SectionViews.Toolbox,
         SectionViews.Users,
         SectionViews.Metadata,
@@ -181,6 +183,7 @@
             SectionViews.ArcGis => DatahubAuthView.AuthLevels.WorkspaceGuest,
 
             // Administration
+            SectionViews.Delete => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Toolbox => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
             SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,

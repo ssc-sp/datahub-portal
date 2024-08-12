@@ -70,6 +70,19 @@
                                         @Localizer["Tool has been created"]
                                         <DHIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Error" Href="@_resourceDeletionUrl" OnClick="@(async () => await RemoveToolFromWorkspace(tool))">
+                                        @Localizer["Remove from Workspace"]
+                                        <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
+                                    </DHButton>
+                                    break;
+                                case ToolStatus.PendingDeletion:
+                                    <MudText>
+                                        @Localizer["Will be deleted lol"]
+                                    </MudText>
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@(async () => await ReinstateToolToWorkspace(tool))">
+                                        @Localizer["Cancel deletion"]
+                                        <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
+                                    </DHButton>
                                     break;
                                 case ToolStatus.Disabled:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
@@ -110,14 +123,15 @@
 
     private Datahub_Project _workspace;
 
+
     private readonly List<string> _toolList =
     [
         TerraformTemplate.AzureDatabricks,
-        TerraformTemplate.AzureStorageBlob,
-        TerraformTemplate.AzureAppService,
-        TerraformTemplate.AzurePostgres,
-        TerraformTemplate.AzureArcGis,
-        TerraformTemplate.AzureAPI
+    TerraformTemplate.AzureStorageBlob,
+    TerraformTemplate.AzureAppService,
+    TerraformTemplate.AzurePostgres,
+    TerraformTemplate.AzureArcGis,
+    TerraformTemplate.AzureAPI
     ];
 
     private enum ToolStatus
@@ -126,6 +140,7 @@
         SendingRequest,
         PendingRequest,
         Disabled,
+        PendingDeletion,
         UnderDevelopment,
         Exists,
         MetadataRequired,
@@ -144,6 +159,7 @@
 
     private bool _metadataRequired = true;
     private string _metadataUrl => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Metadata}";
+    private string _resourceDeletionUrl => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Delete}";
 
     protected override async Task OnInitializedAsync()
     {
@@ -220,6 +236,20 @@
             _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.Error;
             _snackbar.Add(Localizer["Error adding {0} to your workspace", GetLabel(tool)], Severity.Error);
         }
+    }
+
+    private async Task ReinstateToolToWorkspace(string tool)
+    {
+        await InvokeAsync(StateHasChanged);
+        _snackbar.Add(Localizer["{0} successfully reinstated to your workspace", GetLabel(tool)], Severity.Success);
+        _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.Exists;
+    }
+
+    private async Task RemoveToolFromWorkspace(string tool)
+    {
+        await InvokeAsync(StateHasChanged);
+        _snackbar.Add(Localizer["{0} successfully removed from your workspace", GetLabel(tool)], Severity.Error);
+        _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.PendingDeletion;
     }
 
     private string GetLabel(string tool)

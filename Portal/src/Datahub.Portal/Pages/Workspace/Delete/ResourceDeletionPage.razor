@@ -1,0 +1,88 @@
+﻿@namespace Datahub.Portal.Pages.Workspace.Delete
+
+ @* @page "/w/{ProjectAcronym}/healthcheck" *@
+
+ @if(currentStep == 0)
+{
+    <MudStack>
+        <MudText>
+            @Localizer["instructions for deleting"]
+        </MudText> 
+        <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Href="@_toolboxPage">
+            @Localizer["cancel"]
+            <DHIcon Icon="@SidebarIcons.CreateNew" Class="ml-2" Style="font-size: 0.8rem;" />
+        </DHButton>
+        <DHButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@NextStep">
+            @Localizer["next"]
+            <DHIcon Icon="@SidebarIcons.CreateNew" Class="ml-2" Style="font-size: 0.8rem;" />
+        </DHButton>
+    </MudStack>
+    
+}
+else if (currentStep == 1)
+{
+    <MudStack>
+        <MudText>
+            @Localizer["confirm date"]
+        </MudText>
+        <MudDatePicker PickerVariant="PickerVariant.Static" Date="@DeletionDate" DateChanged="ChangeDate"/>
+        <MudTimePicker PickerVariant="PickerVariant.Static" Time="@DeletionTime" TimeChanged="ChangeTime"/>
+        <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Href="@_toolboxPage">
+            @Localizer["cancel"]
+            <DHIcon Icon="@SidebarIcons.CreateNew" Class="ml-2" Style="font-size: 0.8rem;" />
+        </DHButton>
+        <DHButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@NextStep">
+            @Localizer["good, delete"]
+            <DHIcon Icon="@SidebarIcons.CreateNew" Class="ml-2" Style="font-size: 0.8rem;" />
+        </DHButton>
+    </MudStack>
+
+}
+else if(currentStep == 2)
+{
+    <MudStack>
+        <MudText>
+            @Localizer["do u wanna delete on " + _deletionDate + " at " + _deletionTime]
+        </MudText>
+        <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Href="@_toolboxPage">
+            @Localizer["cancel"]
+            <DHIcon Icon="@SidebarIcons.CreateNew" Class="ml-2" Style="font-size: 0.8rem;" />
+        </DHButton>
+        <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Href="@_toolboxPage">
+            @Localizer["Yes"]
+            <DHIcon Icon="@SidebarIcons.CreateNew" Class="ml-2" Style="font-size: 0.8rem;" />
+        </DHButton>
+    </MudStack>
+}
+
+@code
+{
+    private int currentStep = 0;
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    public DateTime? DeletionDate { get; set; }
+    public TimeSpan? DeletionTime { get; set; }
+
+    private string _deletionDate = "NO DATE";
+    private string _deletionTime = "NO TIME";
+
+    private string _toolboxPage => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Toolbox}";
+
+    private void NextStep()
+    {
+        if(currentStep < 3)
+        {
+            currentStep++;
+        }
+    }
+
+    private void ChangeDate(DateTime? newDate)
+    {
+        _deletionDate = newDate.HasValue ? newDate.Value.ToString("MMMM dd, yyyy") : "No Date";
+    }
+    private void ChangeTime(TimeSpan? newTime)
+    {
+        _deletionTime = newTime.HasValue ? newTime.Value.ToString() : "No Time";
+    }
+}
