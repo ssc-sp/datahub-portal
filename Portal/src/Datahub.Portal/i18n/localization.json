@@ -2074,5 +2074,11 @@
   "{0} credits consumed yesterday": "{0} credits consumed yesterday",
   "{0} credits consumed yesterday": "{0} credits consumed yesterday",
   "{0} remaining credits of {1}": "{0} remaining credits of {1}",
-  "{0} successfully added to your workspace": "{0} successfully added to your workspace"
+  "{0} successfully added to your workspace": "{0} successfully added to your workspace",
+  "Environment information": "Environment information",
+  "Development | Unclassified": "Development | Unclassified",
+  "Integration | Unclassified": "Integration | Unclassified",
+  "Non-Production | Unclassified": "Non-Production | Unclassified",
+  "Production | Unclassified": "Production | Unclassified",
+  "Production | Protected B": "Production | Protected B"
 }
