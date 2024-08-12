@@ -229,8 +229,8 @@
     private List<Datahub_Project_User> _projectUsers;
     private List<Datahub_Project_User> _filteredProjectUsers;
 
-    private List<ProjectUserAddUserCommand> _usersToAdd = new();
-    private List<ProjectUserUpdateCommand> _usersToUpdate = new();
+    private readonly List<ProjectUserAddUserCommand> _usersToAdd = new();
+    private readonly List<ProjectUserUpdateCommand> _usersToUpdate = new();
 
     // private string _currentUserId;
     // private string _currentUserName;
