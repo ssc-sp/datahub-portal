@@ -12,10 +12,8 @@
 
 <PageTitle>@Localizer["Terms and Conditions - Federal Science DataHub"]</PageTitle>
 
-<MudContainer Class="my-16" MaxWidth="MaxWidth.Medium">
-    <h1 id="maincontent" class="mb-8" style="text-align: center">
-        @Localizer["Terms and Conditions"]
-    </h1>
+<MudContainer Class="my-20" MaxWidth="MaxWidth.Medium">
+    <DHMainContentTitle Title="@Localizer["Terms and Conditions"]" />
     <DHMarkdown Content="@_markdownContent" LinkRewriter="@RewriteLink"/>
 </MudContainer>
 
